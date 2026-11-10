@@ -81,91 +81,11 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
             => LoadHolonBySelectorAsync("hl.ProviderKey = $value", providerKey);
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            try
-            {
-                var session = Driver.Session(WithDatabase);
+            => LoadHolonsForParentAsync(id, type, loadChildren, recursive, maxChildDepth, curentChildDepth,
+                continueOnError, loadChildrenFromProvider, version).GetAwaiter().GetResult();
 
-                return session.ReadTransaction(transaction =>
-                {
-                    var cursor = transaction.Run(@"
-                            MATCH (av: Holon)
-                            WHERE av.GUId=$guid
-                            RETURN av.description AS description,av.ProviderKey AS providerkey, av.PreviousVersionId AS previousversionid",
-                        new { guid = id.ToString() }
-                    );
-
-                    IEnumerable<IHolon> avList = (from d in cursor
-                                                  select new Holon
-                                                  {
-                                                      Description = d["description"].As<string>(),
-                                                      //ProviderKey = d["providerkey"].As<Dictionary<ProviderType, string>>(),
-                                                      PreviousVersionId = d["previousversionid"].As<Guid>()
-                                                  }).ToList();
-
-
-                    return new OASISResult<IEnumerable<IHolon>>
-                    {
-                        IsLoaded = true,
-                        IsError = false,
-                        Message = "Holon Loaded successfully",
-                        Result = avList,
-                    };
-                });
-            }
-            catch (Exception ex)
-            {
-                return new OASISResult<IEnumerable<IHolon>>
-                {
-                    IsLoaded = false,
-                    IsError = true,
-                    Message = ex.ToString(),
-                };
-            }
-        }
-
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            try
-            {
-                var session = Driver.AsyncSession(WithDatabase);
-
-                return await session.ReadTransactionAsync(async transaction =>
-                {
-                    var cursor = await transaction.RunAsync(@"
-                           MATCH (hl: Holon)
-                            WHERE hl.GUId=$guid
-                            RETURN hl.description AS description,hl.ProviderKey AS providerkey, hl.PreviousVersionId AS previousversionid",
-                        new { guid = id.ToString() }
-                    );
-
-                    var avList = await cursor.ToListAsync(record => new Holon
-                    {
-                        Description = record["description"].As<string>(),
-                        //ProviderKey = record["providerkey"].As<Dictionary<ProviderType, string>>(),
-                        PreviousVersionId = record["previousversionid"].As<Guid>()
-                    });
-
-
-                    return new OASISResult<IEnumerable<IHolon>>
-                    {
-                        IsLoaded = true,
-                        IsError = false,
-                        Message = "Holon Loaded Successfully",
-                        Result = avList
-                    };
-                });
-            }
-            catch (Exception ex)
-            {
-                return new OASISResult<IEnumerable<IHolon>>
-                {
-                    IsLoaded = true,
-                    IsError = false,
-                    Message = ex.ToString(),
-                };
-            }
-        }
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+            => LoadHolonCollectionAsync(type, id.ToString("D"));
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
@@ -258,7 +178,10 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
             => LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth,
                 continueOnError, loadChildrenFromProvider, version).GetAwaiter().GetResult();
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+            => LoadHolonCollectionAsync(type, null);
+
+        private async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonCollectionAsync(HolonType type, string parentId)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
             try
@@ -269,11 +192,11 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
                 {
                     var cursor = await transaction.RunAsync(@"
                         MATCH (hl:Holon)
-                        WHERE $allTypes OR hl.HolonType = $type
+                        WHERE ($allTypes OR hl.HolonType = $type) AND ($parentId IS NULL OR hl.ParentHolonId = $parentId)
                         RETURN hl.GUId AS id, hl.name AS name, hl.description AS description,
                                hl.ProviderKey AS providerkey, hl.PreviousVersionId AS previousversionid,
                                hl.HolonType AS type, hl.ParentHolonId AS parent
-                        ORDER BY hl.GUId", new { allTypes = type == HolonType.All, type = (int)type }).ConfigureAwait(false);
+                        ORDER BY hl.GUId", new { allTypes = type == HolonType.All, type = (int)type, parentId }).ConfigureAwait(false);
                     return await cursor.ToListAsync(ReadListedHolon).ConfigureAwait(false);
                 }).ConfigureAwait(false);
 
