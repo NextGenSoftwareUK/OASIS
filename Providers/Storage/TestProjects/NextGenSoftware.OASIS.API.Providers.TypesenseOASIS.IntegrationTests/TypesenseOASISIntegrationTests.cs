@@ -32,12 +32,26 @@ namespace NextGenSoftware.OASIS.API.Providers.TypesenseOASIS.IntegrationTests
         }
 
         [TestMethod]
-        public async Task SaveAvatar_ShouldReturnSuccessResult()
+        public async Task AvatarSaveAndHardDeleteRoundTrip()
         {
-            var avatar = new Avatar { Id = Guid.NewGuid(), Username = "typesense-test-user", Email = "typesense@test.com" };
-            var result = await _provider.SaveAvatarAsync(avatar);
-            Assert.IsFalse(result.IsError, result.Message);
-            Assert.IsNotNull(result.Result);
+            var id = Guid.NewGuid();
+            var avatar = new Avatar { Id = id, Username = $"typesense-{id:N}", Email = $"{id:N}@example.test" };
+            var saved = await _provider.SaveAvatarAsync(avatar);
+            Assert.IsFalse(saved.IsError, saved.Message);
+            Assert.IsTrue(saved.IsSaved);
+            try
+            {
+                var loaded = await _provider.LoadAvatarAsync(id);
+                Assert.IsFalse(loaded.IsError, loaded.Message);
+                Assert.AreEqual(avatar.Username, loaded.Result.Username);
+            }
+            finally
+            {
+                var deleted = await _provider.DeleteAvatarAsync(id, softDelete: false);
+                Assert.IsFalse(deleted.IsError, deleted.Message);
+                Assert.IsTrue(deleted.IsDeleted);
+                Assert.AreEqual(1, deleted.DeletedCount);
+            }
         }
 
         [TestMethod]
