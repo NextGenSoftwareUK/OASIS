@@ -9,7 +9,7 @@ Active checkpoint, 10 November 2026. Current HyperDrive verification is split be
 - All applicable provider baselines precede global failover/load balancing/replication verification, then priority-provider depth. No Polkadot/NEAR/SQLite depth now.
 - Use the existing C:/Source/OASIS2-hyperdrive worktree on work/hyperdrive-provider-completion. No new clones/worktrees/environments; reuse cached runtimes.
 - Stage exact owned files, preserve concurrent dirty work/submodules, no force pushes/attribution trailers. Preserve the separate COSMIC/CQL checkout and branch.
-- Check Development every 30 minutes during active work and integrate scoped verified batches; fetch first, verify submodule commits remotely and manifest/gitlink agreement. Never deploy unrelated/unverified changes just to synchronize.
+- Check Development every 30 minutes during active work. Batch verified Development pushes under the repository deployment cadence. Fetch first, verify submodule commits remotely and check manifest/gitlink agreement. Never deploy unrelated/unverified changes just to synchronize.
 - Before taking on a provider, check both this directory and the main checkout COSMIC ORM status and provider handoffs for active ownership. Update this checkpoint and affected provider evidence, matrix, handoff, and owner-action entries when ownership, acceptance, prerequisites, or integration changes.
 - New raw evidence under TestResults; compact hash-bound summaries only are tracked. Maintain resource ledger, ten recent entries, byte-preserved archive rollovers.
 
