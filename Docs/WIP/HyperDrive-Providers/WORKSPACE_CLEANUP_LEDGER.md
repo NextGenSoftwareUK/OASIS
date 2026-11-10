@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+10 November 2026 SQL Server concurrency verification: reused the existing dedicated oasis_hyperdrive_provider_test LocalDB fixture and integration project output under C:/Source/OASIS2-hyperdrive/Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SQLServerDBOASIS.IntegrationTests. The leased test run is still active. No new download, environment or raw report was requested. Keep its bin/obj while active; confirm fixture deletion and service stop, then retire unneeded owned output after the integration batch. C free at check: 27,893,899,264 B (shared machine).
+
 NuGet restore also reuses shared C:/Users/david/AppData/Local/NuGet/v3-cache and C:/Users/david/AppData/Local/Temp/NuGetScratch (paths confirmed by dotnet nuget locals; sizes/individual historical ownership unmeasured). They are shared caches, not owned disposal targets; no broad removal performed.
 
 PocketBase28October outcome:15 regressions observed red, final24/24 maintained unit cases pass; no native pass claimed. Fixed producer bin7,416,440/obj926,802 B and unit bin46,255,098/obj993,421 B reused/created from existing cache; retained reusable, no download/runtime/service/database/raw report. Safe regeneration via documented bounded cached builds, remove only after owned build/test handles stop and outputs no longer needed. C free104,204,275,712 B after checks (shared-machine observation). Native/full-interface gates remain in DOCUMENT_FAMILY_BASELINE.md; unrelated Core/DNA/BootLoader work preserved.
