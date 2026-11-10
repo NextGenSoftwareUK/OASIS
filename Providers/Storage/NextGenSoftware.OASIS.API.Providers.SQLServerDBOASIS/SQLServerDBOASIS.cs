@@ -720,16 +720,18 @@ WHERE h.Id = @Id AND h.IsDeleted = 0;";
             var result = new OASISResult<ISearchResults>();
             try
             {
+                ArgumentOutOfRangeException.ThrowIfNegative(version);
                 var holons = new List<IHolon>();
                 string? query = searchParams.SearchGroups?
                     .OfType<NextGenSoftware.OASIS.API.Core.Objects.Search.SearchTextGroup>()
                     .FirstOrDefault()?.SearchQuery;
                 string sql = string.IsNullOrEmpty(query)
-                    ? "SELECT DataJson FROM OASISHolons WHERE IsDeleted=0"
-                    : "SELECT DataJson FROM OASISHolons WHERE IsDeleted=0 AND (CHARINDEX(@Q, JSON_VALUE(DataJson,'$.name')) > 0 OR CHARINDEX(@Q, JSON_VALUE(DataJson,'$.description')) > 0)";
+                    ? VersionedHolonRows
+                    : VersionedHolonRows + " AND (CHARINDEX(@Q, JSON_VALUE(snapshot.DataJson,'$.name')) > 0 OR CHARINDEX(@Q, JSON_VALUE(snapshot.DataJson,'$.description')) > 0)";
                 await using var conn = new SqlConnection(_connectionString);
                 await conn.OpenAsync();
                 await using var cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@Version", version);
                 if (!string.IsNullOrEmpty(query)) cmd.Parameters.AddWithValue("@Q", query);
                 await using var reader = await cmd.ExecuteReaderAsync();
                 while (await reader.ReadAsync()) { var h = Deserialize<Holon>(reader.GetString(0)); if (h != null) holons.Add(h); }
