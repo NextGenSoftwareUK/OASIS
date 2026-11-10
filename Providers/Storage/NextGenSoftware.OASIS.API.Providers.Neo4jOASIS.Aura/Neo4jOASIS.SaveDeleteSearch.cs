@@ -69,15 +69,25 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
                     return await cursor.SingleAsync(row => row["matched"].As<long>()).ConfigureAwait(false);
                 }).ConfigureAwait(false);
 
-                if (matches > 1)
-                    throw new InvalidOperationException("Multiple Aura avatars match the requested identity.");
+                if (matches == 0)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Neo4j Aura avatar was not found.");
+                    result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
+                    return result;
+                }
 
-                result.Result = matches == 1;
-                result.IsDeleted = result.Result;
+                if (matches > 1)
+                    throw new StorageIdentityAmbiguousException();
+
+                result.Result = true;
+                result.IsDeleted = true;
+                result.DeletedCount = 1;
             }
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, "Error deleting Neo4j Aura avatar.", ex);
+                if (ex is StorageIdentityAmbiguousException)
+                    result.ErrorCode = OASISResultErrorCodes.AmbiguousIdentity;
             }
 
             return result;
