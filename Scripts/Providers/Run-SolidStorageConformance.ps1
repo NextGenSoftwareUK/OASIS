@@ -22,6 +22,10 @@ if(Test-Path -LiteralPath $solidTrx){throw 'Preserve previous SOLID native repor
         if ($missingFixtureFiles.Count -gt 0) {
             throw 'Retained SOLID fixture configuration is incomplete; no build or native test started.'
         }
+        $solidRaw=(& wsl -d Ubuntu -u root -- podman inspect oasis-solid)-join "`n"
+        if($LASTEXITCODE){throw 'Retained SOLID container unavailable.'}
+        $solidContainer=($solidRaw|ConvertFrom-Json)[0]
+        if($solidContainer.Image -ne '58bee7c3f6a20498d72eb6f8334ba84299b6df2c8fca119ce805fe8614512d7a' -or $solidContainer.State.Status -ne 'exited'){throw 'Exact stopped retained SOLID runtime required.'}
         foreach($solidProjectRelative in @(
             'Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.csproj',
             'Providers/Network/NextGenSoftware.OASIS.API.Providers.SOLIDOASIS/NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.csproj',
@@ -37,11 +41,7 @@ if(Test-Path -LiteralPath $solidTrx){throw 'Preserve previous SOLID native repor
         foreach($solidAssembly in @('NextGenSoftware.OASIS.API.Providers.SOLIDOASIS','NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.IntegrationTests')){
             Write-Output ($solidAssembly+': sources='+(Assert-SourceDocuments (Join-Path $solidConsumerOutput ($solidAssembly+'.dll')) $solidTaskRoot))
         }
-        $solidRaw=(& wsl -d Ubuntu -u root -- podman inspect oasis-solid)-join "`n"
-        if($LASTEXITCODE){throw 'Retained SOLID container unavailable.'}
-        $solidContainer=($solidRaw|ConvertFrom-Json)[0]
-        if($solidContainer.Image -ne '58bee7c3f6a20498d72eb6f8334ba84299b6df2c8fca119ce805fe8614512d7a' -or $solidContainer.State.Status -ne 'exited'){throw 'Exact stopped retained SOLID runtime required.'}
-        & wsl -d Ubuntu -u root -- podman start oasis-solid | Out-Null
+        & wsl -d Ubuntu -u root -- podman start $solidContainer.Id | Out-Null
         if($LASTEXITCODE){throw 'Retained SOLID start failed.'};$solidStarted=$true
         $null=& (Join-Path $solidTaskRoot 'Scripts/TestHosts/Wait-ReusableSolidListener.ps1')
         & dotnet test $solidProject --no-build --no-restore /p:IncludeCoreStorageConformance=true --filter 'FullyQualifiedName~SolidCoreStorageConformanceTests' --logger 'trx;LogFileName=solid-core-current.trx' --results-directory (Split-Path $solidTrx) -v:q
@@ -55,7 +55,7 @@ if(Test-Path -LiteralPath $solidTrx){throw 'Preserve previous SOLID native repor
         $solidCounts=$solidRun.TestRun.ResultSummary.Counters
         if([int]$solidCounts.total -ne 2 -or [int]$solidCounts.passed -ne 2 -or [int]$solidCounts.notExecuted -ne 0){throw 'Both SOLID native schedules must execute without skips.'}
     }finally{
-        try{if($solidStarted){& wsl -d Ubuntu -u root -- podman stop --time 20 oasis-solid | Out-Null;if($LASTEXITCODE){throw 'Owned SOLID stop failed; inspect existing runtime.'}}}
+        try{if($solidStarted){& wsl -d Ubuntu -u root -- podman stop --time 20 $solidContainer.Id | Out-Null;if($LASTEXITCODE){throw 'Owned SOLID stop failed; inspect existing runtime.'}}}
         finally{$solidLease.Dispose()}
     }
 }
