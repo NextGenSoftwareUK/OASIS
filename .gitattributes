@@ -70,3 +70,4 @@ Providers/Shared/Contracts/OASISKeyValueStore.sol text eol=lf
 # Unified-diff context lines representing an empty source line contain one
 # required leading space. Do not flag that patch syntax as trailing whitespace.
 Scripts/patches/*.patch whitespace=-blank-at-eol
+Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-tonoasis-current.json text eol=lf
