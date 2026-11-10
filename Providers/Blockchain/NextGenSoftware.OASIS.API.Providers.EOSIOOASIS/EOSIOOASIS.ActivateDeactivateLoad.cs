@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -56,17 +56,21 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             try
             {
                 _eosClient = new EosClient(new Uri(HostURI));
-                _holonRepository = new HolonEosProviderRepository(_eosClient, EOSAccountName, HostURI, EOSChainId, EOSAccountPk);
-                _avatarDetailRepository = new AvatarDetailEosProviderRepository(_eosClient, EOSAccountName, HostURI, EOSChainId, EOSAccountPk);
-                _avatarRepository = new AvatarEosProviderRepository(_eosClient, EOSAccountName, HostURI, EOSChainId, EOSAccountPk);
-                _transferRepository = new EosTransferRepository(EOSAccountName, HostURI, EOSChainId, EOSAccountPk);
-
                 // Get server state. Just need to receive correct response, otherwise exception would be thrown.
                 var nodeInfo = await _eosClient.GetNodeInfo();
 
                 // Response was received, but payload was incorrect.
                 if (nodeInfo == null || !nodeInfo.IsNodeInfoCorrect())
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage} NodeInfo Received Incorrect.");
+                else if (!string.IsNullOrWhiteSpace(EOSChainId) && !string.Equals(nodeInfo.ChainId, EOSChainId, StringComparison.OrdinalIgnoreCase))
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} The endpoint chain ID does not match the configured EOSIO chain ID.");
+                else
+                {
+                    _holonRepository = new HolonEosProviderRepository(_eosClient, EOSAccountName, HostURI, EOSChainId, EOSAccountPk);
+                    _avatarDetailRepository = new AvatarDetailEosProviderRepository(_eosClient, EOSAccountName, HostURI, EOSChainId, EOSAccountPk);
+                    _avatarRepository = new AvatarEosProviderRepository(_eosClient, EOSAccountName, HostURI, EOSChainId, EOSAccountPk);
+                    _transferRepository = new EosTransferRepository(EOSAccountName, HostURI, EOSChainId, EOSAccountPk);
+                }
             }
             catch (Exception ex)
             {
@@ -94,17 +98,21 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             try
             {
                 _eosClient = new EosClient(new Uri(HostURI));
-                _holonRepository = new HolonEosProviderRepository(_eosClient, EOSAccountName, HostURI, EOSChainId, EOSAccountPk);
-                _avatarDetailRepository = new AvatarDetailEosProviderRepository(_eosClient, EOSAccountName, HostURI, EOSChainId, EOSAccountPk);
-                _avatarRepository = new AvatarEosProviderRepository(_eosClient, EOSAccountName, HostURI, EOSChainId, EOSAccountPk);
-                _transferRepository = new EosTransferRepository(EOSAccountName, HostURI, EOSChainId, EOSAccountPk);
-
                 // Get server state. Just need to receive correct response, otherwise exception would be thrown.
                 var nodeInfo = _eosClient.GetNodeInfo().Result;
 
                 // Response was received, but payload was incorrect.
                 if (nodeInfo == null || !nodeInfo.IsNodeInfoCorrect())
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage} NodeInfo Received Incorrect.");
+                else if (!string.IsNullOrWhiteSpace(EOSChainId) && !string.Equals(nodeInfo.ChainId, EOSChainId, StringComparison.OrdinalIgnoreCase))
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} The endpoint chain ID does not match the configured EOSIO chain ID.");
+                else
+                {
+                    _holonRepository = new HolonEosProviderRepository(_eosClient, EOSAccountName, HostURI, EOSChainId, EOSAccountPk);
+                    _avatarDetailRepository = new AvatarDetailEosProviderRepository(_eosClient, EOSAccountName, HostURI, EOSChainId, EOSAccountPk);
+                    _avatarRepository = new AvatarEosProviderRepository(_eosClient, EOSAccountName, HostURI, EOSChainId, EOSAccountPk);
+                    _transferRepository = new EosTransferRepository(EOSAccountName, HostURI, EOSChainId, EOSAccountPk);
+                }
             }
             catch (Exception ex)
             {
