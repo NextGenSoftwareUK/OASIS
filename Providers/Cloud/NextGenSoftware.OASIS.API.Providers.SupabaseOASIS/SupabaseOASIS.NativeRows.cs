@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS;
 
@@ -60,7 +61,7 @@ public partial class SupabaseOASIS
         ReadCompleteRows($"oasis_holons?{filter}", ReadNativeRows, row => ParseHolon(row).Id, token);
 
     private async Task<List<TRow>> ReadCompleteRows<TRow>(
-        string query, Func<string, List<TRow>> readPage, Func<TRow, Guid> getId, CancellationToken token)
+        string query, Func<string, List<TRow>> readPage, Func<TRow, Guid> getId, CancellationToken token, bool singleIdentity = false)
     {
         var rows = new List<TRow>();
         var seen = new HashSet<Guid>();
@@ -68,7 +69,7 @@ public partial class SupabaseOASIS
         do
         {
             using var request = new HttpRequestMessage(HttpMethod.Get,
-                $"{_baseUrl}/{query}&order=id.asc&limit=100&offset={rows.Count}");
+                $"{_baseUrl}/{query}&order=id.asc&limit={(singleIdentity ? 1 : 100)}&offset={rows.Count}");
             request.Headers.Add("Prefer", "count=exact");
             using var response = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, token).ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
@@ -83,6 +84,9 @@ public partial class SupabaseOASIS
                 || (page.Count != 0 && (!long.TryParse(match.Groups[1].Value, out var from) || from != rows.Count
                     || !long.TryParse(match.Groups[2].Value, out var to) || to != (long)rows.Count + page.Count - 1 || to >= total)))
                 throw new InvalidDataException("Supabase returned an incomplete or inconsistent native range.");
+
+            if (singleIdentity && total > 1)
+                throw new StorageIdentityAmbiguousException();
 
             expectedTotal = total;
             foreach (var row in page)

@@ -214,13 +214,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
 
         private async Task<Avatar?> GetAvatarByFilterAsync(string filter)
         {
-            using var response = await _http.GetAsync($"{_baseUrl}/oasis_avatars?{filter}&is_deleted=eq.false&limit=2");
-            response.EnsureSuccessStatusCode();
-            var json = await response.Content.ReadAsStringAsync();
-            var rows = DeserializeList<AvatarRow>(json);
-            if (rows.Count == 0) return null;
-            if (rows.Count > 1) throw new StorageIdentityAmbiguousException();
-            return ParseAvatarRow(rows[0]);
+            var rows = await ReadCompleteRows($"oasis_avatars?{filter}&is_deleted=eq.false",
+                DeserializeList<AvatarRow>, row => ParseAvatarRow(row).Id, default, singleIdentity: true);
+            return rows.Count == 0 ? null : ParseAvatarRow(rows[0]);
         }
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0)
@@ -396,11 +392,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
             var result = new OASISResult<IAvatarDetail>();
             try
             {
-                using var response = await _http.GetAsync($"{_baseUrl}/oasis_avatar_details?username=eq.{Uri.EscapeDataString(username)}&limit=2");
-                response.EnsureSuccessStatusCode();
-                var rows = DeserializeList<AvatarDetailRow>(await response.Content.ReadAsStringAsync());
+                var rows = await ReadCompleteRows($"oasis_avatar_details?username=eq.{Uri.EscapeDataString(username)}",
+                    DeserializeList<AvatarDetailRow>, row => ParseAvatarDetailRow(row).Id, default, singleIdentity: true);
                 if (rows.Count == 0) { OASISErrorHandling.HandleError(ref result, $"SupabaseOASIS: No avatar detail found for username '{username}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
-                if (rows.Count > 1) throw new StorageIdentityAmbiguousException();
                 result.Result = ParseAvatarDetailRow(rows[0]); result.IsLoaded = true; result.LoadedCount = 1;
                 result.Message = $"SupabaseOASIS: AvatarDetail loaded for username '{username}'.";
             }
@@ -415,11 +409,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
             var result = new OASISResult<IAvatarDetail>();
             try
             {
-                using var response = await _http.GetAsync($"{_baseUrl}/oasis_avatar_details?email=eq.{Uri.EscapeDataString(email)}&limit=2");
-                response.EnsureSuccessStatusCode();
-                var rows = DeserializeList<AvatarDetailRow>(await response.Content.ReadAsStringAsync());
+                var rows = await ReadCompleteRows($"oasis_avatar_details?email=eq.{Uri.EscapeDataString(email)}",
+                    DeserializeList<AvatarDetailRow>, row => ParseAvatarDetailRow(row).Id, default, singleIdentity: true);
                 if (rows.Count == 0) { OASISErrorHandling.HandleError(ref result, $"SupabaseOASIS: No avatar detail found for email '{email}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
-                if (rows.Count > 1) throw new StorageIdentityAmbiguousException();
                 result.Result = ParseAvatarDetailRow(rows[0]); result.IsLoaded = true; result.LoadedCount = 1;
                 result.Message = $"SupabaseOASIS: AvatarDetail loaded for email '{email}'.";
             }
