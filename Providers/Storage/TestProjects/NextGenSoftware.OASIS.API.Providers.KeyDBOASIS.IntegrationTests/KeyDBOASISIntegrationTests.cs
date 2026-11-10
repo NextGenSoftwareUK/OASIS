@@ -28,9 +28,13 @@ public class KeyDBOASISIntegrationTests
         Assert.IsFalse(Directory.Exists(directory), "Preserve prior fixture evidence.");
 
         using var native = await ConnectionMultiplexer.ConnectAsync(options);
-        var info = await native.GetServer(options.EndPoints[0]).InfoAsync("server");
+        var server = native.GetServer(options.EndPoints[0]);
+        var info = await server.InfoAsync("server");
         Assert.IsTrue(info.SelectMany(group => group).Any(pair => pair.Key == "executable" && pair.Value.EndsWith("/keydb-server", StringComparison.Ordinal)),
             "The endpoint must identify itself as KeyDB.");
+
+        var database = native.GetDatabase().Database;
+        Assert.AreEqual(0L, await server.DatabaseSizeAsync(database), "Use an empty dedicated database.");
 
         Directory.CreateDirectory(directory);
         var path = Path.Combine(directory, "report.json");
@@ -51,6 +55,7 @@ public class KeyDBOASISIntegrationTests
             expectedDefaultDeletion: "soft");
         Assert.IsTrue(result.Succeeded, $"{result.CurrentCase}: {result.FailureType} {result.FailureContract}");
         Assert.IsTrue(result.FixtureCleanupComplete);
+        Assert.AreEqual(0L, await server.DatabaseSizeAsync(database), "The dedicated database must be empty after cleanup.");
         Assert.AreEqual(CoreStorageConformance.ChecksPerMode, result.Passed.Count);
     }
 }
