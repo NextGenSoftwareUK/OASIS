@@ -1,5 +1,6 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS;
 using System;
 using System.Threading.Tasks;
@@ -85,6 +86,14 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.IntegrationTests
 
             var deleted = await _provider.DeleteHolonAsync(holon.Id);
             Assert.IsFalse(deleted.IsError, deleted.Message);
+            Assert.IsTrue(deleted.IsDeleted);
+            Assert.AreEqual(1, deleted.DeletedCount);
+
+            var missing = await _provider.LoadHolonAsync(holon.Id, loadChildren: false);
+            Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, missing.ErrorCode);
+            Assert.IsNull(missing.Result);
+            Assert.IsFalse(missing.IsLoaded);
+            Assert.AreEqual(0, missing.LoadedCount);
         }
 
         [TestCleanup]
