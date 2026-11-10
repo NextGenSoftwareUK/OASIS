@@ -208,11 +208,20 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
             var result = new OASISResult<IAvatar>();
             try
             {
-                if (avatar.Id == Guid.Empty) avatar.Id = Guid.NewGuid();
-                if (avatar.ProviderUniqueStorageKey == null) avatar.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
-                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.PocketBaseOASIS] = avatar.Id.ToString();
-                var row = new { oasis_id = avatar.Id.ToString(), username = avatar.Username ?? "", email = avatar.Email ?? "", is_deleted = avatar.IsDeleted, data_json = Serialize(avatar) };
-                await UpsertAsync("oasis_avatars", avatar.Id.ToString(), row);
+                ArgumentNullException.ThrowIfNull(avatar);
+                var id = avatar.Id == Guid.Empty ? Guid.NewGuid() : avatar.Id;
+                var canonical = JsonSerializer.SerializeToNode(avatar, avatar.GetType(), _jsonOpts)!.AsObject();
+                canonical["id"] = id.ToString("D");
+                var keys = canonical["providerUniqueStorageKey"]?.AsObject() ?? new JsonObject();
+                keys["PocketBaseOASIS"] = id.ToString("D");
+                canonical["providerUniqueStorageKey"] = keys;
+                var row = new { oasis_id = id.ToString("D"), username = avatar.Username ?? "", email = avatar.Email ?? "",
+                    is_deleted = avatar.IsDeleted, data_json = canonical.ToJsonString(_jsonOpts) };
+                await UpsertAsync("oasis_avatars", row.oasis_id, row);
+
+                avatar.Id = id;
+                avatar.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
+                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.PocketBaseOASIS] = row.oasis_id;
                 result.Result = avatar; result.IsSaved = true; result.SavedCount = 1; result.Message = $"PocketBaseOASIS: Avatar '{avatar.Username}' saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: Error saving avatar: {ex.Message}"); }
