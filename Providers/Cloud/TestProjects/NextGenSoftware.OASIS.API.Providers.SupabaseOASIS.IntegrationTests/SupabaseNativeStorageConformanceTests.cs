@@ -226,9 +226,11 @@ public class SupabaseNativeStorageConformanceTests
                 report.CurrentCase = "supabase-verify-empty-tables";
                 await Checkpoint(report);
                 await RequireEmptyTables("after cleanup");
-                report.CurrentCase = "complete";
                 report.FixtureCleanupComplete = true;
-                report.Succeeded = true;
+                report.Succeeded = report.Passed.Count == CoreStorageConformance.ChecksPerMode;
+                report.CurrentCase = report.Succeeded ? "complete" : "native-check-count-verification";
+                if (!report.Succeeded)
+                    report.FailureType = typeof(AssertFailedException).FullName!;
             }
             await Checkpoint(report);
         }
