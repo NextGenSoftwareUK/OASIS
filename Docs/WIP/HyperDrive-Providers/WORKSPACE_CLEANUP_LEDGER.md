@@ -114,3 +114,5 @@ EdgeSQLite focused file-backed cohort: all eight checks exited. Fixture disposal
 10 November IPFS test cleanup follow-up: leased build and clean completed after adding the pinned SDK project reference. No live fixture or raw report was created.
 
 10 November IPFS teardown candidate: leased build and clean completed. Original Core 59595871d and HyperDrive branch restored. No backend or raw report created.
+
+10 November combined BootLoader candidate 6b07640979: leased build and clean completed, and the worktree returned to the HyperDrive branch. No backend or raw report allocated.

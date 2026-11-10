@@ -113,3 +113,5 @@ IPFS integration cleanup and SDK reference (defcb2ade3, bf041d53ae) compiled wit
 Scoped IPFS teardown candidate 1f1021ec6a built against Development Core e5802022e with 0 errors and 1139 warnings. Live Kubo verification remains open.
 
 Development 1f1021ec6a contains the compiled IPFS round-trip test teardown. HyperDrive synchronized at 1e7be4a153 with Core e5802022e and the matching Railway manifest pin. The IPFS runtime activation change still awaits live Kubo verification.
+
+Combined BootLoader candidate 6b07640979 compiled with pinned Core e5802022e, 0 errors and 2142 warnings. Covers Neon, Convex and Supabase registration plus hot-activation error propagation. Live ONODE verification remains open.
