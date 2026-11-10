@@ -622,9 +622,10 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            var all = await LoadAllHolonsAsync(type);
+            var all = await LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
+            if (all.IsError) return all;
             var holons = all.Result?.Where(h => h.MetaData != null && h.MetaData.TryGetValue(metaKey, out var v) && v?.ToString() == metaValue).ToList() ?? new List<IHolon>();
-            return new OASISResult<IEnumerable<IHolon>> { Result = holons, IsError = false, Message = $"PocketBaseOASIS: Loaded {holons.Count} holon(s) where {metaKey}={metaValue}." };
+            return new OASISResult<IEnumerable<IHolon>> { Result = holons, IsLoaded = true, LoadedCount = holons.Count, Message = $"PocketBaseOASIS: Loaded {holons.Count} holon(s) where {metaKey}={metaValue}." };
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
@@ -632,10 +633,11 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            var all = await LoadAllHolonsAsync(type);
+            var all = await LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
+            if (all.IsError) return all;
             bool IsMatch(IHolon h) { if (h.MetaData == null) return false; var checks = metaKeyValuePairs.Select(kvp => h.MetaData.TryGetValue(kvp.Key, out var v) && v?.ToString() == kvp.Value); return metaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.Any ? checks.Any(c => c) : checks.All(c => c); }
             var holons = all.Result?.Where(IsMatch).ToList() ?? new List<IHolon>();
-            return new OASISResult<IEnumerable<IHolon>> { Result = holons, IsError = false, Message = $"PocketBaseOASIS: Loaded {holons.Count} holon(s) matching metadata filter." };
+            return new OASISResult<IEnumerable<IHolon>> { Result = holons, IsLoaded = true, LoadedCount = holons.Count, Message = $"PocketBaseOASIS: Loaded {holons.Count} holon(s) matching metadata filter." };
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
