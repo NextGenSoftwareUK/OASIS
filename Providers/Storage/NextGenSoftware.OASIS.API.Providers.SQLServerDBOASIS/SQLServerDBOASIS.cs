@@ -900,12 +900,14 @@ WHERE h.Id = @Id AND h.IsDeleted = 0;";
             try
             {
                 string sql = type == HolonType.All
-                    ? "SELECT DataJson FROM OASISHolons WHERE IsDeleted=0"
-                    : "SELECT DataJson FROM OASISHolons WHERE IsDeleted=0 AND HolonType=@HolonType";
+                    ? VersionedHolonRows
+                    : VersionedHolonRows + " AND snapshot.HolonType=@HolonType";
                 await using var conn = new SqlConnection(_connectionString);
                 await conn.OpenAsync();
                 await using var cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@Version", version);
                 if (type != HolonType.All) cmd.Parameters.AddWithValue("@HolonType", (int)type);
+                ArgumentOutOfRangeException.ThrowIfNegative(version);
                 var holons = new List<IHolon>();
                 await using var reader = await cmd.ExecuteReaderAsync();
                 while (await reader.ReadAsync()) { var h = Deserialize<Holon>(reader.GetString(0)); if (h != null) holons.Add(h); }
