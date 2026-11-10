@@ -161,6 +161,60 @@ public class SqlServerNativeStorageConformanceTests
     }
 
     [TestMethod]
+    public async Task SearchSelectsArchivedHolonText()
+    {
+        if (Environment.GetEnvironmentVariable("OASIS_SQLSERVER_HISTORY_SEARCH") != "1")
+            Assert.Inconclusive("Enable only for the dedicated LocalDB provider fixture.");
+
+        const string connection = @"Server=(localdb)\MSSQLLocalDB;Database=oasis_hyperdrive_provider_test;Integrated Security=true;TrustServerCertificate=true";
+        var provider = new SQLServerDBOASIS(connection);
+        var id = Guid.NewGuid();
+        var holon = new NextGenSoftware.OASIS.API.Core.Holons.Holon { Id = id, Name = id.ToString("N") + "%_", Version = 1 };
+        var saved = false;
+        try
+        {
+            var active = await provider.ActivateProviderAsync();
+            Assert.IsTrue(active.Result && !active.IsError, active.Message);
+            var first = await provider.SaveHolonAsync(holon, saveChildren: false);
+            Assert.IsTrue(first.IsSaved && !first.IsError, first.Message);
+            saved = true;
+
+            holon.Version = 2;
+            holon.Name = "Updated";
+            var second = await provider.SaveHolonAsync(holon, saveChildren: false);
+            Assert.IsTrue(second.IsSaved && !second.IsError, second.Message);
+
+            var search = new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchParams
+            {
+                SearchGroups = new()
+                {
+                    new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchTextGroup { SearchQuery = id.ToString("N") + "%_" }
+                }
+            };
+            var historical = await provider.SearchAsync(search, loadChildren: false, version: 1);
+            Assert.IsTrue(historical.IsLoaded && !historical.IsError, historical.Message);
+            Assert.AreEqual(id, historical.Result.SearchResultHolons.Single().Id);
+            var current = await provider.SearchAsync(search, loadChildren: false);
+            Assert.IsTrue(current.IsLoaded && !current.IsError, current.Message);
+            Assert.AreEqual(0, current.LoadedCount);
+        }
+        finally
+        {
+            if (saved)
+            {
+                var deleted = await provider.DeleteHolonWithSoftDeleteAsync(id, false);
+                Assert.IsTrue(deleted.IsDeleted && !deleted.IsError, deleted.Message);
+                await using var inspection = new SqlConnection(connection);
+                await inspection.OpenAsync();
+                await using var cmd = new SqlCommand("SELECT COUNT(*) FROM OASISHolonHistory WHERE Id=@Id", inspection);
+                cmd.Parameters.AddWithValue("@Id", id);
+                Assert.AreEqual(0, (int)(await cmd.ExecuteScalarAsync())!);
+            }
+            await provider.DeActivateProviderAsync();
+        }
+    }
+
+    [TestMethod]
     public async Task MetadataReadsSelectArchivedSnapshot()
     {
         if (Environment.GetEnvironmentVariable("OASIS_SQLSERVER_HISTORY_METADATA") != "1")
