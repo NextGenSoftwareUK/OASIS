@@ -140,3 +140,7 @@ The Azure Blob and Azure Cosmos DB inventory entries each retain 52/52 shared li
 ### Oracle Database and OCI Object Storage
 
 Oracle Database retains its 52/52 native shared lifecycle result through the managed Oracle client. OCI Object Storage is a separate provider. Its existing OracleLiveProviderAcceptance entry point uses the shipping provider and real ObjectStorageClient with a dedicated prefix. The 155 SDK controls recorded in ORACLE_CLIENT_PRIORITY.md do not exercise a hosted OCI bucket. Preserve the existing hosted access decision and do not rerun the database baseline.
+
+### Google Maps rendering boundary
+
+The Google Maps facade now rejects unexecuted operations and builds. Its legacy Core map contract differs from the object-based contract used by GOMap and MapManager. GOMap owns its renderer and directions client. Its straight-line fallback cannot serve as Google route evidence. A complete implementation still needs the Google renderer and directions transport bound to the actual caller, with a native result verified before reporting success.
