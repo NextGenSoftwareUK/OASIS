@@ -587,8 +587,13 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
                     if (result.Result == null)
                         OASISErrorHandling.HandleError(ref result, $"No BootLoader registration is available for {providerType}.");
-                    else
-                        ProviderManager.Instance.RegisterProvider(result.Result);
+                    else if (!ProviderManager.Instance.RegisterProvider(result.Result))
+                    {
+                        var rejected = result.Result;
+                        result.Result = null;
+                        (rejected as IDisposable)?.Dispose();
+                        OASISErrorHandling.HandleError(ref result, $"Registration was rejected for {providerType}.");
+                    }
                 }
                 else
                     result.Result = (IOASISStorageProvider)ProviderManager.Instance.GetProvider(providerType);
