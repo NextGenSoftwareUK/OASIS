@@ -252,15 +252,28 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
 
         public override OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0) => LoadAvatarByProviderKeyAsync(providerKey, version).Result;
 
+        private async Task<List<TRow>> LoadAllRowsAsync<TRow>(string query)
+        {
+            var rows = new List<TRow>();
+            while (true)
+            {
+                using var response = await _http.GetAsync(
+                    $"{_baseUrl}/{query}&order=id.asc&limit=1000&offset={rows.Count}").ConfigureAwait(false);
+                response.EnsureSuccessStatusCode();
+                var page = DeserializeList<TRow>(await response.Content.ReadAsStringAsync().ConfigureAwait(false));
+                if (page.Count == 0)
+                    return rows;
+
+                rows.AddRange(page);
+            }
+        }
+
         public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
         {
             var result = new OASISResult<IEnumerable<IAvatar>>();
             try
             {
-                using var response = await _http.GetAsync($"{_baseUrl}/oasis_avatars?is_deleted=eq.false").ConfigureAwait(false);
-                response.EnsureSuccessStatusCode();
-                var json = await response.Content.ReadAsStringAsync();
-                var rows = DeserializeList<AvatarRow>(json);
+                var rows = await LoadAllRowsAsync<AvatarRow>("oasis_avatars?is_deleted=eq.false").ConfigureAwait(false);
                 var avatars = rows.Select(r => Deserialize<Avatar>(r.data_json)).Where(a => a != null).Cast<IAvatar>().ToList();
                 result.Result = avatars; result.IsLoaded = true; result.LoadedCount = avatars.Count; result.Message = $"SupabaseOASIS: Loaded {avatars.Count} avatar(s).";
             }
@@ -409,9 +422,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
             var result = new OASISResult<IEnumerable<IAvatarDetail>>();
             try
             {
-                using var response = await _http.GetAsync($"{_baseUrl}/oasis_avatar_details");
-                response.EnsureSuccessStatusCode();
-                var rows = DeserializeList<AvatarDetailRow>(await response.Content.ReadAsStringAsync());
+                var rows = await LoadAllRowsAsync<AvatarDetailRow>("oasis_avatar_details?select=*").ConfigureAwait(false);
                 var details = rows.Select(r => StoredRecordJson.Deserialize<AvatarDetail>(r.data_json)).Where(d => d != null).Cast<IAvatarDetail>().ToList();
                 result.Result = details; result.IsLoaded = true; result.LoadedCount = details.Count; result.Message = $"SupabaseOASIS: Loaded {details.Count} avatar detail(s).";
             }
