@@ -576,7 +576,7 @@ Status: missing account/configuration information,2 November2026. David approved
 ### NEAR dedicated lifecycle fixture
 
 - **Status (9 November 2026)** Open. Both shared lifecycle modes compile and are discoverable. Both skipped without an admitted writable test fixture.
-- **Action** If the retained NEAR test environment is available, identify its host and authorize access to a disposable writable OASIS contract with its dedicated test signer through the existing protected channel. Keep signing material and credentials out of Git and chat.
+- **Action** If the retained NEAR test environment is available, identify its host and authorize access to a disposable writable OASIS contract with its dedicated test signer through the existing protected channel. Keep signing material and credentials out of Git and chat. The retained host needs the pinned NEAR toolchain on Linux to build the checked-in TypeScript contract and measure deletion gas before deploying it to the disposable fixture. This Windows host has no registered WSL distribution and its default Node version is 18.18.0.
 - **Reason** The provider agent will verify chain and contract identity, configure the run and report directory, and reconcile only test-owned records. Preserve existing COSMIC/CQL data.
 - **Context** [NEAR lifecycle evidence](../HyperDrive-Providers/PROVIDER_COMPLETION_CONTINUATION.md).
 
