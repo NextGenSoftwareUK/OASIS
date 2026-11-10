@@ -42,6 +42,24 @@ export class OasisStorage {
     this.records.remove(key);
   }
 
+  @call({})
+  delete_avatar_records({ id }: { id: string }): void {
+    this.requireContractOwner();
+    if (typeof id !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(id))
+      throw new Error("A canonical avatar ID is required");
+    const avatar = `avatar:${id}`;
+    const detail = `avatar-detail:${id}`;
+    const avatarHistory = `history:${avatar}:`;
+    const detailHistory = `history:${detail}:`;
+    // Traverse backwards because removing a key swaps in the last map entry.
+    for (let index = this.records.length - 1; index >= 0; index--) {
+      const [key] = this.records.keys({ start: index, limit: 1 });
+      if (key.startsWith(avatarHistory) || key.startsWith(detailHistory)) this.records.remove(key);
+    }
+    this.records.remove(detail);
+    this.records.remove(avatar);
+  }
+
   @view({})
   get({ key }: { key: string }): string | null {
     return this.records.get(key);

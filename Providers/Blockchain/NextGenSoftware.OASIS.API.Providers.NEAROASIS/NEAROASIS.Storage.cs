@@ -178,8 +178,7 @@ public partial class NEAROASIS
             }
             else
             {
-                await DeleteStoredVersionsAsync($"avatar:{id:D}");
-                await _sdk.DeleteAsync($"avatar:{id:D}");
+                await _sdk.DeleteAvatarRecordsAsync(id);
             }
             result.Result = true;
             result.IsDeleted = true;
