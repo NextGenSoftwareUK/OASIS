@@ -719,7 +719,17 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
         public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
         {
             var saved = await SaveHolonsAsync(holons);
-            return new OASISResult<bool> { Result = !saved.IsError, IsError = saved.IsError, Message = saved.Message };
+            return new OASISResult<bool>
+            {
+                Result = !saved.IsError,
+                IsSaved = saved.IsSaved,
+                SavedCount = saved.SavedCount,
+                IsError = saved.IsError,
+                ErrorCount = saved.ErrorCount,
+                ErrorCode = saved.ErrorCode,
+                Exception = saved.Exception,
+                Message = saved.Message
+            };
         }
 
         public override OASISResult<bool> Import(IEnumerable<IHolon> holons) => ImportAsync(holons).Result;
