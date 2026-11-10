@@ -42,5 +42,7 @@ fi
 
 echo ">>> Deploying $contract contract to $account on $network..."
 
-# eosio v1.8.0
+# Build both artifacts from this checkout before publishing the contract.
+cd -- "$(dirname -- "${BASH_SOURCE[0]}")" || exit 1
+OASIS_SCRIPT_NO_PAUSE=1 bash ./build.sh "$contract" || exit 1
 cleos -u $url set contract $account ./build/$contract/ $contract.wasm $contract.abi -p $account
