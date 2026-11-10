@@ -41,6 +41,10 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
                 {
                     var session = driver.AsyncSession(WithDatabase);
                     await using var lifetime = session.ConfigureAwait(false);
+                    var schema = await session.RunAsync(
+                        "CREATE CONSTRAINT oasis_aura_holon_guid IF NOT EXISTS FOR (h:Holon) REQUIRE h.GUId IS UNIQUE")
+                        .ConfigureAwait(false);
+                    await schema.ConsumeAsync().ConfigureAwait(false);
                     await session.ReadTransactionAsync(async transaction =>
                     {
                         var cursor = await transaction.RunAsync("RETURN 1 AS ready").ConfigureAwait(false);
