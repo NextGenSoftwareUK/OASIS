@@ -1,4 +1,5 @@
 using System;
+using NextGenSoftware.OASIS.API.Core.Serialization;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -142,6 +143,8 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
             var json = await response.Content.ReadAsStringAsync();
             if (typeof(T) == typeof(Holon))
                 return (T?)(object?)ParseFirebaseHolon(Guid.Parse(path[(path.LastIndexOf('/') + 1)..]), json);
+            if (typeof(T) == typeof(AvatarDetail))
+                return (T?)(object?)ParseFirebaseDetail(Guid.Parse(path[(path.LastIndexOf('/') + 1)..]), JsonNode.Parse(json));
             return Deserialize<T>(json);
         }
 
@@ -174,6 +177,11 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
                     ? (T)(object)(ParseFirebaseHolon(id, pair.Value?.ToJsonString() ?? "null")
                         ?? throw new JsonException("Firebase collection record cannot be null."))
                     : throw new JsonException("Firebase collection holon key must be a canonical GUID.")).ToList();
+            if (typeof(T) == typeof(AvatarDetail))
+                return obj.Select(pair => Guid.TryParseExact(pair.Key, "D", out var id)
+                    ? (T)(object)(ParseFirebaseDetail(id, pair.Value)
+                        ?? throw new JsonException("Firebase collection detail cannot be null."))
+                    : throw new JsonException("Firebase avatar detail key must be a canonical GUID.")).ToList();
             return obj.Select(kvp => kvp.Value is JsonObject value
                 ? Deserialize<T>(value.ToJsonString()) ?? throw new JsonException("Firebase collection record cannot be null.")
                 : throw new JsonException("Firebase collection record must be an object.")).ToList();
@@ -385,6 +393,20 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
 
         // ─── AvatarDetail ─────────────────────────────────────────────────────────
 
+        private static AvatarDetail? ParseFirebaseDetail(Guid id, JsonNode? node)
+        {
+            if (node == null) return null;
+            if (node is not JsonObject row)
+                throw new JsonException("Firebase avatar detail must be an object.");
+            var json = row.TryGetPropertyValue("canonicalDetail", out var payload)
+                ? payload?.GetValue<string>() ?? throw new JsonException("Firebase avatar detail payload is missing.")
+                : row.ToJsonString();
+            var detail = StoredRecordJson.Deserialize<AvatarDetail>(json);
+            if (detail == null || detail.Id != id)
+                throw new JsonException("Firebase avatar detail identity differs from its key.");
+            return detail;
+        }
+
         public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatarDetail)
         {
             var result = new OASISResult<IAvatarDetail>();
@@ -392,10 +414,11 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
             {
                 ArgumentNullException.ThrowIfNull(avatarDetail);
                 var id = avatarDetail.Id == Guid.Empty ? Guid.NewGuid() : avatarDetail.Id;
-                var projection = JsonSerializer.SerializeToNode(avatarDetail, avatarDetail.GetType(), _jsonOpts)!.AsObject();
-                projection["id"] = id;
-                NativeProjection(projection);
-                await PutAsync($"/oasis_avatar_details/{id:D}", projection);
+                var detail = StoredRecordJson.Project<AvatarDetail>(avatarDetail);
+                detail.Id = id;
+                var row = new { id, username = detail.Username, email = detail.Email,
+                    canonicalDetail = StoredRecordJson.Serialize(detail) };
+                await PutAsync($"/oasis_avatar_details/{id:D}", row);
                 avatarDetail.Id = id;
                 result.Result = avatarDetail; result.IsSaved = true; result.SavedCount = 1; result.Message = "FirebaseOASIS: AvatarDetail saved.";
             }
