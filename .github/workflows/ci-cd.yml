@@ -254,6 +254,7 @@ jobs:
             docker_args: --ulimit nofile=262144:262144 -e CLICKHOUSE_DB=oasis
             test_env: |
               CLICKHOUSE_CONN=Host=127.0.0.1;Port=8123;Database=oasis;Username=default;Password=
+              OASIS_CLICKHOUSE_STORAGE_TEST_WRITES=1
           - name: QuestDB
             project: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.QuestDBOASIS.IntegrationTests
             image: questdb/questdb:latest
