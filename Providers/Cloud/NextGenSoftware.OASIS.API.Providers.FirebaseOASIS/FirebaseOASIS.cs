@@ -129,11 +129,19 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
 
         // ─── Low-level CRUD ───────────────────────────────────────────────────────
 
-        private async Task PutAsync(string path, object data)
+        private async Task PutAcknowledgedAsync(string path, Guid id, JsonNode projection)
         {
-            var content = new StringContent(Serialize(data), Encoding.UTF8, "application/json");
-            var response = await _http.PutAsync(NodeUrl(path), content);
-            response.EnsureSuccessStatusCode();
+            using var request = new HttpRequestMessage(HttpMethod.Put, NodeUrl(path))
+            { Content = new StringContent(projection.ToJsonString(), Encoding.UTF8, "application/json") };
+            try
+            {
+                using var response = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+                response.EnsureSuccessStatusCode();
+                var acknowledged = JsonNode.Parse(await ReadFirebaseAcknowledgement(response));
+                if (!JsonNode.DeepEquals(projection, acknowledged))
+                    throw new System.IO.InvalidDataException("Firebase acknowledgement does not match the proposed record.");
+            }
+            catch (Exception cause) { throw new FirebaseMutationReconciliationException(id, cause); }
         }
 
         private async Task<T?> GetAsync<T>(string path)
@@ -205,17 +213,7 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
                 }
                 keys["FirebaseOASIS"] = id.ToString("D");
                 NativeProjection(projection);
-                using var request = new HttpRequestMessage(HttpMethod.Put, NodeUrl($"/oasis_avatars/{id:D}"))
-                { Content = new StringContent(projection.ToJsonString(), Encoding.UTF8, "application/json") };
-                try
-                {
-                    using var response = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
-                    response.EnsureSuccessStatusCode();
-                    var acknowledged = JsonNode.Parse(await ReadFirebaseAcknowledgement(response));
-                    if (!JsonNode.DeepEquals(projection, acknowledged))
-                        throw new System.IO.InvalidDataException("Firebase acknowledgement does not match the proposed avatar.");
-                }
-                catch (Exception cause) { throw new FirebaseMutationReconciliationException(id, cause); }
+                await PutAcknowledgedAsync($"/oasis_avatars/{id:D}", id, projection);
 
                 avatar.Id = id;
                 avatar.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
@@ -416,9 +414,14 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
                 var id = avatarDetail.Id == Guid.Empty ? Guid.NewGuid() : avatarDetail.Id;
                 var detail = StoredRecordJson.Project<AvatarDetail>(avatarDetail);
                 detail.Id = id;
-                var row = new { id, username = detail.Username, email = detail.Email,
-                    canonicalDetail = StoredRecordJson.Serialize(detail) };
-                await PutAsync($"/oasis_avatar_details/{id:D}", row);
+                var row = new JsonObject
+                {
+                    ["id"] = id,
+                    ["username"] = detail.Username ?? "",
+                    ["email"] = detail.Email ?? "",
+                    ["canonicalDetail"] = StoredRecordJson.Serialize(detail)
+                };
+                await PutAcknowledgedAsync($"/oasis_avatar_details/{id:D}", id, row);
                 avatarDetail.Id = id;
                 result.Result = avatarDetail; result.IsSaved = true; result.SavedCount = 1; result.Message = "FirebaseOASIS: AvatarDetail saved.";
             }
