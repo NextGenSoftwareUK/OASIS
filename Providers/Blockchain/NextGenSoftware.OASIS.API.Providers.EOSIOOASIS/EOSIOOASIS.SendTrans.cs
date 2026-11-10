@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -198,8 +198,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                     Account = eosioAccountName,
                     Code = code,
                     Symbol = symbol
-                });
-                balanceResult.Result = currencyBalances != null ? currencyBalances[0] : string.Empty;
+                }).ConfigureAwait(false);
+                balanceResult.Result = currencyBalances?.FirstOrDefault() ?? string.Empty;
             }
             catch (Exception e)
             {
@@ -213,31 +213,13 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
         public string GetBalanceForEOSIOAccount(string eosioAccountName, string code, string symbol)
         {
-            var balanceResult = new OASISResult<string>();
-            try
-            {
-                var currencyBalances = _eosClient.GetCurrencyBalance(new GetCurrencyBalanceRequestDto()
-                {
-                    Account = eosioAccountName,
-                    Code = code,
-                    Symbol = symbol
-                }).Result;
-                balanceResult.Result = currencyBalances != null ? currencyBalances[0] : string.Empty;
-            }
-            catch (Exception e)
-            {
-                balanceResult.Result = string.Empty;
-
-                OASISErrorHandling.HandleError(ref balanceResult, e.Message);
-            }
-
-            return balanceResult.Result;
+            return GetBalanceAsync(eosioAccountName, code, symbol).ConfigureAwait(false).GetAwaiter().GetResult();
         }
 
         public string GetBalanceForAvatar(Guid avatarId, string code, string symbol)
         {
-            //TODO: Add support for multiple accounts later.
-            return GetBalanceForEOSIOAccount(GetEOSIOAccountNamesForAvatar(avatarId)[0], code, symbol);
+            var account = GetEOSIOAccountNamesForAvatar(avatarId)?.FirstOrDefault();
+            return string.IsNullOrWhiteSpace(account) ? string.Empty : GetBalanceForEOSIOAccount(account, code, symbol);
         }
 
         public List<string> GetEOSIOAccountNamesForAvatar(Guid avatarId)

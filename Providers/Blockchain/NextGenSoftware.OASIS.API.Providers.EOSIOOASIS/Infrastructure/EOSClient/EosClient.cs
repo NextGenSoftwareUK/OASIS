@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -55,7 +55,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.EOSClien
         public async Task<string[]> GetCurrencyBalance(GetCurrencyBalanceRequestDto getCurrencyBalanceRequestDto)
         {
             return await SendRequest<string[], GetCurrencyBalanceRequestDto>(getCurrencyBalanceRequestDto,
-                HttpMethod.Post, new Uri(_eosHostNodeUri + "v1/chain/get_currency_balance"));
+                HttpMethod.Post, new Uri(_eosHostNodeUri + "v1/chain/get_currency_balance")).ConfigureAwait(false);
         }
 
         public async Task<GetAccountResponseDto> GetAccount(GetAccountDtoRequest getAccountDtoRequest)
@@ -135,7 +135,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.EOSClien
 
             try
             {
-                var httpRequestMessage = new HttpRequestMessage
+                using var httpRequestMessage = new HttpRequestMessage
                 {
                     Method = httpMethod,
                     RequestUri = uri
@@ -143,17 +143,16 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.EOSClien
 
                 if (request != null)
                 {
-                    _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Content-Type", "application/json");
-                    httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(request));
+                    httpRequestMessage.Content = new StringContent(JsonConvert.SerializeObject(request), System.Text.Encoding.UTF8, "application/json");
                 }
 
                 // Send request into EOS-node endpoint
-                var httpResponseMessage = await _httpClient.SendAsync(httpRequestMessage);
+                using var httpResponseMessage = await _httpClient.SendAsync(httpRequestMessage).ConfigureAwait(false);
                 if (!httpResponseMessage.IsSuccessStatusCode)
                     throw new HttpRequestException(
                         $"Provider: EOS. Incorrect response was received from endpoint! Endpoint: {uri.AbsoluteUri}.");
 
-                var httpResponseBodyContent = await httpResponseMessage.Content.ReadAsStringAsync();
+                var httpResponseBodyContent = await httpResponseMessage.Content.ReadAsStringAsync().ConfigureAwait(false);
                 return JsonConvert.DeserializeObject<TResponse>(httpResponseBodyContent);
             }
             catch (Exception e)
@@ -189,7 +188,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.EOSClien
         {
             // Real EOSIO implementation: Call EOSIO blockchain API to get currency balance
             return await SendRequest<string[], GetCurrencyBalanceRequestDto>(getCurrencyBalanceRequestDto,
-                HttpMethod.Post, new Uri(_eosHostNodeUri + "v1/chain/get_currency_balance"));
+                HttpMethod.Post, new Uri(_eosHostNodeUri + "v1/chain/get_currency_balance")).ConfigureAwait(false);
         }
 
         public async Task<object> GetHolonByProviderKeyAsync(string providerKey)
