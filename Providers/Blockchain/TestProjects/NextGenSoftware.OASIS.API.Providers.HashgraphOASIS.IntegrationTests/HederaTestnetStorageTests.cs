@@ -82,14 +82,16 @@ public class HederaTestnetStorageTests
             var savedHolon = await provider.SaveHolonAsync(holon, saveChildren: false);
             Assert.IsFalse(savedHolon.IsError, savedHolon.Message);
             holonSaved = true;
-            var restarted = Create();
-            var loaded = await restarted.LoadAvatarByEmailAsync(avatar.Email);
+            var stopped = await provider.DeActivateProviderAsync();
+            Assert.IsFalse(stopped.IsError, stopped.Message);
+            provider = Create();
+            var loaded = await provider.LoadAvatarByEmailAsync(avatar.Email);
             Assert.IsFalse(loaded.IsError, loaded.Message);
             Assert.AreEqual(avatar.Password, loaded.Result.Password);
-            var loadedDetail = await restarted.LoadAvatarDetailAsync(avatar.Id);
+            var loadedDetail = await provider.LoadAvatarDetailAsync(avatar.Id);
             Assert.IsFalse(loadedDetail.IsError, loadedDetail.Message);
             Assert.AreEqual(42L, Convert.ToInt64(loadedDetail.Result.Karma));
-            var loadedHolon = await restarted.LoadHolonAsync(holon.Id, loadChildren: false);
+            var loadedHolon = await provider.LoadHolonAsync(holon.Id, loadChildren: false);
             Assert.IsFalse(loadedHolon.IsError, loadedHolon.Message);
             Assert.AreEqual(holon.Name, loadedHolon.Result.Name);
         }
