@@ -76,6 +76,9 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
                 }
             });
 
+            if (string.IsNullOrWhiteSpace(pushTransactionResult))
+                throw new InvalidOperationException("EOSIO avatar detail creation returned no transaction ID.");
+
             LoggingManager.Log(
                 "Avatar detail request was sent. " +
                 $"Received transaction hash response: {pushTransactionResult}.", LogType.Info);
