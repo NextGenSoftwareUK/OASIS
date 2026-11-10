@@ -337,3 +337,5 @@ SQLite wallet schema rollback passed the focused native case WalletColumnUpgrade
 SQLite native wallet upgrade and reopen checks passed in sync and async modes (4 passed, 0 failed, 0 skipped). Existing avatar data survived schema upgrade, wallet data survived reopen and profile edit, and corrupt wallet JSON surfaced as an error. The shared lifecycle suite and the previously verified rollback case were excluded.
 
 SQLite wallet error propagation passed four native cases across sync and async modes. Missing avatar schema and read-only activation returned errors with the underlying SQLite cause retained. Previously verified wallet upgrade, reopen, rollback, and shared lifecycle checks were excluded.
+
+SQLite passed eight native wallet ownership cases for atomic batch rollback, avatar deletion ownership, and prevention of rejected mutation replay during an unrelated save. Previously verified wallet and shared lifecycle filters were excluded.
