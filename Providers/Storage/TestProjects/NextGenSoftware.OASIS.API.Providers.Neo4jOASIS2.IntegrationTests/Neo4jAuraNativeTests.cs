@@ -1,6 +1,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.Common;
 using AuraProvider = NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura.Neo4jOASIS;
 
 namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2.IntegrationTests;
@@ -53,14 +54,14 @@ public class Neo4jAuraNativeTests
             var soft = await provider.DeleteAvatarAsync(id);
             Assert.IsTrue(soft.IsDeleted, soft.Exception?.GetType().FullName);
             var hidden = await provider.LoadAvatarAsync(id);
-            Assert.IsFalse(hidden.IsError, hidden.Exception?.GetType().FullName);
+            Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, hidden.ErrorCode);
             Assert.IsFalse(hidden.IsLoaded);
             Assert.IsNull(hidden.Result);
 
             var hard = provider.DeleteAvatar(id, softDelete: false);
             Assert.IsTrue(hard.IsDeleted, hard.Exception?.GetType().FullName);
             var missing = await provider.DeleteAvatarAsync(id, softDelete: false);
-            Assert.IsFalse(missing.IsError, missing.Exception?.GetType().FullName);
+            Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, missing.ErrorCode);
             Assert.IsFalse(missing.Result);
         }
         finally
@@ -68,7 +69,7 @@ public class Neo4jAuraNativeTests
             try
             {
                 var cleanup = await provider.DeleteAvatarAsync(id, softDelete: false);
-                Assert.IsFalse(cleanup.IsError, cleanup.Exception?.GetType().FullName);
+                Assert.IsTrue(cleanup.IsDeleted || cleanup.ErrorCode == OASISResultErrorCodes.RecordNotFound, cleanup.Exception?.GetType().FullName);
             }
             finally
             {
