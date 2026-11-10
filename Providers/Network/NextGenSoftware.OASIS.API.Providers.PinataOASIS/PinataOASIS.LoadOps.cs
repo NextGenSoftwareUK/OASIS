@@ -752,50 +752,35 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
 
         public async Task<PinataPinResponse> PinFileAsync(string filePath)
         {
-            try
-            {
-                var formData = new MultipartFormDataContent();
-                var fileContent = new ByteArrayContent(System.IO.File.ReadAllBytes(filePath));
-                fileContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/octet-stream");
-                formData.Add(fileContent, "file", System.IO.Path.GetFileName(filePath));
-
-                var response = await _httpClient.PostAsync($"{_apiUrl}/pinning/pinFileToIPFS", formData);
-                var content = await response.Content.ReadAsStringAsync();
-                return JsonConvert.DeserializeObject<PinataPinResponse>(content);
-            }
-            catch
-            {
-                return new PinataPinResponse();
-            }
+            using var formData = new MultipartFormDataContent();
+            var fileContent = new StreamContent(System.IO.File.OpenRead(filePath));
+            fileContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/octet-stream");
+            formData.Add(fileContent, "file", System.IO.Path.GetFileName(filePath));
+            return await PinAsync("pinFileToIPFS", formData).ConfigureAwait(false);
         }
 
         public async Task<PinataPinResponse> PinJsonAsync(object jsonObject)
         {
-            try
-            {
-                var json = JsonConvert.SerializeObject(jsonObject);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-                var response = await _httpClient.PostAsync($"{_apiUrl}/pinning/pinJSONToIPFS", content);
-                var responseContent = await response.Content.ReadAsStringAsync();
-                return JsonConvert.DeserializeObject<PinataPinResponse>(responseContent);
-            }
-            catch
-            {
-                return new PinataPinResponse();
-            }
+            using var content = new StringContent(JsonConvert.SerializeObject(jsonObject), Encoding.UTF8, "application/json");
+            return await PinAsync("pinJSONToIPFS", content).ConfigureAwait(false);
+        }
+
+        private async Task<PinataPinResponse> PinAsync(string operation, HttpContent content)
+        {
+            using var response = await _httpClient.PostAsync($"{_apiUrl}/pinning/{operation}", content).ConfigureAwait(false);
+            response.EnsureSuccessStatusCode();
+            var body = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+            var pin = JsonConvert.DeserializeObject<PinataPinResponse>(body);
+            if (string.IsNullOrWhiteSpace(pin?.IpfsHash))
+                throw new System.IO.InvalidDataException("Pinata did not acknowledge a pinned content ID.");
+            return pin;
         }
 
         public async Task<bool> UnpinFileAsync(string hash)
         {
-            try
-            {
-                var response = await _httpClient.DeleteAsync($"{_apiUrl}/pinning/unpin/{hash}");
-                return response.IsSuccessStatusCode;
-            }
-            catch
-            {
-                return false;
-            }
+            using var response = await _httpClient.DeleteAsync($"{_apiUrl}/pinning/unpin/{hash}").ConfigureAwait(false);
+            response.EnsureSuccessStatusCode();
+            return true;
         }
     }
 }
