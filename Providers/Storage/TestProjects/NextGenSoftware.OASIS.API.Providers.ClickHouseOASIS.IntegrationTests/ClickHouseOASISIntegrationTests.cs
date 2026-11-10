@@ -56,6 +56,33 @@ namespace NextGenSoftware.OASIS.API.Providers.ClickHouseOASIS.IntegrationTests
             Assert.IsNotNull(result);
         }
 
+        [TestMethod]
+        public async Task HardDeletedHolonIsImmediatelyAbsent()
+        {
+            var id = Guid.NewGuid();
+            try
+            {
+                var saved = await _provider.SaveHolonAsync(new Holon { Id = id, Name = "ClickHouse hard-delete fixture" });
+                Assert.IsTrue(saved.IsSaved && !saved.IsError, saved.Message);
+                var before = await _provider.LoadHolonAsync(id);
+                Assert.AreEqual(id, before.Result?.Id, before.Message);
+            }
+            finally
+            {
+                var deleted = await _provider.DeleteHolonSoftAsync(id, softDelete: false);
+                Assert.IsTrue(deleted.Result && !deleted.IsError, deleted.Message);
+            }
+
+            var after = await _provider.LoadHolonAsync(id);
+            Assert.IsNull(after.Result, after.Message);
+            using var connection = new ClickHouse.Client.ADO.ClickHouseConnection(
+                Environment.GetEnvironmentVariable("CLICKHOUSE_CONN")!);
+            await connection.OpenAsync();
+            using var command = connection.CreateCommand();
+            command.CommandText = $"SELECT count() FROM oasis.holons WHERE id = '{id:D}'";
+            Assert.AreEqual(0UL, Convert.ToUInt64(await command.ExecuteScalarAsync()));
+        }
+
         [TestCleanup]
         public void Cleanup()
         {
