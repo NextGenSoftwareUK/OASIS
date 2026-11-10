@@ -24,11 +24,19 @@ public class Neo4jV2NativeTests
 
         var provider = new global::NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Neo4jOASIS2(endpoint!, username!, password!);
         Assert.AreEqual(ProviderType.Neo4jOASIS, provider.ProviderType.Value);
-        var active = await provider.ActivateProviderAsync();
-        Assert.IsFalse(active.IsError, active.Exception?.GetType().FullName);
-        Assert.IsTrue(active.Result);
-        var inactive = await provider.DeActivateProviderAsync();
-        Assert.IsFalse(inactive.IsError, inactive.Exception?.GetType().FullName);
-        Assert.IsTrue(inactive.Result);
+        try
+        {
+            var active = await provider.ActivateProviderAsync();
+            Assert.IsFalse(active.IsError, active.Exception?.GetType().FullName);
+            Assert.IsTrue(active.Result);
+            Assert.IsTrue(provider.IsProviderActivated);
+        }
+        finally
+        {
+            var inactive = await provider.DeActivateProviderAsync();
+            Assert.IsFalse(inactive.IsError, inactive.Exception?.GetType().FullName);
+            Assert.IsTrue(inactive.Result);
+            Assert.IsFalse(provider.IsProviderActivated);
+        }
     }
 }
