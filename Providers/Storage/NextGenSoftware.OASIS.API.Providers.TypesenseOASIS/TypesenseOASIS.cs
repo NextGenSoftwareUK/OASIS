@@ -79,13 +79,14 @@ namespace NextGenSoftware.OASIS.API.Providers.TypesenseOASIS
 
         private async Task<List<T>> SearchAllAsync<T>(string collection)
         {
+            using var deadline = new System.Threading.CancellationTokenSource(_http.Timeout);
             using var response = await _http.GetAsync(
-                $"{_host}/collections/{collection}/documents/export", HttpCompletionOption.ResponseHeadersRead);
+                $"{_host}/collections/{collection}/documents/export", HttpCompletionOption.ResponseHeadersRead, deadline.Token);
             response.EnsureSuccessStatusCode();
-            await using var stream = await response.Content.ReadAsStreamAsync();
+            await using var stream = await response.Content.ReadAsStreamAsync(deadline.Token);
             using var reader = new System.IO.StreamReader(stream);
             var documents = new List<T>();
-            while (await reader.ReadLineAsync() is { } line)
+            while (await reader.ReadLineAsync(deadline.Token) is { } line)
             {
                 if (string.IsNullOrWhiteSpace(line))
                     continue;
