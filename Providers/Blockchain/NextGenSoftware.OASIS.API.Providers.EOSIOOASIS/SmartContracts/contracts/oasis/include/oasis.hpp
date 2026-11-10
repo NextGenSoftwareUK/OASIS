@@ -25,6 +25,7 @@ public:
     [[eosio::action]] void hardavatar(int32_t entityId);
 
     [[eosio::action]] void adddetail(int32_t entityId, string holonId, string info);
+    [[eosio::action]] void setdetail(int32_t entityId, string holonId, string info);
 
 private:
     struct [[eosio::table("holon")]] holon_row

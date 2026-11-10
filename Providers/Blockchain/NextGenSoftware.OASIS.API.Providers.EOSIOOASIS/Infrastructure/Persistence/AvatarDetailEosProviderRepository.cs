@@ -45,7 +45,9 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
             });
         }
 
-        public async Task Create(AvatarDetailDto entity)
+        public Task Create(AvatarDetailDto entity) => WriteDetailAsync(entity, "adddetail");
+
+        private async Task WriteDetailAsync(AvatarDetailDto entity, string action)
         {
             if (entity == null)
                 throw new ArgumentNullException(nameof(entity));
@@ -65,7 +67,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
                                 permission = "active"
                             }
                         },
-                        name = "adddetail",
+                        name = action,
                         data = new
                         {
                             entityId = entity.EntityId,
@@ -77,7 +79,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
             });
 
             if (string.IsNullOrWhiteSpace(pushTransactionResult))
-                throw new InvalidOperationException("EOSIO avatar detail creation returned no transaction ID.");
+                throw new InvalidOperationException("EOSIO avatar detail write returned no transaction ID.");
 
             LoggingManager.Log(
                 "Avatar detail request was sent. " +
@@ -111,12 +113,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
             return avatarDetailTableRows.Rows.ToImmutableArray();
         }
 
-        // Update method not supported for avatar detail entity
-        public async Task Update(AvatarDetailDto entity, Guid id)
-        {
-            // Avatar detail is read-only on EOSIO - return without error
-            await Task.CompletedTask;
-        }
+        public Task Update(AvatarDetailDto entity, Guid id)
+            => WriteDetailAsync(entity, "setdetail");
 
         // Soft delete method not supported by avatar detail entity
         public async Task DeleteSoft(Guid id)

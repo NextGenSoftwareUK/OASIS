@@ -81,3 +81,14 @@ void oasis::adddetail(int32_t entityId, string holonId, string info)
         row.info = info;
     });
 }
+
+void oasis::setdetail(int32_t entityId, string holonId, string info)
+{
+    require_auth(get_self());
+    avatar_detail_table rows(get_self(), get_self().value);
+    auto existing = rows.require_find(static_cast<uint32_t>(entityId), "avatar detail not found");
+    eosio::check(existing->avatarId == holonId, "avatar detail owner mismatch");
+    rows.modify(existing, eosio::same_payer, [&](auto &row) {
+        row.info = info;
+    });
+}

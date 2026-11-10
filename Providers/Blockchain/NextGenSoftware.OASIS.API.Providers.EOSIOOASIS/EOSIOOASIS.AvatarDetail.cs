@@ -410,46 +410,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
         }
 
         public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail Avatar)
-        {
-            if (Avatar == null)
-                throw new ArgumentNullException(nameof(Avatar));
-
-            var result = new OASISResult<IAvatarDetail>();
-            try
-            {
-                var avatarDetailInfo = OasisJson.Serialize<object>(Avatar);
-
-                // Check if avatar with such Id exists, if yes - perform updating, otherwise perform creating
-                var existAvatarDetail = _avatarDetailRepository.Read(Avatar.Id).Result;
-                if (existAvatarDetail != null)
-                {
-                    _avatarRepository.Update(new AvatarDto
-                    {
-                        Info = avatarDetailInfo
-                    }, Avatar.Id).Wait();
-                }
-                else
-                {
-                    var avatarDetailEntityId = HashUtility.GetNumericHash(Avatar.Id);
-                    _avatarDetailRepository.Create(new AvatarDetailDto
-                    {
-                        Info = avatarDetailInfo,
-                        AvatarId = Avatar.Id.ToString(),
-                        EntityId = avatarDetailEntityId
-                    }).Wait();
-                }
-
-                result.Result = Avatar;
-                result.IsSaved = true;
-                result.IsError = false;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, GetEOSExceptionDetails(ex));
-            }
-
-            return result;
-        }
+            => SaveAvatarDetailAsync(Avatar).GetAwaiter().GetResult();
 
         public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail Avatar)
         {
@@ -459,27 +420,18 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             var result = new OASISResult<IAvatarDetail>();
             try
             {
-                var avatarDetailInfo = OasisJson.Serialize<object>(Avatar);
+                var detail = new AvatarDetailDto
+                {
+                    Info = OasisJson.Serialize<object>(Avatar),
+                    AvatarId = Avatar.Id.ToString(),
+                    EntityId = HashUtility.GetNumericHash(Avatar.Id)
+                };
 
-                // Check if avatar with such Id exists, if yes - perform updating, otherwise perform creating
-                var existAvatarDetail = await _avatarDetailRepository.Read(Avatar.Id);
-                if (existAvatarDetail != null)
-                {
-                    await _avatarRepository.Update(new AvatarDto
-                    {
-                        Info = avatarDetailInfo
-                    }, Avatar.Id);
-                }
+                var existingDetail = await _avatarDetailRepository.Read(Avatar.Id).ConfigureAwait(false);
+                if (existingDetail == null)
+                    await _avatarDetailRepository.Create(detail).ConfigureAwait(false);
                 else
-                {
-                    var avatarDetailEntityId = HashUtility.GetNumericHash(Avatar.Id);
-                    await _avatarDetailRepository.Create(new AvatarDetailDto
-                    {
-                        Info = avatarDetailInfo,
-                        AvatarId = Avatar.Id.ToString(),
-                        EntityId = avatarDetailEntityId
-                    });
-                }
+                    await _avatarDetailRepository.Update(detail, Avatar.Id).ConfigureAwait(false);
 
                 result.Result = Avatar;
                 result.IsSaved = true;
