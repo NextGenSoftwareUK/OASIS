@@ -265,3 +265,5 @@ SQL Server HistoricalCollectionsUseStoredParent passed on dedicated LocalDB (1 p
 SQL Server SearchSelectsArchivedHolonText passed on dedicated LocalDB (1 passed, 0 failed, 0 skipped). The shipping search found literal archived text at version 1 and excluded it from the current view after version 2 committed. Hard cleanup left zero archive rows for the fixture, and LocalDB stopped. Earlier cases were excluded.
 
 SQL Server OwnerExportReturnsRequestedSnapshot passed on dedicated LocalDB (1 passed, 0 failed, 0 skipped). The same creator ID returned the archived name at version 1 and the updated name in the current export. Hard cleanup left zero archive rows for the fixture, and LocalDB stopped. Earlier checks were excluded.
+
+SQL Server DuplicateAvatarSelectorsRejectOwnerExport initially failed because email lookup omitted AmbiguousIdentity. After preserving that code, the focused LocalDB case passed (1 passed, 0 failed, 0 skipped). Both username and email exports rejected duplicate active avatars with no export payload. The test hard-deleted the two fixtures and the owned LocalDB instance stopped.
