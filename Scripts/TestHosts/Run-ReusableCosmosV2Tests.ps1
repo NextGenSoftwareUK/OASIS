@@ -53,7 +53,7 @@ $containerState = (& wsl -d Ubuntu -u root -- podman inspect oasis-wasmd --forma
 if ($LASTEXITCODE -ne 0 -or $containerState -notin @('running','exited')) { throw 'Retained Cosmos container state requires inspection.' }
 & wsl -d Ubuntu -u root -- podman exec oasis-wasmd pgrep -x wasmd *> $null
 if ($LASTEXITCODE -eq 0) { throw 'Existing wasmd process is in use; refusing to take ownership.' }
-$names = @('OASIS_COSMOS_TEST_RPC','OASIS_COSMOS_TEST_CHAIN','OASIS_COSMOS_TEST_KEY','OASIS_COSMOS_TEST_CONTRACT','OASIS_COSMOS_TEST_STOP_SCRIPT','OASIS_HYPERDRIVE_TEST_ROOT','OASIS_COSMOS_INSPECTION_ID')
+$names = @('OASIS_COSMOS_STORAGE_CONFORMANCE','OASIS_COSMOS_TEST_RPC','OASIS_COSMOS_TEST_CHAIN','OASIS_COSMOS_TEST_KEY','OASIS_COSMOS_TEST_CONTRACT','OASIS_COSMOS_TEST_STOP_SCRIPT','OASIS_HYPERDRIVE_TEST_ROOT','OASIS_COSMOS_INSPECTION_ID')
 $prior = @{}
 foreach ($name in $names) { $prior[$name] = [Environment]::GetEnvironmentVariable($name,'Process') }
 $started = $false
@@ -105,6 +105,7 @@ try {
         foreach($assembly in @('NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS','NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.IntegrationTests')){
             Write-Output ($assembly+': sources='+(Assert-SourceDocuments (Join-Path $consumer ($assembly+'.dll')) $taskRoot))
         }
+        $env:OASIS_COSMOS_STORAGE_CONFORMANCE = '1'
         & dotnet test $nativeProject --no-build --no-restore /p:IncludeCoreStorageConformance=true --filter 'TestCategory=CosmosCoreStorageConformance' --logger 'trx;LogFileName=cosmos-core-current.trx' --results-directory $fixtureRoot -v:q
         $testExit=$LASTEXITCODE
         & python -B (Join-Path $taskRoot 'Scripts/Providers/record_conformance_results.py') --providers CosmosBlockChainOASIS
