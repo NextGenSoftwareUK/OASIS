@@ -51,7 +51,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
                 {
                     try
                     {
-                        var holon = await ReadNamedHolonAsync(file).ConfigureAwait(false);
+                        var holon = await ReadNamedPinAsync<Holon>(file, "Holon_").ConfigureAwait(false);
                         if (holon == null)
                             continue;
 
@@ -224,7 +224,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
                 {
                     try
                     {
-                        var holon = await ReadNamedHolonAsync(pin).ConfigureAwait(false);
+                        var holon = await ReadNamedPinAsync<Holon>(pin, "Holon_").ConfigureAwait(false);
                         if (holon == null || (type != HolonType.All && holon.HolonType != type)
                             || (version > 0 && holon.Version != version))
                             continue;
@@ -253,21 +253,21 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
             return result;
         }
 
-        private async Task<Holon> ReadNamedHolonAsync(PinataPin pin)
+        private async Task<T> ReadNamedPinAsync<T>(PinataPin pin, string prefix) where T : class, IHolonBase
         {
             if (pin.Metadata == null || !pin.Metadata.TryGetValue("name", out var value)
-                || value is not string name || !name.StartsWith("Holon_", StringComparison.Ordinal)
-                || !Guid.TryParseExact(name.AsSpan(6), "D", out var id) || id == Guid.Empty)
+                || value is not string name || !name.StartsWith(prefix, StringComparison.Ordinal)
+                || !Guid.TryParseExact(name.AsSpan(prefix.Length), "D", out var id) || id == Guid.Empty)
                 return null;
 
             var content = await _pinataService.GetFileContentAsync(pin.IpfsPinHash).ConfigureAwait(false);
-            var holon = JsonConvert.DeserializeObject<Holon>(content);
-            if (holon == null || holon.Id != id)
-                throw new System.IO.InvalidDataException("Pinata holon payload does not match its pin name.");
+            var record = JsonConvert.DeserializeObject<T>(content);
+            if (record == null || record.Id != id)
+                throw new System.IO.InvalidDataException("Pinata record payload does not match its pin name.");
 
-            holon.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
-            holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.PinataOASIS] = pin.IpfsPinHash;
-            return holon;
+            record.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
+            record.ProviderUniqueStorageKey[Core.Enums.ProviderType.PinataOASIS] = pin.IpfsPinHash;
+            return record;
         }
 
         public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0)
@@ -288,27 +288,15 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
 
                 foreach (var pin in pins)
                 {
-                    if (string.IsNullOrWhiteSpace(pin?.IpfsPinHash)) continue;
-                    try
-                    {
-                        var content = await _pinataService.GetFileContentAsync(pin.IpfsPinHash);
-                        if (string.IsNullOrWhiteSpace(content)) continue;
-
-                        var avatarDetail = JsonConvert.DeserializeObject<AvatarDetail>(content);
-                        if (avatarDetail == null) continue;
-                        if (version > 0 && avatarDetail.Version != version) continue;
-
-                        avatarDetails.Add(avatarDetail);
-                    }
-                    catch
-                    {
-                        // ignore non-avatar-detail pins
-                    }
+                    var detail = await ReadNamedPinAsync<AvatarDetail>(pin, "AvatarDetail_").ConfigureAwait(false);
+                    if (detail != null && (version <= 0 || detail.Version == version))
+                        avatarDetails.Add(detail);
                 }
 
                 result.Result = avatarDetails;
                 result.IsLoaded = true;
                 result.IsError = false;
+                result.LoadedCount = avatarDetails.Count;
                 result.Message = $"Loaded {avatarDetails.Count} avatar details from Pinata.";
             }
             catch (Exception ex)
