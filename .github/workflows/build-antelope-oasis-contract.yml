@@ -1,6 +1,11 @@
 name: Build Antelope OASIS contract
 on:
   workflow_dispatch:
+  pull_request:
+    branches: [Development]
+    paths:
+      - '.github/workflows/build-antelope-oasis-contract.yml'
+      - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.EOSIOOASIS/SmartContracts/**'
 
 permissions:
   contents: read
