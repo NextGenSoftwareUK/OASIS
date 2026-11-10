@@ -49,6 +49,9 @@ namespace NextGenSoftware.OASIS.API.DNA
         public RootstockOASISProviderSettings RootstockOASIS { get; set; }
         public PolygonOASISProviderSettings PolygonOASIS { get; set; }
         public SQLLiteDBOASISSettings SQLLiteDBOASIS { get; set; }
+        public ConvexOASISSettings ConvexOASIS { get; set; }
+        public SupabaseOASISSettings SupabaseOASIS { get; set; }
+        public NeonOASISSettings NeonOASIS { get; set; }
         public OracleDBOASISSettings OracleDBOASIS { get; set; }
         public OracleObjectStorageOASISSettings OracleObjectStorageOASIS { get; set; }
         public IPFSOASISSettings IPFSOASIS { get; set; }
@@ -120,6 +123,21 @@ namespace NextGenSoftware.OASIS.API.DNA
     public class ProviderSettingsBase
     {
         public string ConnectionString { get; set; }
+    }
+
+    public class ConvexOASISSettings : ProviderSettingsBase
+    {
+        public string DeployKey { get; set; }
+    }
+
+    public class SupabaseOASISSettings : ProviderSettingsBase
+    {
+        public string ApiKey { get; set; }
+    }
+
+    public class NeonOASISSettings : ProviderSettingsBase
+    {
+        public bool UsePooler { get; set; } = true;
     }
 
     public class OracleDBOASISSettings : ProviderSettingsBase
