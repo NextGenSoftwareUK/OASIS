@@ -238,21 +238,18 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
                     }
                 }
 
-                var importedCount = 0;
-                foreach (var holon in holons)
+                var batch = await SaveHolonsAsync(holons, continueOnError: false).ConfigureAwait(false);
+                result.SavedCount = batch.SavedCount;
+                if (batch.IsError || !batch.IsSaved)
                 {
-                    var saveResult = await SaveHolonAsync(holon);
-                    if (saveResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Error importing holon {holon.Id}: {saveResult.Message}");
-                        return result;
-                    }
-                    importedCount++;
+                    OASISErrorHandling.HandleError(ref result,
+                        $"Neo4j Aura import stopped after {batch.SavedCount} acknowledged saves: {batch.Message}", batch.Exception);
+                    return result;
                 }
 
                 result.Result = true;
-                result.IsError = false;
-                result.Message = $"Successfully imported {importedCount} holons to Neo4j Aura";
+                result.IsSaved = true;
+                result.Message = $"Successfully imported {batch.SavedCount} holons to Neo4j Aura";
             }
             catch (Exception ex)
             {
