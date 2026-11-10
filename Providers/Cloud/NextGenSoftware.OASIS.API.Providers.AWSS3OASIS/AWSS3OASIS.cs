@@ -7,7 +7,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSS3OASIS;
 
 /// <summary>Private OASIS records over an existing general-purpose AWS S3 bucket.
 /// SDK transport is shared; canonical record/query/history/encryption handling is not duplicated.</summary>
-public sealed partial class AWSS3OASIS : KeyValueStorageProviderBase, IDisposable
+public sealed partial class AWSS3OASIS : S3StorageProviderBase
 {
     public AWSS3OASIS(IAmazonS3 client, string bucketName, Func<byte[]> storageKeyResolver,
         string keyPrefix = "oasis/", bool ownsClient = false)

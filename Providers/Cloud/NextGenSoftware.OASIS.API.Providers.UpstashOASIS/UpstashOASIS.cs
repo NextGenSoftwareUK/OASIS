@@ -1,18 +1,24 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
+using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.Common;
-using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using NextGenSoftware.Utilities;
 
-namespace NextGenSoftware.OASIS.API.Providers.UpstashOASIS;
-
-/// <summary>Native Upstash REST transport with shared encrypted storage, history and queries.</summary>
-public class UpstashOASIS : KeyValueStorageProviderBase, IDisposable
+namespace NextGenSoftware.OASIS.API.Providers.UpstashOASIS
 {
     /// <summary>
     /// OASIS provider for Upstash — serverless Redis-compatible key-value store, accessed via Upstash REST API.
@@ -49,9 +55,12 @@ public class UpstashOASIS : KeyValueStorageProviderBase, IDisposable
         };
 
         public UpstashOASIS(string restUrl, string token)
+            : this(restUrl, token, new HttpClient()) { }
+
+        private UpstashOASIS(string restUrl, string token, HttpClient client)
         {
             _restUrl = restUrl.TrimEnd('/');
-            _http = new HttpClient();
+            _http = client ?? throw new ArgumentNullException(nameof(client));
             _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             _http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             ProviderName = "UpstashOASIS";

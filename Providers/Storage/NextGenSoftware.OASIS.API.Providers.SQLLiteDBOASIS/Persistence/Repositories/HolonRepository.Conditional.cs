@@ -32,7 +32,7 @@ public partial class HolonRepository
         =>ExecuteAtomicHolonWrite(request,null,CancellationToken.None);
 
     private OASISResult<IEnumerable<IHolon>> ExecuteAtomicHolonWrite(ConditionalHolonWriteRequest request,
-        CommittedHolonReplicaRequest replicaRequest,CancellationToken token,HolonReplicationEnrollment enrollment=null,bool initialReplicaBaseline=false)
+        CommittedHolonReplicaRequest replicaRequest,CancellationToken token,HolonReplicationEnrollment enrollment=null,bool initialReplicaBaseline=false, CosmicStorageIdentity expectedStorage=null)
     {
         var embedded=request?.Write.ReplicationEnrollment;
         if(enrollment!=null && embedded!=null && (enrollment.SourceId!=embedded.SourceId || !enrollment.TargetIds.SequenceEqual(embedded.TargetIds)
