@@ -36,8 +36,30 @@ namespace NextGenSoftware.OASIS.API.Providers.ClickHouseOASIS.IntegrationTests
         [TestMethod]
         public async Task LoadAvatar_ShouldReturnAvatar()
         {
-            var result = await _provider.LoadAvatarAsync(Guid.NewGuid());
-            Assert.IsNotNull(result);
+            var id = Guid.NewGuid();
+            var avatar = new Avatar
+            {
+                Id = id,
+                Username = $"clickhouse-{id:N}",
+                Email = $"clickhouse-{id:N}@example.invalid"
+            };
+            try
+            {
+                var saved = await _provider.SaveAvatarAsync(avatar);
+                Assert.IsFalse(saved.IsError, saved.Message);
+                Assert.IsNotNull(saved.Result, saved.Message);
+                var loaded = await _provider.LoadAvatarAsync(id);
+                Assert.IsFalse(loaded.IsError, loaded.Message);
+                Assert.IsNotNull(loaded.Result, loaded.Message);
+                Assert.AreEqual(id, loaded.Result.Id);
+                Assert.AreEqual(avatar.Username, loaded.Result.Username);
+                Assert.AreEqual(avatar.Email, loaded.Result.Email);
+            }
+            finally
+            {
+                var deleted = await _provider.DeleteAvatarAsync(id, softDelete: false);
+                Assert.IsTrue(deleted.Result && !deleted.IsError, deleted.Message);
+            }
         }
 
         [TestMethod]
