@@ -44,6 +44,7 @@ param(
     [Parameter(ParameterSetName = 'NftPublicRecover')][switch]$NftPublicRecover,
     [Parameter(ParameterSetName = 'CSharpStorage')][switch]$CSharpStorage,
     [Parameter(ParameterSetName = 'CSharpStorage')][switch]$RecoverCompleted,
+    [Parameter(ParameterSetName = 'CSharpStorage')][switch]$CoreStorageConformance,
     [ValidateSet('1','2')][string]$TokenPublicCohort='1'
 )
 $ErrorActionPreference = 'Stop'
@@ -54,6 +55,7 @@ if (@(@($TokenEscrowConstructor,$TokenEscrowDeploy,$TokenEscrowReconcile,
     $TokenEscrowLifecycle,$TokenEscrowLifecycleRecover,$TokenPublicApproval,$TokenPublicApprovalRecover,$TokenPublic,$TokenPublicRecover,$TokenPublicReleaseVerifiedLock) | Where-Object { $_ }).Count -gt 1) {
     throw 'Select only one token SDK mode.'
 }
+if ($CoreStorageConformance -and (!$CSharpStorage -or $RecoverCompleted)) { throw 'CoreStorageConformance requires CSharpStorage without RecoverCompleted.' }
 if ($RecoverCompleted -and !$CSharpStorage) { throw 'RecoverCompleted requires CSharpStorage; no other suite may enter recovery.' }
 $repo = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
 $evidence = Join-Path $repo 'TestResults/PolkadotCurrent'
@@ -66,6 +68,7 @@ $tokenPublicGate = $TokenPublic -or $TokenPublicRecover -or $TokenPublicReleaseV
 $custodyGate = $NftCustody -or $NftCustodyRecover -or $NftBridge -or $NftBridgeRecover
 $recordEvidence = if ($tokenPublicGate -or $escrowPublicGate -or $custodyGate -or $CSharpStorage -or $NftPublicRead -or $NftPublicMutation -or $NftPublicRecover) { $publicEvidence } else { $evidence }
 $prior = $env:OASIS_POLKADOT_LOCAL_NATIVE
+$priorConformance = $env:OASIS_POLKADOT_STORAGE_CONFORMANCE
 $priorBridge = $env:OASIS_POLKADOT_SDK_BRIDGE
 $priorEvidence = $env:OASIS_POLKADOT_RECORD_EVIDENCE
 $priorRecovery = $env:OASIS_POLKADOT_RECORD_RECOVERY
@@ -109,6 +112,7 @@ try {
     if ((Test-Path -LiteralPath (Join-Path $publicEvidence 'public-storage-pending.jsonl')) -and !$RecoverCompleted) { throw 'Pending public storage sequence exists; reconcile read-only.' }
     $env:OASIS_POLKADOT_RECORD_RECOVERY = if ($RecoverCompleted) { '1' } else { $null }
     $env:OASIS_POLKADOT_LOCAL_NATIVE = '1'
+    $env:OASIS_POLKADOT_STORAGE_CONFORMANCE = if ($CoreStorageConformance) { '1' } else { $null }
     $env:OASIS_POLKADOT_NFT_PUBLIC_RECOVERY = if ($NftPublicRecover) { '1' } else { $null }
     $env:OASIS_POLKADOT_NFT_CUSTODY_RECOVERY = if ($NftCustodyRecover -or $NftBridgeRecover) { '1' } else { $null }
     $env:OASIS_POLKADOT_NFT_BRIDGE_NATIVE = if ($NftBridge -or $NftBridgeRecover) { '1' } else { $null }
@@ -130,11 +134,16 @@ try {
             if ($LASTEXITCODE -ne 0) { throw 'Native consumer build failed.' }
             $nativeClass = if ($tokenPublicGate) { 'PolkadotTokenEscrowNativeTests' } elseif ($escrowPublicGate) { 'PolkadotNftEscrowNativeTests' } elseif ($custodyGate) { 'PolkadotNftCustodyNativeTests' } elseif ($NftPublicMutation -or $NftPublicRecover) { 'PolkadotNftPublicMutationNativeTests' } elseif ($NftPublicRead) { 'PolkadotNftPublicReadNativeTests' } elseif ($CSharpStorage) { 'PolkadotPublicStorageNativeTests.CanonicalPublicAvatarDetailAndHolonUseEncryptedNativeStorage' } else { 'PolkadotRecordBackendNativeTests' }
             $reportName = if ($NftBridgeRecover) { 'psp34-bridge-recovery-current.trx' } elseif ($NftBridge) { 'psp34-bridge-native-current.trx' } elseif ($TokenPublicReleaseVerifiedLock) { 'psp22-public-release-current.trx' } elseif ($TokenPublicRecover) { 'psp22-public-recovery-current.trx' } elseif ($TokenPublic) { 'psp22-public-native-current.trx' } elseif ($NftEscrowPublicRecover) { 'psp34-escrow-public-recovery-current.trx' } elseif ($NftEscrowPublic) { 'psp34-escrow-public-native-current.trx' } elseif ($NftCustodyRecover) { 'psp34-custody-recovery-current.trx' } elseif ($NftCustody) { 'psp34-custody-native-current.trx' } elseif ($NftPublicRecover) { 'psp34-public-mutation-recovery-current.trx' } elseif ($NftPublicMutation) { 'psp34-public-mutation-native-current.trx' } elseif ($NftPublicRead) { 'psp34-public-native-current.trx' } elseif ($CSharpStorage) { 'public-storage-native-current.trx' } else { 'record-backend-native-current.trx' }
+            if ($CoreStorageConformance) {
+                $nativeClass = 'PolkadotPublicStorageNativeTests.CoreStorageSuiteAgainstPolkadot'
+                $reportName = 'core-storage-conformance.trx'
+                if (Test-Path -LiteralPath (Join-Path $recordEvidence $reportName)) { throw 'Preserve the previous conformance result.' }
+            }
             if($tokenPublicGate -and $TokenPublicCohort -eq '2'){$reportName=$reportName.Replace('psp22-public-','psp22-public-postfix-')}
             & dotnet test $unit --no-build --no-restore /m:2 /nr:false /p:UseSharedCompilation=false --filter "FullyQualifiedName~$nativeClass" --logger "trx;LogFileName=$reportName" --results-directory $recordEvidence --verbosity quiet -- MSTest.DeploymentEnabled=false
             if ($LASTEXITCODE -ne 0) { throw 'Native C# gate failed; preserve pending original/evidence.' }
             [xml]$report = Get-Content -LiteralPath (Join-Path $recordEvidence $reportName)
-            $expectedCases = if ($NftPublicRead) { '3' } else { '1' }
+            $expectedCases = if ($CoreStorageConformance) { '2' } elseif ($NftPublicRead) { '3' } else { '1' }
             if ($report.TestRun.ResultSummary.Counters.total -ne $expectedCases -or $report.TestRun.ResultSummary.Counters.passed -ne $expectedCases) { throw "Exactly $expectedCases executed native cases required." }
             return
         } finally { Pop-Location }
@@ -182,6 +191,7 @@ try {
     } finally { Pop-Location }
 } finally {
     $env:OASIS_POLKADOT_LOCAL_NATIVE = $prior
+    $env:OASIS_POLKADOT_STORAGE_CONFORMANCE = $priorConformance
     $env:OASIS_POLKADOT_SDK_BRIDGE = $priorBridge
     $env:OASIS_POLKADOT_RECORD_EVIDENCE = $priorEvidence
     $env:OASIS_POLKADOT_RECORD_RECOVERY = $priorRecovery
