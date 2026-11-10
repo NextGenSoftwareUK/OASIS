@@ -136,3 +136,7 @@ Development advanced to 9131d651e3 with the EVM fixture preflight and IPFS dead-
 ### Azure native and hosted scope
 
 The Azure Blob and Azure Cosmos DB inventory entries each retain 52/52 shared lifecycle checks against local emulators through the shipping SDK paths. The Azure Blob runner also independently checked empty containers after fixture cleanup. Hosted Cosmos is explicitly deferred in Actions for David. Preserve that decision and the existing local evidence without rerunning the accepted suites.
+
+### Oracle Database and OCI Object Storage
+
+Oracle Database retains its 52/52 native shared lifecycle result through the managed Oracle client. OCI Object Storage is a separate provider. Its existing OracleLiveProviderAcceptance entry point uses the shipping provider and real ObjectStorageClient with a dedicated prefix. The 155 SDK controls recorded in ORACLE_CLIENT_PRIORITY.md do not exercise a hosted OCI bucket. Preserve the existing hosted access decision and do not rerun the database baseline.
