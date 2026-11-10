@@ -68,18 +68,17 @@ namespace NextGenSoftware.OASIS.API.Providers.FilecoinOASIS.IntegrationTests
         }
 
         [TestMethod]
-        public async Task SaveAndLoadHolon_RoundTrips()
+        public async Task SaveHolonWithoutFilePathRejectsBeforeImport()
         {
-            var holon = new Holon { Id = Guid.NewGuid(), Name = $"OASIS IT Holon {Guid.NewGuid():N}" };
+            var holon = new Holon { Id = Guid.NewGuid(), Name = "Filecoin missing file path" };
 
             var saved = await _provider.SaveHolonAsync(holon);
-            Assert.IsFalse(saved.IsError, saved.Message);
 
-            var loaded = await _provider.LoadHolonAsync(holon.Id);
-            Assert.IsFalse(loaded.IsError, loaded.Message);
-            Assert.AreEqual(holon.Name, loaded.Result!.Name);
-
-            await _provider.DeleteHolonAsync(holon.Id);
+            Assert.IsTrue(saved.IsError);
+            Assert.IsFalse(saved.IsSaved);
+            Assert.AreEqual(0, saved.SavedCount);
+            Assert.IsNull(saved.Result);
+            StringAssert.Contains(saved.Message, "FilePath");
         }
 
         [TestMethod]
