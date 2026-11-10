@@ -40,8 +40,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
 
             try
             {
-                IsProviderActivated = false;
-                _httpClient?.Dispose();
+                ReleaseClients();
                 _httpClient = new HttpClient();
                 _httpClient.Timeout = TimeSpan.FromSeconds(15);
 
@@ -71,7 +70,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
             }
             catch (Exception e)
             {
-                IsProviderActivated = false;
+                ReleaseClients();
                 OASISErrorHandling.HandleError(ref result, $"Error occurred in PinataOASIS Provider in ActivateProviderAsync Method. Reason: {e}");
             }
 
@@ -84,10 +83,8 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
 
             try
             {
-                _httpClient?.Dispose();
-                _httpClient = null;
+                ReleaseClients();
                 result.Result = true;
-                IsProviderActivated = false;
                 result.Message = "PinataOASIS Provider deactivated successfully";
             }
             catch (Exception e)
@@ -98,24 +95,16 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
             return result;
         }
 
-        public override async Task<OASISResult<bool>> DeActivateProviderAsync()
+        public override Task<OASISResult<bool>> DeActivateProviderAsync() =>
+            Task.FromResult(DeActivateProvider());
+
+        private void ReleaseClients()
         {
-            OASISResult<bool> result = new OASISResult<bool>();
-
-            try
-            {
-                _httpClient?.Dispose();
-                _httpClient = null;
-                result.Result = true;
-                IsProviderActivated = false;
-                result.Message = "PinataOASIS Provider deactivated successfully";
-            }
-            catch (Exception e)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error occurred in PinataOASIS Provider in DeActivateProviderAsync Method. Reason: {e}");
-            }
-
-            return result;
+            IsProviderActivated = false;
+            _httpClient?.Dispose();
+            _httpClient = null;
+            (_pinataService as IDisposable)?.Dispose();
+            _pinataService = null;
         }
 
         private void ParseConnectionString(string connectionString)

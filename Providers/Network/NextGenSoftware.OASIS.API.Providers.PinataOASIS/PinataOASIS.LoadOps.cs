@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Text;
 using System.Linq;
 using Newtonsoft.Json;
@@ -705,7 +705,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
         Task<bool> UnpinFileAsync(string hash);
     }
 
-    public class PinataService : IPinataService
+    public class PinataService : IPinataService, IDisposable
     {
         private readonly HttpClient _httpClient;
         private readonly string _apiKey;
@@ -731,6 +731,8 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
                 _httpClient.DefaultRequestHeaders.Add("pinata_secret_api_key", _secretKey);
             }
         }
+
+        public void Dispose() => _httpClient.Dispose();
 
         public async Task<List<PinataPin>> GetFilesAsync()
         {
