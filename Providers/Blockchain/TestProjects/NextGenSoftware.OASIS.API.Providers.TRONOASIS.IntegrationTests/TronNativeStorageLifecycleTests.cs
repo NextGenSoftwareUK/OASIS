@@ -30,6 +30,15 @@ public class TronNativeStorageLifecycleTests
             File.Exists(Path.Combine(root, "async.json.pending")),
             "Reconcile interrupted fixture evidence before starting either lifecycle mode.");
 
+        var otherModePath = Path.Combine(root, synchronous ? "async.json" : "sync.json");
+        if (File.Exists(otherModePath))
+        {
+            await using var previous = File.OpenRead(otherModePath);
+            var previousReport = await JsonSerializer.DeserializeAsync<CoreStorageConformance.Report>(previous);
+            Assert.True(previousReport?.FixtureCleanupComplete == true,
+                "Reconcile the prior lifecycle fixture before starting another mode.");
+        }
+
         async Task Checkpoint(CoreStorageConformance.Report report)
         {
             await using (var journal = new FileStream(pending, FileMode.CreateNew, FileAccess.Write, FileShare.None))
