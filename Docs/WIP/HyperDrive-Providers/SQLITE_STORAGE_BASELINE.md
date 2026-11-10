@@ -37,3 +37,5 @@ Use the existing build lease and cached producer/consumer projects with `Include
 Existing successful reports must be reviewed/preserved before a rerun; never delete them or replay failed fixtures to obtain green. The fixed memory-only save/metadata count controls dispose their providers; no durable runtime is allocated for those cases.
 
 Continue other provider families. Oracle local52/52 remains distinct from cloud acceptance; default OCI profile and Oracle/OCI process configuration were rechecked absent on28October. The current matrix records no gaps within the shared suite. Additional SQLite interfaces and EdgeSQLite runtime behavior require evidence from their own entry points. The baseline covers the SQLLiteDBOASIS storage provider only.
+
+EdgeSQLite focused check at 4a94134d2c : LocalMutationPersistsEntityAndOutboxAcrossRestart passed (1 passed, 0 failed, 0 skipped, 513 ms) against file-backed SQLite. Existing locked project versions restored from NuGet after cached restore could not resolve the pinned dependencies. This verifies local state and outbox persistence across store reopen. Cross-provider delivery and routing are outside this result.
