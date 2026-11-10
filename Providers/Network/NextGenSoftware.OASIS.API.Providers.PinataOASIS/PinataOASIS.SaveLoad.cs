@@ -338,10 +338,10 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
                 await EnsureActivatedForPinataAsync(result);
                 if (result.IsError) return result;
 
-                var holonsResult = await LoadAllHolonsAsync();
+                var holonsResult = await LoadAllHolonsAsync(continueOnError: false, version: version).ConfigureAwait(false);
                 if (holonsResult.IsError || holonsResult.Result == null)
                 {
-                    OASISErrorHandling.HandleError(ref result, $"Error loading holons from Pinata: {holonsResult.Message}");
+                    OASISErrorHandling.HandleError(ref result, $"Error loading holons from Pinata: {holonsResult.Message}", holonsResult.Exception);
                     return result;
                 }
 
@@ -349,6 +349,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
                 result.Result = filtered;
                 result.IsError = false;
                 result.IsLoaded = true;
+                result.LoadedCount = filtered.Count;
                 result.Message = $"Exported {filtered.Count} holons for avatar {avatarId} from Pinata.";
             }
             catch (Exception ex)
