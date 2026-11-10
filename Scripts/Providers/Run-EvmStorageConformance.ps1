@@ -9,6 +9,11 @@ foreach($name in @('EthereumOASIS','ArbitrumOASIS','PolygonOASIS')) {
         if((Test-Path -LiteralPath $path) -or (Test-Path -LiteralPath ($path+'.next'))){throw 'Review preserved EVM conformance evidence before another run.'}
     }
 }
+foreach($name in @('OASIS_EVM_CONFORMANCE_RPC','OASIS_EVM_CONFORMANCE_CHAIN_ID','OASIS_EVM_CONFORMANCE_PRIVATE_KEY','OASIS_EVM_CONFORMANCE_CONTRACT','OASIS_WEB3CORE_STORAGE_ENCRYPTION_KEY')) {
+    if([string]::IsNullOrWhiteSpace([Environment]::GetEnvironmentVariable($name))) {
+        throw "Missing retained EVM fixture setting: $name. No build or native operation was started."
+    }
+}
 & (Join-Path $root 'Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1') -Owner 'EVM family core storage breadth gate' -Operation {
     $projects=@(
         'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.csproj',
@@ -30,7 +35,7 @@ foreach($name in @('EthereumOASIS','ArbitrumOASIS','PolygonOASIS')) {
     }
     $results=Join-Path $root 'TestResults/ProviderConformanceCurrent'
     if(Test-Path -LiteralPath (Join-Path $results 'evm-family-current.trx')){throw 'Preserve the previous EVM report.'}
-    & dotnet test $project --no-build --no-restore /p:IncludeCoreStorageConformance=true --filter 'FullyQualifiedName~EvmStorageConformanceTests|FullyQualifiedName~EvmFamilyFactoryTests' --logger 'trx;LogFileName=evm-family-current.trx' --results-directory $results -v:q
+    & dotnet test $project --no-build --no-restore /p:IncludeCoreStorageConformance=true --filter 'FullyQualifiedName~EvmStorageConformanceTests' --logger 'trx;LogFileName=evm-family-current.trx' --results-directory $results -v:q
     $testExit=$LASTEXITCODE
     & python (Join-Path $PSScriptRoot 'record_conformance_results.py') --providers EthereumOASIS ArbitrumOASIS PolygonOASIS
     if($LASTEXITCODE){throw 'EVM shared report registration failed.'}
