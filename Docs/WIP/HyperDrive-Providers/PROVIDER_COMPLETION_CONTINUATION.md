@@ -152,3 +152,7 @@ A local Debug NuGet pack from existing build output contained all seven declared
 ### SQLite provider and Edge state store
 
 SQLLiteDBOASIS retains its 52/52 native shared storage result through Microsoft.Data.Sqlite. The separately named EdgeSQLiteOASIS package contains EdgeSQLiteSyncStateStore and a synchronization journal. It is a runtime dependency rather than a second IOASISStorageProvider entry point. Its eventual verification belongs to the Edge runtime and synchronization paths. Do not rerun the canonical SQLite baseline to qualify that separate package.
+
+### Valkey shared lifecycle gate
+
+The dedicated Valkey integration cases compiled and discovered sync and async schedules. Both skipped without OASIS_VALKEY_LIFECYCLE_REPORT_ROOT and a dedicated Valkey endpoint. The cases require a real valkey_version response before writes. Keep the retained CQL fixture and controlled family result separate from the pending native shared lifecycle.

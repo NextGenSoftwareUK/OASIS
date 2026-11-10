@@ -1,55 +1,52 @@
-using System;
-using System.Threading.Tasks;
+using System.Text.Json;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NextGenSoftware.OASIS.API.Core.Holons;
-using NextGenSoftware.OASIS.API.Providers.ValKeyOASIS;
+using NextGenSoftware.OASIS.Providers.TestSupport;
+using StackExchange.Redis;
 
-namespace NextGenSoftware.OASIS.API.Providers.ValKeyOASIS.IntegrationTests
+namespace NextGenSoftware.OASIS.API.Providers.ValKeyOASIS.IntegrationTests;
+
+[TestClass, DoNotParallelize]
+public class ValKeyOASISIntegrationTests
 {
-    [TestClass]
-    public class ValKeyOASISIntegrationTests
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task SharedStorageLifecycle(bool synchronous)
     {
-        private ValKeyOASIS _provider = null!;
-        private static readonly string connStr = Environment.GetEnvironmentVariable("VALKEY_CONN") ?? "localhost:6379";
+        var root = Environment.GetEnvironmentVariable("OASIS_VALKEY_LIFECYCLE_REPORT_ROOT");
+        if (string.IsNullOrWhiteSpace(root))
+            Assert.Inconclusive("Explicitly configure a dedicated Valkey instance and report directory.");
 
-        [TestInitialize]
-        public void Setup()
+        var connection = Environment.GetEnvironmentVariable("VALKEY_CONN");
+        Assert.IsFalse(string.IsNullOrWhiteSpace(connection), "Configure the dedicated Valkey endpoint.");
+        var options = ConfigurationOptions.Parse(connection!);
+        Assert.AreEqual(1, options.EndPoints.Count, "Use one dedicated Valkey endpoint.");
+        options.AllowAdmin = true;
+        var directory = Path.Combine(root!, synchronous ? "sync" : "async");
+        Assert.IsFalse(Directory.Exists(directory), "Preserve prior fixture evidence.");
+
+        using var native = await ConnectionMultiplexer.ConnectAsync(options);
+        var info = await native.GetServer(options.EndPoints[0]).InfoAsync("server");
+        Assert.IsTrue(info.SelectMany(group => group).Any(pair => pair.Key == "valkey_version"),
+            "The endpoint must identify itself as Valkey.");
+
+        Directory.CreateDirectory(directory);
+        var path = Path.Combine(directory, "report.json");
+        async Task Checkpoint(CoreStorageConformance.Report report)
         {
-            _provider = new ValKeyOASIS(connStr);
-            _provider.ActivateProvider();
+            var pending = path + ".pending";
+            await using (var stream = new FileStream(pending, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+            {
+                await JsonSerializer.SerializeAsync(stream, report);
+                stream.Flush(flushToDisk: true);
+            }
+            File.Move(pending, path, overwrite: true);
         }
 
-        [TestMethod]
-        public async Task SaveAvatar_ShouldReturnSuccessResult()
-        {
-            var avatar = new Avatar { Id = Guid.NewGuid(), Username = "valkey-test-user", Email = "valkey@test.com" };
-            var result = await _provider.SaveAvatarAsync(avatar);
-            Assert.IsFalse(result.IsError, result.Message);
-            Assert.IsNotNull(result.Result);
-        }
-
-        [TestMethod]
-        public async Task LoadAvatar_ShouldReturnResult()
-            => Assert.IsNotNull(await _provider.LoadAvatarAsync(Guid.NewGuid()));
-
-        [TestMethod]
-        public async Task SaveHolon_ShouldReturnSuccessResult()
-        {
-            var holon = new Holon { Id = Guid.NewGuid(), Name = "ValKey Test Holon" };
-            var result = await _provider.SaveHolonAsync(holon);
-            Assert.IsFalse(result.IsError, result.Message);
-            Assert.IsNotNull(result.Result);
-        }
-
-        [TestMethod]
-        public async Task LoadHolon_ShouldReturnResult()
-            => Assert.IsNotNull(await _provider.LoadHolonAsync(Guid.NewGuid()));
-
-        [TestCleanup]
-        public void Cleanup()
-        {
-            if (_provider != null && _provider.IsProviderActivated)
-                _provider.DeActivateProvider();
-        }
+        var provider = new ValKeyOASIS(connection!);
+        var result = await CoreStorageConformance.RunAsync(provider, nameof(ValKeyOASIS), "native", synchronous, Checkpoint);
+        Assert.IsTrue(result.Succeeded, $"{result.CurrentCase}: {result.FailureType} {result.FailureContract}");
+        Assert.IsTrue(result.FixtureCleanupComplete);
+        Assert.AreEqual(CoreStorageConformance.ChecksPerMode, result.Passed.Count);
     }
 }
