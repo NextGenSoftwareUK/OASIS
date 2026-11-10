@@ -15,7 +15,10 @@ public class Neo4jV2NativeTests
         var endpoint = Environment.GetEnvironmentVariable("OASIS_NEO4J_V2_URI");
         var username = Environment.GetEnvironmentVariable("OASIS_NEO4J_V2_USERNAME");
         var password = Environment.GetEnvironmentVariable("OASIS_NEO4J_V2_PASSWORD");
-        Assert.IsFalse(string.IsNullOrWhiteSpace(endpoint));
+        Assert.IsTrue(Uri.TryCreate(endpoint, UriKind.Absolute, out var uri) &&
+            (uri.Scheme is "bolt" or "bolt+s" or "bolt+ssc" or "neo4j" or "neo4j+s" or "neo4j+ssc") &&
+            !string.IsNullOrWhiteSpace(uri.Host) && string.IsNullOrEmpty(uri.UserInfo),
+            "Configure a dedicated Neo4j driver endpoint without embedded credentials.");
         Assert.IsFalse(string.IsNullOrWhiteSpace(username));
         Assert.IsFalse(string.IsNullOrWhiteSpace(password));
 
