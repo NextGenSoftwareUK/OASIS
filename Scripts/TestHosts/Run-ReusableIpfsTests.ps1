@@ -9,10 +9,10 @@ if($suiteModes.Count -gt 1 -or ($suiteModes.Count -gt 0 -and ($ReconcileV2 -or $
 $taskRoot=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $work=if($EnvironmentPath){[IO.Path]::GetFullPath($EnvironmentPath)}else{Join-Path $taskRoot 'LocalState/COSMIC/IPFSCurrent'}
 $results=Join-Path $taskRoot 'TestResults/IPFSCurrent'
-New-Item -ItemType Directory -Path $results -Force|Out-Null
 if(!(Test-Path -LiteralPath (Join-Path $work 'repo/config')) -or !(Test-Path -LiteralPath (Join-Path $work 'storage-key.dpapi'))){
     throw 'Retained IPFS repository and original protected storage key required. Select the existing EnvironmentPath; never initialize a duplicate or replace its key.'
 }
+New-Item -ItemType Directory -Path $results -Force|Out-Null
 $lease=[IO.File]::Open((Join-Path $work 'environment.lock'),[IO.FileMode]::OpenOrCreate,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)
 if($ArchiveCompletedDemo -and $work -ne [IO.Path]::GetFullPath((Join-Path $taskRoot 'LocalState/COSMIC/IPFSCurrent'))){throw 'Completed-demo archive is limited to this worktree default environment.'}
 if($ArchiveCompletedDemo){& (Join-Path $PSScriptRoot 'Archive-CompletedProtocolPointDemo.ps1') -Provider IPFS -KeySet:$CqlKeySet}
