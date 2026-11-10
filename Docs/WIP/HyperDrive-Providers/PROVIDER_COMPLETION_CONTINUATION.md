@@ -156,3 +156,4 @@ SQLLiteDBOASIS retains its 52/52 native shared storage result through Microsoft.
 ### Valkey shared lifecycle gate
 
 The dedicated Valkey integration cases compiled and discovered sync and async schedules. Both skipped without OASIS_VALKEY_LIFECYCLE_REPORT_ROOT and a dedicated Valkey endpoint. The cases require a real valkey_version response before writes. Keep the retained CQL fixture and controlled family result separate from the pending native shared lifecycle.
+Garnet shared lifecycle sync and async cases compiled and were discovered. Both skipped without the dedicated endpoint and OASIS_GARNET_LIFECYCLE_REPORT_ROOT. The new preflight requires native garnet_version before writes. Existing CQL and controlled evidence were not replayed.
