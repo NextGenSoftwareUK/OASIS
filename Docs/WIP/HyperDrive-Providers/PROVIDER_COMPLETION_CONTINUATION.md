@@ -207,3 +207,5 @@ Aura avatar deletion now executes one SDK write transaction for all four selecto
 Aura avatar-detail saves now use a single SDK write transaction keyed by GUId in both calling modes, update the same four persisted profile fields, and return the detail after acknowledgement. Build passed with zero errors and two warnings. Live detail create/update, full payload round-trip and historical identity verification remain open.
 
 Aura detail GUID, username and email lookups now return the stored identity and the four fields written by the detail save path. Both calling modes report missing and duplicate matches consistently. Build passed with zero errors and two warnings. Native detail lookup remains open.
+
+Aura avatar writes now persist the provider key selected by the shipping lookup and delete queries. A saved key is preserved across updates, with the supplied Neo4j key or GUID used to initialize records that lack it. Single-avatar reads and saves return the actual stored key. Build passed with zero errors and two warnings. Native key round-trip, duplicate-key handling and compatibility with existing records remain open.

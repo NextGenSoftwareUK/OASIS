@@ -120,20 +120,25 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
                     id = CreateDeterministicGuid($"{Core.Enums.ProviderType.Neo4jOASIS}:{providerKey}");
                 }
 
+                var requestedKey = avatar.ProviderUniqueStorageKey?.GetValueOrDefault(Core.Enums.ProviderType.Neo4jOASIS);
+                var candidateKey = string.IsNullOrWhiteSpace(requestedKey) ? id.ToString() : requestedKey;
+                string persistedKey;
                 var session = Driver.AsyncSession(WithDatabase);
                 try
                 {
-                    await session.WriteTransactionAsync(async transaction =>
+                    persistedKey = await session.WriteTransactionAsync(async transaction =>
                     {
                         var cursor = await transaction.RunAsync(@"
                             MERGE (avatar:Avatar {GUId: $guid})
                             SET avatar.name = $name, avatar.FirstName = $firstName,
                                 avatar.LastName = $lastName, avatar.EMail = $email,
                                 avatar.username = $username, avatar.password = $password
-                            RETURN avatar.GUId",
+                            SET avatar.ProviderKey = coalesce(avatar.ProviderKey, $providerKey)
+                            RETURN avatar.ProviderKey AS providerKey",
                             new
                             {
                                 guid = id.ToString(),
+                                providerKey = candidateKey,
                                 name = avatar.Title,
                                 firstName = avatar.FirstName,
                                 lastName = avatar.LastName,
@@ -141,8 +146,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
                                 username = avatar.Username,
                                 password = avatar.Password
                             }).ConfigureAwait(false);
-                        await cursor.SingleAsync().ConfigureAwait(false);
-                        return true;
+                        return await cursor.SingleAsync(row => row["providerKey"].As<string>()).ConfigureAwait(false);
                     }).ConfigureAwait(false);
                 }
                 finally
@@ -152,6 +156,8 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
 
                 avatar.AvatarId = id;
                 avatar.CreatedProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.Neo4jOASIS);
+                avatar.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
+                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.Neo4jOASIS] = persistedKey;
                 result.Result = avatar;
                 result.IsSaved = true;
             }

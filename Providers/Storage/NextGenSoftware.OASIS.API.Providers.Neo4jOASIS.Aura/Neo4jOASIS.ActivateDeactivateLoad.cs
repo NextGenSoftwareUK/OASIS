@@ -305,7 +305,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
                 {
                     var cursor = await transaction.RunAsync($@"
                         MATCH (av:Avatar) WHERE {predicate} AND NOT coalesce(av.IsDeleted, false)
-                        RETURN av.GUId AS guid, av.name AS title, av.FirstName AS firstname,
+                        RETURN av.GUId AS guid, av.ProviderKey AS providerKey, av.name AS title, av.FirstName AS firstname,
                                av.LastName AS lastname, av.username AS username, av.EMail AS email",
                         new { value }).ConfigureAwait(false);
                     if (!await cursor.FetchAsync().ConfigureAwait(false))
@@ -321,6 +321,11 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
                         Username = row["username"].As<string>(),
                         Email = row["email"].As<string>()
                     };
+                    if (row["providerKey"] is string providerKey)
+                    {
+                        avatar.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
+                        avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.Neo4jOASIS] = providerKey;
+                    }
                     if (await cursor.FetchAsync().ConfigureAwait(false))
                         throw new InvalidOperationException("Multiple Aura avatars match the requested identity.");
 
