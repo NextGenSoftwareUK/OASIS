@@ -105,3 +105,7 @@ The registered TON provider is a storage provider backed by the local native TVM
 The registered TONOASIS provider passed 26/26 async shared storage lifecycle checks on the pinned local TVM engine. Its terminal checkpoint confirms exact fixture cleanup and has SHA-256 999172CA532100458472F2366AE23B70ED68DA255427AB00DA3496F89A09CA6E. The separate sync case is still running. This is local native execution, with public-network transport still open.
 TON native TVM lifecycle finished 2/2 modes passed, zero failures/skips, 10m16s. Sync passed 26/26 with fixture cleanup confirmed. Sync report SHA-256 783D448D3AD632AAACD1DD1055AEF9372EECC8071AED46A1CB8C90E5DF737A6A. Combined sync and async: 52/52 through the registered shipping provider.
 The TON lifecycle acceptance used Core 14bfd34f6e34d2be9f4bdec34b3431b8ce356fe5 in the provider worktree. Development still pinned Core 9c2882e51b8517d37b2293e4beeaf815003e7649 at the integration review. Keep the existing native result attached to its tested revision when integrating the inventory.
+
+### NEAR native lifecycle admission
+
+The existing signed-write tests use the shipping NEAROASIS provider. The retained runner requires an RPC URL, chain ID, contract ID, and protected signer path, and launches its test tooling through WSL. The current shell has no NEAROASIS test settings. Existing operation-specific reports remain valid within their recorded scope. The next shared-suite run needs an isolated writable contract with exact fixture cleanup and must preserve retained CQL state.
