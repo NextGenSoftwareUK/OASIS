@@ -17,6 +17,8 @@ Development now includes the COSMIC five-reader WEB4 batch at 111165cf8b. The Hy
 
 The Garnet Linux fixture guard is staged at d273dba4b4 for the next Development window. It compiled against Core 59595871 and skipped correctly on Windows. Prior native lifecycle receipts remain separate.
 
+Neo4j promotion review: the task diff contains broad canonical, V2 and Aura changes. Preserve the canonical 52/52 receipt, with separate live gates for V2 activation and Aura lifecycle. This session has no Neo4j fixture configuration and no local Bolt listener on 7687. Keep this larger provider batch separate from the verified Garnet fixture guard.
+
 ### Priority hosted gates, 10 November
 
 | Provider | Evidence to carry forward | Next acceptance gate |
