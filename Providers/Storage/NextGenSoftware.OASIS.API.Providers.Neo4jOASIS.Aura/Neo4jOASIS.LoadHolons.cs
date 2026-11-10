@@ -199,190 +199,66 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
             }
         }
 
-        public override OASISResult<IAvatar> SaveAvatar(IAvatar Avatar)
+        public override OASISResult<IAvatar> SaveAvatar(IAvatar avatar) =>
+            SaveAvatarAsync(avatar).GetAwaiter().GetResult();
+
+        public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
         {
+            var result = new OASISResult<IAvatar>();
+
             try
             {
-                var session = Driver.Session(WithDatabase);
-
-                var avatarList = session.ReadTransaction(transaction =>
+                var id = avatar.AvatarId;
+                if (id == Guid.Empty)
                 {
-                    var cursor = transaction.Run(@"
-                            MATCH (p:Avatar {name: $name})
-                            SET p.EMail = $eMail,p.FirstName = $firstName,p.LastName = $lastName
-                            RETURN p.LastName as lastname",
-                        new
-                        {
-                            name = Avatar.Title,
-                            eMail = Avatar.Email,
-                            firstName = Avatar.FirstName,
-                            lastName = Avatar.LastName,
-                        }
-                    );
-
-                    var avList = (from d in cursor
-                                  select new Avatar
-                                  {
-                                      LastName = d["lastname"].As<string>()
-                                  }).ToList();
-                    return avList;
-                });
-
-                if (avatarList != null)
-                {
-                    if (avatarList.Count > 0)
-                    {
-                        return new OASISResult<IAvatar>
-                        {
-                            IsSaved = true,
-                            IsError = false,
-                            Message = "Record updated successfully",
-                        };
-                    }
+                    var providerKey = avatar.ProviderUniqueStorageKey?.GetValueOrDefault(Core.Enums.ProviderType.Neo4jOASIS)
+                        ?? avatar.ProviderUniqueStorageKey?.Values?.FirstOrDefault()
+                        ?? avatar.Username
+                        ?? $"Neo4jOASIS:{avatar.CreatedDate.Ticks}";
+                    id = CreateDeterministicGuid($"{Core.Enums.ProviderType.Neo4jOASIS}:{providerKey}");
                 }
 
-                return session.WriteTransaction(transaction =>
-                {
-                    var cursor = transaction.Run(@"
-                            MERGE (p1:Avatar { name:$Name, FirstName: $firstName ,
-                                                LastName:$lastName,EMail:$eMail,
-                                                username:$userName,password:$Password,
-                                                GUId:$guid})
-                            RETURN p1.name as name",
-                        new
-                        {
-                            Name = Avatar.Title,
-                            firstName = Avatar.FirstName,
-                            lastName = Avatar.LastName,
-                            eMail = Avatar.Email,
-                            userName = Avatar.Username,
-                            Password = Avatar.Password,
-                            guid = Avatar.AvatarId.ToString(),
-                            //pkey = Avatar.ProviderKey,
-                        }
-                    );
-
-                    IAvatar objAv = (from d in cursor
-                                     select new Avatar
-                                     { FirstName = d["name"].As<string>() }).FirstOrDefault();
-
-
-                    return new OASISResult<IAvatar>
-                    {
-                        IsSaved = true,
-                        IsError = false,
-                        Message = objAv.FirstName + " Record saved successfully",
-                    };
-                });
-            }
-            catch (Exception ex)
-            {
-                return new OASISResult<IAvatar>
-                {
-                    IsSaved = false,
-                    IsError = true,
-                    Message = ex.ToString(),
-                };
-            }
-        }
-
-        public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar Avatar)
-        {
-            try
-            {
                 var session = Driver.AsyncSession(WithDatabase);
-
-                if (Avatar.AvatarId == Guid.Empty)
+                try
                 {
-                    var providerKey = Avatar.ProviderUniqueStorageKey?.GetValueOrDefault(Core.Enums.ProviderType.Neo4jOASIS) 
-                        ?? Avatar.ProviderUniqueStorageKey?.Values?.FirstOrDefault()
-                        ?? Avatar.Username 
-                        ?? $"Neo4jOASIS:{Avatar.CreatedDate.Ticks}";
-                    Avatar.AvatarId = CreateDeterministicGuid($"{Core.Enums.ProviderType.Neo4jOASIS}:{providerKey}");
+                    await session.WriteTransactionAsync(async transaction =>
+                    {
+                        var cursor = await transaction.RunAsync(@"
+                            MERGE (avatar:Avatar {GUId: $guid})
+                            SET avatar.name = $name, avatar.FirstName = $firstName,
+                                avatar.LastName = $lastName, avatar.EMail = $email,
+                                avatar.username = $username, avatar.password = $password
+                            RETURN avatar.GUId",
+                            new
+                            {
+                                guid = id.ToString(),
+                                name = avatar.Title,
+                                firstName = avatar.FirstName,
+                                lastName = avatar.LastName,
+                                email = avatar.Email,
+                                username = avatar.Username,
+                                password = avatar.Password
+                            }).ConfigureAwait(false);
+                        await cursor.SingleAsync().ConfigureAwait(false);
+                        return true;
+                    }).ConfigureAwait(false);
+                }
+                finally
+                {
+                    await session.CloseAsync().ConfigureAwait(false);
                 }
 
-                Avatar.CreatedProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.Neo4jOASIS);
-                var avatarList = await session.ReadTransactionAsync(async transaction =>
-                {
-                    var cursor = await transaction.RunAsync(@"
-                            MATCH (p:Avatar {name: $name})
-                            SET p.EMail = $eMail,p.FirstName = $firstName,p.LastName = $lastName
-                                
-                            RETURN p.LastName as lastname",
-                        new
-                        {
-                            name = Avatar.Title,
-                            eMail = Avatar.Email,
-                            firstName = Avatar.FirstName,
-                            lastName = Avatar.LastName,
-
-                        }
-                    );
-
-                    return await cursor.ToListAsync(record => new Avatar
-                    {
-                        LastName = record["lastname"].As<string>()
-                    });
-                });
-
-                if (avatarList != null)
-                {
-                    if (avatarList.Count > 0)
-                    {
-                        return new OASISResult<IAvatar>
-                        {
-                            IsSaved = true,
-                            IsError = false,
-                            Message = "Record updated successfully",
-                        };
-                    }
-                }
-
-                return await session.WriteTransactionAsync(async transaction =>
-                {
-                    var cursor = await transaction.RunAsync(@"
-                            MERGE (p1:Avatar { name:$Name, FirstName: $firstName ,
-                                                LastName:$lastName,EMail:$eMail,
-                                                username:$userName,password:$Password,
-                                                GUId:$guid})                        
-                            RETURN p1.name as name",
-                        new
-                        {
-                            Name = Avatar.Title,
-                            firstName = Avatar.FirstName,
-                            lastName = Avatar.LastName,
-                            eMail = Avatar.Email,
-                            userName = Avatar.Username,
-                            Password = Avatar.Password,
-                            guid = Avatar.AvatarId.ToString(),
-                        }
-                    );
-
-                    IAvatar objAv = await cursor.SingleAsync(record => new Avatar
-                    {
-                        Title = record["name"].As<string>(),
-                        FirstName = record["name"].As<string>()
-                    });
-                    //objAv.ProviderKey[Core.Enums.ProviderType.Neo4jOASIS] = objAv.Title;
-                    //session.Dispose();
-                    return new OASISResult<IAvatar>
-                    {
-                        IsSaved = true,
-                        IsError = false,
-                        Message = objAv.FirstName + " Record saved successfully",
-                        Result = objAv
-                    };
-                });
+                avatar.AvatarId = id;
+                avatar.CreatedProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.Neo4jOASIS);
+                result.Result = avatar;
+                result.IsSaved = true;
             }
             catch (Exception ex)
             {
-                return new OASISResult<IAvatar>
-                {
-                    IsSaved = false,
-                    IsError = true,
-                    Message = ex.ToString(),
-                };
+                OASISErrorHandling.HandleError(ref result, "Error saving Neo4j Aura avatar.", ex);
             }
+
+            return result;
         }
 
         public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail AvatarDetail)
