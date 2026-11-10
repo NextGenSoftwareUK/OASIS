@@ -12,7 +12,8 @@ $ErrorActionPreference = 'Stop'
 # Wrap an entire reusable runner, or a producer/consumer batch, once (never nest).
 # The operation remains responsible for checking native exit codes/test evidence.
 $providerBuildRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
-$providerBuildDirectory = Join-Path $providerBuildRoot 'TestResults/ProviderBuildCurrent'
+# Adjacent checkouts build the same sibling NextGenSoftware-Libraries outputs.
+$providerBuildDirectory = Join-Path (Split-Path -Parent $providerBuildRoot) '.oasis-provider-build'
 New-Item -ItemType Directory -Path $providerBuildDirectory -Force | Out-Null
 $providerBuildLeasePath = Join-Path $providerBuildDirectory 'producer-consumer.lock'
 $providerBuildLease = [IO.File]::Open($providerBuildLeasePath, [IO.FileMode]::OpenOrCreate, [IO.FileAccess]::ReadWrite, [IO.FileShare]::None)
