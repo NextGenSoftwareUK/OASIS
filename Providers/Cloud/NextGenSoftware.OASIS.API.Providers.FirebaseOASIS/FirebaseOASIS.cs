@@ -231,7 +231,7 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
             try
             {
                 var avatar = await GetAsync<Avatar>($"/oasis_avatars/{id}");
-                if (avatar == null || avatar.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: No avatar found with ID '{id}'."); return result; }
+                if (avatar == null || avatar.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: No avatar found with ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
                 result.Result = avatar; result.IsLoaded = true; result.LoadedCount = 1; result.Message = $"FirebaseOASIS: Avatar loaded for ID '{id}'.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: Error loading avatar by ID '{id}': {ex.Message}"); }
@@ -246,11 +246,13 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
             try
             {
                 var avatars = await QueryByFieldAsync<Avatar>("oasis_avatars", "username", username);
-                var avatar = avatars.FirstOrDefault(a => !a.IsDeleted);
-                if (avatar == null) { OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: No avatar found with username '{username}'."); return result; }
+                var live = avatars.Where(a => !a.IsDeleted).Take(2).ToList();
+                if (live.Count > 1) throw new StorageIdentityAmbiguousException();
+                var avatar = live.SingleOrDefault();
+                if (avatar == null) { OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: No avatar found with username '{username}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
                 result.Result = avatar; result.IsLoaded = true; result.LoadedCount = 1; result.Message = $"FirebaseOASIS: Avatar loaded for username '{username}'.";
             }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: Error loading avatar by username '{username}': {ex.Message}"); }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: Error loading avatar by username '{username}': {ex.Message}"); if (ex is StorageIdentityAmbiguousException) result.ErrorCode = OASISResultErrorCodes.AmbiguousIdentity; }
             return result;
         }
 
@@ -262,11 +264,13 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
             try
             {
                 var avatars = await QueryByFieldAsync<Avatar>("oasis_avatars", "email", avatarEmail);
-                var avatar = avatars.FirstOrDefault(a => !a.IsDeleted);
-                if (avatar == null) { OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: No avatar found with email '{avatarEmail}'."); return result; }
+                var live = avatars.Where(a => !a.IsDeleted).Take(2).ToList();
+                if (live.Count > 1) throw new StorageIdentityAmbiguousException();
+                var avatar = live.SingleOrDefault();
+                if (avatar == null) { OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: No avatar found with email '{avatarEmail}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
                 result.Result = avatar; result.IsLoaded = true; result.LoadedCount = 1; result.Message = $"FirebaseOASIS: Avatar loaded for email '{avatarEmail}'.";
             }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: Error loading avatar by email '{avatarEmail}': {ex.Message}"); }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: Error loading avatar by email '{avatarEmail}': {ex.Message}"); if (ex is StorageIdentityAmbiguousException) result.ErrorCode = OASISResultErrorCodes.AmbiguousIdentity; }
             return result;
         }
 
@@ -407,7 +411,7 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
             try
             {
                 var detail = await GetAsync<AvatarDetail>($"/oasis_avatar_details/{id}");
-                if (detail == null) { OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: No avatar detail found for ID '{id}'."); return result; }
+                if (detail == null) { OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: No avatar detail found for ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
                 result.Result = detail; result.IsLoaded = true; result.LoadedCount = 1; result.Message = $"FirebaseOASIS: AvatarDetail loaded for ID '{id}'.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: Error loading avatar detail for '{id}': {ex.Message}"); }
@@ -422,11 +426,12 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
             try
             {
                 var details = await QueryByFieldAsync<AvatarDetail>("oasis_avatar_details", "username", username);
-                var detail = details.FirstOrDefault();
-                if (detail == null) { OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: No avatar detail found for username '{username}'."); return result; }
+                if (details.Count > 1) throw new StorageIdentityAmbiguousException();
+                var detail = details.SingleOrDefault();
+                if (detail == null) { OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: No avatar detail found for username '{username}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
                 result.Result = detail; result.IsLoaded = true; result.LoadedCount = 1; result.Message = $"FirebaseOASIS: AvatarDetail loaded for username '{username}'.";
             }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: Error loading avatar detail by username '{username}': {ex.Message}"); }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: Error loading avatar detail by username '{username}': {ex.Message}"); if (ex is StorageIdentityAmbiguousException) result.ErrorCode = OASISResultErrorCodes.AmbiguousIdentity; }
             return result;
         }
 
@@ -438,11 +443,12 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
             try
             {
                 var details = await QueryByFieldAsync<AvatarDetail>("oasis_avatar_details", "email", email);
-                var detail = details.FirstOrDefault();
-                if (detail == null) { OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: No avatar detail found for email '{email}'."); return result; }
+                if (details.Count > 1) throw new StorageIdentityAmbiguousException();
+                var detail = details.SingleOrDefault();
+                if (detail == null) { OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: No avatar detail found for email '{email}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
                 result.Result = detail; result.IsLoaded = true; result.LoadedCount = 1; result.Message = $"FirebaseOASIS: AvatarDetail loaded for email '{email}'.";
             }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: Error loading avatar detail by email '{email}': {ex.Message}"); }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: Error loading avatar detail by email '{email}': {ex.Message}"); if (ex is StorageIdentityAmbiguousException) result.ErrorCode = OASISResultErrorCodes.AmbiguousIdentity; }
             return result;
         }
 
