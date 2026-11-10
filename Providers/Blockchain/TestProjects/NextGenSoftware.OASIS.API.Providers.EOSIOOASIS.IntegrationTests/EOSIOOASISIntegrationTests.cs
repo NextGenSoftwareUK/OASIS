@@ -98,6 +98,39 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.IntegrationTests
             Assert.AreEqual(0, missing.LoadedCount);
         }
 
+        [TestMethod]
+        public async Task AvatarDetailUpdateAndHardDelete_PersistOnAntelope()
+        {
+            if (Environment.GetEnvironmentVariable("OASIS_ANTELOPE_DETAIL_CONTRACT_READY") != "1")
+                Assert.Inconclusive("Requires the dedicated contract rebuilt with setdetail and harddetail.");
+
+            var detail = new AvatarDetail { Id = Guid.NewGuid(), Karma = 17 };
+            var saved = await _provider.SaveAvatarDetailAsync(detail);
+            Assert.IsFalse(saved.IsError, saved.Message);
+
+            try
+            {
+                detail.Karma = 29;
+                var updated = await _provider.SaveAvatarDetailAsync(detail);
+                Assert.IsFalse(updated.IsError, updated.Message);
+
+                var loaded = await _provider.LoadAvatarDetailAsync(detail.Id);
+                Assert.IsFalse(loaded.IsError, loaded.Message);
+                Assert.AreEqual(detail.Id, loaded.Result.Id);
+                Assert.AreEqual(detail.Karma, loaded.Result.Karma);
+            }
+            finally
+            {
+                var deleted = await _provider.HardDeleteAvatarDetailAsync(detail.Id);
+                Assert.IsFalse(deleted.IsError, deleted.Message);
+                Assert.AreEqual(1, deleted.DeletedCount);
+
+                var missing = await _provider.LoadAvatarDetailAsync(detail.Id);
+                Assert.IsFalse(missing.IsLoaded);
+                Assert.IsNull(missing.Result);
+            }
+        }
+
         [TestCleanup]
         public void Cleanup() => _provider?.DeActivateProvider();
     }
