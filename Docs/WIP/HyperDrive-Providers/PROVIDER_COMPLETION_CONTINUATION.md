@@ -371,3 +371,5 @@ ClickHouse history source review: all three shipping entity tables use Replacing
 ClickHouse storage smoke suite now requires OASIS_CLICKHOUSE_STORAGE_TEST_WRITES=1 and explicit CLICKHOUSE_CONN for a disposable instance. Activation must succeed before a case proceeds. After restore, all four cases skipped as expected without configuration. No native storage result or history acceptance is implied.
 
 ClickHouse hard deletes now request local mutation completion. HardDeletedHolonIsImmediatelyAbsent compiled and skipped without fixture configuration. Native acknowledgement and immediate absence remain open and the fixture is recorded in Actions for David.
+
+ClickHouse CI candidate 9419d463f4 is a fast-forward from Development e1e3e9e06a. PyYAML parsed the committed workflow and confirmed one ClickHouse matrix row with the storage-class filter and writable fixture opt-in. The prior job failed three fixture-specific COSMIC tests and skipped the four storage cases. This static check supports the workflow-only repair; successful live storage execution remains pending.
