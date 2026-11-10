@@ -1,6 +1,8 @@
 # App accounts: shared (pooled) quotas - design
 
-Status: proposal, not implemented. Prerequisite for offering any finite (non-Enterprise) app plan.
+Status: **implemented, off by default.** Set `OASIS_POOLED_APP_QUOTAS=true` to enable; until then every request behaves exactly as before and finite app plans are still refused. Not yet soak-tested against a real replica set or under load (see Rollout).
+
+Built: pool buckets (`app:{appId}` subject) updated in the same transaction as the avatar buckets; pool admission with `APP_`-prefixed denial codes; per-app `PooledQuota` and `PerUserPlanId` (default silver, never enterprise); `GET /api/subscription/admin/app-accounts/{appId}/usage`. Not built yet: top-users report, 80%/100% alerts, pool sharding.
 
 ## Problem
 

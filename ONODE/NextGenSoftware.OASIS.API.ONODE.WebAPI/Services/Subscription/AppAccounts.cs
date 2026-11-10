@@ -31,6 +31,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
         public DateTime UpdatedAtUtc { get; set; }
         public string UpdatedBy { get; set; }
         public string Reason { get; set; }
+        /// <summary>When true (and the pooled-quota feature is on) the app's plan is ONE pool shared by all its users.</summary>
+        public bool PooledQuota { get; set; }
+        /// <summary>Personal plan floor for users while they use a pooled app. Defaults to silver.</summary>
+        public string PerUserPlanId { get; set; }
 
         /// <summary>A copy that is safe to return from an API: no key hash.</summary>
         public AppAccountRecord Redacted()
@@ -43,9 +47,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
 
     public interface IAppAccountRepository
     {
-        Task<(AppAccountRecord Account, string ApiKey)> CreateAppAccountAsync(string appId, string name, string planId, string actor, string reason, CancellationToken cancellationToken = default);
+        Task<(AppAccountRecord Account, string ApiKey)> CreateAppAccountAsync(string appId, string name, string planId, string actor, string reason, bool pooledQuota = false, string perUserPlanId = null, CancellationToken cancellationToken = default);
         Task<(AppAccountRecord Account, string ApiKey)> RotateAppAccountKeyAsync(string appId, string actor, string reason, CancellationToken cancellationToken = default);
-        Task<AppAccountRecord> UpdateAppAccountAsync(string appId, string planId, string status, string actor, string reason, CancellationToken cancellationToken = default);
+        Task<AppAccountRecord> UpdateAppAccountAsync(string appId, string planId, string status, string actor, string reason, bool? pooledQuota = null, string perUserPlanId = null, CancellationToken cancellationToken = default);
         /// <summary>Returns the active account when the id and key match; null otherwise (never says which part was wrong).</summary>
         Task<AppAccountRecord> VerifyAppCredentialAsync(string appId, string apiKey, CancellationToken cancellationToken = default);
         Task<IReadOnlyList<AppAccountRecord>> ListAppAccountsAsync(CancellationToken cancellationToken = default);
@@ -76,11 +80,35 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
         /// Until app-wide pooled quotas exist, an app plan is a per-user entitlement, which only makes sense for an
         /// unlimited plan. A finite app plan would multiply its limits by the number of users, so it is refused.
         /// </summary>
-        public static void ValidateAppPlan(string planId)
+        public static void ValidateAppPlan(string planId, bool pooled = false)
         {
             ValidatePlan(planId);
-            if (planId != "enterprise")
-                throw new ArgumentException("App accounts currently support only the enterprise plan; finite app plans need pooled quotas, which are not available yet.");
+            if (planId == "enterprise") return;
+            if (!pooled)
+                throw new ArgumentException("A finite app plan must be a pooled quota (PooledQuota=true); only the enterprise plan can be used without a pool.");
+            if (!PooledQuotasEnabled)
+                throw new ArgumentException("Pooled app quotas are not enabled on this server (set OASIS_POOLED_APP_QUOTAS=true).");
+        }
+
+        public const string PooledFlagName = "OASIS_POOLED_APP_QUOTAS";
+        public const string DefaultPerUserPlanId = "silver";
+
+        /// <summary>Feature flag, off by default so every existing flow is unchanged until it is switched on.</summary>
+        public static bool PooledQuotasEnabled =>
+            string.Equals(Environment.GetEnvironmentVariable(PooledFlagName), "true", StringComparison.OrdinalIgnoreCase);
+
+        /// <summary>True when this app's requests are also counted against, and limited by, a shared app pool.</summary>
+        public static bool UsesPool(AppAccountRecord app) =>
+            app != null && app.PooledQuota && app.PlanId != "enterprise" && PooledQuotasEnabled;
+
+        public static string PerUserPlan(AppAccountRecord app) =>
+            Rank(app?.PerUserPlanId) > 0 ? app.PerUserPlanId : DefaultPerUserPlanId;
+
+        public static void ValidatePerUserPlan(string planId)
+        {
+            if (planId == null) return;
+            ValidatePlan(planId);
+            if (planId == "enterprise") throw new ArgumentException("The per-user plan cannot be enterprise; that would defeat the pool.");
         }
 
         public static void ValidateActorAndReason(string actor, string reason)

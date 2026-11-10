@@ -100,7 +100,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public Task<IActionResult> CreateAppAccount([FromBody] AppAccountRequest request) =>
             AppAccountCall(async actor =>
             {
-                var (account, key) = await _repository.CreateAppAccountAsync(request?.AppId, request?.Name, request?.PlanId, actor, request?.Reason, HttpContext.RequestAborted);
+                var (account, key) = await _repository.CreateAppAccountAsync(request?.AppId, request?.Name, request?.PlanId, actor, request?.Reason, request?.PooledQuota ?? false, request?.PerUserPlanId, HttpContext.RequestAborted);
                 return new AppAccountWithKey { Account = account, ApiKey = key };
             });
 
@@ -112,10 +112,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 return new AppAccountWithKey { Account = account, ApiKey = key };
             });
 
+        /// <summary>Pool usage for a pooled app: this month and today against the plan limits.</summary>
+        [HttpGet("app-accounts/{appId}/usage")]
+        public Task<IActionResult> AppPoolUsage(string appId) =>
+            AppAccountCall(_ => _repository.GetAppPoolUsageAsync(appId, HttpContext.RequestAborted));
+
         /// <summary>Change an app's plan and/or disable or re-enable it (a disabled app's credentials stop working at once).</summary>
         [HttpPost("app-accounts/{appId}")]
         public Task<IActionResult> UpdateAppAccount(string appId, [FromBody] AppAccountRequest request) =>
-            AppAccountCall(actor => _repository.UpdateAppAccountAsync(appId, request?.PlanId, request?.Status, actor, request?.Reason, HttpContext.RequestAborted));
+            AppAccountCall(actor => _repository.UpdateAppAccountAsync(appId, request?.PlanId, request?.Status, actor, request?.Reason, request?.PooledQuota, request?.PerUserPlanId, HttpContext.RequestAborted));
 
         private async Task<IActionResult> AppAccountCall<T>(Func<string, Task<T>> call)
         {
@@ -137,6 +142,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             public string PlanId { get; set; }
             public string Status { get; set; }
             public string Reason { get; set; }
+            public bool? PooledQuota { get; set; }
+            public string PerUserPlanId { get; set; }
         }
 
         public sealed class AppAccountWithKey
