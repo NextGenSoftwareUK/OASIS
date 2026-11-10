@@ -110,3 +110,5 @@ EdgeSQLite focused file-backed cohort: all eight checks exited. Fixture disposal
 10 November BootLoader candidate a70a6d5cb4: leased project clean completed after the build, and the checkout returned to the HyperDrive branch. No hosted fixture or raw report was allocated.
 
 10 November BootLoader activation-error follow-up: leased build and project clean completed. No backend or raw report allocated.
+
+10 November IPFS test cleanup follow-up: leased build and clean completed after adding the pinned SDK project reference. No live fixture or raw report was created.
