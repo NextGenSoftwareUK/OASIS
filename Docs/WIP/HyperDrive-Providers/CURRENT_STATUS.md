@@ -13,6 +13,16 @@ Active checkpoint, 10 November 2026. SQL Server is the current HyperDrive focus.
 - Before taking on a provider, check both this directory and the main checkout COSMIC ORM status and provider handoffs for active ownership. Update this checkpoint and affected provider evidence, matrix, handoff, and owner-action entries when ownership, acceptance, prerequisites, or integration changes.
 - New raw evidence under TestResults; compact hash-bound summaries only are tracked. Maintain resource ledger, ten recent entries, byte-preserved archive rollovers.
 
+### Priority hosted gates, 10 November
+
+| Provider | Evidence to carry forward | Next acceptance gate |
+|---|---|---|
+| Neon | Hosted conformance project compiled. | Isolated hosted Neon database for native sync and async lifecycle. |
+| Convex | Real local Convex engine passed 26/26 in each mode, with cleanup. | Dedicated hosted companion deployment for activation and guarded writes. |
+| Supabase | Hosted suite compiled and was discovered. COSMIC separately records local PostgREST demo evidence. | Dedicated hosted Supabase project for lifecycle, pagination and avatar/detail acknowledgement. |
+
+The current process exposes none of the hosted fixture variables listed in [Actions for David](../Release%20and%20Status/ACTIONS-FOR-DAVID.md). Keep fixture access there and preserve existing native receipts. COSMIC also lists a managed BigQuery read-only fixture requirement. Keep that scope separate from HyperDrive's writable lifecycle dataset.
+
 ## Evidence now
 
 | State | Scope |
