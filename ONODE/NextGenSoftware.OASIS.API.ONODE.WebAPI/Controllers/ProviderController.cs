@@ -278,13 +278,28 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("register-provider-types/{providerTypes}")]
         public OASISResult<IEnumerable<IOASISStorageProvider>> RegisterProviderTypes(string providerTypes)
         {
-            string[] types = providerTypes.Split(',');
-            List<IOASISStorageProvider> providers = new List<IOASISStorageProvider>();
+            var types = new List<ProviderType>();
+            foreach (var value in providerTypes.Split(','))
+            {
+                if (!Enum.TryParse<ProviderType>(value, out var type) || !Enum.IsDefined(type))
+                    return new() { IsError = true, Message = "Invalid provider type in registration request." };
 
-            foreach (string type in types)
-                OASISBootLoader.OASISBootLoader.RegisterProvider((ProviderType)Enum.Parse(typeof(ProviderType), type));
+                types.Add(type);
+            }
 
-            return new(providers);
+            var failed = new List<ProviderType>();
+            foreach (var type in types)
+            {
+                var registration = OASISBootLoader.OASISBootLoader.RegisterProvider(type);
+                if (registration == null || registration.IsError || registration.Result == null)
+                    failed.Add(type);
+            }
+
+            return new(Array.Empty<IOASISStorageProvider>())
+            {
+                IsError = failed.Count > 0,
+                Message = failed.Count > 0 ? $"Provider registration failed for: {string.Join(", ", failed)}." : null
+            };
         }
 
         /// <summary>
