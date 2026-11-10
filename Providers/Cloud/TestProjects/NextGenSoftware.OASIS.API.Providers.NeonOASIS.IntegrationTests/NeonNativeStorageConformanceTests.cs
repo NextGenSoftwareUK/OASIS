@@ -51,12 +51,35 @@ public class NeonNativeStorageConformanceTests
             File.Move(pendingPath, reportPath, overwrite: true);
         }
 
+        settings.SslMode = SslMode.VerifyFull;
+        await using var inspection = new NpgsqlConnection(settings.ConnectionString);
+        await inspection.OpenAsync();
+
+        async Task RequireEmptyTables(bool requireSchema)
+        {
+            foreach (var table in new[] { "oasis_avatars", "oasis_avatar_details", "oasis_holons" })
+            {
+                await using var exists = new NpgsqlCommand("SELECT to_regclass($1) IS NOT NULL", inspection);
+                exists.Parameters.AddWithValue(table);
+                if ((bool)(await exists.ExecuteScalarAsync())! == false)
+                {
+                    Assert.IsFalse(requireSchema, $"Missing native table {table} after activation.");
+                    continue;
+                }
+
+                await using var count = new NpgsqlCommand($"SELECT EXISTS (SELECT 1 FROM {table})", inspection);
+                Assert.AreEqual(false, await count.ExecuteScalarAsync(), $"Expected an empty native table {table}.");
+            }
+        }
+
+        await RequireEmptyTables(requireSchema: false);
         var provider = new NeonOASIS(connection!);
         var result = await CoreStorageConformance.RunAsync(
             provider, nameof(NeonOASIS), "native", sync, Checkpoint, expectedDefaultDeletion: "absent");
 
         Assert.IsTrue(result.Succeeded, $"{result.CurrentCase}: {result.FailureType}");
         Assert.IsTrue(result.FixtureCleanupComplete);
+        await RequireEmptyTables(requireSchema: true);
         Assert.AreEqual(CoreStorageConformance.ChecksPerMode, result.Passed.Count);
     }
 }
