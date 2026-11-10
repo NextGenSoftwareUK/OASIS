@@ -551,8 +551,10 @@ CROSS APPLY (VALUES (
     CASE WHEN @Version = 0 OR TRY_CONVERT(int, JSON_VALUE(h.DataJson, '$.version')) = @Version
          THEN h.DataJson ELSE a.DataJson END,
     CASE WHEN @Version = 0 OR TRY_CONVERT(int, JSON_VALUE(h.DataJson, '$.version')) = @Version
-         THEN h.HolonType ELSE a.HolonType END
-)) snapshot(DataJson, HolonType)
+         THEN h.HolonType ELSE a.HolonType END,
+    CASE WHEN @Version = 0 OR TRY_CONVERT(int, JSON_VALUE(h.DataJson, '$.version')) = @Version
+         THEN h.ParentHolonId ELSE a.ParentHolonId END
+)) snapshot(DataJson, HolonType, ParentHolonId)
 WHERE h.IsDeleted = 0 AND snapshot.DataJson IS NOT NULL";
 
         private async Task<Holon?> LoadHolonVersionAsync(Guid id, int version)
@@ -865,13 +867,15 @@ WHERE h.Id = @Id AND h.IsDeleted = 0;";
             try
             {
                 string sql = type == HolonType.All
-                    ? "SELECT DataJson FROM OASISHolons WHERE ParentHolonId=@ParentHolonId AND IsDeleted=0"
-                    : "SELECT DataJson FROM OASISHolons WHERE ParentHolonId=@ParentHolonId AND IsDeleted=0 AND HolonType=@HolonType";
+                    ? VersionedHolonRows + " AND snapshot.ParentHolonId=@ParentHolonId"
+                    : VersionedHolonRows + " AND snapshot.ParentHolonId=@ParentHolonId AND snapshot.HolonType=@HolonType";
                 await using var conn = new SqlConnection(_connectionString);
                 await conn.OpenAsync();
                 await using var cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@Version", version);
                 cmd.Parameters.AddWithValue("@ParentHolonId", id);
                 if (type != HolonType.All) cmd.Parameters.AddWithValue("@HolonType", (int)type);
+                ArgumentOutOfRangeException.ThrowIfNegative(version);
                 var holons = new List<IHolon>();
                 await using var reader = await cmd.ExecuteReaderAsync();
                 while (await reader.ReadAsync()) { var h = Deserialize<Holon>(reader.GetString(0)); if (h != null) holons.Add(h); }
