@@ -418,32 +418,8 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
             return string.Equals(val?.ToString(), metaValue, StringComparison.OrdinalIgnoreCase);
         }
 
-        private static bool HolonMatchesAvatarId(IHolon holon, Guid avatarId)
-        {
-            if (holon == null) return false;
-
-            // Prefer strongly-typed property if present
-            try
-            {
-                var prop = holon.GetType().GetProperty("CreatedByAvatarId");
-                if (prop != null && prop.PropertyType == typeof(Guid))
-                {
-                    var value = (Guid)prop.GetValue(holon);
-                    return value == avatarId;
-                }
-            }
-            catch { }
-
-            // Fallback: metadata
-            if (holon.MetaData != null &&
-                holon.MetaData.TryGetValue("CreatedByAvatarId", out var val) &&
-                Guid.TryParse(val?.ToString(), out var parsed))
-            {
-                return parsed == avatarId;
-            }
-
-            return false;
-        }
+        private static bool HolonMatchesAvatarId(IHolon holon, Guid avatarId) =>
+            holon != null && holon.CreatedByAvatarId == avatarId;
 
         public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true)
         {
