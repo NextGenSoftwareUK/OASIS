@@ -542,16 +542,30 @@ AND NOT EXISTS (SELECT 1 FROM OASISHolonHistory a WHERE a.Id = h.Id AND a.Versio
 
         // ─── Holon loading ────────────────────────────────────────────────────────
 
-        private async Task<Holon?> LoadHolonByColumnAsync(string column, object value)
+        private async Task<Holon?> LoadHolonVersionAsync(Guid id, int version)
         {
-            string sql = $"SELECT DataJson FROM OASISHolons WHERE {column}=@val AND IsDeleted=0";
+            ArgumentOutOfRangeException.ThrowIfNegative(version);
+            const string sql = @"
+SELECT CASE WHEN @Version = 0
+              OR TRY_CONVERT(int, JSON_VALUE(h.DataJson, '$.version')) = @Version
+            THEN h.DataJson ELSE a.DataJson END
+FROM OASISHolons h
+LEFT JOIN OASISHolonHistory a ON a.Id = h.Id AND a.Version = @Version AND a.IsDeleted = 0
+WHERE h.Id = @Id AND h.IsDeleted = 0;";
             await using var conn = new SqlConnection(_connectionString);
-            await conn.OpenAsync();
+            await conn.OpenAsync().ConfigureAwait(false);
             await using var cmd = new SqlCommand(sql, conn);
-            cmd.Parameters.AddWithValue("@val", value);
-            var scalar = await cmd.ExecuteScalarAsync();
-            if (scalar == null || scalar == DBNull.Value) return null;
-            return Deserialize<Holon>(scalar.ToString()!);
+            cmd.Parameters.AddWithValue("@Id", id);
+            cmd.Parameters.AddWithValue("@Version", version);
+            var scalar = await cmd.ExecuteScalarAsync().ConfigureAwait(false);
+            if (scalar is not string json)
+                return null;
+
+            var holon = Deserialize<Holon>(json);
+            if (holon == null || holon.Id != id || (version != 0 && holon.Version != version))
+                throw new System.IO.InvalidDataException("SQL Server returned an inconsistent holon snapshot.");
+
+            return holon;
         }
 
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
@@ -559,7 +573,7 @@ AND NOT EXISTS (SELECT 1 FROM OASISHolonHistory a WHERE a.Id = h.Id AND a.Versio
             var result = new OASISResult<IHolon>();
             try
             {
-                var holon = await LoadHolonByColumnAsync("Id", id);
+                var holon = await LoadHolonVersionAsync(id, version).ConfigureAwait(false);
                 if (holon == null) { OASISErrorHandling.HandleError(ref result, $"SQLServerDBOASIS: No holon found with ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
                 result.Result = holon; result.IsLoaded = true; result.LoadedCount = 1; result.Message = $"SQLServerDBOASIS: Holon loaded for ID '{id}'.";
             }
