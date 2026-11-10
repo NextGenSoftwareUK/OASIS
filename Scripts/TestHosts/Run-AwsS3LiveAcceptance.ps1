@@ -31,6 +31,7 @@ $evidenceStem = if ($RecordLifecycle) { 's3-live-records' } else { 's3-live-tran
     }
     $config = [Amazon.S3.AmazonS3Config]::new()
     $config.RegionEndpoint = [Amazon.RegionEndpoint]::GetBySystemName($Region)
+    $config.IgnoreConfiguredEndpointUrls = $true
     $config.MaxErrorRetry = 0
     $config.Timeout = [TimeSpan]::FromSeconds(10)
     if ([string]::IsNullOrWhiteSpace($ProfileName)) {
