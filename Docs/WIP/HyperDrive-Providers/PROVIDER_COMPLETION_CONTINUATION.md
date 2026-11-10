@@ -305,3 +305,5 @@ SQL Server LocalDB passed AvatarHistoryRetainsHistoricalSelectors. The provider 
 SQL Server LocalDB passed the extended avatar history check. An avatar write at version 0 and a detail write at version 1 both failed against current version 2, and subsequent reads confirmed both current and archived records remained intact. The test cleaned its fixture and stopped LocalDB.
 
 SQL Server LocalDB confirmed soft-deleted avatars' current and archived detail snapshots are hidden in point reads and lists. The same focused case confirmed hard deletion left zero archive rows by direct SQL inspection. LocalDB stopped after the run.
+
+The remote Development revision 1d913e5701 contains the same SQLServerDBOASIS.cs blob as the parent of 73a132159c. The candidate SQL Server source and test batch therefore starts at 73a132159c and includes its subsequent provider-only changes through 9181c5e440. The three changed SQL Server files are the shipping implementation, integration project, and native test source. Validate their shared dependencies against Development before promotion.
