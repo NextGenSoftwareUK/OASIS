@@ -113,9 +113,9 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
                 {
                     var saveResult = await SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
                     
-                    if (saveResult.IsError)
+                    if (saveResult.IsError || !saveResult.IsSaved || saveResult.Result == null)
                     {
-                        errors.Add($"Failed to save holon {holon.Id}: {saveResult.Message}");
+                        errors.Add($"Failed to save holon {holon?.Id}: {saveResult.Message}");
                         if (!continueOnError) break;
                     }
                     else
@@ -125,13 +125,20 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
                 }
 
                 result.Result = savedHolons;
+                result.SavedCount = savedHolons.Count;
+                result.IsSaved = savedHolons.Count > 0;
                 
                 if (errors.Any())
                 {
                     result.Message = $"Saved {savedHolons.Count} holons with {errors.Count} errors";
-                    if (!continueOnError && errors.Any())
+                    if (!continueOnError || savedHolons.Count == 0)
                     {
                         OASISErrorHandling.HandleError(ref result, string.Join("; ", errors));
+                    }
+                    else
+                    {
+                        result.IsWarning = true;
+                        result.WarningCount = errors.Count;
                     }
                 }
                 else
