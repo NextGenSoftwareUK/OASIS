@@ -25,6 +25,8 @@ Development 8ab80a5390 records both native SQLite import acknowledgement passes.
 
 IPFS smoke-test fixture selection now requires explicit IPFSOASIS_TEST_API and compiles. The pending shipping activation diff publishes its client only after the daemon version probe succeeds. That change stays separate pending a live Kubo check. HyperDrive is synchronized with Development 63f2568e14.
 
+Development a78e7ebaf9 replaces the Neon and Convex mock integration factories with guarded native harnesses and updates six inventory documents. Neon compiled and both cases skipped without hosted configuration. Convex compiled and retains its 52 local native passes. Both hosted acceptance gates remain open.
+
 ### Priority hosted gates, 10 November
 
 | Provider | Evidence to carry forward | Next acceptance gate |
