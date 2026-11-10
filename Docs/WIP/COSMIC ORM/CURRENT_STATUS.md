@@ -735,3 +735,5 @@ Development 601d81e81c integrates the verified EVM endpoint qualification script
 Development 3d044fc4 went live after the verifier integration. Monad and Hedera initially appeared unavailable, then both passed the native public presets at 3/2. The authenticated catalogue rose from 69/106 to 105/106 ready for native queries and federation. Nostr remained the sole listed unavailable provider. No local report or build output.
 
 On Development 3d044fc4, Monad and Hedera each passed both public federation presets with 3 and 2 rows. Selected IDs and provider copies matched the native results. The existing visitor had no private MongoDB snapshots, so private paired browser checks remain open.
+
+LocalFile ordinary storage now accepts OASIS.StorageProviders.LocalFileOASIS.StorageDirectory through BootLoader on the COSMIC branch at e1c4e37aad. The two-file candidate 4330d1560f is based on Development 601d81e81c and is building in [WEB4 image CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42915635950). The isolated ordinary admission and hosted point-load proof remain open. The build runs remotely and temporary Git files were removed.
