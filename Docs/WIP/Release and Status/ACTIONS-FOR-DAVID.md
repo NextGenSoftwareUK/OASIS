@@ -556,3 +556,10 @@ Status: missing account/configuration information,2 November2026. David approved
 - **David action** If a dedicated test Neo4j endpoint already exists, designate it for the V2 activation smoke test and grant test access through protected local configuration. The test reads OASIS_NEO4J_V2_URI, OASIS_NEO4J_V2_USERNAME and OASIS_NEO4J_V2_PASSWORD. Keep credentials out of Git and chat.
 - **Reason** Activation verifies real Bolt connectivity and may upgrade the provider schema. A dedicated test endpoint keeps that operation away from COSMIC/CQL or production data.
 - **Context** [Provider completion continuation](../HyperDrive-Providers/PROVIDER_COMPLETION_CONTINUATION.md).
+
+### Hedera retained testnet admission
+
+- **Status (2026-11-09)** Awaiting original fixture access. Historical evidence shows the routed testnet balance did not meet the admitted runner's reserve. Current balance and pending outcomes have yet to be checked.
+- **David action** If the original testnet fixture is available, identify its protected environment and authorize access to it. If the existing testnet identity still falls below the runner reserve after read-only verification, use only free testnet funds. Keep credentials and signing material out of Git and chat.
+- **Reason** Native Hedera storage verification must reconcile the original deployment and satisfy the existing query budget before paid testnet operations. The provider agent owns those checks.
+- **Context** [Hedera native evidence](../COSMIC%20ORM/HEDERA_CQL_MVP.md).

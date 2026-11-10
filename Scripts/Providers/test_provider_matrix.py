@@ -68,6 +68,11 @@ class ProviderMatrixTests(unittest.TestCase):
         directory=m.ROOT/'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.NEAROASIS'
         self.assertTrue(any(x.startswith('near-api-js 7.3.1') for x in m.node_sdk_evidence(directory)))
 
+    def test_ton_classifies_the_shipping_tvm_backend(self):
+        project=m.ROOT/'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.TONOASIS/NextGenSoftware.OASIS.API.Providers.TONOASIS.csproj'
+        self.assertEqual('Non-EVM chain',m.family('TONOASIS',m.source_text(project),project.relative_to(m.ROOT)))
+        self.assertIn('@ton/sandbox 0.45.0 (bridge import)',m.sdk_evidence(project))
+
     def test_real_relative_provider_inheritance_and_arweave_bridge(self):
         project=m.ROOT/'Providers/Storage/NextGenSoftware.OASIS.API.Providers.FlyIOOASIS/NextGenSoftware.OASIS.API.Providers.FlyIOOASIS.csproj'
         self.assertIn('Npgsql',m.sdk_evidence(project))

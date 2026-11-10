@@ -1,7 +1,7 @@
 # Provider breadth-first status matrix
 
 Generated from **229 shipping provider projects** by `python Scripts/Providers/update_provider_matrix.py`.
-Current roles: **56 non-storage**, **173 storage/specialized-storage**. SDK/API source evidence remains unverified for **0** providers; **7** have hash-bound source reviews proving the current adapter is missing.
+Current roles: **56 non-storage**, **173 storage/specialized-storage**. SDK/API source evidence remains unverified for **0** providers; **6** have hash-bound source reviews proving the current adapter is missing.
 
 Current required storage suite: **core-storage-v2**. Earlier-suite totals remain historical and do not establish a current-suite pass.
 
@@ -82,7 +82,7 @@ Family order: EVM, SQL (Oracle priority), Document (AWS priority), key-value/obj
 | [SuiOASIS](../../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.SuiOASIS/NextGenSoftware.OASIS.API.Providers.SuiOASIS.csproj) | Non-EVM chain | Yes - @mysten/sui 2.35.0 (bridge import), HTTP API client | Not run | Shared-suite adapter/run pending |
 | [SynapseOASIS](../../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.SynapseOASIS/NextGenSoftware.OASIS.API.Providers.SynapseOASIS.csproj) | Non-EVM chain | Yes - HTTP API client | Not run | Shared-suite adapter/run pending |
 | [TelosOASIS](../../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.TelosOASIS/NextGenSoftware.OASIS.API.Providers.TelosOASIS.csproj) | Non-EVM chain | Yes - HTTP API client, Nethereum | Not run | Shared-suite adapter/run pending |
-| [TONOASIS](../../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.TONOASIS/NextGenSoftware.OASIS.API.Providers.TONOASIS.csproj) | Non-EVM chain | Yes - HTTP API client | Not run | Shared-suite adapter/run pending |
+| [TONOASIS](../../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.TONOASIS/NextGenSoftware.OASIS.API.Providers.TONOASIS.csproj) | Non-EVM chain | Yes - @ton/core 0.63.1 (bridge import), @ton/sandbox 0.45.0 (bridge import), HTTP API client | Not run | Shared-suite adapter/run pending |
 | [TRONOASIS](../../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.TRONOASIS/NextGenSoftware.OASIS.API.Providers.TRONOASIS.csproj) | Non-EVM chain | Yes - HTTP API client | Not run | Shared-suite adapter/run pending |
 | [Web3CoreOASIS](../../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.csproj) | EVM | Yes - HTTP API client, Nethereum | Not run | Shared-suite adapter/run pending |
 | [WormholeOASIS](../../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.WormholeOASIS/NextGenSoftware.OASIS.API.Providers.WormholeOASIS.csproj) | Non-EVM chain | Yes - HTTP API client | Not run | Shared-suite adapter/run pending |
@@ -225,7 +225,7 @@ Family order: EVM, SQL (Oracle priority), Document (AWS priority), key-value/obj
 | [MotherDuckOASIS](../../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.MotherDuckOASIS/NextGenSoftware.OASIS.API.Providers.MotherDuckOASIS.csproj) | SQL | Yes - DuckDB.NET, HTTP API client | Not run | Shared DuckDB SQL/record facade; 10/10 configuration/metadata controls passed without cloud IO. Hosted core-storage-v2, SDK/extension compatibility, authentication and selected-catalog legacy guard remain unverified; local DuckDB evidence is not MotherDuck certification.; Shared-suite adapter/run pending |
 | [Neo4jOASIS](../../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.csproj) | Graph | Yes - HTTP API client, Neo4j.Driver | 52/52 (native; core-storage-v2) | None recorded within suite scope |
 | [Neo4jOASIS.Aura](../../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura.csproj) | Graph | Yes - Neo4j.Driver | Not run | Shared-suite adapter/run pending |
-| [Neo4jOASIS2](../../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2.csproj) | Graph | No - reviewed missing adapter | Not run | Shared-suite adapter/run pending; Source-reviewed project has no active native SDK/API adapter; implementation required |
+| [Neo4jOASIS2](../../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2.csproj) | Graph | Yes - HTTP API client, Neo4j.Driver | Not run | Shared-suite adapter/run pending |
 | [NetlifyBlobsOASIS](../../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.NetlifyBlobsOASIS/NextGenSoftware.OASIS.API.Providers.NetlifyBlobsOASIS.csproj) | Key-value/object | Yes - HTTP API client | Not run | Shared-suite adapter/run pending |
 | [NileOASIS](../../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.NileOASIS/NextGenSoftware.OASIS.API.Providers.NileOASIS.csproj) | SQL | Yes - HTTP API client, Npgsql | Not run | Shared-suite adapter/run pending |
 | [OpenSearchOASIS](../../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS/NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS.csproj) | Search/vector storage | Yes - HTTP API client | Not run | Shared-suite adapter/run pending |

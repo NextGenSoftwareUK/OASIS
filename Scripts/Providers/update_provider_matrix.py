@@ -23,7 +23,7 @@ FAMILY_NAMES={
  'Wide-column':set("CassandraOASIS ScyllaDBOASIS".split()),
  'Federated web':set("SOLIDOASIS ActivityPubOASIS ScuttlebuttOASIS UrbitOASIS BlueSkyOASIS DiscordOASIS FarcasterOASIS LensOASIS LensV2OASIS LoomOASIS MatrixOASIS NostrOASIS StoryProtocolOASIS TelegramOASIS".split()),
  'Distributed application storage':set("HoloOASIS HoloOASIS.Desktop HoloOASIS.Edge HoloOASIS.Unity PLANOASIS ONION-Protocol".split()),
- 'Non-EVM chain':set("CosmosBlockChainOASIS CelestiaOASIS EclipseOASIS EOSIOOASIS SEEDSOASIS AztecOASIS".split())}
+ 'Non-EVM chain':set("CosmosBlockChainOASIS CelestiaOASIS EclipseOASIS EOSIOOASIS SEEDSOASIS AztecOASIS TONOASIS".split())}
 def family(name,text,path):
  if name=='ActivityPubOASIS':return 'Non-storage' # Mastodon social projections; generic record saves explicitly refused.
  if name in NON_STORAGE or path.parts[1]=='AI':return 'Non-storage'
@@ -98,7 +98,7 @@ def source_text(project):
  return '\n'.join(p.read_text(encoding='utf-8-sig',errors='replace') for p in sorted(source_files(project.parent)))
 
 def node_sdk_evidence(directory):
- known={'arweave','near-api-js','@cosmjs/stargate','@cosmjs/cosmwasm','@polkadot/api','@mysten/sui','@aptos-labs/ts-sdk','@solana/web3.js'}
+ known={'arweave','near-api-js','@cosmjs/stargate','@cosmjs/cosmwasm','@polkadot/api','@mysten/sui','@aptos-labs/ts-sdk','@solana/web3.js','@ton/core','@ton/crypto','@ton/sandbox'}
  found=[]
  for current,dirs,files in os.walk(directory):
   dirs[:]=[d for d in dirs if d not in {'bin','obj','node_modules','.git'}]

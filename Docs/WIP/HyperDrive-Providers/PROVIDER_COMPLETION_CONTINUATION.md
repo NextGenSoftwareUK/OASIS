@@ -82,3 +82,11 @@ V2 now delegates to the canonical Neo4j provider and official driver, with its e
 ### Supabase graph and detail storage
 
 Supabase uses one PostgREST upsert for the selected graph and validates the exact acknowledged row set before publishing IDs. Uncertain responses preserve all proposed IDs. Avatar detail uses the canonical concrete serializer. The two changed-path soft-delete regressions passed and the provider compiled. Hosted graph, detail and full lifecycle verification require the dedicated Supabase project listed in Actions for David.
+
+### Hedera evidence review
+
+Existing Hedera public mirror results verify bounded read-only account metadata. They do not prove mutable testnet storage or asset operations. The historical prepared-read run stopped at its testnet funding gate. The original deployment and pending outcomes need reconciliation before using the retained testnet identity. No balances, credentials or native writes were replayed during this review.
+
+### TRON and EOSIO evidence review
+
+TRON's retained public evidence verifies bounded solidified block headers and the documented public query scope. EOSIO/Vaulta has accepted hosted read-only account queries. Neither result exercises the credentialed holon write path. EOSIO holon save acknowledgement now includes the persisted row count and preserves exceptions. Its persistence logs omit serialized record contents. Native write, graph, and broader interface acceptance are still open.
