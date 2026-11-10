@@ -650,5 +650,5 @@ Status: missing account/configuration information,2 November2026. David approved
 
 ### Priority-provider ONODE CI access
 
-- **Open, 2026-11-10.** Open a [draft pull request to Development](https://github.com/NextGenSoftwareUK/OASIS/compare/Development...integration/priority-provider-registration?expand=1) from candidate 4bbfa52dbc, or grant the GitHub integration pull-request write access. GitHub returned HTTP 403 when the integration attempted to create the draft.
+- **Open, 2026-11-10.** Open a [draft pull request to Development](https://github.com/NextGenSoftwareUK/OASIS/compare/Development...integration/priority-provider-registration?expand=1) from candidate 9fd03698d3, or grant the GitHub integration pull-request write access. GitHub returned HTTP 403 when the integration attempted to create the draft.
 - **Reason** The draft triggers remote CI for the ONODE endpoint change while local builds are deferred for disk recovery. Keep the draft unmerged pending review. The provider agent owns CI review and live verification against the separately tracked hosted fixtures.

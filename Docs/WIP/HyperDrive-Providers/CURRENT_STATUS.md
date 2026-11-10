@@ -118,4 +118,6 @@ Combined BootLoader candidate 6b07640979 compiled with pinned Core e5802022e, 0 
 
 ONODE single-provider registration fix ef90fa5ef1 remains on the task branch. The WebAPI build was stopped for disk recovery and its generated outputs were cleaned. Compilation and live endpoint verification are open. Development has no overlapping change to ProviderController.cs.
 
-GitHub denied draft creation for ONODE candidate 4bbfa52dbc (HTTP 403). The owner list tracks remote CI access. No local build or download was started.
+GitHub denied draft creation for ONODE candidate 9fd03698d3 (HTTP 403). The owner list tracks remote CI access. No local build or download was started.
+
+Candidate 9fd03698d3 also keeps Convex and Supabase credentials bound to their configured service URLs. Earlier build evidence covers the BootLoader before this guard and the ONODE endpoint change. Both follow-ups await remote compilation and live verification.
