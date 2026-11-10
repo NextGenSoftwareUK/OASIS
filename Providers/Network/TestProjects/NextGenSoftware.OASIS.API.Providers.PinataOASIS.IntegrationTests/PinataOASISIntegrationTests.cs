@@ -34,6 +34,7 @@ public class PinataOASISIntegrationTests
         Assert.IsFalse(activated.IsError, activated.Message);
 
         var holon = new Holon { Id = Guid.Empty, ParentHolonId = Guid.NewGuid(), Name = $"pinata-{Guid.NewGuid():N}" };
+        holon.MetaData = new() { ["fixture"] = holon.Name };
         string? providerKey = null;
         try
         {
@@ -57,6 +58,12 @@ public class PinataOASISIntegrationTests
             Assert.IsTrue(children.IsLoaded, children.Exception?.GetType().FullName);
             Assert.AreEqual(1, children.LoadedCount);
             Assert.AreEqual(holon.Id, children.Result.Single().Id);
+
+            var byMetadata = await provider.LoadHolonsByMetaDataAsync("fixture", holon.Name,
+                loadChildren: false, continueOnError: false);
+            Assert.IsTrue(byMetadata.IsLoaded, byMetadata.Exception?.GetType().FullName);
+            Assert.AreEqual(1, byMetadata.LoadedCount);
+            Assert.AreEqual(holon.Id, byMetadata.Result.Single().Id);
 
             var byCid = await provider.LoadHolonAsync(providerKey!, loadChildren: false);
             Assert.IsFalse(byCid.IsError, byCid.Exception?.GetType().FullName);
