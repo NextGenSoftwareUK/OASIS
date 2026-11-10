@@ -11,6 +11,56 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLServerDBOASIS.IntegrationTests;
 public class SqlServerNativeStorageConformanceTests
 {
     [TestMethod]
+    public async Task HolonListValidatesStoredIdentity()
+    {
+        if (Environment.GetEnvironmentVariable("OASIS_SQLSERVER_HOLON_LIST_IDENTITY") != "1")
+            Assert.Inconclusive("Enable only for the dedicated LocalDB provider fixture.");
+
+        const string connection = @"Server=(localdb)\MSSQLLocalDB;Database=oasis_hyperdrive_provider_test;Integrated Security=true;TrustServerCertificate=true";
+        var provider = new SQLServerDBOASIS(connection);
+        var holon = new NextGenSoftware.OASIS.API.Core.Holons.Holon { Id = Guid.NewGuid(), Name = "List identity fixture", Version = 1 };
+        var saved = false;
+        try
+        {
+            var active = await provider.ActivateProviderAsync();
+            Assert.IsTrue(active.Result && !active.IsError, active.Message);
+            var write = await provider.SaveHolonAsync(holon, saveChildren: false);
+            Assert.IsTrue(write.IsSaved && !write.IsError, write.Message);
+            saved = true;
+            var listed = await provider.LoadAllHolonsAsync();
+            Assert.IsTrue(listed.IsLoaded && listed.Result.Any(row => row.Id == holon.Id), listed.Message);
+
+            await using var sql = new SqlConnection(connection);
+            await sql.OpenAsync();
+            await using var update = new SqlCommand("UPDATE OASISHolons SET DataJson=N'{}' OUTPUT deleted.DataJson WHERE Id=@Id", sql);
+            update.Parameters.AddWithValue("@Id", holon.Id);
+            var original = (string)(await update.ExecuteScalarAsync())!;
+
+            try
+            {
+                listed = await provider.LoadAllHolonsAsync();
+                Assert.IsTrue(listed.IsError && listed.Exception is System.IO.InvalidDataException, listed.Message);
+                Assert.IsNull(listed.Result);
+            }
+            finally
+            {
+                update.CommandText = "UPDATE OASISHolons SET DataJson=@Original WHERE Id=@Id";
+                update.Parameters.AddWithValue("@Original", original);
+                Assert.AreEqual(1, await update.ExecuteNonQueryAsync());
+            }
+        }
+        finally
+        {
+            if (saved)
+            {
+                var deleted = await provider.DeleteHolonAsync(holon.Id);
+                Assert.IsTrue(deleted.IsDeleted && !deleted.IsError, deleted.Message);
+            }
+            await provider.DeActivateProviderAsync();
+        }
+    }
+
+    [TestMethod]
     public async Task AvatarListsValidateStoredIdentity()
     {
         if (Environment.GetEnvironmentVariable("OASIS_SQLSERVER_AVATAR_LIST_IDENTITY") != "1")

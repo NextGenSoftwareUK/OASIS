@@ -542,7 +542,7 @@ AND NOT EXISTS (SELECT 1 FROM OASISHolonHistory a WHERE a.Id = h.Id AND a.Versio
         // ─── Holon loading ────────────────────────────────────────────────────────
 
         private const string VersionedHolonRows = @"
-SELECT snapshot.DataJson, snapshot.HolonType
+SELECT h.Id, snapshot.DataJson
 FROM OASISHolons h
 LEFT JOIN OASISHolonHistory a ON a.Id = h.Id AND a.Version = @Version AND a.IsDeleted = 0
 CROSS APPLY (VALUES (
@@ -574,6 +574,11 @@ WHERE h.Id = @Id AND h.IsDeleted = 0;";
             if (scalar is not string json)
                 return null;
 
+            return ReadHolonSnapshot(id, json, version);
+        }
+
+        private static Holon ReadHolonSnapshot(Guid id, string json, int version)
+        {
             var holon = Deserialize<Holon>(json);
             if (holon == null || holon.Id != id || (version != 0 && holon.Version != version))
                 throw new System.IO.InvalidDataException("SQL Server returned an inconsistent holon snapshot.");
@@ -687,7 +692,8 @@ WHERE h.Id = @Id AND h.IsDeleted = 0;";
                 cmd.Parameters.AddWithValue("@Version", version);
                 if (!string.IsNullOrEmpty(query)) cmd.Parameters.AddWithValue("@Q", query);
                 await using var reader = await cmd.ExecuteReaderAsync();
-                while (await reader.ReadAsync()) { var h = Deserialize<Holon>(reader.GetString(0)); if (h != null) holons.Add(h); }
+                while (await reader.ReadAsync())
+                    holons.Add(ReadHolonSnapshot(reader.GetGuid(0), reader.GetString(1), version));
                 var sr = new SearchResults { SearchResultHolons = holons, NumberOfResults = holons.Count };
                 result.Result = sr; result.IsLoaded = true; result.LoadedCount = holons.Count;
                 result.Message = $"SQLServerDBOASIS: Found {holons.Count} holon(s).";
@@ -777,7 +783,8 @@ WHERE h.Id = @Id AND h.IsDeleted = 0;";
                 if (type != HolonType.All) cmd.Parameters.AddWithValue("@HolonType", (int)type);
                 var holons = new List<IHolon>();
                 await using var reader = await cmd.ExecuteReaderAsync();
-                while (await reader.ReadAsync()) { var h = Deserialize<Holon>(reader.GetString(0)); if (h != null) holons.Add(h); }
+                while (await reader.ReadAsync())
+                    holons.Add(ReadHolonSnapshot(reader.GetGuid(0), reader.GetString(1), version));
                 result.Result = holons; result.IsLoaded = true; result.LoadedCount = holons.Count;
                 result.Message = $"SQLServerDBOASIS: Loaded {holons.Count} holon(s) matching metadata filter.";
             }
@@ -822,7 +829,8 @@ WHERE h.Id = @Id AND h.IsDeleted = 0;";
                 ArgumentOutOfRangeException.ThrowIfNegative(version);
                 var holons = new List<IHolon>();
                 await using var reader = await cmd.ExecuteReaderAsync();
-                while (await reader.ReadAsync()) { var h = Deserialize<Holon>(reader.GetString(0)); if (h != null) holons.Add(h); }
+                while (await reader.ReadAsync())
+                    holons.Add(ReadHolonSnapshot(reader.GetGuid(0), reader.GetString(1), version));
                 result.Result = holons; result.IsLoaded = true; result.LoadedCount = holons.Count;
                 result.Message = $"SQLServerDBOASIS: Loaded {holons.Count} holon(s) for parent '{id}'.";
             }
@@ -858,7 +866,8 @@ WHERE h.Id = @Id AND h.IsDeleted = 0;";
                 ArgumentOutOfRangeException.ThrowIfNegative(version);
                 var holons = new List<IHolon>();
                 await using var reader = await cmd.ExecuteReaderAsync();
-                while (await reader.ReadAsync()) { var h = Deserialize<Holon>(reader.GetString(0)); if (h != null) holons.Add(h); }
+                while (await reader.ReadAsync())
+                    holons.Add(ReadHolonSnapshot(reader.GetGuid(0), reader.GetString(1), version));
                 result.Result = holons; result.IsLoaded = true; result.LoadedCount = holons.Count;
                 result.Message = $"SQLServerDBOASIS: Loaded {holons.Count} holon(s).";
             }
@@ -942,7 +951,8 @@ WHERE h.Id = @Id AND h.IsDeleted = 0;";
                 if (type != HolonType.All) cmd.Parameters.AddWithValue("@HolonType", (int)type);
                 var holons = new List<IHolon>();
                 await using var reader = await cmd.ExecuteReaderAsync();
-                while (await reader.ReadAsync()) { var h = Deserialize<Holon>(reader.GetString(0)); if (h != null) holons.Add(h); }
+                while (await reader.ReadAsync())
+                    holons.Add(ReadHolonSnapshot(reader.GetGuid(0), reader.GetString(1), version));
                 result.Result = holons; result.IsLoaded = true; result.LoadedCount = holons.Count;
                 result.Message = $"SQLServerDBOASIS: Loaded {holons.Count} holon(s) where {metaKey}={metaValue}.";
             }
@@ -970,7 +980,8 @@ WHERE h.Id = @Id AND h.IsDeleted = 0;";
                 cmd.Parameters.Add("@AvatarId", System.Data.SqlDbType.UniqueIdentifier).Value = avatarId;
                 var holons = new List<IHolon>();
                 await using var reader = await cmd.ExecuteReaderAsync();
-                while (await reader.ReadAsync()) { var h = Deserialize<Holon>(reader.GetString(0)); if (h != null) holons.Add(h); }
+                while (await reader.ReadAsync())
+                    holons.Add(ReadHolonSnapshot(reader.GetGuid(0), reader.GetString(1), version));
                 result.Result = holons; result.IsLoaded = true; result.LoadedCount = holons.Count;
                 result.Message = $"SQLServerDBOASIS: Exported {holons.Count} holon(s) for avatar '{avatarId}'.";
             }

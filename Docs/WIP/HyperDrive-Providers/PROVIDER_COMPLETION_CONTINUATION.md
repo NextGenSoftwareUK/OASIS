@@ -275,3 +275,5 @@ SQL Server LocalDB passed DuplicateAvatarDetailSelectorsRejectLookup (1 passed, 
 SQL Server LocalDB provider-key hard deletion passed (1 focused case, 0 failed, 0 skipped). The shipping provider deleted each synthetic avatar using the storage key returned by SaveAvatarAsync. That key is a GUID, matching the load contract. Username and email ambiguity remain covered by the dedicated selectors. The LocalDB instance was stopped.
 
 SQL Server LocalDB passed AvatarListsValidateStoredIdentity (1 passed, 0 failed, 0 skipped). Both shipping list methods returned the valid synthetic row and returned an error without a partial result after its payload identity was replaced. Teardown hard-deleted the fixture avatar and detail and stopped LocalDB.
+
+SQL Server LocalDB passed HolonListValidatesStoredIdentity. The shipping all-holon list returned the valid synthetic row, then rejected the mismatched payload without a partial result. The test restored the payload for provider teardown and stopped LocalDB. The one corrupted fixture row from the initial run was removed by exact ID before retrying.
