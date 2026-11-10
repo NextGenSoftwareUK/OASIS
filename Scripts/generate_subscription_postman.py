@@ -72,6 +72,8 @@ def collection():
             item("Create a POOLED app account (finite plan, shared by all users)", "POST", "/api/subscription/admin/app-accounts",
                 {"appId": "demo-app", "name": "Demo app", "planId": "gold", "pooledQuota": True, "perUserPlanId": "silver", "reason": "Pooled quota pilot"}, bearer=True, token="adminToken",
                 description="Needs the server setting OASIS_POOLED_APP_QUOTAS=true; otherwise a finite plan is refused (400). The plan is ONE pool shared by every user of the app; each user keeps personal limits at perUserPlanId (default silver, never enterprise) or their own plan, whichever is higher. When the pool is exhausted requests are denied with APP_-prefixed codes such as APP_MONTHLY_REQUEST_LIMIT_EXCEEDED."),
+            item("Read an app pool's top users", "GET", "/api/subscription/admin/app-accounts/{{appId}}/top-users?limit=10", bearer=True, token="adminToken",
+                description="The avatars using the most of the pool this UTC month, busiest first (limit 1 to 100)."),
             item("Read an app pool's usage", "GET", "/api/subscription/admin/app-accounts/{{appId}}/usage", bearer=True, token="adminToken",
                 description="This month's and today's pool usage against the plan limits, with the fraction used. poolActive is false when the app is not pooled or the feature flag is off."),
             item("Read quotas as a user through an app", "GET", "/api/subscription/usage/current", bearer=True,
