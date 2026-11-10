@@ -331,3 +331,5 @@ SQL Server LocalDB verified full export still returns flat parent and child reco
 SQL Server LocalDB passed graph hydration with Max Pool Size=1 and Connect Timeout=5. Parent and all-holon lists, search, and both metadata overloads released the initial connection before reading descendants. Fixtures were hard-deleted and LocalDB stopped.
 
 IPFS delayed client publication (736c2fda51) built with zero errors. The retained runner expects Kubo 0.43.1 and its original private repository. Neither was found at the configured default location on this host, and port 5001 had no listener. Carry forward the original lifecycle evidence and use the existing IPFS owner entry for fixture access. No daemon was started.
+
+SQLite wallet schema rollback passed the focused native case WalletColumnUpgradeRollsBackWhenLaterSchemaValidationFails (1 passed, 0 failed or skipped). The test independently inspected SQLite schema state after the rejected activation. The shared 52-case storage suite was excluded.
