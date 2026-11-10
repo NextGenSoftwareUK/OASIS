@@ -485,60 +485,30 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
 
         public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
         {
-            OASISResult<IEnumerable<IAvatar>> result = new OASISResult<IEnumerable<IAvatar>>();
-            
+            var result = new OASISResult<IEnumerable<IAvatar>>();
             try
             {
-                if (!IsProviderActivated)
+                await EnsureActivatedForPinataAsync(result).ConfigureAwait(false);
+                if (result.IsError)
+                    return result;
+
+                var avatars = new List<IAvatar>();
+                var pins = await _pinataService.GetFilesAsync().ConfigureAwait(false);
+                foreach (var pin in pins)
                 {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate PinataOASIS Provider: {activateResult.Message}");
-                        return result;
-                    }
+                    var avatar = await ReadNamedPinAsync<Avatar>(pin, "Avatar_").ConfigureAwait(false);
+                    if (avatar != null && (version <= 0 || avatar.Version == version))
+                        avatars.Add(avatar);
                 }
 
-                // Get all avatar pins from Pinata
-                var searchUrl = "/data/pinList?metadata[name]=avatar";
-                var httpResponse = await _httpClient.GetAsync(searchUrl);
-                
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var content = await httpResponse.Content.ReadAsStringAsync();
-                    var pinListResponse = JsonConvert.DeserializeObject<PinataPinListResponse>(content);
-                    
-                    var avatars = new List<IAvatar>();
-                    
-                    if (pinListResponse.Rows != null)
-                    {
-                        foreach (var pin in pinListResponse.Rows)
-                        {
-                            var downloadResult = await DownloadFileFromPinataAsync(pin.IpfsPinHash);
-                            
-                            if (!downloadResult.IsError && downloadResult.Result != null)
-                            {
-                                var avatarJson = Encoding.UTF8.GetString(downloadResult.Result);
-                                var avatar = JsonConvert.DeserializeObject<Avatar>(avatarJson);
-                                avatars.Add(avatar);
-                            }
-                        }
-                    }
-                    
-                    result.Result = avatars;
-                    result.IsError = false;
-                    result.Message = $"Loaded {avatars.Count} avatars from Pinata";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to get all avatars from Pinata: {httpResponse.StatusCode}");
-                }
+                result.Result = avatars;
+                result.IsLoaded = true;
+                result.LoadedCount = avatars.Count;
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error loading all avatars from Pinata: {ex.Message}");
+                OASISErrorHandling.HandleError(ref result, "Error listing Pinata avatars.", ex);
             }
-
             return result;
         }
 
