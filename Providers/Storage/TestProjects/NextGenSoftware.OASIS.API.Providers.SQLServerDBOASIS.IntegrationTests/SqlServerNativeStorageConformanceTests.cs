@@ -101,6 +101,12 @@ public class SqlServerNativeStorageConformanceTests
             var parentList = await provider.LoadHolonsForParentAsync(root.Id, continueOnError: false);
             Assert.IsTrue(parentList.IsLoaded && !parentList.IsError, parentList.Message);
             Assert.AreEqual(leaf.Id, parentList.Result.Single().Children.Single().Id);
+
+            var exported = await provider.ExportAllAsync();
+            Assert.IsTrue(exported.IsLoaded && !exported.IsError, exported.Message);
+            var exportedRoot = exported.Result.Single(row => row.Id == root.Id);
+            Assert.IsFalse(exportedRoot.Children?.Any() == true);
+            Assert.AreEqual(root.Id, exported.Result.Single(row => row.Id == child.Id).ParentHolonId);
             var search = new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchParams
             {
                 SearchGroups = new()
