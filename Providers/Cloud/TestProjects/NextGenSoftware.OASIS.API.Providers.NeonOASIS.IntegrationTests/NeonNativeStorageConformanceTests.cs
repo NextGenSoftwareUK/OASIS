@@ -95,8 +95,10 @@ public class NeonNativeStorageConformanceTests
         {
             await RequireEmptyTables(requireSchema: true);
         }
-        catch
+        catch (Exception error)
         {
+            result.CurrentCase = "native-cleanup-verification";
+            result.FailureType = error.GetType().FullName ?? error.GetType().Name;
             result.Succeeded = false;
             result.FixtureCleanupComplete = false;
             await Checkpoint(result);
