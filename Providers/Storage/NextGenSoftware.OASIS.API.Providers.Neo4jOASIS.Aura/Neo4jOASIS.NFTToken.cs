@@ -180,7 +180,13 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
                 if (searchParams.SearchGroups != null && searchParams.SearchGroups.Any())
                 {
                     var avatarsResult = await LoadAllAvatarsAsync();
-                    if (!avatarsResult.IsError && avatarsResult.Result != null)
+                    if (avatarsResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, avatarsResult.Message, avatarsResult.Exception);
+                        return result;
+                    }
+
+                    if (avatarsResult.Result != null)
                     {
                         foreach (var avatar in avatarsResult.Result)
                         {
@@ -194,7 +200,13 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
                 if (searchParams.SearchGroups != null && searchParams.SearchGroups.Any())
                 {
                     var holonsResult = await LoadAllHolonsAsync();
-                    if (!holonsResult.IsError && holonsResult.Result != null)
+                    if (holonsResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, holonsResult.Message, holonsResult.Exception);
+                        return result;
+                    }
+
+                    if (holonsResult.Result != null)
                     {
                         foreach (var holon in holonsResult.Result)
                         {
