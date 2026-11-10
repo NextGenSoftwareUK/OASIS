@@ -30,7 +30,6 @@ using NextGenSoftware.OASIS.API.Providers.HashgraphOASIS;
 using NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS;
 using NextGenSoftware.OASIS.API.Providers.BitcoinOASIS;
 using NextGenSoftware.OASIS.API.Providers.BaseOASIS;
-using NextGenSoftware.OASIS.API.Providers.TONOASIS;
 using NextGenSoftware.OASIS.API.Providers.ZkSyncOASIS;
 using NextGenSoftware.OASIS.API.Providers.LineaOASIS;
 using NextGenSoftware.OASIS.API.Providers.ScrollOASIS;
@@ -99,7 +98,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AllProviders.TestHarness
                 new ChainLinkOASIS(),
                 new BitcoinOASIS(),
                 new BaseOASIS("https://mainnet.base.org", "", "0x0000000000000000000000000000000000000000", "0x0000000000000000000000000000000000000000"),
-                new TONOASIS("https://ton-evm.example.com", "", "0x0000000000000000000000000000000000000000"),
+                // TON lifecycle coverage uses TonNativeLifecycleTests with an explicit native TVM fixture.
                 new ZkSyncOASIS("https://mainnet.era.zksync.io", "", "0x0000000000000000000000000000000000000000"),
                 new LineaOASIS("https://rpc.linea.build", "", "0x0000000000000000000000000000000000000000"),
                 new ScrollOASIS("https://rpc.scroll.io", "", "0x0000000000000000000000000000000000000000"),
