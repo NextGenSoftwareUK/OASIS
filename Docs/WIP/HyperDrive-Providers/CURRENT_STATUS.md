@@ -1,6 +1,8 @@
 # Current provider status
 The baseline table below is from 28 October 2026. Read PROVIDER_COMPLETION_CONTINUATION.md for later evidence and ACTIONS-FOR-DAVID.md in Release and Status for hosted fixture requirements.
 
+10 November priority registration checkpoint. Neon, Convex, Supabase and SQL Server registration changes are on integration/priority-provider-registration at c5cc955689. The combined candidate has source checks only. The hosted build and isolated real-backend checks remain open. See the [owner action list](../Release%20and%20Status/ACTIONS-FOR-DAVID.md) for the candidate build and fixture steps. Local provider testing remains paused after the [disk cleanup](WORKSPACE_CLEANUP_LEDGER.md).
+
 ## Phase and rules
 
 Active checkpoint, 10 November 2026. Current HyperDrive verification is split between retained native provider evidence and open isolated fixture gates. Development contains the scoped SQL Server avatar/history and graph-read batch at af621f3c3e. Development also contains the concurrent avatar and avatar-detail history regressions at 2a91bda8eb. Both passed separately on LocalDB and compiled together with Development Core 0fc929336 (zero errors). BigQuery hosted lifecycle verification awaits its isolated fixture. HyperDrive routing verification follows provider acceptance.
