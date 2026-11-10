@@ -33,7 +33,7 @@ public class NeonNativeStorageConformanceTests
         var directory = Path.Combine(root.FullName, "TestResults", "ProviderConformanceCurrent",
             nameof(NeonOASIS), sync ? "sync" : "async");
         Directory.CreateDirectory(directory);
-        using var lease = new FileStream(Path.Combine(directory, "environment.lock"),
+        using var lease = new FileStream(Path.Combine(Path.GetDirectoryName(directory)!, "environment.lock"),
             FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
 
         var reportPath = Path.Combine(directory, "report.json");
@@ -57,6 +57,6 @@ public class NeonNativeStorageConformanceTests
 
         Assert.IsTrue(result.Succeeded, $"{result.CurrentCase}: {result.FailureType}");
         Assert.IsTrue(result.FixtureCleanupComplete);
-        Assert.AreEqual(26, result.Passed.Count);
+        Assert.AreEqual(CoreStorageConformance.ChecksPerMode, result.Passed.Count);
     }
 }
