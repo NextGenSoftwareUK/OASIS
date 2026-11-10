@@ -345,15 +345,20 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
 
         public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true) => DeleteAvatarAsync(id, softDelete).Result;
 
+        private static OASISResult<T> AvatarLookupError<T>(OASISResult<IAvatar> lookup) => new()
+        {
+            IsError = true,
+            ErrorCode = lookup.ErrorCode,
+            ErrorCount = lookup.ErrorCount,
+            Exception = lookup.Exception,
+            Message = lookup.Message
+        };
+
         public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string username, bool softDelete = true)
         {
             var loaded = await LoadAvatarByUsernameAsync(username);
-            if (loaded.IsError || loaded.Result == null)
-            {
-                var r = new OASISResult<bool>();
-                OASISErrorHandling.HandleError(ref r, $"FirebaseOASIS: Avatar '{username}' not found.");
-                return r;
-            }
+            if (loaded.IsError)
+                return AvatarLookupError<bool>(loaded);
             return await DeleteAvatarAsync(loaded.Result.Id, softDelete);
         }
 
@@ -362,12 +367,8 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
         public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string email, bool softDelete = true)
         {
             var loaded = await LoadAvatarByEmailAsync(email);
-            if (loaded.IsError || loaded.Result == null)
-            {
-                var r = new OASISResult<bool>();
-                OASISErrorHandling.HandleError(ref r, $"FirebaseOASIS: Avatar with email '{email}' not found.");
-                return r;
-            }
+            if (loaded.IsError)
+                return AvatarLookupError<bool>(loaded);
             return await DeleteAvatarAsync(loaded.Result.Id, softDelete);
         }
 
@@ -757,12 +758,8 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0)
         {
             var avatarResult = await LoadAvatarByUsernameAsync(avatarUsername);
-            if (avatarResult.IsError || avatarResult.Result == null)
-            {
-                var r = new OASISResult<IEnumerable<IHolon>>();
-                OASISErrorHandling.HandleError(ref r, $"FirebaseOASIS: Avatar '{avatarUsername}' not found.");
-                return r;
-            }
+            if (avatarResult.IsError)
+                return AvatarLookupError<IEnumerable<IHolon>>(avatarResult);
             return await ExportAllDataForAvatarByIdAsync(avatarResult.Result.Id, version);
         }
 
@@ -771,12 +768,8 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0)
         {
             var avatarResult = await LoadAvatarByEmailAsync(avatarEmailAddress);
-            if (avatarResult.IsError || avatarResult.Result == null)
-            {
-                var r = new OASISResult<IEnumerable<IHolon>>();
-                OASISErrorHandling.HandleError(ref r, $"FirebaseOASIS: Avatar with email '{avatarEmailAddress}' not found.");
-                return r;
-            }
+            if (avatarResult.IsError)
+                return AvatarLookupError<IEnumerable<IHolon>>(avatarResult);
             return await ExportAllDataForAvatarByIdAsync(avatarResult.Result.Id, version);
         }
 
