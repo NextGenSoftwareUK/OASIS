@@ -87,3 +87,5 @@ IPFS integration readiness (10 November): 346cd105a9 compiled under the provider
 Public count follow-up (10 November): OurWorldSite f70ae42 and OASISOmniverseSite db838f0 update homepage inventory copy to 234 provider projects on their respective work/provider-inventory-count branches. Omniverse 6c5d2a3 calculates the WEB4 catalogue count from its listed rows. A Node check of the page script returned 214 catalogue entries. Live deployments remain unverified. Separate Web4Site is still outstanding, and its local COSMIC checkout has uncommitted changes.
 
 Separate Web4Site source follow-up (10 November): 4f823fd and 6e0cd9a update homepage and README inventory copy and derive the catalogue count from listed rows (214 verified in Node). The temporary site checkout was removed. Live deployment remains unverified.
+
+Neon console harness fa22560447 compiled under the provider build lease with 0 errors and 1136 warnings. It requires explicit disposable Neon configuration. Hosted lifecycle verification remains open.
