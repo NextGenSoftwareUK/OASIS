@@ -559,7 +559,7 @@ Status: missing account/configuration information,2 November2026. David approved
 
 ### Hedera retained testnet admission
 
-- **Status (2026-11-09)** Awaiting original fixture access. Historical evidence shows the routed testnet balance did not meet the admitted runner's reserve. Current balance and pending outcomes have yet to be checked.
+- **Status (2026-11-09)** Awaiting original fixture access. Historical evidence shows the routed testnet balance did not meet the admitted runner's reserve. The public mirror returned an indexed balance of 32485764 tinybars at timestamp 1792286959.639631104 and matched the retained contract creation to transaction 0.0.10993779-1791929787-100278783 with SUCCESS and a 1259196297 tinybar fee. Consensus reserve and protected fixture access remain open.
 - **David action** If the original testnet fixture is available, identify its protected environment and authorize access to it. If the existing testnet identity still falls below the runner reserve after read-only verification, use only free testnet funds. Keep credentials and signing material out of Git and chat.
 - **Reason** Native Hedera storage verification must reconcile the original deployment and satisfy the existing query budget before paid testnet operations. The provider agent owns those checks.
 - **Context** [Hedera native evidence](../COSMIC%20ORM/HEDERA_CQL_MVP.md).
