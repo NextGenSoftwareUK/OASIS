@@ -185,6 +185,7 @@ CREATE TABLE OASISAvatarDetailHistory (
             var result = new OASISResult<IAvatar>();
             try
             {
+                ArgumentOutOfRangeException.ThrowIfNegative(avatar.Version);
                 if (avatar.Id == Guid.Empty) avatar.Id = Guid.NewGuid();
                 if (avatar.ProviderUniqueStorageKey == null)
                     avatar.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
@@ -199,7 +200,7 @@ WHERE c.Id=@Id AND v.Version > 0 AND v.Version < @Version
 AND NOT EXISTS (SELECT 1 FROM OASISAvatarHistory h WHERE h.Id=c.Id AND h.Version=v.Version);
 MERGE OASISAvatars AS target
 USING (SELECT @Id AS Id) AS source ON target.Id = source.Id
-WHEN MATCHED AND (@Version=0 OR COALESCE(TRY_CONVERT(int, JSON_VALUE(target.DataJson, '$.version')), 0) <= @Version) THEN
+WHEN MATCHED AND COALESCE(TRY_CONVERT(int, JSON_VALUE(target.DataJson, '$.version')), 0) <= @Version THEN
     UPDATE SET Username=@Username, Email=@Email, IsDeleted=@IsDeleted, ModifiedDate=SYSUTCDATETIME(), DataJson=@DataJson
 WHEN NOT MATCHED THEN
     INSERT (Id,Username,Email,IsDeleted,DataJson) VALUES (@Id,@Username,@Email,@IsDeleted,@DataJson); SELECT @@ROWCOUNT;";
@@ -414,6 +415,7 @@ SELECT @Count;";
             var result = new OASISResult<IAvatarDetail>();
             try
             {
+                ArgumentOutOfRangeException.ThrowIfNegative(avatarDetail.Version);
                 if (avatarDetail.Id == Guid.Empty) avatarDetail.Id = Guid.NewGuid();
                 const string sql = @"
 INSERT INTO OASISAvatarDetailHistory (Id, Version, Username, Email, DataJson)
@@ -424,7 +426,7 @@ WHERE c.Id=@Id AND v.Version > 0 AND v.Version < @Version
 AND NOT EXISTS (SELECT 1 FROM OASISAvatarDetailHistory h WHERE h.Id=c.Id AND h.Version=v.Version);
 MERGE OASISAvatarDetails AS target
 USING (SELECT @Id AS Id) AS source ON target.Id = source.Id
-WHEN MATCHED AND (@Version=0 OR COALESCE(TRY_CONVERT(int, JSON_VALUE(target.DataJson, '$.Version')), 0) <= @Version) THEN UPDATE SET Username=@Username, Email=@Email, DataJson=@DataJson
+WHEN MATCHED AND COALESCE(TRY_CONVERT(int, JSON_VALUE(target.DataJson, '$.Version')), 0) <= @Version THEN UPDATE SET Username=@Username, Email=@Email, DataJson=@DataJson
 WHEN NOT MATCHED THEN INSERT (Id,Username,Email,DataJson) VALUES (@Id,@Username,@Email,@DataJson); SELECT @@ROWCOUNT;";
                 await using var conn = new SqlConnection(_connectionString);
                 await conn.OpenAsync();

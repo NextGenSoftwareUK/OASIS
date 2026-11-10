@@ -301,3 +301,5 @@ SQL Server LocalDB passed AvatarReadsFilterRequestedVersion. Version 2 matched c
 SQL Server LocalDB has a trusted, enabled FK_OASISHolonHistory_Holon with ON DELETE CASCADE. The revised hard delete relies on that constraint and returns the current-row count. HolonHistoryRetainsSupersededSnapshot passed on the revised statement and independently confirmed zero archived rows after deletion. LocalDB stopped.
 
 SQL Server LocalDB passed AvatarHistoryRetainsHistoricalSelectors. The provider retained version 1 after updating the username and email in version 2, returned the historical values through point lookups and lists, and still returned version 2 as current. The test hard-deleted its fixture and stopped LocalDB. This case does not exercise concurrent saves.
+
+SQL Server LocalDB passed the extended avatar history check. An avatar write at version 0 and a detail write at version 1 both failed against current version 2, and subsequent reads confirmed both current and archived records remained intact. The test cleaned its fixture and stopped LocalDB.

@@ -95,6 +95,15 @@ public class SqlServerNativeStorageConformanceTests
             var detailUpdate = await provider.SaveAvatarDetailAsync(detail);
             Assert.IsTrue(detailUpdate.IsSaved && !detailUpdate.IsError, detailUpdate.Message);
 
+            avatar.Version = 0;
+            detail.Version = 1;
+            var staleAvatar = await provider.SaveAvatarAsync(avatar);
+            var staleDetail = await provider.SaveAvatarDetailAsync(detail);
+            Assert.IsTrue(staleAvatar.IsError && !staleAvatar.IsSaved, staleAvatar.Message);
+            Assert.IsTrue(staleDetail.IsError && !staleDetail.IsSaved, staleDetail.Message);
+            Assert.AreEqual(2, (await provider.LoadAvatarAsync(id)).Result?.Version);
+            Assert.AreEqual(2, (await provider.LoadAvatarDetailAsync(id)).Result?.Version);
+
             var archived = await provider.LoadAvatarByUsernameAsync(oldUsername, version: 1);
             var archivedDetail = await provider.LoadAvatarDetailByEmailAsync(oldEmail, version: 1);
             Assert.AreEqual(id, archived.Result?.Id, archived.Message);
