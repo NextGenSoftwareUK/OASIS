@@ -339,3 +339,5 @@ SQLite native wallet upgrade and reopen checks passed in sync and async modes (4
 SQLite wallet error propagation passed four native cases across sync and async modes. Missing avatar schema and read-only activation returned errors with the underlying SQLite cause retained. Previously verified wallet upgrade, reopen, rollback, and shared lifecycle checks were excluded.
 
 SQLite passed eight native wallet ownership cases for atomic batch rollback, avatar deletion ownership, and prevention of rejected mutation replay during an unrelated save. Previously verified wallet and shared lifecycle filters were excluded.
+
+SQLite passed 16 native wallet cases for ambiguous selectors, invalid explicit identity rejection, and acknowledged wallet saves surviving fresh-connection readback. The run excluded the recorded schema, reopen, rollback, ownership, native-error and shared lifecycle cases.
