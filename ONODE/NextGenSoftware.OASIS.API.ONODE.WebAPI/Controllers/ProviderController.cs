@@ -250,7 +250,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("register-provider-type/{providerType}")]
         public OASISResult<bool> RegisterProviderType(ProviderType providerType)
         {
-            return new(OASISBootLoader.OASISBootLoader.RegisterProvider(providerType) != null);
+            var registration = OASISBootLoader.OASISBootLoader.RegisterProvider(providerType);
+            if (registration == null || registration.IsError || registration.Result == null)
+                return new OASISResult<bool> { IsError = true, Message = "Provider registration failed." };
+
+            return new(true);
         }
 
         /// <summary>
