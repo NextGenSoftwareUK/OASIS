@@ -345,37 +345,8 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
             return LoadAvatarAsync(id, version).Result;
         }
 
-        public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0)
-        {
-            OASISResult<IAvatar> result = new OASISResult<IAvatar>();
-            
-            try
-            {
-                // For Pinata, we search for the avatar by ID using Pinata's metadata search API
-                // This uses Pinata's real metadata indexing system for efficient data retrieval
-                var searchResult = await SearchAsync(new SearchParams { });
-                
-                if (searchResult.IsError || searchResult.Result == null || !searchResult.Result.SearchResultAvatars.Any())
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Avatar with ID {id} not found in Pinata storage");
-                    return result;
-                }
-
-                // Get the first result and deserialize as Avatar
-                var holon = searchResult.Result.SearchResultAvatars.First();
-                var avatarJson = JsonConvert.SerializeObject(holon);
-                var avatar = JsonConvert.DeserializeObject<Avatar>(avatarJson);
-                
-                result.Result = avatar;
-                result.Message = "Avatar loaded successfully from Pinata";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading avatar from Pinata: {ex.Message}");
-            }
-
-            return result;
-        }
+        public override Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0) =>
+            LoadNamedRecordAsync<IAvatar, Avatar>(id, "Avatar");
 
         public override OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail, int version = 0)
         {
@@ -580,62 +551,47 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
             return LoadAvatarDetailAsync(id, version).Result;
         }
 
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
+        public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0) =>
+            LoadNamedRecordAsync<IAvatarDetail, AvatarDetail>(id, "AvatarDetail");
+
+        private async Task<OASISResult<TRecord>> LoadNamedRecordAsync<TRecord, TStored>(Guid id, string recordType)
+            where TRecord : class, IHolonBase
+            where TStored : class, TRecord
         {
-            OASISResult<IAvatarDetail> result = new OASISResult<IAvatarDetail>();
-            
+            var result = new OASISResult<TRecord>();
             try
             {
+                if (id == Guid.Empty)
+                    throw new ArgumentException("A nonempty record ID is required.", nameof(id));
+
                 if (!IsProviderActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate PinataOASIS Provider: {activateResult.Message}");
-                        return result;
-                    }
+                    var activation = await ActivateProviderAsync().ConfigureAwait(false);
+                    if (activation.IsError)
+                        return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<bool, TRecord>(activation);
                 }
 
-                // Search for avatar detail by ID in Pinata
-                var searchUrl = $"/data/pinList?metadata[name]=avatarDetail&metadata[id]={id}";
-                var httpResponse = await _httpClient.GetAsync(searchUrl);
-                
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var content = await httpResponse.Content.ReadAsStringAsync();
-                    var pinListResponse = JsonConvert.DeserializeObject<PinataPinListResponse>(content);
-                    
-                    if (pinListResponse.Rows != null && pinListResponse.Rows.Any())
-                    {
-                        var pin = pinListResponse.Rows.First();
-                        var downloadResult = await DownloadFileFromPinataAsync(pin.IpfsPinHash);
-                        
-                        if (!downloadResult.IsError && downloadResult.Result != null)
-                        {
-                            var avatarDetailJson = Encoding.UTF8.GetString(downloadResult.Result);
-                            var avatarDetail = JsonConvert.DeserializeObject<AvatarDetail>(avatarDetailJson);
-                            result.Result = avatarDetail;
-                            result.IsError = false;
-                            result.Message = "Avatar detail loaded successfully from Pinata";
-                        }
-                        else
-                        {
-                            OASISErrorHandling.HandleError(ref result, "Failed to download avatar detail data from Pinata");
-                        }
-                    }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"No avatar detail found with ID: {id}");
-                    }
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to search Pinata for avatar detail: {httpResponse.StatusCode}");
-                }
+                var files = await _pinataService.GetFilesAsync().ConfigureAwait(false);
+                var pin = files.SingleOrDefault(file =>
+                    file.Metadata != null && file.Metadata.TryGetValue("name", out var name) &&
+                    string.Equals(name as string, $"{recordType}_{id}", StringComparison.Ordinal));
+                if (pin == null)
+                    return result;
+
+                var content = await _pinataService.GetFileContentAsync(pin.IpfsPinHash).ConfigureAwait(false);
+                var record = JsonConvert.DeserializeObject<TStored>(content);
+                if (record == null || record.Id != id)
+                    throw new System.IO.InvalidDataException("Pinata content does not match the requested record ID.");
+
+                record.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
+                record.ProviderUniqueStorageKey[Core.Enums.ProviderType.PinataOASIS] = pin.IpfsPinHash;
+                result.Result = record;
+                result.IsLoaded = true;
+                result.LoadedCount = 1;
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail from Pinata: {ex.Message}");
+                OASISErrorHandling.HandleError(ref result, "Error loading Pinata record.", ex);
             }
 
             return result;
