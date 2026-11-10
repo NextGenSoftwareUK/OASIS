@@ -47,7 +47,7 @@ The current process exposes none of the hosted fixture variables listed in [Acti
 | Non-storage ActivityPub | Native public-GET capability5/5, controlled291; full social operations open |
 | Other controlled cases | Firebase23, Appwrite19, PocketBase24, Convex24; these do not certify native storage |
 | Partial native | Solana4/52; original referenced history unavailable, unresolved outcomes preserved |
-229 matrix projects:56non-storage/173storage-specialized. SDK-source-unverified0, reviewed missing9; client detection is not implementation completeness. No overall100% claim.
+The current matrix covers 234 shipping projects, including 56 non-storage and 178 storage or specialized-storage projects. The count includes the five new COSMIC reader packages; live acceptance remains scoped per provider.
 
 ## Exact next actions and gates
 
