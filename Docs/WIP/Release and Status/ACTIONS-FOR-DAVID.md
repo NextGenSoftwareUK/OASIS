@@ -570,3 +570,10 @@ Status: missing account/configuration information,2 November2026. David approved
 - **Action** If a retained Antelope test deployment exists, identify its RPC endpoint, chain ID and deployed OASIS contract account. Make a signer authorized for that test account available through the existing secret channel. Keep credentials out of the repo and chat.
 - **Reason** The native lifecycle test requires `OASIS_ANTELOPE_ENDPOINT`, `OASIS_ANTELOPE_CHAIN_ID`, `OASIS_ANTELOPE_ACCOUNT` and `OASIS_ANTELOPE_PRIVATE_KEY`. The provider agent owns fixture validation and test execution.
 - **Context** [EOSIO native integration test](../../../Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.IntegrationTests/EOSIOOASISIntegrationTests.cs).
+
+### NEAR dedicated lifecycle fixture
+
+- **Status (9 November 2026)** Open. Both shared lifecycle modes compile and are discoverable. Both skipped without an admitted writable test fixture.
+- **Action** If the retained NEAR test environment is available, identify its host and authorize access to a disposable writable OASIS contract with its dedicated test signer through the existing protected channel. Keep signing material and credentials out of Git and chat.
+- **Reason** The provider agent will verify chain and contract identity, configure the run and report directory, and reconcile only test-owned records. Preserve existing COSMIC/CQL data.
+- **Context** [NEAR lifecycle evidence](../HyperDrive-Providers/PROVIDER_COMPLETION_CONTINUATION.md).
