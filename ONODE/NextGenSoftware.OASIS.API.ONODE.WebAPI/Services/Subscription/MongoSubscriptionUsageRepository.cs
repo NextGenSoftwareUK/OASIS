@@ -61,7 +61,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
                 new CreateIndexModel<UsageEventDocument>(Builders<UsageEventDocument>.IndexKeys.Ascending(x => x.OperationId), new CreateIndexOptions { Unique = true, Name = "ux_operation_id" }),
                 new CreateIndexModel<UsageEventDocument>(Builders<UsageEventDocument>.IndexKeys.Ascending(x => x.UserId).Descending(x => x.AuthorizedAtUtc), new CreateIndexOptions { Name = "ix_user_authorized" }),
                 new CreateIndexModel<UsageEventDocument>(Builders<UsageEventDocument>.IndexKeys.Ascending(x => x.Status).Ascending(x => x.ExpiresAtUtc), new CreateIndexOptions { Name = "ix_status_expiry" }),
-                new CreateIndexModel<UsageEventDocument>(Builders<UsageEventDocument>.IndexKeys.Ascending(x => x.ConsumingService).Ascending(x => x.Status).Ascending(x => x.AuthorizedAtUtc), new CreateIndexOptions { Name = "ix_service_recovery" })
+                new CreateIndexModel<UsageEventDocument>(Builders<UsageEventDocument>.IndexKeys.Ascending(x => x.ConsumingService).Ascending(x => x.Status).Ascending(x => x.AuthorizedAtUtc), new CreateIndexOptions { Name = "ix_service_recovery" }),
+                new CreateIndexModel<UsageEventDocument>(Builders<UsageEventDocument>.IndexKeys.Ascending(x => x.PooledAppId).Descending(x => x.AuthorizedAtUtc), new CreateIndexOptions<UsageEventDocument> { Name = "ix_pool_app_authorized", PartialFilterExpression = new MongoDB.Bson.BsonDocument("PooledAppId", new MongoDB.Bson.BsonDocument("$type", "string")) })
             });
             _audit.Indexes.CreateMany(new[] {
                 new CreateIndexModel<SubscriptionUsageAuditEntry>(Builders<SubscriptionUsageAuditEntry>.IndexKeys.Ascending(x => x.UserId).Descending(x => x.OccurredAtUtc).Descending(x => x.Id), new CreateIndexOptions { Name = "ix_user_audit_cursor" }),
@@ -371,7 +372,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
             // Pooled apps: the identical delta commits to the app pool in the same transaction, so the pool
             // can never drift from the sum of its users.
             if (operation.PooledAppId != null)
-                await ApplyDeltaToSubjectAsync(session, operation, delta, PoolSubject(operation.PooledAppId), false, ct);
+                await ApplyDeltaToSubjectAsync(session, operation, delta, PoolWriteSubject(operation.PooledAppId, operation.OperationId, PoolShardCount), false, ct);
         }
 
         public static string PoolSubject(string appId) => "app:" + appId;

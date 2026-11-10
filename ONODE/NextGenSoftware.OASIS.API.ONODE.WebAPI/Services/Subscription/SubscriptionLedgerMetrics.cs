@@ -11,6 +11,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
         public static readonly Counter<long> Duplicates = Meter.CreateCounter<long>("subscription.ledger.duplicates");
         public static readonly Counter<long> Failures = Meter.CreateCounter<long>("subscription.ledger.failures");
         public static readonly Counter<long> RaceRetries = Meter.CreateCounter<long>("subscription.ledger.unique_race_retries");
+        public static readonly Counter<long> PoolThreshold = Meter.CreateCounter<long>("subscription.ledger.pool_threshold");
         public static readonly Counter<long> ReservationOverruns = Meter.CreateCounter<long>("subscription.ledger.reservation_overruns");
     }
 }
