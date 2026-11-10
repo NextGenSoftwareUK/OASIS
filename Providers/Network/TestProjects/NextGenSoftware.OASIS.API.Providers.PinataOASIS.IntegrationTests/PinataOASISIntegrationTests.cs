@@ -50,6 +50,13 @@ public class PinataOASISIntegrationTests
             Assert.AreEqual(holon.Id, loaded.Result.Id);
             Assert.AreEqual(holon.Name, loaded.Result.Name);
             Assert.AreEqual(providerKey, loaded.Result.ProviderUniqueStorageKey[ProviderType.PinataOASIS]);
+
+            var byCid = await provider.LoadHolonAsync(providerKey!, loadChildren: false);
+            Assert.IsFalse(byCid.IsError, byCid.Exception?.GetType().FullName);
+            Assert.IsTrue(byCid.IsLoaded);
+            Assert.AreEqual(1, byCid.LoadedCount);
+            Assert.AreEqual(holon.Id, byCid.Result.Id);
+            Assert.AreEqual(providerKey, byCid.Result.ProviderUniqueStorageKey[ProviderType.PinataOASIS]);
         }
         finally
         {
