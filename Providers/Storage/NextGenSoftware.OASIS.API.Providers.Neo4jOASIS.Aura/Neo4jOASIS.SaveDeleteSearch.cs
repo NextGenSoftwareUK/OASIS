@@ -94,48 +94,8 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
         }
 
         public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            try
-            {
-                var session = Driver.Session(WithDatabase);
-
-                return session.ReadTransaction(transaction =>
-                {
-                    var cursor = transaction.Run(@"
-                            MATCH (av: Holon)
-                            WHERE av.GUId=$guid
-                            RETURN av.description AS description,av.ProviderKey AS providerkey, av.PreviousVersionId AS previousversionid",
-                        new { guid = id.ToString() }
-                    );
-
-                    IHolon obj = (from d in cursor
-                                  select new Holon
-                                  {
-                                      Description = d["decription"].As<string>(),
-                                      //ProviderKey = d["providerkey"].As<Dictionary<ProviderType, string>>(),
-                                      PreviousVersionId = d["previousversionid"].As<Guid>()
-                                  }).FirstOrDefault();
-
-
-                    return new OASISResult<IHolon>
-                    {
-                        IsLoaded = true,
-                        IsError = false,
-                        Message = "Holon Loaded successfully",
-                        Result = obj,
-                    };
-                });
-            }
-            catch (Exception ex)
-            {
-                return new OASISResult<IHolon>
-                {
-                    IsLoaded = false,
-                    IsError = true,
-                    Message = ex.ToString(),
-                };
-            }
-        }
+            => LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version)
+                .GetAwaiter().GetResult();
 
     }
 }
