@@ -50,8 +50,6 @@ public class HederaTestnetStorageTests
         HashgraphOASIS Create() => new("https://testnet.mirrornode.hedera.com", "testnet", "296", storageConfiguration: configuration);
         using var storage = new ConfiguredHederaStorageBackend("testnet", null, configuration);
         var provider = Create();
-        var activated = await provider.ActivateProviderAsync();
-        Assert.IsFalse(activated.IsError, activated.Message);
         var suffix = Guid.NewGuid().ToString("N");
         var avatar = new Avatar { Id = Guid.NewGuid(), Username = "owned-" + suffix,
             Email = suffix + "@oasis-test.invalid", Password = "test-only-" + suffix };
@@ -73,6 +71,9 @@ public class HederaTestnetStorageTests
         Exception? primaryFailure = null;
         try
         {
+            var activated = await provider.ActivateProviderAsync();
+            Assert.IsFalse(activated.IsError, activated.Message);
+
             var saved = await provider.SaveAvatarAsync(avatar);
             Assert.IsFalse(saved.IsError, saved.Message);
             avatarSaved = true;
