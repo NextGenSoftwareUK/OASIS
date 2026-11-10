@@ -61,6 +61,63 @@ public class SqlServerNativeStorageConformanceTests
     }
 
     [TestMethod]
+    public async Task AvatarHistoryRetainsHistoricalSelectors()
+    {
+        if (Environment.GetEnvironmentVariable("OASIS_SQLSERVER_AVATAR_HISTORY") != "1")
+            Assert.Inconclusive("Enable only for the dedicated LocalDB provider fixture.");
+
+        const string connection = @"Server=(localdb)\MSSQLLocalDB;Database=oasis_hyperdrive_provider_test;Integrated Security=true;TrustServerCertificate=true";
+        var provider = new SQLServerDBOASIS(connection);
+        var id = Guid.NewGuid();
+        var avatar = new NextGenSoftware.OASIS.API.Core.Holons.Avatar { Id = id, Version = 1, Username = $"fixture-{id:N}", Email = $"fixture-{id:N}@example.invalid" };
+        var detail = new NextGenSoftware.OASIS.API.Core.Holons.AvatarDetail { Id = id, Version = 1, Username = avatar.Username, Email = avatar.Email };
+        var saved = false;
+        try
+        {
+            var active = await provider.ActivateProviderAsync();
+            Assert.IsTrue(active.Result && !active.IsError, active.Message);
+            var write = await provider.SaveAvatarAsync(avatar);
+            Assert.IsTrue(write.IsSaved && !write.IsError, write.Message);
+            saved = true;
+            var detailWrite = await provider.SaveAvatarDetailAsync(detail);
+            Assert.IsTrue(detailWrite.IsSaved && !detailWrite.IsError, detailWrite.Message);
+
+            var oldUsername = avatar.Username;
+            var oldEmail = avatar.Email;
+            avatar.Username += "-updated";
+            avatar.Email = $"updated-{id:N}@example.invalid";
+            avatar.Version = 2;
+            detail.Username = avatar.Username;
+            detail.Email = avatar.Email;
+            detail.Version = 2;
+            var update = await provider.SaveAvatarAsync(avatar);
+            Assert.IsTrue(update.IsSaved && !update.IsError, update.Message);
+            var detailUpdate = await provider.SaveAvatarDetailAsync(detail);
+            Assert.IsTrue(detailUpdate.IsSaved && !detailUpdate.IsError, detailUpdate.Message);
+
+            var archived = await provider.LoadAvatarByUsernameAsync(oldUsername, version: 1);
+            var archivedDetail = await provider.LoadAvatarDetailByEmailAsync(oldEmail, version: 1);
+            Assert.AreEqual(id, archived.Result?.Id, archived.Message);
+            Assert.AreEqual(id, archivedDetail.Result?.Id, archivedDetail.Message);
+            Assert.AreEqual(oldEmail, archived.Result!.Email);
+            Assert.AreEqual(oldUsername, archivedDetail.Result!.Username);
+            Assert.AreEqual(avatar.Username, (await provider.LoadAvatarAsync(id)).Result?.Username);
+            Assert.AreEqual(detail.Email, (await provider.LoadAvatarDetailAsync(id)).Result?.Email);
+            Assert.AreEqual(oldUsername, (await provider.LoadAllAvatarsAsync(version: 1)).Result.Single(row => row.Id == id).Username);
+            Assert.AreEqual(oldEmail, (await provider.LoadAllAvatarDetailsAsync(version: 1)).Result.Single(row => row.Id == id).Email);
+        }
+        finally
+        {
+            if (saved)
+            {
+                var deleted = await provider.DeleteAvatarAsync(id, softDelete: false);
+                Assert.IsTrue(deleted.IsDeleted && !deleted.IsError, deleted.Message);
+            }
+            await provider.DeActivateProviderAsync();
+        }
+    }
+
+    [TestMethod]
     public async Task AvatarReadsFilterRequestedVersion()
     {
         if (Environment.GetEnvironmentVariable("OASIS_SQLSERVER_AVATAR_VERSION") != "1")

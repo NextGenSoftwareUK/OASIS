@@ -98,6 +98,31 @@ CREATE TABLE OASISHolonHistory (
         REFERENCES OASISHolons(Id) ON DELETE CASCADE
 );";
 
+        private const string CreateAvatarHistoryTables = @"
+IF OBJECT_ID(N'OASISAvatarHistory', N'U') IS NULL
+CREATE TABLE OASISAvatarHistory (
+    Id UNIQUEIDENTIFIER NOT NULL,
+    Version INT NOT NULL CHECK (Version > 0),
+    Username NVARCHAR(256) NOT NULL,
+    Email NVARCHAR(256) NOT NULL,
+    IsDeleted BIT NOT NULL,
+    DataJson NVARCHAR(MAX) NOT NULL,
+    CONSTRAINT PK_OASISAvatarHistory PRIMARY KEY (Id, Version),
+    CONSTRAINT FK_OASISAvatarHistory_Avatar FOREIGN KEY (Id)
+        REFERENCES OASISAvatars(Id) ON DELETE CASCADE
+);
+IF OBJECT_ID(N'OASISAvatarDetailHistory', N'U') IS NULL
+CREATE TABLE OASISAvatarDetailHistory (
+    Id UNIQUEIDENTIFIER NOT NULL,
+    Version INT NOT NULL CHECK (Version > 0),
+    Username NVARCHAR(256) NOT NULL,
+    Email NVARCHAR(256) NOT NULL,
+    DataJson NVARCHAR(MAX) NOT NULL,
+    CONSTRAINT PK_OASISAvatarDetailHistory PRIMARY KEY (Id, Version),
+    CONSTRAINT FK_OASISAvatarDetailHistory_AvatarDetail FOREIGN KEY (Id)
+        REFERENCES OASISAvatarDetails(Id) ON DELETE CASCADE
+);";
+
         public SQLServerDBOASIS(string connectionString)
         {
             _connectionString = connectionString;
@@ -116,7 +141,7 @@ CREATE TABLE OASISHolonHistory (
             {
                 await using var conn = new SqlConnection(_connectionString);
                 await conn.OpenAsync();
-                foreach (string ddl in new[] { CreateAvatarsTable, CreateAvatarDetailsTable, CreateHolonsTable, CreateHolonHistoryTable })
+                foreach (string ddl in new[] { CreateAvatarsTable, CreateAvatarDetailsTable, CreateHolonsTable, CreateHolonHistoryTable, CreateAvatarHistoryTables })
                 {
                     await using var cmd = new SqlCommand(ddl, conn);
                     await cmd.ExecuteNonQueryAsync();
@@ -166,24 +191,33 @@ CREATE TABLE OASISHolonHistory (
                 avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.SQLServerDBOASIS] = avatar.Id.ToString();
 
                 const string sql = @"
+INSERT INTO OASISAvatarHistory (Id, Version, Username, Email,IsDeleted, DataJson)
+SELECT c.Id, v.Version, c.Username, c.Email,c.IsDeleted, c.DataJson
+FROM OASISAvatars c WITH (UPDLOCK, HOLDLOCK)
+CROSS APPLY (VALUES (TRY_CONVERT(int, JSON_VALUE(c.DataJson, '$.version')))) v(Version)
+WHERE c.Id=@Id AND v.Version > 0 AND v.Version < @Version
+AND NOT EXISTS (SELECT 1 FROM OASISAvatarHistory h WHERE h.Id=c.Id AND h.Version=v.Version);
 MERGE OASISAvatars AS target
 USING (SELECT @Id AS Id) AS source ON target.Id = source.Id
-WHEN MATCHED THEN
+WHEN MATCHED AND (@Version=0 OR COALESCE(TRY_CONVERT(int, JSON_VALUE(target.DataJson, '$.version')), 0) <= @Version) THEN
     UPDATE SET Username=@Username, Email=@Email, IsDeleted=@IsDeleted, ModifiedDate=SYSUTCDATETIME(), DataJson=@DataJson
 WHEN NOT MATCHED THEN
-    INSERT (Id,Username,Email,IsDeleted,DataJson) VALUES (@Id,@Username,@Email,@IsDeleted,@DataJson);";
+    INSERT (Id,Username,Email,IsDeleted,DataJson) VALUES (@Id,@Username,@Email,@IsDeleted,@DataJson); SELECT @@ROWCOUNT;";
 
                 await using var conn = new SqlConnection(_connectionString);
                 await conn.OpenAsync();
-                await using var cmd = new SqlCommand(sql, conn);
+                await using var transaction = (SqlTransaction)await conn.BeginTransactionAsync();
+                await using var cmd = new SqlCommand(sql, conn, transaction);
                 cmd.Parameters.AddWithValue("@Id", avatar.Id);
+                cmd.Parameters.AddWithValue("@Version", avatar.Version);
                 cmd.Parameters.AddWithValue("@Username", (object?)avatar.Username ?? DBNull.Value);
                 cmd.Parameters.AddWithValue("@Email", (object?)avatar.Email ?? DBNull.Value);
                 cmd.Parameters.AddWithValue("@IsDeleted", avatar.IsDeleted);
                 cmd.Parameters.AddWithValue("@DataJson", Serialize(avatar));
-                if (await cmd.ExecuteNonQueryAsync() != 1)
+                if ((int)(await cmd.ExecuteScalarAsync())! != 1)
                     throw new InvalidOperationException("SQL Server did not acknowledge exactly one avatar row.");
 
+                await transaction.CommitAsync();
                 result.Result = avatar;
                 result.IsSaved = true;
                 result.SavedCount = 1;
@@ -201,9 +235,24 @@ WHEN NOT MATCHED THEN
 
         // ─── Avatar loading ───────────────────────────────────────────────────────
 
+        private const string AvatarSnapshotRows = @"
+SELECT c.Id, c.Username, c.Email, c.DataJson FROM OASISAvatars c
+WHERE c.IsDeleted=0 AND (@Version=0 OR TRY_CONVERT(int, JSON_VALUE(c.DataJson, '$.version'))=@Version)
+UNION ALL
+SELECT h.Id, h.Username, h.Email, h.DataJson FROM OASISAvatarHistory h
+JOIN OASISAvatars c ON c.Id=h.Id
+WHERE h.Version=@Version AND h.IsDeleted=0 AND c.IsDeleted=0";
+
+        private const string AvatarDetailSnapshotRows = @"
+SELECT c.Id, c.Username, c.Email, c.DataJson FROM OASISAvatarDetails c
+WHERE @Version=0 OR TRY_CONVERT(int, JSON_VALUE(c.DataJson, '$.Version'))=@Version
+UNION ALL
+SELECT h.Id, h.Username, h.Email, h.DataJson FROM OASISAvatarDetailHistory h
+WHERE h.Version=@Version";
+
         private async Task<Avatar?> LoadAvatarByColumnAsync(string column, object value, int version)
         {
-            string sql = $"SELECT TOP (2) Id, DataJson FROM OASISAvatars WHERE {column}=@val AND IsDeleted=0 AND (@Version=0 OR TRY_CONVERT(int, JSON_VALUE(DataJson, '$.version'))=@Version)";
+            string sql = $"SELECT TOP (2) Id, DataJson FROM ({AvatarSnapshotRows}) snapshot WHERE {column}=@val";
             ArgumentOutOfRangeException.ThrowIfNegative(version);
             await using var conn = new SqlConnection(_connectionString);
             await conn.OpenAsync();
@@ -275,7 +324,7 @@ WHEN NOT MATCHED THEN
                 ArgumentOutOfRangeException.ThrowIfNegative(version);
                 await using var conn = new SqlConnection(_connectionString);
                 await conn.OpenAsync();
-                await using var cmd = new SqlCommand("SELECT Id, DataJson FROM OASISAvatars WHERE IsDeleted=0 AND (@Version=0 OR TRY_CONVERT(int, JSON_VALUE(DataJson, '$.version'))=@Version)", conn);
+                await using var cmd = new SqlCommand($"SELECT Id, DataJson FROM ({AvatarSnapshotRows}) snapshot", conn);
                 cmd.Parameters.AddWithValue("@Version", version);
                 await using var reader = await cmd.ExecuteReaderAsync();
                 while (await reader.ReadAsync())
@@ -367,19 +416,28 @@ SELECT @Count;";
             {
                 if (avatarDetail.Id == Guid.Empty) avatarDetail.Id = Guid.NewGuid();
                 const string sql = @"
+INSERT INTO OASISAvatarDetailHistory (Id, Version, Username, Email, DataJson)
+SELECT c.Id, v.Version, c.Username, c.Email, c.DataJson
+FROM OASISAvatarDetails c WITH (UPDLOCK, HOLDLOCK)
+CROSS APPLY (VALUES (TRY_CONVERT(int, JSON_VALUE(c.DataJson, '$.Version')))) v(Version)
+WHERE c.Id=@Id AND v.Version > 0 AND v.Version < @Version
+AND NOT EXISTS (SELECT 1 FROM OASISAvatarDetailHistory h WHERE h.Id=c.Id AND h.Version=v.Version);
 MERGE OASISAvatarDetails AS target
 USING (SELECT @Id AS Id) AS source ON target.Id = source.Id
-WHEN MATCHED THEN UPDATE SET Username=@Username, Email=@Email, DataJson=@DataJson
-WHEN NOT MATCHED THEN INSERT (Id,Username,Email,DataJson) VALUES (@Id,@Username,@Email,@DataJson);";
+WHEN MATCHED AND (@Version=0 OR COALESCE(TRY_CONVERT(int, JSON_VALUE(target.DataJson, '$.Version')), 0) <= @Version) THEN UPDATE SET Username=@Username, Email=@Email, DataJson=@DataJson
+WHEN NOT MATCHED THEN INSERT (Id,Username,Email,DataJson) VALUES (@Id,@Username,@Email,@DataJson); SELECT @@ROWCOUNT;";
                 await using var conn = new SqlConnection(_connectionString);
                 await conn.OpenAsync();
-                await using var cmd = new SqlCommand(sql, conn);
+                await using var transaction = (SqlTransaction)await conn.BeginTransactionAsync();
+                await using var cmd = new SqlCommand(sql, conn, transaction);
                 cmd.Parameters.AddWithValue("@Id", avatarDetail.Id);
+                cmd.Parameters.AddWithValue("@Version", avatarDetail.Version);
                 cmd.Parameters.AddWithValue("@Username", (object?)avatarDetail.Username ?? DBNull.Value);
                 cmd.Parameters.AddWithValue("@Email", (object?)avatarDetail.Email ?? DBNull.Value);
                 cmd.Parameters.AddWithValue("@DataJson", StoredRecordJson.Serialize(StoredRecordJson.Project<AvatarDetail>(avatarDetail)));
-                if (await cmd.ExecuteNonQueryAsync() != 1)
+                if ((int)(await cmd.ExecuteScalarAsync())! != 1)
                     throw new InvalidOperationException("SQL Server did not acknowledge exactly one avatar row.");
+                await transaction.CommitAsync();
                 result.Result = avatarDetail; result.IsSaved = true; result.SavedCount = 1; result.Message = "SQLServerDBOASIS: AvatarDetail saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SQLServerDBOASIS: Error saving avatar detail: {ex.Message}"); }
@@ -411,7 +469,7 @@ WHEN NOT MATCHED THEN INSERT (Id,Username,Email,DataJson) VALUES (@Id,@Username,
                 ArgumentOutOfRangeException.ThrowIfNegative(version);
                 await using var conn = new SqlConnection(_connectionString);
                 await conn.OpenAsync();
-                await using var cmd = new SqlCommand($"SELECT TOP (2) Id, DataJson FROM OASISAvatarDetails WHERE {column}=@Value AND (@Version=0 OR TRY_CONVERT(int, JSON_VALUE(DataJson, '$.Version'))=@Version)", conn);
+                await using var cmd = new SqlCommand($"SELECT TOP (2) Id, DataJson FROM ({AvatarDetailSnapshotRows}) snapshot WHERE {column}=@Value", conn);
                 cmd.Parameters.AddWithValue("@Value", value);
                 cmd.Parameters.AddWithValue("@Version", version);
                 await using var reader = await cmd.ExecuteReaderAsync();
@@ -455,7 +513,7 @@ WHEN NOT MATCHED THEN INSERT (Id,Username,Email,DataJson) VALUES (@Id,@Username,
                 ArgumentOutOfRangeException.ThrowIfNegative(version);
                 await using var conn = new SqlConnection(_connectionString);
                 await conn.OpenAsync();
-                await using var cmd = new SqlCommand("SELECT Id, DataJson FROM OASISAvatarDetails WHERE (@Version=0 OR TRY_CONVERT(int, JSON_VALUE(DataJson, '$.Version'))=@Version)", conn);
+                await using var cmd = new SqlCommand($"SELECT Id, DataJson FROM ({AvatarDetailSnapshotRows}) snapshot", conn);
                 cmd.Parameters.AddWithValue("@Version", version);
                 await using var reader = await cmd.ExecuteReaderAsync();
                 while (await reader.ReadAsync())
