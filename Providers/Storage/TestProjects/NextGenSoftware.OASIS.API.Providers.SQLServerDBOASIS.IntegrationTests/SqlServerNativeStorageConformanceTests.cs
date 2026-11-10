@@ -11,6 +11,59 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLServerDBOASIS.IntegrationTests;
 public class SqlServerNativeStorageConformanceTests
 {
     [TestMethod]
+    public async Task AvatarListsValidateStoredIdentity()
+    {
+        if (Environment.GetEnvironmentVariable("OASIS_SQLSERVER_AVATAR_LIST_IDENTITY") != "1")
+            Assert.Inconclusive("Enable only for the dedicated LocalDB provider fixture.");
+
+        const string connection = @"Server=(localdb)\MSSQLLocalDB;Database=oasis_hyperdrive_provider_test;Integrated Security=true;TrustServerCertificate=true";
+        var provider = new SQLServerDBOASIS(connection);
+        var id = Guid.NewGuid();
+        var avatar = new NextGenSoftware.OASIS.API.Core.Holons.Avatar { Id = id, Username = $"fixture-{id:N}", Email = $"fixture-{id:N}@example.invalid" };
+        var detail = new NextGenSoftware.OASIS.API.Core.Holons.AvatarDetail { Id = id, Username = avatar.Username, Email = avatar.Email };
+        var saved = false;
+        try
+        {
+            var active = await provider.ActivateProviderAsync();
+            Assert.IsTrue(active.Result && !active.IsError, active.Message);
+            var write = await provider.SaveAvatarAsync(avatar);
+            Assert.IsTrue(write.IsSaved && !write.IsError, write.Message);
+            saved = true;
+            var detailWrite = await provider.SaveAvatarDetailAsync(detail);
+            Assert.IsTrue(detailWrite.IsSaved && !detailWrite.IsError, detailWrite.Message);
+
+            var avatars = await provider.LoadAllAvatarsAsync();
+            var details = await provider.LoadAllAvatarDetailsAsync();
+            Assert.IsTrue(avatars.IsLoaded && avatars.Result.Any(record => record.Id == id), avatars.Message);
+            Assert.IsTrue(details.IsLoaded && details.Result.Any(record => record.Id == id), details.Message);
+
+            await using var sql = new SqlConnection(connection);
+            await sql.OpenAsync();
+            await using var update = new SqlCommand(
+                @"UPDATE OASISAvatars SET DataJson=N'{}' WHERE Id=@Id;
+UPDATE OASISAvatarDetails SET DataJson=N'{}' WHERE Id=@Id;", sql);
+            update.Parameters.AddWithValue("@Id", id);
+            Assert.AreEqual(2, await update.ExecuteNonQueryAsync());
+
+            avatars = await provider.LoadAllAvatarsAsync();
+            details = await provider.LoadAllAvatarDetailsAsync();
+            Assert.IsTrue(avatars.IsError && avatars.Exception is System.IO.InvalidDataException, avatars.Message);
+            Assert.IsTrue(details.IsError && details.Exception is System.IO.InvalidDataException, details.Message);
+            Assert.IsNull(avatars.Result);
+            Assert.IsNull(details.Result);
+        }
+        finally
+        {
+            if (saved)
+            {
+                var deleted = await provider.DeleteAvatarAsync(id, softDelete: false);
+                Assert.IsTrue(deleted.IsDeleted && !deleted.IsError, deleted.Message);
+            }
+            await provider.DeActivateProviderAsync();
+        }
+    }
+
+    [TestMethod]
     public async Task DuplicateAvatarSelectorsRejectOwnerExport()
     {
         if (Environment.GetEnvironmentVariable("OASIS_SQLSERVER_DUPLICATE_AVATAR") != "1")

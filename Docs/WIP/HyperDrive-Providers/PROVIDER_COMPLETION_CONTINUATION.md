@@ -273,3 +273,5 @@ SQL Server LocalDB passed DuplicateAvatarSelectorsRejectDeletion (1 passed, 0 fa
 SQL Server LocalDB passed DuplicateAvatarDetailSelectorsRejectLookup (1 passed, 0 failed, 0 skipped). The dedicated fixture returned each detail by ID, rejected duplicate username and email selectors with AmbiguousIdentity, and hard-deleted both synthetic avatars during teardown. LocalDB was stopped after the run.
 
 SQL Server LocalDB provider-key hard deletion passed (1 focused case, 0 failed, 0 skipped). The shipping provider deleted each synthetic avatar using the storage key returned by SaveAvatarAsync. That key is a GUID, matching the load contract. Username and email ambiguity remain covered by the dedicated selectors. The LocalDB instance was stopped.
+
+SQL Server LocalDB passed AvatarListsValidateStoredIdentity (1 passed, 0 failed, 0 skipped). Both shipping list methods returned the valid synthetic row and returned an error without a partial result after its payload identity was replaced. Teardown hard-deleted the fixture avatar and detail and stopped LocalDB.

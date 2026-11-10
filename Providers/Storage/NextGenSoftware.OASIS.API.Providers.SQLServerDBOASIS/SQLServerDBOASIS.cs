@@ -272,12 +272,14 @@ WHEN NOT MATCHED THEN
                 var avatars = new List<IAvatar>();
                 await using var conn = new SqlConnection(_connectionString);
                 await conn.OpenAsync();
-                await using var cmd = new SqlCommand("SELECT DataJson FROM OASISAvatars WHERE IsDeleted=0", conn);
+                await using var cmd = new SqlCommand("SELECT Id, DataJson FROM OASISAvatars WHERE IsDeleted=0", conn);
                 await using var reader = await cmd.ExecuteReaderAsync();
                 while (await reader.ReadAsync())
                 {
-                    var avatar = Deserialize<Avatar>(reader.GetString(0));
-                    if (avatar != null) avatars.Add(avatar);
+                    var avatar = Deserialize<Avatar>(reader.GetString(1));
+                    if (avatar == null || avatar.Id != reader.GetGuid(0))
+                        throw new System.IO.InvalidDataException("SQL Server avatar payload does not match its row identity.");
+                    avatars.Add(avatar);
                 }
                 result.Result = avatars; result.IsLoaded = true; result.LoadedCount = avatars.Count; result.Message = $"SQLServerDBOASIS: Loaded {avatars.Count} avatar(s).";
             }
@@ -446,12 +448,14 @@ WHEN NOT MATCHED THEN INSERT (Id,Username,Email,DataJson) VALUES (@Id,@Username,
                 var details = new List<IAvatarDetail>();
                 await using var conn = new SqlConnection(_connectionString);
                 await conn.OpenAsync();
-                await using var cmd = new SqlCommand("SELECT DataJson FROM OASISAvatarDetails", conn);
+                await using var cmd = new SqlCommand("SELECT Id, DataJson FROM OASISAvatarDetails", conn);
                 await using var reader = await cmd.ExecuteReaderAsync();
                 while (await reader.ReadAsync())
                 {
-                    var detail = StoredRecordJson.Deserialize<AvatarDetail>(reader.GetString(0));
-                    if (detail != null) details.Add(detail);
+                    var detail = StoredRecordJson.Deserialize<AvatarDetail>(reader.GetString(1));
+                    if (detail == null || detail.Id != reader.GetGuid(0))
+                        throw new System.IO.InvalidDataException("SQL Server avatar detail payload does not match its row identity.");
+                    details.Add(detail);
                 }
                 result.Result = details; result.IsLoaded = true; result.LoadedCount = details.Count; result.Message = $"SQLServerDBOASIS: Loaded {details.Count} avatar detail(s).";
             }
