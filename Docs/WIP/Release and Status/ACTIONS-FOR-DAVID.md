@@ -619,3 +619,8 @@ Status: missing account/configuration information,2 November2026. David approved
 
 - **Open, 2026-11-10.** Designate a disposable Pinata test account and gateway authorized for a synthetic public pin and exact unpin. Configure a scoped test JWT as OASIS_PINATA_JWT through protected local settings. Set OASIS_PINATA_HOSTED_WRITE_TEST=1 only for that fixture. Keep secrets out of Git and chat.
 - **Reason** The shipping holon save, GUID lookup and exact CID cleanup test builds and is discoverable. Native writes require explicit fixture access. [Provider matrix](../HyperDrive-Providers/PROVIDER_MATRIX.md)
+
+### Filecoin read-only Lotus fixture
+
+- **Open, 2026-11-10.** If a dedicated Lotus test node already exists, identify its host so the verification session can run on the same machine. Set OASIS_FILECOIN_TEST_LOTUS_RPC to the loopback RPC URL there. If needed, configure a read-only token through OASIS_FILECOIN_TEST_LOTUS_TOKEN in protected local settings. Keep the token out of Git and chat.
+- **Reason** Both shipping activation cases compile and use only Filecoin.Version. This Windows host has no Lotus executable on PATH and no listener on its default RPC port. The checks require neither file imports nor storage deals. [Provider matrix](../HyperDrive-Providers/PROVIDER_MATRIX.md)
