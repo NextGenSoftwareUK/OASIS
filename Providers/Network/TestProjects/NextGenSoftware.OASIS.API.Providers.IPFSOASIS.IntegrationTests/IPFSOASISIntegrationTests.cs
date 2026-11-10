@@ -30,14 +30,16 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS.IntegrationTests
 				var activation = synchronous ? provider.ActivateProvider() : await provider.ActivateProviderAsync();
 				Assert.True(activation.Result && !activation.IsError, activation.Message);
 				Assert.True(provider.IsProviderActivated);
+				Assert.NotNull(provider.IPFSClient);
 			}
 			finally
 			{
 				try
 				{
-					var deactivation = await provider.DeActivateProviderAsync();
+					var deactivation = synchronous ? provider.DeActivateProvider() : await provider.DeActivateProviderAsync();
 					Assert.True(deactivation.Result && !deactivation.IsError, deactivation.Message);
 					Assert.False(provider.IsProviderActivated);
+					Assert.Null(provider.IPFSClient);
 				}
 				finally { File.Delete(dnaPath); }
 			}
