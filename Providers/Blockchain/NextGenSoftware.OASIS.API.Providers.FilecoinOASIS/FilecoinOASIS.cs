@@ -65,7 +65,7 @@ namespace NextGenSoftware.OASIS.API.Providers.FilecoinOASIS
                 id = System.Threading.Interlocked.Increment(ref _rpcId)
             };
             var content = new StringContent(JsonSerializer.Serialize(req), Encoding.UTF8, "application/json");
-            var resp = await _http.PostAsync(_rpcUrl, content);
+            using var resp = await _http.PostAsync(_rpcUrl, content).ConfigureAwait(false);
             resp.EnsureSuccessStatusCode();
             using var doc = await JsonDocument.ParseAsync(await resp.Content.ReadAsStreamAsync());
             var root = doc.RootElement;
@@ -81,27 +81,35 @@ namespace NextGenSoftware.OASIS.API.Providers.FilecoinOASIS
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
         {
             var result = new OASISResult<bool>();
+            IsProviderActivated = false;
             try
             {
-                // Ping: Filecoin.Version
-                var ver = await LotusCallAsync("Filecoin.Version", Array.Empty<object>());
+                var version = await LotusCallAsync("Filecoin.Version", Array.Empty<object>()).ConfigureAwait(false);
+                if (!version.HasValue || version.Value.ValueKind != JsonValueKind.Object ||
+                    !version.Value.TryGetProperty("Version", out var value) ||
+                    value.ValueKind != JsonValueKind.String || string.IsNullOrWhiteSpace(value.GetString()))
+                    throw new System.IO.InvalidDataException("Lotus did not return a node version.");
+
+                IsProviderActivated = true;
                 result.Result = true;
-                result.Message = $"FilecoinOASIS activated. Node version: {ver?.GetProperty("Version").GetString() ?? "unknown"} at {_rpcUrl}.";
+                result.Message = $"FilecoinOASIS activated. Node version: {value.GetString()}.";
             }
             catch (Exception ex)
             {
-                result.Exception = ex;
-                OASISErrorHandling.HandleError(ref result, $"FilecoinOASIS: Error activating: {ex.Message}");
+                OASISErrorHandling.HandleError(ref result, "FilecoinOASIS: Error activating.", ex);
             }
             return result;
         }
 
-        public override OASISResult<bool> ActivateProvider() => ActivateProviderAsync().Result;
+        public override OASISResult<bool> ActivateProvider() => ActivateProviderAsync().GetAwaiter().GetResult();
 
-        public override async Task<OASISResult<bool>> DeActivateProviderAsync() =>
-            await Task.FromResult(new OASISResult<bool> { Result = true, Message = "FilecoinOASIS deactivated." });
+        public override Task<OASISResult<bool>> DeActivateProviderAsync() => Task.FromResult(DeActivateProvider());
 
-        public override OASISResult<bool> DeActivateProvider() => DeActivateProviderAsync().Result;
+        public override OASISResult<bool> DeActivateProvider()
+        {
+            IsProviderActivated = false;
+            return new OASISResult<bool>(true) { Message = "FilecoinOASIS deactivated." };
+        }
 
         // ─── Avatar: Load ─────────────────────────────────────────────────────────
 
