@@ -18,9 +18,11 @@ fi
 if [[ "$1" == "oasis" ]]; then
     contract=oasis
 else
-    echo "need contract"
-    exit 0
+    echo "usage: build.sh oasis" >&2
+    exit 2
 fi
+
+cd -- "$(dirname -- "${BASH_SOURCE[0]}")" || exit 1
 
 echo ">>> Building $contract contract..."
 
@@ -30,5 +32,5 @@ if [[ -z "$CDT_CPP" ]]; then
     exit 1
 fi
 
-mkdir -p "./build/$contract"
+mkdir -p "./build/$contract" || exit 1
 "$CDT_CPP" -I="./contracts/$contract/include/" -R="./contracts/$contract/resources" -o="./build/$contract/$contract.wasm" -contract="$contract" -abigen "./contracts/$contract/src/$contract.cpp"
