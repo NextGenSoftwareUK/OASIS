@@ -339,6 +339,7 @@
   ],
   "splitNativeLifecycle": ["SQLServerDBOASIS"],
   "providerBlockers": {
+    "OracleObjectStorageOASIS": ["Guarded OCI transport and encrypted record acceptance are prepared. Hosted verification remains deferred by the owner. Oracle Database native storage results cover a separate provider."],
     "TONOASIS": ["Local TVM native lifecycle passed in both modes through the registered shipping provider. Public-network transport and hosted lifecycle remain open. See PROVIDER_COMPLETION_CONTINUATION.md for tested Core revision and report hashes."],
     "HashgraphOASIS": ["The funded testnet encrypted CRUD/restart suite exists. Retained deployment receipt reconciliation and authorized testnet admission remain open. Public mirror reads are tracked separately in the [Hedera CQL evidence](../COSMIC%20ORM/HEDERA_PUBLIC_SOURCE_STATUS.md)."],
     "NEAROASIS": ["Real local-chain ordinary storage and prepared NFT lifecycle receipts are retained in [ordinary storage evidence](NativeEvidence/near-ordinary-storage.complete.json) and [prepared lifecycle evidence](NativeEvidence/near-prepared-lifecycle.complete.json). These operation-specific runs do not cover the full shared storage contract or hosted acceptance."],
