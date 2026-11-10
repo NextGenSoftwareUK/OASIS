@@ -408,7 +408,7 @@
       "Native core-storage-v2 baseline52/52 verified, sync/async26 each, exact fixture cleanup complete;178 controlled tests pass. Reusable owned offline environment ready. CQL remains unenrolled; direct-CID versus named persistent-index execution and full lifecycle/concurrency contracts remain open."
     ],
     "PinataOASIS": [
-      "Real authenticated pin/gateway HTTP transport exists, but mutable GUID index, encrypted record contract, result acknowledgements and graph/version semantics need canonical-suite binding/review; existing pin service is not interchangeable with Kubo repository ownership. No configured isolated account/fixture used; no public pin/write dispatched."
+      "Authenticated HTTP upload, paged pin listing, exact GUID and CID reads, and unpin acknowledgement build successfully. The guarded hosted holon round trip is ready and has not run. Durable mutable identity, encrypted records, graph and version semantics remain open."
     ],
     "FilecoinOASIS": [
       "Lotus HTTP RPC reads actors/CIDs, but shipping SaveAvatar and SaveAvatarDetail explicitly reject record persistence; chain addresses are not an implementation of the common avatar record contract. Email lookup and metadata query explicitly unsupported. Native RPC/SDK detection is not storage conformance; no public RPC or paid deal submitted."
