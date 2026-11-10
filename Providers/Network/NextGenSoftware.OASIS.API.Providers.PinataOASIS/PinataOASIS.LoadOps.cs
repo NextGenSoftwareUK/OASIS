@@ -47,13 +47,23 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
                 {
                     try
                     {
-                        // Real Pinata implementation: Get file content from Pinata IPFS
+                        if (file.Metadata == null || !file.Metadata.TryGetValue("name", out var value)
+                            || value is not string name || !name.StartsWith("Holon_", StringComparison.Ordinal)
+                            || !Guid.TryParseExact(name.AsSpan(6), "D", out var recordId) || recordId == Guid.Empty)
+                            continue;
+
+                        // Read only named holon records.
                         var content = await _pinataService.GetFileContentAsync(file.IpfsPinHash);
                         var holon = JsonConvert.DeserializeObject<Holon>(content);
                         
-                        if (holon != null && holon.ParentHolonId == id && 
+                        if (holon == null || holon.Id != recordId)
+                            throw new System.IO.InvalidDataException("Pinata holon payload does not match its pin name.");
+
+                        if (holon.ParentHolonId == id && 
                             (type == HolonType.All || holon.HolonType == type))
                         {
+                            holon.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
+                            holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.PinataOASIS] = file.IpfsPinHash;
                             childHolons.Add(holon);
                         }
                     }
@@ -72,6 +82,8 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
                 }
 
                 result.Result = childHolons;
+                result.IsLoaded = true;
+                result.LoadedCount = childHolons.Count;
                 result.IsError = false;
             }
             catch (Exception ex)
