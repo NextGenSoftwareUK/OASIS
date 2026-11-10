@@ -733,3 +733,5 @@ After the Monad endpoint rollout, both public Hedera presets passed the authenti
 Development 601d81e81c integrates the verified EVM endpoint qualification script. The scoped commit changes only that script and preserves dependency pins. Railway started 3d044fc4 despite the skip-ci marker and reached remote WEB4 publish. Run Monad and Hedera regression checks after activation. This build uses no local disk for image artifacts.
 
 Development 3d044fc4 went live after the verifier integration. Monad and Hedera initially appeared unavailable, then both passed the native public presets at 3/2. The authenticated catalogue rose from 69/106 to 105/106 ready for native queries and federation. Nostr remained the sole listed unavailable provider. No local report or build output.
+
+On Development 3d044fc4, Monad and Hedera each passed both public federation presets with 3 and 2 rows. Selected IDs and provider copies matched the native results. The existing visitor had no private MongoDB snapshots, so private paired browser checks remain open.
