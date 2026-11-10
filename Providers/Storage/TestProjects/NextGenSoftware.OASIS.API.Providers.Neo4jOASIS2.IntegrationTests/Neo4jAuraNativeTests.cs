@@ -1,6 +1,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.Common;
 using AuraProvider = NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura.Neo4jOASIS;
 
@@ -73,7 +74,7 @@ public class Neo4jAuraNativeTests
     {
         var provider = CreateProvider();
         var parent = new Holon { Id = Guid.NewGuid(), Name = "Aura parent" };
-        var child = new Holon { Id = Guid.NewGuid(), Name = "Aura child", ParentHolonId = parent.Id };
+        var child = new Holon { Id = Guid.NewGuid(), Name = $"Aura child {parent.Id:N}", ParentHolonId = parent.Id };
         var active = await provider.ActivateProviderAsync();
         Assert.IsTrue(active.Result, active.Exception?.GetType().FullName);
         try
@@ -92,6 +93,18 @@ public class Neo4jAuraNativeTests
             var children = provider.LoadHolonsForParent(parentKey, loadChildren: false);
             Assert.IsTrue(children.IsLoaded, children.Exception?.GetType().FullName);
             CollectionAssert.AreEqual(new[] { child.Id }, children.Result.Select(item => item.Id).ToArray());
+
+            var matches = await provider.SearchAsync(new SearchParams
+            {
+                SearchOnlyForCurrentAvatar = false,
+                ParentId = parent.Id,
+                SearchGroups = new()
+                {
+                    new SearchTextGroup { SearchHolons = true, HolonType = HolonType.All, SearchQuery = child.Name }
+                }
+            }, loadChildren: false);
+            Assert.IsTrue(matches.IsLoaded, matches.Exception?.GetType().FullName);
+            CollectionAssert.AreEqual(new[] { child.Id }, matches.Result.SearchResultHolons.Select(item => item.Id).ToArray());
 
             var deleted = await provider.DeleteHolonAsync(childKey);
             Assert.IsTrue(deleted.IsDeleted, deleted.Exception?.GetType().FullName);
