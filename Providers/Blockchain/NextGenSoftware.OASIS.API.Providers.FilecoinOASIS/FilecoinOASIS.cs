@@ -64,16 +64,23 @@ namespace NextGenSoftware.OASIS.API.Providers.FilecoinOASIS
                 @params,
                 id = System.Threading.Interlocked.Increment(ref _rpcId)
             };
-            var content = new StringContent(JsonSerializer.Serialize(req), Encoding.UTF8, "application/json");
+            using var content = new StringContent(JsonSerializer.Serialize(req), Encoding.UTF8, "application/json");
             using var resp = await _http.PostAsync(_rpcUrl, content).ConfigureAwait(false);
             resp.EnsureSuccessStatusCode();
-            using var doc = await JsonDocument.ParseAsync(await resp.Content.ReadAsStreamAsync());
+            using var stream = await resp.Content.ReadAsStreamAsync().ConfigureAwait(false);
+            using var doc = await JsonDocument.ParseAsync(stream).ConfigureAwait(false);
             var root = doc.RootElement;
+            if (root.ValueKind != JsonValueKind.Object ||
+                !root.TryGetProperty("jsonrpc", out var protocol) || protocol.ValueKind != JsonValueKind.String || protocol.GetString() != "2.0" ||
+                !root.TryGetProperty("id", out var replyId) || replyId.ValueKind != JsonValueKind.Number ||
+                !replyId.TryGetInt64(out var receivedId) || receivedId != req.id)
+                throw new System.IO.InvalidDataException("Lotus returned an invalid or mismatched JSON-RPC envelope.");
+
             if (root.TryGetProperty("error", out var err))
                 throw new Exception($"Lotus RPC error: {err.GetRawText()}");
             if (root.TryGetProperty("result", out var result))
                 return result.Clone();
-            return null;
+            throw new System.IO.InvalidDataException("Lotus omitted the JSON-RPC result.");
         }
 
         // ─── Activation ───────────────────────────────────────────────────────────
