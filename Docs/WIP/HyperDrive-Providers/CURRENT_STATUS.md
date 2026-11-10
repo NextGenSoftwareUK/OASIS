@@ -115,3 +115,5 @@ Scoped IPFS teardown candidate 1f1021ec6a built against Development Core e580202
 Development 1f1021ec6a contains the compiled IPFS round-trip test teardown. HyperDrive synchronized at 1e7be4a153 with Core e5802022e and the matching Railway manifest pin. The IPFS runtime activation change still awaits live Kubo verification.
 
 Combined BootLoader candidate 6b07640979 compiled with pinned Core e5802022e, 0 errors and 2142 warnings. Covers Neon, Convex and Supabase registration plus hot-activation error propagation. Live ONODE verification remains open.
+
+ONODE single-provider registration fix ef90fa5ef1 remains on the task branch. The WebAPI build was stopped for disk recovery and its generated outputs were cleaned. Compilation and live endpoint verification are open. Development has no overlapping change to ProviderController.cs.
