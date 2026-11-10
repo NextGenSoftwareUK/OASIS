@@ -164,6 +164,7 @@ public partial class NEAROASIS
         var result = new OASISResult<bool>();
         try
         {
+            if (id == Guid.Empty) throw new ArgumentException("A nonempty avatar ID is required.", nameof(id));
             if (!await EnsureSdkActiveAsync(result)) return result;
             if (softDelete)
             {
