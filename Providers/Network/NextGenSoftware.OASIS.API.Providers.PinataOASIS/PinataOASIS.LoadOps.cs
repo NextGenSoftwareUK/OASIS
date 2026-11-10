@@ -736,11 +736,27 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
 
         public async Task<List<PinataPin>> GetFilesAsync()
         {
-            using var response = await _httpClient.GetAsync($"{_apiUrl}/data/pinList").ConfigureAwait(false);
-            response.EnsureSuccessStatusCode();
-            var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-            var pinList = JsonConvert.DeserializeObject<PinataPinListResponse>(content);
-            return pinList?.Rows ?? throw new System.IO.InvalidDataException("Pinata did not return a pin list.");
+            const int pageSize = 1000;
+            var pins = new List<PinataPin>();
+            var seen = new HashSet<string>(StringComparer.Ordinal);
+            while (true)
+            {
+                using var response = await _httpClient.GetAsync(
+                    $"{_apiUrl}/data/pinList?status=pinned&pageLimit={pageSize}&pageOffset={pins.Count}").ConfigureAwait(false);
+                response.EnsureSuccessStatusCode();
+                var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                var page = JsonConvert.DeserializeObject<PinataPinListResponse>(content)?.Rows
+                    ?? throw new System.IO.InvalidDataException("Pinata did not return a pin list.");
+                foreach (var pin in page)
+                {
+                    if (string.IsNullOrWhiteSpace(pin?.IpfsPinHash) || !seen.Add(pin.IpfsPinHash))
+                        throw new System.IO.InvalidDataException("Pinata returned an empty or duplicate pinned content ID.");
+                    pins.Add(pin);
+                }
+
+                if (page.Count < pageSize)
+                    return pins;
+            }
         }
 
         public async Task<string> GetFileContentAsync(string hash)
