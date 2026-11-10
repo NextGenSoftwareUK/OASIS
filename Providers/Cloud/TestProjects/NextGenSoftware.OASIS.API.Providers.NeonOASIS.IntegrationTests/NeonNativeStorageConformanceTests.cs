@@ -20,8 +20,9 @@ public class NeonNativeStorageConformanceTests
 
         var settings = new NpgsqlConnectionStringBuilder(connection);
         Assert.IsTrue(settings.Host is { } host && !host.Contains(',') &&
-            host.EndsWith(".neon.tech", StringComparison.OrdinalIgnoreCase),
-            "Native conformance requires a Neon endpoint.");
+            host.EndsWith(".neon.tech", StringComparison.OrdinalIgnoreCase) &&
+            host[..host.IndexOf('.')].EndsWith("-pooler", StringComparison.OrdinalIgnoreCase),
+            "Native conformance requires the explicit Neon pooled endpoint so inspection and provider writes use the same host.");
         Assert.AreEqual("oasis_provider_test", settings.Database,
             "Native conformance requires the dedicated test database.");
 
