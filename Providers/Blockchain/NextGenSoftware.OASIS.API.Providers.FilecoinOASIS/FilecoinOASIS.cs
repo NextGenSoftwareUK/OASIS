@@ -280,7 +280,7 @@ namespace NextGenSoftware.OASIS.API.Providers.FilecoinOASIS
         {
             var r = await LoadAvatarByUsernameAsync(avatarUsername, version);
             var result = new OASISResult<IAvatarDetail>();
-            if (!r.IsError && r.Result != null)
+            if (r.IsSaved && r.Result != null)
                 result.Result = new AvatarDetail { Id = r.Result.Id, Username = r.Result.Username, Description = r.Result.Description };
             else { result.IsError = r.IsError; result.Message = r.Message; result.Exception = r.Exception; }
             return result;
@@ -590,6 +590,9 @@ namespace NextGenSoftware.OASIS.API.Providers.FilecoinOASIS
                     holon.ProviderMetaData[Core.Enums.ProviderType.FilecoinOASIS] = new Dictionary<string, string>();
                 holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.FilecoinOASIS] = cid;
                 holon.ProviderMetaData[Core.Enums.ProviderType.FilecoinOASIS]["cid"] = cid;
+                result.Result = holon;
+                result.IsSaved = true;
+                result.SavedCount = 1;
 
                 string dealCid = null;
                 // Step 2: find available miners and start deal with cheapest
@@ -626,10 +629,6 @@ namespace NextGenSoftware.OASIS.API.Providers.FilecoinOASIS
                     holon.ProviderMetaData[Core.Enums.ProviderType.FilecoinOASIS]["size_bytes"] = size.ToString();
                 }
 
-                result.Result = holon;
-
-                result.IsSaved = true;
-                result.SavedCount = 1;
                 result.Message = dealCid == null
                     ? $"FilecoinOASIS: Imported CID '{cid}' into the local Lotus store."
                     : $"FilecoinOASIS: Imported CID '{cid}' and submitted deal proposal '{dealCid}'.";
@@ -659,13 +658,13 @@ namespace NextGenSoftware.OASIS.API.Providers.FilecoinOASIS
                 foreach (var holon in holons)
                 {
                     var r = await SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
-                    if (!r.IsError && r.Result != null)
+                    if (r.IsSaved && r.Result != null)
                     {
                         saved.Add(r.Result);
                         result.SavedCount = saved.Count;
                         result.IsSaved = true;
-                        continue;
                     }
+                    if (!r.IsError) continue;
                     if (!continueOnError)
                     {
                         OASISErrorHandling.HandleError(ref result, r.Message, r.Exception);
