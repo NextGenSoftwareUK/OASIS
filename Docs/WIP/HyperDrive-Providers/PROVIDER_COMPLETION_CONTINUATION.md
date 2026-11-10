@@ -144,3 +144,7 @@ Oracle Database retains its 52/52 native shared lifecycle result through the man
 ### Google Maps rendering boundary
 
 The Google Maps facade now rejects unexecuted operations and builds. Its legacy Core map contract differs from the object-based contract used by GOMap and MapManager. GOMap owns its renderer and directions client. Its straight-line fallback cannot serve as Google route evidence. A complete implementation still needs the Google renderer and directions transport bound to the actual caller, with a native result verified before reporting success.
+
+### Convex companion package verification
+
+A local Debug NuGet pack from existing build output contained all seven declared companion files, including the schema and record functions. The temporary package was removed after inspection. The hosted activation check compiled and skipped without the dedicated HTTPS deployment. Hosted IAM and the hosted lifecycle remain open.
