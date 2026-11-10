@@ -139,11 +139,29 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
             await Task.CompletedTask;
         }
 
-        // Hard delete method not supported by avatar detail entity
         public async Task DeleteHard(Guid id)
         {
-            // Avatar detail is read-only on EOSIO - return without error
-            await Task.CompletedTask;
+            if (id == Guid.Empty)
+                throw new ArgumentException("A nonempty avatar ID is required.", nameof(id));
+
+            var transactionId = await _eos.CreateTransaction(new Transaction
+            {
+                actions = new List<Action>
+                {
+                    new()
+                    {
+                        account = _eosAccountName,
+                        authorization = new List<PermissionLevel>
+                        {
+                            new() { actor = _eosAccountName, permission = "active" }
+                        },
+                        name = "harddetail",
+                        data = new { entityId = HashUtility.GetNumericHash(id), holonId = id.ToString() }
+                    }
+                }
+            }).ConfigureAwait(false);
+            if (string.IsNullOrWhiteSpace(transactionId))
+                throw new InvalidOperationException("EOSIO avatar detail deletion returned no transaction ID.");
         }
 
         public void Dispose()

@@ -445,6 +445,24 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             return result;
         }
 
+        public async Task<OASISResult<bool>> HardDeleteAvatarDetailAsync(Guid id)
+        {
+            var result = new OASISResult<bool>();
+            try
+            {
+                await _avatarDetailRepository.DeleteHard(id).ConfigureAwait(false);
+                result.Result = true;
+                result.IsDeleted = true;
+                result.DeletedCount = 1;
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, GetEOSExceptionDetails(ex), ex);
+            }
+
+            return result;
+        }
+
         public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true)
             => DeleteAvatarAsync(id, softDelete).GetAwaiter().GetResult();
 
