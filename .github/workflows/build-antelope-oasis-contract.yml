@@ -1,0 +1,38 @@
+name: Build Antelope OASIS contract
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [Development]
+    paths:
+      - '.github/workflows/build-antelope-oasis-contract.yml'
+      - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.EOSIOOASIS/SmartContracts/**'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install pinned Antelope CDT
+        shell: bash
+        run: |
+          package="$RUNNER_TEMP/cdt.deb"
+          curl --fail --silent --show-error --location https://github.com/AntelopeIO/cdt/releases/download/v4.1.1/cdt_4.1.1-1_amd64.deb --output "$package"
+          echo "d946e6b64f297442d19e486401aa49f956080b07a1fa6335f29976106175b588  $package" | sha256sum --check
+          sudo apt-get install -y "$package"
+          rm -- "$package"
+      - name: Build and validate the ABI
+        env:
+          OASIS_SCRIPT_NO_PAUSE: '1'
+        run: bash Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.EOSIOOASIS/SmartContracts/build.sh oasis
+      - uses: actions/upload-artifact@v4
+        with:
+          name: antelope-oasis-contract
+          path: |
+            Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.EOSIOOASIS/SmartContracts/build/oasis/oasis.abi
+            Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.EOSIOOASIS/SmartContracts/build/oasis/oasis.wasm
+          if-no-files-found: error
+          retention-days: 3

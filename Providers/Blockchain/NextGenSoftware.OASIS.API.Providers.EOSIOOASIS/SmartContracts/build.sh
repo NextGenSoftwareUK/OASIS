@@ -18,9 +18,11 @@ fi
 if [[ "$1" == "oasis" ]]; then
     contract=oasis
 else
-    echo "need contract"
-    exit 0
+    echo "usage: build.sh oasis" >&2
+    exit 2
 fi
+
+cd -- "$(dirname -- "${BASH_SOURCE[0]}")" || exit 1
 
 echo ">>> Building $contract contract..."
 
@@ -30,5 +32,18 @@ if [[ -z "$CDT_CPP" ]]; then
     exit 1
 fi
 
-mkdir -p "./build/$contract"
-"$CDT_CPP" -I="./contracts/$contract/include/" -R="./contracts/$contract/resources" -o="./build/$contract/$contract.wasm" -contract="$contract" -abigen "./contracts/$contract/src/$contract.cpp"
+mkdir -p "./build/$contract" || exit 1
+"$CDT_CPP" -I="./contracts/$contract/include/" -R="./contracts/$contract/resources" -o="./build/$contract/$contract.wasm" -contract="$contract" -abigen "./contracts/$contract/src/$contract.cpp" || exit 1
+
+# The managed provider requires all three avatar-detail mutation actions.
+python3 - "./build/$contract/$contract.abi" <<'PY'
+import json
+import sys
+
+with open(sys.argv[1], encoding="utf-8") as source:
+    abi = json.load(source)
+required = {"setdetail", "softdetail", "harddetail"}
+missing = required - {action["name"] for action in abi["actions"]}
+if missing:
+    raise SystemExit("Generated ABI is missing actions: " + ", ".join(sorted(missing)))
+PY
