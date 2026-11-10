@@ -131,3 +131,5 @@ Current remote verification candidate: 8099fb6697 includes the Supabase producti
 Remote registration candidate 8b9d00b0ccc2ec16bbca66988132ab0d3856d935 includes rejection of instances that ProviderManager does not register. Full compilation and live registration remain open.
 
 SQL Server BootLoader binding 30c5798dbf uses the shipping SQLServerDBOASIS constructor and OASIS.StorageProviders.SQLServerDBOASIS.ConnectionString, with the existing explicit connection override. Syntax parsing and project reference resolution passed. Compilation and live registration remain open; retained native storage receipts carry forward.
+
+TON harness commit 59fe0eb2b2 removes the legacy EVM constructor call that throws during aggregate harness startup. TonNativeLifecycleTests retains the local TVM fixture coverage. Aggregate harness compilation, hosted TON storage and hosted lifecycle verification remain open.
