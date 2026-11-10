@@ -90,6 +90,14 @@ try{
                 $quantity=[Numerics.BigInteger]::Parse('0'+$balance.Substring(2),[Globalization.NumberStyles]::AllowHexSpecifier)
                 $rows+=@{address=$address;nativeBaseUnits=$quantity.ToString([Globalization.CultureInfo]::InvariantCulture)}
             }
+            $confirmed=Invoke-ReadRpc 'eth_getBlockByNumber' @($header.number,$false)
+            $confirmedHash=$confirmed.hash
+            if($descriptor.nativeMixedCaseHashes -and $confirmedHash -cmatch '^0x[0-9a-fA-F]{64}$'){
+                $confirmedHash=$confirmedHash.ToLowerInvariant()
+            }
+            if($confirmedHash -cne $header.hash -or $confirmed.number -cne $header.number){
+                throw 'Selected canonical block changed during the native read.'
+            }
             $selections+=@{count=$count;rows=$rows;blockHash=$header.hash;blockNumber=$header.number}
         }
     }
