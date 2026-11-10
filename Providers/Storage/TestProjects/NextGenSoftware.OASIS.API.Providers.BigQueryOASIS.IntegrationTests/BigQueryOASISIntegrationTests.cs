@@ -25,6 +25,21 @@ public class BigQueryOASISIntegrationTests
         var dataset = Environment.GetEnvironmentVariable("BIGQUERY_DATASET");
         Assert.IsFalse(string.IsNullOrWhiteSpace(project) || string.IsNullOrWhiteSpace(dataset),
             "The dedicated BigQuery project and dataset must both be configured.");
+        Directory.CreateDirectory(root!);
+        using var lease = new FileStream(Path.Combine(root!, "environment.lock"),
+            FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+        var priorDirectory = Path.Combine(root!, synchronous ? "async" : "sync");
+        if (Directory.Exists(priorDirectory))
+        {
+            var priorPath = Path.Combine(priorDirectory, "report.json");
+            Assert.IsTrue(File.Exists(priorPath) && !File.Exists(priorPath + ".pending"),
+                "Reconcile the other mode's interrupted checkpoint before using the dataset.");
+            await using var prior = File.OpenRead(priorPath);
+            var report = await JsonSerializer.DeserializeAsync<CoreStorageConformance.Report>(prior);
+            Assert.IsTrue(report?.FixtureCleanupComplete == true,
+                "Reconcile the other mode's fixture before using the dataset.");
+        }
+
         var directory = Path.Combine(root!, synchronous ? "sync" : "async");
         Assert.IsFalse(Directory.Exists(directory), "Preserve any existing fixture evidence.");
         // Validate the designated dataset before activation can provision resources.
