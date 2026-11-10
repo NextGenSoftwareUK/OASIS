@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.Providers.TestSupport;
 
@@ -10,17 +11,39 @@ public class FirebaseNativeStorageConformanceTests
 {
     private const string DatabaseNamespace = "demo-oasis-provider-conformance";
 
+    [TestMethod]
+    public async Task AvatarWriteAcknowledgementAgainstRealtimeDatabase()
+    {
+        if (Environment.GetEnvironmentVariable("OASIS_FIREBASE_ACKNOWLEDGEMENT") != "1")
+            Assert.Inconclusive("Enable only for an isolated Firebase Realtime Database emulator.");
+
+        var endpoint = GetLoopbackEndpoint();
+        var fixtureNamespace = $"demo-oasis-ack-{Guid.NewGuid():N}";
+        using var http = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false });
+        var provider = new FirebaseOASIS(endpoint.AbsoluteUri, null, http, fixtureNamespace);
+        var avatar = new Avatar { Username = "acknowledgement", Email = "ack@example.invalid", FirstName = "Ack" };
+        var saved = await provider.SaveAvatarAsync(avatar);
+        Assert.IsTrue(saved.IsSaved && !saved.IsError, saved.Message);
+        Assert.AreNotEqual(Guid.Empty, avatar.Id);
+
+        var loaded = await provider.LoadAvatarAsync(avatar.Id);
+        Assert.IsFalse(loaded.IsError, loaded.Message);
+        Assert.AreEqual(avatar.Id, loaded.Result?.Id);
+        Assert.AreEqual(avatar.Username, loaded.Result?.Username);
+
+        var deleted = await provider.DeleteAvatarAsync(avatar.Id, softDelete: false);
+        Assert.IsTrue(deleted.IsDeleted && !deleted.IsError, deleted.Message);
+        using var remaining = JsonDocument.Parse(await http.GetStringAsync(new Uri(endpoint, $".json?ns={fixtureNamespace}")));
+        Assert.AreEqual(JsonValueKind.Null, remaining.RootElement.ValueKind);
+    }
+
     [DataTestMethod, DataRow(false), DataRow(true)]
     public async Task CoreStorageAgainstRealtimeDatabase(bool sync)
     {
         if (Environment.GetEnvironmentVariable("OASIS_FIREBASE_STORAGE_CONFORMANCE") != "1")
             Assert.Inconclusive("Enable only for an isolated Firebase Realtime Database emulator.");
 
-        var url = Environment.GetEnvironmentVariable("FIREBASEOASIS_DATABASEURL");
-        Assert.IsTrue(Uri.TryCreate(url, UriKind.Absolute, out var endpoint) &&
-            endpoint.IsLoopback && endpoint.Scheme == Uri.UriSchemeHttp &&
-            endpoint.AbsolutePath == "/" && endpoint.UserInfo.Length == 0 &&
-            endpoint.Query.Length == 0 && endpoint.Fragment.Length == 0);
+        var endpoint = GetLoopbackEndpoint();
 
         var repository = new DirectoryInfo(AppContext.BaseDirectory);
         while (repository != null && !Directory.Exists(Path.Combine(repository.FullName, "Scripts", "TestHosts")))
@@ -77,7 +100,7 @@ public class FirebaseNativeStorageConformanceTests
             return new OASISResult<bool> { Result = true, IsDeleted = true, DeletedCount = 1 };
         }
 
-        var provider = new FirebaseOASIS(url!, null, http, DatabaseNamespace);
+        var provider = new FirebaseOASIS(endpoint.AbsoluteUri, null, http, DatabaseNamespace);
         var checkpoint = new AtomicConformanceCheckpoint<CoreStorageConformance.Report>(reportPath);
         var result = await CoreStorageConformance.RunAsync(provider, nameof(FirebaseOASIS), "native", sync,
             report => report.Succeeded ? Task.CompletedTask : checkpoint.WriteAsync(report), HardClean,
@@ -89,5 +112,15 @@ public class FirebaseNativeStorageConformanceTests
         using var final = await Read("");
         Assert.AreEqual(JsonValueKind.Null, final.RootElement.ValueKind, "Fixture namespace must be empty after cleanup.");
         await checkpoint.WriteAsync(result);
+    }
+
+    private static Uri GetLoopbackEndpoint()
+    {
+        var url = Environment.GetEnvironmentVariable("FIREBASEOASIS_DATABASEURL");
+        Assert.IsTrue(Uri.TryCreate(url, UriKind.Absolute, out var endpoint) &&
+            endpoint.IsLoopback && endpoint.Scheme == Uri.UriSchemeHttp &&
+            endpoint.AbsolutePath == "/" && endpoint.UserInfo.Length == 0 &&
+            endpoint.Query.Length == 0 && endpoint.Fragment.Length == 0);
+        return endpoint!;
     }
 }
