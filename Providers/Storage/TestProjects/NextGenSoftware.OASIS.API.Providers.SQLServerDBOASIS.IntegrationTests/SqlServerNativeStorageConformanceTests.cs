@@ -17,7 +17,7 @@ public class SqlServerNativeStorageConformanceTests
             Assert.Inconclusive("Enable only for the dedicated LocalDB provider fixture.");
 
         var provider = new SQLServerDBOASIS(@"Server=(localdb)\MSSQLLocalDB;Database=oasis_hyperdrive_provider_test;Integrated Security=true;TrustServerCertificate=true");
-        var root = new NextGenSoftware.OASIS.API.Core.Holons.Holon { Id = Guid.NewGuid(), Name = "Point graph root" };
+        var root = new NextGenSoftware.OASIS.API.Core.Holons.Holon { Id = Guid.NewGuid(), Name = $"Point graph root {Guid.NewGuid():N}", MetaData = new() { ["graphFixture"] = Guid.NewGuid().ToString("N") } };
         var child = new NextGenSoftware.OASIS.API.Core.Holons.Holon { Id = Guid.NewGuid(), ParentHolonId = root.Id, Name = "Point graph child" };
         var leaf = new NextGenSoftware.OASIS.API.Core.Holons.Holon { Id = Guid.NewGuid(), ParentHolonId = child.Id, Name = "Point graph leaf" };
         var savedIds = new List<Guid>();
@@ -50,6 +50,27 @@ public class SqlServerNativeStorageConformanceTests
             var parentList = await provider.LoadHolonsForParentAsync(root.Id, continueOnError: false);
             Assert.IsTrue(parentList.IsLoaded && !parentList.IsError, parentList.Message);
             Assert.AreEqual(leaf.Id, parentList.Result.Single().Children.Single().Id);
+            var search = new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchParams
+            {
+                SearchGroups = new()
+                {
+                    new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchTextGroup { SearchQuery = root.Name }
+                }
+            };
+            var found = await provider.SearchAsync(search, continueOnError: false);
+            Assert.IsTrue(found.IsLoaded && !found.IsError, found.Message);
+            Assert.AreEqual(leaf.Id, found.Result.SearchResultHolons.Single().Children.Single().Children.Single().Id);
+
+            var key = "graphFixture";
+            var value = root.MetaData[key].ToString()!;
+            var single = await provider.LoadHolonsByMetaDataAsync(key, value, continueOnError: false);
+            var multi = await provider.LoadHolonsByMetaDataAsync(new Dictionary<string, string> { [key] = value },
+                NextGenSoftware.OASIS.API.Core.Enums.MetaKeyValuePairMatchMode.All, continueOnError: false);
+            foreach (var matches in new[] { single, multi })
+            {
+                Assert.IsTrue(matches.IsLoaded && !matches.IsError, matches.Message);
+                Assert.AreEqual(leaf.Id, matches.Result.Single().Children.Single().Children.Single().Id);
+            }
         }
         finally
         {

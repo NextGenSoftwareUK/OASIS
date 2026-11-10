@@ -317,3 +317,5 @@ SQL Server graph-read gap: LoadHolonAsync(Guid, ...) reads a single validated sn
 SQL Server LocalDB passed HolonPointReadHonorsChildDepth. The shipping point read returned three levels without a depth limit, stopped at the direct child at depth one, and omitted children on request. The test hard-deleted its three fixtures and stopped LocalDB. Collection graph hydration and native partial-error/cycle checks remain open.
 
 SQL Server LocalDB passed the graph case with collection assertions. The all-holon list honored a depth limit of one, and the parent list attached the grandchild to the direct child. Point reads still passed after extraction of the shared traversal. Test fixtures were hard-deleted and LocalDB stopped. Search and metadata now use the same traversal, but this case did not exercise their hydrated result paths.
+
+SQL Server LocalDB verified hydrated results from search and both metadata overloads. Each uniquely filtered result contained the expected root, child and grandchild. The focused graph test passed, hard-deleted all three fixtures, and stopped LocalDB.
