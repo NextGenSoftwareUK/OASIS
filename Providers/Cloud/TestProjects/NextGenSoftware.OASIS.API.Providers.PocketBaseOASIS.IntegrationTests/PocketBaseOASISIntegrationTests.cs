@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS;
 
 namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS.IntegrationTests
@@ -237,6 +238,32 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS.IntegrationTests
             {
                 var deleted = await _provider.DeleteAvatarAsync(avatar.Id, softDelete: false);
                 Assert.IsTrue(deleted.IsDeleted, deleted.Message);
+            }
+        }
+
+        [TestMethod]
+        public async Task BatchSaveReportsCommittedPrefixWhenStoppedOnError()
+        {
+            var first = new Holon { Id = Guid.NewGuid(), Name = "PocketBase batch prefix" };
+            var last = new Holon { Id = Guid.NewGuid(), Name = "PocketBase batch suffix" };
+            try
+            {
+                var batch = await _provider.SaveHolonsAsync(new IHolon[] { first, null!, last },
+                    saveChildren: false, continueOnError: false);
+                Assert.IsTrue(batch.IsError);
+                Assert.AreEqual(1, batch.ErrorCount);
+                Assert.IsTrue(batch.IsSaved);
+                Assert.AreEqual(1, batch.SavedCount);
+                Assert.AreEqual(first.Id, batch.Result.Single().Id);
+                Assert.IsTrue((await _provider.LoadHolonAsync(first.Id)).IsLoaded);
+                Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound,
+                    (await _provider.LoadHolonAsync(last.Id)).ErrorCode);
+            }
+            finally
+            {
+                foreach (var id in new[] { first.Id, last.Id })
+                    if ((await _provider.LoadHolonAsync(id)).IsLoaded)
+                        Assert.IsTrue((await _provider.DeleteHolonAsync(id)).IsDeleted);
             }
         }
 
