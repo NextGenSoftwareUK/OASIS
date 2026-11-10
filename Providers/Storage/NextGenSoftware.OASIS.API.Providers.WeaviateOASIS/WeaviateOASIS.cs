@@ -470,9 +470,9 @@ namespace NextGenSoftware.OASIS.API.Providers.WeaviateOASIS
             try
             {
                 var obj = await GetObjectAsync("OasisHolon", id.ToString());
-                if (obj == null || GetPropBool(obj.Value, "isDeleted")) { OASISErrorHandling.HandleError(ref result, $"WeaviateOASIS: No holon for ID '{id}'."); return result; }
+                if (obj == null || GetPropBool(obj.Value, "isDeleted")) { OASISErrorHandling.HandleError(ref result, $"WeaviateOASIS: No holon for ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
                 var holon = Des<Holon>(GetProp(obj.Value, "dataJson")); if (holon == null) { OASISErrorHandling.HandleError(ref result, "WeaviateOASIS: Deserialise failed."); return result; }
-                result.Result = holon; result.IsError = false; result.Message = "WeaviateOASIS: Holon loaded.";
+                result.Result = holon; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "WeaviateOASIS: Holon loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"WeaviateOASIS: {ex.Message}"); }
             return result;
