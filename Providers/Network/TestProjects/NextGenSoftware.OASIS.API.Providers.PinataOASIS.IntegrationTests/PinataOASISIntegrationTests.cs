@@ -33,7 +33,7 @@ public class PinataOASISIntegrationTests
         var activated = await provider.ActivateProviderAsync();
         Assert.IsFalse(activated.IsError, activated.Message);
 
-        var holon = new Holon { Id = Guid.Empty, Name = $"pinata-{Guid.NewGuid():N}" };
+        var holon = new Holon { Id = Guid.Empty, ParentHolonId = Guid.NewGuid(), Name = $"pinata-{Guid.NewGuid():N}" };
         string? providerKey = null;
         try
         {
@@ -51,6 +51,12 @@ public class PinataOASISIntegrationTests
             Assert.AreEqual(holon.Id, loaded.Result.Id);
             Assert.AreEqual(holon.Name, loaded.Result.Name);
             Assert.AreEqual(providerKey, loaded.Result.ProviderUniqueStorageKey[ProviderType.PinataOASIS]);
+
+            var children = await provider.LoadHolonsForParentAsync(holon.ParentHolonId,
+                loadChildren: false, continueOnError: false);
+            Assert.IsTrue(children.IsLoaded, children.Exception?.GetType().FullName);
+            Assert.AreEqual(1, children.LoadedCount);
+            Assert.AreEqual(holon.Id, children.Result.Single().Id);
 
             var byCid = await provider.LoadHolonAsync(providerKey!, loadChildren: false);
             Assert.IsFalse(byCid.IsError, byCid.Exception?.GetType().FullName);
