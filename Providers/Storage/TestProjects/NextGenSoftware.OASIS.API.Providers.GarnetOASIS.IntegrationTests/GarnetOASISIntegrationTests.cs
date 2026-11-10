@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+using System.Text;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Core.Holons;
@@ -190,6 +192,67 @@ public class GarnetOASISIntegrationTests
                 Assert.IsFalse(remaining.IsError, remaining.Message);
                 Assert.IsFalse(remaining.Result.Any(row => row.Id == id));
             }
+            Assert.AreEqual(0L, await server.DatabaseSizeAsync(database.Database));
+        }
+        finally
+        {
+            await provider.DeActivateProviderAsync();
+        }
+    }
+
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task HardDeleteChildRemovesNativeRelationshipIndex(bool synchronous)
+    {
+        var root = Environment.GetEnvironmentVariable("OASIS_GARNET_CHILD_CLEANUP_REPORT_ROOT");
+        if (string.IsNullOrWhiteSpace(root))
+            Assert.Inconclusive("Explicitly configure a disposable Garnet instance and a fresh report directory.");
+
+        var connection = Environment.GetEnvironmentVariable("GARNET_CONN");
+        Assert.IsFalse(string.IsNullOrWhiteSpace(connection));
+        var options = ConfigurationOptions.Parse(connection!);
+        Assert.AreEqual(1, options.EndPoints.Count);
+        options.AllowAdmin = true;
+        using var native = await ConnectionMultiplexer.ConnectAsync(options);
+        var server = native.GetServer(options.EndPoints[0]);
+        var info = await server.InfoAsync("server");
+        Assert.IsTrue(info.SelectMany(group => group).Any(pair => pair.Key == "garnet_version"));
+        var database = native.GetDatabase();
+        Assert.AreEqual(0L, await server.DatabaseSizeAsync(database.Database));
+
+        var ownerId = Guid.NewGuid();
+        var parent = new Holon { Id = Guid.NewGuid(), Name = "retained-parent", CreatedByAvatarId = ownerId };
+        var child = new Holon { Id = Guid.NewGuid(), Name = "removed-child", CreatedByAvatarId = ownerId };
+        parent.Children.Add(child);
+        var logicalKey = $"oasis/garnet/holon-parent/{parent.Id:N}/{child.Id:N}";
+        var fixtureKey = Convert.FromBase64String(Environment.GetEnvironmentVariable(GarnetOASIS.StorageKeyEnvironmentVariable)!);
+        var indexKey = HMACSHA256.HashData(fixtureKey, Encoding.UTF8.GetBytes("OASIS private storage index v1"));
+        var relationshipKey = "oasis/private/v1/" +
+            Convert.ToHexString(HMACSHA256.HashData(indexKey, Encoding.UTF8.GetBytes(logicalKey))).ToLowerInvariant();
+        CryptographicOperations.ZeroMemory(fixtureKey);
+        CryptographicOperations.ZeroMemory(indexKey);
+        Directory.CreateDirectory(root!);
+        await using var journal = new FileStream(Path.Combine(root!, synchronous ? "sync.json" : "async.json"),
+            FileMode.CreateNew, FileAccess.Write, FileShare.Read);
+        await JsonSerializer.SerializeAsync(journal, new { parent.Id, childId = child.Id, relationshipKey });
+        journal.Flush(flushToDisk: true);
+
+        var provider = new GarnetOASIS(connection!);
+        Assert.IsTrue((await provider.ActivateProviderAsync()).Result);
+        try
+        {
+            Assert.IsTrue((await provider.SaveHolonAsync(parent, continueOnError: false)).IsSaved);
+            Assert.IsTrue(await database.KeyExistsAsync(relationshipKey));
+            var deleted = synchronous ? provider.DeleteHolon(child.Id) : await provider.DeleteHolonAsync(child.Id);
+            Assert.IsTrue(!deleted.IsError && deleted.IsDeleted && deleted.DeletedCount == 1, deleted.Message);
+            var hard = synchronous ? provider.DeleteHolonSoft(child.Id, false) : await provider.DeleteHolonSoftAsync(child.Id, false);
+            Assert.IsTrue(!hard.IsError && hard.Result && hard.IsDeleted, hard.Message);
+            Assert.IsFalse(await database.KeyExistsAsync(relationshipKey));
+            var missing = await provider.LoadHolonAsync(child.Id, loadChildren: false);
+            Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, missing.ErrorCode);
+            Assert.AreEqual(parent.Name, (await provider.LoadHolonAsync(parent.Id, loadChildren: false)).Result?.Name);
+            Assert.IsTrue((await provider.DeleteHolonSoftAsync(parent.Id, false)).Result);
             Assert.AreEqual(0L, await server.DatabaseSizeAsync(database.Database));
         }
         finally
