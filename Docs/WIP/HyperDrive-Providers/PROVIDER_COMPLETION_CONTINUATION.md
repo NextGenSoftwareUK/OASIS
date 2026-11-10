@@ -74,3 +74,7 @@ SQL Server completed the remaining native core-storage lifecycle checks on the s
 ### Solana memo acknowledgement
 
 The shipping Solana provider builds with a finalized memo read-back check before each chunk can be referenced and before the record commit can be acknowledged. The change preserves uncertain signatures for reconciliation. It has no new native runtime evidence and does not explain the historical absent memo. Preserve the original ledger if recovered. The owner access action is in the central list.
+
+### Neo4j V2 entry point
+
+V2 now delegates to the canonical Neo4j provider and official driver, with its existing provider identity and storage format. The canonical provider's bound-replica merge conflict was repaired using its existing head validator. The V2 identity test and focused provider inventory assertion passed. The native activation smoke test compiled and skipped without a dedicated Bolt endpoint. The historical canonical storage suite was not rerun. Native V2 activation and the changed replica paths remain open.

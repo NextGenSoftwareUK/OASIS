@@ -23,7 +23,7 @@ public sealed class Neo4jReplicaReconciliationException(Guid operationId,string 
     public string OriginalTransactionId=>string.Empty;
 }
 
-public partial class Neo4jOASIS : ICommittedHolonReplicaStorageProvider, ICommittedHolonReplicaInitializationStorageProvider
+public partial class Neo4jOASIS : IBoundCommittedHolonReplicaStorageProvider, ICommittedHolonReplicaInitializationStorageProvider
 {
     internal sealed class NeoReplicaStorageBindingException(string code, string message, Exception cause = null)
         : InvalidOperationException(message, cause)
@@ -43,7 +43,7 @@ public partial class Neo4jOASIS : ICommittedHolonReplicaStorageProvider, ICommit
             if (!IsProviderActivated || _driver == null || _storageDriverEndpoint == null)
                 return new() { IsError = true, ErrorCount = 1, ErrorCode = "COSMIC_REPLICA_STORAGE_BINDING_INVALID",
                     Message = "A bound receiver requires an active driver with its captured native endpoint." };
-            return await ApplyReplicaAsync(request, expectedStorage, cancellationToken).ConfigureAwait(false);
+            return await ApplyReplicaAsync(request, false, expectedStorage, cancellationToken).ConfigureAwait(false);
         }
         finally { _lifecycleGate.Release(); }
     }
@@ -84,18 +84,19 @@ public partial class Neo4jOASIS : ICommittedHolonReplicaStorageProvider, ICommit
         =>ApplyCommittedHolonReplicaAsync(request).GetAwaiter().GetResult();
     public async Task<OASISResult<IEnumerable<IHolon>>> ApplyCommittedHolonReplicaAsync(CommittedHolonReplicaRequest request,
         CancellationToken cancellationToken=default)
-        =>await ApplyReplicaAsync(request,false,cancellationToken).ConfigureAwait(false);
+        =>await ApplyReplicaAsync(request,false,null,cancellationToken).ConfigureAwait(false);
     public OASISResult<IEnumerable<IHolon>> InitializeCommittedHolonReplica(CommittedHolonReplicaRequest request)
         =>InitializeCommittedHolonReplicaAsync(request).GetAwaiter().GetResult();
     public Task<OASISResult<IEnumerable<IHolon>>> InitializeCommittedHolonReplicaAsync(CommittedHolonReplicaRequest request,
-        CancellationToken cancellationToken=default)=>ApplyReplicaAsync(request,true,cancellationToken);
+        CancellationToken cancellationToken=default)=>ApplyReplicaAsync(request,true,null,cancellationToken);
 
     private async Task<OASISResult<IEnumerable<IHolon>>> ApplyReplicaAsync(CommittedHolonReplicaRequest request,bool initialize,
-        CancellationToken cancellationToken)
+        CosmicStorageIdentity expectedStorage, CancellationToken cancellationToken)
     {
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
+            CommittedHolonReplicaPlan.ValidateNativeDestination(request,expectedStorage);
             var plan=initialize ? CommittedHolonReplicaPlan.CreateInitialBaseline(request,ReplicaProviderType.Neo4jOASIS)
                 :CommittedHolonReplicaPlan.Create(request,ReplicaProviderType.Neo4jOASIS);
             return await SaveHolonSnapshotsAsync(request.Roots,request.SaveChildren,request.Recursive,request.MaxChildDepth,0,
@@ -132,20 +133,10 @@ public partial class Neo4jOASIS : ICommittedHolonReplicaStorageProvider, ICommit
                 previous.Add(item.Id,null);continue;
             }
             if(plan.IsInitialBaseline){conflicts.Add(item.Id);continue;}
-            var fields=head.Properties;
-            if(!fields.TryGetValue("SnapshotJson",out var json) || json is not string snapshot
-                || !fields.TryGetValue("SnapshotDigest",out var digest) || digest is not string checksum
-                || !fields.TryGetValue("SourceId",out var source) || source is not string sourceId
-                || !fields.TryGetValue("SourceAuthority",out var sourceAuthority) || sourceAuthority is not string sourceKind
-                || !fields.TryGetValue("HardDeleted",out var deleted) || deleted is not bool hardDeleted
-                || !fields.TryGetValue("ProviderRevisionId",out var token) || token is not string revisionText
-                || !Guid.TryParse(revisionText,out var revision) || revision==Guid.Empty)
-                throw new InvalidDataException("Committed replica head is incomplete or corrupt.");
-            if(checksum!=ReplicaHeadDigest(snapshot))throw new InvalidDataException("Committed replica head checksum is invalid.");
-            var stored=OasisJson.DeserializeStored<Holon>(snapshot);
-            if(stored==null || stored.Id!=item.Id || stored.VersionId==Guid.Empty || stored.Version<1
-                || CosmicConcurrency.GetProviderRevisionId(stored,ReplicaProviderType.Neo4jOASIS)!=revision)
-                throw new InvalidDataException("Committed replica head snapshot/revision is inconsistent.");
+            var validated=ReadProtectedReplicaHead(head,item.Id);
+            var stored=validated.Snapshot;var revision=validated.Evidence.ProviderRevisionId;
+            var sourceId=validated.Evidence.SourceId;var sourceKind=validated.Evidence.SourceAuthority.ToString();
+            var hardDeleted=validated.Evidence.HardDeleted;
             previous.Add(item.Id,current ?? stored);
             if(sourceId!=plan.SourceId || sourceKind!=plan.SourceAuthority.ToString()
                 || item.PreviousVersionId!=stored.VersionId || item.Version-1!=stored.Version
@@ -170,6 +161,16 @@ public partial class Neo4jOASIS : ICommittedHolonReplicaStorageProvider, ICommit
             plan.ValidateAcknowledgedRecord(record);
         }
         return submitted;
+    }
+
+    private static HolonReplicaHeadRecord ReadProtectedReplicaHead(Neo4j.Driver.INode head,Guid id)
+    {
+        string Text(string name)=>head.Properties.TryGetValue(name,out var value) && value is string text ? text
+            :throw new InvalidDataException("Committed replica head field is missing or invalid: "+name);
+        if(!head.Properties.TryGetValue("HardDeleted",out var deleted) || deleted is not bool hardDeleted)
+            throw new InvalidDataException("Committed replica deletion state is invalid.");
+        return HolonReplicaHeadRecord.Read(id,ReplicaProviderType.Neo4jOASIS,Text("SourceId"),Text("SourceAuthority"),
+            Text("SnapshotJson"),Text("SnapshotDigest"),Text("ProviderRevisionId"),hardDeleted);
     }
 
     private static async Task VerifyInitialReplicaAbsenceAsync(IAsyncTransaction transaction,HashSet<Guid> ids,CancellationToken token)

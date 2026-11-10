@@ -549,3 +549,10 @@ Status: missing account/configuration information,2 November2026. David approved
 - **David action** If the original test laptop or a backup is available, identify the retained Agave ledger and its original deployment record. Share the location or grant read-only access through a protected channel. Keep signing and encryption material out of Git and chat.
 - **Reason** Historical finalized memo references must be checked against the original ledger to distinguish missing transaction history from publication failure. The provider agent owns read-only verification and any recovery work after access is available.
 - **Context** [Provider matrix](../HyperDrive-Providers/PROVIDER_MATRIX.md) and [read-only history probe](../../../Scripts/TestHosts/Get-SolanaHistoryAvailability.ps1).
+
+### Neo4j V2 dedicated test endpoint
+
+- **Status (2026-11-09)** Open. No dedicated Bolt endpoint is configured on this host. The historical native runner expects the original Ubuntu WSL container, which is unavailable here.
+- **David action** If a dedicated test Neo4j endpoint already exists, designate it for the V2 activation smoke test and grant test access through protected local configuration. The test reads OASIS_NEO4J_V2_URI, OASIS_NEO4J_V2_USERNAME and OASIS_NEO4J_V2_PASSWORD. Keep credentials out of Git and chat.
+- **Reason** Activation verifies real Bolt connectivity and may upgrade the provider schema. A dedicated test endpoint keeps that operation away from COSMIC/CQL or production data.
+- **Context** [Provider completion continuation](../HyperDrive-Providers/PROVIDER_COMPLETION_CONTINUATION.md).
