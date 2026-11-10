@@ -69,9 +69,9 @@ public class SolanaCoreStorageConformanceTests
         Assert.IsNotNull(root);
         var work = Path.Combine(root.FullName, "TestResults", "ProviderConformanceCurrent", "SOLANAOASIS", sync ? "sync" : "async");
         Directory.CreateDirectory(work);
+        using var lease = new FileStream(Path.Combine(Path.GetDirectoryName(work)!, "environment.lock"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
         var reportPath = Path.Combine(work, "report.json");
         Assert.IsFalse(File.Exists(reportPath) || File.Exists(reportPath + ".next"), "Preserve prior fixture/report before another submission.");
-        using var lease = new FileStream(Path.Combine(work, "environment.lock"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
         async Task Checkpoint(CoreStorageConformance.Report report)
         {
             await using (var file = new FileStream(reportPath + ".next", FileMode.CreateNew, FileAccess.Write, FileShare.None))
