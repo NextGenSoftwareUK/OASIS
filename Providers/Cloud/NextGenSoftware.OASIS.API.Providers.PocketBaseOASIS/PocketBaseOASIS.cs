@@ -605,7 +605,17 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
             try
             {
                 string? query = searchParams.SearchGroups?.OfType<SearchTextGroup>().FirstOrDefault()?.SearchQuery?.ToLower();
-                var all = await LoadAllHolonsAsync();
+                var all = await LoadAllHolonsAsync(loadChildren: loadChildren, recursive: recursive,
+                    maxChildDepth: maxChildDepth, continueOnError: continueOnError, version: version);
+                if (all.IsError)
+                    return new OASISResult<ISearchResults>
+                    {
+                        IsError = true,
+                        ErrorCode = all.ErrorCode,
+                        ErrorCount = all.ErrorCount,
+                        Exception = all.Exception,
+                        Message = all.Message
+                    };
                 var holons = all.Result?.ToList() ?? new List<IHolon>();
                 if (!string.IsNullOrEmpty(query)) holons = holons.Where(h => h.Name?.ToLower().Contains(query) == true || h.Description?.ToLower().Contains(query) == true).ToList();
                 result.Result = new SearchResults { SearchResultHolons = holons, NumberOfResults = holons.Count };
@@ -652,9 +662,10 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
         {
-            var all = await LoadAllHolonsAsync();
+            var all = await LoadAllHolonsAsync(version: version);
+            if (all.IsError) return all;
             var holons = all.Result?.Where(h => h.CreatedByAvatarId == avatarId).ToList() ?? new List<IHolon>();
-            return new OASISResult<IEnumerable<IHolon>> { Result = holons, IsError = false, Message = $"PocketBaseOASIS: Exported {holons.Count} holon(s) for avatar '{avatarId}'." };
+            return new OASISResult<IEnumerable<IHolon>> { Result = holons, IsLoaded = true, LoadedCount = holons.Count, Message = $"PocketBaseOASIS: Exported {holons.Count} holon(s) for avatar '{avatarId}'." };
         }
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0) => ExportAllDataForAvatarByIdAsync(avatarId, version).Result;
