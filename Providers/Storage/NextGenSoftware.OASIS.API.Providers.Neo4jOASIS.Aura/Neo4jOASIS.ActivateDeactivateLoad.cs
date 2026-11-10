@@ -253,22 +253,33 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
                     var cursor = await transaction.RunAsync($@"
                         MATCH (av:Avatar) WHERE {predicate} AND NOT coalesce(av.IsDeleted, false)
                         RETURN av.GUId AS guid, av.ProviderKey AS providerKey, av.name AS title, av.FirstName AS firstname,
-                               av.LastName AS lastname, av.username AS username, av.EMail AS email",
+                               av.LastName AS lastname, av.username AS username, av.EMail AS email
+                        LIMIT 2",
                         new { value }).ConfigureAwait(false);
                     if (!await cursor.FetchAsync().ConfigureAwait(false))
                         return null;
 
                     var avatar = ReadAvatar(cursor.Current);
                     if (await cursor.FetchAsync().ConfigureAwait(false))
-                        throw new InvalidOperationException("Multiple Aura avatars match the requested identity.");
+                        throw new StorageIdentityAmbiguousException();
 
                     return avatar;
                 }).ConfigureAwait(false);
-                result.IsLoaded = result.Result != null;
+                if (result.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Neo4j Aura avatar was not found.");
+                    result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
+                    return result;
+                }
+
+                result.IsLoaded = true;
+                result.LoadedCount = 1;
             }
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, "Error loading Neo4j Aura avatar.", ex);
+                if (ex is StorageIdentityAmbiguousException)
+                    result.ErrorCode = OASISResultErrorCodes.AmbiguousIdentity;
             }
 
             return result;
