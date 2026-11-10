@@ -9,22 +9,26 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS.IntegrationTests;
 [DoNotParallelize]
 public class SupabaseNativeStorageConformanceTests
 {
-    [TestMethod]
-    public async Task HolonListingReturnsEveryPreseededIdentityAcrossPages()
+    [DataTestMethod]
+    [DataRow("holon", "OASIS_SUPABASE_PAGINATION_IDS")]
+    [DataRow("avatar", "OASIS_SUPABASE_PAGINATION_AVATAR_IDS")]
+    [DataRow("detail", "OASIS_SUPABASE_PAGINATION_DETAIL_IDS")]
+    public async Task ListingReturnsEveryPreseededIdentityAcrossPages(string kind, string manifestVariable)
     {
         if (Environment.GetEnvironmentVariable("OASIS_SUPABASE_PAGINATION") != "1")
             Assert.Inconclusive("Enable only for a dedicated Supabase pagination fixture.");
 
         var url = Environment.GetEnvironmentVariable("OASIS_SUPABASE_CONFORMANCE_URL");
         var key = Environment.GetEnvironmentVariable("OASIS_SUPABASE_CONFORMANCE_SERVICE_KEY");
-        var manifest = Environment.GetEnvironmentVariable("OASIS_SUPABASE_PAGINATION_IDS");
+        var manifest = Environment.GetEnvironmentVariable(manifestVariable);
         Assert.IsTrue(Uri.TryCreate(url, UriKind.Absolute, out var endpoint) &&
             endpoint.Scheme == Uri.UriSchemeHttps &&
             endpoint.Host.EndsWith(".supabase.co", StringComparison.OrdinalIgnoreCase) &&
             endpoint.AbsolutePath == "/" && string.IsNullOrEmpty(endpoint.Query) &&
             string.IsNullOrEmpty(endpoint.Fragment) && string.IsNullOrEmpty(endpoint.UserInfo));
         Assert.IsFalse(string.IsNullOrWhiteSpace(key));
-        Assert.IsFalse(string.IsNullOrWhiteSpace(manifest));
+        if (string.IsNullOrWhiteSpace(manifest))
+            Assert.Inconclusive($"Configure {manifestVariable} for this listing.");
 
         var expected = JsonSerializer.Deserialize<Guid[]>(await File.ReadAllTextAsync(manifest!));
         Assert.IsNotNull(expected);
@@ -36,11 +40,29 @@ public class SupabaseNativeStorageConformanceTests
         Assert.IsTrue(active.Result, active.Exception?.GetType().FullName);
         try
         {
-            var loaded = await provider.LoadAllHolonsAsync(loadChildren: false);
-            Assert.IsFalse(loaded.IsError, loaded.Exception?.GetType().FullName);
-            Assert.IsTrue(loaded.IsLoaded);
-            Assert.AreEqual(expected.Length, loaded.LoadedCount);
-            CollectionAssert.AreEquivalent(expected, loaded.Result.Select(holon => holon.Id).ToArray());
+            void Check<T>(NextGenSoftware.OASIS.Common.OASISResult<IEnumerable<T>> loaded, Func<T, Guid> getId)
+            {
+                Assert.IsFalse(loaded.IsError, loaded.Exception?.GetType().FullName);
+                Assert.IsTrue(loaded.IsLoaded);
+                Assert.AreEqual(expected.Length, loaded.LoadedCount);
+                CollectionAssert.AreEquivalent(expected, loaded.Result.Select(getId).ToArray());
+            }
+
+            switch (kind)
+            {
+                case "holon":
+                    Check(await provider.LoadAllHolonsAsync(loadChildren: false), holon => holon.Id);
+                    break;
+                case "avatar":
+                    Check(await provider.LoadAllAvatarsAsync(), avatar => avatar.Id);
+                    break;
+                case "detail":
+                    Check(await provider.LoadAllAvatarDetailsAsync(), detail => detail.Id);
+                    break;
+                default:
+                    Assert.Fail($"Unknown listing kind {kind}.");
+                    break;
+            }
         }
         finally
         {
