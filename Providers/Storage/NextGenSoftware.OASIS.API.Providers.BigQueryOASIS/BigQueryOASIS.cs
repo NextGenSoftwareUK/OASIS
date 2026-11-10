@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Data.Common;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using Google.Cloud.BigQuery.V2;
 using NextGenSoftware.OASIS.API.Core;
@@ -37,6 +38,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
 
         private readonly string _projectId;
         private readonly string _dataset;
+        private readonly SemaphoreSlim _lifecycle = new SemaphoreSlim(1, 1);
         private BigQueryClient? _client;
 
         private const string CollAvatars = "oasis_avatars";
@@ -60,26 +62,38 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
         {
             var result = new OASISResult<bool>();
+            await _lifecycle.WaitAsync().ConfigureAwait(false);
+            BigQueryClient? client = null;
             try
             {
-                _client = await BigQueryClient.CreateAsync(_projectId);
-                await _client.GetOrCreateDatasetAsync(_dataset);
+                if (IsProviderActivated)
+                    return new OASISResult<bool>(true);
 
+                client = await BigQueryClient.CreateAsync(_projectId).ConfigureAwait(false);
+                await client.GetOrCreateDatasetAsync(_dataset).ConfigureAwait(false);
                 foreach (var table in new[] { CollAvatars, CollAvatarDetails, CollHolons })
                 {
-                    await _client.ExecuteQueryAsync(
+                    await client.ExecuteQueryAsync(
                         $@"CREATE TABLE IF NOT EXISTS `{_projectId}.{_dataset}.{table}` (
                              id STRING NOT NULL, doc STRING, username STRING,
                              email STRING, parent_holon_id STRING, updated_at TIMESTAMP)",
-                        parameters: null);
+                        parameters: null).ConfigureAwait(false);
                 }
 
+                _client = client;
                 IsProviderActivated = true;
                 result.Result = true;
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: ActivateProviderAsync failed: {ex.Message}");
+                Exception failure = ex;
+                try { client?.Dispose(); }
+                catch (Exception cleanup) { failure = new AggregateException(ex, cleanup); }
+                OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: activation failed: {ex.Message}", failure);
+            }
+            finally
+            {
+                _lifecycle.Release();
             }
             return result;
         }
@@ -90,10 +104,24 @@ namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS
         public override async Task<OASISResult<bool>> DeActivateProviderAsync()
         {
             var result = new OASISResult<bool>();
-            
-            IsProviderActivated = false;
-            result.Result = true;
-            return await Task.FromResult(result);
+            await _lifecycle.WaitAsync().ConfigureAwait(false);
+            try
+            {
+                IsProviderActivated = false;
+                var client = _client;
+                _client = null;
+                client?.Dispose();
+                result.Result = true;
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"BigQueryOASIS: deactivation failed: {ex.Message}", ex);
+            }
+            finally
+            {
+                _lifecycle.Release();
+            }
+            return result;
         }
 
         public override OASISResult<bool> DeActivateProvider()
