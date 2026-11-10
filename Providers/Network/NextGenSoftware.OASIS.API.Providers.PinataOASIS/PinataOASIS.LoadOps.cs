@@ -51,23 +51,13 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
                 {
                     try
                     {
-                        if (file.Metadata == null || !file.Metadata.TryGetValue("name", out var value)
-                            || value is not string name || !name.StartsWith("Holon_", StringComparison.Ordinal)
-                            || !Guid.TryParseExact(name.AsSpan(6), "D", out var recordId) || recordId == Guid.Empty)
+                        var holon = await ReadNamedHolonAsync(file).ConfigureAwait(false);
+                        if (holon == null)
                             continue;
-
-                        // Read only named holon records.
-                        var content = await _pinataService.GetFileContentAsync(file.IpfsPinHash);
-                        var holon = JsonConvert.DeserializeObject<Holon>(content);
-                        
-                        if (holon == null || holon.Id != recordId)
-                            throw new System.IO.InvalidDataException("Pinata holon payload does not match its pin name.");
 
                         if (holon.ParentHolonId == id &&
                             (type == HolonType.All || holon.HolonType == type))
                         {
-                            holon.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
-                            holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.PinataOASIS] = file.IpfsPinHash;
                             childHolons.Add(holon);
                         }
                     }
@@ -232,36 +222,52 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
 
                 foreach (var pin in pins)
                 {
-                    if (string.IsNullOrWhiteSpace(pin?.IpfsPinHash)) continue;
                     try
                     {
-                        var content = await _pinataService.GetFileContentAsync(pin.IpfsPinHash);
-                        if (string.IsNullOrWhiteSpace(content)) continue;
-
-                        var holon = JsonConvert.DeserializeObject<Holon>(content);
-                        if (holon == null) continue;
-
-                        if (type != HolonType.All && holon.HolonType != type) continue;
-                        if (version > 0 && holon.Version != version) continue;
+                        var holon = await ReadNamedHolonAsync(pin).ConfigureAwait(false);
+                        if (holon == null || (type != HolonType.All && holon.HolonType != type)
+                            || (version > 0 && holon.Version != version))
+                            continue;
 
                         holons.Add(holon);
                     }
-                    catch
+                    catch (Exception) when (continueOnError)
                     {
-                        // ignore non-holon pins
+                        result.IsWarning = true;
+                        result.WarningCount++;
                     }
                 }
 
                 result.Result = holons;
                 result.IsError = false;
                 result.IsLoaded = true;
-                result.Message = $"Loaded {holons.Count} holons from Pinata.";
+                result.LoadedCount = holons.Count;
+                result.Message = result.IsWarning
+                    ? $"Pinata holon listing is incomplete. {result.WarningCount} pinned records could not be read."
+                    : $"Loaded {holons.Count} holons from Pinata.";
             }
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, $"Error loading holons from Pinata: {ex.Message}", ex);
             }
             return result;
+        }
+
+        private async Task<Holon> ReadNamedHolonAsync(PinataPin pin)
+        {
+            if (pin.Metadata == null || !pin.Metadata.TryGetValue("name", out var value)
+                || value is not string name || !name.StartsWith("Holon_", StringComparison.Ordinal)
+                || !Guid.TryParseExact(name.AsSpan(6), "D", out var id) || id == Guid.Empty)
+                return null;
+
+            var content = await _pinataService.GetFileContentAsync(pin.IpfsPinHash).ConfigureAwait(false);
+            var holon = JsonConvert.DeserializeObject<Holon>(content);
+            if (holon == null || holon.Id != id)
+                throw new System.IO.InvalidDataException("Pinata holon payload does not match its pin name.");
+
+            holon.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
+            holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.PinataOASIS] = pin.IpfsPinHash;
+            return holon;
         }
 
         public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0)
