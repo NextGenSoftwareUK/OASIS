@@ -331,6 +331,10 @@ cd OASIS
 # (a pre-push check that Railway's dependency pins match the submodule pointers)
 git config core.hooksPath .githooks
 
+# Fetch the Core source (git submodules). Core is NOT a NuGet package; without this,
+# restore fails with NU1605/NU1202 errors that look like a package problem.
+git submodule update --init "OASIS Architecture/NextGenSoftware.OASIS.API.Core" "ONODE/NextGenSoftware.OASIS.API.ONODE.Core" "HoloNET-ORM"
+
 # Start the development environment
 ./Start-Development.bat
 ```

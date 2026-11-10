@@ -81,3 +81,13 @@ For a **new chat**, paste: goal + “see `Docs/Devs/STAR_CLI_SessionHandoff.md`�
 - `STAR ODK/NextGenSoftware.OASIS.STAR.CLI.Lib/StarnetUiScriptedCreateCli.cs` — generic argv → `CustomCreateParams` for scripted create; `StarCliNonInteractiveCreateKeys.cs` + `STARNETUIBase.CreateAsync` consume it. Prefer extending these over per-holon `Program.cs` forks (see `Docs/Devs/STAR_CLI_NonInteractive.md` § Generic design).
 - `STAR ODK/NextGenSoftware.OASIS.STAR.CLI.Lib/STARNETUIBase.cs` — wizards / `GetConfirmation` (non-interactive work often lands here).
 - Shared prompts: `NextGenSoftware-Libraries/NextGenSoftware.CLI.Engine/CLIEngine.cs` (`NonInteractive`, `AssumeYes`, etc.).
+
+### Building from a fresh checkout
+
+Core is **not** a NuGet package: `OASIS Architecture/NextGenSoftware.OASIS.API.Core`, `ONODE/NextGenSoftware.OASIS.API.ONODE.Core` and `HoloNET-ORM` are git submodules, and the WEB4 projects reference their source. A checkout without them fails restore with NU1605/NU1202 errors that look like a package problem. Before building run:
+
+```bash
+git submodule update --init "OASIS Architecture/NextGenSoftware.OASIS.API.Core" "ONODE/NextGenSoftware.OASIS.API.ONODE.Core" "HoloNET-ORM"
+```
+
+Then, for example, `dotnet test ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests --filter "FullyQualifiedName~Subscription" -m:2 -nr:false -p:UseSharedCompilation=false`. In Git Bash write MSBuild switches with a dash (`-m:2`), because `/m:2` is rewritten into a path. The unit test project can contain compile errors from other in-flight work; check `git log` for the failing file before assuming your change broke it.
