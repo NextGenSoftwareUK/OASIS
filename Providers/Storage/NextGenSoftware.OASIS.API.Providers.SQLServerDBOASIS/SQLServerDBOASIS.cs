@@ -272,8 +272,8 @@ AND NOT EXISTS (SELECT 1 FROM OASISAvatars a WHERE a.Id=h.Id AND a.IsDeleted=1)"
                 throw new StorageIdentityAmbiguousException();
 
             var avatar = Deserialize<Avatar>(json);
-            if (avatar == null || avatar.Id != id)
-                throw new System.IO.InvalidDataException("SQL Server avatar payload does not match its row identity.");
+            if (avatar == null || avatar.Id != id || (version != 0 && avatar.Version != version))
+                throw new System.IO.InvalidDataException("SQL Server returned an inconsistent avatar snapshot.");
 
             return avatar;
         }
@@ -333,8 +333,8 @@ AND NOT EXISTS (SELECT 1 FROM OASISAvatars a WHERE a.Id=h.Id AND a.IsDeleted=1)"
                 while (await reader.ReadAsync())
                 {
                     var avatar = Deserialize<Avatar>(reader.GetString(1));
-                    if (avatar == null || avatar.Id != reader.GetGuid(0))
-                        throw new System.IO.InvalidDataException("SQL Server avatar payload does not match its row identity.");
+                    if (avatar == null || avatar.Id != reader.GetGuid(0) || (version != 0 && avatar.Version != version))
+                        throw new System.IO.InvalidDataException("SQL Server returned an inconsistent avatar snapshot.");
                     avatars.Add(avatar);
                 }
                 result.Result = avatars; result.IsLoaded = true; result.LoadedCount = avatars.Count; result.Message = $"SQLServerDBOASIS: Loaded {avatars.Count} avatar(s).";
@@ -490,8 +490,8 @@ WHEN NOT MATCHED THEN INSERT (Id,Username,Email,DataJson) VALUES (@Id,@Username,
                     throw new StorageIdentityAmbiguousException();
 
                 var detail = StoredRecordJson.Deserialize<AvatarDetail>(json);
-                if (detail == null || detail.Id != id)
-                    throw new InvalidOperationException("Stored avatar detail does not match its SQL Server row identity.");
+                if (detail == null || detail.Id != id || (version != 0 && detail.Version != version))
+                    throw new System.IO.InvalidDataException("SQL Server returned an inconsistent avatar detail snapshot.");
 
                 result.Result = detail;
                 result.IsLoaded = true;
@@ -523,8 +523,8 @@ WHEN NOT MATCHED THEN INSERT (Id,Username,Email,DataJson) VALUES (@Id,@Username,
                 while (await reader.ReadAsync())
                 {
                     var detail = StoredRecordJson.Deserialize<AvatarDetail>(reader.GetString(1));
-                    if (detail == null || detail.Id != reader.GetGuid(0))
-                        throw new System.IO.InvalidDataException("SQL Server avatar detail payload does not match its row identity.");
+                    if (detail == null || detail.Id != reader.GetGuid(0) || (version != 0 && detail.Version != version))
+                        throw new System.IO.InvalidDataException("SQL Server returned an inconsistent avatar detail snapshot.");
                     details.Add(detail);
                 }
                 result.Result = details; result.IsLoaded = true; result.LoadedCount = details.Count; result.Message = $"SQLServerDBOASIS: Loaded {details.Count} avatar detail(s).";

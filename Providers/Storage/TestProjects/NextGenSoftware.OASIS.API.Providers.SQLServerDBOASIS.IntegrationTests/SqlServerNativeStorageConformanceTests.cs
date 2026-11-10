@@ -115,6 +115,18 @@ public class SqlServerNativeStorageConformanceTests
             Assert.AreEqual(oldUsername, (await provider.LoadAllAvatarsAsync(version: 1)).Result.Single(row => row.Id == id).Username);
             Assert.AreEqual(oldEmail, (await provider.LoadAllAvatarDetailsAsync(version: 1)).Result.Single(row => row.Id == id).Email);
 
+            await using var sql = new SqlConnection(connection);
+            await sql.OpenAsync();
+            await using var corrupt = new SqlCommand(@"
+UPDATE OASISAvatarHistory SET DataJson=JSON_MODIFY(DataJson, '$.version', 99) WHERE Id=@Id AND Version=1;
+UPDATE OASISAvatarDetailHistory SET DataJson=JSON_MODIFY(DataJson, '$.Version', 99) WHERE Id=@Id AND Version=1;", sql);
+            corrupt.Parameters.AddWithValue("@Id", id);
+            Assert.AreEqual(2, await corrupt.ExecuteNonQueryAsync());
+            var badAvatar = await provider.LoadAvatarAsync(id, version: 1);
+            var badDetail = await provider.LoadAvatarDetailAsync(id, version: 1);
+            Assert.IsTrue(badAvatar.IsError && badAvatar.Exception is System.IO.InvalidDataException, badAvatar.Message);
+            Assert.IsTrue(badDetail.IsError && badDetail.Exception is System.IO.InvalidDataException, badDetail.Message);
+
             var softDeleted = await provider.DeleteAvatarAsync(id);
             Assert.IsTrue(softDeleted.IsDeleted && !softDeleted.IsError, softDeleted.Message);
             foreach (var version in new[] { 0, 1 })
