@@ -42,3 +42,12 @@ The revision-checked cleanup passed and independently confirmed an empty store. 
 
 - Convex async native report: 26/26, fixture cleanup confirmed. SHA-256 AB642C2D43B04073DE18C9B358B342CEA84FDE3D0850C44861351E85B02E8485.
 - Convex sync native report: 26/26, fixture cleanup confirmed. SHA-256 B1F705B189A097999369964E10D52834F8D5D1494CE1C212B2CF4A917880AF3A.
+
+### Matrix and SQL Server verification
+
+- Regenerated matrix commit 974243149b. Full inventory regression rerun passed 13/13.
+- SQL Server LocalDB 17.0.4025.3 created the dedicated oasis_hyperdrive_provider_test database on MSSQLLocalDB. Independent SQL inspection showed zero user tables before provider activation. The COSMIC instance was not used. Native suite build is pending.
+- The Supabase integration dependency exposed a parent merge conflict in Mongo replica method signatures and outbox construction. The scoped repair keeps both native destination binding and initialization contracts. Build and native Mongo verification are still required.
+
+- Supabase native lifecycle tests compiled after the Core and Mongo dependency repairs. Both modes were discovered and skipped without a dedicated hosted project. The credential and soft-delete regression cases are running separately.
+- SQL Server native sync and async first runs reached avatar-save, with one confirmed avatar row per report ID. The provider had omitted save acknowledgement despite the committed write. The two exact owned rows were reconciled and removed in one transaction. Original reports and cleanup intent are under TestResults/ProviderConformanceCurrent/SQLServerDBOASIS-avatar-save-first-run. The provider now checks affected-row counts for avatar saves and returns read acknowledgements. These changes await the clean LocalDB rerun.

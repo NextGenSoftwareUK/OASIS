@@ -202,11 +202,35 @@ public class SupabaseCqlTests
         var result = await provider.DeleteHolonAsync(One);
         Assert.AreEqual(rejectWrite, result.IsError);
         if (rejectWrite) Assert.IsInstanceOfType(result.Exception, typeof(INativeMutationReconciliationRequired));
-        else { Assert.IsTrue(result.IsSaved); Assert.IsTrue(result.Result.IsDeleted); }
+        else
+        {
+            Assert.IsTrue(result.IsSaved);
+            Assert.IsTrue(result.Result.IsDeleted);
+        }
+        Assert.AreEqual(!rejectWrite, result.IsDeleted);
+        Assert.AreEqual(rejectWrite ? 0 : 1, result.DeletedCount);
         using var row = JsonDocument.Parse(reply.Mutation!);
         Assert.IsTrue(row.RootElement.GetProperty("is_deleted").GetBoolean());
         using var canonical = JsonDocument.Parse(row.RootElement.GetProperty("data_json").GetString()!);
         Assert.AreNotEqual(DateTime.MinValue, canonical.RootElement.GetProperty("deletedDate").GetDateTime());
+    }
+
+    [DataTestMethod]
+    [DataRow("sb_secret_test", false)]
+    [DataRow("sb_publishable_test", false)]
+    [DataRow("legacy-test-token", true)]
+    public void ApiKeyUsesTheHeaderForItsCredentialType(string key, bool bearer)
+    {
+        using var http = new HttpClient();
+        _ = new SupabaseOASIS("https://synthetic.invalid", key, http);
+        Assert.AreEqual(key, http.DefaultRequestHeaders.GetValues("apikey").Single());
+        if (bearer)
+        {
+            Assert.AreEqual("Bearer", http.DefaultRequestHeaders.Authorization?.Scheme);
+            Assert.AreEqual(key, http.DefaultRequestHeaders.Authorization?.Parameter);
+        }
+        else
+            Assert.IsNull(http.DefaultRequestHeaders.Authorization);
     }
 
     [DataTestMethod][DataRow("/rest/v1", "/rest/v1/oasis_holons")][DataRow("", "/oasis_holons")]

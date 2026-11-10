@@ -1,0 +1,109 @@
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NextGenSoftware.OASIS.Providers.TestSupport;
+
+using System.Text.Json;
+
+namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS.IntegrationTests;
+
+[TestClass]
+[DoNotParallelize]
+public class SupabaseNativeStorageConformanceTests
+{
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task CoreStorageSuiteAgainstSupabase(bool sync)
+    {
+        if (Environment.GetEnvironmentVariable("OASIS_SUPABASE_STORAGE_CONFORMANCE") != "1")
+            Assert.Inconclusive("Enable this suite only for a dedicated Supabase test project.");
+
+        var url = Environment.GetEnvironmentVariable("OASIS_SUPABASE_CONFORMANCE_URL");
+        var key = Environment.GetEnvironmentVariable("OASIS_SUPABASE_CONFORMANCE_SERVICE_KEY");
+        Assert.IsTrue(Uri.TryCreate(url, UriKind.Absolute, out var endpoint) &&
+            endpoint.Scheme == Uri.UriSchemeHttps &&
+            endpoint.Host.EndsWith(".supabase.co", StringComparison.OrdinalIgnoreCase) &&
+            endpoint.AbsolutePath == "/" && string.IsNullOrEmpty(endpoint.Query) &&
+            string.IsNullOrEmpty(endpoint.Fragment) && string.IsNullOrEmpty(endpoint.UserInfo),
+            "Supply the dedicated hosted Supabase project URL.");
+        Assert.IsFalse(string.IsNullOrWhiteSpace(key), "Supply the dedicated project's protected server key.");
+
+        var root = new DirectoryInfo(AppContext.BaseDirectory);
+        while (root != null && !Directory.Exists(Path.Combine(root.FullName, "Scripts", "TestHosts")))
+            root = root.Parent;
+        Assert.IsNotNull(root, "Run this test from the repository.");
+
+        var directory = Path.Combine(root.FullName, "TestResults", "ProviderConformanceCurrent",
+            nameof(SupabaseOASIS), sync ? "sync" : "async");
+        Directory.CreateDirectory(directory);
+        using var lease = new FileStream(Path.Combine(Path.GetDirectoryName(directory)!, "environment.lock"),
+            FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+
+        var reportPath = Path.Combine(directory, "report.json");
+        var pendingPath = reportPath + ".next";
+        Assert.IsFalse(File.Exists(reportPath) || File.Exists(pendingPath),
+            "Preserve the previous native report and resolve its fixture before running again.");
+
+        async Task Checkpoint(CoreStorageConformance.Report report)
+        {
+            await using (var file = new FileStream(pendingPath, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+            {
+                await JsonSerializer.SerializeAsync(file, report);
+                file.Flush(flushToDisk: true);
+            }
+            File.Move(pendingPath, reportPath, overwrite: true);
+        }
+
+        using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(30) };
+        var provider = new SupabaseOASIS(url!, key!, http);
+
+        foreach (var table in new[] { "oasis_avatars", "oasis_avatar_details", "oasis_holons" })
+        {
+            using var response = await http.GetAsync(new Uri(endpoint!, $"rest/v1/{table}?select=id&limit=1"));
+            response.EnsureSuccessStatusCode();
+            using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+            Assert.IsTrue(document.RootElement.ValueKind == JsonValueKind.Array &&
+                document.RootElement.GetArrayLength() == 0,
+                $"The dedicated Supabase test table {table} must be empty before dispatch.");
+        }
+
+        async Task CleanTombstone(Guid id)
+        {
+            using var response = await http.DeleteAsync(
+                new Uri(endpoint!, $"rest/v1/oasis_holons?id=eq.{id:D}&is_deleted=eq.true&select=id"));
+            response.EnsureSuccessStatusCode();
+            using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+            var rows = document.RootElement;
+            var removed = rows.ValueKind == JsonValueKind.Array && rows.GetArrayLength() == 1 &&
+                rows[0].GetProperty("id").GetGuid() == id;
+            Assert.IsTrue(removed, "PostgREST must acknowledge removal of the exact fixture tombstone.");
+        }
+
+        async Task CheckpointWithCleanup(CoreStorageConformance.Report report)
+        {
+            if (report.Succeeded && report.FixtureCleanupComplete)
+            {
+                report.Succeeded = false;
+                report.FixtureCleanupComplete = false;
+                foreach (var id in new[] { report.ChildId, report.RootId, report.ImportId }.Concat(report.BatchIds))
+                {
+                    report.CurrentCase = "supabase-tombstone-cleanup-" + id.ToString("N");
+                    await Checkpoint(report);
+                    await CleanTombstone(id);
+                    report.HardCleanedFixtures.Add(id);
+                }
+                report.CurrentCase = "complete";
+                report.FixtureCleanupComplete = true;
+                report.Succeeded = true;
+            }
+            await Checkpoint(report);
+        }
+
+        var result = await CoreStorageConformance.RunAsync(
+            provider, nameof(SupabaseOASIS), "native", sync, CheckpointWithCleanup,
+            expectedDefaultDeletion: "absent");
+
+        Assert.IsTrue(result.Succeeded, $"{result.CurrentCase}: {result.FailureType}");
+        Assert.IsTrue(result.FixtureCleanupComplete);
+        Assert.AreEqual(CoreStorageConformance.ChecksPerMode, result.Passed.Count);
+    }
+}

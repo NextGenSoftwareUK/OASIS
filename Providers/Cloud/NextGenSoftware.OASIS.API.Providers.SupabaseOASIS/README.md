@@ -28,6 +28,10 @@ Use this package for the responsibility described above, alongside its owning OA
 
 Provider adapters require their respective service configuration and credentials. Runtime libraries require the host application's lifecycle and persistent paths where applicable. Supply only the settings actually required by the owning component; do not copy production DNA into a client or public release.
 
+For a new dedicated hosted Supabase database, apply [the storage schema](supabase-storage-schema.sql) as the database owner. The schema grants table access to the Supabase service role and enables row-level security with no client policies. Keep the provider credential server-side.
+
+Save the avatar before its detail record. A hard delete of the avatar removes its detail in the same database transaction. This schema is for new databases. Existing databases require a reviewed migration that preserves their records and checks for orphaned details before adding the foreign key.
+
 ## Errors and security
 
 For APIs returning `OASISResult<T>`, check `IsError`, `ErrorCode` and `Message`; do not treat a failed result as success. Preserve useful diagnostics without logging access tokens, passwords or private keys. Keep secrets in the host's appropriate protected configuration or platform storage.

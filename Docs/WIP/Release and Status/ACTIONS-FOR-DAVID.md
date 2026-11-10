@@ -528,3 +528,17 @@ Status: missing account/configuration information,2 November2026. David approved
   WEB4 project access. Tell the agent when sign-in completes. Keep tokens and
   credentials out of chat and Git.
 - [LocalFile qualification and rollout](../COSMIC%20ORM/LOCALFILE_CQL_MVP.md).
+
+### Neon native storage test database
+
+- **Status (2026-11-09)** Open. The provider worktree has no Neon native conformance connection configured.
+- **David action** Grant access to a disposable Neon branch/database named oasis_provider_test, or designate an existing dedicated test database. Configure its Npgsql connection string through protected local configuration as OASIS_NEON_CONFORMANCE_CONNECTION_STRING. Keep the connection string out of Git and chat.
+- **Reason** The native suite writes and deletes OASIS fixtures and requires a real Neon endpoint with verified TLS. The provider agent owns schema and conformance engineering after access is available.
+- **Context** [Provider completion continuation](../HyperDrive-Providers/PROVIDER_COMPLETION_CONTINUATION.md).
+
+### Supabase hosted storage test project
+
+- **Status (2026-11-09)** Open. No hosted storage test project URL or protected server key was present in the provider test process.
+- **David action** Designate an empty disposable hosted Supabase project or grant access to one. Configure its project URL as OASIS_SUPABASE_CONFORMANCE_URL and its server-side test credential as OASIS_SUPABASE_CONFORMANCE_SERVICE_KEY through protected local configuration. Keep the credential out of Git and chat.
+- **Reason** The sync and async lifecycle suite writes and removes exact test records. The provider agent owns schema setup and verification once access is available.
+- **Context** [Provider completion continuation](../HyperDrive-Providers/PROVIDER_COMPLETION_CONTINUATION.md).
