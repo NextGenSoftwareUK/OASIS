@@ -592,7 +592,7 @@ Status: missing account/configuration information,2 November2026. David approved
 ### Cosmos retained wasmd fixture
 
 - **Status (9 November 2026)** Open. Both pinned CosmJS clients load. The current host has no Ubuntu WSL distribution for the guarded runner.
-- **Action** If the original wasmd test fixture is retained on another device, identify the device and its existing protected test environment so the provider agent can access it. Keep signer material out of Git and chat.
+- **Action** If the original wasmd test fixture is retained on another device, identify the device and its existing protected test environment so the provider agent can access it. Keep signer material out of Git and chat. The provider agent verified on 2026-11-10 that the guarded Conformance command stops before startup because Ubuntu WSL is unavailable (5a96413305). The agent owns the build lease, fixture admission, sync/async execution, and evidence preservation after access is available.
 - **Reason** The agent must confirm chain and contract identity and reconcile any historical pending operations before starting shared storage verification. Preserve the original ledger and evidence.
 - **Context** [Cosmos verification notes](../HyperDrive-Providers/PROVIDER_COMPLETION_CONTINUATION.md).
 
