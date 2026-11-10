@@ -255,8 +255,13 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
                 result = RegisterProviderInternal(providerType, overrideConnectionString, forceRegister);
 
-                if (ProviderManager.Instance.OASISProviderBootType == OASISProviderBootType.Hot && activateProviderIfOASISProviderBootTypeIsHot)
-                    ProviderManager.Instance.ActivateProvider(result.Result);
+                if (!result.IsError && result.Result != null && activateProviderIfOASISProviderBootTypeIsHot
+                    && ProviderManager.Instance.OASISProviderBootType == OASISProviderBootType.Hot)
+                {
+                    var activation = ProviderManager.Instance.ActivateProvider(result.Result);
+                    if (activation.IsError || !activation.Result)
+                        OASISErrorHandling.HandleError(ref result, activation.Message);
+                }
             }
             catch (Exception e)
             {
@@ -277,8 +282,13 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
                 result = RegisterProviderInternal(providerType, overrideConnectionString, forceRegister);
 
-                if (ProviderManager.Instance.OASISProviderBootType == OASISProviderBootType.Hot && activateProviderIfOASISProviderBootTypeIsHot)
-                    await ProviderManager.Instance.ActivateProviderAsync(result.Result);
+                if (!result.IsError && result.Result != null && activateProviderIfOASISProviderBootTypeIsHot
+                    && ProviderManager.Instance.OASISProviderBootType == OASISProviderBootType.Hot)
+                {
+                    var activation = await ProviderManager.Instance.ActivateProviderAsync(result.Result);
+                    if (activation.IsError || !activation.Result)
+                        OASISErrorHandling.HandleError(ref result, activation.Message);
+                }
             }
             catch (Exception e)
             {
