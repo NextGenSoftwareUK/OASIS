@@ -132,3 +132,7 @@ Google Cloud synchronous activation now waits on context-independent provider aw
 ### Development integration
 
 Development advanced to 9131d651e3 with the EVM fixture preflight and IPFS dead-comment cleanup only. The push validated the existing Railway manifest pins. Provider runtime changes and native acceptance evidence remain tied to their tested task-branch revisions. The scoped batch did not run or establish new backend acceptance.
+
+### Azure native and hosted scope
+
+The Azure Blob and Azure Cosmos DB inventory entries each retain 52/52 shared lifecycle checks against local emulators through the shipping SDK paths. The Azure Blob runner also independently checked empty containers after fixture cleanup. Hosted Cosmos is explicitly deferred in Actions for David. Preserve that decision and the existing local evidence without rerunning the accepted suites.
