@@ -568,12 +568,16 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
                 }
 
                 var files = await _pinataService.GetFilesAsync().ConfigureAwait(false);
-                var pin = files.SingleOrDefault(file =>
+                var matches = files.Where(file =>
                     file.Metadata != null && file.Metadata.TryGetValue("name", out var name) &&
-                    string.Equals(name as string, $"{recordType}_{id}", StringComparison.Ordinal));
-                if (pin == null)
+                    string.Equals(name as string, $"{recordType}_{id:D}", StringComparison.Ordinal))
+                    .Take(2).ToArray();
+                if (matches.Length == 0)
                     return result;
+                if (matches.Length > 1)
+                    throw new StorageIdentityAmbiguousException();
 
+                var pin = matches[0];
                 var content = await _pinataService.GetFileContentAsync(pin.IpfsPinHash).ConfigureAwait(false);
                 var record = JsonConvert.DeserializeObject<TStored>(content);
                 if (record == null || record.Id != id)
@@ -588,6 +592,8 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, "Error loading Pinata record.", ex);
+                if (ex is StorageIdentityAmbiguousException)
+                    result.ErrorCode = OASISResultErrorCodes.AmbiguousIdentity;
             }
 
             return result;
