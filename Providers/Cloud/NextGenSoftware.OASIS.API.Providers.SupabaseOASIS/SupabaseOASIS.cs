@@ -300,17 +300,36 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
             var result = new OASISResult<bool>();
             try
             {
-                var url = $"{_baseUrl}/oasis_avatars?id=eq.{id}&select=id,is_deleted";
-                using var response = softDelete
-                    ? await _http.PatchAsync(url, JsonContent(new { is_deleted = true }))
-                    : await _http.DeleteAsync(url);
-                response.EnsureSuccessStatusCode();
-                using var document = JsonDocument.Parse(await ReadBoundedBody(response, default));
-                var rows = document.RootElement;
-                if (rows.ValueKind != JsonValueKind.Array || rows.GetArrayLength() != 1
-                    || !rows[0].GetProperty("id").TryGetGuid(out var acknowledgedId) || acknowledgedId != id
-                    || (softDelete && !rows[0].GetProperty("is_deleted").GetBoolean()))
-                    throw new System.IO.InvalidDataException("Supabase did not acknowledge deletion of the requested avatar.");
+                var activeFilter = softDelete ? "&is_deleted=eq.false" : "";
+                using var request = new HttpRequestMessage(softDelete ? HttpMethod.Patch : HttpMethod.Delete,
+                    $"{_baseUrl}/oasis_avatars?id=eq.{id}{activeFilter}&select=id,is_deleted");
+                request.Headers.Add("Prefer", "return=representation");
+                if (softDelete)
+                    request.Content = JsonContent(new { is_deleted = true });
+
+                bool found;
+                try
+                {
+                    using var response = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+                    response.EnsureSuccessStatusCode();
+                    using var document = JsonDocument.Parse(await ReadBoundedBody(response, default));
+                    var rows = document.RootElement;
+                    if (rows.ValueKind != JsonValueKind.Array || rows.GetArrayLength() > 1)
+                        throw new System.IO.InvalidDataException("Supabase returned an invalid avatar deletion acknowledgement.");
+
+                    found = rows.GetArrayLength() == 1;
+                    if (found && (!rows[0].GetProperty("id").TryGetGuid(out var acknowledgedId) || acknowledgedId != id
+                        || (softDelete && !rows[0].GetProperty("is_deleted").GetBoolean())))
+                        throw new System.IO.InvalidDataException("Supabase did not acknowledge deletion of the requested avatar.");
+                }
+                catch (Exception cause) { throw new SupabaseMutationReconciliationException(id, cause); }
+
+                if (!found)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"SupabaseOASIS: No avatar found with ID '{id}'.");
+                    result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
+                    return result;
+                }
 
                 result.Result = true;
                 result.IsDeleted = true;
