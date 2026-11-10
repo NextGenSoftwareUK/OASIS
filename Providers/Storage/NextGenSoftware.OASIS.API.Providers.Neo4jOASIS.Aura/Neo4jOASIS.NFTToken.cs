@@ -61,21 +61,39 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
         }
 
         public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
-        {
-            foreach (var item in holons)
-            {
-                SaveHolon(item);
-            }
-            return null;
-        }
+            => SaveHolonsAsync(holons, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, saveChildrenOnProvider)
+                .GetAwaiter().GetResult();
 
-        public override Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
-            foreach (var item in holons)
+            var saved = new List<IHolon>();
+            var result = new OASISResult<IEnumerable<IHolon>> { Result = saved };
+            try
             {
-                SaveHolonAsync(item).Wait();
+                ArgumentNullException.ThrowIfNull(holons);
+                foreach (var holon in holons)
+                {
+                    var item = await SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider)
+                        .ConfigureAwait(false);
+                    if (item.IsSaved && !item.IsError)
+                    {
+                        saved.Add(item.Result);
+                        continue;
+                    }
+
+                    OASISErrorHandling.HandleError(ref result, item.Message, item.Exception);
+                    if (!continueOnError)
+                        break;
+                }
             }
-            return null;
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, "Error saving Neo4j Aura holons.", ex);
+            }
+
+            result.SavedCount = saved.Count;
+            result.IsSaved = !result.IsError;
+            return result;
         }
 
         public override OASISResult<IHolon> DeleteHolon(Guid id)
