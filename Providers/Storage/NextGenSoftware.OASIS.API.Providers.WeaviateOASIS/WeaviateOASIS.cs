@@ -318,7 +318,7 @@ namespace NextGenSoftware.OASIS.API.Providers.WeaviateOASIS
             {
                 var objs = await GraphQlGetAsync("OasisAvatar", new[] { "isDeleted", "dataJson" });
                 var avatars = objs.Where(o => !GetGraphQlBool(o, "isDeleted")).Select(o => Des<Avatar>(GetGraphQlStr(o, "dataJson"))).Where(a => a != null).Cast<IAvatar>().ToList();
-                result.Result = avatars; result.IsError = false; result.Message = $"WeaviateOASIS: Loaded {avatars.Count} avatar(s).";
+                result.Result = avatars; result.IsLoaded = true; result.LoadedCount = avatars.Count; result.Message = $"WeaviateOASIS: Loaded {avatars.Count} avatar(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"WeaviateOASIS: {ex.Message}"); }
             return result;
@@ -398,7 +398,7 @@ namespace NextGenSoftware.OASIS.API.Providers.WeaviateOASIS
         public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
         {
             var result = new OASISResult<IEnumerable<IAvatarDetail>>();
-            try { var objs = await GraphQlGetAsync("OasisAvatarDetail", new[] { "dataJson" }); var details = objs.Select(o => Des<AvatarDetail>(GetGraphQlStr(o, "dataJson"))).Where(d => d != null).Cast<IAvatarDetail>().ToList(); result.Result = details; result.IsError = false; result.Message = $"WeaviateOASIS: Loaded {details.Count} detail(s)."; }
+            try { var objs = await GraphQlGetAsync("OasisAvatarDetail", new[] { "dataJson" }); var details = objs.Select(o => Des<AvatarDetail>(GetGraphQlStr(o, "dataJson"))).Where(d => d != null).Cast<IAvatarDetail>().ToList(); result.Result = details; result.IsLoaded = true; result.LoadedCount = details.Count; result.Message = $"WeaviateOASIS: Loaded {details.Count} detail(s)."; }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"WeaviateOASIS: {ex.Message}"); }
             return result;
         }
@@ -489,7 +489,7 @@ namespace NextGenSoftware.OASIS.API.Providers.WeaviateOASIS
             {
                 var objs = await GraphQlGetAsync("OasisHolon", new[] { "isDeleted", "holonType", "dataJson" });
                 var holons = objs.Where(o => !GetGraphQlBool(o, "isDeleted") && (type == HolonType.All || GetGraphQlInt(o, "holonType") == (int)type)).Select(o => Des<Holon>(GetGraphQlStr(o, "dataJson"))).Where(h => h != null).Cast<IHolon>().ToList();
-                result.Result = holons; result.IsError = false; result.Message = $"WeaviateOASIS: Loaded {holons.Count} holon(s).";
+                result.Result = holons; result.IsLoaded = true; result.LoadedCount = holons.Count; result.Message = $"WeaviateOASIS: Loaded {holons.Count} holon(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"WeaviateOASIS: {ex.Message}"); }
             return result;
@@ -507,7 +507,7 @@ namespace NextGenSoftware.OASIS.API.Providers.WeaviateOASIS
                 var idStr = id.ToString();
                 var objs = await GraphQlGetAsync("OasisHolon", new[] { "parentHolonId", "isDeleted", "holonType", "dataJson" });
                 var holons = objs.Where(o => !GetGraphQlBool(o, "isDeleted") && GetGraphQlStr(o, "parentHolonId") == idStr && (type == HolonType.All || GetGraphQlInt(o, "holonType") == (int)type)).Select(o => Des<Holon>(GetGraphQlStr(o, "dataJson"))).Where(h => h != null).Cast<IHolon>().ToList();
-                result.Result = holons; result.IsError = false; result.Message = $"WeaviateOASIS: Loaded {holons.Count} holon(s) for parent '{id}'.";
+                result.Result = holons; result.IsLoaded = true; result.LoadedCount = holons.Count; result.Message = $"WeaviateOASIS: Loaded {holons.Count} holon(s) for parent '{id}'.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"WeaviateOASIS: {ex.Message}"); }
             return result;
