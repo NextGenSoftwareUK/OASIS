@@ -349,3 +349,5 @@ The six focused SQLite wallet runs total 39 passed checks. Their scope is native
 SQL Server LocalDB passed SynchronousHolonReadsHonorChildDepth. The synchronous point read hydrated the full three-level graph, and the synchronous collection honored depth one with a one-connection pool. The async-only case was excluded. Fixtures were hard-deleted and LocalDB stopped. This test uses the ordinary test execution context.
 
 SQL Server synchronous point and all-holon graph reads passed on LocalDB from a non-pumping synchronization context, with a 15-second bound and Max Pool Size=1. The changed graph read paths avoid context capture. Fixtures were hard-deleted and LocalDB stopped.
+
+SQL Server LocalDB passed ConcurrentAvatarSavesPreserveHighestVersionAndHistory. Concurrent version 2 and 3 saves left version 3 current and version 1 archived. The test checked that version 2 was readable only if its save succeeded, then deleted the fixture and stopped LocalDB. This covers one concurrent avatar schedule.
