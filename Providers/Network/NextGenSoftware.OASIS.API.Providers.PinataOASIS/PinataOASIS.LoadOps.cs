@@ -59,7 +59,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
                         if (holon == null || holon.Id != recordId)
                             throw new System.IO.InvalidDataException("Pinata holon payload does not match its pin name.");
 
-                        if (holon.ParentHolonId == id && 
+                        if (holon.ParentHolonId == id &&
                             (type == HolonType.All || holon.HolonType == type))
                         {
                             holon.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
