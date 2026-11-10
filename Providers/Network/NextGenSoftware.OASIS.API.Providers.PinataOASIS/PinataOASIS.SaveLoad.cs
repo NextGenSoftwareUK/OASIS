@@ -335,6 +335,9 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
             var result = new OASISResult<IEnumerable<IHolon>>();
             try
             {
+                if (avatarId == Guid.Empty)
+                    throw new ArgumentException("An owner ID is required for Pinata export.", nameof(avatarId));
+
                 await EnsureActivatedForPinataAsync(result);
                 if (result.IsError) return result;
 
@@ -376,11 +379,8 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
                 }
 
                 var avatarResult = await LoadAvatarByUsernameAsync(avatarUsername, version);
-                if (avatarResult.IsError || avatarResult.Result == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Avatar with username {avatarUsername} not found in Pinata: {avatarResult.Message}");
-                    return result;
-                }
+                if (avatarResult.IsError)
+                    return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar, IEnumerable<IHolon>>(avatarResult);
 
                 return await ExportAllDataForAvatarByIdAsync(avatarResult.Result.Id, version);
             }
@@ -408,11 +408,8 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
                 }
 
                 var avatarResult = await LoadAvatarByEmailAsync(avatarEmailAddress, version);
-                if (avatarResult.IsError || avatarResult.Result == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Avatar with email {avatarEmailAddress} not found in Pinata: {avatarResult.Message}");
-                    return result;
-                }
+                if (avatarResult.IsError)
+                    return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar, IEnumerable<IHolon>>(avatarResult);
 
                 return await ExportAllDataForAvatarByIdAsync(avatarResult.Result.Id, version);
             }
