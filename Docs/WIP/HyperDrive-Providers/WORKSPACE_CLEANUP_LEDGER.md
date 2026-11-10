@@ -116,3 +116,5 @@ EdgeSQLite focused file-backed cohort: all eight checks exited. Fixture disposal
 10 November IPFS teardown candidate: leased build and clean completed. Original Core 59595871d and HyperDrive branch restored. No backend or raw report created.
 
 10 November combined BootLoader candidate 6b07640979: leased build and clean completed, and the worktree returned to the HyperDrive branch. No backend or raw report allocated.
+
+10 November urgent disk cleanup: stopped the owned ONODE build before a compile result, then completed leased dotnet clean for the ONODE WebAPI project. C: free space rose from 18,274,529,280 bytes before cleanup to 20,561,883,136 bytes after cleanup (shared disk measurement). Automatic approval review blocked recursive removal of ignored bin, obj, node_modules and the Web4 count build output before deletion. No source, credentials, retained fixtures or unrelated checkouts were targeted.
