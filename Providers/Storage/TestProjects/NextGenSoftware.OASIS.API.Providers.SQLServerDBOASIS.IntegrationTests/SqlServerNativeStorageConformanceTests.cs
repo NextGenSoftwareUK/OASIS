@@ -61,6 +61,50 @@ public class SqlServerNativeStorageConformanceTests
     }
 
     [TestMethod]
+    public async Task AvatarReadsFilterRequestedVersion()
+    {
+        if (Environment.GetEnvironmentVariable("OASIS_SQLSERVER_AVATAR_VERSION") != "1")
+            Assert.Inconclusive("Enable only for the dedicated LocalDB provider fixture.");
+
+        const string connection = @"Server=(localdb)\MSSQLLocalDB;Database=oasis_hyperdrive_provider_test;Integrated Security=true;TrustServerCertificate=true";
+        var provider = new SQLServerDBOASIS(connection);
+        var id = Guid.NewGuid();
+        var avatar = new NextGenSoftware.OASIS.API.Core.Holons.Avatar { Id = id, Version = 2, Username = $"fixture-{id:N}", Email = $"fixture-{id:N}@example.invalid" };
+        var detail = new NextGenSoftware.OASIS.API.Core.Holons.AvatarDetail { Id = id, Version = 2, Username = avatar.Username, Email = avatar.Email };
+        var saved = false;
+        try
+        {
+            var active = await provider.ActivateProviderAsync();
+            Assert.IsTrue(active.Result && !active.IsError, active.Message);
+            var write = await provider.SaveAvatarAsync(avatar);
+            Assert.IsTrue(write.IsSaved && !write.IsError, write.Message);
+            saved = true;
+            var detailWrite = await provider.SaveAvatarDetailAsync(detail);
+            Assert.IsTrue(detailWrite.IsSaved && !detailWrite.IsError, detailWrite.Message);
+
+            var loaded = await provider.LoadAvatarByUsernameAsync(avatar.Username, version: 2);
+            var loadedDetail = await provider.LoadAvatarDetailByEmailAsync(avatar.Email, version: 2);
+            Assert.AreEqual(id, loaded.Result?.Id, loaded.Message);
+            Assert.AreEqual(id, loadedDetail.Result?.Id, loadedDetail.Message);
+            Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, (await provider.LoadAvatarAsync(id, version: 1)).ErrorCode);
+            Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, (await provider.LoadAvatarDetailAsync(id, version: 1)).ErrorCode);
+            Assert.IsTrue((await provider.LoadAllAvatarsAsync(version: 2)).Result.Any(row => row.Id == id));
+            Assert.IsTrue((await provider.LoadAllAvatarDetailsAsync(version: 2)).Result.Any(row => row.Id == id));
+            Assert.IsFalse((await provider.LoadAllAvatarsAsync(version: 1)).Result.Any(row => row.Id == id));
+            Assert.IsFalse((await provider.LoadAllAvatarDetailsAsync(version: 1)).Result.Any(row => row.Id == id));
+        }
+        finally
+        {
+            if (saved)
+            {
+                var deleted = await provider.DeleteAvatarAsync(id, softDelete: false);
+                Assert.IsTrue(deleted.IsDeleted && !deleted.IsError, deleted.Message);
+            }
+            await provider.DeActivateProviderAsync();
+        }
+    }
+
+    [TestMethod]
     public async Task AvatarListsValidateStoredIdentity()
     {
         if (Environment.GetEnvironmentVariable("OASIS_SQLSERVER_AVATAR_LIST_IDENTITY") != "1")

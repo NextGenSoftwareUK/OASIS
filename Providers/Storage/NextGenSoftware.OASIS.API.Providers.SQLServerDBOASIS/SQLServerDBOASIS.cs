@@ -201,13 +201,15 @@ WHEN NOT MATCHED THEN
 
         // ─── Avatar loading ───────────────────────────────────────────────────────
 
-        private async Task<Avatar?> LoadAvatarByColumnAsync(string column, object value)
+        private async Task<Avatar?> LoadAvatarByColumnAsync(string column, object value, int version)
         {
-            string sql = $"SELECT TOP (2) Id, DataJson FROM OASISAvatars WHERE {column}=@val AND IsDeleted=0";
+            string sql = $"SELECT TOP (2) Id, DataJson FROM OASISAvatars WHERE {column}=@val AND IsDeleted=0 AND (@Version=0 OR TRY_CONVERT(int, JSON_VALUE(DataJson, '$.version'))=@Version)";
+            ArgumentOutOfRangeException.ThrowIfNegative(version);
             await using var conn = new SqlConnection(_connectionString);
             await conn.OpenAsync();
             await using var cmd = new SqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@val", value);
+            cmd.Parameters.AddWithValue("@Version", version);
             await using var reader = await cmd.ExecuteReaderAsync().ConfigureAwait(false);
             if (!await reader.ReadAsync().ConfigureAwait(false))
                 return null;
@@ -229,7 +231,7 @@ WHEN NOT MATCHED THEN
             var result = new OASISResult<IAvatar>();
             try
             {
-                var avatar = await LoadAvatarByColumnAsync("Id", id);
+                var avatar = await LoadAvatarByColumnAsync("Id", id, version);
                 if (avatar == null) { OASISErrorHandling.HandleError(ref result, $"SQLServerDBOASIS: No avatar found with ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
                 result.Result = avatar; result.IsLoaded = true; result.LoadedCount = 1; result.Message = $"SQLServerDBOASIS: Avatar loaded for ID '{id}'.";
             }
@@ -244,7 +246,7 @@ WHEN NOT MATCHED THEN
             var result = new OASISResult<IAvatar>();
             try
             {
-                var avatar = await LoadAvatarByColumnAsync("Username", username);
+                var avatar = await LoadAvatarByColumnAsync("Username", username, version);
                 if (avatar == null) { OASISErrorHandling.HandleError(ref result, $"SQLServerDBOASIS: No avatar found with username '{username}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
                 result.Result = avatar; result.IsLoaded = true; result.LoadedCount = 1; result.Message = $"SQLServerDBOASIS: Avatar loaded for username '{username}'.";
             }
@@ -270,9 +272,11 @@ WHEN NOT MATCHED THEN
             try
             {
                 var avatars = new List<IAvatar>();
+                ArgumentOutOfRangeException.ThrowIfNegative(version);
                 await using var conn = new SqlConnection(_connectionString);
                 await conn.OpenAsync();
-                await using var cmd = new SqlCommand("SELECT Id, DataJson FROM OASISAvatars WHERE IsDeleted=0", conn);
+                await using var cmd = new SqlCommand("SELECT Id, DataJson FROM OASISAvatars WHERE IsDeleted=0 AND (@Version=0 OR TRY_CONVERT(int, JSON_VALUE(DataJson, '$.version'))=@Version)", conn);
+                cmd.Parameters.AddWithValue("@Version", version);
                 await using var reader = await cmd.ExecuteReaderAsync();
                 while (await reader.ReadAsync())
                 {
@@ -385,29 +389,31 @@ WHEN NOT MATCHED THEN INSERT (Id,Username,Email,DataJson) VALUES (@Id,@Username,
         public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail avatarDetail) => SaveAvatarDetailAsync(avatarDetail).Result;
 
         public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
-            => LoadAvatarDetailMatchingAsync("Id", id);
+            => LoadAvatarDetailMatchingAsync("Id", id, version);
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0) => LoadAvatarDetailAsync(id, version).Result;
 
         public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string username, int version = 0)
-            => LoadAvatarDetailMatchingAsync("Username", username);
+            => LoadAvatarDetailMatchingAsync("Username", username, version);
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string username, int version = 0) => LoadAvatarDetailByUsernameAsync(username, version).Result;
 
         public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string email, int version = 0)
-            => LoadAvatarDetailMatchingAsync("Email", email);
+            => LoadAvatarDetailMatchingAsync("Email", email, version);
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string email, int version = 0) => LoadAvatarDetailByEmailAsync(email, version).Result;
 
-        private async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailMatchingAsync(string column, object value)
+        private async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailMatchingAsync(string column, object value, int version)
         {
             var result = new OASISResult<IAvatarDetail>();
             try
             {
+                ArgumentOutOfRangeException.ThrowIfNegative(version);
                 await using var conn = new SqlConnection(_connectionString);
                 await conn.OpenAsync();
-                await using var cmd = new SqlCommand($"SELECT TOP (2) Id, DataJson FROM OASISAvatarDetails WHERE {column}=@Value", conn);
+                await using var cmd = new SqlCommand($"SELECT TOP (2) Id, DataJson FROM OASISAvatarDetails WHERE {column}=@Value AND (@Version=0 OR TRY_CONVERT(int, JSON_VALUE(DataJson, '$.Version'))=@Version)", conn);
                 cmd.Parameters.AddWithValue("@Value", value);
+                cmd.Parameters.AddWithValue("@Version", version);
                 await using var reader = await cmd.ExecuteReaderAsync();
                 if (!await reader.ReadAsync())
                 {
@@ -446,9 +452,11 @@ WHEN NOT MATCHED THEN INSERT (Id,Username,Email,DataJson) VALUES (@Id,@Username,
             try
             {
                 var details = new List<IAvatarDetail>();
+                ArgumentOutOfRangeException.ThrowIfNegative(version);
                 await using var conn = new SqlConnection(_connectionString);
                 await conn.OpenAsync();
-                await using var cmd = new SqlCommand("SELECT Id, DataJson FROM OASISAvatarDetails", conn);
+                await using var cmd = new SqlCommand("SELECT Id, DataJson FROM OASISAvatarDetails WHERE (@Version=0 OR TRY_CONVERT(int, JSON_VALUE(DataJson, '$.Version'))=@Version)", conn);
+                cmd.Parameters.AddWithValue("@Version", version);
                 await using var reader = await cmd.ExecuteReaderAsync();
                 while (await reader.ReadAsync())
                 {
@@ -729,7 +737,7 @@ SELECT @Deleted;";
             try
             {
                 // Load avatar by email to get its Id, then export all holons for that Id
-                var avatarResult = await LoadAvatarByEmailAsync(avatarEmailAddress, version);
+                var avatarResult = await LoadAvatarByEmailAsync(avatarEmailAddress);
                 if (avatarResult.IsError)
                     return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar, IEnumerable<IHolon>>(avatarResult);
                 return await ExportAllDataForAvatarByIdAsync(avatarResult.Result.Id, version);
@@ -746,7 +754,7 @@ SELECT @Deleted;";
             var result = new OASISResult<IAvatar>();
             try
             {
-                var avatar = await LoadAvatarByColumnAsync("Email", avatarEmail);
+                var avatar = await LoadAvatarByColumnAsync("Email", avatarEmail, version);
                 if (avatar == null)
                 {
                     OASISErrorHandling.HandleError(ref result, $"SQLServerDBOASIS: Avatar with email '{avatarEmail}' not found.");
@@ -1001,7 +1009,7 @@ SELECT @Deleted;";
             var result = new OASISResult<IEnumerable<IHolon>>();
             try
             {
-                var avatar = await LoadAvatarByUsernameAsync(avatarUsername, version).ConfigureAwait(false);
+                var avatar = await LoadAvatarByUsernameAsync(avatarUsername).ConfigureAwait(false);
                 if (avatar.IsError)
                     return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar, IEnumerable<IHolon>>(avatar);
                 return await ExportAllDataForAvatarByIdAsync(avatar.Result.Id, version).ConfigureAwait(false);

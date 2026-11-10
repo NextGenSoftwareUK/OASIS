@@ -295,3 +295,5 @@ Development batch preflight on November 10 confirmed remote HEAD 1d913e5701. The
 Mongo fixture ownership check identified the active mongod as the Windows MongoDB service from Server/8.2. The native provider runner uses its own retained Server/8.3 runtime and TestResults/SubscriptionUsageCurrent/mongo-data on port 27029. The Windows service was left untouched and supplies no new provider evidence.
 
 SQL Server LocalDB passed HolonHistoryRetainsSupersededSnapshot against the changed hard-delete transaction. The case saved two versions, read the archived version before deletion, and independently checked zero archive rows after deletion. LocalDB stopped after the targeted run.
+
+SQL Server LocalDB passed AvatarReadsFilterRequestedVersion. Version 2 matched current avatar and detail reads and lists, while version 1 returned no match. The fixture was hard-deleted and LocalDB stopped. This covers current-row version matching; avatar and detail history remains open.
