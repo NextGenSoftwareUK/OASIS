@@ -1,61 +1,56 @@
-using System;
-using System.Threading.Tasks;
+using System.Text.Json;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NextGenSoftware.OASIS.API.Core.Holons;
-using NextGenSoftware.OASIS.API.Providers.KeyDBOASIS;
+using NextGenSoftware.OASIS.Providers.TestSupport;
+using StackExchange.Redis;
 
-namespace NextGenSoftware.OASIS.API.Providers.KeyDBOASIS.IntegrationTests
+namespace NextGenSoftware.OASIS.API.Providers.KeyDBOASIS.IntegrationTests;
+
+[TestClass, DoNotParallelize]
+public class KeyDBOASISIntegrationTests
 {
-    [TestClass]
-    public class KeyDBOASISIntegrationTests
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task SharedStorageLifecycle(bool synchronous)
     {
-        private KeyDBOASIS _provider = null!;
-        private static readonly string connStr = Environment.GetEnvironmentVariable("KEYDB_CONN") ?? "localhost:6379";
+        var root = Environment.GetEnvironmentVariable("OASIS_KEYDB_LIFECYCLE_REPORT_ROOT");
+        if (string.IsNullOrWhiteSpace(root))
+            Assert.Inconclusive("Explicitly configure a dedicated KeyDB instance and report directory.");
 
-        [TestInitialize]
-        public void Setup()
+        var connection = Environment.GetEnvironmentVariable("KEYDB_CONN");
+        Assert.IsFalse(string.IsNullOrWhiteSpace(connection), "Configure the dedicated KeyDB endpoint.");
+        var options = ConfigurationOptions.Parse(connection!);
+        Assert.AreEqual(1, options.EndPoints.Count, "Use one dedicated KeyDB endpoint.");
+        options.AllowAdmin = true;
+        Directory.CreateDirectory(root!);
+        using var lease = new FileStream(Path.Combine(root!, "environment.lock"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+        var directory = Path.Combine(root!, synchronous ? "sync" : "async");
+        Assert.IsFalse(Directory.Exists(directory), "Preserve prior fixture evidence.");
+
+        using var native = await ConnectionMultiplexer.ConnectAsync(options);
+        var info = await native.GetServer(options.EndPoints[0]).InfoAsync("server");
+        Assert.IsTrue(info.SelectMany(group => group).Any(pair => pair.Key == "executable" && pair.Value.EndsWith("/keydb-server", StringComparison.Ordinal)),
+            "The endpoint must identify itself as KeyDB.");
+
+        Directory.CreateDirectory(directory);
+        var path = Path.Combine(directory, "report.json");
+        async Task Checkpoint(CoreStorageConformance.Report report)
         {
-            _provider = new KeyDBOASIS(connStr);
-            _provider.ActivateProvider();
+            var pending = path + ".pending";
+            await using (var stream = new FileStream(pending, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+            {
+                await JsonSerializer.SerializeAsync(stream, report);
+                stream.Flush(flushToDisk: true);
+            }
+            File.Move(pending, path, overwrite: true);
         }
 
-        [TestMethod]
-        public async Task SaveAvatar_ShouldReturnSuccessResult()
-        {
-            var avatar = new Avatar { Id = Guid.NewGuid(), Username = "keydb-test-user", Email = "keydb@test.com" };
-            var result = await _provider.SaveAvatarAsync(avatar);
-            Assert.IsFalse(result.IsError, result.Message);
-            Assert.IsNotNull(result.Result);
-        }
-
-        [TestMethod]
-        public async Task LoadAvatar_ShouldReturnResult()
-        {
-            var result = await _provider.LoadAvatarAsync(Guid.NewGuid());
-            Assert.IsNotNull(result);
-        }
-
-        [TestMethod]
-        public async Task SaveHolon_ShouldReturnSuccessResult()
-        {
-            var holon = new Holon { Id = Guid.NewGuid(), Name = "KeyDB Test Holon" };
-            var result = await _provider.SaveHolonAsync(holon);
-            Assert.IsFalse(result.IsError, result.Message);
-            Assert.IsNotNull(result.Result);
-        }
-
-        [TestMethod]
-        public async Task LoadHolon_ShouldReturnResult()
-        {
-            var result = await _provider.LoadHolonAsync(Guid.NewGuid());
-            Assert.IsNotNull(result);
-        }
-
-        [TestCleanup]
-        public void Cleanup()
-        {
-            if (_provider != null && _provider.IsProviderActivated)
-                _provider.DeActivateProvider();
-        }
+        var provider = new KeyDBOASIS(connection!);
+        var result = await CoreStorageConformance.RunAsync(provider, nameof(KeyDBOASIS), "native", synchronous, Checkpoint,
+            (id, sync) => sync ? Task.FromResult(provider.DeleteHolonSoft(id, false)) : provider.DeleteHolonSoftAsync(id, false),
+            expectedDefaultDeletion: "soft");
+        Assert.IsTrue(result.Succeeded, $"{result.CurrentCase}: {result.FailureType} {result.FailureContract}");
+        Assert.IsTrue(result.FixtureCleanupComplete);
+        Assert.AreEqual(CoreStorageConformance.ChecksPerMode, result.Passed.Count);
     }
 }

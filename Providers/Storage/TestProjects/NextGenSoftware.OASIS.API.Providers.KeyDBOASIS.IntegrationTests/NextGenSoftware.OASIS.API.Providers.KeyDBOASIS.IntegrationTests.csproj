@@ -22,4 +22,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.KeyDBOASIS\NextGenSoftware.OASIS.API.Providers.KeyDBOASIS.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Include="../../../Shared/TestSupport/CoreStorageConformance.cs" Link="TestSupport/CoreStorageConformance.cs" />
+  </ItemGroup>
 </Project>
