@@ -62,3 +62,5 @@ Earlier 28October milestones are preserved verbatim in [the dated rollover](Arch
 ### TON lifecycle fixture cleanup, 9 November 2026
 
 Both native TON reports confirm 26/26 checks and logical fixture cleanup. Preserve the sync and async conformance.json reports. The temporary source snapshots total 842,078 bytes. The earlier automatic review blocked the combined removal of the generated fixture state, compiled bindings and Node dependency tree. These files remain on disk. No retained COSMIC fixture or credentials were removed.
+
+EdgeSQLite focused file-backed cohort: all eight checks exited. Fixture disposal removes the per-test oasis-edge database and sidecars. A post-run scan found zero oasis-edge-*.db* files in the Windows temporary directory. Reusable build outputs and package cache were retained. C: free space was 28,119,150,592 bytes at inspection.
