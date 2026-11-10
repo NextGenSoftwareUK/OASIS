@@ -203,14 +203,25 @@ WHEN NOT MATCHED THEN
 
         private async Task<Avatar?> LoadAvatarByColumnAsync(string column, object value)
         {
-            string sql = $"SELECT DataJson FROM OASISAvatars WHERE {column}=@val AND IsDeleted=0";
+            string sql = $"SELECT TOP (2) Id, DataJson FROM OASISAvatars WHERE {column}=@val AND IsDeleted=0";
             await using var conn = new SqlConnection(_connectionString);
             await conn.OpenAsync();
             await using var cmd = new SqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@val", value);
-            var scalar = await cmd.ExecuteScalarAsync();
-            if (scalar == null || scalar == DBNull.Value) return null;
-            return Deserialize<Avatar>(scalar.ToString()!);
+            await using var reader = await cmd.ExecuteReaderAsync().ConfigureAwait(false);
+            if (!await reader.ReadAsync().ConfigureAwait(false))
+                return null;
+
+            var id = reader.GetGuid(0);
+            var json = reader.GetString(1);
+            if (await reader.ReadAsync().ConfigureAwait(false))
+                throw new StorageIdentityAmbiguousException();
+
+            var avatar = Deserialize<Avatar>(json);
+            if (avatar == null || avatar.Id != id)
+                throw new System.IO.InvalidDataException("SQL Server avatar payload does not match its row identity.");
+
+            return avatar;
         }
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0)
@@ -222,7 +233,7 @@ WHEN NOT MATCHED THEN
                 if (avatar == null) { OASISErrorHandling.HandleError(ref result, $"SQLServerDBOASIS: No avatar found with ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
                 result.Result = avatar; result.IsLoaded = true; result.LoadedCount = 1; result.Message = $"SQLServerDBOASIS: Avatar loaded for ID '{id}'.";
             }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SQLServerDBOASIS: Error loading avatar by ID '{id}': {ex.Message}"); }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SQLServerDBOASIS: Error loading avatar by ID '{id}': {ex.Message}"); if (ex is StorageIdentityAmbiguousException) result.ErrorCode = OASISResultErrorCodes.AmbiguousIdentity; }
             return result;
         }
 
@@ -237,7 +248,7 @@ WHEN NOT MATCHED THEN
                 if (avatar == null) { OASISErrorHandling.HandleError(ref result, $"SQLServerDBOASIS: No avatar found with username '{username}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
                 result.Result = avatar; result.IsLoaded = true; result.LoadedCount = 1; result.Message = $"SQLServerDBOASIS: Avatar loaded for username '{username}'.";
             }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SQLServerDBOASIS: Error loading avatar by username '{username}': {ex.Message}"); }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SQLServerDBOASIS: Error loading avatar by username '{username}': {ex.Message}"); if (ex is StorageIdentityAmbiguousException) result.ErrorCode = OASISResultErrorCodes.AmbiguousIdentity; }
             return result;
         }
 
