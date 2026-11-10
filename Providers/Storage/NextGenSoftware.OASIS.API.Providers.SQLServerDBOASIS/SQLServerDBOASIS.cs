@@ -1117,7 +1117,7 @@ WHERE h.Id = @Id AND h.IsDeleted = 0;";
             => LoadHolonsByMetaDataAsync(metaKey, metaValue, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
 
         public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
-            => LoadAllHolonsAsync(version: version);
+            => LoadAllHolonsAsync(loadChildren: false, version: version);
         public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0) => ExportAllAsync(version).Result;
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
