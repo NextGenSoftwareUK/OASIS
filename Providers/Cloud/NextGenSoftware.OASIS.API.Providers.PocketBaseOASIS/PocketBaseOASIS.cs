@@ -346,7 +346,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
         public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string username, bool softDelete = true)
         {
             var a = await LoadAvatarByUsernameAsync(username);
-            if (a.IsError || a.Result == null) { var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, $"PocketBaseOASIS: Avatar '{username}' not found."); return r; }
+            if (a.IsError || a.Result == null) return new OASISResult<bool> { IsError = true, ErrorCode = a.ErrorCode, ErrorCount = a.ErrorCount, Exception = a.Exception, Message = a.Message };
             return await DeleteAvatarAsync(a.Result.Id, softDelete);
         }
 
@@ -355,7 +355,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
         public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string email, bool softDelete = true)
         {
             var a = await LoadAvatarByEmailAsync(email);
-            if (a.IsError || a.Result == null) { var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, $"PocketBaseOASIS: Avatar with email '{email}' not found."); return r; }
+            if (a.IsError || a.Result == null) return new OASISResult<bool> { IsError = true, ErrorCode = a.ErrorCode, ErrorCount = a.ErrorCount, Exception = a.Exception, Message = a.Message };
             return await DeleteAvatarAsync(a.Result.Id, softDelete);
         }
 
