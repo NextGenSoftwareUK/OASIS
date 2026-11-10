@@ -289,3 +289,5 @@ Neon hosted conformance test project built successfully with the revised failure
 Supabase hosted conformance project built with the revised success checkpoint (0 errors, 1149 warnings). Hosted sync and async runs remain open pending the dedicated project and test credential recorded in the owner list.
 
 Solana direct-provider conformance build passed (11 warnings, 0 errors). Missing retained-validator configuration now leaves the native report path untouched. The default build lacked ONODE restore assets. No native transaction was submitted.
+
+Development batch preflight on November 10 confirmed remote HEAD 1d913e5701. The SQL Server shipping file differs by 372 lines between that revision and the parent of the proposed selector batch (1c2970fde0^). That parent includes prior snapshot search, historical parent and version-aware owner export changes. The selector range is therefore an evidence boundary, not a standalone cherry-pick range. Include and validate the required SQL Server prerequisites on the actual Development base at the next integration window.
