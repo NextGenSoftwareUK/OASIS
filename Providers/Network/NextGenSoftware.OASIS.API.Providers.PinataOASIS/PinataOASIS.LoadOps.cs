@@ -736,30 +736,18 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
 
         public async Task<List<PinataPin>> GetFilesAsync()
         {
-            try
-            {
-                var response = await _httpClient.GetAsync($"{_apiUrl}/data/pinList");
-                var content = await response.Content.ReadAsStringAsync();
-                var pinList = JsonConvert.DeserializeObject<PinataPinListResponse>(content);
-                return pinList?.Rows ?? new List<PinataPin>();
-            }
-            catch
-            {
-                return new List<PinataPin>();
-            }
+            using var response = await _httpClient.GetAsync($"{_apiUrl}/data/pinList").ConfigureAwait(false);
+            response.EnsureSuccessStatusCode();
+            var content = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+            var pinList = JsonConvert.DeserializeObject<PinataPinListResponse>(content);
+            return pinList?.Rows ?? throw new System.IO.InvalidDataException("Pinata did not return a pin list.");
         }
 
         public async Task<string> GetFileContentAsync(string hash)
         {
-            try
-            {
-                var response = await _httpClient.GetAsync($"{_gatewayUrl}/ipfs/{hash}");
-                return await response.Content.ReadAsStringAsync();
-            }
-            catch
-            {
-                return string.Empty;
-            }
+            using var response = await _httpClient.GetAsync($"{_gatewayUrl}/ipfs/{hash}").ConfigureAwait(false);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadAsStringAsync().ConfigureAwait(false);
         }
 
         public async Task<PinataPinResponse> PinFileAsync(string filePath)
