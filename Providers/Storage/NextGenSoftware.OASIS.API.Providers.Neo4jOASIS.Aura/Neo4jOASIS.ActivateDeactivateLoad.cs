@@ -209,7 +209,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
                 return await session.ReadTransactionAsync(async transaction =>
                 {
                     var cursor = await transaction.RunAsync(@"
-                            MATCH (av:Avatar)                        
+                            MATCH (av:Avatar) WHERE NOT coalesce(av.IsDeleted, false)
                             RETURN av.FirstName AS firstname,av.LastName AS lastname"
                     );
 
@@ -249,7 +249,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
                 return session.ReadTransaction(transaction =>
                 {
                     var cursor = transaction.Run(@"
-                            MATCH (av:Avatar)                        
+                            MATCH (av:Avatar) WHERE NOT coalesce(av.IsDeleted, false)
                             RETURN av.FirstName AS firstname,av.LastName AS lastname"
                     );
 
@@ -304,7 +304,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
                 result.Result = await session.ReadTransactionAsync(async transaction =>
                 {
                     var cursor = await transaction.RunAsync($@"
-                        MATCH (av:Avatar) WHERE {predicate}
+                        MATCH (av:Avatar) WHERE {predicate} AND NOT coalesce(av.IsDeleted, false)
                         RETURN av.GUId AS guid, av.name AS title, av.FirstName AS firstname,
                                av.LastName AS lastname, av.username AS username, av.EMail AS email",
                         new { value }).ConfigureAwait(false);

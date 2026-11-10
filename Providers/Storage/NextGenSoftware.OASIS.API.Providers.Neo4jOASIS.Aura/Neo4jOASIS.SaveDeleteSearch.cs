@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using NextGenSoftware.OASIS.API.Core;
 using System.Collections.Generic;
 using System.Text;
@@ -20,438 +20,67 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
 {
     public partial class Neo4jOASIS
     {
-        public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true)
+        public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true) =>
+            DeleteAvatarAsync(id, softDelete).GetAwaiter().GetResult();
+
+        public override Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true) =>
+            DeleteAvatarBySelectorAsync("av.GUId = $value", id.ToString(), softDelete);
+
+        public override OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true) =>
+            DeleteAvatarByEmailAsync(avatarEmail, softDelete).GetAwaiter().GetResult();
+
+        public override Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true) =>
+            DeleteAvatarBySelectorAsync("toLower(av.EMail) = toLower($value)", avatarEmail, softDelete);
+
+        public override OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true) =>
+            DeleteAvatarByUsernameAsync(avatarUsername, softDelete).GetAwaiter().GetResult();
+
+        public override Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true) =>
+            DeleteAvatarBySelectorAsync("toLower(av.username) = toLower($value)", avatarUsername, softDelete);
+
+        public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true) =>
+            DeleteAvatarAsync(providerKey, softDelete).GetAwaiter().GetResult();
+
+        public override Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true) =>
+            DeleteAvatarBySelectorAsync("av.ProviderKey = $value", providerKey, softDelete);
+
+        private async Task<OASISResult<bool>> DeleteAvatarBySelectorAsync(string predicate, string value, bool softDelete)
         {
-            try
-            {
-                var session = Driver.Session(WithDatabase);
+            var result = new OASISResult<bool>();
 
-                var avatarList = session.ReadTransaction(transaction =>
-                {
-                    var cursor = transaction.Run(@"
-                            MATCH (p:Avatar {id: $Id})
-                            DELETE p",
-                        new
-                        {
-                            Id = id,
-                        }
-                    );
-
-                    return (from d in cursor
-                            select new Avatar
-                            { LastName = d["lastname"].As<string>() }).ToList();
-                });
-
-                if (avatarList.Count <= 0)
-                {
-                    return new OASISResult<bool>
-                    {
-                        IsError = false,
-                        Message = "Avatar Deleted Successfully",
-                        Result = true
-                    };
-                }
-                else
-                {
-                    return new OASISResult<bool>
-                    {
-                        IsError = true,
-                        Message = "Something went wrong! please try again later",
-                        Result = false
-                    };
-                }
-
-            }
-            catch (Exception ex)
-            {
-                return new OASISResult<bool>
-                {
-                    IsError = true,
-                    Message = ex.ToString(),
-                    Result = false
-                };
-            }
-        }
-
-        public override OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true)
-        {
-            try
-            {
-                var session = Driver.Session(WithDatabase);
-
-                var avatarList = session.ReadTransaction(transaction =>
-                {
-                    var cursor = transaction.Run(@"
-                            MATCH (p:Avatar {EMail: $eMail})
-                            DELETE p",
-                        new
-                        {
-                            eMail = avatarEmail,
-                        }
-                    );
-
-                    return (from d in cursor
-                            select new Avatar
-                            { LastName = d["lastname"].As<string>() }).ToList();
-                });
-
-                if (avatarList.Count <= 0)
-                {
-                    return new OASISResult<bool>
-                    {
-                        IsError = false,
-                        Message = "Avatar Deleted Successfully",
-                        Result = true
-                    };
-                }
-                else
-                {
-                    return new OASISResult<bool>
-                    {
-                        IsError = true,
-                        Message = "Something went wrong! please try again later",
-                        Result = false
-                    };
-                }
-
-            }
-            catch (Exception ex)
-            {
-                return new OASISResult<bool>
-                {
-                    IsError = true,
-                    Message = ex.ToString(),
-                    Result = false
-                };
-            }
-        }
-
-        public override OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true)
-        {
-            try
-            {
-                var session = Driver.Session(WithDatabase);
-
-                var avatarList = session.ReadTransaction(transaction =>
-                {
-                    var cursor = transaction.Run(@"
-                            MATCH (p:Avatar {username: $username})
-                            DELETE p",
-                        new
-                        {
-                            username = avatarUsername,
-                        }
-                    );
-
-                    return (from d in cursor
-                            select new Avatar
-                            { LastName = d["lastname"].As<string>() }).ToList();
-                });
-
-
-                if (avatarList.Count <= 0)
-                {
-                    return new OASISResult<bool>
-                    {
-                        IsError = false,
-                        Message = "Avatar Deleted Successfully",
-                        Result = true
-                    };
-                }
-                else
-                {
-                    return new OASISResult<bool>
-                    {
-                        IsError = true,
-                        Message = "Something went wrong! please try again later",
-                        Result = false
-                    };
-                }
-
-            }
-            catch (Exception ex)
-            {
-                return new OASISResult<bool>
-                {
-                    IsError = true,
-                    Message = ex.ToString(),
-                    Result = false
-                };
-            }
-        }
-
-        public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
-        {
             try
             {
                 var session = Driver.AsyncSession(WithDatabase);
-
-                var avatarList = await session.ReadTransactionAsync(async transaction =>
+                await using var sessionLifetime = session.ConfigureAwait(false);
+                var mutation = softDelete
+                    ? "SET target.IsDeleted = true"
+                    : "DETACH DELETE target";
+                var matches = await session.WriteTransactionAsync(async transaction =>
                 {
-                    var cursor = await transaction.RunAsync(@"
-                            MATCH (p:Avatar {id: $Id})
-                            DELETE p",
-                        new
-                        {
-                            Id = id,
-                        }
-                    );
+                    var cursor = await transaction.RunAsync($@"
+                        MATCH (av:Avatar)
+                        WHERE {predicate} AND (NOT $softDelete OR NOT coalesce(av.IsDeleted, false))
+                        WITH av LIMIT 2
+                        WITH collect(av) AS matches
+                        FOREACH (target IN CASE WHEN size(matches) = 1 THEN matches ELSE [] END |
+                            {mutation})
+                        RETURN size(matches) AS matched",
+                        new { value, softDelete }).ConfigureAwait(false);
+                    return await cursor.SingleAsync(row => row["matched"].As<long>()).ConfigureAwait(false);
+                }).ConfigureAwait(false);
 
-                    return await cursor.ToListAsync(record => new Avatar
-                    {
-                        LastName = record["lastname"].As<string>()
-                    });
-                });
+                if (matches > 1)
+                    throw new InvalidOperationException("Multiple Aura avatars match the requested identity.");
 
-
-                if (avatarList.Count <= 0)
-                {
-                    return new OASISResult<bool>
-                    {
-                        IsError = false,
-                        Message = "Avatar Deleted Successfully",
-                        Result = true
-                    };
-                }
-                else
-                {
-                    return new OASISResult<bool>
-                    {
-                        IsError = true,
-                        Message = "Something went wrong! please try again later",
-                        Result = false
-                    };
-                }
+                result.Result = matches == 1;
+                result.IsDeleted = result.Result;
             }
             catch (Exception ex)
             {
-                return new OASISResult<bool>
-                {
-                    IsError = true,
-                    Message = ex.ToString(),
-                    Result = false
-                };
+                OASISErrorHandling.HandleError(ref result, "Error deleting Neo4j Aura avatar.", ex);
             }
 
-        }
-
-        public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
-        {
-            try
-            {
-                var session = Driver.AsyncSession(WithDatabase);
-
-                var avatarList = await session.ReadTransactionAsync(async transaction =>
-                {
-                    var cursor = await transaction.RunAsync(@"
-                            MATCH (p:Avatar {EMail: $eMail})
-                            DELETE p",
-                        new
-                        {
-                            eMail = avatarEmail,
-                        }
-                    );
-
-                    return await cursor.ToListAsync(record => new Avatar
-                    {
-                        LastName = record["lastname"].As<string>()
-                    });
-                });
-
-
-                if (avatarList.Count <= 0)
-                {
-                    return new OASISResult<bool>
-                    {
-                        IsError = false,
-                        Message = "Avatar Deleted Successfully",
-                        Result = true
-                    };
-                }
-                else
-                {
-                    return new OASISResult<bool>
-                    {
-                        IsError = true,
-                        Message = "Something went wrong! please try again later",
-                        Result = false
-                    };
-                }
-            }
-            catch (Exception ex)
-            {
-                return new OASISResult<bool>
-                {
-                    IsError = true,
-                    Message = ex.ToString(),
-                    Result = false
-                };
-            }
-
-        }
-
-        public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
-        {
-            try
-            {
-                var session = Driver.AsyncSession(WithDatabase);
-
-                var avatarList = await session.ReadTransactionAsync(async transaction =>
-                {
-                    var cursor = await transaction.RunAsync(@"
-                            MATCH (p:Avatar {username: $username})
-                            DELETE p",
-                        new
-                        {
-                            username = avatarUsername,
-                        }
-                    );
-
-                    return await cursor.ToListAsync(record => new Avatar
-                    {
-                        LastName = record["lastname"].As<string>()
-                    });
-                });
-
-
-                if (avatarList.Count <= 0)
-                {
-                    return new OASISResult<bool>
-                    {
-                        IsError = false,
-                        Message = "Avatar Deleted successfuly",
-                        Result = true
-                    };
-                }
-                else
-                {
-                    return new OASISResult<bool>
-                    {
-                        IsError = true,
-                        Message = "Something went wrong! Please try again after sometime",
-                        Result = false
-                    };
-                }
-            }
-            catch (Exception ex)
-            {
-                return new OASISResult<bool>
-                {
-                    IsError = true,
-                    Message = ex.ToString(),
-                    Result = false
-                };
-            }
-
-        }
-
-        public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true)
-        {
-            try
-            {
-                var session = Driver.Session(WithDatabase);
-
-                var avatarList = session.ReadTransaction(transaction =>
-                {
-                    var cursor = transaction.Run(@"
-                            MATCH (p:Avatar {ProviderKey: $ProviderKey})
-                            DELETE p",
-                        new
-                        {
-                            ProviderKey = providerKey,
-                        }
-                    );
-
-                    return (from d in cursor
-                            select new Avatar
-                            { LastName = d["lastname"].As<string>() }).ToList();
-                });
-
-                if (avatarList.Count <= 0)
-                {
-                    return new OASISResult<bool>
-                    {
-                        IsError = false,
-                        Message = "Avatar Deleted Successfully",
-                        Result = true
-                    };
-                }
-                else
-                {
-                    return new OASISResult<bool>
-                    {
-                        IsError = true,
-                        Message = "Something went wrong! please try again later",
-                        Result = false
-                    };
-                }
-
-            }
-            catch (Exception ex)
-            {
-                return new OASISResult<bool>
-                {
-                    IsError = true,
-                    Message = ex.ToString(),
-                    Result = false
-                };
-            }
-        }
-
-        public override async Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
-        {
-            try
-            {
-                var session = Driver.AsyncSession(WithDatabase);
-
-                var avatarList = await session.ReadTransactionAsync(async transaction =>
-                {
-                    var cursor = await transaction.RunAsync(@"
-                            MATCH (p:Avatar {ProviderKey: $providerkey})
-                            DELETE p",
-                        new
-                        {
-                            providerkey = providerKey,
-                        }
-                    );
-
-                    return await cursor.ToListAsync(record => new Avatar
-                    {
-                        LastName = record["lastname"].As<string>()
-                    });
-                });
-
-
-                if (avatarList.Count <= 0)
-                {
-                    return new OASISResult<bool>
-                    {
-                        IsError = false,
-                        Message = "Avatar Deleted successfuly",
-                        Result = true
-                    };
-                }
-                else
-                {
-                    return new OASISResult<bool>
-                    {
-                        IsError = true,
-                        Message = "Something went wrong! Please try again after sometime",
-                        Result = false
-                    };
-                }
-            }
-            catch (Exception ex)
-            {
-                return new OASISResult<bool>
-                {
-                    IsError = true,
-                    Message = ex.ToString(),
-                    Result = false
-                };
-            }
-
-
+            return result;
         }
 
         public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
