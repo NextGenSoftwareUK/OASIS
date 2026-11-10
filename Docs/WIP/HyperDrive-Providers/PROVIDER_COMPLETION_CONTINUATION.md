@@ -351,3 +351,5 @@ SQL Server LocalDB passed SynchronousHolonReadsHonorChildDepth. The synchronous 
 SQL Server synchronous point and all-holon graph reads passed on LocalDB from a non-pumping synchronization context, with a 15-second bound and Max Pool Size=1. The changed graph read paths avoid context capture. Fixtures were hard-deleted and LocalDB stopped.
 
 SQL Server LocalDB passed ConcurrentAvatarSavesPreserveHighestVersionAndHistory. Concurrent version 2 and 3 saves left version 3 current and version 1 archived. The test checked that version 2 was readable only if its save succeeded, then deleted the fixture and stopped LocalDB. This covers one concurrent avatar schedule.
+
+Hourly integration cadence requested November 10. Development advanced from 1d913e5701 to af621f3c3e by fast-forward with exactly three SQL Server provider/test files. The Railway pin hook passed and the remote revision was confirmed. The prior Development tip and current COSMIC/CQL branch had identical content at the scoped paths. No Core pin changed. Deployment and hosted verification remain separate.
