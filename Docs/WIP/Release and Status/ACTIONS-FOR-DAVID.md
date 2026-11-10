@@ -532,7 +532,7 @@ Status: missing account/configuration information,2 November2026. David approved
 ### Neon native storage test database
 
 - **Status (2026-11-09)** Open. The provider worktree has no Neon native conformance connection configured.
-- **David action** Grant access to a disposable Neon branch/database named oasis_provider_test, or designate an existing dedicated test database. Configure its Npgsql connection string through protected local configuration as OASIS_NEON_CONFORMANCE_CONNECTION_STRING. Keep the connection string out of Git and chat.
+- **David action** Grant access to a disposable Neon branch with a dedicated database named oasis_provider_test. An existing dedicated database is suitable if it has that name and no OASIS test records. Configure its Npgsql connection string through protected local configuration as OASIS_NEON_CONFORMANCE_CONNECTION_STRING. Keep the connection string out of Git and chat.
 - **Reason** The native suite writes and deletes OASIS fixtures and requires a real Neon endpoint with verified TLS. The provider agent owns schema and conformance engineering after access is available.
 - **Context** [Provider completion continuation](../HyperDrive-Providers/PROVIDER_COMPLETION_CONTINUATION.md).
 
