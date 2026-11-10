@@ -644,6 +644,6 @@ Status: missing account/configuration information,2 November2026. David approved
 
 ### Provider inventory count on separate public sites
 
-- **Status (2026-11-10)** Open. The inventory has 234 shipping provider projects. Web4Site main uses 229 in index.html and 40+ in README.md. OASISOmniverseSite main uses 222 in index.html. GitHub refused creation of a scoped update branch in both repositories with HTTP 403.
-- **David action** Grant the connected GitHub integration permission to create a branch and pull request in [Web4Site](https://github.com/NextGenSoftwareUK/Web4Site) and [OASISOmniverseSite](https://github.com/NextGenSoftwareUK/OASISOmniverseSite), or identify the approved writable checkouts. The Founders, OPORTAL, Docs and Learn site repositories are identified and their count audits remain agent-owned.
+- **Status (2026-11-10)** Branch access resolved through local Git. [Web4Site](https://github.com/NextGenSoftwareUK/Web4Site/tree/work/provider-inventory-count), [OASISOmniverseSite](https://github.com/NextGenSoftwareUK/OASISOmniverseSite/tree/work/provider-inventory-count) and [OurWorldSite](https://github.com/NextGenSoftwareUK/OurWorldSite/tree/work/provider-inventory-count) have pushed source updates. Live deployments are unverified.
+- **David action** Closed for branch access. Site integration, deployment verification and the remaining count audits are agent-owned.
 - **Reason** Update the public inventory claims independently of backend acceptance. Preserve site ownership and existing deployment workflows.
