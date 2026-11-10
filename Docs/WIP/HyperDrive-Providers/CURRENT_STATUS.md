@@ -89,3 +89,5 @@ Public count follow-up (10 November): OurWorldSite f70ae42 and OASISOmniverseSit
 Separate Web4Site source follow-up (10 November): 4f823fd and 6e0cd9a update homepage and README inventory copy and derive the catalogue count from listed rows (214 verified in Node). The temporary site checkout was removed. Live deployment remains unverified.
 
 Neon console harness fa22560447 compiled under the provider build lease with 0 errors and 1136 warnings. It requires explicit disposable Neon configuration. Hosted lifecycle verification remains open.
+
+Development batch candidate 28799a9db3 (integration/neon-ipfs-fixture-guards) is based on 88cfc84a82. Git range-diff confirms both patches match the separately compiled IPFS 346cd105a9 and Neon fa22560447 changes. Railway manifest and whitespace checks passed. The batch awaits Development integration. Hosted Neon and live Kubo gates remain open.
