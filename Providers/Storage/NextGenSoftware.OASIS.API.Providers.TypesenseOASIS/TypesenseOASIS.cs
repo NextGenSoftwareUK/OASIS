@@ -237,9 +237,25 @@ namespace NextGenSoftware.OASIS.API.Providers.TypesenseOASIS
             var result = new OASISResult<bool>();
             try
             {
-                if (softDelete) { var l = await LoadAvatarAsync(id); if (!l.IsError && l.Result != null) { var a = (Avatar)l.Result; a.DeletedDate = DateTime.UtcNow; await SaveAvatarAsync(a); } }
-                else { await DeleteDocAsync(ColAvatars, id.ToString()); }
-                result.Result = true; result.IsError = false; result.Message = $"TypesenseOASIS: Avatar '{id}' deleted.";
+                if (softDelete)
+                {
+                    var loaded = await LoadAvatarAsync(id);
+                    if (loaded.IsError || loaded.Result is not Avatar avatar)
+                        throw new InvalidOperationException(loaded.Message, loaded.Exception);
+
+                    avatar.DeletedDate = DateTime.UtcNow;
+                    var saved = await SaveAvatarAsync(avatar);
+                    if (saved.IsError || !saved.IsSaved)
+                        throw new InvalidOperationException(saved.Message, saved.Exception);
+                }
+                else
+                {
+                    await DeleteDocAsync(ColAvatars, id.ToString());
+                }
+
+                result.Result = true;
+                result.IsDeleted = true;
+                result.DeletedCount = 1;
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"TypesenseOASIS: {ex.Message}"); }
             return result;
