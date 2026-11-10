@@ -577,3 +577,10 @@ Status: missing account/configuration information,2 November2026. David approved
 - **Action** If the retained NEAR test environment is available, identify its host and authorize access to a disposable writable OASIS contract with its dedicated test signer through the existing protected channel. Keep signing material and credentials out of Git and chat.
 - **Reason** The provider agent will verify chain and contract identity, configure the run and report directory, and reconcile only test-owned records. Preserve existing COSMIC/CQL data.
 - **Context** [NEAR lifecycle evidence](../HyperDrive-Providers/PROVIDER_COMPLETION_CONTINUATION.md).
+
+### Cosmos retained wasmd fixture
+
+- **Status (9 November 2026)** Open. Both pinned CosmJS clients load. The current host has no Ubuntu WSL distribution for the guarded runner.
+- **Action** If the original wasmd test fixture is retained on another device, identify the device and its existing protected test environment so the provider agent can access it. Keep signer material out of Git and chat.
+- **Reason** The agent must confirm chain and contract identity and reconcile any historical pending operations before starting shared storage verification. Preserve the original ledger and evidence.
+- **Context** [Cosmos verification notes](../HyperDrive-Providers/PROVIDER_COMPLETION_CONTINUATION.md).
