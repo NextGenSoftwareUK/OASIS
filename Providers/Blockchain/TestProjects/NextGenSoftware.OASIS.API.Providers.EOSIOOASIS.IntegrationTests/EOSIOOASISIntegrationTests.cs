@@ -102,7 +102,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.IntegrationTests
         public async Task AvatarDetailUpdateAndHardDelete_PersistOnAntelope()
         {
             if (Environment.GetEnvironmentVariable("OASIS_ANTELOPE_DETAIL_CONTRACT_READY") != "1")
-                Assert.Inconclusive("Requires the dedicated contract rebuilt with setdetail and harddetail.");
+                Assert.Inconclusive("Requires the dedicated contract rebuilt with setdetail, softdetail and harddetail.");
 
             var detail = new AvatarDetail { Id = Guid.NewGuid(), Karma = 17 };
             var saved = await _provider.SaveAvatarDetailAsync(detail);
@@ -118,6 +118,15 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.IntegrationTests
                 Assert.IsFalse(loaded.IsError, loaded.Message);
                 Assert.AreEqual(detail.Id, loaded.Result.Id);
                 Assert.AreEqual(detail.Karma, loaded.Result.Karma);
+
+                var softDeleted = await _provider.DeleteAvatarDetailAsync(detail.Id);
+                Assert.IsFalse(softDeleted.IsError, softDeleted.Message);
+                Assert.IsTrue(softDeleted.IsDeleted);
+                Assert.AreEqual(1, softDeleted.DeletedCount);
+
+                var hidden = await _provider.LoadAvatarDetailAsync(detail.Id);
+                Assert.IsFalse(hidden.IsLoaded);
+                Assert.IsNull(hidden.Result);
             }
             finally
             {
