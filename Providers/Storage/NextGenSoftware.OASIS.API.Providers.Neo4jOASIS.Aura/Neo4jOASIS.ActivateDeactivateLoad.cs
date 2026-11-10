@@ -216,7 +216,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
             {
                 var session = Driver.AsyncSession(WithDatabase);
                 await using var sessionLifetime = session.ConfigureAwait(false);
-                result.Result = await session.ReadTransactionAsync(async transaction =>
+                var avatars = await session.ReadTransactionAsync(async transaction =>
                 {
                     var cursor = await transaction.RunAsync(@"
                         MATCH (av:Avatar) WHERE NOT coalesce(av.IsDeleted, false)
@@ -224,11 +224,18 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
                                av.LastName AS lastname, av.username AS username, av.EMail AS email").ConfigureAwait(false);
                     return await cursor.ToListAsync(ReadAvatar).ConfigureAwait(false);
                 }).ConfigureAwait(false);
+                if (avatars.Select(avatar => avatar.AvatarId).Distinct().Count() != avatars.Count)
+                    throw new StorageIdentityAmbiguousException();
+
+                result.Result = avatars;
                 result.IsLoaded = true;
+                result.LoadedCount = avatars.Count;
             }
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, "Error listing Neo4j Aura avatars.", ex);
+                if (ex is StorageIdentityAmbiguousException)
+                    result.ErrorCode = OASISResultErrorCodes.AmbiguousIdentity;
             }
 
             return result;
