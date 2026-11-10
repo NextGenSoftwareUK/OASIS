@@ -269,3 +269,5 @@ SQL Server OwnerExportReturnsRequestedSnapshot passed on dedicated LocalDB (1 pa
 SQL Server DuplicateAvatarSelectorsRejectOwnerExport initially failed because email lookup omitted AmbiguousIdentity. After preserving that code, the focused LocalDB case passed (1 passed, 0 failed, 0 skipped). Both username and email exports rejected duplicate active avatars with no export payload. The test hard-deleted the two fixtures and the owned LocalDB instance stopped.
 
 SQL Server LocalDB passed DuplicateAvatarSelectorsRejectDeletion (1 passed, 0 failed, 0 skipped). On the dedicated fixture, username, email and provider-key selectors each rejected ambiguous soft and hard deletion with zero deletions. Both synthetic avatars remained readable and were hard-deleted by ID during teardown. The test stopped its LocalDB instance after the run.
+
+SQL Server LocalDB passed DuplicateAvatarDetailSelectorsRejectLookup (1 passed, 0 failed, 0 skipped). The dedicated fixture returned each detail by ID, rejected duplicate username and email selectors with AmbiguousIdentity, and hard-deleted both synthetic avatars during teardown. LocalDB was stopped after the run.

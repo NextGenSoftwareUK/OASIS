@@ -382,62 +382,61 @@ WHEN NOT MATCHED THEN INSERT (Id,Username,Email,DataJson) VALUES (@Id,@Username,
 
         public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail avatarDetail) => SaveAvatarDetailAsync(avatarDetail).Result;
 
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
-        {
-            var result = new OASISResult<IAvatarDetail>();
-            try
-            {
-                await using var conn = new SqlConnection(_connectionString);
-                await conn.OpenAsync();
-                await using var cmd = new SqlCommand("SELECT DataJson FROM OASISAvatarDetails WHERE Id=@Id", conn);
-                cmd.Parameters.AddWithValue("@Id", id);
-                var scalar = await cmd.ExecuteScalarAsync();
-                if (scalar == null || scalar == DBNull.Value) { OASISErrorHandling.HandleError(ref result, $"SQLServerDBOASIS: No avatar detail found for ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
-                result.Result = StoredRecordJson.Deserialize<AvatarDetail>(scalar.ToString()!); result.IsLoaded = true; result.LoadedCount = 1; result.Message = $"SQLServerDBOASIS: AvatarDetail loaded for ID '{id}'.";
-            }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SQLServerDBOASIS: Error loading avatar detail for '{id}': {ex.Message}"); }
-            return result;
-        }
+        public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
+            => LoadAvatarDetailMatchingAsync("Id", id);
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0) => LoadAvatarDetailAsync(id, version).Result;
 
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string username, int version = 0)
-        {
-            var result = new OASISResult<IAvatarDetail>();
-            try
-            {
-                await using var conn = new SqlConnection(_connectionString);
-                await conn.OpenAsync();
-                await using var cmd = new SqlCommand("SELECT DataJson FROM OASISAvatarDetails WHERE Username=@Username", conn);
-                cmd.Parameters.AddWithValue("@Username", username);
-                var scalar = await cmd.ExecuteScalarAsync();
-                if (scalar == null || scalar == DBNull.Value) { OASISErrorHandling.HandleError(ref result, $"SQLServerDBOASIS: No avatar detail found for username '{username}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
-                result.Result = StoredRecordJson.Deserialize<AvatarDetail>(scalar.ToString()!); result.IsLoaded = true; result.LoadedCount = 1; result.Message = $"SQLServerDBOASIS: AvatarDetail loaded for username '{username}'.";
-            }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SQLServerDBOASIS: Error loading avatar detail by username '{username}': {ex.Message}"); }
-            return result;
-        }
+        public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string username, int version = 0)
+            => LoadAvatarDetailMatchingAsync("Username", username);
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string username, int version = 0) => LoadAvatarDetailByUsernameAsync(username, version).Result;
 
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string email, int version = 0)
+        public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string email, int version = 0)
+            => LoadAvatarDetailMatchingAsync("Email", email);
+
+        public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string email, int version = 0) => LoadAvatarDetailByEmailAsync(email, version).Result;
+
+        private async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailMatchingAsync(string column, object value)
         {
             var result = new OASISResult<IAvatarDetail>();
             try
             {
                 await using var conn = new SqlConnection(_connectionString);
                 await conn.OpenAsync();
-                await using var cmd = new SqlCommand("SELECT DataJson FROM OASISAvatarDetails WHERE Email=@Email", conn);
-                cmd.Parameters.AddWithValue("@Email", email);
-                var scalar = await cmd.ExecuteScalarAsync();
-                if (scalar == null || scalar == DBNull.Value) { OASISErrorHandling.HandleError(ref result, $"SQLServerDBOASIS: No avatar detail found for email '{email}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
-                result.Result = StoredRecordJson.Deserialize<AvatarDetail>(scalar.ToString()!); result.IsLoaded = true; result.LoadedCount = 1; result.Message = $"SQLServerDBOASIS: AvatarDetail loaded for email '{email}'.";
+                await using var cmd = new SqlCommand($"SELECT TOP (2) Id, DataJson FROM OASISAvatarDetails WHERE {column}=@Value", conn);
+                cmd.Parameters.AddWithValue("@Value", value);
+                await using var reader = await cmd.ExecuteReaderAsync();
+                if (!await reader.ReadAsync())
+                {
+                    OASISErrorHandling.HandleError(ref result, $"SQLServerDBOASIS: No avatar detail found for {column} '{value}'.");
+                    result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
+                    return result;
+                }
+
+                var id = reader.GetGuid(0);
+                var json = reader.GetString(1);
+                if (await reader.ReadAsync())
+                    throw new StorageIdentityAmbiguousException();
+
+                var detail = StoredRecordJson.Deserialize<AvatarDetail>(json);
+                if (detail == null || detail.Id != id)
+                    throw new InvalidOperationException("Stored avatar detail does not match its SQL Server row identity.");
+
+                result.Result = detail;
+                result.IsLoaded = true;
+                result.LoadedCount = 1;
+                result.Message = $"SQLServerDBOASIS: Avatar detail loaded for {column} '{value}'.";
             }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SQLServerDBOASIS: Error loading avatar detail by email '{email}': {ex.Message}"); }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                OASISErrorHandling.HandleError(ref result, $"SQLServerDBOASIS: Error loading avatar detail for {column} '{value}': {ex.Message}");
+                if (ex is StorageIdentityAmbiguousException)
+                    result.ErrorCode = OASISResultErrorCodes.AmbiguousIdentity;
+            }
             return result;
         }
-
-        public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string email, int version = 0) => LoadAvatarDetailByEmailAsync(email, version).Result;
 
         public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
         {

@@ -57,6 +57,60 @@ public class SqlServerNativeStorageConformanceTests
     }
 
     [TestMethod]
+    public async Task DuplicateAvatarDetailSelectorsRejectLookup()
+    {
+        if (Environment.GetEnvironmentVariable("OASIS_SQLSERVER_DUPLICATE_DETAIL") != "1")
+            Assert.Inconclusive("Enable only for the dedicated LocalDB provider fixture.");
+
+        const string connection = @"Server=(localdb)\MSSQLLocalDB;Database=oasis_hyperdrive_provider_test;Integrated Security=true;TrustServerCertificate=true";
+        var provider = new SQLServerDBOASIS(connection);
+        var username = $"fixture-{Guid.NewGuid():N}";
+        var email = username + "@example.invalid";
+        var saved = new List<Guid>();
+        try
+        {
+            var active = await provider.ActivateProviderAsync();
+            Assert.IsTrue(active.Result && !active.IsError, active.Message);
+            for (var i = 0; i < 2; i++)
+            {
+                var avatar = new NextGenSoftware.OASIS.API.Core.Holons.Avatar
+                {
+                    Id = Guid.NewGuid(), Username = username, Email = email
+                };
+                var write = await provider.SaveAvatarAsync(avatar);
+                Assert.IsTrue(write.IsSaved && !write.IsError, write.Message);
+                saved.Add(avatar.Id);
+                var detail = new NextGenSoftware.OASIS.API.Core.Holons.AvatarDetail
+                {
+                    Id = avatar.Id, Username = username, Email = email
+                };
+                var detailWrite = await provider.SaveAvatarDetailAsync(detail);
+                Assert.IsTrue(detailWrite.IsSaved && !detailWrite.IsError, detailWrite.Message);
+                var byId = await provider.LoadAvatarDetailAsync(avatar.Id);
+                Assert.IsTrue(byId.Result?.Id == avatar.Id && !byId.IsError, byId.Message);
+            }
+
+            var byUsername = await provider.LoadAvatarDetailByUsernameAsync(username);
+            var byEmail = await provider.LoadAvatarDetailByEmailAsync(email);
+            foreach (var result in new[] { byUsername, byEmail })
+            {
+                Assert.IsTrue(result.IsError);
+                Assert.AreEqual(OASISResultErrorCodes.AmbiguousIdentity, result.ErrorCode);
+                Assert.IsNull(result.Result);
+            }
+        }
+        finally
+        {
+            foreach (var id in saved)
+            {
+                var deleted = await provider.DeleteAvatarAsync(id, softDelete: false);
+                Assert.IsTrue(deleted.IsDeleted && !deleted.IsError, deleted.Message);
+            }
+            await provider.DeActivateProviderAsync();
+        }
+    }
+
+    [TestMethod]
     public async Task DuplicateAvatarSelectorsRejectDeletion()
     {
         if (Environment.GetEnvironmentVariable("OASIS_SQLSERVER_DUPLICATE_DELETE") != "1")
