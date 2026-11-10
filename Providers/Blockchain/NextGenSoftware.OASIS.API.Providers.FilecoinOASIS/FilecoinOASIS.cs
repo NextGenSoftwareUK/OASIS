@@ -627,6 +627,9 @@ namespace NextGenSoftware.OASIS.API.Providers.FilecoinOASIS
                 }
 
                 result.Result = holon;
+
+                result.IsSaved = true;
+                result.SavedCount = 1;
                 result.Message = dealCid == null
                     ? $"FilecoinOASIS: Imported CID '{cid}' into the local Lotus store."
                     : $"FilecoinOASIS: Imported CID '{cid}' and submitted deal proposal '{dealCid}'.";
