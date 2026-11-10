@@ -32,7 +32,7 @@ The OASIS (Open Advanced Secure Interoperable Scalable-System) is a revolutionar
 
 ## 🌐 Supported Providers
 
-OASIS supports 222 providers across multiple categories, providing universal compatibility and seamless integration:
+The [OASIS provider inventory](Docs/WIP/HyperDrive-Providers/PROVIDER_MATRIX.md) tracks 234 shipping provider projects across multiple categories. Capabilities and live verification vary by provider.
 
 ### **Blockchain Providers**
 - **Bitcoin** - Original cryptocurrency blockchain
