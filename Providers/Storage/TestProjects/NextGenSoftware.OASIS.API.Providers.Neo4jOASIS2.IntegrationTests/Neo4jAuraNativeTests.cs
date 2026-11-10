@@ -12,18 +12,7 @@ public class Neo4jAuraNativeTests
     [TestMethod]
     public async Task AvatarLifecycleUsesPersistedIdentityAndDeletionMode()
     {
-        if (Environment.GetEnvironmentVariable("OASIS_NEO4J_AURA_LIFECYCLE") != "1")
-            Assert.Inconclusive("Enable only for a disposable Neo4j Aura database.");
-
-        var endpoint = Environment.GetEnvironmentVariable("OASIS_NEO4J_AURA_URI");
-        var username = Environment.GetEnvironmentVariable("OASIS_NEO4J_AURA_USERNAME");
-        var password = Environment.GetEnvironmentVariable("OASIS_NEO4J_AURA_PASSWORD");
-        Assert.IsTrue(Uri.TryCreate(endpoint, UriKind.Absolute, out var uri) &&
-            (uri.Scheme is "neo4j+s" or "bolt+s") && string.IsNullOrEmpty(uri.UserInfo));
-        Assert.IsFalse(string.IsNullOrWhiteSpace(username));
-        Assert.IsFalse(string.IsNullOrWhiteSpace(password));
-
-        var provider = new AuraProvider(endpoint!, username!, password!);
+        var provider = CreateProvider();
         var id = Guid.NewGuid();
         var avatar = new Avatar
         {
@@ -77,5 +66,69 @@ public class Neo4jAuraNativeTests
                 Assert.IsTrue(inactive.Result, inactive.Exception?.GetType().FullName);
             }
         }
+    }
+
+    [TestMethod]
+    public async Task HolonLifecycleUsesPersistedParentAndProviderKey()
+    {
+        var provider = CreateProvider();
+        var parent = new Holon { Id = Guid.NewGuid(), Name = "Aura parent" };
+        var child = new Holon { Id = Guid.NewGuid(), Name = "Aura child", ParentHolonId = parent.Id };
+        var active = await provider.ActivateProviderAsync();
+        Assert.IsTrue(active.Result, active.Exception?.GetType().FullName);
+        try
+        {
+            var saved = await provider.SaveHolonsAsync(new[] { parent, child }, saveChildren: false);
+            Assert.IsFalse(saved.IsError, saved.Exception?.GetType().FullName);
+            Assert.AreEqual(2, saved.SavedCount);
+
+            var parentKey = parent.ProviderUniqueStorageKey[ProviderType.Neo4jOASIS];
+            var childKey = child.ProviderUniqueStorageKey[ProviderType.Neo4jOASIS];
+            var loaded = await provider.LoadHolonAsync(childKey, loadChildren: false);
+            Assert.IsTrue(loaded.IsLoaded, loaded.Exception?.GetType().FullName);
+            Assert.AreEqual(child.Id, loaded.Result.Id);
+            Assert.AreEqual(parent.Id, loaded.Result.ParentHolonId);
+
+            var children = provider.LoadHolonsForParent(parentKey, loadChildren: false);
+            Assert.IsTrue(children.IsLoaded, children.Exception?.GetType().FullName);
+            CollectionAssert.AreEqual(new[] { child.Id }, children.Result.Select(item => item.Id).ToArray());
+
+            var deleted = await provider.DeleteHolonAsync(childKey);
+            Assert.IsTrue(deleted.IsDeleted, deleted.Exception?.GetType().FullName);
+            Assert.AreEqual(1, deleted.DeletedCount);
+            Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, provider.LoadHolon(child.Id).ErrorCode);
+            Assert.IsTrue(provider.LoadHolon(parent.Id, loadChildren: false).IsLoaded);
+        }
+        finally
+        {
+            try
+            {
+                var childCleanup = await provider.DeleteHolonAsync(child.Id);
+                var parentCleanup = await provider.DeleteHolonAsync(parent.Id);
+                Assert.IsTrue(childCleanup.IsDeleted || childCleanup.ErrorCode == OASISResultErrorCodes.RecordNotFound);
+                Assert.IsTrue(parentCleanup.IsDeleted || parentCleanup.ErrorCode == OASISResultErrorCodes.RecordNotFound);
+            }
+            finally
+            {
+                var inactive = await provider.DeActivateProviderAsync();
+                Assert.IsTrue(inactive.Result, inactive.Exception?.GetType().FullName);
+            }
+        }
+    }
+
+    private static AuraProvider CreateProvider()
+    {
+        if (Environment.GetEnvironmentVariable("OASIS_NEO4J_AURA_LIFECYCLE") != "1")
+            Assert.Inconclusive("Enable only for a disposable Neo4j Aura database.");
+
+        var endpoint = Environment.GetEnvironmentVariable("OASIS_NEO4J_AURA_URI");
+        var username = Environment.GetEnvironmentVariable("OASIS_NEO4J_AURA_USERNAME");
+        var password = Environment.GetEnvironmentVariable("OASIS_NEO4J_AURA_PASSWORD");
+        Assert.IsTrue(Uri.TryCreate(endpoint, UriKind.Absolute, out var uri) &&
+            (uri.Scheme is "neo4j+s" or "bolt+s") && string.IsNullOrEmpty(uri.UserInfo));
+        Assert.IsFalse(string.IsNullOrWhiteSpace(username));
+        Assert.IsFalse(string.IsNullOrWhiteSpace(password));
+
+        return new AuraProvider(endpoint!, username!, password!);
     }
 }
