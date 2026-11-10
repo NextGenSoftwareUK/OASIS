@@ -68,20 +68,6 @@ namespace NextGenSoftware.OASIS.API.Providers.FilecoinOASIS.IntegrationTests
         }
 
         [TestMethod]
-        public async Task SaveHolonWithoutFilePathRejectsBeforeImport()
-        {
-            var holon = new Holon { Id = Guid.NewGuid(), Name = "Filecoin missing file path" };
-
-            var saved = await _provider.SaveHolonAsync(holon);
-
-            Assert.IsTrue(saved.IsError);
-            Assert.IsFalse(saved.IsSaved);
-            Assert.AreEqual(0, saved.SavedCount);
-            Assert.IsNull(saved.Result);
-            StringAssert.Contains(saved.Message, "FilePath");
-        }
-
-        [TestMethod]
         public async Task DeletedAvatar_IsNotReturnedAsLive()
         {
             var avatar = new Avatar
@@ -113,6 +99,26 @@ namespace NextGenSoftware.OASIS.API.Providers.FilecoinOASIS.IntegrationTests
             if (_provider != null && _provider.IsProviderActivated)
                 _provider.DeActivateProvider();
         }
+    }
+
+    [TestClass]
+    public class FilecoinImportAdmissionTests
+    {
+        [TestMethod]
+        public async Task SaveHolonWithoutFilePathRejectsBeforeImport()
+        {
+            var holon = new Holon { Id = Guid.NewGuid(), Name = "Filecoin missing file path" };
+
+            var provider = new FilecoinOASIS("http://127.0.0.1:1/rpc/v1", string.Empty);
+            var saved = await provider.SaveHolonAsync(holon);
+
+            Assert.IsTrue(saved.IsError);
+            Assert.IsFalse(saved.IsSaved);
+            Assert.AreEqual(0, saved.SavedCount);
+            Assert.IsNull(saved.Result);
+            StringAssert.Contains(saved.Message, "FilePath");
+        }
+
     }
 
     [TestClass]
