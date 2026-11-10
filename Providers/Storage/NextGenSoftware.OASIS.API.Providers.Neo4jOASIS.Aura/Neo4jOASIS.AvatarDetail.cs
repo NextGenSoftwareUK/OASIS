@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using NextGenSoftware.OASIS.API.Core;
 using System.Collections.Generic;
 using System.Text;
@@ -20,48 +20,8 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
 {
     public partial class Neo4jOASIS
     {
-        public override OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail, int version = 0)
-        {
-            try
-            {
-                var session = Driver.Session(WithDatabase);
-
-                return session.ReadTransaction(transaction =>
-                {
-                    var cursor = transaction.Run(@"
-                            MATCH (av:Avatar)
-                            WHERE TOLOWER(av.EMail) CONTAINS TOLOWER($email)
-                            RETURN av.FirstName AS firstname,av.LastName AS lastname",
-                        new { email = avatarEmail }
-                    );
-
-                    IAvatar obj = (from d in cursor
-                                   select new Avatar
-                                   {
-                                       FirstName = d["firstname"].As<string>(),
-                                       LastName = d["lastname"].As<string>()
-                                   }).FirstOrDefault();
-
-
-                    return new OASISResult<IAvatar>
-                    {
-                        IsLoaded = true,
-                        IsError = false,
-                        Message = "Avatar Loaded successfully",
-                        Result = obj,
-                    };
-                });
-            }
-            catch (Exception ex)
-            {
-                return new OASISResult<IAvatar>
-                {
-                    IsLoaded = false,
-                    IsError = true,
-                    Message = ex.ToString(),
-                };
-            }
-        }
+        public override OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail, int version = 0) =>
+            LoadAvatarByEmailAsync(avatarEmail, version).GetAwaiter().GetResult();
 
         //public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(string username, string password, int version = 0)
         //{
