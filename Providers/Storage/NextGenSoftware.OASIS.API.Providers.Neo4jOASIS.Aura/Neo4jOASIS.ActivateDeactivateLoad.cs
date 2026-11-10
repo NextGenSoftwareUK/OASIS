@@ -39,7 +39,13 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
                 var driver = GraphDatabase.Driver(Host, AuthTokens.Basic(Username, Password));
                 try
                 {
-                    await driver.VerifyConnectivityAsync().ConfigureAwait(false);
+                    var session = driver.AsyncSession(WithDatabase);
+                    await using var lifetime = session.ConfigureAwait(false);
+                    await session.ReadTransactionAsync(async transaction =>
+                    {
+                        var cursor = await transaction.RunAsync("RETURN 1 AS ready").ConfigureAwait(false);
+                        return await cursor.SingleAsync(row => row["ready"].As<long>()).ConfigureAwait(false);
+                    }).ConfigureAwait(false);
                 }
                 catch
                 {
