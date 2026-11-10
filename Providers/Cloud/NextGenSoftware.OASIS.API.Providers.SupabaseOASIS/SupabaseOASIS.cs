@@ -226,6 +226,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
             {
                 var avatar = await GetAvatarByFilterAsync($"id=eq.{id}");
                 if (avatar == null) { OASISErrorHandling.HandleError(ref result, $"SupabaseOASIS: No avatar found with ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
+                if (avatar.Id != id)
+                    throw new System.IO.InvalidDataException("Supabase returned a different avatar identity.");
                 result.Result = avatar; result.IsLoaded = true; result.LoadedCount = 1; result.Message = $"SupabaseOASIS: Avatar loaded for ID '{id}'.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SupabaseOASIS: Error loading avatar by ID '{id}': {ex.Message}"); }
@@ -373,11 +375,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
             var result = new OASISResult<IAvatarDetail>();
             try
             {
-                using var response = await _http.GetAsync($"{_baseUrl}/oasis_avatar_details?id=eq.{id}&limit=1");
-                response.EnsureSuccessStatusCode();
-                var json = await response.Content.ReadAsStringAsync();
-                var rows = DeserializeList<AvatarDetailRow>(json);
+                var rows = await ReadCompleteRows($"oasis_avatar_details?id=eq.{id}",
+                    DeserializeList<AvatarDetailRow>, row => ParseAvatarDetailRow(row).Id, default, singleIdentity: true);
                 if (rows.Count == 0) { OASISErrorHandling.HandleError(ref result, $"SupabaseOASIS: No avatar detail found for ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
+                if (rows[0].id != id.ToString("D"))
+                    throw new System.IO.InvalidDataException("Supabase returned a different avatar detail identity.");
                 result.Result = ParseAvatarDetailRow(rows[0]); result.IsLoaded = true; result.LoadedCount = 1;
                 result.Message = $"SupabaseOASIS: AvatarDetail loaded for ID '{id}'.";
             }
