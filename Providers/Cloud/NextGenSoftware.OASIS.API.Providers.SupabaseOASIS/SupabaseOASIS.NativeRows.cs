@@ -54,21 +54,25 @@ public partial class SupabaseOASIS
         return JsonSerializer.Deserialize<List<HolonRow>>(json, _jsonOpts)!;
     }
 
-    // One owner for point, parent, all-record and CQL completeness. PostgREST can
+    // PostgREST can
     // return fewer rows than requested; HTTP success alone is not a complete read.
-    private async Task<List<HolonRow>> ReadCompleteHolonRows(string filter, CancellationToken token)
+    private Task<List<HolonRow>> ReadCompleteHolonRows(string filter, CancellationToken token) =>
+        ReadCompleteRows($"oasis_holons?{filter}", ReadNativeRows, row => ParseHolon(row).Id, token);
+
+    private async Task<List<TRow>> ReadCompleteRows<TRow>(
+        string query, Func<string, List<TRow>> readPage, Func<TRow, Guid> getId, CancellationToken token)
     {
-        var rows = new List<HolonRow>();
+        var rows = new List<TRow>();
         var seen = new HashSet<Guid>();
         long? expectedTotal = null;
         do
         {
             using var request = new HttpRequestMessage(HttpMethod.Get,
-                $"{_baseUrl}/oasis_holons?{filter}&order=id.asc&limit=100&offset={rows.Count}");
+                $"{_baseUrl}/{query}&order=id.asc&limit=100&offset={rows.Count}");
             request.Headers.Add("Prefer", "count=exact");
             using var response = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, token).ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
-            var page = ReadNativeRows(await ReadBoundedBody(response, token).ConfigureAwait(false));
+            var page = readPage(await ReadBoundedBody(response, token).ConfigureAwait(false));
             if (!response.Content.Headers.TryGetValues("Content-Range", out var headers))
                 throw new InvalidDataException("Supabase omitted exact native result range.");
 
@@ -83,7 +87,7 @@ public partial class SupabaseOASIS
             expectedTotal = total;
             foreach (var row in page)
             {
-                if (!seen.Add(ParseHolon(row).Id))
+                if (!seen.Add(getId(row)))
                     throw new InvalidDataException("Supabase returned duplicate canonical identities.");
                 rows.Add(row);
             }
