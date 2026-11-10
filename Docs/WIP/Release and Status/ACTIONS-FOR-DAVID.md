@@ -542,3 +542,10 @@ Status: missing account/configuration information,2 November2026. David approved
 - **David action** Designate an empty disposable hosted Supabase project or grant access to one. Configure its project URL as OASIS_SUPABASE_CONFORMANCE_URL and its server-side test credential as OASIS_SUPABASE_CONFORMANCE_SERVICE_KEY through protected local configuration. Keep the credential out of Git and chat.
 - **Reason** The sync and async lifecycle suite writes and removes exact test records. The provider agent owns schema setup and verification once access is available.
 - **Context** [Provider completion continuation](../HyperDrive-Providers/PROVIDER_COMPLETION_CONTINUATION.md).
+
+### Retained Solana validator ledger access
+
+- **Status (2026-11-09)** Open. The current Windows host has no installed WSL distribution, and the historical Agave validator ledger is absent from the provider worktree.
+- **David action** If the original test laptop or a backup is available, identify the retained Agave ledger and its original deployment record. Share the location or grant read-only access through a protected channel. Keep signing and encryption material out of Git and chat.
+- **Reason** Historical finalized memo references must be checked against the original ledger to distinguish missing transaction history from publication failure. The provider agent owns read-only verification and any recovery work after access is available.
+- **Context** [Provider matrix](../HyperDrive-Providers/PROVIDER_MATRIX.md) and [read-only history probe](../../../Scripts/TestHosts/Get-SolanaHistoryAvailability.ps1).

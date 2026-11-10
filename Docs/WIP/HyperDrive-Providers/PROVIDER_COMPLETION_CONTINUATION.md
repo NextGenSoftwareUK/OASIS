@@ -70,3 +70,7 @@ SQL Server completed the remaining native core-storage lifecycle checks on the s
 
 - SQL Server async mode: 17 initial shared checks before owner export. Focused owner export and retained deletion continuation passed. Report SHA-256 0EA0DD5CA8C16B88843AD74E6707D854998FF48CEED567E38540CFFF1DC59C78. Journal SHA-256 3C5C893F9A22C5C23E830A8F8D11602841A0BA556C72F8CF2F0B1D06F1DBCA16.
 - SQL Server sync mode: 17 initial shared checks before owner export. Focused owner export and retained deletion continuation passed. Report SHA-256 4CE7902410A64E70551872F21F508EE5B74B8C6054FB0F908829D75531A5B698. Journal SHA-256 A8B9A62BA99F4A5CEDC4DCF61DDCC427AF34E44445D636319E17992DD7EA0878.
+
+### Solana memo acknowledgement
+
+The shipping Solana provider builds with a finalized memo read-back check before each chunk can be referenced and before the record commit can be acknowledged. The change preserves uncertain signatures for reconciliation. It has no new native runtime evidence and does not explain the historical absent memo. Preserve the original ledger if recovered. The owner access action is in the central list.
