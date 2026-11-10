@@ -69,8 +69,11 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
             
             try
             {
-                // Upload holon data to Pinata
-                var uploadResult = await UploadJsonToPinataAsync(holon, $"Holon_{holon.Id}");
+                ArgumentNullException.ThrowIfNull(holon);
+                var id = holon.Id == Guid.Empty ? Guid.NewGuid() : holon.Id;
+                var payload = Newtonsoft.Json.Linq.JObject.FromObject(holon);
+                payload[nameof(IHolon.Id)] = id;
+                var uploadResult = await UploadJsonToPinataAsync(payload, $"Holon_{id:D}");
                 
                 if (uploadResult.IsError || string.IsNullOrEmpty(uploadResult.Result))
                 {
@@ -79,6 +82,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
                 }
 
                 // Store the IPFS hash as the provider key
+                holon.Id = id;
                 holon.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
                 holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.PinataOASIS] = uploadResult.Result;
                 
