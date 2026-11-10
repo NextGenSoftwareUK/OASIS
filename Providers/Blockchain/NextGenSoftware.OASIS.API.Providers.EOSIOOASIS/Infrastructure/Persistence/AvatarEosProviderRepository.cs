@@ -175,6 +175,9 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
                 }
             });
 
+            if (string.IsNullOrWhiteSpace(pushTransactionResult))
+                throw new InvalidOperationException("EOSIO avatar deletion returned no transaction ID.");
+
             LoggingManager.Log(
                 "Avatar soft-deleting request was sent. " +
                 $"Received transaction hash response: {pushTransactionResult}. " +
@@ -210,6 +213,9 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
                     }
                 }
             });
+
+            if (string.IsNullOrWhiteSpace(pushTransactionResult))
+                throw new InvalidOperationException("EOSIO avatar deletion returned no transaction ID.");
 
             LoggingManager.Log(
                 "Avatar hard-deleting request was sent. " +
