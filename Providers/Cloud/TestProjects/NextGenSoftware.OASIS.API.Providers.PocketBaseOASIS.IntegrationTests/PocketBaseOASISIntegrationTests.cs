@@ -148,6 +148,22 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS.IntegrationTests
             Assert.AreEqual(detail.Username, loaded.Result.Username);
         }
 
+        [TestMethod]
+        public async Task RetainedAvatarDetailCanBeRead()
+        {
+            var configuredId = Environment.GetEnvironmentVariable("OASIS_POCKETBASE_RETAINED_DETAIL_ID");
+            if (string.IsNullOrWhiteSpace(configuredId))
+                Assert.Inconclusive("Supply the retained PocketBase fixture avatar-detail ID.");
+
+            Assert.IsTrue(Guid.TryParse(configuredId, out var id));
+            var loaded = await _provider.LoadAvatarDetailAsync(id);
+            Assert.IsFalse(loaded.IsError, loaded.Message);
+            Assert.IsTrue(loaded.IsLoaded);
+            Assert.AreEqual(1, loaded.LoadedCount);
+            Assert.AreEqual(id, loaded.Result.Id);
+            Assert.IsNotNull(loaded.Result.Chakras);
+        }
+
         [TestCleanup]
         public void Cleanup()
         {
