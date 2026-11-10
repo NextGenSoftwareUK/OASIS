@@ -496,8 +496,8 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
             {
                 var rec = await GetFirstAsync("oasis_holons", $"oasis_id='{id}'&&is_deleted=false");
                 var holon = ParseHolon(rec);
-                if (holon == null) { OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: No holon found for ID '{id}'."); return result; }
-                result.Result = holon; result.IsError = false; result.Message = $"PocketBaseOASIS: Holon loaded for ID '{id}'.";
+                if (holon == null) { OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: No holon found for ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
+                result.Result = holon; result.IsLoaded = true; result.LoadedCount = 1; result.Message = $"PocketBaseOASIS: Holon loaded for ID '{id}'.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: Error loading holon '{id}': {ex.Message}"); }
             return result;
