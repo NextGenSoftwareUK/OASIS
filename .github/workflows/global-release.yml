@@ -371,7 +371,7 @@ jobs:
         continue-on-error: true
         uses: NuGet/login@v1
         with:
-          user: OASISOmniverse
+          user: dellams
       - name: Verify the reviewed package set and publish it
         shell: pwsh
         env:
@@ -496,7 +496,7 @@ jobs:
         continue-on-error: true
         uses: NuGet/login@v1
         with:
-          user: OASISOmniverse
+          user: dellams
       - name: Pack and optionally publish the distinct Unity NuGet package
         shell: pwsh
         env:
