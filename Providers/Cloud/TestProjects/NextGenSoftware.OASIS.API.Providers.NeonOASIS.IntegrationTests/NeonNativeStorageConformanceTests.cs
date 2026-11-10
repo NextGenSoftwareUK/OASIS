@@ -91,7 +91,17 @@ public class NeonNativeStorageConformanceTests
 
         Assert.IsTrue(result.Succeeded, $"{result.CurrentCase}: {result.FailureType}");
         Assert.IsTrue(result.FixtureCleanupComplete);
-        await RequireEmptyTables(requireSchema: true);
+        try
+        {
+            await RequireEmptyTables(requireSchema: true);
+        }
+        catch
+        {
+            result.Succeeded = false;
+            result.FixtureCleanupComplete = false;
+            await Checkpoint(result);
+            throw;
+        }
         Assert.AreEqual(CoreStorageConformance.ChecksPerMode, result.Passed.Count);
         await Checkpoint(result);
     }
