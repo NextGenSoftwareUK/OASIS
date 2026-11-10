@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+10 November urgent disk cleanup: paused provider testing. Leased project cleanup removed 297,278,724 bytes of generated Debug binaries from BigQuery, Dragonfly, KeyDB, Neo4j integration and unit, and Typesense test projects. Reference outputs were excluded. No downloads, environments or raw reports were created for this cleanup. C: measured 40.77 GiB before and 41.09 GiB after on the shared machine.
+
 10 November Garnet fixture guard: Windows skipped the Linux-only case before backend activation. No runtime, database or raw report allocated. Leased project clean reduced private test outputs from 51,555,032 B to 852,532 B with reference cleanup disabled.
 
 10 November EdgeSQLite enumeration: temporary SQLite fixture and sidecars are removed by passing test disposal. No downloads or raw reports. Leased project clean reduced private test outputs from 41,226,988 B to 194,220 B. Reference outputs were excluded.
