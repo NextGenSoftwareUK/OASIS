@@ -14,12 +14,14 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS.IntegrationTests
 		[Fact]
 		public async Task SaveLoadRoundTrip_IPFS()
 		{
+			var endpoint = Environment.GetEnvironmentVariable("IPFSOASIS_TEST_API");
+			Assert.False(string.IsNullOrWhiteSpace(endpoint), "Configure the dedicated disposable Kubo test repository.");
 			var dna = new OASISDNA();
 			dna.OASIS.StorageProviders = new StorageProviderSettings
 			{
 				IPFSOASIS = new IPFSOASISSettings
 				{
-					ConnectionString = Environment.GetEnvironmentVariable("IPFSOASIS_TEST_API") ?? "http://127.0.0.1:5001"
+					ConnectionString = endpoint
 				}
 			};
 			var dnaPath = Path.Combine(Path.GetTempPath(), $"ipfsoasis-integration-{Guid.NewGuid():N}.json");
