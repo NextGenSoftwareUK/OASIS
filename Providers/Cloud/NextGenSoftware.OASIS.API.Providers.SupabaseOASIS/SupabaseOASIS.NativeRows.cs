@@ -58,26 +58,36 @@ public partial class SupabaseOASIS
     // return fewer rows than requested; HTTP success alone is not a complete read.
     private async Task<List<HolonRow>> ReadCompleteHolonRows(string filter, CancellationToken token)
     {
-        using var request = new HttpRequestMessage(HttpMethod.Get, $"{_baseUrl}/oasis_holons?{filter}");
-        request.Headers.Add("Prefer", "count=exact");
-        using var response = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, token);
-        response.EnsureSuccessStatusCode();
-        var rows = ReadNativeRows(await ReadBoundedBody(response, token));
-        if (!response.Content.Headers.TryGetValues("Content-Range", out var headers))
-            throw new InvalidDataException("Supabase omitted exact native result range.");
-        var header = headers.Single();
-        var match = Regex.Match(header, @"^(?:(\d+)-(\d+)|\*)/(\d+)$", RegexOptions.CultureInvariant);
-        if (!match.Success || !long.TryParse(match.Groups[3].Value, out var total) || total != rows.Count
-            || rows.Count == 0 && match.Groups[1].Success
-            || rows.Count != 0 && (!long.TryParse(match.Groups[1].Value, out var from) || from != 0
-                || !long.TryParse(match.Groups[2].Value, out var to) || to != rows.Count - 1))
-            throw new InvalidDataException("Supabase returned an incomplete or inconsistent native range.");
+        var rows = new List<HolonRow>();
         var seen = new HashSet<Guid>();
-        foreach (var row in rows)
+        long? expectedTotal = null;
+        do
         {
-            var holon = ParseHolon(row);
-            if (!seen.Add(holon.Id)) throw new InvalidDataException("Supabase returned duplicate canonical identities.");
-        }
+            using var request = new HttpRequestMessage(HttpMethod.Get,
+                $"{_baseUrl}/oasis_holons?{filter}&order=id.asc&limit=100&offset={rows.Count}");
+            request.Headers.Add("Prefer", "count=exact");
+            using var response = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, token).ConfigureAwait(false);
+            response.EnsureSuccessStatusCode();
+            var page = ReadNativeRows(await ReadBoundedBody(response, token).ConfigureAwait(false));
+            if (!response.Content.Headers.TryGetValues("Content-Range", out var headers))
+                throw new InvalidDataException("Supabase omitted exact native result range.");
+
+            var match = Regex.Match(headers.Single(), @"^(?:(\d+)-(\d+)|\*)/(\d+)$", RegexOptions.CultureInvariant);
+            if (!match.Success || !long.TryParse(match.Groups[3].Value, out var total)
+                || (expectedTotal.HasValue && total != expectedTotal.Value)
+                || (page.Count == 0 && (total != 0 || match.Groups[1].Success))
+                || (page.Count != 0 && (!long.TryParse(match.Groups[1].Value, out var from) || from != rows.Count
+                    || !long.TryParse(match.Groups[2].Value, out var to) || to != (long)rows.Count + page.Count - 1 || to >= total)))
+                throw new InvalidDataException("Supabase returned an incomplete or inconsistent native range.");
+
+            expectedTotal = total;
+            foreach (var row in page)
+            {
+                if (!seen.Add(ParseHolon(row).Id))
+                    throw new InvalidDataException("Supabase returned duplicate canonical identities.");
+                rows.Add(row);
+            }
+        } while (rows.Count < expectedTotal);
         return rows;
     }
 
