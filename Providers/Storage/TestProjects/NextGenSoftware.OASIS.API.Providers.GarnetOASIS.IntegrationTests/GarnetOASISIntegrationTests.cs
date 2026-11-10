@@ -219,6 +219,8 @@ public class GarnetOASISIntegrationTests
         var info = await server.InfoAsync("server");
         Assert.IsTrue(info.SelectMany(group => group).Any(pair => pair.Key == "garnet_version"));
         var database = native.GetDatabase();
+        Assert.AreEqual(1L, (long)await database.ScriptEvaluateAsync("return 1"),
+            "The dedicated Garnet fixture must enable Lua before any writes.");
         Assert.AreEqual(0L, await server.DatabaseSizeAsync(database.Database));
 
         var ownerId = Guid.NewGuid();
