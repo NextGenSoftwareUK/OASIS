@@ -17,7 +17,7 @@ spec.loader.exec_module(flow)
 PROVIDERS = {"MongoDBOASIS", "SQLLiteDBOASIS", "Neo4jOASIS"}
 
 
-def verify_response(response, expected, requested):
+def verify_response(response, expected, requested, *, providers=PROVIDERS):
     row = response.get("result") or {}
     if response.get("isError") or any(row.get(key) != expected[key] for key in ("id", "name", "version", "createdByAvatarId")):
         raise ValueError("Load did not return the acknowledged identity/content/version/owner.")
@@ -25,8 +25,8 @@ def verify_response(response, expected, requested):
     if not isinstance(encoded, str):
         raise ValueError("Deployed per-response route evidence is required; shared status is not a substitute.")
     route = json.loads(encoded)
-    if (route.get("RequestedProvider") != requested or route.get("InitialProvider") not in PROVIDERS or
-            route.get("ServingProvider") not in PROVIDERS or route.get("Succeeded") is not True or
+    if (route.get("RequestedProvider") != requested or route.get("InitialProvider") not in providers or
+            route.get("ServingProvider") not in providers or route.get("Succeeded") is not True or
             route.get("RequestedStrategy") != "Auto"):
         raise ValueError("Response-owned route does not match this request and enrolled sources.")
     if requested != "Default" and (route["InitialProvider"] != requested or route["ServingProvider"] != requested):
