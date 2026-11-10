@@ -44,6 +44,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Shared\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.csproj" />
     <PackageReference Include="Neo4j.Driver" Version="4.4.0" />
     <PackageReference Include="Neo4j.Driver.Simple" Version="4.3.2" />
   </ItemGroup>

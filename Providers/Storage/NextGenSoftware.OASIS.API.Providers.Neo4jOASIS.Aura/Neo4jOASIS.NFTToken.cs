@@ -1,3 +1,4 @@
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using System;
 using NextGenSoftware.OASIS.API.Core;
 using System.Collections.Generic;
@@ -173,54 +174,41 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
                     }
                 }
 
-                // Search using Neo4j Aura database
+                StoredRecordSearch.Validate(searchParams, version, maxChildDepth);
+                var groups = searchParams.SearchGroups ?? new List<ISearchGroupBase>();
+                var wantsAvatars = groups.Count == 0 || groups.Any(group => group.SearchAvatars || !group.SearchHolons);
+                var wantsHolons = groups.Count == 0 || groups.Any(group => group.SearchHolons || !group.SearchAvatars);
                 var searchResults = new SearchResults();
-                
-                // Search avatars
-                if (searchParams.SearchGroups != null && searchParams.SearchGroups.Any())
+                var holons = new List<IHolon>();
+                if (wantsHolons || searchParams.ParentId != Guid.Empty)
                 {
-                    var avatarsResult = await LoadAllAvatarsAsync();
-                    if (avatarsResult.IsError)
+                    var loaded = await LoadAllHolonsAsync().ConfigureAwait(false);
+                    if (loaded.IsError)
                     {
-                        OASISErrorHandling.HandleError(ref result, avatarsResult.Message, avatarsResult.Exception);
+                        OASISErrorHandling.HandleError(ref result, loaded.Message, loaded.Exception);
                         return result;
                     }
-
-                    if (avatarsResult.Result != null)
-                    {
-                        foreach (var avatar in avatarsResult.Result)
-                        {
-                            // Real Neo4j implementation: Add search result
-                            searchResults.SearchResultAvatars.Add(avatar);
-                        }
-                    }
+                    holons = loaded.Result.ToList();
                 }
-                
-                // Search holons
-                if (searchParams.SearchGroups != null && searchParams.SearchGroups.Any())
+                if (wantsAvatars)
                 {
-                    var holonsResult = await LoadAllHolonsAsync();
-                    if (holonsResult.IsError)
+                    var loaded = await LoadAllAvatarsAsync().ConfigureAwait(false);
+                    if (loaded.IsError)
                     {
-                        OASISErrorHandling.HandleError(ref result, holonsResult.Message, holonsResult.Exception);
+                        OASISErrorHandling.HandleError(ref result, loaded.Message, loaded.Exception);
                         return result;
                     }
-
-                    if (holonsResult.Result != null)
-                    {
-                        foreach (var holon in holonsResult.Result)
-                        {
-                            // Real Neo4j implementation: Add holon to search results
-                            searchResults.SearchResultHolons.Add(holon);
-                        }
-                    }
+                    searchResults.SearchResultAvatars.AddRange(
+                        loaded.Result.Where(row => StoredRecordSearch.Matches(row, true, searchParams, holons)));
                 }
-                
-                // Set total results count
+                if (wantsHolons)
+                    searchResults.SearchResultHolons.AddRange(
+                        holons.Where(row => StoredRecordSearch.Matches(row, false, searchParams, holons)));
+
                 searchResults.NumberOfResults = searchResults.SearchResultAvatars.Count + searchResults.SearchResultHolons.Count;
-                
                 result.Result = searchResults;
-                result.IsError = false;
+                result.IsLoaded = true;
+                result.LoadedCount = searchResults.NumberOfResults;
                 result.Message = $"Successfully searched Neo4j Aura database and found {searchResults.NumberOfResults} results";
             }
             catch (Exception ex)
