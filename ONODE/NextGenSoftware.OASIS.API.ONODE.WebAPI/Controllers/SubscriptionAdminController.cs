@@ -117,6 +117,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public Task<IActionResult> AppPoolUsage(string appId) =>
             AppAccountCall(_ => _repository.GetAppPoolUsageAsync(appId, HttpContext.RequestAborted));
 
+        /// <summary>The avatars using the most of a pooled app's quota this month, busiest first.</summary>
+        [HttpGet("app-accounts/{appId}/top-users")]
+        public Task<IActionResult> AppTopUsers(string appId, [FromQuery] int limit = 10) =>
+            AppAccountCall(_ => _repository.GetAppTopUsersAsync(appId, limit, HttpContext.RequestAborted));
+
         /// <summary>Change an app's plan and/or disable or re-enable it (a disabled app's credentials stop working at once).</summary>
         [HttpPost("app-accounts/{appId}")]
         public Task<IActionResult> UpdateAppAccount(string appId, [FromBody] AppAccountRequest request) =>

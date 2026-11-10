@@ -1652,6 +1652,24 @@
           }
         },
         {
+          "name": "Read an app pool's top users",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/subscription/admin/app-accounts/{{appId}}/top-users?limit=10",
+            "description": "The avatars using the most of the pool this UTC month, busiest first (limit 1 to 100)."
+          }
+        },
+        {
           "name": "Read an app pool's usage",
           "request": {
             "method": "GET",
