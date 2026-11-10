@@ -223,6 +223,12 @@ namespace NextGenSoftware.OASIS.API.Providers.WeaviateOASIS
             }
         }
 
+        private static void EnsureCurrentVersion(int version)
+        {
+            if (version != 0)
+                throw new NotSupportedException("Weaviate does not store historical versions.");
+        }
+
         private string? GetGraphQlId(JsonElement o) { if (o.TryGetProperty("_additional", out var a) && a.TryGetProperty("id", out var id)) return id.GetString(); return null; }
         private string? GetGraphQlStr(JsonElement o, string key) { if (o.TryGetProperty(key, out var v) && v.ValueKind == JsonValueKind.String) return v.GetString(); return null; }
         private bool GetGraphQlBool(JsonElement o, string key) { if (o.TryGetProperty(key, out var v)) return v.ValueKind == JsonValueKind.True; return false; }
@@ -293,6 +299,7 @@ namespace NextGenSoftware.OASIS.API.Providers.WeaviateOASIS
             var result = new OASISResult<IAvatar>();
             try
             {
+                EnsureCurrentVersion(version);
                 var obj = await GetObjectAsync("OasisAvatar", id.ToString());
                 if (obj == null || GetPropBool(obj.Value, "isDeleted")) { OASISErrorHandling.HandleError(ref result, $"WeaviateOASIS: No avatar for ID '{id}'."); return result; }
                 var avatar = Des<Avatar>(GetProp(obj.Value, "dataJson")); if (avatar == null) { OASISErrorHandling.HandleError(ref result, "WeaviateOASIS: Deserialise failed."); return result; }
@@ -315,7 +322,7 @@ namespace NextGenSoftware.OASIS.API.Providers.WeaviateOASIS
         public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string username, int version = 0)
         {
             var result = new OASISResult<IAvatar>();
-            try { var a = await ScanAvatarsAsync(o => GetGraphQlStr(o, "username") == username); if (a == null) { OASISErrorHandling.HandleError(ref result, $"WeaviateOASIS: No avatar for username '{username}'."); return result; } result.Result = a; result.IsError = false; result.Message = "WeaviateOASIS: Avatar loaded."; }
+            try { EnsureCurrentVersion(version); var a = await ScanAvatarsAsync(o => GetGraphQlStr(o, "username") == username); if (a == null) { OASISErrorHandling.HandleError(ref result, $"WeaviateOASIS: No avatar for username '{username}'."); return result; } result.Result = a; result.IsError = false; result.Message = "WeaviateOASIS: Avatar loaded."; }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"WeaviateOASIS: {ex.Message}"); }
             return result;
         }
@@ -325,7 +332,7 @@ namespace NextGenSoftware.OASIS.API.Providers.WeaviateOASIS
         public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string email, int version = 0)
         {
             var result = new OASISResult<IAvatar>();
-            try { var a = await ScanAvatarsAsync(o => GetGraphQlStr(o, "email") == email); if (a == null) { OASISErrorHandling.HandleError(ref result, $"WeaviateOASIS: No avatar for email '{email}'."); return result; } result.Result = a; result.IsError = false; result.Message = "WeaviateOASIS: Avatar loaded."; }
+            try { EnsureCurrentVersion(version); var a = await ScanAvatarsAsync(o => GetGraphQlStr(o, "email") == email); if (a == null) { OASISErrorHandling.HandleError(ref result, $"WeaviateOASIS: No avatar for email '{email}'."); return result; } result.Result = a; result.IsError = false; result.Message = "WeaviateOASIS: Avatar loaded."; }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"WeaviateOASIS: {ex.Message}"); }
             return result;
         }
@@ -339,6 +346,7 @@ namespace NextGenSoftware.OASIS.API.Providers.WeaviateOASIS
             var result = new OASISResult<IEnumerable<IAvatar>>();
             try
             {
+                EnsureCurrentVersion(version);
                 var objs = await GraphQlGetAsync("OasisAvatar", new[] { "isDeleted", "dataJson" });
                 var avatars = objs.Where(o => !GetGraphQlBool(o, "isDeleted")).Select(o => Des<Avatar>(GetGraphQlStr(o, "dataJson"))).Where(a => a != null).Cast<IAvatar>().ToList();
                 result.Result = avatars; result.IsLoaded = true; result.LoadedCount = avatars.Count; result.Message = $"WeaviateOASIS: Loaded {avatars.Count} avatar(s).";
@@ -400,6 +408,7 @@ namespace NextGenSoftware.OASIS.API.Providers.WeaviateOASIS
             var result = new OASISResult<IAvatarDetail>();
             try
             {
+                EnsureCurrentVersion(version);
                 var obj = await GetObjectAsync("OasisAvatarDetail", id.ToString());
                 if (obj == null) { OASISErrorHandling.HandleError(ref result, $"WeaviateOASIS: No detail for ID '{id}'."); return result; }
                 var d = Des<AvatarDetail>(GetProp(obj.Value, "dataJson")); if (d == null) { OASISErrorHandling.HandleError(ref result, "WeaviateOASIS: Deserialise failed."); return result; }
@@ -413,15 +422,15 @@ namespace NextGenSoftware.OASIS.API.Providers.WeaviateOASIS
 
         private async Task<AvatarDetail?> ScanDetailsAsync(Func<JsonElement, bool> pred) { var objs = await GraphQlGetAsync("OasisAvatarDetail", new[] { "username", "email", "dataJson" }); var m = objs.FirstOrDefault(pred); return m.ValueKind == JsonValueKind.Undefined ? null : Des<AvatarDetail>(GetGraphQlStr(m, "dataJson")); }
 
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string u, int version = 0) { var result = new OASISResult<IAvatarDetail>(); try { var d = await ScanDetailsAsync(o => GetGraphQlStr(o, "username") == u); if (d == null) { OASISErrorHandling.HandleError(ref result, $"WeaviateOASIS: No detail for username '{u}'."); return result; } result.Result = d; result.IsError = false; result.Message = "WeaviateOASIS: AvatarDetail loaded."; } catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"WeaviateOASIS: {ex.Message}"); } return result; }
+        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string u, int version = 0) { var result = new OASISResult<IAvatarDetail>(); try { EnsureCurrentVersion(version); var d = await ScanDetailsAsync(o => GetGraphQlStr(o, "username") == u); if (d == null) { OASISErrorHandling.HandleError(ref result, $"WeaviateOASIS: No detail for username '{u}'."); return result; } result.Result = d; result.IsError = false; result.Message = "WeaviateOASIS: AvatarDetail loaded."; } catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"WeaviateOASIS: {ex.Message}"); } return result; }
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string u, int version = 0) => LoadAvatarDetailByUsernameAsync(u, version).Result;
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string e, int version = 0) { var result = new OASISResult<IAvatarDetail>(); try { var d = await ScanDetailsAsync(o => GetGraphQlStr(o, "email") == e); if (d == null) { OASISErrorHandling.HandleError(ref result, $"WeaviateOASIS: No detail for email '{e}'."); return result; } result.Result = d; result.IsError = false; result.Message = "WeaviateOASIS: AvatarDetail loaded."; } catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"WeaviateOASIS: {ex.Message}"); } return result; }
+        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string e, int version = 0) { var result = new OASISResult<IAvatarDetail>(); try { EnsureCurrentVersion(version); var d = await ScanDetailsAsync(o => GetGraphQlStr(o, "email") == e); if (d == null) { OASISErrorHandling.HandleError(ref result, $"WeaviateOASIS: No detail for email '{e}'."); return result; } result.Result = d; result.IsError = false; result.Message = "WeaviateOASIS: AvatarDetail loaded."; } catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"WeaviateOASIS: {ex.Message}"); } return result; }
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string e, int version = 0) => LoadAvatarDetailByEmailAsync(e, version).Result;
 
         public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
         {
             var result = new OASISResult<IEnumerable<IAvatarDetail>>();
-            try { var objs = await GraphQlGetAsync("OasisAvatarDetail", new[] { "dataJson" }); var details = objs.Select(o => Des<AvatarDetail>(GetGraphQlStr(o, "dataJson"))).Where(d => d != null).Cast<IAvatarDetail>().ToList(); result.Result = details; result.IsLoaded = true; result.LoadedCount = details.Count; result.Message = $"WeaviateOASIS: Loaded {details.Count} detail(s)."; }
+            try { EnsureCurrentVersion(version); var objs = await GraphQlGetAsync("OasisAvatarDetail", new[] { "dataJson" }); var details = objs.Select(o => Des<AvatarDetail>(GetGraphQlStr(o, "dataJson"))).Where(d => d != null).Cast<IAvatarDetail>().ToList(); result.Result = details; result.IsLoaded = true; result.LoadedCount = details.Count; result.Message = $"WeaviateOASIS: Loaded {details.Count} detail(s)."; }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"WeaviateOASIS: {ex.Message}"); }
             return result;
         }
@@ -492,6 +501,7 @@ namespace NextGenSoftware.OASIS.API.Providers.WeaviateOASIS
             var result = new OASISResult<IHolon>();
             try
             {
+                EnsureCurrentVersion(version);
                 var obj = await GetObjectAsync("OasisHolon", id.ToString());
                 if (obj == null || GetPropBool(obj.Value, "isDeleted")) { OASISErrorHandling.HandleError(ref result, $"WeaviateOASIS: No holon for ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
                 var holon = Des<Holon>(GetProp(obj.Value, "dataJson")); if (holon == null) { OASISErrorHandling.HandleError(ref result, "WeaviateOASIS: Deserialise failed."); return result; }
@@ -510,6 +520,7 @@ namespace NextGenSoftware.OASIS.API.Providers.WeaviateOASIS
             var result = new OASISResult<IEnumerable<IHolon>>();
             try
             {
+                EnsureCurrentVersion(version);
                 var objs = await GraphQlGetAsync("OasisHolon", new[] { "isDeleted", "holonType", "dataJson" });
                 var holons = objs.Where(o => !GetGraphQlBool(o, "isDeleted") && (type == HolonType.All || GetGraphQlInt(o, "holonType") == (int)type)).Select(o => Des<Holon>(GetGraphQlStr(o, "dataJson"))).Where(h => h != null).Cast<IHolon>().ToList();
                 result.Result = holons; result.IsLoaded = true; result.LoadedCount = holons.Count; result.Message = $"WeaviateOASIS: Loaded {holons.Count} holon(s).";
@@ -527,6 +538,7 @@ namespace NextGenSoftware.OASIS.API.Providers.WeaviateOASIS
             var result = new OASISResult<IEnumerable<IHolon>>();
             try
             {
+                EnsureCurrentVersion(version);
                 var idStr = id.ToString();
                 var objs = await GraphQlGetAsync("OasisHolon", new[] { "parentHolonId", "isDeleted", "holonType", "dataJson" });
                 var holons = objs.Where(o => !GetGraphQlBool(o, "isDeleted") && GetGraphQlStr(o, "parentHolonId") == idStr && (type == HolonType.All || GetGraphQlInt(o, "holonType") == (int)type)).Select(o => Des<Holon>(GetGraphQlStr(o, "dataJson"))).Where(h => h != null).Cast<IHolon>().ToList();
@@ -565,7 +577,7 @@ namespace NextGenSoftware.OASIS.API.Providers.WeaviateOASIS
         public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             var result = new OASISResult<ISearchResults>();
-            try { string? q = searchParams.SearchGroups?.OfType<SearchTextGroup>().FirstOrDefault()?.SearchQuery?.ToLower(); var all = await LoadAllHolonsAsync(); if (all.IsError) throw new InvalidOperationException(all.Message, all.Exception); var holons = all.Result?.ToList() ?? new List<IHolon>(); if (!string.IsNullOrEmpty(q)) holons = holons.Where(h => h.Name?.ToLower().Contains(q) == true || h.Description?.ToLower().Contains(q) == true).ToList(); result.Result = new SearchResults { SearchResultHolons = holons, NumberOfResults = holons.Count }; result.IsError = false; result.Message = $"WeaviateOASIS: Found {holons.Count} result(s)."; }
+            try { string? q = searchParams.SearchGroups?.OfType<SearchTextGroup>().FirstOrDefault()?.SearchQuery?.ToLower(); var all = await LoadAllHolonsAsync(version: version); if (all.IsError) throw new InvalidOperationException(all.Message, all.Exception); var holons = all.Result?.ToList() ?? new List<IHolon>(); if (!string.IsNullOrEmpty(q)) holons = holons.Where(h => h.Name?.ToLower().Contains(q) == true || h.Description?.ToLower().Contains(q) == true).ToList(); result.Result = new SearchResults { SearchResultHolons = holons, NumberOfResults = holons.Count }; result.IsError = false; result.Message = $"WeaviateOASIS: Found {holons.Count} result(s)."; }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
             return result;
         }
