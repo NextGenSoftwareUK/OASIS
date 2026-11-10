@@ -90,7 +90,7 @@ Separate Web4Site source follow-up (10 November): 4f823fd and 6e0cd9a update hom
 
 Neon console harness fa22560447 compiled under the provider build lease with 0 errors and 1136 warnings. It requires explicit disposable Neon configuration. Hosted lifecycle verification remains open.
 
-Development batch candidate 28799a9db3 (integration/neon-ipfs-fixture-guards) is based on 88cfc84a82. Git range-diff confirms both patches match the separately compiled IPFS 346cd105a9 and Neon fa22560447 changes. Railway manifest and whitespace checks passed. The batch awaits Development integration. Hosted Neon and live Kubo gates remain open.
+Development batch candidate 899c130ce6 (integration/neon-ipfs-fixture-guards) includes Development aeca30128e and changes only four test and harness files. It carries the separately compiled IPFS, Neon, Convex and Supabase fixture guards. Whitespace and Railway manifest checks passed. The batch awaits scoped Development integration. Hosted Neon, Convex, Supabase and live Kubo verification remain open.
 
 Convex console harness 1a0f239a77 compiled under the provider build lease with 0 errors and 1139 warnings. The harness requires an explicit disposable deployment URL and deploy key. Hosted verification remains open.
 
