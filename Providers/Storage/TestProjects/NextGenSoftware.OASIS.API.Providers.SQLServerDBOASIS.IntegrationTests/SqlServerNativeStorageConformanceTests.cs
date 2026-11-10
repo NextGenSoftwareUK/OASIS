@@ -11,6 +11,58 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLServerDBOASIS.IntegrationTests;
 public class SqlServerNativeStorageConformanceTests
 {
     [TestMethod]
+    public async Task HistoricalCollectionsUseStoredParent()
+    {
+        if (Environment.GetEnvironmentVariable("OASIS_SQLSERVER_HISTORY_COLLECTION") != "1")
+            Assert.Inconclusive("Enable only for the dedicated LocalDB provider fixture.");
+
+        const string connection = @"Server=(localdb)\MSSQLLocalDB;Database=oasis_hyperdrive_provider_test;Integrated Security=true;TrustServerCertificate=true";
+        var provider = new SQLServerDBOASIS(connection);
+        var originalParent = Guid.NewGuid();
+        var newParent = Guid.NewGuid();
+        var child = new NextGenSoftware.OASIS.API.Core.Holons.Holon
+        {
+            Id = Guid.NewGuid(), ParentHolonId = originalParent, Name = "Historical child", Version = 1
+        };
+        var saved = false;
+        try
+        {
+            var active = await provider.ActivateProviderAsync();
+            Assert.IsTrue(active.Result && !active.IsError, active.Message);
+            var first = await provider.SaveHolonAsync(child, saveChildren: false);
+            Assert.IsTrue(first.IsSaved && !first.IsError, first.Message);
+            saved = true;
+            child.ParentHolonId = newParent;
+            child.Version = 2;
+            var moved = await provider.SaveHolonAsync(child, saveChildren: false);
+            Assert.IsTrue(moved.IsSaved && !moved.IsError, moved.Message);
+
+            var historical = await provider.LoadHolonsForParentAsync(originalParent, loadChildren: false, version: 1);
+            Assert.IsTrue(historical.IsLoaded && !historical.IsError, historical.Message);
+            Assert.AreEqual(child.Id, historical.Result.Single().Id);
+            var oldParent = await provider.LoadHolonsForParentAsync(originalParent, loadChildren: false);
+            Assert.IsTrue(oldParent.IsLoaded && !oldParent.IsError, oldParent.Message);
+            Assert.AreEqual(0, oldParent.LoadedCount);
+            var current = await provider.LoadHolonsForParentAsync(newParent.ToString("D"), loadChildren: false);
+            Assert.IsTrue(current.IsLoaded && !current.IsError, current.Message);
+            Assert.AreEqual(child.Id, current.Result.Single().Id);
+
+            var all = await provider.LoadAllHolonsAsync(loadChildren: false, version: 1);
+            Assert.IsTrue(all.IsLoaded && !all.IsError, all.Message);
+            Assert.AreEqual(originalParent, all.Result.Single(row => row.Id == child.Id).ParentHolonId);
+        }
+        finally
+        {
+            if (saved)
+            {
+                var deleted = await provider.DeleteHolonWithSoftDeleteAsync(child.Id, false);
+                Assert.IsTrue(deleted.IsDeleted && !deleted.IsError, deleted.Message);
+            }
+            await provider.DeActivateProviderAsync();
+        }
+    }
+
+    [TestMethod]
     public async Task StaleChildRollsBackParentAndArchive()
     {
         if (Environment.GetEnvironmentVariable("OASIS_SQLSERVER_HISTORY_ROLLBACK") != "1")

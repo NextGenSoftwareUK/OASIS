@@ -259,3 +259,5 @@ SQL Server HolonHistoryRetainsSupersededSnapshot passed on dedicated LocalDB (1 
 SQL Server MetadataReadsSelectArchivedSnapshot passed on the dedicated LocalDB fixture (1 passed, 0 failed, 0 skipped). Both shipping metadata overloads selected the archived value at version 1; the current view excluded it after version 2 committed. Hard cleanup left zero archive rows for the fixture, and LocalDB stopped. Earlier tests were excluded.
 
 SQL Server StaleChildRollsBackParentAndArchive passed on the dedicated LocalDB fixture (1 passed, 0 failed, 0 skipped). A stale child caused the whole graph save to fail. The parent retained version 1 and its original name, and a native query found zero archive rows for that parent. Both fixture records were hard-deleted and LocalDB stopped.
+
+SQL Server HistoricalCollectionsUseStoredParent passed on dedicated LocalDB (1 passed, 0 failed, 0 skipped). Version 1 listed the moved child under its original parent by GUID and in the full historical collection. Current listings excluded the old parent and found the child under its new parent by provider key. The child fixture was hard-deleted and LocalDB stopped.
