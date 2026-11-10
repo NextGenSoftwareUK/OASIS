@@ -31,6 +31,77 @@ public class ConvexStorageConformanceTests
         return Path.Combine(root.FullName, "TestResults", "ProviderConformanceCurrent", "ConvexOASIS");
     }
 
+    [TestMethod]
+    public async Task InspectInterruptedSyncCleanup()
+    {
+        var action = Environment.GetEnvironmentVariable("OASIS_CONVEX_RECOVERY_ACTION");
+        if (action is not ("inspect-sync-cleanup" or "cleanup-sync"))
+            Assert.Inconclusive("Explicit interrupted sync cleanup inspection required.");
+
+        var config = Configuration();
+        var pending = Path.Combine(Work(), "sync", "report.json.next");
+        var report = JsonSerializer.Deserialize<CoreStorageConformance.Report>(await File.ReadAllBytesAsync(pending))!;
+        Assert.AreEqual("ConvexOASIS", report.Provider);
+        Assert.AreEqual(CoreStorageConformance.Suite, report.SuiteVersion);
+        Assert.AreEqual("native", report.Mode);
+        Assert.IsFalse(report.Succeeded);
+        Assert.AreEqual(22, report.Passed.Count);
+        Assert.AreEqual(4, report.HardCleanedFixtures.Count);
+        Assert.IsTrue(report.CurrentCase.StartsWith("fixture-hard-cleanup-", StringComparison.Ordinal));
+
+        var holonIds = new[] { report.RootId, report.ChildId, report.ImportId }.Concat(report.BatchIds).ToHashSet();
+        Assert.IsTrue(report.HardCleanedFixtures.All(holonIds.Contains));
+        var remainingId = holonIds.Except(report.HardCleanedFixtures).Single();
+        var marker = "conformance-" + report.OwnerId.ToString("N");
+        static string Encode(string value) => Convert.ToBase64String(Encoding.UTF8.GetBytes(value))
+            .TrimEnd('=').Replace('+', '-').Replace('/', '_');
+        var expected = new HashSet<string>(StringComparer.Ordinal)
+        {
+            $"oasis/avatar/{report.OwnerId:N}",
+            $"oasis/avatardetail/{report.OwnerId:N}",
+            "oasis/avatar-username/" + Encode(marker),
+            "oasis/avatar-email/" + Encode(marker + "@example.invalid"),
+            $"oasis/holon/{remainingId:N}"
+        };
+
+        using var http = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false });
+        var native = new ConvexRecordBackend(config.Url, config.Admin, http);
+        var key = Convert.FromBase64String(Required("OASIS_CONVEX_CONFORMANCE_STORAGE_KEY"));
+        try
+        {
+            using var backend = PersistedPrivateKeyValueBackend.Create(native, () => key.ToArray());
+            var logical = await backend.ListKeysAsync("");
+            Assert.IsTrue(expected.SetEquals(logical), "Native storage contains unexpected logical records.");
+            Assert.AreEqual(expected.Count, (await native.ListKeysAsync("")).Count);
+            var conditional = (IConditionalKeyValueBackend)backend;
+            var revisions = new Dictionary<string, string>(StringComparer.Ordinal);
+            foreach (var logicalKey in logical.Order(StringComparer.Ordinal))
+            {
+                var observed = await conditional.ReadObservedAsync(logicalKey);
+                Assert.IsNotNull(observed);
+                revisions.Add(logicalKey, observed.Revision);
+            }
+
+            var intentPath = Path.Combine(Work(), "sync", "cleanup-intent.json");
+            if (action == "inspect-sync-cleanup")
+            {
+                await using var intent = new FileStream(intentPath, FileMode.CreateNew, FileAccess.Write, FileShare.None);
+                await JsonSerializer.SerializeAsync(intent, revisions);
+                intent.Flush(flushToDisk: true);
+                return;
+            }
+
+            var original = JsonSerializer.Deserialize<Dictionary<string, string>>(await File.ReadAllBytesAsync(intentPath))!;
+            Assert.IsTrue(original.Count == revisions.Count && original.All(pair =>
+                revisions.TryGetValue(pair.Key, out var revision) && revision == pair.Value),
+                "The inspected fixture changed. Preserve its records.");
+            foreach (var pair in original)
+                await conditional.DeleteUnchangedAsync(pair.Key, pair.Value);
+            Assert.AreEqual(0, (await native.ListKeysAsync("")).Count);
+        }
+        finally { CryptographicOperations.ZeroMemory(key); }
+    }
+
     [DataTestMethod, DataRow(false), DataRow(true)]
     public async Task ShippingProviderPassesTheSharedStorageSuite(bool synchronous)
     {
