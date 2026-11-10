@@ -45,3 +45,5 @@ EdgeSQLite ConcurrentLocalMutationsReceiveUniqueContiguousDeviceSequences passed
 Four additional file-backed EdgeSQLite checks passed in the same compiled cohort (4 passed, 0 failed, 0 skipped, 336 ms). Completed legacy outbox entries retain stable version identity, unresolved legacy entries fail closed, conflicting duplicate operations roll back local state and sequence, and identical retries preserve the original sequence. Earlier restart and concurrency cases were excluded.
 
 Two further file-backed EdgeSQLite cases passed in the same cohort (2 passed, 0 failed, 0 skipped, 180 ms). DeviceSequenceIsMonotonicAndDurable verifies the counter survives reopening. ChainedOfflineEditsPreserveClientGeneratedVersionHistory verifies retained client version IDs and their ancestry. Prior cases were excluded.
+
+EdgeSQLite focused file-backed enumeration passed 1/1 on 10 November. The store returned both active holons, excluded the tombstone by default and included it when requested. This exercises the local store; the canonical SQLite baseline was not replayed.
