@@ -190,6 +190,33 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS.IntegrationTests
             Assert.AreEqual(0, repeated.DeletedCount);
         }
 
+        [TestMethod]
+        public async Task UsernameLookupPreservesQuotes()
+        {
+            var marker = Guid.NewGuid().ToString("N");
+            var avatar = new Avatar
+            {
+                Id = Guid.NewGuid(),
+                Username = $"O'Brien \"{marker}\"",
+                Email = $"{marker}@example.test"
+            };
+
+            var saved = await _provider.SaveAvatarAsync(avatar);
+            Assert.IsTrue(saved.IsSaved, saved.Message);
+            try
+            {
+                var loaded = await _provider.LoadAvatarByUsernameAsync(avatar.Username);
+                Assert.IsTrue(loaded.IsLoaded, loaded.Message);
+                Assert.AreEqual(avatar.Id, loaded.Result.Id);
+                Assert.AreEqual(avatar.Username, loaded.Result.Username);
+            }
+            finally
+            {
+                var deleted = await _provider.DeleteAvatarAsync(avatar.Id, softDelete: false);
+                Assert.IsTrue(deleted.IsDeleted, deleted.Message);
+            }
+        }
+
         [TestCleanup]
         public void Cleanup()
         {
