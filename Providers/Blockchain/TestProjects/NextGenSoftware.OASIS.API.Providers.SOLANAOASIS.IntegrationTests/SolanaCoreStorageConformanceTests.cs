@@ -72,6 +72,16 @@ public class SolanaCoreStorageConformanceTests
         using var lease = new FileStream(Path.Combine(Path.GetDirectoryName(work)!, "environment.lock"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
         var reportPath = Path.Combine(work, "report.json");
         Assert.IsFalse(File.Exists(reportPath) || File.Exists(reportPath + ".next"), "Preserve prior fixture/report before another submission.");
+
+        var otherReportPath = Path.Combine(Path.GetDirectoryName(work)!, sync ? "async" : "sync", "report.json");
+        Assert.IsFalse(File.Exists(otherReportPath + ".next"), "Reconcile the other mode's interrupted checkpoint first.");
+        if (File.Exists(otherReportPath))
+        {
+            await using var prior = File.OpenRead(otherReportPath);
+            var priorReport = await JsonSerializer.DeserializeAsync<CoreStorageConformance.Report>(prior);
+            Assert.IsTrue(priorReport?.FixtureCleanupComplete == true,
+                "Reconcile the other mode's fixture before submitting to Solana.");
+        }
         async Task Checkpoint(CoreStorageConformance.Report report)
         {
             await using (var file = new FileStream(reportPath + ".next", FileMode.CreateNew, FileAccess.Write, FileShare.None))
