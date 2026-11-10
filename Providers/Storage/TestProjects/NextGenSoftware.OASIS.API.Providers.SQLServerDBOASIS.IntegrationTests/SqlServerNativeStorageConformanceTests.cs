@@ -11,6 +11,57 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLServerDBOASIS.IntegrationTests;
 public class SqlServerNativeStorageConformanceTests
 {
     [TestMethod]
+    public async Task StaleChildRollsBackParentAndArchive()
+    {
+        if (Environment.GetEnvironmentVariable("OASIS_SQLSERVER_HISTORY_ROLLBACK") != "1")
+            Assert.Inconclusive("Enable only for the dedicated LocalDB provider fixture.");
+
+        const string connection = @"Server=(localdb)\MSSQLLocalDB;Database=oasis_hyperdrive_provider_test;Integrated Security=true;TrustServerCertificate=true";
+        var provider = new SQLServerDBOASIS(connection);
+        var parent = new NextGenSoftware.OASIS.API.Core.Holons.Holon { Id = Guid.NewGuid(), Name = "Original", Version = 1 };
+        var child = new NextGenSoftware.OASIS.API.Core.Holons.Holon { Id = Guid.NewGuid(), Name = "Child", Version = 2 };
+        parent.Children.Add(child);
+        var saved = false;
+        try
+        {
+            var active = await provider.ActivateProviderAsync();
+            Assert.IsTrue(active.Result && !active.IsError, active.Message);
+            var initial = await provider.SaveHolonAsync(parent);
+            Assert.IsTrue(initial.IsSaved && !initial.IsError, initial.Message);
+            Assert.AreEqual(2, initial.SavedCount);
+            saved = true;
+
+            parent.Version = 2;
+            parent.Name = "Must roll back";
+            child.Version = 1;
+            var rejected = await provider.SaveHolonAsync(parent);
+            Assert.IsTrue(rejected.IsError && !rejected.IsSaved, rejected.Message);
+            var current = await provider.LoadHolonAsync(parent.Id, loadChildren: false);
+            Assert.IsTrue(current.IsLoaded && !current.IsError, current.Message);
+            Assert.AreEqual("Original", current.Result.Name);
+            Assert.AreEqual(1, current.Result.Version);
+
+            await using var inspection = new SqlConnection(connection);
+            await inspection.OpenAsync();
+            await using var cmd = new SqlCommand("SELECT COUNT(*) FROM OASISHolonHistory WHERE Id=@Id", inspection);
+            cmd.Parameters.AddWithValue("@Id", parent.Id);
+            Assert.AreEqual(0, (int)(await cmd.ExecuteScalarAsync())!);
+        }
+        finally
+        {
+            if (saved)
+            {
+                foreach (var id in new[] { child.Id, parent.Id })
+                {
+                    var deleted = await provider.DeleteHolonWithSoftDeleteAsync(id, false);
+                    Assert.IsTrue(deleted.IsDeleted && !deleted.IsError, deleted.Message);
+                }
+            }
+            await provider.DeActivateProviderAsync();
+        }
+    }
+
+    [TestMethod]
     public async Task HolonHistoryRetainsSupersededSnapshot()
     {
         if (Environment.GetEnvironmentVariable("OASIS_SQLSERVER_HISTORY") != "1")

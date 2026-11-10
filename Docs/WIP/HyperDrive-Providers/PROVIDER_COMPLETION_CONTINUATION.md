@@ -257,3 +257,5 @@ SQL Server historical storage boundary: SaveHolonAsync writes every graph node i
 SQL Server HolonHistoryRetainsSupersededSnapshot passed on dedicated LocalDB (1 passed, 0 failed, 0 skipped). The shipping provider archived version 1 when version 2 committed, read version 1 by GUID and version 2 by provider key, then acknowledged hard deletion. A native query confirmed zero archive rows for the fixture. LocalDB stopped. Historical metadata and rollback checks remain open.
 
 SQL Server MetadataReadsSelectArchivedSnapshot passed on the dedicated LocalDB fixture (1 passed, 0 failed, 0 skipped). Both shipping metadata overloads selected the archived value at version 1; the current view excluded it after version 2 committed. Hard cleanup left zero archive rows for the fixture, and LocalDB stopped. Earlier tests were excluded.
+
+SQL Server StaleChildRollsBackParentAndArchive passed on the dedicated LocalDB fixture (1 passed, 0 failed, 0 skipped). A stale child caused the whole graph save to fail. The parent retained version 1 and its original name, and a native query found zero archive rows for that parent. Both fixture records were hard-deleted and LocalDB stopped.
