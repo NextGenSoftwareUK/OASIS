@@ -51,7 +51,7 @@ public class SupabaseNativeStorageConformanceTests
     [TestMethod]
     public async Task DuplicateActiveAvatarsBlockLookupExportAndDeletion()
     {
-        if (Environment.GetEnvironmentVariable("OASIS_SUPABASE_STORAGE_CONFORMANCE") != "1")
+        if (Environment.GetEnvironmentVariable("OASIS_SUPABASE_DUPLICATE_IDENTITY_TEST") != "1")
             Assert.Inconclusive("Enable only for a dedicated hosted Supabase test project.");
 
         var url = Environment.GetEnvironmentVariable("OASIS_SUPABASE_CONFORMANCE_URL");
@@ -87,8 +87,10 @@ public class SupabaseNativeStorageConformanceTests
             var username = await provider.LoadAvatarByUsernameAsync(marker);
             var address = await provider.LoadAvatarByEmailAsync(email);
             var exported = await provider.ExportAllDataForAvatarByUsernameAsync(marker);
+            var exportedByEmail = await provider.ExportAllDataForAvatarByEmailAsync(email);
             var deleted = await provider.DeleteAvatarByEmailAsync(email, softDelete: false);
-            foreach (var code in new[] { username.ErrorCode, address.ErrorCode, exported.ErrorCode, deleted.ErrorCode })
+            var deletedByUsername = await provider.DeleteAvatarByUsernameAsync(marker, softDelete: false);
+            foreach (var code in new[] { username.ErrorCode, address.ErrorCode, exported.ErrorCode, exportedByEmail.ErrorCode, deleted.ErrorCode, deletedByUsername.ErrorCode })
                 Assert.AreEqual(Common.OASISResultErrorCodes.AmbiguousIdentity, code);
 
             foreach (var id in savedIds)
