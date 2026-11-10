@@ -1516,7 +1516,12 @@
             "url": "{{web4BaseUrl}}/api/subscription/admin/plan-grant",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"planId\": \"enterprise\",\n  \"reason\": \"Internal testing account\",\n  \"expiresAtUtc\": null\n}"
+              "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"planId\": \"enterprise\",\n  \"reason\": \"Internal testing account\",\n  \"expiresAtUtc\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "description": "planId is free, bronze, silver, gold or enterprise. 409 if the avatar has an active Stripe subscription. Granting free reverts the avatar. expiresAtUtc is optional (at most 10 years)."
           }
@@ -1555,7 +1560,12 @@
             "url": "{{web4BaseUrl}}/api/subscription/admin/app-accounts",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"appId\": \"{{appId}}\",\n  \"name\": \"PIPER\",\n  \"planId\": \"enterprise\",\n  \"reason\": \"PIPER production app\"\n}"
+              "raw": "{\n  \"appId\": \"{{appId}}\",\n  \"name\": \"PIPER\",\n  \"planId\": \"enterprise\",\n  \"reason\": \"PIPER production app\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "description": "The response contains apiKey exactly once. appId is 3 to 40 lowercase letters, digits or hyphens."
           }
@@ -1577,7 +1587,12 @@
             "url": "{{web4BaseUrl}}/api/subscription/admin/app-accounts/{{appId}}/rotate-key",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"reason\": \"Scheduled key rotation\"\n}"
+              "raw": "{\n  \"reason\": \"Scheduled key rotation\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "description": "Issues a new key and invalidates the old one at once."
           }
@@ -1599,7 +1614,12 @@
             "url": "{{web4BaseUrl}}/api/subscription/admin/app-accounts/{{appId}}",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"planId\": \"enterprise\",\n  \"status\": \"active\",\n  \"reason\": \"Plan review\"\n}"
+              "raw": "{\n  \"planId\": \"enterprise\",\n  \"status\": \"active\",\n  \"reason\": \"Plan review\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
             "description": "Provide planId, status (active or disabled), or both. A disabled app's credentials stop working at once."
           }
