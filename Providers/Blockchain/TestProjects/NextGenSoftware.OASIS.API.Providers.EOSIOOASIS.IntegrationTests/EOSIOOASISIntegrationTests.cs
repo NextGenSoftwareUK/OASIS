@@ -14,8 +14,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.IntegrationTests
         [TestInitialize]
         public async Task Setup()
         {
-            string endpoint = Environment.GetEnvironmentVariable("OASIS_ANTELOPE_ENDPOINT") ?? "http://127.0.0.1:8888/";
-            string account = Environment.GetEnvironmentVariable("OASIS_ANTELOPE_ACCOUNT") ?? "eosio";
+            string endpoint = Environment.GetEnvironmentVariable("OASIS_ANTELOPE_ENDPOINT") ?? throw new AssertInconclusiveException("OASIS_ANTELOPE_ENDPOINT must be the dedicated native test endpoint.");
+            string account = Environment.GetEnvironmentVariable("OASIS_ANTELOPE_ACCOUNT") ?? throw new AssertInconclusiveException("OASIS_ANTELOPE_ACCOUNT must identify the dedicated test contract.");
             string chainId = Environment.GetEnvironmentVariable("OASIS_ANTELOPE_CHAIN_ID")
                 ?? throw new AssertInconclusiveException("OASIS_ANTELOPE_CHAIN_ID must identify a running Antelope chain.");
             string privateKey = Environment.GetEnvironmentVariable("OASIS_ANTELOPE_PRIVATE_KEY")
@@ -67,7 +67,9 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.IntegrationTests
             };
 
             var saved = await _provider.SaveHolonAsync(holon);
-            Assert.IsFalse(saved.IsError, saved.Message);
+            Assert.IsFalse(saved.IsError, saved.Exception?.GetType().FullName);
+            Assert.IsTrue(saved.IsSaved);
+            Assert.AreEqual(1, saved.SavedCount);
 
             var loaded = await _provider.LoadHolonAsync(holon.Id);
             Assert.IsFalse(loaded.IsError, loaded.Message);
@@ -75,7 +77,9 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.IntegrationTests
 
             holon.Description = "Updated on chain";
             var updated = await _provider.SaveHolonAsync(holon);
-            Assert.IsFalse(updated.IsError, updated.Message);
+            Assert.IsFalse(updated.IsError, updated.Exception?.GetType().FullName);
+            Assert.IsTrue(updated.IsSaved);
+            Assert.AreEqual(1, updated.SavedCount);
             loaded = await _provider.LoadHolonAsync(holon.Id);
             Assert.AreEqual("Updated on chain", loaded.Result.Description);
 

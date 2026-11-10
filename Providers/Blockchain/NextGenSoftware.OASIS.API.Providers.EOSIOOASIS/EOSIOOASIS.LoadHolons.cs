@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -515,9 +515,9 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 var holonInfo = OasisJson.Serialize<object>(holon);
 
-                // Check if avatar with such Id exists, if yes - perform updating, otherwise perform creating
-                var existAvatar = await _holonRepository.Read(holon.Id);
-                if (existAvatar != null)
+                // The existing chain row determines whether to create or update the holon.
+                var existingHolon = await _holonRepository.Read(holon.Id);
+                if (existingHolon != null)
                 {
                     await _holonRepository.Update(new HolonDto
                     {
@@ -538,10 +538,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
                 result.Result = holon;
                 result.IsSaved = true;
+                result.SavedCount = 1;
                 result.IsError = false;
             }
             catch (Exception ex)
             {
+                result.Exception = ex;
                 OASISErrorHandling.HandleError(ref result, GetEOSExceptionDetails(ex));
             }
 

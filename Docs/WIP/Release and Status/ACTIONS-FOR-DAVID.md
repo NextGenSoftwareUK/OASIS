@@ -563,3 +563,10 @@ Status: missing account/configuration information,2 November2026. David approved
 - **David action** If the original testnet fixture is available, identify its protected environment and authorize access to it. If the existing testnet identity still falls below the runner reserve after read-only verification, use only free testnet funds. Keep credentials and signing material out of Git and chat.
 - **Reason** Native Hedera storage verification must reconcile the original deployment and satisfy the existing query budget before paid testnet operations. The provider agent owns those checks.
 - **Context** [Hedera native evidence](../COSMIC%20ORM/HEDERA_CQL_MVP.md).
+
+### EOSIO / Antelope native write acceptance
+
+- **Status (9 November 2026)** Open. The provider build passed. Public chain reads do not exercise signed contract writes.
+- **Action** If a retained Antelope test deployment exists, identify its RPC endpoint, chain ID and deployed OASIS contract account. Make a signer authorized for that test account available through the existing secret channel. Keep credentials out of the repo and chat.
+- **Reason** The native lifecycle test requires `OASIS_ANTELOPE_ENDPOINT`, `OASIS_ANTELOPE_CHAIN_ID`, `OASIS_ANTELOPE_ACCOUNT` and `OASIS_ANTELOPE_PRIVATE_KEY`. The provider agent owns fixture validation and test execution.
+- **Context** [EOSIO native integration test](../../../Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.IntegrationTests/EOSIOOASISIntegrationTests.cs).

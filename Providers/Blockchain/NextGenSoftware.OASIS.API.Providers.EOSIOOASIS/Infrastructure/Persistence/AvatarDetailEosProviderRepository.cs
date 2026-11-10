@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -78,8 +78,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
 
             LoggingManager.Log(
                 "Avatar detail request was sent. " +
-                $"Received transaction hash response: {pushTransactionResult}. " +
-                $"Request sent: {JsonConvert.SerializeObject(entity)}", LogType.Info);
+                $"Received transaction hash response: {pushTransactionResult}.", LogType.Info);
         }
 
         public async Task<AvatarDetailDto> Read(Guid id)
