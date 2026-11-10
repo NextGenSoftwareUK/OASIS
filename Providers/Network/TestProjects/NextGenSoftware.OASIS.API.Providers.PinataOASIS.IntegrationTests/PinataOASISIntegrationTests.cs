@@ -59,6 +59,13 @@ public class PinataOASISIntegrationTests
                 {
                     var deleted = await provider.DeleteHolonAsync(providerKey);
                     Assert.IsFalse(deleted.IsError, deleted.Exception?.GetType().FullName);
+                    Assert.IsTrue(deleted.IsDeleted);
+                    Assert.AreEqual(1, deleted.DeletedCount);
+
+                    var absent = await provider.LoadHolonAsync(holon.Id, loadChildren: false);
+                    Assert.IsFalse(absent.IsError, absent.Exception?.GetType().FullName);
+                    Assert.IsFalse(absent.IsLoaded);
+                    Assert.IsNull(absent.Result);
                 }
             }
             finally
