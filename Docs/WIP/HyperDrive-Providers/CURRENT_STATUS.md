@@ -125,3 +125,5 @@ Candidate 9fd03698d3 also keeps Convex and Supabase credentials bound to their c
 Remote ONODE candidate cefa7d754a extends the compiled BootLoader baseline with credential binding and single/batch registration result handling. Live endpoint verification must cover an invalid batch rejected before registration and a valid mixed-outcome batch reporting failed provider types without exposing provider objects. No candidate CI run exists yet. Local builds remain deferred for disk recovery.
 
 Candidate cefa7d754a passed in-memory Roslyn 5.0 syntax parsing for all four changed C# files. This check produced no build outputs. Type checking, full compilation and live verification remain open.
+
+Current remote verification candidate: 8099fb6697 includes the Supabase production redirect guard. Its five C# files passed in-memory syntax parsing and all three new BootLoader references resolved. Development remains at 1f1021ec6a. The remote build and hosted activation gates remain open.
