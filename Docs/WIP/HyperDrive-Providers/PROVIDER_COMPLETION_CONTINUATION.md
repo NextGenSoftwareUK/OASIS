@@ -161,3 +161,7 @@ Garnet shared lifecycle sync and async cases compiled and were discovered. Both 
 ### Garnet Windows native partial run
 
 Garnet 2.2.5 ran on a disposable loopback-only Windows instance. Both schedules reached 18/26 and stopped because the harness did not supply the exact hard-delete callback required after a default soft deletion. Async report SHA-256 EF1B9AD5B745217601C1D5C47973793246B6BE3768B7D079D090C046BCFAC61B. Sync report SHA-256 EA165F8144C51CD729C353B090A9C49D3D567E80B7D56238D4C6A92D528C57DF. The server stopped and its in-memory state cannot be resumed. The correction wires the existing public hard-delete methods into the Garnet and Valkey harnesses. Verify the missing deletion checks on an isolated fixture without replaying the accepted operations.
+
+### Garnet focused native cleanup (2026-11-09)
+
+Official Garnet 2.2.5 on a disposable Windows loopback instance passed both focused cleanup cases (async and sync). Each checked exact tombstone removal, point and list absence, avatar and detail removal, database emptiness after cleanup, and deactivation. Previously verified lifecycle cases were not replayed. This is split evidence, with full provider acceptance still open. Build exited 0. The runner stopped its server. `TestResults/GarnetProviderLifecycle/cleanup.trx` SHA-256 is `3858EB4BE631B070BAB45C2A7C057B3EA2C30133D134297F16634831B068E240`. Automatic approval review blocked the combined command containing disposable tool cleanup, so the runtime and runner still need cleanup.
