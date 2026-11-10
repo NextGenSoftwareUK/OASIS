@@ -209,3 +209,7 @@ Aura avatar-detail saves now use a single SDK write transaction keyed by GUId in
 Aura detail GUID, username and email lookups now return the stored identity and the four fields written by the detail save path. Both calling modes report missing and duplicate matches consistently. Build passed with zero errors and two warnings. Native detail lookup remains open.
 
 Aura avatar writes now persist the provider key selected by the shipping lookup and delete queries. A saved key is preserved across updates, with the supplied Neo4j key or GUID used to initialize records that lack it. Single-avatar reads and saves return the actual stored key. Build passed with zero errors and two warnings. Native key round-trip, duplicate-key handling and compatibility with existing records remain open.
+
+### Supabase collection pagination
+
+Avatar and detail lists now read successive PostgREST pages. Holon storage and the bounded CQL ID selector share a reader that checks exact totals, contiguous ranges and canonical IDs across pages. Provider builds passed with zero errors and four warnings. No retained standalone PostgREST executable or test-result fixture was found on this Windows host. The earlier CQL query and restart evidence carries forward for its original scope. Live pagination still needs the dedicated hosted fixture, including a server row cap below the requested page size and more records than that cap.
