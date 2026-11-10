@@ -121,6 +121,11 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                                 supabaseSettings.ConnectionString, supabaseSettings.ApiKey);
                             break;
 
+                        case ProviderType.SQLServerDBOASIS:
+                            result.Result = new API.Providers.SQLServerDBOASIS.SQLServerDBOASIS(
+                                overrideConnectionString ?? OASISDNA?.OASIS?.StorageProviders?.SQLServerDBOASIS?.ConnectionString);
+                            break;
+
                         case ProviderType.NeonOASIS:
                             var neonSettings = OASISDNA?.OASIS?.StorageProviders?.NeonOASIS;
                             result.Result = new API.Providers.NeonOASIS.NeonOASIS(

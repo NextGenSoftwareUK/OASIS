@@ -51,6 +51,7 @@ namespace NextGenSoftware.OASIS.API.DNA
         public SQLLiteDBOASISSettings SQLLiteDBOASIS { get; set; }
         public ConvexOASISSettings ConvexOASIS { get; set; }
         public SupabaseOASISSettings SupabaseOASIS { get; set; }
+        public ProviderSettingsBase SQLServerDBOASIS { get; set; }
         public NeonOASISSettings NeonOASIS { get; set; }
         public OracleDBOASISSettings OracleDBOASIS { get; set; }
         public OracleObjectStorageOASISSettings OracleObjectStorageOASIS { get; set; }
