@@ -361,7 +361,7 @@
       "V2 shared Nethereum factory bound; loopback config/runtime prerequisite absent; four factory checks and BootLoader build are not native conformance"
     ],
     "GoogleMapsOASIS": [
-      "Source-reviewed legacy map facade contains 46 literal success returns without a native client; real map adapter/read-only capability probe required, not a storage-suite candidate"
+      "Source-reviewed map facade reports failure without a rendering client. Native map adapter and capability verification are still required"
     ],
     "HEREMapsOASIS": [
       "Source-reviewed legacy map facade contains 46 literal success returns without a native client; real map adapter/read-only capability probe required, not a storage-suite candidate"
