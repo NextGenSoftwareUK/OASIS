@@ -43,3 +43,5 @@ EdgeSQLite focused check at 4a94134d2c : LocalMutationPersistsEntityAndOutboxAcr
 EdgeSQLite ConcurrentLocalMutationsReceiveUniqueContiguousDeviceSequences passed against the same compiled cohort (1 passed, 0 failed, 0 skipped, 353 ms). This verifies unique, contiguous per-device sequences for concurrent local writes. The restart check was not replayed.
 
 Four additional file-backed EdgeSQLite checks passed in the same compiled cohort (4 passed, 0 failed, 0 skipped, 336 ms). Completed legacy outbox entries retain stable version identity, unresolved legacy entries fail closed, conflicting duplicate operations roll back local state and sequence, and identical retries preserve the original sequence. Earlier restart and concurrency cases were excluded.
+
+Two further file-backed EdgeSQLite cases passed in the same cohort (2 passed, 0 failed, 0 skipped, 180 ms). DeviceSequenceIsMonotonicAndDurable verifies the counter survives reopening. ChainedOfflineEditsPreserveClientGeneratedVersionHistory verifies retained client version IDs and their ancestry. Prior cases were excluded.
