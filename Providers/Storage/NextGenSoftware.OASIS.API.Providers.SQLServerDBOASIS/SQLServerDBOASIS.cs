@@ -732,7 +732,8 @@ WHERE h.Id = @Id AND h.IsDeleted = 0;";
             {
                 // Load avatar by email to get its Id, then export all holons for that Id
                 var avatarResult = await LoadAvatarByEmailAsync(avatarEmailAddress, version);
-                if (avatarResult.IsError || avatarResult.Result == null) { OASISErrorHandling.HandleError(ref result, $"SQLServerDBOASIS: Avatar with email '{avatarEmailAddress}' not found."); return result; }
+                if (avatarResult.IsError)
+                    return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar, IEnumerable<IHolon>>(avatarResult);
                 return await ExportAllDataForAvatarByIdAsync(avatarResult.Result.Id, version);
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
@@ -997,16 +998,10 @@ WHERE h.Id = @Id AND h.IsDeleted = 0;";
             var result = new OASISResult<IEnumerable<IHolon>>();
             try
             {
-                const string avatarSql = "SELECT DataJson FROM OASISAvatars WHERE Username=@Username AND IsDeleted=0";
-                await using var conn = new SqlConnection(_connectionString);
-                await conn.OpenAsync();
-                await using var avatarCmd = new SqlCommand(avatarSql, conn);
-                avatarCmd.Parameters.AddWithValue("@Username", avatarUsername);
-                var json = (string?)await avatarCmd.ExecuteScalarAsync();
-                if (json == null) { OASISErrorHandling.HandleError(ref result, $"SQLServerDBOASIS: Avatar '{avatarUsername}' not found."); return result; }
-                var avatar = Deserialize<Avatar>(json);
-                if (avatar == null) { OASISErrorHandling.HandleError(ref result, $"SQLServerDBOASIS: Could not deserialise avatar '{avatarUsername}'."); return result; }
-                return await ExportAllDataForAvatarByIdAsync(avatar.Id, version);
+                var avatar = await LoadAvatarByUsernameAsync(avatarUsername, version).ConfigureAwait(false);
+                if (avatar.IsError)
+                    return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar, IEnumerable<IHolon>>(avatar);
+                return await ExportAllDataForAvatarByIdAsync(avatar.Result.Id, version).ConfigureAwait(false);
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
             return result;
