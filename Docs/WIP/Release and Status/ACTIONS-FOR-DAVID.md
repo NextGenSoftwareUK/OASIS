@@ -559,7 +559,7 @@ Status: missing account/configuration information,2 November2026. David approved
 
 ### Neo4j V2 dedicated test endpoint
 
-- **Status (2026-11-09)** Open. No dedicated Bolt endpoint is configured on this host. The historical native runner expects the original Ubuntu WSL container, which is unavailable here.
+- **Status (2026-11-10)** Open. No dedicated Bolt endpoint is configured on this host. The retained shared fixture uses loopback port 17687, which has no listener here. WSL has no registered distribution and reports virtualization support unavailable. The existing dedicated-endpoint request below still applies.
 - **David action** If a dedicated test Neo4j endpoint already exists, designate it for the V2 activation smoke test and grant test access through protected local configuration. The test reads OASIS_NEO4J_V2_URI, OASIS_NEO4J_V2_USERNAME and OASIS_NEO4J_V2_PASSWORD. Keep credentials out of Git and chat.
 - **Reason** Activation verifies real Bolt connectivity and may upgrade the provider schema. A dedicated test endpoint keeps that operation away from COSMIC/CQL or production data.
 - **Context** [Provider completion continuation](../HyperDrive-Providers/PROVIDER_COMPLETION_CONTINUATION.md).
