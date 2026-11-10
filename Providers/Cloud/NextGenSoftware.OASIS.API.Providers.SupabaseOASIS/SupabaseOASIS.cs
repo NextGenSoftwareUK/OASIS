@@ -55,7 +55,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
         };
 
         public SupabaseOASIS(string supabaseUrl, string apiKey)
-            : this(supabaseUrl, apiKey, new HttpClient()) { }
+            : this(supabaseUrl, apiKey, new HttpClient(new HttpClientHandler { AllowAutoRedirect = false })) { }
 
         public SupabaseOASIS(string supabaseUrl, string apiKey, HttpClient httpClient, string restApiPath = "/rest/v1")
         {
