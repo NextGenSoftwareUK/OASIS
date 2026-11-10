@@ -691,3 +691,9 @@ asserted against the actual Core mapper, whose scoped/task source bytes match.
 Updated pending status to verified. Scoped runtime/image and immutable source
 refs unchanged; no image rebuild, native request, private candidate, live setting
 or old cohort touched. Local test outputs remain compact receipts only.
+
+## WEB4 diagnostics and public discovery
+
+Five focused diagnostics tests passed. WEB4 image run 42879594327 is verifying candidate f8568a05dd before Development integration. Hedera recovery remains open.
+
+Live public visitor discovery listed GUN ready for native and paired queries, with browser verification open. Hedera was unavailable, and TRON and Supabase were absent from this catalogue.
