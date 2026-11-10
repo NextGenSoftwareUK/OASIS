@@ -65,3 +65,5 @@ These tests do not establish every legacy/custom schema migration, every field/i
 10 November focused ordinary child-role verification: OrdinaryRoleSavePersistsOrderAndRootOnlyWritePreservesStoredMembership passed both sync and async cases (2 passed, no failures or skips) against the file-backed shipping provider. It verifies stored named-child order and membership preservation across a root-only write. Database, sidecars and intent files are absent after teardown. Separate publication and replacement cases remain open.
 
 10 November child-role follow-up: four focused native cases passed. Complete observations grant replacement authority, partial observations do not, and saves publish observations only after acknowledgement. The prior order and root-only cases were excluded.
+
+10 November OrdinaryRoleRollbackDoesNotPublishObservationOrParentEdges passed in sync and async modes (2 passed, zero failed or skipped). This completes the eight focused ordinary child-role cases on the file-backed provider. The six prior cases were excluded.
