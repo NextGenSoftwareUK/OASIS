@@ -113,10 +113,12 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
                         case ProviderType.SupabaseOASIS:
                             var supabaseSettings = OASISDNA?.OASIS?.StorageProviders?.SupabaseOASIS;
+                            if (string.IsNullOrWhiteSpace(supabaseSettings?.ConnectionString) || string.IsNullOrWhiteSpace(supabaseSettings.ApiKey))
+                                throw new InvalidOperationException("Supabase registration requires a service URL and API key.");
                             if (overrideConnectionString != null && !string.Equals(overrideConnectionString, supabaseSettings?.ConnectionString, StringComparison.Ordinal))
                                 throw new ArgumentException("Supabase registration requires the configured service URL.", nameof(overrideConnectionString));
                             result.Result = new API.Providers.SupabaseOASIS.SupabaseOASIS(
-                                supabaseSettings?.ConnectionString, supabaseSettings?.ApiKey);
+                                supabaseSettings.ConnectionString, supabaseSettings.ApiKey);
                             break;
 
                         case ProviderType.NeonOASIS:
