@@ -812,6 +812,7 @@ WHERE h.Id = @Id AND h.IsDeleted = 0;";
                 }
                 if (loadChildren)
                 {
+                    await conn.CloseAsync().ConfigureAwait(false);
                     foreach (var holon in holons)
                         await HydrateHolonChildrenAsync(holon, recursive, maxChildDepth, continueOnError, version, result.InnerMessages, 0);
                     result.IsWarning = result.InnerMessages.Count > 0;
@@ -911,6 +912,7 @@ WHERE h.Id = @Id AND h.IsDeleted = 0;";
                 }
                 if (loadChildren)
                 {
+                    await conn.CloseAsync().ConfigureAwait(false);
                     foreach (var holon in holons)
                         await HydrateHolonChildrenAsync(holon, recursive, maxChildDepth, continueOnError, version, result.InnerMessages, curentChildDepth);
                     result.IsWarning = result.InnerMessages.Count > 0;
@@ -965,6 +967,7 @@ WHERE h.Id = @Id AND h.IsDeleted = 0;";
                 }
                 if (loadChildren)
                 {
+                    await conn.CloseAsync().ConfigureAwait(false);
                     foreach (var holon in holons)
                         await HydrateHolonChildrenAsync(holon, recursive, maxChildDepth, continueOnError, version, result.InnerMessages, curentChildDepth);
                     result.IsWarning = result.InnerMessages.Count > 0;
@@ -1010,6 +1013,7 @@ WHERE h.Id = @Id AND h.IsDeleted = 0;";
                 }
                 if (loadChildren)
                 {
+                    await conn.CloseAsync().ConfigureAwait(false);
                     foreach (var holon in holons)
                         await HydrateHolonChildrenAsync(holon, recursive, maxChildDepth, continueOnError, version, result.InnerMessages, curentChildDepth);
                     result.IsWarning = result.InnerMessages.Count > 0;
@@ -1103,6 +1107,7 @@ WHERE h.Id = @Id AND h.IsDeleted = 0;";
                 }
                 if (loadChildren)
                 {
+                    await conn.CloseAsync().ConfigureAwait(false);
                     foreach (var holon in holons)
                         await HydrateHolonChildrenAsync(holon, recursive, maxChildDepth, continueOnError, version, result.InnerMessages, curentChildDepth);
                     result.IsWarning = result.InnerMessages.Count > 0;
