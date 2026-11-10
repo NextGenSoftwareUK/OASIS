@@ -255,6 +255,8 @@ public partial class NEAROASIS
             var saved = await SaveHolonRecordAsync(loaded.Result);
             if (saved.IsError) return saved;
             result.Result = saved.Result;
+            result.IsDeleted = true;
+            result.DeletedCount = 1;
             result.Message = "Holon tombstone saved to NEAR contract storage.";
         }
         catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error deleting holon from NEAR: {ex.Message}", ex); }

@@ -21,6 +21,9 @@ public class NearSharedLifecycleTests
             Required("NEAROASIS_RPCENDPOINT"), Required("NEAROASIS_NETWORKID"),
             Required("NEAROASIS_CHAINID"), Required("NEAROASIS_CONTRACTADDRESS"),
             Required("NEAROASIS_ACCOUNTID"), Required("NEAROASIS_PRIVATEKEY"));
+        Directory.CreateDirectory(root!);
+        using var lease = new FileStream(Path.Combine(root!, "environment.lock"),
+            FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
         var directory = Path.Combine(root!, synchronous ? "sync" : "async");
         Assert.IsFalse(Directory.Exists(directory), "Preserve the existing fixture evidence.");
         Directory.CreateDirectory(directory);
@@ -36,7 +39,7 @@ public class NearSharedLifecycleTests
             File.Move(pending, path, overwrite: true);
         }
 
-        var result = await CoreStorageConformance.RunAsync(provider, nameof(NEAROASIS), "native", synchronous, Checkpoint);
+        var result = await CoreStorageConformance.RunAsync(provider, nameof(NEAROASIS), "native", synchronous, Checkpoint, expectedDefaultDeletion: "absent");
         Assert.IsTrue(result.Succeeded, $"{result.CurrentCase}: {result.FailureType} {result.FailureContract}");
         Assert.IsTrue(result.FixtureCleanupComplete);
         Assert.AreEqual(CoreStorageConformance.ChecksPerMode, result.Passed.Count);
