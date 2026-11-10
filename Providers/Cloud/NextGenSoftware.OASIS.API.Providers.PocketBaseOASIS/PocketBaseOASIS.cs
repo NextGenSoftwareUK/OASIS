@@ -213,7 +213,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
                 avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.PocketBaseOASIS] = avatar.Id.ToString();
                 var row = new { oasis_id = avatar.Id.ToString(), username = avatar.Username ?? "", email = avatar.Email ?? "", is_deleted = avatar.IsDeleted, data_json = Serialize(avatar) };
                 await UpsertAsync("oasis_avatars", avatar.Id.ToString(), row);
-                result.Result = avatar; result.IsError = false; result.Message = $"PocketBaseOASIS: Avatar '{avatar.Username}' saved.";
+                result.Result = avatar; result.IsSaved = true; result.SavedCount = 1; result.Message = $"PocketBaseOASIS: Avatar '{avatar.Username}' saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: Error saving avatar: {ex.Message}"); }
             return result;
@@ -233,7 +233,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
                 var rec = await GetFirstAsync("oasis_avatars", $"oasis_id='{id}'&&is_deleted=false");
                 var avatar = ParseAvatar(rec);
                 if (avatar == null) { OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: No avatar found for ID '{id}'."); return result; }
-                result.Result = avatar; result.IsError = false; result.Message = $"PocketBaseOASIS: Avatar loaded for ID '{id}'.";
+                result.Result = avatar; result.IsLoaded = true; result.LoadedCount = 1; result.Message = $"PocketBaseOASIS: Avatar loaded for ID '{id}'.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: Error loading avatar '{id}': {ex.Message}"); }
             return result;
@@ -249,7 +249,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
                 var rec = await GetFirstAsync("oasis_avatars", $"username='{username}'&&is_deleted=false");
                 var avatar = ParseAvatar(rec);
                 if (avatar == null) { OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: No avatar found for username '{username}'."); return result; }
-                result.Result = avatar; result.IsError = false; result.Message = $"PocketBaseOASIS: Avatar loaded for username '{username}'.";
+                result.Result = avatar; result.IsLoaded = true; result.LoadedCount = 1; result.Message = $"PocketBaseOASIS: Avatar loaded for username '{username}'.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: Error loading avatar by username '{username}': {ex.Message}"); }
             return result;
@@ -265,7 +265,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
                 var rec = await GetFirstAsync("oasis_avatars", $"email='{avatarEmail}'&&is_deleted=false");
                 var avatar = ParseAvatar(rec);
                 if (avatar == null) { OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: No avatar found for email '{avatarEmail}'."); return result; }
-                result.Result = avatar; result.IsError = false; result.Message = $"PocketBaseOASIS: Avatar loaded for email '{avatarEmail}'.";
+                result.Result = avatar; result.IsLoaded = true; result.LoadedCount = 1; result.Message = $"PocketBaseOASIS: Avatar loaded for email '{avatarEmail}'.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: Error loading avatar by email '{avatarEmail}': {ex.Message}"); }
             return result;
