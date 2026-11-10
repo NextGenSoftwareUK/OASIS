@@ -545,6 +545,11 @@ Status: missing account/configuration information,2 November2026. David approved
 - **Reason** The sync and async lifecycle suite writes and removes exact test records. The provider agent owns schema setup and verification once access is available.
 - **Context** [Provider completion continuation](../HyperDrive-Providers/PROVIDER_COMPLETION_CONTINUATION.md).
 
+### Retained Polkadot shared storage fixture
+
+- **Open (2026-11-10).** Identify the machine or backup holding the isolated Polkadot ledger, retained SDK and fixture evidence directory, and make it available to the provider session through a protected channel.
+- **Reason** The guarded shared-suite runner stopped before connecting because TestResults/PolkadotCurrent is absent, and no loopback listener exists on port 19944. The provider agent owns genesis and contract verification, suite execution, and cleanup. Existing public-storage receipts carry forward without replay. [Provider matrix](../HyperDrive-Providers/PROVIDER_MATRIX.md).
+
 ### Retained Solana validator ledger access
 
 - **Status (2026-11-09)** Open. The current Windows host has no installed WSL distribution, and the historical Agave validator ledger is absent from the provider worktree. Rechecked on 2026-11-10: no WSL distribution or listener on the retained fixture RPC port 18899.
