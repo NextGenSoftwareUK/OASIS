@@ -25,13 +25,19 @@ public class GarnetOASISIntegrationTests
         var options = ConfigurationOptions.Parse(connection!);
         Assert.AreEqual(1, options.EndPoints.Count, "Use one dedicated Garnet endpoint.");
         options.AllowAdmin = true;
+        Directory.CreateDirectory(root!);
+        using var lease = new FileStream(Path.Combine(root!, "environment.lock"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
         var directory = Path.Combine(root!, synchronous ? "sync" : "async");
         Assert.IsFalse(Directory.Exists(directory), "Preserve prior fixture evidence.");
 
         using var native = await ConnectionMultiplexer.ConnectAsync(options);
-        var info = await native.GetServer(options.EndPoints[0]).InfoAsync("server");
+        var server = native.GetServer(options.EndPoints[0]);
+        var info = await server.InfoAsync("server");
         Assert.IsTrue(info.SelectMany(group => group).Any(pair => pair.Key == "garnet_version"),
             "The endpoint must identify itself as Garnet.");
+
+        var database = native.GetDatabase().Database;
+        Assert.AreEqual(0L, await server.DatabaseSizeAsync(database), "Use an empty dedicated database.");
 
         Directory.CreateDirectory(directory);
         var path = Path.Combine(directory, "report.json");
@@ -52,6 +58,7 @@ public class GarnetOASISIntegrationTests
             expectedDefaultDeletion: "soft");
         Assert.IsTrue(result.Succeeded, $"{result.CurrentCase}: {result.FailureType} {result.FailureContract}");
         Assert.IsTrue(result.FixtureCleanupComplete);
+        Assert.AreEqual(0L, await server.DatabaseSizeAsync(database), "The dedicated database must be empty after cleanup.");
         Assert.AreEqual(CoreStorageConformance.ChecksPerMode, result.Passed.Count);
     }
 
