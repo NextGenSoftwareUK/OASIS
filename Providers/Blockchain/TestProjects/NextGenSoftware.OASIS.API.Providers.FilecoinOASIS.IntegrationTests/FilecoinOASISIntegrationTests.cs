@@ -133,4 +133,35 @@ namespace NextGenSoftware.OASIS.API.Providers.FilecoinOASIS.IntegrationTests
                 _provider.DeActivateProvider();
         }
     }
+
+    [TestClass]
+    public class FilecoinLotusActivationTests
+    {
+        [DataTestMethod]
+        [DataRow(false)]
+        [DataRow(true)]
+        public async Task ActivatesAgainstDedicatedLotusNode(bool synchronous)
+        {
+            var endpoint = Environment.GetEnvironmentVariable("OASIS_FILECOIN_TEST_LOTUS_RPC");
+            if (string.IsNullOrWhiteSpace(endpoint))
+                Assert.Inconclusive("Configure the dedicated read-only Lotus fixture endpoint.");
+
+            Assert.IsTrue(Uri.TryCreate(endpoint, UriKind.Absolute, out var uri) &&
+                uri.IsLoopback && uri.Scheme == Uri.UriSchemeHttp && string.IsNullOrEmpty(uri.UserInfo));
+            var provider = new FilecoinOASIS(endpoint, Environment.GetEnvironmentVariable("OASIS_FILECOIN_TEST_LOTUS_TOKEN"));
+            try
+            {
+                var activation = synchronous ? provider.ActivateProvider() : await provider.ActivateProviderAsync();
+                Assert.IsFalse(activation.IsError, activation.Exception?.GetType().FullName);
+                Assert.IsTrue(activation.Result);
+                Assert.IsTrue(provider.IsProviderActivated);
+            }
+            finally
+            {
+                var deactivation = synchronous ? provider.DeActivateProvider() : await provider.DeActivateProviderAsync();
+                Assert.IsTrue(deactivation.Result);
+                Assert.IsFalse(provider.IsProviderActivated);
+            }
+        }
+    }
 }
