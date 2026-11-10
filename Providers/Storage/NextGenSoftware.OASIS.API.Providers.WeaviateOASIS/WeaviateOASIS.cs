@@ -189,21 +189,38 @@ namespace NextGenSoftware.OASIS.API.Providers.WeaviateOASIS
             return false;
         }
 
-        private async Task<List<JsonElement>> GraphQlGetAsync(string className, string[] fields, string? whereClause = null)
+        private async Task<List<JsonElement>> GraphQlGetAsync(string className, string[] fields)
         {
-            var where = whereClause != null ? $", where: {{ {whereClause} }}" : "";
-            var query = $"{{ Get {{ {className}(limit: 10000{where}) {{ {string.Join(" ", fields)} _additional {{ id }} }} }} }}";
-            var result = await WeaviatePostAsync("/v1/graphql", new { query });
-            if (result.TryGetProperty("errors", out var errors) &&
-                (errors.ValueKind != JsonValueKind.Array || errors.GetArrayLength() > 0))
-                throw new InvalidOperationException("Weaviate rejected the GraphQL collection query.");
+            const int pageSize = 100;
+            var objects = new List<JsonElement>();
+            var cursors = new HashSet<Guid>();
+            var selection = string.Join(" ", fields);
+            var after = "";
 
-            if (!result.TryGetProperty("data", out var data) || data.ValueKind != JsonValueKind.Object ||
-                !data.TryGetProperty("Get", out var get) || get.ValueKind != JsonValueKind.Object ||
-                !get.TryGetProperty(className, out var rows) || rows.ValueKind != JsonValueKind.Array)
-                throw new JsonException("Weaviate returned an invalid GraphQL collection response.");
+            while (true)
+            {
+                var query = $"{{ Get {{ {className}(limit: {pageSize}{after}) {{ {selection} _additional {{ id }} }} }} }}";
+                var result = await WeaviatePostAsync("/v1/graphql", new { query });
+                if (result.TryGetProperty("errors", out var errors) &&
+                    (errors.ValueKind != JsonValueKind.Array || errors.GetArrayLength() > 0))
+                    throw new InvalidOperationException("Weaviate rejected the GraphQL collection query.");
 
-            return rows.EnumerateArray().Select(row => row.Clone()).ToList();
+                if (!result.TryGetProperty("data", out var data) || data.ValueKind != JsonValueKind.Object ||
+                    !data.TryGetProperty("Get", out var get) || get.ValueKind != JsonValueKind.Object ||
+                    !get.TryGetProperty(className, out var rows) || rows.ValueKind != JsonValueKind.Array)
+                    throw new JsonException("Weaviate returned an invalid GraphQL collection response.");
+
+                if (rows.GetArrayLength() == 0)
+                    return objects;
+
+                foreach (var row in rows.EnumerateArray())
+                    objects.Add(row.Clone());
+
+                if (!Guid.TryParse(GetGraphQlId(objects[objects.Count - 1]), out var cursor) || !cursors.Add(cursor))
+                    throw new JsonException("Weaviate returned an invalid or repeated GraphQL pagination cursor.");
+
+                after = $", after: \"{cursor:D}\"";
+            }
         }
 
         private string? GetGraphQlId(JsonElement o) { if (o.TryGetProperty("_additional", out var a) && a.TryGetProperty("id", out var id)) return id.GetString(); return null; }
