@@ -85,11 +85,13 @@ public class NeonNativeStorageConformanceTests
         await RequireEmptyTables(requireSchema: false);
         var provider = new NeonOASIS(connection!);
         var result = await CoreStorageConformance.RunAsync(
-            provider, nameof(NeonOASIS), "native", sync, Checkpoint, expectedDefaultDeletion: "absent");
+            provider, nameof(NeonOASIS), "native", sync, report => report.Succeeded ? Task.CompletedTask : Checkpoint(report),
+            expectedDefaultDeletion: "absent");
 
         Assert.IsTrue(result.Succeeded, $"{result.CurrentCase}: {result.FailureType}");
         Assert.IsTrue(result.FixtureCleanupComplete);
         await RequireEmptyTables(requireSchema: true);
         Assert.AreEqual(CoreStorageConformance.ChecksPerMode, result.Passed.Count);
+        await Checkpoint(result);
     }
 }
