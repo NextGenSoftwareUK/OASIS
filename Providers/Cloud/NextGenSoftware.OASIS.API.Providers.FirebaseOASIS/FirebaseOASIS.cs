@@ -566,7 +566,16 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
                 var loaded = await LoadHolonAsync(id, loadChildren: false);
                 if (loaded.IsError || loaded.Result == null) return loaded;
                 loaded.Result.DeletedDate = DateTime.UtcNow;
-                return await SaveHolonAsync(loaded.Result, saveChildren: false);
+                var saved = await SaveHolonAsync(loaded.Result, saveChildren: false);
+                if (saved.IsError) return saved;
+                if (!saved.IsSaved || saved.Result == null)
+                    throw new InvalidOperationException("Firebase did not acknowledge the holon soft deletion.");
+
+                result.Result = saved.Result;
+                result.IsDeleted = true;
+                result.DeletedCount = 1;
+                result.Message = "Firebase holon soft-deleted.";
+                return result;
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
             return result;
