@@ -72,3 +72,5 @@ Both native TON reports confirm 26/26 checks and logical fixture cleanup. Preser
 EdgeSQLite focused file-backed cohort: all eight checks exited. Fixture disposal removes the per-test oasis-edge database and sidecars. A post-run scan found zero oasis-edge-*.db* files in the Windows temporary directory. Reusable build outputs and package cache were retained. C: free space was 28,119,150,592 bytes at inspection.
 
 10 November ClickHouse fixture guard: no database connected, no raw report. Restored project dependencies and cleaned the private integration project outputs under the build lease; reference outputs and restore metadata were retained.
+
+10 November ClickHouse hard-delete regression: no database or raw report created. Leased project clean reduced private outputs from 50941244 B to 827230 B. Reference outputs were excluded.

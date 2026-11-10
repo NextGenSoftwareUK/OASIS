@@ -19,6 +19,8 @@ Development includes the Garnet and ClickHouse fixture guards at e1e3e9e06a. The
 
 Neo4j promotion review: the task diff contains broad canonical, V2 and Aura changes. Preserve the canonical 52/52 receipt, with separate live gates for V2 activation and Aura lifecycle. This session has no Neo4j fixture configuration and no local Bolt listener on 7687 or on the retained fixture port 17687. The inventory identifies the latter as a shared Podman volume. No WSL distribution is registered on this host, and WSL reports that virtualization support is unavailable. Keep this larger provider batch separate from the verified Garnet fixture guard.
 
+ClickHouse storage hard-delete changes are on the HyperDrive branch at e02321178e. The focused regression compiled and skipped. Live mutation acknowledgement requires the isolated writable fixture in Actions for David; COSMIC retains its separate read-only teaching source.
+
 ### Priority hosted gates, 10 November
 
 | Provider | Evidence to carry forward | Next acceptance gate |
