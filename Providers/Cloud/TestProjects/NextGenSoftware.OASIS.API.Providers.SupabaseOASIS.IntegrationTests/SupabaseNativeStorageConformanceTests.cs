@@ -48,6 +48,60 @@ public class SupabaseNativeStorageConformanceTests
         }
     }
 
+    [TestMethod]
+    public async Task DuplicateActiveAvatarsBlockLookupExportAndDeletion()
+    {
+        if (Environment.GetEnvironmentVariable("OASIS_SUPABASE_STORAGE_CONFORMANCE") != "1")
+            Assert.Inconclusive("Enable only for a dedicated hosted Supabase test project.");
+
+        var url = Environment.GetEnvironmentVariable("OASIS_SUPABASE_CONFORMANCE_URL");
+        var key = Environment.GetEnvironmentVariable("OASIS_SUPABASE_CONFORMANCE_SERVICE_KEY");
+        Assert.IsTrue(Uri.TryCreate(url, UriKind.Absolute, out var endpoint) &&
+            endpoint.Scheme == Uri.UriSchemeHttps &&
+            endpoint.Host.EndsWith(".supabase.co", StringComparison.OrdinalIgnoreCase) &&
+            endpoint.AbsolutePath == "/" && string.IsNullOrEmpty(endpoint.Query) &&
+            string.IsNullOrEmpty(endpoint.Fragment) && string.IsNullOrEmpty(endpoint.UserInfo));
+        Assert.IsFalse(string.IsNullOrWhiteSpace(key));
+
+        using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(30) };
+        var provider = new SupabaseOASIS(url!, key!, http);
+        var marker = $"oasis-duplicate-{Guid.NewGuid():N}";
+        var email = $"{marker}@example.test";
+        var firstId = Guid.NewGuid();
+        var secondId = Guid.NewGuid();
+        var savedIds = new List<Guid>();
+        try
+        {
+            foreach (var id in new[] { firstId, secondId })
+            {
+                var saved = await provider.SaveAvatarAsync(new Core.Holons.Avatar
+                {
+                    Id = id,
+                    Username = marker,
+                    Email = email
+                });
+                Assert.IsTrue(saved.IsSaved, saved.Exception?.GetType().Name);
+                savedIds.Add(id);
+            }
+
+            var username = await provider.LoadAvatarByUsernameAsync(marker);
+            var address = await provider.LoadAvatarByEmailAsync(email);
+            var exported = await provider.ExportAllDataForAvatarByUsernameAsync(marker);
+            var deleted = await provider.DeleteAvatarByEmailAsync(email, softDelete: false);
+            foreach (var code in new[] { username.ErrorCode, address.ErrorCode, exported.ErrorCode, deleted.ErrorCode })
+                Assert.AreEqual(Common.OASISResultErrorCodes.AmbiguousIdentity, code);
+
+            foreach (var id in savedIds)
+                Assert.IsTrue((await provider.LoadAvatarAsync(id)).IsLoaded);
+        }
+        finally
+        {
+            foreach (var id in savedIds)
+                Assert.IsTrue((await provider.DeleteAvatarAsync(id, softDelete: false)).IsDeleted,
+                    $"Could not remove fixture avatar {id}.");
+        }
+    }
+
     [DataTestMethod]
     [DataRow(false)]
     [DataRow(true)]
