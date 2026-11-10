@@ -1,3 +1,5 @@
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using System.Text.Json;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -110,5 +112,82 @@ public class GarnetOASISIntegrationTests
         var inactive = synchronous ? provider.DeActivateProvider() : await provider.DeActivateProviderAsync();
         Assert.IsTrue(!inactive.IsError && inactive.Result);
         Assert.AreEqual(0L, await server.DatabaseSizeAsync(database.Database));
+    }
+
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task DeleteRemainingLifecycleFixtures(bool synchronous)
+    {
+        var root = Environment.GetEnvironmentVariable("OASIS_GARNET_LIFECYCLE_REPORT_ROOT");
+        if (string.IsNullOrWhiteSpace(root))
+            Assert.Inconclusive("Configure a dedicated Garnet fixture and report directory.");
+
+        var connection = Environment.GetEnvironmentVariable("GARNET_CONN");
+        Assert.IsFalse(string.IsNullOrWhiteSpace(connection));
+        var options = ConfigurationOptions.Parse(connection!);
+        Assert.AreEqual(1, options.EndPoints.Count);
+        options.AllowAdmin = true;
+        using var native = await ConnectionMultiplexer.ConnectAsync(options);
+        var server = native.GetServer(options.EndPoints[0]);
+        var info = await server.InfoAsync("server");
+        Assert.IsTrue(info.SelectMany(group => group).Any(pair => pair.Key == "garnet_version"));
+        var database = native.GetDatabase(options.DefaultDatabase ?? 0);
+        Assert.AreEqual(0L, await server.DatabaseSizeAsync(database.Database));
+
+        var ownerId = Guid.NewGuid();
+        var rootHolon = new Holon { Id = Guid.NewGuid(), Name = "cleanup-root", CreatedByAvatarId = ownerId };
+        var imported = new Holon { Id = Guid.NewGuid(), Name = "cleanup-import", CreatedByAvatarId = ownerId };
+        var batch = Enumerable.Range(0, 2)
+            .Select(_ => (IHolon)new Holon { Id = Guid.NewGuid(), Name = "cleanup-batch", CreatedByAvatarId = ownerId, MetaData = null })
+            .ToArray();
+        var fixtures = new IHolon[] { rootHolon, imported }.Concat(batch).ToArray();
+        var path = Path.Combine(root!, synchronous ? "remaining-sync.json" : "remaining-async.json");
+        await using var journal = new FileStream(path, FileMode.CreateNew, FileAccess.Write, FileShare.Read);
+        await JsonSerializer.SerializeAsync(journal, new { ownerId, ids = fixtures.Select(holon => holon.Id), synchronous });
+        journal.Flush(flushToDisk: true);
+
+        var provider = new GarnetOASIS(connection!);
+        Assert.IsTrue((await provider.ActivateProviderAsync()).Result);
+        try
+        {
+            Assert.IsTrue((await provider.SaveHolonAsync(rootHolon, saveChildren: false)).IsSaved);
+            Assert.IsTrue((await provider.ImportAsync(new IHolon[] { imported })).IsSaved);
+            Assert.AreEqual(2, (await provider.SaveHolonsAsync(batch, saveChildren: false)).SavedCount);
+
+            foreach (var fixture in fixtures)
+            {
+                var id = fixture.Id;
+                var deleted = synchronous ? provider.DeleteHolon(id) : await provider.DeleteHolonAsync(id);
+                Assert.IsTrue(!deleted.IsError && deleted.IsDeleted && deleted.DeletedCount == 1);
+                var point = synchronous ? provider.LoadHolon(id, loadChildren: false) : await provider.LoadHolonAsync(id, loadChildren: false);
+                Assert.IsTrue(!point.IsError && point.IsLoaded && point.LoadedCount == 1);
+                Assert.AreEqual(id, point.Result.Id);
+                Assert.AreEqual(ownerId, point.Result.CreatedByAvatarId);
+                Assert.AreEqual(fixture.Name, point.Result.Name);
+                Assert.IsTrue(point.Result.IsDeleted && point.Result.DeletedDate != DateTime.MinValue);
+                var softRows = synchronous ? provider.LoadAllHolons(loadChildren: false) : await provider.LoadAllHolonsAsync(loadChildren: false);
+                Assert.IsFalse(softRows.IsError, softRows.Message);
+                var tombstones = softRows.Result.Where(row => row.Id == id).ToArray();
+                Assert.IsTrue(tombstones.Length <= 1 && tombstones.All(row =>
+                    row.IsDeleted && row.DeletedDate != DateTime.MinValue && row.CreatedByAvatarId == ownerId && row.Name == fixture.Name));
+
+                var hard = synchronous ? provider.DeleteHolonSoft(id, false) : await provider.DeleteHolonSoftAsync(id, false);
+                Assert.IsTrue(!hard.IsError && hard.Result && hard.IsDeleted);
+                var missing = synchronous ? provider.LoadHolon(id, loadChildren: false) : await provider.LoadHolonAsync(id, loadChildren: false);
+                Assert.IsNull(missing.Result);
+                Assert.IsFalse(missing.IsLoaded);
+                Assert.AreEqual(0, missing.LoadedCount);
+                Assert.IsTrue(!missing.IsError || missing.ErrorCode == OASISResultErrorCodes.RecordNotFound);
+                var remaining = synchronous ? provider.LoadAllHolons(loadChildren: false) : await provider.LoadAllHolonsAsync(loadChildren: false);
+                Assert.IsFalse(remaining.IsError, remaining.Message);
+                Assert.IsFalse(remaining.Result.Any(row => row.Id == id));
+            }
+            Assert.AreEqual(0L, await server.DatabaseSizeAsync(database.Database));
+        }
+        finally
+        {
+            await provider.DeActivateProviderAsync();
+        }
     }
 }
