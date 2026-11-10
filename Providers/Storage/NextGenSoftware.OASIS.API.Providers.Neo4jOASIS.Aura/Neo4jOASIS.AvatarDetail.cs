@@ -66,15 +66,25 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
 
                     var detail = ReadAvatarDetail(cursor.Current);
                     if (await cursor.FetchAsync().ConfigureAwait(false))
-                        throw new InvalidOperationException("Multiple Aura avatar details match the requested identity.");
+                        throw new StorageIdentityAmbiguousException();
 
                     return detail;
                 }).ConfigureAwait(false);
-                result.IsLoaded = result.Result != null;
+                if (result.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Neo4j Aura avatar detail was not found.");
+                    result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
+                    return result;
+                }
+
+                result.IsLoaded = true;
+                result.LoadedCount = 1;
             }
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, "Error loading Neo4j Aura avatar detail.", ex);
+                if (ex is StorageIdentityAmbiguousException)
+                    result.ErrorCode = OASISResultErrorCodes.AmbiguousIdentity;
             }
 
             return result;
