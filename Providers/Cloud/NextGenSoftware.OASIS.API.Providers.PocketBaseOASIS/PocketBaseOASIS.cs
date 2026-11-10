@@ -134,7 +134,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
             using var response = await _http.GetAsync(url);
             response.EnsureSuccessStatusCode();
             var page = ReadPage(await response.Content.ReadAsStringAsync(), 1);
-            if (page.TotalItems > 1) throw new InvalidDataException("PocketBase singular lookup is ambiguous.");
+            if (page.TotalItems > 1) throw new StorageIdentityAmbiguousException();
             return page.Items!.SingleOrDefault();
         }
 
@@ -241,10 +241,10 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
             {
                 var rec = await GetFirstAsync("oasis_avatars", $"oasis_id='{id}'&&is_deleted=false");
                 var avatar = ParseAvatar(rec);
-                if (avatar == null) { OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: No avatar found for ID '{id}'."); return result; }
+                if (avatar == null) { OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: No avatar found for ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
                 result.Result = avatar; result.IsLoaded = true; result.LoadedCount = 1; result.Message = $"PocketBaseOASIS: Avatar loaded for ID '{id}'.";
             }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: Error loading avatar '{id}': {ex.Message}"); }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: Error loading avatar '{id}': {ex.Message}"); if (ex is StorageIdentityAmbiguousException) result.ErrorCode = OASISResultErrorCodes.AmbiguousIdentity; }
             return result;
         }
 
@@ -257,10 +257,10 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
             {
                 var rec = await GetFirstAsync("oasis_avatars", $"username={Newtonsoft.Json.JsonConvert.ToString(username)}&&is_deleted=false");
                 var avatar = ParseAvatar(rec);
-                if (avatar == null) { OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: No avatar found for username '{username}'."); return result; }
+                if (avatar == null) { OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: No avatar found for username '{username}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
                 result.Result = avatar; result.IsLoaded = true; result.LoadedCount = 1; result.Message = $"PocketBaseOASIS: Avatar loaded for username '{username}'.";
             }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: Error loading avatar by username '{username}': {ex.Message}"); }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: Error loading avatar by username '{username}': {ex.Message}"); if (ex is StorageIdentityAmbiguousException) result.ErrorCode = OASISResultErrorCodes.AmbiguousIdentity; }
             return result;
         }
 
@@ -273,10 +273,10 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
             {
                 var rec = await GetFirstAsync("oasis_avatars", $"email={Newtonsoft.Json.JsonConvert.ToString(avatarEmail)}&&is_deleted=false");
                 var avatar = ParseAvatar(rec);
-                if (avatar == null) { OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: No avatar found for email '{avatarEmail}'."); return result; }
+                if (avatar == null) { OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: No avatar found for email '{avatarEmail}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
                 result.Result = avatar; result.IsLoaded = true; result.LoadedCount = 1; result.Message = $"PocketBaseOASIS: Avatar loaded for email '{avatarEmail}'.";
             }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: Error loading avatar by email '{avatarEmail}': {ex.Message}"); }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: Error loading avatar by email '{avatarEmail}': {ex.Message}"); if (ex is StorageIdentityAmbiguousException) result.ErrorCode = OASISResultErrorCodes.AmbiguousIdentity; }
             return result;
         }
 
@@ -402,10 +402,10 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
             try
             {
                 var rec = await GetFirstAsync("oasis_avatar_details", $"oasis_id='{id}'");
-                if (rec == null) { OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: No avatar detail found for ID '{id}'."); return result; }
+                if (rec == null) { OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: No avatar detail found for ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
                 result.Result = ParseAvatarDetail(rec); result.IsLoaded = true; result.LoadedCount = 1; result.Message = $"PocketBaseOASIS: AvatarDetail loaded for ID '{id}'.";
             }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: Error loading avatar detail '{id}': {ex.Message}"); }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: Error loading avatar detail '{id}': {ex.Message}"); if (ex is StorageIdentityAmbiguousException) result.ErrorCode = OASISResultErrorCodes.AmbiguousIdentity; }
             return result;
         }
 
@@ -417,10 +417,10 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
             try
             {
                 var rec = await GetFirstAsync("oasis_avatar_details", $"username={Newtonsoft.Json.JsonConvert.ToString(username)}");
-                if (rec == null) { OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: No avatar detail found for username '{username}'."); return result; }
+                if (rec == null) { OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: No avatar detail found for username '{username}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
                 result.Result = ParseAvatarDetail(rec); result.IsLoaded = true; result.LoadedCount = 1; result.Message = $"PocketBaseOASIS: AvatarDetail loaded for username '{username}'.";
             }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: Error loading avatar detail by username '{username}': {ex.Message}"); }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: Error loading avatar detail by username '{username}': {ex.Message}"); if (ex is StorageIdentityAmbiguousException) result.ErrorCode = OASISResultErrorCodes.AmbiguousIdentity; }
             return result;
         }
 
@@ -432,10 +432,10 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
             try
             {
                 var rec = await GetFirstAsync("oasis_avatar_details", $"email={Newtonsoft.Json.JsonConvert.ToString(email)}");
-                if (rec == null) { OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: No avatar detail found for email '{email}'."); return result; }
+                if (rec == null) { OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: No avatar detail found for email '{email}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
                 result.Result = ParseAvatarDetail(rec); result.IsLoaded = true; result.LoadedCount = 1; result.Message = $"PocketBaseOASIS: AvatarDetail loaded for email '{email}'.";
             }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: Error loading avatar detail by email '{email}': {ex.Message}"); }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: Error loading avatar detail by email '{email}': {ex.Message}"); if (ex is StorageIdentityAmbiguousException) result.ErrorCode = OASISResultErrorCodes.AmbiguousIdentity; }
             return result;
         }
 
