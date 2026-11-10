@@ -120,7 +120,7 @@ public class SqlServerNativeStorageConformanceTests
         var provider = new SQLServerDBOASIS(connection);
         var username = $"fixture-{Guid.NewGuid():N}";
         var email = username + "@example.invalid";
-        var saved = new List<Guid>();
+        var saved = new List<(Guid Id, string Key)>();
         try
         {
             var active = await provider.ActivateProviderAsync();
@@ -133,7 +133,7 @@ public class SqlServerNativeStorageConformanceTests
                 };
                 var write = await provider.SaveAvatarAsync(avatar);
                 Assert.IsTrue(write.IsSaved && !write.IsError, write.Message);
-                saved.Add(avatar.Id);
+                saved.Add((avatar.Id, write.Result!.ProviderUniqueStorageKey[NextGenSoftware.OASIS.API.Core.Enums.ProviderType.SQLServerDBOASIS]));
             }
 
             foreach (var softDelete in new[] { true, false })
@@ -141,8 +141,7 @@ public class SqlServerNativeStorageConformanceTests
                 var results = new[]
                 {
                     await provider.DeleteAvatarByUsernameAsync(username, softDelete),
-                    await provider.DeleteAvatarByEmailAsync(email, softDelete),
-                    await provider.DeleteAvatarAsync(username, softDelete)
+                    await provider.DeleteAvatarByEmailAsync(email, softDelete)
                 };
                 foreach (var result in results)
                 {
@@ -152,7 +151,7 @@ public class SqlServerNativeStorageConformanceTests
                 }
             }
 
-            foreach (var id in saved)
+            foreach (var (id, key) in saved)
             {
                 var loaded = await provider.LoadAvatarAsync(id);
                 Assert.IsTrue(loaded.Result?.Id == id && !loaded.IsError, loaded.Message);
@@ -160,9 +159,9 @@ public class SqlServerNativeStorageConformanceTests
         }
         finally
         {
-            foreach (var id in saved)
+            foreach (var (id, key) in saved)
             {
-                var deleted = await provider.DeleteAvatarAsync(id, softDelete: false);
+                var deleted = await provider.DeleteAvatarAsync(key, softDelete: false);
                 Assert.IsTrue(deleted.IsDeleted && !deleted.IsError, deleted.Message);
             }
             await provider.DeActivateProviderAsync();

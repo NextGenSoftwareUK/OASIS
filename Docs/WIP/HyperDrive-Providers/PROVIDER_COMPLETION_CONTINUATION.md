@@ -271,3 +271,5 @@ SQL Server DuplicateAvatarSelectorsRejectOwnerExport initially failed because em
 SQL Server LocalDB passed DuplicateAvatarSelectorsRejectDeletion (1 passed, 0 failed, 0 skipped). On the dedicated fixture, username, email and provider-key selectors each rejected ambiguous soft and hard deletion with zero deletions. Both synthetic avatars remained readable and were hard-deleted by ID during teardown. The test stopped its LocalDB instance after the run.
 
 SQL Server LocalDB passed DuplicateAvatarDetailSelectorsRejectLookup (1 passed, 0 failed, 0 skipped). The dedicated fixture returned each detail by ID, rejected duplicate username and email selectors with AmbiguousIdentity, and hard-deleted both synthetic avatars during teardown. LocalDB was stopped after the run.
+
+SQL Server LocalDB provider-key hard deletion passed (1 focused case, 0 failed, 0 skipped). The shipping provider deleted each synthetic avatar using the storage key returned by SaveAvatarAsync. That key is a GUID, matching the load contract. Username and email ambiguity remain covered by the dedicated selectors. The LocalDB instance was stopped.

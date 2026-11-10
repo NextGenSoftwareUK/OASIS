@@ -697,7 +697,14 @@ WHERE h.Id = @Id AND h.IsDeleted = 0;";
         // ─── Members added to base after initial implementation ───────────────────
 
         public override Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
-            => DeleteAvatarMatchingAsync("Username=@Value OR Email=@Value", providerKey, softDelete);
+        {
+            if (Guid.TryParse(providerKey, out var id))
+                return DeleteAvatarAsync(id, softDelete);
+
+            var result = new OASISResult<bool>();
+            OASISErrorHandling.HandleError(ref result, $"SQLServerDBOASIS: providerKey '{providerKey}' is not a valid GUID.");
+            return Task.FromResult(result);
+        }
         public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true) => DeleteAvatarAsync(providerKey, softDelete).Result;
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0)
