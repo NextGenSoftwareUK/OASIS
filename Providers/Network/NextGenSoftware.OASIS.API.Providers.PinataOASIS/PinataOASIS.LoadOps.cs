@@ -446,55 +446,20 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
 
         public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
         {
-            var result = new OASISResult<bool>();
-            try
+            var avatar = await LoadAvatarAsync(id).ConfigureAwait(false);
+            if (avatar.IsError)
+                return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar, bool>(avatar);
+
+            if (!avatar.IsLoaded || avatar.Result == null)
             {
-                await EnsureActivatedForPinataAsync(result);
-                if (result.IsError) return result;
-
-                // Find avatar pin by scanning pinned avatar JSONs (reliable across Pinata query syntax changes)
-                var pins = await _pinataService.GetFilesAsync();
-                foreach (var pin in pins)
-                {
-                    if (string.IsNullOrWhiteSpace(pin?.IpfsPinHash)) continue;
-
-                    try
-                    {
-                        var content = await _pinataService.GetFileContentAsync(pin.IpfsPinHash);
-                        if (string.IsNullOrWhiteSpace(content)) continue;
-
-                        var avatar = JsonConvert.DeserializeObject<Avatar>(content);
-                        if (avatar != null && avatar.Id == id)
-                        {
-                            var unpinOk = await _pinataService.UnpinFileAsync(pin.IpfsPinHash);
-                            if (!unpinOk)
-                            {
-                                OASISErrorHandling.HandleError(ref result, $"Failed to unpin avatar {id} from Pinata.");
-                                return result;
-                            }
-
-                            result.Result = true;
-                            result.IsDeleted = true;
-                            result.DeletedCount = 1;
-                            result.IsError = false;
-                            result.Message = "Avatar unpinned (deleted) from Pinata successfully.";
-                            return result;
-                        }
-                    }
-                    catch
-                    {
-                        // ignore non-avatar pins
-                    }
-                }
-
-                OASISErrorHandling.HandleError(ref result, $"Avatar with ID {id} not found in Pinata.");
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error deleting avatar from Pinata: {ex.Message}", ex);
+                var result = new OASISResult<bool>();
+                OASISErrorHandling.HandleError(ref result, $"Avatar with ID {id} was not found in Pinata.");
+                result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
+                return result;
             }
 
-            return result;
+            return await DeleteAvatarAsync(
+                avatar.Result.ProviderUniqueStorageKey[Core.Enums.ProviderType.PinataOASIS], softDelete).ConfigureAwait(false);
         }
 
         public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true)
