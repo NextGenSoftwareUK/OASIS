@@ -17,6 +17,8 @@ $paths = @('local-record-contract-pending.json','local-record-owner-pending.json
     ForEach-Object { Join-Path $evidence $_ }
 $paths += Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/public-storage-pending.jsonl'
 $paths += Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/native-graph-pending.jsonl'
+$paths += Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/core-storage-async-pending.jsonl'
+$paths += Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/core-storage-sync-pending.jsonl'
 $paths += Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/psp34-deployment-pending.json'
 $paths += Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/psp34-mutation-pending.jsonl'
 $paths += Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/psp34-public-mutation-pending.jsonl'
