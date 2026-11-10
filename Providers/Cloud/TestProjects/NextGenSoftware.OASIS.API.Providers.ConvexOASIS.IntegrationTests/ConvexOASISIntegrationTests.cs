@@ -63,7 +63,11 @@ public class ConvexOASISIntegrationTests
                 var removed = await provider.DeleteHolonSoftAsync(id, softDelete: false);
                 Assert.IsTrue(removed.Result && removed.IsDeleted && !removed.IsError,
                     removed.Exception?.GetType().FullName);
-                var absent = await provider.LoadHolonAsync(id, loadChildren: false);
+                using var observer = new ConvexOASIS(deployment!, deployKey!);
+                var observerActivation = await observer.ActivateProviderAsync();
+                Assert.IsTrue(observerActivation.Result && !observerActivation.IsError,
+                    observerActivation.Exception?.GetType().FullName);
+                var absent = await observer.LoadHolonAsync(id, loadChildren: false);
                 Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, absent.ErrorCode);
                 Assert.IsFalse(absent.IsLoaded);
                 Assert.IsNull(absent.Result);
