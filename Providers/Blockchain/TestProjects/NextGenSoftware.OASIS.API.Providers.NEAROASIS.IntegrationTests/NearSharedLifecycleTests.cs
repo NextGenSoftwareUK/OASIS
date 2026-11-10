@@ -28,6 +28,18 @@ public class NearSharedLifecycleTests
             FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
         var directory = Path.Combine(root!, synchronous ? "sync" : "async");
         Assert.IsFalse(Directory.Exists(directory), "Preserve the existing fixture evidence.");
+        var otherDirectory = Path.Combine(root!, synchronous ? "async" : "sync");
+        if (Directory.Exists(otherDirectory))
+        {
+            var otherReport = Path.Combine(otherDirectory, "report.json");
+            Assert.IsFalse(File.Exists(otherReport + ".pending"),
+                "Reconcile the other mode's interrupted checkpoint before connecting.");
+            Assert.IsTrue(File.Exists(otherReport), "The other mode has no durable report.");
+            await using var previous = File.OpenRead(otherReport);
+            var prior = await JsonSerializer.DeserializeAsync<CoreStorageConformance.Report>(previous);
+            Assert.IsTrue(prior?.FixtureCleanupComplete == true,
+                "Reconcile the other mode's fixture before connecting.");
+        }
         Directory.CreateDirectory(directory);
         var path = Path.Combine(directory, "report.json");
         async Task Checkpoint(CoreStorageConformance.Report report)
