@@ -61,3 +61,5 @@ Fixed reusable database/lease and existing SDK/dependency cache reused. Owned te
 ## Remaining programme scope
 
 These tests do not establish every legacy/custom schema migration, every field/interface/option, multi-process schedules, hosted acceptance, fee policy or V2 failover/replication/load-balancing certification. See `HYPERDRIVE_V2_CURRENT_RELEASE_GATES.md`. Firestore history work is a separate unverified batch and must not be swept into this integration.
+
+10 November focused ordinary child-role verification: OrdinaryRoleSavePersistsOrderAndRootOnlyWritePreservesStoredMembership passed both sync and async cases (2 passed, no failures or skips) against the file-backed shipping provider. It verifies stored named-child order and membership preservation across a root-only write. Database, sidecars and intent files are absent after teardown. Separate publication and replacement cases remain open.
