@@ -187,13 +187,13 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
                     fileContent.Headers.ContentType = MediaTypeHeaderValue.Parse(contentType);
                     content.Add(fileContent, "file", fileName);
 
-                    var response = await _httpClient.PostAsync("/pinning/pinFileToIPFS", content);
+                    using var response = await _httpClient.PostAsync("/pinning/pinFileToIPFS", content);
                     var responseContent = await response.Content.ReadAsStringAsync();
 
                     if (response.IsSuccessStatusCode)
                     {
                         var pinataResponse = JsonConvert.DeserializeObject<PinataFileResponse>(responseContent);
-                        result.Result = pinataResponse.IpfsHash;
+                        result.Result = RequireAcknowledgedCid(pinataResponse?.IpfsHash);
                         result.Message = "File uploaded to Pinata successfully";
                     }
                     else
@@ -248,10 +248,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
                 response.EnsureSuccessStatusCode();
                 var responseContent = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                 var pin = JsonConvert.DeserializeObject<PinataFileResponse>(responseContent);
-                if (string.IsNullOrWhiteSpace(pin?.IpfsHash))
-                    throw new System.IO.InvalidDataException("Pinata did not acknowledge a pinned content ID.");
-
-                result.Result = pin.IpfsHash;
+                result.Result = RequireAcknowledgedCid(pin?.IpfsHash);
                 result.Message = "JSON uploaded to Pinata successfully";
             }
             catch (Exception e)
@@ -260,6 +257,15 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
             }
 
             return result;
+        }
+
+        private static string RequireAcknowledgedCid(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+                throw new System.IO.InvalidDataException("Pinata did not acknowledge a pinned content ID.");
+
+            _ = Ipfs.Cid.Decode(value);
+            return value;
         }
 
         public async Task<OASISResult<byte[]>> DownloadFileFromPinataAsync(string ipfsHash)
