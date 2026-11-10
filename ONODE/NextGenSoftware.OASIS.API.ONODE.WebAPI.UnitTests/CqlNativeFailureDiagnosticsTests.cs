@@ -60,13 +60,16 @@ public sealed class CqlNativeFailureDiagnosticsTests
         native.Data["headers"] = secret;
         var error = new InvalidOperationException(secret, native);
         var logger = new CaptureLogger();
-        CqlNativeFailureDiagnostics.Record(logger, ProviderType.NostrOASIS, activation, error);
+        CqlNativeFailureDiagnostics.Record(logger, ProviderType.NostrOASIS, activation, error,
+            elapsedMilliseconds: activation ? 15001 : null);
         var entry = Assert.Single(logger.Entries);
         Assert.Null(entry.Exception);
         Assert.Contains("httpStatus=503", entry.Text);
         Assert.Contains("stage=connect", entry.Text);
         Assert.Contains("NotAWebSocket", entry.Text);
         Assert.Contains(activation ? "phase=activation" : "phase=query", entry.Text);
+        if (activation)
+            Assert.Contains("elapsedMilliseconds=15001", entry.Text);
         foreach (var value in new[] { "Bearer", "token-value", "https://", "password", "api_key", "private" })
             Assert.DoesNotContain(value, entry.Text);
     }
