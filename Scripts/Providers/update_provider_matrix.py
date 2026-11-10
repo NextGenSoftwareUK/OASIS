@@ -25,6 +25,7 @@ FAMILY_NAMES={
  'Distributed application storage':set("HoloOASIS HoloOASIS.Desktop HoloOASIS.Edge HoloOASIS.Unity PLANOASIS ONION-Protocol".split()),
  'Non-EVM chain':set("CosmosBlockChainOASIS CelestiaOASIS EclipseOASIS EOSIOOASIS SEEDSOASIS AztecOASIS TONOASIS".split())}
 def family(name,text,path):
+ if name=='EdgeSQLiteOASIS':return 'Runtime state store'
  if name=='ActivityPubOASIS':return 'Non-storage' # Mastodon social projections; generic record saves explicitly refused.
  if name in NON_STORAGE or path.parts[1]=='AI':return 'Non-storage'
  for category,names in FAMILY_NAMES.items():
@@ -168,6 +169,7 @@ def build():
    if e['mode']=='controlled':status='Controlled '+status;blockers.append('Controlled backend is not native product acceptance')
    if role!='Non-storage' and e['suite']!=registry.get('currentCoreSuite','core-storage-v1'):
     status='Historical '+status;blockers.append('Current '+registry['currentCoreSuite']+' not executed; older results are not re-labelled')
+  elif role=='Runtime state store':status='Storage suite N/A';blockers.append('Verify through the owning Edge runtime')
   elif name in registry.get('splitNativeLifecycle',[]):status='Native checkpoints and continuations'
   else:status='Not run (capability-v1)' if role=='Non-storage' else 'Not run';blockers.append('Capability identity/activation/read-only probe pending; storage suite N/A' if role=='Non-storage' else 'Shared-suite adapter/run pending')
   gap=reviewed_sdk_gap(name,project) if not sdk else None

@@ -41,6 +41,7 @@ def register(names):
     registry=DOC/'CONFORMANCE_RESULTS.json';data=json.loads(registry.read_text(encoding='utf-8-sig'))
     for name in names:
         if name not in roles or not re.fullmatch(r'[A-Za-z0-9_.-]+',name):raise ValueError('Unknown provider identity')
+        if roles[name]=='Runtime state store':raise ValueError('Runtime state stores use their owning runtime evidence')
         capability=roles[name]=='Non-storage';suite='capability-v1' if capability else data.get('currentCoreSuite','core-storage-v1')
         modes=['async'] if capability else ['async','sync'];runs=[];blockers=[]
         for mode in modes:
