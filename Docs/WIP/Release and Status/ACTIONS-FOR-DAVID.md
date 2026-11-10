@@ -636,7 +636,7 @@ Status: missing account/configuration information,2 November2026. David approved
 
 ### ClickHouse writable storage fixture
 
-- **Status (2026-11-10)** Open. The focused hard-delete regression compiled and skipped without the fixture.
+- **Status (2026-11-10)** Open. The focused hard-delete regression compiled and skipped without the fixture. The retained COSMIC launcher requires Ubuntu WSL, which is unavailable on this laptop; no standalone ClickHouse or container CLI is installed on PATH.
 - **David action** Designate a disposable ClickHouse instance with an isolated oasis database. Set CLICKHOUSE_CONN through protected local configuration and enable OASIS_CLICKHOUSE_STORAGE_TEST_WRITES=1 for the test process. The account needs schema creation, insert, select and mutation access in oasis. Keep credentials out of Git and chat.
 - **Reason** The native test writes a synthetic holon, deletes it and verifies the row count immediately. The COSMIC teaching source is read-only and is separately accepted.
 - **Context** [Provider continuation](../HyperDrive-Providers/PROVIDER_COMPLETION_CONTINUATION.md).
