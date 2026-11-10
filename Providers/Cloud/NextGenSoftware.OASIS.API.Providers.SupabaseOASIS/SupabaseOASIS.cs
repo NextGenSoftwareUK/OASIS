@@ -664,8 +664,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
             var result = new OASISResult<IEnumerable<IHolon>>();
             try
             {
-                var all = await GetHolonsByFilterAsync("is_deleted=eq.false");
-                var holons = all.Where(h => h.MetaData != null && h.MetaData.TryGetValue(metaKey, out var v) && v?.ToString() == metaValue && (type == HolonType.All || h.HolonType == type)).Cast<IHolon>().ToList();
+                var all = await LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
+                if (all.IsError) return all;
+                var holons = all.Result.Where(h => h.MetaData != null && h.MetaData.TryGetValue(metaKey, out var v) && v?.ToString() == metaValue).ToList();
                 result.Result = holons; result.IsLoaded = true; result.LoadedCount = holons.Count;
                 result.Message = $"SupabaseOASIS: Loaded {holons.Count} holon(s) where {metaKey}={metaValue}.";
             }
@@ -681,14 +682,15 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
             var result = new OASISResult<IEnumerable<IHolon>>();
             try
             {
-                var all = await GetHolonsByFilterAsync("is_deleted=eq.false");
-                bool IsMatch(Holon h)
+                var all = await LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
+                if (all.IsError) return all;
+                bool IsMatch(IHolon h)
                 {
                     if (h.MetaData == null) return false;
                     var checks = metaKeyValuePairs.Select(kvp => h.MetaData.TryGetValue(kvp.Key, out var v) && v?.ToString() == kvp.Value);
                     return metaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.Any ? checks.Any(c => c) : checks.All(c => c);
                 }
-                var holons = all.Where(h => IsMatch(h) && (type == HolonType.All || h.HolonType == type)).Cast<IHolon>().ToList();
+                var holons = all.Result.Where(h => IsMatch(h)).ToList();
                 result.Result = holons; result.IsLoaded = true; result.LoadedCount = holons.Count;
                 result.Message = $"SupabaseOASIS: Loaded {holons.Count} holon(s) matching metadata filter.";
             }
@@ -717,7 +719,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
 
         public override OASISResult<bool> Import(IEnumerable<IHolon> holons) => ImportAsync(holons).Result;
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0) => await LoadAllHolonsAsync();
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0) => await LoadAllHolonsAsync(version: version);
         public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0) => ExportAllAsync(version).Result;
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
