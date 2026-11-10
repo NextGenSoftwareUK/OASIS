@@ -148,7 +148,7 @@ namespace NextGenSoftware.OASIS.API.Providers.FilecoinOASIS.IntegrationTests
 
             Assert.IsTrue(Uri.TryCreate(endpoint, UriKind.Absolute, out var uri) &&
                 uri.IsLoopback && uri.Scheme == Uri.UriSchemeHttp && string.IsNullOrEmpty(uri.UserInfo));
-            var provider = new FilecoinOASIS(endpoint, Environment.GetEnvironmentVariable("OASIS_FILECOIN_TEST_LOTUS_TOKEN"));
+            var provider = new FilecoinOASIS(endpoint, Environment.GetEnvironmentVariable("OASIS_FILECOIN_TEST_LOTUS_TOKEN") ?? string.Empty);
             try
             {
                 var activation = synchronous ? provider.ActivateProvider() : await provider.ActivateProviderAsync();

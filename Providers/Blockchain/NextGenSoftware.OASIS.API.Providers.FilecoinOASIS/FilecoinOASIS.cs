@@ -40,7 +40,7 @@ namespace NextGenSoftware.OASIS.API.Providers.FilecoinOASIS
             _rpcUrl = rpcUrl ?? Environment.GetEnvironmentVariable("FILECOIN_RPC_URL")
                       ?? "https://api.node.glif.io/rpc/v1";
             _token = token ?? Environment.GetEnvironmentVariable("FILECOIN_TOKEN") ?? string.Empty;
-            _http = new HttpClient();
+            _http = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false });
             _http.DefaultRequestHeaders.Accept.ParseAdd("application/json");
             if (!string.IsNullOrEmpty(_token))
                 _http.DefaultRequestHeaders.Authorization =
