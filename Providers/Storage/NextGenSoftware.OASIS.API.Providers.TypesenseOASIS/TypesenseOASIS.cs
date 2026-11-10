@@ -410,9 +410,25 @@ namespace NextGenSoftware.OASIS.API.Providers.TypesenseOASIS
             var result = new OASISResult<bool>();
             try
             {
-                if (softDelete) { var l = await LoadHolonAsync(id); if (!l.IsError && l.Result != null) { var h = (Holon)l.Result; h.DeletedDate = DateTime.UtcNow; await SaveHolonAsync(h); } }
-                else { await DeleteDocAsync(ColHolons, id.ToString()); }
-                result.Result = true; result.IsError = false; result.Message = $"TypesenseOASIS: Holon '{id}' deleted.";
+                if (softDelete)
+                {
+                    var loaded = await LoadHolonAsync(id, loadChildren: false);
+                    if (loaded.IsError || loaded.Result is not Holon holon)
+                        throw new InvalidOperationException(loaded.Message, loaded.Exception);
+
+                    holon.DeletedDate = DateTime.UtcNow;
+                    var saved = await SaveHolonAsync(holon, saveChildren: false);
+                    if (saved.IsError || !saved.IsSaved || saved.SavedCount != 1)
+                        throw new InvalidOperationException(saved.Message, saved.Exception);
+                }
+                else
+                {
+                    await DeleteDocAsync(ColHolons, id.ToString());
+                }
+
+                result.Result = true;
+                result.IsDeleted = true;
+                result.DeletedCount = 1;
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"TypesenseOASIS: {ex.Message}"); }
             return result;
