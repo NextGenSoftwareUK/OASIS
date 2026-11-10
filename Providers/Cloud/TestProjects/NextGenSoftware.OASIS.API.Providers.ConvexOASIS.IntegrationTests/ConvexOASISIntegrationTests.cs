@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.ConvexOASIS.IntegrationTests;
 
@@ -49,9 +50,11 @@ public class ConvexOASISIntegrationTests
         }
         finally
         {
-            var removed = await provider.DeleteHolonAsync(id);
-            Assert.IsFalse(removed.IsError, removed.Exception?.GetType().FullName);
+            var removed = await provider.DeleteHolonSoftAsync(id, softDelete: false);
+            Assert.IsTrue(removed.Result || removed.ErrorCode == OASISResultErrorCodes.RecordNotFound,
+                removed.Exception?.GetType().FullName);
             var absent = await provider.LoadHolonAsync(id, loadChildren: false);
+            Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, absent.ErrorCode);
             Assert.IsFalse(absent.IsLoaded);
             Assert.IsNull(absent.Result);
         }
