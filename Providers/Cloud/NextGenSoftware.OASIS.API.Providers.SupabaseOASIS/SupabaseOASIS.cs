@@ -214,11 +214,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
 
         private async Task<Avatar?> GetAvatarByFilterAsync(string filter)
         {
-            using var response = await _http.GetAsync($"{_baseUrl}/oasis_avatars?{filter}&is_deleted=eq.false&limit=1");
+            using var response = await _http.GetAsync($"{_baseUrl}/oasis_avatars?{filter}&is_deleted=eq.false&limit=2");
             response.EnsureSuccessStatusCode();
             var json = await response.Content.ReadAsStringAsync();
             var rows = DeserializeList<AvatarRow>(json);
             if (rows.Count == 0) return null;
+            if (rows.Count > 1) throw new StorageIdentityAmbiguousException();
             return ParseAvatarRow(rows[0]);
         }
 
@@ -246,7 +247,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
                 if (avatar == null) { OASISErrorHandling.HandleError(ref result, $"SupabaseOASIS: No avatar found with username '{username}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
                 result.Result = avatar; result.IsLoaded = true; result.LoadedCount = 1; result.Message = $"SupabaseOASIS: Avatar loaded for username '{username}'.";
             }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SupabaseOASIS: Error loading avatar by username '{username}': {ex.Message}"); }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SupabaseOASIS: Error loading avatar by username '{username}': {ex.Message}"); if (ex is StorageIdentityAmbiguousException) result.ErrorCode = OASISResultErrorCodes.AmbiguousIdentity; }
             return result;
         }
 
@@ -261,7 +262,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
                 if (avatar == null) { OASISErrorHandling.HandleError(ref result, $"SupabaseOASIS: No avatar found with email '{avatarEmail}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
                 result.Result = avatar; result.IsLoaded = true; result.LoadedCount = 1; result.Message = $"SupabaseOASIS: Avatar loaded for email '{avatarEmail}'.";
             }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SupabaseOASIS: Error loading avatar by email '{avatarEmail}': {ex.Message}"); }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SupabaseOASIS: Error loading avatar by email '{avatarEmail}': {ex.Message}"); if (ex is StorageIdentityAmbiguousException) result.ErrorCode = OASISResultErrorCodes.AmbiguousIdentity; }
             return result;
         }
 
