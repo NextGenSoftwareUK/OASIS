@@ -78,3 +78,5 @@ EdgeSQLite focused file-backed cohort: all eight checks exited. Fixture disposal
 10 November ClickHouse avatar readback compile: cleaned the private integration project outputs under the lease. No backend, fixture or raw report allocated.
 
 10 November SQLite native import: in-memory database, no raw report. Leased test project clean reduced outputs from 90921349 B to 928123 B.
+
+10 November SQLite child-role checks: fixture database, sidecars and intents confirmed absent. No raw reports. Leased project clean reduced private outputs from 98204456 B to 917773 B.
