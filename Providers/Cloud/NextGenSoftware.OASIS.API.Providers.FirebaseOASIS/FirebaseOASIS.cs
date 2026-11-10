@@ -512,13 +512,25 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
         public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
-            var saved = new List<IHolon>(); var errors = new List<string>();
+            var saved = new List<IHolon>();
+            var errors = new List<string>();
             foreach (var holon in holons)
             {
                 var r = await SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
-                if (r.IsError) errors.Add(r.Message ?? ""); else if (r.Result != null) saved.Add(r.Result);
+                if (r.IsError)
+                {
+                    errors.Add(r.Message);
+                    result.Exception ??= r.Exception;
+                    if (!continueOnError) break;
+                }
+                else if (r.IsSaved && r.Result != null)
+                    saved.Add(r.Result);
             }
-            result.Result = saved; result.IsError = errors.Count > 0;
+            result.Result = saved;
+            result.IsSaved = saved.Count > 0;
+            result.SavedCount = saved.Count;
+            result.IsError = errors.Count > 0;
+            result.ErrorCount = errors.Count;
             result.Message = errors.Count > 0 ? string.Join("; ", errors) : $"FirebaseOASIS: {saved.Count} holon(s) saved.";
             return result;
         }
