@@ -41,6 +41,18 @@ public sealed class CqlNativeFailureDiagnosticsTests
         Assert.Equal("cancelled/timeout", CqlNativeFailureDiagnostics.Capture(error).Categories);
     }
 
+    [Theory]
+    [InlineData("response_headers")]
+    [InlineData("response_body")]
+    public void HederaCancellationStageSurvivesActivationWrapping(string stage)
+    {
+        var cancellation = new OperationCanceledException();
+        cancellation.Data["COSMIC.NativeStage"] = stage;
+        var activation = new InvalidOperationException("Activation failed.", cancellation);
+
+        Assert.Equal(stage, CqlNativeFailureDiagnostics.Capture(activation).Stage);
+    }
+
     private sealed class CaptureLogger : ILogger
     {
         public List<(string Text, Exception? Exception)> Entries = new();
