@@ -20,7 +20,10 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
 {
     public partial class Neo4jOASIS
     {
-        public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        public override Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+            => LoadHolonBySelectorAsync("hl.GUId = $value", id.ToString("D"));
+
+        private async Task<OASISResult<IHolon>> LoadHolonBySelectorAsync(string predicate, string value)
         {
             var result = new OASISResult<IHolon>();
             try
@@ -29,11 +32,11 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
                 await using var lifetime = session.ConfigureAwait(false);
                 var rows = await session.ReadTransactionAsync(async transaction =>
                 {
-                    var cursor = await transaction.RunAsync(@"
-                        MATCH (hl:Holon {GUId: $guid})
+                    var cursor = await transaction.RunAsync($@"
+                        MATCH (hl:Holon) WHERE {predicate}
                         RETURN hl.GUId AS id, hl.name AS name, hl.description AS description,
                                hl.ProviderKey AS providerkey, hl.PreviousVersionId AS previousversionid
-                        LIMIT 2", new { guid = id.ToString("D") }).ConfigureAwait(false);
+                        LIMIT 2", new { value }).ConfigureAwait(false);
                     return await cursor.ToListAsync().ConfigureAwait(false);
                 }).ConfigureAwait(false);
 
@@ -71,98 +74,11 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
         }
 
         public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            try
-            {
-                var session = Driver.Session(WithDatabase);
+            => LoadHolonAsync(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version)
+                .GetAwaiter().GetResult();
 
-                return session.ReadTransaction(transaction =>
-                {
-                    var cursor = transaction.Run(@"
-                            MATCH (av: Holon)
-                            WHERE av.ProviderKey=$providerkey
-                            RETURN av.description AS description,av.ProviderKey AS providerkey, av.PreviousVersionId AS previousversionid",
-                        new { providerkey = providerKey }
-                    );
-
-                    IHolon obj = (from d in cursor
-                                  select new Holon
-                                  {
-                                      Description = d["decription"].As<string>(),
-                                      //ProviderKey = d["providerkey"].As<Dictionary<ProviderType, string>>(),
-                                      PreviousVersionId = d["previousversionid"].As<Guid>()
-                                  }).FirstOrDefault();
-
-
-                    return new OASISResult<IHolon>
-                    {
-                        IsLoaded = true,
-                        IsError = false,
-                        Message = "Holon Loaded successfully",
-                        Result = obj,
-                    };
-                });
-            }
-            catch (Exception ex)
-            {
-                return new OASISResult<IHolon>
-                {
-                    IsLoaded = false,
-                    IsError = true,
-                    Message = ex.ToString(),
-                };
-            }
-        }
-
-        public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            try
-            {
-                var session = Driver.AsyncSession(WithDatabase);
-
-                return await session.ReadTransactionAsync(async transaction =>
-                {
-                    var cursor = await transaction.RunAsync(@"
-                           MATCH (hl: Holon)
-                            WHERE hl.ProviderKey=$providerkey
-                            RETURN hl.description AS description,hl.ProviderKey AS providerkey, hl.PreviousVersionId AS previousversionid",
-                        new { providerkey = providerKey }
-                    );
-
-                    var avList = await cursor.ToListAsync(record => new Holon
-                    {
-                        Description = record["description"].As<string>(),
-                        //ProviderKey = record["providerkey"].As<Dictionary<ProviderType, string>>(),
-                        PreviousVersionId = record["previousversionid"].As<Guid>()
-                    });
-                    IHolon objAv = new Holon();
-                    if (avList != null)
-                    {
-                        if (avList.Count > 0)
-                        {
-                            objAv = avList[0];
-                        }
-                    }
-
-                    return new OASISResult<IHolon>
-                    {
-                        IsLoaded = true,
-                        IsError = false,
-                        Message = "Holon Loaded Successfully",
-                        Result = objAv
-                    };
-                });
-            }
-            catch (Exception ex)
-            {
-                return new OASISResult<IHolon>
-                {
-                    IsLoaded = true,
-                    IsError = false,
-                    Message = ex.ToString(),
-                };
-            }
-        }
+        public override Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+            => LoadHolonBySelectorAsync("hl.ProviderKey = $value", providerKey);
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
