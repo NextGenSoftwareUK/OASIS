@@ -169,6 +169,27 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS.IntegrationTests
             Assert.IsNotNull(loaded.Result.SuperPowers);
         }
 
+        [TestMethod]
+        public async Task HardDeleteAcknowledgesAndRemovesAvatar()
+        {
+            var marker = $"oasis-hard-delete-{Guid.NewGuid():N}";
+            var avatar = new Avatar { Id = Guid.NewGuid(), Username = marker, Email = $"{marker}@example.test" };
+
+            var saved = await _provider.SaveAvatarAsync(avatar);
+            Assert.IsFalse(saved.IsError, saved.Message);
+            Assert.IsTrue(saved.IsSaved);
+
+            var deleted = await _provider.DeleteAvatarAsync(avatar.Id, softDelete: false);
+            Assert.IsFalse(deleted.IsError, deleted.Message);
+            Assert.IsTrue(deleted.IsDeleted);
+            Assert.AreEqual(1, deleted.DeletedCount);
+
+            var repeated = await _provider.DeleteAvatarAsync(avatar.Id, softDelete: false);
+            Assert.IsTrue(repeated.IsError);
+            Assert.IsFalse(repeated.IsDeleted);
+            Assert.AreEqual(0, repeated.DeletedCount);
+        }
+
         [TestCleanup]
         public void Cleanup()
         {
