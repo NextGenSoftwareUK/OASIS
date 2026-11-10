@@ -3,7 +3,7 @@ The baseline table below is from 28 October 2026. Read PROVIDER_COMPLETION_CONTI
 
 ## Phase and rules
 
-Active checkpoint, 10 November 2026. SQL Server is the current HyperDrive focus. Development contains the scoped SQL Server avatar/history and graph-read batch at af621f3c3e. The next batch covers concurrent avatar and avatar-detail history. Both cases passed separately on LocalDB and compile together with Development Core 0fc929336 (zero errors). The one-file batch is staged as 2a91bda8eb for the next scoped integration check. BigQuery hosted lifecycle verification awaits its isolated fixture. HyperDrive routing verification follows provider acceptance.
+Active checkpoint, 10 November 2026. SQL Server is the current HyperDrive focus. Development contains the scoped SQL Server avatar/history and graph-read batch at af621f3c3e. Development also contains the concurrent avatar and avatar-detail history regressions at 2a91bda8eb. Both passed separately on LocalDB and compiled together with Development Core 0fc929336 (zero errors). BigQuery hosted lifecycle verification awaits its isolated fixture. HyperDrive routing verification follows provider acceptance.
 
 - Breadth first: real provider implementations and canonical core-storage-v2 (26checks per sync/async mode), approximately one day per family. Non-storage uses capability-v1, not storage tests.
 - All applicable provider baselines precede global failover/load balancing/replication verification, then priority-provider depth. No Polkadot/NEAR/SQLite depth now.
