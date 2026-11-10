@@ -85,9 +85,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
             var result = new OASISResult<bool>();
             try
             {
-                using var response = await _http.GetAsync($"{_baseUrl}/oasis_holons?select=id&limit=0");
+                using var response = await _http.GetAsync($"{_baseUrl}/oasis_holons?select=id&limit=0").ConfigureAwait(false);
                 response.EnsureSuccessStatusCode();
-                using var rows = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+                using var rows = JsonDocument.Parse(await response.Content.ReadAsStringAsync().ConfigureAwait(false));
                 if (rows.RootElement.ValueKind != JsonValueKind.Array) throw new System.IO.InvalidDataException("Expected a PostgREST array.");
                 IsProviderActivated = true;
                 result.Result = true; result.IsError = false;
@@ -102,7 +102,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
             return result;
         }
 
-        public override OASISResult<bool> ActivateProvider() => ActivateProviderAsync().Result;
+        public override OASISResult<bool> ActivateProvider() => ActivateProviderAsync().GetAwaiter().GetResult();
 
         public override Task<OASISResult<bool>> DeActivateProviderAsync()
         {
@@ -110,7 +110,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
             return Task.FromResult(new OASISResult<bool> { Result = true, IsError = false, Message = "SupabaseOASIS deactivated." });
         }
 
-        public override OASISResult<bool> DeActivateProvider() => DeActivateProviderAsync().Result;
+        public override OASISResult<bool> DeActivateProvider() => DeActivateProviderAsync().GetAwaiter().GetResult();
 
         // ─── Helpers ─────────────────────────────────────────────────────────────
 
