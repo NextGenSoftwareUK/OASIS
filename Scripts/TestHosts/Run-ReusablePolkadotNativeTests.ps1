@@ -20,6 +20,10 @@ try {
         ForEach-Object { Join-Path $evidence $_ }
     $publicStoragePending = Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/public-storage-pending.jsonl'
     if (Test-Path -LiteralPath (Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/native-graph-pending.jsonl')) { throw 'Pending original exists: native graph. Reconcile read-only, never replay.' }
+    foreach ($name in @('core-storage-async-pending.jsonl','core-storage-sync-pending.jsonl')) {
+        $pendingPath = Join-Path $repo "Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/$name"
+        if (Test-Path -LiteralPath $pendingPath) { throw "Pending original exists: $name. Reconcile read-only, never replay." }
+    }
     $nftDeploymentPending = Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/psp34-deployment-pending.json'
     $nftMutationPending = Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/psp34-mutation-pending.jsonl'
     $publicNftPending = Join-Path $repo 'Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot/psp34-public-mutation-pending.jsonl'
