@@ -45,6 +45,8 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS.IntegrationTests
 
             var saved = await _provider.SaveAvatarAsync(avatar);
             Assert.IsFalse(saved.IsError, saved.Message);
+            Assert.IsTrue(saved.IsSaved);
+            Assert.AreEqual(1, saved.SavedCount);
 
             var loaded = await _provider.LoadAvatarAsync(avatar.Id);
             Assert.IsFalse(loaded.IsError, loaded.Message);
