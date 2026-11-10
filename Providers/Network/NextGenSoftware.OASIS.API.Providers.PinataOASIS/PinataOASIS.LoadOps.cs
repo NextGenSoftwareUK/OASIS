@@ -143,12 +143,15 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
                 var holonsResult = await LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
                 if (holonsResult.IsError || holonsResult.Result == null)
                 {
-                    OASISErrorHandling.HandleError(ref result, $"Error loading holons from Pinata: {holonsResult.Message}");
+                    OASISErrorHandling.HandleError(ref result, $"Error loading holons from Pinata: {holonsResult.Message}", holonsResult.Exception);
                     return result;
                 }
 
                 var filtered = holonsResult.Result.Where(h => HolonMetaMatches(h, metaKey, metaValue)).ToList();
                 result.Result = filtered;
+                result.LoadedCount = filtered.Count;
+                result.IsWarning = holonsResult.IsWarning;
+                result.WarningCount = holonsResult.WarningCount;
                 result.IsError = false;
                 result.IsLoaded = true;
                 result.Message = $"Found {filtered.Count} holons matching metadata '{metaKey}'='{metaValue}'.";
@@ -179,7 +182,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
                 var holonsResult = await LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
                 if (holonsResult.IsError || holonsResult.Result == null)
                 {
-                    OASISErrorHandling.HandleError(ref result, $"Error loading holons from Pinata: {holonsResult.Message}");
+                    OASISErrorHandling.HandleError(ref result, $"Error loading holons from Pinata: {holonsResult.Message}", holonsResult.Exception);
                     return result;
                 }
 
@@ -193,6 +196,9 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
 
                 var filtered = holonsResult.Result.Where(Matches).ToList();
                 result.Result = filtered;
+                result.LoadedCount = filtered.Count;
+                result.IsWarning = holonsResult.IsWarning;
+                result.WarningCount = holonsResult.WarningCount;
                 result.IsError = false;
                 result.IsLoaded = true;
                 result.Message = $"Found {filtered.Count} holons matching metadata pairs.";
