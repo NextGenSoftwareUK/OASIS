@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using NextGenSoftware.OASIS.API.Core;
 using System.Collections.Generic;
 using System.Text;
@@ -22,52 +22,52 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
     {
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
+            var result = new OASISResult<IHolon>();
             try
             {
                 var session = Driver.AsyncSession(WithDatabase);
-
-                return await session.ReadTransactionAsync(async transaction =>
+                await using var lifetime = session.ConfigureAwait(false);
+                var rows = await session.ReadTransactionAsync(async transaction =>
                 {
                     var cursor = await transaction.RunAsync(@"
-                           MATCH (hl: Holon)
-                            WHERE hl.GUId=$guid
-                            RETURN hl.description AS description,hl.ProviderKey AS providerkey, hl.PreviousVersionId AS previousversionid",
-                        new { guid = id.ToString() }
-                    );
+                        MATCH (hl:Holon {GUId: $guid})
+                        RETURN hl.GUId AS id, hl.name AS name, hl.description AS description,
+                               hl.ProviderKey AS providerkey, hl.PreviousVersionId AS previousversionid
+                        LIMIT 2", new { guid = id.ToString("D") }).ConfigureAwait(false);
+                    return await cursor.ToListAsync().ConfigureAwait(false);
+                }).ConfigureAwait(false);
 
-                    var avList = await cursor.ToListAsync(record => new Holon
-                    {
-                        Description = record["description"].As<string>(),
-                        //ProviderKey = record["providerkey"].As<Dictionary<ProviderType, string>>(),
-                        PreviousVersionId = record["previousversionid"].As<Guid>()
-                    });
-                    IHolon objAv = new Holon();
-                    if (avList != null)
-                    {
-                        if (avList.Count > 0)
-                        {
-                            objAv = avList[0];
-                        }
-                    }
+                if (rows.Count == 0)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Neo4j Aura holon was not found.");
+                    result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
+                    return result;
+                }
+                if (rows.Count > 1)
+                    throw new StorageIdentityAmbiguousException();
 
-                    return new OASISResult<IHolon>
-                    {
-                        IsLoaded = true,
-                        IsError = false,
-                        Message = "Holon Loaded Successfully",
-                        Result = objAv
-                    };
-                });
+                var row = rows[0];
+                var holon = new Holon
+                {
+                    Id = Guid.Parse(row["id"].As<string>()),
+                    Name = row["name"].As<string>(),
+                    Description = row["description"].As<string>(),
+                    PreviousVersionId = row["previousversionid"] is string previous ? Guid.Parse(previous) : Guid.Empty
+                };
+                if (row["providerkey"] is string key)
+                    holon.ProviderUniqueStorageKey[ProviderType.Value] = key;
+
+                result.Result = holon;
+                result.IsLoaded = true;
+                result.LoadedCount = 1;
             }
             catch (Exception ex)
             {
-                return new OASISResult<IHolon>
-                {
-                    IsLoaded = true,
-                    IsError = false,
-                    Message = ex.ToString(),
-                };
+                OASISErrorHandling.HandleError(ref result, "Error loading Neo4j Aura holon.", ex);
+                if (ex is StorageIdentityAmbiguousException)
+                    result.ErrorCode = OASISResultErrorCodes.AmbiguousIdentity;
             }
+            return result;
         }
 
         public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
