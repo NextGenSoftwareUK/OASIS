@@ -29,9 +29,11 @@ if($VerifyPreparedStorage -and (Test-Path -LiteralPath (Join-Path $root 'Docs/WI
 if($VerifyPreparedLifecycle -and (Test-Path -LiteralPath (Join-Path $root 'Docs/WIP/HyperDrive-Providers/NativeEvidence/near-prepared-lifecycle.complete.json'))){throw 'Original prepared lifecycle cohort is complete; reconcile only, never replay.'}
 if($VerifyPreparedToken -and (Test-Path -LiteralPath (Join-Path $root 'Docs/WIP/HyperDrive-Providers/NativeEvidence/near-prepared-token.complete.json'))){throw 'Original token cohort complete; reconcile, never replay.'}
 if($VerifyNftDeposit -and (Test-Path -LiteralPath (Join-Path $root 'Docs/WIP/HyperDrive-Providers/NativeEvidence/near-prepared-nft-deposit.complete.json'))){throw 'Original NFT deposit cohort complete; reconcile, never replay.'}
-$rootWsl=(& wsl.exe -d Ubuntu -- wslpath -a ($root -replace '\\','/')).Trim()
+$rootWsl=& wsl.exe -d Ubuntu -- wslpath -a ($root -replace '\\','/')
+if ($LASTEXITCODE -ne 0) { throw 'The retained Ubuntu WSL environment is unavailable.' }
+$rootWsl = ([string]$rootWsl).Trim()
 $expectedRoot = if ($VerifySharedLifecycle) { '/mnt/c/Source/OASIS2-hyperdrive' } else { '/mnt/c/Source/OASIS' }
-if($LASTEXITCODE -ne 0 -or $rootWsl -ne $expectedRoot){throw 'Unexpected retained NEAR repository root.'}
+if($rootWsl -ne $expectedRoot){throw 'Unexpected retained NEAR repository root.'}
 # No downloads, dependency installs, compilation/deployment of the contract or chain reset.
 # Credentials are read only by the retained SDK worker and passed to Windows through stdin.
 $nearShell=@'
