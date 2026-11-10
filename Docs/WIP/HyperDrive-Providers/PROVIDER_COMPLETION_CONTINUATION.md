@@ -323,3 +323,5 @@ SQL Server LocalDB verified hydrated results from search and both metadata overl
 SQL Server LocalDB passed HolonPointReadHandlesPersistedCycle. Strict traversal rejected a two-row cycle without returning a graph. Partial traversal returned the valid child once and warned about the repeated edge. The test removed both synthetic rows and stopped LocalDB.
 
 SQL Server LocalDB confirmed default holon deletion returned exactly the selected root without descendants, even when the stored child graph had a cycle. The child remained readable and teardown hard-deleted both rows. LocalDB stopped.
+
+The exact Development candidate 0a9956d049, including the LocalDB-verified graph changes, built on Development Core 0fc929336 with zero errors and 1155 warnings. The Railway manifest check passed. Both the task branch and its private Core checkout were restored. The candidate remains local for the next scoped integration window.
