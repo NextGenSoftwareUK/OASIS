@@ -303,16 +303,19 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
             
             try
             {
-                var saveResult = await SaveHolonsAsync(holons);
-                
+                var saveResult = await SaveHolonsAsync(holons, continueOnError: false).ConfigureAwait(false);
+                result.SavedCount = saveResult.SavedCount;
                 if (saveResult.IsError)
                 {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to import holons to Pinata. Reason: {saveResult.Message}");
+                    OASISErrorHandling.HandleError(ref result,
+                        $"Pinata import stopped after {saveResult.SavedCount} acknowledged saves: {saveResult.Message}",
+                        saveResult.Exception);
                     return result;
                 }
 
                 result.Result = true;
-                result.Message = $"Successfully imported {saveResult.Result.Count()} holons to Pinata";
+                result.IsSaved = saveResult.IsSaved;
+                result.Message = $"Successfully imported {saveResult.SavedCount} holons to Pinata";
             }
             catch (Exception e)
             {
