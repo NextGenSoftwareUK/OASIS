@@ -114,6 +114,17 @@ public class SqlServerNativeStorageConformanceTests
             Assert.AreEqual(detail.Email, (await provider.LoadAvatarDetailAsync(id)).Result?.Email);
             Assert.AreEqual(oldUsername, (await provider.LoadAllAvatarsAsync(version: 1)).Result.Single(row => row.Id == id).Username);
             Assert.AreEqual(oldEmail, (await provider.LoadAllAvatarDetailsAsync(version: 1)).Result.Single(row => row.Id == id).Email);
+
+            var softDeleted = await provider.DeleteAvatarAsync(id);
+            Assert.IsTrue(softDeleted.IsDeleted && !softDeleted.IsError, softDeleted.Message);
+            foreach (var version in new[] { 0, 1 })
+            {
+                var hidden = await provider.LoadAvatarDetailAsync(id, version);
+                Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, hidden.ErrorCode, hidden.Message);
+                var listed = await provider.LoadAllAvatarDetailsAsync(version);
+                Assert.IsTrue(listed.IsLoaded && !listed.IsError, listed.Message);
+                Assert.IsFalse(listed.Result.Any(row => row.Id == id));
+            }
         }
         finally
         {

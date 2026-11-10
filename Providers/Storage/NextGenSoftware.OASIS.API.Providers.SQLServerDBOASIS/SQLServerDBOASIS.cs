@@ -246,10 +246,12 @@ WHERE h.Version=@Version AND h.IsDeleted=0 AND c.IsDeleted=0";
 
         private const string AvatarDetailSnapshotRows = @"
 SELECT c.Id, c.Username, c.Email, c.DataJson FROM OASISAvatarDetails c
-WHERE @Version=0 OR TRY_CONVERT(int, JSON_VALUE(c.DataJson, '$.Version'))=@Version
+WHERE (@Version=0 OR TRY_CONVERT(int, JSON_VALUE(c.DataJson, '$.Version'))=@Version)
+AND NOT EXISTS (SELECT 1 FROM OASISAvatars a WHERE a.Id=c.Id AND a.IsDeleted=1)
 UNION ALL
 SELECT h.Id, h.Username, h.Email, h.DataJson FROM OASISAvatarDetailHistory h
-WHERE h.Version=@Version";
+WHERE h.Version=@Version
+AND NOT EXISTS (SELECT 1 FROM OASISAvatars a WHERE a.Id=h.Id AND a.IsDeleted=1)";
 
         private async Task<Avatar?> LoadAvatarByColumnAsync(string column, object value, int version)
         {
