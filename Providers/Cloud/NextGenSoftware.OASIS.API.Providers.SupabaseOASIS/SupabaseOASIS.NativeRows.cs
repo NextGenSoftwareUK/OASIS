@@ -17,6 +17,7 @@ internal sealed class SupabaseMutationReconciliationException(Guid proposedId, E
     : Exception("Supabase write outcome requires reconciliation before replay.", cause), INativeMutationReconciliationRequired
 {
     public Guid ProposedId { get; } = proposedId;
+    public IReadOnlyList<Guid> ProposedIds { get; init; } = new[] { proposedId };
     public string OriginalTransactionId => string.Empty;
 }
 

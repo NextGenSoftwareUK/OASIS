@@ -78,3 +78,7 @@ The shipping Solana provider builds with a finalized memo read-back check before
 ### Neo4j V2 entry point
 
 V2 now delegates to the canonical Neo4j provider and official driver, with its existing provider identity and storage format. The canonical provider's bound-replica merge conflict was repaired using its existing head validator. The V2 identity test and focused provider inventory assertion passed. The native activation smoke test compiled and skipped without a dedicated Bolt endpoint. The historical canonical storage suite was not rerun. Native V2 activation and the changed replica paths remain open.
+
+### Supabase graph and detail storage
+
+Supabase uses one PostgREST upsert for the selected graph and validates the exact acknowledged row set before publishing IDs. Uncertain responses preserve all proposed IDs. Avatar detail uses the canonical concrete serializer. The two changed-path soft-delete regressions passed and the provider compiled. Hosted graph, detail and full lifecycle verification require the dedicated Supabase project listed in Actions for David.
