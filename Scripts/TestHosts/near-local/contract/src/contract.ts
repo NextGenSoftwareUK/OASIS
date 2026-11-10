@@ -52,13 +52,19 @@ export class OasisStorage {
     const detail = `avatar-detail:${id}`;
     const avatarHistory = `history:${avatar}:`;
     const detailHistory = `history:${detail}:`;
+    let removed = false;
     // Traverse backwards because removing a key swaps in the last map entry.
     for (let index = this.records.length - 1; index >= 0; index--) {
       const [key] = this.records.keys({ start: index, limit: 1 });
-      if (key.startsWith(avatarHistory) || key.startsWith(detailHistory)) this.records.remove(key);
+      if (key.startsWith(avatarHistory) || key.startsWith(detailHistory)) {
+        this.records.remove(key);
+        removed = true;
+      }
     }
-    this.records.remove(detail);
-    this.records.remove(avatar);
+    const removedDetail = this.records.remove(detail);
+    const removedAvatar = this.records.remove(avatar);
+    if (!removed && removedDetail === null && removedAvatar === null)
+      throw new Error("OASIS_AVATAR_NOT_FOUND");
   }
 
   @view({})
