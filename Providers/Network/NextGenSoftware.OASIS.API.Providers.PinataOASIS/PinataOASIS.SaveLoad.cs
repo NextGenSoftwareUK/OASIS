@@ -210,32 +210,18 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
             var result = new OASISResult<IHolon>();
             try
             {
-                await EnsureActivatedForPinataAsync(result);
-                if (result.IsError) return result;
-
-                var lookup = await FindPinnedHolonByIdAsync(id);
+                var lookup = await LoadNamedRecordAsync<IHolon, Holon>(id, "Holon").ConfigureAwait(false);
                 if (lookup.IsError)
-                {
-                    result.IsError = lookup.IsError;
-                    result.Message = lookup.Message;
-                    result.Exception = lookup.Exception;
-                    return result;
-                }
-
-                if (string.IsNullOrWhiteSpace(lookup.Result.PinHash) || lookup.Result.Holon == null)
+                    return lookup;
+                if (lookup.Result == null)
                 {
                     OASISErrorHandling.HandleError(ref result, $"Holon with ID {id} not found in Pinata.");
                     return result;
                 }
 
-                var unpinOk = await _pinataService.UnpinFileAsync(lookup.Result.PinHash);
-                if (!unpinOk)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to unpin holon {id} from Pinata.");
-                    return result;
-                }
-
-                result.Result = lookup.Result.Holon;
+                var providerKey = lookup.Result.ProviderUniqueStorageKey[Core.Enums.ProviderType.PinataOASIS];
+                await _pinataService.UnpinFileAsync(providerKey).ConfigureAwait(false);
+                result.Result = lookup.Result;
                 result.IsDeleted = true;
                 result.DeletedCount = 1;
                 result.IsError = false;

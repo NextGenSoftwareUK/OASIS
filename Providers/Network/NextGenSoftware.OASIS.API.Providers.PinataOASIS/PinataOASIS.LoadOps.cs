@@ -633,46 +633,6 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
             }
         }
 
-        private async Task<OASISResult<(string PinHash, IHolon Holon)>> FindPinnedHolonByIdAsync(Guid id)
-        {
-            var result = new OASISResult<(string PinHash, IHolon Holon)>();
-            try
-            {
-                await EnsureActivatedForPinataAsync(result);
-                if (result.IsError) return result;
-
-                var pins = await _pinataService.GetFilesAsync();
-                foreach (var pin in pins)
-                {
-                    if (string.IsNullOrWhiteSpace(pin?.IpfsPinHash)) continue;
-
-                    try
-                    {
-                        var content = await _pinataService.GetFileContentAsync(pin.IpfsPinHash);
-                        if (string.IsNullOrWhiteSpace(content)) continue;
-
-                        var holon = JsonConvert.DeserializeObject<Holon>(content);
-                        if (holon != null && holon.Id == id)
-                        {
-                            result.Result = (pin.IpfsPinHash, holon);
-                            result.IsError = false;
-                            return result;
-                        }
-                    }
-                    catch
-                    {
-                        // ignore non-holon pins
-                    }
-                }
-
-                OASISErrorHandling.HandleError(ref result, $"Holon with ID {id} not found in Pinata.");
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error searching holon pins in Pinata: {ex.Message}", ex);
-            }
-            return result;
-        }
     }
 
     // Helper classes for Pinata API responses
