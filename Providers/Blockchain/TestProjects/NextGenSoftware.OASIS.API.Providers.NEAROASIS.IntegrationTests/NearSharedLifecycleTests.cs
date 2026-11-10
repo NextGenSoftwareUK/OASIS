@@ -130,6 +130,14 @@ public class NearSharedLifecycleTests
                 Assert.IsNull(missingDetail.Result);
                 Assert.IsFalse(missingAvatar.IsLoaded || missingDetail.IsLoaded);
             }
+            var missingDelete = await provider.DeleteAvatarAsync(id, softDelete: false);
+            Assert.IsTrue(missingDelete.IsError);
+            Assert.IsFalse(missingDelete.IsDeleted || missingDelete.Result);
+            Assert.AreEqual(0, missingDelete.DeletedCount);
+            var rejection = missingDelete.Exception as NearMutationRejectedException;
+            Assert.IsNotNull(rejection);
+            Assert.IsFalse(string.IsNullOrWhiteSpace(rejection.OriginalTransactionId));
+            StringAssert.Contains(rejection.NativeStatusJson, "OASIS_AVATAR_NOT_FOUND");
             Assert.AreEqual(before, (await ReadNativeKey(retainedKey)).GetString());
             var retainedCleanup = await provider.DeleteAvatarAsync(retainedId, softDelete: false);
             Assert.IsTrue(!retainedCleanup.IsError && retainedCleanup.IsDeleted);
