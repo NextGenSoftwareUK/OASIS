@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Text;
 using System.Linq;
 using Newtonsoft.Json;
@@ -26,6 +26,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
 
     public class PinataPin
     {
+        [Newtonsoft.Json.JsonProperty("ipfs_pin_hash")]
         public string IpfsPinHash { get; set; }
         public string Name { get; set; }
         public Dictionary<string, object> Metadata { get; set; }
