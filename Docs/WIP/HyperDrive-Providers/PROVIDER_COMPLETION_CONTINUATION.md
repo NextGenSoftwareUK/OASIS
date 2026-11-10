@@ -387,3 +387,5 @@ IPFS focused sync/async activation and deactivation cases compiled with 0 errors
 Convex hosted integration harness compiled after mock-factory removal (0 errors, 1120 warnings) against Core 59595871. Shipping Convex sources match Development. Hosted execution remains gated on protected deployment configuration.
 
 Neon native integration harness compiled with Development Core 59595871 and discovered both lifecycle modes. Both skipped without the hosted fixture (zero failures). Shipping Neon provider sources match Development; the test-only replacement of the mock factory can be integrated independently.
+
+Supabase integration scope review: the task diff includes shipping PostgREST row and acknowledgement changes, the dedicated database schema and native integration tests. The schema grants table access to service_role, enables row-level security and cascades avatar hard deletion to its details. No local PostgreSQL/PostgREST CLI or Supabase CI fixture is available here. Keep this batch separate from the Development Neon/Convex harness replacements until hosted schema and lifecycle verification.
