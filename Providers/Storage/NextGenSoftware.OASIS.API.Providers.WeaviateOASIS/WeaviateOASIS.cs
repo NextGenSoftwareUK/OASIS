@@ -524,10 +524,10 @@ namespace NextGenSoftware.OASIS.API.Providers.WeaviateOASIS
             var result = new OASISResult<IHolon>();
             try
             {
-                var loaded = await LoadHolonAsync(id); if (loaded.IsError || loaded.Result == null) { OASISErrorHandling.HandleError(ref result, $"WeaviateOASIS: Holon '{id}' not found."); return result; }
+                var loaded = await LoadHolonAsync(id, loadChildren: false); if (loaded.IsError || loaded.Result == null) return loaded;
                 var holon = (Holon)loaded.Result; holon.DeletedDate = DateTime.UtcNow;
                 await UpsertObjectAsync("OasisHolon", id.ToString(), new Dictionary<string, object?> { ["parentHolonId"] = holon.ParentHolonId.ToString(), ["holonType"] = (int)holon.HolonType, ["isDeleted"] = true, ["dataJson"] = Ser(holon) });
-                result.Result = holon; result.IsError = false; result.Message = $"WeaviateOASIS: Holon '{id}' soft-deleted.";
+                result.Result = holon; result.IsDeleted = true; result.DeletedCount = 1; result.Message = $"WeaviateOASIS: Holon '{id}' soft-deleted.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"WeaviateOASIS: {ex.Message}"); }
             return result;
@@ -542,7 +542,7 @@ namespace NextGenSoftware.OASIS.API.Providers.WeaviateOASIS
         public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             var result = new OASISResult<ISearchResults>();
-            try { string? q = searchParams.SearchGroups?.OfType<SearchTextGroup>().FirstOrDefault()?.SearchQuery?.ToLower(); var all = await LoadAllHolonsAsync(); var holons = all.Result?.ToList() ?? new List<IHolon>(); if (!string.IsNullOrEmpty(q)) holons = holons.Where(h => h.Name?.ToLower().Contains(q) == true || h.Description?.ToLower().Contains(q) == true).ToList(); result.Result = new SearchResults { SearchResultHolons = holons, NumberOfResults = holons.Count }; result.IsError = false; result.Message = $"WeaviateOASIS: Found {holons.Count} result(s)."; }
+            try { string? q = searchParams.SearchGroups?.OfType<SearchTextGroup>().FirstOrDefault()?.SearchQuery?.ToLower(); var all = await LoadAllHolonsAsync(); if (all.IsError) throw new InvalidOperationException(all.Message, all.Exception); var holons = all.Result?.ToList() ?? new List<IHolon>(); if (!string.IsNullOrEmpty(q)) holons = holons.Where(h => h.Name?.ToLower().Contains(q) == true || h.Description?.ToLower().Contains(q) == true).ToList(); result.Result = new SearchResults { SearchResultHolons = holons, NumberOfResults = holons.Count }; result.IsError = false; result.Message = $"WeaviateOASIS: Found {holons.Count} result(s)."; }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
             return result;
         }
