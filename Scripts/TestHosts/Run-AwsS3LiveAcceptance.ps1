@@ -50,7 +50,12 @@ $evidenceStem = if ($RecordLifecycle) { 's3-live-records' } else { 's3-live-tran
         $probe.Prefix = if ($RecordLifecycle) { 'oasis-provider-acceptance/' } else { 'oasis-acceptance/' }
         $probe.MaxKeys = 1
         $listing = $client.ListObjectsV2Async($probe, [Threading.CancellationToken]::None).GetAwaiter().GetResult()
-        if ($listing.IsTruncated -or $listing.KeyCount -ne 0) { throw 'The approved acceptance prefix must be empty.' }
+        if ($null -eq $listing -or $listing.HttpStatusCode -ne [Net.HttpStatusCode]::OK) {
+            throw 'The approved bucket owner and prefix could not be verified.'
+        }
+        if ($listing.IsTruncated -or $listing.KeyCount -ne 0 -or $listing.S3Objects.Count -gt 0) {
+            throw 'The approved acceptance prefix must be empty.'
+        }
         if ($RecordLifecycle) {
             [NextGenSoftware.OASIS.API.Providers.AWSOASIS.UnitTests.AwsS3LiveProviderAcceptance]::RunAsync(
                 $client, $Region, $BucketName, $StorageEncryptionKeyEnvironmentVariable, $work).GetAwaiter().GetResult()
