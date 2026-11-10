@@ -560,9 +560,17 @@ namespace NextGenSoftware.OASIS.API.Providers.FilecoinOASIS
                     && rootEl.TryGetProperty("/", out var cidEl))
                     cid = cidEl.GetString() ?? string.Empty;
 
+                if (string.IsNullOrWhiteSpace(cid))
+                    throw new System.IO.InvalidDataException("Lotus did not acknowledge an imported root CID.");
+
+                holon.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
+                holon.ProviderMetaData ??= new Dictionary<ProviderType, Dictionary<string, string>>();
+                if (!holon.ProviderMetaData.ContainsKey(Core.Enums.ProviderType.FilecoinOASIS))
+                    holon.ProviderMetaData[Core.Enums.ProviderType.FilecoinOASIS] = new Dictionary<string, string>();
                 holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.FilecoinOASIS] = cid;
                 holon.ProviderMetaData[Core.Enums.ProviderType.FilecoinOASIS]["cid"] = cid;
 
+                string dealCid = null;
                 // Step 2: find available miners and start deal with cheapest
                 var offers = await LotusCallAsync("Filecoin.ClientFindData",
                     new object[] { new Dictionary<string, string> { ["/"] = cid }, null });
@@ -588,15 +596,19 @@ namespace NextGenSoftware.OASIS.API.Providers.FilecoinOASIS
                         VerifiedDeal = false,
                     };
                     var dealId = await LotusCallAsync("Filecoin.ClientStartDeal", new object[] { dealParams });
-                    string dealCid = dealId.HasValue && dealId.Value.TryGetProperty("/", out var dc)
+                    dealCid = dealId.HasValue && dealId.Value.TryGetProperty("/", out var dc)
                         ? dc.GetString() ?? string.Empty : string.Empty;
+                    if (string.IsNullOrWhiteSpace(dealCid))
+                        throw new System.IO.InvalidDataException("Lotus did not acknowledge a deal proposal CID.");
                     holon.ProviderMetaData[Core.Enums.ProviderType.FilecoinOASIS]["deal_proposal_cid"] = dealCid;
                     holon.ProviderMetaData[Core.Enums.ProviderType.FilecoinOASIS]["miner"] = miner;
                     holon.ProviderMetaData[Core.Enums.ProviderType.FilecoinOASIS]["size_bytes"] = size.ToString();
                 }
 
                 result.Result = holon;
-                result.Message = $"FilecoinOASIS: Imported and deal initiated for CID '{cid}'.";
+                result.Message = dealCid == null
+                    ? $"FilecoinOASIS: Imported CID '{cid}' into the local Lotus store."
+                    : $"FilecoinOASIS: Imported CID '{cid}' and submitted deal proposal '{dealCid}'.";
             }
             catch (Exception ex)
             {
