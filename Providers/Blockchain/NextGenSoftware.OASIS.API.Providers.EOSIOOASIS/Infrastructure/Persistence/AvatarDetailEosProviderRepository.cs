@@ -106,13 +106,27 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
 
         public async Task<ImmutableArray<AvatarDetailDto>> ReadAll()
         {
-            var avatarDetailTableRows = await _eosClient.GetTableRows<AvatarDetailDto>(new GetTableRowsRequestDto
+            var request = new GetTableRowsRequestDto
             {
                 Code = _eosAccountName,
                 Scope = _eosAccountName,
                 Table = _avatarDetailTable
-            });
-            return avatarDetailTableRows.Rows.ToImmutableArray();
+            };
+            var rows = ImmutableArray.CreateBuilder<AvatarDetailDto>();
+            var cursors = new HashSet<string>(StringComparer.Ordinal);
+            while (true)
+            {
+                var page = await _eosClient.GetTableRows<AvatarDetailDto>(request).ConfigureAwait(false);
+                if (page?.Rows == null || !page.More.HasValue)
+                    throw new InvalidOperationException("EOSIO did not return a complete avatar detail table page.");
+
+                rows.AddRange(page.Rows);
+                if (!page.More.Value)
+                    return rows.ToImmutable();
+                if (string.IsNullOrWhiteSpace(page.NextKey) || !cursors.Add(page.NextKey))
+                    throw new InvalidOperationException("EOSIO returned an invalid avatar detail table continuation.");
+                request.LowerBound = page.NextKey;
+            }
         }
 
         public Task Update(AvatarDetailDto entity, Guid id)
