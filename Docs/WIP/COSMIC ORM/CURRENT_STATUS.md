@@ -697,3 +697,5 @@ or old cohort touched. Local test outputs remain compact receipts only.
 Five focused diagnostics tests passed. WEB4 image run 42879594327 is verifying candidate f8568a05dd before Development integration. Hedera recovery remains open.
 
 Live public visitor discovery listed GUN ready for native and paired queries, with browser verification open. Hedera was unavailable, and TRON and Supabase were absent from this catalogue.
+
+WEB4 CI run 42879594327 succeeded for f8568a05dd and published teaching image sha256:442c5422c69bc33f6a621e27b8778e21ebe16f417bdac2d1f21e73aa1bd5b25c. The two-file diagnostics change is merged into Development at 88cfc84a82. Railway deployment 4a88fffc is queued. Live startup and Hedera recovery remain open.
