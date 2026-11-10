@@ -50,7 +50,7 @@ public partial class HolonRepository
             .Limit(1).AnyAsync(token).ConfigureAwait(false))throw new MongoReplicaConflictException(ids);
     }
 
-    private async Task PrepareCommittedReplicaEntitiesAsync(IClientSessionHandle session, List<NativeHolon> entries,
+    private async Task PrepareCommittedReplicaEntitiesAsync(IMongoDatabase database, IClientSessionHandle session, List<NativeHolon> entries,
         IReadOnlyDictionary<Guid, BsonDocument> observations, CommittedHolonReplicaPlan plan, CancellationToken cancellation)
     {
         var heads = database.GetCollection<BsonDocument>("CosmicReplicaHead");

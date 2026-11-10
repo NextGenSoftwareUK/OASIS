@@ -9,7 +9,7 @@ using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
 
-public partial class MongoDBOASIS : ICommittedHolonReplicaStorageProvider, ICommittedHolonReplicaInitializationStorageProvider
+public partial class MongoDBOASIS : IBoundCommittedHolonReplicaStorageProvider, ICommittedHolonReplicaInitializationStorageProvider, IHolonReplicaHeadAuditStorageProvider, ICommittedHolonReplicaReceiptStorageProvider
 {
     public Task<OASISResult<CommittedHolonReplicaReceiptEvidence>> ReadCommittedHolonReplicaReceiptAsync(
         CommittedHolonReplicaReceiptReadRequest request, CancellationToken cancellationToken = default)
@@ -41,7 +41,7 @@ public partial class MongoDBOASIS : ICommittedHolonReplicaStorageProvider, IComm
         CosmicStorageIdentity expectedStorage, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(expectedStorage);
-        return ApplyReplicaAsync(request, expectedStorage, cancellationToken);
+        return ApplyReplicaAsync(request, false, expectedStorage, cancellationToken);
     }
 
     public OASISResult<IEnumerable<IHolon>> ApplyCommittedHolonReplica(CommittedHolonReplicaRequest request)
@@ -49,21 +49,22 @@ public partial class MongoDBOASIS : ICommittedHolonReplicaStorageProvider, IComm
 
     public Task<OASISResult<IEnumerable<IHolon>>> ApplyCommittedHolonReplicaAsync(
         CommittedHolonReplicaRequest request, CancellationToken cancellationToken = default)
-        => await ApplyReplicaAsync(request, false, cancellationToken).ConfigureAwait(false);
+        => ApplyReplicaAsync(request, false, null, cancellationToken);
 
     public OASISResult<IEnumerable<IHolon>> InitializeCommittedHolonReplica(CommittedHolonReplicaRequest request)
         => InitializeCommittedHolonReplicaAsync(request).GetAwaiter().GetResult();
 
     public Task<OASISResult<IEnumerable<IHolon>>> InitializeCommittedHolonReplicaAsync(
         CommittedHolonReplicaRequest request, CancellationToken cancellationToken = default)
-        => ApplyReplicaAsync(request, true, cancellationToken);
+        => ApplyReplicaAsync(request, true, null, cancellationToken);
 
     private async Task<OASISResult<IEnumerable<IHolon>>> ApplyReplicaAsync(
-        CommittedHolonReplicaRequest request, bool initialize, CancellationToken cancellationToken)
+        CommittedHolonReplicaRequest request, bool initialize, CosmicStorageIdentity expectedStorage, CancellationToken cancellationToken)
     {
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
+            CommittedHolonReplicaPlan.ValidateNativeDestination(request, expectedStorage);
             var plan = initialize ? CommittedHolonReplicaPlan.CreateInitialBaseline(request, Core.Enums.ProviderType.MongoDBOASIS)
                 : CommittedHolonReplicaPlan.Create(request, Core.Enums.ProviderType.MongoDBOASIS);
             return await SaveGraphsAtomicAsync(request.Roots, request.SaveChildren, request.Recursive,
