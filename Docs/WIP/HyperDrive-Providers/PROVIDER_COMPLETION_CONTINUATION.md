@@ -110,3 +110,7 @@ The TON lifecycle acceptance used Core 14bfd34f6e34d2be9f4bdec34b3431b8ce356fe5 
 
 The existing signed-write tests use the shipping NEAROASIS provider. The retained runner requires an RPC URL, chain ID, contract ID, and protected signer path, and launches its test tooling through WSL. The current shell has no NEAROASIS test settings. Existing operation-specific reports remain valid within their recorded scope. The next shared-suite run needs an isolated writable contract with exact fixture cleanup and must preserve retained CQL state.
 The focused shared NEAR lifecycle test compiled and discovered both modes. Both skipped because OASIS_NEAR_LIFECYCLE_REPORT_ROOT and a dedicated writable fixture were not configured. No native pass or fixture mutation is claimed.
+
+### Polkadot retained native storage scope
+
+The [Polkadot native evidence](POLKADOT_PROVIDER_NATIVE_TESTS.md) records ten original finalized operations through the public C# avatar, detail and holon storage path, with encrypted-cell verification and final empty storage. The original run failed only at its terminal journal comparison. The corrected read-only recovery passed against the same ten originals and issued zero fresh acknowledgements. Retain that scope and do not replay it. A current shared lifecycle result and broader graph/version coverage are still missing.
