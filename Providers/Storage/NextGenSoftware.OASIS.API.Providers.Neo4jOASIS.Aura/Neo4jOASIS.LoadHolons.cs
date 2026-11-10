@@ -20,85 +20,33 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
 {
     public partial class Neo4jOASIS
     {
-        public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0)
-        {
-            try
-            {
-                var session = Driver.Session(WithDatabase);
-
-                return session.ReadTransaction(transaction =>
-                {
-                    var cursor = transaction.Run(@"
-                            MATCH (avd:AvatarDetail)                        
-                            RETURN avd.Username AS username,avd.Email AS email"
-                    );
-
-                    IEnumerable<IAvatarDetail> objList = (from d in cursor
-                                                          select new AvatarDetail
-                                                          {
-                                                              Username = d["username"].As<string>(),
-                                                              Email = d["email"].As<string>()
-                                                          }).ToList();
-
-                    return new OASISResult<IEnumerable<IAvatarDetail>>
-                    {
-                        IsLoaded = true,
-                        IsError = false,
-                        Message = "Avatar Detail(s) Loaded successfully",
-                        Result = objList,
-                    };
-
-                });
-            }
-            catch (Exception ex)
-            {
-                return new OASISResult<IEnumerable<IAvatarDetail>>
-                {
-                    IsLoaded = false,
-                    IsError = true,
-                    Message = ex.ToString(),
-                };
-            }
-        }
+        public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0) =>
+            LoadAllAvatarDetailsAsync(version).GetAwaiter().GetResult();
 
         public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
         {
+            var result = new OASISResult<IEnumerable<IAvatarDetail>>();
             try
             {
                 var session = Driver.AsyncSession(WithDatabase);
-
-                return await session.ReadTransactionAsync(async transaction =>
+                await using var sessionLifetime = session.ConfigureAwait(false);
+                result.Result = await session.ReadTransactionAsync(async transaction =>
                 {
                     var cursor = await transaction.RunAsync(@"
-                            MATCH (avd:AvatarDetail)                        
-                            RETURN avd.Username AS username,avd.Email AS email"
-                    );
-
-                    IEnumerable<IAvatarDetail> objList = await cursor.ToListAsync(record => new AvatarDetail
-                    {
-                        Username = record["username"].As<string>(),
-                        Email = record["email"].As<string>()
-                    });
-
-                    return new OASISResult<IEnumerable<IAvatarDetail>>
-                    {
-                        IsLoaded = true,
-                        IsError = false,
-                        Message = "Avatar Detail(s) Loaded successfully",
-                        Result = objList,
-                    };
-
-                });
+                        MATCH (detail:AvatarDetail)
+                        RETURN detail.GUId AS guid, detail.Username AS username,
+                               detail.Email AS email, detail.Address AS address, detail.Country AS country")
+                        .ConfigureAwait(false);
+                    return await cursor.ToListAsync(ReadAvatarDetail).ConfigureAwait(false);
+                }).ConfigureAwait(false);
+                result.IsLoaded = true;
             }
             catch (Exception ex)
             {
-                return new OASISResult<IEnumerable<IAvatarDetail>>
-                {
-                    IsLoaded = false,
-                    IsError = true,
-                    Message = ex.ToString(),
-                };
+                OASISErrorHandling.HandleError(ref result, "Error listing Neo4j Aura avatar details.", ex);
             }
+
+            return result;
         }
 
         public override OASISResult<IAvatar> SaveAvatar(IAvatar avatar) =>

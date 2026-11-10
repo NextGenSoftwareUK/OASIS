@@ -64,15 +64,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
                     if (!await cursor.FetchAsync().ConfigureAwait(false))
                         return null;
 
-                    var row = cursor.Current;
-                    var detail = new AvatarDetail
-                    {
-                        Id = Guid.Parse(row["guid"].As<string>()),
-                        Username = row["username"].As<string>(),
-                        Email = row["email"].As<string>(),
-                        Address = row["address"].As<string>(),
-                        Country = row["country"].As<string>()
-                    };
+                    var detail = ReadAvatarDetail(cursor.Current);
                     if (await cursor.FetchAsync().ConfigureAwait(false))
                         throw new InvalidOperationException("Multiple Aura avatar details match the requested identity.");
 
@@ -87,5 +79,15 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
 
             return result;
         }
+
+        private static IAvatarDetail ReadAvatarDetail(IRecord row) => new AvatarDetail
+        {
+            Id = Guid.Parse(row["guid"].As<string>()),
+            Username = row["username"].As<string>(),
+            Email = row["email"].As<string>(),
+            Address = row["address"].As<string>(),
+            Country = row["country"].As<string>()
+        };
+
     }
 }
