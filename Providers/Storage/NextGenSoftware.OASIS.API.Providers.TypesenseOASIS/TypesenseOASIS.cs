@@ -70,8 +70,9 @@ namespace NextGenSoftware.OASIS.API.Providers.TypesenseOASIS
 
         private async Task<T?> GetDocAsync<T>(string collection, string id)
         {
-            var resp = await _http.GetAsync($"{_host}/collections/{collection}/documents/{id}");
-            if (!resp.IsSuccessStatusCode) return default;
+            using var resp = await _http.GetAsync($"{_host}/collections/{collection}/documents/{id}");
+            if (resp.StatusCode == System.Net.HttpStatusCode.NotFound) return default;
+            resp.EnsureSuccessStatusCode();
             var json = await resp.Content.ReadAsStringAsync();
             return JsonSerializer.Deserialize<T>(json, _jsonOpts);
         }
@@ -112,7 +113,8 @@ namespace NextGenSoftware.OASIS.API.Providers.TypesenseOASIS
 
         private async Task DeleteDocAsync(string collection, string id)
         {
-            await _http.DeleteAsync($"{_host}/collections/{collection}/documents/{id}");
+            using var response = await _http.DeleteAsync($"{_host}/collections/{collection}/documents/{id}");
+            response.EnsureSuccessStatusCode();
         }
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
