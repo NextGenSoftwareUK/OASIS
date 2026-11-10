@@ -287,3 +287,5 @@ The task process did not expose Neon, Supabase, or Convex hosted fixture setting
 Neon hosted conformance test project built successfully with the revised failure checkpoints (0 errors, 1143 warnings). This is compile evidence. Hosted sync and async acceptance still require the dedicated Neon fixture.
 
 Supabase hosted conformance project built with the revised success checkpoint (0 errors, 1149 warnings). Hosted sync and async runs remain open pending the dedicated project and test credential recorded in the owner list.
+
+Solana direct-provider conformance build passed (11 warnings, 0 errors). Missing retained-validator configuration now leaves the native report path untouched. The default build lacked ONODE restore assets. No native transaction was submitted.
