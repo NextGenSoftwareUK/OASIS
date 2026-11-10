@@ -46,7 +46,7 @@ public class ConvexOASISIntegrationTests
         try
         {
             var saved = await provider.SaveHolonAsync(holon, saveChildren: false);
-            Assert.IsTrue(saved.IsSaved, saved.Exception?.GetType().FullName);
+            Assert.IsTrue(saved.IsSaved && !saved.IsError, saved.Exception?.GetType().FullName);
             acknowledged = true;
             using var reader = new ConvexOASIS(deployment!, deployKey!);
             var readerActivation = await reader.ActivateProviderAsync();
@@ -61,7 +61,7 @@ public class ConvexOASISIntegrationTests
             if (acknowledged)
             {
                 var removed = await provider.DeleteHolonSoftAsync(id, softDelete: false);
-                Assert.IsTrue(removed.Result || removed.ErrorCode == OASISResultErrorCodes.RecordNotFound,
+                Assert.IsTrue(removed.Result && removed.IsDeleted && !removed.IsError,
                     removed.Exception?.GetType().FullName);
                 var absent = await provider.LoadHolonAsync(id, loadChildren: false);
                 Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, absent.ErrorCode);
