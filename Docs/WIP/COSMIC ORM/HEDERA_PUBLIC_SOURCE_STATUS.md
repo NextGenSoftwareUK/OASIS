@@ -95,3 +95,5 @@ Development 85df5709 (9eb5284b73): guarded .NET startup activation hit the 15-se
 Development fbc0e08e (1f1021ec6a): Hedera moved from unavailable during startup to native and federated catalogue readiness. Both reviewed public native presets passed the row checks (3 full and 2 subset) using the retained demo visitor. Paired browser verification and startup reliability across deployments remain open. No new avatar, query report, local build, or download was created.
 
 On Development fbc0e08e the two reviewed federation presets returned three and two public Hedera rows with exact provider and copy identity checks and strict subset containment. The existing visitor had no prepared Mongo copies. The private paired browser flow remains open. No report file or local build output was created.
+
+On fbc0e08e, the browser displayed 3/2 public Hedera rows under the disposable demo visitor. The original private cohort directory is absent on this recovery checkout. Recover the original identity and its completion acknowledgement from the originating machine before verifying the private paired presets. Do not replay the two accepted writes.
