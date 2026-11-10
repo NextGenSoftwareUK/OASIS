@@ -598,3 +598,7 @@ Status: missing account/configuration information,2 November2026. David approved
 - **Action** Identify the dedicated Convex test deployment with the OASIS companion installed. Supply its HTTPS origin via OASIS_CONVEX_HOSTED_TEST_URL and make its deploy key and persisted test storage key available through the protected environment. Keep secrets out of Git and chat.
 - **Reason** The agent must verify authenticated activation and then the hosted storage lifecycle without touching production data.
 - **Context** [Convex storage evidence](../HyperDrive-Providers/CONVEX_STORAGE_BASELINE.md).
+
+## Valkey native qualification via GitHub Actions
+
+- **Open, 2026-11-09.** Open a draft PR from work/hyperdrive-provider-completion to Development using the [branch comparison](https://github.com/NextGenSoftwareUK/OASIS/compare/Development...work/hyperdrive-provider-completion?expand=1). This triggers the ValKey CI job against a disposable real Valkey service and produces its lifecycle reports. Leave the draft unmerged. The GitHub integration returned HTTP 403 when creating the draft, and the task branch push does not trigger the workflow. The provider team owns reviewing and recording the reports and resolving test failures.
