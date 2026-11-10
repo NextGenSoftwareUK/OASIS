@@ -22,16 +22,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLServerDBOASIS
     /// <summary>
     /// OASIS provider for Microsoft SQL Server (and Azure SQL).
     ///
-    /// Uses ADO.NET (Microsoft.Data.SqlClient) with two tables:
-    ///   OASISAvatars  — Id, Username, Email, IsDeleted, DataJson (NVARCHAR(MAX))
-    ///   OASISHolons   — Id, ParentHolonId, HolonType, IsDeleted, DataJson (NVARCHAR(MAX))
-    ///
-    /// The DataJson column holds the full JSON-serialised OASIS object, so every
-    /// interface method can round-trip the complete object without a generated ORM model.
-    /// Indexed columns (Id, Username, Email, ParentHolonId) serve fast key lookups.
-    ///
-    /// Compatible with SQL Server 2016+ and Azure SQL Database / Azure SQL Managed Instance.
-    /// Pass a standard SQL Server connection string (e.g. from appsettings.json or environment).
+    /// Uses Microsoft.Data.SqlClient to store avatar, avatar-detail, and holon records as JSON.
+    /// Indexed identity and parent columns support native lookups and graph traversal.
+    /// Numbered snapshots are archived in history tables linked to their current records.
     /// </summary>
     public partial class SQLServerDBOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
     {
