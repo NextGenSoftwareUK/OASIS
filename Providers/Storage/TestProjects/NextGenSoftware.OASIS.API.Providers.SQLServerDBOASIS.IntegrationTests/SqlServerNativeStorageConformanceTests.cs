@@ -11,6 +11,20 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLServerDBOASIS.IntegrationTests;
 public class SqlServerNativeStorageConformanceTests
 {
     [TestMethod]
+    public async Task InvalidGraphDepthIsRejectedBeforeConnecting()
+    {
+        var provider = new SQLServerDBOASIS("invalid connection string");
+        var id = Guid.NewGuid();
+        var point = await provider.LoadHolonAsync(id, maxChildDepth: -1);
+        var list = await provider.LoadAllHolonsAsync(curentChildDepth: -1);
+        var children = await provider.LoadHolonsForParentAsync(id, maxChildDepth: -1);
+
+        Assert.IsTrue(point.IsError && point.Exception is ArgumentOutOfRangeException);
+        Assert.IsTrue(list.IsError && list.Exception is ArgumentOutOfRangeException);
+        Assert.IsTrue(children.IsError && children.Exception is ArgumentOutOfRangeException);
+    }
+
+    [TestMethod]
     public async Task HolonPointReadHandlesPersistedCycle()
     {
         if (Environment.GetEnvironmentVariable("OASIS_SQLSERVER_POINT_CYCLE") != "1")
@@ -62,7 +76,12 @@ public class SqlServerNativeStorageConformanceTests
     }
 
     [TestMethod]
-    public async Task HolonPointReadHonorsChildDepth()
+    public Task HolonPointReadHonorsChildDepth() => VerifyHolonGraphAsync(synchronous: false);
+
+    [TestMethod]
+    public Task SynchronousHolonReadsHonorChildDepth() => VerifyHolonGraphAsync(synchronous: true);
+
+    private async Task VerifyHolonGraphAsync(bool synchronous)
     {
         if (Environment.GetEnvironmentVariable("OASIS_SQLSERVER_POINT_GRAPH") != "1")
             Assert.Inconclusive("Enable only for the dedicated LocalDB provider fixture.");
@@ -82,7 +101,8 @@ public class SqlServerNativeStorageConformanceTests
                 Assert.IsTrue(write.IsSaved && !write.IsError, write.Message);
                 savedIds.Add(node.Id);
             }
-            var deep = await provider.LoadHolonAsync(root.Id, continueOnError: false);
+            var deep = synchronous ? provider.LoadHolon(root.Id, continueOnError: false)
+                : await provider.LoadHolonAsync(root.Id, continueOnError: false);
             Assert.IsTrue(deep.IsLoaded && !deep.IsError, deep.Message);
             Assert.AreEqual(leaf.Id, deep.Result.Children.Single().Children.Single().Id);
             var bounded = await provider.LoadHolonAsync(root.Id, maxChildDepth: 1, continueOnError: false);
@@ -92,7 +112,8 @@ public class SqlServerNativeStorageConformanceTests
             var direct = await provider.LoadHolonAsync(root.Id, loadChildren: false);
             Assert.IsTrue(direct.IsLoaded && !direct.IsError, direct.Message);
             Assert.IsFalse(direct.Result.Children?.Any() == true);
-            var collection = await provider.LoadAllHolonsAsync(maxChildDepth: 1, continueOnError: false);
+            var collection = synchronous ? provider.LoadAllHolons(maxChildDepth: 1, continueOnError: false)
+                : await provider.LoadAllHolonsAsync(maxChildDepth: 1, continueOnError: false);
             Assert.IsTrue(collection.IsLoaded && !collection.IsError, collection.Message);
             var listedRoot = collection.Result.Single(row => row.Id == root.Id);
             Assert.AreEqual(child.Id, listedRoot.Children.Single().Id);
