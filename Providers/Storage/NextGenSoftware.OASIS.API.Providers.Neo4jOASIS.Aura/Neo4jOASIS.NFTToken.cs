@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using NextGenSoftware.OASIS.API.Core;
 using System.Collections.Generic;
 using System.Text;
@@ -22,76 +22,42 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
     {
         public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
+            var result = new OASISResult<IHolon>();
             try
             {
+                ArgumentNullException.ThrowIfNull(holon);
+                var id = holon.Id == Guid.Empty ? Guid.NewGuid() : holon.Id;
+                var guid = id.ToString("D");
+                var providerKey = holon.ProviderUniqueStorageKey != null
+                    && holon.ProviderUniqueStorageKey.TryGetValue(ProviderType.Value, out var suppliedKey)
+                    && !string.IsNullOrWhiteSpace(suppliedKey) ? suppliedKey : guid;
+
                 var session = Driver.AsyncSession(WithDatabase);
-
-                var holonList = await session.ReadTransactionAsync(async transaction =>
+                await using var lifetime = session.ConfigureAwait(false);
+                var storedKey = await session.WriteTransactionAsync(async transaction =>
                 {
                     var cursor = await transaction.RunAsync(@"
-                            MATCH (p:Holon {name: $name})
-                            SET p.description = $Description,
-                            p.PreviousVersionId = $PreviousVersionId
-                            RETURN p.name as name",
-                        new
-                        {
-                            name = holon.Name,
-                            Description = holon.Description,
-                            //ProviderKey = holon.ProviderKey,
-                            PreviousVersionId = holon.PreviousVersionId,
-                        }
-                    );
+                        MERGE (hl:Holon {GUId: $guid})
+                        SET hl.name = $name, hl.description = $description,
+                            hl.PreviousVersionId = $previous, hl.ProviderKey = coalesce(hl.ProviderKey, $providerKey)
+                        RETURN hl.ProviderKey AS providerKey",
+                        new { guid, name = holon.Name, description = holon.Description,
+                            previous = holon.PreviousVersionId.ToString("D"), providerKey }).ConfigureAwait(false);
+                    return await cursor.SingleAsync(row => row["providerKey"].As<string>()).ConfigureAwait(false);
+                }).ConfigureAwait(false);
 
-                    return await cursor.ToListAsync(record => new Holon
-                    {
-                        Name = record["name"].As<string>()
-                    });
-                });
-
-                if (holonList != null)
-                {
-                    if (holonList.Count > 0)
-                    {
-                        OASISResult<IHolon> result = new OASISResult<IHolon>
-                        {
-                            IsError = false,
-                            Message = "Record updated successfully"
-                        };
-                        return result;
-                    }
-                }
-
-                return await session.WriteTransactionAsync(async transaction =>
-                {
-                    var cursor = await transaction.RunAsync(@"
-                            MERGE (p1:Avatar { name:$Name, Description: $Description ,
-                                                PreviousVersionId:$PreviousVersionId
-                                                })                        
-                            RETURN p1.name as name",
-                        new
-                        {
-                            Name = holon.Name,
-                            Description = holon.Description,
-                            //ProviderKey = holon.ProviderKey,
-                            PreviousVersionId = holon.PreviousVersionId,
-                        }
-                    );
-
-                    return await cursor.SingleAsync(record => new OASISResult<IHolon>
-                    {
-                        IsError = false,
-                        Message = record["name"].As<string>()
-                    });
-                });
+                holon.Id = id;
+                holon.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
+                holon.ProviderUniqueStorageKey[ProviderType.Value] = storedKey;
+                result.Result = holon;
+                result.IsSaved = true;
+                result.SavedCount = 1;
             }
             catch (Exception ex)
             {
-                return new OASISResult<IHolon>
-                {
-                    IsError = true,
-                    Message = ex.ToString()
-                };
+                OASISErrorHandling.HandleError(ref result, "Error saving Neo4j Aura holon.", ex);
             }
+            return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)

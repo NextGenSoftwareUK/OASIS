@@ -338,85 +338,8 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
         }
 
         public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
-        {
-            try
-            {
-                var session = Driver.Session(WithDatabase);
-
-                var holonList = session.ReadTransaction(transaction =>
-                {
-                    var cursor = transaction.Run(@"
-                            MATCH (p:Holon {name: $name})
-                            SET p.description = $Description,p.Version = $version,p.Id = $Id,
-                            p.PreviousVersionId = $PreviousVersionId
-                            RETURN p.name as name",
-                        new
-                        {
-                            name = holon.Name,
-                            Description = holon.Description,
-                            version=holon.Version,
-                            PreviousVersionId = holon.PreviousVersionId.ToString(),
-                            Id=holon.Id.ToString()
-                        }
-                    );
-
-                    return (from d in cursor
-                            select new Holon
-                            {
-                                Name = d["name"].As<string>()
-                            }).ToList();
-                });
-
-                if (holonList != null)
-                {
-                    if (holonList.Count > 0)
-                    {
-                        OASISResult<IHolon> result = new OASISResult<IHolon>
-                        {
-                            IsError = false,
-                            IsSaved = true,
-                            Message = "Record updated successfully"
-                        };
-                        return result;
-                    }
-                }
-
-                return session.WriteTransaction(transaction =>
-                {
-                    var cursor = transaction.Run(@"
-                            MERGE (p1:Holon { name:$Name, Description: $description ,
-                                                version:$version,PreviousVersionId:$PreviousVersionId
-                                                })                        
-                            RETURN p1.name as name",
-                        new
-                        {
-                            name = holon.Name,
-                            Description = holon.Description,                            
-                            PreviousVersionId = holon.PreviousVersionId.ToString(),
-                            version=holon.Version
-                        }
-                    );
-
-                    var hol = (from d in cursor
-                               select new Holon
-                               {
-                                   Name = d["name"].As<string>(),
-                               }).FirstOrDefault();
-
-                    return new OASISResult<IHolon>
-                    { IsError = false, Result = hol, IsSaved = true };
-                });
-            }
-            catch (Exception ex)
-            {
-                return new OASISResult<IHolon>
-                {
-                    IsError = true,
-                    IsSaved = false,
-                    Message = ex.ToString()
-                };
-            }
-        }
+            => SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider)
+                .GetAwaiter().GetResult();
 
     }
 }
