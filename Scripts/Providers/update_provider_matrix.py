@@ -171,7 +171,9 @@ def build():
     status='Historical '+status;blockers.append('Current '+registry['currentCoreSuite']+' not executed; older results are not re-labelled')
   elif role=='Runtime state store':status='Storage suite N/A';blockers.append('Verify through the owning Edge runtime')
   elif name in registry.get('splitNativeLifecycle',[]):status='Native checkpoints and continuations'
-  else:status='Not run (capability-v1)' if role=='Non-storage' else 'Not run';blockers.append('Capability identity/activation/read-only probe pending; storage suite N/A' if role=='Non-storage' else 'Shared-suite adapter/run pending')
+  else:
+   status='Not run (capability-v1)' if role=='Non-storage' else 'Not run'
+   if not blockers:blockers.append('Capability identity/activation/read-only probe pending; storage suite N/A' if role=='Non-storage' else 'Shared-suite adapter/run pending')
   gap=reviewed_sdk_gap(name,project) if not sdk else None
   if gap:blockers.append(gap)
   elif not sdk:blockers.append('Real SDK/API not yet source-reviewed')

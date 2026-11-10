@@ -339,6 +339,11 @@
   ],
   "splitNativeLifecycle": ["SQLServerDBOASIS"],
   "providerBlockers": {
+    "HashgraphOASIS": ["The funded testnet encrypted CRUD/restart suite exists. Retained deployment receipt reconciliation and authorized testnet admission remain open. Public mirror reads are tracked separately in the [Hedera CQL evidence](../COSMIC%20ORM/HEDERA_PUBLIC_SOURCE_STATUS.md)."],
+    "NEAROASIS": ["Real local-chain ordinary storage and prepared NFT lifecycle receipts are retained in [ordinary storage evidence](NativeEvidence/near-ordinary-storage.complete.json) and [prepared lifecycle evidence](NativeEvidence/near-prepared-lifecycle.complete.json). These operation-specific runs do not cover the full shared storage contract or hosted acceptance."],
+    "PolkadotOASIS": ["See [native public storage](NativeEvidence/Polkadot/public-storage.completed.json), [PSP22 escrow](NativeEvidence/Polkadot/psp22-escrow-lifecycle.completed.json), and [PSP34 escrow](NativeEvidence/Polkadot/psp34-escrow-lifecycle.completed.json) for operation-specific evidence."],
+    "SupabaseOASIS": ["Native PostgREST CQL fixture covers query and restart behavior. Shared lifecycle adapter compiles and discovers both modes, which require the dedicated hosted project. Graph and detail storage changes have local regression evidence; hosted graph, detail and lifecycle acceptance remain open."],
+    "ActivityPubOASIS": ["Real public Mastodon read checks are recorded in the [ActivityPub audit](ACTIVITYPUB_PROVIDER_IMPLEMENTATION_AUDIT.md). Authenticated paged search and owned status mutations still need a dedicated Mastodon test identity."],
     "SQLServerDBOASIS": [
       "Native LocalDB lifecycle checks passed across retained sync/async checkpoints and targeted continuations, with independent empty-table verification. No single uninterrupted shared-suite result is registered. See PROVIDER_COMPLETION_CONTINUATION.md."
     ],
