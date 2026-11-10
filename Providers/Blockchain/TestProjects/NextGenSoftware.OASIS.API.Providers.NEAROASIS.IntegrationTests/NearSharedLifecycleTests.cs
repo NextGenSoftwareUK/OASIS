@@ -19,10 +19,6 @@ public class NearSharedLifecycleTests
         if (string.IsNullOrWhiteSpace(root))
             Assert.Inconclusive("Explicitly admit a dedicated writable NEAR fixture and report directory.");
 
-        var provider = new NEAROASIS(
-            Required("NEAROASIS_RPCENDPOINT"), Required("NEAROASIS_NETWORKID"),
-            Required("NEAROASIS_CHAINID"), Required("NEAROASIS_CONTRACTADDRESS"),
-            Required("NEAROASIS_ACCOUNTID"), Required("NEAROASIS_PRIVATEKEY"));
         Directory.CreateDirectory(root!);
         using var lease = new FileStream(Path.Combine(root!, "environment.lock"),
             FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
@@ -40,6 +36,10 @@ public class NearSharedLifecycleTests
             Assert.IsTrue(prior?.FixtureCleanupComplete == true,
                 "Reconcile the other mode's fixture before connecting.");
         }
+        var provider = new NEAROASIS(
+            Required("NEAROASIS_RPCENDPOINT"), Required("NEAROASIS_NETWORKID"),
+            Required("NEAROASIS_CHAINID"), Required("NEAROASIS_CONTRACTADDRESS"),
+            Required("NEAROASIS_ACCOUNTID"), Required("NEAROASIS_PRIVATEKEY"));
         Directory.CreateDirectory(directory);
         var path = Path.Combine(directory, "report.json");
         async Task Checkpoint(CoreStorageConformance.Report report)
