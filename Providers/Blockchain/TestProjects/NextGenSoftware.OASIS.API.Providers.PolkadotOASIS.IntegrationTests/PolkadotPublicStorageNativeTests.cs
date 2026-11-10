@@ -85,7 +85,8 @@ public class PolkadotPublicStorageNativeTests
 
             var result = await provider.WithRecordStoragePreparationAsync(
                 () => CoreStorageConformance.RunAsync(provider, nameof(PolkadotOASIS), "native",
-                    conformanceSync.Value, Checkpoint, expectedDefaultDeletion: "absent"),
+                    conformanceSync.Value, report => report.Succeeded ? Task.CompletedTask : Checkpoint(report),
+                    expectedDefaultDeletion: "absent"),
                 (action, key) => new PreparedSubmissionServer((original, token) =>
                 {
                     token.ThrowIfCancellationRequested();
@@ -103,6 +104,10 @@ public class PolkadotPublicStorageNativeTests
             Assert.IsTrue(result.Succeeded, $"{result.CurrentCase}: {result.FailureType}");
             Assert.IsTrue(result.FixtureCleanupComplete);
             Assert.AreEqual(CoreStorageConformance.ChecksPerMode, result.Passed.Count);
+            result.Succeeded = false;
+            result.FixtureCleanupComplete = false;
+            result.CurrentCase = "verify-native-receipts-and-empty-contract";
+            await Checkpoint(result);
             Assert.AreEqual(0, (await raw.ListKeysAsync("")).Count);
             Assert.IsTrue(originals.Count > 0, "No native mutations were journaled.");
             foreach (var original in originals)
@@ -116,6 +121,10 @@ public class PolkadotPublicStorageNativeTests
             }
 
             File.Move(pending, Path.Combine(directory, prefix + ".transactions.jsonl"));
+            result.CurrentCase = "complete";
+            result.FixtureCleanupComplete = true;
+            result.Succeeded = true;
+            await Checkpoint(result);
             return;
         }
 
