@@ -36,9 +36,32 @@ public class NearSharedLifecycleTests
             Assert.IsTrue(prior?.FixtureCleanupComplete == true,
                 "Reconcile the other mode's fixture before connecting.");
         }
-        var provider = new NEAROASIS(
-            Required("NEAROASIS_RPCENDPOINT"), Required("NEAROASIS_NETWORKID"),
-            Required("NEAROASIS_CHAINID"), Required("NEAROASIS_CONTRACTADDRESS"),
+        var rpc = Required("NEAROASIS_RPCENDPOINT");
+        var chain = Required("NEAROASIS_CHAINID");
+        var network = Required("NEAROASIS_NETWORKID");
+        Assert.IsTrue(Uri.TryCreate(rpc, UriKind.Absolute, out var endpoint) &&
+            endpoint.Scheme == Uri.UriSchemeHttp && endpoint.Host == "127.0.0.1" &&
+            endpoint.UserInfo.Length == 0 && endpoint.Query.Length == 0 && endpoint.Fragment.Length == 0,
+            "Use the dedicated loopback NEAR RPC endpoint.");
+        Assert.IsTrue(chain == network && chain is not ("mainnet" or "testnet"),
+            "The sandbox chain and network identities must match.");
+        using var http = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false })
+        {
+            Timeout = TimeSpan.FromSeconds(10)
+        };
+        using var status = await http.PostAsJsonAsync(endpoint, new
+        {
+            jsonrpc = "2.0",
+            id = "oasis-near-conformance-status",
+            method = "status",
+            @params = Array.Empty<object>()
+        });
+        status.EnsureSuccessStatusCode();
+        using var body = JsonDocument.Parse(await status.Content.ReadAsStringAsync());
+        Assert.AreEqual(chain, body.RootElement.GetProperty("result").GetProperty("chain_id").GetString(),
+            "The observed NEAR chain differs from the fixture.");
+
+        var provider = new NEAROASIS(rpc, network, chain, Required("NEAROASIS_CONTRACTADDRESS"),
             Required("NEAROASIS_ACCOUNTID"), Required("NEAROASIS_PRIVATEKEY"));
         Directory.CreateDirectory(directory);
         var path = Path.Combine(directory, "report.json");
