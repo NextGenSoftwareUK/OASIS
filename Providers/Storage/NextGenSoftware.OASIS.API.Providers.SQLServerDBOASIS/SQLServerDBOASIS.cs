@@ -479,7 +479,7 @@ WHEN NOT MATCHED THEN INSERT (Id,Username,Email,DataJson) VALUES (@Id,@Username,
                 const string sql = @"
 MERGE OASISHolons AS target
 USING (SELECT @Id AS Id) AS source ON target.Id = source.Id
-WHEN MATCHED THEN
+WHEN MATCHED AND COALESCE(TRY_CONVERT(int, JSON_VALUE(target.DataJson, '$.version')), 0) <= @Version THEN
     UPDATE SET ParentHolonId=@ParentHolonId, HolonType=@HolonType, IsDeleted=@IsDeleted, ModifiedDate=SYSUTCDATETIME(), DataJson=@DataJson
 WHEN NOT MATCHED THEN
     INSERT (Id,ParentHolonId,HolonType,IsDeleted,DataJson) VALUES (@Id,@ParentHolonId,@HolonType,@IsDeleted,@DataJson);";
@@ -506,12 +506,13 @@ AND NOT EXISTS (SELECT 1 FROM OASISHolonHistory a WHERE a.Id = h.Id AND a.Versio
 
                     await using var cmd = new SqlCommand(sql, conn, transaction);
                     cmd.Parameters.AddWithValue("@Id", row.Id);
+                    cmd.Parameters.AddWithValue("@Version", row.Version);
                     cmd.Parameters.AddWithValue("@ParentHolonId", row.ParentHolonId == Guid.Empty ? (object)DBNull.Value : row.ParentHolonId);
                     cmd.Parameters.AddWithValue("@HolonType", (int)row.HolonType);
                     cmd.Parameters.AddWithValue("@IsDeleted", row.IsDeleted);
                     cmd.Parameters.AddWithValue("@DataJson", Serialize(row));
                     if (await cmd.ExecuteNonQueryAsync() != 1)
-                        throw new InvalidOperationException("SQL Server holon upsert must acknowledge exactly one row.");
+                        throw new InvalidOperationException("SQL Server holon upsert did not acknowledge exactly one row. The current version may be newer than the proposed version.");
                 }
                 await transaction.CommitAsync();
 
