@@ -671,15 +671,15 @@ WHEN NOT MATCHED THEN
                     .FirstOrDefault()?.SearchQuery;
                 string sql = string.IsNullOrEmpty(query)
                     ? "SELECT DataJson FROM OASISHolons WHERE IsDeleted=0"
-                    : "SELECT DataJson FROM OASISHolons WHERE IsDeleted=0 AND (JSON_VALUE(DataJson,'$.name') LIKE @Q OR JSON_VALUE(DataJson,'$.description') LIKE @Q)";
+                    : "SELECT DataJson FROM OASISHolons WHERE IsDeleted=0 AND (CHARINDEX(@Q, JSON_VALUE(DataJson,'$.name')) > 0 OR CHARINDEX(@Q, JSON_VALUE(DataJson,'$.description')) > 0)";
                 await using var conn = new SqlConnection(_connectionString);
                 await conn.OpenAsync();
                 await using var cmd = new SqlCommand(sql, conn);
-                if (!string.IsNullOrEmpty(query)) cmd.Parameters.AddWithValue("@Q", $"%{query}%");
+                if (!string.IsNullOrEmpty(query)) cmd.Parameters.AddWithValue("@Q", query);
                 await using var reader = await cmd.ExecuteReaderAsync();
                 while (await reader.ReadAsync()) { var h = Deserialize<Holon>(reader.GetString(0)); if (h != null) holons.Add(h); }
                 var sr = new SearchResults { SearchResultHolons = holons, NumberOfResults = holons.Count };
-                result.Result = sr; result.IsError = false;
+                result.Result = sr; result.IsLoaded = true; result.LoadedCount = holons.Count;
                 result.Message = $"SQLServerDBOASIS: Found {holons.Count} holon(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
