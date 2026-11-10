@@ -75,7 +75,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS.IntegrationTests
         }
 
         [TestMethod]
-        public async Task SaveAndLoadHolon_RoundTrips()
+        public async Task HolonRoundTripsAndSoftDeleteHidesIt()
         {
             var holon = new Holon { Id = Guid.NewGuid(), Name = $"OASIS IT Holon {Guid.NewGuid():N}" };
 
@@ -86,7 +86,19 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS.IntegrationTests
             Assert.IsFalse(loaded.IsError, loaded.Message);
             Assert.AreEqual(holon.Name, loaded.Result!.Name);
 
-            await _provider.DeleteHolonAsync(holon.Id);
+            var deleted = await _provider.DeleteHolonAsync(holon.Id);
+            Assert.IsFalse(deleted.IsError, deleted.Message);
+            Assert.IsTrue(deleted.IsDeleted);
+            Assert.AreEqual(1, deleted.DeletedCount);
+
+            var missing = await _provider.LoadHolonAsync(holon.Id);
+            Assert.IsTrue(missing.IsError);
+            Assert.IsNull(missing.Result);
+
+            var repeated = await _provider.DeleteHolonAsync(holon.Id);
+            Assert.IsTrue(repeated.IsError);
+            Assert.IsFalse(repeated.IsDeleted);
+            Assert.AreEqual(0, repeated.DeletedCount);
         }
 
         [TestMethod]
