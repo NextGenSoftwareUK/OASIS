@@ -1,13 +1,17 @@
 # Explicit read-only protocol qualification; never CQL/hosted acceptance.
 [CmdletBinding()]
-param([Parameter(Mandatory)][ValidateSet('Base','Avalanche','BNBChain','Optimism','Rootstock','Linea','Scroll','ZkSync','Abstract','Monad','Sei','Berachain')][string]$Network)
+param(
+    [Parameter(Mandatory)][ValidateSet('Base','Avalanche','BNBChain','Optimism','Rootstock','Linea','Scroll','ZkSync','Abstract','Monad','Sei','Berachain')][string]$Network,
+    [uri]$MonadPublicEndpoint,
+    [ValidateRange(1,20)][int]$Rounds = 1,
+    [switch]$NoReport
+)
 $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $results=Join-Path $root 'TestResults/EvmBreadthReadinessCurrent'
-New-Item -ItemType Directory -Force -Path $results | Out-Null
 $descriptor=switch($Network){
     'Berachain' { @{endpoint='https://rpc.berachain.com/';chainId='0x138de'} }
-    'Monad' { @{endpoint='https://rpc.monad.xyz/';chainId='0x8f'} }
+    'Monad' { @{endpoint='https://rpc.monad.xyz/';chainId='0x8f';genesisHash='0x0c47353304f22b1c15706367d739b850cda80b5c87bbc335014fef3d88deaac9'} }
     'Sei' { @{endpoint='https://evm-rpc.sei-apis.com/';chainId='0x531';nativeMixedCaseHashes=$true} }
     'ZkSync' { @{endpoint='https://mainnet.era.zksync.io/';chainId='0x144'} }
     'Abstract' { @{endpoint='https://api.mainnet.abs.xyz/';chainId='0xab5'} }
@@ -18,6 +22,14 @@ $descriptor=switch($Network){
     'Base' { @{endpoint='https://mainnet.base.org/';chainId='0x2105'} }
     'Avalanche' { @{endpoint='https://api.avax.network/ext/bc/C/rpc';chainId='0xa86a'} }
     'BNBChain' { @{endpoint='https://bsc-dataseed.bnbchain.org/';chainId='0x38'} }
+}
+if ($MonadPublicEndpoint) {
+    if ($Network -ne 'Monad' -or !$MonadPublicEndpoint.IsAbsoluteUri -or
+        $MonadPublicEndpoint.Scheme -ne 'https' -or $MonadPublicEndpoint.UserInfo -or
+        $MonadPublicEndpoint.Query -or $MonadPublicEndpoint.Fragment) {
+        throw 'Specify an anonymous HTTPS Monad endpoint.'
+    }
+    $descriptor.endpoint = $MonadPublicEndpoint.AbsoluteUri
 }
 $client=[Net.Http.HttpClient]::new()
 $client.Timeout=[TimeSpan]::FromSeconds(15)
@@ -56,30 +68,37 @@ try{
     }
     if($genesis.hash -cnotmatch '^0x[0-9a-f]{64}$' -or $genesis.number -cne '0x0'){throw 'Canonical genesis identity required.'}
     $report.genesisHash=$genesis.hash
+    if ($descriptor.genesisHash -and $genesis.hash -cne $descriptor.genesisHash) { throw 'Pinned genesis differs.' }
     if($Network -eq 'BNBChain' -and $genesis.hash -cne '0x0d21840abff46b96c84b2ac9e10e4f5cdaeb5693cb665db62a2f3b02d2d57b5b'){throw 'BSC canonical genesis differs.'}
-    $header=Invoke-ReadRpc 'eth_getBlockByNumber' @('finalized',$false)
-    if($descriptor.nativeMixedCaseHashes){
-        $report.nativeBlockHash=$header.hash
-        if($header.hash -cnotmatch '^0x[0-9a-fA-F]{64}$'){throw 'Sei native finalized hash must contain exactly32hexbytes.'}
-        $header.hash=$header.hash.ToLowerInvariant()
-    }
-    if($header.hash -cnotmatch '^0x[0-9a-f]{64}$' -or $header.number -cnotmatch '^0x(?:0|[1-9a-f][0-9a-f]*)$'){throw 'Canonical finalized header required.'}
-    $report.blockHash=$header.hash;$report.blockNumber=$header.number
     $selections=@()
-    foreach($count in @(3,2)){
-        $rows=@()
-        foreach($index in 1..$count){
-            $address='0x'+$index.ToString('x40')
-            $balance=Invoke-ReadRpc 'eth_getBalance' @($address,@{blockHash=$header.hash;requireCanonical=$true})
-            if($balance -cnotmatch '^0x(?:0|[1-9a-f][0-9a-f]{0,63})$'){throw 'Canonical UInt256 balance required.'}
-            $quantity=[Numerics.BigInteger]::Parse('0'+$balance.Substring(2),[Globalization.NumberStyles]::AllowHexSpecifier)
-            $rows+=@{address=$address;nativeBaseUnits=$quantity.ToString([Globalization.CultureInfo]::InvariantCulture)}
+    for ($round = 1; $round -le $Rounds; $round++) {
+        $header=Invoke-ReadRpc 'eth_getBlockByNumber' @('finalized',$false)
+        if($descriptor.nativeMixedCaseHashes){
+            $report.nativeBlockHash=$header.hash
+            if($header.hash -cnotmatch '^0x[0-9a-fA-F]{64}$'){throw 'Sei native finalized hash must contain exactly32hexbytes.'}
+            $header.hash=$header.hash.ToLowerInvariant()
         }
-        $selections+=@{count=$count;rows=$rows}
+        if($header.hash -cnotmatch '^0x[0-9a-f]{64}$' -or $header.number -cnotmatch '^0x(?:0|[1-9a-f][0-9a-f]{0,63})$'){throw 'Canonical finalized header required.'}
+        $report.blockHash=$header.hash
+        $report.blockNumber=$header.number
+        foreach($count in @(3,2)){
+            $rows=@()
+            foreach($index in 1..$count){
+                $address='0x'+$index.ToString('x40')
+                $balance=Invoke-ReadRpc 'eth_getBalance' @($address,@{blockHash=$header.hash;requireCanonical=$true})
+                if($balance -cnotmatch '^0x(?:0|[1-9a-f][0-9a-f]{0,63})$'){throw 'Canonical UInt256 balance required.'}
+                $quantity=[Numerics.BigInteger]::Parse('0'+$balance.Substring(2),[Globalization.NumberStyles]::AllowHexSpecifier)
+                $rows+=@{address=$address;nativeBaseUnits=$quantity.ToString([Globalization.CultureInfo]::InvariantCulture)}
+            }
+            $selections+=@{count=$count;rows=$rows;blockHash=$header.hash;blockNumber=$header.number}
+        }
     }
     $report.selections=$selections;$report.passed=$true
 }catch{$report.passed=$false;$report.error=$_.Exception.Message}
 finally{$client.Dispose()}
-$report|ConvertTo-Json -Depth 16|Set-Content (Join-Path $results ($Network+'.json')) -Encoding utf8
+if (!$NoReport) {
+    New-Item -ItemType Directory -Force -Path $results | Out-Null
+    $report|ConvertTo-Json -Depth 16|Set-Content (Join-Path $results ($Network+'.json')) -Encoding utf8
+}
 [pscustomobject]@{Network=$Network;Passed=$report.passed;Genesis=$report.genesisHash;Error=$report.error;Writes=0}
 if(!$report.passed){throw 'Protocol qualification failed; no fallback or state downgrade.'}
