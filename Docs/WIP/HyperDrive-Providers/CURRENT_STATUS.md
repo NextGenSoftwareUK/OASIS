@@ -15,7 +15,7 @@ Active checkpoint, 10 November 2026. SQL Server is the current HyperDrive focus.
 
 Development now includes the COSMIC five-reader WEB4 batch at 111165cf8b. The HyperDrive branch merged the batch at 2fa940c4b8. Core fast-forwarded from 14bfd34f6 to 59595871, retaining the task commits, and the Railway manifest validates against the resulting gitlinks. EdgeSQLite local file-backed enumeration passed, and the provider matrix carries nine focused checks.
 
-The Garnet Linux fixture guard is staged at d273dba4b4 for the next Development window. It compiled against Core 59595871 and skipped correctly on Windows. Prior native lifecycle receipts remain separate.
+Development includes the Garnet and ClickHouse fixture guards at e1e3e9e06a. The Garnet Linux checkpoint skipped on Windows and all four ClickHouse storage smoke tests skipped without the writable fixture. These checks cover fixture admission. Prior native lifecycle receipts remain separate.
 
 Neo4j promotion review: the task diff contains broad canonical, V2 and Aura changes. Preserve the canonical 52/52 receipt, with separate live gates for V2 activation and Aura lifecycle. This session has no Neo4j fixture configuration and no local Bolt listener on 7687 or on the retained fixture port 17687. The inventory identifies the latter as a shared Podman volume. No WSL distribution is registered on this host, and WSL reports that virtualization support is unavailable. Keep this larger provider batch separate from the verified Garnet fixture guard.
 
