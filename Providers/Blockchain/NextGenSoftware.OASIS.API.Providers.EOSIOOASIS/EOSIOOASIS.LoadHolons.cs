@@ -198,56 +198,32 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
         public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true,
             int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            if (id == null)
-                throw new ArgumentNullException(nameof(id));
-
-            var result = new OASISResult<IHolon>();
-            try
-            {
-                var holonDto = _holonRepository.Read(id).Result;
-                var holonEntity = holonDto.GetBaseHolon();
-                if (holonEntity == null)
-                {
-                    result.IsLoaded = false;
-                    result.IsError = true;
-                    result.Message = "Holon with such ID, not found!";
-                    return result;
-                }
-
-                result.Result = holonEntity;
-                result.IsLoaded = true;
-                result.IsError = false;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, GetEOSExceptionDetails(ex));
-            }
-
-            return result;
-        }
+            => LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version)
+                .GetAwaiter().GetResult();
 
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true,
             bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            if (id == null)
-                throw new ArgumentNullException(nameof(id));
+            if (id == Guid.Empty)
+                throw new ArgumentException("A nonempty holon ID is required.", nameof(id));
 
             var result = new OASISResult<IHolon>();
             try
             {
-                var holonDto = await _holonRepository.Read(id);
-                var holonEntity = holonDto.GetBaseHolon();
+                var holonDto = await _holonRepository.Read(id).ConfigureAwait(false);
+                var holonEntity = holonDto?.GetBaseHolon();
                 if (holonEntity == null)
                 {
                     result.IsLoaded = false;
                     result.IsError = true;
+                    result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
                     result.Message = "Holon with such ID, not found!";
                     return result;
                 }
 
                 result.Result = holonEntity;
                 result.IsLoaded = true;
+                result.LoadedCount = 1;
                 result.IsError = false;
             }
             catch (Exception ex)

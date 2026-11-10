@@ -121,17 +121,26 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
 
         public async Task<HolonDto> Read(Guid id)
         {
-            if (id == null)
-                throw new ArgumentNullException(nameof(id));
+            if (id == Guid.Empty)
+                throw new ArgumentException("A nonempty holon ID is required.", nameof(id));
 
-            var holonId = HashUtility.GetNumericHash(id);
-            var holonTableRows = await _eosClient.GetTableRows<HolonDto>(new GetTableRowsRequestDto
+            var request = new GetTableRowsRequestDto { Code = _eosAccountName, Scope = _eosAccountName, Table = _holonTable };
+            var cursors = new HashSet<string>(StringComparer.Ordinal);
+            while (true)
             {
-                Code = _eosAccountName,
-                Scope = _eosAccountName,
-                Table = _holonTable
-            });
-            return holonTableRows.Rows.FirstOrDefault(avatarDetailDto => avatarDetailDto.EntityId == holonId);
+                var page = await _eosClient.GetTableRows<HolonDto>(request).ConfigureAwait(false);
+                if (page?.Rows == null || !page.More.HasValue)
+                    throw new InvalidOperationException("EOSIO did not return a complete holon table page.");
+
+                var match = page.Rows.FirstOrDefault(row => Guid.TryParse(row.HolonId, out var rowId) && rowId == id);
+                if (match != null)
+                    return match;
+                if (!page.More.Value)
+                    return null;
+                if (string.IsNullOrWhiteSpace(page.NextKey) || !cursors.Add(page.NextKey))
+                    throw new InvalidOperationException("EOSIO returned an invalid holon table continuation.");
+                request.LowerBound = page.NextKey;
+            }
         }
 
         public async Task<ImmutableArray<HolonDto>> ReadAll()
