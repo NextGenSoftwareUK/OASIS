@@ -626,61 +626,8 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
             return LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
 
-        public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            var result = new OASISResult<IHolon>();
-            string errorMessage = "Error in LoadHolonAsync method in PinataOASIS Provider. Reason: ";
-
-            try
-            {
-                if (id == Guid.Empty)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Holon ID cannot be empty");
-                    return result;
-                }
-
-                // Search for the holon file in Pinata by ID
-                // Real Pinata implementation: Load child holons from Pinata files
-                var files = await _pinataService.GetFilesAsync();
-                var holonFile = files.SingleOrDefault(file =>
-                    file.Metadata != null && file.Metadata.TryGetValue("name", out var name) &&
-                    string.Equals(name as string, $"Holon_{id}", StringComparison.Ordinal));
-                
-                if (holonFile == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Holon with ID {id} not found in Pinata");
-                    return result;
-                }
-
-                // Download and deserialize the holon
-                var content = await _pinataService.GetFileContentAsync(holonFile.IpfsPinHash);
-                if (string.IsNullOrEmpty(content))
-                {
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Failed to retrieve holon content from Pinata");
-                    return result;
-                }
-                var holon = JsonConvert.DeserializeObject<Holon>(content);
-                
-                if (holon == null || holon.Id != id)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Failed to deserialize holon {id}");
-                    return result;
-                }
-
-                holon.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
-                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.PinataOASIS] = holonFile.IpfsPinHash;
-                result.Result = holon;
-                result.IsLoaded = true;
-                result.LoadedCount = 1;
-                result.IsError = false;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {ex.Message}", ex);
-            }
-
-            return result;
-        }
+        public override Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) =>
+            LoadNamedRecordAsync<IHolon, Holon>(id, "Holon");
 
         public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
