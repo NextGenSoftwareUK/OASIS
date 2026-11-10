@@ -343,3 +343,5 @@ SQLite passed eight native wallet ownership cases for atomic batch rollback, ava
 SQLite passed 16 native wallet cases for ambiguous selectors, invalid explicit identity rejection, and acknowledged wallet saves surviving fresh-connection readback. The run excluded the recorded schema, reopen, rollback, ownership, native-error and shared lifecycle cases.
 
 SQLite passed six additional native wallet corruption cases. The shipping wallet read failed on malformed stored values instead of returning a successful empty result. Only CorruptStoredWalletPayloadCannotBecomeSuccessfulEmptyRead ran.
+
+The six focused SQLite wallet runs total 39 passed checks. Their scope is native persistence, migration, rollback, ownership, selectors and error propagation. The provider wallet store serializes the caller-supplied wallet payload, and the profile fixture uses synthetic key strings. These results do not establish at-rest encryption through the production key-management path.
