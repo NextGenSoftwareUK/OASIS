@@ -765,7 +765,10 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
 
         public async Task<bool> UnpinFileAsync(string hash)
         {
-            using var response = await _httpClient.DeleteAsync($"{_apiUrl}/pinning/unpin/{hash}").ConfigureAwait(false);
+            ArgumentException.ThrowIfNullOrWhiteSpace(hash);
+            _ = Ipfs.Cid.Decode(hash);
+            using var response = await _httpClient.DeleteAsync(
+                $"{_apiUrl}/pinning/unpin/{Uri.EscapeDataString(hash)}").ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
             return true;
         }
