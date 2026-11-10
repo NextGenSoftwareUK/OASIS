@@ -759,8 +759,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
             response.EnsureSuccessStatusCode();
             var body = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             var pin = JsonConvert.DeserializeObject<PinataPinResponse>(body);
-            if (string.IsNullOrWhiteSpace(pin?.IpfsHash))
-                throw new System.IO.InvalidDataException("Pinata did not acknowledge a pinned content ID.");
+            PinataOASIS.RequireAcknowledgedCid(pin?.IpfsHash);
             return pin;
         }
 

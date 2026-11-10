@@ -259,7 +259,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
             return result;
         }
 
-        private static string RequireAcknowledgedCid(string value)
+        internal static string RequireAcknowledgedCid(string value)
         {
             if (string.IsNullOrWhiteSpace(value))
                 throw new System.IO.InvalidDataException("Pinata did not acknowledge a pinned content ID.");
