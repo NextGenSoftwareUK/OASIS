@@ -44,6 +44,18 @@
     {
       "key": "serviceKeyWEB10",
       "value": ""
+    },
+    {
+      "key": "adminToken",
+      "value": ""
+    },
+    {
+      "key": "appId",
+      "value": ""
+    },
+    {
+      "key": "appKey",
+      "value": ""
     }
   ],
   "item": [
@@ -1479,6 +1491,143 @@
               }
             ],
             "url": "{{web4BaseUrl}}/api/subscription/usage/audit?limit=100"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Administrator: plan grants and app accounts",
+      "description": "Administrator (Wizard) JWT required: set {{adminToken}}. Every change is audited with the administrator and reason. Keys are returned once, when an app account is created or its key rotated; store them as secrets.",
+      "item": [
+        {
+          "name": "Grant a plan to an avatar (no Stripe)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/subscription/admin/plan-grant",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"planId\": \"enterprise\",\n  \"reason\": \"Internal testing account\",\n  \"expiresAtUtc\": null\n}"
+            },
+            "description": "planId is free, bronze, silver, gold or enterprise. 409 if the avatar has an active Stripe subscription. Granting free reverts the avatar. expiresAtUtc is optional (at most 10 years)."
+          }
+        },
+        {
+          "name": "List app accounts",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/subscription/admin/app-accounts"
+          }
+        },
+        {
+          "name": "Create an app account",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/subscription/admin/app-accounts",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"appId\": \"{{appId}}\",\n  \"name\": \"PIPER\",\n  \"planId\": \"enterprise\",\n  \"reason\": \"PIPER production app\"\n}"
+            },
+            "description": "The response contains apiKey exactly once. appId is 3 to 40 lowercase letters, digits or hyphens."
+          }
+        },
+        {
+          "name": "Rotate an app account key",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/subscription/admin/app-accounts/{{appId}}/rotate-key",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Scheduled key rotation\"\n}"
+            },
+            "description": "Issues a new key and invalidates the old one at once."
+          }
+        },
+        {
+          "name": "Change an app account plan or disable it",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/subscription/admin/app-accounts/{{appId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"planId\": \"enterprise\",\n  \"status\": \"active\",\n  \"reason\": \"Plan review\"\n}"
+            },
+            "description": "Provide planId, status (active or disabled), or both. A disabled app's credentials stop working at once."
+          }
+        },
+        {
+          "name": "Read quotas as a user through an app",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              },
+              {
+                "key": "X-OASIS-App-Id",
+                "value": "{{appId}}"
+              },
+              {
+                "key": "X-OASIS-App-Key",
+                "value": "{{appKey}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/subscription/usage/current",
+            "description": "App credentials are optional. When present and valid, WEB4 evaluates the request against the more generous of the app's plan and the user's own plan; invalid credentials are rejected (401). Usage is still recorded against the signed-in avatar."
           }
         }
       ]

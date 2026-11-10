@@ -349,8 +349,8 @@ Create a Session-level holon per session via `POST /v1/holonic-memory/holons` an
 
 `https://api.web6.oasisomniverse.one`
 
-- Free ($0): 1,000 requests/month, 20 calls/day
-- Bronze ($9), Silver ($29), Gold ($99): 10,000 / 100,000 / 1,000,000 requests/month with higher daily call, token and budget limits
+- Free ($0): 30,000 requests/month, 1,000 calls/day
+- Bronze ($9), Silver ($29), Gold ($99): 300,000 / 3,000,000 / 30,000,000 requests/month with higher daily call, token and budget limits
 - Enterprise (custom): unlimited, SLA, dedicated support
 - Plans are enforced by WEB4 — see [Quotas & Tiers](WEB6_Quotas_and_Tiers.md)
 - No infrastructure to manage
