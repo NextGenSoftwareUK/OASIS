@@ -321,3 +321,5 @@ SQL Server LocalDB passed the graph case with collection assertions. The all-hol
 SQL Server LocalDB verified hydrated results from search and both metadata overloads. Each uniquely filtered result contained the expected root, child and grandchild. The focused graph test passed, hard-deleted all three fixtures, and stopped LocalDB.
 
 SQL Server LocalDB passed HolonPointReadHandlesPersistedCycle. Strict traversal rejected a two-row cycle without returning a graph. Partial traversal returned the valid child once and warned about the repeated edge. The test removed both synthetic rows and stopped LocalDB.
+
+SQL Server LocalDB confirmed default holon deletion returned exactly the selected root without descendants, even when the stored child graph had a cycle. The child remained readable and teardown hard-deleted both rows. LocalDB stopped.

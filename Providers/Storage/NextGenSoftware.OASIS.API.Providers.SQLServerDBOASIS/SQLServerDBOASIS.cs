@@ -1028,7 +1028,7 @@ WHERE h.Id = @Id AND h.IsDeleted = 0;";
             var result = new OASISResult<IHolon>();
             try
             {
-                var loaded = await LoadHolonAsync(id);
+                var loaded = await LoadHolonAsync(id, loadChildren: false);
                 if (loaded.IsError || loaded.Result == null) return loaded;
                 var deleted = await DeleteHolonWithSoftDeleteAsync(id);
                 result.IsError = deleted.IsError;

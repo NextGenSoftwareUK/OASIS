@@ -41,6 +41,14 @@ public class SqlServerNativeStorageConformanceTests
             Assert.AreEqual(1, partial.InnerMessages.Count);
             Assert.AreEqual(child.Id, partial.Result.Children.Single().Id);
             Assert.IsFalse(partial.Result.Children.Single().Children.Any());
+
+            var deletedRoot = await provider.DeleteHolonAsync(root.Id);
+            Assert.IsTrue(deletedRoot.IsDeleted && !deletedRoot.IsError, deletedRoot.Message);
+            Assert.AreEqual(1, deletedRoot.DeletedCount);
+            Assert.AreEqual(root.Id, deletedRoot.Result.Id);
+            Assert.IsFalse(deletedRoot.Result.Children?.Any() == true);
+            var remainingChild = await provider.LoadHolonAsync(child.Id, loadChildren: false);
+            Assert.IsTrue(remainingChild.IsLoaded && !remainingChild.IsError, remainingChild.Message);
         }
         finally
         {
