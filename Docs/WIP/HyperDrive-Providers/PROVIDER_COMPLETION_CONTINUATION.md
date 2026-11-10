@@ -128,3 +128,7 @@ The revised EVM runner stops before the build when the retained loopback RPC set
 
 BigQuery integration tests now require an explicitly dedicated project, dataset and report directory. Both sync and async shared lifecycle cases compiled and were discovered, then skipped without the fixture. The run did not submit a BigQuery job. Hosted test-resource admission remains tracked in Actions for David.
 Google Cloud synchronous activation now waits on context-independent provider awaits while still requiring the SDK resource probes. The provider build passed with zero errors. The standard Firebase emulator cache on this host has no Firestore artifact. The prior 52/52 lifecycle was not repeated and the changed activation path still needs runtime verification.
+
+### Development integration
+
+Development advanced to 9131d651e3 with the EVM fixture preflight and IPFS dead-comment cleanup only. The push validated the existing Railway manifest pins. Provider runtime changes and native acceptance evidence remain tied to their tested task-branch revisions. The scoped batch did not run or establish new backend acceptance.
