@@ -11,7 +11,9 @@ public class GarnetEmptyCheckpointTests
     [TestMethod]
     public async Task EmptyNativeCheckpointAcknowledgesActualStorageIoWithoutHolonWrites()
     {
-        Assert.IsTrue(OperatingSystem.IsLinux());
+        if (!OperatingSystem.IsLinux() ||
+            Environment.GetEnvironmentVariable("OASIS_GARNET_STORAGE_PROBE_STATE") is null)
+            Assert.Inconclusive("This checkpoint requires the retained isolated Linux Garnet probe.");
         var state = Environment.GetEnvironmentVariable("OASIS_GARNET_STORAGE_PROBE_STATE")!;
         Assert.AreEqual("/var/tmp/oasis-garnet-storage-probe", state);
         Assert.IsTrue(File.Exists(Path.Combine(state, "active-process.json")));
