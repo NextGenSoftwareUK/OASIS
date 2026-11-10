@@ -10,6 +10,9 @@ public class CosmosCoreStorageConformanceTests
     [DataTestMethod, DataRow(false), DataRow(true), TestCategory("CosmosCoreStorageConformance")]
     public async Task SharedStorageInterfaceAgainstRetainedContract(bool sync)
     {
+        if (Environment.GetEnvironmentVariable("OASIS_COSMOS_STORAGE_CONFORMANCE") != "1")
+            Assert.Inconclusive("Enable only for the retained isolated Cosmos storage fixture.");
+
         var root = new DirectoryInfo(AppContext.BaseDirectory);
         while (root != null && !Directory.Exists(Path.Combine(root.FullName, "Scripts", "TestHosts"))) root = root.Parent;
         Assert.IsNotNull(root);
@@ -18,6 +21,16 @@ public class CosmosCoreStorageConformanceTests
         using var lease = new FileStream(Path.Combine(Path.GetDirectoryName(work)!, "environment.lock"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
         var reportPath = Path.Combine(work, "report.json");
         Assert.IsFalse(File.Exists(reportPath) || File.Exists(reportPath + ".next"), "Preserve prior fixture/report before any new submission.");
+        var otherReportPath = Path.Combine(Path.GetDirectoryName(work)!, sync ? "async" : "sync", "report.json");
+        Assert.IsFalse(File.Exists(otherReportPath + ".next"), "Reconcile the other mode's interrupted checkpoint.");
+        if (File.Exists(otherReportPath))
+        {
+            await using var previous = File.OpenRead(otherReportPath);
+            var prior = await JsonSerializer.DeserializeAsync<CoreStorageConformance.Report>(previous);
+            Assert.IsTrue(prior?.FixtureCleanupComplete == true || prior?.CurrentCase == "configuration",
+                "Reconcile the other mode's fixture before any new submission.");
+        }
+
         async Task Checkpoint(CoreStorageConformance.Report report)
         {
             await using (var file = new FileStream(reportPath + ".next", FileMode.CreateNew, FileAccess.Write, FileShare.None))
