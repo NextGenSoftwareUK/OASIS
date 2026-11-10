@@ -99,3 +99,5 @@ Supabase console failure exit status bbb1e1418b compiled with 0 errors and 1139 
 Development 510eea95e9 integrates the five-file Neon, Convex, Supabase and IPFS fixture batch, including the compiled Supabase exit-code fix. The push preserved the cross-checkout build lease and passed the Railway manifest check. No new live provider acceptance was established.
 
 Neon ONODE registration: the BootLoader now binds Neon settings and the explicit connection override to the shipping Npgsql adapter. The cross-checkout build lease was busy, so compilation and hosted ONODE activation remain open.
+
+Convex and Supabase BootLoader bindings construct the shipping clients from protected DNA settings. ConnectionString supplies the service URL and DeployKey or ApiKey supplies the corresponding credential. Compile and live ONODE activation remain open.

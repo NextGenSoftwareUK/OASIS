@@ -103,6 +103,18 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                             }
                             break;
 
+                        case ProviderType.ConvexOASIS:
+                            var convexSettings = OASISDNA?.OASIS?.StorageProviders?.ConvexOASIS;
+                            result.Result = new API.Providers.ConvexOASIS.ConvexOASIS(
+                                overrideConnectionString ?? convexSettings?.ConnectionString, convexSettings?.DeployKey);
+                            break;
+
+                        case ProviderType.SupabaseOASIS:
+                            var supabaseSettings = OASISDNA?.OASIS?.StorageProviders?.SupabaseOASIS;
+                            result.Result = new API.Providers.SupabaseOASIS.SupabaseOASIS(
+                                overrideConnectionString ?? supabaseSettings?.ConnectionString, supabaseSettings?.ApiKey);
+                            break;
+
                         case ProviderType.NeonOASIS:
                             var neonSettings = OASISDNA?.OASIS?.StorageProviders?.NeonOASIS;
                             result.Result = new API.Providers.NeonOASIS.NeonOASIS(

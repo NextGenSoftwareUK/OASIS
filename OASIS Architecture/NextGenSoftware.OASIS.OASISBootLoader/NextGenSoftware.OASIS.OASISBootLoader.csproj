@@ -94,6 +94,8 @@
     <ProjectReference Include="..\..\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.SOLANAOASIS\NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.csproj" />
     <ProjectReference Include="..\..\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.SuiOASIS\NextGenSoftware.OASIS.API.Providers.SuiOASIS.csproj" />
     <ProjectReference Include="..\..\Providers\Storage\NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS\NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.csproj" />
+    <ProjectReference Include="../../Providers/Cloud/NextGenSoftware.OASIS.API.Providers.ConvexOASIS/NextGenSoftware.OASIS.API.Providers.ConvexOASIS.csproj" />
+    <ProjectReference Include="../../Providers/Cloud/NextGenSoftware.OASIS.API.Providers.SupabaseOASIS/NextGenSoftware.OASIS.API.Providers.SupabaseOASIS.csproj" />
     <ProjectReference Include="..\..\Providers\Cloud\NextGenSoftware.OASIS.API.Providers.NeonOASIS\NextGenSoftware.OASIS.API.Providers.NeonOASIS.csproj" />
     <ProjectReference Include="..\..\Providers\Storage\NextGenSoftware.OASIS.API.Providers.OracleDBOASIS\NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.csproj" />
     <ProjectReference Include="..\..\Providers\Cloud\NextGenSoftware.OASIS.API.Providers.OracleObjectStorageOASIS\NextGenSoftware.OASIS.API.Providers.OracleObjectStorageOASIS.csproj" />
