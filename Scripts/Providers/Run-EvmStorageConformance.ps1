@@ -3,15 +3,20 @@
 param()
 $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
+foreach($name in @('OASIS_EVM_CONFORMANCE_RPC','OASIS_EVM_CONFORMANCE_CHAIN_ID','OASIS_EVM_CONFORMANCE_PRIVATE_KEY','OASIS_EVM_CONFORMANCE_CONTRACT','OASIS_WEB3CORE_STORAGE_ENCRYPTION_KEY')) {
+    if([string]::IsNullOrWhiteSpace([Environment]::GetEnvironmentVariable($name))) {
+        throw "Missing retained EVM fixture setting: $name. No build or native operation was started."
+    }
+}
+$rpc=$null
+if (-not [Uri]::TryCreate($env:OASIS_EVM_CONFORMANCE_RPC, [UriKind]::Absolute, [ref]$rpc) -or
+    -not $rpc.IsLoopback -or $rpc.Scheme -notin @('http','https')) {
+    throw 'EVM conformance requires an HTTP(S) loopback RPC. No build or native operation was started.'
+}
 foreach($name in @('EthereumOASIS','ArbitrumOASIS','PolygonOASIS')) {
     foreach($mode in @('async','sync')) {
         $path=Join-Path $root ('TestResults/ProviderConformanceCurrent/'+$name+'/'+$mode+'/report.json')
         if((Test-Path -LiteralPath $path) -or (Test-Path -LiteralPath ($path+'.next'))){throw 'Review preserved EVM conformance evidence before another run.'}
-    }
-}
-foreach($name in @('OASIS_EVM_CONFORMANCE_RPC','OASIS_EVM_CONFORMANCE_CHAIN_ID','OASIS_EVM_CONFORMANCE_PRIVATE_KEY','OASIS_EVM_CONFORMANCE_CONTRACT','OASIS_WEB3CORE_STORAGE_ENCRYPTION_KEY')) {
-    if([string]::IsNullOrWhiteSpace([Environment]::GetEnvironmentVariable($name))) {
-        throw "Missing retained EVM fixture setting: $name. No build or native operation was started."
     }
 }
 & (Join-Path $root 'Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1') -Owner 'EVM family core storage breadth gate' -Operation {
