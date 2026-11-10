@@ -6,40 +6,36 @@ using NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS;
 
 namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS.IntegrationTests
 {
-    /// <summary>
-    /// Exercises the real CRUD surface against a live backend.
-    ///
-    /// Connection details come from POCKETBASEOASIS_&lt;PARAM&gt; environment variables. When the
-    /// backend is not reachable the provider fails to activate and every test is
-    /// inconclusive rather than failed - so an unconfigured machine reports "skipped"
-    /// instead of red.
-    /// </summary>
     [TestClass]
     public class PocketBaseOASISIntegrationTests
     {
         private PocketBaseOASIS _provider = null!;
-        private bool _live;
 
         [TestInitialize]
-        public void Setup()
+        public async Task Setup()
         {
-            _provider = PocketBaseOASISTestFactory.Create();
-            try { _live = !_provider.ActivateProvider().IsError && _provider.IsProviderActivated; }
-            catch { _live = false; }
-        }
+            if (Environment.GetEnvironmentVariable("OASIS_POCKETBASE_STORAGE_TEST") != "1")
+                Assert.Inconclusive("Enable only for a disposable PocketBase instance.");
 
-        private void RequireLive()
-        {
-            if (!_live)
-                Assert.Inconclusive(
-                    "No live PocketBaseOASIS backend configured - set the POCKETBASEOASIS_* environment variables to run this.");
+            var url = Environment.GetEnvironmentVariable("POCKETBASEOASIS_BASEURL");
+            var email = Environment.GetEnvironmentVariable("POCKETBASEOASIS_ADMINEMAIL");
+            var password = Environment.GetEnvironmentVariable("POCKETBASEOASIS_ADMINPASSWORD");
+            Assert.IsTrue(Uri.TryCreate(url, UriKind.Absolute, out var endpoint) &&
+                endpoint.IsLoopback && endpoint.Scheme == Uri.UriSchemeHttp &&
+                endpoint.AbsolutePath == "/" && endpoint.UserInfo.Length == 0 &&
+                endpoint.Query.Length == 0 && endpoint.Fragment.Length == 0);
+            Assert.IsFalse(string.IsNullOrWhiteSpace(email));
+            Assert.IsFalse(string.IsNullOrWhiteSpace(password));
+
+            _provider = new PocketBaseOASIS(url!, email!, password!);
+            var activated = await _provider.ActivateProviderAsync();
+            Assert.IsFalse(activated.IsError, activated.Exception?.GetType().Name);
+            Assert.IsTrue(_provider.IsProviderActivated);
         }
 
         [TestMethod]
         public async Task SaveAndLoadAvatar_RoundTrips()
         {
-            RequireLive();
-
             var avatar = new Avatar
             {
                 Id = Guid.NewGuid(),
@@ -61,8 +57,6 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS.IntegrationTests
         [TestMethod]
         public async Task LoadAvatarByUsername_FindsTheSavedAvatar()
         {
-            RequireLive();
-
             var avatar = new Avatar
             {
                 Id = Guid.NewGuid(),
@@ -83,8 +77,6 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS.IntegrationTests
         [TestMethod]
         public async Task SaveAndLoadHolon_RoundTrips()
         {
-            RequireLive();
-
             var holon = new Holon { Id = Guid.NewGuid(), Name = $"OASIS IT Holon {Guid.NewGuid():N}" };
 
             var saved = await _provider.SaveHolonAsync(holon);
@@ -100,8 +92,6 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS.IntegrationTests
         [TestMethod]
         public async Task DeletedAvatar_IsNotReturnedAsLive()
         {
-            RequireLive();
-
             var avatar = new Avatar
             {
                 Id = Guid.NewGuid(),
@@ -121,7 +111,6 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS.IntegrationTests
         [TestMethod]
         public async Task LoadAllAvatars_ReturnsAResult()
         {
-            RequireLive();
             var all = await _provider.LoadAllAvatarsAsync();
             Assert.IsNotNull(all);
         }
