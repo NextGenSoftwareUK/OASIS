@@ -17,11 +17,11 @@ $output = Join-Path $root 'Providers/Cloud/TestProjects/NextGenSoftware.OASIS.AP
 $work = Join-Path $root 'TestResults/S3Current'
 if (!(Test-Path -LiteralPath $work -PathType Container)) { throw 'Existing S3Current evidence directory required.' }
 $evidenceStem = if ($RecordLifecycle) { 's3-live-records' } else { 's3-live-transport' }
-foreach ($name in @("$evidenceStem.pending.json","$evidenceStem.current.json","$evidenceStem.pending.json.next","$evidenceStem.current.json.next")) {
-    if (Test-Path -LiteralPath (Join-Path $work $name)) { throw 'Preserve and review existing acceptance evidence before another run.' }
-}
 # Owns the producer lease for the entire bounded native run; do not nest a lease.
 & (Join-Path $PSScriptRoot 'Invoke-WithProviderBuildLease.ps1') -Owner 'AWS S3 bounded live acceptance' -Operation {
+    foreach ($name in @("$evidenceStem.pending.json","$evidenceStem.current.json","$evidenceStem.pending.json.next","$evidenceStem.current.json.next")) {
+        if (Test-Path -LiteralPath (Join-Path $work $name)) { throw 'Preserve and review existing acceptance evidence before another run.' }
+    }
     . (Join-Path $PSScriptRoot 'Assert-ReusableProviderBuildIdentity.ps1') -RepositoryRoot $root -ConsumerOutput $output -VerifySourceDocuments
     foreach ($name in @('NextGenSoftware.OASIS.API.Providers.AWSOASIS.UnitTests.dll','NextGenSoftware.OASIS.Providers.Shared.S3.dll','NextGenSoftware.OASIS.API.Providers.AWSS3OASIS.dll')) {
         [void](Assert-SourceDocuments (Join-Path $output $name) $root)
