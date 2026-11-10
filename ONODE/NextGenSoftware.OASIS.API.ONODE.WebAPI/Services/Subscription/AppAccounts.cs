@@ -72,6 +72,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
             if (Array.IndexOf(PlanOrder, planId) < 0) throw new ArgumentException("Plan must be free, bronze, silver, gold or enterprise.");
         }
 
+        /// <summary>
+        /// Until app-wide pooled quotas exist, an app plan is a per-user entitlement, which only makes sense for an
+        /// unlimited plan. A finite app plan would multiply its limits by the number of users, so it is refused.
+        /// </summary>
+        public static void ValidateAppPlan(string planId)
+        {
+            ValidatePlan(planId);
+            if (planId != "enterprise")
+                throw new ArgumentException("App accounts currently support only the enterprise plan; finite app plans need pooled quotas, which are not available yet.");
+        }
+
         public static void ValidateActorAndReason(string actor, string reason)
         {
             if (string.IsNullOrWhiteSpace(actor)) throw new ArgumentException("The administrator is required.");
