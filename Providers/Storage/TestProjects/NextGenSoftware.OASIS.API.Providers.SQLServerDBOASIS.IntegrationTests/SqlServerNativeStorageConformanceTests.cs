@@ -11,6 +11,20 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLServerDBOASIS.IntegrationTests;
 public class SqlServerNativeStorageConformanceTests
 {
     [TestMethod]
+    public async Task InvalidGraphDepthIsRejectedBeforeConnecting()
+    {
+        var provider = new SQLServerDBOASIS("invalid connection string");
+        var id = Guid.NewGuid();
+        var point = await provider.LoadHolonAsync(id, maxChildDepth: -1);
+        var list = await provider.LoadAllHolonsAsync(curentChildDepth: -1);
+        var children = await provider.LoadHolonsForParentAsync(id, maxChildDepth: -1);
+
+        Assert.IsTrue(point.IsError && point.Exception is ArgumentOutOfRangeException);
+        Assert.IsTrue(list.IsError && list.Exception is ArgumentOutOfRangeException);
+        Assert.IsTrue(children.IsError && children.Exception is ArgumentOutOfRangeException);
+    }
+
+    [TestMethod]
     public async Task HolonPointReadHandlesPersistedCycle()
     {
         if (Environment.GetEnvironmentVariable("OASIS_SQLSERVER_POINT_CYCLE") != "1")

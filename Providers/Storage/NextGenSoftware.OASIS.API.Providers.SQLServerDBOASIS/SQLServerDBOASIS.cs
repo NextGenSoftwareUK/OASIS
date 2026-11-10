@@ -651,10 +651,8 @@ WHERE h.Id = @Id AND h.IsDeleted = 0;";
 
         private async Task HydrateHolonChildrenAsync(IHolon holon, bool recursive, int maxChildDepth, bool continueOnError, int version, List<string> failures, int initialDepth = 0)
         {
-            ArgumentOutOfRangeException.ThrowIfNegative(maxChildDepth);
             var pending = new Queue<(IHolon Parent, int Depth)>();
             var visited = new HashSet<Guid> { holon.Id };
-            ArgumentOutOfRangeException.ThrowIfNegative(initialDepth);
             pending.Enqueue((holon, initialDepth));
             while (pending.TryDequeue(out var entry))
             {
@@ -693,6 +691,7 @@ WHERE h.Id = @Id AND h.IsDeleted = 0;";
             var result = new OASISResult<IHolon>();
             try
             {
+                ArgumentOutOfRangeException.ThrowIfNegative(maxChildDepth);
                 var holon = await LoadHolonVersionAsync(id, version).ConfigureAwait(false);
                 if (holon == null) { OASISErrorHandling.HandleError(ref result, $"SQLServerDBOASIS: No holon found with ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
                 if (loadChildren)
@@ -785,6 +784,7 @@ WHERE h.Id = @Id AND h.IsDeleted = 0;";
             var result = new OASISResult<ISearchResults>();
             try
             {
+                ArgumentOutOfRangeException.ThrowIfNegative(maxChildDepth);
                 ArgumentOutOfRangeException.ThrowIfNegative(version);
                 var holons = new List<IHolon>();
                 string? query = searchParams.SearchGroups?
@@ -879,6 +879,8 @@ WHERE h.Id = @Id AND h.IsDeleted = 0;";
             if (metaKeyValuePairs == null || metaKeyValuePairs.Count == 0) { OASISErrorHandling.HandleError(ref result, "SQLServerDBOASIS: No metadata filters provided."); return result; }
             try
             {
+                ArgumentOutOfRangeException.ThrowIfNegative(maxChildDepth);
+                ArgumentOutOfRangeException.ThrowIfNegative(curentChildDepth);
                 ArgumentOutOfRangeException.ThrowIfNegative(version);
 
                 var filters = metaKeyValuePairs.ToArray();
@@ -942,6 +944,8 @@ WHERE h.Id = @Id AND h.IsDeleted = 0;";
             var result = new OASISResult<IEnumerable<IHolon>>();
             try
             {
+                ArgumentOutOfRangeException.ThrowIfNegative(maxChildDepth);
+                ArgumentOutOfRangeException.ThrowIfNegative(curentChildDepth);
                 string sql = type == HolonType.All
                     ? VersionedHolonRows + " AND snapshot.ParentHolonId=@ParentHolonId"
                     : VersionedHolonRows + " AND snapshot.ParentHolonId=@ParentHolonId AND snapshot.HolonType=@HolonType";
@@ -989,6 +993,8 @@ WHERE h.Id = @Id AND h.IsDeleted = 0;";
             var result = new OASISResult<IEnumerable<IHolon>>();
             try
             {
+                ArgumentOutOfRangeException.ThrowIfNegative(maxChildDepth);
+                ArgumentOutOfRangeException.ThrowIfNegative(curentChildDepth);
                 string sql = type == HolonType.All
                     ? VersionedHolonRows
                     : VersionedHolonRows + " AND snapshot.HolonType=@HolonType";
@@ -1081,6 +1087,8 @@ WHERE h.Id = @Id AND h.IsDeleted = 0;";
             var result = new OASISResult<IEnumerable<IHolon>>();
             try
             {
+                ArgumentOutOfRangeException.ThrowIfNegative(maxChildDepth);
+                ArgumentOutOfRangeException.ThrowIfNegative(curentChildDepth);
                 ArgumentOutOfRangeException.ThrowIfNegative(version);
 
                 string sql = $"{VersionedHolonRows} AND JSON_VALUE(snapshot.DataJson,@MetaPath)=@MetaValue";
