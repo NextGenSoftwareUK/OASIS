@@ -41,3 +41,5 @@ Continue other provider families. Oracle local52/52 remains distinct from cloud 
 EdgeSQLite focused check at 4a94134d2c : LocalMutationPersistsEntityAndOutboxAcrossRestart passed (1 passed, 0 failed, 0 skipped, 513 ms) against file-backed SQLite. Existing locked project versions restored from NuGet after cached restore could not resolve the pinned dependencies. This verifies local state and outbox persistence across store reopen. Cross-provider delivery and routing are outside this result.
 
 EdgeSQLite ConcurrentLocalMutationsReceiveUniqueContiguousDeviceSequences passed against the same compiled cohort (1 passed, 0 failed, 0 skipped, 353 ms). This verifies unique, contiguous per-device sequences for concurrent local writes. The restart check was not replayed.
+
+Four additional file-backed EdgeSQLite checks passed in the same compiled cohort (4 passed, 0 failed, 0 skipped, 336 ms). Completed legacy outbox entries retain stable version identity, unresolved legacy entries fail closed, conflicting duplicate operations roll back local state and sequence, and identical retries preserve the original sequence. Earlier restart and concurrency cases were excluded.
