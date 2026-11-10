@@ -3,13 +3,14 @@ The baseline table below is from 28 October 2026. Read PROVIDER_COMPLETION_CONTI
 
 ## Phase and rules
 
-Active checkpoint: Cloudflare Workers KV now shares encrypted record policy;52controlled core checks and25transport/metadata controls pass, two native cases gated. No cloud resource/install/download. Native eventual-consistency/rate-limit/CAS limits remain open (CLOUDFLARE_KV_STORAGE_BASELINE.md). Next: Tigris S3 consolidation. Upstash native52/52 pushed90716cb0b; its sole scratch service expires31October.
+Active checkpoint, 10 November 2026. SQL Server is the current HyperDrive focus. Development contains the scoped SQL Server avatar/history and graph-read batch at af621f3c3e. The next batch is a LocalDB-verified concurrent-avatar history regression. Its Development compatibility build is pending. BigQuery hosted lifecycle verification awaits its isolated fixture. HyperDrive routing verification follows provider acceptance.
 
 - Breadth first: real provider implementations and canonical core-storage-v2 (26checks per sync/async mode), approximately one day per family. Non-storage uses capability-v1, not storage tests.
 - All applicable provider baselines precede global failover/load balancing/replication verification, then priority-provider depth. No Polkadot/NEAR/SQLite depth now.
 - Use the existing C:/Source/OASIS2-hyperdrive worktree on work/hyperdrive-provider-completion. No new clones/worktrees/environments; reuse cached runtimes.
 - Stage exact owned files, preserve concurrent dirty work/submodules, no force pushes/attribution trailers. Preserve the separate COSMIC/CQL checkout and branch.
-- Integrate scoped verified batches to Development once/twice daily; fetch first, verify submodule commits remotely and manifest/gitlink agreement. Never deploy unrelated/unverified changes just to synchronize.
+- Check Development every 30 minutes during active work and integrate scoped verified batches; fetch first, verify submodule commits remotely and manifest/gitlink agreement. Never deploy unrelated/unverified changes just to synchronize.
+- Before taking on a provider, check both this directory and the main checkout COSMIC ORM status and provider handoffs for active ownership. Update this checkpoint when ownership, acceptance, or integration changes.
 - New raw evidence under TestResults; compact hash-bound summaries only are tracked. Maintain resource ledger, ten recent entries, byte-preserved archive rollovers.
 
 ## Evidence now
