@@ -610,59 +610,14 @@ WHERE h.Id = @Id AND h.IsDeleted = 0;";
         public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
             => LoadHolonAsync(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
 
-        public async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsyncLegacy(HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int version = 0, bool continueOnError = true, bool loadChildrenFromProvider = false)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                var holons = new List<IHolon>();
-                string sql = holonType == HolonType.All
-                    ? "SELECT DataJson FROM OASISHolons WHERE IsDeleted=0"
-                    : "SELECT DataJson FROM OASISHolons WHERE IsDeleted=0 AND HolonType=@HolonType";
-                await using var conn = new SqlConnection(_connectionString);
-                await conn.OpenAsync();
-                await using var cmd = new SqlCommand(sql, conn);
-                if (holonType != HolonType.All) cmd.Parameters.AddWithValue("@HolonType", (int)holonType);
-                await using var reader = await cmd.ExecuteReaderAsync();
-                while (await reader.ReadAsync())
-                {
-                    var holon = Deserialize<Holon>(reader.GetString(0));
-                    if (holon != null) holons.Add(holon);
-                }
-                result.Result = holons; result.IsLoaded = true; result.LoadedCount = holons.Count; result.Message = $"SQLServerDBOASIS: Loaded {holons.Count} holon(s).";
-            }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SQLServerDBOASIS: Error loading all holons: {ex.Message}"); }
-            return result;
-        }
+        public Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsyncLegacy(HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int version = 0, bool continueOnError = true, bool loadChildrenFromProvider = false)
+            => LoadAllHolonsAsync(holonType, loadChildren, recursive, maxChildDepth, 0, continueOnError, loadChildrenFromProvider, version);
 
         public OASISResult<IEnumerable<IHolon>> LoadAllHolonsLegacy(HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int version = 0, bool continueOnError = true, bool loadChildrenFromProvider = false)
             => LoadAllHolonsAsyncLegacy(holonType, loadChildren, recursive, maxChildDepth, version, continueOnError, loadChildrenFromProvider).Result;
 
-        public async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsyncLegacy(Guid id, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int version = 0, bool continueOnError = true, bool loadChildrenFromProvider = false)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                var holons = new List<IHolon>();
-                string sql = holonType == HolonType.All
-                    ? "SELECT DataJson FROM OASISHolons WHERE ParentHolonId=@ParentHolonId AND IsDeleted=0"
-                    : "SELECT DataJson FROM OASISHolons WHERE ParentHolonId=@ParentHolonId AND IsDeleted=0 AND HolonType=@HolonType";
-                await using var conn = new SqlConnection(_connectionString);
-                await conn.OpenAsync();
-                await using var cmd = new SqlCommand(sql, conn);
-                cmd.Parameters.AddWithValue("@ParentHolonId", id);
-                if (holonType != HolonType.All) cmd.Parameters.AddWithValue("@HolonType", (int)holonType);
-                await using var reader = await cmd.ExecuteReaderAsync();
-                while (await reader.ReadAsync())
-                {
-                    var holon = Deserialize<Holon>(reader.GetString(0));
-                    if (holon != null) holons.Add(holon);
-                }
-                result.Result = holons; result.IsLoaded = true; result.LoadedCount = holons.Count; result.Message = $"SQLServerDBOASIS: Loaded {holons.Count} holon(s) for parent '{id}'.";
-            }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SQLServerDBOASIS: Error loading holons for parent '{id}': {ex.Message}"); }
-            return result;
-        }
+        public Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsyncLegacy(Guid id, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int version = 0, bool continueOnError = true, bool loadChildrenFromProvider = false)
+            => LoadHolonsForParentAsync(id, holonType, loadChildren, recursive, maxChildDepth, 0, continueOnError, loadChildrenFromProvider, version);
 
         public OASISResult<IEnumerable<IHolon>> LoadHolonsForParentLegacy(Guid id, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int version = 0, bool continueOnError = true, bool loadChildrenFromProvider = false)
             => LoadHolonsForParentAsyncLegacy(id, holonType, loadChildren, recursive, maxChildDepth, version, continueOnError, loadChildrenFromProvider).Result;
