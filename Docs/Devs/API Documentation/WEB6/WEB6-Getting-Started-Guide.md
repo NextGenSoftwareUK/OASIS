@@ -949,7 +949,7 @@ If you're using a vector database (Pinecone, Weaviate, pgvector) or a hosted kno
 |-----------|------------------|----------------------|
 | Duplicate content | Stored N times per document | Stored once, linked N times via semantic dedup |
 | Retrieval unit | Raw embedding comparison | Hierarchical — query hits the right level, not every chunk |
-| Storage backend | Locked to one vendor | 222 providers via COSMIC ORM; switch without data migration |
+| Storage backend | Locked to one vendor | Eligible storage adapters via COSMIC ORM. The [OASIS inventory](../../../WIP/HyperDrive-Providers/PROVIDER_MATRIX.md) tracks 234 projects across all capabilities. |
 | Retention control | Manual TTL / lifecycle rules | Built-in per-holon TTL (`SessionOnly`, `Persistent`, `Expiring`) |
 | Session notes | Manual indexing | Auto-holonised, semantic search included |
 | Portability | Vendor lock-in | Open, portable, self-hostable |
