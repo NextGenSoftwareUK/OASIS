@@ -5400,3 +5400,5 @@ Owner approved hourly or two-hour Development batching. Corrected MapLibre c6f25
   verification was run.
 
 Activation timing verification reused the existing SDK and restore cache. The targeted run compiled WEB4 but the test project failed before execution because four shared sibling reference assemblies were missing. WEB4 and UnitTests Debug clean completed. Removed four lease contract stdout/stderr logs and retained the compact lease result. Free space after log cleanup: 19,430,899,712 bytes. Exact image build 42887209515 runs remotely.
+
+10 November activation timing rerun: 5 passed with zero WEB4 build errors. Reused the existing SDK and restore cache. Leased cleanup of WEB4 and UnitTests Debug output exited successfully with 16,629,743,616 bytes free on C:. Shared reference outputs remain subject to coordinated ownership checks. Use remote CI for the next image build to avoid a local image or another restore.
