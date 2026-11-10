@@ -591,3 +591,10 @@ Status: missing account/configuration information,2 November2026. David approved
 - **Action** Identify the dedicated Google Cloud test project and authorized test identity for Firestore, Cloud Storage and BigQuery. Confirm which named database, bucket and dataset are reserved for synthetic records and what spending limit applies before billable tests. Keep credentials out of Git and chat.
 - **Reason** The agent needs explicit test resource boundaries before exercising hosted SDK writes and exact cleanup.
 - **Context** [Google Cloud and BigQuery provider evidence](../HyperDrive-Providers/PROVIDER_MATRIX.md).
+
+### Convex hosted companion acceptance
+
+- **Status (9 November 2026)** Open. Local Convex passed 52/52 storage lifecycle checks. The hosted activation case compiled and skipped because no deployment was configured.
+- **Action** Identify the dedicated Convex test deployment with the OASIS companion installed. Supply its HTTPS origin via OASIS_CONVEX_HOSTED_TEST_URL and make its deploy key and persisted test storage key available through the protected environment. Keep secrets out of Git and chat.
+- **Reason** The agent must verify authenticated activation and then the hosted storage lifecycle without touching production data.
+- **Context** [Convex storage evidence](../HyperDrive-Providers/CONVEX_STORAGE_BASELINE.md).
