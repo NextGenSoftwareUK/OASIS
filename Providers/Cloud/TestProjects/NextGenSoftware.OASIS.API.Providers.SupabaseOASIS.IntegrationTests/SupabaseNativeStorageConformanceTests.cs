@@ -56,15 +56,20 @@ public class SupabaseNativeStorageConformanceTests
         using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(30) };
         var provider = new SupabaseOASIS(url!, key!, http);
 
-        foreach (var table in new[] { "oasis_avatars", "oasis_avatar_details", "oasis_holons" })
+        async Task RequireEmptyTables(string phase)
         {
-            using var response = await http.GetAsync(new Uri(endpoint!, $"rest/v1/{table}?select=id&limit=1"));
-            response.EnsureSuccessStatusCode();
-            using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
-            Assert.IsTrue(document.RootElement.ValueKind == JsonValueKind.Array &&
-                document.RootElement.GetArrayLength() == 0,
-                $"The dedicated Supabase test table {table} must be empty before dispatch.");
+            foreach (var table in new[] { "oasis_avatars", "oasis_avatar_details", "oasis_holons" })
+            {
+                using var response = await http.GetAsync(new Uri(endpoint!, $"rest/v1/{table}?select=id&limit=1"));
+                response.EnsureSuccessStatusCode();
+                using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+                Assert.IsTrue(document.RootElement.ValueKind == JsonValueKind.Array &&
+                    document.RootElement.GetArrayLength() == 0,
+                    $"The dedicated Supabase test table {table} must be empty {phase}.");
+            }
         }
+
+        await RequireEmptyTables("before dispatch");
 
         async Task CleanTombstone(Guid id)
         {
@@ -91,6 +96,9 @@ public class SupabaseNativeStorageConformanceTests
                     await CleanTombstone(id);
                     report.HardCleanedFixtures.Add(id);
                 }
+                report.CurrentCase = "supabase-verify-empty-tables";
+                await Checkpoint(report);
+                await RequireEmptyTables("after cleanup");
                 report.CurrentCase = "complete";
                 report.FixtureCleanupComplete = true;
                 report.Succeeded = true;
