@@ -15,7 +15,8 @@ if($Mode -eq 'Conformance'){
     if(Test-Path -LiteralPath (Join-Path $fixtureRoot 'cosmos-core-current.trx')){throw 'Preserve original Cosmos conformance TRX.'}
 }
 $linuxScriptRoot=(& wsl -d Ubuntu -- wslpath -u ($PSScriptRoot.Replace('\','/')))
-if($LASTEXITCODE -or [string]::IsNullOrWhiteSpace($linuxScriptRoot)){throw 'Existing Windows runner directory could not be resolved in WSL.'}
+if($LASTEXITCODE){throw 'The retained Ubuntu WSL environment is unavailable.'}
+if([string]::IsNullOrWhiteSpace($linuxScriptRoot)){throw 'Existing Windows runner directory could not be resolved in WSL.'}
 $linuxScriptRoot=$linuxScriptRoot.Trim()
 if(!$linuxScriptRoot.StartsWith('/mnt/')){throw 'Unexpected WSL runner directory.'}
 $integrationModes=@('IndependentRouting','VersionedRouting','VersionedRoutingRecovery','RoutingInspect','RoutingReconcile','RoutingProbe','ReviewedFees','RoutingFeeRecovery','ReviewedBank','ReviewedToken','ReviewedNFT','EscrowDeploy','EscrowLock')
