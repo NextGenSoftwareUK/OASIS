@@ -288,7 +288,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
             {
                 var recs = await GetAllAsync("oasis_avatars", "is_deleted=false");
                 var avatars = recs.Select(r => r.DataJson != null ? Deserialize<Avatar>(r.DataJson) : null).Where(a => a != null).Cast<IAvatar>().ToList();
-                result.Result = avatars; result.IsError = false; result.Message = $"PocketBaseOASIS: Loaded {avatars.Count} avatar(s).";
+                result.Result = avatars; result.IsLoaded = true; result.LoadedCount = avatars.Count; result.Message = $"PocketBaseOASIS: Loaded {avatars.Count} avatar(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: Error loading all avatars: {ex.Message}"); }
             return result;
@@ -523,7 +523,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
                 string? filter = type == HolonType.All ? "is_deleted=false" : $"is_deleted=false&&holon_type={((int)type)}";
                 var recs = await GetAllAsync("oasis_holons", filter);
                 var holons = recs.Select(ParseHolon).Where(h => h != null).Cast<IHolon>().ToList();
-                result.Result = holons; result.IsError = false; result.Message = $"PocketBaseOASIS: Loaded {holons.Count} holon(s).";
+                result.Result = holons; result.IsLoaded = true; result.LoadedCount = holons.Count; result.Message = $"PocketBaseOASIS: Loaded {holons.Count} holon(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: Error loading all holons: {ex.Message}"); }
             return result;
@@ -540,7 +540,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
                 string filter = type == HolonType.All ? $"parent_holon_id='{id}'&&is_deleted=false" : $"parent_holon_id='{id}'&&is_deleted=false&&holon_type={(int)type}";
                 var recs = await GetAllAsync("oasis_holons", filter);
                 var holons = recs.Select(ParseHolon).Where(h => h != null).Cast<IHolon>().ToList();
-                result.Result = holons; result.IsError = false; result.Message = $"PocketBaseOASIS: Loaded {holons.Count} holon(s) for parent '{id}'.";
+                result.Result = holons; result.IsLoaded = true; result.LoadedCount = holons.Count; result.Message = $"PocketBaseOASIS: Loaded {holons.Count} holon(s) for parent '{id}'.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: Error loading holons for parent '{id}': {ex.Message}"); }
             return result;
