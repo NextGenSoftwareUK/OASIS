@@ -123,6 +123,9 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
                     return await cursor.ToListAsync(ReadHolonRecord).ConfigureAwait(false);
                 }).ConfigureAwait(false);
 
+                if (holons.Select(holon => holon.Id).Distinct().Count() != holons.Count)
+                    throw new StorageIdentityAmbiguousException();
+
                 result.Result = holons;
                 result.IsLoaded = true;
                 result.LoadedCount = holons.Count;
@@ -130,6 +133,8 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, "Error listing Neo4j Aura holons.", ex);
+                if (ex is StorageIdentityAmbiguousException)
+                    result.ErrorCode = OASISResultErrorCodes.AmbiguousIdentity;
             }
             return result;
         }
