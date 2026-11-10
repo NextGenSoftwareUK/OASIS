@@ -727,3 +727,5 @@ Monad rollout: the live WEB4 container got HTTP 429 from Goldsky Edge. Ankr pass
 Monad rollout cc85bd3a succeeded. The running WEB4 container confirmed the Ankr endpoint. After startup, authenticated discovery reported native and federation readiness, and the native full/subset presets passed the row verifier at 3/2. Browser and private paired verification remain open. No local test report was written.
 
 Development cc85bd3a post-rollout catalogue: 105 of 106 listed sources were ready for native queries and federation; only Nostr was unavailable. TRON remained absent, with no dedicated reader key in either the Development variables or the recovery user environment. Supabase remains a separate missing-fixture/enrollment gate. Monad native/public federation reads passed, while browser observation timed out before dispatch. No local build or test output.
+
+After the Monad endpoint rollout, both public Hedera presets passed the authenticated native row verifier on Development cc85bd3a with 3 and 2 rows. Earlier browser acceptance remains release-specific. The private paired browser check remains open. The regression check wrote no local report.
