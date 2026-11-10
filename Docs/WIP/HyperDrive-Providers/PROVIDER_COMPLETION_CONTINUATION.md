@@ -333,3 +333,5 @@ SQL Server LocalDB passed graph hydration with Max Pool Size=1 and Connect Timeo
 IPFS delayed client publication (736c2fda51) built with zero errors. The retained runner expects Kubo 0.43.1 and its original private repository. Neither was found at the configured default location on this host, and port 5001 had no listener. Carry forward the original lifecycle evidence and use the existing IPFS owner entry for fixture access. No daemon was started.
 
 SQLite wallet schema rollback passed the focused native case WalletColumnUpgradeRollsBackWhenLaterSchemaValidationFails (1 passed, 0 failed or skipped). The test independently inspected SQLite schema state after the rejected activation. The shared 52-case storage suite was excluded.
+
+SQLite native wallet upgrade and reopen checks passed in sync and async modes (4 passed, 0 failed, 0 skipped). Existing avatar data survived schema upgrade, wallet data survived reopen and profile edit, and corrupt wallet JSON surfaced as an error. The shared lifecycle suite and the previously verified rollback case were excluded.
