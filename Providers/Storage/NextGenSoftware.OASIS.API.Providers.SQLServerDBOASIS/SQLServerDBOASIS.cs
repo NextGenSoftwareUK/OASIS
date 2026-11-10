@@ -655,13 +655,7 @@ WHERE h.Id = @Id AND h.IsDeleted = 0;";
                 await conn.OpenAsync();
                 string sql = softDelete
                     ? "UPDATE OASISHolons SET IsDeleted=1, ModifiedDate=SYSUTCDATETIME() WHERE Id=@Id AND IsDeleted=0"
-                    : @"SET XACT_ABORT ON;
-BEGIN TRANSACTION;
-DELETE FROM OASISHolons WITH (HOLDLOCK) WHERE Id=@Id;
-DECLARE @Deleted int = @@ROWCOUNT;
-DELETE FROM OASISHolonHistory WHERE Id=@Id;
-COMMIT TRANSACTION;
-SELECT @Deleted;";
+                    : "DELETE FROM OASISHolons WHERE Id=@Id; SELECT @@ROWCOUNT;";
                 await using var cmd = new SqlCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@Id", id);
                 int rows = softDelete ? await cmd.ExecuteNonQueryAsync() : (int)(await cmd.ExecuteScalarAsync())!;

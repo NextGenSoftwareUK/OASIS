@@ -297,3 +297,5 @@ Mongo fixture ownership check identified the active mongod as the Windows MongoD
 SQL Server LocalDB passed HolonHistoryRetainsSupersededSnapshot against the changed hard-delete transaction. The case saved two versions, read the archived version before deletion, and independently checked zero archive rows after deletion. LocalDB stopped after the targeted run.
 
 SQL Server LocalDB passed AvatarReadsFilterRequestedVersion. Version 2 matched current avatar and detail reads and lists, while version 1 returned no match. The fixture was hard-deleted and LocalDB stopped. This covers current-row version matching; avatar and detail history remains open.
+
+SQL Server LocalDB has a trusted, enabled FK_OASISHolonHistory_Holon with ON DELETE CASCADE. The revised hard delete relies on that constraint and returns the current-row count. HolonHistoryRetainsSupersededSnapshot passed on the revised statement and independently confirmed zero archived rows after deletion. LocalDB stopped.
