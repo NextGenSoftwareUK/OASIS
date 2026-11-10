@@ -36,4 +36,4 @@ Use the existing build lease and cached producer/consumer projects with `Include
 
 Existing successful reports must be reviewed/preserved before a rerun; never delete them or replay failed fixtures to obtain green. The fixed memory-only save/metadata count controls dispose their providers; no durable runtime is allocated for those cases.
 
-Continue other provider families. Oracle local52/52 remains distinct from cloud acceptance; default OCI profile and Oracle/OCI process configuration were rechecked absent on28October. Existing matrix warnings about additional unimplemented SQLite interface methods remain open; this baseline does not erase them.
+Continue other provider families. Oracle local52/52 remains distinct from cloud acceptance; default OCI profile and Oracle/OCI process configuration were rechecked absent on28October. The current matrix records no gaps within the shared suite. Additional SQLite interfaces and EdgeSQLite runtime behavior require evidence from their own entry points. The baseline covers the SQLLiteDBOASIS storage provider only.
