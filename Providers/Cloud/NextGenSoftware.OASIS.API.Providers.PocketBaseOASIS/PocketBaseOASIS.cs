@@ -491,9 +491,27 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
         public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
-            var saved = new List<IHolon>(); var errors = new List<string>();
-            foreach (var holon in holons) { var r = await SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider); if (r.IsError) errors.Add(r.Message ?? ""); else if (r.Result != null) saved.Add(r.Result); }
-            result.Result = saved; result.IsError = errors.Count > 0; result.Message = errors.Count > 0 ? string.Join("; ", errors) : $"PocketBaseOASIS: {saved.Count} holon(s) saved.";
+            var saved = new List<IHolon>();
+            var errors = new List<string>();
+            foreach (var holon in holons)
+            {
+                var write = await SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
+                if (write.IsError)
+                {
+                    errors.Add(write.Message);
+                    result.Exception ??= write.Exception;
+                    if (!continueOnError) break;
+                }
+                else if (write.IsSaved && write.Result != null)
+                    saved.Add(write.Result);
+            }
+
+            result.Result = saved;
+            result.IsSaved = saved.Count > 0;
+            result.SavedCount = saved.Count;
+            result.IsError = errors.Count > 0;
+            result.ErrorCount = errors.Count;
+            result.Message = result.IsError ? string.Join("; ", errors) : $"PocketBaseOASIS: {saved.Count} holon(s) saved.";
             return result;
         }
 
@@ -678,7 +696,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
 
         // ─── Import / Export ──────────────────────────────────────────────────────
 
-        public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons) { var s = await SaveHolonsAsync(holons); return new OASISResult<bool> { Result = !s.IsError, IsError = s.IsError, Message = s.Message }; }
+        public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons) { var s = await SaveHolonsAsync(holons); return new OASISResult<bool> { Result = !s.IsError, IsError = s.IsError, IsSaved = s.IsSaved, SavedCount = s.SavedCount, ErrorCount = s.ErrorCount, Exception = s.Exception, Message = s.Message }; }
         public override OASISResult<bool> Import(IEnumerable<IHolon> holons) => ImportAsync(holons).Result;
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0) => await LoadAllHolonsAsync(version: version);
         public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0) => ExportAllAsync(version).Result;
