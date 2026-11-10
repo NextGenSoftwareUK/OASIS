@@ -329,14 +329,19 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
                     return result;
                 }
 
-                var match = allResult.Result.FirstOrDefault(a => string.Equals(a.Email, avatarEmail, StringComparison.OrdinalIgnoreCase));
-                if (match == null)
+                var matches = allResult.Result.Where(a => string.Equals(a.Email, avatarEmail, StringComparison.OrdinalIgnoreCase)).Take(2).ToArray();
+                if (matches.Length == 0)
                 {
                     OASISErrorHandling.HandleError(ref result, $"No avatar detail found with email: {avatarEmail}");
+                    result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
                     return result;
                 }
 
-                result.Result = match;
+                if (matches.Length > 1)
+                    throw new StorageIdentityAmbiguousException();
+
+                result.Result = matches[0];
+                result.LoadedCount = 1;
                 result.IsError = false;
                 result.IsLoaded = true;
                 result.Message = "Avatar detail loaded successfully by email from Pinata.";
@@ -344,6 +349,8 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail by email from Pinata: {ex.Message}", ex);
+                if (ex is StorageIdentityAmbiguousException)
+                    result.ErrorCode = OASISResultErrorCodes.AmbiguousIdentity;
             }
             return result;
         }
@@ -371,14 +378,19 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
                     return result;
                 }
 
-                var match = allResult.Result.FirstOrDefault(a => string.Equals(a.Username, avatarUsername, StringComparison.OrdinalIgnoreCase));
-                if (match == null)
+                var matches = allResult.Result.Where(a => string.Equals(a.Username, avatarUsername, StringComparison.OrdinalIgnoreCase)).Take(2).ToArray();
+                if (matches.Length == 0)
                 {
                     OASISErrorHandling.HandleError(ref result, $"No avatar detail found with username: {avatarUsername}");
+                    result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
                     return result;
                 }
 
-                result.Result = match;
+                if (matches.Length > 1)
+                    throw new StorageIdentityAmbiguousException();
+
+                result.Result = matches[0];
+                result.LoadedCount = 1;
                 result.IsError = false;
                 result.IsLoaded = true;
                 result.Message = "Avatar detail loaded successfully by username from Pinata.";
@@ -386,6 +398,8 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail by username from Pinata: {ex.Message}", ex);
+                if (ex is StorageIdentityAmbiguousException)
+                    result.ErrorCode = OASISResultErrorCodes.AmbiguousIdentity;
             }
             return result;
         }
