@@ -777,7 +777,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
 
         public async Task<PinataPinResponse> PinJsonAsync(object jsonObject)
         {
-            using var content = new StringContent(JsonConvert.SerializeObject(jsonObject), Encoding.UTF8, "application/json");
+            using var content = new StringContent(JsonConvert.SerializeObject(new { pinataContent = jsonObject }), Encoding.UTF8, "application/json");
             return await PinAsync("pinJSONToIPFS", content).ConfigureAwait(false);
         }
 

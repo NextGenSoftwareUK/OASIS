@@ -243,21 +243,16 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
                 };
 
                 var jsonContent = JsonConvert.SerializeObject(requestData);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                using var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                using var response = await _httpClient.PostAsync("/pinning/pinJSONToIPFS", content).ConfigureAwait(false);
+                response.EnsureSuccessStatusCode();
+                var responseContent = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                var pin = JsonConvert.DeserializeObject<PinataFileResponse>(responseContent);
+                if (string.IsNullOrWhiteSpace(pin?.IpfsHash))
+                    throw new System.IO.InvalidDataException("Pinata did not acknowledge a pinned content ID.");
 
-                var response = await _httpClient.PostAsync("/pinning/pinJSONToIPFS", content);
-                var responseContent = await response.Content.ReadAsStringAsync();
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var pinataResponse = JsonConvert.DeserializeObject<PinataFileResponse>(responseContent);
-                    result.Result = pinataResponse.IpfsHash;
-                    result.Message = "JSON uploaded to Pinata successfully";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to upload JSON to Pinata. Status: {response.StatusCode}, Response: {responseContent}");
-                }
+                result.Result = pin.IpfsHash;
+                result.Message = "JSON uploaded to Pinata successfully";
             }
             catch (Exception e)
             {
