@@ -105,14 +105,18 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
                         case ProviderType.ConvexOASIS:
                             var convexSettings = OASISDNA?.OASIS?.StorageProviders?.ConvexOASIS;
+                            if (overrideConnectionString != null && !string.Equals(overrideConnectionString, convexSettings?.ConnectionString, StringComparison.Ordinal))
+                                throw new ArgumentException("Convex registration requires the configured service URL.", nameof(overrideConnectionString));
                             result.Result = new API.Providers.ConvexOASIS.ConvexOASIS(
-                                overrideConnectionString ?? convexSettings?.ConnectionString, convexSettings?.DeployKey);
+                                convexSettings?.ConnectionString, convexSettings?.DeployKey);
                             break;
 
                         case ProviderType.SupabaseOASIS:
                             var supabaseSettings = OASISDNA?.OASIS?.StorageProviders?.SupabaseOASIS;
+                            if (overrideConnectionString != null && !string.Equals(overrideConnectionString, supabaseSettings?.ConnectionString, StringComparison.Ordinal))
+                                throw new ArgumentException("Supabase registration requires the configured service URL.", nameof(overrideConnectionString));
                             result.Result = new API.Providers.SupabaseOASIS.SupabaseOASIS(
-                                overrideConnectionString ?? supabaseSettings?.ConnectionString, supabaseSettings?.ApiKey);
+                                supabaseSettings?.ConnectionString, supabaseSettings?.ApiKey);
                             break;
 
                         case ProviderType.NeonOASIS:
