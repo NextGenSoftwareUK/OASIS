@@ -100,11 +100,11 @@ namespace NextGenSoftware.OASIS.API.Providers.TypesenseOASIS
 
         private async Task<List<T>> SearchByFieldAsync<T>(string collection, string field, string value)
         {
-            var resp = await _http.GetAsync($"{_host}/collections/{collection}/documents/search?q={Uri.EscapeDataString(value)}&query_by={field}&filter_by={field}:={Uri.EscapeDataString(value)}&per_page=1");
-            if (!resp.IsSuccessStatusCode) return new List<T>();
+            using var resp = await _http.GetAsync($"{_host}/collections/{collection}/documents/search?q={Uri.EscapeDataString(value)}&query_by={field}&filter_by={field}:={Uri.EscapeDataString(value)}&per_page=1");
+            resp.EnsureSuccessStatusCode();
             var json = await resp.Content.ReadAsStringAsync();
             using var doc = JsonDocument.Parse(json);
-            if (!doc.RootElement.TryGetProperty("hits", out var hits)) return new List<T>();
+            var hits = doc.RootElement.GetProperty("hits");
             var list = new List<T>();
             foreach (var hit in hits.EnumerateArray())
             {
