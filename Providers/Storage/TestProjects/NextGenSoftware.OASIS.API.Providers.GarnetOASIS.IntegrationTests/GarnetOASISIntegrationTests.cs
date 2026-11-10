@@ -44,7 +44,9 @@ public class GarnetOASISIntegrationTests
         }
 
         var provider = new GarnetOASIS(connection!);
-        var result = await CoreStorageConformance.RunAsync(provider, nameof(GarnetOASIS), "native", synchronous, Checkpoint);
+        var result = await CoreStorageConformance.RunAsync(provider, nameof(GarnetOASIS), "native", synchronous, Checkpoint,
+            (id, sync) => sync ? Task.FromResult(provider.DeleteHolonSoft(id, false)) : provider.DeleteHolonSoftAsync(id, false),
+            expectedDefaultDeletion: "soft");
         Assert.IsTrue(result.Succeeded, $"{result.CurrentCase}: {result.FailureType} {result.FailureContract}");
         Assert.IsTrue(result.FixtureCleanupComplete);
         Assert.AreEqual(CoreStorageConformance.ChecksPerMode, result.Passed.Count);
