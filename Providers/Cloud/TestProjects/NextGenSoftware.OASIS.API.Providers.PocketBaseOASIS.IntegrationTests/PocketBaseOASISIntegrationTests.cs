@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core.Objects;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS;
@@ -125,6 +126,26 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS.IntegrationTests
         {
             var all = await _provider.LoadAllAvatarsAsync();
             Assert.IsNotNull(all);
+        }
+
+        [TestMethod]
+        public async Task AvatarDetailRoundTripsWithGeneratedIdentity()
+        {
+            var marker = $"oasis-detail-{Guid.NewGuid():N}";
+            var detail = new AvatarDetail { Id = Guid.Empty, Username = marker, Email = $"{marker}@example.test" };
+
+            var saved = await _provider.SaveAvatarDetailAsync(detail);
+            Assert.IsFalse(saved.IsError, saved.Message);
+            Assert.IsTrue(saved.IsSaved);
+            Assert.AreEqual(1, saved.SavedCount);
+            Assert.AreNotEqual(Guid.Empty, detail.Id);
+
+            var loaded = await _provider.LoadAvatarDetailAsync(detail.Id);
+            Assert.IsFalse(loaded.IsError, loaded.Message);
+            Assert.IsTrue(loaded.IsLoaded);
+            Assert.AreEqual(1, loaded.LoadedCount);
+            Assert.AreEqual(detail.Id, loaded.Result.Id);
+            Assert.AreEqual(detail.Username, loaded.Result.Username);
         }
 
         [TestCleanup]
