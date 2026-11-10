@@ -195,7 +195,7 @@ def call(route, token=None, body=None, method="POST", operation=None, *, cookie_
         return data
 
 
-def session(state, label, *, allow_create=True):
+def session(state, label, *, allow_create=True, allow_renewal=True):
     ack = state / (label + ".acknowledged.json")
     token_file = state / (label + ".dpapi")
     intent = state / (label + ".intent.json")
@@ -207,6 +207,8 @@ def session(state, label, *, allow_create=True):
             credential = session_credentials.validate(json.loads(verification.protected_token(
                 session_file.read_bytes(), decrypt=True)), acknowledged["id"])
             if session_credentials.needs_renewal(credential):
+                if not allow_renewal:
+                    raise RuntimeError("Read-only readiness requires a retained session with a valid renewal deadline.")
                 credential = session_credentials.rotate(state, label, credential, call, verification.protected_token, write_new)
             return acknowledged, credential["jwtToken"]
         # Retained unversioned cohorts own only their original JWT. Never guess a
