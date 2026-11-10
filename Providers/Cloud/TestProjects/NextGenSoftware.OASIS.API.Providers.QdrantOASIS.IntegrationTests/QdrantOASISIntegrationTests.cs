@@ -28,7 +28,7 @@ namespace NextGenSoftware.OASIS.API.Providers.QdrantOASIS.IntegrationTests
         }
 
         [TestMethod]
-        public async Task HolonRoundTripsAndHardDeleteRemovesIt()
+        public async Task HolonRoundTripsAndSoftDeleteHidesIt()
         {
             var holon = new Holon { Id = Guid.NewGuid(), Name = "Qdrant native lifecycle" };
             var saved = await _provider.SaveHolonAsync(holon);
@@ -37,6 +37,8 @@ namespace NextGenSoftware.OASIS.API.Providers.QdrantOASIS.IntegrationTests
             {
                 var loaded = await _provider.LoadHolonAsync(holon.Id);
                 Assert.IsFalse(loaded.IsError, loaded.Message);
+                Assert.IsTrue(loaded.IsLoaded);
+                Assert.AreEqual(1, loaded.LoadedCount);
                 Assert.IsNotNull(loaded.Result);
                 Assert.AreEqual(holon.Id, loaded.Result.Id);
                 Assert.AreEqual(holon.Name, loaded.Result.Name);
@@ -45,6 +47,9 @@ namespace NextGenSoftware.OASIS.API.Providers.QdrantOASIS.IntegrationTests
             {
                 var deleted = await _provider.DeleteHolonAsync(holon.Id);
                 Assert.IsFalse(deleted.IsError, deleted.Message);
+                Assert.IsTrue(deleted.IsDeleted);
+                Assert.AreEqual(1, deleted.DeletedCount);
+                Assert.IsTrue(deleted.Result.IsDeleted);
             }
 
             var missing = await _provider.LoadHolonAsync(holon.Id);

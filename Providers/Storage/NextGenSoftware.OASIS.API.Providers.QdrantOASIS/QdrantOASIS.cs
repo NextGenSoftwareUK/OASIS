@@ -436,9 +436,9 @@ namespace NextGenSoftware.OASIS.API.Providers.QdrantOASIS
             try
             {
                 var point = await GetPointAsync("oasis_holons", id.ToString());
-                if (point == null || GetPayloadBool(point.Value, "is_deleted")) { OASISErrorHandling.HandleError(ref result, $"QdrantOASIS: No holon for ID '{id}'."); return result; }
+                if (point == null || GetPayloadBool(point.Value, "is_deleted")) { OASISErrorHandling.HandleError(ref result, $"QdrantOASIS: No holon for ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
                 var holon = Des<Holon>(GetPayloadStr(point.Value, "data_json")); if (holon == null) { OASISErrorHandling.HandleError(ref result, "QdrantOASIS: Deserialise failed."); return result; }
-                result.Result = holon; result.IsError = false; result.Message = "QdrantOASIS: Holon loaded.";
+                result.Result = holon; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "QdrantOASIS: Holon loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"QdrantOASIS: {ex.Message}"); }
             return result;
@@ -490,10 +490,10 @@ namespace NextGenSoftware.OASIS.API.Providers.QdrantOASIS
             var result = new OASISResult<IHolon>();
             try
             {
-                var loaded = await LoadHolonAsync(id); if (loaded.IsError || loaded.Result == null) { OASISErrorHandling.HandleError(ref result, $"QdrantOASIS: Holon '{id}' not found."); return result; }
+                var loaded = await LoadHolonAsync(id); if (loaded.IsError) return loaded;
                 var holon = (Holon)loaded.Result; holon.DeletedDate = DateTime.UtcNow;
                 await UpsertPointAsync("oasis_holons", id.ToString(), new Dictionary<string, object?> { ["parent_holon_id"] = holon.ParentHolonId.ToString(), ["holon_type"] = (int)holon.HolonType, ["is_deleted"] = true, ["data_json"] = Ser(holon) });
-                result.Result = holon; result.IsError = false; result.Message = $"QdrantOASIS: Holon '{id}' soft-deleted.";
+                result.Result = holon; result.IsDeleted = true; result.DeletedCount = 1; result.Message = $"QdrantOASIS: Holon '{id}' soft-deleted.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"QdrantOASIS: {ex.Message}"); }
             return result;
