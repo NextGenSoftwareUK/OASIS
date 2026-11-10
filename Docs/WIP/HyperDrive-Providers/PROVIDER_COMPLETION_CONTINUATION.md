@@ -90,3 +90,4 @@ Existing Hedera public mirror results verify bounded read-only account metadata.
 ### TRON and EOSIO evidence review
 
 TRON's retained public evidence verifies bounded solidified block headers and the documented public query scope. EOSIO/Vaulta has accepted hosted read-only account queries. Neither result exercises the credentialed holon write path. EOSIO holon save acknowledgement now includes the persisted row count and preserves exceptions. Its persistence logs omit serialized record contents. Native write, graph, and broader interface acceptance are still open.
+The focused EOSIO native integration test built and discovered one case on .NET 10. It skipped without an explicitly configured Antelope fixture (0 passed, 0 failed, 1 skipped). This proves test discovery and the fixture gate only.
