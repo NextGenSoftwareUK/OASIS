@@ -628,9 +628,9 @@ SELECT CASE WHEN @Version = 0
 FROM OASISHolons h
 LEFT JOIN OASISHolonHistory a ON a.Id = h.Id AND a.Version = @Version AND a.IsDeleted = 0
 WHERE h.Id = @Id AND h.IsDeleted = 0;";
-            await using var conn = new SqlConnection(_connectionString);
+            using var conn = new SqlConnection(_connectionString);
             await conn.OpenAsync().ConfigureAwait(false);
-            await using var cmd = new SqlCommand(sql, conn);
+            using var cmd = new SqlCommand(sql, conn);
             cmd.Parameters.AddWithValue("@Id", id);
             cmd.Parameters.AddWithValue("@Version", version);
             var scalar = await cmd.ExecuteScalarAsync().ConfigureAwait(false);
@@ -660,7 +660,7 @@ WHERE h.Id = @Id AND h.IsDeleted = 0;";
                 if ((maxChildDepth > 0 && entry.Depth >= maxChildDepth) || (!recursive && entry.Depth > initialDepth))
                     continue;
 
-                var children = await LoadHolonsForParentAsync(entry.Parent.Id, loadChildren: false, version: version);
+                var children = await LoadHolonsForParentAsync(entry.Parent.Id, loadChildren: false, version: version).ConfigureAwait(false);
                 if (children.IsError)
                 {
                     if (!continueOnError)
@@ -696,7 +696,7 @@ WHERE h.Id = @Id AND h.IsDeleted = 0;";
                 if (holon == null) { OASISErrorHandling.HandleError(ref result, $"SQLServerDBOASIS: No holon found with ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
                 if (loadChildren)
                 {
-                    await HydrateHolonChildrenAsync(holon, recursive, maxChildDepth, continueOnError, version, result.InnerMessages);
+                    await HydrateHolonChildrenAsync(holon, recursive, maxChildDepth, continueOnError, version, result.InnerMessages).ConfigureAwait(false);
                     result.IsWarning = result.InnerMessages.Count > 0;
                 }
                 result.Result = holon; result.IsLoaded = true; result.LoadedCount = 1; result.Message = $"SQLServerDBOASIS: Holon loaded for ID '{id}'.";
@@ -710,7 +710,7 @@ WHERE h.Id = @Id AND h.IsDeleted = 0;";
 
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            if (Guid.TryParse(providerKey, out Guid id)) return await LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version);
+            if (Guid.TryParse(providerKey, out Guid id)) return await LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).ConfigureAwait(false);
             var result = new OASISResult<IHolon>();
             OASISErrorHandling.HandleError(ref result, $"SQLServerDBOASIS: providerKey '{providerKey}' is not a valid GUID.");
             return result;
@@ -793,21 +793,21 @@ WHERE h.Id = @Id AND h.IsDeleted = 0;";
                 string sql = string.IsNullOrEmpty(query)
                     ? VersionedHolonRows
                     : VersionedHolonRows + " AND (CHARINDEX(@Q, JSON_VALUE(snapshot.DataJson,'$.name')) > 0 OR CHARINDEX(@Q, JSON_VALUE(snapshot.DataJson,'$.description')) > 0)";
-                await using var conn = new SqlConnection(_connectionString);
-                await conn.OpenAsync();
-                await using var cmd = new SqlCommand(sql, conn);
+                using var conn = new SqlConnection(_connectionString);
+                await conn.OpenAsync().ConfigureAwait(false);
+                using var cmd = new SqlCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@Version", version);
                 if (!string.IsNullOrEmpty(query)) cmd.Parameters.AddWithValue("@Q", query);
-                await using (var reader = await cmd.ExecuteReaderAsync())
+                using (var reader = await cmd.ExecuteReaderAsync().ConfigureAwait(false))
                 {
-                    while (await reader.ReadAsync())
+                    while (await reader.ReadAsync().ConfigureAwait(false))
                         holons.Add(ReadHolonSnapshot(reader.GetGuid(0), reader.GetString(1), version));
                 }
                 if (loadChildren)
                 {
                     await conn.CloseAsync().ConfigureAwait(false);
                     foreach (var holon in holons)
-                        await HydrateHolonChildrenAsync(holon, recursive, maxChildDepth, continueOnError, version, result.InnerMessages, 0);
+                        await HydrateHolonChildrenAsync(holon, recursive, maxChildDepth, continueOnError, version, result.InnerMessages, 0).ConfigureAwait(false);
                     result.IsWarning = result.InnerMessages.Count > 0;
                 }
                 var sr = new SearchResults { SearchResultHolons = holons, NumberOfResults = holons.Count };
@@ -889,9 +889,9 @@ WHERE h.Id = @Id AND h.IsDeleted = 0;";
                 string join = metaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.Any ? " OR " : " AND ";
                 string sql = $"{VersionedHolonRows} AND ({string.Join(join, conditions)})";
                 if (type != HolonType.All) sql += " AND snapshot.HolonType=@HolonType";
-                await using var conn = new SqlConnection(_connectionString);
-                await conn.OpenAsync();
-                await using var cmd = new SqlCommand(sql, conn);
+                using var conn = new SqlConnection(_connectionString);
+                await conn.OpenAsync().ConfigureAwait(false);
+                using var cmd = new SqlCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@Version", version);
                 for (var i = 0; i < filters.Length; i++)
                 {
@@ -900,16 +900,16 @@ WHERE h.Id = @Id AND h.IsDeleted = 0;";
                 }
                 if (type != HolonType.All) cmd.Parameters.AddWithValue("@HolonType", (int)type);
                 var holons = new List<IHolon>();
-                await using (var reader = await cmd.ExecuteReaderAsync())
+                using (var reader = await cmd.ExecuteReaderAsync().ConfigureAwait(false))
                 {
-                    while (await reader.ReadAsync())
+                    while (await reader.ReadAsync().ConfigureAwait(false))
                         holons.Add(ReadHolonSnapshot(reader.GetGuid(0), reader.GetString(1), version));
                 }
                 if (loadChildren)
                 {
                     await conn.CloseAsync().ConfigureAwait(false);
                     foreach (var holon in holons)
-                        await HydrateHolonChildrenAsync(holon, recursive, maxChildDepth, continueOnError, version, result.InnerMessages, curentChildDepth);
+                        await HydrateHolonChildrenAsync(holon, recursive, maxChildDepth, continueOnError, version, result.InnerMessages, curentChildDepth).ConfigureAwait(false);
                     result.IsWarning = result.InnerMessages.Count > 0;
                 }
                 result.Result = holons; result.IsLoaded = true; result.LoadedCount = holons.Count;
@@ -949,24 +949,24 @@ WHERE h.Id = @Id AND h.IsDeleted = 0;";
                 string sql = type == HolonType.All
                     ? VersionedHolonRows + " AND snapshot.ParentHolonId=@ParentHolonId"
                     : VersionedHolonRows + " AND snapshot.ParentHolonId=@ParentHolonId AND snapshot.HolonType=@HolonType";
-                await using var conn = new SqlConnection(_connectionString);
-                await conn.OpenAsync();
-                await using var cmd = new SqlCommand(sql, conn);
+                using var conn = new SqlConnection(_connectionString);
+                await conn.OpenAsync().ConfigureAwait(false);
+                using var cmd = new SqlCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@Version", version);
                 cmd.Parameters.AddWithValue("@ParentHolonId", id);
                 if (type != HolonType.All) cmd.Parameters.AddWithValue("@HolonType", (int)type);
                 ArgumentOutOfRangeException.ThrowIfNegative(version);
                 var holons = new List<IHolon>();
-                await using (var reader = await cmd.ExecuteReaderAsync())
+                using (var reader = await cmd.ExecuteReaderAsync().ConfigureAwait(false))
                 {
-                    while (await reader.ReadAsync())
+                    while (await reader.ReadAsync().ConfigureAwait(false))
                         holons.Add(ReadHolonSnapshot(reader.GetGuid(0), reader.GetString(1), version));
                 }
                 if (loadChildren)
                 {
                     await conn.CloseAsync().ConfigureAwait(false);
                     foreach (var holon in holons)
-                        await HydrateHolonChildrenAsync(holon, recursive, maxChildDepth, continueOnError, version, result.InnerMessages, curentChildDepth);
+                        await HydrateHolonChildrenAsync(holon, recursive, maxChildDepth, continueOnError, version, result.InnerMessages, curentChildDepth).ConfigureAwait(false);
                     result.IsWarning = result.InnerMessages.Count > 0;
                 }
                 result.Result = holons; result.IsLoaded = true; result.LoadedCount = holons.Count;
@@ -980,7 +980,7 @@ WHERE h.Id = @Id AND h.IsDeleted = 0;";
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            if (Guid.TryParse(providerKey, out Guid id)) return await LoadHolonsForParentAsync(id, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
+            if (Guid.TryParse(providerKey, out Guid id)) return await LoadHolonsForParentAsync(id, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).ConfigureAwait(false);
             var result = new OASISResult<IEnumerable<IHolon>>();
             OASISErrorHandling.HandleError(ref result, $"SQLServerDBOASIS: providerKey '{providerKey}' is not a valid GUID.");
             return result;
@@ -998,23 +998,23 @@ WHERE h.Id = @Id AND h.IsDeleted = 0;";
                 string sql = type == HolonType.All
                     ? VersionedHolonRows
                     : VersionedHolonRows + " AND snapshot.HolonType=@HolonType";
-                await using var conn = new SqlConnection(_connectionString);
-                await conn.OpenAsync();
-                await using var cmd = new SqlCommand(sql, conn);
+                using var conn = new SqlConnection(_connectionString);
+                await conn.OpenAsync().ConfigureAwait(false);
+                using var cmd = new SqlCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@Version", version);
                 if (type != HolonType.All) cmd.Parameters.AddWithValue("@HolonType", (int)type);
                 ArgumentOutOfRangeException.ThrowIfNegative(version);
                 var holons = new List<IHolon>();
-                await using (var reader = await cmd.ExecuteReaderAsync())
+                using (var reader = await cmd.ExecuteReaderAsync().ConfigureAwait(false))
                 {
-                    while (await reader.ReadAsync())
+                    while (await reader.ReadAsync().ConfigureAwait(false))
                         holons.Add(ReadHolonSnapshot(reader.GetGuid(0), reader.GetString(1), version));
                 }
                 if (loadChildren)
                 {
                     await conn.CloseAsync().ConfigureAwait(false);
                     foreach (var holon in holons)
-                        await HydrateHolonChildrenAsync(holon, recursive, maxChildDepth, continueOnError, version, result.InnerMessages, curentChildDepth);
+                        await HydrateHolonChildrenAsync(holon, recursive, maxChildDepth, continueOnError, version, result.InnerMessages, curentChildDepth).ConfigureAwait(false);
                     result.IsWarning = result.InnerMessages.Count > 0;
                 }
                 result.Result = holons; result.IsLoaded = true; result.LoadedCount = holons.Count;
@@ -1093,24 +1093,24 @@ WHERE h.Id = @Id AND h.IsDeleted = 0;";
 
                 string sql = $"{VersionedHolonRows} AND JSON_VALUE(snapshot.DataJson,@MetaPath)=@MetaValue";
                 if (type != HolonType.All) sql += " AND snapshot.HolonType=@HolonType";
-                await using var conn = new SqlConnection(_connectionString);
-                await conn.OpenAsync();
-                await using var cmd = new SqlCommand(sql, conn);
+                using var conn = new SqlConnection(_connectionString);
+                await conn.OpenAsync().ConfigureAwait(false);
+                using var cmd = new SqlCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@Version", version);
                 cmd.Parameters.AddWithValue("@MetaPath", "$.metaData." + System.Text.Json.JsonSerializer.Serialize(metaKey));
                 cmd.Parameters.AddWithValue("@MetaValue", metaValue);
                 if (type != HolonType.All) cmd.Parameters.AddWithValue("@HolonType", (int)type);
                 var holons = new List<IHolon>();
-                await using (var reader = await cmd.ExecuteReaderAsync())
+                using (var reader = await cmd.ExecuteReaderAsync().ConfigureAwait(false))
                 {
-                    while (await reader.ReadAsync())
+                    while (await reader.ReadAsync().ConfigureAwait(false))
                         holons.Add(ReadHolonSnapshot(reader.GetGuid(0), reader.GetString(1), version));
                 }
                 if (loadChildren)
                 {
                     await conn.CloseAsync().ConfigureAwait(false);
                     foreach (var holon in holons)
-                        await HydrateHolonChildrenAsync(holon, recursive, maxChildDepth, continueOnError, version, result.InnerMessages, curentChildDepth);
+                        await HydrateHolonChildrenAsync(holon, recursive, maxChildDepth, continueOnError, version, result.InnerMessages, curentChildDepth).ConfigureAwait(false);
                     result.IsWarning = result.InnerMessages.Count > 0;
                 }
                 result.Result = holons; result.IsLoaded = true; result.LoadedCount = holons.Count;

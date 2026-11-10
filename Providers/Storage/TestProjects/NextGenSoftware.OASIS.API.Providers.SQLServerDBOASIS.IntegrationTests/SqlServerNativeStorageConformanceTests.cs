@@ -81,6 +81,24 @@ public class SqlServerNativeStorageConformanceTests
     [TestMethod]
     public Task SynchronousHolonReadsHonorChildDepth() => VerifyHolonGraphAsync(synchronous: true);
 
+    private sealed class NonPumpingContext : SynchronizationContext
+    {
+        public override void Post(SendOrPostCallback callback, object? state) { }
+    }
+
+    private static async Task<T> RunOnBlockedContextAsync<T>(Func<T> operation)
+    {
+        var completed = new TaskCompletionSource<T>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var thread = new Thread(() =>
+        {
+            SynchronizationContext.SetSynchronizationContext(new NonPumpingContext());
+            try { completed.SetResult(operation()); }
+            catch (Exception error) { completed.SetException(error); }
+        }) { IsBackground = true };
+        thread.Start();
+        return await completed.Task.WaitAsync(TimeSpan.FromSeconds(15));
+    }
+
     private async Task VerifyHolonGraphAsync(bool synchronous)
     {
         if (Environment.GetEnvironmentVariable("OASIS_SQLSERVER_POINT_GRAPH") != "1")
@@ -101,7 +119,7 @@ public class SqlServerNativeStorageConformanceTests
                 Assert.IsTrue(write.IsSaved && !write.IsError, write.Message);
                 savedIds.Add(node.Id);
             }
-            var deep = synchronous ? provider.LoadHolon(root.Id, continueOnError: false)
+            var deep = synchronous ? await RunOnBlockedContextAsync(() => provider.LoadHolon(root.Id, continueOnError: false))
                 : await provider.LoadHolonAsync(root.Id, continueOnError: false);
             Assert.IsTrue(deep.IsLoaded && !deep.IsError, deep.Message);
             Assert.AreEqual(leaf.Id, deep.Result.Children.Single().Children.Single().Id);
@@ -112,7 +130,7 @@ public class SqlServerNativeStorageConformanceTests
             var direct = await provider.LoadHolonAsync(root.Id, loadChildren: false);
             Assert.IsTrue(direct.IsLoaded && !direct.IsError, direct.Message);
             Assert.IsFalse(direct.Result.Children?.Any() == true);
-            var collection = synchronous ? provider.LoadAllHolons(maxChildDepth: 1, continueOnError: false)
+            var collection = synchronous ? await RunOnBlockedContextAsync(() => provider.LoadAllHolons(maxChildDepth: 1, continueOnError: false))
                 : await provider.LoadAllHolonsAsync(maxChildDepth: 1, continueOnError: false);
             Assert.IsTrue(collection.IsLoaded && !collection.IsError, collection.Message);
             var listedRoot = collection.Result.Single(row => row.Id == root.Id);
