@@ -3,6 +3,8 @@ using NextGenSoftware.OASIS.API.Providers.WeaviateOASIS;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.API.Providers.WeaviateOASIS.IntegrationTests
@@ -62,17 +64,42 @@ namespace NextGenSoftware.OASIS.API.Providers.WeaviateOASIS.IntegrationTests
         }
 
         [TestMethod]
-        public async Task SaveHolon_ShouldReturnSuccessResult()
+        public async Task LoadAllHolonsReturnsRecordsAcrossCursorPages()
         {
-            var holon = new Holon
+            var created = new List<Guid>();
+            var cleanupFailures = new List<string>();
+            try
             {
-                Id = Guid.NewGuid(),
-                Name = "WeaviateTestHolon",
-                Description = "Test Holon for WeaviateOASIS integration"
-            };
-            var result = await _provider.SaveHolonAsync(holon);
-            Assert.IsNotNull(result);
-            Assert.IsFalse(result.IsError, result.Message);
+                for (var i = 0; i < 101; i++)
+                {
+                    var id = Guid.NewGuid();
+                    var result = await _provider.SaveHolonAsync(new Holon
+                    {
+                        Id = id,
+                        Name = $"weaviate-pagination-{id:N}"
+                    });
+                    Assert.IsFalse(result.IsError, result.Message);
+                    created.Add(id);
+                }
+
+                var loaded = await _provider.LoadAllHolonsAsync(loadChildren: false);
+                Assert.IsFalse(loaded.IsError, loaded.Message);
+                Assert.IsTrue(loaded.IsLoaded);
+                var ids = loaded.Result.Select(holon => holon.Id).ToList();
+                Assert.AreEqual(ids.Count, loaded.LoadedCount);
+                CollectionAssert.AreEquivalent(created, ids.Where(created.Contains).ToList());
+            }
+            finally
+            {
+                foreach (var id in created)
+                {
+                    var deleted = await _provider.DeleteHolonAsync(id);
+                    if (deleted.IsError || !deleted.IsDeleted)
+                        cleanupFailures.Add($"{id}: {deleted.Message}");
+                }
+            }
+
+            Assert.AreEqual(0, cleanupFailures.Count, string.Join(Environment.NewLine, cleanupFailures));
         }
 
         [TestMethod]
