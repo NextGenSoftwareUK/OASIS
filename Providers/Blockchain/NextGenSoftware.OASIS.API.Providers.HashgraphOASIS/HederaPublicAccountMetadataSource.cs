@@ -204,20 +204,30 @@ public sealed class HederaPublicAccountMetadataSource : KeyValueStorageProviderB
 
         private async Task<JsonElement> GetNativeAsync(string path, CancellationToken token)
         {
-            using var request = new HttpRequestMessage(HttpMethod.Get, new Uri(endpoint, path));
-            using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, token);
-            response.EnsureSuccessStatusCode();
-            await using var stream = await response.Content.ReadAsStreamAsync(token);
-            using var body = new MemoryStream(); var buffer = new byte[8192]; int count;
-            while ((count = await stream.ReadAsync(buffer.AsMemory(), token)) != 0)
+            var stage = "response_headers";
+            try
             {
-                if (body.Length + count > 262144) throw new InvalidDataException("Native response exceeds256KiB.");
-                body.Write(buffer, 0, count);
+                using var request = new HttpRequestMessage(HttpMethod.Get, new Uri(endpoint, path));
+                using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, token);
+                response.EnsureSuccessStatusCode();
+                stage = "response_body";
+                await using var stream = await response.Content.ReadAsStreamAsync(token);
+                using var body = new MemoryStream(); var buffer = new byte[8192]; int count;
+                while ((count = await stream.ReadAsync(buffer.AsMemory(), token)) != 0)
+                {
+                    if (body.Length + count > 262144) throw new InvalidDataException("Native response exceeds256KiB.");
+                    body.Write(buffer, 0, count);
+                }
+                using var document = JsonDocument.Parse(body.ToArray(), new JsonDocumentOptions { MaxDepth = 16 });
+                Unique(document.RootElement);
+                token.ThrowIfCancellationRequested();
+                return document.RootElement.Clone();
             }
-            using var document = JsonDocument.Parse(body.ToArray(), new JsonDocumentOptions { MaxDepth = 16 });
-            Unique(document.RootElement);
-            token.ThrowIfCancellationRequested();
-            return document.RootElement.Clone();
+            catch (OperationCanceledException error)
+            {
+                error.Data["COSMIC.NativeStage"] = stage;
+                throw;
+            }
         }
 
         public async Task<IReadOnlyList<IHolon>> ReadAsync(IReadOnlyList<string> keys, CancellationToken token)
