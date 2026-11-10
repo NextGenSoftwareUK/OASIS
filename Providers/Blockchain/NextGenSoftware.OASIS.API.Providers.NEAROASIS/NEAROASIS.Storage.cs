@@ -182,6 +182,8 @@ public partial class NEAROASIS
                 await _sdk.DeleteAsync($"avatar:{id:D}");
             }
             result.Result = true;
+            result.IsDeleted = true;
+            result.DeletedCount = 1;
             result.Message = softDelete ? "Avatar tombstone saved to NEAR contract storage." : "Avatar removed from NEAR contract storage.";
         }
         catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error deleting avatar from NEAR: {ex.Message}", ex); }
