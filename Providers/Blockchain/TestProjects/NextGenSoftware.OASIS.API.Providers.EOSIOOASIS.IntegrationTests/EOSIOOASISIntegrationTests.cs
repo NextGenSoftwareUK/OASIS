@@ -15,6 +15,9 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.IntegrationTests
         [TestInitialize]
         public async Task Setup()
         {
+            if (Environment.GetEnvironmentVariable("OASIS_ANTELOPE_LIFECYCLE_WRITES") != "1")
+                Assert.Inconclusive("Enable writes only for the dedicated disposable Antelope contract.");
+
             string endpoint = Environment.GetEnvironmentVariable("OASIS_ANTELOPE_ENDPOINT") ?? throw new AssertInconclusiveException("OASIS_ANTELOPE_ENDPOINT must be the dedicated native test endpoint.");
             string account = Environment.GetEnvironmentVariable("OASIS_ANTELOPE_ACCOUNT") ?? throw new AssertInconclusiveException("OASIS_ANTELOPE_ACCOUNT must identify the dedicated test contract.");
             string chainId = Environment.GetEnvironmentVariable("OASIS_ANTELOPE_CHAIN_ID")
@@ -40,6 +43,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.IntegrationTests
                 LastName = "Runtime"
             };
 
+            Console.WriteLine($"Antelope avatar fixture ID: {avatar.Id:D}");
             var saved = await _provider.SaveAvatarAsync(avatar);
             Assert.IsFalse(saved.IsError, saved.Message);
 
@@ -69,6 +73,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.IntegrationTests
                 Description = "Official Antelope node verification"
             };
 
+            Console.WriteLine($"Antelope holon fixture ID: {holon.Id:D}");
             var saved = await _provider.SaveHolonAsync(holon);
             Assert.IsFalse(saved.IsError, saved.Exception?.GetType().FullName);
             Assert.IsTrue(saved.IsSaved);
