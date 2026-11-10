@@ -302,183 +302,63 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
             }
         }
 
-        public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0)
+        public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0) =>
+            LoadAvatarDetailAsync(id, version).GetAwaiter().GetResult();
+
+        public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0) =>
+            LoadAvatarDetailBySelectorAsync("detail.GUId = $value", id.ToString());
+
+        public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string avatarEmail, int version = 0) =>
+            LoadAvatarDetailByEmailAsync(avatarEmail, version).GetAwaiter().GetResult();
+
+        public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail, int version = 0) =>
+            LoadAvatarDetailBySelectorAsync("toLower(detail.Email) = toLower($value)", avatarEmail);
+
+        public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string avatarUsername, int version = 0) =>
+            LoadAvatarDetailByUsernameAsync(avatarUsername, version).GetAwaiter().GetResult();
+
+        public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername, int version = 0) =>
+            LoadAvatarDetailBySelectorAsync("toLower(detail.Username) = toLower($value)", avatarUsername);
+
+        private async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailBySelectorAsync(string predicate, string value)
         {
-            try
-            {
-                var session = Driver.Session(WithDatabase);
-
-                return session.ReadTransaction(transaction =>
-                {
-                    var cursor = transaction.Run(@"
-                            MATCH (avd:AvatarDetail)
-                            WHERE avd.GUId=$guid
-                            RETURN avd.Username AS username,avd.Email AS email",
-                        new { guid = id.ToString() }
-                    );
-
-                    IAvatarDetail obj = (from d in cursor
-                                         select new AvatarDetail
-                                         {
-                                             Username = d["username"].As<string>(),
-                                             Email = d["email"].As<string>()
-                                         }).FirstOrDefault();
-
-
-                    return new OASISResult<IAvatarDetail>
-                    {
-                        IsLoaded = true,
-                        IsError = false,
-                        Message = "Avatar Detail Loaded successfully",
-                        Result = obj,
-                    };
-                });
-            }
-            catch (Exception ex)
-            {
-                return new OASISResult<IAvatarDetail>
-                {
-                    IsLoaded = false,
-                    IsError = true,
-                    Message = ex.ToString(),
-                };
-            }
-        }
-
-        public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string avatarEmail, int version = 0)
-        {
-            try
-            {
-                var session = Driver.Session(WithDatabase);
-
-                return session.ReadTransaction(transaction =>
-                {
-                    var cursor = transaction.Run(@"
-                            MATCH (avd:AvatarDetail)
-                            WHERE TOLOWER(avd.Email) CONTAINS TOLOWER($email)
-                            RETURN avd.Username AS username,avd.Email AS email",
-                        new { email = avatarEmail }
-                    );
-
-                    IAvatarDetail obj = (from d in cursor
-                                         select new AvatarDetail
-                                         {
-                                             Username = d["username"].As<string>(),
-                                             Email = d["email"].As<string>()
-                                         }).FirstOrDefault();
-
-
-                    return new OASISResult<IAvatarDetail>
-                    {
-                        IsLoaded = true,
-                        IsError = false,
-                        Message = "Avatar Detail Loaded successfully",
-                        Result = obj,
-                    };
-                });
-            }
-            catch (Exception ex)
-            {
-                return new OASISResult<IAvatarDetail>
-                {
-                    IsLoaded = false,
-                    IsError = true,
-                    Message = ex.ToString(),
-                };
-            }
-        }
-
-        public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string avatarUsername, int version = 0)
-        {
-            try
-            {
-                var session = Driver.Session(WithDatabase);
-
-                return session.ReadTransaction(transaction =>
-                {
-                    var cursor = transaction.Run(@"
-                            MATCH (avd:AvatarDetail)
-                            WHERE TOLOWER(avd.Username) CONTAINS TOLOWER($UserName)
-                            RETURN avd.Username AS username, avd.Email As Email",
-                        new { UserName = avatarUsername }
-                    );
-
-                    IAvatarDetail obj = (from d in cursor
-                                         select new AvatarDetail
-                                         {
-                                             Username = d["username"].As<string>(),
-                                             Email = d["email"].As<string>()
-                                         }).FirstOrDefault();
-
-
-                    return new OASISResult<IAvatarDetail>
-                    {
-                        IsLoaded = true,
-                        IsError = false,
-                        Message = "Avatar Detail Loaded successfully",
-                        Result = obj,
-                    };
-                });
-            }
-            catch (Exception ex)
-            {
-                return new OASISResult<IAvatarDetail>
-                {
-                    IsLoaded = false,
-                    IsError = true,
-                    Message = ex.ToString(),
-                };
-            }
-        }
-
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
-        {
+            var result = new OASISResult<IAvatarDetail>();
             try
             {
                 var session = Driver.AsyncSession(WithDatabase);
-
-                return await session.ReadTransactionAsync(async transaction =>
+                await using var sessionLifetime = session.ConfigureAwait(false);
+                result.Result = await session.ReadTransactionAsync(async transaction =>
                 {
-                    var cursor = await transaction.RunAsync(@"
-                            MATCH (avd:AvatarDetail)
-                            WHERE avd.GUId=$guid
-                            RETURN avd.USername AS username,avd.Email AS email",
-                        new { guid = id.ToString() }
-                    );
+                    var cursor = await transaction.RunAsync($@"
+                        MATCH (detail:AvatarDetail) WHERE {predicate}
+                        RETURN detail.GUId AS guid, detail.Username AS username,
+                               detail.Email AS email, detail.Address AS address, detail.Country AS country
+                        LIMIT 2", new { value }).ConfigureAwait(false);
+                    if (!await cursor.FetchAsync().ConfigureAwait(false))
+                        return null;
 
-                    var avList = await cursor.ToListAsync(record => new AvatarDetail
+                    var row = cursor.Current;
+                    var detail = new AvatarDetail
                     {
-                        Username = record["username"].As<string>(),
-                        Email = record["email"].As<string>()
-                    });
-                    IAvatarDetail objAv = new AvatarDetail();
-                    if (avList != null)
-                    {
-                        if (avList.Count > 0)
-                        {
-                            objAv = avList[0];
-                        }
-                    }
-
-                    return new OASISResult<IAvatarDetail>
-                    {
-                        IsLoaded = true,
-                        IsError = false,
-                        Message = "Avatar Loaded Successfully",
-                        Result = objAv
+                        Id = Guid.Parse(row["guid"].As<string>()),
+                        Username = row["username"].As<string>(),
+                        Email = row["email"].As<string>(),
+                        Address = row["address"].As<string>(),
+                        Country = row["country"].As<string>()
                     };
-                });
+                    if (await cursor.FetchAsync().ConfigureAwait(false))
+                        throw new InvalidOperationException("Multiple Aura avatar details match the requested identity.");
+
+                    return detail;
+                }).ConfigureAwait(false);
+                result.IsLoaded = result.Result != null;
             }
             catch (Exception ex)
             {
-                return new OASISResult<IAvatarDetail>
-                {
-                    IsLoaded = false,
-                    IsError = true,
-                    Message = ex.ToString(),
-                };
+                OASISErrorHandling.HandleError(ref result, "Error loading Neo4j Aura avatar detail.", ex);
             }
-        }
 
+            return result;
+        }
     }
 }
