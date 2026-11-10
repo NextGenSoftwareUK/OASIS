@@ -340,6 +340,10 @@ namespace NextGenSoftware.OASIS.API.Providers.FilecoinOASIS
                 var offers = await LotusCallAsync("Filecoin.ClientFindData",
                     new object[] { cidObj, null });
 
+                if (!offers.HasValue || offers.Value.ValueKind != JsonValueKind.Array)
+                    throw new System.IO.InvalidDataException("Lotus did not return retrieval offers.");
+                if (offers.Value.GetArrayLength() == 0)
+                    return result;
                 var h = new Holon
                 {
                     Id = DeriveGuid(providerKey),
@@ -349,7 +353,7 @@ namespace NextGenSoftware.OASIS.API.Providers.FilecoinOASIS
                     ModifiedDate = DateTime.UtcNow,
                 };
                 h.ProviderUniqueStorageKey[Core.Enums.ProviderType.FilecoinOASIS] = providerKey;
-                h.ProviderMetaData[Core.Enums.ProviderType.FilecoinOASIS]["cid"] = providerKey;
+                h.ProviderMetaData[Core.Enums.ProviderType.FilecoinOASIS] = new Dictionary<string, string> { ["cid"] = providerKey };
                 if (offers.HasValue && offers.Value.ValueKind == System.Text.Json.JsonValueKind.Array
                     && offers.Value.GetArrayLength() > 0)
                 {
@@ -362,7 +366,9 @@ namespace NextGenSoftware.OASIS.API.Providers.FilecoinOASIS
                         h.ProviderMetaData[Core.Enums.ProviderType.FilecoinOASIS]["miner"] = miner.GetString() ?? string.Empty;
                 }
                 result.Result = h;
-                result.Message = $"FilecoinOASIS: Loaded CID '{providerKey}'.";
+                result.IsLoaded = true;
+                result.LoadedCount = 1;
+                result.Message = $"FilecoinOASIS: Loaded retrieval offer metadata for CID '{providerKey}'.";
             }
             catch (Exception ex)
             {
