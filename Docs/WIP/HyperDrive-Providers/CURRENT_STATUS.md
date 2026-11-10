@@ -105,3 +105,5 @@ Convex and Supabase BootLoader bindings construct the shipping clients from prot
 BootLoader at 5655afe141 compiled the Neon, Convex and Supabase shipping registrations with 0 errors and 2113 warnings. Live ONODE activation still requires the isolated hosted fixtures.
 
 Scoped BootLoader candidate a70a6d5cb4 built against its Development dependency tree with 0 errors and 2123 warnings. Live registration and activation remain open.
+
+BootLoader hot-activation error propagation (1a01cf27aa) compiled with 0 errors and 2130 warnings. Runtime verification through the shipping registration entry points remains open.
