@@ -338,11 +338,15 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
                     mutation.Content = new StringContent(avatar.ToJsonString(), Encoding.UTF8, "application/json");
                 }
 
-                using var response = await _http.SendAsync(mutation);
-                response.EnsureSuccessStatusCode();
-                var acknowledgement = JsonNode.Parse(await ReadFirebaseAcknowledgement(response));
-                if (!JsonNode.DeepEquals(softDelete ? avatar : null, acknowledgement))
-                    throw new System.IO.InvalidDataException("Firebase did not acknowledge the requested avatar deletion.");
+                try
+                {
+                    using var response = await _http.SendAsync(mutation);
+                    response.EnsureSuccessStatusCode();
+                    var acknowledgement = JsonNode.Parse(await ReadFirebaseAcknowledgement(response));
+                    if (!JsonNode.DeepEquals(softDelete ? avatar : null, acknowledgement))
+                        throw new System.IO.InvalidDataException("Firebase did not acknowledge the requested avatar deletion.");
+                }
+                catch (Exception cause) { throw new FirebaseMutationReconciliationException(id, cause); }
 
                 result.Result = true;
                 result.IsDeleted = true;
