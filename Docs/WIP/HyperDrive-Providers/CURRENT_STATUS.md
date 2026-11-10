@@ -103,3 +103,5 @@ Neon ONODE registration: the BootLoader now binds Neon settings and the explicit
 Convex and Supabase BootLoader bindings construct the shipping clients from protected DNA settings. ConnectionString supplies the service URL and DeployKey or ApiKey supplies the corresponding credential. Compile and live ONODE activation remain open.
 
 BootLoader at 5655afe141 compiled the Neon, Convex and Supabase shipping registrations with 0 errors and 2113 warnings. Live ONODE activation still requires the isolated hosted fixtures.
+
+Scoped BootLoader candidate a70a6d5cb4 built against its Development dependency tree with 0 errors and 2123 warnings. Live registration and activation remain open.
