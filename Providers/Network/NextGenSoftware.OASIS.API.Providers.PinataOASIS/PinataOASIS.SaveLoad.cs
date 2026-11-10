@@ -261,15 +261,16 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
                     return result;
                 }
 
-                // Capture current content before unpinning (best-effort)
-                IHolon holon = null;
-                try
+                _ = Ipfs.Cid.Decode(providerKey);
+                var pins = await _pinataService.GetFilesAsync().ConfigureAwait(false);
+                var pin = pins.SingleOrDefault(item => string.Equals(item.IpfsPinHash, providerKey, StringComparison.Ordinal));
+                var holon = pin == null ? null : await ReadNamedPinAsync<Holon>(pin, "Holon_").ConfigureAwait(false);
+                if (holon == null)
                 {
-                    var content = await _pinataService.GetFileContentAsync(providerKey);
-                    if (!string.IsNullOrWhiteSpace(content))
-                        holon = JsonConvert.DeserializeObject<Holon>(content);
+                    OASISErrorHandling.HandleError(ref result, "The CID does not identify a pinned Pinata holon.");
+                    result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
+                    return result;
                 }
-                catch { /* best effort */ }
 
                 var unpinOk = await _pinataService.UnpinFileAsync(providerKey);
                 if (!unpinOk)
