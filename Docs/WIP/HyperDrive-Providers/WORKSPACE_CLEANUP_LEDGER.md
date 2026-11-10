@@ -98,3 +98,5 @@ EdgeSQLite focused file-backed cohort: all eight checks exited. Fixture disposal
 10 November IPFS Development candidate 346cd105a9: the build session is no longer available. Post-run inspection found no IPFS integration test assembly under the project's bin or obj directories. No backend fixture was created for this compile.
 
 10 November Neon console harness: leased dotnet clean completed after the successful compile. No hosted fixture or raw report was created.
+
+10 November Convex console harness: leased dotnet clean completed after the successful compile. No hosted fixture or raw report was created.
