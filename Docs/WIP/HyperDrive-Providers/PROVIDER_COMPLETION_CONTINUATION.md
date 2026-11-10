@@ -109,3 +109,4 @@ The TON lifecycle acceptance used Core 14bfd34f6e34d2be9f4bdec34b3431b8ce356fe5 
 ### NEAR native lifecycle admission
 
 The existing signed-write tests use the shipping NEAROASIS provider. The retained runner requires an RPC URL, chain ID, contract ID, and protected signer path, and launches its test tooling through WSL. The current shell has no NEAROASIS test settings. Existing operation-specific reports remain valid within their recorded scope. The next shared-suite run needs an isolated writable contract with exact fixture cleanup and must preserve retained CQL state.
+The focused shared NEAR lifecycle test compiled and discovered both modes. Both skipped because OASIS_NEAR_LIFECYCLE_REPORT_ROOT and a dedicated writable fixture were not configured. No native pass or fixture mutation is claimed.
