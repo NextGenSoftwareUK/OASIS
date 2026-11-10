@@ -315,13 +315,27 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
                 await EnsureAuthAsync();
                 var rec = await GetFirstAsync("oasis_avatars", $"oasis_id='{id}'");
                 if (rec == null) { OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: Avatar '{id}' not found."); return result; }
-                HttpResponseMessage response;
+                if (rec.OasisId != id.ToString("D"))
+                    throw new InvalidDataException("PocketBase lookup returned another logical identity.");
+
+                var path = $"{_baseUrl}/api/collections/oasis_avatars/records/{rec.Id}";
+                using var response = softDelete
+                    ? await _http.PatchAsync(path, JsonContent(new { is_deleted = true }))
+                    : await _http.DeleteAsync(path);
+                response.EnsureSuccessStatusCode();
                 if (softDelete)
-                    response = await _http.PatchAsync($"{_baseUrl}/api/collections/oasis_avatars/records/{rec.Id}", JsonContent(new { is_deleted = true }));
-                else
-                    response = await _http.DeleteAsync($"{_baseUrl}/api/collections/oasis_avatars/records/{rec.Id}");
-                result.Result = response.IsSuccessStatusCode; result.IsError = !result.Result;
-                result.Message = result.Result ? $"PocketBaseOASIS: Avatar '{id}' {(softDelete ? "soft" : "hard")}-deleted." : "PocketBaseOASIS: Delete failed.";
+                {
+                    var deleted = Deserialize<PbRecord>(await response.Content.ReadAsStringAsync());
+                    if (deleted == null || deleted.Id != rec.Id || deleted.OasisId != rec.OasisId || !deleted.IsDeleted)
+                        throw new InvalidDataException("PocketBase did not acknowledge the requested avatar soft deletion.");
+                }
+                else if (response.StatusCode != System.Net.HttpStatusCode.NoContent)
+                    throw new InvalidDataException("PocketBase did not acknowledge the requested avatar hard deletion.");
+
+                result.Result = true;
+                result.IsDeleted = true;
+                result.DeletedCount = 1;
+                result.Message = $"PocketBaseOASIS: Avatar '{id}' {(softDelete ? "soft" : "hard")}-deleted.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: Error deleting avatar '{id}': {ex.Message}"); }
             return result;
