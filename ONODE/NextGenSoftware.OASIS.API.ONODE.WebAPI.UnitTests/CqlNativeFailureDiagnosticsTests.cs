@@ -33,6 +33,14 @@ public sealed class CqlNativeFailureDiagnosticsTests
         activation.Verify(value => value.ActivateQuerySourceAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
+    [Fact]
+    public void CancellationWithAnInnerTimeoutRetainsBothCategories()
+    {
+        var error = new OperationCanceledException("request canceled", new TimeoutException("request timed out"));
+
+        Assert.Equal("cancelled/timeout", CqlNativeFailureDiagnostics.Capture(error).Categories);
+    }
+
     private sealed class CaptureLogger : ILogger
     {
         public List<(string Text, Exception? Exception)> Entries = new();

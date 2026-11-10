@@ -29,6 +29,7 @@ internal static class CqlNativeFailureDiagnostics
             {
                 HttpRequestException => "http", WebSocketException => "websocket",
                 NativeConnectionRefusedException => "connection_refused", OperationCanceledException => "cancelled",
+                TimeoutException => "timeout",
                 InvalidDataException => "invalid_data", JsonException => "invalid_json",
                 DecoderFallbackException => "invalid_utf8", _ => "other"
             };
