@@ -743,3 +743,7 @@ The picker now adds their IDs when labels collide, so visitors can tell
 the full and subset choices apart. All 93 focused Node tests passed.
 The live HTML and versioned JavaScript matched the published Git blobs.
 Browser interaction remains open.
+
+### Ordinary HyperDrive routing
+
+The isolated local WEB4 point load and four controlled verifier tests passed. The shared Development point load on 1d913e570 returned HYPERDRIVE_PROVIDER_NOT_REGISTERED. The public teaching source has query-only admission. Core rejects overlap between query-only and ordinary provider lists, so a hosted ordinary-routing test needs its own admission scope and storage root. Bind the verifier to the reviewed fixture endpoint and deployment, verify the exact record and serving provider with zero saves, and retain the public teaching grant and accepted cohorts.
