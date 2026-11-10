@@ -11,6 +11,50 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLServerDBOASIS.IntegrationTests;
 public class SqlServerNativeStorageConformanceTests
 {
     [TestMethod]
+    public async Task MetadataQueriesMatchLiteralPropertyNames()
+    {
+        if (Environment.GetEnvironmentVariable("OASIS_SQLSERVER_METADATA_PATH") != "1")
+            Assert.Inconclusive("Enable only for the dedicated LocalDB provider fixture.");
+
+        const string connection = @"Server=(localdb)\MSSQLLocalDB;Database=oasis_hyperdrive_provider_test;Integrated Security=true;TrustServerCertificate=true";
+        var provider = new SQLServerDBOASIS(connection);
+        var id = Guid.NewGuid();
+        var key = $"fixture.{id:N}";
+        var holon = new NextGenSoftware.OASIS.API.Core.Holons.Holon
+        {
+            Id = id, Name = key, MetaData = new() { [key] = "literal", ["scope"] = id.ToString("D") }
+        };
+        var saved = false;
+        try
+        {
+            var active = await provider.ActivateProviderAsync();
+            Assert.IsTrue(active.Result && !active.IsError, active.Message);
+            var write = await provider.SaveHolonAsync(holon, saveChildren: false);
+            Assert.IsTrue(write.IsSaved && !write.IsError, write.Message);
+            saved = true;
+
+            var single = await provider.LoadHolonsByMetaDataAsync(key, "literal", loadChildren: false);
+            Assert.IsTrue(single.IsLoaded && !single.IsError, single.Message);
+            Assert.AreEqual(id, single.Result.Single().Id);
+
+            var multiple = await provider.LoadHolonsByMetaDataAsync(
+                new Dictionary<string, string> { [key] = "literal", ["scope"] = id.ToString("D") },
+                NextGenSoftware.OASIS.API.Core.Enums.MetaKeyValuePairMatchMode.All, loadChildren: false);
+            Assert.IsTrue(multiple.IsLoaded && !multiple.IsError, multiple.Message);
+            Assert.AreEqual(id, multiple.Result.Single().Id);
+        }
+        finally
+        {
+            if (saved)
+            {
+                var deleted = await provider.DeleteHolonWithSoftDeleteAsync(id, false);
+                Assert.IsTrue(deleted.IsDeleted && !deleted.IsError, deleted.Message);
+            }
+            await provider.DeActivateProviderAsync();
+        }
+    }
+
+    [TestMethod]
     public async Task SearchMatchesLiteralSqlWildcardCharacters()
     {
         if (Environment.GetEnvironmentVariable("OASIS_SQLSERVER_LITERAL_SEARCH") != "1")
