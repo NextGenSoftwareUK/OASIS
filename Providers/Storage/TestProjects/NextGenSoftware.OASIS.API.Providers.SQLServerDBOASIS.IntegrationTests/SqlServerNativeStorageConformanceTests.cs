@@ -67,7 +67,7 @@ public class SqlServerNativeStorageConformanceTests
         if (Environment.GetEnvironmentVariable("OASIS_SQLSERVER_POINT_GRAPH") != "1")
             Assert.Inconclusive("Enable only for the dedicated LocalDB provider fixture.");
 
-        var provider = new SQLServerDBOASIS(@"Server=(localdb)\MSSQLLocalDB;Database=oasis_hyperdrive_provider_test;Integrated Security=true;TrustServerCertificate=true");
+        var provider = new SQLServerDBOASIS(@"Server=(localdb)\MSSQLLocalDB;Database=oasis_hyperdrive_provider_test;Integrated Security=true;TrustServerCertificate=true;Max Pool Size=1;Connect Timeout=5");
         var root = new NextGenSoftware.OASIS.API.Core.Holons.Holon { Id = Guid.NewGuid(), Name = $"Point graph root {Guid.NewGuid():N}", MetaData = new() { ["graphFixture"] = Guid.NewGuid().ToString("N") } };
         var child = new NextGenSoftware.OASIS.API.Core.Holons.Holon { Id = Guid.NewGuid(), ParentHolonId = root.Id, Name = "Point graph child" };
         var leaf = new NextGenSoftware.OASIS.API.Core.Holons.Holon { Id = Guid.NewGuid(), ParentHolonId = child.Id, Name = "Point graph leaf" };
