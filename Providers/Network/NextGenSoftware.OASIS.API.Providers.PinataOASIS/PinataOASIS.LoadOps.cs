@@ -668,6 +668,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
     public class PinataService : IPinataService, IDisposable
     {
         private readonly HttpClient _httpClient;
+        private readonly HttpClient _gatewayClient = new HttpClient();
         private readonly string _apiKey;
         private readonly string _secretKey;
         private readonly string _jwt;
@@ -692,7 +693,11 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
             }
         }
 
-        public void Dispose() => _httpClient.Dispose();
+        public void Dispose()
+        {
+            _httpClient.Dispose();
+            _gatewayClient.Dispose();
+        }
 
         public async Task<List<PinataPin>> GetFilesAsync()
         {
@@ -721,7 +726,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
 
         public async Task<string> GetFileContentAsync(string hash)
         {
-            using var response = await _httpClient.GetAsync($"{_gatewayUrl}/ipfs/{hash}").ConfigureAwait(false);
+            using var response = await _gatewayClient.GetAsync($"{_gatewayUrl}/ipfs/{Uri.EscapeDataString(hash)}").ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadAsStringAsync().ConfigureAwait(false);
         }

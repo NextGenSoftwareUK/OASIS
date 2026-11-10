@@ -278,8 +278,9 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
                     }
                 }
 
-                var url = $"{_gatewayUrl}/ipfs/{ipfsHash}";
-                var response = await _httpClient.GetAsync(url);
+                var url = $"{_gatewayUrl}/ipfs/{Uri.EscapeDataString(ipfsHash)}";
+                using var gateway = new HttpClient { Timeout = TimeSpan.FromSeconds(15) };
+                using var response = await gateway.GetAsync(url).ConfigureAwait(false);
 
                 if (response.IsSuccessStatusCode)
                 {
