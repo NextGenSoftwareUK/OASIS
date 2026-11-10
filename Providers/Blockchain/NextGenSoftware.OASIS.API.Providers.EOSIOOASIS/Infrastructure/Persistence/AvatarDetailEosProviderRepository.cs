@@ -96,10 +96,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
             {
                 Code = _eosAccountName,
                 Scope = _eosAccountName,
-                Table = _avatarDetailTable
+                Table = _avatarDetailTable,
+                LowerBound = unchecked((uint)avatarDetailId).ToString(System.Globalization.CultureInfo.InvariantCulture),
+                Limit = 1
             });
             return avatarDetailTableRows.Rows.FirstOrDefault(avatarDetailDto =>
-                avatarDetailDto.EntityId == avatarDetailId);
+                avatarDetailDto.EntityId == avatarDetailId && Guid.TryParse(avatarDetailDto.AvatarId, out var owner) && owner == id);
         }
 
         public async Task<ImmutableArray<AvatarDetailDto>> ReadAll()
