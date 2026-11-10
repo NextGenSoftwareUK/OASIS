@@ -94,3 +94,5 @@ EdgeSQLite focused file-backed cohort: all eight checks exited. Fixture disposal
 10 November Neon harness verification: both hosted cases skipped before backend access. Leased project clean completed; reference outputs and restore metadata retained. No native fixture or raw report allocated.
 
 10 November Supabase duplicate-identity guard: no hosted fixture or raw report allocated. Leased clean completed for the private integration project.
+
+10 November IPFS Development candidate 346cd105a9: the build session is no longer available. Post-run inspection found no IPFS integration test assembly under the project's bin or obj directories. No backend fixture was created for this compile.
