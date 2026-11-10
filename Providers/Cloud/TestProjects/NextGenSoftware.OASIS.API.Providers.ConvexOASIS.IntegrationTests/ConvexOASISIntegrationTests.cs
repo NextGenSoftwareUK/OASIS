@@ -1,15 +1,21 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NextGenSoftware.OASIS.API.Core.Holons;
 
 namespace NextGenSoftware.OASIS.API.Providers.ConvexOASIS.IntegrationTests;
 
 [TestClass]
 public class ConvexOASISIntegrationTests
 {
-    [TestMethod]
-    public async Task HostedCompanionAcceptsAuthenticatedActivation()
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task HostedCompanionAcceptsAuthenticatedStorage(bool verifyWrites)
     {
+        if (verifyWrites && Environment.GetEnvironmentVariable("OASIS_CONVEX_HOSTED_TEST_WRITES") != "1")
+            Assert.Inconclusive("Enable writes only for the dedicated disposable hosted Convex deployment.");
+
         var deployment = Environment.GetEnvironmentVariable("OASIS_CONVEX_HOSTED_TEST_URL");
         if (string.IsNullOrWhiteSpace(deployment))
             Assert.Inconclusive("Configure the dedicated hosted Convex test deployment.");
@@ -27,5 +33,27 @@ public class ConvexOASISIntegrationTests
         Assert.IsFalse(activation.IsError, activation.Exception?.GetType().FullName);
         Assert.IsTrue(activation.Result);
         Assert.IsTrue(provider.IsProviderActivated);
+        if (!verifyWrites)
+            return;
+
+        var id = Guid.NewGuid();
+        var holon = new Holon { Id = id, Name = $"convex-hosted-{id:N}" };
+        try
+        {
+            var saved = await provider.SaveHolonAsync(holon, saveChildren: false);
+            Assert.IsTrue(saved.IsSaved, saved.Exception?.GetType().FullName);
+            var loaded = await provider.LoadHolonAsync(id, loadChildren: false);
+            Assert.IsTrue(loaded.IsLoaded, loaded.Exception?.GetType().FullName);
+            Assert.AreEqual(id, loaded.Result.Id);
+            Assert.AreEqual(holon.Name, loaded.Result.Name);
+        }
+        finally
+        {
+            var removed = await provider.DeleteHolonAsync(id);
+            Assert.IsFalse(removed.IsError, removed.Exception?.GetType().FullName);
+            var absent = await provider.LoadHolonAsync(id, loadChildren: false);
+            Assert.IsFalse(absent.IsLoaded);
+            Assert.IsNull(absent.Result);
+        }
     }
 }

@@ -597,7 +597,7 @@ Status: missing account/configuration information,2 November2026. David approved
 ### Convex hosted companion acceptance
 
 - **Status (9 November 2026)** Open. Local Convex passed 52/52 storage lifecycle checks. The hosted activation case compiled and skipped because no deployment was configured.
-- **Action** Identify the dedicated Convex test deployment with the OASIS companion installed. Supply its HTTPS origin via OASIS_CONVEX_HOSTED_TEST_URL and make its deploy key and persisted test storage key available through the protected environment. Keep secrets out of Git and chat.
+- **Action** Identify the dedicated Convex test deployment with the OASIS companion installed. For the disposable write test set OASIS_CONVEX_HOSTED_TEST_WRITES=1. Supply its HTTPS origin via OASIS_CONVEX_HOSTED_TEST_URL and make its deploy key and persisted test storage key available through the protected environment. Keep secrets out of Git and chat.
 - **Reason** The agent must verify authenticated activation and then the hosted storage lifecycle without touching production data.
 - **Context** [Convex storage evidence](../HyperDrive-Providers/CONVEX_STORAGE_BASELINE.md).
 
