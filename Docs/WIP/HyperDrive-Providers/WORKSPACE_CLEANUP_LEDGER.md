@@ -86,3 +86,5 @@ EdgeSQLite focused file-backed cohort: all eight checks exited. Fixture disposal
 10 November IPFS fixture guard compile: no backend or raw report. Leased project clean removed generated test outputs while retaining reference outputs and restore metadata.
 
 10 November IPFS activation: verified the pinned 42,170,789 B Kubo archive and removed it after automatic approval review blocked the daemon command. No daemon started or fixture extracted. The activation test project compiled and its generated outputs were cleaned under the build lease.
+
+10 November WEB4 count build: lockfile install and Vite production build completed; bundle verified 234. Generated dependency tree (115007857 B) and verification output (361528 B) remain at oasisweb4.com/node_modules and TestResults/Web4ProviderCountBuild. Automatic approval review blocked the scoped recursive removal command as policy-rejected, before any deletion.
