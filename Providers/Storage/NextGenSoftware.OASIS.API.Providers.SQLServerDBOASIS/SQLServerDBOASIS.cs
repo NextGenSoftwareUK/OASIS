@@ -84,6 +84,20 @@ IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name='IX_OASISHolons_ParentHolonI
 IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name='IX_OASISHolons_HolonType')
     CREATE INDEX IX_OASISHolons_HolonType ON OASISHolons(HolonType);";
 
+        private const string CreateHolonHistoryTable = @"
+IF OBJECT_ID(N'OASISHolonHistory', N'U') IS NULL
+CREATE TABLE OASISHolonHistory (
+    Id UNIQUEIDENTIFIER NOT NULL,
+    Version INT NOT NULL CHECK (Version > 0),
+    ParentHolonId UNIQUEIDENTIFIER NULL,
+    HolonType INT NOT NULL,
+    IsDeleted BIT NOT NULL,
+    DataJson NVARCHAR(MAX) NOT NULL,
+    CONSTRAINT PK_OASISHolonHistory PRIMARY KEY (Id, Version),
+    CONSTRAINT FK_OASISHolonHistory_Holon FOREIGN KEY (Id)
+        REFERENCES OASISHolons(Id) ON DELETE CASCADE
+);";
+
         public SQLServerDBOASIS(string connectionString)
         {
             _connectionString = connectionString;
@@ -102,7 +116,7 @@ IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name='IX_OASISHolons_HolonType')
             {
                 await using var conn = new SqlConnection(_connectionString);
                 await conn.OpenAsync();
-                foreach (string ddl in new[] { CreateAvatarsTable, CreateAvatarDetailsTable, CreateHolonsTable })
+                foreach (string ddl in new[] { CreateAvatarsTable, CreateAvatarDetailsTable, CreateHolonsTable, CreateHolonHistoryTable })
                 {
                     await using var cmd = new SqlCommand(ddl, conn);
                     await cmd.ExecuteNonQueryAsync();
@@ -478,6 +492,18 @@ WHEN NOT MATCHED THEN
                     var row = node.Snapshot;
                     row.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
                     row.ProviderUniqueStorageKey[Core.Enums.ProviderType.SQLServerDBOASIS] = row.Id.ToString("D");
+                    const string archiveSql = @"
+INSERT INTO OASISHolonHistory (Id, Version, ParentHolonId, HolonType, IsDeleted, DataJson)
+SELECT h.Id, v.Version, h.ParentHolonId, h.HolonType, h.IsDeleted, h.DataJson
+FROM OASISHolons h WITH (UPDLOCK, HOLDLOCK)
+CROSS APPLY (VALUES (TRY_CONVERT(int, JSON_VALUE(h.DataJson, '$.version')))) v(Version)
+WHERE h.Id = @Id AND v.Version > 0 AND v.Version < @Version
+AND NOT EXISTS (SELECT 1 FROM OASISHolonHistory a WHERE a.Id = h.Id AND a.Version = v.Version);";
+                    await using var archive = new SqlCommand(archiveSql, conn, transaction);
+                    archive.Parameters.AddWithValue("@Id", row.Id);
+                    archive.Parameters.AddWithValue("@Version", row.Version);
+                    await archive.ExecuteNonQueryAsync();
+
                     await using var cmd = new SqlCommand(sql, conn, transaction);
                     cmd.Parameters.AddWithValue("@Id", row.Id);
                     cmd.Parameters.AddWithValue("@ParentHolonId", row.ParentHolonId == Guid.Empty ? (object)DBNull.Value : row.ParentHolonId);
