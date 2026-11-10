@@ -187,6 +187,22 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
 
         // ─── Avatar loading ───────────────────────────────────────────────────────
 
+        private Avatar ParseAvatarRow(AvatarRow row)
+        {
+            var avatar = Deserialize<Avatar>(row.data_json);
+            if (avatar == null || !Guid.TryParse(row.id, out var id) || avatar.Id != id)
+                throw new System.IO.InvalidDataException("Supabase returned an invalid avatar payload or row identity.");
+            return avatar;
+        }
+
+        private static AvatarDetail ParseAvatarDetailRow(AvatarDetailRow row)
+        {
+            var detail = StoredRecordJson.Deserialize<AvatarDetail>(row.data_json);
+            if (detail == null || !Guid.TryParse(row.id, out var id) || detail.Id != id)
+                throw new System.IO.InvalidDataException("Supabase returned an invalid avatar detail payload or row identity.");
+            return detail;
+        }
+
         private async Task<Avatar?> GetAvatarByFilterAsync(string filter)
         {
             using var response = await _http.GetAsync($"{_baseUrl}/oasis_avatars?{filter}&is_deleted=eq.false&limit=1");
@@ -194,8 +210,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
             var json = await response.Content.ReadAsStringAsync();
             var rows = DeserializeList<AvatarRow>(json);
             if (rows.Count == 0) return null;
-            return Deserialize<Avatar>(rows[0].data_json)
-                ?? throw new System.IO.InvalidDataException("Supabase returned an empty avatar payload.");
+            return ParseAvatarRow(rows[0]);
         }
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0)
@@ -275,8 +290,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
             try
             {
                 var rows = await LoadAllRowsAsync<AvatarRow>("oasis_avatars?is_deleted=eq.false").ConfigureAwait(false);
-                var avatars = rows.Select(r => Deserialize<Avatar>(r.data_json)
-                    ?? throw new System.IO.InvalidDataException("Supabase returned an empty avatar payload.")).Cast<IAvatar>().ToList();
+                var avatars = rows.Select(r => ParseAvatarRow(r)).Cast<IAvatar>().ToList();
                 result.Result = avatars; result.IsLoaded = true; result.LoadedCount = avatars.Count; result.Message = $"SupabaseOASIS: Loaded {avatars.Count} avatar(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SupabaseOASIS: Error loading all avatars: {ex.Message}"); }
@@ -374,7 +388,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
                 var json = await response.Content.ReadAsStringAsync();
                 var rows = DeserializeList<AvatarDetailRow>(json);
                 if (rows.Count == 0) { OASISErrorHandling.HandleError(ref result, $"SupabaseOASIS: No avatar detail found for ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
-                result.Result = StoredRecordJson.Deserialize<AvatarDetail>(rows[0].data_json) ?? throw new System.IO.InvalidDataException("Supabase returned an empty avatar detail payload."); result.IsLoaded = true; result.LoadedCount = 1;
+                result.Result = ParseAvatarDetailRow(rows[0]); result.IsLoaded = true; result.LoadedCount = 1;
                 result.Message = $"SupabaseOASIS: AvatarDetail loaded for ID '{id}'.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SupabaseOASIS: Error loading avatar detail for '{id}': {ex.Message}"); }
@@ -392,7 +406,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
                 response.EnsureSuccessStatusCode();
                 var rows = DeserializeList<AvatarDetailRow>(await response.Content.ReadAsStringAsync());
                 if (rows.Count == 0) { OASISErrorHandling.HandleError(ref result, $"SupabaseOASIS: No avatar detail found for username '{username}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
-                result.Result = StoredRecordJson.Deserialize<AvatarDetail>(rows[0].data_json) ?? throw new System.IO.InvalidDataException("Supabase returned an empty avatar detail payload."); result.IsLoaded = true; result.LoadedCount = 1;
+                result.Result = ParseAvatarDetailRow(rows[0]); result.IsLoaded = true; result.LoadedCount = 1;
                 result.Message = $"SupabaseOASIS: AvatarDetail loaded for username '{username}'.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SupabaseOASIS: Error loading avatar detail by username '{username}': {ex.Message}"); }
@@ -410,7 +424,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
                 response.EnsureSuccessStatusCode();
                 var rows = DeserializeList<AvatarDetailRow>(await response.Content.ReadAsStringAsync());
                 if (rows.Count == 0) { OASISErrorHandling.HandleError(ref result, $"SupabaseOASIS: No avatar detail found for email '{email}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
-                result.Result = StoredRecordJson.Deserialize<AvatarDetail>(rows[0].data_json) ?? throw new System.IO.InvalidDataException("Supabase returned an empty avatar detail payload."); result.IsLoaded = true; result.LoadedCount = 1;
+                result.Result = ParseAvatarDetailRow(rows[0]); result.IsLoaded = true; result.LoadedCount = 1;
                 result.Message = $"SupabaseOASIS: AvatarDetail loaded for email '{email}'.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SupabaseOASIS: Error loading avatar detail by email '{email}': {ex.Message}"); }
@@ -425,8 +439,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
             try
             {
                 var rows = await LoadAllRowsAsync<AvatarDetailRow>("oasis_avatar_details?select=*").ConfigureAwait(false);
-                var details = rows.Select(r => StoredRecordJson.Deserialize<AvatarDetail>(r.data_json)
-                    ?? throw new System.IO.InvalidDataException("Supabase returned an empty avatar detail payload.")).Cast<IAvatarDetail>().ToList();
+                var details = rows.Select(r => ParseAvatarDetailRow(r)).Cast<IAvatarDetail>().ToList();
                 result.Result = details; result.IsLoaded = true; result.LoadedCount = details.Count; result.Message = $"SupabaseOASIS: Loaded {details.Count} avatar detail(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SupabaseOASIS: Error loading all avatar details: {ex.Message}"); }
