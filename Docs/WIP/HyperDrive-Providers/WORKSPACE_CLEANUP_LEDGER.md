@@ -1,6 +1,6 @@
 # Current resource and cleanup ledger
 
-10 November 2026 SQL Server concurrency verification: reused the existing dedicated oasis_hyperdrive_provider_test LocalDB fixture and integration project output under C:/Source/OASIS2-hyperdrive/Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SQLServerDBOASIS.IntegrationTests. The leased test run is still active. No new download, environment or raw report was requested. Keep its bin/obj while active; confirm fixture deletion and service stop, then retire unneeded owned output after the integration batch. C free at check: 27,893,899,264 B (shared machine).
+10 November 2026 SQL Server concurrency verification: reused the existing dedicated oasis_hyperdrive_provider_test LocalDB fixture and integration project output under C:/Source/OASIS2-hyperdrive/Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SQLServerDBOASIS.IntegrationTests. The leased test finished 1/1, including fixture teardown, and MSSQLLocalDB stopped. No new download, environment or raw report was requested. Automatic approval review rejected the exact owned bin directory removal command as blocked by policy. No deletion occurred; bin and obj remain. C free at check: 27,893,899,264 B (shared machine).
 
 NuGet restore also reuses shared C:/Users/david/AppData/Local/NuGet/v3-cache and C:/Users/david/AppData/Local/Temp/NuGetScratch (paths confirmed by dotnet nuget locals; sizes/individual historical ownership unmeasured). They are shared caches, not owned disposal targets; no broad removal performed.
 
