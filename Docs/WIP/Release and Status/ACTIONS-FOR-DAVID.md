@@ -584,3 +584,10 @@ Status: missing account/configuration information,2 November2026. David approved
 - **Action** If the original wasmd test fixture is retained on another device, identify the device and its existing protected test environment so the provider agent can access it. Keep signer material out of Git and chat.
 - **Reason** The agent must confirm chain and contract identity and reconcile any historical pending operations before starting shared storage verification. Preserve the original ledger and evidence.
 - **Context** [Cosmos verification notes](../HyperDrive-Providers/PROVIDER_COMPLETION_CONTINUATION.md).
+
+### Hosted Google Cloud provider verification
+
+- **Status (9 November 2026)** Open. Firestore emulator lifecycle evidence is retained. A default Google credential file exists on this host. Its contents were not read and no cloud request was sent.
+- **Action** Identify the dedicated Google Cloud test project and authorized test identity for Firestore, Cloud Storage and BigQuery. Confirm which named database, bucket and dataset are reserved for synthetic records and what spending limit applies before billable tests. Keep credentials out of Git and chat.
+- **Reason** The agent needs explicit test resource boundaries before exercising hosted SDK writes and exact cleanup.
+- **Context** [Google Cloud and BigQuery provider evidence](../HyperDrive-Providers/PROVIDER_MATRIX.md).
