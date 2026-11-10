@@ -12,10 +12,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
     {
         private IMongoCollection<AppAccountRecord> AppAccounts => _database.GetCollection<AppAccountRecord>("subscription_app_accounts");
 
-        public Task<(AppAccountRecord Account, string ApiKey)> CreateAppAccountAsync(string appId, string name, string planId, string actor, string reason, CancellationToken cancellationToken = default)
+        public Task<(AppAccountRecord Account, string ApiKey)> CreateAppAccountAsync(string appId, string name, string planId, string actor, string reason, bool pooledQuota = false, string perUserPlanId = null, CancellationToken cancellationToken = default)
         {
             AppAccountRules.ValidateAppId(appId);
-            AppAccountRules.ValidateAppPlan(planId);
+            AppAccountRules.ValidateAppPlan(planId, pooledQuota);
+            AppAccountRules.ValidatePerUserPlan(perUserPlanId);
             AppAccountRules.ValidateActorAndReason(actor, reason);
             if (string.IsNullOrWhiteSpace(name) || name.Trim().Length > 100) throw new ArgumentException("A name of up to 100 characters is required.");
             return TransactAsync(async (session, ct) =>
@@ -26,7 +27,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
                 string key = AppAccountRules.GenerateKey();
                 var account = new AppAccountRecord
                 {
-                    AppId = appId, Name = name.Trim(), PlanId = planId, Status = "active",
+                    AppId = appId, Name = name.Trim(), PlanId = planId, Status = "active", PooledQuota = pooledQuota, PerUserPlanId = pooledQuota ? (perUserPlanId ?? AppAccountRules.DefaultPerUserPlanId) : null,
                     KeyHashSha256 = AppAccountRules.Hash(key), KeyPrefix = key.Substring(0, 8),
                     CreatedAtUtc = now, CreatedBy = actor, UpdatedAtUtc = now, UpdatedBy = actor, Reason = reason.Trim()
                 };
@@ -54,12 +55,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
             }, cancellationToken);
         }
 
-        public Task<AppAccountRecord> UpdateAppAccountAsync(string appId, string planId, string status, string actor, string reason, CancellationToken cancellationToken = default)
+        public Task<AppAccountRecord> UpdateAppAccountAsync(string appId, string planId, string status, string actor, string reason, bool? pooledQuota = null, string perUserPlanId = null, CancellationToken cancellationToken = default)
         {
             AppAccountRules.ValidateAppId(appId);
             AppAccountRules.ValidateActorAndReason(actor, reason);
-            if (planId == null && status == null) throw new ArgumentException("Provide a plan, a status, or both.");
-            if (planId != null) AppAccountRules.ValidateAppPlan(planId);
+            if (planId == null && status == null && pooledQuota == null && perUserPlanId == null) throw new ArgumentException("Provide a plan, status, pooled flag or per-user plan.");
+            AppAccountRules.ValidatePerUserPlan(perUserPlanId);
+            if (planId != null) AppAccountRules.ValidateAppPlan(planId, pooledQuota ?? true);
             if (status != null && status is not ("active" or "disabled")) throw new ArgumentException("Status must be active or disabled.");
             return TransactAsync(async (session, ct) =>
             {
@@ -68,6 +70,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
                     ?? throw new KeyNotFoundException("The app account was not found.");
                 string previous = account.PlanId + "/" + account.Status;
                 if (planId != null) account.PlanId = planId;
+                if (pooledQuota != null) account.PooledQuota = pooledQuota.Value;
+                if (perUserPlanId != null) account.PerUserPlanId = perUserPlanId;
+                if (planId != null || pooledQuota != null) AppAccountRules.ValidateAppPlan(account.PlanId, account.PooledQuota);
                 if (status != null) account.Status = status;
                 account.UpdatedAtUtc = now; account.UpdatedBy = actor; account.Reason = reason.Trim();
                 await AppAccounts.ReplaceOneAsync(session, x => x.AppId == appId, account, cancellationToken: ct);

@@ -58,7 +58,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
             {
                 OperationId = request.OperationId,
                 AppId = app?.AppId,
-                AppPlanId = app?.PlanId,
+                AppPlanId = app == null ? null : AppAccountRules.UsesPool(app) ? AppAccountRules.PerUserPlan(app) : app.PlanId,
+                PooledAppId = AppAccountRules.UsesPool(app) ? app.AppId : null,
+                PooledAppPlanId = AppAccountRules.UsesPool(app) ? app.PlanId : null,
                 UserId = userId,
                 ConsumingService = normalizedService,
                 Endpoint = request.Endpoint?.Trim(),
