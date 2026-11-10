@@ -255,7 +255,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
             var result = new OASISResult<IAvatar>();
             try
             {
-                var rec = await GetFirstAsync("oasis_avatars", $"username='{username}'&&is_deleted=false");
+                var rec = await GetFirstAsync("oasis_avatars", $"username={Newtonsoft.Json.JsonConvert.ToString(username)}&&is_deleted=false");
                 var avatar = ParseAvatar(rec);
                 if (avatar == null) { OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: No avatar found for username '{username}'."); return result; }
                 result.Result = avatar; result.IsLoaded = true; result.LoadedCount = 1; result.Message = $"PocketBaseOASIS: Avatar loaded for username '{username}'.";
@@ -271,7 +271,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
             var result = new OASISResult<IAvatar>();
             try
             {
-                var rec = await GetFirstAsync("oasis_avatars", $"email='{avatarEmail}'&&is_deleted=false");
+                var rec = await GetFirstAsync("oasis_avatars", $"email={Newtonsoft.Json.JsonConvert.ToString(avatarEmail)}&&is_deleted=false");
                 var avatar = ParseAvatar(rec);
                 if (avatar == null) { OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: No avatar found for email '{avatarEmail}'."); return result; }
                 result.Result = avatar; result.IsLoaded = true; result.LoadedCount = 1; result.Message = $"PocketBaseOASIS: Avatar loaded for email '{avatarEmail}'.";
@@ -416,7 +416,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
             var result = new OASISResult<IAvatarDetail>();
             try
             {
-                var rec = await GetFirstAsync("oasis_avatar_details", $"username='{username}'");
+                var rec = await GetFirstAsync("oasis_avatar_details", $"username={Newtonsoft.Json.JsonConvert.ToString(username)}");
                 if (rec == null) { OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: No avatar detail found for username '{username}'."); return result; }
                 result.Result = ParseAvatarDetail(rec); result.IsLoaded = true; result.LoadedCount = 1; result.Message = $"PocketBaseOASIS: AvatarDetail loaded for username '{username}'.";
             }
@@ -431,7 +431,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
             var result = new OASISResult<IAvatarDetail>();
             try
             {
-                var rec = await GetFirstAsync("oasis_avatar_details", $"email='{email}'");
+                var rec = await GetFirstAsync("oasis_avatar_details", $"email={Newtonsoft.Json.JsonConvert.ToString(email)}");
                 if (rec == null) { OASISErrorHandling.HandleError(ref result, $"PocketBaseOASIS: No avatar detail found for email '{email}'."); return result; }
                 result.Result = ParseAvatarDetail(rec); result.IsLoaded = true; result.LoadedCount = 1; result.Message = $"PocketBaseOASIS: AvatarDetail loaded for email '{email}'.";
             }
