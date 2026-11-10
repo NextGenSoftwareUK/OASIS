@@ -96,6 +96,7 @@ public class PolkadotPublicStorageNativeTests
                     JsonSerializer.Serialize(stream, original);
                     stream.WriteByte(10);
                     stream.Flush(flushToDisk: true);
+                    originals.Add(original.Clone());
                     return Task.CompletedTask;
                 }), deadline.Token);
 
@@ -103,6 +104,17 @@ public class PolkadotPublicStorageNativeTests
             Assert.IsTrue(result.FixtureCleanupComplete);
             Assert.AreEqual(CoreStorageConformance.ChecksPerMode, result.Passed.Count);
             Assert.AreEqual(0, (await raw.ListKeysAsync("")).Count);
+            Assert.IsTrue(originals.Count > 0, "No native mutations were journaled.");
+            foreach (var original in originals)
+            {
+                var outcome = await raw.ReadOriginalOutcomeAsync(original);
+                Assert.IsTrue(outcome.GetProperty("found").GetBoolean());
+                var receipt = outcome.GetProperty("receipt");
+                Assert.IsTrue(receipt.GetProperty("finalized").GetBoolean());
+                Assert.IsTrue(receipt.GetProperty("dispatchSucceeded").GetBoolean());
+                Assert.IsTrue(receipt.GetProperty("recordEffectMatchesRequest").GetBoolean());
+            }
+
             File.Move(pending, Path.Combine(directory, prefix + ".transactions.jsonl"));
             return;
         }
