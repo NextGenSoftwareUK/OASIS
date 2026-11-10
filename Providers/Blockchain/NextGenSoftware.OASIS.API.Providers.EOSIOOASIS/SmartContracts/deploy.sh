@@ -19,11 +19,15 @@ if [[ "$1" == "oasis" ]]; then
     contract=oasis
 else
     echo "need contract"
-    exit 0
+    exit 2
 fi
 
 #oasis account
 account=$2
+if [[ -z "$account" ]]; then
+    echo "need account" >&2
+    exit 2
+fi
 
 #network
 if [[ "$3" == "mainnet" ]]; then 
@@ -37,7 +41,7 @@ elif [[ "$3" == "local" ]]; then
     network="Local"
 else
     echo "need network"
-    exit 0
+    exit 2
 fi
 
 echo ">>> Deploying $contract contract to $account on $network..."
