@@ -7,8 +7,8 @@ this checkpoint does not claim completion of those designs.
 
 ## User priority order updated 8 November 2026
 
-Solana → Ethereum → Polygon → Arbitrum → NEAR → EOS/EOSIO → SOLID → IPFS →
-ActivityPub → Cosmos → Polkadot → TON → TRON → Hedera/Hashgraph, then remaining
+Solana ? Ethereum ? Polygon ? Arbitrum ? NEAR ? EOS/EOSIO ? SOLID ? IPFS ?
+ActivityPub ? Cosmos ? Polkadot ? TON ? TRON ? Hedera/Hashgraph, then remaining
 providers in popularity order. This matches the latest user-edited goal. OLID
 means SOLID; ActibityPub means ActivityPub; HetraGraph means Hedera/Hashgraph
 (HashgraphOASIS).
@@ -329,7 +329,7 @@ live counts. [Provider matrix](PROVIDER_CQL_AND_SANDBOX_STATUS.md).
 Website public main remains accepted Civic card81 at
 **fa0f848b2bbb7418fdbe2fca4f0e0a45367ec3bd** (byte-verified).
 Website task **9d247bd5ee2b280e81023c94d158b69f1f5d7966** contains pending
-cards 82–86 from a0883cf plus a separate priority walkthrough link change
+cards 82?86 from a0883cf plus a separate priority walkthrough link change
 (bff9431) and its routing test (9d247bd). All 120 website tests pass. The
 verified public main ref is still fa0f848b. Keep the navigation change and
 the unpublished provider cards separately scoped for review.
@@ -743,3 +743,5 @@ LocalFile storage directory candidate 4330d1560f passed WEB4 image CI 4291563595
 10 November Development LocalFile verification: after the 4330d1560f rollout, live WEB4 discovery advertised both public presets. Native queries returned 3 and 2 rows, with exact IDs matching the Development source configuration observed unchanged before and after the queries (SHA-256 e0573067e7c97b8832521408a4013866b63aa1a57100364807e50a375b0ecdbc). The separate local fixture has different IDs. Isolated ordinary HyperDrive point-load verification still requires the hosted fixture and admission. Reused the existing CLI and visitor without generating local output.
 
 10 November ordinary LocalFile hosted gate: Railway dev lists one WEB4 service, deployment aee4782a, with the existing /data volume. Its observed DNA has no explicit ordinary LocalFile StorageDirectory and admission lists LocalFile under queryOnlyProviders. The retained point-routing record is separate from the active public catalogue. Hosted acceptance needs an isolated mounted fixture and ordinary provider admission before running the no-failover verifier. The HyperDrive sibling status records native core-storage conformance for LocalFile. Read-only checks reused the installed CLI and generated no files.
+
+Development LocalFile public federation verification: the full and subset MongoDB-paired presets returned 3 and 2 rows matching the native selections exactly, with only LocalFile copies visible to the retained visitor. The verifier matched the discovered requests to deployed preset configuration and confirmed both source and preset settings stayed stable. Ordinary isolated point-load remains open. No local report or build output was created.
