@@ -23,6 +23,8 @@ ClickHouse storage hard-delete changes are on the HyperDrive branch at e02321178
 
 Development 8ab80a5390 records both native SQLite import acknowledgement passes. Development d31cd59ee1 also records the child-role results. The HyperDrive branch synchronized at 6bb00758ce and retains the additional EdgeSQLite evidence. Eight file-backed SQLite checks passed for ordinary child-role persistence, replacement, publication and rollback. The focused test and ordinary writer sources already match Development. Solana storage remains partial at 4/52 with a missing memo chunk. COSMIC public read evidence covers a separate path, and the memo acknowledgement change awaits a native validator.
 
+IPFS smoke-test fixture selection now requires explicit IPFSOASIS_TEST_API and compiles. The pending shipping activation diff publishes its client only after the daemon version probe succeeds. That change stays separate pending a live Kubo check. HyperDrive is synchronized with Development 63f2568e14.
+
 ### Priority hosted gates, 10 November
 
 | Provider | Evidence to carry forward | Next acceptance gate |
