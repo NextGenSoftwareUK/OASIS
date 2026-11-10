@@ -13,6 +13,10 @@ const repoRoot = process.env.OASIS_REPO_ROOT_WSL ?? resolve(here, "../../..");
 if(existsSync(resolve(repoRoot,'TestResults/NearRuntime/near-checked-sdk.pending.json')))
   throw new Error('Original C# checked-write evidence remains; reconcile on the same node before rerunning.');
 const toWindows = path => path.replace(/^\/mnt\/([a-z])/i, (_, drive) => `${drive.toUpperCase()}:`).replaceAll("/", "\\");
+const sharedLifecycleRoot = process.env.OASIS_NEAR_SHARED_LIFECYCLE_ROOT_WSL;
+const sharedLifecycleArgs = sharedLifecycleRoot
+  ? ["-SharedLifecycleReportRoot", toWindows(resolve(sharedLifecycleRoot))]
+  : [];
 const rpcAddr=process.env.OASIS_NEAR_REUSABLE_RPC_URL;
 const expectedChain=process.env.OASIS_NEAR_REUSABLE_CHAIN_ID;
 const contractId=process.env.OASIS_NEAR_REUSABLE_CONTRACT_ID;
@@ -55,12 +59,15 @@ try {
       !==createHash("sha256").update(wasm).digest("hex"))
     throw new Error("Retained NEAR contract bytecode differs; no automatic redeployment or initialization is permitted.");
   const networkId=expectedChain;
-  const failedOriginal=JSON.parse(readFileSync("/var/tmp/oasis-near-evidence/failed-status-original.json","utf8"));
-  if(failedOriginal.chain!==networkId || typeof failedOriginal.hash!=="string")
-    throw new Error("Retained original failed-status evidence is invalid; no replacement/submission attempted.");
-  // Preserve the historical original above; its status is tested separately as unavailable.
-  // The failed-outcome gate needs a live run-scoped negative receipt before node pruning.
-  const currentFailed=await prepareFailedStatusFixture(new JsonRpcProvider({url:rpcAddr}),contractId,key.toString(),"/var/tmp/oasis-near-evidence");
+  let currentFailed;
+  if (!sharedLifecycleRoot) {
+    const failedOriginal=JSON.parse(readFileSync("/var/tmp/oasis-near-evidence/failed-status-original.json","utf8"));
+    if(failedOriginal.chain!==networkId || typeof failedOriginal.hash!=="string")
+      throw new Error("Retained original failed-status evidence is invalid; no replacement/submission attempted.");
+    // Preserve the historical original above; its status is tested separately as unavailable.
+    // The failed-outcome gate needs a live run-scoped negative receipt before node pruning.
+    currentFailed=await prepareFailedStatusFixture(new JsonRpcProvider({url:rpcAddr}),contractId,key.toString(),"/var/tmp/oasis-near-evidence");
+  }
 
   // WSL does not propagate arbitrary environment variables to Windows executables.
   // Pass owned test credentials through stdin, never a command line or plaintext file.
@@ -71,7 +78,7 @@ try {
     NEAROASIS_CONTRACTADDRESS: contract.accountId,
     NEAROASIS_ACCOUNTID: contract.accountId,
     NEAROASIS_PRIVATEKEY: key.toString(),
-    NEAROASIS_FAILED_STATUS_TRANSACTIONID: currentFailed.hash,
+    NEAROASIS_FAILED_STATUS_TRANSACTIONID: currentFailed?.hash,
     OASIS_NEAR_NODE: "C:\\Program Files\\nodejs\\node.exe",
     OASIS_NEAR_SDK_BRIDGE: toWindows(resolve(repoRoot, "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.NEAROASIS/SdkBridge/bridge.mjs")),
   };
@@ -81,6 +88,7 @@ try {
     toWindows(resolve(repoRoot, "Scripts/TestHosts/near-local/run-dotnet-evidence.ps1")),
     "-SettingsFromStdin",
     "-RepositoryRoot", toWindows(repoRoot),
+    ...sharedLifecycleArgs,
   ], { stdio: ["pipe","inherit","inherit"], input: JSON.stringify(settings) });
   if (result.error) throw result.error;
   if (result.status !== 0) process.exitCode = result.status ?? 1;
