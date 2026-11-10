@@ -47,3 +47,5 @@ Four additional file-backed EdgeSQLite checks passed in the same compiled cohort
 Two further file-backed EdgeSQLite cases passed in the same cohort (2 passed, 0 failed, 0 skipped, 180 ms). DeviceSequenceIsMonotonicAndDurable verifies the counter survives reopening. ChainedOfflineEditsPreserveClientGeneratedVersionHistory verifies retained client version IDs and their ancestry. Prior cases were excluded.
 
 EdgeSQLite focused file-backed enumeration passed 1/1 on 10 November. The store returned both active holons, excluded the tombstone by default and included it when requested. This exercises the local store; the canonical SQLite baseline was not replayed.
+
+NativeImportReportsActualGraphAcknowledgementsAndPublishesIds passed in synchronous and asynchronous modes (2 passed, 0 failed or skipped) against the shipping provider and in-memory SQLite. The canonical suite and wallet cases were excluded.
