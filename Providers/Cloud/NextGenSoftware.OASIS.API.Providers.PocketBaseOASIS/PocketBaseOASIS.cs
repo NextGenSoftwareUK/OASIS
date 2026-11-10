@@ -351,9 +351,9 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS
             try
             {
                 var id = avatarDetail.Id == Guid.Empty ? Guid.NewGuid() : avatarDetail.Id;
-                var payload = JsonSerializer.SerializeToNode(avatarDetail, avatarDetail.GetType(), _jsonOpts)!.AsObject();
-                payload["id"] = id;
-                var row = new { oasis_id = id.ToString("D"), username = avatarDetail.Username ?? "", email = avatarDetail.Email ?? "", data_json = payload.ToJsonString(_jsonOpts) };
+                var payload = StoredRecordJson.Project<AvatarDetail>(avatarDetail);
+                payload.Id = id;
+                var row = new { oasis_id = id.ToString("D"), username = avatarDetail.Username ?? "", email = avatarDetail.Email ?? "", data_json = StoredRecordJson.Serialize(payload) };
                 await UpsertAsync("oasis_avatar_details", row.oasis_id, row);
                 avatarDetail.Id = id;
                 result.Result = avatarDetail; result.IsSaved = true; result.SavedCount = 1; result.Message = "PocketBaseOASIS: AvatarDetail saved.";
