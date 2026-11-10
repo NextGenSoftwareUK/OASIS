@@ -9,6 +9,45 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS.IntegrationTests;
 [DoNotParallelize]
 public class SupabaseNativeStorageConformanceTests
 {
+    [TestMethod]
+    public async Task HolonListingReturnsEveryPreseededIdentityAcrossPages()
+    {
+        if (Environment.GetEnvironmentVariable("OASIS_SUPABASE_PAGINATION") != "1")
+            Assert.Inconclusive("Enable only for a dedicated Supabase pagination fixture.");
+
+        var url = Environment.GetEnvironmentVariable("OASIS_SUPABASE_CONFORMANCE_URL");
+        var key = Environment.GetEnvironmentVariable("OASIS_SUPABASE_CONFORMANCE_SERVICE_KEY");
+        var manifest = Environment.GetEnvironmentVariable("OASIS_SUPABASE_PAGINATION_IDS");
+        Assert.IsTrue(Uri.TryCreate(url, UriKind.Absolute, out var endpoint) &&
+            endpoint.Scheme == Uri.UriSchemeHttps &&
+            endpoint.Host.EndsWith(".supabase.co", StringComparison.OrdinalIgnoreCase) &&
+            endpoint.AbsolutePath == "/" && string.IsNullOrEmpty(endpoint.Query) &&
+            string.IsNullOrEmpty(endpoint.Fragment) && string.IsNullOrEmpty(endpoint.UserInfo));
+        Assert.IsFalse(string.IsNullOrWhiteSpace(key));
+        Assert.IsFalse(string.IsNullOrWhiteSpace(manifest));
+
+        var expected = JsonSerializer.Deserialize<Guid[]>(await File.ReadAllTextAsync(manifest!));
+        Assert.IsNotNull(expected);
+        Assert.IsTrue(expected.Length > 100 && expected.Distinct().Count() == expected.Length);
+
+        using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(30) };
+        var provider = new SupabaseOASIS(url!, key!, http);
+        var active = await provider.ActivateProviderAsync();
+        Assert.IsTrue(active.Result, active.Exception?.GetType().FullName);
+        try
+        {
+            var loaded = await provider.LoadAllHolonsAsync(loadChildren: false);
+            Assert.IsFalse(loaded.IsError, loaded.Exception?.GetType().FullName);
+            Assert.IsTrue(loaded.IsLoaded);
+            Assert.AreEqual(expected.Length, loaded.LoadedCount);
+            CollectionAssert.AreEquivalent(expected, loaded.Result.Select(holon => holon.Id).ToArray());
+        }
+        finally
+        {
+            await provider.DeActivateProviderAsync();
+        }
+    }
+
     [DataTestMethod]
     [DataRow(false)]
     [DataRow(true)]

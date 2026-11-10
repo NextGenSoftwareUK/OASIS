@@ -213,3 +213,5 @@ Aura avatar writes now persist the provider key selected by the shipping lookup 
 ### Supabase collection pagination
 
 Avatar and detail lists now read successive PostgREST pages. Holon storage and the bounded CQL ID selector share a reader that checks exact totals, contiguous ranges and canonical IDs across pages. Provider builds passed with zero errors and four warnings. No retained standalone PostgREST executable or test-result fixture was found on this Windows host. The earlier CQL query and restart evidence carries forward for its original scope. Live pagination still needs the dedicated hosted fixture, including a server row cap below the requested page size and more records than that cap.
+
+The guarded read-only HolonListingReturnsEveryPreseededIdentityAcrossPages test builds and is discoverable. Set OASIS_SUPABASE_PAGINATION=1 with the existing protected hosted fixture settings and OASIS_SUPABASE_PAGINATION_IDS pointing to a JSON array of all active synthetic holon GUIDs in the isolated fixture (at least 101). Run separately from the empty-project lifecycle checks. It compares exact returned identities and count without altering the fixture.
