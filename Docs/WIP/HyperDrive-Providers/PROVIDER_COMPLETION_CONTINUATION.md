@@ -219,3 +219,5 @@ The guarded read-only HolonListingReturnsEveryPreseededIdentityAcrossPages test 
 NEAR hard-delete scaling review: checked-record.ts admits a positive archive version suffix but does not enforce contiguous versions, and the current record is opaque ciphertext. The contract cannot safely infer all historical keys from the head or stop at the first missing version. The draft reverse scan handles sparse historical keys but still requires a measured gas limit. An indexed design must account for existing archives before replacing that scan.
 
 KeyDB guarded native lifecycle: both modes built and were discovered. OASIS_KEYDB_LIFECYCLE_REPORT_ROOT and KEYDB_CONN must point to a dedicated fixture and fresh report root. INFO Server executable must identify keydb-server before writes. Prior native CQL evidence carries forward. No lifecycle test ran on this host.
+
+Dragonfly native lifecycle requires DRAGONFLY_CONN and a fresh OASIS_DRAGONFLY_LIFECYCLE_REPORT_ROOT. The guard requires the native dragonfly_version field before writes. Provider and integration builds passed, and both lifecycle modes were discovered. Prior native query and snapshot results were not replayed.

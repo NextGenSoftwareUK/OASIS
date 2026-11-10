@@ -1,55 +1,56 @@
-using System;
-using System.Threading.Tasks;
+using System.Text.Json;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NextGenSoftware.OASIS.API.Core.Holons;
-using NextGenSoftware.OASIS.API.Providers.DragonflyOASIS;
+using NextGenSoftware.OASIS.Providers.TestSupport;
+using StackExchange.Redis;
 
-namespace NextGenSoftware.OASIS.API.Providers.DragonflyOASIS.IntegrationTests
+namespace NextGenSoftware.OASIS.API.Providers.DragonflyOASIS.IntegrationTests;
+
+[TestClass, DoNotParallelize]
+public class DragonflyOASISIntegrationTests
 {
-    [TestClass]
-    public class DragonflyOASISIntegrationTests
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task SharedStorageLifecycle(bool synchronous)
     {
-        private DragonflyOASIS _provider = null!;
-        private static readonly string connStr = Environment.GetEnvironmentVariable("DRAGONFLY_CONN") ?? "localhost:6379";
+        var root = Environment.GetEnvironmentVariable("OASIS_DRAGONFLY_LIFECYCLE_REPORT_ROOT");
+        if (string.IsNullOrWhiteSpace(root))
+            Assert.Inconclusive("Explicitly configure a dedicated Dragonfly instance and report directory.");
 
-        [TestInitialize]
-        public void Setup()
+        var connection = Environment.GetEnvironmentVariable("DRAGONFLY_CONN");
+        Assert.IsFalse(string.IsNullOrWhiteSpace(connection), "Configure the dedicated Dragonfly endpoint.");
+        var options = ConfigurationOptions.Parse(connection!);
+        Assert.AreEqual(1, options.EndPoints.Count, "Use one dedicated Dragonfly endpoint.");
+        options.AllowAdmin = true;
+        Directory.CreateDirectory(root!);
+        using var lease = new FileStream(Path.Combine(root!, "environment.lock"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+        var directory = Path.Combine(root!, synchronous ? "sync" : "async");
+        Assert.IsFalse(Directory.Exists(directory), "Preserve prior fixture evidence.");
+
+        using var native = await ConnectionMultiplexer.ConnectAsync(options);
+        var info = await native.GetServer(options.EndPoints[0]).InfoAsync("server");
+        Assert.IsTrue(info.SelectMany(group => group).Any(pair => pair.Key == "dragonfly_version" && !string.IsNullOrWhiteSpace(pair.Value)),
+            "The endpoint must identify itself as Dragonfly.");
+
+        Directory.CreateDirectory(directory);
+        var path = Path.Combine(directory, "report.json");
+        async Task Checkpoint(CoreStorageConformance.Report report)
         {
-            _provider = new DragonflyOASIS(connStr);
-            _provider.ActivateProvider();
+            var pending = path + ".pending";
+            await using (var stream = new FileStream(pending, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+            {
+                await JsonSerializer.SerializeAsync(stream, report);
+                stream.Flush(flushToDisk: true);
+            }
+            File.Move(pending, path, overwrite: true);
         }
 
-        [TestMethod]
-        public async Task SaveAvatar_ShouldReturnSuccessResult()
-        {
-            var avatar = new Avatar { Id = Guid.NewGuid(), Username = "dragonfly-test-user", Email = "dragonfly@test.com" };
-            var result = await _provider.SaveAvatarAsync(avatar);
-            Assert.IsFalse(result.IsError, result.Message);
-            Assert.IsNotNull(result.Result);
-        }
-
-        [TestMethod]
-        public async Task LoadAvatar_ShouldReturnResult()
-            => Assert.IsNotNull(await _provider.LoadAvatarAsync(Guid.NewGuid()));
-
-        [TestMethod]
-        public async Task SaveHolon_ShouldReturnSuccessResult()
-        {
-            var holon = new Holon { Id = Guid.NewGuid(), Name = "Dragonfly Test Holon" };
-            var result = await _provider.SaveHolonAsync(holon);
-            Assert.IsFalse(result.IsError, result.Message);
-            Assert.IsNotNull(result.Result);
-        }
-
-        [TestMethod]
-        public async Task LoadHolon_ShouldReturnResult()
-            => Assert.IsNotNull(await _provider.LoadHolonAsync(Guid.NewGuid()));
-
-        [TestCleanup]
-        public void Cleanup()
-        {
-            if (_provider != null && _provider.IsProviderActivated)
-                _provider.DeActivateProvider();
-        }
+        var provider = new DragonflyOASIS(connection!);
+        var result = await CoreStorageConformance.RunAsync(provider, nameof(DragonflyOASIS), "native", synchronous, Checkpoint,
+            (id, sync) => sync ? Task.FromResult(provider.DeleteHolonSoft(id, false)) : provider.DeleteHolonSoftAsync(id, false),
+            expectedDefaultDeletion: "soft");
+        Assert.IsTrue(result.Succeeded, $"{result.CurrentCase}: {result.FailureType} {result.FailureContract}");
+        Assert.IsTrue(result.FixtureCleanupComplete);
+        Assert.AreEqual(CoreStorageConformance.ChecksPerMode, result.Passed.Count);
     }
 }
