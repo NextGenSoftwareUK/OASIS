@@ -58,6 +58,11 @@
     <Compile Remove="Helpers\OASISSettings.cs" />
   
     <None Include="..\..\Logos\OASIS.jpg" Pack="true" PackagePath="\" />
+    <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.RoninOASIS/NextGenSoftware.OASIS.API.Providers.RoninOASIS.csproj" />
+    <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.ImmutableZkEVMOASIS/NextGenSoftware.OASIS.API.Providers.ImmutableZkEVMOASIS.csproj" />
+    <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.FlowOASIS/NextGenSoftware.OASIS.API.Providers.FlowOASIS.csproj" />
+    <ProjectReference Include="../../Providers/Network/NextGenSoftware.OASIS.API.Providers.EASOASIS/NextGenSoftware.OASIS.API.Providers.EASOASIS.csproj" />
+    <ProjectReference Include="../../Providers/Network/NextGenSoftware.OASIS.API.Providers.SignProtocolOASIS/NextGenSoftware.OASIS.API.Providers.SignProtocolOASIS.csproj" />
     <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.csproj" />
     <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.XRPLOASIS/NextGenSoftware.OASIS.API.Providers.XRPLOASIS.csproj" />
     <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.csproj" />

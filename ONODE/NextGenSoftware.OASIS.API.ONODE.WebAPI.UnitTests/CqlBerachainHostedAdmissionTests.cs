@@ -75,6 +75,71 @@ public class CqlBerachainHostedAdmissionTests
         Assert.All(description.Examples.Where(row => row.Operation == "Federation"), row => Assert.False(row.Available));
     }
 
+    [Theory]
+    [InlineData(ProviderType.RoninOASIS)]
+    [InlineData(ProviderType.ImmutableZkEVMOASIS)]
+    [InlineData(ProviderType.FlowOASIS)]
+    [InlineData(ProviderType.EASOASIS)]
+    [InlineData(ProviderType.SignProtocolOASIS)]
+    public void EvmNamedReadRequiresItsOwnTariffAndRejectsWriteAdmission(ProviderType provider)
+    {
+        var queryOnly = new[] { provider };
+        var tariffs = new[] { new StorageQueryTariff(provider, 0, "demo-read-v1") };
+        var bindings = Array.Empty<NativeStorageAdmissionBinding>();
+        var admission = new PricedStorageAdmissionFactory(null, bindings, Array.Empty<ProviderType>(),
+            tariffs, null, queryOnly);
+
+        Assert.Contains(provider, admission.QueryOnlyProviders);
+        Assert.Throws<ArgumentException>(() => new PricedStorageAdmissionFactory(null, bindings,
+            Array.Empty<ProviderType>(), Array.Empty<StorageQueryTariff>(), null, queryOnly));
+        Assert.Throws<ArgumentException>(() => new PricedStorageAdmissionFactory(null, bindings,
+            Array.Empty<ProviderType>(), tariffs,
+            new[] { new StorageAttemptTariff(provider, "SaveHolon", 0, "demo-read-v1") }, queryOnly));
+    }
+
+    [Theory]
+    [InlineData(ProviderType.RoninOASIS, "https://rpc.example.invalid/rpc/", "0x7e4")]
+    [InlineData(ProviderType.ImmutableZkEVMOASIS, "https://rpc.example.invalid/", "0x343b")]
+    public void EvmPublicPresetCompilesAsANamedRead(ProviderType provider, string rpcUrl, string chainId)
+    {
+        const string address = "0x0000000000000000000000000000000000000001";
+        var json = JsonSerializer.Serialize(new { schema = 1, rpcUrl, chainId,
+            addresses = new[] { address }, sourceOwner = Guid.NewGuid() });
+        using Providers.Web3CoreOASIS.EvmPublicAccountMetadataSource source = provider == ProviderType.RoninOASIS
+            ? Providers.RoninOASIS.RoninPublicAccountMetadataSource.FromJson(json)
+            : Providers.ImmutableZkEVMOASIS.ImmutableZkEVMPublicAccountMetadataSource.FromJson(json);
+        var rows = new[] { new { id = "native-one", label = "Public balance", request = new
+        {
+            provider = provider.ToString(), orderBy = "None", take = 8, filters = new[] { new
+            {
+                metadataPath = new[] { source.QueryCapabilities.StringKeySetLookup.MetadataKey },
+                scalar = "String", @operator = "In", value = new[] { address }
+            } }
+        } } };
+        var examples = CqlHostedQueryExamples.FromJson(JsonSerializer.Serialize(
+            new Dictionary<string, object> { [provider.ToString()] = rows }));
+
+        var preset = Assert.Single(examples.For(provider, source.QueryCapabilities, _ => source.QueryCapabilities));
+        Assert.True(preset.Available, preset.ErrorCode);
+    }
+
+    [Theory]
+    [InlineData("CQL_RONIN_PUBLIC_SOURCE_JSON")]
+    [InlineData("CQL_IMMUTABLE_ZKEVM_PUBLIC_SOURCE_JSON")]
+    [InlineData("CQL_FLOW_PUBLIC_SOURCE_JSON")]
+    [InlineData("CQL_EAS_PUBLIC_SOURCE_JSON")]
+    [InlineData("CQL_SIGN_PUBLIC_SOURCE_JSON")]
+    public void EvmRegistrationRequiresSandboxMode(string setting)
+    {
+        var settings = new Microsoft.Extensions.Configuration.ConfigurationManager();
+        settings[setting] = "{}";
+        var services = new Microsoft.Extensions.DependencyInjection.ServiceCollection();
+        Assert.Throws<InvalidOperationException>(() => services.AddReviewedNetworkReadSources(settings));
+        Assert.DoesNotContain(services, entry => entry.ServiceType == typeof(CqlReadSourceProfile));
+        services.AddReviewedNetworkReadSources(settings, sandboxEnabled: true);
+        Assert.Contains(services, entry => entry.ServiceType == typeof(CqlReadSourceProfile));
+    }
+
     private sealed class ReadyRegistry(NextGenSoftware.OASIS.API.Core.Interfaces.IOASISStorageProvider source) : ICqlHostedSourceRegistry
     {
         public NextGenSoftware.OASIS.API.Core.Interfaces.IOASISStorageProvider Find(ProviderType provider)
