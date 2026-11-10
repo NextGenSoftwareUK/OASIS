@@ -90,8 +90,9 @@ try {
     & wsl -d Ubuntu -- bash -lc 'test -z "$(pgrep -x solana-test-val)" && test -z "$(ss -ltnH sport = :18899)"'
     if($LASTEXITCODE){throw 'A validator or owned port is already active; refusing duplicate environment.'}
     $project=Join-Path $taskRoot 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.IntegrationTests.csproj'
+    $directProviderProfile="/p:SolanaDirectProviderOnly=$($ConformanceOnly.IsPresent -or $ConformanceReadOnly.IsPresent)"
     if(!$InspectRecent){
-        & dotnet build $project --no-restore /p:IncludeCoreStorageConformance=$($ConformanceOnly.IsPresent -or $ConformanceReadOnly.IsPresent) /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q
+        & dotnet build $project --no-restore $directProviderProfile /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q
         if($LASTEXITCODE){throw 'Consumer build failed; no validator started.'}
         $consumerOutput=Join-Path (Split-Path $project) 'bin/Debug/net10.0'
         . (Join-Path $PSScriptRoot 'Assert-ReusableProviderBuildIdentity.ps1') -RepositoryRoot $taskRoot -ConsumerOutput $consumerOutput -VerifySourceDocuments
@@ -242,7 +243,7 @@ try {
     $env:OASIS_SOLANA_INDEXED_HTTP=if($IndexedHttpDemo -or $IndexedMetadataDemo){'1'}else{'0'}
     $env:OASIS_SOLANA_INDEXED_SERVE=if($ServeIndexedDemo){'1'}else{'0'}
     $testStarted=[DateTime]::UtcNow
-    $testArguments=@('test',$project,'--no-build','--no-restore','/m:2','/nr:false','--logger',"trx;LogFileName=$nativeReport",'--results-directory',$work,'-v:q')
+    $testArguments=@('test',$project,'--no-build','--no-restore',$directProviderProfile,'/m:2','/nr:false','--logger',"trx;LogFileName=$nativeReport",'--results-directory',$work,'-v:q')
     if($IndexedMetadataDemo -or $IndexedHttpDemo -or $IndexedQueryDemo){$testArguments+=@('--filter','TestCategory=SolanaIndexedQueryNative')}
     elseif($ChainIndexReadOnly){$testArguments+=@('--filter','TestCategory=SolanaChainIndexReadOnly')}
     elseif($ConformanceReadOnly){$testArguments+=@('--filter','TestCategory=SolanaCoreStorageInspect')}
