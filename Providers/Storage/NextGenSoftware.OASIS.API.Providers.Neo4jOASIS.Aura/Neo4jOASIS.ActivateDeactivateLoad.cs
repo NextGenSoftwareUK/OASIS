@@ -200,85 +200,32 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
             return true;
         }
 
+        public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0) =>
+            LoadAllAvatarsAsync(version).GetAwaiter().GetResult();
+
         public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
         {
+            var result = new OASISResult<IEnumerable<IAvatar>>();
             try
             {
                 var session = Driver.AsyncSession(WithDatabase);
-
-                return await session.ReadTransactionAsync(async transaction =>
+                await using var sessionLifetime = session.ConfigureAwait(false);
+                result.Result = await session.ReadTransactionAsync(async transaction =>
                 {
                     var cursor = await transaction.RunAsync(@"
-                            MATCH (av:Avatar) WHERE NOT coalesce(av.IsDeleted, false)
-                            RETURN av.FirstName AS firstname,av.LastName AS lastname"
-                    );
-
-                    IEnumerable<IAvatar> objList = await cursor.ToListAsync(record => new Avatar
-                    {
-                        FirstName = record["firstname"].As<string>(),
-                        LastName = record["lastname"].As<string>()
-                    });
-
-                    return new OASISResult<IEnumerable<IAvatar>>
-                    {
-                        IsLoaded = true,
-                        IsError = false,
-                        Message = "Avatar(s) Loaded successfully",
-                        Result = objList,
-                    };
-
-                });
+                        MATCH (av:Avatar) WHERE NOT coalesce(av.IsDeleted, false)
+                        RETURN av.GUId AS guid, av.ProviderKey AS providerKey, av.name AS title, av.FirstName AS firstname,
+                               av.LastName AS lastname, av.username AS username, av.EMail AS email").ConfigureAwait(false);
+                    return await cursor.ToListAsync(ReadAvatar).ConfigureAwait(false);
+                }).ConfigureAwait(false);
+                result.IsLoaded = true;
             }
             catch (Exception ex)
             {
-                return new OASISResult<IEnumerable<IAvatar>>
-                {
-                    IsLoaded = false,
-                    IsError = true,
-                    Message = ex.ToString(),
-                };
+                OASISErrorHandling.HandleError(ref result, "Error listing Neo4j Aura avatars.", ex);
             }
-        }
 
-        public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0)
-        {
-            try
-            {
-                var session = Driver.Session(WithDatabase);
-
-                return session.ReadTransaction(transaction =>
-                {
-                    var cursor = transaction.Run(@"
-                            MATCH (av:Avatar) WHERE NOT coalesce(av.IsDeleted, false)
-                            RETURN av.FirstName AS firstname,av.LastName AS lastname"
-                    );
-
-                    IEnumerable<IAvatar> objList = (from d in cursor
-                                                    select new Avatar
-                                                    {
-                                                        FirstName = d["firstname"].As<string>(),
-                                                        LastName = d["lastname"].As<string>()
-                                                    }).ToList();
-
-                    return new OASISResult<IEnumerable<IAvatar>>
-                    {
-                        IsLoaded = true,
-                        IsError = false,
-                        Message = "Avatar(s) Loaded successfully",
-                        Result = objList,
-                    };
-
-                });
-            }
-            catch (Exception ex)
-            {
-                return new OASISResult<IEnumerable<IAvatar>>
-                {
-                    IsLoaded = false,
-                    IsError = true,
-                    Message = ex.ToString(),
-                };
-            }
+            return result;
         }
 
         public override OASISResult<IAvatar> LoadAvatarByUsername(string avatarUsername, int version = 0) =>
@@ -311,21 +258,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
                     if (!await cursor.FetchAsync().ConfigureAwait(false))
                         return null;
 
-                    var row = cursor.Current;
-                    var avatar = new Avatar
-                    {
-                        AvatarId = Guid.Parse(row["guid"].As<string>()),
-                        Title = row["title"].As<string>(),
-                        FirstName = row["firstname"].As<string>(),
-                        LastName = row["lastname"].As<string>(),
-                        Username = row["username"].As<string>(),
-                        Email = row["email"].As<string>()
-                    };
-                    if (row["providerKey"] is string providerKey)
-                    {
-                        avatar.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
-                        avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.Neo4jOASIS] = providerKey;
-                    }
+                    var avatar = ReadAvatar(cursor.Current);
                     if (await cursor.FetchAsync().ConfigureAwait(false))
                         throw new InvalidOperationException("Multiple Aura avatars match the requested identity.");
 
@@ -339,6 +272,25 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
             }
 
             return result;
+        }
+
+        private static IAvatar ReadAvatar(IRecord row)
+        {
+            var avatar = new Avatar
+            {
+                AvatarId = Guid.Parse(row["guid"].As<string>()),
+                Title = row["title"].As<string>(),
+                FirstName = row["firstname"].As<string>(),
+                LastName = row["lastname"].As<string>(),
+                Username = row["username"].As<string>(),
+                Email = row["email"].As<string>()
+            };
+            if (row["providerKey"] is string providerKey)
+            {
+                avatar.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
+                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.Neo4jOASIS] = providerKey;
+            }
+            return avatar;
         }
 
         public override OASISResult<IAvatar> LoadAvatar(Guid Id, int version = 0) =>
