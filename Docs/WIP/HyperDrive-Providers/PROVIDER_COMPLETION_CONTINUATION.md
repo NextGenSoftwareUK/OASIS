@@ -157,3 +157,7 @@ SQLLiteDBOASIS retains its 52/52 native shared storage result through Microsoft.
 
 The dedicated Valkey integration cases compiled and discovered sync and async schedules. Both skipped without OASIS_VALKEY_LIFECYCLE_REPORT_ROOT and a dedicated Valkey endpoint. The cases require a real valkey_version response before writes. Keep the retained CQL fixture and controlled family result separate from the pending native shared lifecycle.
 Garnet shared lifecycle sync and async cases compiled and were discovered. Both skipped without the dedicated endpoint and OASIS_GARNET_LIFECYCLE_REPORT_ROOT. The new preflight requires native garnet_version before writes. Existing CQL and controlled evidence were not replayed.
+
+### Garnet Windows native partial run
+
+Garnet 2.2.5 ran on a disposable loopback-only Windows instance. Both schedules reached 18/26 and stopped because the harness did not supply the exact hard-delete callback required after a default soft deletion. Async report SHA-256 EF1B9AD5B745217601C1D5C47973793246B6BE3768B7D079D090C046BCFAC61B. Sync report SHA-256 EA165F8144C51CD729C353B090A9C49D3D567E80B7D56238D4C6A92D528C57DF. The server stopped and its in-memory state cannot be resumed. The correction wires the existing public hard-delete methods into the Garnet and Valkey harnesses. Verify the missing deletion checks on an isolated fixture without replaying the accepted operations.
