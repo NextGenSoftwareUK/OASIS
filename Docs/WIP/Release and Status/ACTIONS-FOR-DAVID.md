@@ -579,7 +579,7 @@ Status: missing account/configuration information,2 November2026. David approved
 
 - **Status (9 November 2026)** Open. The provider build passed. Public chain reads do not exercise signed contract writes.
 - **Action** If a retained Antelope test deployment exists, identify its RPC endpoint, chain ID and deployed OASIS contract account. Make a signer authorized for that test account available through the existing secret channel. Keep credentials out of the repo and chat.
-- **Reason** The native lifecycle test requires `OASIS_ANTELOPE_ENDPOINT`, `OASIS_ANTELOPE_CHAIN_ID`, `OASIS_ANTELOPE_ACCOUNT` and `OASIS_ANTELOPE_PRIVATE_KEY`. The provider agent owns fixture validation and test execution.
+- **Reason** The native lifecycle test requires `OASIS_ANTELOPE_ENDPOINT`, `OASIS_ANTELOPE_CHAIN_ID`, `OASIS_ANTELOPE_ACCOUNT` and `OASIS_ANTELOPE_PRIVATE_KEY`. After validating the disposable fixture, the provider agent sets OASIS_ANTELOPE_LIFECYCLE_WRITES=1 for the test process. The provider agent owns fixture validation and test execution.
 - **Context** [EOSIO native integration test](../../../Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.IntegrationTests/EOSIOOASISIntegrationTests.cs).
 
 ### NEAR dedicated lifecycle fixture
