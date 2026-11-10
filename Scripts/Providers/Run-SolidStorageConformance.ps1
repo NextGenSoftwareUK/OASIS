@@ -16,6 +16,12 @@ if(Test-Path -LiteralPath $solidTrx){throw 'Preserve previous SOLID native repor
     $solidStarted=$false
     try{
         if(Get-ChildItem -LiteralPath $solidWork -Filter '*pending*.json'){throw 'Original SOLID pending fixture requires review; no replay/reset.'}
+        $missingFixtureFiles = @('storage-key.dpapi','private-local-client.dpapi','private-local-pod.dpapi').Where({
+            !(Test-Path -LiteralPath (Join-Path $solidWork $_) -PathType Leaf)
+        })
+        if ($missingFixtureFiles.Count -gt 0) {
+            throw 'Retained SOLID fixture configuration is incomplete; no build or native test started.'
+        }
         foreach($solidProjectRelative in @(
             'Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.csproj',
             'Providers/Network/NextGenSoftware.OASIS.API.Providers.SOLIDOASIS/NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.csproj',
@@ -31,17 +37,13 @@ if(Test-Path -LiteralPath $solidTrx){throw 'Preserve previous SOLID native repor
         foreach($solidAssembly in @('NextGenSoftware.OASIS.API.Providers.SOLIDOASIS','NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.IntegrationTests')){
             Write-Output ($solidAssembly+': sources='+(Assert-SourceDocuments (Join-Path $solidConsumerOutput ($solidAssembly+'.dll')) $solidTaskRoot))
         }
-        $solidConfigured=@('storage-key.dpapi','private-local-client.dpapi','private-local-pod.dpapi').Where({!(Test-Path -LiteralPath (Join-Path $solidWork $_))}).Count -eq 0
-        if($solidConfigured){
-            $solidRaw=(& wsl -d Ubuntu -u root -- podman inspect oasis-solid)-join "`n"
-            if($LASTEXITCODE){throw 'Retained SOLID container unavailable.'}
-            $solidContainer=($solidRaw|ConvertFrom-Json)[0]
-            if($solidContainer.Image -ne '58bee7c3f6a20498d72eb6f8334ba84299b6df2c8fca119ce805fe8614512d7a' -or $solidContainer.State.Status -ne 'exited'){throw 'Exact stopped retained SOLID runtime required.'}
-            & wsl -d Ubuntu -u root -- podman start oasis-solid | Out-Null
-            if($LASTEXITCODE){throw 'Retained SOLID start failed.'};$solidStarted=$true
-            $null=& (Join-Path $solidTaskRoot 'Scripts/TestHosts/Wait-ReusableSolidListener.ps1')
-        }
-        # Missing original credentials are recorded as configuration failures before HTTP/storage.
+        $solidRaw=(& wsl -d Ubuntu -u root -- podman inspect oasis-solid)-join "`n"
+        if($LASTEXITCODE){throw 'Retained SOLID container unavailable.'}
+        $solidContainer=($solidRaw|ConvertFrom-Json)[0]
+        if($solidContainer.Image -ne '58bee7c3f6a20498d72eb6f8334ba84299b6df2c8fca119ce805fe8614512d7a' -or $solidContainer.State.Status -ne 'exited'){throw 'Exact stopped retained SOLID runtime required.'}
+        & wsl -d Ubuntu -u root -- podman start oasis-solid | Out-Null
+        if($LASTEXITCODE){throw 'Retained SOLID start failed.'};$solidStarted=$true
+        $null=& (Join-Path $solidTaskRoot 'Scripts/TestHosts/Wait-ReusableSolidListener.ps1')
         & dotnet test $solidProject --no-build --no-restore /p:IncludeCoreStorageConformance=true --filter 'FullyQualifiedName~SolidCoreStorageConformanceTests' --logger 'trx;LogFileName=solid-core-current.trx' --results-directory (Split-Path $solidTrx) -v:q
         $solidTestExit=$LASTEXITCODE
         & python -B (Join-Path $PSScriptRoot 'record_conformance_results.py') --providers SOLIDOASIS
