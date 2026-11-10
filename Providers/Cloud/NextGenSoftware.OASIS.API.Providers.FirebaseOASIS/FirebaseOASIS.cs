@@ -372,9 +372,14 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
             var result = new OASISResult<IAvatarDetail>();
             try
             {
-                if (avatarDetail.Id == Guid.Empty) avatarDetail.Id = Guid.NewGuid();
-                await PutAsync($"/oasis_avatar_details/{avatarDetail.Id}", avatarDetail);
-                result.Result = avatarDetail; result.IsError = false; result.Message = "FirebaseOASIS: AvatarDetail saved.";
+                ArgumentNullException.ThrowIfNull(avatarDetail);
+                var id = avatarDetail.Id == Guid.Empty ? Guid.NewGuid() : avatarDetail.Id;
+                var projection = JsonSerializer.SerializeToNode(avatarDetail, avatarDetail.GetType(), _jsonOpts)!.AsObject();
+                projection["id"] = id;
+                NativeProjection(projection);
+                await PutAsync($"/oasis_avatar_details/{id:D}", projection);
+                avatarDetail.Id = id;
+                result.Result = avatarDetail; result.IsSaved = true; result.SavedCount = 1; result.Message = "FirebaseOASIS: AvatarDetail saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: Error saving avatar detail: {ex.Message}"); }
             return result;
@@ -389,7 +394,7 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
             {
                 var detail = await GetAsync<AvatarDetail>($"/oasis_avatar_details/{id}");
                 if (detail == null) { OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: No avatar detail found for ID '{id}'."); return result; }
-                result.Result = detail; result.IsError = false; result.Message = $"FirebaseOASIS: AvatarDetail loaded for ID '{id}'.";
+                result.Result = detail; result.IsLoaded = true; result.LoadedCount = 1; result.Message = $"FirebaseOASIS: AvatarDetail loaded for ID '{id}'.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: Error loading avatar detail for '{id}': {ex.Message}"); }
             return result;
@@ -405,7 +410,7 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
                 var details = await QueryByFieldAsync<AvatarDetail>("oasis_avatar_details", "username", username);
                 var detail = details.FirstOrDefault();
                 if (detail == null) { OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: No avatar detail found for username '{username}'."); return result; }
-                result.Result = detail; result.IsError = false; result.Message = $"FirebaseOASIS: AvatarDetail loaded for username '{username}'.";
+                result.Result = detail; result.IsLoaded = true; result.LoadedCount = 1; result.Message = $"FirebaseOASIS: AvatarDetail loaded for username '{username}'.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: Error loading avatar detail by username '{username}': {ex.Message}"); }
             return result;
@@ -421,7 +426,7 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
                 var details = await QueryByFieldAsync<AvatarDetail>("oasis_avatar_details", "email", email);
                 var detail = details.FirstOrDefault();
                 if (detail == null) { OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: No avatar detail found for email '{email}'."); return result; }
-                result.Result = detail; result.IsError = false; result.Message = $"FirebaseOASIS: AvatarDetail loaded for email '{email}'.";
+                result.Result = detail; result.IsLoaded = true; result.LoadedCount = 1; result.Message = $"FirebaseOASIS: AvatarDetail loaded for email '{email}'.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: Error loading avatar detail by email '{email}': {ex.Message}"); }
             return result;
@@ -435,7 +440,7 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
             try
             {
                 var all = await GetAllAsync<AvatarDetail>("oasis_avatar_details");
-                result.Result = all.Cast<IAvatarDetail>().ToList(); result.IsError = false;
+                result.Result = all.Cast<IAvatarDetail>().ToList(); result.IsLoaded = true; result.LoadedCount = all.Count;
                 result.Message = $"FirebaseOASIS: Loaded {all.Count} avatar detail(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: Error loading all avatar details: {ex.Message}"); }
