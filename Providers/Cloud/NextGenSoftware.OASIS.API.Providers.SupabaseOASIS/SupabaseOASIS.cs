@@ -739,8 +739,16 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0)
         {
-            var a = await LoadAvatarByUsernameAsync(avatarUsername);
-            if (a.IsError || a.Result == null) { var r = new OASISResult<IEnumerable<IHolon>>(); OASISErrorHandling.HandleError(ref r, $"SupabaseOASIS: Avatar '{avatarUsername}' not found."); return r; }
+            var a = await LoadAvatarByUsernameAsync(avatarUsername, version);
+            if (a.IsError)
+                return new OASISResult<IEnumerable<IHolon>>
+                {
+                    IsError = true,
+                    ErrorCount = a.ErrorCount,
+                    ErrorCode = a.ErrorCode,
+                    Exception = a.Exception,
+                    Message = a.Message
+                };
             return await ExportAllDataForAvatarByIdAsync(a.Result.Id, version);
         }
 
@@ -748,8 +756,16 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0)
         {
-            var a = await LoadAvatarByEmailAsync(avatarEmailAddress);
-            if (a.IsError || a.Result == null) { var r = new OASISResult<IEnumerable<IHolon>>(); OASISErrorHandling.HandleError(ref r, $"SupabaseOASIS: Avatar with email '{avatarEmailAddress}' not found."); return r; }
+            var a = await LoadAvatarByEmailAsync(avatarEmailAddress, version);
+            if (a.IsError)
+                return new OASISResult<IEnumerable<IHolon>>
+                {
+                    IsError = true,
+                    ErrorCount = a.ErrorCount,
+                    ErrorCode = a.ErrorCode,
+                    Exception = a.Exception,
+                    Message = a.Message
+                };
             return await ExportAllDataForAvatarByIdAsync(a.Result.Id, version);
         }
 
