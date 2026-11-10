@@ -119,3 +119,7 @@ The guarded Polkadot runner requires the existing TestResults/PolkadotCurrent en
 ### Cosmos SDK restore and retained node
 
 The broken dependency link was absent in this worktree. A lockfile restore installed 32 packages and ran the repository postinstall. Node 24 loaded both pinned CosmJS 0.39.0 clients. The retained runner requires Ubuntu under WSL. This host has no installed distributions. Native dispatch, contract state and cleanup were not exercised.
+
+### Polygon and Arbitrum lifecycle preflight
+
+The revised EVM runner stops before the build when the retained loopback RPC setting is missing and selects only the shared lifecycle cases. No listener was found on the checked local EVM ports 8545, 8546, or 18545. The existing owner decision on the lost original EVM authority stays open. Do not treat a newly initialized chain as recovery of the old ledger.
