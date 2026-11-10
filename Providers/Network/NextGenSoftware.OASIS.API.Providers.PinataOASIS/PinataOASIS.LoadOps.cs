@@ -472,6 +472,9 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
             var result = new OASISResult<bool>();
             try
             {
+                if (softDelete)
+                    throw new NotSupportedException("Pinata cannot soft-delete an avatar. Explicit hard deletion is required to unpin its content.");
+
                 await EnsureActivatedForPinataAsync(result);
                 if (result.IsError) return result;
 
