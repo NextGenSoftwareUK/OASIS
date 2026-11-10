@@ -79,19 +79,23 @@ namespace NextGenSoftware.OASIS.API.Providers.TypesenseOASIS
 
         private async Task<List<T>> SearchAllAsync<T>(string collection)
         {
-            var resp = await _http.GetAsync($"{_host}/collections/{collection}/documents/search?q=*&query_by=id&per_page=250");
-            if (!resp.IsSuccessStatusCode) return new List<T>();
-            var json = await resp.Content.ReadAsStringAsync();
-            using var doc = JsonDocument.Parse(json);
-            if (!doc.RootElement.TryGetProperty("hits", out var hits)) return new List<T>();
-            var list = new List<T>();
-            foreach (var hit in hits.EnumerateArray())
+            using var response = await _http.GetAsync(
+                $"{_host}/collections/{collection}/documents/export", HttpCompletionOption.ResponseHeadersRead);
+            response.EnsureSuccessStatusCode();
+            await using var stream = await response.Content.ReadAsStreamAsync();
+            using var reader = new System.IO.StreamReader(stream);
+            var documents = new List<T>();
+            while (await reader.ReadLineAsync() is { } line)
             {
-                if (!hit.TryGetProperty("document", out var d)) continue;
-                var item = JsonSerializer.Deserialize<T>(d.GetRawText(), _jsonOpts);
-                if (item != null) list.Add(item);
+                if (string.IsNullOrWhiteSpace(line))
+                    continue;
+                var document = JsonSerializer.Deserialize<T>(line, _jsonOpts);
+                if (document is null)
+                    throw new JsonException("Typesense exported a null document.");
+                documents.Add(document);
             }
-            return list;
+
+            return documents;
         }
 
         private async Task<List<T>> SearchByFieldAsync<T>(string collection, string field, string value)
