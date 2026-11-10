@@ -148,3 +148,7 @@ The Google Maps facade now rejects unexecuted operations and builds. Its legacy 
 ### Convex companion package verification
 
 A local Debug NuGet pack from existing build output contained all seven declared companion files, including the schema and record functions. The temporary package was removed after inspection. The hosted activation check compiled and skipped without the dedicated HTTPS deployment. Hosted IAM and the hosted lifecycle remain open.
+
+### SQLite provider and Edge state store
+
+SQLLiteDBOASIS retains its 52/52 native shared storage result through Microsoft.Data.Sqlite. The separately named EdgeSQLiteOASIS package contains EdgeSQLiteSyncStateStore and a synchronization journal. It is a runtime dependency rather than a second IOASISStorageProvider entry point. Its eventual verification belongs to the Edge runtime and synchronization paths. Do not rerun the canonical SQLite baseline to qualify that separate package.
