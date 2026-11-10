@@ -256,7 +256,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
             }
             catch (Exception e)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error uploading JSON to Pinata. Reason: {e}");
+                OASISErrorHandling.HandleError(ref result, $"Error uploading JSON to Pinata. Reason: {e.Message}", e);
             }
 
             return result;
@@ -608,7 +608,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
                 
                 if (uploadResult.IsError || string.IsNullOrEmpty(uploadResult.Result))
                 {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to save avatar to Pinata. Reason: {uploadResult.Message}");
+                    OASISErrorHandling.HandleError(ref result, $"Failed to save avatar to Pinata. Reason: {uploadResult.Message}", uploadResult.Exception);
                     return result;
                 }
 

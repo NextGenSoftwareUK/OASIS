@@ -40,7 +40,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
                 
                 if (uploadResult.IsError || string.IsNullOrEmpty(uploadResult.Result))
                 {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to save avatar detail to Pinata. Reason: {uploadResult.Message}");
+                    OASISErrorHandling.HandleError(ref result, $"Failed to save avatar detail to Pinata. Reason: {uploadResult.Message}", uploadResult.Exception);
                     return result;
                 }
 
@@ -81,7 +81,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
                 
                 if (uploadResult.IsError || string.IsNullOrEmpty(uploadResult.Result))
                 {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to save holon to Pinata. Reason: {uploadResult.Message}");
+                    OASISErrorHandling.HandleError(ref result, $"Failed to save holon to Pinata. Reason: {uploadResult.Message}", uploadResult.Exception);
                     return result;
                 }
 
