@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -87,6 +88,7 @@ public sealed class CqlHostedSources : BackgroundService
         // even if an adapter retained IsProviderActivated from an earlier attempt.
         verified.TryRemove(provider, out _);
         failures[provider] = "CQL_SOURCE_NOT_READY";
+        var started = Stopwatch.GetTimestamp();
         try
         {
             await registry.ActivateReadSourceAsync(provider, token);
@@ -101,7 +103,8 @@ public sealed class CqlHostedSources : BackgroundService
         {
             verified.TryRemove(provider, out _);
             failures[provider] = "CQL_SOURCE_UNAVAILABLE";
-            CqlNativeFailureDiagnostics.Record(logger, provider, true, cause);
+            CqlNativeFailureDiagnostics.Record(logger, provider, true, cause,
+                (long)Stopwatch.GetElapsedTime(started).TotalMilliseconds);
             return cause is OperationCanceledException && token.IsCancellationRequested
                 ? "CQL_SOURCE_RECOVERY_CANCELLED" : "CQL_SOURCE_UNAVAILABLE";
         }
