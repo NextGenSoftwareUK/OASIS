@@ -542,37 +542,13 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
                 }
 
                 var searchResults = new SearchResults();
-                var foundHolons = new List<IHolon>();
+                var inventory = await LoadAllHolonsAsync(continueOnError: continueOnError, version: version).ConfigureAwait(false);
+                if (inventory.IsError)
+                    return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>, ISearchResults>(inventory);
 
-                // Real Pinata implementation: Search through Pinata files using metadata
-                var files = await _pinataService.GetFilesAsync();
-                
-                foreach (var file in files)
-                {
-                    try
-                    {
-                        // Real Pinata implementation: Download and parse the file content
-                        var content = await _pinataService.GetFileContentAsync(file.IpfsPinHash);
-                        var holon = JsonConvert.DeserializeObject<Holon>(content);
-                        
-                        if (holon != null && MatchesSearchCriteria(holon, searchParams))
-                        {
-                            foundHolons.Add(holon);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        if (continueOnError)
-                        {
-                            LoggingManager.Log($"Error processing Pinata file: {ex.Message}", NextGenSoftware.Logging.LogType.Warning);
-                            continue;
-                        }
-                        else
-                        {
-                            throw;
-                        }
-                    }
-                }
+                result.IsWarning = inventory.IsWarning;
+                result.WarningCount = inventory.WarningCount;
+                var foundHolons = inventory.Result.Where(holon => MatchesSearchCriteria(holon, searchParams)).ToList();
 
                 searchResults.SearchResultHolons = foundHolons.ToList();
                 result.Result = searchResults;
