@@ -41,10 +41,13 @@ public class ConvexOASISIntegrationTests
 
         var id = Guid.NewGuid();
         var holon = new Holon { Id = id, Name = $"convex-hosted-{id:N}" };
+        Console.WriteLine($"Convex hosted fixture ID: {id:D}");
+        var acknowledged = false;
         try
         {
             var saved = await provider.SaveHolonAsync(holon, saveChildren: false);
             Assert.IsTrue(saved.IsSaved, saved.Exception?.GetType().FullName);
+            acknowledged = true;
             using var reader = new ConvexOASIS(deployment!, deployKey!);
             var readerActivation = await reader.ActivateProviderAsync();
             Assert.IsTrue(readerActivation.Result, readerActivation.Exception?.GetType().FullName);
@@ -55,13 +58,16 @@ public class ConvexOASISIntegrationTests
         }
         finally
         {
-            var removed = await provider.DeleteHolonSoftAsync(id, softDelete: false);
-            Assert.IsTrue(removed.Result || removed.ErrorCode == OASISResultErrorCodes.RecordNotFound,
-                removed.Exception?.GetType().FullName);
-            var absent = await provider.LoadHolonAsync(id, loadChildren: false);
-            Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, absent.ErrorCode);
-            Assert.IsFalse(absent.IsLoaded);
-            Assert.IsNull(absent.Result);
+            if (acknowledged)
+            {
+                var removed = await provider.DeleteHolonSoftAsync(id, softDelete: false);
+                Assert.IsTrue(removed.Result || removed.ErrorCode == OASISResultErrorCodes.RecordNotFound,
+                    removed.Exception?.GetType().FullName);
+                var absent = await provider.LoadHolonAsync(id, loadChildren: false);
+                Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, absent.ErrorCode);
+                Assert.IsFalse(absent.IsLoaded);
+                Assert.IsNull(absent.Result);
+            }
         }
     }
 }
