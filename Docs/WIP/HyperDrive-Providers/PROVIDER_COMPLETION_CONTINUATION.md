@@ -347,3 +347,5 @@ SQLite passed six additional native wallet corruption cases. The shipping wallet
 The six focused SQLite wallet runs total 39 passed checks. Their scope is native persistence, migration, rollback, ownership, selectors and error propagation. The provider wallet store serializes the caller-supplied wallet payload, and the profile fixture uses synthetic key strings. These results do not establish at-rest encryption through the production key-management path.
 
 SQL Server LocalDB passed SynchronousHolonReadsHonorChildDepth. The synchronous point read hydrated the full three-level graph, and the synchronous collection honored depth one with a one-connection pool. The async-only case was excluded. Fixtures were hard-deleted and LocalDB stopped. This test uses the ordinary test execution context.
+
+SQL Server synchronous point and all-holon graph reads passed on LocalDB from a non-pumping synchronization context, with a 15-second bound and Max Pool Size=1. The changed graph read paths avoid context capture. Fixtures were hard-deleted and LocalDB stopped.
