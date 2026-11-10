@@ -1,10 +1,11 @@
 #Requires -Version 7.0
 [CmdletBinding()]
-param([string]$Region, [string]$BucketName, [string]$ProfileName, [switch]$ApproveCloudRequests,
+param([string]$Region, [string]$BucketName, [string]$ProfileName, [string]$ExpectedBucketOwner, [switch]$ApproveCloudRequests,
     [switch]$RecordLifecycle, [string]$StorageEncryptionKeyEnvironmentVariable)
 $ErrorActionPreference = 'Stop'
 if (!$ApproveCloudRequests) { throw 'Explicit approval for potentially billable isolated test-bucket requests is required.' }
 if ([string]::IsNullOrWhiteSpace($Region) -or [string]::IsNullOrWhiteSpace($BucketName)) { throw 'An existing test bucket and explicit AWS region are required.' }
+if ($ExpectedBucketOwner -notmatch '\A[0-9]{12}\z') { throw 'Supply the approved bucket owner AWS account ID.' }
 if ($RecordLifecycle -and [string]::IsNullOrWhiteSpace($StorageEncryptionKeyEnvironmentVariable)) {
     throw 'Record lifecycle requires the NAME of the separately configured persisted storage-key environment variable, never its value.'
 }
@@ -43,6 +44,13 @@ $evidenceStem = if ($RecordLifecycle) { 's3-live-records' } else { 's3-live-tran
         $client = [Amazon.S3.AmazonS3Client]::new($credentials, $config)
     }
     try {
+        $probe = [Amazon.S3.Model.ListObjectsV2Request]::new()
+        $probe.BucketName = $BucketName
+        $probe.ExpectedBucketOwner = $ExpectedBucketOwner
+        $probe.Prefix = if ($RecordLifecycle) { 'oasis-provider-acceptance/' } else { 'oasis-acceptance/' }
+        $probe.MaxKeys = 1
+        $listing = $client.ListObjectsV2Async($probe, [Threading.CancellationToken]::None).GetAwaiter().GetResult()
+        if ($listing.IsTruncated -or $listing.KeyCount -ne 0) { throw 'The approved acceptance prefix must be empty.' }
         if ($RecordLifecycle) {
             [NextGenSoftware.OASIS.API.Providers.AWSOASIS.UnitTests.AwsS3LiveProviderAcceptance]::RunAsync(
                 $client, $Region, $BucketName, $StorageEncryptionKeyEnvironmentVariable, $work).GetAwaiter().GetResult()
