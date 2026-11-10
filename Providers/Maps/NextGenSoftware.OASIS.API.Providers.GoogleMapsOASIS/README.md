@@ -1,18 +1,6 @@
 # GoogleMapsOASIS
 
-Google Maps Platform - mapping geolocation and places APIs.
-
-Part of the [OASIS HOT-Swappable Provider Architecture](https://oasisomniverse.one).
-
-## Usage
-
-Register in your `OASIS_DNA.json`:
-
-```json
-{
-  "DefaultProviders": ["GoogleMapsOASIS"]
-}
-```
+The package exposes the legacy OASIS map interface. Native Google Maps rendering and route execution still require a client integration. Map operations currently return failure.
 
 ## Links
 
