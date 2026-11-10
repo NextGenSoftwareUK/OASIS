@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -494,29 +494,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
         }
 
         public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true)
-        {
-            if (id == null)
-                throw new ArgumentNullException(nameof(id));
-
-            var result = new OASISResult<bool>();
-            try
-            {
-                if (softDelete)
-                    _avatarRepository.DeleteSoft(id).Wait();
-                else
-                    _avatarRepository.DeleteHard(id).Wait();
-
-                result.Result = true;
-                result.IsSaved = true;
-                result.IsError = false;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, GetEOSExceptionDetails(ex));
-            }
-
-            return result;
-        }
+            => DeleteAvatarAsync(id, softDelete).GetAwaiter().GetResult();
 
         public override OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true)
         {
@@ -542,7 +520,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                     await _avatarRepository.DeleteHard(id);
 
                 result.Result = true;
-                result.IsSaved = true;
+                result.IsDeleted = true;
+                result.DeletedCount = 1;
                 result.IsError = false;
             }
             catch (Exception ex)

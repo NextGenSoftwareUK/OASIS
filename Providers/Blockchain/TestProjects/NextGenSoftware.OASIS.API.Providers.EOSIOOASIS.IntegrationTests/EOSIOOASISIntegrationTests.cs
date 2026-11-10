@@ -54,6 +54,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.IntegrationTests
             Assert.AreEqual("Updated", loaded.Result.FirstName);
 
             var deleted = await _provider.DeleteAvatarAsync(avatar.Id, false);
+            Assert.IsTrue(deleted.IsDeleted, deleted.Message);
+            Assert.AreEqual(1, deleted.DeletedCount);
             Assert.IsFalse(deleted.IsError, deleted.Message);
         }
 

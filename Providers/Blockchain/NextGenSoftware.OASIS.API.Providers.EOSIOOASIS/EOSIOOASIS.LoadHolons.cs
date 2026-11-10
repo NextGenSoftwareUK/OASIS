@@ -81,6 +81,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                         return result;
                     }
                     result.Result = deleteResult.Result;
+                    result.IsDeleted = deleteResult.IsDeleted;
+                    result.DeletedCount = deleteResult.DeletedCount;
                     result.IsError = false;
                     result.Message = "Avatar deleted successfully by email from EOSIO";
                 }
@@ -129,6 +131,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                         return result;
                     }
                     result.Result = deleteResult.Result;
+                    result.IsDeleted = deleteResult.IsDeleted;
+                    result.DeletedCount = deleteResult.DeletedCount;
                     result.IsError = false;
                     result.Message = "Avatar deleted successfully by username from EOSIO";
                 }
@@ -181,6 +185,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                         return result;
                     }
                     result.Result = deleteResult.Result;
+                    result.IsDeleted = deleteResult.IsDeleted;
+                    result.DeletedCount = deleteResult.DeletedCount;
                     result.IsError = false;
                     result.Message = "Avatar deleted successfully by provider key from EOSIO";
                 }
