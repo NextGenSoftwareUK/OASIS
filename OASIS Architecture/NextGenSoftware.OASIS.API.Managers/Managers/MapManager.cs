@@ -32,8 +32,10 @@ namespace NextGenSoftware.OASIS.API.Managers
         #region Provider Management
         public void SetCurrentMapProvider(MapProviderType mapProviderType)
         {
+            if (CurrentMapProvider?.MapProviderType != mapProviderType)
+                CurrentMapProvider = null;
+
             CurrentMapProviderType = mapProviderType;
-            // TODO: Create provider instance based on type
         }
 
         public void SetCurrentMapProvider(IOASISMapProvider mapProvider)
