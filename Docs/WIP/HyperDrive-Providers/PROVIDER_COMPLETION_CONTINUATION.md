@@ -383,3 +383,5 @@ Development Garnet CI job 129973616053 (run 42857272015) failed three COSMIC cas
 IPFS smoke integration now requires explicit IPFSOASIS_TEST_API before provider activation. Project build passed with 0 errors and 1120 warnings. Retained native storage evidence was not replayed; restart and concurrent lifecycle remain open.
 
 IPFS focused sync/async activation and deactivation cases compiled with 0 errors and 1118 warnings. Automatic approval review blocked starting the isolated Kubo daemon, so live verification remains open.
+
+Convex hosted integration harness compiled after mock-factory removal (0 errors, 1120 warnings) against Core 59595871. Shipping Convex sources match Development. Hosted execution remains gated on protected deployment configuration.
