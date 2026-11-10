@@ -360,8 +360,16 @@ namespace NextGenSoftware.OASIS.API.Providers.TypesenseOASIS
             try
             {
                 var h = await GetDocAsync<Holon>(ColHolons, id.ToString());
-                if (h == null || h.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"TypesenseOASIS: No holon for ID '{id}'."); return result; }
-                result.Result = h; result.IsError = false; result.Message = "TypesenseOASIS: Holon loaded.";
+                if (h == null || h.IsDeleted)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"TypesenseOASIS: No holon for ID '{id}'.");
+                    result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
+                    return result;
+                }
+
+                result.Result = h;
+                result.IsLoaded = true;
+                result.LoadedCount = 1;
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"TypesenseOASIS: {ex.Message}"); }
             return result;
