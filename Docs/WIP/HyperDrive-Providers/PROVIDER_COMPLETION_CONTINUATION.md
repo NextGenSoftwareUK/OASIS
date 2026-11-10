@@ -381,3 +381,5 @@ Solana native runner preflight: the conformance test admits only the retained lo
 Development Garnet CI job 129973616053 (run 42857272015) failed three COSMIC cases that expect retained Linux Garnet and Mongo replica state, with nine skips and no storage case executed. The single-backend matrix row supplies GARNET_CONN but no lifecycle report root. Keep this CI failure separate from the passing Windows split lifecycle receipts. Coordinate the COSMIC fixture admission and choose a new storage coverage case before enabling native CI.
 
 IPFS smoke integration now requires explicit IPFSOASIS_TEST_API before provider activation. Project build passed with 0 errors and 1120 warnings. Retained native storage evidence was not replayed; restart and concurrent lifecycle remain open.
+
+IPFS focused sync/async activation and deactivation cases compiled with 0 errors and 1118 warnings. Automatic approval review blocked starting the isolated Kubo daemon, so live verification remains open.
