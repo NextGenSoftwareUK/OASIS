@@ -25,6 +25,7 @@
     <Compile Include="..\NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.IntegrationTests\PolkadotLocalHistoryTests.cs" Condition="'$(IncludePolkadotLocalNativeTests)' == 'true'" />
     <Compile Include="..\NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.IntegrationTests\PolkadotRecordBackendNativeTests.cs" Condition="'$(IncludePolkadotRecordNativeTests)' == 'true'" />
     <Compile Include="..\NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.IntegrationTests\PolkadotPublicStorageNativeTests.cs" Condition="'$(IncludePolkadotRecordNativeTests)' == 'true'" />
+    <Compile Include="../../../Shared/TestSupport/CoreStorageConformance.cs" Link="TestSupport/CoreStorageConformance.cs" Condition="'$(IncludePolkadotRecordNativeTests)' == 'true'" />
     <Compile Include="..\NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.IntegrationTests\PolkadotNftPublicReadNativeTests.cs" Condition="'$(IncludePolkadotRecordNativeTests)' == 'true'" />
     <Compile Include="..\NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.IntegrationTests\PolkadotNftPublicMutationNativeTests.cs" Condition="'$(IncludePolkadotRecordNativeTests)' == 'true'" />
     <Compile Include="..\NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.IntegrationTests\PolkadotNftCustodyNativeTests.cs" Condition="'$(IncludePolkadotRecordNativeTests)' == 'true'" />
