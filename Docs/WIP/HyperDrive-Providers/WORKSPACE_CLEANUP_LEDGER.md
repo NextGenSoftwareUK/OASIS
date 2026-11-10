@@ -82,3 +82,5 @@ EdgeSQLite focused file-backed cohort: all eight checks exited. Fixture disposal
 10 November SQLite child-role checks: fixture database, sidecars and intents confirmed absent. No raw reports. Leased project clean reduced private outputs from 98204456 B to 917773 B.
 
 10 November SQLite child-role rollback: fixture database, sidecars and intents absent after teardown. No raw report. Leased clean reduced private outputs from 98204456 B to 917773 B.
+
+10 November IPFS fixture guard compile: no backend or raw report. Leased project clean removed generated test outputs while retaining reference outputs and restore metadata.
