@@ -11,15 +11,26 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.IntegrationTests;
 public class PolkadotPublicStorageNativeTests
 {
     [TestMethod][TestCategory("LocalNative")]
-    public async Task CanonicalPublicAvatarDetailAndHolonUseEncryptedNativeStorage()
+    public Task CanonicalPublicAvatarDetailAndHolonUseEncryptedNativeStorage() => RunNativeStorageAsync(false);
+
+    [TestMethod][TestCategory("LocalNative")]
+    public async Task NativeGraphAndParentQuery()
+    {
+        if (Environment.GetEnvironmentVariable("OASIS_POLKADOT_NATIVE_GRAPH") != "1")
+            Assert.Inconclusive("Explicitly admit the isolated Polkadot graph fixture.");
+        await RunNativeStorageAsync(true);
+    }
+
+    private async Task RunNativeStorageAsync(bool graph)
     {
         Assert.AreEqual("1",Environment.GetEnvironmentVariable("OASIS_POLKADOT_LOCAL_NATIVE"));
         var directory=Environment.GetEnvironmentVariable("OASIS_POLKADOT_RECORD_EVIDENCE")!;
         var bridge=Environment.GetEnvironmentVariable("OASIS_POLKADOT_SDK_BRIDGE")!;
         var expected=Path.GetFullPath(Path.Combine(Path.GetDirectoryName(bridge)!,"../../../../Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot"));
         Assert.AreEqual(expected,Path.GetFullPath(directory));
-        var pending=Path.Combine(directory,"public-storage-pending.jsonl");
-        var completed=Path.Combine(directory,"public-storage.completed.json");
+        var prefix = graph ? "native-graph" : "public-storage";
+        var pending=Path.Combine(directory,prefix+"-pending.jsonl");
+        var completed=Path.Combine(directory,prefix+".completed.json");
         var recoveringCompleted=File.Exists(completed);
         if(Environment.GetEnvironmentVariable("OASIS_POLKADOT_RECORD_RECOVERY")=="1")
             Assert.IsTrue(recoveringCompleted,"Read-only recovery must never enter the write branch.");
@@ -39,6 +50,8 @@ public class PolkadotPublicStorageNativeTests
         var originals=new List<JsonElement>();var receipts=new List<JsonElement>();
         var avatarId=Guid.Parse("8d64c2fa-e612-4338-b95a-ae150111cca1");
         var holonId=Guid.Parse("8d64c2fa-e612-4338-b95a-ae150111cca2");
+        var parentId = Guid.Parse("5ecade3b-d301-4915-9433-49882957e1ad");
+        var childId = Guid.Parse("2239fa5c-8059-4b23-8662-e87d099561d8");
         const string username="polkadot-canonical-native-v1";
         const string email="polkadot-canonical-native-v1@example.invalid";
         static T Confirm<T>(OASISResult<T> result) {
@@ -52,6 +65,23 @@ public class PolkadotPublicStorageNativeTests
             Assert.AreEqual(0,(await raw.ListKeysAsync("")).Count,"Existing untracked cells must be preserved.");
             using var deadline=new CancellationTokenSource(TimeSpan.FromMinutes(10));
             await provider.WithRecordStoragePreparationAsync(async()=>{
+                if (graph)
+                {
+                    var parent = new Holon { Id = parentId, Name = "native graph parent" };
+                    var child = new Holon { Id = childId, Name = "native graph child" };
+                    parent.Children.Add(child);
+                    var graphSaved = await provider.SaveHolonAsync(parent, continueOnError: false);
+                    Assert.IsFalse(graphSaved.IsError, graphSaved.Message);
+                    Assert.IsTrue(graphSaved.IsSaved);
+                    Assert.AreEqual(2, graphSaved.SavedCount);
+                    var children = await provider.LoadHolonsForParentAsync(parent.Id, loadChildren: false);
+                    Assert.IsFalse(children.IsError, children.Message);
+                    Assert.AreEqual(1, children.LoadedCount);
+                    CollectionAssert.AreEqual(new[] { child.Id }, children.Result.Select(row => row.Id).ToArray());
+                    Confirm(await provider.DeleteHolonAsync(child.Id));
+                    Confirm(await provider.DeleteHolonAsync(parent.Id));
+                    return true;
+                }
                 var avatar=new Avatar{Id=avatarId,Username=username,Email=email,FirstName="Synthetic native avatar"};
                 var saved=Confirm(await provider.SaveAvatarAsync(avatar));
                 Assert.AreEqual(avatarId,saved.Id);
@@ -97,11 +127,13 @@ public class PolkadotPublicStorageNativeTests
             Assert.IsTrue(receipt.GetProperty("dispatchSucceeded").GetBoolean());
             Assert.IsTrue(receipt.GetProperty("recordEffectMatchesRequest").GetBoolean());receipts.Add(receipt.Clone());
         }
-        Assert.IsTrue(originals.Count>=10,"Canonical avatar/detail/holon lifecycle must acknowledge all physical cells.");
+        Assert.IsTrue(originals.Count >= (graph ? 4 : 10), "The lifecycle must acknowledge its physical cells.");
         Assert.AreEqual(0,(await raw.ListKeysAsync("")).Count);
-        Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,(await provider.LoadAvatarAsync(avatarId)).ErrorCode);
+        if (!graph) Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,(await provider.LoadAvatarAsync(avatarId)).ErrorCode);
         if(!recoveringCompleted) {
-            var bytes=JsonSerializer.SerializeToUtf8Bytes(new{avatarId,holonId,originals,receipts});
+            var bytes = graph
+                ? JsonSerializer.SerializeToUtf8Bytes(new { parentId, childId, originals, receipts })
+                : JsonSerializer.SerializeToUtf8Bytes(new { avatarId, holonId, originals, receipts });
             using(var output=new FileStream(completed,FileMode.CreateNew,FileAccess.Write,FileShare.None)){output.Write(bytes);output.Flush(flushToDisk:true);}
         }
         if(File.Exists(pending)) {
