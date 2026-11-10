@@ -178,3 +178,5 @@ All114 client tests passed. Public HTML HTTP200/241209bytes matches the
 exact commit, SHA256
 `6f7bdcb4539ff934085ad2c52b9ec7860b9f6c46b73a41b2f54bf54aabd802d3`.
 This is publication proof; functional browser verification remains open.
+
+10 November live Development browser acceptance: the retained demo visitor rendered 3 GUNOASIS public teaching rows (Latte, Espresso, Tea) and 2 subset rows (Latte, Espresso). Existing private HTTP/replica evidence remains separate. No avatar creation, private preparation, screenshot file, build or download.
