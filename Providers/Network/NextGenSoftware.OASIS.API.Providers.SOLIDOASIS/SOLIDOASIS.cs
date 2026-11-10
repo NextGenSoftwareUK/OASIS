@@ -82,7 +82,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
                     return result;
                 }
                 using var response = await _httpClient.GetAsync($"{_podServerUrl}/",
-                    HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+                    HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
                 response.EnsureSuccessStatusCode();
                 cancellationToken.ThrowIfCancellationRequested();
                 if (response.IsSuccessStatusCode)
@@ -102,7 +102,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
             return result;
         }
 
-        public override OASISResult<bool> ActivateProvider() => ActivateProviderAsync().Result;
+        public override OASISResult<bool> ActivateProvider() => ActivateProviderAsync().GetAwaiter().GetResult();
 
         public override async Task<OASISResult<bool>> DeActivateProviderAsync()
         {
