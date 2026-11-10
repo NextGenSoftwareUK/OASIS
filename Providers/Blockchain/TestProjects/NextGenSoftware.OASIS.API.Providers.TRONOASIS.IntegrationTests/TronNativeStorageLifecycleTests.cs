@@ -25,7 +25,10 @@ public class TronNativeStorageLifecycleTests
             FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
         var path = Path.Combine(root, synchronous ? "sync.json" : "async.json");
         var pending = path + ".pending";
-        Assert.False(File.Exists(path) || File.Exists(pending), "Preserve original fixture evidence.");
+        Assert.False(File.Exists(path), "Preserve original fixture evidence.");
+        Assert.False(File.Exists(Path.Combine(root, "sync.json.pending")) ||
+            File.Exists(Path.Combine(root, "async.json.pending")),
+            "Reconcile interrupted fixture evidence before starting either lifecycle mode.");
 
         async Task Checkpoint(CoreStorageConformance.Report report)
         {
