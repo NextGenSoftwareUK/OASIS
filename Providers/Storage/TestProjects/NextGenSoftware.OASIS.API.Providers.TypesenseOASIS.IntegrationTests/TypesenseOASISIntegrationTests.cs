@@ -84,6 +84,10 @@ namespace NextGenSoftware.OASIS.API.Providers.TypesenseOASIS.IntegrationTests
             {
                 var removed = await _provider.DeleteHolonSoftAsync(holon.Id, softDelete: false);
                 Assert.IsTrue(removed.IsDeleted, removed.Message);
+                var repeated = await _provider.DeleteHolonSoftAsync(holon.Id, softDelete: false);
+                Assert.IsTrue(repeated.IsError, "A second native hard delete must reject the absent fixture.");
+                Assert.IsFalse(repeated.IsDeleted);
+                Assert.AreEqual(0, repeated.DeletedCount);
             }
         }
 
