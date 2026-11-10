@@ -329,3 +329,5 @@ The exact Development candidate 0a9956d049, including the LocalDB-verified graph
 SQL Server LocalDB verified full export still returns flat parent and child records with their parent IDs intact after collection graph hydration was introduced. The focused graph fixture was removed and LocalDB stopped.
 
 SQL Server LocalDB passed graph hydration with Max Pool Size=1 and Connect Timeout=5. Parent and all-holon lists, search, and both metadata overloads released the initial connection before reading descendants. Fixtures were hard-deleted and LocalDB stopped.
+
+IPFS delayed client publication (736c2fda51) built with zero errors. The retained runner expects Kubo 0.43.1 and its original private repository. Neither was found at the configured default location on this host, and port 5001 had no listener. Carry forward the original lifecycle evidence and use the existing IPFS owner entry for fixture access. No daemon was started.
