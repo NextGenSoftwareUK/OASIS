@@ -60,3 +60,13 @@ David requested two to three scoped, verified integration batches per day. Fetch
 - Reuse existing passing native evidence for unchanged scope. Run tests for missing coverage and changes requiring proof. Do not repeat accepted suites as a routine step.
 - Retire owned disposable test outputs and downloads when verification finishes. Preserve compact reports, pending fixture evidence and reusable pinned runtimes. The attempted bulk cleanup of four completed test projects was blocked by command policy and did not reclaim space.
 - SQL Server's second run passed activation, avatar save, ID and username in both modes before failing email read acknowledgement. The email path now shares the existing SQL point lookup and reports one loaded row. Both owned fixture rows were removed in one guarded transaction, and reports were archived under TestResults/ProviderConformanceCurrent/SQLServerDBOASIS-avatar-email-run.
+
+### SQL Server native lifecycle progress
+
+- Both retained legacy avatar-detail rows passed the focused shipping read after the concrete canonical decoder change. The original failed reports and exact cleanup intent are under TestResults/ProviderConformanceCurrent/SQLServerDBOASIS-detail-read-run.
+- The graph fix built and both native modes passed through import. The first failing check was owner-export. Its old JSON predicate matched zero rows, while the typed creator predicate matched exactly five rows per fixture owner. A focused shipping export test reads the retained fixtures without replaying writes. Until it passes, preserve all retained rows and reports.
+
+SQL Server completed the remaining native core-storage lifecycle checks on the same retained fixtures. The split evidence retains the original stop and separate targeted passes. No uninterrupted 52/52 run is claimed. An independent LocalDB query confirmed all three fixture tables are empty. Other SQL Server interfaces remain outside this result.
+
+- SQL Server async mode: 17 initial shared checks before owner export. Focused owner export and retained deletion continuation passed. Report SHA-256 0EA0DD5CA8C16B88843AD74E6707D854998FF48CEED567E38540CFFF1DC59C78. Journal SHA-256 3C5C893F9A22C5C23E830A8F8D11602841A0BA556C72F8CF2F0B1D06F1DBCA16.
+- SQL Server sync mode: 17 initial shared checks before owner export. Focused owner export and retained deletion continuation passed. Report SHA-256 4CE7902410A64E70551872F21F508EE5B74B8C6054FB0F908829D75531A5B698. Journal SHA-256 A8B9A62BA99F4A5CEDC4DCF61DDCC427AF34E44445D636319E17992DD7EA0878.

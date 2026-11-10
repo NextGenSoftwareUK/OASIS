@@ -1,0 +1,261 @@
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NextGenSoftware.OASIS.Providers.TestSupport;
+using Microsoft.Data.SqlClient;
+using NextGenSoftware.OASIS.Common;
+using System.Text.Json;
+
+namespace NextGenSoftware.OASIS.API.Providers.SQLServerDBOASIS.IntegrationTests;
+
+[TestClass]
+[DoNotParallelize]
+public class SqlServerNativeStorageConformanceTests
+{
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task FinishRetainedLifecycleDeletes(bool sync)
+    {
+        if (Environment.GetEnvironmentVariable("OASIS_SQLSERVER_RETAINED_LIFECYCLE") != "1")
+            Assert.Inconclusive("Explicit opt-in is required for retained fixture deletion.");
+
+        var connection = Environment.GetEnvironmentVariable("OASIS_SQLSERVER_CONFORMANCE_CONNECTION_STRING");
+        Assert.IsFalse(string.IsNullOrWhiteSpace(connection));
+        var settings = new SqlConnectionStringBuilder(connection);
+        Assert.AreEqual("oasis_hyperdrive_provider_test", settings.InitialCatalog);
+        var root = new DirectoryInfo(AppContext.BaseDirectory);
+        while (root != null && !Directory.Exists(Path.Combine(root.FullName, "Scripts", "TestHosts")))
+            root = root.Parent;
+        Assert.IsNotNull(root);
+
+        var directory = Path.Combine(root.FullName, "TestResults", "ProviderConformanceCurrent",
+            nameof(SQLServerDBOASIS), sync ? "sync" : "async");
+        using var lease = new FileStream(Path.Combine(directory, "environment.lock"),
+            FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+        var report = JsonSerializer.Deserialize<CoreStorageConformance.Report>(
+            await File.ReadAllTextAsync(Path.Combine(directory, "report.json")));
+        Assert.IsNotNull(report);
+        Assert.AreEqual(nameof(SQLServerDBOASIS), report.Provider);
+        Assert.AreEqual("owner-export", report.CurrentCase);
+        Assert.IsFalse(report.Succeeded);
+
+        var journalPath = Path.Combine(directory, "delete-verification.jsonl");
+        var resume = Environment.GetEnvironmentVariable("OASIS_SQLSERVER_RESUME_CHILD_CLEANUP") == "1";
+        if (resume)
+        {
+            var entries = await File.ReadAllLinesAsync(journalPath);
+            var phases = new[] { "soft-delete-intent", "soft-delete-confirmed", "hard-delete-intent" };
+            Assert.AreEqual(phases.Length, entries.Length);
+            for (var index = 0; index < entries.Length; index++)
+            {
+                using var entry = JsonDocument.Parse(entries[index]);
+                Assert.AreEqual(phases[index], entry.RootElement.GetProperty("phase").GetString());
+                Assert.AreEqual(report.ChildId, entry.RootElement.GetProperty("id").GetGuid());
+            }
+            await using var database = new SqlConnection(connection);
+            await database.OpenAsync();
+            await using var command = new SqlCommand(
+                "SELECT COUNT(*) FROM dbo.OASISHolons WHERE Id=@Id AND IsDeleted=1 AND TRY_CONVERT(uniqueidentifier, JSON_VALUE(DataJson,'$.createdByAvatarId'))=@Owner",
+                database);
+            command.Parameters.AddWithValue("@Id", report.ChildId);
+            command.Parameters.AddWithValue("@Owner", report.OwnerId);
+            Assert.AreEqual(1, (int)(await command.ExecuteScalarAsync())!);
+        }
+
+        var provider = new SQLServerDBOASIS(connection!);
+        var owned = await provider.ExportAllDataForAvatarByIdAsync(report.OwnerId);
+        Assert.IsFalse(owned.IsError);
+        var ids = new[] { report.ChildId, report.RootId, report.ImportId }.Concat(report.BatchIds).ToArray();
+        CollectionAssert.AreEquivalent(resume ? ids.Skip(1).ToArray() : ids, owned.Result.Select(record => record.Id).ToArray());
+        Assert.IsTrue(owned.Result.All(record => record.CreatedByAvatarId == report.OwnerId));
+        var avatar = await provider.LoadAvatarAsync(report.OwnerId);
+        Assert.AreEqual("conformance-" + report.OwnerId.ToString("N"), avatar.Result?.Username);
+
+        await using var journal = new FileStream(journalPath,
+            resume ? FileMode.Append : FileMode.CreateNew, FileAccess.Write, FileShare.Read);
+        async Task Record(string phase, Guid id)
+        {
+            var entry = System.Text.Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new { phase, id }) + "\n");
+            await journal.WriteAsync(entry);
+            journal.Flush(flushToDisk: true);
+        }
+
+        foreach (var id in ids)
+        {
+            if (!resume || id != report.ChildId)
+            {
+                await Record("soft-delete-intent", id);
+                var deleted = sync ? provider.DeleteHolon(id) : await provider.DeleteHolonAsync(id);
+                Assert.IsFalse(deleted.IsError);
+                Assert.IsTrue(deleted.IsDeleted);
+                Assert.AreEqual(1, deleted.DeletedCount);
+                var observed = sync ? provider.LoadHolon(id, loadChildren: false)
+                    : await provider.LoadHolonAsync(id, loadChildren: false);
+                Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, observed.ErrorCode);
+                Assert.IsNull(observed.Result);
+                await Record("soft-delete-confirmed", id);
+
+                if (id == report.ChildId)
+                {
+                    var children = sync ? provider.LoadHolonsForParent(report.RootId, loadChildren: false)
+                        : await provider.LoadHolonsForParentAsync(report.RootId, loadChildren: false);
+                    Assert.IsFalse(children.IsError);
+                    Assert.IsFalse(children.Result.Any(child => child.Id == id));
+                }
+
+                await Record("hard-delete-intent", id);
+            }
+            var cleaned = sync ? provider.DeleteHolonWithSoftDelete(id, false)
+                : await provider.DeleteHolonWithSoftDeleteAsync(id, false);
+            Assert.IsFalse(cleaned.IsError);
+            Assert.IsTrue(cleaned.IsDeleted);
+            Assert.AreEqual(1, cleaned.DeletedCount);
+            await Record("hard-delete-confirmed", id);
+        }
+
+        await Record("avatar-delete-intent", report.OwnerId);
+        var removed = sync ? provider.DeleteAvatar(report.OwnerId, false)
+            : await provider.DeleteAvatarAsync(report.OwnerId, false);
+        Assert.IsFalse(removed.IsError);
+        Assert.IsTrue(removed.IsDeleted);
+        Assert.AreEqual(1, removed.DeletedCount);
+        var afterAvatar = sync ? provider.LoadAvatar(report.OwnerId) : await provider.LoadAvatarAsync(report.OwnerId);
+        var afterDetail = sync ? provider.LoadAvatarDetail(report.OwnerId) : await provider.LoadAvatarDetailAsync(report.OwnerId);
+        Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, afterAvatar.ErrorCode);
+        Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, afterDetail.ErrorCode);
+        Assert.IsNull(afterAvatar.Result);
+        Assert.IsNull(afterDetail.Result);
+        var inactive = sync ? provider.DeActivateProvider() : await provider.DeActivateProviderAsync();
+        Assert.IsFalse(inactive.IsError);
+        Assert.IsTrue(inactive.Result);
+        await Record("complete", report.OwnerId);
+    }
+
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task ExportRetainedOwnerRecords(bool sync)
+    {
+        var connection = Environment.GetEnvironmentVariable("OASIS_SQLSERVER_CONFORMANCE_CONNECTION_STRING");
+        if (string.IsNullOrWhiteSpace(connection))
+            Assert.Inconclusive("The dedicated SQL Server fixture is required.");
+
+        var settings = new SqlConnectionStringBuilder(connection);
+        Assert.AreEqual("oasis_hyperdrive_provider_test", settings.InitialCatalog);
+        var root = new DirectoryInfo(AppContext.BaseDirectory);
+        while (root != null && !Directory.Exists(Path.Combine(root.FullName, "Scripts", "TestHosts")))
+            root = root.Parent;
+        Assert.IsNotNull(root);
+
+        var path = Path.Combine(root.FullName, "TestResults", "ProviderConformanceCurrent",
+            nameof(SQLServerDBOASIS), sync ? "sync" : "async", "report.json");
+        if (!File.Exists(path))
+            Assert.Inconclusive("The original failed owner export report is required.");
+
+        var report = JsonSerializer.Deserialize<CoreStorageConformance.Report>(await File.ReadAllTextAsync(path));
+        Assert.IsNotNull(report);
+        Assert.AreEqual(nameof(SQLServerDBOASIS), report.Provider);
+        Assert.AreEqual("owner-export", report.CurrentCase);
+        Assert.IsFalse(report.Succeeded);
+
+        var provider = new SQLServerDBOASIS(connection!);
+        var result = sync ? provider.ExportAllDataForAvatarById(report.OwnerId)
+            : await provider.ExportAllDataForAvatarByIdAsync(report.OwnerId);
+        Assert.IsFalse(result.IsError, result.Exception?.GetType().FullName ?? "Owner export failed.");
+        Assert.IsTrue(result.IsLoaded);
+        var expected = new[] { report.RootId, report.ChildId, report.ImportId }.Concat(report.BatchIds).ToArray();
+        Assert.AreEqual(expected.Length, result.LoadedCount);
+        Assert.IsNotNull(result.Result);
+        var records = result.Result.ToArray();
+        CollectionAssert.AreEquivalent(expected, records.Select(record => record.Id).ToArray());
+        Assert.IsTrue(records.All(record => record.CreatedByAvatarId == report.OwnerId));
+    }
+
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task ReadRetainedAvatarDetail(bool sync)
+    {
+        var connection = Environment.GetEnvironmentVariable("OASIS_SQLSERVER_CONFORMANCE_CONNECTION_STRING");
+        if (string.IsNullOrWhiteSpace(connection))
+            Assert.Inconclusive("The dedicated SQL Server fixture is required.");
+
+        var settings = new SqlConnectionStringBuilder(connection);
+        Assert.AreEqual("oasis_hyperdrive_provider_test", settings.InitialCatalog);
+        var root = new DirectoryInfo(AppContext.BaseDirectory);
+        while (root != null && !Directory.Exists(Path.Combine(root.FullName, "Scripts", "TestHosts")))
+            root = root.Parent;
+        Assert.IsNotNull(root);
+
+        var path = Path.Combine(root.FullName, "TestResults", "ProviderConformanceCurrent",
+            nameof(SQLServerDBOASIS), sync ? "sync" : "async", "report.json");
+        if (!File.Exists(path))
+            Assert.Inconclusive("The original failed detail fixture report is required.");
+
+        var report = JsonSerializer.Deserialize<CoreStorageConformance.Report>(await File.ReadAllTextAsync(path));
+        Assert.IsNotNull(report);
+        Assert.AreEqual(nameof(SQLServerDBOASIS), report.Provider);
+        Assert.AreEqual("detail-id", report.CurrentCase);
+        Assert.IsFalse(report.Succeeded);
+
+        var provider = new SQLServerDBOASIS(connection!);
+        var result = sync ? provider.LoadAvatarDetail(report.OwnerId) : await provider.LoadAvatarDetailAsync(report.OwnerId);
+        var diagnostic = result.Exception is Newtonsoft.Json.JsonSerializationException serializationError
+            ? $"{serializationError.GetType().Name} at {serializationError.Path}"
+            : result.Exception?.GetType().FullName;
+        Assert.IsFalse(result.IsError, diagnostic ?? "Detail read failed.");
+        Assert.IsTrue(result.IsLoaded);
+        Assert.AreEqual(1, result.LoadedCount);
+        Assert.IsNotNull(result.Result);
+        Assert.AreEqual(report.OwnerId, result.Result.Id);
+        Assert.AreEqual(17L, result.Result.Karma);
+        Assert.AreEqual(31, result.Result.XP);
+    }
+
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task CoreStorageSuiteAgainstSqlServer(bool sync)
+    {
+        var connection = Environment.GetEnvironmentVariable("OASIS_SQLSERVER_CONFORMANCE_CONNECTION_STRING");
+        if (string.IsNullOrWhiteSpace(connection))
+            Assert.Inconclusive("Set OASIS_SQLSERVER_CONFORMANCE_CONNECTION_STRING to a dedicated SQL Server test database.");
+
+        var settings = new SqlConnectionStringBuilder(connection);
+        Assert.AreEqual("oasis_hyperdrive_provider_test", settings.InitialCatalog,
+            "Use the dedicated database reserved for HyperDrive provider conformance.");
+
+        var root = new DirectoryInfo(AppContext.BaseDirectory);
+        while (root != null && !Directory.Exists(Path.Combine(root.FullName, "Scripts", "TestHosts")))
+            root = root.Parent;
+        Assert.IsNotNull(root, "Run this test from the repository.");
+
+        var directory = Path.Combine(root.FullName, "TestResults", "ProviderConformanceCurrent",
+            nameof(SQLServerDBOASIS), sync ? "sync" : "async");
+        Directory.CreateDirectory(directory);
+        using var lease = new FileStream(Path.Combine(directory, "environment.lock"),
+            FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+
+        var reportPath = Path.Combine(directory, "report.json");
+        var pendingPath = reportPath + ".next";
+        Assert.IsFalse(File.Exists(reportPath) || File.Exists(pendingPath),
+            "Preserve the previous native report and resolve its fixture before running again.");
+
+        async Task Checkpoint(CoreStorageConformance.Report report)
+        {
+            await using (var file = new FileStream(pendingPath, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+            {
+                await JsonSerializer.SerializeAsync(file, report);
+                file.Flush(flushToDisk: true);
+            }
+            File.Move(pendingPath, reportPath, overwrite: true);
+        }
+
+        var provider = new SQLServerDBOASIS(connection!);
+        var result = await CoreStorageConformance.RunAsync(
+            provider, nameof(SQLServerDBOASIS), "native", sync, Checkpoint, expectedDefaultDeletion: "absent");
+
+        Assert.IsTrue(result.Succeeded, $"{result.CurrentCase}: {result.FailureType}");
+        Assert.IsTrue(result.FixtureCleanupComplete);
+        Assert.AreEqual(CoreStorageConformance.ChecksPerMode, result.Passed.Count);
+    }
+}
