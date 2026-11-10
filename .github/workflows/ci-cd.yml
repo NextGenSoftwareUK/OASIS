@@ -133,7 +133,6 @@ jobs:
             wait: 6379
             test_env: |
               VALKEY_CONN=127.0.0.1:6379
-              OASIS_VALKEY_LIFECYCLE_REPORT_ROOT=${{ runner.temp }}/valkey-lifecycle
           - name: Garnet
             project: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.GarnetOASIS.IntegrationTests
             image: ghcr.io/microsoft/garnet:latest
@@ -356,6 +355,10 @@ jobs:
           with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as output:
               output.write(f"{variable}={key}\n")
           PY
+
+      - name: Configure native Valkey lifecycle report directory
+        if: matrix.backend.name == 'ValKey'
+        run: echo "OASIS_VALKEY_LIFECYCLE_REPORT_ROOT=$RUNNER_TEMP/valkey-lifecycle" >> "$GITHUB_ENV"
 
       - name: Run the integration tests
         working-directory: OASIS
