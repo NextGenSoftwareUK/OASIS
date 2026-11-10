@@ -115,3 +115,7 @@ The focused shared NEAR lifecycle test compiled and discovered both modes. Both 
 
 The [Polkadot native evidence](POLKADOT_PROVIDER_NATIVE_TESTS.md) records ten original finalized operations through the public C# avatar, detail and holon storage path, with encrypted-cell verification and final empty storage. The original run failed only at its terminal journal comparison. The corrected read-only recovery passed against the same ten originals and issued zero fresh acknowledgements. Retain that scope and do not replay it. A current shared lifecycle result and broader graph/version coverage are still missing.
 The guarded Polkadot runner requires the existing TestResults/PolkadotCurrent environment before acquiring its native lease. That directory is absent in this worktree. The tracked completion evidence remains intact. Do not recreate or replay the accepted deployment to fill the shared-suite gap.
+
+### Cosmos SDK restore and retained node
+
+The broken dependency link was absent in this worktree. A lockfile restore installed 32 packages and ran the repository postinstall. Node 24 loaded both pinned CosmJS 0.39.0 clients. The retained runner requires Ubuntu under WSL. This host has no installed distributions. Native dispatch, contract state and cleanup were not exercised.
