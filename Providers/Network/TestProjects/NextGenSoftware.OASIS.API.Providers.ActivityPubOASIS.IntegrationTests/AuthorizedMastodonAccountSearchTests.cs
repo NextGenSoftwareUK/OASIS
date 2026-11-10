@@ -16,7 +16,15 @@ public class AuthorizedMastodonAccountSearchTests
         var query=Environment.GetEnvironmentVariable("OASIS_ACTIVITYPUB_SEARCH_QUERY")??throw new InvalidOperationException("Narrow public-handle test query required,not a private email.");
         Assert.False(string.IsNullOrWhiteSpace(token));Assert.False(string.IsNullOrWhiteSpace(query));
         using var provider=new ActivityPubOASIS(origin,token);
-        using var client=new HttpClient{BaseAddress=new Uri(origin),Timeout=TimeSpan.FromSeconds(20)};
+        Assert.True(Uri.TryCreate(origin, UriKind.Absolute, out var endpoint) &&
+            endpoint.Scheme == Uri.UriSchemeHttps && endpoint.AbsolutePath == "/" &&
+            string.IsNullOrEmpty(endpoint.UserInfo) && string.IsNullOrEmpty(endpoint.Query) &&
+            string.IsNullOrEmpty(endpoint.Fragment), "Configure the HTTPS origin of the authorized test instance.");
+        using var client = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false })
+        {
+            BaseAddress = endpoint,
+            Timeout = TimeSpan.FromSeconds(20)
+        };
         client.DefaultRequestHeaders.Authorization=new("Bearer",token);
         var expected = new Dictionary<string, string>(StringComparer.Ordinal);
         var exhausted = false;
