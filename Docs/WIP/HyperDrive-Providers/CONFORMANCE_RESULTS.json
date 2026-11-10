@@ -338,6 +338,9 @@
     }
   ],
   "providerBlockers": {
+    "SQLServerDBOASIS": [
+      "Native LocalDB lifecycle checks passed across retained sync/async checkpoints and targeted continuations, with independent empty-table verification. No single uninterrupted shared-suite result is registered. See PROVIDER_COMPLETION_CONTINUATION.md."
+    ],
     "PostgreSQLOASIS": [
       "Canonical native suite12/52 stopped at detail-id acknowledgement; missing LoadedCount fixed and original-fixture read regression2PASS, full-suite rerun pending reviewed fixture cleanup; no routing/recovery depth"
     ],
