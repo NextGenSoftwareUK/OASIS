@@ -11,30 +11,47 @@ namespace NextGenSoftware.OASIS.API.Providers.WeaviateOASIS.IntegrationTests
     public class WeaviateOASISIntegrationTests
     {
         private WeaviateOASIS _provider;
-        private static readonly string Host = Environment.GetEnvironmentVariable("WEAVIATE_HOST") ?? "http://localhost:8080";
 
         [TestInitialize]
         public async Task Setup()
         {
-            _provider = new WeaviateOASIS(Host);
+            if (Environment.GetEnvironmentVariable("OASIS_WEAVIATE_STORAGE_TEST") != "1")
+                Assert.Inconclusive("Enable writes only for a disposable Weaviate instance.");
+            var host = Environment.GetEnvironmentVariable("WEAVIATE_HOST");
+            Assert.IsTrue(Uri.TryCreate(host, UriKind.Absolute, out var endpoint) &&
+                endpoint.IsLoopback && endpoint.Scheme == Uri.UriSchemeHttp &&
+                endpoint.AbsolutePath == "/" && endpoint.UserInfo.Length == 0 &&
+                endpoint.Query.Length == 0 && endpoint.Fragment.Length == 0);
+            _provider = new WeaviateOASIS(host!);
             var activated = await _provider.ActivateProviderAsync();
             Assert.IsFalse(activated.IsError, activated.Message);
         }
 
         [TestMethod]
-        public async Task SaveAvatar_ShouldReturnSuccessResult()
+        public async Task AvatarHardDeleteAcknowledgesOnlyAnExistingRecord()
         {
-            var avatar = new Avatar
+            var id = Guid.NewGuid();
+            var avatar = new Avatar { Id = id, Username = $"weaviate-{id:N}", Email = $"{id:N}@example.test" };
+            var saved = await _provider.SaveAvatarAsync(avatar);
+            Assert.IsFalse(saved.IsError, saved.Message);
+            try
             {
-                Id = Guid.NewGuid(),
-                Username = "WeaviateTestUser",
-                Email = "weaviatetest@example.com",
-                FirstName = "Weaviate",
-                LastName = "Tester"
-            };
-            var result = await _provider.SaveAvatarAsync(avatar);
-            Assert.IsNotNull(result);
-            Assert.IsFalse(result.IsError, result.Message);
+                var loaded = await _provider.LoadAvatarAsync(id);
+                Assert.IsFalse(loaded.IsError, loaded.Message);
+                Assert.AreEqual(id, loaded.Result.Id);
+            }
+            finally
+            {
+                var deleted = await _provider.DeleteAvatarAsync(id, softDelete: false);
+                Assert.IsFalse(deleted.IsError, deleted.Message);
+                Assert.IsTrue(deleted.IsDeleted);
+                Assert.AreEqual(1, deleted.DeletedCount);
+            }
+
+            var repeated = await _provider.DeleteAvatarAsync(id, softDelete: false);
+            Assert.IsTrue(repeated.IsError);
+            Assert.IsFalse(repeated.IsDeleted);
+            Assert.AreEqual(0, repeated.DeletedCount);
         }
 
         [TestMethod]
