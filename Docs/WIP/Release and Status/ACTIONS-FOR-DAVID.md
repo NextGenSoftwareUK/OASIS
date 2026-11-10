@@ -602,3 +602,7 @@ Status: missing account/configuration information,2 November2026. David approved
 ## Valkey native qualification via GitHub Actions
 
 - **Open, 2026-11-09.** Open a draft PR from work/hyperdrive-provider-completion to Development using the [branch comparison](https://github.com/NextGenSoftwareUK/OASIS/compare/Development...work/hyperdrive-provider-completion?expand=1). This triggers the ValKey CI job against a disposable real Valkey service and produces its lifecycle reports. Leave the draft unmerged. The GitHub integration returned HTTP 403 when creating the draft, and the task branch push does not trigger the workflow. The provider team owns reviewing and recording the reports and resolving test failures.
+
+### TRON dedicated native storage fixture
+
+- **Open, 2026-11-09.** Identify an existing isolated TRON test node and a disposable deployment of the OASIS record contract with a dedicated authorized signer. Provide the non-secret node, network and contract identities through the existing configuration channel. Configure the signer and persisted storage encryption key through protected local settings. Keep both secrets out of Git and chat. The provider team will check identity, transaction receipts and exact fixture cleanup. Shared lifecycle evidence remains open. [Provider matrix](../HyperDrive-Providers/PROVIDER_MATRIX.md)
