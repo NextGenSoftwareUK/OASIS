@@ -15,4 +15,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.BigQueryOASIS\NextGenSoftware.OASIS.API.Providers.BigQueryOASIS.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Include="../../../Shared/TestSupport/CoreStorageConformance.cs" Link="TestSupport/CoreStorageConformance.cs" />
+  </ItemGroup>
 </Project>

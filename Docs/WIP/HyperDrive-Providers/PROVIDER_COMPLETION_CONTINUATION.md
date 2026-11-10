@@ -123,3 +123,7 @@ The broken dependency link was absent in this worktree. A lockfile restore insta
 ### Polygon and Arbitrum lifecycle preflight
 
 The revised EVM runner stops before the build when the retained loopback RPC setting is missing and selects only the shared lifecycle cases. No listener was found on the checked local EVM ports 8545, 8546, or 18545. The existing owner decision on the lost original EVM authority stays open. Do not treat a newly initialized chain as recovery of the old ledger.
+
+### BigQuery hosted lifecycle gate
+
+BigQuery integration tests now require an explicitly dedicated project, dataset and report directory. Both sync and async shared lifecycle cases compiled and were discovered, then skipped without the fixture. The run did not submit a BigQuery job. Hosted test-resource admission remains tracked in Actions for David.

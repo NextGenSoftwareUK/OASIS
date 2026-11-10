@@ -1,55 +1,49 @@
 using System;
+using System.IO;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NextGenSoftware.OASIS.API.Core.Holons;
-using NextGenSoftware.OASIS.API.Providers.BigQueryOASIS;
+using NextGenSoftware.OASIS.Providers.TestSupport;
 
-namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS.IntegrationTests
+namespace NextGenSoftware.OASIS.API.Providers.BigQueryOASIS.IntegrationTests;
+
+[TestClass]
+[DoNotParallelize]
+public class BigQueryOASISIntegrationTests
 {
-    [TestClass]
-    public class BigQueryOASISIntegrationTests
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task SharedStorageLifecycle(bool synchronous)
     {
-        private BigQueryOASIS _provider = null!;
-        private static readonly string connStr = Environment.GetEnvironmentVariable("BIGQUERY_PROJECT") ?? "my-project";
+        var root = Environment.GetEnvironmentVariable("OASIS_BIGQUERY_LIFECYCLE_REPORT_ROOT");
+        if (string.IsNullOrWhiteSpace(root))
+            Assert.Inconclusive("Explicitly admit a dedicated BigQuery test dataset and report directory.");
 
-        [TestInitialize]
-        public void Setup()
+        var project = Environment.GetEnvironmentVariable("BIGQUERY_PROJECT");
+        var dataset = Environment.GetEnvironmentVariable("BIGQUERY_DATASET");
+        Assert.IsFalse(string.IsNullOrWhiteSpace(project) || string.IsNullOrWhiteSpace(dataset),
+            "The dedicated BigQuery project and dataset must both be configured.");
+        var directory = Path.Combine(root!, synchronous ? "sync" : "async");
+        Assert.IsFalse(Directory.Exists(directory), "Preserve any existing fixture evidence.");
+        Directory.CreateDirectory(directory);
+
+        var path = Path.Combine(directory, "report.json");
+        async Task Checkpoint(CoreStorageConformance.Report report)
         {
-            _provider = new BigQueryOASIS(connStr, Environment.GetEnvironmentVariable("BIGQUERY_DATASET") ?? "oasis");
-            _provider.ActivateProvider();
+            var pending = path + ".pending";
+            await using (var stream = new FileStream(pending, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+            {
+                await JsonSerializer.SerializeAsync(stream, report);
+                stream.Flush(flushToDisk: true);
+            }
+            File.Move(pending, path, overwrite: true);
         }
 
-        [TestMethod]
-        public async Task SaveAvatar_ShouldReturnSuccessResult()
-        {
-            var avatar = new Avatar { Id = Guid.NewGuid(), Username = "bigquery-test-user", Email = "bigquery@test.com" };
-            var result = await _provider.SaveAvatarAsync(avatar);
-            Assert.IsFalse(result.IsError, result.Message);
-            Assert.IsNotNull(result.Result);
-        }
-
-        [TestMethod]
-        public async Task LoadAvatar_ShouldReturnResult()
-            => Assert.IsNotNull(await _provider.LoadAvatarAsync(Guid.NewGuid()));
-
-        [TestMethod]
-        public async Task SaveHolon_ShouldReturnSuccessResult()
-        {
-            var holon = new Holon { Id = Guid.NewGuid(), Name = "BigQuery Test Holon" };
-            var result = await _provider.SaveHolonAsync(holon);
-            Assert.IsFalse(result.IsError, result.Message);
-            Assert.IsNotNull(result.Result);
-        }
-
-        [TestMethod]
-        public async Task LoadHolon_ShouldReturnResult()
-            => Assert.IsNotNull(await _provider.LoadHolonAsync(Guid.NewGuid()));
-
-        [TestCleanup]
-        public void Cleanup()
-        {
-            if (_provider != null && _provider.IsProviderActivated)
-                _provider.DeActivateProvider();
-        }
+        var provider = new BigQueryOASIS(project!, dataset!);
+        var result = await CoreStorageConformance.RunAsync(provider, nameof(BigQueryOASIS), "native", synchronous, Checkpoint);
+        Assert.IsTrue(result.Succeeded, $"{result.CurrentCase}: {result.FailureType} {result.FailureContract}");
+        Assert.IsTrue(result.FixtureCleanupComplete);
+        Assert.AreEqual(CoreStorageConformance.ChecksPerMode, result.Passed.Count);
     }
 }
