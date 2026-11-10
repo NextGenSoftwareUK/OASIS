@@ -395,3 +395,5 @@ Supabase duplicate-identity native test now activates before writes, logs propos
 Development a78e7ebaf9: Railway pin validation passed. CI run 42879628291 has no Neon or Convex native job. Solution Integrity job 130052105166 failed the project-to-solution coverage check; prior run 42857272015 also failed that check. No hosted acceptance or all-green CI is inferred from the merged harnesses.
 
 Solution Integrity triage: Neon, Convex and Supabase integration projects are already listed in both full and public solutions. The CI log instead names the five COSMIC reader projects and other provider tests. Keep solution enrollment for the COSMIC reader projects with that workstream and preserve the scoped harness verification.
+
+Development candidate 346cd105a9 (integration/ipfs-guard-current) changes only the IPFS test fixture guard. The leased integration-project build completed in 12m21s with 0 errors and 1118 warnings. This establishes compile coverage for the candidate. Live Kubo verification remains open and the candidate is pending scoped Development integration.
