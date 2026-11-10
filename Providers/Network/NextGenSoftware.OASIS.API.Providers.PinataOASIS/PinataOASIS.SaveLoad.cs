@@ -642,7 +642,9 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
                 // Search for the holon file in Pinata by ID
                 // Real Pinata implementation: Load child holons from Pinata files
                 var files = await _pinataService.GetFilesAsync();
-                var holonFile = files.FirstOrDefault(f => f.ToString().Contains(id.ToString()));
+                var holonFile = files.SingleOrDefault(file =>
+                    file.Metadata != null && file.Metadata.TryGetValue("name", out var name) &&
+                    string.Equals(name as string, $"Holon_{id}", StringComparison.Ordinal));
                 
                 if (holonFile == null)
                 {
@@ -659,13 +661,17 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
                 }
                 var holon = JsonConvert.DeserializeObject<Holon>(content);
                 
-                if (holon == null)
+                if (holon == null || holon.Id != id)
                 {
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage} Failed to deserialize holon {id}");
                     return result;
                 }
 
+                holon.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
+                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.PinataOASIS] = holonFile.IpfsPinHash;
                 result.Result = holon;
+                result.IsLoaded = true;
+                result.LoadedCount = 1;
                 result.IsError = false;
             }
             catch (Exception ex)
