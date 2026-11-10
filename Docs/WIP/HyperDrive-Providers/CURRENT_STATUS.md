@@ -77,3 +77,5 @@ Provider-specific audits hold details; [archive index](Archive/ARCHIVE_INDEX.md)
 ## Reading the current registry
 
 The 32 registered report paths and SHA-256 hashes matched in the HyperDrive worktree. The registry now includes TON's 52/52 native lifecycle result. Polygon, Arbitrum and Cosmos blockchain still have configuration-only rows in that registry. Their separate evidence, where present, must be assessed on its own scope. SQL Server has split LocalDB evidence in PROVIDER_COMPLETION_CONTINUATION.md. ActivityPub's 5/5 row covers its public-read capability suite. These different scopes must remain distinct when selecting the remaining native checks.
+
+Public count audit (10 November): Development 7fdf47792a carries the verified 234-project inventory and oasisweb4.com page source. Separate Web4Site and Omniverse source counts remain stale and branch creation is blocked (Actions for David). No matching OASIS-wide numeric count was found in the inspected Founders homepage/FAQ/Learn pages, OPORTAL React entry pages, or Docs and Learn homepages. Deeper pages and deployed revisions remain outside this check.
