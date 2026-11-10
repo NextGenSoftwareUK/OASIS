@@ -249,6 +249,7 @@ jobs:
 
           # Analytical and time-series stores.
           - name: ClickHouse
+            filter: FullyQualifiedName~ClickHouseOASISIntegrationTests
             project: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.ClickHouseOASIS.IntegrationTests
             image: clickhouse/clickhouse-server:24-alpine
             ports: 8123:8123
