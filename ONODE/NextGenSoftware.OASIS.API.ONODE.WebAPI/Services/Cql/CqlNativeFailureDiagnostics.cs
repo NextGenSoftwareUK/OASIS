@@ -44,12 +44,13 @@ internal static class CqlNativeFailureDiagnostics
         return new(categories.Count == 0 ? "none" : string.Join("/", categories), stage, status, socketError);
     }
 
-    internal static void Record(ILogger logger, ProviderType provider, bool activation, Exception error)
+    internal static void Record(ILogger logger, ProviderType provider, bool activation, Exception error,
+        long? elapsedMilliseconds = null)
     {
         var summary = Capture(error);
         logger.LogWarning(new EventId(4831, "CqlNativeFailure"),
-            "CQL native failure provider={Provider} phase={Phase} stage={Stage} category={Category} httpStatus={HttpStatus} websocket={WebSocketError}",
-            provider, activation ? "activation" : "query", summary.Stage, summary.Categories, summary.HttpStatus, summary.WebSocketError);
+            "CQL native failure provider={Provider} phase={Phase} stage={Stage} category={Category} httpStatus={HttpStatus} websocket={WebSocketError} elapsedMilliseconds={ElapsedMilliseconds}",
+            provider, activation ? "activation" : "query", summary.Stage, summary.Categories, summary.HttpStatus, summary.WebSocketError, elapsedMilliseconds);
     }
 
     internal static void Query(HttpContext context, ProviderType provider, Exception error)
