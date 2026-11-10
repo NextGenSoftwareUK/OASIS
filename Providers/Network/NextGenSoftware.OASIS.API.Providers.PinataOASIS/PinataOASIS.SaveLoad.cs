@@ -640,8 +640,10 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
                     return result;
                 }
 
-                // Use providerKey as IPFS hash to directly fetch the file
-                var content = await _pinataService.GetFileContentAsync(providerKey);
+                await EnsureActivatedForPinataAsync(result).ConfigureAwait(false);
+                if (result.IsError) return result;
+
+                var content = await _pinataService.GetFileContentAsync(providerKey).ConfigureAwait(false);
                 if (string.IsNullOrEmpty(content))
                 {
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage} Failed to retrieve holon content from Pinata using provider key");
@@ -655,7 +657,11 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
                     return result;
                 }
 
+                holon.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
+                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.PinataOASIS] = providerKey;
                 result.Result = holon;
+                result.IsLoaded = true;
+                result.LoadedCount = 1;
                 result.IsError = false;
             }
             catch (Exception ex)
