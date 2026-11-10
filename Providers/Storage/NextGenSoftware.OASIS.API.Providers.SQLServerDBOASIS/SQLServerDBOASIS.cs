@@ -758,6 +758,9 @@ WHEN NOT MATCHED THEN
             if (metaKeyValuePairs == null || metaKeyValuePairs.Count == 0) { OASISErrorHandling.HandleError(ref result, "SQLServerDBOASIS: No metadata filters provided."); return result; }
             try
             {
+                if (version != 0)
+                    throw new NotSupportedException("SQL Server metadata queries currently support only the current record version.");
+
                 var filters = metaKeyValuePairs.ToArray();
                 var conditions = filters.Select((_, i) =>
                     $"JSON_VALUE(DataJson,@path{i}) = @v{i}").ToList();
@@ -923,6 +926,9 @@ WHEN NOT MATCHED THEN
             var result = new OASISResult<IEnumerable<IHolon>>();
             try
             {
+                if (version != 0)
+                    throw new NotSupportedException("SQL Server metadata queries currently support only the current record version.");
+
                 string sql = $"SELECT DataJson FROM OASISHolons WHERE IsDeleted=0 AND JSON_VALUE(DataJson,@MetaPath)=@MetaValue";
                 if (type != HolonType.All) sql += " AND HolonType=@HolonType";
                 await using var conn = new SqlConnection(_connectionString);
