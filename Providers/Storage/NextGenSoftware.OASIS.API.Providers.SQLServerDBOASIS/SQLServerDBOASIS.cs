@@ -647,10 +647,16 @@ WHERE h.Id = @Id AND h.IsDeleted = 0;";
                 await conn.OpenAsync();
                 string sql = softDelete
                     ? "UPDATE OASISHolons SET IsDeleted=1, ModifiedDate=SYSUTCDATETIME() WHERE Id=@Id AND IsDeleted=0"
-                    : "DELETE FROM OASISHolons WHERE Id=@Id";
+                    : @"SET XACT_ABORT ON;
+BEGIN TRANSACTION;
+DELETE FROM OASISHolons WHERE Id=@Id;
+DECLARE @Deleted int = @@ROWCOUNT;
+DELETE FROM OASISHolonHistory WHERE Id=@Id;
+COMMIT TRANSACTION;
+SELECT @Deleted;";
                 await using var cmd = new SqlCommand(sql, conn);
                 cmd.Parameters.AddWithValue("@Id", id);
-                int rows = await cmd.ExecuteNonQueryAsync();
+                int rows = softDelete ? await cmd.ExecuteNonQueryAsync() : (int)(await cmd.ExecuteScalarAsync())!;
                 result.Result = rows == 1; result.IsError = !result.Result;
                 result.IsDeleted = result.Result; result.DeletedCount = rows;
                 result.Message = result.Result ? $"SQLServerDBOASIS: Holon '{id}' {(softDelete ? "soft" : "hard")}-deleted." : $"SQLServerDBOASIS: No holon found with ID '{id}'.";
