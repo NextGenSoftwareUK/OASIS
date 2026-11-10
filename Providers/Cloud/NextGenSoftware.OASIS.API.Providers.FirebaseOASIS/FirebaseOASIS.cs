@@ -200,14 +200,38 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
             var result = new OASISResult<IAvatar>();
             try
             {
-                if (avatar.Id == Guid.Empty) avatar.Id = Guid.NewGuid();
-                if (avatar.ProviderUniqueStorageKey == null)
-                    avatar.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
-                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.FirebaseOASIS] = avatar.Id.ToString();
-                await PutAsync($"/oasis_avatars/{avatar.Id}", avatar);
-                result.Result = avatar; result.IsError = false; result.Message = $"FirebaseOASIS: Avatar '{avatar.Username}' saved.";
+                ArgumentNullException.ThrowIfNull(avatar);
+                var id = avatar.Id == Guid.Empty ? Guid.NewGuid() : avatar.Id;
+                var projection = JsonSerializer.SerializeToNode(avatar, avatar.GetType(), _jsonOpts)!.AsObject();
+                projection["id"] = id;
+                if (projection["providerUniqueStorageKey"] is not JsonObject keys)
+                {
+                    keys = new JsonObject();
+                    projection["providerUniqueStorageKey"] = keys;
+                }
+                keys["FirebaseOASIS"] = id.ToString("D");
+                NativeProjection(projection);
+                using var request = new HttpRequestMessage(HttpMethod.Put, NodeUrl($"/oasis_avatars/{id:D}"))
+                { Content = new StringContent(projection.ToJsonString(), Encoding.UTF8, "application/json") };
+                try
+                {
+                    using var response = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+                    response.EnsureSuccessStatusCode();
+                    var acknowledged = JsonNode.Parse(await ReadFirebaseAcknowledgement(response));
+                    if (!JsonNode.DeepEquals(projection, acknowledged))
+                        throw new System.IO.InvalidDataException("Firebase acknowledgement does not match the proposed avatar.");
+                }
+                catch (Exception cause) { throw new FirebaseMutationReconciliationException(id, cause); }
+
+                avatar.Id = id;
+                avatar.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
+                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.FirebaseOASIS] = id.ToString("D");
+                result.Result = avatar;
+                result.IsSaved = true;
+                result.SavedCount = 1;
+                result.Message = $"FirebaseOASIS: Avatar '{avatar.Username}' saved.";
             }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: Error saving avatar '{avatar.Username}': {ex.Message}"); }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: Error saving avatar: {ex.Message}"); }
             return result;
         }
 
