@@ -179,20 +179,6 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
                 : throw new JsonException("Firebase collection record must be an object.")).ToList();
         }
 
-        private async Task<bool> PatchAsync(string path, object patch)
-        {
-            var content = new StringContent(Serialize(patch), Encoding.UTF8, "application/json");
-            var request = new HttpRequestMessage(new HttpMethod("PATCH"), NodeUrl(path)) { Content = content };
-            var response = await _http.SendAsync(request);
-            return response.IsSuccessStatusCode;
-        }
-
-        private async Task<bool> DeleteNodeAsync(string path)
-        {
-            var response = await _http.DeleteAsync(NodeUrl(path));
-            return response.IsSuccessStatusCode;
-        }
-
         // ─── Avatar saving ────────────────────────────────────────────────────────
 
         public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
@@ -318,13 +304,40 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
             var result = new OASISResult<bool>();
             try
             {
-                bool ok;
+                var url = NodeUrl($"/oasis_avatars/{id:D}");
+                using var lookup = new HttpRequestMessage(HttpMethod.Get, url);
+                lookup.Headers.Add("X-Firebase-ETag", "true");
+                using var observed = await _http.SendAsync(lookup);
+                observed.EnsureSuccessStatusCode();
+                var avatar = JsonNode.Parse(await ReadFirebaseAcknowledgement(observed));
+                if (avatar == null || softDelete && avatar["isDeleted"]?.GetValue<bool>() == true)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: Avatar '{id}' not found.");
+                    result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
+                    return result;
+                }
+                if (avatar["id"]?.GetValue<Guid>() != id || observed.Headers.ETag == null)
+                    throw new System.IO.InvalidDataException("Firebase did not return the requested avatar identity and ETag.");
+
+                using var mutation = new HttpRequestMessage(softDelete ? HttpMethod.Put : HttpMethod.Delete, url);
+                mutation.Headers.IfMatch.Add(observed.Headers.ETag);
                 if (softDelete)
-                    ok = await PatchAsync($"/oasis_avatars/{id}", new { isDeleted = true });
-                else
-                    ok = await DeleteNodeAsync($"/oasis_avatars/{id}");
-                result.Result = ok; result.IsError = !ok;
-                result.Message = ok ? $"FirebaseOASIS: Avatar '{id}' {(softDelete ? "soft" : "hard")}-deleted." : $"FirebaseOASIS: Failed to delete avatar '{id}'.";
+                {
+                    avatar["deletedDate"] = DateTime.UtcNow;
+                    avatar["isDeleted"] = true;
+                    mutation.Content = new StringContent(avatar.ToJsonString(), Encoding.UTF8, "application/json");
+                }
+
+                using var response = await _http.SendAsync(mutation);
+                response.EnsureSuccessStatusCode();
+                var acknowledgement = JsonNode.Parse(await ReadFirebaseAcknowledgement(response));
+                if (!JsonNode.DeepEquals(softDelete ? avatar : null, acknowledgement))
+                    throw new System.IO.InvalidDataException("Firebase did not acknowledge the requested avatar deletion.");
+
+                result.Result = true;
+                result.IsDeleted = true;
+                result.DeletedCount = 1;
+                result.Message = $"FirebaseOASIS: Avatar '{id}' {(softDelete ? "soft" : "hard")}-deleted.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: Error deleting avatar '{id}': {ex.Message}"); }
             return result;
