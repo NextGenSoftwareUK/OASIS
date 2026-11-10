@@ -647,3 +647,8 @@ Status: missing account/configuration information,2 November2026. David approved
 - **Status (2026-11-10)** Branch access resolved through local Git. [Web4Site](https://github.com/NextGenSoftwareUK/Web4Site/tree/work/provider-inventory-count), [OASISOmniverseSite](https://github.com/NextGenSoftwareUK/OASISOmniverseSite/tree/work/provider-inventory-count) and [OurWorldSite](https://github.com/NextGenSoftwareUK/OurWorldSite/tree/work/provider-inventory-count) have pushed source updates. Live deployments are unverified.
 - **David action** Closed for branch access. Site integration, deployment verification and the remaining count audits are agent-owned.
 - **Reason** Update the public inventory claims independently of backend acceptance. Preserve site ownership and existing deployment workflows.
+
+### Priority-provider ONODE CI access
+
+- **Open, 2026-11-10.** Open a [draft pull request to Development](https://github.com/NextGenSoftwareUK/OASIS/compare/Development...integration/priority-provider-registration?expand=1) from candidate 4bbfa52dbc, or grant the GitHub integration pull-request write access. GitHub returned HTTP 403 when the integration attempted to create the draft.
+- **Reason** The draft triggers remote CI for the ONODE endpoint change while local builds are deferred for disk recovery. Keep the draft unmerged pending review. The provider agent owns CI review and live verification against the separately tracked hosted fixtures.

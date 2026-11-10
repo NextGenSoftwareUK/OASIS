@@ -117,3 +117,5 @@ Development 1f1021ec6a contains the compiled IPFS round-trip test teardown. Hype
 Combined BootLoader candidate 6b07640979 compiled with pinned Core e5802022e, 0 errors and 2142 warnings. Covers Neon, Convex and Supabase registration plus hot-activation error propagation. Live ONODE verification remains open.
 
 ONODE single-provider registration fix ef90fa5ef1 remains on the task branch. The WebAPI build was stopped for disk recovery and its generated outputs were cleaned. Compilation and live endpoint verification are open. Development has no overlapping change to ProviderController.cs.
+
+GitHub denied draft creation for ONODE candidate 4bbfa52dbc (HTTP 403). The owner list tracks remote CI access. No local build or download was started.
