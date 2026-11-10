@@ -64,7 +64,10 @@ public class FirebaseNativeStorageConformanceTests
             Assert.IsNotNull(tag, "Firebase must supply an ETag for the fixture record.");
             using var stored = JsonDocument.Parse(await observed.Content.ReadAsStringAsync());
             Assert.IsTrue(stored.RootElement.TryGetProperty("id", out var storedId) &&
-                storedId.TryGetGuid(out var actual) && actual == id);
+                storedId.TryGetGuid(out var actual) && actual == id &&
+                stored.RootElement.TryGetProperty("deletedDate", out var deletedDate) &&
+                deletedDate.TryGetDateTime(out var when) && when != DateTime.MinValue,
+                "Only the matching soft-deleted fixture may be removed.");
             using var delete = new HttpRequestMessage(HttpMethod.Delete, Node(path));
             delete.Headers.IfMatch.Add(tag);
             using var deleted = await http.SendAsync(delete);
