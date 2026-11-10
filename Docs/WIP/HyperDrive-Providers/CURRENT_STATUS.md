@@ -101,3 +101,5 @@ Development 510eea95e9 integrates the five-file Neon, Convex, Supabase and IPFS 
 Neon ONODE registration: the BootLoader now binds Neon settings and the explicit connection override to the shipping Npgsql adapter. The cross-checkout build lease was busy, so compilation and hosted ONODE activation remain open.
 
 Convex and Supabase BootLoader bindings construct the shipping clients from protected DNA settings. ConnectionString supplies the service URL and DeployKey or ApiKey supplies the corresponding credential. Compile and live ONODE activation remain open.
+
+BootLoader at 5655afe141 compiled the Neon, Convex and Supabase shipping registrations with 0 errors and 2113 warnings. Live ONODE activation still requires the isolated hosted fixtures.

@@ -104,3 +104,5 @@ EdgeSQLite focused file-backed cohort: all eight checks exited. Fixture disposal
 10 November Supabase console harness: leased dotnet clean completed after compilation. No hosted fixture or raw report was created.
 
 10 November Supabase console exit-code follow-up: leased build and clean completed. No backend or raw report allocated.
+
+10 November priority BootLoader registration: leased build and dotnet clean completed. No hosted fixture or raw report was created.
