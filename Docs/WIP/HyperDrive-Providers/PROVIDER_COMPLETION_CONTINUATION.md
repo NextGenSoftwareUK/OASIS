@@ -327,3 +327,5 @@ SQL Server LocalDB confirmed default holon deletion returned exactly the selecte
 The exact Development candidate 0a9956d049, including the LocalDB-verified graph changes, built on Development Core 0fc929336 with zero errors and 1155 warnings. The Railway manifest check passed. Both the task branch and its private Core checkout were restored. The candidate remains local for the next scoped integration window.
 
 SQL Server LocalDB verified full export still returns flat parent and child records with their parent IDs intact after collection graph hydration was introduced. The focused graph fixture was removed and LocalDB stopped.
+
+SQL Server LocalDB passed graph hydration with Max Pool Size=1 and Connect Timeout=5. Parent and all-holon lists, search, and both metadata overloads released the initial connection before reading descendants. Fixtures were hard-deleted and LocalDB stopped.
