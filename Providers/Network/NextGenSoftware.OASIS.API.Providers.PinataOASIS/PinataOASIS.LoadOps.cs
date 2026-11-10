@@ -76,6 +76,8 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
                         if (continueOnError)
                         {
                             LoggingManager.Log($"Error processing Pinata file: {ex.Message}", NextGenSoftware.Logging.LogType.Warning);
+                            result.IsWarning = true;
+                            result.WarningCount++;
                             continue;
                         }
                         else
@@ -88,6 +90,8 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
                 result.Result = childHolons;
                 result.IsLoaded = true;
                 result.LoadedCount = childHolons.Count;
+                if (result.IsWarning)
+                    result.Message = $"Pinata child listing is incomplete. {result.WarningCount} pinned records could not be read.";
                 result.IsError = false;
             }
             catch (Exception ex)
