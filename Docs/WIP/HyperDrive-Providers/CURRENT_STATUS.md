@@ -111,3 +111,5 @@ BootLoader hot-activation error propagation (1a01cf27aa) compiled with 0 errors 
 IPFS integration cleanup and SDK reference (defcb2ade3, bf041d53ae) compiled with 0 errors and 1148 warnings. The direct pinned IPFS Core reference resolved the client assertion compilation error. Live Kubo verification remains open.
 
 Scoped IPFS teardown candidate 1f1021ec6a built against Development Core e5802022e with 0 errors and 1139 warnings. Live Kubo verification remains open.
+
+Development 1f1021ec6a contains the compiled IPFS round-trip test teardown. HyperDrive synchronized at 1e7be4a153 with Core e5802022e and the matching Railway manifest pin. The IPFS runtime activation change still awaits live Kubo verification.
