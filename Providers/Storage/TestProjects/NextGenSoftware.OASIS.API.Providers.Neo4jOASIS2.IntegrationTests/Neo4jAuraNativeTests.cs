@@ -10,11 +10,12 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2.IntegrationTests;
 [TestClass]
 public class Neo4jAuraNativeTests
 {
-    [TestMethod]
+    [TestMethod, DoNotParallelize]
     public async Task AvatarLifecycleUsesPersistedIdentityAndDeletionMode()
     {
         var provider = CreateProvider();
         var id = Guid.NewGuid();
+        Console.WriteLine($"Aura avatar fixture ID: {id:D}");
         var avatar = new Avatar
         {
             AvatarId = id,
@@ -69,12 +70,13 @@ public class Neo4jAuraNativeTests
         }
     }
 
-    [TestMethod]
+    [TestMethod, DoNotParallelize]
     public async Task HolonLifecycleUsesPersistedParentAndProviderKey()
     {
         var provider = CreateProvider();
         var parent = new Holon { Id = Guid.NewGuid(), Name = "Aura parent" };
         var child = new Holon { Id = Guid.NewGuid(), Name = $"Aura child {parent.Id:N}", ParentHolonId = parent.Id };
+        Console.WriteLine($"Aura holon fixture IDs: parent {parent.Id:D}, child {child.Id:D}");
         var active = await provider.ActivateProviderAsync();
         Assert.IsTrue(active.Result, active.Exception?.GetType().FullName);
         try
