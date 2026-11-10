@@ -15,6 +15,48 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.IntegrationTests;
 /// <summary>Retained CSS server: anonymous encrypted storage and native private DPoP client-credentials tests.</summary>
 public class RetainedSolidPodTests
 {
+    [RetainedPodActivationFact]
+    public async Task SynchronousActivationCompletesWithoutPumpingCallerContext()
+    {
+        var root = Environment.GetEnvironmentVariable("OASIS_SOLID_ACTIVATION_POD");
+        Assert.True(Uri.TryCreate(root, UriKind.Absolute, out var endpoint) &&
+            endpoint.IsLoopback && endpoint.Port == 13000 &&
+            endpoint.Scheme == Uri.UriSchemeHttp && string.IsNullOrEmpty(endpoint.UserInfo),
+            "Configure the retained loopback Solid Pod root.");
+
+        var activated = await Task.Run(() =>
+        {
+            // A single-threaded caller blocked in ActivateProvider cannot drain posted callbacks.
+            using var provider = new SOLIDOASIS(endpoint!.AbsoluteUri, "");
+            var prior = SynchronizationContext.Current;
+            SynchronizationContext.SetSynchronizationContext(new NonPumpingContext());
+            try
+            {
+                var result = provider.ActivateProvider();
+                return !result.IsError && result.Result && provider.IsProviderActivated;
+            }
+            finally
+            {
+                SynchronizationContext.SetSynchronizationContext(prior);
+            }
+        }).WaitAsync(TimeSpan.FromSeconds(40));
+        Assert.True(activated);
+    }
+
+    private sealed class RetainedPodActivationFactAttribute : FactAttribute
+    {
+        public RetainedPodActivationFactAttribute()
+        {
+            if (string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("OASIS_SOLID_ACTIVATION_POD")))
+                Skip = "Configure the retained loopback Solid Pod root.";
+        }
+    }
+
+    private sealed class NonPumpingContext : SynchronizationContext
+    {
+        public override void Post(SendOrPostCallback callback, object? state) { }
+    }
+
     private sealed class NamedGraphOwner:Holon
     {
         public List<Holon> Components{get;set;}=new();
