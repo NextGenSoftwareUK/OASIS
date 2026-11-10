@@ -10,6 +10,52 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLServerDBOASIS.IntegrationTests;
 [DoNotParallelize]
 public class SqlServerNativeStorageConformanceTests
 {
+    [TestMethod]
+    public async Task SearchMatchesLiteralSqlWildcardCharacters()
+    {
+        if (Environment.GetEnvironmentVariable("OASIS_SQLSERVER_LITERAL_SEARCH") != "1")
+            Assert.Inconclusive("Enable only for the dedicated LocalDB provider fixture.");
+
+        const string connection = @"Server=(localdb)\MSSQLLocalDB;Database=oasis_hyperdrive_provider_test;Integrated Security=true;TrustServerCertificate=true";
+        var provider = new SQLServerDBOASIS(connection);
+        var marker = Guid.NewGuid().ToString("N");
+        var expected = new NextGenSoftware.OASIS.API.Core.Holons.Holon { Id = Guid.NewGuid(), Name = marker + "%_[" };
+        var other = new NextGenSoftware.OASIS.API.Core.Holons.Holon { Id = Guid.NewGuid(), Name = marker + "abc" };
+        var saved = new List<Guid>();
+        try
+        {
+            var active = await provider.ActivateProviderAsync();
+            Assert.IsTrue(active.Result && !active.IsError, active.Message);
+            foreach (var holon in new[] { expected, other })
+            {
+                var write = await provider.SaveHolonAsync(holon, saveChildren: false);
+                Assert.IsTrue(write.IsSaved && !write.IsError, write.Message);
+                saved.Add(holon.Id);
+            }
+
+            var query = new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchParams
+            {
+                SearchGroups = new()
+                {
+                    new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchTextGroup { SearchQuery = marker + "%_" }
+                }
+            };
+            var result = await provider.SearchAsync(query, loadChildren: false);
+            Assert.IsTrue(result.IsLoaded && !result.IsError, result.Message);
+            Assert.AreEqual(1, result.LoadedCount);
+            Assert.AreEqual(expected.Id, result.Result.SearchResultHolons.Single().Id);
+        }
+        finally
+        {
+            foreach (var id in saved)
+            {
+                var deleted = await provider.DeleteHolonWithSoftDeleteAsync(id, false);
+                Assert.IsTrue(deleted.IsDeleted && !deleted.IsError, deleted.Message);
+            }
+            await provider.DeActivateProviderAsync();
+        }
+    }
+
     [DataTestMethod]
     [DataRow(false)]
     [DataRow(true)]
