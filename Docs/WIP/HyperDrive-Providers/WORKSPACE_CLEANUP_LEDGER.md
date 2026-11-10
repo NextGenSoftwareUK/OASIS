@@ -90,3 +90,5 @@ EdgeSQLite focused file-backed cohort: all eight checks exited. Fixture disposal
 10 November WEB4 count build: lockfile install and Vite production build completed; bundle verified 234. Generated dependency tree (115007857 B) and verification output (361528 B) remain at oasisweb4.com/node_modules and TestResults/Web4ProviderCountBuild. Automatic approval review blocked the scoped recursive removal command as policy-rejected, before any deletion.
 
 10 November Convex hosted harness compile: private integration project outputs cleaned under the build lease. Reference outputs and restore metadata retained. No hosted fixture, backend or raw report allocated.
+
+10 November Neon harness verification: both hosted cases skipped before backend access. Leased project clean completed; reference outputs and restore metadata retained. No native fixture or raw report allocated.

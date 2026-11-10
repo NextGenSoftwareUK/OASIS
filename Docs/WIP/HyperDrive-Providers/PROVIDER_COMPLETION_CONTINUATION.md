@@ -385,3 +385,5 @@ IPFS smoke integration now requires explicit IPFSOASIS_TEST_API before provider 
 IPFS focused sync/async activation and deactivation cases compiled with 0 errors and 1118 warnings. Automatic approval review blocked starting the isolated Kubo daemon, so live verification remains open.
 
 Convex hosted integration harness compiled after mock-factory removal (0 errors, 1120 warnings) against Core 59595871. Shipping Convex sources match Development. Hosted execution remains gated on protected deployment configuration.
+
+Neon native integration harness compiled with Development Core 59595871 and discovered both lifecycle modes. Both skipped without the hosted fixture (zero failures). Shipping Neon provider sources match Development; the test-only replacement of the mock factory can be integrated independently.
