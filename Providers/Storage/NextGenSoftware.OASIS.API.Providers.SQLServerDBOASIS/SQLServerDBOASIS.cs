@@ -1019,10 +1019,12 @@ WHERE h.Id = @Id AND h.IsDeleted = 0;";
             var result = new OASISResult<IEnumerable<IHolon>>();
             try
             {
-                const string sql = "SELECT DataJson FROM OASISHolons WHERE IsDeleted=0 AND TRY_CONVERT(uniqueidentifier, JSON_VALUE(DataJson,'$.createdByAvatarId'))=@AvatarId";
+                ArgumentOutOfRangeException.ThrowIfNegative(version);
+                const string sql = VersionedHolonRows + " AND TRY_CONVERT(uniqueidentifier, JSON_VALUE(snapshot.DataJson,'$.createdByAvatarId'))=@AvatarId";
                 await using var conn = new SqlConnection(_connectionString);
                 await conn.OpenAsync();
                 await using var cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@Version", version);
                 cmd.Parameters.Add("@AvatarId", System.Data.SqlDbType.UniqueIdentifier).Value = avatarId;
                 var holons = new List<IHolon>();
                 await using var reader = await cmd.ExecuteReaderAsync();
