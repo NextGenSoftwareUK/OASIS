@@ -22,7 +22,9 @@ public class ConvexOASISIntegrationTests
             Assert.Inconclusive("Configure the dedicated hosted Convex test deployment.");
 
         Assert.IsTrue(Uri.TryCreate(deployment, UriKind.Absolute, out var endpoint) &&
-            endpoint.Scheme == Uri.UriSchemeHttps && !endpoint.IsLoopback,
+            endpoint.Scheme == Uri.UriSchemeHttps && !endpoint.IsLoopback &&
+            endpoint.AbsolutePath == "/" && string.IsNullOrEmpty(endpoint.UserInfo) &&
+            string.IsNullOrEmpty(endpoint.Query) && string.IsNullOrEmpty(endpoint.Fragment),
             "Hosted acceptance requires an explicit HTTPS deployment origin.");
         var deployKey = Environment.GetEnvironmentVariable("OASIS_CONVEX_HOSTED_TEST_DEPLOY_KEY");
         Assert.IsFalse(string.IsNullOrWhiteSpace(deployKey), "Configure the protected test deploy key.");
