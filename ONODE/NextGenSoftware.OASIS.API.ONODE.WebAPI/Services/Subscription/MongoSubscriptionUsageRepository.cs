@@ -98,7 +98,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
                 if (subscription.Status is not ("active" or "trialing" or "free") ||
                     subscription.CurrentPeriodEnd.HasValue && subscription.CurrentPeriodEnd.Value <= authorizationTime)
                     throw new SubscriptionUsageLimitException("INACTIVE_SUBSCRIPTION", "The OASIS subscription is inactive or expired.", 402);
-                var policy = SandboxSubscriptionRules.EffectivePolicy(_policyProvider.GetPolicy(subscription.PlanId, karma),
+                var policy = SandboxSubscriptionRules.EffectivePolicy(_policyProvider.GetPolicy(
+                    usageEvent.AppPlanId == null ? subscription.PlanId : AppAccountRules.EffectivePlanId(subscription.PlanId, usageEvent.AppPlanId), karma),
                     subscription, authorizationTime);
                 usageEvent.PlanId = subscription.PlanId; usageEvent.Karma = karma; usageEvent.AuthorizationPolicy = policy;
                 // This explicit version fence linearizes reservation authorization with concurrent
@@ -122,6 +123,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
                 }
                 else
                     SubscriptionUsagePolicyEvaluator.EnsureAuthorized(policy, aggregate, usageEvent.MeterCategory == "ai.tokens" ? usageEvent.RequestedUnits : 0, usageEvent.ReservedCostUsd);
+                await EnsurePoolAdmissionAsync(session, usageEvent, karma, ct);
                 if (usageEvent.GrantId != null)
                     await ReserveAgainstGrantAsync(session, usageEvent, ct);
                 var entry = Audit(usageEvent, "authorized", usageEvent.AuthorizedAtUtc, usageEvent.ConsumingService);
@@ -365,10 +367,21 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
 
         private async Task ApplyDeltaAsync(IClientSessionHandle session, SubscriptionUsageEvent operation, SubscriptionUsageAuditEntry delta, CancellationToken ct)
         {
+            await ApplyDeltaToSubjectAsync(session, operation, delta, operation.UserId, true, ct);
+            // Pooled apps: the identical delta commits to the app pool in the same transaction, so the pool
+            // can never drift from the sum of its users.
+            if (operation.PooledAppId != null)
+                await ApplyDeltaToSubjectAsync(session, operation, delta, PoolSubject(operation.PooledAppId), false, ct);
+        }
+
+        public static string PoolSubject(string appId) => "app:" + appId;
+
+        private async Task ApplyDeltaToSubjectAsync(IClientSessionHandle session, SubscriptionUsageEvent operation, SubscriptionUsageAuditEntry delta, string subject, bool avatar, CancellationToken ct)
+        {
             foreach (var type in new[] { "month", "day" })
             {
-                var bucket = await LoadBucketAsync(session, operation.UserId, operation.AuthorizedAtUtc, type, ct);
-                if(type=="month" && delta.Kind=="settled")operation.SettledSequence=++bucket.SettlementSequence;
+                var bucket = await LoadBucketAsync(session, subject, operation.AuthorizedAtUtc, type, ct);
+                if(avatar && type=="month" && delta.Kind=="settled")operation.SettledSequence=++bucket.SettlementSequence;
                 bucket.Requests = checked(bucket.Requests + delta.RequestsDelta);
                 bucket.ReservedUnits = checked(bucket.ReservedUnits + delta.ReservedUnitsDelta);
                 bucket.SettledUnits = checked(bucket.SettledUnits + delta.SettledUnitsDelta);

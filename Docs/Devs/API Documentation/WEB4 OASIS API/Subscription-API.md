@@ -88,6 +88,20 @@ Reports use OASISResult envelopes. A successful check can contain findings; insp
 
 Correction kinds are explicitly `billing-adjustment` or `provider-measurement`. The latter must name a receipt already belonging to that operation. Only its receipt-specific delta changes the expected provider amount during independent reconciliation; general billing adjustments change ledger and billing totals without claiming that a provider measurement changed.
 
+### Plan grants and app accounts
+
+Under `/api/subscription/admin/` (administrator claim plus allowlist, or the `Wizard` avatar). Every change is audited with the administrator and a reason (at least 5 characters).
+
+| Method/path | Purpose |
+|---|---|
+| POST plan-grant | Put an avatar on free, bronze, silver, gold or enterprise without Stripe: `{ userId, planId, reason, expiresAtUtc? }` (expiry at most 10 years). 409 if the avatar has an active Stripe subscription; granting `free` reverts. |
+| GET app-accounts | List app accounts (keys are never returned) |
+| POST app-accounts | Create an app account `{ appId, name, planId, reason }`. The response contains `apiKey` once; only its hash is stored. `appId` is 3 to 40 lowercase letters, digits or hyphens. |
+| POST app-accounts/{appId}/rotate-key | Issue a new key; the old one stops working |
+| POST app-accounts/{appId} | Change `planId` and/or `status` (`active`, `disabled`) |
+
+**Calling with an app account.** An application's server may add `X-OASIS-App-Id` and `X-OASIS-App-Key` to a request that carries the user's bearer token. WEB4 then evaluates the request against the more generous of the app's plan and the user's own plan, so an app never makes a user worse off. Invalid, partial or disabled-app credentials are rejected with 401; requests without these headers behave exactly as before. Usage and settlement stay recorded against the signed-in avatar. The app plan is a per-user entitlement, not a shared pool, so app accounts accept only the `enterprise` plan for now (a finite app plan would multiply its limits by the number of users). The headers are accepted on WEB4's own authorization path only (not yet on `usage/authorize` for WEB5 to WEB10).
+
 ## Subscription and billing lifecycle
 
 The controller also exposes:

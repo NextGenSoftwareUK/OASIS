@@ -19,6 +19,11 @@ foreach($name in @('EthereumOASIS','ArbitrumOASIS','PolygonOASIS')) {
         if((Test-Path -LiteralPath $path) -or (Test-Path -LiteralPath ($path+'.next'))){throw 'Review preserved EVM conformance evidence before another run.'}
     }
 }
+foreach($name in @('OASIS_EVM_CONFORMANCE_RPC','OASIS_EVM_CONFORMANCE_CHAIN_ID','OASIS_EVM_CONFORMANCE_PRIVATE_KEY','OASIS_EVM_CONFORMANCE_CONTRACT','OASIS_WEB3CORE_STORAGE_ENCRYPTION_KEY')) {
+    if([string]::IsNullOrWhiteSpace([Environment]::GetEnvironmentVariable($name))) {
+        throw "Missing retained EVM fixture setting: $name. No build or native operation was started."
+    }
+}
 & (Join-Path $root 'Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1') -Owner 'EVM family core storage breadth gate' -Operation {
     $projects=@(
         'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.csproj',

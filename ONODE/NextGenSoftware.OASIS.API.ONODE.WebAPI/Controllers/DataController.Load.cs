@@ -66,7 +66,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 HolonRequestContext requestContext = null;
                 if (configResult.RequestRoutingPolicy != null)
                 {
-                    var context = manager.CreateRequestContext(configResult.RequestRoutingPolicy.ToOverrides(), configResult.RequestProviderType);
+                    var context = manager.CreateRequestContext(configResult.RequestRoutingPolicy.ToOverrides(),
+                        configResult.RequestProviderType, routeDefaultProvider: configResult.RequestRoutingPolicy.AutoLoadBalancingEnabled);
                     if (context.IsError)
                     {
                         var error = RequestContextError<Holon>(context);
