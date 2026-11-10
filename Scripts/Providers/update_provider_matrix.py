@@ -98,7 +98,7 @@ def source_text(project):
  return '\n'.join(p.read_text(encoding='utf-8-sig',errors='replace') for p in sorted(source_files(project.parent)))
 
 def node_sdk_evidence(directory):
- known={'arweave','near-api-js','@cosmjs/stargate','@cosmjs/cosmwasm','@polkadot/api','@mysten/sui','@aptos-labs/ts-sdk','@solana/web3.js','@ton/core','@ton/crypto','@ton/sandbox'}
+ known={'arweave','near-api-js','@cosmjs/stargate','@cosmjs/cosmwasm','@polkadot/api','@mysten/sui','@aptos-labs/ts-sdk','@solana/web3.js','@ton/core','@ton/crypto','@ton/sandbox','@hiero-ledger/sdk'}
  found=[]
  for current,dirs,files in os.walk(directory):
   dirs[:]=[d for d in dirs if d not in {'bin','obj','node_modules','.git'}]
