@@ -758,16 +758,20 @@ WHEN NOT MATCHED THEN
             if (metaKeyValuePairs == null || metaKeyValuePairs.Count == 0) { OASISErrorHandling.HandleError(ref result, "SQLServerDBOASIS: No metadata filters provided."); return result; }
             try
             {
-                var conditions = metaKeyValuePairs.Select((kvp, i) =>
-                    $"JSON_VALUE(DataJson,'$.metaData.{kvp.Key}') = @v{i}").ToList();
+                var filters = metaKeyValuePairs.ToArray();
+                var conditions = filters.Select((_, i) =>
+                    $"JSON_VALUE(DataJson,@path{i}) = @v{i}").ToList();
                 string join = metaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.Any ? " OR " : " AND ";
                 string sql = $"SELECT DataJson FROM OASISHolons WHERE IsDeleted=0 AND ({string.Join(join, conditions)})";
                 if (type != HolonType.All) sql += " AND HolonType=@HolonType";
                 await using var conn = new SqlConnection(_connectionString);
                 await conn.OpenAsync();
                 await using var cmd = new SqlCommand(sql, conn);
-                int idx = 0;
-                foreach (var kvp in metaKeyValuePairs) cmd.Parameters.AddWithValue($"@v{idx++}", kvp.Value);
+                for (var i = 0; i < filters.Length; i++)
+                {
+                    cmd.Parameters.AddWithValue($"@path{i}", "$.metaData." + System.Text.Json.JsonSerializer.Serialize(filters[i].Key));
+                    cmd.Parameters.AddWithValue($"@v{i}", filters[i].Value);
+                }
                 if (type != HolonType.All) cmd.Parameters.AddWithValue("@HolonType", (int)type);
                 var holons = new List<IHolon>();
                 await using var reader = await cmd.ExecuteReaderAsync();
@@ -919,11 +923,12 @@ WHEN NOT MATCHED THEN
             var result = new OASISResult<IEnumerable<IHolon>>();
             try
             {
-                string sql = $"SELECT DataJson FROM OASISHolons WHERE IsDeleted=0 AND JSON_VALUE(DataJson,'$.metaData.{metaKey}')=@MetaValue";
+                string sql = $"SELECT DataJson FROM OASISHolons WHERE IsDeleted=0 AND JSON_VALUE(DataJson,@MetaPath)=@MetaValue";
                 if (type != HolonType.All) sql += " AND HolonType=@HolonType";
                 await using var conn = new SqlConnection(_connectionString);
                 await conn.OpenAsync();
                 await using var cmd = new SqlCommand(sql, conn);
+                cmd.Parameters.AddWithValue("@MetaPath", "$.metaData." + System.Text.Json.JsonSerializer.Serialize(metaKey));
                 cmd.Parameters.AddWithValue("@MetaValue", metaValue);
                 if (type != HolonType.All) cmd.Parameters.AddWithValue("@HolonType", (int)type);
                 var holons = new List<IHolon>();
