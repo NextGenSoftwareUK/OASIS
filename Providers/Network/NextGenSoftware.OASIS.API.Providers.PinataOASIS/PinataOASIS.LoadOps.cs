@@ -746,6 +746,8 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
 
         public async Task<string> GetFileContentAsync(string hash)
         {
+            ArgumentException.ThrowIfNullOrWhiteSpace(hash);
+            _ = Ipfs.Cid.Decode(hash);
             using var response = await _gatewayClient.GetAsync($"{_gatewayUrl}/ipfs/{Uri.EscapeDataString(hash)}").ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadAsStringAsync().ConfigureAwait(false);
@@ -753,6 +755,8 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
 
         internal async Task<byte[]> GetFileBytesAsync(string hash)
         {
+            ArgumentException.ThrowIfNullOrWhiteSpace(hash);
+            _ = Ipfs.Cid.Decode(hash);
             using var response = await _gatewayClient.GetAsync($"{_gatewayUrl}/ipfs/{Uri.EscapeDataString(hash)}").ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadAsByteArrayAsync().ConfigureAwait(false);
