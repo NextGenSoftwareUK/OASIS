@@ -109,3 +109,5 @@ Scoped BootLoader candidate a70a6d5cb4 built against its Development dependency 
 BootLoader hot-activation error propagation (1a01cf27aa) compiled with 0 errors and 2130 warnings. Runtime verification through the shipping registration entry points remains open.
 
 IPFS integration cleanup and SDK reference (defcb2ade3, bf041d53ae) compiled with 0 errors and 1148 warnings. The direct pinned IPFS Core reference resolved the client assertion compilation error. Live Kubo verification remains open.
+
+Scoped IPFS teardown candidate 1f1021ec6a built against Development Core e5802022e with 0 errors and 1139 warnings. Live Kubo verification remains open.
