@@ -162,6 +162,11 @@ namespace NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS.IntegrationTests
             Assert.AreEqual(1, loaded.LoadedCount);
             Assert.AreEqual(id, loaded.Result.Id);
             Assert.IsNotNull(loaded.Result.Chakras);
+            Assert.IsNotNull(loaded.Result.Aura);
+            Assert.IsNotNull(loaded.Result.Stats);
+            Assert.IsNotNull(loaded.Result.Skills);
+            Assert.IsNotNull(loaded.Result.Attributes);
+            Assert.IsNotNull(loaded.Result.SuperPowers);
         }
 
         [TestCleanup]
