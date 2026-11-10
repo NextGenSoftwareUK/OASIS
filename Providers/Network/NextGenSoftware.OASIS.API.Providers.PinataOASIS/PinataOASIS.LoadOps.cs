@@ -739,7 +739,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PinataOASIS
                     pins.Add(pin);
                 }
 
-                if (page.Count < pageSize)
+                if (page.Count == 0)
                     return pins;
             }
         }
