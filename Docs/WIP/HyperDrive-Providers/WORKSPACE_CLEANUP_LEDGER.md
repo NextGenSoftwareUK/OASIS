@@ -289,4 +289,6 @@ Urgent disk cleanup follow-up: leased standard project clean succeeded for AWS u
 
 11 November EOSIO async job 130616393997 confirmed removal of its Antelope fixture after the metadata query failure. The sync job was still active at this check. No local build or test files were created.
 
+11 November EOSIO run 43047808703 also removed the sync fixture after the same metadata failure. Run 43048263198 confirmed both later fixtures removed after the avatar-detail absence failure. No local artifacts were created.
+
 11 November cleanup recheck in the HyperDrive worktree. The earlier WEB4 count build still occupies 115,007,857 bytes in `oasisweb4.com/node_modules` and 361,528 bytes in `TestResults/Web4ProviderCountBuild`. Both are Git-ignored generated directories, with no linked content or matching active Node process found. Automatic review rejected the scoped recursive removal before execution. No deletion occurred. The four named wallet and ActivityPub build folders were absent from this worktree's top-level TestResults directory.

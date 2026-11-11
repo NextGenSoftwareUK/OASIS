@@ -232,8 +232,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             var result = new OASISResult<IAvatar>();
             try
             {
-                var avatarDto = await _avatarRepository.Read(Id);
-                var avatarEntity = avatarDto?.GetBaseAvatar();
+                var avatarDto = await _avatarRepository.Read(Id).ConfigureAwait(false);
+                var avatarEntity = avatarDto is { IsDeleted: false } ? avatarDto.GetBaseAvatar() : null;
                 if (avatarEntity == null)
                 {
                     result.IsLoaded = false;

@@ -151,10 +151,8 @@ jobs:
           PY
           jq -e '.Succeeded and .FixtureCleanupComplete and (.Passed | length == 26)' \
             "$fixture/results/core-storage.json" >/dev/null
-          for table in avatar avatardetail; do
+          for table in avatar avatardetail holon; do
             "${cli[@]}" get table "$OASIS_ANTELOPE_ACCOUNT" "$OASIS_ANTELOPE_ACCOUNT" "$table" \
               | jq -e '(.rows | length == 0) and (.more == false)' >/dev/null
           done
-          "${cli[@]}" get table "$OASIS_ANTELOPE_ACCOUNT" "$OASIS_ANTELOPE_ACCOUNT" holon \
-            | jq -e '(.more == false) and all(.rows[]; .isDeleted == true or .isDeleted == 1)' >/dev/null
           echo "Verified 26 Antelope storage checks in $OASIS_ANTELOPE_STORAGE_MODE mode and independent native table cleanup."

@@ -71,7 +71,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             var result = new OASISResult<IAvatarDetail>();
             try
             {
-                var avatarDetailDto = await _avatarDetailRepository.Read(id);
+                var avatarDetailDto = await _avatarDetailRepository.Read(id).ConfigureAwait(false);
                 var avatarDetailEntity = avatarDetailDto?.GetBaseAvatarDetail();
                 if (avatarDetailEntity == null)
                 {
@@ -318,10 +318,22 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             var result = new OASISResult<bool>();
             try
             {
+                if (await _avatarRepository.Read(id).ConfigureAwait(false) == null)
+                {
+                    result.IsError = true;
+                    result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
+                    result.Message = "EOSIO avatar was not found.";
+                    return result;
+                }
+
                 if (softDelete)
-                    await _avatarRepository.DeleteSoft(id);
+                    await _avatarRepository.DeleteSoft(id).ConfigureAwait(false);
                 else
-                    await _avatarRepository.DeleteHard(id);
+                {
+                    var detail = await _avatarDetailRepository.ReadOwnedRowAsync(id, includeDeleted: true)
+                        .ConfigureAwait(false);
+                    await _avatarRepository.DeleteHardWithDetailAsync(id, detail != null).ConfigureAwait(false);
+                }
 
                 result.Result = true;
                 result.IsDeleted = true;

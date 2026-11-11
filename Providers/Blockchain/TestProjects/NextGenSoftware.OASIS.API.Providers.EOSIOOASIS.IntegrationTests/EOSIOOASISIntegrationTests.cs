@@ -168,7 +168,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.IntegrationTests
                 {
                     await File.WriteAllTextAsync(path + ".next", JsonSerializer.Serialize(checkpoint));
                     File.Move(path + ".next", path, overwrite: true);
-                });
+                }, expectedDefaultDeletion: "absent");
             Assert.IsTrue(report.Succeeded,
                 $"{report.CurrentCase}: {report.FailureType} {report.FailureContract}; {report.Passed.Count} checks passed.");
             Assert.IsTrue(report.FixtureCleanupComplete);

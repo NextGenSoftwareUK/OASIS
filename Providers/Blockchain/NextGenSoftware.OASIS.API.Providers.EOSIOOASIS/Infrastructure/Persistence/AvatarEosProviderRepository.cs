@@ -129,9 +129,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
             {
                 Code = _eosAccountName,
                 Scope = _eosAccountName,
-                Table = _avatarTable
-            });
-            return avatarTableRows.Rows.FirstOrDefault(avatarDetailDto => avatarDetailDto.EntityId == avatarId);
+                Table = _avatarTable,
+                LowerBound = unchecked((uint)avatarId).ToString(System.Globalization.CultureInfo.InvariantCulture),
+                Limit = 1
+            }).ConfigureAwait(false);
+            return avatarTableRows.Rows.FirstOrDefault(row => row.EntityId == avatarId &&
+                Guid.TryParse(row.AvatarId, out var storedId) && storedId == id);
         }
 
         public async Task<ImmutableArray<AvatarDto>> ReadAll()
@@ -198,35 +201,29 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
                 $"Request sent: {id}", LogType.Info);
         }
 
-        public async Task DeleteHard(Guid id)
+        public Task DeleteHard(Guid id) => DeleteHardWithDetailAsync(id, hasDetail: false);
+
+        internal async Task DeleteHardWithDetailAsync(Guid id, bool hasDetail)
         {
-            if (id == null)
-                throw new ArgumentNullException(nameof(id));
+            if (id == Guid.Empty)
+                throw new ArgumentException("A nonempty avatar ID is required.", nameof(id));
 
             var avatarId = HashUtility.GetNumericHash(id);
-            var pushTransactionResult = await _eos.CreateTransaction(new Transaction
+            Action CreateAction(string name, object data) => new()
             {
-                actions = new List<Action>
+                account = _eosAccountName,
+                authorization = new List<PermissionLevel>
                 {
-                    new()
-                    {
-                        account = _eosAccountName,
-                        authorization = new List<PermissionLevel>
-                        {
-                            new()
-                            {
-                                actor = _eosAccountName,
-                                permission = "active"
-                            }
-                        },
-                        name = "hardavatar",
-                        data = new
-                        {
-                            entityId = avatarId
-                        }
-                    }
-                }
-            });
+                    new() { actor = _eosAccountName, permission = "active" }
+                },
+                name = name,
+                data = data
+            };
+            var actions = new List<Action> { CreateAction("hardavatar", new { entityId = avatarId }) };
+            if (hasDetail)
+                actions.Add(CreateAction("harddetail", new { entityId = avatarId, holonId = id.ToString() }));
+
+            var pushTransactionResult = await _eos.CreateTransaction(new Transaction { actions = actions }).ConfigureAwait(false);
 
             if (string.IsNullOrWhiteSpace(pushTransactionResult))
                 throw new InvalidOperationException("EOSIO avatar deletion returned no transaction ID.");
