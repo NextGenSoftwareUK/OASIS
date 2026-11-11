@@ -5426,3 +5426,5 @@ Temporary remote tag ci-hed-era-web4-2b828fd377 makes exact Development candidat
 Hedera mirror probe at 00:06 UTC on 11 November passed three reads. The script treated --help as execution and produced TestResults/HederaPublicSourceCandidateCurrent/readiness.json (1423 bytes). Removed the untracked report after confirming its run timestamp. No local build, download or new environment.
 
 Removed temporary remote tag ci-hed-era-web4-2b828fd377 after successful image CI and verified Development integration. No local image or build was generated.
+
+Emergency cleanup on 11 November UTC: removed the disposable RecoveryLaptopRavenDB701/ravendb.embedded.7.0.1.nupkg download (149,728,697 bytes). C: free moved from 55,940,956,160 to 56,090,685,440 bytes. No new local build, download or environment.
