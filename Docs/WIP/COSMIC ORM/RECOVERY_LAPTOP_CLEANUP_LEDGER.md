@@ -5532,3 +5532,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: inspected exact GOMap CI evidence in memory. No local archive, report, database or build output was created. The CI cleanup receipt confirmed removal of the owned container and anonymous volumes.
 
 11 November UTC: successor cutover reused the protected visitor and its renewal journal. Railway Aptos activation logs and the bounded native probe were inspected in memory. No new visitor, archive, standalone report, dependency or build output.
+
+11 November UTC: reused the existing Railway CLI, SSH key and WEB4 Node runtime for the Aptos egress probe. Four GETs, no writes. No new environment, download, log file, database or build output.
