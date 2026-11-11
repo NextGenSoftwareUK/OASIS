@@ -1327,3 +1327,5 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 11 November UTC: Development `d1674f5d0f` includes the verified SurrealDB typed GUID operations and shared avatar-detail deserializer, with all seven focused native storage tests passing. Standard CI fixture routing, Mongo federation and hosted CQL remain open. [SurrealDB storage CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43040628848)
 
 11 November UTC: SurrealDB native restart and MongoDB federation passed on the disposable CI fixtures with the typed-key and avatar-detail fixes. The runner checked replica admission, SDK/HTTP federation and a native source recheck after federation. Hosted CQL and standard CI routing remain open. [SurrealDB federation CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43041575804)
+
+11 November UTC: SurrealDB standard CI candidate `808444b7be` routes generic storage tests to the pinned container with explicit namespace and database setup. The same pipeline invokes the dedicated native restart and Mongo federation workflow. Diagnostic `b34006591d` verifies both jobs. Hosted CQL remains open.
