@@ -1,0 +1,88 @@
+name: ScyllaDB native storage
+
+on:
+  push:
+    branches: [work/hyperdrive-provider-completion]
+    paths:
+      - '.github/workflows/scylla-native-storage.yml'
+      - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.ScyllaDBOASIS/**'
+      - 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.ScyllaDBOASIS.IntegrationTests/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  storage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: OASIS
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          path: OASIS
+          submodules: recursive
+          persist-credentials: false
+      - name: Read the recorded Libraries revision
+        id: dependencies
+        run: |
+          revision="$(sed -n 's/^LIBRARIES_COMMIT=//p' Docker/oasis-dependency-versions.env)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "libraries=$revision" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependencies.outputs.libraries }}
+          path: NextGenSoftware-Libraries
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Run native storage conformance against ScyllaDB
+        shell: bash
+        run: |
+          image=docker.io/scylladb/scylla@sha256:2a3cf99b55d793a41e19b4d8afa4084744bc05517f4b4a211483c8d2abe4ef3a
+          fixture="$(mktemp -d "$RUNNER_TEMP/oasis-scylla.XXXXXXXX")"
+          container=""
+          image_owned=false
+          cleanup() {
+            status=$?
+            cleanup_status=0
+            if [[ -n "$container" ]]; then
+              if (( status != 0 )); then docker logs --tail 35 "$container" || true; fi
+              docker rm -fv "$container" || cleanup_status=1
+            fi
+            if [[ "$image_owned" == true ]] && docker image inspect "$image" >/dev/null 2>&1; then
+              docker image rm "$image" || cleanup_status=1
+            fi
+            if [[ "$fixture" == "$RUNNER_TEMP"/oasis-scylla.* ]]; then rm -rf -- "$fixture"; fi
+            [[ ! -e "$fixture" ]] || cleanup_status=1
+            if (( cleanup_status == 0 )); then echo "Removed the owned ScyllaDB container, volumes and fixture."; else status=1; fi
+            exit "$status"
+          }
+          trap cleanup EXIT
+          if ! docker image inspect "$image" >/dev/null 2>&1; then image_owned=true; fi
+          container="$(docker run -d -p 127.0.0.1:19043:9042 "$image" --smp 1 --memory 1G --developer-mode 1 --overprovisioned 1)"
+          cql=(docker exec "$container" cqlsh 127.0.0.1)
+          for attempt in {1..90}; do
+            if timeout 5 "${cql[@]}" -e 'SELECT release_version FROM system.local;' >"$fixture/version.txt" 2>/dev/null; then break; fi
+            [[ "$attempt" != 90 ]]
+            sleep 2
+          done
+          cat "$fixture/version.txt"
+          export OASIS_SCYLLA_CI_FIXTURE="$fixture"
+          pwsh -NoProfile -Command '
+            ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-ScyllaDBStorage -Operation {
+              dotnet test "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.ScyllaDBOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.ScyllaDBOASIS.UnitTests.csproj" --filter "FullyQualifiedName~ScyllaDbSaveOwnershipTests" /m:2 /nr:false /p:UseSharedCompilation=false --logger "console;verbosity=normal"
+              if ($LASTEXITCODE -ne 0) { throw "ScyllaDB write ownership verification failed." }
+              dotnet test "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.ScyllaDBOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.ScyllaDBOASIS.IntegrationTests.csproj" --filter "FullyQualifiedName~CoreStorageSuiteAgainstScylla" /p:ScyllaDirectStorageOnly=true /m:2 /nr:false /p:UseSharedCompilation=false --logger "console;verbosity=normal"
+              if ($LASTEXITCODE -ne 0) { throw "Native ScyllaDB storage verification failed." }
+            }'
+          for mode in async sync; do
+            jq -e '.Succeeded and .FixtureCleanupComplete and (.Passed | length == 26)' "$fixture/oasis_storage_$mode.json" >/dev/null
+          done
+          echo "Verified both ScyllaDB storage modes and exact native cleanup."
