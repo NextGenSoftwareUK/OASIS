@@ -256,3 +256,5 @@ Native real-controller Kestrel/WEB4 row-and-receipt gate now passes1/1, with six
 IPFS/SOLID point teachinghost is now native-tested withreadableHTML/API and explicitserve/shutdown lifecycle. See [interactive launch guide](CQL_INTERACTIVE_POINT_DEMO.md). This is scoped syntheticpointdemo; combinedeightprovider/commonquerydemo and productionauthbilling remainopen.
 
 11 November UTC: HyperDrive verified IPFS encrypted current and historical holon versions after a graceful Kubo daemon restart and a fresh provider process in CI 43007340696. This used one disposable repository across both phases. Historical fixture recovery and concurrent publication remain open. The existing hosted CQL acceptance stands, and the live cutover for Development c686a8618d is still building.
+
+11 November UTC: HyperDrive IPFS native concurrency CI 43008085065 reproduced a shared catalogue enumeration failure in PublishAcknowledgedRecordAsync. The shipping provider reported acknowledged CIDs before the overall graph save failed. HyperDrive owns the publication fix. Keep earlier native restart and public CQL evidence within their verified scopes.
