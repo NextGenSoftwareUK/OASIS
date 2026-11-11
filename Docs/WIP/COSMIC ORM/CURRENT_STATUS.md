@@ -1345,3 +1345,5 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 11 November UTC: CouchDB native reader-policy CI 43044567583 passed against the disposable CouchDB 3 service. The reader loaded the original document and received the exact validation denial for create, update and delete. The original document was unchanged. Hosted CouchDB authorization and sandbox acceptance remain open.
 
 11 November UTC: OpenSearch generic storage and native restart/federation both passed in standard Development CI 43043263300 at c837fe5ad8. Railway deployed earlier revision 165e8abaee successfully and still has c837fe5ad8 queued. Hosted HTTPS CQL acceptance remains open.
+
+11 November UTC: CouchDB candidate 7d1418d55b is in remote CI on Development a39f5fe06d. The fixture uses the existing pinned CouchDB version and disposable MongoDB helper to run native CQL before and after CouchDB restart, SDK/HTTP federation, and a final source recheck. Results are pending. Development a39f5fe06d also carries HyperDrive's verified Mastodon search and deletion.

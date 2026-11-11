@@ -157,3 +157,5 @@ python -B Scripts/Sandbox/Verify-HostedQuerySource.py CouchDBOASIS --readiness
 11 November UTC: recovered the existing CouchDB native reader-policy test from the COSMIC branch. Diagnostic 33e42af5d9 is published for disposable CI against CouchDB 3. It checks a restricted reader can load the original document and receives the exact role-policy denial on create, update and delete. Hosted reader policy and live acceptance remain open.
 
 11 November UTC: CouchDB native reader-policy CI 43044567583 passed against the disposable CouchDB 3 service. The reader loaded the original document and received the exact validation denial for create, update and delete. The original document was unchanged. Hosted CouchDB authorization and sandbox acceptance remain open.
+
+11 November UTC: CouchDB candidate 7d1418d55b is in remote CI on Development a39f5fe06d. The fixture uses the existing pinned CouchDB version and disposable MongoDB helper to run native CQL before and after CouchDB restart, SDK/HTTP federation, and a final source recheck. Results are pending. Development a39f5fe06d also carries HyperDrive's verified Mastodon search and deletion.
