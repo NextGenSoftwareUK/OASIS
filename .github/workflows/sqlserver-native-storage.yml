@@ -1,0 +1,99 @@
+name: SQL Server native storage
+
+on:
+  push:
+    branches: [work/hyperdrive-provider-completion]
+    paths:
+      - '.github/workflows/sqlserver-native-storage.yml'
+      - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLServerDBOASIS/**'
+      - 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SQLServerDBOASIS.IntegrationTests/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  storage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: OASIS
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          path: OASIS
+          submodules: recursive
+          persist-credentials: false
+
+      - name: Read the recorded Libraries revision
+        id: dependencies
+        run: |
+          revision="$(sed -n 's/^LIBRARIES_COMMIT=//p' Docker/oasis-dependency-versions.env)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "libraries=$revision" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependencies.outputs.libraries }}
+          path: NextGenSoftware-Libraries
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Run both storage modes against Microsoft SQL Server
+        shell: bash
+        run: |
+          container=""
+          image=mcr.microsoft.com/mssql/server@sha256:46e454273ee7f971f804cfc367b2f0aeaafd258f65b77d34ac6acca85fcb8bc9
+          reports="$PWD/TestResults/ProviderConformanceCurrent/SQLServerDBOASIS"
+          [[ ! -e "$reports" ]]
+          cleanup() {
+            status=$?
+            if [[ -n "$container" ]]; then
+              if (( status != 0 )); then docker logs --tail 30 "$container" >&2 || true; fi
+              docker rm --force --volumes "$container" >/dev/null || status=1
+              if docker inspect "$container" >/dev/null 2>&1; then status=1; else echo "Removed the owned SQL Server container."; fi
+            fi
+            if [[ "$reports" == "$PWD"/TestResults/ProviderConformanceCurrent/SQLServerDBOASIS ]]; then
+              rm -rf -- "$reports"
+              test ! -e "$reports" || status=1
+            fi
+            exit "$status"
+          }
+          trap cleanup EXIT
+          password="Aa9!$(openssl rand -hex 24)"
+          echo "::add-mask::$password"
+          export MSSQL_SA_PASSWORD="$password"
+          container="$(docker run --detach --publish 127.0.0.1:11433:1433 \
+            --env ACCEPT_EULA=Y --env MSSQL_PID=Developer --env MSSQL_SA_PASSWORD "$image")"
+          sql() {
+            SQLCMDPASSWORD="$password" docker exec --env SQLCMDPASSWORD "$container" \
+              /opt/mssql-tools18/bin/sqlcmd -C -b -S localhost -U sa -l 3 "$@"
+          }
+          for attempt in {1..45}; do
+            if sql -Q "SET NOCOUNT ON; SELECT SERVERPROPERTY('ProductVersion');" >/dev/null 2>&1; then break; fi
+            [[ "$attempt" != 45 ]]
+            sleep 2
+          done
+          sql -Q "SELECT SERVERPROPERTY('ProductVersion'); CREATE DATABASE oasis_hyperdrive_provider_test;"
+          export OASIS_SQLSERVER_CONFORMANCE_CONNECTION_STRING="Server=127.0.0.1,11433;Database=oasis_hyperdrive_provider_test;User ID=sa;Password=$password;Encrypt=True;TrustServerCertificate=True"
+          pwsh -NoProfile -Command '
+            ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-SqlServerStorage -Operation {
+              dotnet test "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SQLServerDBOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.SQLServerDBOASIS.IntegrationTests.csproj" --filter "FullyQualifiedName~CoreStorageSuiteAgainstSqlServer" /p:SqlServerDirectStorageOnly=true /m:2 /nr:false /p:UseSharedCompilation=false --logger "console;verbosity=normal"
+              if ($LASTEXITCODE -ne 0) { throw "Native SQL Server storage verification failed." }
+            }'
+          for mode in async sync; do
+            jq -e '.Succeeded and .FixtureCleanupComplete and (.Passed | length == 26)' "$reports/$mode/report.json" >/dev/null
+          done
+          sql -d oasis_hyperdrive_provider_test -Q "
+            IF EXISTS (SELECT 1 FROM dbo.OASISAvatars) OR EXISTS (SELECT 1 FROM dbo.OASISAvatarDetails)
+              OR EXISTS (SELECT 1 FROM dbo.OASISHolons) OR EXISTS (SELECT 1 FROM dbo.OASISAvatarHistory)
+              OR EXISTS (SELECT 1 FROM dbo.OASISAvatarDetailHistory) OR EXISTS (SELECT 1 FROM dbo.OASISHolonHistory)
+              THROW 50001, 'Native conformance fixture tables must be empty', 1;"
+          echo "Verified both SQL Server storage modes and all six empty tables."

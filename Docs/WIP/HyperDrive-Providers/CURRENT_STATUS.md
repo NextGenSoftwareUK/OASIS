@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November SQL Server shared storage. Existing LocalDB checkpoints and the BootLoader activation pass carry forward. The new workflow exercises the previously unverified uninterrupted suite against Microsoft's digest-pinned SQL Server 2022 Linux engine. It selects only the existing native storage test, then independently queries all six current and history tables for emptiness. COSMIC CQL source and tests are outside the run. Verification is pending.
+
 11 November EOSIO run 43048799690 at 4365b55470 passed 52/52 through the shipping provider on two independently deployed Antelope Spring 1.2.2 ledgers. Both modes verified exact avatar and detail deletion and independently empty avatar, avatar-detail and holon tables. Both fixtures were removed. Hosted signed deployment and other capability-specific gates remain open.
 
 11 November EOSIO run 43048263198 passed 24 checks per mode, including metadata, batch, import, export and holon cleanup. Both modes failed when the detail remained after hard avatar deletion. The candidate checks the native GUID for ownership and submits hard avatar and owned detail removal as a single Antelope transaction. The fresh runner now requires every native fixture table empty after conformance. Verification is pending.
