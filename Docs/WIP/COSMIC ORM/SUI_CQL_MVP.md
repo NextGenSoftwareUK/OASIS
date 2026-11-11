@@ -167,3 +167,5 @@ child/history/atomic-write/HyperDrive certification follows from this bounded de
 
 [Status](CURRENT_STATUS.md) / [inventory](CQL_ALL_PROVIDER_MVP_INVENTORY.md) /
 [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
+
+11 November UTC: Development 31db62c741 integrates HyperDrive Sui native storage conformance. Official Sui v1.81.1 passed all 52 checks through the shipping SDK-backed provider in CI 43058209983. Independent dynamic-field reads confirmed the fresh Move contract was empty before and after the suite. Hosted and retained-ledger coverage remain open.

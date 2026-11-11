@@ -1445,3 +1445,7 @@ Dragonfly/Valkey verified batch prepared on this base at 3850e2e078. Combined Re
 11 November UTC: Railway deployed WEB4 d1674f5d0f as 6d165d9b, including the verified SurrealDB GUID and avatar-detail fixes. Authenticated discovery showed 105 of 106 listed sources ready, with Nostr unavailable. CouchDB, OpenSearch, Supabase, SurrealDB and TRON were absent. Existing hosted fixture and operator gates remain open.
 
 11 November UTC: Development d93d984b7b integrates the verified Redis, Dragonfly and Valkey standard CI routing on top of HyperDrive Hedera changes. The batch contains only the three independently qualified fixture-routing patches. Hosted TLS acceptance remains open for all three.
+
+11 November UTC: Development 31db62c741 integrates HyperDrive Sui native storage conformance. Official Sui v1.81.1 passed all 52 checks through the shipping SDK-backed provider in CI 43058209983. Independent dynamic-field reads confirmed the fresh Move contract was empty before and after the suite. Hosted and retained-ledger coverage remain open.
+
+Standard Redis, Dragonfly and Valkey jobs are queued or running in Development CI 43059249089. Railway WEB4 deployment d04ed4c4 is queued.

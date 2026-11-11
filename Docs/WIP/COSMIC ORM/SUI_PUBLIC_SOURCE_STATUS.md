@@ -81,3 +81,5 @@ Evidence in `TestResults/HostedCqlIntegrationCurrent/`, retained sourceOwner/cat
 | SuiOASIS-isolation-http.json | `4b45192d96bdbfaff28f45d54ac37d2f04c9d50ba3f28723439d8c2f3ee2dd89` |
 
 11 November UTC: Sui checkpoint-scoped public object presets returned three full and two filtered rows in the live Development CQL Playground. Original-owner MongoDB paired browser verification remains open. No preparation or record saves.
+
+11 November UTC: Development 31db62c741 integrates HyperDrive Sui native storage conformance. Official Sui v1.81.1 passed all 52 checks through the shipping SDK-backed provider in CI 43058209983. Independent dynamic-field reads confirmed the fresh Move contract was empty before and after the suite. Hosted and retained-ledger coverage remain open.
