@@ -11,6 +11,11 @@ env:
   NODE_VERSION: '24.x'
 
 jobs:
+  opensearch-native-cql:
+    uses: ./.github/workflows/opensearch-native-cql.yml
+    secrets:
+      PRIVATE_SUBMODULE_PAT: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+
   arango-native-cql:
     uses: ./.github/workflows/arango-native-cql.yml
     secrets:
@@ -208,6 +213,7 @@ jobs:
               -e discovery.type=single-node
               -e DISABLE_SECURITY_PLUGIN=true
               -e OPENSEARCH_INITIAL_ADMIN_PASSWORD=Str0ngOasis!Pass
+            filter: FullyQualifiedName~OpenSearchOASISIntegrationTests
           - name: Elasticsearch
             project: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS.IntegrationTests
             image: docker.elastic.co/elasticsearch/elasticsearch:8.13.0
