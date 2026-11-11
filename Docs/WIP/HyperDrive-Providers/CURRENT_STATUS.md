@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November BNB public wallet candidate. CI will verify both shipping balance entry points against the official BSC mainnet RPC with the published wrapped BNB contract as the public read target. It checks chain ID 56, rejection when configured for chain 97, and that storage stays inactive. The job needs no signer, storage contract or private-chain fixture.
+
 11 November BNB BootLoader registration shipped to Development at febb6971d8. The [Development BootLoader job 43086956668](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43086956668) checks the scoped integration with Development dependencies.
 
 11 November BNB BootLoader [run 43084767090](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43084767090) stopped at compilation. The CI workspace lacked the manifest-pinned Holochain sibling, causing missing HoloNET ORM APIs and Cardano Chaos.NaCl types. The BootLoader job now checks out that exact dependency. The native storage pass remains valid.
