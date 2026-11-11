@@ -946,3 +946,7 @@ Power recovery verified on 11 November UTC: battery 21% and charging (Win32_Batt
 ### GOMap public demo routing origin (11 November 2026)
 
 **Status** Awaiting an approved dedicated endpoint for Development WEB4. Identify the existing dedicated HTTPS OSRM origin, if available, and where its operator terms are documented. The demo needs permission for concurrent sandbox traffic and must meet the operator's attribution rules. If no endpoint is available, the COSMIC task will document hosting options before any paid provisioning decision. Keep credentials in private configuration. [GOMap scope and endpoint review](../COSMIC%20ORM/GOMAP_PUBLIC_SOURCE_STATUS.md).
+
+### Hosted ArangoDB and QuestDB teaching fixtures (11 November 2026)
+
+**Status** Awaiting identification of existing approved HTTPS teaching fixtures for Development WEB4. For ArangoDB, identify the HTTPS origin for the dedicated `oasis/holons` dataset, the reviewed record IDs, and the protected location of its restricted read-only credentials. For QuestDB, identify the HTTPS query origin and the reviewed table, `SYMBOL` column and key set. Keep credentials in private configuration. These inputs let engineering verify the exact full and subset results before admitting either source to the live demo. Local and CI evidence is already recorded. [ArangoDB qualification](../COSMIC%20ORM/ARANGODB_CQL_MVP.md) · [QuestDB qualification](../COSMIC%20ORM/QUESTDB_PUBLIC_SOURCE_STATUS.md)
