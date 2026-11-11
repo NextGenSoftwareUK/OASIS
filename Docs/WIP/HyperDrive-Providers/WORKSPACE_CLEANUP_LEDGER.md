@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+11 November Convex companion recovery CI. Job 130512352307 passed and stopped the owned Convex engine. The archive, test database, ephemeral keys, CLI install and build ran on a disposable Linux runner. No upload or local output was created.
+
 11 November Supabase pagination CI. GitHub job 130509010214 passed all three listing cases and removed the PostgreSQL container. The temporary PostgREST services, archive, seeded rows, ID manifest and build were confined to the disposable runner. No local artifacts or uploads were created.
 
 11 November Supabase native PostgREST conformance. Corrected GitHub job 130506351774 passed both modes with exact fixture cleanup and removed the PostgreSQL container. The PostgREST processes, database, download, reports and build outputs were scoped to disposable CI. No local artifacts or uploaded reports were created.
