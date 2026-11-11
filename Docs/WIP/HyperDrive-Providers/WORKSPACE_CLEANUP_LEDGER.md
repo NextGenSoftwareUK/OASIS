@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+11 November Polygon public wallet verification. Reused the .NET runtime and package cache. No SDK installation, chain fixture or raw test report was created. Leased dotnet clean left zero files in bin. The isolated `TestResults/HyperDrive-Providers/PolygonPublicWalletBuild` tree retains 6,070,952 bytes of restore and intermediate metadata. C: had 42,947,489,792 bytes free at the shared-machine check.
+
 11 November Arbitrum public wallet verification. Reused the .NET runtime and package cache. No SDK installation, chain fixture or raw test report was created. Leased dotnet clean left zero files in bin. The isolated `TestResults/HyperDrive-Providers/ArbitrumPublicWalletBuild` tree retains 6,073,521 bytes of restore and intermediate metadata. C: had 42,965,209,088 bytes free at the shared-machine check.
 
 11 November SQLite wallet encryption verification. The focused test disposed both provider instances and its independent SQLite connection, then deleted its temporary database and sidecars. Leased dotnet clean left zero files in the redirected bin tree. No SDK install or raw report was created. The isolated `TestResults/HyperDrive-Providers/SQLiteWalletEncryptionBuild` tree retains 6,394,352 bytes of restore and intermediate metadata. C: had 42,987,954,176 bytes free at the shared-machine check.

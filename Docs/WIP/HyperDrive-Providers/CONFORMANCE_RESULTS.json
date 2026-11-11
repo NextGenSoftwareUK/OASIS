@@ -34,7 +34,7 @@
       "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-polygonoasis-local-v2.json",
       "sha256": "65ea4d35049c09deeca852815378377bd37dbccfc98cc8643cf7d046315ca2a1",
       "blockers": [
-        "Shipping factory against isolated Hardhat loopback Web3Core contracts, 26 checks per mode with fixture cleanup verified at 1ed77c18d6. [Native run reports](NativeEvidence/conformance-polygonoasis-local-v2.json). [Earlier configuration failure](NativeEvidence/conformance-polygonoasis-current.json). Public-network acceptance remains open."
+        "Shipping factory against isolated Hardhat loopback Web3Core contracts, 26 checks per mode with fixture cleanup verified at 1ed77c18d6. [Native run reports](NativeEvidence/conformance-polygonoasis-local-v2.json). [Earlier configuration failure](NativeEvidence/conformance-polygonoasis-current.json). The synchronous shipping wallet read passed on Polygon PoS through unsigned Nethereum with chain 137 verification and no storage activation. Public-network storage acceptance remains open."
       ]
     },
     {
