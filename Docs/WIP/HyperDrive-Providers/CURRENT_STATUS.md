@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November Firebase activation candidate. A successful HTTP status now also has to carry the RTDB JSON null response for the reserved empty holon identity. This keeps an HTML gateway or a wrong JSON endpoint from marking the shipping provider active. Regression cases cover null, empty, HTML and object responses. Compile and emulator confirmation are pending.
+
 11 November Valkey and Dragonfly evidence reconciliation. Development run 43059249089 at d93d984b7b passed four native avatar/holon smoke cases for each provider and separate encrypted CQL restart/federation jobs. The shared 52-case native lifecycle remains open for both. No tests were repeated.
 
 11 November Firebase Realtime Database storage candidate. A disposable CI job runs both shipping REST storage modes against the checksum-pinned official RTDB 4.11.2 emulator and a fresh demo namespace. It checks all 26 lifecycle cases per mode and verifies the namespace is empty at the end. The interrupted Windows fixture and COSMIC hosted-query work are preserved. [CI run 43087789287](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43087789287) is pending.

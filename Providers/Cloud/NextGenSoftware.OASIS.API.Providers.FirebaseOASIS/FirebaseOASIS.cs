@@ -77,6 +77,10 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
                 // reserved empty identity through the actual REST contract instead.
                 using var response = await _http.GetAsync(NodeUrl("/oasis_holons/" + Guid.Empty.ToString("D")));
                 response.EnsureSuccessStatusCode();
+                using var payload = await response.Content.ReadAsStreamAsync();
+                using var probe = await JsonDocument.ParseAsync(payload);
+                if (probe.RootElement.ValueKind != JsonValueKind.Null)
+                    throw new InvalidOperationException("Firebase activation requires an empty reserved holon identity.");
                 IsProviderActivated = true;
                 result.Result = true;
                 result.IsError = false;
