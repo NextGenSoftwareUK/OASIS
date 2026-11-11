@@ -102,6 +102,7 @@ public class FirebaseNativeStorageConformanceTests
         var root = new Holon { Id = Guid.NewGuid(), Name = "graph root" };
         var child = new Holon { Id = Guid.NewGuid(), Name = "graph child" };
         var grandchild = new Holon { Id = Guid.NewGuid(), Name = "graph grandchild" };
+        root.MetaData["graph-fixture"] = root.Id.ToString("D");
         child.Children.Add(grandchild);
         root.Children.Add(child);
 
@@ -110,6 +111,17 @@ public class FirebaseNativeStorageConformanceTests
             var saved = await provider.SaveHolonAsync(root);
             Assert.IsFalse(saved.IsError, saved.Message);
             Assert.AreEqual(3, saved.SavedCount);
+
+            using (var native = JsonDocument.Parse(await http.GetStringAsync(
+                new Uri(endpoint, $"oasis_holons.json?ns={DatabaseNamespace}"))))
+            {
+                var rows = native.RootElement;
+                var nativeRoot = rows.GetProperty(root.Id.ToString("D"));
+                Assert.IsFalse(nativeRoot.TryGetProperty("children", out _));
+                Assert.IsFalse(nativeRoot.TryGetProperty("allChildren", out _));
+                Assert.AreEqual(root.Id, rows.GetProperty(child.Id.ToString("D")).GetProperty("parentHolonId").GetGuid());
+                Assert.AreEqual(child.Id, rows.GetProperty(grandchild.Id.ToString("D")).GetProperty("parentHolonId").GetGuid());
+            }
 
             var rootOnly = provider.LoadHolon(root.Id, loadChildren: false);
             Assert.IsFalse(rootOnly.IsError, rootOnly.Message);
@@ -128,6 +140,14 @@ public class FirebaseNativeStorageConformanceTests
             var expanded = provider.LoadHolon(root.Id.ToString("D"));
             Assert.IsFalse(expanded.IsError, expanded.Message);
             Assert.AreEqual(grandchild.Id, expanded.Result.Children.Single().Children.Single().Id);
+
+            var parentRows = await provider.LoadHolonsForParentAsync(root.Id);
+            Assert.IsFalse(parentRows.IsError, parentRows.Message);
+            Assert.AreEqual(grandchild.Id, parentRows.Result.Single().Children.Single().Id);
+
+            var metadataRows = await provider.LoadHolonsByMetaDataAsync("graph-fixture", root.Id.ToString("D"));
+            Assert.IsFalse(metadataRows.IsError, metadataRows.Message);
+            Assert.AreEqual(child.Id, metadataRows.Result.Single().Children.Single().Id);
 
             var removed = await provider.DeleteHolonAsync(grandchild.Id);
             Assert.IsTrue(removed.IsDeleted && !removed.IsError, removed.Message);
