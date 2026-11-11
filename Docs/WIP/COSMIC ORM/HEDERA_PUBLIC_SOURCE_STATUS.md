@@ -118,3 +118,6 @@ WEB4 diagnostic regression gate complete: CI 42938257820/job 130253566184 succee
 
 
 11 November UTC: the new c39eba5cd1 WEB4 instance advertised Hedera native and federated readiness. Both native public presets passed authenticated live HTTP with exact row IDs and counts 3/2. Prior startup failures remain recorded. Private paired browser and restart reliability remain open.
+
+
+11 November UTC: on Development c39eba5cd1, Hedera's two MongoDB-paired public presets returned 3 full and 2 filtered rows through the live WEB4 federation endpoint. The selections matched the native preset keys and all returned copies were from Hedera. The independent visitor saw no MongoDB copies. Original private paired browser verification and restart reliability remain open.
