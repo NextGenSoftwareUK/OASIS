@@ -11,12 +11,12 @@ import { readVerifiedOriginalRange } from './original-outcome.mjs';
 import { readFinalizedReceipt, readFinalizedExtrinsicContext } from './finalized-receipt.mjs';
 
 if (process.env.OASIS_POLKADOT_LOCAL_NATIVE !== '1') throw new Error('Explicit retained local-only opt-in required.');
-const evidence = resolve(import.meta.dirname, '../../../../TestResults/PolkadotCurrent');
+const fresh = process.env.OASIS_POLKADOT_FRESH_STORAGE === '1';
+const evidence = resolve(import.meta.dirname, '../../../../TestResults', fresh ? 'PolkadotFreshStorage' : 'PolkadotCurrent');
 const pending = resolve(evidence, 'local-record-owner-pending.json');
 const completed = resolve(evidence, 'local-record-owner.completed.json');
 if (existsSync(pending)) throw new Error('Pending original owner deployment exists; reconcile read-only, never replay.');
 const protocol = 'oasis.polkadot.local-record-owner.v1';
-const codeHash = '0x7c102aaaaef5fec4e9f8f035c0542c7c6ca23f8c4e6b8de5e0498862debef0fa';
 const durable = (path, value) => { const fd = openSync(path, 'wx', 0o600);
   try { writeSync(fd, JSON.stringify(value)); fsyncSync(fd); } finally { closeSync(fd); } };
 const api = await ApiPromise.create({ provider: new HttpProvider('http://127.0.0.1:19944'), noInitWarn: true });
@@ -26,6 +26,10 @@ try {
   await cryptoWaitReady();
   pair = new Keyring({ type: 'sr25519' }).addFromSeed(new Uint8Array(32).fill(2)); // Existing public local fixture only.
   const sender = api.createType('AccountId32', pair.address).toHex();
+  const artifact = fresh ? readFileSync(resolve(evidence, '../PolkadotCurrent/record-contract-target/oasis-records.wasm')) : null;
+  const codeHash = fresh ? api.registry.hash(artifact).toHex() : '0x7c102aaaaef5fec4e9f8f035c0542c7c6ca23f8c4e6b8de5e0498862debef0fa';
+  const code = fresh ? { Upload: '0x' + artifact.toString('hex') } : { Existing: codeHash };
+  if (fresh) assert.equal(codeHash, '0x1033661ac736bcc21e1d53a516f94c580f7e6e50a930e7acb90d519aeea0603d');
   let preparation, receipt;
   if (existsSync(completed)) {
     const stored = JSON.parse(readFileSync(completed, 'utf8'));
@@ -34,19 +38,21 @@ try {
     const verified = await verifySignedPreparation(api, preparation, protocol);
     assert.equal(verified.sender, sender);
     assert.equal(verified.decoded.method.section, 'contracts');
-    assert.equal(verified.decoded.method.method, 'instantiate');
-    assert.equal(verified.decoded.method.args[3].toHex(), codeHash);
+    assert.equal(verified.decoded.method.method, fresh ? 'instantiateWithCode' : 'instantiate');
+    assert.equal(verified.decoded.method.args[3].toHex(), fresh ? code.Upload : codeHash);
     receipt = await readFinalizedReceipt(api, stored.receipt);
   } else {
     const salt = '0x6f617369732d7265636f7264732d73646b2d7631';
     const data = '0x00000001';
-    const simulated = await api.call.contractsApi.instantiate(sender, 0, null, null, { Existing: codeHash }, data, salt);
+    const simulated = await api.call.contractsApi.instantiate(sender, 0, null, null, code, data, salt);
     assert.equal(simulated.result.isOk, true, simulated.result.toString());
     assert.equal(simulated.result.asOk.result.flags.get('bits').toNumber(), 0);
     assert.equal((await api.query.contracts.contractInfoOf(simulated.result.asOk.accountId)).isNone, true,
       'Untracked owner instance exists; preserve and investigate.');
     const deposit = simulated.storageDeposit.isCharge ? simulated.storageDeposit.asCharge : 0;
-    const tx = api.tx.contracts.instantiate(0, simulated.gasRequired, deposit, codeHash, data, salt);
+    const tx = fresh
+      ? api.tx.contracts.instantiateWithCode(0, simulated.gasRequired, deposit, code.Upload, data, salt)
+      : api.tx.contracts.instantiate(0, simulated.gasRequired, deposit, codeHash, data, salt);
     preparation = await signOriginalCall(api, tx, pair, protocol, { sender });
     const verify = async (api, value) => {
       const identity = await verifySignedPreparation(api, value, protocol);
@@ -80,6 +86,14 @@ try {
     assert.equal(JSON.parse(readFileSync(pending, 'utf8')).preparation.transactionHash, preparation.transactionHash);
     unlinkSync(pending);
   }
-  console.log(JSON.stringify({ address, codeHash, sharedUploadedCode: true, transactionHash: preparation.transactionHash,
+  if (fresh) {
+    const setup = resolve(evidence, 'fresh-record-store.json');
+    assert.equal(existsSync(setup), false, 'Fresh deployment evidence already exists.');
+    durable(setup, {
+      genesisHash: api.genesisHash.toHex(), contractAccountId: api.createType('AccountId32', address).toHex(),
+      contractCodeHash: codeHash, ownerAccountId: sender, deploymentVerified: true
+    });
+  }
+  console.log(JSON.stringify({ address, codeHash, sharedUploadedCode: !fresh, transactionHash: preparation.transactionHash,
     actualFeeUnits: receipt.actualFeeUnits, reusable: true, publicFunds: false }));
 } finally { pair?.lock(); await api.disconnect(); }
