@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+11 November NEAR sandbox avatar cleanup. Job 130551514327 stopped the owned sandbox and removed its temporary ledger directory. The locked npm install, WASM and compiler downloads stayed on the disposable runner. No local artifacts or uploads were created.
+
 11 November Cosmos contract deployment CI. Job 130548908467 removed the owned wasmd container and its ledger after native contract verification. Rust, package downloads, build outputs and the image were confined to the disposable runner. No local artifacts or uploads were created.
 
 11 November Solana CI. Job 130530733371 passed both logical cleanup checks but was canceled while waiting for its validator to stop. The ledger, signer, package and build were confined to the disposable GitHub runner. The job did not confirm explicit fixture-directory removal. No local downloads or outputs were created.

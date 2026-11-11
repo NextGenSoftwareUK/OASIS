@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November NEAR contract avatar cleanup passed on native NEAR Sandbox. Run 43029188382 at 25337ee98f rejected a non-owner, removed the exact avatar/detail current and history records, preserved the unrelated row, rejected a repeated deletion and left the contract empty. Development ff0092d851 carries the verified contract and test. The corresponding C# shipping path and broader lifecycle remain open.
+
 11 November NEAR native avatar cleanup qualification. Run 43029188382 at 25337ee98f builds the locked NEAR SDK contract on Linux and runs the new atomic deletion action on a fresh NEAR Sandbox. The test covers rejection for a non-owner, deletion of the exact current avatar and detail and their history, preservation of an unrelated row, repeated deletion semantics and empty fixture cleanup. The retained NEAR cohort and COSMIC public reads remain separate. The shipping C# adapter lifecycle remains open.
 
 11 November Cosmos blockchain contract deployment passed. Run 43028420581 built the locked contract with Rust 1.99.0 and successfully stored and instantiated it in native wasmd. The expected owner and empty record set were verified. Run 43028889300 at 7d943c897a runs the direct provider conformance modes with locked CosmJS, separate fresh reports, and a final native key check. The historical retained ledger remains open.
