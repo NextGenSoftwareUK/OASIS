@@ -677,3 +677,5 @@ broader provider contracts remain open. [Evidence](DUCKDB_CQL_MVP.md).
 11 November UTC: Connext public indexed Ethereum origin-event presets rendered 3 full and 2 filtered rows in the live Development WEB4 CQL Playground. The original-owner private paired browser check remains open.
 
 11 November UTC: deBridge public indexed order presets rendered 3 full and 2 filtered rows in the live Development WEB4 CQL Playground. The original-owner private paired browser check remains open.
+
+11 November UTC: after warmup on live WEB4 bbb4706313, the refreshed Playground showed 106 available hosted sources. Polkadot public header presets rendered three full and two filtered rows. The earlier startup HTTP 503 remains recorded. Railway still showed bbb4706313 active after verification, with 4489034aa1 queued.
