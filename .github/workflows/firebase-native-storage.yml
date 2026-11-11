@@ -50,7 +50,7 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
-      - name: Compile the Firebase conformance entry points and check activation
+      - name: Compile both conformance entry points and check Firebase write acknowledgements
         shell: pwsh
         run: |
           ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-FirebaseCompile -Operation {
@@ -61,8 +61,8 @@ jobs:
               if ($LASTEXITCODE -ne 0) { throw "Firebase test project failed to compile: $project" }
             }
             $unit = $projects | Where-Object { $_ -like '*UnitTests.csproj' }
-            dotnet test $unit --no-build --no-restore /p:IncludeCoreStorageConformance=true --filter 'FullyQualifiedName~ActivationRequiresTheRealtimeDatabaseMissingRecordResponse' --logger 'console;verbosity=normal'
-            if ($LASTEXITCODE -ne 0) { throw 'Firebase activation response regression failed.' }
+            dotnet test $unit --no-build --no-restore /p:IncludeCoreStorageConformance=true --filter 'FullyQualifiedName~FirebaseOwnershipTests' --logger 'console;verbosity=normal'
+            if ($LASTEXITCODE -ne 0) { throw 'Firebase write acknowledgement regression failed.' }
           }
       - uses: actions/setup-java@v4
         if: ${{ !inputs.compile_only }}

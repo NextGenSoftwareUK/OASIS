@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November Firebase graph-save candidate. The provider captures the shared selected graph, writes all selected rows in one RTDB collection PATCH, and publishes caller identities and counts only after exact acknowledgement. Single-row saves retain their PUT path. CI checks complete and partial acknowledgement behavior, then runs the native lifecycle. Results are pending.
+
 11 November Valkey storage verification. Official Valkey 9.0.4 passed 52/52 through the shipping StackExchange.Redis adapter in [run 43091045329](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43091045329). Both modes passed exact fixture cleanup and the native database ended empty. Earlier native smoke and CQL restart/federation evidence carries forward. Hosted TLS and plaintext migration remain open.
 
 11 November Firebase storage result. [Firebase run 43090501206](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43090501206) compiled both test projects and passed all four activation-response cases. Official RTDB 4.11.2 passed the first nine asynchronous lifecycle checks and stopped at graph-save acknowledgement/count. Sync was fenced by the incomplete checkpoint. The shipping SaveHolonAsync writes one root and reports one save even when children are selected. The CI emulator and reports were removed.

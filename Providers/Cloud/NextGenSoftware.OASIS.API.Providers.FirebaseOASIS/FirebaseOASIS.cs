@@ -17,6 +17,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
@@ -505,38 +506,68 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
 
         // ─── Holon saving ─────────────────────────────────────────────────────────
 
-        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+        public override Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+            => SaveHolonGraphAsync(holon, saveChildren, recursive, maxChildDepth, 0);
+
+        private async Task<OASISResult<IHolon>> SaveHolonGraphAsync(IHolon holon, bool saveChildren, bool recursive, int maxChildDepth, int currentChildDepth)
         {
             var result = new OASISResult<IHolon>();
             try
             {
-                var id = holon.Id == Guid.Empty ? Guid.NewGuid() : holon.Id;
-                var projection = JsonSerializer.SerializeToNode(holon, holon.GetType(), _jsonOpts)!.AsObject();
-                projection["id"] = id;
-                if (projection["providerUniqueStorageKey"] is not JsonObject keys)
+                var plan = HolonGraphWritePlan.CreateForSave(new[] { holon }, saveChildren, recursive, maxChildDepth, currentChildDepth);
+                var rows = new JsonObject();
+                foreach (var node in plan.Nodes)
                 {
-                    keys = new JsonObject();
-                    projection["providerUniqueStorageKey"] = keys;
+                    var snapshot = node.Snapshot;
+                    var keys = snapshot.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
+                    keys[Core.Enums.ProviderType.FirebaseOASIS] = snapshot.Id.ToString("D");
+
+                    var projection = JsonSerializer.SerializeToNode(node.Source, node.Source.GetType(), _jsonOpts)!.AsObject();
+                    projection["id"] = snapshot.Id;
+                    projection["parentHolonId"] = snapshot.ParentHolonId;
+                    projection["providerUniqueStorageKey"] = JsonSerializer.SerializeToNode(keys, _jsonOpts);
+                    NativeProjection(projection);
+                    rows.Add(snapshot.Id.ToString("D"), projection);
                 }
-                keys["FirebaseOASIS"] = id.ToString("D");
-                NativeProjection(projection);
-                using var request = new HttpRequestMessage(HttpMethod.Put, NodeUrl($"/oasis_holons/{id:D}"))
-                { Content = new StringContent(projection.ToJsonString(), Encoding.UTF8, "application/json") };
+
+                var rootId = plan.Nodes[0].Snapshot.Id;
+                var singleRow = rows.Count == 1;
+                var payload = singleRow ? rows[rootId.ToString("D")]! : rows;
+                var path = singleRow ? $"/oasis_holons/{rootId:D}" : "/oasis_holons";
+                // Firebase applies all child updates in a single PATCH atomically.
+                using var request = new HttpRequestMessage(singleRow ? HttpMethod.Put : HttpMethod.Patch, NodeUrl(path))
+                { Content = new StringContent(payload.ToJsonString(), Encoding.UTF8, "application/json") };
                 try
                 {
                     using var response = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
                     response.EnsureSuccessStatusCode();
-                    var text = await ReadFirebaseAcknowledgement(response);
-                    var acknowledged = JsonNode.Parse(text);
-                    if (!JsonNode.DeepEquals(projection, acknowledged) || ParseFirebaseHolon(id, text) == null)
-                        throw new System.IO.InvalidDataException("Firebase acknowledgement does not match the proposed canonical holon.");
+                    var acknowledged = JsonNode.Parse(await ReadFirebaseAcknowledgement(response));
+                    if (!JsonNode.DeepEquals(payload, acknowledged))
+                        throw new System.IO.InvalidDataException("Firebase acknowledgement differs from the proposed holon write.");
+                    foreach (var node in plan.Nodes)
+                    {
+                        var id = node.Snapshot.Id;
+                        var row = singleRow ? acknowledged : acknowledged?[id.ToString("D")];
+                        if (row == null || ParseFirebaseHolon(id, row.ToJsonString()) == null)
+                            throw new System.IO.InvalidDataException("Firebase acknowledgement is missing a proposed holon identity.");
+                    }
                 }
-                catch (Exception cause) { throw new FirebaseMutationReconciliationException(id, cause); }
-                holon.Id = id;
-                holon.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
-                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.FirebaseOASIS] = id.ToString("D");
-                result.Result = holon; result.IsSaved = true; result.SavedCount = 1;
-                result.Message = $"FirebaseOASIS: Holon '{holon.Name}' saved.";
+                catch (Exception cause)
+                {
+                    throw new FirebaseMutationReconciliationException(rootId, cause)
+                    { ProposedIds = plan.Nodes.Select(node => node.Snapshot.Id).ToArray() };
+                }
+
+                foreach (var node in plan.Nodes)
+                {
+                    node.Source.Id = node.Snapshot.Id;
+                    node.Source.ParentHolonId = node.Snapshot.ParentHolonId;
+                    node.Source.ProviderUniqueStorageKey = node.Snapshot.ProviderUniqueStorageKey;
+                }
+                result.Result = holon;
+                result.IsSaved = true;
+                result.SavedCount = plan.Nodes.Count;
+                result.Message = $"FirebaseOASIS: {result.SavedCount} holon(s) saved.";
             }
             catch (Exception ex)
             {
@@ -546,6 +577,7 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
             }
             return result;
         }
+
 
         public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
             => SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider).Result;
@@ -557,7 +589,7 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
             var errors = new List<string>();
             foreach (var holon in holons)
             {
-                var r = await SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
+                var r = await SaveHolonGraphAsync(holon, saveChildren, recursive, maxChildDepth, curentChildDepth);
                 if (r.IsError)
                 {
                     errors.Add(r.Message);
@@ -565,11 +597,13 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
                     if (!continueOnError) break;
                 }
                 else if (r.IsSaved && r.Result != null)
+                {
                     saved.Add(r.Result);
+                    result.SavedCount += r.SavedCount;
+                }
             }
             result.Result = saved;
             result.IsSaved = saved.Count > 0;
-            result.SavedCount = saved.Count;
             result.IsError = errors.Count > 0;
             result.ErrorCount = errors.Count;
             result.Message = errors.Count > 0 ? string.Join("; ", errors) : $"FirebaseOASIS: {saved.Count} holon(s) saved.";

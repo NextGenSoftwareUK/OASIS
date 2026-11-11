@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -16,6 +17,7 @@ internal sealed class FirebaseMutationReconciliationException(Guid proposedId, E
     : Exception("Firebase write outcome requires reconciliation before replay.", cause), INativeMutationReconciliationRequired
 {
     public Guid ProposedId { get; } = proposedId;
+    public IReadOnlyList<Guid> ProposedIds { get; init; } = new[] { proposedId };
     public string OriginalTransactionId => string.Empty;
 }
 internal sealed class FirebaseRepresentationException(string message) : Exception(message);

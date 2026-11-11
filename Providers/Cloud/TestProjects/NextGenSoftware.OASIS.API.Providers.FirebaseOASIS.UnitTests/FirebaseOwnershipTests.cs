@@ -27,6 +27,48 @@ public class FirebaseOwnershipTests
     private static HttpResponseMessage Response(string json, HttpStatusCode status = HttpStatusCode.OK)
         => new(status) { Content = new StringContent(json, Encoding.UTF8, "application/json") };
 
+    [DataTestMethod, DataRow(false), DataRow(true)]
+    public async Task GraphSavePublishesIdentitiesOnlyAfterCompleteAtomicAcknowledgement(bool omitChild)
+    {
+        using var reply = new Reply((request, text) =>
+        {
+            Assert.AreEqual(HttpMethod.Patch, request.Method);
+            Assert.AreEqual("/oasis_holons.json", request.RequestUri!.AbsolutePath);
+            var rows = JsonNode.Parse(text!)!.AsObject();
+            Assert.AreEqual(2, rows.Count);
+            var parent = rows.Single(row => row.Value!["name"]!.GetValue<string>() == "root");
+            var childRow = rows.Single(row => row.Key != parent.Key);
+            Assert.AreEqual(Guid.Parse(parent.Key), childRow.Value!["parentHolonId"]!.GetValue<Guid>());
+            if (omitChild) rows.Remove(childRow.Key);
+            return Response(rows.ToJsonString());
+        });
+        using var http = new HttpClient(reply);
+        var provider = new FirebaseOASIS("https://synthetic.invalid", null, http);
+        var root = new Holon { Id = Guid.Empty, Name = "root" };
+        var child = new Holon { Id = Guid.Empty, Name = "child" };
+        root.Children.Add(child);
+
+        var result = await provider.SaveHolonAsync(root);
+
+        Assert.AreEqual(1, reply.Sends);
+        Assert.AreEqual(omitChild, result.IsError);
+        Assert.AreEqual(omitChild ? 0 : 2, result.SavedCount);
+        if (omitChild)
+        {
+            Assert.AreEqual(Guid.Empty, root.Id);
+            Assert.AreEqual(Guid.Empty, child.Id);
+            Assert.AreEqual(Guid.Empty, child.ParentHolonId);
+            Assert.IsInstanceOfType(result.Exception, typeof(INativeMutationReconciliationRequired));
+        }
+        else
+        {
+            Assert.AreNotEqual(Guid.Empty, root.Id);
+            Assert.AreNotEqual(Guid.Empty, child.Id);
+            Assert.AreEqual(root.Id, child.ParentHolonId);
+            Assert.AreEqual(child.Id.ToString("D"), child.ProviderUniqueStorageKey[ProviderType.FirebaseOASIS]);
+        }
+    }
+
     [DataTestMethod][DataRow("http", false)][DataRow("malformed", false)][DataRow("null", false)]
     [DataRow("huge", false)][DataRow("identity", false)][DataRow("payload", false)][DataRow("http", true)]
     public async Task FailedWriteKeepsCallerIdentityAndKeyUntilNativeAcknowledgement(string fault, bool existing)
