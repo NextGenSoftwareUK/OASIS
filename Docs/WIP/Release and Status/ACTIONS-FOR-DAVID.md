@@ -940,3 +940,7 @@ submission is requested or authorized by this entry.
 Open. Windows reported 6% battery and discharging. Connect the charger and close the low-battery alert if it persists. The alert blocks Edge input with the Fhenix two-network preset selected and unrun. The full preset already passed.
 
 Power recovery verified on 11 November UTC: battery 21% and charging (Win32_Battery status 2). The prior Edge window is closed. Engineering owns reopening browser verification. The charger action is resolved.
+
+### GOMap public demo routing origin (11 November 2026)
+
+**Status** Awaiting an approved dedicated endpoint for Development WEB4. Identify the existing dedicated HTTPS OSRM origin, if available, and where its operator terms are documented. The demo needs permission for concurrent sandbox traffic and must meet the operator's attribution rules. If no endpoint is available, the COSMIC task will document hosting options before any paid provisioning decision. Keep credentials in private configuration. [GOMap scope and endpoint review](../COSMIC%20ORM/GOMAP_PUBLIC_SOURCE_STATUS.md).

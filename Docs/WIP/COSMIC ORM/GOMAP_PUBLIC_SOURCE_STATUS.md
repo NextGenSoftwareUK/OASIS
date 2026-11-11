@@ -110,3 +110,5 @@ developer route path. The dedicated public origin and live rollout remain open.
 11 November UTC: Development still points to `94fe19c958`. Dedicated-origin GOMap candidate `095805ee91` is in [targeted qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42977871267) and [exact WEB4 image CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42978537981). Development lacks the GOMap descriptor in its hosted settings verifier. The origin-binding tooling remains on the COSMIC branch for the enrollment step, which requires a reviewed dedicated HTTPS OSRM origin. No live enrollment or Development merge occurred.
 
 11 November UTC: targeted GOMap qualification 42977871267 passed for `095805ee91`. Exact WEB4 image run 42978537981 remains in progress. Development integration and dedicated-origin live enrollment remain pending.
+
+11 November UTC: the dedicated HTTPS routing origin is tracked in the [owner action list](../Release%20and%20Status/ACTIONS-FOR-DAVID.md#gomap-public-demo-routing-origin-11-november-2026).
