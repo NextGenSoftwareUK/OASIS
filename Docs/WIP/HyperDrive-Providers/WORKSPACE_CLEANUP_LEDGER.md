@@ -1,6 +1,8 @@
 # Current resource and cleanup ledger
 
-11 November Cassandra run 43066102705 confirmed disposal of its container, volumes, image and fixture after the compile failure. No local build or runtime was created.
+11 November Cassandra run 43066716817 independently removed ten owned holon tombstones and verified five empty tables in each keyspace. CI removed the container, volumes, newly pulled image and checkpoints. No local build, runtime or download was created.
+
+11 November Cassandra run 43066102705 also removed its disposable resources after the compile failure.
 
 11 November Cassandra storage verification uses a disposable CI container, two keyspaces and owned checkpoint files. The runner removes its container, volumes, newly pulled image and checkpoint directory on exit. Run 43065545986 confirmed removal of its Cassandra container, volumes, image and checkpoint directory after the graph-save failure. Candidate cleanup is pending. No local runtime, download or build was created.
 
