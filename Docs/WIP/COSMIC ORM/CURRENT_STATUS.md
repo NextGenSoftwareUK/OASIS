@@ -794,3 +794,5 @@ CI qualification now includes all seven CqlNativeFailureDiagnosticsTests cases, 
 CI run 42938257820, job 130253566184, passed on fda32cf5d3. Its strict TRX gate verified all 13 cases: five public catalogue cases, one DuckDB admission case and seven native failure diagnostic cases. Both Hedera response_headers/response_body preservation cases are now fully qualified in WEB4. Live Hedera registry recovery remains open.
 
 Moralis BurnNFT and BurnNFTAsync now return MORALIS_NFT_BURN_UNSUPPORTED before activation. Two focused sync and async checks cover the failure result and zero activation attempts. Remote CI qualification is pending.
+
+Moralis qualification passed on 8ad7386771 in CI run 42961187971/job 130327846767. Both sync and async unsupported-burn regressions passed with zero activation attempts, and all 13 catalogue/admission/diagnostic cases passed. The correction is on the COSMIC branch. Moralis CQL enrollment and Development integration remain open.
