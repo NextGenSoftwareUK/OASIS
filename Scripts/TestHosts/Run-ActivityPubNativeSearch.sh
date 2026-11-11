@@ -106,6 +106,8 @@ EOF
 "${compose[@]}" up --detach --wait db redis
 "${compose[@]}" run --rm -T --no-deps web bundle exec rails db:schema:load db:seed
 token="$("${compose[@]}" run --rm -T --no-deps web bundle exec rails runner - <<'RUBY'
+Rails.configuration.x.email_domains_allowlist = ['oasis.test']
+
 def create_user(username)
   user = User.new(email: "#{username}@oasis.test", password: SecureRandom.hex,
                   agreement: true, confirmed_at: Time.now.utc,
@@ -120,11 +122,17 @@ reader = create_user('oasisreader')
 app = Doorkeeper::Application.create!(name: 'OASIS CI', redirect_uri: 'urn:ietf:wg:oauth:2.0:oob', scopes: 'read:search')
 token = Doorkeeper::AccessToken.create!(application: app, resource_owner_id: reader.id, scopes: 'read:search')
 puts "OASIS_FIXTURE_TOKEN=#{token.plaintext_token}"
+status_scopes = 'read:statuses write:statuses'
+status_app = Doorkeeper::Application.create!(name: 'OASIS CI status fixture', redirect_uri: 'urn:ietf:wg:oauth:2.0:oob', scopes: status_scopes)
+status_token = Doorkeeper::AccessToken.create!(application: status_app, resource_owner_id: reader.id, scopes: status_scopes)
+puts "OASIS_STATUS_TOKEN=#{status_token.plaintext_token}"
 RUBY
 )"
+status_token="$(sed -n 's/^OASIS_STATUS_TOKEN=//p' <<<"$token")"
 token="$(sed -n 's/^OASIS_FIXTURE_TOKEN=//p' <<<"$token")"
-[[ "$token" =~ ^[A-Za-z0-9_-]+$ ]]
+[[ "$token" =~ ^[A-Za-z0-9_-]+$ && "$status_token" =~ ^[A-Za-z0-9_-]+$ ]]
 echo "::add-mask::$token"
+echo "::add-mask::$status_token"
 "${compose[@]}" up --detach web tls
 origin=https://mastodon.oasis.test
 curl --fail --silent --show-error --retry 30 --retry-all-errors --retry-delay 2 --max-time 5 "$origin/health" >/dev/null
@@ -134,8 +142,9 @@ jq -e '.accounts | length == 2' <<<"$response" >/dev/null
 echo 'Native authenticated search returned the two expected second-page accounts.'
 export OASIS_ACTIVITYPUB_SEARCH_LIVE=1 OASIS_ACTIVITYPUB_SEARCH_INSTANCE="$origin"
 export OASIS_ACTIVITYPUB_SEARCH_QUERY=oasisfixture OASIS_ACTIVITYPUB_SEARCH_TOKEN="$token"
+export OASIS_ACTIVITYPUB_STATUS_FIXTURE_TOKEN="$status_token"
 pwsh -NoProfile -Command '
   ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-ActivityPubSearch -Operation {
-    dotnet test "Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS.IntegrationTests.csproj" --filter "FullyQualifiedName~AuthorizedMastodonAccountSearchTests" /p:ActivityPubDirectProviderOnly=true /m:2 /nr:false /p:UseSharedCompilation=false --logger "console;verbosity=normal"
-    if ($LASTEXITCODE -ne 0) { throw "Native Mastodon authenticated search verification failed." }
+    dotnet test "Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS.IntegrationTests.csproj" --filter "FullyQualifiedName~AuthorizedMastodonAccountSearchTests|FullyQualifiedName~NativeMastodonOwnedStatusTests" /p:ActivityPubDirectProviderOnly=true /m:2 /nr:false /p:UseSharedCompilation=false --logger "console;verbosity=normal"
+    if ($LASTEXITCODE -ne 0) { throw "Native Mastodon authenticated search or status deletion verification failed." }
   }'
