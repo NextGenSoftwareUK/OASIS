@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+11 November NEAR mainnet wallet verification. The isolated npm install added 68 packages. Teardown removed all 68 and cleaned the isolated npm cache. Leased dotnet clean removed all compiled files from the redirected bin tree. No chain fixture or raw report was created. Automatic approval review rejected recursive removal of the exact owned `TestResults/HyperDrive-Providers/NearPublicWalletBuild` directory as blocked by policy, so that command did not run. The measured remainder was 5,981,009 bytes in restore metadata, copied bridge inputs and npm metadata. C: had 47,085,985,792 bytes free at the shared-machine check.
+
 BootLoader missing-DNA regressions at a41551c70f passed 4/4 under the shared lease. Confirmed RegistrationTests/current-artifacts absent after teardown. Compact result retained in RegistrationTests/fixed-result.json.
 
 10 November (America/Cancun) BootLoader error-propagation build at 820bebbecf passed with 0 errors and 2,139 warnings; compile duration 8m17s. Restore and build ran under the shared lease with isolated packages, HTTP cache, scratch and outputs. The result receipt confirms both exit codes zero and cleanup true. Independently confirmed current-artifacts absent. Retained only the compact receipt. Live registration verification remains open.
