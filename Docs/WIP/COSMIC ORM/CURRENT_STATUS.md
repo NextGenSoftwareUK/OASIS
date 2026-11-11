@@ -840,3 +840,5 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 11 November UTC: Railway Development WEB4 deployment 345d9ec9-7810-4251-9cbf-f2c6e697a738 succeeded on 9b8a30a65c. Its startup log independently reproduced the HashgraphOASIS response_headers activation timeout at 15,008 ms with no upstream HTTP status. The historical public 3/2 browser proof remains recorded. Current-release registry recovery and live query verification remain open.
 
 11 November UTC: Waku native public message metadata presets rendered 3 full and 2 filtered rows in the live Development WEB4 CQL Playground. The original-owner private paired browser check remains open.
+
+11 November UTC: Akash native indexed provider metadata presets rendered 3 full and 2 filtered rows in the live Development WEB4 CQL Playground. The original-owner private paired browser check remains open.
