@@ -1,6 +1,6 @@
 # GoogleMapsOASIS
 
-The package exposes the legacy OASIS map interface. Native Google Maps rendering and route execution still require a client integration. Map operations currently return failure.
+The provider computes driving routes through the official Google Routes API. Call ComputeDrivingRouteAsync with WGS84 origin and destination coordinates and a Routes API credential from protected configuration. The result contains distance in metres and an encoded polyline. The existing map drawing and navigation methods still require a rendering integration.
 
 ## Links
 
