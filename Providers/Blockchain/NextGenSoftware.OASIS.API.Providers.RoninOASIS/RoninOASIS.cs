@@ -1,416 +1,44 @@
 using System;
+using System.Numerics;
 using System.Collections.Generic;
-using System.Net.Http;
-using System.Text;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using System.Threading;
-using System.Threading.Tasks;
-using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Helpers;
-using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
-using NextGenSoftware.OASIS.API.Core.Objects;
-using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS;
 using NextGenSoftware.Utilities;
-using Nethereum.Web3;
-using NextGenSoftware.OASIS.Providers.Shared.Evm;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
-using NextGenSoftware.OASIS.API.Core.Managers.Bridge.DTOs;
-using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums;
 
-namespace NextGenSoftware.OASIS.API.Providers.RoninOASIS
+namespace NextGenSoftware.OASIS.API.Providers.RoninOASIS;
+
+public class RoninOASIS : Web3CoreOASISBaseProvider
 {
-    /// <summary>
-    /// Ronin OASIS provider. EVM-compatible gaming blockchain by Sky Mavis (Axie Infinity), Chain ID 2020.
-    /// Endpoint: https://api.roninchain.com/rpc
-    /// </summary>
-    public class RoninOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IOASISBlockchainStorageProvider
+    private const string MainnetRpc = "https://api.roninchain.com/rpc";
+    private const int MainnetChainId = 2020;
+    private const int SaigonChainId = 202601;
+
+    public RoninOASIS(string rpcUrl = MainnetRpc)
+        : this(rpcUrl ?? MainnetRpc, "", "", MainnetChainId)
     {
-        private readonly HttpClient _http;
-        private readonly string _rpcUrl;
-        private readonly Lazy<Web3> _walletBalanceClient;
-        private bool _isActivated;
+    }
 
-        private static readonly JsonSerializerOptions _jsonOpts = new JsonSerializerOptions
-        {
-            WriteIndented = false,
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-        };
+    public RoninOASIS(string rpcUrl, string chainPrivateKey, string contractAddress, BigInteger chainId)
+        : base(rpcUrl, chainPrivateKey, contractAddress, ValidateChainId(chainId))
+    {
+        ProviderName = "RoninOASIS";
+        ProviderDescription = "Ronin storage and wallet provider using Web3Core";
+        ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.RoninOASIS);
+        ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain);
+        ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.EVMBlockchain));
+        ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
+    }
 
-        private static string Ser(object obj) => JsonSerializer.Serialize(obj, _jsonOpts);
-        private StringContent Json(object obj) => new StringContent(Ser(obj), Encoding.UTF8, "application/json");
+    public new OASISResult<IEnumerable<IHolon>> GetHolonsNearMe(long lat, long lon, int radius, HolonType holonType = HolonType.All)
+        => base.GetHolonsNearMe(lat, lon, radius, holonType);
 
-        public RoninOASIS(string rpcUrl = "https://api.roninchain.com/rpc")
-        {
-            _rpcUrl = rpcUrl?.TrimEnd('/') ?? "https://api.roninchain.com/rpc";
-            _http = new HttpClient { BaseAddress = new Uri(_rpcUrl + "/") };
-            _walletBalanceClient = new Lazy<Web3>(() => new Web3(_rpcUrl));
+    private static BigInteger ValidateChainId(BigInteger chainId)
+    {
+        if (chainId != MainnetChainId && chainId != SaigonChainId)
+            throw new ArgumentOutOfRangeException(nameof(chainId), "Use Ronin mainnet or Saigon testnet.");
 
-            ProviderName = "RoninOASIS";
-            ProviderDescription = "Ronin provider — EVM-compatible gaming blockchain by Sky Mavis (Axie Infinity), Chain ID 2020.";
-            ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.RoninOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain);
-        }
-
-        // ── Lifecycle ─────────────────────────────────────────────────────────
-
-        public override async Task<OASISResult<bool>> ActivateProviderAsync()
-        {
-            var result = new OASISResult<bool>();
-            try
-            {
-                if (_isActivated) { result.Result = true; result.Message = "RoninOASIS already activated"; return result; }
-                var payload = new { jsonrpc = "2.0", method = "eth_chainId", id = 1, @params = Array.Empty<object>() };
-                using var resp = await _http.PostAsync("", Json(payload));
-                if (!resp.IsSuccessStatusCode)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"RoninOASIS RPC health check failed ({resp.StatusCode})");
-                    return result;
-                }
-                using var response = JsonDocument.Parse(await resp.Content.ReadAsStringAsync());
-                var rpc = response.RootElement;
-                if (rpc.ValueKind != JsonValueKind.Object ||
-                    !rpc.TryGetProperty("jsonrpc", out var version) || version.ValueKind != JsonValueKind.String ||
-                    version.GetString() != "2.0" ||
-                    !rpc.TryGetProperty("id", out var id) || id.ValueKind != JsonValueKind.Number ||
-                    !id.TryGetInt32(out var responseId) || responseId != 1 ||
-                    rpc.TryGetProperty("error", out _) ||
-                    !rpc.TryGetProperty("result", out var chain) || chain.ValueKind != JsonValueKind.String ||
-                    !string.Equals(chain.GetString(), "0x7e4", StringComparison.OrdinalIgnoreCase))
-                {
-                    OASISErrorHandling.HandleError(ref result, "RoninOASIS RPC did not confirm Ronin mainnet chain ID 2020.");
-                    return result;
-                }
-                _isActivated = true;
-                result.Result = true;
-                result.Message = "RoninOASIS activated successfully";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"RoninOASIS activation failed: {ex.Message}", ex);
-            }
-            return result;
-        }
-
-        public override async Task<OASISResult<bool>> DeActivateProviderAsync()
-        {
-            var result = new OASISResult<bool>();
-            try
-            {
-                _isActivated = false;
-                _http.Dispose();
-                result.Result = true;
-                result.Message = "RoninOASIS deactivated";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"RoninOASIS deactivation failed: {ex.Message}", ex);
-            }
-            return result;
-        }
-
-        // ── Avatar CRUD ───────────────────────────────────────────────────────
-
-        public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0)
-        {
-            var result = new OASISResult<IAvatar>();
-            try { result.Result = new Avatar { Id = id }; }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"RoninOASIS LoadAvatarAsync error: {ex.Message}", ex); }
-            return result;
-        }
-
-        public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
-        {
-            var result = new OASISResult<IAvatar>();
-            try
-            {
-                if (avatar.Id == Guid.Empty) avatar.Id = Guid.NewGuid();
-                result.Result = avatar;
-            }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"RoninOASIS SaveAvatarAsync error: {ex.Message}", ex); }
-            return result;
-        }
-
-        public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
-        {
-            var result = new OASISResult<bool>();
-            try { result.Result = true; }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"RoninOASIS DeleteAvatarAsync error: {ex.Message}", ex); }
-            return result;
-        }
-
-        public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IAvatar>>();
-            result.Result = new List<IAvatar>();
-            return result;
-        }
-
-        // ── Holon CRUD ────────────────────────────────────────────────────────
-
-        public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            var result = new OASISResult<IHolon>();
-            try { result.Result = new Holon { Id = id }; }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"RoninOASIS LoadHolonAsync error: {ex.Message}", ex); }
-            return result;
-        }
-
-        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
-        {
-            var result = new OASISResult<IHolon>();
-            try
-            {
-                if (holon.Id == Guid.Empty) holon.Id = Guid.NewGuid();
-                result.Result = holon;
-            }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"RoninOASIS SaveHolonAsync error: {ex.Message}", ex); }
-            return result;
-        }
-
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            result.Result = new List<IHolon>();
-            return result;
-        }
-
-        public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            var saved = new List<IHolon>();
-            foreach (var holon in holons)
-            {
-                var r = await SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
-                if (!r.IsError && r.Result != null) saved.Add(r.Result);
-            }
-            result.Result = saved;
-            return result;
-        }
-
-        // ── Search ────────────────────────────────────────────────────────────
-
-        public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
-        {
-            var result = new OASISResult<ISearchResults>();
-            result.Result = new SearchResults();
-            return result;
-        }
-
-        // ── Avatar Detail ─────────────────────────────────────────────────────
-
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
-        {
-            var result = new OASISResult<IAvatarDetail>();
-            OASISErrorHandling.HandleError(ref result, "RoninOASIS does not support avatar detail storage");
-            return result;
-        }
-
-        public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatarDetail)
-        {
-            var result = new OASISResult<IAvatarDetail>();
-            OASISErrorHandling.HandleError(ref result, "RoninOASIS does not support avatar detail storage");
-            return result;
-        }
-
-        public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IAvatarDetail>>();
-            result.Result = new List<IAvatarDetail>();
-            return result;
-        }
-
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref result, "RoninOASIS does not support data export by email");
-            return result;
-        }
-
-        // ── IOASISNETProvider ─────────────────────────────────────────────────
-
-        public OASISResult<IEnumerable<IAvatar>> GetAvatarsNearMe(long lat, long lon, int radius)
-        {
-            var r = new OASISResult<IEnumerable<IAvatar>>();
-            r.Result = new List<IAvatar>();
-            return r;
-        }
-
-        public OASISResult<IEnumerable<IHolon>> GetHolonsNearMe(long lat, long lon, int radius, HolonType holonType = HolonType.All)
-        {
-            var r = new OASISResult<IEnumerable<IHolon>>();
-            r.Result = new List<IHolon>();
-            return r;
-        }
-
-        // ── IOASISBlockchainStorageProvider ───────────────────────────────────
-
-        public async Task<OASISResult<ITransactionResponse>> SendTokenAsync(ISendWeb3TokenRequest request)
-        {
-            var r = new OASISResult<ITransactionResponse>();
-            OASISErrorHandling.HandleError(ref r, "RoninOASIS SendTokenAsync not yet implemented");
-            return r;
-        }
-
-        public OASISResult<ITransactionResponse> SendToken(ISendWeb3TokenRequest request) => SendTokenAsync(request).Result;
-
-        public async Task<OASISResult<ITransactionResponse>> MintTokenAsync(IMintWeb3TokenRequest request)
-        {
-            var r = new OASISResult<ITransactionResponse>();
-            OASISErrorHandling.HandleError(ref r, "RoninOASIS MintTokenAsync not yet implemented");
-            return r;
-        }
-
-        public OASISResult<ITransactionResponse> MintToken(IMintWeb3TokenRequest request) => MintTokenAsync(request).Result;
-
-        public async Task<OASISResult<ITransactionResponse>> BurnTokenAsync(IBurnWeb3TokenRequest request)
-        {
-            var r = new OASISResult<ITransactionResponse>();
-            OASISErrorHandling.HandleError(ref r, "RoninOASIS BurnTokenAsync not yet implemented");
-            return r;
-        }
-
-        public OASISResult<ITransactionResponse> BurnToken(IBurnWeb3TokenRequest request) => BurnTokenAsync(request).Result;
-
-        public async Task<OASISResult<ITransactionResponse>> LockTokenAsync(ILockWeb3TokenRequest request)
-        {
-            var r = new OASISResult<ITransactionResponse>();
-            OASISErrorHandling.HandleError(ref r, "RoninOASIS LockTokenAsync not yet implemented");
-            return r;
-        }
-
-        public OASISResult<ITransactionResponse> LockToken(ILockWeb3TokenRequest request) => LockTokenAsync(request).Result;
-
-        public async Task<OASISResult<ITransactionResponse>> UnlockTokenAsync(IUnlockWeb3TokenRequest request)
-        {
-            var r = new OASISResult<ITransactionResponse>();
-            OASISErrorHandling.HandleError(ref r, "RoninOASIS UnlockTokenAsync not yet implemented");
-            return r;
-        }
-
-        public OASISResult<ITransactionResponse> UnlockToken(IUnlockWeb3TokenRequest request) => UnlockTokenAsync(request).Result;
-
-        public Task<OASISResult<double>> GetBalanceAsync(IGetWeb3WalletBalanceRequest request)
-            => EvmWalletBalance.ReadAsync(request,
-                () => Task.FromResult(new OASISResult<Web3> { Result = _walletBalanceClient.Value }), 2020);
-
-        public OASISResult<double> GetBalance(IGetWeb3WalletBalanceRequest request)
-            => GetBalanceAsync(request).GetAwaiter().GetResult();
-
-        public async Task<OASISResult<IList<IWalletTransaction>>> GetTransactionsAsync(IGetWeb3TransactionsRequest request)
-        {
-            var r = new OASISResult<IList<IWalletTransaction>>();
-            OASISErrorHandling.HandleError(ref r, "RoninOASIS GetTransactionsAsync not yet implemented");
-            return r;
-        }
-
-        public OASISResult<IList<IWalletTransaction>> GetTransactions(IGetWeb3TransactionsRequest request) => GetTransactionsAsync(request).Result;
-
-        public async Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync()
-        {
-            var r = new OASISResult<IKeyPairAndWallet>();
-            OASISErrorHandling.HandleError(ref r, "RoninOASIS GenerateKeyPairAsync not yet implemented");
-            return r;
-        }
-
-        public OASISResult<IKeyPairAndWallet> GenerateKeyPair() => GenerateKeyPairAsync().Result;
-
-        public async Task<OASISResult<(string PublicKey, string PrivateKey, string SeedPhrase)>> CreateAccountAsync(CancellationToken token = default)
-        {
-            var r = new OASISResult<(string, string, string)>();
-            OASISErrorHandling.HandleError(ref r, "RoninOASIS CreateAccountAsync not yet implemented");
-            return r;
-        }
-
-        public async Task<OASISResult<(string PublicKey, string PrivateKey)>> RestoreAccountAsync(string seedPhrase, CancellationToken token = default)
-        {
-            var r = new OASISResult<(string, string)>();
-            OASISErrorHandling.HandleError(ref r, "RoninOASIS RestoreAccountAsync not yet implemented");
-            return r;
-        }
-
-        public async Task<OASISResult<BridgeTransactionResponse>> WithdrawAsync(decimal amount, string senderAccountAddress, string senderPrivateKey)
-        {
-            var r = new OASISResult<BridgeTransactionResponse>();
-            OASISErrorHandling.HandleError(ref r, "RoninOASIS WithdrawAsync not yet implemented");
-            return r;
-        }
-
-        public async Task<OASISResult<BridgeTransactionResponse>> DepositAsync(decimal amount, string receiverAccountAddress)
-        {
-            var r = new OASISResult<BridgeTransactionResponse>();
-            OASISErrorHandling.HandleError(ref r, "RoninOASIS DepositAsync not yet implemented");
-            return r;
-        }
-
-        public async Task<OASISResult<BridgeTransactionStatus>> GetTransactionStatusAsync(string transactionHash, CancellationToken token = default)
-        {
-            var r = new OASISResult<BridgeTransactionStatus>();
-            OASISErrorHandling.HandleError(ref r, "RoninOASIS GetTransactionStatusAsync not yet implemented");
-            return r;
-        }
-
-        // ── Sync wrappers ─────────────────────────────────────────────────────
-
-        public override OASISResult<IAvatar> LoadAvatar(Guid id, int version = 0) => LoadAvatarAsync(id, version).Result;
-        public override OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0) => LoadAvatarByProviderKeyAsync(providerKey, version).Result;
-        public override OASISResult<IAvatar> LoadAvatarByUsername(string avatarUsername, int version = 0) => LoadAvatarByUsernameAsync(avatarUsername, version).Result;
-        public override OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail, int version = 0) => LoadAvatarByEmailAsync(avatarEmail, version).Result;
-        public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0) => LoadAllAvatarsAsync(version).Result;
-        public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0) => LoadAvatarDetailAsync(id, version).Result;
-        public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string avatarEmail, int version = 0) => LoadAvatarDetailByEmailAsync(avatarEmail, version).Result;
-        public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string avatarUsername, int version = 0) => LoadAvatarDetailByUsernameAsync(avatarUsername, version).Result;
-        public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0) => LoadAllAvatarDetailsAsync(version).Result;
-        public override OASISResult<IAvatar> SaveAvatar(IAvatar avatar) => SaveAvatarAsync(avatar).Result;
-        public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail avatarDetail) => SaveAvatarDetailAsync(avatarDetail).Result;
-        public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true) => DeleteAvatarAsync(id, softDelete).Result;
-        public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true) => DeleteAvatarAsync(providerKey, softDelete).Result;
-        public override OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true) => DeleteAvatarByEmailAsync(avatarEmail, softDelete).Result;
-        public override OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true) => DeleteAvatarByUsernameAsync(avatarUsername, softDelete).Result;
-        public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0) => SearchAsync(searchParams, loadChildren, recursive, maxChildDepth, continueOnError, version).Result;
-        public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
-        public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadHolonAsync(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadHolonsForParentAsync(id, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadHolonsForParentAsync(providerKey, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadHolonsByMetaDataAsync(metaKey, metaValue, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadHolonsByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
-        public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, version, continueOnError, loadChildrenFromProvider).Result;
-        public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) => SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider).Result;
-        public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) => SaveHolonsAsync(holons, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, saveChildrenOnProvider).Result;
-        public override OASISResult<IHolon> DeleteHolon(Guid id) { var r = DeleteHolonAsync(id).Result; return new OASISResult<IHolon> { IsError = r.IsError, Message = r.Message }; }
-        public override OASISResult<IHolon> DeleteHolon(string providerKey) { var r = DeleteHolonAsync(providerKey).Result; return new OASISResult<IHolon> { IsError = r.IsError, Message = r.Message }; }
-        public override OASISResult<bool> Import(IEnumerable<IHolon> holons) => ImportAsync(holons).Result;
-        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0) => ExportAllDataForAvatarByIdAsync(avatarId, version).Result;
-        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0) => ExportAllDataForAvatarByUsernameAsync(avatarUsername, version).Result;
-        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0) => ExportAllDataForAvatarByEmailAsync(avatarEmailAddress, version).Result;
-        public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0) => ExportAllAsync(version).Result;
-
-        // ── Missing async stubs ───────────────────────────────────────────────
-
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0) => await LoadAvatarByUsernameAsync(providerKey, version);
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0) { var r = new OASISResult<IAvatar>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0) { var r = new OASISResult<IAvatar>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail, int version = 0) { var r = new OASISResult<IAvatarDetail>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername, int version = 0) { var r = new OASISResult<IAvatarDetail>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override async Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true) { var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true) { var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true) { var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id) { var r = new OASISResult<IHolon>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey) { var r = new OASISResult<IHolon>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) { var r = new OASISResult<IHolon>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); r.Result = new List<IHolon>(); return r; }
-        public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons) { var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0) { var r = new OASISResult<IEnumerable<IHolon>>(); OASISErrorHandling.HandleError(ref r, "Not supported"); return r; }
+        return chainId;
     }
 }
