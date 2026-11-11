@@ -11,6 +11,11 @@ env:
   NODE_VERSION: '24.x'
 
 jobs:
+  couchdb-native-cql:
+    uses: ./.github/workflows/couchdb-native-cql.yml
+    secrets:
+      PRIVATE_SUBMODULE_PAT: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+
   surrealdb-native-cql:
     uses: ./.github/workflows/surrealdb-native-cql.yml
     secrets:
@@ -182,6 +187,7 @@ jobs:
             ports: 5984:5984
             wait: 5984
             docker_args: -e COUCHDB_USER=admin -e COUCHDB_PASSWORD=password
+            filter: FullyQualifiedName~CouchDBOASISIntegrationTests
           - name: ArangoDB
             project: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.ArangoDBOASIS.IntegrationTests
             image: arangodb:3.11
