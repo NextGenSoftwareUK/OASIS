@@ -5796,3 +5796,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: prepared the LayerZero v1 Ethereum RPC update using a temporary Git index. No local build, runtime or download.
 
 11 November UTC: temporary tag ci-cosmic-layerzero-a2990f712c-build tracks combined remote CI. Remove after its runs finish and results are recorded. Temporary local index removed. No local build, restore, download or artifact copy.
+
+11 November UTC: LayerZero dRPC preflight reused the installed Railway CLI, SSH identity and container Node. No local build, download, artifact or new test environment. Temporary Git index removed.

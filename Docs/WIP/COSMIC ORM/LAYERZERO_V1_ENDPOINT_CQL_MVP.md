@@ -111,3 +111,5 @@ matched Git SHA-256 272edabde09f1ad5eb7936c47e33c28561e413abff40f74ba6e6c1eb5bf3
 Interactive browser acceptance remains open.
 
 11 November UTC: the pinned Ethereum RPC returns pruned-history error 4444 for genesis. The reviewed Ethereum origin in the task branch now points to dRPC. Laptop checks passed all three canonical endpoint ABI calls and chain ID. Focused CI and hosted verification are pending. Preserved genesis, contract, network and source identities.
+
+11 November UTC: dRPC preflight from the live Development WEB4 container passed exact Ethereum genesis, finalized block and all three LayerZero v1 canonical ABI calls, including contract chain ID. The replacement code and focused test are in candidate a2990f712c. CI 43020496094 is active. Live activation and browser verification remain pending.
