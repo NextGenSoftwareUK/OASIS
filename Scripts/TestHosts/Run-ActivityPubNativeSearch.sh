@@ -111,14 +111,20 @@ Rails.configuration.x.email_domains_allowlist = ['oasis.test']
 def create_user(username)
   user = User.new(email: "#{username}@oasis.test", password: SecureRandom.hex,
                   agreement: true, confirmed_at: Time.now.utc,
-                  bypass_registration_checks: true, approved: true)
+                  bypass_registration_checks: true)
   user.account = Account.new(username: username)
   user.save!
+  user.approve!
+  raise 'Fixture user is not approved and confirmed' unless user.reload.approved? && user.confirmed?
   user
 end
 
 reader = create_user('oasisreader')
-42.times { |index| create_user(format('oasisfixture%02d', index)) }
+42.times do |index|
+  account = create_user(format('oasisfixture%02d', index)).account
+  # Native SQL ranks account matches by reputation. Use distinct fixture ranks for stable offsets.
+  account.account_stat.update!(followers_count: index + 1)
+end
 app = Doorkeeper::Application.create!(name: 'OASIS CI', redirect_uri: 'urn:ietf:wg:oauth:2.0:oob', scopes: 'read:search')
 token = Doorkeeper::AccessToken.create!(application: app, resource_owner_id: reader.id, scopes: 'read:search')
 puts "OASIS_FIXTURE_TOKEN=#{token.plaintext_token}"
@@ -138,7 +144,9 @@ origin=https://mastodon.oasis.test
 curl --fail --silent --show-error --retry 30 --retry-all-errors --retry-delay 2 --max-time 5 "$origin/health" >/dev/null
 response="$(curl --fail --silent --show-error --max-time 15 --header "Authorization: Bearer $token" \
   "$origin/api/v2/search?q=oasisfixture&type=accounts&limit=40&offset=40&resolve=false")"
-jq -e '.accounts | length == 2' <<<"$response" >/dev/null
+second_page_count="$(jq -er '.accounts | length' <<<"$response")"
+echo "Native authenticated second-page account count: $second_page_count"
+[[ "$second_page_count" == 2 ]]
 echo 'Native authenticated search returned the two expected second-page accounts.'
 export OASIS_ACTIVITYPUB_SEARCH_LIVE=1 OASIS_ACTIVITYPUB_SEARCH_INSTANCE="$origin"
 export OASIS_ACTIVITYPUB_SEARCH_QUERY=oasisfixture OASIS_ACTIVITYPUB_SEARCH_TOKEN="$token"
