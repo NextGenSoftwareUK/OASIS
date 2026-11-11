@@ -22,6 +22,12 @@
     <GenerateAssemblyCopyrightAttribute>false</GenerateAssemblyCopyrightAttribute>
     <GenerateNeutralResourcesLanguageAttribute>false</GenerateNeutralResourcesLanguageAttribute>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <Description>OASIS-pinned build of the Neo4j .NET driver (strong-named compatibility build) used by the OASIS Neo4j provider.</Description>
+    <Authors>NextGen Software Ltd</Authors>
+    <PackageTags>OASIS;Neo4j;graph;driver;WEB4</PackageTags>
+    <PackageProjectUrl>https://github.com/NextGenSoftwareUK/OASIS</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Upstream/**/*.cs"><PinnedUpstream>true</PinnedUpstream></Compile>
