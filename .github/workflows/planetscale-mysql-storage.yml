@@ -51,16 +51,17 @@ jobs:
           image_owned=false
           cleanup() {
             status=$?
+            cleanup_status=0
             if [[ -n "$container" ]]; then
               if (( status != 0 )); then docker logs --tail 35 "$container" || true; fi
-              docker rm -fv "$container" || status=1
+              docker rm -fv "$container" || cleanup_status=1
             fi
             if [[ "$image_owned" == true ]] && docker image inspect "$image" >/dev/null 2>&1; then
-              docker image rm "$image" || status=1
+              docker image rm "$image" || cleanup_status=1
             fi
             if [[ "$fixture" == "$RUNNER_TEMP"/oasis-planetscale-mysql.* ]]; then rm -rf -- "$fixture"; fi
-            [[ ! -e "$fixture" ]] || status=1
-            if (( status == 0 )); then echo "Removed the owned MySQL container, volumes and fixture."; fi
+            [[ ! -e "$fixture" ]] || cleanup_status=1
+            if (( cleanup_status == 0 )); then echo "Removed the owned MySQL container, volumes and fixture."; else status=1; fi
             exit "$status"
           }
           trap cleanup EXIT

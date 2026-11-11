@@ -1,6 +1,6 @@
 # Current resource and cleanup ledger
 
-11 November PlanetScale MySQL storage uses an isolated CI container, two databases and a disposable checkpoint directory. The runner removes its container, volumes, image and checkpoints. Cleanup verification is pending. No Windows runtime, build or download was created.
+11 November PlanetScale MySQL run 43063077214 reached the managed suite and failed at detail-by-ID. CI ran its disposable fixture cleanup and logged removal of the official image. The next run reports its cleanup outcome even when the managed suite fails. No local runtime, download or build was created.
 
 11 November TimescaleDB run 43061942830 passed both storage modes and independently verified the empty tables. CI removed the owned container, volumes, newly pulled image and checkpoints. No Windows runtime, build or download was created.
 

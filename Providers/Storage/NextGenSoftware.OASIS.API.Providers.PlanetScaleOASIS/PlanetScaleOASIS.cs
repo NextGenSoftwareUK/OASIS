@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using MySqlConnector;
 using NextGenSoftware.OASIS.API.Core;
@@ -13,6 +11,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
+using NextGenSoftware.OASIS.API.Core.Serialization;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 
@@ -39,13 +38,6 @@ namespace NextGenSoftware.OASIS.API.Providers.PlanetScaleOASIS
     {
         private readonly string _connectionString;
 
-        private static readonly JsonSerializerOptions _jsonOpts = new JsonSerializerOptions
-        {
-            WriteIndented = false,
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-        };
-
         public PlanetScaleOASIS(string connectionString)
         {
             _connectionString = connectionString;
@@ -59,8 +51,8 @@ namespace NextGenSoftware.OASIS.API.Providers.PlanetScaleOASIS
 
         private MySqlConnection Open() { var conn = new MySqlConnection(_connectionString); conn.Open(); return conn; }
         private async Task<MySqlConnection> OpenAsync() { var conn = new MySqlConnection(_connectionString); await conn.OpenAsync(); return conn; }
-        private static string Ser(object obj) => JsonSerializer.Serialize(obj, _jsonOpts);
-        private static T? Des<T>(string? json) => json == null ? default : JsonSerializer.Deserialize<T>(json, _jsonOpts);
+        private static string Ser(object obj) => StoredRecordJson.Serialize(obj);
+        private static T? Des<T>(string? json) => json == null ? default : StoredRecordJson.DeserializeStored<T>(json);
 
         // ─── Schema bootstrap ─────────────────────────────────────────────────────
 

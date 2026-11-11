@@ -1,6 +1,6 @@
 # Current provider status
 
-11 November PlanetScale MySQL storage. The shipping adapter now sets activation state and reports acknowledged save and read counts. The shared storage suite is queued on disposable official MySQL 8.4.13 through MySqlConnector. Its native result is pending. Managed PlanetScale and COSMIC CQL evidence are separate.
+11 November PlanetScale MySQL [run 43063077214](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43063077214) passed six checks per mode on official MySQL 8.4.13, including detail save. Both modes stopped on detail-by-ID acknowledgement. The adapter was using a serializer that cannot materialize the initialized interface-valued avatar-detail fields. The candidate uses the same allowlisted stored-record serializer as canonical PostgreSQL. Full native verification and managed PlanetScale acceptance remain open.
 
 11 November TimescaleDB [run 43061942830](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43061942830) at 49b6c88a17 passed all 52 shared storage checks through the shipping Npgsql provider against official TimescaleDB 2.31.0. Each mode used its own database with the native extension loaded. Independent SQL verified ten exact owned tombstones and three empty current tables per database. CI removed the container, volumes and fixture. Existing COSMIC CQL evidence carries forward.
 
