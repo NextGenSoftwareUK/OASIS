@@ -1,6 +1,6 @@
 {
   "bulk": {
-    "inventory": "Docs/Devs/NUGET_PUBLISHED_2026-10-13.md",
+    "inventory": "Docs/WIP/Release and Status/NUGET_PUBLISHED_2026-10-13.md",
     "expectedCount": 229,
     "run": 38376265788,
     "sourceCommit": "c9b2197ec4e8e477139ba72d976ee1bcc273a40e"
