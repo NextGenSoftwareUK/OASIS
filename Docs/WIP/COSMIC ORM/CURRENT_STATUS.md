@@ -993,3 +993,5 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 11 November UTC: standalone Polkadot deployment 69eb6400-e3a8-488f-82d8-19a459bd9b8b reached image export and was marked REMOVED before live verification. Railway is building Convex successor 2e2a4dc0d3, which contains Polkadot. Neon successor bbb4706313 also contains both and remains queued. WEB4 still serves TRON wallet revision 6ce625714f. Verify the Polkadot presets on the first live successor.
 
 11 November UTC: diagnostic CI 42996057873 passed coverage, both Railway manifest checks, the full production solution with zero errors, and WEB4–WEB10 GraphQL schema compatibility on ffb8d75c7a. The ancestry step still reported the same five failures. The isolated workflow allowed that step to fail so the build could run; the normal Development gate remains open. Overlaying the same solution files onto Development bbb4706313 still covers every tracked project.
+
+11 November UTC: deBridge public indexed order presets rendered 3 full and 2 filtered rows in the live Development WEB4 CQL Playground. The original-owner private paired browser check remains open.
