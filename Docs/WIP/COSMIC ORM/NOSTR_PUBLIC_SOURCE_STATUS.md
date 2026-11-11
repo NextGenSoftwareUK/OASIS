@@ -182,3 +182,5 @@ Explicit source recovery implemented at the host lifecycle boundary,same source/
 11 November UTC: Railway startup logs for live Development WEB4 07082d65c0 (deployment f08726a5) show Nostr activation again failed during WebSocket connect with HTTP 503 / NotAWebSocket after 107 ms. This revision did not establish Nostr readiness. Prior successful public browser reads remain valid within their recorded scope. No source recovery, settings change or subscription was initiated.
 
 11 November UTC: authenticated discovery on WEB4 1c7e670e8d still returned CQL_SOURCE_UNAVAILABLE for Nostr. Existing operator recovery and accepted original cohort evidence remain recorded.
+
+11 November UTC: on deployment 882d3bd1 the activation log records a WebSocket HTTP 503. The retained source and prior acceptance were preserved. The current unavailable state is at relay connection, before query execution.

@@ -1387,3 +1387,5 @@ KeyDB pinned source build and native verification are active in CI 43047936284.
 11 November UTC: KeyDB run 43048779525 stopped installing uuid-dev because the Ubuntu Resolute mirrors failed DNS resolution. Candidate b2979f73ba pins Ubuntu 24.04 and makes package index failures explicit with bounded transport timeouts. Native build and tests remain pending.
 
 On active WEB4 1c7e670e8d, NostrOASIS was the only listed source unavailable among 106. Reused the separate public visitor for discovery. The existing Nostr operator recovery action remains open.
+
+11 November UTC: active WEB4 deployment 882d3bd1 logged an HTTP 503 during Nostr WebSocket activation, consistent with authenticated discovery. Existing recovery remains conditional on access to the Development operator session. KeyDB Ubuntu 24.04 CI 43049998861 is active.
