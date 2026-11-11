@@ -62,11 +62,11 @@ jobs:
         shell: pwsh
         run: |
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner public-catalogue-ci -Operation {
-            dotnet test ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CqlPublicReadCatalogueTests|FullyQualifiedName~CqlDuckDbHostedAdmissionTests|FullyQualifiedName~CqlNativeFailureDiagnosticsTests' --results-directory TestResults/CqlPublicReadCatalogueCurrent --logger 'trx;LogFileName=catalogue.trx'
+            dotnet test ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CqlPublicReadCatalogueTests|FullyQualifiedName~CqlDuckDbHostedAdmissionTests|FullyQualifiedName~CqlNativeFailureDiagnosticsTests|FullyQualifiedName~HolonReplicationDeliveryBarrierTests' --results-directory TestResults/CqlPublicReadCatalogueCurrent --logger 'trx;LogFileName=catalogue.trx'
             if ($LASTEXITCODE) { throw 'Public catalogue and diagnostic regression failed' }
             [xml]$report = Get-Content TestResults/CqlPublicReadCatalogueCurrent/catalogue.trx
-            if ($report.TestRun.ResultSummary.Counters.passed -ne '13' -or $report.TestRun.ResultSummary.Counters.total -ne '13') {
-              throw 'All 13 catalogue, admission and diagnostic cases must pass'
+            if ($report.TestRun.ResultSummary.Counters.passed -ne '14' -or $report.TestRun.ResultSummary.Counters.total -ne '14') {
+              throw 'All 14 catalogue, admission, diagnostic and replication barrier cases must pass'
             }
           }
       - name: Verify Moralis activation and unsupported NFT burns

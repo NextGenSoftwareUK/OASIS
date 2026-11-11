@@ -820,3 +820,5 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 11 November UTC: MapLibre public style-document presets rendered 3 full and 2 subset rows in the live Development WEB4 CQL Playground. Private MongoDB paired browser verification and rendering SDK coverage remain open.
 
 11 November UTC: SEEDS public settings presets rendered 3 full and 2 subset rows in the live Development WEB4 CQL Playground. Hosted private MongoDB paired browser and replication verification remain open.
+
+11 November UTC: exact Moralis run 42966807485 stopped at WEB4 CS1061 before tests. Development's barrier regression called the retired worker entry point and used a legacy outbox, while the native worker silently skipped blocked inventory heads. Candidate fd40b1ad120779b8d20c921f485fbf55d389d76c on 9b8a30a65c18fef735295645f47b2a3c8bd9c175 includes repair 0084252cf211bef38e126de8302646e6ae674acc: the worker logs the retained barrier without activating the receiver or claiming it, and the regression uses the bound inventory path. Exact CI remains required.
