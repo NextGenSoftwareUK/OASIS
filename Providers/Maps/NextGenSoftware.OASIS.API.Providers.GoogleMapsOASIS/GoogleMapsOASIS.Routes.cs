@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
@@ -17,7 +18,9 @@ public partial class GoogleMapsOASIS
         Timeout = TimeSpan.FromSeconds(30)
     };
 
-    public sealed record DrivingRoute(int DistanceMeters, string EncodedPolyline);
+    public readonly record struct RoutePoint(double Latitude, double Longitude);
+
+    public sealed record DrivingRoute(int DistanceMeters, string EncodedPolyline, IReadOnlyList<RoutePoint> Points);
 
     public async Task<OASISResult<DrivingRoute>> ComputeDrivingRouteAsync(
         double originLatitude, double originLongitude, double destinationLatitude, double destinationLongitude,
@@ -69,7 +72,7 @@ public partial class GoogleMapsOASIS
             if (distance < 0 || string.IsNullOrWhiteSpace(polyline))
                 throw new JsonException("Google Routes returned an invalid route.");
 
-            result.Result = new DrivingRoute(distance, polyline);
+            result.Result = new DrivingRoute(distance, polyline, DecodePolyline(polyline));
             result.IsLoaded = true;
             result.LoadedCount = 1;
         }
@@ -91,6 +94,46 @@ public partial class GoogleMapsOASIS
         }
 
         return result;
+    }
+
+    private static IReadOnlyList<RoutePoint> DecodePolyline(string encoded)
+    {
+        var points = new List<RoutePoint>();
+        long latitude = 0;
+        long longitude = 0;
+        int index = 0;
+        while (index < encoded.Length)
+        {
+            latitude += ReadPolylineDelta(encoded, ref index);
+            longitude += ReadPolylineDelta(encoded, ref index);
+            var point = new RoutePoint(latitude / 100000d, longitude / 100000d);
+            if (!ValidCoordinates(point.Latitude, point.Longitude))
+                throw new JsonException("Google Routes returned an out-of-range polyline coordinate.");
+
+            points.Add(point);
+        }
+
+        if (points.Count < 2)
+            throw new JsonException("Google Routes returned insufficient route geometry.");
+
+        return points.AsReadOnly();
+    }
+
+    private static long ReadPolylineDelta(string encoded, ref int index)
+    {
+        long value = 0;
+        for (int shift = 0; shift <= 30 && index < encoded.Length; shift += 5)
+        {
+            int group = encoded[index++] - 63;
+            if (group < 0 || group > 63)
+                break;
+
+            value |= (long)(group & 31) << shift;
+            if ((group & 32) == 0 && value <= uint.MaxValue)
+                return (value & 1) == 0 ? value >> 1 : ~(value >> 1);
+        }
+
+        throw new JsonException("Google Routes returned malformed polyline geometry.");
     }
 
     private static bool ValidCoordinates(double latitude, double longitude)
