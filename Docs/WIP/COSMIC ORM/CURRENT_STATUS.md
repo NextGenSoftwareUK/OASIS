@@ -1,5 +1,12 @@
 # COSMIC ORM / CQL current status
 
+## Shared WEB4 and HyperDrive checkpoint, 11 November 2026 16:57 UTC
+
+- Railway WEB4 is serving `c837fe5ad8`. Its warmed authenticated catalogue reported 106/106 enrolled sources ready for native and federated queries. The last recorded functional totals are 129 scoped integrations, 96 hosted HTTP proofs and 28 browser proofs.
+- Development head `2ec6cd9cce` includes the verified Sui, CockroachDB and TimescaleDB native storage batches. Those revisions are queued on Railway.
+- Supabase candidate `7533021f03` passed nine WEB4 boundary checks. Exact image build 43062441681 is active. Prepared Development integration `24d780526c` preserves the six candidate file blobs and Docker configuration. Live enrollment still needs the reviewed HTTPS fixture and restricted reader. TRON still needs the dedicated authenticated reader configuration.
+- HyperDrive is qualifying PlanetScale native storage. COSMIC will preserve its existing PlanetScale query evidence and leave that storage run with HyperDrive.
+
 ## Active continuation, 11 November UTC
 
 - Work on `work/cosmic-cql-ton-public`. Review Development and HyperDrive every 30 minutes. Integrate verified scoped COSMIC batches at most hourly under normal conditions.
