@@ -522,7 +522,7 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
                     var keys = snapshot.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
                     keys[Core.Enums.ProviderType.FirebaseOASIS] = snapshot.Id.ToString("D");
 
-                    var projection = JsonSerializer.SerializeToNode(node.Source, node.Source.GetType(), _jsonOpts)!.AsObject();
+                    var projection = JsonSerializer.SerializeToNode(node.Source, node.Source.GetType(), HolonRowJsonOptions)!.AsObject();
                     projection["id"] = snapshot.Id;
                     projection["parentHolonId"] = snapshot.ParentHolonId;
                     projection["providerUniqueStorageKey"] = JsonSerializer.SerializeToNode(keys, _jsonOpts);

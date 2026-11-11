@@ -37,6 +37,8 @@ public class FirebaseOwnershipTests
             var rows = JsonNode.Parse(text!)!.AsObject();
             Assert.AreEqual(2, rows.Count);
             var parent = rows.Single(row => row.Value!["name"]!.GetValue<string>() == "root");
+            Assert.IsNull(parent.Value!["children"]);
+            Assert.IsNull(parent.Value!["allChildren"]);
             var childRow = rows.Single(row => row.Key != parent.Key);
             Assert.AreEqual(Guid.Parse(parent.Key), childRow.Value!["parentHolonId"]!.GetValue<Guid>());
             if (omitChild) rows.Remove(childRow.Key);

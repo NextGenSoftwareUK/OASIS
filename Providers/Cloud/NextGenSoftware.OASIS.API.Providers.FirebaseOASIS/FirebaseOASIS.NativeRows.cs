@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Text.Json.Serialization.Metadata;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 
@@ -24,6 +25,30 @@ internal sealed class FirebaseRepresentationException(string message) : Exceptio
 
 public partial class FirebaseOASIS
 {
+    // ParentHolonId is the durable relationship. Embedded navigation objects
+    // from older rows are ignored when reading the canonical record.
+    private static JsonSerializerOptions HolonRowJsonOptions => HolonRowOptions.Value;
+
+    private static readonly Lazy<JsonSerializerOptions> HolonRowOptions = new(() => new JsonSerializerOptions(_jsonOpts)
+    {
+        TypeInfoResolver = new DefaultJsonTypeInfoResolver
+        {
+            Modifiers =
+            {
+                typeInfo =>
+                {
+                    if (!typeof(IHolon).IsAssignableFrom(typeInfo.Type)) return;
+                    for (var index = typeInfo.Properties.Count - 1; index >= 0; index--)
+                    {
+                        if (typeInfo.Properties[index].Name is "children" or "allChildren" or
+                            "parentHolon" or "parentHolon2" or "parentHolon3")
+                            typeInfo.Properties.RemoveAt(index);
+                    }
+                }
+            }
+        }
+    });
+
     // RTDB removes null/empty nodes and stores native JSON numbers. Normalize
     // the declared wire representation before dispatch, not by repairing an
     // acknowledgement afterward. Refuse numbers whose JSON value cannot survive
@@ -91,7 +116,7 @@ public partial class FirebaseOASIS
         if (document.RootElement.ValueKind == JsonValueKind.Null) return null;
         if (document.RootElement.ValueKind != JsonValueKind.Object)
             throw new InvalidDataException("Firebase canonical holon must be an object or null.");
-        var holon = Deserialize<Holon>(json);
+        var holon = JsonSerializer.Deserialize<Holon>(json, HolonRowJsonOptions);
         if (holon == null || expected == Guid.Empty || holon.Id != expected)
             throw new InvalidDataException("Firebase native key and canonical holon identity disagree.");
         return holon;
