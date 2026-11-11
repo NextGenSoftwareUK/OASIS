@@ -1069,3 +1069,5 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 11 November UTC: HyperlaneOASIS indexed message observation presets returned 3 full and 2 filtered rows in the live Development WEB4 CQL Playground. Original-owner paired browser verification remains open.
 
 11 November UTC: SynapseOASIS indexed RFQ transaction observation presets returned 3 full and 2 filtered rows in the live Development WEB4 CQL Playground. Original-owner paired browser verification remains open.
+
+11 November UTC: IPFS independent-writer baseline CI 43009364727 showed an acknowledgement versus persistence mismatch. Two instances sharing one DNA file acknowledged eight records, but a fresh reader recovered only four. HyperDrive's candidate reloads the persisted catalogue before mutation and serializes by DNA path; native verification 43009731953 is running. This differs from the earlier single-instance enumeration failure.
