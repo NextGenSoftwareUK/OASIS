@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November MongoDB graph transaction. The shipping provider passed on a fresh one-member MongoDB 8.2.1 replica set. A native validator rejected the child with code 121. Independent inspection found zero holon rows and both caller IDs remained empty. The corrected graph committed two rows, published both IDs and loaded the same child through the provider. This run verifies the provider's graph transaction on a replica-set primary.
+
 11 November MongoDB metadata queries. The shipping provider saved three holons to a fresh MongoDB 8.2.1 standalone server. Synchronous and asynchronous metadata queries both returned the exact expected GUID sets and loaded counts for All and Any. The test used the installed MongoDB binary on a disposable loopback port and left the historical conformance fixture untouched. Development 88dcb9ada1 carries the matching source and test.
 
 11 November Polygon PoS wallet balance. The synchronous shipping blockchain provider interface returned a positive native POL balance through unsigned Nethereum at PublicNode's Polygon PoS endpoint. The shared wallet reader verified chain 137 and did not activate contract storage or use a signer. Development e5530b0914 carries the matching shared reader and both the Polygon and Arbitrum tests. Public-network storage lifecycle remains open.
