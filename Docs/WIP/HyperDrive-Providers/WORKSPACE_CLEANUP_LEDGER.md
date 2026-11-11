@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+11 November SQLite wallet encryption verification. The focused test disposed both provider instances and its independent SQLite connection, then deleted its temporary database and sidecars. Leased dotnet clean left zero files in the redirected bin tree. No SDK install or raw report was created. The isolated `TestResults/HyperDrive-Providers/SQLiteWalletEncryptionBuild` tree retains 6,394,352 bytes of restore and intermediate metadata. C: had 42,987,954,176 bytes free at the shared-machine check.
+
 11 November Convex response deadline verification. The real loopback TCP listener and client sockets were disposed at test completion. No hosted deployment, SDK installation or raw test report was created. Leased dotnet clean left zero files in bin. The isolated `TestResults/HyperDrive-Providers/ConvexResponseDeadlineBuild` tree retains 5,158,245 bytes of restore and intermediate metadata. C: had 43,097,292,800 bytes free at the shared-machine check.
 
 11 November Supabase credential isolation verification. Reused the .NET runtime, package cache and one redirected output tree for the full unit run and the five-case metadata rerun. Leased dotnet clean left zero files in bin. No test environment or raw report was created. The isolated `TestResults/HyperDrive-Providers/SupabaseCredentialBuild` tree retains 5,158,051 bytes of restore and intermediate metadata. C: had 43,098,398,720 bytes free at the shared-machine check.
