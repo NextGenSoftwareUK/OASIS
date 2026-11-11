@@ -887,3 +887,5 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 
 
 11 November UTC coordination: Development 94fe19c958 now contains the retained Ethereum, Polygon and Arbitrum native storage reports. The six changed paths are evidence, matrix and checkout-attribute files. No COSMIC runtime integration is needed for this batch. Supabase's WEB4 gate still requires the dedicated teaching project and restricted reader, while HyperDrive owns shipping BootLoader and storage conformance for the provider.
+
+11 November UTC: GOMap dedicated HTTPS origin enforcement applied to the three shipping/test paths on Development 94fe19c958 as 095805ee910d2ac7a889d233040ef6ca177e6fe5. The protected descriptor tooling remains on the COSMIC branch because the Development script context diverged. No Core pin change. Public enrollment still needs a reviewed OSRM origin and fresh protected settings.

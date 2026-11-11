@@ -15,6 +15,11 @@ on:
       - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlReviewedNetworkReadSourceRegistration.cs'
       - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlV1Compiler.cs'
   workflow_dispatch:
+    inputs:
+      ref:
+        description: Exact reviewed source commit
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -26,6 +31,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
+          ref: ${{ inputs.ref || github.sha }}
           path: OASIS
           submodules: true
           token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
