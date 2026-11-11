@@ -1057,3 +1057,5 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 11 November UTC: HyperDrive IPFS native concurrency CI 43008085065 reproduced a shared catalogue enumeration failure in PublishAcknowledgedRecordAsync. The shipping provider reported acknowledged CIDs before the overall graph save failed. HyperDrive owns the publication fix. Keep earlier native restart and public CQL evidence within their verified scopes.
 
 11 November UTC: Railway WEB4 deployment c7b533e2 succeeded on Development c686a8618d with the verified native Kubo activation change. Fresh browser catalogue reads during warmup showed 19 then 26 available sources. Final readiness is pending. Preserve prior IPFS CQL query acceptance and separate native storage evidence.
+
+11 November UTC: fresh Development WEB4 discovery on the IPFS activation deployment c686a8618d reached 42 available hosted sources during warmup. IPFSOASIS was selectable and loaded its native public CID preset. Existing query results were preserved without replay. Full catalogue readiness remains pending.
