@@ -5,6 +5,8 @@ on:
     branches: [work/cosmic-cql-ton-public]
     paths:
       - '.github/workflows/qualify-cql-public-catalogues.yml'
+      - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.MoralisOASIS/MoralisOASIS.NFTHelpers.cs'
+      - 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.MoralisOASIS.UnitTests/MoralisBurnCapabilityTests.cs'
       - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlPublicReadCatalogue.cs'
       - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/CqlPublicReadCatalogueTests.cs'
       - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/CqlNativeFailureDiagnosticsTests.cs'
@@ -65,10 +67,24 @@ jobs:
               throw 'All 13 catalogue, admission and diagnostic cases must pass'
             }
           }
+      - name: Verify Moralis rejects unsupported NFT burns
+        working-directory: OASIS
+        shell: pwsh
+        run: |
+          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner moralis-capability-ci -Operation {
+            dotnet test Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.MoralisOASIS.UnitTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~MoralisBurnCapabilityTests' --results-directory TestResults/MoralisBurnCapabilityCurrent --logger 'trx;LogFileName=capability.trx'
+            if ($LASTEXITCODE) { throw 'Moralis burn capability regression failed' }
+            [xml]$report = Get-Content TestResults/MoralisBurnCapabilityCurrent/capability.trx
+            if ($report.TestRun.ResultSummary.Counters.passed -ne '2' -or $report.TestRun.ResultSummary.Counters.total -ne '2') {
+              throw 'Both Moralis unsupported burn cases must pass'
+            }
+          }
       - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: cql-public-catalogue-regression
-          path: OASIS/TestResults/CqlPublicReadCatalogueCurrent/catalogue.trx
+          path: |
+            OASIS/TestResults/CqlPublicReadCatalogueCurrent/catalogue.trx
+            OASIS/TestResults/MoralisBurnCapabilityCurrent/capability.trx
           if-no-files-found: error
           retention-days: 30

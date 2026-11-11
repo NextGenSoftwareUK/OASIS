@@ -792,3 +792,5 @@ Hedera full-provider diagnostic: the actual deployed FromJson/ActivateQuerySourc
 CI qualification now includes all seven CqlNativeFailureDiagnosticsTests cases, including response_headers and response_body preservation, alongside six existing catalogue/admission cases. The existing workflow follows work/cosmic-cql-ton-public and requires all 13 cases. CI execution remains pending; the two new stage cases are not claimed passed.
 
 CI run 42938257820, job 130253566184, passed on fda32cf5d3. Its strict TRX gate verified all 13 cases: five public catalogue cases, one DuckDB admission case and seven native failure diagnostic cases. Both Hedera response_headers/response_body preservation cases are now fully qualified in WEB4. Live Hedera registry recovery remains open.
+
+Moralis BurnNFT and BurnNFTAsync now return MORALIS_NFT_BURN_UNSUPPORTED before activation. Two focused sync and async checks cover the failure result and zero activation attempts. Remote CI qualification is pending.
