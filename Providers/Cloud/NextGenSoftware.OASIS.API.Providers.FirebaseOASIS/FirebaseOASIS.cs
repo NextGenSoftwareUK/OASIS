@@ -593,8 +593,13 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
                 if (r.IsError)
                 {
                     errors.Add(r.Message);
-                    result.Exception ??= r.Exception;
-                    if (!continueOnError) break;
+                    var needsReconciliation = r.Exception is INativeMutationReconciliationRequired;
+                    if (result.Exception == null || needsReconciliation)
+                    {
+                        result.Exception = r.Exception;
+                        result.ErrorCode = r.ErrorCode;
+                    }
+                    if (!continueOnError || needsReconciliation) break;
                 }
                 else if (r.IsSaved && r.Result != null)
                 {
@@ -606,7 +611,7 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
             result.IsSaved = saved.Count > 0;
             result.IsError = errors.Count > 0;
             result.ErrorCount = errors.Count;
-            result.Message = errors.Count > 0 ? string.Join("; ", errors) : $"FirebaseOASIS: {saved.Count} holon(s) saved.";
+            result.Message = errors.Count > 0 ? string.Join("; ", errors) : $"FirebaseOASIS: {result.SavedCount} holon(s) saved.";
             return result;
         }
 

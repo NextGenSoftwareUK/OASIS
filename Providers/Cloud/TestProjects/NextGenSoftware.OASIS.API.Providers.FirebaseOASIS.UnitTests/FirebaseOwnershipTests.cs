@@ -102,6 +102,26 @@ public class FirebaseOwnershipTests
     }
 
     [TestMethod]
+    public async Task BulkSaveStopsAndReportsUncertainMutationAfterAnAdmissionError()
+    {
+        using var reply = new Reply((_, _) => Response("{}", HttpStatusCode.ServiceUnavailable));
+        using var http = new HttpClient(reply);
+        var provider = new FirebaseOASIS("https://synthetic.invalid", null, http);
+        var uncertain = new Holon { Id = Guid.NewGuid() };
+        var unattempted = new Holon { Id = Guid.NewGuid() };
+
+        var result = await provider.SaveHolonsAsync(new IHolon[] { null!, uncertain, unattempted });
+
+        Assert.IsTrue(result.IsError);
+        Assert.AreEqual(2, result.ErrorCount);
+        Assert.AreEqual(0, result.SavedCount);
+        Assert.AreEqual(1, reply.Sends);
+        Assert.IsInstanceOfType(result.Exception, typeof(INativeMutationReconciliationRequired));
+        using var dispatched = JsonDocument.Parse(reply.Mutation!);
+        Assert.AreEqual(uncertain.Id, dispatched.RootElement.GetProperty("id").GetGuid());
+    }
+
+    [TestMethod]
     public async Task ExplicitNamespaceIsEncodedOnceOnBothReadAndWriteRoutes()
     {
         using var reply = new Reply((request, text) => {
