@@ -189,7 +189,7 @@ jobs:
             docker_args: -e JAVA_OPTS=-Darcadedb.server.rootPassword=playwithdata
           - name: SurrealDB
             project: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS.IntegrationTests
-            image: surrealdb/surrealdb:latest
+            image: surrealdb/surrealdb:v3.3.5
             ports: 8000:8000
             wait: 8000
             command: start --user root --pass root --bind 0.0.0.0:8000 memory
