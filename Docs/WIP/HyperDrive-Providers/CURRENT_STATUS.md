@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November TRON mainnet wallet balance. The synchronous shipping wallet call passed against PublicNode's TLS full and solidity gRPC endpoints at 6e4449a68f. The SDK verified both genesis responses and returned a positive solidified TRX balance with no caller-context posts, signer or storage activation. The Development candidate uses the same shipping provider, SDK configuration and shared dependencies. Writable storage verification remains open.
+
 11 November Cosmos Hub wallet balance. The synchronous shipping wallet call passed a real Cosmos Hub bank read through CosmJS 0.39.0 at 051b3c03c2. It returned positive ATOM without a signer, storage activation or caller-context posts. The Development candidate matches the tested shipping provider, SDK bridge and shared dependency source. This evidence covers wallet balance only. Writable storage remains open.
 
 11 November NEAR public wallet balance. Both shipping wallet entry points passed against finalized NEAR mainnet state through near-api-js 7.3.1 at 507f4dd419. The scoped Development change uses the same wallet source, bridge, regression test and Core revision. The only difference in the SDK service file is an independent avatar deletion method on the task branch. The existing public mainnet tests were reused. Writable NEAR storage acceptance remains open.
