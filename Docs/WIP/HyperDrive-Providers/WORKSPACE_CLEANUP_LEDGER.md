@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+11 November BNB BootLoader run 43085641543 confirmed cleanup of the owned BSC node, binary, chain data, temporary DNA, signing material and npm dependencies. The disposable runner retired its build workspace. No Windows build or download was created.
+
 11 November BNB BootLoader run 43084767090 confirmed removal of the BSC node fixture and npm dependencies after its dependency build failed. No Windows build or runtime was created.
 
 11 November BNB run 43084066216 confirmed removal of the official binary, private-chain data, temporary keys, storage checkpoints and npm dependencies from the disposable runner. No Windows build or download was created.
