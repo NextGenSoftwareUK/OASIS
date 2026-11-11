@@ -6,6 +6,8 @@
 
 The CI integration entry point uses `OASIS_FIREBASE_STORAGE_CONFORMANCE=1` and `FIREBASEOASIS_DATABASEURL` pointing to the root of the loopback HTTP emulator. Its filter selects `CoreStorageAgainstRealtimeDatabase`. The existing interrupted Windows checkpoint and COSMIC query fixture are preserved.
 
+[CI compile run 43089219847](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43089219847) checks the updated hosted and emulator entry points.
+
 The hosted entry point shares the exact holon cleanup routine with the emulator suite. It requires a protected test credential, checks the tombstone identity and ETag before deletion, and verifies an empty root before recording success. An incomplete checkpoint fences the other mode. Hosted execution requires the dedicated database and request budget in [Actions for David](../Release%20and%20Status/ACTIONS-FOR-DAVID.md#firebase-realtime-database-hosted-fixture).
 
 ## 28 October implementation checkpoint
