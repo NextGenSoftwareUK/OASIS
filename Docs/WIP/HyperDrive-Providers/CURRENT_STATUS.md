@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November Cosmos blockchain contract deployment passed. Run 43028420581 built the locked contract with Rust 1.99.0 and successfully stored and instantiated it in native wasmd. The expected owner and empty record set were verified. The next CI revision runs the direct provider conformance modes with locked CosmJS, separate fresh reports, and a final native key check. The historical retained ledger remains open.
+
 11 November Cosmos blockchain native contract qualification. Run 43028420581 at 2597155b54 builds the locked OASIS CosmWasm contract using Rust 1.99.0 and deploys it to the same digest-pinned wasmd image as the retained runner, with a fresh loopback-only chain. It checks transaction inclusion, contract ownership and an empty native record set. The shipping CosmJS lifecycle suite and the original retained ledger remain separate pending gates. The reviewed COSMIC public read cohort is unaffected.
 
 11 November Solana fresh Agave 4.3.0 passed 52/52 on the shipping Solnet adapter at 22815c2b59. Run 43023043006 logged 26 cases and verified logical cleanup in each mode. The job was canceled after its 30-minute limit while waiting for the background validator to exit following SIGINT. The teardown now sends TERM and bounds shutdown before removing the owned fixture. Run 43027809655 verifies the updated runner. Development 7951636ce0 contains the already verified memo write acknowledgement and test source. Original ledger recovery and hosted acceptance remain open.

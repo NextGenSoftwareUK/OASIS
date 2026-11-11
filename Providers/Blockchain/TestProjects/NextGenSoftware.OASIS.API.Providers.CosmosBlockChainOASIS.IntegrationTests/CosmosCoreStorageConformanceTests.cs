@@ -16,7 +16,9 @@ public class CosmosCoreStorageConformanceTests
         var root = new DirectoryInfo(AppContext.BaseDirectory);
         while (root != null && !Directory.Exists(Path.Combine(root.FullName, "Scripts", "TestHosts"))) root = root.Parent;
         Assert.IsNotNull(root);
-        var work = Path.Combine(root.FullName, "TestResults", "ProviderConformanceCurrent", "CosmosBlockChainOASIS", sync ? "sync" : "async");
+        var fresh = Environment.GetEnvironmentVariable("OASIS_COSMOS_FRESH_CONFORMANCE") == "1";
+        var work = Path.Combine(root.FullName, "TestResults", fresh ? "CosmosFreshConformance" : "ProviderConformanceCurrent",
+            "CosmosBlockChainOASIS", sync ? "sync" : "async");
         Directory.CreateDirectory(work);
         using var lease = new FileStream(Path.Combine(Path.GetDirectoryName(work)!, "environment.lock"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
         var reportPath = Path.Combine(work, "report.json");
@@ -27,7 +29,7 @@ public class CosmosCoreStorageConformanceTests
         {
             await using var previous = File.OpenRead(otherReportPath);
             var prior = await JsonSerializer.DeserializeAsync<CoreStorageConformance.Report>(previous);
-            Assert.IsTrue(prior?.FixtureCleanupComplete == true || prior?.CurrentCase == "configuration",
+            Assert.IsTrue(prior?.FixtureCleanupComplete == true || (!fresh && prior?.CurrentCase == "configuration"),
                 "Reconcile the other mode's fixture before any new submission.");
         }
 
@@ -51,7 +53,7 @@ public class CosmosCoreStorageConformanceTests
             provider = new CosmosBlockChainOASIS(endpoint, chain, Required("OASIS_COSMOS_TEST_KEY"), Required("OASIS_COSMOS_TEST_CONTRACT"),
                 "wasm", "0.025stake", "stake", 0, CosmosBlockChainOASISIntegrationTests.LocalStorageKey);
         }
-        catch (Exception failure)
+        catch (Exception failure) when (!fresh)
         {
             Assert.Inconclusive($"Cosmos fixture configuration blocked ({failure.GetType().Name}); no native storage operation dispatched.");
             return;
@@ -59,7 +61,9 @@ public class CosmosCoreStorageConformanceTests
         using (provider)
         {
             var result = await CoreStorageConformance.RunAsync(provider, "CosmosBlockChainOASIS", "native", sync, Checkpoint);
-            Assert.IsTrue(result.Succeeded, result.CurrentCase + ": " + result.FailureType);
+            Assert.IsTrue(result.Succeeded, $"{result.CurrentCase}: {result.FailureType} ({result.FailureContract})");
+            Assert.IsTrue(result.FixtureCleanupComplete);
+            Assert.AreEqual(CoreStorageConformance.ChecksPerMode, result.Passed.Count);
         }
     }
 }

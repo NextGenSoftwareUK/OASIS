@@ -6,7 +6,8 @@ on:
     paths:
       - '.github/workflows/cosmos-native-storage.yml'
       - 'Scripts/TestHosts/build-cosmos-contract.sh'
-      - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS/contracts/oasis/**'
+      - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS/**'
+      - 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.IntegrationTests/**'
   workflow_dispatch:
 
 permissions:
@@ -15,11 +16,41 @@ permissions:
 jobs:
   storage:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 35
+    defaults:
+      run:
+        working-directory: OASIS
     steps:
       - uses: actions/checkout@v7
         with:
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          path: OASIS
+          submodules: recursive
           persist-credentials: false
+
+      - name: Read the recorded Libraries revision
+        id: dependencies
+        shell: bash
+        run: |
+          revision="$(sed -n 's/^LIBRARIES_COMMIT=//p' Docker/oasis-dependency-versions.env)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "libraries=$revision" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependencies.outputs.libraries }}
+          path: NextGenSoftware-Libraries
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.22.1'
 
       - name: Build the locked OASIS storage contract
         env:
@@ -30,7 +61,7 @@ jobs:
           bash Scripts/TestHosts/build-cosmos-contract.sh
           sha256sum /var/tmp/oasis-cosmos-contract-target/wasm32-unknown-unknown/release/oasis_cosmos_storage.wasm
 
-      - name: Deploy to native wasmd and verify contract state
+      - name: Deploy to native wasmd and run the shipping CosmJS storage suite
         shell: bash
         run: |
           image=cosmwasm/wasmd@sha256:3741178a4d747fd5cf281550ab4ac30d771163af1c543f9da503c411a1691773
@@ -87,3 +118,31 @@ jobs:
           "${cli[@]}" query wasm contract-state smart "$address" '{"list":{"prefix":""}}' --output json |
             jq -e '.data == []' >/dev/null
           echo "Native wasmd accepted the OASIS contract and returned its configured owner and empty record set."
+          signing_key="$("${cli[@]}" keys export owner --keyring-backend test --unarmored-hex --unsafe --yes 2>/dev/null)"
+          [[ "$signing_key" =~ ^[a-fA-F0-9]{64}$ ]]
+          echo "::add-mask::$signing_key"
+          export OASIS_COSMOS_TEST_KEY="$signing_key"
+          export OASIS_COSMOS_TEST_CONTRACT="$address"
+          export OASIS_COSMOS_TEST_CHAIN="$chain"
+          export OASIS_COSMOS_TEST_RPC=http://127.0.0.1:26657
+          export OASIS_COSMOS_STORAGE_CONFORMANCE=1
+          export OASIS_COSMOS_FRESH_CONFORMANCE=1
+          pwsh -NoProfile -Command '
+            ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-CosmosStorage -Operation {
+              $directory = "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.IntegrationTests"
+              $project = "$directory/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.IntegrationTests.csproj"
+              dotnet build $project /p:CosmosDirectProviderOnly=true /m:2 /nr:false /p:UseSharedCompilation=false
+              if ($LASTEXITCODE -ne 0) { throw "Native Cosmos integration build failed." }
+              npm ci --prefix "$directory/bin/Debug/net10.0/CosmosSdkBridge" --no-audit --no-fund
+              if ($LASTEXITCODE -ne 0) { throw "Locked CosmJS installation failed." }
+              dotnet test $project --no-build --filter "TestCategory=CosmosCoreStorageConformance" /p:CosmosDirectProviderOnly=true /m:2 /nr:false /p:UseSharedCompilation=false --logger "console;verbosity=normal"
+              if ($LASTEXITCODE -ne 0) { throw "Native Cosmos storage verification failed." }
+            }'
+          for mode in async sync; do
+            report="TestResults/CosmosFreshConformance/CosmosBlockChainOASIS/$mode/report.json"
+            jq -e '.Succeeded and .FixtureCleanupComplete and (.Passed | length == 26)' "$report" >/dev/null
+            echo "$mode: 26 native checks and logical fixture cleanup passed."
+          done
+          "${cli[@]}" query wasm contract-state smart "$address" '{"list":{"prefix":""}}' --output json |
+            jq -e '.data == []' >/dev/null
+          echo "Independently verified the native contract has no remaining record keys."
