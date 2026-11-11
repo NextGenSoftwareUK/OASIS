@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November Polkadot Asset Hub wallet balance. The synchronous shipping wallet method passed a live finalized treasury DOT read through @polkadot/api 17.0.2 at 4ecb58e194. The test verified the Asset Hub genesis and required zero caller-context posts. It used no signer or storage contract. The scoped Development change matches the tested shipping source, SDK lockfile and shared dependencies. Writable storage verification remains open.
+
 11 November TRON mainnet wallet balance. The synchronous shipping wallet call passed against PublicNode's TLS full and solidity gRPC endpoints at 6e4449a68f. The SDK verified both genesis responses and returned a positive solidified TRX balance with no caller-context posts, signer or storage activation. The Development candidate uses the same shipping provider, SDK configuration and shared dependencies. Writable storage verification remains open.
 
 11 November Cosmos Hub wallet balance. The synchronous shipping wallet call passed a real Cosmos Hub bank read through CosmJS 0.39.0 at 051b3c03c2. It returned positive ATOM without a signer, storage activation or caller-context posts. The Development candidate matches the tested shipping provider, SDK bridge and shared dependency source. This evidence covers wallet balance only. Writable storage remains open.
