@@ -67,3 +67,5 @@ Earlier pending application/hosted statements are superseded. Parent e13244820/C
 Fantom is hosted-qualified at parent e13244820ddcffc27b94326e70ccfef52fb044ab / Core01b754545eea90395778305c70b7f55550bcf65b. Code7b8c95d9 and settings2177dd3d succeeded. Native3/2, Mongo5/4, reuse0new/2existing, foreign-private0/public3, replicas2/2 and two version1 saves/no pending pass. Websiteeef076957b6826cea54eff8c3b3a4151c0803a05 publishes the Fantom card and pinned local-guide/C# links;93client tests pass. Public HTML160633bytes/SHA256823e2a2400c40d5902bd2789e1c020fbfa63d42c6949ecad0befa3c5061cd121 and both scripts exactly match git blobs. Browser interaction remains open.
 
 Public asset proof: TestResults/FantomPublicSourceCurrent/public-assets-observation.json. HTML and scripts match all3exact git blobs; script versions remain cql-azure-blob-v1/cql-duration-v2. No browser interaction claim. Source/hosted cohorts remain frozen.
+
+11 November UTC: Fantom public canonical-at-read balance presets rendered 3 full and 2 filtered rows in the live Development WEB4 CQL Playground. The original-owner private paired browser check remains open.
