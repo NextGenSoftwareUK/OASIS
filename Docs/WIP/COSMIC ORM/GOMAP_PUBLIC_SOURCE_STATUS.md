@@ -165,3 +165,5 @@ The shared OSRM demo remains limited to its operator policy. The existing bounde
 11 November UTC: exact candidate a3e95bd537 passed CI 43114731044. Job 130839648794 passed the 12 controlled cases and one real route plus MongoDB WEB4 HTTP case with zero skips. Container and anonymous-volume cleanup and its proof upload passed. The later d96350193 combined revision still needs qualification. Hosted enrollment needs a dedicated HTTPS OSRM origin.
 
 11 November UTC: confirmed Development 6047aff6c50 remains the parent of d96350193 and its exact diff remains four GOMap paths. Dispatched [run 43122161010](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43122161010) on d96350193 for the controlled and native WEB4 qualification. No Development push.
+
+11 November UTC: GOMap d96350193 on Development 6047aff6c50 passed exact CI 43122161010. Job 130865064412 passed all 12 controlled checks, one real route and MongoDB WEB4 HTTP case, and container/anonymous-volume cleanup. Railway still had WEB4 work outstanding, and dedicated HTTPS OSRM enrollment remains open. No Development push.
