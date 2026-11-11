@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+11 November IPFS concurrent publication CI. Both the baseline and corrected runs stopped their owned Kubo process. GitHub job 130482122676 passed the corrected test. The isolated repositories, downloads and builds ran on disposable runners and no artifact upload was configured. No local artifacts were created.
+
 11 November IPFS restart CI. GitHub job 130477987590 confirmed that both owned Kubo processes stopped. The disposable Windows runner held the archive, encryption key, repository and build outputs. No artifact upload was configured and no local outputs were created.
 
 11 November IPFS native activation CI. The official archive, offline repository and build outputs are scoped to the disposable GitHub runner. GitHub job 130474978651 completed successfully after the daemon shutdown step. No artifact upload was configured. No local runtime, download, fixture or build output was created.
