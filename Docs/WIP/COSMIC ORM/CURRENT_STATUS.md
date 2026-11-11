@@ -798,3 +798,5 @@ Moralis BurnNFT and BurnNFTAsync now return MORALIS_NFT_BURN_UNSUPPORTED before 
 Moralis qualification passed on 8ad7386771 in CI run 42961187971/job 130327846767. Both sync and async unsupported-burn regressions passed with zero activation attempts, and all 13 catalogue/admission/diagnostic cases passed. The correction is on the COSMIC branch. Moralis CQL enrollment and Development integration remain open.
 
 Moralis activation now calls the documented authenticated /web3/version route on the configured API base. A failed HTTP response clears readiness and returns IsError=true with its HTTP status. CI qualification covers v2/v2.2 route and key transmission, then 403 denial after success. Live credential qualification and CQL enrollment remain open.
+
+Moralis activation qualification passed on 19c9a3860a in CI run 42962451044/job 130331918928. The four Moralis cases passed, including authenticated version-route requests and clearing readiness after 403 on both API bases. All 13 CQL qualification cases also passed. The live unauthenticated version request returned 403. A reviewed key and authenticated live qualification remain required before CQL enrollment.
