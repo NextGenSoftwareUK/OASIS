@@ -897,3 +897,5 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 11 November UTC: synchronized the priority browser status with the provider matrix and provider-specific acceptance records.
 
 11 November UTC: seven stale priority browser-status descriptions were corrected on the existing Web4Site feature branch at `9f92777`. Its exact source passed 122 Node tests across six suites. Publication is pending.
+
+11 November UTC: Railway WEB4 deployment `3cfce822-77da-42f2-ae0b-e8bfa7262c19` succeeded at Development `94fe19c958`. Protected discovery progressed 9/106 to 17/106 to 105/106 ready. Listed priority providers and LocalFile reported native and federation ready. TRON and Supabase remained absent. Aptos alone returned CQL_SOURCE_UNAVAILABLE; Railway recorded HTTP 404 during Aptos activation. The existing anonymous Aptos native probe passed four GETs and three accounts from the laptop, so the failure is specific to the observed hosted activation path and its exact cause remains open.
