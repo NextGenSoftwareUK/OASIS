@@ -13,8 +13,8 @@ on:
       scenario:
         description: PostgREST verification scenario
         type: choice
-        options: [storage, credentials]
-        default: storage
+        options: [pagination, storage, credentials]
+        default: pagination
 
 permissions:
   contents: read
@@ -69,7 +69,7 @@ jobs:
       - name: Start two independently authenticated PostgREST services and exercise the shipping provider
         shell: bash
         env:
-          OASIS_SUPABASE_TEST_SCENARIO: ${{ inputs.scenario || 'storage' }}
+          OASIS_SUPABASE_TEST_SCENARIO: ${{ inputs.scenario || 'pagination' }}
           POSTGRES_CONTAINER: ${{ job.services.postgres.id }}
           PGRST_DB_URI: postgresql://postgres:fixture-only@127.0.0.1:${{ job.services.postgres.ports[5432] }}/oasis_fixture
           PGRST_DB_SCHEMAS: public
@@ -90,6 +90,23 @@ jobs:
           CREATE ROLE service_role NOLOGIN BYPASSRLS;
           SQL
           "${psql[@]}" < Providers/Cloud/NextGenSoftware.OASIS.API.Providers.SupabaseOASIS/supabase-storage-schema.sql
+          if [[ "$OASIS_SUPABASE_TEST_SCENARIO" == pagination ]]; then
+            "${psql[@]}" <<'SQL'
+          INSERT INTO oasis_avatars (id, username, email, data_json)
+          SELECT id, name, name || '@example.invalid', json_build_object('id', id, 'username', name)::text
+          FROM (SELECT gen_random_uuid() AS id, 'fixture-' || n AS name FROM generate_series(1,121) AS n) AS fixture;
+          INSERT INTO oasis_avatar_details (id, username, email, data_json)
+          SELECT id, username, email, data_json FROM oasis_avatars;
+          INSERT INTO oasis_holons (id, holon_type, data_json)
+          SELECT id, 36, json_build_object('id', id, 'name', username, 'holonType', 36)::text FROM oasis_avatars;
+          SQL
+            manifest="$fixture/pagination-ids.json"
+            "${psql[@]}" -Atc 'SELECT json_agg(id ORDER BY id) FROM oasis_avatars' > "$manifest"
+            export OASIS_SUPABASE_PAGINATION_IDS="$manifest"
+            export OASIS_SUPABASE_PAGINATION_AVATAR_IDS="$manifest"
+            export OASIS_SUPABASE_PAGINATION_DETAIL_IDS="$manifest"
+            export PGRST_DB_MAX_ROWS=37
+          fi
 
           issue_token() {
             PGRST_JWT_SECRET="$1" python3 - <<'PY'
@@ -142,6 +159,9 @@ jobs:
               if ($env:OASIS_SUPABASE_TEST_SCENARIO -eq "storage") {
                 $env:OASIS_SUPABASE_LOCAL_STORAGE_CONFORMANCE = "1"
                 $case = "CoreStorageSuiteAgainstSupabase"
+              } elseif ($env:OASIS_SUPABASE_TEST_SCENARIO -eq "pagination") {
+                $env:OASIS_SUPABASE_LOCAL_PAGINATION = "1"
+                $case = "ListingReturnsEveryPreseededIdentityAcrossPages"
               }
               dotnet test "Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.SupabaseOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.SupabaseOASIS.IntegrationTests.csproj" --filter "FullyQualifiedName~$case" /m:2 /nr:false /p:UseSharedCompilation=false --logger "console;verbosity=normal"
               if ($LASTEXITCODE -ne 0) { throw "Native PostgREST verification failed." }
