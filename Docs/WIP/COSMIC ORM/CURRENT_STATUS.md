@@ -1039,3 +1039,5 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 11 November UTC: AzureStorageOASIS public blob properties presets returned 3 full and 2 filtered rows in the live Development WEB4 CQL Playground. Original-owner paired browser verification remains open.
 
 11 November UTC: OracleObjectStorageOASIS public object metadata presets returned 3 full and 2 filtered rows in the live Development WEB4 CQL Playground. Original-owner paired browser verification and owned SDK storage acceptance remain open.
+
+11 November UTC: Development c686a8618d contains HyperDrive's independently verified native Kubo IPFS activation change. The solution fix applies as the same two files in exact candidate 4a3118bd93. CI 43007093453 verifies that candidate while Railway IPFS deployment c7b533e2 is queued. Existing IPFS CQL acceptance remains scoped to its original evidence.
