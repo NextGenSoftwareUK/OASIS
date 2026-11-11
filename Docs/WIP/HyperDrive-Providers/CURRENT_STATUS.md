@@ -1,6 +1,6 @@
 # Current provider status
 
-11 November TimescaleDB shared storage verification. The CI fixture reuses the digest-pinned official TimescaleDB image, verifies the installed extension in two independent databases, and runs both shipping Npgsql storage modes with exact native cleanup. Existing COSMIC CQL evidence carries forward. The storage run is pending.
+11 November TimescaleDB [run 43061942830](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43061942830) at 49b6c88a17 passed all 52 shared storage checks through the shipping Npgsql provider against official TimescaleDB 2.31.0. Each mode used its own database with the native extension loaded. Independent SQL verified ten exact owned tombstones and three empty current tables per database. CI removed the container, volumes and fixture. Existing COSMIC CQL evidence carries forward.
 
 11 November CockroachDB [run 43060207358](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43060207358) at 8c630a82ae passed all 52 shared storage checks through the shipping Npgsql provider on official CockroachDB 26.2.9. Each mode used its own database. Independent native SQL verified and removed five exact owned tombstones per mode and confirmed three empty current tables in each database. CI removed the runtime and fixture. Hosted and COSMIC CQL acceptance are separate.
 

@@ -1,6 +1,6 @@
 # Current resource and cleanup ledger
 
-11 November TimescaleDB native storage verification uses a disposable CI container and owned volumes, image and checkpoint directory. The runner removes these on exit. Cleanup confirmation is pending. No local runtime, download or build was created.
+11 November TimescaleDB run 43061942830 passed both storage modes and independently verified the empty tables. CI removed the owned container, volumes, newly pulled image and checkpoints. No Windows runtime, build or download was created.
 
 11 November TRON and Polkadot CI cleanup. TRON job 130571986332 verified empty storage in both contracts and removed the owned TRE container and ledger. Polkadot job 130572555894 removed the pinned Binaryen downloads and tools directory. The WASM, runtimes, test reports and keys stayed on disposable runners. No local artifacts or uploads were created.
 
