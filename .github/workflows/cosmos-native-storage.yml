@@ -1,0 +1,89 @@
+name: Cosmos native storage
+
+on:
+  push:
+    branches: [work/hyperdrive-provider-completion]
+    paths:
+      - '.github/workflows/cosmos-native-storage.yml'
+      - 'Scripts/TestHosts/build-cosmos-contract.sh'
+      - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS/contracts/oasis/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  storage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Build the locked OASIS storage contract
+        env:
+          RUSTUP_TOOLCHAIN: '1.99.0'
+          CARGO_NET_OFFLINE: 'false'
+        run: |
+          rustup toolchain install 1.99.0 --profile minimal --component rust-src --target wasm32-unknown-unknown
+          bash Scripts/TestHosts/build-cosmos-contract.sh
+          sha256sum /var/tmp/oasis-cosmos-contract-target/wasm32-unknown-unknown/release/oasis_cosmos_storage.wasm
+
+      - name: Deploy to native wasmd and verify contract state
+        shell: bash
+        run: |
+          image=cosmwasm/wasmd@sha256:3741178a4d747fd5cf281550ab4ac30d771163af1c543f9da503c411a1691773
+          chain=oasis-cosmos-local
+          container=""
+          cleanup() {
+            status=$?
+            if [[ -n "$container" ]]; then
+              if [[ "$status" -ne 0 ]]; then docker logs --tail 60 "$container" || true; fi
+              docker rm --force --volumes "$container"
+              echo "Removed the owned wasmd container and its ledger."
+            fi
+          }
+          trap cleanup EXIT
+          container="$(docker create --publish 127.0.0.1:26657:26657 --entrypoint sh "$image" -ec '
+            sh /tmp/oasis-wasmd-init.sh
+            exec wasmd start --home /root/.wasmd --rpc.laddr tcp://0.0.0.0:26657 --minimum-gas-prices 0.025stake
+          ')"
+          docker cp Scripts/TestHosts/wasmd-init.sh "$container:/tmp/oasis-wasmd-init.sh"
+          docker cp /var/tmp/oasis-cosmos-contract-target/wasm32-unknown-unknown/release/oasis_cosmos_storage.wasm "$container:/tmp/oasis.wasm"
+          docker start "$container"
+          for attempt in {1..45}; do
+            if status="$(curl --fail --silent --max-time 2 http://127.0.0.1:26657/status)" &&
+               [[ -n "$status" ]] &&
+               jq -e --arg chain "$chain" '.result.node_info.network == $chain and (.result.sync_info.latest_block_height | tonumber) > 1' <<< "$status" >/dev/null; then
+              break
+            fi
+            if [[ "$attempt" == 45 ]]; then exit 1; fi
+            sleep 1
+          done
+          cli=(docker exec "$container" wasmd)
+          tx_flags=(--from owner --keyring-backend test --chain-id "$chain" --gas 5000000 --fees 125000stake --yes --output json)
+          confirm() {
+            local response hash receipt
+            response="$1"
+            hash="$(jq -er 'select(.code == 0) | .txhash | select(test("^[A-Fa-f0-9]{64}$"))' <<< "$response")"
+            for attempt in {1..30}; do
+              if receipt="$("${cli[@]}" query tx "$hash" --output json 2>/dev/null)" && [[ -n "$receipt" ]]; then
+                jq -e '.code == 0' <<< "$receipt" >/dev/null || { jq '{code, raw_log}' <<< "$receipt"; return 1; }
+                return 0
+              fi
+              sleep 1
+            done
+            echo "Transaction $hash was not included before the deadline." >&2
+            return 1
+          }
+          confirm "$("${cli[@]}" tx wasm store /tmp/oasis.wasm "${tx_flags[@]}")"
+          code="$("${cli[@]}" query wasm list-code --output json | jq -er '.code_infos | select(length == 1) | .[0].code_id')"
+          confirm "$("${cli[@]}" tx wasm instantiate "$code" '{}' --label oasis-storage --no-admin "${tx_flags[@]}")"
+          address="$("${cli[@]}" query wasm list-contract-by-code "$code" --output json | jq -er '.contracts | select(length == 1) | .[0]')"
+          owner="$("${cli[@]}" keys show owner -a --keyring-backend test)"
+          "${cli[@]}" query wasm contract-state smart "$address" '{"config":{}}' --output json |
+            jq -e --arg owner "$owner" '.data.owner == $owner' >/dev/null
+          "${cli[@]}" query wasm contract-state smart "$address" '{"list":{"prefix":""}}' --output json |
+            jq -e '.data == []' >/dev/null
+          echo "Native wasmd accepted the OASIS contract and returned its configured owner and empty record set."
