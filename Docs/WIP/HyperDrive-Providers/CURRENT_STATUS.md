@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November Supabase capped pagination. [Native PostgREST CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43016561338) verified 121 exact IDs for holons, avatars and avatar details with a server cap of 37 rows per response. The verified provider and test match a994ffa8b2. The disposable PostgreSQL service was removed. Hosted project verification remains open.
+
 11 November Supabase native PostgREST. The [credential case](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43014993069) rejected the crossed key and saved and loaded through two independently authenticated endpoints sharing one client. The [storage suite](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43015778894) passed both modes, 26 checks each, with exact fixture cleanup against PostgREST 16.5 and PostgreSQL 16.6. The graph fix writes a uniform parent column on every row. The verified provider and tests match daae2ff8a2. Hosted Supabase gateway and project verification remain open.
 
 11 November Neo4j V2. The package activation and deactivation [smoke](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43012374982) passed 1/1 against digest-pinned Neo4j Community 5.26.0. The [standalone harness](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43013084815) passed avatar and holon saves, point reads, holon search and deletion on the same native service version. The integration matches the tested V2 package, harness and canonical provider. Hosted Aura verification is separate and remains open.
