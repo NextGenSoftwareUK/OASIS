@@ -4,12 +4,12 @@ on:
   push:
     branches: [work/hyperdrive-provider-completion]
     paths:
-      - 'Scripts/TestHosts/deploy-bnb-ci-storage.cjs'
       - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.BNBChainOASIS/**'
       - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/src/Web3CoreOASIS.cs'
       - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/src/Web3CoreOASISBaseProvider.AvatarDelete.cs'
       - 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.BNBChainOASIS.IntegrationTests/**'
       - '!Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.BNBChainOASIS.IntegrationTests/BnbPublicWalletBalanceTests.cs'
+      - '!Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.BNBChainOASIS.IntegrationTests/BnbNativeNftTests.cs'
   workflow_dispatch:
   workflow_call:
     inputs:
@@ -17,6 +17,12 @@ on:
         type: boolean
         default: false
       public_wallet_only:
+        type: boolean
+        default: false
+      nft_only:
+        type: boolean
+        default: false
+      deployment_only:
         type: boolean
         default: false
     secrets:
@@ -85,6 +91,8 @@ jobs:
         shell: bash
         env:
           BNB_BOOTLOADER_ONLY: ${{ inputs.bootloader_only || false }}
+          BNB_NFT_ONLY: ${{ inputs.nft_only || false }}
+          BNB_DEPLOYMENT_ONLY: ${{ inputs.deployment_only || false }}
         run: |
           fixture="$(mktemp -d "$RUNNER_TEMP/oasis-bnb.XXXXXXXX")"
           contract_root=Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS
@@ -134,9 +142,33 @@ jobs:
             [[ "$attempt" != 60 ]]
             sleep 2
           done
+          if [[ "$BNB_DEPLOYMENT_ONLY" == true ]]; then
+            export PRIVATE_KEY="$(cat "$fixture/owner.key")"
+            export OASIS_BNB_DEPLOY_RPC_URL=http://127.0.0.1:19845
+            export OASIS_BNB_DEPLOY_CHAIN_ID=714
+            export OASIS_WEB3CORE_BUILD_ROOT="$fixture/hardhat"
+            export XDG_CACHE_HOME="$fixture/cache"
+            (cd "$contract_root"; npx --no-install hardhat run --network bnb scripts/deploy.js) | tee "$fixture/deployment.log"
+            address="$(sed -nE 's/^Web3CoreOASIS deployed to: (0x[a-fA-F0-9]{40})$/\1/p' "$fixture/deployment.log")"
+            [[ "$address" =~ ^0x[a-fA-F0-9]{40}$ ]]
+            jq -nc --arg address "$address" '{jsonrpc:"2.0",id:1,method:"eth_getCode",params:[$address,"latest"]}' \
+              | curl -fsS --max-time 5 -H 'Content-Type: application/json' --data-binary @- "$OASIS_BNB_DEPLOY_RPC_URL" \
+              | jq -e '.result | type == "string" and length > 2' >/dev/null
+            exit
+          fi
           node Scripts/TestHosts/deploy-bnb-ci-storage.cjs
           if [[ "$BNB_BOOTLOADER_ONLY" == true ]]; then
             pwsh -NoProfile -File Scripts/TestHosts/Invoke-BnbBootLoaderActivation.ps1
+            exit
+          fi
+          if [[ "$BNB_NFT_ONLY" == true ]]; then
+            pwsh -NoProfile -Command '
+              $settings = Get-Content -Raw (Join-Path $env:OASIS_BNB_CI_FIXTURE settings.json) | ConvertFrom-Json -AsHashtable
+              foreach ($entry in $settings.GetEnumerator()) { [Environment]::SetEnvironmentVariable($entry.Key, $entry.Value) }
+              ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-BNBNft -Operation {
+                dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.BNBChainOASIS.IntegrationTests" --filter "FullyQualifiedName~BnbNativeNftTests" /m:2 /nr:false /p:UseSharedCompilation=false --logger "console;verbosity=normal"
+                if ($LASTEXITCODE -ne 0) { throw "Native BNB NFT verification failed." }
+              }'
             exit
           fi
           pwsh -NoProfile -Command '
