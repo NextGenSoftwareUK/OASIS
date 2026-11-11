@@ -58,7 +58,9 @@ public class FirebaseStorageConformanceTests
         var result = await CoreStorageConformance.RunAsync(provider, "FirebaseOASIS", "native", synchronous,
             report => report.Succeeded ? Task.CompletedTask : checkpoint.WriteAsync(report),
             (id, _) => FirebaseConformanceCleanup.RemoveHolonTombstoneAsync(http, Node($"oasis_holons/{id:D}"), id),
-            expectedDefaultDeletion: "soft");
+            expectedDefaultDeletion: "soft",
+            observeNativeTombstone: (id, ownerId, name) => FirebaseConformanceCleanup.ObserveHolonTombstoneAsync(
+                http, Node($"oasis_holons/{id:D}"), id, ownerId, name));
         Assert.IsTrue(result.Succeeded, result.CurrentCase + ": " + result.FailureType + ": " + result.FailureContract);
         Assert.IsTrue(result.FixtureCleanupComplete);
         Assert.AreEqual(CoreStorageConformance.ChecksPerMode, result.Passed.Count);

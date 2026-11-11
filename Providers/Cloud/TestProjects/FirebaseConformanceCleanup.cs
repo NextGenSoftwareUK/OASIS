@@ -8,6 +8,25 @@ namespace NextGenSoftware.OASIS.Providers.TestSupport;
 
 internal static class FirebaseConformanceCleanup
 {
+    internal static async Task<bool> ObserveHolonTombstoneAsync(
+        HttpClient http, Uri uri, Guid fixtureId, Guid ownerId, string name)
+    {
+        using var stored = JsonDocument.Parse(await http.GetStringAsync(uri));
+        var row = stored.RootElement;
+        if (row.ValueKind == JsonValueKind.Null)
+            return false;
+
+        if (row.ValueKind != JsonValueKind.Object ||
+            !row.TryGetProperty("id", out var id) || !id.TryGetGuid(out var actualId) || actualId != fixtureId ||
+            !row.TryGetProperty("createdByAvatarId", out var owner) || !owner.TryGetGuid(out var actualOwner) || actualOwner != ownerId ||
+            !row.TryGetProperty("name", out var storedName) || storedName.GetString() != name ||
+            !row.TryGetProperty("deletedDate", out var date) || !date.TryGetDateTime(out var deleted) || deleted == DateTime.MinValue ||
+            !row.TryGetProperty("isDeleted", out var tombstone) || tombstone.ValueKind != JsonValueKind.True)
+            throw new InvalidOperationException("Firebase did not retain the exact owned fixture as a tombstone.");
+
+        return true;
+    }
+
     internal static async Task<OASISResult<bool>> RemoveHolonTombstoneAsync(
         HttpClient http, Uri uri, Guid fixtureId)
     {
