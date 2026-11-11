@@ -757,3 +757,5 @@ broader provider contracts remain open. [Evidence](DUCKDB_CQL_MVP.md).
 11 November UTC: the live Development WEB4 CQL Playground rendered three cached Bluesky public profile observations and two filtered observations. The existing visitor was reused. Private paired browser verification remains open.
 
 11 November UTC: HyperDrive verified 52 native local Convex storage checks and [same-instance companion recovery](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43017572009). The provider rejected activation on a fresh engine without the companion, then activated and deactivated after deployment through the official CLI. Development eed714ba35 includes the matching recovery test. Hosted Convex and live WEB4 CQL acceptance remain open.
+
+11 November UTC: Civic appeared in the retained Development WEB4 Playground catalogue, but the full public preset returned a provider-unavailable response. No rows rendered. The filtered and private paired browser presets remain open. Preserve the earlier hosted HTTP and replica evidence. No matching Civic diagnostic appeared in the queried deployment logs, so the cause remains unverified.
