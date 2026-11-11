@@ -25,7 +25,7 @@ Public provider count audit (11 November). The inventory lists 234 shipping prov
 
 11 November Hedera wallet balance. The synchronous shipping wallet entry point read a positive HBAR balance for 0.0.3 from the live testnet mirror. The caller synchronization context received no continuations and storage activation remained false. Development a7522f4286 carries the identical verified provider source and focused test. The separate funded storage test source remains owned by its existing workstream. Funded storage and remaining wallet operations still require their own checks.
 
-11 November ActivityPub synchronous reads. The shipping adapter passed a live Mastodon status and reply read while a tracking caller context received zero continuations. The initial public post reported 20 replies and exposed 19 direct replies, which the existing completeness check rejected. The retained complete public thread then passed. The direct-provider test configuration passed. The default CQL-linked integration build has missing references for unrelated providers. Authenticated search and owned writes remain open.
+11 November ActivityPub synchronous reads. The shipping adapter passed a live Mastodon status and reply read while a tracking caller context received zero continuations. The initial public post reported 20 replies and exposed 19 direct replies, which the existing completeness check rejected. The retained complete public thread then passed. The direct-provider test configuration passed. Development fcf2a522e6 carries the same verified adapter, test and direct-provider project configuration. The default CQL-linked integration build has missing references for unrelated providers. Authenticated search and owned writes remain open.
 
 ## Phase and rules
 
