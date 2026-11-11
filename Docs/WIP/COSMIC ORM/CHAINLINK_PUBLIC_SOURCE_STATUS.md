@@ -54,3 +54,5 @@ Raw reports remain in worktree TestResults/, not Docs. Generated unit binaries50
 - `TestResults/HostedCqlIntegrationCurrent/ChainLinkOASIS-isolation-http.json`: 6301bytes; SHA256 `3a85c4f2478385ccd3fbdad94019c055e7d7df3bee6255f3e6733839a4c07f0f`.
 
 Native ABI reference: [Chainlink AggregatorV3 API](https://docs.chain.link/data-feeds/api-reference).
+
+11 November UTC: Chainlink public feed observation presets returned three full and two filtered rows in the live Development CQL Playground. Original-owner MongoDB paired browser verification remains open. No preparation or record saves.
