@@ -189,3 +189,5 @@ original source/catalogue/cohort/save ACKs frozen. Hosted52/browser5/open47.
 | `web4-sandbox.html` | 185401 | `300ae8ead82af8ff5dddc775fdcd1fcaae5f14d3a9b74a55ea274d15bf065ba5` |
 | `cql-demo-preparation.js` | 10241 | `c1006abf6074616428f93e83e13774ba8a6198f35d8ed097d84323466a8b309a` |
 | `cql-playground.js` | 21871 | `7cb6210b9adda1e83630fc966926772f8338c43163c24d1abd88c626ad1ad649` |
+
+11 November UTC: Celestia native pinned block-header presets rendered 3 full and 2 filtered rows in the live Development WEB4 CQL Playground. The original-owner private paired browser check remains open.

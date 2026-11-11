@@ -5495,3 +5495,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: post-cutover catalogue and startup diagnostics reused the retained visitor and installed Railway CLI. No new avatar, local logs, downloads, build output or test report.
 
 11 November UTC: Eclipse browser checks reused the existing demo visitor. No new avatar, report, screenshot file, download or build output.
+
+11 November UTC: Celestia browser checks reused the existing demo visitor. No new avatar, report, screenshot file, download or build output.
