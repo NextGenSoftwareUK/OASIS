@@ -296,7 +296,8 @@ jobs:
               -e DEFAULT_VECTORIZER_MODULE=none
           - name: Chroma
             project: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.ChromaOASIS.IntegrationTests
-            filter: FullyQualifiedName!~CqlNativeTests&FullyQualifiedName!~LinuxMongoDemoEnvironmentTests
+            filter: FullyQualifiedName!~CqlNativeTests&FullyQualifiedName!~LinuxMongoDemoEnvironmentTests&FullyQualifiedName!~ChromaOASISIntegrationTests
+            # ChromaOASIS no longer creates collections (provisioning is explicit), so the generic auto-create tests cannot run here.
             image: chromadb/chroma:latest
             ports: 8000:8000
             wait: 8000
