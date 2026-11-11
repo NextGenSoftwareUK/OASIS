@@ -769,3 +769,5 @@ Public browser acceptance carried forward from 10 November: SOLID and TON each r
 RitualOASIS public browser acceptance passed on Development on 11 November UTC. Full/subset returned 3/2 block headers. Original-cohort private paired browser acceptance remains open.
 
 11 November UTC: EspressoSystemsOASIS passed both public presets in the Development CQL Playground (3 full and 2 subset block headers). Reused the existing disposable demo visitor. Original private cohort verification remains separate. No new avatar, local report, download or build.
+
+Power recovery on 11 November UTC: laptop charging at 21%. Retained Edge session is closed. Fhenix full public browser preset passed with three rows; the selected two-network subset was never dispatched and remains open. Reopen the browser for that subset without repeating the accepted full preset.
