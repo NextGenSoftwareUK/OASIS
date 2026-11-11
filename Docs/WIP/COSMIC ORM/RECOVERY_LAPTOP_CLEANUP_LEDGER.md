@@ -5910,3 +5910,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: recorded hosted ArangoDB and QuestDB fixture prerequisites in the owner list. Scoped Development fetch excluded tags and submodules. Temporary Git index removed. No local build, restore, download or artifact.
 
 11 November UTC: inspected standard QuestDB CI outcomes in memory. Temporary Git index removed. No local build, restore, database or artifact download.
+
+11 November UTC: track ci-cosmic-questdb-restart-165e8abaee until its CI runs are terminal. Temporary Git indices removed. No local build, restore, download or database.
