@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -149,9 +149,11 @@ namespace NextGenSoftware.OASIS.API.Providers.OptimismOASIS
                 if (httpResponse.IsSuccessStatusCode)
                 {
                     var content = await httpResponse.Content.ReadAsStringAsync();
-                    var avatar = ParseOptimismToAvatar(content);
+                    var avatar = ParseOptimismToAvatar(id, content);
                     response.Result = avatar;
                     response.IsError = false;
+                    response.IsLoaded = true;
+                    response.LoadedCount = 1;
                     response.Message = "Avatar loaded successfully from Optimism blockchain";
                 }
                 else
@@ -287,69 +289,24 @@ namespace NextGenSoftware.OASIS.API.Providers.OptimismOASIS
         /// <summary>
         /// Parse Optimism blockchain response to Avatar object
         /// </summary>
-        private Avatar ParseOptimismToAvatar(string optimismJson)
+        private static Avatar ParseOptimismToAvatar(Guid expectedId, string optimismJson)
         {
-            try
-            {
-                // Deserialize the complete Avatar object from Optimism JSON
-                var avatar = System.Text.Json.JsonSerializer.Deserialize<Avatar>(optimismJson, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true,
-                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
-                });
+            using var document = JsonDocument.Parse(optimismJson);
+            var row = document.RootElement;
+            if (row.ValueKind != JsonValueKind.Object)
+                throw new System.IO.InvalidDataException("Optimism avatar response must contain a record object.");
 
-                return avatar;
-            }
-            catch (Exception)
-            {
-                // If JSON deserialization fails, try to extract basic info
-                return CreateAvatarFromOptimism(optimismJson);
-            }
-        }
+            var identities = row.EnumerateObject().Where(property =>
+                string.Equals(property.Name, "id", StringComparison.OrdinalIgnoreCase)).ToArray();
+            if (expectedId == Guid.Empty || identities.Length != 1 ||
+                identities[0].Value.ValueKind != JsonValueKind.String ||
+                !identities[0].Value.TryGetGuid(out var storedId) || storedId != expectedId)
+                throw new System.IO.InvalidDataException("Optimism avatar response does not identify the requested record.");
 
-        /// <summary>
-        /// Create Avatar from Optimism response when JSON deserialization fails
-        /// </summary>
-        private Avatar CreateAvatarFromOptimism(string optimismJson)
-        {
-            try
-            {
-                // Extract basic information from Optimism JSON response
-                var avatar = new Avatar
-                {
-                    Id = Guid.NewGuid(),
-                    Username = ExtractOptimismProperty(optimismJson, "address") ?? "optimism_user",
-                    Email = ExtractOptimismProperty(optimismJson, "email") ?? "user@optimism.example",
-                    FirstName = ExtractOptimismProperty(optimismJson, "first_name"),
-                    LastName = ExtractOptimismProperty(optimismJson, "last_name"),
-                    CreatedDate = DateTime.UtcNow,
-                    ModifiedDate = DateTime.UtcNow
-                };
-
-                return avatar;
-            }
-            catch (Exception)
-            {
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Extract property value from Optimism JSON response
-        /// </summary>
-        private string ExtractOptimismProperty(string optimismJson, string propertyName)
-        {
-            try
-            {
-                // Simple regex-based extraction for Optimism properties
-                var pattern = $"\"{propertyName}\"\\s*:\\s*\"([^\"]+)\"";
-                var match = System.Text.RegularExpressions.Regex.Match(optimismJson, pattern);
-                return match.Success ? match.Groups[1].Value : null;
-            }
-            catch (Exception)
-            {
-                return null;
-            }
+            var avatar = NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.DeserializeStored<Avatar>(optimismJson);
+            if (avatar == null || avatar.Id != expectedId)
+                throw new System.IO.InvalidDataException("Optimism avatar identity differs from the decoded record.");
+            return avatar;
         }
 
         /// <summary>
