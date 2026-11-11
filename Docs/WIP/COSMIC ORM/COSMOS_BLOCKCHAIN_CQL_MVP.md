@@ -35,3 +35,5 @@ Raw evidence under TestResults/CosmosCqlCurrent, not committed:
 |cosmos-browser-scoped-proof.json|404A87711A9DD5D4E494FDBBA614D2D0298400B0D84842335D5D2C842F846983|
 
 Screenshot cosmos-browser-scoped.png. Prior reports hash-preserved in Archive. Resources/cleanup in shared ledger. Next Polkadot/NEAR breadth then batched catalogue enrollment; full roadmap active.
+
+11 November UTC: HyperDrive passed 52/52 native Cosmos storage cases across both modes through shipping CosmJS 0.39.0 on pinned wasmd. CI verified zero native contract record keys and removed the container. Development `b7352eef90` contains the workflow and suite. The earlier retained-ledger attempt remains blocked at configuration. Hosted native storage and historical ledger recovery remain open. [Cosmos native CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43028889300)
