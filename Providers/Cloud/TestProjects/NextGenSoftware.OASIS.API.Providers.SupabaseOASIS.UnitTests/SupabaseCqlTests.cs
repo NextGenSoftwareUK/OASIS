@@ -57,15 +57,18 @@ public class SupabaseCqlTests
     [DataRow("missing", false)]
     [DataRow("foreign", false)]
     [DataRow("partial", false)]
-    public async Task QueryActivationUsesSeparateCredentialsAndOneExactPublicRead(string shape, bool expected)
+    public async Task QueryActivationUsesSeparateCredentialsAndRequiresOnePublicRecord(string shape, bool expected)
     {
+        var requests = 0;
         var transport = new Reply((request, _) =>
         {
+            var readIndex = requests++;
             Assert.AreEqual(HttpMethod.Get, request.Method);
             Assert.AreEqual("gateway-key", request.Headers.GetValues("apikey").Single());
             Assert.AreEqual("reader-token", request.Headers.Authorization?.Parameter);
             Assert.AreEqual("/rest/v1/oasis_holons", request.RequestUri!.AbsolutePath);
-            Assert.AreEqual($"?id=in.({One:D})&is_deleted=eq.false&order=id.asc&limit=100", request.RequestUri.Query);
+            Assert.AreEqual($"?id=in.({One:D})&is_deleted=eq.false&order=id.asc&limit=100&offset={readIndex}", request.RequestUri.Query);
+            if (readIndex == 1) return Response(Rows(Row(Two, isPublic: true)), "1-1/2");
             return shape == "missing" ? Response("[]", "*/0")
                 : Response(Rows(Row(shape == "foreign" ? Two : One, isPublic: shape != "private")),
                     shape == "partial" ? "0-0/2" : "0-0/1");
@@ -75,7 +78,7 @@ public class SupabaseCqlTests
         var result = await source.ActivateQuerySourceAsync(default);
         Assert.AreEqual(expected, source.IsProviderActivated);
         Assert.AreEqual(!expected, result.IsError, result.Message);
-        Assert.AreEqual(1, transport.Reads.Count);
+        Assert.AreEqual(shape == "partial" ? 2 : 1, transport.Reads.Count);
         Assert.IsNull(transport.Mutation);
     }
 
@@ -230,11 +233,51 @@ public class SupabaseCqlTests
         var result = await provider.DeleteHolonAsync(One);
         Assert.AreEqual(rejectWrite, result.IsError);
         if (rejectWrite) Assert.IsInstanceOfType(result.Exception, typeof(INativeMutationReconciliationRequired));
-        else { Assert.IsTrue(result.IsSaved); Assert.IsTrue(result.Result.IsDeleted); }
+        else
+        {
+            Assert.IsTrue(result.IsSaved);
+            Assert.IsTrue(result.Result.IsDeleted);
+        }
+        Assert.AreEqual(!rejectWrite, result.IsDeleted);
+        Assert.AreEqual(rejectWrite ? 0 : 1, result.DeletedCount);
         using var row = JsonDocument.Parse(reply.Mutation!);
         Assert.IsTrue(row.RootElement.GetProperty("is_deleted").GetBoolean());
         using var canonical = JsonDocument.Parse(row.RootElement.GetProperty("data_json").GetString()!);
         Assert.AreNotEqual(DateTime.MinValue, canonical.RootElement.GetProperty("deletedDate").GetDateTime());
+    }
+
+    [DataTestMethod]
+    [DataRow("sb_secret_test", false)]
+    [DataRow("sb_publishable_test", false)]
+    [DataRow("legacy-test-token", true)]
+    public async Task ApiKeyUsesTheHeaderForItsCredentialType(string key, bool bearer)
+    {
+        using var reply = new Reply((request, _) =>
+        {
+            if (request.RequestUri!.Host == "unrelated.invalid")
+            {
+                Assert.IsFalse(request.Headers.Contains("apikey"));
+                Assert.IsNull(request.Headers.Authorization);
+            }
+            else
+            {
+                var expected = request.RequestUri.Host == "other-project.invalid" ? "sb_secret_other" : key;
+                Assert.AreEqual(expected, request.Headers.GetValues("apikey").Single());
+                Assert.AreEqual(expected == key && bearer ? $"Bearer {key}" : null,
+                    request.Headers.Authorization?.ToString());
+            }
+            return Response("[]");
+        });
+        using var http = new HttpClient(reply);
+        var first = new SupabaseOASIS("https://synthetic.invalid", key, http);
+        var second = new SupabaseOASIS("https://other-project.invalid", "sb_secret_other", http);
+
+        Assert.IsFalse((await first.ActivateProviderAsync()).IsError);
+        Assert.IsFalse((await second.ActivateProviderAsync()).IsError);
+        using var unrelated = await http.GetAsync("https://unrelated.invalid");
+        unrelated.EnsureSuccessStatusCode();
+        Assert.IsFalse(http.DefaultRequestHeaders.Contains("apikey"));
+        Assert.IsNull(http.DefaultRequestHeaders.Authorization);
     }
 
     [DataTestMethod][DataRow("/rest/v1", "/rest/v1/oasis_holons")][DataRow("", "/oasis_holons")]

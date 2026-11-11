@@ -24,7 +24,7 @@ public partial class SupabaseOASIS : ICosmicQueryStorageProvider
 
     private static string QueryFilter(IEnumerable<Guid> ids) =>
         "id=in.(" + string.Join(",", ids.Select(id => id.ToString("D")))
-            + ")&is_deleted=eq.false&order=id.asc&limit=100";
+            + ")&is_deleted=eq.false";
 
     protected async Task<OASISResult<bool>> VerifyPublicQueryProbeAsync(Guid id, CancellationToken cancellationToken)
     {

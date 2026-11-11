@@ -69,7 +69,7 @@ public static class CqlSupabaseReadSourceRegistration
     {
         private const string Key = "[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}";
         private static readonly Regex ExactSelection = new(
-            @"\A\?id=in\.\(" + Key + "(?:," + Key + @"){0,99}\)&is_deleted=eq.false&order=id.asc&limit=100\z",
+            @"\A\?id=in\.\(" + Key + "(?:," + Key + @"){0,99}\)&is_deleted=eq.false&order=id.asc&limit=100&offset=(?:0|[1-9][0-9]?)\z",
             RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(100));
 
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
