@@ -271,3 +271,5 @@ Execution needs an owned source and restricted read credentials.
 11 November UTC: published OpenSearch diagnostic `77285ecd91` against Development `73e0d4bb08`. CI reuses the existing secured OpenSearch 3.9.0 provisioner with the runner account as the receipt owner, then runs the existing native test before and after restarting the same container. The diagnostic uses an isolated runner and a private CA. Federation and hosted CQL remain open.
 
 11 November UTC: secured OpenSearch 3.9.0 CI passed one native CQL test before restart and one after restart, zero skips. The tests verified the same cluster identity and original document snapshot over authenticated HTTPS with the fixture CA. CI removed its container. Mongo federation and hosted WEB4 remain open. [OpenSearch restart CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43035774220)
+
+11 November UTC: OpenSearch federation diagnostic `b4ff3d1e2c` extends the passing secured restart workflow with a disposable Mongo replica set. It runs existing replica admission, SDK/HTTP federation, and the post-federation native source recheck. Hosted HTTPS teaching-source acceptance remains open.
