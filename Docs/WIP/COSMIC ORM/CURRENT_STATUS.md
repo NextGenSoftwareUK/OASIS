@@ -1455,3 +1455,5 @@ Standard Redis, Dragonfly and Valkey jobs are queued or running in Development C
 11 November UTC: all six Redis, Dragonfly and Valkey jobs passed in the standard Development pipeline 43059249089 at d93d984b7b. Each provider passed its generic storage matrix job and its dedicated native restart/federation job. Hosted TLS acceptance remains open.
 
 After warmup, authenticated discovery on Railway f573b5ac at c837fe5ad8 reached 106 of 106 ready for native CQL and federation. Development 31db62c741 remained queued at the rollout check.
+
+11 November UTC: Supabase WEB4 registration is on COSMIC but absent from Development 31db62c741. Candidate 7533021f03 reuses the reviewed registration and preserves the current HyperDrive storage implementation. The restricted reader passes separate gateway and bearer credentials and its transport guard admits the canonical bounded offsets produced by the shipping PostgREST paginator. Diagnostic 58466f5f48 is submitted for nine boundary tests. No hosted settings were applied. The dedicated HTTPS source and restricted reader remain required.
