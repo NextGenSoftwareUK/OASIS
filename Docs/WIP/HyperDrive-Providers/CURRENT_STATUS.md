@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November Web3Core deployment tooling candidate. Hardhat now compiles the checked-in Contracts tree on case-sensitive systems using the Paris target and optimizer settings used by the native fixture. The deployment entry point waits for the receipt and verifies bytecode before printing the address. Node syntax checks passed. The shipping deploy command still needs an end-to-end run.
+
 11 November BNB NFT candidate. The shipping Web3Core contract now implements owner-authorized ERC-721 burn, matching the adapter ABI. A native Parlia job deploys the contract and checks mint, collection metadata, transfer, non-owner burn rejection, and owner burn with independent native ownership reads. Existing deployments need a compatible contract for this operation. [Run 43092221100](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43092221100) uses the corrected fixture requests with required init-only signer fields. The earlier queued revision was superseded before it ran.
 
 11 November Valkey full storage candidate. The shipping ValKeyOASIS adapter runs both shared storage modes against the digest-pinned official Valkey 9.0.4 image. The test checks exact tombstone cleanup and native database emptiness. This adds shared lifecycle coverage without replaying the earlier storage smoke or COSMIC restart and federation checks. [Run 43091045329](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43091045329) is queued.
