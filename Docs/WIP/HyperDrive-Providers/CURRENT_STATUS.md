@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November Google Routes compile check. The Routes implementation emitted a 15,360-byte assembly in memory against the cached OASIS Common 2.0.0 package. Compiling the complete map provider against cached Core 2.0.0 failed because that package lacks the GoogleMaps enum member present in the pinned Core source. Full project compilation against pinned Core and authenticated execution remain open. No local build output or downloads were created.
+
 11 November Google Maps Routes candidate. The provider can compute a driving route through the official Google Routes REST endpoint using explicit coordinates and a protected credential. The endpoint returned HTTP 403 without a credential. The opt-in GoogleRoutesLiveTests check a positive distance and a populated polyline against the official endpoint. Set OASIS_GOOGLE_ROUTES_LIVE_TEST=1 with the protected OASIS_GOOGLE_ROUTES_API_KEY setting. The credential is absent in this session. Authenticated execution, the provider build and existing map rendering operations remain open.
 
 11 November TRON shipping registration guard. BootLoader now surfaces missing TRON storage settings and rejects an RPC override that differs from the configured RPC. The HTTP and gRPC endpoints must be configured together for the selected chain. Previously the requested override was silently ignored. Existing 52/52 TronNet native storage evidence remains applicable to the unchanged provider. C# syntax and diff checks passed. BootLoader runtime verification remains open.
