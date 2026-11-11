@@ -7,19 +7,47 @@ on:
       - '.github/workflows/polkadot-native-storage.yml'
       - 'Scripts/TestHosts/Build-ReusablePolkadotRecords.sh'
       - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS/contracts/oasis/**'
+      - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS/SdkBridge/**'
+      - 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.IntegrationTests/**'
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  contract:
+  storage:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 35
+    defaults:
+      run:
+        working-directory: OASIS
     steps:
       - uses: actions/checkout@v7
         with:
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          path: OASIS
+          submodules: recursive
           persist-credentials: false
+
+      - name: Read the recorded Libraries revision
+        id: dependencies
+        shell: bash
+        run: |
+          revision="$(sed -n 's/^LIBRARIES_COMMIT=//p' Docker/oasis-dependency-versions.env)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "libraries=$revision" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependencies.outputs.libraries }}
+          path: NextGenSoftware-Libraries
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
 
       - uses: actions/setup-node@v4
         with:
@@ -58,3 +86,73 @@ jobs:
           sdk=Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS/SdkBridge
           npm ci --prefix "$sdk" --no-audit --no-fund
           node "$sdk/verify-record-contract-artifact.mjs" records
+
+      - name: Deploy the records contract and run native storage conformance
+        shell: bash
+        run: |
+          fixture="$(mktemp -d "$RUNNER_TEMP/oasis-polkadot-chain.XXXXXXXX")"
+          pid=""
+          cleanup() {
+            status=$?
+            if [[ "$status" -ne 0 && -f "$fixture/node.log" ]]; then tail -60 "$fixture/node.log"; fi
+            if [[ -n "$pid" ]]; then
+              kill -TERM "$pid" 2>/dev/null || true
+              for attempt in {1..20}; do
+                kill -0 "$pid" 2>/dev/null || break
+                sleep 0.25
+              done
+              if kill -0 "$pid" 2>/dev/null; then kill -KILL "$pid"; fi
+              wait "$pid" || true
+            fi
+            if [[ "$fixture" == "$RUNNER_TEMP"/oasis-polkadot-chain.* && -d "$fixture" ]]; then
+              rm -rf -- "$fixture"
+              test ! -e "$fixture"
+              echo "Removed the owned Substrate fixture."
+            fi
+          }
+          trap cleanup EXIT
+          curl --fail --silent --show-error --location --max-time 120 \
+            https://github.com/paritytech/substrate-contracts-node/releases/download/v0.42.0/substrate-contracts-node-linux.tar.gz \
+            --output "$fixture/node.tar.gz"
+          echo "a631b4e83dd05e4beaccbd770be709ac41914183d443116c2e4d244161590265  $fixture/node.tar.gz" | sha256sum --check
+          tar -xzf "$fixture/node.tar.gz" -C "$fixture"
+          rm -- "$fixture/node.tar.gz"
+          binary="$(find "$fixture" -type f -name substrate-contracts-node -print -quit)"
+          [[ -n "$binary" ]]
+          echo "b5e30ad4bcf37ab0a875f88c690460cf68a0847c03e74045d15bb16513892991  $binary" | sha256sum --check
+          chmod u+x "$binary"
+          "$binary" build-spec --chain dev --raw --disable-default-bootnode |
+            jq -e 'select(.id == "dev" and .chainType == "Development") |
+              .properties={tokenDecimals:12,tokenSymbol:"UNIT",ss58Format:42} |
+              .relay_chain="rococo-local" | .para_id=1000' >"$fixture/chain-spec.json"
+          "$binary" --chain "$fixture/chain-spec.json" --alice --force-authoring --base-path "$fixture/ledger" \
+            --rpc-port 19944 --listen-addr /ip4/127.0.0.1/tcp/19945 --no-prometheus --no-telemetry \
+            --no-mdns --out-peers 0 --in-peers 0 --offchain-worker never --state-pruning archive \
+            --blocks-pruning archive --database rocksdb --name oasis-ci-polkadot >"$fixture/node.log" 2>&1 &
+          pid=$!
+          for attempt in {1..45}; do
+            kill -0 "$pid" 2>/dev/null
+            if response="$(curl --fail --silent --max-time 2 -H 'Content-Type: application/json' \
+               --data '{"jsonrpc":"2.0","id":1,"method":"chain_getBlockHash","params":[0]}' http://127.0.0.1:19944)" &&
+               [[ -n "$response" ]] &&
+               jq -e '.result == "0xe8cf5d7d636a08721efaa17acc52ed3d895fe2468dccb2520cc8e249ddb6b208"' <<< "$response" >/dev/null; then break; fi
+            if [[ "$attempt" == 45 ]]; then exit 1; fi
+            sleep 1
+          done
+          sdk="$PWD/Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS/SdkBridge"
+          export OASIS_POLKADOT_LOCAL_NATIVE=1 OASIS_POLKADOT_FRESH_STORAGE=1 OASIS_POLKADOT_STORAGE_CONFORMANCE=1
+          export OASIS_POLKADOT_SDK_BRIDGE="$sdk/bridge.mjs"
+          export OASIS_POLKADOT_RECORD_EVIDENCE="$PWD/TestResults/PolkadotFreshStorage"
+          export OASIS_POLKADOT_LOCAL_BOOTSTRAP_JOURNAL="$PWD/TestResults/PolkadotCurrent/fresh-storage-funding.json"
+          mkdir "$OASIS_POLKADOT_RECORD_EVIDENCE"
+          (cd "$sdk" && node bootstrap-local-native.mjs && node bootstrap-local-record-owner.mjs)
+          pwsh -NoProfile -Command '
+            ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-PolkadotStorage -Operation {
+              dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.IntegrationTests.csproj" --filter "FullyQualifiedName~CoreStorageSuiteAgainstPolkadot" /p:PolkadotDirectProviderOnly=true /m:2 /nr:false /p:UseSharedCompilation=false --logger "console;verbosity=normal"
+              if ($LASTEXITCODE -ne 0) { throw "Native Polkadot storage verification failed." }
+            }'
+          for mode in async sync; do
+            jq -e '.Succeeded and .FixtureCleanupComplete and (.Passed | length == 26)' \
+              "$OASIS_POLKADOT_RECORD_EVIDENCE/core-storage-$mode.report.json" >/dev/null
+            echo "$mode: 26 native checks, finalized original receipts and empty storage verified."
+          done

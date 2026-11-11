@@ -39,7 +39,10 @@ public class PolkadotPublicStorageNativeTests
         Assert.AreEqual("1",Environment.GetEnvironmentVariable("OASIS_POLKADOT_LOCAL_NATIVE"));
         var directory=Environment.GetEnvironmentVariable("OASIS_POLKADOT_RECORD_EVIDENCE")!;
         var bridge=Environment.GetEnvironmentVariable("OASIS_POLKADOT_SDK_BRIDGE")!;
-        var expected=Path.GetFullPath(Path.Combine(Path.GetDirectoryName(bridge)!,"../../../../Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot"));
+        var fresh = Environment.GetEnvironmentVariable("OASIS_POLKADOT_FRESH_STORAGE") == "1";
+        Assert.IsTrue(!fresh || conformanceSync.HasValue, "Fresh admission is restricted to storage conformance.");
+        var expected = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(bridge)!,
+            fresh ? "../../../../TestResults/PolkadotFreshStorage" : "../../../../Docs/WIP/HyperDrive-Providers/NativeEvidence/Polkadot"));
         Assert.AreEqual(expected,Path.GetFullPath(directory));
         var prefix = conformanceSync.HasValue
             ? (conformanceSync.Value ? "core-storage-sync" : "core-storage-async")
@@ -51,11 +54,12 @@ public class PolkadotPublicStorageNativeTests
             Assert.IsTrue(recoveringCompleted,"Read-only recovery must never enter the write branch.");
         Assert.IsFalse(File.Exists(pending)&&!recoveringCompleted,
             "Preserve/reconcile every original in an incomplete sequence; never replay.");
-        using var setupFile=JsonDocument.Parse(await File.ReadAllTextAsync(Path.Combine(directory,"reusable-record-store.json")));
+        using var setupFile=JsonDocument.Parse(await File.ReadAllTextAsync(Path.Combine(directory,
+            fresh ? "fresh-record-store.json" : "reusable-record-store.json")));
         var setup=setupFile.RootElement;
         const string genesis="0xe8cf5d7d636a08721efaa17acc52ed3d895fe2468dccb2520cc8e249ddb6b208";
         Assert.AreEqual(genesis,setup.GetProperty("genesisHash").GetString());
-        Assert.IsTrue(setup.GetProperty("recoveredFromFinalizedChain").GetBoolean());
+        Assert.IsTrue(setup.GetProperty(fresh ? "deploymentVerified" : "recoveredFromFinalizedChain").GetBoolean());
         var configuration=new PolkadotStorageConfiguration(setup.GetProperty("contractAccountId").GetString()!,
             setup.GetProperty("contractCodeHash").GetString()!,setup.GetProperty("ownerAccountId").GetString()!,
             ()=>Enumerable.Repeat((byte)73,32).ToArray()); // Public synthetic fixture only; separate from signer.
@@ -72,6 +76,14 @@ public class PolkadotPublicStorageNativeTests
             using var deadline = new CancellationTokenSource(TimeSpan.FromMinutes(10));
             var reportPath = Path.Combine(directory, prefix + ".report.json");
             Assert.IsFalse(File.Exists(reportPath) || File.Exists(reportPath + ".next"));
+            var otherPrefix = conformanceSync.Value ? "core-storage-async" : "core-storage-sync";
+            var otherReport = Path.Combine(directory, otherPrefix + ".report.json");
+            Assert.IsFalse(File.Exists(otherReport + ".next"), "Reconcile the interrupted fixture first.");
+            if (File.Exists(otherReport))
+            {
+                var prior = JsonSerializer.Deserialize<CoreStorageConformance.Report>(await File.ReadAllTextAsync(otherReport));
+                Assert.IsTrue(prior?.FixtureCleanupComplete == true, "Reconcile the prior mode's fixture first.");
+            }
             Task Checkpoint(CoreStorageConformance.Report report)
             {
                 using (var stream = new FileStream(reportPath + ".next", FileMode.CreateNew, FileAccess.Write, FileShare.None))
