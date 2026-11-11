@@ -21,7 +21,7 @@ Provider implementation and native capability verification precede global routin
 | Solana | Fresh Agave 4.3.0 passed both shared storage modes and CI confirmed fixture cleanup. The original memo-chunk recovery and hosted writes remain open. |
 | SQLite remaining interfaces | SQLite passed 52/52 and focused import, graph and encrypted-wallet checks. See the provider matrix for the exact test scope. |
 | Redis-compatible storage | Valkey 9.0.4 passed 52/52. KeyDB and Dragonfly passed native smoke and separate CQL restart and federation checks. Their full storage lifecycle runs remain pending. |
-| Firebase Realtime Database | Both test projects compiled and four activation-response cases passed. Native RTDB stopped at graph save after nine async checks. The atomic graph-save candidate is awaiting native verification. Hosted permissions and rules remain open. |
+| Firebase Realtime Database | Both test projects compiled and four activation-response cases passed. Native RTDB stopped at graph save after nine async checks. The atomic graph-save and indexed graph-read candidates await the [native run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43097713248). Revision history, hosted permissions and rules remain open. |
 | Raw evidence | Writers redirected by `d70625e86`; unpublished ActivityPub proofs moved to TestResults. Linked legacy evidence remains; existing working-tree line-ending hashes are not Git-blob hashes |
 | Integration | ActivityPub published separately as `00235929a`; batch verified scoped changes into Development, preserving user/Core/submodule work |
 
