@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+11 November BNB NFT run 43092221100 confirmed removal of the native node and owned fixture, including both test keys, chain state and npm dependencies. No local outputs were created.
+
 11 November BNB deployment run 43092941435 removed the BSC binary, data, Hardhat outputs, compiler cache, temporary key and npm dependencies with the disposable fixture. No local build or download was created.
 
 11 November Valkey run 43091045329 verified zero keys, removed its container, volumes, image and fixture. Firebase run 43090501206 stopped and removed the RTDB emulator, its JAR, fixture and checkpoints after graph-save failed. Both ran on disposable GitHub runners. No Windows build or download was created.

@@ -1,6 +1,6 @@
 # Current provider status
 
-11 November Dragonfly storage candidate. The shipping adapter runs both shared storage modes against checksum-pinned official Dragonfly 2.0.2 on an isolated runner. The job checks exact holon cleanup and the final native database size. COSMIC restart and federation results carry forward.
+11 November Dragonfly storage candidate. The shipping adapter runs both shared storage modes against checksum-pinned official Dragonfly 2.0.2 on an isolated runner. The job checks exact holon cleanup and the final native database size. COSMIC restart and federation results carry forward. [Run 43094237991](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43094237991) is queued.
 
 11 November Firebase graph-save candidate. The provider captures the shared selected graph, writes all selected rows in one RTDB collection PATCH, and publishes caller identities and counts only after exact acknowledgement. Single-row saves retain their PUT path. CI checks complete and partial acknowledgement behavior, then runs the native lifecycle. Results are pending.
 
@@ -12,7 +12,7 @@
 
 11 November Web3Core deployment tooling candidate. Hardhat now compiles the checked-in Contracts tree on case-sensitive systems using the Paris target and optimizer settings used by the native fixture. The deployment entry point waits for the receipt and verifies bytecode before printing the address. Node syntax checks passed. The shipping deploy command passed on native BSC in run 43092941435.
 
-11 November BNB NFT candidate. The shipping Web3Core contract now implements owner-authorized ERC-721 burn, matching the adapter ABI. A native Parlia job deploys the contract and checks mint, collection metadata, transfer, non-owner burn rejection, and owner burn with independent native ownership reads. Existing deployments need a compatible contract for this operation. [Run 43092221100](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43092221100) uses the corrected fixture requests with required init-only signer fields. The earlier queued revision was superseded before it ran.
+11 November BNB NFT candidate. The shipping Web3Core contract now implements owner-authorized ERC-721 burn, matching the adapter ABI. A native Parlia job deploys the contract and checks mint, collection metadata, transfer, non-owner burn rejection, and owner burn with independent native ownership reads. Existing deployments need a compatible contract for this operation. [Run 43092221100](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43092221100) passed mint, collection metadata, transfer, non-owner rejection and owner burn against the freshly deployed contract. The earlier queued revision was superseded before it ran.
 
 11 November Valkey full storage candidate. The shipping ValKeyOASIS adapter runs both shared storage modes against the digest-pinned official Valkey 9.0.4 image. The test checks exact tombstone cleanup and native database emptiness. This adds shared lifecycle coverage without replaying the earlier storage smoke or COSMIC restart and federation checks. [Run 43091045329](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43091045329) passed both modes.
 
