@@ -59,7 +59,12 @@ jobs:
           fixture="$(mktemp -d "$RUNNER_TEMP/oasis-tron.XXXXXXXX")"
           container=""
           cleanup() {
+            status=$?
             if [[ -n "$container" ]]; then
+              if [[ "$status" -ne 0 ]]; then
+                docker inspect --format '{{json .State}}' "$container" || true
+                docker logs --tail 60 "$container" || true
+              fi
               docker rm --force --volumes "$container"
               echo "Removed the owned TRON container and ledger."
             fi
@@ -96,7 +101,10 @@ jobs:
             -e useDefaultPrivateKey=true -e accounts=2 -e NO_COLOR=1 "$image")"
           export OASIS_TRON_LIFECYCLE_RPC=http://127.0.0.1:9090
           for attempt in {1..90}; do
-            if height="$(curl --fail --silent --max-time 2 "$OASIS_TRON_LIFECYCLE_RPC/wallet/getnowblock" |
+            [[ "$(docker inspect --format '{{.State.Running}}' "$container")" == true ]] || exit 1
+            if [[ "$(curl --fail --silent --max-time 2 "$OASIS_TRON_LIFECYCLE_RPC/healthcheck")" == OK ]] &&
+               height="$(curl --fail --silent --max-time 2 -H 'Content-Type: application/json' \
+               --data '{}' "$OASIS_TRON_LIFECYCLE_RPC/wallet/getnowblock" |
                jq -r '.block_header.raw_data.number // 0')" &&
                [[ "$height" =~ ^[0-9]+$ && "$height" -gt 2 ]]; then break; fi
             if [[ "$attempt" == 90 ]]; then exit 1; fi
@@ -105,6 +113,7 @@ jobs:
           genesis="$(curl --fail --silent --show-error --max-time 5 -H 'Content-Type: application/json' \
             --data '{"num":0}' "$OASIS_TRON_LIFECYCLE_RPC/wallet/getblockbynum" | jq -er '.blockID')"
           [[ "$genesis" == 0000000000000000c93baa76a4a508f798a96f59156d9eb17ecede8ec845df2f ]]
+          echo "Validated private TRE genesis and observed block height $height."
           export OASIS_TRON_LIFECYCLE_GENESIS="$genesis"
           export OASIS_TRON_LIFECYCLE_CHAIN_ID="0x${genesis: -8}"
           export OASIS_TRON_LIFECYCLE_NETWORK=local
