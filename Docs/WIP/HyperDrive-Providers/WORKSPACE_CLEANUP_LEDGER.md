@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+11 November public site recheck. Published static copy changes through the existing site repositories and verified public responses in memory. No local build, runtime installation, download file or test artifact was created.
+
 11 November MongoDB graph transaction verification. Reused installed MongoDB 8.2.1 and the same leased build directory as the metadata test. The test gracefully stopped its disposable one-member replica set and removed the database and log. An independent check found no owned fixture directory and only the pre-existing MongoDB process. Leased dotnet clean left zero files in bin and 5,159,754 bytes of restore and intermediate metadata in `TestResults/HyperDrive-Providers/MongoNativeMetadataBuild`. C: had 42,921,754,624 bytes free at the shared-machine check.
 
 11 November MongoDB metadata verification. Reused installed MongoDB 8.2.1 and the .NET package cache. The test gracefully stopped its isolated server and removed its temporary database directory and log. An independent process and path check found only the pre-existing service and no owned fixture directory. Leased dotnet clean left zero files in bin. The isolated `TestResults/HyperDrive-Providers/MongoNativeMetadataBuild` tree retains 5,159,754 bytes of restore and intermediate metadata. C: had 42,934,276,096 bytes free at the shared-machine check.
