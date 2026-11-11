@@ -1,6 +1,11 @@
 name: Build Antelope OASIS contract
 on:
   workflow_dispatch:
+  push:
+    branches: [work/hyperdrive-provider-completion]
+    paths:
+      - '.github/workflows/build-antelope-oasis-contract.yml'
+      - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.EOSIOOASIS/SmartContracts/**'
   pull_request:
     branches: [Development]
     paths:
@@ -27,7 +32,10 @@ jobs:
       - name: Build and validate the ABI
         env:
           OASIS_SCRIPT_NO_PAUSE: '1'
-        run: bash Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.EOSIOOASIS/SmartContracts/build.sh oasis
+        run: |
+          contract=Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.EOSIOOASIS/SmartContracts
+          bash "$contract/build.sh" oasis
+          sha256sum "$contract/build/oasis/oasis.abi" "$contract/build/oasis/oasis.wasm"
       - uses: actions/upload-artifact@v4
         with:
           name: antelope-oasis-contract
@@ -35,4 +43,4 @@ jobs:
             Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.EOSIOOASIS/SmartContracts/build/oasis/oasis.abi
             Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.EOSIOOASIS/SmartContracts/build/oasis/oasis.wasm
           if-no-files-found: error
-          retention-days: 3
+          retention-days: 1
