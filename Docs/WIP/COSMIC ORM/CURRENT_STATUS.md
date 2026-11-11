@@ -895,3 +895,5 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 11 November UTC: Development still points to `94fe19c958`. Dedicated-origin GOMap candidate `095805ee91` is in [targeted qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42977871267) and [exact WEB4 image CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42978537981). Development lacks the GOMap descriptor in its hosted settings verifier. The origin-binding tooling remains on the COSMIC branch for the enrollment step, which requires a reviewed dedicated HTTPS OSRM origin. No live enrollment or Development merge occurred.
 
 11 November UTC: synchronized the priority browser status with the provider matrix and provider-specific acceptance records.
+
+11 November UTC: seven stale priority browser-status descriptions were corrected on the existing Web4Site feature branch at `9f92777`. Its exact source passed 122 Node tests across six suites. Publication is pending.
