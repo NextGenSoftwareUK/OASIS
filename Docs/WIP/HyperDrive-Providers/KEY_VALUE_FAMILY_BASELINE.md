@@ -1,5 +1,9 @@
 # Key-value family checkpoint
 
+## 11 November native evidence
+
+Valkey 9.0.4 passed the full shared storage suite and ended with zero native keys. Development carries the verified batch at fa8f81332c. KeyDB and Dragonfly passed four native storage smoke cases each. The separate CQL restart and federation passes carry forward. See the [provider matrix](PROVIDER_MATRIX.md) for each scope.
+
 Updated 28 October 2026. Scope: share record policy and native protocol invariants; hosted acceptance remains provider-specific.
 
 ## Redis and Upstash

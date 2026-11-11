@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November KeyDB evidence reconciliation. Four native avatar and holon save/load checks passed against the digest-pinned KeyDB image in [run 43051825070](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43051825070). The separate native KeyDB 6.3.4 job passed encrypted CQL restart and MongoDB federation. Development includes the verified fixture wiring at ea54de967e. The shared 52/52 result is controlled. Full native lifecycle, hosted TLS and legacy plaintext migration remain open.
+
 11 November Dragonfly storage candidate. The shipping adapter runs both shared storage modes against checksum-pinned official Dragonfly 2.0.2 on an isolated runner. The job checks exact holon cleanup and the final native database size. COSMIC restart and federation results carry forward. [Run 43094237991](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43094237991) is queued.
 
 11 November Firebase graph-save candidate. The provider captures the shared selected graph, writes all selected rows in one RTDB collection PATCH, and publishes caller identities and counts only after exact acknowledgement. Single-row saves retain their PUT path. CI checks complete and partial acknowledgement behavior, then runs the native lifecycle. Results are pending.
@@ -315,7 +317,7 @@ The current process exposes none of the hosted fixture variables listed in [Acti
 | Native core-storage-v2 52/52 | OracleDB, PostgreSQL, Redis, Mongo, Neo4j, CosmosDB emulator, Firestore emulator, AWS alias, DynamoDB, LocalFile, Azure Blob, SQLite, DuckDB, MinIO, Convex, Upstash |
 | Native compatible52/52 | Shipping AWSS3OASIS on existing CI MinIO; independent empty-bucket checks passed; hosted AWS/IAM open |
 | Recovered native52/52 summaries | SOLID/IPFS reports recovered from isolated checkout with exact registry hashes/contracts; original failed reports preserved, lifecycle/full-interface gates open |
-| Controlled52/52 baseline | KeyDB, ValKey, Dragonfly and ThreeFold; consult the provider matrix for later native evidence. |
+| Controlled52/52 baseline | KeyDB, Dragonfly and ThreeFold. Valkey subsequently passed the full native suite. |
 | Garnet native split evidence | Official Garnet 2.2.5 passed targeted lifecycle and cleanup checks across several runs. Full provider acceptance and a single registered native shared-suite report remain open. |
 | Non-storage ActivityPub | Native public-GET capability5/5, controlled291; full social operations open |
 | Other controlled cases | Firebase23, Appwrite19, PocketBase24, Convex24; these do not certify native storage |
