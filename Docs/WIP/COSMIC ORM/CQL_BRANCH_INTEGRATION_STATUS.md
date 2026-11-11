@@ -1,5 +1,9 @@
 # CQL branch integration status
 
+## Current Development coordination
+
+Review Development and HyperDrive every 30 minutes. Batch verified, non-overlapping COSMIC changes and leave at least 30 minutes between Development pushes. Check the latest shared push and the Railway WEB4 queue before integrating. Defer routine pushes while the preceding WEB4 release is queued. Use work/cosmic-cql-ton-public for feature work.
+
 ## Accepted Development history merged — 8 November2026
 
 Parent task branch work/cosmic-cql-ton-public merge

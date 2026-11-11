@@ -32,7 +32,7 @@ dedicated HTTPS OSRM origin is still required for live enrollment.
 
 ## Active continuation, 11 November UTC
 
-- Work on `work/cosmic-cql-ton-public`. Review Development and HyperDrive every 30 minutes. Integrate verified scoped COSMIC batches at most hourly under normal conditions.
+- Review Development and HyperDrive every 30 minutes. Batch verified, non-overlapping COSMIC changes and leave at least 30 minutes between Development pushes. Check the latest shared push and the Railway WEB4 queue before integrating. Defer routine pushes while the preceding WEB4 release is queued. Use work/cosmic-cql-ton-public for feature work.
 - Development head is `6ce625714f` (TRON wallet), queued behind `f4d314f7a3` (Cosmos Hub wallet). Both contain the NEAR wallet revision and are synchronized in HyperDrive.
 - Live Railway WEB4 is still at `fcf2a522e6`. All 106 listed CQL sources reported ready after startup. TRON and Supabase remain absent.
 - Aptos and Nostr reported ready on the current `fcf2a522e6` rollout. Operator recovery stays deferred while they are serving. The earlier Aptos 404 and Nostr WebSocket 503 remain in the provider histories.
