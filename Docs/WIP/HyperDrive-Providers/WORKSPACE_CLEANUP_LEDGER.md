@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+BootLoader missing-DNA regressions at a41551c70f passed 4/4 under the shared lease. Confirmed RegistrationTests/current-artifacts absent after teardown. Compact result retained in RegistrationTests/fixed-result.json.
+
 10 November (America/Cancun) BootLoader error-propagation build at 820bebbecf passed with 0 errors and 2,139 warnings; compile duration 8m17s. Restore and build ran under the shared lease with isolated packages, HTTP cache, scratch and outputs. The result receipt confirms both exit codes zero and cleanup true. Independently confirmed current-artifacts absent. Retained only the compact receipt. Live registration verification remains open.
 
 Registration error build recovery: session 92516 was missing on resume, with no matching live build process and no recoverable exit result. Under the shared provider build lease, removed 3,559,058,057 bytes from the exact owned priority-errors-8e51c7ab891b4cf7a2a946b4af24ac57 artifact/cache directory and confirmed it absent. The compile outcome for 1626bac589 and 3d36eed517 remains unverified.
