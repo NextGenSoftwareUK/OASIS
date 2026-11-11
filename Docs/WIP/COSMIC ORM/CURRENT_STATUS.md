@@ -3,9 +3,9 @@
 ## Active continuation, 11 November UTC
 
 - Work on `work/cosmic-cql-ton-public`. Review Development and HyperDrive every 30 minutes. Integrate verified scoped COSMIC batches at most hourly under normal conditions.
-- Development head is `8ecc28e3ca`. Its Railway deployment is queued behind `371f3d5dc4`. Live WEB4 at `94fe19c958` reported 105/106 listed CQL sources ready after startup.
-- Aptos is the only unavailable listed source at `94fe19c958`. The active container returned four HTTP 200 responses from Aptos after the activation 404. Same-source recovery is tracked in the existing Wizard owner action.
-- The GOMap candidate `d3a44cef27` has the three-file routing guard and admission test change on current Development. The exact integration and teaching image runs are active. The dedicated HTTPS OSRM origin remains an enrollment requirement.
+- Development head is `3f5d781f29`, queued on Railway. Live WEB4 deployment `93128896-23da-441c-88b1-95ef8bb7030f` at `16d22e842e` reached 106/106 listed CQL sources ready.
+- Aptos and Nostr are ready at `16d22e842e`. Operator recovery stays deferred while they are serving. The earlier Aptos 404 and Nostr WebSocket 503 remain in the provider histories.
+- GOMap candidate `4f60bd0ca9` adds the three-file routing guard and admission test change to `3f5d781f29`. Exact integration and image CI are running. A reviewed dedicated HTTPS OSRM origin remains required for enrollment.
 - Reclaim Protocol and World ID public browser presets passed 3/2. Original-owner paired browser checks remain open.
 - Hedera's current native and public MongoDB-paired presets passed 3/2 through WEB4. Its earlier browser pass stands. Restart reliability and the original owner's private paired browser check remain open.
 - Nostr's full and filtered native public presets passed in the browser across two Development revisions. The intervening WebSocket 503 remains open as a reliability issue. Operator recovery is deferred while both readers are serving.
