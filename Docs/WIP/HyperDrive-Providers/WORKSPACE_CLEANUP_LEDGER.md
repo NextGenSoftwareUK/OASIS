@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+11 November RavenDB run 43070212406 confirmed removal of its container, volumes, image and checkpoints after HTTP readiness failed. No local runtime or build was created.
+
 11 November RavenDB storage verification uses a disposable CI container, two databases, and checkpoint files. The runner removes the container, volumes, newly pulled image and fixture directory on exit. Cleanup confirmation is pending. No local build or download was created.
 
 11 November ScyllaDB run 43069185380 independently removed ten owned holon tombstones and verified three empty tables in each keyspace. CI removed the container, volumes, newly pulled image and checkpoints. No local build, runtime or download was created.
