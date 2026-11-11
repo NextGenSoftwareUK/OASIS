@@ -5,6 +5,7 @@ on:
     branches: [work/hyperdrive-provider-completion]
     paths:
       - '.github/workflows/bnb-native-bootloader.yml'
+      - '.github/workflows/bnb-native-storage.yml'
       - 'Scripts/TestHosts/Invoke-BnbBootLoaderActivation.ps1'
       - 'OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader.TestHarness/**'
       - 'OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/EvmProviderFactory.cs'
