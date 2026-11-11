@@ -5998,3 +5998,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: inventoried session directory names and checked CI and Railway in memory. No protected session read, copied or created. Temporary Git index removed. No local build, restore or download.
 
 11 November UTC: track ci-cosmic-couchdb-reader-c837fe5ad8 until all associated CI runs finish. Temporary Git indices removed. No local build, restore, runtime or artifact download.
+
+11 November UTC: CouchDB reader-policy CI passed. Its companion render run remains active, so the tag is retained. Read CI and Railway metadata in memory. Temporary Git index removed. No local build, restore or download.

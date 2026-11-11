@@ -560,13 +560,7 @@ Status: missing account/configuration information,2 November2026. David approved
 
 ## CouchDB native query-role CI
 
-- Status 2026-11-05 UTC: a scoped two-file CI branch is ready at
-  `codex/couchdb-cql-reader-ci`. The GitHub integration returned HTTP 403
-  when opening a draft PR. If using an account with PR access, open a draft
-  to `Development` from the comparison below. The draft runs the existing
-  provider matrix against a disposable CouchDB container. Leave it unmerged
-  while engineering reviews the native result.
-  [Open the branch comparison](https://github.com/NextGenSoftwareUK/OASIS/compare/Development...codex/couchdb-cql-reader-ci).
+- Completed 11 November UTC. Engineering ran the existing restricted-role test on disposable CouchDB 3 in [CI run 43044567583](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43044567583). The old draft PR action is closed. Hosted CouchDB qualification remains a separate gate.
 
 ### Cloudflare D1 Worker for Development WEB4
 

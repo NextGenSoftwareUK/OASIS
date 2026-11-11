@@ -1341,3 +1341,7 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 11 November UTC: recovery checkout contains the protected public demo visitor. The original private owner sessions for the EOSIO, SOLID, TON and Hedera paired browser checks were not found in the inspected COSMIC recovery directories. Resume private browser verification with the original owner and existing copies. Public browser and private HTTP evidence remains accepted.
 
 11 November UTC: recovered the existing CouchDB native reader-policy test from the COSMIC branch. Diagnostic 33e42af5d9 is published for disposable CI against CouchDB 3. It checks a restricted reader can load the original document and receives the exact role-policy denial on create, update and delete. Hosted reader policy and live acceptance remain open.
+
+11 November UTC: CouchDB native reader-policy CI 43044567583 passed against the disposable CouchDB 3 service. The reader loaded the original document and received the exact validation denial for create, update and delete. The original document was unchanged. Hosted CouchDB authorization and sandbox acceptance remain open.
+
+11 November UTC: OpenSearch generic storage and native restart/federation both passed in standard Development CI 43043263300 at c837fe5ad8. Railway deployed earlier revision 165e8abaee successfully and still has c837fe5ad8 queued. Hosted HTTPS CQL acceptance remains open.
