@@ -20,22 +20,30 @@ rustup="${OASIS_RUSTUP:-$HOME/.cargo/bin/rustup}"
 [[ "$(wasm-opt --version)" == 'wasm-opt version 120' ]] || { echo 'Expected retained Binaryen120.' >&2; exit 1; }
 [[ "$(wasm-metadce --version)" == 'wasm-metadce version 120' ]] || { echo 'Expected retained Binaryen120 metadce.' >&2; exit 1; }
 cd "$contract" # Cargo discovers the target-specific .cargo/config.toml here.
-"$rustup" run 1.88.0 cargo build --offline --locked --release --no-default-features \
+CARGO_NET_OFFLINE="${CARGO_NET_OFFLINE:-true}" "$rustup" run 1.88.0 cargo build --locked --release --no-default-features \
     --manifest-path "$manifest" --target wasm32-unknown-unknown --jobs 2 --target-dir "$target"
 raw="$target/wasm32-unknown-unknown/release/$crate.wasm"
 pruned="$target/$name-pruned.wasm"
 artifact="$target/$name.wasm"
 optimized="$target/$name-optimized.wasm"
-lowerer='/mnt/c/Program Files/Unity/Hub/Editor/6000.6.0f1/Editor/Data/PlaybackEngines/WebGLSupport/BuildTools/Emscripten/binaryen/bin/wasm-opt.exe'
-[[ -x "$lowerer" ]] || { echo 'Reuse the existing Unity Binaryen124 lowering tool.' >&2; exit 1; }
-[[ "$("$lowerer" --version)" == *'wasm-opt version 124 '* ]] || { echo 'Unexpected retained lowering tool.' >&2; exit 1; }
+lowerer="${OASIS_POLKADOT_WASM_LOWERER:-/mnt/c/Program Files/Unity/Hub/Editor/6000.6.0f1/Editor/Data/PlaybackEngines/WebGLSupport/BuildTools/Emscripten/binaryen/bin/wasm-opt.exe}"
+[[ -x "$lowerer" ]] || { echo 'Binaryen124 lowering tool is unavailable.' >&2; exit 1; }
+lowerer_version="$("$lowerer" --version)"
+[[ "$lowerer_version" == 'wasm-opt version 124' || "$lowerer_version" == 'wasm-opt version 124 '* ]] ||
+    { echo 'Expected Binaryen124 lowering tool.' >&2; exit 1; }
 wasm-metadce "$raw" --graph-file exports.json --output "$pruned" --mvp-features
 wasm-opt "$pruned" -Oz --strip-debug --strip-producers --strip-target-features \
     --mvp-features --output "$optimized"
 # Rust's precompiled core/linker can retain bulk-memory instructions even with
 # target-cpu=mvp. Lower them with the newer already-installed Binaryen tool.
-"$lowerer" "$(wslpath -w "$optimized")" --enable-bulk-memory-opt \
+lower_input="$optimized"
+lower_output="$artifact"
+if [[ "$lowerer" == *.exe ]]; then
+    lower_input="$(wslpath -w "$optimized")"
+    lower_output="$(wslpath -w "$artifact")"
+fi
+"$lowerer" "$lower_input" --enable-bulk-memory-opt \
     --llvm-memory-copy-fill-lowering --signext-lowering --strip-target-features \
-    --output "$(wslpath -w "$artifact")"
+    --output "$lower_output"
 sha256sum "$artifact"
 wc -c "$artifact"
