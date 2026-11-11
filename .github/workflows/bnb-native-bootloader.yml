@@ -2,7 +2,7 @@ name: BNB Smart Chain BootLoader
 
 on:
   push:
-    branches: [work/hyperdrive-provider-completion]
+    branches: [work/hyperdrive-provider-completion, Development]
     paths:
       - '.github/workflows/bnb-native-bootloader.yml'
       - '.github/workflows/bnb-native-storage.yml'

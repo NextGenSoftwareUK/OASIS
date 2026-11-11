@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November BNB BootLoader registration shipped to Development at febb6971d8. The [Development BootLoader job 43086956668](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43086956668) checks the scoped integration with Development dependencies.
+
 11 November BNB BootLoader [run 43084767090](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43084767090) stopped at compilation. The CI workspace lacked the manifest-pinned Holochain sibling, causing missing HoloNET ORM APIs and Cardano Chaos.NaCl types. The BootLoader job now checks out that exact dependency. The native storage pass remains valid.
 
 11 November BNB Smart Chain storage [run 43084066216](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43084066216) at bde9eb8a0c passed 52/52 on private Parlia chain 714 after the shipping Nethereum adapter switched to the node gas-price quote. Both modes verified the native validator RPC and shared cleanup. The shipping BootLoader registered, activated and deactivated BNB on native BSC v1.7.8 in [run 43085641543](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43085641543).
