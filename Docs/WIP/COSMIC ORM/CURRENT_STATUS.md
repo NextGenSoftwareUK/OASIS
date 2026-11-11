@@ -1179,3 +1179,5 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 11 November UTC: exact LayerZero and solution candidate a2990f712c passed focused tests, production build, WEB4–WEB10 GraphQL and companion Mermaid verification. Development advanced to a7a7ae31aa with unrelated documentation and website changes. Exact successor ee50d46f0f preserves those changes and the same four task files. Remote CI triggered.
 
 11 November UTC: [CI for exact LayerZero and solution candidate ee50d46f0f](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43021905566) is active on Development base a7a7ae31aa.
+
+11 November UTC: the live Development WEB4 Playground rendered three TheSandboxOASIS public teaching records and two filtered records. The existing demo visitor was reused. Private paired browser verification remains open.

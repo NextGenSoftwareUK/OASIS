@@ -765,3 +765,5 @@ broader provider contracts remain open. [Evidence](DUCKDB_CQL_MVP.md).
 11 November UTC: on live Development WEB4 deployment 15c57e25 at eed714ba35, the native Ethereum dRPC presets rendered three full and two filtered public balance rows. This restores the public demo after PublicNode genesis pruning. Prior paired and replica evidence is preserved. No private records were created or replayed.
 
 11 November UTC: Chainlink's prior public browser acceptance is retained. The configured PublicNode origin pruned Ethereum genesis, causing startup rejection. The dRPC replacement passed exact genesis and all three configured feed checks from Development WEB4. Settings deployment 44149acb is queued. Live activation and browser verification on dRPC remain pending.
+
+11 November UTC: the live Development WEB4 Playground rendered three TheSandboxOASIS public teaching records and two filtered records. The existing demo visitor was reused. Private paired browser verification remains open.
