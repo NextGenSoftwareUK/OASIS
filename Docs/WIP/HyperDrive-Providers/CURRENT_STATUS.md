@@ -23,7 +23,7 @@ Public provider count audit (11 November). The inventory lists 234 shipping prov
 
 11 November EOSIO public balance. The shipping EosClient passed a live positive-balance read against the Vaulta chain. It checked the chain identity and decoded one positive EOS amount from eosio.token for eosio.saving. The node reported head block 530137880 during identity validation. The exact two-file Development candidate 16d22e842e passed the same public check at head block 530138483 and was fast-forwarded into Development. No signer or transaction was used. The EOSIO wallet balance facade subsequently passed both sync and async live checks with no signer and French locale settings. Both cases also passed on the exact Development candidate 3f5d781f29, which was fast-forwarded into Development. Signed storage and the remaining wallet interfaces still require verification.
 
-11 November Hedera wallet balance. The synchronous shipping wallet entry point read a positive HBAR balance for 0.0.3 from the live testnet mirror. The caller synchronization context received no continuations and storage activation remained false. Funded storage and remaining wallet operations still require their own checks.
+11 November Hedera wallet balance. The synchronous shipping wallet entry point read a positive HBAR balance for 0.0.3 from the live testnet mirror. The caller synchronization context received no continuations and storage activation remained false. Development a7522f4286 carries the identical verified provider source and focused test. The separate funded storage test source remains owned by its existing workstream. Funded storage and remaining wallet operations still require their own checks.
 
 ## Phase and rules
 
