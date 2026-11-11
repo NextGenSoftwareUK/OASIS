@@ -56,8 +56,16 @@ jobs:
           container="$(docker create --env ARANGO_ROOT_PASSWORD --publish 127.0.0.1:18529:8529 docker.io/library/arangodb@sha256:ddaeda57726a6ff42186a3fea205a848585c92fd54814b892193925338f9e25c)"
           for phase in first restart; do
             docker start "$container" >/dev/null
-            curl --fail --silent --show-error --retry 12 --retry-connrefused --retry-max-time 45 --max-time 5 \
-              --user "root:$password" http://127.0.0.1:18529/_api/version | jq -e '.version == "3.12.12"'
+            for attempt in {1..30}; do
+              test "$(docker inspect --format '{{.State.Running}}' "$container")" = true
+              status=0
+              response="$(curl --fail --silent --show-error --max-time 2 --user "root:$password" http://127.0.0.1:18529/_api/version)" || status=$?
+              case "$status" in
+                0) jq -e '.version == "3.12.12"' <<< "$response"; break ;;
+                7|28|52|56) test "$attempt" -lt 30; sleep 1 ;;
+                *) exit "$status" ;;
+              esac
+            done
             dotnet test Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.ArangoDBOASIS.IntegrationTests \
               --filter 'FullyQualifiedName~ArangoDbNativeCqlTests' --results-directory "$state" \
               --logger "trx;LogFileName=$phase.trx" /m:2 /nr:false /p:UseSharedCompilation=false
