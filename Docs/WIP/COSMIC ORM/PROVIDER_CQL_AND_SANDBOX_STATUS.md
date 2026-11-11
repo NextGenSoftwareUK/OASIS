@@ -665,3 +665,5 @@ broader provider contracts remain open. [Evidence](DUCKDB_CQL_MVP.md).
 11 November UTC: Filecoin RPC-v1 finalized-balance presets returned three full and two filtered rows in the live Development CQL Playground. Original-owner MongoDB paired browser verification remains open. No preparation or record saves.
 
 11 November UTC: Stacks public principal-state presets rendered 3 full and 2 filtered rows in the live Development WEB4 CQL Playground. The original-owner private paired browser check remains open.
+
+11 November UTC: Railway WEB4 deployment b2d0b07c-45f8-45d8-a947-7d6beede9f54 succeeded at Development f4d314f7a3, which includes the NEAR wallet changes. Protected catalogue readiness rose from 49/106 to 93/106 to 105/106. Nostr alone returned CQL_SOURCE_UNAVAILABLE. Every enrolled priority provider and LocalFile advertised native and federation readiness. Both NEAR and Cosmos public native CQL presets returned three full and two filtered unique rows. TRON CQL and Supabase remained absent. The TRON wallet successor 6ce625714f was still building when verified.
