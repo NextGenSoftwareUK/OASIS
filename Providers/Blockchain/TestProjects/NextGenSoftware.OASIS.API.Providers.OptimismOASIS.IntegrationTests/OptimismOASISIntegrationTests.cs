@@ -37,6 +37,53 @@ public class OptimismOASISIntegrationTests
     [DataTestMethod, DataRow(false), DataRow(true)]
     public async Task SharedStorageUsesDedicatedOptimismSepoliaContract(bool synchronous)
     {
+        var fixture = await ReadSepoliaFixtureAsync();
+        var provider = new OptimismOASIS(fixture.Rpc, fixture.Key, fixture.Contract, SepoliaChainId);
+        var report = await CoreStorageConformance.RunAsync(provider, nameof(OptimismOASIS), "native",
+            synchronous, _ => Task.CompletedTask, expectedDefaultDeletion: "absent");
+        Assert.IsTrue(report.Succeeded, $"{report.CurrentCase}: {report.FailureType} {report.FailureContract}");
+        Assert.IsTrue(report.FixtureCleanupComplete);
+        Assert.AreEqual(CoreStorageConformance.ChecksPerMode, report.Passed.Count);
+    }
+
+    [TestMethod]
+    public async Task NativeTransferReturnsConfirmedOptimismSepoliaTransaction()
+    {
+        if (Environment.GetEnvironmentVariable("OASIS_OPTIMISM_SIGNED_TRANSFER") != "1")
+            Assert.Inconclusive("Enable the funded testnet transfer explicitly.");
+
+        var fixture = await ReadSepoliaFixtureAsync();
+        var account = new Nethereum.Web3.Accounts.Account(fixture.Key, SepoliaChainId);
+        var provider = new OptimismOASIS(fixture.Rpc, fixture.Key, fixture.Contract, SepoliaChainId);
+        var activation = await provider.ActivateProviderAsync();
+        Assert.IsFalse(activation.IsError, activation.Message);
+
+        const decimal oneWei = 0.000000000000000001m;
+        const string wrongSender = "0x000000000000000000000000000000000000dEaD";
+        Assert.AreNotEqual(wrongSender.ToLowerInvariant(), account.Address.ToLowerInvariant());
+        var rejected = await provider.SendTransactionAsync(wrongSender, account.Address, oneWei, "");
+        Assert.IsTrue(rejected.IsError && rejected.Message.Contains("signing account", StringComparison.Ordinal));
+        Assert.IsNull(rejected.Result);
+
+        // Return the test value to the fixture signer. The only net cost is testnet gas.
+        var sent = await provider.SendTransactionAsync(account.Address, account.Address, oneWei, "");
+        Assert.IsFalse(sent.IsError, sent.Message);
+        Assert.IsTrue(sent.IsSaved);
+        var hash = sent.Result?.TransactionResult;
+        Assert.IsFalse(string.IsNullOrWhiteSpace(hash));
+
+        var receipt = await fixture.Reader.Eth.Transactions.GetTransactionReceipt.SendRequestAsync(hash);
+        var transaction = await fixture.Reader.Eth.Transactions.GetTransactionByHash.SendRequestAsync(hash);
+        Assert.AreEqual<BigInteger?>(BigInteger.One, receipt?.Status?.Value);
+        Assert.AreEqual<BigInteger?>(BigInteger.One, transaction?.Value?.Value);
+        Assert.AreEqual(hash, receipt?.TransactionHash);
+        Assert.AreEqual(hash, transaction?.TransactionHash);
+        Assert.AreEqual(account.Address.ToLowerInvariant(), transaction?.From?.ToLowerInvariant());
+        Assert.AreEqual(account.Address.ToLowerInvariant(), transaction?.To?.ToLowerInvariant());
+    }
+
+    private static async Task<(string Rpc, string Key, string Contract, Nethereum.Web3.Web3 Reader)> ReadSepoliaFixtureAsync()
+    {
         var rpc = Environment.GetEnvironmentVariable("OASIS_OPTIMISM_CONFORMANCE_RPC_URL");
         if (string.IsNullOrWhiteSpace(rpc))
             Assert.Inconclusive("Configure the dedicated Optimism Sepolia fixture.");
@@ -52,11 +99,6 @@ public class OptimismOASISIntegrationTests
         var observed = await readOnly.Eth.ChainId.SendRequestAsync();
         Assert.AreEqual(new BigInteger(SepoliaChainId), observed.Value);
 
-        var provider = new OptimismOASIS(endpoint.AbsoluteUri, key!, contract!, SepoliaChainId);
-        var report = await CoreStorageConformance.RunAsync(provider, nameof(OptimismOASIS), "native",
-            synchronous, _ => Task.CompletedTask, expectedDefaultDeletion: "absent");
-        Assert.IsTrue(report.Succeeded, $"{report.CurrentCase}: {report.FailureType} {report.FailureContract}");
-        Assert.IsTrue(report.FixtureCleanupComplete);
-        Assert.AreEqual(CoreStorageConformance.ChecksPerMode, report.Passed.Count);
+        return (endpoint.AbsoluteUri, key!, contract!, readOnly);
     }
 }
