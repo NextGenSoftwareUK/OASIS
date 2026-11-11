@@ -1389,3 +1389,5 @@ KeyDB pinned source build and native verification are active in CI 43047936284.
 On active WEB4 1c7e670e8d, NostrOASIS was the only listed source unavailable among 106. Reused the separate public visitor for discovery. The existing Nostr operator recovery action remains open.
 
 11 November UTC: active WEB4 deployment 882d3bd1 logged an HTTP 503 during Nostr WebSocket activation, consistent with authenticated discovery. Existing recovery remains conditional on access to the Development operator session. KeyDB Ubuntu 24.04 CI 43049998861 is active.
+
+11 November UTC: Ubuntu 24.04 CI 43049998861 also failed resolving Ubuntu package mirrors before compilation. Candidate 338a957c8c compiles the same pinned KeyDB source in a digest-pinned official Python Bookworm image with uuid-dev already present. The build container is disposable and the host runner verifies the resulting native executable and source. Results are pending.

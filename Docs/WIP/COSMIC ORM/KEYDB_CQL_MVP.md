@@ -110,3 +110,5 @@ validation and rejecting an SDK connection to a different endpoint.
 11 November UTC: KeyDB CI 43047936284 stopped compiling the pinned source because the runner lacked uuid/uuid.h. Candidate 076b4e1deb explicitly installs uuid-dev in CI. The native restart and federation tests did not execute in the first run. Standard CouchDB Development CI 43048587905 and Railway WEB4 deployment d0469a9d are queued.
 
 11 November UTC: KeyDB run 43048779525 stopped installing uuid-dev because the Ubuntu Resolute mirrors failed DNS resolution. Candidate b2979f73ba pins Ubuntu 24.04 and makes package index failures explicit with bounded transport timeouts. Native build and tests remain pending.
+
+11 November UTC: Ubuntu 24.04 CI 43049998861 also failed resolving Ubuntu package mirrors before compilation. Candidate 338a957c8c compiles the same pinned KeyDB source in a digest-pinned official Python Bookworm image with uuid-dev already present. The build container is disposable and the host runner verifies the resulting native executable and source. Results are pending.

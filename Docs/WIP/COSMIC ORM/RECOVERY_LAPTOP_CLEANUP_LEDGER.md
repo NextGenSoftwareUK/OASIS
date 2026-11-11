@@ -6040,3 +6040,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: track the KeyDB -noble diagnostic until both runs finish. Read CI logs and discovery in memory, reused the same public visitor, and removed the temporary Git index. No local install, build or download.
 
 11 November UTC: removed the completed KeyDB -uuid diagnostic tag and verified absence. The -noble run remains active. Inspected sanitized Railway log facts in memory. Temporary Git index removed. No local build, restore or download.
+
+11 November UTC: track the KeyDB -builder tag until both workflows finish. Inspected CI logs and registry digest metadata in memory. Temporary Git index removed. No local image, install, build or download.
