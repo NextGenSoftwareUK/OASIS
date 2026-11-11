@@ -121,7 +121,7 @@ jobs:
           pwsh -NoProfile -Command '
             ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-FirebaseStorage -Operation {
               $project = "Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.FirebaseOASIS.IntegrationTests"
-              dotnet test $project --no-build --no-restore --filter "FullyQualifiedName~HolonGraphReadAgainstRealtimeDatabase" --logger "console;verbosity=normal"
+              dotnet test $project --no-build --no-restore --filter "FullyQualifiedName~HolonGraphReadAgainstRealtimeDatabase|FullyQualifiedName~HardAvatarDeleteReportsPartialCommitAgainstRealtimeDatabase" --logger "console;verbosity=normal"
               if ($LASTEXITCODE -ne 0) { throw "Firebase native graph verification failed." }
               dotnet test $project --no-build --no-restore --filter "FullyQualifiedName~CoreStorageAgainstRealtimeDatabase" --logger "console;verbosity=normal"
               if ($LASTEXITCODE -ne 0) { throw "Firebase native storage verification failed." }
