@@ -6044,3 +6044,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: track the KeyDB -builder tag until both workflows finish. Inspected CI logs and registry digest metadata in memory. Temporary Git index removed. No local image, install, build or download.
 
 11 November UTC: removed the completed KeyDB -noble diagnostic tag and verified absence. The pinned builder run 43050965468 remains active. Temporary Git index removed. No local build, restore, image or download.
+
+11 November UTC: verified KeyDB builder and native checks passed. CI removed its temporary build archive and source; builder container removed on exit. Retain the diagnostic ref until the scoped code is published. Read logs in memory. Temporary Git index removed. No local build or download.
