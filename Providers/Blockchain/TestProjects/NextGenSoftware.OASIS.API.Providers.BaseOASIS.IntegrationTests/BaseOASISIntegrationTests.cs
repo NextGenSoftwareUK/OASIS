@@ -7,7 +7,7 @@ public class BaseOASISIntegrationTests
     private const string DevelopmentPrivateKey = "0x0000000000000000000000000000000000000000000000000000000000000001";
 
     [Fact]
-    public async Task ActivationAndHolonCrud_UseLiveBaseCompatibleChainAndContract()
+    public async Task ActivationAndHolonCrud_UseDedicatedBaseSepoliaContract()
     {
         string? rpcUrl = Environment.GetEnvironmentVariable("OASIS_BASE_RPC_URL");
         string? privateKey = Environment.GetEnvironmentVariable("OASIS_BASE_PRIVATE_KEY");
@@ -16,7 +16,16 @@ public class BaseOASISIntegrationTests
         Assert.False(string.IsNullOrWhiteSpace(privateKey), "OASIS_BASE_PRIVATE_KEY must identify its disposable funded account.");
         Assert.False(string.IsNullOrWhiteSpace(contractAddress), "OASIS_BASE_CONTRACT_ADDRESS must identify the deployed Web3Core contract.");
 
-        var provider = new BaseOASIS(rpcUrl!, privateKey!, new System.Numerics.BigInteger(8453), contractAddress!);
+        Assert.True(Uri.TryCreate(rpcUrl, UriKind.Absolute, out var endpoint) &&
+            endpoint.Scheme == Uri.UriSchemeHttps && string.IsNullOrEmpty(endpoint.UserInfo),
+            "Use the protected HTTPS endpoint for the dedicated Base Sepolia fixture.");
+
+        const int baseSepoliaChainId = 84532;
+        var readOnly = new Nethereum.Web3.Web3(endpoint!.AbsoluteUri);
+        var observedChainId = await readOnly.Eth.ChainId.SendRequestAsync();
+        Assert.Equal(new System.Numerics.BigInteger(baseSepoliaChainId), observedChainId.Value);
+
+        var provider = new BaseOASIS(endpoint.AbsoluteUri, privateKey!, baseSepoliaChainId, contractAddress!);
         var activation = await provider.ActivateProviderAsync();
         Assert.False(activation.IsError, activation.Message);
         Assert.True(activation.Result);
@@ -33,6 +42,54 @@ public class BaseOASISIntegrationTests
         Assert.False((await provider.DeleteHolonAsync(holon.Id)).IsError);
         Assert.True((await provider.LoadHolonAsync(holon.Id)).IsError);
         Assert.True((await provider.DeActivateProviderAsync()).Result);
+    }
+
+    [Fact]
+    public void LegacyRecordDecoderPreservesIdentityAndHolonType()
+    {
+        var id = Guid.NewGuid();
+        using var legacy = System.Text.Json.JsonDocument.Parse(
+            $$"""{"id":"{{id:D}}","name":"retained","holon_type":"Planet"}""");
+        var record = BaseOASISHelpers.ParseBaseToHolon(legacy.RootElement);
+        Assert.Equal(id, record.Id);
+        Assert.Equal("retained", record.Name);
+        Assert.Equal(NextGenSoftware.OASIS.API.Core.Enums.HolonType.Planet, record.HolonType);
+
+        using var duplicate = System.Text.Json.JsonDocument.Parse(
+            $$"""{"id":"{{id:D}}","Id":"{{id:D}}"}""");
+        Assert.Throws<InvalidDataException>(() => BaseOASISHelpers.ParseBaseToHolon(duplicate.RootElement));
+    }
+
+    [BasePublicWalletTheory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task PublicWalletBalanceUsesBaseMainnetWithoutStorageActivation(bool synchronous)
+    {
+        const string rpc = "https://mainnet.base.org";
+        var request = new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests.GetWeb3WalletBalanceRequest
+        {
+            WalletAddress = "0x4200000000000000000000000000000000000006"
+        };
+        var provider = new BaseOASIS(rpc);
+        var result = synchronous ? provider.GetBalance(request) : await provider.GetBalanceAsync(request);
+        Assert.False(result.IsError, result.Message);
+        Assert.True(result.IsLoaded && double.IsFinite(result.Result) && result.Result > 0);
+        Assert.False(provider.IsProviderActivated);
+
+        var wrongChain = new BaseOASIS(rpc, chainId: 84532);
+        var rejected = synchronous ? wrongChain.GetBalance(request) : await wrongChain.GetBalanceAsync(request);
+        Assert.True(rejected.IsError);
+        Assert.Contains("chain ID", rejected.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.False(wrongChain.IsProviderActivated);
+    }
+
+    private sealed class BasePublicWalletTheoryAttribute : TheoryAttribute
+    {
+        public BasePublicWalletTheoryAttribute()
+        {
+            if (Environment.GetEnvironmentVariable("OASIS_BASE_PUBLIC_WALLET_READ") != "1")
+                Skip = "Requires explicit opt-in to read the public Base RPC.";
+        }
     }
 
     [Fact]
