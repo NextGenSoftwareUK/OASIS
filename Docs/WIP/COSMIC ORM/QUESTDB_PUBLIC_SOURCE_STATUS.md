@@ -189,3 +189,5 @@ settings. The test activates the configured source and queries the exact
 full and subset symbol sets through the guarded HTTPS adapter.
 
 11 November UTC: the generic QuestDB CI job started a blank service, but Development activation validates three explicitly provisioned WAL/DEDUP tables. The workflow now provisions those tables in its disposable service before activation. Exact Development candidate `a39046a91f` is queued for focused CI. Development integration and hosted CQL remain open. [QuestDB CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43029367152)
+
+11 November UTC: QuestDB focused CI passed the fixture provisioning step and generic storage integration tests on exact candidate `a39046a91f`. The companion workflow passed. Development subsequently advanced to `ff0092d851` with NEAR contract changes and no change to the QuestDB paths, workflow or dependency manifest. QuestDB is ready for the next verified Development batch. Hosted CQL acceptance remains open. [QuestDB CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43029367152)
