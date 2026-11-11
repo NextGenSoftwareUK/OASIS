@@ -872,3 +872,6 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 
 
 11 November UTC branch coordination: Development c39eba5cd1 contains the HyperDrive SQL Server registration batch. COSMIC still pins Core 4018beec, while Development pins e5802022. The COSMIC Core pin lacks the bound replication route inventory interfaces used by the deployed worker. Continue integrating exact scoped batches on the Development base; wholesale replication worker or Core pin replacement would mix incompatible contracts. Railway SQL Server revision remains in build.
+
+
+11 November UTC HyperDrive coordination: the retained native storage reports for Ethereum, Polygon and Arbitrum each record core-storage-v2 52/52, with 26 checks per sync and async mode through the shipping factory on isolated Hardhat contracts. HyperDrive registered the reports in 2238e3bf4e and stabilized their checkout hashes in b971c3ea28. Public-network storage and full interface parity remain open. Existing live CQL acceptance is preserved. No native suite was rerun.
