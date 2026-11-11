@@ -1449,3 +1449,5 @@ Dragonfly/Valkey verified batch prepared on this base at 3850e2e078. Combined Re
 11 November UTC: Development 31db62c741 integrates HyperDrive Sui native storage conformance. Official Sui v1.81.1 passed all 52 checks through the shipping SDK-backed provider in CI 43058209983. Independent dynamic-field reads confirmed the fresh Move contract was empty before and after the suite. Hosted and retained-ledger coverage remain open.
 
 Standard Redis, Dragonfly and Valkey jobs are queued or running in Development CI 43059249089. Railway WEB4 deployment d04ed4c4 is queued.
+
+11 November UTC: Railway WEB4 c837fe5ad8 deployed successfully as f573b5ac. During warmup, authenticated discovery advertised 93 of 106 listed sources ready for native and federation queries, with 13 reporting not ready. The previous deployment reached 106 of 106. Development head 31db62c741 is queued. The Development Redis-family pipeline had passed all three dedicated jobs and the Dragonfly matrix job; Redis and Valkey matrix results remained pending at observation.
