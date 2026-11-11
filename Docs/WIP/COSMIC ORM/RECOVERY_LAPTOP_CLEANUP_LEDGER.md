@@ -6138,3 +6138,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: reused the existing public readiness visitor on WEB4 e5e3ca694c. Its ordinary renewal wrote four protected rotation journal files, retained with the same session. The follow-up created no files. Temporary Git index removed. No local build, download or query report.
 
 11 November UTC: track ci-cosmic-supabase-web4-secure-2624a321e7 until exact image verification and publication. Temporary indices removed. No local image, build, restore or download.
+
+11 November UTC: inspected the remote build log in memory. The earlier digest is recorded in the status docs. Cancelled the security-patched run with the default tag and queued the corrected dispatch. Keep its source ref for exact verification. No local image pull, build, restore or download.
