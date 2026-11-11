@@ -22,7 +22,7 @@
       "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-arbitrumoasis-local-v2.json",
       "sha256": "69896e3da0d34e6708c09ad30772c3a7fb88fc87e26e4b5e6d8ee85901aacd3a",
       "blockers": [
-        "Shipping factory against isolated Hardhat loopback Web3Core contracts, 26 checks per mode with fixture cleanup verified at 1ed77c18d6. [Native run reports](NativeEvidence/conformance-arbitrumoasis-local-v2.json). [Earlier configuration failure](NativeEvidence/conformance-arbitrumoasis-current.json). Public-network acceptance remains open."
+        "Shipping factory against isolated Hardhat loopback Web3Core contracts, 26 checks per mode with fixture cleanup verified at 1ed77c18d6. [Native run reports](NativeEvidence/conformance-arbitrumoasis-local-v2.json). [Earlier configuration failure](NativeEvidence/conformance-arbitrumoasis-current.json). The synchronous V2 wallet read passed on Arbitrum One through unsigned Nethereum and rejected a mismatched configured chain ID. Public-network storage acceptance remains open."
       ]
     },
     {
