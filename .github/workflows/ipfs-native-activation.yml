@@ -12,8 +12,8 @@ on:
       scenario:
         description: Native persistence scenario
         type: choice
-        options: [concurrent, restart]
-        default: concurrent
+        options: [independent, concurrent, restart]
+        default: independent
 
 permissions:
   contents: read
@@ -58,7 +58,7 @@ jobs:
       - name: Verify persistence through the shipping provider on offline Kubo
         shell: pwsh
         env:
-          IPFS_TEST_SCENARIO: ${{ inputs.scenario || 'concurrent' }}
+          IPFS_TEST_SCENARIO: ${{ inputs.scenario || 'independent' }}
         run: |
           $ErrorActionPreference = 'Stop'
           $PSNativeCommandUseErrorActionPreference = $true
@@ -111,9 +111,12 @@ jobs:
             if ($env:IPFS_TEST_SCENARIO -eq 'restart') {
               $testFilter = 'FullyQualifiedName~PersistsCurrentAndHistoricalHolonAcrossDaemonRestart'
               $phases = @('write', 'read')
-            } else {
+            } elseif ($env:IPFS_TEST_SCENARIO -eq 'concurrent') {
               $testFilter = 'FullyQualifiedName~ConcurrentAcknowledgedSavesRemainVisibleFromPersistedCatalogue'
               $phases = @('concurrent')
+            } else {
+              $testFilter = 'FullyQualifiedName~IndependentWritersPreserveEveryAcknowledgedRecord'
+              $phases = @('independent')
             }
             foreach ($phase in $phases) {
               $env:IPFSOASIS_RESTART_PHASE = $phase
