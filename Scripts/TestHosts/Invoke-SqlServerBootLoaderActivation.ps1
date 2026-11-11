@@ -58,12 +58,15 @@ try {
     }
     $dna = @{
         OASIS = @{
-            HyperDriveMode = 'V2'
+            HyperDriveMode = 'OASISHyperDrive2'
             Logging = @{ LoggingFramework = 'Default'; LogToConsole = $false; LogToFile = $false }
             ErrorHandling = @{ LogAllErrors = $false; LogAllWarnings = $false }
             Security = @{ SecretKey = [Convert]::ToHexString([Security.Cryptography.RandomNumberGenerator]::GetBytes(32)) }
             StorageProviders = $storage
             OASISHyperDriveConfig = @{
+                AutoFailoverEnabled = $false
+                AutoReplicationEnabled = $false
+                AutoLoadBalancingEnabled = $false
                 EnabledProviders = @($provider)
                 AutoFailoverProviders = @($provider)
                 AutoReplicationProviders = @($provider)
