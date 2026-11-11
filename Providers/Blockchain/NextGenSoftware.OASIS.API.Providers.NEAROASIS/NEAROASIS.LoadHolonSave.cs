@@ -18,7 +18,8 @@ public partial class NEAROASIS
         var saved = await SaveHolonForestAsync(new[] { holon }, saveChildren, recursive, maxChildDepth, depth, continueOnError);
         return new OASISResult<IHolon>(saved.Result?.FirstOrDefault())
         {
-            IsError = saved.IsError, IsSaved = saved.IsSaved, ErrorCode=saved.ErrorCode, Message = saved.Message, Exception = saved.Exception
+            IsError = saved.IsError, IsSaved = saved.IsSaved, SavedCount = saved.SavedCount,
+            ErrorCode=saved.ErrorCode, Message = saved.Message, Exception = saved.Exception
         };
     }
 
@@ -68,6 +69,7 @@ public partial class NEAROASIS
         }
         result.Result = plan.Roots.Where(acknowledged.Contains).ToList();
         result.IsSaved = !result.IsError;
+        result.SavedCount = acknowledged.Count;
         result.Message = $"Acknowledged {acknowledged.Count} of {plan.Nodes.Count} selected NEAR graph writes. " + result.Message;
         return result;
     }
@@ -108,6 +110,8 @@ public partial class NEAROASIS
             ValidateCollectionOptions(version,maxChildDepth,curentChildDepth);
             result.Result = await LoadChildTreeAsync(parentId, holonType, loadChildren,recursive,
                 maxChildDepth,curentChildDepth,loadChildrenFromProvider,version);
+            result.IsLoaded = true;
+            result.LoadedCount = result.Result.Count();
             result.Message = "Child holons loaded from NEAR contract storage.";
         }
         catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error loading NEAR child holons: {ex.Message}", ex); }

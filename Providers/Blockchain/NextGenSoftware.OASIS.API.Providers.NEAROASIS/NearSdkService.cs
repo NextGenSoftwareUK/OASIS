@@ -151,6 +151,14 @@ internal sealed partial class NearSdkService
         return await CallAsync("delete_record",new { key }).ConfigureAwait(false);
     }
 
+    public async Task DeleteAvatarRecordsAsync(Guid id)
+    {
+        if (id == Guid.Empty) throw new ArgumentException("A nonempty avatar ID is required.", nameof(id));
+        using var codec = OpenStorageCodec();
+        EnsureWritable();
+        await CallAsync("delete_avatar_records", new { id = id.ToString("D") }).ConfigureAwait(false);
+    }
+
     private static EncryptedRecordCodec OpenStorageCodec()
     {
         var key=PersistedPrivateKeyValueBackend.ResolveEnvironmentKey("OASIS_NEAR_STORAGE_ENCRYPTION_KEY");
