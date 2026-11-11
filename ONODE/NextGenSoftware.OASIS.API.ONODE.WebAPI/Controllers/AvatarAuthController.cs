@@ -94,10 +94,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 avatarType,
                 OASISType.OASISAPIREST,
                 callerIsWizard: callerIsWizard,
-                // Suppression is honoured for a Wizard caller, and for any caller when the operator has
-                // enabled programmatic signup. Previously a non-Wizard's suppressVerificationEmail:true was
-                // silently ignored, so programmatic signup had no way to complete verification.
-                suppressVerificationEmail: model.SuppressVerificationEmail && (callerIsWizard || ProgrammaticVerificationAllowed())
+                // Suppression is honoured for a Wizard caller. For anyone else it is honoured only when the operator
+                // enabled programmatic signup AND this is a positively identified development server AND the email is
+                // a ".invalid" address (see ProgrammaticVerificationPolicy); otherwise it is ignored and the email is sent.
+                suppressVerificationEmail: Services.ProgrammaticVerificationPolicy.ShouldSuppress(
+                    model.SuppressVerificationEmail, callerIsWizard, model.Email, ProgrammaticVerificationAllowed())
             );
 
             if (exposeDiagnostics)
@@ -146,7 +147,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         /// <summary>
         /// Whether a non-Wizard caller may set suppressVerificationEmail:true (programmatic signup).
-        /// Enabled with OASIS_ALLOW_PROGRAMMATIC_VERIFICATION=true / OASIS:AllowProgrammaticVerification=true.
+        /// Enabled with OASIS_ALLOW_PROGRAMMATIC_VERIFICATION=true / OASIS:AllowProgrammaticVerification=true, and even then
+        /// only on a development server for ".invalid" emails (ProgrammaticVerificationPolicy). This is just the operator switch.
         /// </summary>
         private bool ProgrammaticVerificationAllowed()
         {
