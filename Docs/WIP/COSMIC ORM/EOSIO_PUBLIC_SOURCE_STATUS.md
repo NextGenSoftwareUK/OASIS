@@ -68,3 +68,5 @@ A fresh temporary WEB4 demo session on Development ran both EOSIOOASIS public pr
 11 November UTC: HyperDrive's [Antelope contract build](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43025526058) passed the ABI build/validation and uploaded the antelope-oasis-contract artifact (13857555218, 8,222 bytes) at d4c06c9c91. This is build evidence. Dedicated live deployment and storage lifecycle remain open.
 
 11 November UTC: Development a5e8fc36c4 includes the verified Antelope contract build workflow and ABI/WASM artifacts. Native live deployment and storage lifecycle remain open.
+
+11 November UTC: HyperDrive verified the shipping EOSIO adapter against an official Antelope Spring 1.2.2 chain. All three native storage cases passed, covering avatar and holon CRUD and avatar-detail update, soft delete and hard delete. Independent chain-table checks confirmed cleanup. Development `c0b8c1eef1` includes the verified changes. Hosted contract deployment, the full shared suite and the original-owner private CQL browser check remain open. [Native storage CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43026743854)
