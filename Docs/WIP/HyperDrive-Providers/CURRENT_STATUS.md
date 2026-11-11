@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November Cosmos Hub wallet balance. The synchronous shipping wallet method passed a live read of the distribution account through CosmJS 0.39.0. It returned a positive ATOM balance on cosmoshub-4 with no signer, storage activation or posts to the caller synchronization context. The prior contract storage result remains 0/52 before native dispatch and the retained wasmd fixture remains open.
+
 11 November matrix reconciliation. Scoped notes from 35 provider rows now live in the conformance registry so they survive regeneration. The regenerated matrix preserves all 234 project identities, all prior row notes and the registered conformance metadata. Scoped native checks and interrupted runs remain documented in the notes for providers without a registered suite result.
 
 11 November NEAR public wallet balance. Both shipping wallet entry points passed against the public NEAR mainnet RPC through the pinned near-api-js 7.3.1 bridge. The bridge verified network identity and read the finalized balance for `near`. The tests required a positive amount and confirmed storage stayed inactive with no signer or storage contract. Development ae885fc092 carries the scoped wallet fix and regression test. The wallet sources, bridge and Core revision matched the tested path. The SDK service differs only by the task branch's independent avatar deletion method. The existing mainnet results were reused. Dedicated writable lifecycle acceptance remains open.
