@@ -5442,3 +5442,5 @@ CI 42938257820 passed the 13-case gate remotely. Its compact TRX artifact uses t
 11 November UTC Moralis activation qualification ran remotely in 42962451044. Both TRX reports remained in CI with the workflow retention. Temporary Git indexes were removed. No local build, package download, test result file, image or environment was created.
 
 11 November UTC: reopened the WEB4 Playground with installed Edge after the power interruption. A new disposable Development demo avatar sandbox-7a8ee2a8 verified only the Fhenix public subset. Reuse that session for pending public checks and reconcile by normal demo expiry. No local screenshot file, build output, report or download.
+
+Miden public browser acceptance reused sandbox-7a8ee2a8. No additional avatar, local report, screenshot file, runtime install, download or build output.

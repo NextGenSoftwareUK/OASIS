@@ -80,3 +80,5 @@ No native fixture replay or source writes. Browser acceptance remains open.
 
 `MidenOASIS-native-http.json`: 11275B, SHA256
 `e7b84a27b6463c5dc78994f23867d585dd68ad629949a887472978bc7896f8ab`.
+
+11 November UTC: the live Development CQL Playground rendered three Miden testnet public block headers for heights 1-3 and two for heights 1-2. Both rows in the subset were requested by exact height. The retained disposable visitor was reused. Original-cohort private paired browser verification remains open.
