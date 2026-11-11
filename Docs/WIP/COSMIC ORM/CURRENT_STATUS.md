@@ -3,7 +3,8 @@
 ## Active continuation, 11 November UTC
 
 - Work on `work/cosmic-cql-ton-public`. Review Development and HyperDrive every 30 minutes. Integrate verified scoped COSMIC batches at most hourly under normal conditions.
-- Development head and live Railway WEB4 are at `fcf2a522e6`. All 106 listed CQL sources reported ready after startup. TRON and Supabase remain absent.
+- Development head is `f4d314f7a3` (Cosmos Hub wallet). Railway is building `ae885fc092` (NEAR wallet) with the Cosmos successor queued. Both changes are synchronized in HyperDrive.
+- Live Railway WEB4 is still at `fcf2a522e6`. All 106 listed CQL sources reported ready after startup. TRON and Supabase remain absent.
 - Aptos and Nostr reported ready on the current `fcf2a522e6` rollout. Operator recovery stays deferred while they are serving. The earlier Aptos 404 and Nostr WebSocket 503 remain in the provider histories.
 - GOMap candidate `49a3ced97f` passed exact integration and image CI on the Hedera base. Development has since advanced. The dedicated HTTPS OSRM origin remains the enrollment prerequisite.
 - Reclaim Protocol, World ID, Aptos, Discord, Livepeer, Pinata, Cardano and Chainlink public browser presets passed 3/2. Original-owner paired browser checks remain open.
