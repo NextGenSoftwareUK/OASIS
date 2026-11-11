@@ -331,7 +331,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS
                 await using var client = await GetClientAsync();
                 var rec = await client.Select<DetailRecord>(RecordId.From("oasis_avatar_details", id.ToString("D")));
                 if (rec == null) { OASISErrorHandling.HandleError(ref result, $"SurrealDBOASIS: No detail for ID '{id}'."); return result; }
-                var d = Des<AvatarDetail>(rec.DataJson); if (d == null) { OASISErrorHandling.HandleError(ref result, "SurrealDBOASIS: Deserialise failed."); return result; }
+                var d = NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.DeserializeStored<AvatarDetail>(rec.DataJson); if (d == null) { OASISErrorHandling.HandleError(ref result, "SurrealDBOASIS: Deserialise failed."); return result; }
                 result.Result = d; result.IsError = false; result.Message = "SurrealDBOASIS: AvatarDetail loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SurrealDBOASIS: {ex.Message}"); }
@@ -345,7 +345,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS
             await using var client = await GetClientAsync();
             var all = await client.Select<DetailRecord>("oasis_avatar_details");
             var rec = all.FirstOrDefault(predicate);
-            return rec == null ? null : Des<AvatarDetail>(rec.DataJson);
+            return rec == null ? null : NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.DeserializeStored<AvatarDetail>(rec.DataJson);
         }
 
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string u, int version = 0)
@@ -375,7 +375,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS
             {
                 await using var client = await GetClientAsync();
                 var all = await client.Select<DetailRecord>("oasis_avatar_details");
-                var details = all.Select(r => Des<AvatarDetail>(r.DataJson)).Where(d => d != null).Cast<IAvatarDetail>().ToList();
+                var details = all.Select(r => NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.DeserializeStored<AvatarDetail>(r.DataJson)).Where(d => d != null).Cast<IAvatarDetail>().ToList();
                 result.Result = details; result.IsError = false; result.Message = $"SurrealDBOASIS: Loaded {details.Count} detail(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SurrealDBOASIS: {ex.Message}"); }
