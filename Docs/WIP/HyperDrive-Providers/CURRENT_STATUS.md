@@ -1,6 +1,6 @@
 # Current provider status
 
-11 November Firebase hard-delete recovery test. The native fixture now updates the avatar after the provider observes its revision, then checks that detail deletion succeeds, the stale avatar deletion is rejected, and the result requires reconciliation. Independent RTDB reads verify the concurrent avatar value and the absent detail. The test cleans its two exact GUID paths. Native results remain pending.
+11 November Firebase hard-delete recovery test. The native fixture now updates the avatar after the provider observes its revision, then checks that detail deletion succeeds, the stale avatar deletion is rejected, and the result requires reconciliation. Independent RTDB reads verify the concurrent avatar value and the absent detail. The test cleans its two exact GUID paths. [Combined lifecycle and reconciliation run 43105666326](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43105666326) is queued.
 
 11 November Firebase avatar-detail deletion candidate. Run 43103305603 passed the native graph and stale-delete test and 24 async lifecycle checks, including exact holon tombstone cleanup. It stopped after hard avatar deletion because the separate detail row survived. Hard deletion now validates and conditionally deletes any owned detail row before deleting the observed avatar revision. If the detail was removed but the avatar write fails, the result requires reconciliation. The full native lifecycle and empty namespace still require verification. The previous runner removed its fixture and reports.
 
