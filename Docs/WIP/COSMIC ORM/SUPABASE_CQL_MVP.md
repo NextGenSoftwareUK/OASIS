@@ -129,3 +129,5 @@ The retained local gateway evidence is separate.
 11 November UTC: Supabase activation/pagination CI 43064279367 passed. The revised release candidate f5ee717872 pins the scoped Core tariff admission 8a5de72b6e in both the dependency manifest and gitlink. Exact admission CI 43066096421 includes a query-only tariff test and the five activation cases. Exact image run 43066150933 targets that same parent candidate. Development integration awaits both results.
 
 11 November UTC: superseded Supabase image run 43062441681 and activation run 43064279367 completed successfully on the earlier Core pin. The exact tariff-enabled candidate remains under qualification in 43066096421 and 43066150933.
+
+11 November UTC: exact tariff-enabled Supabase WEB4 CI 43066096421 passed. The job required all ten WEB4 boundary and query-only admission cases and all five provider activation cases to pass. The feature branch now carries the matching scoped reader and tests. Image 43066150933 is still building on release candidate f5ee717872. Development integration and hosted enrollment remain open.
