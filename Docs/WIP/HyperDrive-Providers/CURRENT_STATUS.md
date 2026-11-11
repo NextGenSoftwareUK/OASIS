@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November EOSIO run 43048799690 at 4365b55470 passed 52/52 through the shipping provider on two independently deployed Antelope Spring 1.2.2 ledgers. Both modes verified exact avatar and detail deletion and independently empty avatar, avatar-detail and holon tables. Both fixtures were removed. Hosted signed deployment and other capability-specific gates remain open.
+
 11 November EOSIO run 43048263198 passed 24 checks per mode, including metadata, batch, import, export and holon cleanup. Both modes failed when the detail remained after hard avatar deletion. The candidate checks the native GUID for ownership and submits hard avatar and owned detail removal as a single Antelope transaction. The fresh runner now requires every native fixture table empty after conformance. Verification is pending.
 
 11 November EOSIO run 43047808703 passed the first 14 async checks, including the atomic graph save, point update and parent query, then failed the metadata collection acknowledgement. The candidate now projects complete paged contract rows through the shared metadata matcher, returns exact collection counts, and uses the same row path for owner export. Import reuses the native batch save and propagates its acknowledgement. The extended paths still need native verification.
