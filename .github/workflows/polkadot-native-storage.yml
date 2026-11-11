@@ -6,8 +6,7 @@ on:
     paths:
       - '.github/workflows/polkadot-native-storage.yml'
       - 'Scripts/TestHosts/Build-ReusablePolkadotRecords.sh'
-      - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS/contracts/oasis/**'
-      - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS/SdkBridge/**'
+      - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS/**'
       - 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.IntegrationTests/**'
   workflow_dispatch:
 

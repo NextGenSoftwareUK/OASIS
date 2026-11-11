@@ -266,3 +266,5 @@ Urgent disk cleanup follow-up: leased standard project clean succeeded for AWS u
 11 November public provider count recheck used in-memory HTTPS responses and existing checkouts. No local build, install, downloaded file, test environment or generated report was created. C: free space observed at 42,186,285,056 bytes before the recheck.
 
 11 November Polkadot run 43036417847 stopped before funding or deployment and confirmed removal of its owned contracts-node fixture on the disposable CI runner. The next candidate stores its generated node identity inside that same cleanup scope. No Windows build, download or fixture was created.
+
+11 November Polkadot run 43037729937 finalized funding and contract deployment on its disposable chain, then confirmed removal of the owned Substrate fixture after the managed compile failed. No Windows build, download or test environment was created.
