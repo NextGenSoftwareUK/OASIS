@@ -11,6 +11,16 @@ env:
   NODE_VERSION: '24.x'
 
 jobs:
+  arango-native-cql:
+    uses: ./.github/workflows/arango-native-cql.yml
+    secrets:
+      PRIVATE_SUBMODULE_PAT: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+
+  questdb-native-cql:
+    uses: ./.github/workflows/questdb-native-cql.yml
+    secrets:
+      PRIVATE_SUBMODULE_PAT: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+
   # Guards against the failure mode that let ~200 projects accumulate 1000+ compile
   # errors unnoticed: a .csproj that is in no .sln is never built by anything, so it
   # rots silently. This job fails the pipeline on both conditions - a project missing
@@ -168,6 +178,7 @@ jobs:
             docker_args: -e ARANGO_ROOT_PASSWORD=password
             test_env: |
               ARANGODB_PASSWORD=password
+            filter: FullyQualifiedName~ArangoDBOASISIntegrationTests
           - name: ArcadeDB
             project: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.ArcadeDBOASIS.IntegrationTests
             image: arcadedata/arcadedb:latest
@@ -264,6 +275,7 @@ jobs:
             ports: 8812:8812
             wait: 8812
             docker_args: -p 127.0.0.1:9000:9000
+            filter: FullyQualifiedName~QuestDBOASISIntegrationTests
           - name: InfluxDB
             project: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.InfluxDBOASIS.IntegrationTests
             image: influxdb:2.7
