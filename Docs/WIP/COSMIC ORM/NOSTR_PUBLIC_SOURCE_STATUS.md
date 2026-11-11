@@ -188,3 +188,5 @@ Explicit source recovery implemented at the host lifecycle boundary,same source/
 11 November UTC: Nostr returned to available in authenticated discovery on WEB4 b5fe79a765. Prior query acceptance remains recorded.
 
 11 November UTC: live WEB4 ea614f3fc6 reports Hedera activation timed out awaiting response headers after 15,008 ms with no HTTP status. Nostr's relay returned HTTP 503 during WebSocket upgrade (NotAWebSocket). Discovery remains 104/106. The protected Development Wizard session is absent on this laptop. Keep the existing operator recovery action open.
+
+11 November UTC: Railway WEB4 cut over to e5e3ca694c, deployment a1f0917e-b72a-4b5a-8732-0b6547f41687. Authenticated discovery warmed from 92/106 to 105/106 native and federation ready. Hedera and TON recovered readiness on this revision; Nostr remains CQL_SOURCE_UNAVAILABLE. Supabase, TRON and CouchDB remain absent. Prior functional cohorts were left intact.
