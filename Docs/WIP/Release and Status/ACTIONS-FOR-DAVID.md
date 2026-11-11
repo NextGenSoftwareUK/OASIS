@@ -934,3 +934,7 @@ submission is requested or authorized by this entry.
 - Process and user environment checks found neither configured credential.
   See [Infura qualification](../COSMIC%20ORM/INFURA_PUBLIC_SOURCE_STATUS.md)
   and [Infura key security](https://docs.infura.io/dashboard/how-to/secure-an-api/api-key-secret/).
+
+### Recovery laptop power, 11 November UTC
+
+Open. Windows reported 6% battery and discharging. Connect the charger and close the low-battery alert if it persists. The alert blocks Edge input with the Fhenix two-network preset selected and unrun. The full preset already passed.
