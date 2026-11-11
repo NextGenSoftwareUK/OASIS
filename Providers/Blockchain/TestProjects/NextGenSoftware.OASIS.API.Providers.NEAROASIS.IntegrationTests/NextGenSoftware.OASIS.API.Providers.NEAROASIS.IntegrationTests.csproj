@@ -6,6 +6,7 @@
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
+    <EnableDefaultCompileItems Condition="'$(NearDirectProviderOnly)' == 'true'">false</EnableDefaultCompileItems>
   </PropertyGroup>
 
   <ItemGroup>
@@ -15,13 +16,17 @@
     <PackageReference Include="coverlet.collector" Version="6.0.0" />
   </ItemGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="'$(NearDirectProviderOnly)' != 'true'">
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
-    <Compile Include="../../../Shared/TestSupport/CoreStorageConformance.cs" Link="TestSupport/CoreStorageConformance.cs" />
     <Compile Include="../../../../Examples/CosmicCqlDemo/IdentityFederationWalkthrough.cs" Link="Demo/IdentityFederationWalkthrough.cs" />
     <Compile Include="../../../../Examples/CosmicCqlDemo/IdentityFederationApiHost.cs" Link="Demo/IdentityFederationApiHost.cs" />
     <ProjectReference Include="../../../Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.csproj" />
     <None Include="../NextGenSoftware.OASIS.API.Providers.NEAROASIS.UnitTests/Fixtures/storage-snapshot.mjs" Link="Fixtures/storage-snapshot.mjs" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="NearSharedLifecycleTests.cs" Condition="'$(NearDirectProviderOnly)' == 'true'" />
+    <Compile Include="../../../Shared/TestSupport/CoreStorageConformance.cs" Link="TestSupport/CoreStorageConformance.cs" />
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.NEAROASIS\NextGenSoftware.OASIS.API.Providers.NEAROASIS.csproj" />
   </ItemGroup>
 
