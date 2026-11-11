@@ -1439,3 +1439,5 @@ Combined Valkey CI 43056231303 is active.
 11 November UTC: Development b1d78063c7 integrates HyperDrive Hedera native storage conformance. CI 43056077700 passed 52/52 on independent Hiero consensus ledgers using compression before encryption, with both contracts confirmed empty afterward. Hosted signed storage and the original-owner paired CQL browser check remain open.
 
 Dragonfly/Valkey verified batch prepared on this base at 3850e2e078. Combined Redis CI 43057542686 is queued.
+
+11 November UTC: both Redis jobs passed in combined CI 43057542686. Generic storage ran in the standard matrix, and encrypted native CQL, restart and MongoDB federation ran in the dedicated fixture. The independently verified Redis, Dragonfly and Valkey changes are prepared as Development batch d93d984b7b on the current Hedera base. Hosted TLS acceptance remains open.
