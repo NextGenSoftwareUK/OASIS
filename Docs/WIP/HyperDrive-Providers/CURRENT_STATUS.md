@@ -34,7 +34,7 @@ Public documentation follow-up (11 November). [OASIS Docs Provider Overview](htt
 
 11 November Convex companion readiness. A failed or canceled probe no longer permanently blocks the existing provider instance. Concurrent callers share the protocol verification but can cancel their waits independently. Hosted recovery verification remains open.
 
-11 November Neon connection policy. Neon endpoints with inline ports or in explicit host lists now receive Npgsql VerifyFull. A single endpoint can be mapped to its pooler without changing its port. Explicit host lists retain their order, ports and endpoint names. All 13 configuration and provider unit tests passed. Hosted sync and async lifecycle verification still requires the dedicated Neon database.
+11 November Neon connection policy. Neon endpoints with inline ports or in explicit host lists now receive Npgsql VerifyFull. A single endpoint can be mapped to its pooler without changing its port. Explicit host lists retain their order, ports and endpoint names. All 13 configuration and provider unit tests passed at e4e9605424. Development bbb4706313 carries the matching Neon source and test. Hosted sync and async lifecycle verification still requires the dedicated Neon database.
 
 11 November Garnet evidence. Verified the hashes of both original native checkpoints and three focused sync/async result pairs, including the parented-child cleanup. The [split evidence](NativeEvidence/garnet-split-storage-v2.json) now records their exact scope and outcomes. The controlled suite and full native acceptance remain separate. Development records the same split evidence at 371f3d5dc4.
 
