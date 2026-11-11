@@ -6220,3 +6220,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: track temporary tag ci-cosmic-couchdb-image-214462362b until exact image CI and release evidence are recorded. Image build runs on GitHub. No local image, build, restore or download. Temporary documentation index removed.
 
 11 November UTC: CouchDB qualification 43088383856 and companion run 43088383797 finished successfully. Retain the exact image ref during CI. No local builds or downloads. Temporary documentation index removed.
+
+11 November UTC: removed remote ci-cosmic-couchdb-catalogue-febb6971d8 after both qualification workflows finished successfully and all eight scoped paths matched the retained exact-image candidate. Verified only ci-cosmic-couchdb-image-214462362b remains in the parent repository. Temporary documentation index removed. No local build, restore, download or image.
