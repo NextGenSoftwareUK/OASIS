@@ -23,9 +23,10 @@ public class NativeMastodonOwnedStatusTests
             Timeout = TimeSpan.FromSeconds(20)
         };
         client.DefaultRequestHeaders.Authorization = new("Bearer", token);
+        var sourceText = $"OASIS disposable status {Guid.NewGuid():N}";
         using var form = new FormUrlEncodedContent(new Dictionary<string, string>
         {
-            ["status"] = $"OASIS disposable status {Guid.NewGuid():N}",
+            ["status"] = sourceText,
             ["visibility"] = "private"
         });
         using var created = await client.PostAsync("/api/v1/statuses", form);
@@ -47,6 +48,7 @@ public class NativeMastodonOwnedStatusTests
         Assert.Equal(1, deleted.DeletedCount);
         Assert.NotNull(deleted.Result);
         Assert.Equal(id, deleted.Result.ProviderUniqueStorageKey[ProviderType.ActivityPubOASIS]);
+        Assert.Equal(sourceText, deleted.Result.MetaData["MastodonSourceText"]);
         using var after = await client.GetAsync(path);
         Assert.Equal(HttpStatusCode.NotFound, after.StatusCode);
     }

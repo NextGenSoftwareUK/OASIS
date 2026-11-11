@@ -125,8 +125,9 @@ reader = create_user('oasisreader')
   # Native SQL ranks account matches by reputation. Use distinct fixture ranks for stable offsets.
   account.account_stat.update!(followers_count: index + 1)
 end
-app = Doorkeeper::Application.create!(name: 'OASIS CI', redirect_uri: 'urn:ietf:wg:oauth:2.0:oob', scopes: 'read:search')
-token = Doorkeeper::AccessToken.create!(application: app, resource_owner_id: reader.id, scopes: 'read:search')
+search_scopes = 'read:search read:accounts'
+app = Doorkeeper::Application.create!(name: 'OASIS CI', redirect_uri: 'urn:ietf:wg:oauth:2.0:oob', scopes: search_scopes)
+token = Doorkeeper::AccessToken.create!(application: app, resource_owner_id: reader.id, scopes: search_scopes)
 puts "OASIS_FIXTURE_TOKEN=#{token.plaintext_token}"
 status_scopes = 'read:statuses write:statuses'
 status_app = Doorkeeper::Application.create!(name: 'OASIS CI status fixture', redirect_uri: 'urn:ietf:wg:oauth:2.0:oob', scopes: status_scopes)
