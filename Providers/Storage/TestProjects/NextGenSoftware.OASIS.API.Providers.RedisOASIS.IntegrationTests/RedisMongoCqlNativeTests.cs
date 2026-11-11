@@ -22,7 +22,9 @@ public class RedisMongoCqlNativeTests
     public async Task NativeRedisMongoFederationRunsSdkAndHttpWithProviderProvenance()
     {
 
-        const string mongoUri = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
+        var mongoUri = OperatingSystem.IsLinux()
+            ? "mongodb://127.0.0.1:27039/?replicaSet=cosmicLinuxDemoRs&serverSelectionTimeoutMS=3000"
+            : "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
         const string database = "cosmic_cql_mongo_redis_demo";
         Assert.AreEqual(mongoUri, Environment.GetEnvironmentVariable("OASIS_MONGO_REPLICA_SET_CONNECTION"));
         var state = Environment.GetEnvironmentVariable("OASIS_REDIS_CQL_STATE")!;

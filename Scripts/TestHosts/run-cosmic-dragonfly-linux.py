@@ -7,6 +7,7 @@ import json
 import os
 from pathlib import Path
 import secrets
+import shutil
 import socket
 import subprocess
 import sys
@@ -16,15 +17,18 @@ import xml.etree.ElementTree as ET
 parser = argparse.ArgumentParser()
 parser.add_argument("--federated", action="store_true")
 parser.add_argument("--serve", action="store_true")
+parser.add_argument("--ci-results", type=Path)
 options = parser.parse_args()
+if options.ci_results and os.environ.get("GITHUB_ACTIONS") != "true":
+    raise RuntimeError("CI results require a disposable GitHub Actions runner")
 if options.serve and not options.federated:
     raise RuntimeError("Serve requires explicit federation")
 sys.dont_write_bytecode = True
-from cosmic_linux_mongo_service import owned_linux_mongo
+from cosmic_linux_mongo_service import isolated_ci_mongo, owned_linux_mongo
 
-ROOT = Path("/mnt/c/Source/OASIS-cosmic")
+ROOT = Path(__file__).resolve().parents[2] if options.ci_results else Path("/mnt/c/Source/OASIS-cosmic")
 STATE = Path("/var/tmp/oasis-dragonfly-cql")
-RESULTS = ROOT / "TestResults/DragonflyCqlCurrent"
+RESULTS = options.ci_results or ROOT / "TestResults/DragonflyCqlCurrent"
 RUNTIME = Path("/var/tmp/oasis-runtimes/dragonfly-2.0.2")
 DAEMON = RUNTIME / "dragonfly-x86_64"
 DIGEST = "2cf7bea7e142b0360421ed5083e54ee49e0effc41f7ced5ebdcaf88f8ff2e116"
@@ -49,9 +53,16 @@ def private_file(path, value):
 def report(test, filename, env):
     started = time.time()
     with (RESULTS / (filename + ".log")).open("w") as output:
-        subprocess.run([DOTNET, RUNNER, str(ASSEMBLY), "--TestCaseFilter:FullyQualifiedName~" + test,
-                        "--ResultsDirectory:" + str(RESULTS), "--Logger:trx;LogFileName=" + filename + ".trx"],
-                       env=env, stdout=output, stderr=subprocess.STDOUT, check=True)
+        if options.ci_results:
+            project = ASSEMBLY.parents[3] / (ASSEMBLY.stem + ".csproj")
+            command = [shutil.which("dotnet"), "test", str(project), "--filter", "FullyQualifiedName~" + test,
+                       "--results-directory", str(RESULTS), "--logger", "trx;LogFileName=" + filename + ".trx",
+                       "/m:2", "/nr:false", "/p:UseSharedCompilation=false"]
+            env = {key: value for key, value in env.items() if key != "DOTNET_ROOT"}
+        else:
+            command = [DOTNET, RUNNER, str(ASSEMBLY), "--TestCaseFilter:FullyQualifiedName~" + test,
+                       "--ResultsDirectory:" + str(RESULTS), "--Logger:trx;LogFileName=" + filename + ".trx"]
+        subprocess.run(command, env=env, stdout=output, stderr=subprocess.STDOUT, check=True)
     path = RESULTS / (filename + ".trx")
     assert path.stat().st_mtime >= started
     count = ET.parse(path).find(".//{*}Counters").attrib
@@ -154,7 +165,8 @@ with (STATE / "runner.lock").open("a") as lease:
                             # Match normal server restart semantics without accepting a live listener.
                             reservation.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
                             reservation.bind(("127.0.0.1", 5122))
-                    with owned_linux_mongo(RESULTS) as mongo_env:
+                    mongo = isolated_ci_mongo() if options.ci_results else owned_linux_mongo(RESULTS)
+                    with mongo as mongo_env:
                         pair_env = dict(env, **mongo_env, OASIS_DRAGONFLY_MONGO_SERVE="1" if options.serve else "0")
                         results["mongo-init"] = report("LinuxMongoDemoEnvironmentTests", "mongo-init", pair_env)
                         results["federation"] = report("DragonflyMongoCqlNativeTests", "dragonfly-mongo-federation", pair_env)
