@@ -293,3 +293,5 @@ Local retained proofs, moved without byte changes; regenerate new runs using `Sc
 | `activitypub-read-ack-red-identities.json` | 1303 | `b92dc9eb7108d8919e7e4dc0796533dd2f502d7ccd065b3f162c9f7cec4981fa` |
 | `activitypub-read-ack-red.trx.gz` | 2364 | `497883fc9d9e9d24859498eb2f0f9553b497f6e42ef63a40ddd80802870e4b06` |
 | `conformance-activitypuboasis-current.json` | 615 | `cea9d9793ee2dde71afd3770b19b86433582f2abfa8186a114c9e6cba59be77c` |
+
+11 November synchronous public status and reply reads. The direct-provider integration configuration (ActivityPubDirectProviderOnly=true) passed StatusAndRepliesReadFromLiveMastodonWithoutCallerContext against mastodon.social status 117015608750780726. It checked the native identity and URI, exact reply parent bindings, and zero caller context posts. No token or writes were used. The default linked CQL project currently lacks references required by its linked registration sources.
