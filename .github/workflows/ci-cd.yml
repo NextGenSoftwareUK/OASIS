@@ -168,6 +168,8 @@ jobs:
             ports: 8529:8529
             wait: 8529
             docker_args: -e ARANGO_ROOT_PASSWORD=password
+            test_env: |
+              ARANGODB_PASSWORD=password
           - name: ArcadeDB
             project: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.ArcadeDBOASIS.IntegrationTests
             image: arcadedata/arcadedb:latest
