@@ -4,10 +4,17 @@ on:
   push:
     branches: [work/hyperdrive-provider-completion]
     paths:
-      - '.github/workflows/firebase-native-storage.yml'
       - 'Providers/Cloud/NextGenSoftware.OASIS.API.Providers.FirebaseOASIS/**'
       - 'Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.FirebaseOASIS.IntegrationTests/FirebaseNativeStorageConformanceTests.cs'
   workflow_dispatch:
+  workflow_call:
+    inputs:
+      compile_only:
+        type: boolean
+        default: false
+    secrets:
+      PRIVATE_SUBMODULE_PAT:
+        required: true
 
 permissions:
   contents: read
@@ -42,11 +49,25 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
+      - name: Compile the Firebase conformance entry points
+        if: ${{ inputs.compile_only }}
+        shell: pwsh
+        run: |
+          ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-FirebaseCompile -Operation {
+            $projects = @(git ls-files '*FirebaseOASIS*Tests.csproj')
+            if ($LASTEXITCODE -ne 0 -or $projects.Count -ne 2) { throw 'Could not identify both Firebase test projects.' }
+            foreach ($project in $projects) {
+              dotnet build $project /p:IncludeCoreStorageConformance=true /m:2 /nr:false /p:UseSharedCompilation=false --verbosity quiet
+              if ($LASTEXITCODE -ne 0) { throw "Firebase test project failed to compile: $project" }
+            }
+          }
       - uses: actions/setup-java@v4
+        if: ${{ !inputs.compile_only }}
         with:
           distribution: temurin
           java-version: '21'
       - name: Run both storage modes through the RTDB REST adapter
+        if: ${{ !inputs.compile_only }}
         shell: bash
         run: |
           fixture="$(mktemp -d "$RUNNER_TEMP/oasis-firebase.XXXXXXXX")"

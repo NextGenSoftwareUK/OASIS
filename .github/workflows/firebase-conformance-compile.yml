@@ -1,0 +1,22 @@
+name: Firebase storage qualification compile
+
+on:
+  push:
+    branches: [work/hyperdrive-provider-completion]
+    paths:
+      - '.github/workflows/firebase-conformance-compile.yml'
+      - 'Providers/Cloud/TestProjects/FirebaseConformanceCleanup.cs'
+      - 'Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.FirebaseOASIS.UnitTests/FirebaseStorageConformanceTests.cs'
+      - 'Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.FirebaseOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.FirebaseOASIS.UnitTests.csproj'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  compile:
+    uses: ./.github/workflows/firebase-native-storage.yml
+    with:
+      compile_only: true
+    secrets:
+      PRIVATE_SUBMODULE_PAT: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
