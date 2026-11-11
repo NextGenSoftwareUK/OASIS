@@ -97,7 +97,7 @@ jobs:
           echo "::add-mask::$OASIS_SOLANA_STORAGE_ENCRYPTION_KEY"
           pwsh -NoProfile -Command '
             ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-SolanaStorage -Operation {
-              dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.IntegrationTests.csproj" --filter "TestCategory=SolanaCoreStorageConformance" /m:2 /nr:false /p:UseSharedCompilation=false --logger "console;verbosity=normal"
+              dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.IntegrationTests.csproj" --filter "TestCategory=SolanaCoreStorageConformance" /p:SolanaDirectProviderOnly=true /m:2 /nr:false /p:UseSharedCompilation=false --logger "console;verbosity=normal"
               if ($LASTEXITCODE -ne 0) { throw "Native Solana storage verification failed." }
             }'
           for mode in async sync; do
