@@ -5522,3 +5522,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 
 
 11 November UTC: GOMap exact-base qualification uses remote CI 42977871267. Temporary Git indexes were removed. No local build, restore, runtime or artifact download.
+
+11 November UTC disk cleanup: C: measured 36.37 GiB free on arrival. Deleted and verified absent the inactive Deno KV 0.14.0 executable (16,557,056 bytes). Automatic command review rejected the larger recursive cleanup of the extracted Solr distribution and disposable npm/runtime directories before execution. Those paths still need cleanup. WEB4 project build output directories were already absent at inspection, and the HyperDrive Supabase build was active in its separate worktree. Windows Temp contained 16.51 GiB of logical file size, including 4.34 GiB in tplall; ownership of that tree was not established. Preserved original fixture databases, compact receipts, active outputs, and Railway CLI. No new downloads or builds.
