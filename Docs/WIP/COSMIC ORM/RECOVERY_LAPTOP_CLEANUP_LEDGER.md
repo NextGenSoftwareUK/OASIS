@@ -5780,3 +5780,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: refreshed the existing browser catalogue after Supabase cutover and inspected Railway logs in memory. No saved holons, local report, screenshot file, build or download. Temporary Git index removed.
 
 11 November UTC: checked the Playground refresh implementation and read WEB4 startup logs in memory. No new browser requests, build, download or local report. Temporary Git index removed.
+
+11 November UTC: Ethereum origin diagnosis used in-memory configuration comparison and bounded anonymous RPC reads. No settings export, credential values, local build, download, report or saved holons. Temporary Git index removed.
