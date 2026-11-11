@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November Hedera run 43053560805 deployed contract 0.0.1006, verified its owner and empty keys, and built the managed suite. Async passed activation and all four avatar checks, then stopped at avatar-detail save. Sync was fenced because the async fixture retained three keys. The next run uses separate ledgers per mode and captures the SDK error type and native status for the failing detail save without logging payloads or keys.
+
 11 November Hedera run 43052606982 used the extended readiness window and captured the native cause. The mirror gRPC process could not read its bind-mounted application.yml because the CLI inherited the outer private umask. The next runner uses the upstream file mode for the CLI subprocess while keeping the enclosing fixture and OASIS-generated inputs private. No deployment or managed tests ran.
 
 11 November Hedera run 43051793550 pulled the official Hiero stack, then the CLI expired its default ten-second mirror gRPC startup window before deploying. The retry uses the CLI's supported two-minute readiness setting and captures owned service logs on failure. If deployment and empty storage pass, it runs both managed storage modes through the shipping provider and checks native contract keys independently after each. The retained funded testnet remains separate.
