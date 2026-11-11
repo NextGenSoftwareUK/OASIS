@@ -597,6 +597,7 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             Services.Cql.CqlUrbitReadSourceRegistration.AddUrbitReadSource(services, Configuration);
             Services.Cql.CqlPocketBaseReadSourceRegistration.AddPocketBaseReadSource(services, Configuration);
             Services.Cql.CqlSupabaseReadSourceRegistration.AddSupabaseReadSource(services, Configuration);
+            Services.Cql.CqlPlanetScaleReadSourceRegistration.AddPlanetScaleReadSource(services, Configuration);
             Services.Cql.CqlFirebaseReadSourceRegistration.AddFirebaseReadSource(services, Configuration);
             Services.Cql.CqlWeaviateReadSourceRegistration.AddWeaviateReadSource(services, Configuration);
             Services.Cql.CqlTigrisReadSourceRegistration.AddTigrisReadSource(services, Configuration);

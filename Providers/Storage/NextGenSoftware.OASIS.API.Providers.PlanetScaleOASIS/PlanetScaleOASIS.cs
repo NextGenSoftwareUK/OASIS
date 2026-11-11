@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using MySqlConnector;
 using NextGenSoftware.OASIS.API.Core;
@@ -13,7 +11,9 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
+using NextGenSoftware.OASIS.API.Core.Serialization;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Providers.PlanetScaleOASIS
@@ -39,13 +39,6 @@ namespace NextGenSoftware.OASIS.API.Providers.PlanetScaleOASIS
     {
         private readonly string _connectionString;
 
-        private static readonly JsonSerializerOptions _jsonOpts = new JsonSerializerOptions
-        {
-            WriteIndented = false,
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-        };
-
         public PlanetScaleOASIS(string connectionString)
         {
             _connectionString = connectionString;
@@ -59,8 +52,8 @@ namespace NextGenSoftware.OASIS.API.Providers.PlanetScaleOASIS
 
         private MySqlConnection Open() { var conn = new MySqlConnection(_connectionString); conn.Open(); return conn; }
         private async Task<MySqlConnection> OpenAsync() { var conn = new MySqlConnection(_connectionString); await conn.OpenAsync(); return conn; }
-        private static string Ser(object obj) => JsonSerializer.Serialize(obj, _jsonOpts);
-        private static T? Des<T>(string? json) => json == null ? default : JsonSerializer.Deserialize<T>(json, _jsonOpts);
+        private static string Ser(object obj) => StoredRecordJson.Serialize(obj);
+        private static T? Des<T>(string? json) => json == null ? default : StoredRecordJson.DeserializeStored<T>(json);
 
         // ─── Schema bootstrap ─────────────────────────────────────────────────────
 
@@ -93,7 +86,9 @@ namespace NextGenSoftware.OASIS.API.Providers.PlanetScaleOASIS
             var result = new OASISResult<bool>();
             try
             {
+                IsProviderActivated = false;
                 await EnsureTablesAsync();
+                IsProviderActivated = true;
                 result.Result = true; result.IsError = false;
                 result.Message = "PlanetScaleOASIS activated — tables ready in MySQL/PlanetScale.";
             }
@@ -102,7 +97,11 @@ namespace NextGenSoftware.OASIS.API.Providers.PlanetScaleOASIS
         }
 
         public override OASISResult<bool> ActivateProvider() => ActivateProviderAsync().Result;
-        public override async Task<OASISResult<bool>> DeActivateProviderAsync() => await Task.FromResult(new OASISResult<bool> { Result = true, IsError = false, Message = "PlanetScaleOASIS deactivated." });
+        public override Task<OASISResult<bool>> DeActivateProviderAsync()
+        {
+            IsProviderActivated = false;
+            return Task.FromResult(new OASISResult<bool> { Result = true, Message = "PlanetScaleOASIS deactivated." });
+        }
         public override OASISResult<bool> DeActivateProvider() => DeActivateProviderAsync().Result;
 
         // ─── Avatar saving ────────────────────────────────────────────────────────
@@ -124,7 +123,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PlanetScaleOASIS
                 cmd.Parameters.AddWithValue("@is_deleted", avatar.IsDeleted ? 1 : 0);
                 cmd.Parameters.AddWithValue("@data_json", Ser(avatar));
                 await cmd.ExecuteNonQueryAsync();
-                result.Result = avatar; result.IsError = false; result.Message = $"PlanetScaleOASIS: Avatar '{avatar.Username}' saved.";
+                result.Result = avatar; result.IsError = false; result.IsSaved = true; result.SavedCount = 1; result.Message = $"PlanetScaleOASIS: Avatar '{avatar.Username}' saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PlanetScaleOASIS: Error saving avatar: {ex.Message}"); }
             return result;
@@ -150,8 +149,8 @@ namespace NextGenSoftware.OASIS.API.Providers.PlanetScaleOASIS
             try
             {
                 var avatar = await QueryAvatarAsync("SELECT data_json FROM oasis_avatars WHERE id=@id AND is_deleted=0 LIMIT 1", c => c.Parameters.AddWithValue("@id", id.ToString()));
-                if (avatar == null) { OASISErrorHandling.HandleError(ref result, $"PlanetScaleOASIS: No avatar found for ID '{id}'."); return result; }
-                result.Result = avatar; result.IsError = false; result.Message = $"PlanetScaleOASIS: Avatar loaded for ID '{id}'.";
+                if (avatar == null) { OASISErrorHandling.HandleError(ref result, $"PlanetScaleOASIS: No avatar found for ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
+                result.Result = avatar; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = $"PlanetScaleOASIS: Avatar loaded for ID '{id}'.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PlanetScaleOASIS: Error loading avatar '{id}': {ex.Message}"); }
             return result;
@@ -166,7 +165,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PlanetScaleOASIS
             {
                 var avatar = await QueryAvatarAsync("SELECT data_json FROM oasis_avatars WHERE username=@u AND is_deleted=0 LIMIT 1", c => c.Parameters.AddWithValue("@u", username));
                 if (avatar == null) { OASISErrorHandling.HandleError(ref result, $"PlanetScaleOASIS: No avatar found for username '{username}'."); return result; }
-                result.Result = avatar; result.IsError = false; result.Message = $"PlanetScaleOASIS: Avatar loaded for username '{username}'.";
+                result.Result = avatar; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = $"PlanetScaleOASIS: Avatar loaded for username '{username}'.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PlanetScaleOASIS: Error loading avatar by username '{username}': {ex.Message}"); }
             return result;
@@ -181,7 +180,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PlanetScaleOASIS
             {
                 var avatar = await QueryAvatarAsync("SELECT data_json FROM oasis_avatars WHERE email=@e AND is_deleted=0 LIMIT 1", c => c.Parameters.AddWithValue("@e", avatarEmail));
                 if (avatar == null) { OASISErrorHandling.HandleError(ref result, $"PlanetScaleOASIS: No avatar found for email '{avatarEmail}'."); return result; }
-                result.Result = avatar; result.IsError = false; result.Message = $"PlanetScaleOASIS: Avatar loaded for email '{avatarEmail}'.";
+                result.Result = avatar; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = $"PlanetScaleOASIS: Avatar loaded for email '{avatarEmail}'.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PlanetScaleOASIS: Error loading avatar by email '{avatarEmail}': {ex.Message}"); }
             return result;
@@ -207,7 +206,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PlanetScaleOASIS
                 await using var reader = await cmd.ExecuteReaderAsync();
                 var avatars = new List<IAvatar>();
                 while (await reader.ReadAsync()) { var a = Des<Avatar>(reader.GetString("data_json")); if (a != null) avatars.Add(a); }
-                result.Result = avatars; result.IsError = false; result.Message = $"PlanetScaleOASIS: Loaded {avatars.Count} avatar(s).";
+                result.Result = avatars; result.IsError = false; result.IsLoaded = true; result.LoadedCount = avatars.Count; result.Message = $"PlanetScaleOASIS: Loaded {avatars.Count} avatar(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PlanetScaleOASIS: Error loading all avatars: {ex.Message}"); }
             return result;
@@ -222,12 +221,30 @@ namespace NextGenSoftware.OASIS.API.Providers.PlanetScaleOASIS
             var result = new OASISResult<bool>();
             try
             {
-                await using var conn = await OpenAsync();
-                string sql = softDelete ? "UPDATE oasis_avatars SET is_deleted=1 WHERE id=@id" : "DELETE FROM oasis_avatars WHERE id=@id";
-                await using var cmd = new MySqlCommand(sql, conn);
-                cmd.Parameters.AddWithValue("@id", id.ToString());
-                await cmd.ExecuteNonQueryAsync();
-                result.Result = true; result.IsError = false; result.Message = $"PlanetScaleOASIS: Avatar '{id}' {(softDelete ? "soft" : "hard")}-deleted.";
+                await using var connection = await OpenAsync();
+                await using var transaction = await connection.BeginTransactionAsync();
+                var sql = softDelete
+                    ? "UPDATE oasis_avatars SET is_deleted=1 WHERE id=@id AND is_deleted=0"
+                    : "DELETE FROM oasis_avatars WHERE id=@id";
+                await using var command = new MySqlCommand(sql, connection, transaction);
+                command.Parameters.AddWithValue("@id", id.ToString());
+                if (await command.ExecuteNonQueryAsync() != 1)
+                {
+                    result.IsError = true;
+                    result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
+                    result.Message = $"PlanetScaleOASIS: No avatar found to delete for ID '{id}'.";
+                    return result;
+                }
+                if (!softDelete)
+                {
+                    await using var detail = new MySqlCommand("DELETE FROM oasis_avatar_details WHERE id=@id", connection, transaction);
+                    detail.Parameters.AddWithValue("@id", id.ToString());
+                    await detail.ExecuteNonQueryAsync();
+                }
+                await transaction.CommitAsync();
+                result.Result = true;
+                result.IsDeleted = true;
+                result.DeletedCount = 1;
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PlanetScaleOASIS: Error deleting avatar '{id}': {ex.Message}"); }
             return result;
@@ -273,7 +290,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PlanetScaleOASIS
                 cmd.Parameters.AddWithValue("@email", avatarDetail.Email ?? "");
                 cmd.Parameters.AddWithValue("@data_json", Ser(avatarDetail));
                 await cmd.ExecuteNonQueryAsync();
-                result.Result = avatarDetail; result.IsError = false; result.Message = "PlanetScaleOASIS: AvatarDetail saved.";
+                result.Result = avatarDetail; result.IsError = false; result.IsSaved = true; result.SavedCount = 1; result.Message = "PlanetScaleOASIS: AvatarDetail saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PlanetScaleOASIS: Error saving avatar detail: {ex.Message}"); }
             return result;
@@ -297,8 +314,8 @@ namespace NextGenSoftware.OASIS.API.Providers.PlanetScaleOASIS
             try
             {
                 var d = await QueryDetailAsync("SELECT data_json FROM oasis_avatar_details WHERE id=@id LIMIT 1", c => c.Parameters.AddWithValue("@id", id.ToString()));
-                if (d == null) { OASISErrorHandling.HandleError(ref result, $"PlanetScaleOASIS: No avatar detail found for ID '{id}'."); return result; }
-                result.Result = d; result.IsError = false; result.Message = $"PlanetScaleOASIS: AvatarDetail loaded for ID '{id}'.";
+                if (d == null) { OASISErrorHandling.HandleError(ref result, $"PlanetScaleOASIS: No avatar detail found for ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
+                result.Result = d; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = $"PlanetScaleOASIS: AvatarDetail loaded for ID '{id}'.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PlanetScaleOASIS: Error loading avatar detail '{id}': {ex.Message}"); }
             return result;
@@ -313,7 +330,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PlanetScaleOASIS
             {
                 var d = await QueryDetailAsync("SELECT data_json FROM oasis_avatar_details WHERE username=@u LIMIT 1", c => c.Parameters.AddWithValue("@u", username));
                 if (d == null) { OASISErrorHandling.HandleError(ref result, $"PlanetScaleOASIS: No avatar detail found for username '{username}'."); return result; }
-                result.Result = d; result.IsError = false; result.Message = $"PlanetScaleOASIS: AvatarDetail loaded for username '{username}'.";
+                result.Result = d; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = $"PlanetScaleOASIS: AvatarDetail loaded for username '{username}'.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PlanetScaleOASIS: Error loading avatar detail by username '{username}': {ex.Message}"); }
             return result;
@@ -328,7 +345,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PlanetScaleOASIS
             {
                 var d = await QueryDetailAsync("SELECT data_json FROM oasis_avatar_details WHERE email=@e LIMIT 1", c => c.Parameters.AddWithValue("@e", email));
                 if (d == null) { OASISErrorHandling.HandleError(ref result, $"PlanetScaleOASIS: No avatar detail found for email '{email}'."); return result; }
-                result.Result = d; result.IsError = false; result.Message = $"PlanetScaleOASIS: AvatarDetail loaded for email '{email}'.";
+                result.Result = d; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = $"PlanetScaleOASIS: AvatarDetail loaded for email '{email}'.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PlanetScaleOASIS: Error loading avatar detail by email '{email}': {ex.Message}"); }
             return result;
@@ -346,7 +363,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PlanetScaleOASIS
                 await using var reader = await cmd.ExecuteReaderAsync();
                 var details = new List<IAvatarDetail>();
                 while (await reader.ReadAsync()) { var d = Des<AvatarDetail>(reader.GetString("data_json")); if (d != null) details.Add(d); }
-                result.Result = details; result.IsError = false; result.Message = $"PlanetScaleOASIS: Loaded {details.Count} avatar detail(s).";
+                result.Result = details; result.IsError = false; result.IsLoaded = true; result.LoadedCount = details.Count; result.Message = $"PlanetScaleOASIS: Loaded {details.Count} avatar detail(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PlanetScaleOASIS: Error loading all avatar details: {ex.Message}"); }
             return result;
@@ -358,24 +375,17 @@ namespace NextGenSoftware.OASIS.API.Providers.PlanetScaleOASIS
 
         public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
-            var result = new OASISResult<IHolon>();
-            try
+            var saved = await SaveHolonsAsync(new[] { holon }, saveChildren, recursive, maxChildDepth,
+                continueOnError: continueOnError, saveChildrenOnProvider: saveChildrenOnProvider);
+            return new OASISResult<IHolon>
             {
-                if (holon.Id == Guid.Empty) holon.Id = Guid.NewGuid();
-                if (holon.ProviderUniqueStorageKey == null) holon.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
-                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.PlanetScaleOASIS] = holon.Id.ToString();
-                await using var conn = await OpenAsync();
-                await using var cmd = new MySqlCommand("INSERT INTO oasis_holons(id,parent_holon_id,holon_type,is_deleted,data_json) VALUES(@id,@parent,@type,@del,@data) ON DUPLICATE KEY UPDATE parent_holon_id=VALUES(parent_holon_id),holon_type=VALUES(holon_type),is_deleted=VALUES(is_deleted),data_json=VALUES(data_json)", conn);
-                cmd.Parameters.AddWithValue("@id", holon.Id.ToString());
-                cmd.Parameters.AddWithValue("@parent", holon.ParentHolonId == Guid.Empty ? (object)DBNull.Value : holon.ParentHolonId.ToString());
-                cmd.Parameters.AddWithValue("@type", (int)holon.HolonType);
-                cmd.Parameters.AddWithValue("@del", holon.IsDeleted ? 1 : 0);
-                cmd.Parameters.AddWithValue("@data", Ser(holon));
-                await cmd.ExecuteNonQueryAsync();
-                result.Result = holon; result.IsError = false; result.Message = $"PlanetScaleOASIS: Holon '{holon.Name}' saved.";
-            }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PlanetScaleOASIS: Error saving holon '{holon.Name}': {ex.Message}"); }
-            return result;
+                Result = saved.Result?.SingleOrDefault(),
+                IsError = saved.IsError,
+                Exception = saved.Exception,
+                Message = saved.Message,
+                IsSaved = saved.IsSaved,
+                SavedCount = saved.SavedCount
+            };
         }
 
         public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
@@ -384,9 +394,52 @@ namespace NextGenSoftware.OASIS.API.Providers.PlanetScaleOASIS
         public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
-            var saved = new List<IHolon>(); var errors = new List<string>();
-            foreach (var holon in holons) { var r = await SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider); if (r.IsError) errors.Add(r.Message ?? ""); else if (r.Result != null) saved.Add(r.Result); }
-            result.Result = saved; result.IsError = errors.Count > 0; result.Message = errors.Count > 0 ? string.Join("; ", errors) : $"PlanetScaleOASIS: {saved.Count} holon(s) saved.";
+            try
+            {
+                var plan = HolonGraphWritePlan.CreateForSave(holons, saveChildren, recursive, maxChildDepth, curentChildDepth);
+                var rows = plan.Nodes.Select(node =>
+                {
+                    var snapshot = node.Snapshot;
+                    snapshot.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
+                    snapshot.ProviderUniqueStorageKey[Core.Enums.ProviderType.PlanetScaleOASIS] = snapshot.Id.ToString();
+                    return (Snapshot: snapshot, Json: Ser(snapshot));
+                }).ToArray();
+
+                await using var connection = await OpenAsync();
+                await using var transaction = await connection.BeginTransactionAsync();
+                foreach (var row in rows)
+                {
+                    var snapshot = row.Snapshot;
+                    await using var command = new MySqlCommand(
+                        @"INSERT INTO oasis_holons(id,parent_holon_id,holon_type,is_deleted,data_json)
+                          VALUES(@id,@parent,@type,@del,@data)
+                          ON DUPLICATE KEY UPDATE parent_holon_id=VALUES(parent_holon_id),
+                          holon_type=VALUES(holon_type),is_deleted=VALUES(is_deleted),data_json=VALUES(data_json)",
+                        connection, transaction);
+                    command.Parameters.AddWithValue("@id", snapshot.Id.ToString());
+                    command.Parameters.AddWithValue("@parent", snapshot.ParentHolonId == Guid.Empty ? (object)DBNull.Value : snapshot.ParentHolonId.ToString());
+                    command.Parameters.AddWithValue("@type", (int)snapshot.HolonType);
+                    command.Parameters.AddWithValue("@del", snapshot.IsDeleted ? 1 : 0);
+                    command.Parameters.AddWithValue("@data", row.Json);
+                    await command.ExecuteNonQueryAsync();
+                }
+                await transaction.CommitAsync();
+
+                foreach (var node in plan.Nodes)
+                {
+                    node.Source.Id = node.Snapshot.Id;
+                    node.Source.ParentHolonId = node.Snapshot.ParentHolonId;
+                    node.Source.ProviderUniqueStorageKey = node.Snapshot.ProviderUniqueStorageKey;
+                }
+                result.Result = plan.Roots;
+                result.IsSaved = true;
+                result.SavedCount = rows.Length;
+            }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                OASISErrorHandling.HandleError(ref result, $"PlanetScaleOASIS: Error saving holon graph: {ex.Message}");
+            }
             return result;
         }
 
@@ -412,8 +465,8 @@ namespace NextGenSoftware.OASIS.API.Providers.PlanetScaleOASIS
             try
             {
                 var holons = await QueryHolonsAsync("SELECT data_json FROM oasis_holons WHERE id=@id AND is_deleted=0 LIMIT 1", c => c.Parameters.AddWithValue("@id", id.ToString()));
-                if (holons.Count == 0) { OASISErrorHandling.HandleError(ref result, $"PlanetScaleOASIS: No holon found for ID '{id}'."); return result; }
-                result.Result = holons[0]; result.IsError = false; result.Message = $"PlanetScaleOASIS: Holon loaded for ID '{id}'.";
+                if (holons.Count == 0) { OASISErrorHandling.HandleError(ref result, $"PlanetScaleOASIS: No holon found for ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
+                result.Result = holons[0]; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = $"PlanetScaleOASIS: Holon loaded for ID '{id}'.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PlanetScaleOASIS: Error loading holon '{id}': {ex.Message}"); }
             return result;
@@ -438,7 +491,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PlanetScaleOASIS
             {
                 string sql = type == HolonType.All ? "SELECT data_json FROM oasis_holons WHERE is_deleted=0" : "SELECT data_json FROM oasis_holons WHERE is_deleted=0 AND holon_type=@type";
                 var holons = await QueryHolonsAsync(sql, type == HolonType.All ? null : (Action<MySqlCommand>)(c => c.Parameters.AddWithValue("@type", (int)type)));
-                result.Result = holons; result.IsError = false; result.Message = $"PlanetScaleOASIS: Loaded {holons.Count} holon(s).";
+                result.Result = holons; result.IsError = false; result.IsLoaded = true; result.LoadedCount = holons.Count; result.Message = $"PlanetScaleOASIS: Loaded {holons.Count} holon(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PlanetScaleOASIS: Error loading all holons: {ex.Message}"); }
             return result;
@@ -454,7 +507,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PlanetScaleOASIS
             {
                 string sql = type == HolonType.All ? "SELECT data_json FROM oasis_holons WHERE parent_holon_id=@parent AND is_deleted=0" : "SELECT data_json FROM oasis_holons WHERE parent_holon_id=@parent AND is_deleted=0 AND holon_type=@type";
                 var holons = await QueryHolonsAsync(sql, c => { c.Parameters.AddWithValue("@parent", id.ToString()); if (type != HolonType.All) c.Parameters.AddWithValue("@type", (int)type); });
-                result.Result = holons; result.IsError = false; result.Message = $"PlanetScaleOASIS: Loaded {holons.Count} holon(s) for parent '{id}'.";
+                result.Result = holons; result.IsError = false; result.IsLoaded = true; result.LoadedCount = holons.Count; result.Message = $"PlanetScaleOASIS: Loaded {holons.Count} holon(s) for parent '{id}'.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"PlanetScaleOASIS: Error loading holons for parent '{id}': {ex.Message}"); }
             return result;
@@ -480,12 +533,20 @@ namespace NextGenSoftware.OASIS.API.Providers.PlanetScaleOASIS
             try
             {
                 var loaded = await LoadHolonAsync(id);
-                if (loaded.IsError || loaded.Result == null) { OASISErrorHandling.HandleError(ref result, $"PlanetScaleOASIS: No holon found with ID '{id}'."); return result; }
+                if (loaded.IsError) return loaded;
                 await using var conn = await OpenAsync();
-                await using var cmd = new MySqlCommand("UPDATE oasis_holons SET is_deleted=1 WHERE id=@id", conn);
+                await using var cmd = new MySqlCommand("UPDATE oasis_holons SET is_deleted=1 WHERE id=@id AND is_deleted=0", conn);
                 cmd.Parameters.AddWithValue("@id", id.ToString());
-                await cmd.ExecuteNonQueryAsync();
-                result.Result = loaded.Result; result.IsError = false; result.Message = $"PlanetScaleOASIS: Holon '{id}' soft-deleted.";
+                if (await cmd.ExecuteNonQueryAsync() != 1)
+                {
+                    result.IsError = true;
+                    result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
+                    result.Message = $"PlanetScaleOASIS: No live holon found to delete for ID '{id}'.";
+                    return result;
+                }
+                result.Result = loaded.Result;
+                result.IsDeleted = true;
+                result.DeletedCount = 1;
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
             return result;
@@ -525,8 +586,9 @@ namespace NextGenSoftware.OASIS.API.Providers.PlanetScaleOASIS
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             var all = await LoadAllHolonsAsync(type);
+            if (all.IsError) return all;
             var holons = all.Result?.Where(h => h.MetaData != null && h.MetaData.TryGetValue(metaKey, out var v) && v?.ToString() == metaValue).ToList() ?? new List<IHolon>();
-            return new OASISResult<IEnumerable<IHolon>> { Result = holons, IsError = false, Message = $"PlanetScaleOASIS: Loaded {holons.Count} holon(s) where {metaKey}={metaValue}." };
+            return new OASISResult<IEnumerable<IHolon>> { Result = holons, IsLoaded = true, LoadedCount = holons.Count, Message = $"PlanetScaleOASIS: Loaded {holons.Count} holon(s) where {metaKey}={metaValue}." };
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
@@ -535,9 +597,10 @@ namespace NextGenSoftware.OASIS.API.Providers.PlanetScaleOASIS
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             var all = await LoadAllHolonsAsync(type);
+            if (all.IsError) return all;
             bool IsMatch(IHolon h) { if (h.MetaData == null) return false; var checks = metaKeyValuePairs.Select(kvp => h.MetaData.TryGetValue(kvp.Key, out var v) && v?.ToString() == kvp.Value); return metaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.Any ? checks.Any(c => c) : checks.All(c => c); }
             var holons = all.Result?.Where(IsMatch).ToList() ?? new List<IHolon>();
-            return new OASISResult<IEnumerable<IHolon>> { Result = holons, IsError = false, Message = $"PlanetScaleOASIS: Loaded {holons.Count} holon(s) matching metadata filter." };
+            return new OASISResult<IEnumerable<IHolon>> { Result = holons, IsLoaded = true, LoadedCount = holons.Count, Message = $"PlanetScaleOASIS: Loaded {holons.Count} holon(s) matching metadata filter." };
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
@@ -545,7 +608,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PlanetScaleOASIS
 
         // ─── Import / Export ──────────────────────────────────────────────────────
 
-        public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons) { var s = await SaveHolonsAsync(holons); return new OASISResult<bool> { Result = !s.IsError, IsError = s.IsError, Message = s.Message }; }
+        public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons) { var s = await SaveHolonsAsync(holons); return new OASISResult<bool> { Result = s.IsSaved && !s.IsError, IsError = s.IsError, IsSaved = s.IsSaved, SavedCount = s.SavedCount, Exception = s.Exception, Message = s.Message }; }
         public override OASISResult<bool> Import(IEnumerable<IHolon> holons) => ImportAsync(holons).Result;
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0) => await LoadAllHolonsAsync();
         public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0) => ExportAllAsync(version).Result;
@@ -553,8 +616,9 @@ namespace NextGenSoftware.OASIS.API.Providers.PlanetScaleOASIS
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
         {
             var all = await LoadAllHolonsAsync();
+            if (all.IsError) return all;
             var holons = all.Result?.Where(h => h.CreatedByAvatarId == avatarId).ToList() ?? new List<IHolon>();
-            return new OASISResult<IEnumerable<IHolon>> { Result = holons, IsError = false, Message = $"PlanetScaleOASIS: Exported {holons.Count} holon(s) for avatar '{avatarId}'." };
+            return new OASISResult<IEnumerable<IHolon>> { Result = holons, IsLoaded = true, LoadedCount = holons.Count, Message = $"PlanetScaleOASIS: Exported {holons.Count} holon(s) for avatar '{avatarId}'." };
         }
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0) => ExportAllDataForAvatarByIdAsync(avatarId, version).Result;
