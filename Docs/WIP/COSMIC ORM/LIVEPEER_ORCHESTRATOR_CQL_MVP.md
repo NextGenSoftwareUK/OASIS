@@ -122,3 +122,5 @@ local C# example. All 114 website tests passed. Live HTML was 235,637
 bytes and matched Git SHA-256
 e4d7080f2daf86b11bd6f16c94b36df7dd492357fed5572e25f498137bd44f50.
 Interactive browser acceptance remains open.
+
+11 November UTC: Livepeer public orchestrator presets returned three full and two filtered rows in the live Development CQL Playground. The original-owner MongoDB paired browser check remains open. No record preparation or saves.
