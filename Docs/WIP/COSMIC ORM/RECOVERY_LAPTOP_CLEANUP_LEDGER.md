@@ -5668,3 +5668,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: exact solution CI 43007093453 uses temporary tag ci-cosmic-solution-4a3118bd93-build. Remove it after both tag-triggered runs finish and the result is recorded. The temporary local index was removed. No local build, restore, artifact copy or download.
 
 11 November UTC: Wormhole browser check reused the existing visitor. Railway logs were inspected in memory. No local report, screenshot file, download, runtime, build output or saved holon.
+
+11 November UTC: Wormhole recovery and acceptance reused the existing visitor. No local report, screenshot file, download, runtime, build output or saved holon.
