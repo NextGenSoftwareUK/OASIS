@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November EOSIO run 43046966627 passed the first nine shared checks in each mode and failed graph save. The old shipping path persisted only the root. The candidate now uses the shared graph planner and submits all selected holon writes as one native Antelope transaction. Parent queries use the stored graph rows and paginate the native table. The retry must verify these paths and expose the remaining shared-suite gaps.
+
 11 November Polkadot passed 52/52 in native run 43041109458 at 9520298841. Both shipping modes verified 26 checks, exact finalized mutation receipts and independently empty contract storage on the fresh Parity contracts node. CI removed the owned fixture. Hosted and retained ledgers remain separate.
 
 11 November EOSIO run 43046140551 reached native activation in both modes and failed at avatar-save acknowledgement count. Both fixtures were removed. The provider now reports exact avatar and detail save and point-read counts, and resolves username and email through the contract's stored records with complete pagination and ambiguity rejection. This replaces the old account-name guesses. The new candidate still needs native verification.

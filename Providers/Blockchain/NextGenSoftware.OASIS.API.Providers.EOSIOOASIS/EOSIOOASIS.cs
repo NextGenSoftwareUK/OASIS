@@ -52,7 +52,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
         private IEosClient _eosClient;
         private IEosProviderRepository<AvatarDetailDto> _avatarDetailRepository;
         private IEosProviderRepository<AvatarDto> _avatarRepository;
-        private IEosProviderRepository<HolonDto> _holonRepository;
+        private HolonEosProviderRepository _holonRepository;
         private IEosTransferRepository _transferRepository;
         private AvatarManager _avatarManager;
         private KeyManager _keyManager;
