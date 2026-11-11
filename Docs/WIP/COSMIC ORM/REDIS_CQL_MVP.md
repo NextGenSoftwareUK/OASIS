@@ -161,3 +161,5 @@ and native TLS qualification are still pending.
 
 [Status](CURRENT_STATUS.md) / [inventory](CQL_ALL_PROVIDER_MVP_INVENTORY.md) /
 [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
+
+11 November UTC: Redis candidate 52ea33e543 runs existing encrypted native CQL before and after restart and MongoDB SDK/HTTP federation on digest-pinned disposable services. The existing retained Windows fixture remains supported. Results are pending. The verified Dragonfly/Valkey batch still applies to Development ea54de967e.
