@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+11 November superseded Dragonfly run 43094237991 finished cancelled. GitHub reports no executed steps for job 130778844756. There is no recorded fixture creation in that run and no local runtime, build or report was created.
+
 11 November Base wallet and decoder qualification ran on a disposable GitHub runner. The public read used no signer and created no chain fixture. No local download, build output or raw test result was created.
 
 11 November cleanup check. Automatic approval review blocked the leased recursive removal command before execution. The exact owned MongoNativeMetadataBuild and ConvexResponseDeadlineBuild directories remain, with 99 generated files each and a combined 10,317,999 bytes. Both are untracked and contained no reparse points at inspection. No files were deleted or created by the attempt. C: had 34,100,469,760 free bytes at the read-only check.
