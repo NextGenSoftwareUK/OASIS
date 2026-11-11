@@ -463,3 +463,5 @@ rollout. MongoDB, SQLite and Neo4j each returned zero private rows for
 both cohorts. Their acceptance seals were unchanged. No owner read or
 prepared write was repeated. The Solana save receipts were not available
 in this checkout, so this check does not extend to Solana.
+
+11 November UTC: Waku native public message metadata presets rendered 3 full and 2 filtered rows in the live Development WEB4 CQL Playground. The original-owner private paired browser check remains open.
