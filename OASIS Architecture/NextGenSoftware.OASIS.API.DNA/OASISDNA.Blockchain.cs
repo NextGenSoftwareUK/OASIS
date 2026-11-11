@@ -54,6 +54,8 @@ namespace NextGenSoftware.OASIS.API.DNA
         public string RpcEndpoint { get; set; } = "https://mainnet.optimism.io";
         public string NetworkId { get; set; } = "10";
         public string ChainId { get; set; } = "0xa";
+        public string ChainPrivateKey { get; set; }
+        public string ContractAddress { get; set; }
     }
 
     public class ChainLinkOASISProviderSettings : ProviderSettingsBase

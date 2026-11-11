@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November Optimism shipping registration. BootLoader now uses the configured RPC, explicit chain ID, signer and Web3Core contract for the shipping Optimism adapter. The existing settings retain their mainnet defaults. This closes the commented-out registration path. C# syntax and diff checks passed. BootLoader build and signed OP Sepolia activation remain open.
+
 11 November Ronin shipping registration. BootLoader now constructs the Web3Core-backed Ronin storage adapter from the RoninOASIS storage settings. It uses the existing EVM chain parser and storage error hook. Signed configuration and runtime acceptance remain open. The COSMIC public query registration was left intact. Ronin public wallet run 43114758564 remains queued.
 
 11 November Ronin Saigon verification harness. The native core-storage-v2 suite now exercises both shipping storage modes when explicitly enabled with OASIS_RONIN_SAIGON_STORAGE_WRITES=1. It validates an HTTPS fixture, checks Saigon chain identity and signer funds, and requires all cases plus fixture cleanup. The official Saigon endpoint independently confirmed chain ID 202601. The protected fixture settings are absent from the current session. Build and signed execution remain open, with access tracked in the owner action ledger.

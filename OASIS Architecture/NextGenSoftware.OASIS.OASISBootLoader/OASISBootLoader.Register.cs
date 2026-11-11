@@ -422,15 +422,17 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                         //    }
                         //    break;
 
-                        //case ProviderType.OptimismOASIS:
-                        //    {
-                        //        OptimismOASIS optimismOASIS = new OptimismOASIS(
-                        //            OASISDNA.OASIS.StorageProviders.OptimismOASIS.RpcEndpoint,
-                        //            OASISDNA.OASIS.StorageProviders.OptimismOASIS.NetworkId,
-                        //            OASISDNA.OASIS.StorageProviders.OptimismOASIS.ChainId);
-                        //        result.Result = optimismOASIS;
-                        //    }
-                        //    break;
+                        case ProviderType.OptimismOASIS:
+                        {
+                            var settings = OASISDNA.OASIS.StorageProviders.OptimismOASIS
+                                ?? throw new InvalidOperationException("Optimism storage settings are required.");
+                            var provider = new OptimismOASIS(overrideConnectionString ?? settings.RpcEndpoint,
+                                settings.ChainPrivateKey, settings.ContractAddress,
+                                EvmProviderFactory.ParseChainId(settings.ChainId, "Optimism"));
+                            provider.OnStorageProviderError += (_, error) => HandleProviderError("OptimismOASIS", error);
+                            result.Result = provider;
+                        }
+                        break;
 
                         //case ProviderType.ChainLinkOASIS:
                         //    {
