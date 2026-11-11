@@ -5958,3 +5958,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: retired SurrealDB -trx and -schema tags after both runs associated with each finished. Verified both tags absent. Temporary Git indices removed. No local build, restore, database or download.
 
 11 November UTC: verified scoped Development push for OpenSearch and SurrealDB CI. Temporary Git index removed. No local build, restore, database or download.
+
+11 November UTC: track ci-cosmic-surrealdb-generic-b8df606442-key until both CI jobs finish. The -v335 companion status could not be confirmed because the API rate-limited the request. Temporary Git indices removed. No local build, restore, runtime or download.
