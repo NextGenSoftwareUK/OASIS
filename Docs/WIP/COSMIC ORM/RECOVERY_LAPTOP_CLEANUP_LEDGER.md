@@ -6130,3 +6130,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: track parent tag ci-cosmic-planetscale-web4-cc183ba346 and Core tag ci-cosmic-planetscale-tariff-8a5de72b6e until the qualification evidence is recorded and scoped source is published. Temporary Git indices removed. No local build, restore, download or image.
 
 11 November UTC: inspected the failed Railway EOSIO build tail in memory. No local log, download, build or image was created. Temporary Git index removed.
+
+11 November UTC: fetched Development without tags or submodules, staged the scoped ScyllaDB-base integration in a temporary Git index and removed the index. Dependency validation ran against committed blobs. No local image, build, restore or download.
