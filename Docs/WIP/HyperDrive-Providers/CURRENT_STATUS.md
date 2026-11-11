@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November Sui run 43058209983 at cd11889809 passed both shipping storage modes on official Sui v1.81.1. Each mode passed 26 checks and the independent native SDK dynamic-field list was empty before and after the suite. The validator, SDK dependencies and report directory were removed. Hosted and retained-ledger capability acceptance remain separate.
+
 11 November Sui run 43057684457 verified official executable 1.81.1-e04cf9aa915c, built and published the shipping Move package, and removed the disposable validator fixture. The next workflow revision runs both managed storage modes through the shipping provider and independently checks the native dynamic-field list before and after the suite. COSMIC public reads are outside this run.
 
 11 November Sui native storage prerequisite. The new workflow provisions the official checksum-pinned Sui v1.81.1 local validator and faucet, builds the shipping Move package with the existing pinned framework, and publishes it through the existing SDK fixture. The existing COSMIC public object read and retained routing evidence carry forward. Fresh deployment and the shared managed storage suite remain open.
