@@ -1403,3 +1403,5 @@ KeyDB combined orchestration CI 43051825070 is active. Railway is building b8df6
 11 November UTC: both KeyDB jobs passed in combined CI 43051825070. Generic storage ran in the standard matrix fixture and encrypted native CQL, restart and MongoDB federation ran in the dedicated fixture. Verified wiring is published on the COSMIC branch. Development candidate ea54de967e awaits the next verified batch. Hosted TLS acceptance remains open.
 
 11 November UTC: Railway deployed WEB4 b8df606442 as 8ec01f60. The separate public visitor renewed successfully and authenticated discovery showed 105/106 sources ready, with Nostr unavailable. The older visitor's renewal evidence remains preserved. KeyDB's verified candidate still applies to Development e5e3ca694c.
+
+11 November UTC: Dragonfly candidate 1b69323266 runs the existing pinned 2.0.2 encrypted native CQL and checkpoint/restart tests in isolated CI with a disposable MongoDB replica for SDK/HTTP federation. Existing retained source remains separate. Results are pending.
