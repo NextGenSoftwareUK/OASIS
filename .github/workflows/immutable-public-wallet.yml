@@ -1,0 +1,53 @@
+name: Immutable public wallet
+
+on:
+  push:
+    branches: [work/hyperdrive-provider-completion]
+    paths:
+      - '.github/workflows/immutable-public-wallet.yml'
+      - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.ImmutableZkEVMOASIS/**'
+      - 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.ImmutableZkEVMOASIS.IntegrationTests/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  public-wallet:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: OASIS
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          path: OASIS
+          submodules: recursive
+          persist-credentials: false
+      - name: Read the recorded Libraries revision
+        id: dependencies
+        run: |
+          revision="$(sed -n 's/^LIBRARIES_COMMIT=//p' Docker/oasis-dependency-versions.env)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "libraries=$revision" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependencies.outputs.libraries }}
+          path: NextGenSoftware-Libraries
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Verify the shipping wallet path against Immutable mainnet
+        shell: pwsh
+        env:
+          OASIS_IMMUTABLE_PUBLIC_WALLET_READ: '1'
+        run: |
+          ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-ImmutablePublicWallet -Operation {
+            dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.ImmutableZkEVMOASIS.IntegrationTests" --filter "FullyQualifiedName~PublicWalletBalanceRequiresImmutableMainnet" /m:2 /nr:false /p:UseSharedCompilation=false --logger "console;verbosity=normal"
+            if ($LASTEXITCODE -ne 0) { throw "Immutable public wallet verification failed." }
+          }
