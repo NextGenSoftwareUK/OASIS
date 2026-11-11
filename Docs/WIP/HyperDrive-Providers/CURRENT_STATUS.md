@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November CockroachDB native storage. The workflow reuses the digest-verified official CockroachDB 26.2.9 runtime installer on a disposable CI runner. Both shared storage modes exercise the shipping Npgsql provider against separate databases and require exact native tombstone cleanup and three empty current tables. COSMIC CQL cases are outside the run. Verification is pending.
+
 11 November Sui run 43058209983 at cd11889809 passed both shipping storage modes on official Sui v1.81.1. Each mode passed 26 checks and the independent native SDK dynamic-field list was empty before and after the suite. The validator, SDK dependencies and report directory were removed. Hosted and retained-ledger capability acceptance remain separate.
 
 11 November Sui run 43057684457 verified official executable 1.81.1-e04cf9aa915c, built and published the shipping Move package, and removed the disposable validator fixture. The next workflow revision runs both managed storage modes through the shipping provider and independently checks the native dynamic-field list before and after the suite. COSMIC public reads are outside this run.
