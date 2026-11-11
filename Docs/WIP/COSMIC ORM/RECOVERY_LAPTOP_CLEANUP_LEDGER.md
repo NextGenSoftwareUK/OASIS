@@ -5636,3 +5636,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: EigenLayer browser checks reused the existing demo visitor. No new avatar, report, screenshot file, download or build output.
 
 11 November UTC: SQLite cutover readiness checks reused the existing browser session and Railway CLI. No new avatar, saved holon, screenshot file, download or build output.
+
+11 November UTC: Elrond browser checks reused the existing demo visitor. No new avatar, report, screenshot file, download or build output.

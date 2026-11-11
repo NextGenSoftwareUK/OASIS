@@ -1011,3 +1011,5 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 11 November UTC coordination: Development 88dcb9ada1 adds the shipping MongoDB metadata-load fix and a real MongoDB 8.2.1 regression for exact All/Any GUIDs and counts through sync and async calls. Railway queued 3a9967e4-0432-4fd2-87bb-94d954607eea. This verifies provider metadata loading. Keep existing CQL federation receipts as separate evidence. WEB4 still serves bbb4706313.
 
 11 November UTC: Railway deployment 3d9ee41b-0695-4f06-a237-afd0bbd2ec14 is live at Development 4489034aa1. The retained Playground refreshed from 37 to 70 to 105 available sources. Nostr activation again failed the WebSocket upgrade with HTTP 503 / NotAWebSocket at 105 ms. Existing Nostr evidence remains preserved. Arbitrum and Polygon wallet revision e5530b0914 is building, and MongoDB metadata revision 88dcb9ada1 is queued.
+
+11 November UTC: Elrond public MultiversX latest-indexed address presets rendered 3 full and 2 filtered rows in the live Development WEB4 CQL Playground. The original-owner private paired browser check remains open.

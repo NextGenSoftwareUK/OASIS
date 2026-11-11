@@ -87,3 +87,5 @@ Original sourceOwner/catalogue and owner/foreign cohort retained. Completion ACK
 | ElrondOASIS-native-http.json | `f104103460d61fad4742b13a2f79031b28db5103c8a7e73a4b93d8ce7dc72f71` |
 | ElrondOASIS-client-http-flow.json | `71e8b470f90b49c69e9d023636d90c487fd8edae7a08f072e25964c6c001b42b` |
 | ElrondOASIS-isolation-http.json | `03a08a90c1efd0b55c9dcb5e9519ff22830f7539c640d4cac7aa3c45485e200c` |
+
+11 November UTC: Elrond public MultiversX latest-indexed address presets rendered 3 full and 2 filtered rows in the live Development WEB4 CQL Playground. The original-owner private paired browser check remains open.
