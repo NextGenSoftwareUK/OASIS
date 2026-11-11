@@ -273,3 +273,5 @@ Execution needs an owned source and restricted read credentials.
 11 November UTC: secured OpenSearch 3.9.0 CI passed one native CQL test before restart and one after restart, zero skips. The tests verified the same cluster identity and original document snapshot over authenticated HTTPS with the fixture CA. CI removed its container. Mongo federation and hosted WEB4 remain open. [OpenSearch restart CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43035774220)
 
 11 November UTC: OpenSearch federation diagnostic `b4ff3d1e2c` extends the passing secured restart workflow with a disposable Mongo replica set. It runs existing replica admission, SDK/HTTP federation, and the post-federation native source recheck. Hosted HTTPS teaching-source acceptance remains open.
+
+11 November UTC: OpenSearch passed all five isolated CI phases with zero skips, including Mongo replica admission, native SDK/HTTP federation, and a final source recheck. Hosted HTTPS CQL remains open. [OpenSearch federation CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43037028447)
