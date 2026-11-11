@@ -1105,3 +1105,5 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 11 November UTC: the warmed Development 323c4f54da catalogue reached 105 available sources on Railway 5c6a6f59. Startup logs recorded a Blockscout activation timeout at 15,005 ms. Preserve its previously accepted browser results; no provider recovery or preset replay was performed.
 
 11 November UTC: HyperDrive CI 43011806925 also verified IPFS writer-process publication on Linux with native Kubo 0.43.1. Two writer processes sharing one local DNA file and a fresh reader preserved all eight acknowledged records. This matches Development 9aaed91520; Railway cutover and historical fixture recovery remain open.
+
+11 November UTC: ClickHouseOASIS read-only public country-summary presets returned 3 full and 2 filtered rows in the live Development WEB4 CQL Playground. Original-owner paired browser verification remains open. HyperDrive owns the separate writable storage work.
