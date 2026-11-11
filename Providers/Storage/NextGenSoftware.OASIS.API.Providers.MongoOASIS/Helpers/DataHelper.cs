@@ -704,7 +704,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
         public static IHolon ConvertMongoEntityToOASISHolon(Holon holon, bool mapChildren = true)
         {
             Core.Holons.Holon oasisHolon = new Core.Holons.Holon();
-            oasisHolon.IsNewHolon = false; //TODO: Not sure if best to default all new Holons to have this set to true or not?
+            oasisHolon.IsNewHolon = false; // This holon was materialized from a persisted MongoDB record.
             oasisHolon.Id = holon.HolonId;
             oasisHolon.ChildRoleManifestJson = holon.ChildRoleManifestJson;
             oasisHolon.ProviderUniqueStorageKey = holon.ProviderUniqueStorageKey == null ? new Dictionary<ProviderType,string>()
