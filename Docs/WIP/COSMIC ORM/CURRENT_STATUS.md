@@ -1075,3 +1075,5 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 11 November UTC: IPFS independent-writer CI 43009731953 passed on native Kubo 0.43.1. Two provider instances in one process shared a DNA file, and a fresh reader recovered all eight acknowledged records. The tested fix is owned by HyperDrive. Separate processes, historical fixture recovery and rollout of this follow-up remain open.
 
 11 November UTC: TelosOASIS RPC-reported finalized balance presets returned 3 full and 2 filtered rows in the live Development WEB4 CQL Playground. Original-owner paired browser verification remains open.
+
+11 November UTC: Development 323c4f54da includes HyperDrive's independently verified two-instance IPFS publication fix. Railway 5c6a6f59 is queued behind a1749dd8. Exact two-file solution candidate 7854ac618f incorporates the new base and has been submitted to remote CI. No Development push from COSMIC.
