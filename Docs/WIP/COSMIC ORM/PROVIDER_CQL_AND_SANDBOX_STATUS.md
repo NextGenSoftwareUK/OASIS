@@ -649,3 +649,5 @@ broader provider contracts remain open. [Evidence](DUCKDB_CQL_MVP.md).
 11 November UTC: Discord's public guild-metadata presets returned three full and two filtered rows in the live Development CQL Playground. The original-owner MongoDB paired browser check remains open. No record preparation or saves.
 
 11 November UTC: Livepeer public orchestrator presets returned three full and two filtered rows in the live Development CQL Playground. The original-owner MongoDB paired browser check remains open. No record preparation or saves.
+
+11 November UTC: on live Development WEB4 `3f5d781f29`, all 106 listed sources advertised native and federated readiness. Discovery advertised two enabled native and two enabled federation presets for each of 103 sources. The three primary storage providers (MongoDB, SQLite and Neo4j) use the Playground's built-in examples. This checks discovery and preset availability; per-provider execution evidence remains in the matrix.
