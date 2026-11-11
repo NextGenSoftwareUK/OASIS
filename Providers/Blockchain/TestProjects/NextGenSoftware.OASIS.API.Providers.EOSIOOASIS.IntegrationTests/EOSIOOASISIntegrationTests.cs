@@ -4,6 +4,8 @@ using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS;
 using System;
 using System.Threading.Tasks;
+using System.Text.Json;
+using NextGenSoftware.OASIS.Providers.TestSupport;
 
 namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.IntegrationTests
 {
@@ -147,5 +149,30 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.IntegrationTests
 
         [TestCleanup]
         public void Cleanup() => _provider?.DeActivateProvider();
+
+        [TestMethod]
+        public async Task CoreStorageConformanceOnOfficialAntelope()
+        {
+            var mode = Environment.GetEnvironmentVariable("OASIS_ANTELOPE_STORAGE_MODE");
+            if (mode is not ("sync" or "async"))
+                Assert.Inconclusive("Select a storage mode on the disposable Antelope fixture.");
+            Assert.AreEqual("http://127.0.0.1:18888", Environment.GetEnvironmentVariable("OASIS_ANTELOPE_ENDPOINT"));
+            Assert.AreEqual("oasisfixture", Environment.GetEnvironmentVariable("OASIS_ANTELOPE_ACCOUNT"));
+
+            var directory = Environment.GetEnvironmentVariable("OASIS_ANTELOPE_RESULTS")!;
+            Directory.CreateDirectory(directory);
+            var path = Path.Combine(directory, "core-storage.json");
+            Assert.IsFalse(File.Exists(path));
+            var report = await CoreStorageConformance.RunAsync(_provider, nameof(EOSIOOASIS), "native",
+                mode == "sync", async checkpoint =>
+                {
+                    await File.WriteAllTextAsync(path + ".next", JsonSerializer.Serialize(checkpoint));
+                    File.Move(path + ".next", path, overwrite: true);
+                });
+            Assert.IsTrue(report.Succeeded,
+                $"{report.CurrentCase}: {report.FailureType} {report.FailureContract}; {report.Passed.Count} checks passed.");
+            Assert.IsTrue(report.FixtureCleanupComplete);
+            Assert.AreEqual(CoreStorageConformance.ChecksPerMode, report.Passed.Count);
+        }
     }
 }

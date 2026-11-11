@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November EOSIO shared storage. The Spring CI fixture now runs the existing 26-check shared conformance contract in two separate jobs, each with an independently deployed ledger and the shipping provider. The run selects the new conformance test only. Existing native avatar, holon and avatar-detail evidence remains recorded at 43026743854. Each new mode must pass its checkpoint report and independent native table checks. Verification is pending.
+
 11 November ActivityPub run 43043728770 at 1234c1270f passed all three managed native checks on Mastodon 4.4.28. The provider matched all 42 authenticated accounts across two pages and canonical point projection. Both shipping deletion entry points acknowledged the exact source text and native reads independently confirmed each private status absent. All fixture containers, network and directory were removed. Hosted identity and federation remain separate.
 
 11 November ActivityPub run 43042831640 returned all 42 fixture accounts over two populated authenticated pages. Provider and native paging matched, then the account point check hit HTTP 403 because its token lacked `read:accounts`. Both native DELETEs returned HTTP 200, but the adapter treated their source-text acknowledgement as a read projection and required a rendered content field. The adapter now validates the native DELETE shape and records its exact source text. The test token explicitly requests the scope needed by the point check. Final managed acceptance is pending.

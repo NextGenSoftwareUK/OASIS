@@ -16,6 +16,10 @@ jobs:
   storage:
     runs-on: ubuntu-22.04
     timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        mode: [async, sync]
     defaults:
       run:
         working-directory: OASIS
@@ -128,9 +132,10 @@ jobs:
           export OASIS_ANTELOPE_LIFECYCLE_WRITES=1
           export OASIS_ANTELOPE_DETAIL_CONTRACT_READY=1
           export OASIS_ANTELOPE_RESULTS="$fixture/results"
+          export OASIS_ANTELOPE_STORAGE_MODE="${{ matrix.mode }}"
           pwsh -NoProfile -Command '
             ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-AntelopeStorage -Operation {
-              dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.IntegrationTests.csproj" --results-directory $env:OASIS_ANTELOPE_RESULTS --logger "trx;LogFileName=antelope.trx" --logger "console;verbosity=normal" /m:2 /nr:false /p:UseSharedCompilation=false
+              dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.IntegrationTests.csproj" --filter "FullyQualifiedName~CoreStorageConformanceOnOfficialAntelope" --results-directory $env:OASIS_ANTELOPE_RESULTS --logger "trx;LogFileName=antelope.trx" --logger "console;verbosity=normal" /m:2 /nr:false /p:UseSharedCompilation=false
               if ($LASTEXITCODE -ne 0) { throw "Native Antelope storage verification failed." }
             }'
           python3 - "$fixture/results/antelope.trx" <<'PY'
@@ -140,18 +145,16 @@ jobs:
           tree = ET.parse(sys.argv[1])
           passed = {row.get("testName") for row in tree.findall(".//{*}UnitTestResult")
                     if row.get("outcome") == "Passed"}
-          expected = {
-              "AvatarCrud_PersistsOnOfficialAntelopeNode",
-              "HolonCrud_PersistsOnOfficialAntelopeNode",
-              "AvatarDetailUpdateAndHardDelete_PersistOnAntelope",
-          }
+          expected = {"CoreStorageConformanceOnOfficialAntelope"}
           if not expected <= passed:
               raise SystemExit(f"Missing native lifecycle passes: {sorted(expected - passed)}")
           PY
+          jq -e '.Succeeded and .FixtureCleanupComplete and (.Passed | length == 26)' \
+            "$fixture/results/core-storage.json" >/dev/null
           for table in avatar avatardetail; do
             "${cli[@]}" get table "$OASIS_ANTELOPE_ACCOUNT" "$OASIS_ANTELOPE_ACCOUNT" "$table" \
               | jq -e '(.rows | length == 0) and (.more == false)' >/dev/null
           done
           "${cli[@]}" get table "$OASIS_ANTELOPE_ACCOUNT" "$OASIS_ANTELOPE_ACCOUNT" holon \
             | jq -e '(.more == false) and all(.rows[]; .isDeleted == true or .isDeleted == 1)' >/dev/null
-          echo "Verified three Antelope lifecycle tests and independent native table cleanup."
+          echo "Verified 26 Antelope storage checks in $OASIS_ANTELOPE_STORAGE_MODE mode and independent native table cleanup."
