@@ -1371,3 +1371,7 @@ CouchDB restart and federation diagnostic 43045487847 is active.
 11 November UTC: WEB4 renewal investigation found the sandbox cleanup retention is 24 hours in live logs. The retained visitor acknowledgement is over 29 hours old. Core's refresh-token lookup excludes deleted identities in the Mongo adapter. The observed sweep counters did not establish deletion of this avatar, so expiration of the demo identity is plausible and the provider lookup cause remains unconfirmed. Keep the original protected journal. Railway is building 6103e4e632 and has Polkadot revision 3def10424e queued.
 
 11 November UTC: KeyDB diagnostic 60e19c3dc5 uses the existing digest-pinned 6.3.4 source build and authenticated native restart runner on disposable CI, with the existing isolated MongoDB helper for SDK/HTTP federation. The retained KeyDB source is untouched. Results are pending.
+
+11 November UTC: Development ea614f3fc6 carries the verified CouchDB CI wiring on top of HyperDrive Polkadot changes. The four-file batch matches the focused CI candidate. The combined run executed four generic tests and verified the restricted role plus native restart and MongoDB federation. Hosted HTTPS acceptance remains open.
+
+KeyDB pinned source build and native verification are active in CI 43047936284.

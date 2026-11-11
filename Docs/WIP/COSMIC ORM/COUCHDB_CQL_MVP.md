@@ -171,3 +171,5 @@ python -B Scripts/Sandbox/Verify-HostedQuerySource.py CouchDBOASIS --readiness
 11 November UTC: both CouchDB jobs passed in combined CI 43046007325. The generic storage and restricted-reader checks used the standard matrix fixture. The native CQL restart and MongoDB federation checks used the dedicated fixture. Verified routing is on the COSMIC branch, pending the next Development batch. Hosted HTTPS acceptance remains open.
 
 11 November UTC: Development 3def10424e integrates HyperDrive Polkadot native storage. CI 43041109458 passed all 52 checks across sync and async on the fresh contracts node, with independent native empty-contract checks. Hosted and retained ledger validation remain open. The verified CouchDB CI batch was prepared on this Development base at ea614f3fc6.
+
+11 November UTC: Development ea614f3fc6 carries the verified CouchDB CI wiring on top of HyperDrive Polkadot changes. The four-file batch matches the focused CI candidate. The combined run executed four generic tests and verified the restricted role plus native restart and MongoDB federation. Hosted HTTPS acceptance remains open.
