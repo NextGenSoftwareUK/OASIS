@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November SQL Server avatar wallet verification. The shipping provider preserves the stored JSON format and materializes wallet transactions with native evidence. On SQL Server LocalDB 17.0.4025.3 the focused test passed 1/1 with zero skips, covering a current avatar read after a version update and archived wallet and transaction reads by ID and by collection. The disposable database and instance were removed. The verified task revision is b3622db1fe. Full provider acceptance remains open.
+
 11 November MongoDB graph transaction. At c3229c908a the shipping provider passed on a disposable one-member MongoDB 8.2.1 replica set. A native child validation rejection left zero holon rows and both caller IDs unset. The corrected graph committed both records, published both IDs and loaded the expected child. The scoped Development change carries the matching native test. Multi-node and hosted acceptance are separate.
 
 11 November MongoDB metadata queries. The shipping provider passed synchronous and asynchronous All and Any queries against an isolated MongoDB 8.2.1 standalone server at 740c02a863. All four calls returned the exact expected GUID sets and loaded counts. The Development change matches the tested provider and shared dependencies. The disposable server and files were removed. This run covers standalone metadata queries.

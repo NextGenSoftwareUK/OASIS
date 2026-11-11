@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Text.Json.Serialization.Metadata;
 using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
 using NextGenSoftware.OASIS.API.Core;
@@ -12,6 +14,8 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Serialization;
 using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Response;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.Common;
@@ -30,11 +34,38 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLServerDBOASIS
     {
         private readonly string _connectionString;
 
-        private static readonly JsonSerializerOptions _jsonOpts = new JsonSerializerOptions
+        private static readonly JsonSerializerOptions _storedJsonFormat = new JsonSerializerOptions
         {
             WriteIndented = false,
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         };
+
+        private static readonly JsonSerializerOptions _jsonOpts = new JsonSerializerOptions(_storedJsonFormat)
+        {
+            TypeInfoResolver = new DefaultJsonTypeInfoResolver
+            {
+                Modifiers = { ConfigureWalletRecordTypes }
+            },
+            Converters = { new WalletTransactionJsonConverter() }
+        };
+
+        private static void ConfigureWalletRecordTypes(JsonTypeInfo typeInfo)
+        {
+            // Keep the original interface-shaped JSON and materialize known wallet types
+            // when reading existing records, which have no runtime type discriminator.
+            if (typeInfo.Type == typeof(IProviderWallet))
+                typeInfo.CreateObject = () => new ProviderWallet();
+        }
+
+        private sealed class WalletTransactionJsonConverter : JsonConverter<IWalletTransaction>
+        {
+            // Native evidence is getter-only on the interface but writable on the stored model.
+            public override IWalletTransaction? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+                => JsonSerializer.Deserialize<WalletTransaction>(ref reader, options);
+
+            public override void Write(Utf8JsonWriter writer, IWalletTransaction value, JsonSerializerOptions options)
+                => JsonSerializer.Serialize(writer, value, _storedJsonFormat);
+        }
 
         private const string CreateAvatarsTable = @"
 IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='OASISAvatars' AND xtype='U')

@@ -2,6 +2,10 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.Providers.TestSupport;
 using Microsoft.Data.SqlClient;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Response;
+using NextGenSoftware.OASIS.API.Core.Objects;
 using System.Text.Json;
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLServerDBOASIS.IntegrationTests;
@@ -10,6 +14,72 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLServerDBOASIS.IntegrationTests;
 [DoNotParallelize]
 public class SqlServerNativeStorageConformanceTests
 {
+    [TestMethod]
+    public async Task AvatarWalletAndTransactionRoundTripThroughCurrentAndHistoricalReads()
+    {
+        if (Environment.GetEnvironmentVariable("OASIS_SQLSERVER_AVATAR_WALLET") != "1")
+            Assert.Inconclusive("Enable only for the disposable avatar wallet LocalDB fixture.");
+
+        const string connectionString = @"Server=(localdb)\OASISHyperDriveWalletProbe;Database=oasis_hyperdrive_wallet_probe;Integrated Security=true;TrustServerCertificate=true";
+        var writer = new SQLServerDBOASIS(connectionString);
+        var reader = new SQLServerDBOASIS(connectionString);
+        var avatar = new Avatar { Id = Guid.NewGuid(), Version = 1, Username = "wallet", Email = "wallet@example.invalid" };
+        var transaction = new WalletTransaction { TransactionId = Guid.NewGuid(), NativeTransactionId = "native-wallet-transaction" };
+        var wallet = new ProviderWallet
+        {
+            WalletId = Guid.NewGuid(),
+            AvatarId = avatar.Id,
+            ProviderType = ProviderType.SolanaOASIS,
+            WalletAddress = "test-wallet-address",
+            PrivateKey = "opaque-key-envelope",
+            SecretRecoveryPhrase = "opaque-phrase-envelope",
+            Transactions = new() { transaction }
+        };
+        avatar.ProviderWallets[wallet.ProviderType] = new() { wallet };
+
+        try
+        {
+            var active = await writer.ActivateProviderAsync();
+            Assert.IsTrue(active.Result && !active.IsError, active.Message);
+            var saved = await writer.SaveAvatarAsync(avatar);
+            Assert.IsTrue(saved.IsSaved && !saved.IsError, saved.Message);
+            avatar.Version = 2;
+            avatar.ProviderWallets.Clear();
+            saved = await writer.SaveAvatarAsync(avatar);
+            Assert.IsTrue(saved.IsSaved && !saved.IsError, saved.Message);
+
+            active = await reader.ActivateProviderAsync();
+            Assert.IsTrue(active.Result && !active.IsError, active.Message);
+            var current = await reader.LoadAvatarAsync(avatar.Id);
+            Assert.IsFalse(current.IsError, current.Message);
+            Assert.AreEqual(0, current.Result.ProviderWallets.Count);
+
+            var point = await reader.LoadAvatarAsync(avatar.Id, version: 1);
+            Assert.IsFalse(point.IsError, point.Message);
+            AssertWallet(point.Result);
+            var list = await reader.LoadAllAvatarsAsync(version: 1);
+            Assert.IsFalse(list.IsError, list.Message);
+            AssertWallet(list.Result.Single(item => item.Id == avatar.Id));
+        }
+        finally
+        {
+            await reader.DeActivateProviderAsync();
+            await writer.DeActivateProviderAsync();
+        }
+
+        void AssertWallet(NextGenSoftware.OASIS.API.Core.Interfaces.IAvatar loaded)
+        {
+            var persisted = loaded.ProviderWallets[wallet.ProviderType].Single();
+            Assert.AreEqual(wallet.WalletId, persisted.WalletId);
+            Assert.AreEqual(wallet.AvatarId, persisted.AvatarId);
+            Assert.AreEqual(wallet.WalletAddress, persisted.WalletAddress);
+            Assert.AreEqual(wallet.PrivateKey, persisted.PrivateKey);
+            Assert.AreEqual(wallet.SecretRecoveryPhrase, persisted.SecretRecoveryPhrase);
+            Assert.AreEqual(transaction.TransactionId, persisted.Transactions.Single().TransactionId);
+            Assert.AreEqual(transaction.NativeTransactionId, persisted.Transactions.Single().NativeTransactionId);
+        }
+    }
+
     [TestMethod]
     public async Task ConcurrentAvatarSavesPreserveHighestVersionAndHistory()
     {
