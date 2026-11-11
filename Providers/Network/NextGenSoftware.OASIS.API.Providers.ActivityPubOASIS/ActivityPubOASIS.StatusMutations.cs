@@ -46,7 +46,7 @@ public partial class ActivityPubOASIS
             }
             using var document=JsonDocument.Parse(await response.Content.ReadAsStringAsync());
             // Native service authorizes ownership; its returned ID must acknowledge this exact target.
-            var deleted=ProjectMastodonStatus(document.RootElement,selected);
+            var deleted=ProjectMastodonStatus(document.RootElement,selected,includesSourceText:true);
             deleted.DeletedDate=DateTime.UtcNow;deleted.IsActive=false;
             result.Result=deleted;result.IsDeleted=true;result.DeletedCount=1;
         }catch(Exception cause){
