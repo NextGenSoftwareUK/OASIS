@@ -4,6 +4,12 @@
 
 Exact image CI 43101002944 passed on a209b82e9b. The verified CouchDB reader, Core tariff pin and NATS/Waku download fix are on Development at a614a4377f. Railway deployment 1b1ad2f0 is waiting for a build slot. Live 214462362b has no CouchDB enrolment. The Development variable-name check found no dedicated CouchDB CQL settings. The isolated HTTPS teaching database and restricted reader remain the enrollment gate.
 
+### Cutover checks for Development a614a4377f
+
+1. Confirm Railway deployment 1b1ad2f0 is successful and serving a614a4377f. Verify its build log passed the NATS and Waku pinned-asset stages. The exact GitHub image digest qualifies the source candidate. Railway builds the Git revision separately.
+2. After warmup, use the retained visitor for authenticated discovery. Compare the native and federated source counts with the 105/106 baseline on 214462362b. Inspect activation diagnostics only for regressions or newly unavailable providers. Leave accepted cohorts intact.
+3. Expect CouchDB to remain absent before the dedicated HTTPS fixture is configured. Once available, qualify the restricted reader against the reviewed catalogue, demonstrate that out-of-catalogue keys cannot reach the native client, and verify the configured public presets, private Mongo pairing and replicas before recording live acceptance.
+
 ## Source recovery — 2 November 2026
 
 Named provider/CQL/unit/consumer/PowerShell/Python source restored from retained
