@@ -22,16 +22,21 @@ internal static class EvmProviderFactory
     internal static IOASISStorageProvider CreateAvalanche(AvalancheOASISProviderSettings settings,string overrideConnectionString)
     {
         if(settings==null) throw new ArgumentNullException(nameof(settings));
-        var text=settings.ChainId?.Trim();
-        if(string.IsNullOrEmpty(text)) throw new ArgumentException("An explicit Avalanche chain identity is required.",nameof(settings));
+        return new NextGenSoftware.OASIS.API.Providers.AvalancheOASIS.AvalancheOASIS(
+            overrideConnectionString??settings.RpcEndpoint,settings.ChainPrivateKey,settings.ContractAddress,ParseChainId(settings.ChainId, "Avalanche"));
+    }
+
+    internal static BigInteger ParseChainId(string value, string chain)
+    {
+        var text=value?.Trim();
+        if(string.IsNullOrEmpty(text)) throw new ArgumentException($"An explicit {chain} chain identity is required.", "settings");
         var hexadecimal=text.StartsWith("0x",StringComparison.OrdinalIgnoreCase);
         var digits=hexadecimal?text.Substring(2):text;
         // BigInteger's hex parser is signed: prefix zero to preserve high-bit IDs.
         if(digits.Length==0 || !BigInteger.TryParse(hexadecimal?"0"+digits:digits,
             hexadecimal?NumberStyles.AllowHexSpecifier:NumberStyles.None,CultureInfo.InvariantCulture,out var chainId) || chainId<=0)
-            throw new ArgumentException("Avalanche chain identity must be a positive decimal or hexadecimal integer.",nameof(settings));
-        return new NextGenSoftware.OASIS.API.Providers.AvalancheOASIS.AvalancheOASIS(
-            overrideConnectionString??settings.RpcEndpoint,settings.ChainPrivateKey,settings.ContractAddress,chainId);
+            throw new ArgumentException($"{chain} chain identity must be a positive decimal or hexadecimal integer.", "settings");
+        return chainId;
     }
 
     internal static IOASISStorageProvider CreateArbitrum(ArbitrumOASISProviderSettings settings,string mode,string overrideConnectionString)

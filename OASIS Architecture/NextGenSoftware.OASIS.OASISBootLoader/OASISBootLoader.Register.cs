@@ -387,15 +387,17 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                         //    }
                         //    break;
 
-                        //case ProviderType.BNBChainOASIS:
-                        //    {
-                        //        BNBChainOASIS bnbChainOASIS = new BNBChainOASIS(
-                        //            OASISDNA.OASIS.StorageProviders.BNBChainOASIS.RpcEndpoint,
-                        //            OASISDNA.OASIS.StorageProviders.BNBChainOASIS.NetworkId,
-                        //            OASISDNA.OASIS.StorageProviders.BNBChainOASIS.ChainId);
-                        //        result.Result = bnbChainOASIS;
-                        //    }
-                        //    break;
+                        case ProviderType.BNBChainOASIS:
+                        {
+                            var settings = OASISDNA.OASIS.StorageProviders.BNBChainOASIS
+                                ?? throw new InvalidOperationException("BNB Smart Chain storage settings are required.");
+                            var provider = new BNBChainOASIS(overrideConnectionString ?? settings.RpcEndpoint,
+                                settings.ChainPrivateKey, settings.ContractAddress,
+                                EvmProviderFactory.ParseChainId(settings.ChainId, "BNB Smart Chain"));
+                            provider.OnStorageProviderError += (_, error) => HandleProviderError("BNBChainOASIS", error);
+                            result.Result = provider;
+                        }
+                        break;
 
                         //case ProviderType.FantomOASIS:
                         //    {
