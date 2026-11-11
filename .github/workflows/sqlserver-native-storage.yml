@@ -73,7 +73,7 @@ jobs:
           container="$(docker run --detach --publish 127.0.0.1:11433:1433 \
             --env ACCEPT_EULA=Y --env MSSQL_PID=Developer --env MSSQL_SA_PASSWORD "$image")"
           sql() {
-            SQLCMDPASSWORD="$password" docker exec --env SQLCMDPASSWORD "$container" \
+            SQLCMDPASSWORD="$password" docker exec -i --env SQLCMDPASSWORD "$container" \
               /opt/mssql-tools18/bin/sqlcmd -C -b -S localhost -U sa -l 3 "$@"
           }
           for attempt in {1..45}; do
@@ -81,19 +81,42 @@ jobs:
             [[ "$attempt" != 45 ]]
             sleep 2
           done
-          sql -Q "SELECT SERVERPROPERTY('ProductVersion'); CREATE DATABASE oasis_hyperdrive_provider_test;"
+          sql -Q "SET NOCOUNT ON; SELECT CONVERT(varchar(32), SERVERPROPERTY('ProductVersion')); CREATE DATABASE oasis_hyperdrive_provider_test;"
           export OASIS_SQLSERVER_CONFORMANCE_CONNECTION_STRING="Server=127.0.0.1,11433;Database=oasis_hyperdrive_provider_test;User ID=sa;Password=$password;Encrypt=True;TrustServerCertificate=True"
           pwsh -NoProfile -Command '
             ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-SqlServerStorage -Operation {
               dotnet test "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SQLServerDBOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.SQLServerDBOASIS.IntegrationTests.csproj" --filter "FullyQualifiedName~CoreStorageSuiteAgainstSqlServer" /p:SqlServerDirectStorageOnly=true /m:2 /nr:false /p:UseSharedCompilation=false --logger "console;verbosity=normal"
               if ($LASTEXITCODE -ne 0) { throw "Native SQL Server storage verification failed." }
             }'
-          for mode in async sync; do
-            jq -e '.Succeeded and .FixtureCleanupComplete and (.Passed | length == 26)' "$reports/$mode/report.json" >/dev/null
-          done
-          sql -d oasis_hyperdrive_provider_test -Q "
-            IF EXISTS (SELECT 1 FROM dbo.OASISAvatars) OR EXISTS (SELECT 1 FROM dbo.OASISAvatarDetails)
-              OR EXISTS (SELECT 1 FROM dbo.OASISHolons) OR EXISTS (SELECT 1 FROM dbo.OASISAvatarHistory)
-              OR EXISTS (SELECT 1 FROM dbo.OASISAvatarDetailHistory) OR EXISTS (SELECT 1 FROM dbo.OASISHolonHistory)
-              THROW 50001, 'Native conformance fixture tables must be empty', 1;"
+          {
+            cat <<'SQL'
+          SET XACT_ABORT ON;
+          SET NOCOUNT ON;
+          BEGIN TRANSACTION;
+          DECLARE @owned TABLE (Id uniqueidentifier PRIMARY KEY, OwnerId uniqueidentifier NOT NULL);
+          SQL
+            for mode in async sync; do
+              report="$reports/$mode/report.json"
+              jq -e '.Succeeded and .FixtureCleanupComplete and (.Passed | length == 26) and (.BatchIds | length == 2)' "$report" >/dev/null
+              jq -er '.OwnerId as $owner | [.RootId, .ChildId, .ImportId, .BatchIds[]][] |
+                [., $owner] | if all(.[]; test("^[0-9a-fA-F]{8}(-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}$"))
+                then "INSERT INTO @owned VALUES (\u0027\(.[0])\u0027, \u0027\(.[1])\u0027);" else error("Invalid fixture identity") end' "$report"
+            done
+            cat <<'SQL'
+          IF (SELECT COUNT(*) FROM @owned) <> 10
+            OR (SELECT COUNT(*) FROM dbo.OASISHolons) <> 10
+            OR EXISTS (SELECT 1 FROM dbo.OASISHolons h
+              WHERE h.IsDeleted <> 1 OR NOT EXISTS (SELECT 1 FROM @owned o
+                WHERE o.Id = h.Id AND o.OwnerId = TRY_CONVERT(uniqueidentifier, JSON_VALUE(h.DataJson, '$.createdByAvatarId'))))
+              THROW 50001, 'Native rows do not match the ten owned holon tombstones', 1;
+          DELETE h FROM dbo.OASISHolons h JOIN @owned o ON o.Id = h.Id;
+          IF @@ROWCOUNT <> 10 THROW 50002, 'Native tombstone cleanup count differs', 1;
+          IF EXISTS (SELECT 1 FROM dbo.OASISAvatars) OR EXISTS (SELECT 1 FROM dbo.OASISAvatarDetails)
+            OR EXISTS (SELECT 1 FROM dbo.OASISHolons) OR EXISTS (SELECT 1 FROM dbo.OASISAvatarHistory)
+            OR EXISTS (SELECT 1 FROM dbo.OASISAvatarDetailHistory) OR EXISTS (SELECT 1 FROM dbo.OASISHolonHistory)
+              THROW 50003, 'Native conformance fixture tables must be empty', 1;
+          COMMIT TRANSACTION;
+          SQL
+          } >"$reports/cleanup.sql"
+          sql -d oasis_hyperdrive_provider_test -i /dev/stdin <"$reports/cleanup.sql"
           echo "Verified both SQL Server storage modes and all six empty tables."

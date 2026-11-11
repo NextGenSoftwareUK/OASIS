@@ -295,4 +295,6 @@ Urgent disk cleanup follow-up: leased standard project clean succeeded for AWS u
 
 11 November SQL Server Linux storage verification uses a disposable CI container, its owned volumes and one scoped report directory. No local image or build was created. Native suite and teardown remain pending.
 
+11 November SQL Server run 43049754942 removed its owned container after both managed storage modes passed and the raw cleanup check failed. No local image or outputs were created. The next run keeps generated cleanup SQL inside the owned report directory.
+
 11 November cleanup recheck in the HyperDrive worktree. The earlier WEB4 count build still occupies 115,007,857 bytes in `oasisweb4.com/node_modules` and 361,528 bytes in `TestResults/Web4ProviderCountBuild`. Both are Git-ignored generated directories, with no linked content or matching active Node process found. Automatic review rejected the scoped recursive removal before execution. No deletion occurred. The four named wallet and ActivityPub build folders were absent from this worktree's top-level TestResults directory.

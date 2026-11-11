@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November SQL Server Linux run 43049754942 passed all 52 managed checks on SQL Server 16.0.4222.2. The independent empty-table check failed because the fixture expected physical removal from the shipping default holon deletion, which retains tombstones. The retry verifies exactly ten owned tombstones from the two reports, deletes only those IDs in one SQL transaction, and then checks all six tables. The provider code and managed test are unchanged.
+
 11 November SQL Server shared storage. Existing LocalDB checkpoints and the BootLoader activation pass carry forward. The new workflow exercises the previously unverified uninterrupted suite against Microsoft's digest-pinned SQL Server 2022 Linux engine. It selects only the existing native storage test, then independently queries all six current and history tables for emptiness. COSMIC CQL source and tests are outside the run. Verification is pending.
 
 11 November EOSIO run 43048799690 at 4365b55470 passed 52/52 through the shipping provider on two independently deployed Antelope Spring 1.2.2 ledgers. Both modes verified exact avatar and detail deletion and independently empty avatar, avatar-detail and holon tables. Both fixtures were removed. Hosted signed deployment and other capability-specific gates remain open.
