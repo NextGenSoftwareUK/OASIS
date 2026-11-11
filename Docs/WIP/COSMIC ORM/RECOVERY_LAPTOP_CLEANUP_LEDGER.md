@@ -5688,3 +5688,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: removed completed ci-cosmic-solution-4a3118bd93-build and created ci-cosmic-solution-7de3c00dad-build for the successor. Remove the successor tag after its runs finish. Temporary local index removed. No local build, restore, download or artifact copy.
 
 11 November UTC: Hyperlane browser acceptance reused the existing visitor. No local report, screenshot file, download, runtime, build output or saved holon.
+
+11 November UTC: Synapse browser acceptance reused the existing visitor. No local report, screenshot file, download, runtime, build output or saved holon.
