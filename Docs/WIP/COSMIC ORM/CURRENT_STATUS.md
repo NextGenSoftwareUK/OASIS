@@ -2,9 +2,9 @@
 
 ## Shared WEB4 and HyperDrive checkpoint, 11 November 2026
 
-- Live Development WEB4 `dfe08114e6` reached 103/106 native and federated sources after warmup. Cosmos returned HTTP 500, Hedera timed out awaiting response headers and Nostr returned WebSocket HTTP 503. The recorded functional totals are 129 scoped integrations, 96 hosted HTTP proofs and 28 browser proofs.
-- Development head `02cf00d5d1` updates provider integration CI routing. Supabase code is deployed, the AvalancheGo revision `a05741af68` is building, and PlanetScale `ab4d0ae3d3` remains queued.
-- CouchDB qualification 43088383856 passed eight checks. Image build 43090552807 for `ab4482e254` is running. The prepared merge `d3082f3a94` preserves the qualified paths on the newer Development head and passes dependency validation.
+- Live Development WEB4 `a05741af68` reached 105/106 native and federated sources after warmup. Cosmos and Hedera public HTTP presets recovered at 3/2 rows each. Nostr remains unavailable. The recorded functional totals are 129 scoped integrations, 96 hosted HTTP proofs and 28 browser proofs.
+- Development `81db35bcfd` contains the latest HyperDrive release notes. Railway is building BNB revision `a18546285f`. PlanetScale `ab4d0ae3d3` failed fetching the pinned NATS archive and awaits the combined WEB4 release.
+- CouchDB qualification 43088383856 passed eight checks. Combined image 43097362380 is queued after a startup failure and retry. Candidate `01c8178755` preserves the nine release paths and passes dependency validation.
 - Supabase needs its dedicated HTTPS teaching fixture and restricted reader for live enrollment. TRON still needs the authenticated reader. The existing Wizard operator session is needed for Nostr source recovery.
 
 ## Active continuation, 11 November UTC
