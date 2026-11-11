@@ -1,6 +1,8 @@
 # Current resource and cleanup ledger
 
-11 November PlanetScale MySQL run 43063077214 reached the managed suite and failed at detail-by-ID. CI ran its disposable fixture cleanup and logged removal of the official image. The next run reports its cleanup outcome even when the managed suite fails. No local runtime, download or build was created.
+11 November PlanetScale MySQL run 43063077214 reproduced the detail-by-ID failure and CI logged image removal.
+
+11 November PlanetScale MySQL runs 43063702938 and 43064133424 confirmed disposal of their containers, volumes, newly pulled images and checkpoint directories. The full run independently removed ten exact owned tombstones and verified all three native tables empty per database. No Windows runtime, build or download was created.
 
 11 November TimescaleDB run 43061942830 passed both storage modes and independently verified the empty tables. CI removed the owned container, volumes, newly pulled image and checkpoints. No Windows runtime, build or download was created.
 
