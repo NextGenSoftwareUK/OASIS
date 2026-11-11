@@ -5612,3 +5612,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: the retained browser session refreshed providers without creating another visitor or saving data. No local screenshot file, query report, download or build output.
 
 11 November UTC: Axelar browser checks reused the existing demo visitor. No new avatar, report, screenshot file, download or build output.
+
+11 November UTC: solution enrollment validation used the installed dotnet sln parser and temporary solution copies. Temporary copies and Git indexes were removed on exit. The production build and schema checks run remotely in CI 42995504827. Remove ci-cosmic-solution-ffb8d75c7a after the run reaches a terminal state and its result is recorded. No local build, restore or download.
