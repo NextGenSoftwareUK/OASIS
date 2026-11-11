@@ -1323,3 +1323,5 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 11 November UTC: all seven generic SurrealDB storage regressions passed on 3.3.5 with zero skips, including avatar-detail GUID round-trip and avatar hard deletion. Candidate `314e936c05` combines typed GUID keys and shared avatar-detail deserialization. Development integration awaits the next verified batch. [SurrealDB CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43040628848)
 
 11 November UTC: SurrealDB diagnostic fce00733da runs the existing native restart and Mongo federation checks with a disposable CI replica set and the verified typed-key and avatar-detail fixes.
+
+11 November UTC: Development `d1674f5d0f` includes the verified SurrealDB typed GUID operations and shared avatar-detail deserializer, with all seven focused native storage tests passing. Standard CI fixture routing, Mongo federation and hosted CQL remain open. [SurrealDB storage CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43040628848)
