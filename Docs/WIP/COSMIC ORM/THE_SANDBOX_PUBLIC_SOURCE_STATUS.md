@@ -43,3 +43,5 @@ Original offline batch source ownerdb065b19-d87e-46ac-9ecb-0b42ebc67fe1; public 
 Four-provider candidate amended toed52cea5052d79d63e21005d2d8d304662e1fccd/Coree242de41 unchanged: canonical native-artifact retrieval now qualified on4f1d5d4, exact2path amendment/59total scoped paths, manifest valid. Original source owner/public IDs/protected settings unchanged; no refs/settings/deployment. Original preparation receipt retained with explicit amendment. Full image42471538567 active; scoped exact batch/live gates remain open.
 
 Four-provider scoped candidate nowb835b20c9e69ac0a8c8d5a4e8b9a22142b6f0ff7/Coree242de41 unchanged,61paths, exact3path checkout-contract amendment after seven-pin cloud42472240791 passes. Original source owner/public IDs/settings unchanged; explicit amendment retained, no refs/live mutation. Full image42472504855 active; exact batch/live acceptance still required.
+
+11 November UTC: The Sandbox public contract metadata presets rendered 3 full and 2 subset rows in the live Development WEB4 CQL Playground. Hosted private MongoDB paired browser and replication verification remain open.
