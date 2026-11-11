@@ -50,9 +50,9 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
     {
         private static readonly Dictionary<Guid, GetAccountResponseDto> _avatarIdToEOSIOAccountLookup = new();
         private IEosClient _eosClient;
-        private IEosProviderRepository<AvatarDetailDto> _avatarDetailRepository;
-        private IEosProviderRepository<AvatarDto> _avatarRepository;
-        private IEosProviderRepository<HolonDto> _holonRepository;
+        private AvatarDetailEosProviderRepository _avatarDetailRepository;
+        private AvatarEosProviderRepository _avatarRepository;
+        private HolonEosProviderRepository _holonRepository;
         private IEosTransferRepository _transferRepository;
         private AvatarManager _avatarManager;
         private KeyManager _keyManager;
