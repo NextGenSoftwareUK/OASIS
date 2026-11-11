@@ -113,3 +113,5 @@ Interactive browser acceptance remains open.
 11 November UTC: the pinned Ethereum RPC returns pruned-history error 4444 for genesis. The reviewed Ethereum origin in the task branch now points to dRPC. Laptop checks passed all three canonical endpoint ABI calls and chain ID. Focused CI and hosted verification are pending. Preserved genesis, contract, network and source identities.
 
 11 November UTC: dRPC preflight from the live Development WEB4 container passed exact Ethereum genesis, finalized block and all three LayerZero v1 canonical ABI calls, including contract chain ID. The replacement code and focused test are in candidate a2990f712c. CI 43020496094 is active. Live activation and browser verification remain pending.
+
+11 November UTC: the focused LayerZero v1 test step passed for exact candidate a2990f712c in [CI 43020496094](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43020496094). The full production build is running. Development integration and live browser acceptance remain pending.
