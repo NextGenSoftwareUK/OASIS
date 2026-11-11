@@ -48,6 +48,6 @@ jobs:
           OASIS_BASE_PUBLIC_WALLET_READ: '1'
         run: |
           ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-BasePublicWallet -Operation {
-            dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.BaseOASIS.IntegrationTests" --filter "FullyQualifiedName~PublicWalletBalanceUsesBaseMainnetWithoutStorageActivation" /m:2 /nr:false /p:UseSharedCompilation=false --logger "console;verbosity=normal"
+            dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.BaseOASIS.IntegrationTests" --filter "FullyQualifiedName~PublicWalletBalanceUsesBaseMainnetWithoutStorageActivation|FullyQualifiedName~LegacyRecordDecoderPreservesIdentityAndHolonType" /m:2 /nr:false /p:UseSharedCompilation=false --logger "console;verbosity=normal"
             if ($LASTEXITCODE -ne 0) { throw "Base public wallet verification failed." }
           }

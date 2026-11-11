@@ -1,6 +1,6 @@
 # Current provider status
 
-11 November Base legacy record decoding candidate. The exported point parsers now decode the existing record JSON with the Core decoder and require an explicit nonempty GUID. The legacy list and metadata search paths use the same decoder and report malformed rows instead of returning fabricated holons or empty success. Legacy endpoint compatibility and hosted Base storage remain unverified.
+11 November Base legacy record decoding candidate. The exported point parsers now decode the existing record JSON with the Core decoder and require exactly one explicit nonempty GUID. Legacy holon_type values remain supported through canonical field decoding. The legacy list and metadata search paths use the same decoder and report malformed rows instead of returning fabricated holons or empty success. Legacy endpoint compatibility and hosted Base storage remain unverified.
 
 11 November Base public wallet candidate. The official Base mainnet RPC returned a positive native balance for the wallet test address. The new CI check exercises the shipping provider through synchronous and asynchronous balance entry points, verifies wrong-chain rejection, and checks that storage is never activated. No signer or contract is used. Native CI results remain pending.
 

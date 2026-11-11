@@ -65,11 +65,29 @@ public static class BaseOASISHelpers
 
     private static T ParseRecord<T>(JsonElement row) where T : HolonBase
     {
-        if (row.ValueKind != JsonValueKind.Object || !row.TryGetProperty("id", out var key) ||
-            key.ValueKind != JsonValueKind.String || !key.TryGetGuid(out var id) || id == Guid.Empty)
-            throw new InvalidDataException("Base record must contain a nonempty GUID identity.");
+        if (row.ValueKind != JsonValueKind.Object)
+            throw new InvalidDataException("Base record must be a JSON object.");
 
-        var record = NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.DeserializeStored<T>(row.GetRawText());
+        var keys = row.EnumerateObject().Where(property =>
+            string.Equals(property.Name, "id", StringComparison.OrdinalIgnoreCase)).ToArray();
+        if (keys.Length != 1 || keys[0].Value.ValueKind != JsonValueKind.String ||
+            !keys[0].Value.TryGetGuid(out var id) || id == Guid.Empty)
+            throw new InvalidDataException("Base record must contain one nonempty GUID identity.");
+
+        var json = row.GetRawText();
+        if (typeof(T) == typeof(Holon) && row.TryGetProperty("holon_type", out var legacyType))
+        {
+            if (row.EnumerateObject().Any(property =>
+                string.Equals(property.Name, "holonType", StringComparison.OrdinalIgnoreCase)))
+                throw new InvalidDataException("Base record contains conflicting holon type fields.");
+
+            var canonical = System.Text.Json.Nodes.JsonNode.Parse(json)!.AsObject();
+            canonical.Remove("holon_type");
+            canonical["holonType"] = System.Text.Json.Nodes.JsonNode.Parse(legacyType.GetRawText());
+            json = canonical.ToJsonString();
+        }
+
+        var record = NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.DeserializeStored<T>(json);
         if (record == null || record.Id != id)
             throw new InvalidDataException("Base record identity disagrees with its decoded payload.");
         return record;

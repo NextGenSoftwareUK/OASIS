@@ -44,6 +44,22 @@ public class BaseOASISIntegrationTests
         Assert.True((await provider.DeActivateProviderAsync()).Result);
     }
 
+    [Fact]
+    public void LegacyRecordDecoderPreservesIdentityAndHolonType()
+    {
+        var id = Guid.NewGuid();
+        using var legacy = System.Text.Json.JsonDocument.Parse(
+            $$"""{"id":"{{id:D}}","name":"retained","holon_type":"Planet"}""");
+        var record = BaseOASISHelpers.ParseBaseToHolon(legacy.RootElement);
+        Assert.Equal(id, record.Id);
+        Assert.Equal("retained", record.Name);
+        Assert.Equal(NextGenSoftware.OASIS.API.Core.Enums.HolonType.Planet, record.HolonType);
+
+        using var duplicate = System.Text.Json.JsonDocument.Parse(
+            $$"""{"id":"{{id:D}}","Id":"{{id:D}}"}""");
+        Assert.Throws<InvalidDataException>(() => BaseOASISHelpers.ParseBaseToHolon(duplicate.RootElement));
+    }
+
     [BasePublicWalletTheory]
     [InlineData(false)]
     [InlineData(true)]
