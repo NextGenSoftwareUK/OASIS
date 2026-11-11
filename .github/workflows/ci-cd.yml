@@ -11,6 +11,11 @@ env:
   NODE_VERSION: '24.x'
 
 jobs:
+  couchdb-native-cql:
+    uses: ./.github/workflows/couchdb-native-cql.yml
+    secrets:
+      PRIVATE_SUBMODULE_PAT: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+
   opensearch-native-cql:
     uses: ./.github/workflows/opensearch-native-cql.yml
     secrets:
@@ -180,6 +185,7 @@ jobs:
             ports: 5984:5984
             wait: 5984
             docker_args: -e COUCHDB_USER=admin -e COUCHDB_PASSWORD=password
+            filter: FullyQualifiedName~CouchDBOASISIntegrationTests
           - name: ArangoDB
             project: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.ArangoDBOASIS.IntegrationTests
             image: arangodb:3.11
@@ -379,6 +385,11 @@ jobs:
             --header 'Accept: application/json' --header 'Content-Type: text/plain' \
             --data-binary 'DEFINE NAMESPACE IF NOT EXISTS oasis; USE NS oasis; DEFINE DATABASE IF NOT EXISTS oasis;' \
             http://127.0.0.1:8000/sql | jq -e 'length > 0 and all(.[]; .status == "OK")'
+
+      - name: Verify the CouchDB CQL reader policy
+        if: matrix.backend.name == 'CouchDB'
+        working-directory: OASIS
+        run: python3 -B Scripts/TestHosts/Test-CouchDbCqlReaderPolicy.py
 
       - name: Export test environment
         if: matrix.backend.test_env != ''
