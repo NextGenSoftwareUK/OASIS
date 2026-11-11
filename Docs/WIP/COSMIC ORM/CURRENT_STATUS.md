@@ -1476,3 +1476,5 @@ Supabase WEB4 boundary CI 43061249200 is active.
 Exact Supabase WEB4 image build 43062441681 is running.
 
 11 November UTC: prepared Supabase integration commit 24d780526c on Development 2ec6cd9cce. All six changed file blobs match the boundary-qualified candidate 7533021f03. The exact candidate image run 43062441681 is active. Hosted teaching source remains required, and Development integration awaits image verification.
+
+11 November UTC: [Supabase activation and pagination CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43064279367) is running on the prepared Development candidate plus five activation controls. The restricted public probe must return one exact record; a second native page containing another record must reject activation. Hosted fixture and image verification remain open. PlanetScale CQL read-source work is present in the shared checkout. HyperDrive owns the separate shipping graph and deletion candidate; preserve both scopes and coordinate the project-reference changes.

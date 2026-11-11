@@ -119,3 +119,5 @@ The retained local gateway evidence is separate.
 11 November UTC: Supabase WEB4 boundary CI 43061249200 passed all nine controlled cases on candidate 7533021f03. The exact candidate WEB4 image build was dispatched with the commit SHA only. Development advanced to 2dd52cf6c0 with CockroachDB storage verification and no overlapping WEB4 or Supabase changes. Hosted source enrollment and live acceptance remain open.
 
 11 November UTC: prepared Supabase integration commit 24d780526c on Development 2ec6cd9cce. All six changed file blobs match the boundary-qualified candidate 7533021f03. The exact candidate image run 43062441681 is active. Hosted teaching source remains required, and Development integration awaits image verification.
+
+11 November UTC: [Supabase activation and pagination CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43064279367) is running on the prepared Development candidate plus five activation controls. The restricted public probe must return one exact record; a second native page containing another record must reject activation. Hosted fixture and image verification remain open.
