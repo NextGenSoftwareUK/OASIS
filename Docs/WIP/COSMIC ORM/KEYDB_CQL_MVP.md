@@ -114,3 +114,5 @@ validation and rejecting an SDK connection to a different endpoint.
 11 November UTC: Ubuntu 24.04 CI 43049998861 also failed resolving Ubuntu package mirrors before compilation. Candidate 338a957c8c compiles the same pinned KeyDB source in a digest-pinned official Python Bookworm image with uuid-dev already present. The build container is disposable and the host runner verifies the resulting native executable and source. Results are pending.
 
 11 November UTC: KeyDB CI 43050965468 built the pinned official KeyDB 6.3.4 source in the digest-pinned builder and passed all four strict one-test reports with zero skips: encrypted native CQL, restart, Mongo replica admission and SDK/HTTP federation. The runner matched the native process and verified the original fixture after restart. Standard matrix routing and hosted TLS acceptance remain open.
+
+11 November UTC: KeyDB candidate ea54de967e routes generic storage tests to the standard authenticated-key matrix and calls the verified native restart/federation workflow separately. Combined diagnostic 0458ca161c is submitted on Development e5e3ca694c. Standard routing and hosted TLS remain unverified.
