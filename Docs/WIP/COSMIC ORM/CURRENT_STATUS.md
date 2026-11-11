@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Live SQLite dependency rollout
+
+Railway WEB4 0daef3fa succeeded at 0cf0a6b32ce. Authenticated discovery returned 105/106 ready for native and federated CQL. NATS and Waku were ready; Nostr was unavailable. Supabase, TRON and CouchDB remained absent.
+
 ## Live Firebase-inclusive WEB4 rollout
 
 Railway deployment fb56067d succeeded at 2b84863745. Discovery warmed from 43/106 to 105/106 sources ready for native and federated CQL, including NATS JetStream and Waku. Nostr remains unavailable. CouchDB, Supabase and TRON remain absent. This checks hosted catalogue readiness; Firebase native lifecycle evidence remains in the HyperDrive handoff.
