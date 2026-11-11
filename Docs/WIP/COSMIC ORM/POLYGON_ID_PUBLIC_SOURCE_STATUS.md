@@ -45,3 +45,5 @@ Four-provider candidate amended toed52cea5052d79d63e21005d2d8d304662e1fccd/Coree
 Four-provider scoped candidate nowb835b20c9e69ac0a8c8d5a4e8b9a22142b6f0ff7/Coree242de41 unchanged,61paths, exact3path checkout-contract amendment after seven-pin cloud42472240791 passes. Original source owner/public IDs/settings unchanged; explicit amendment retained, no refs/live mutation. Full image42472504855 active; exact batch/live acceptance still required.
 
 11 November UTC: the live Development WEB4 CQL Playground rendered 3 rows for the full native PolygonIDOASIS public schema preset and 2 rows for the native subset. Private MongoDB paired browser verification remains open.
+
+11 November UTC: the live Development WEB4 CQL Playground rendered three PolygonIDOASIS teaching rows and two filtered rows from the native provider. The existing demo visitor was reused. Original-owner private paired browser verification remains open.

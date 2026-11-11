@@ -749,3 +749,5 @@ broader provider contracts remain open. [Evidence](DUCKDB_CQL_MVP.md).
 11 November UTC: the live Development WEB4 CQL Playground rendered three SEEDSOASIS teaching rows and two filtered rows from the native provider. The existing demo visitor was reused. Original-owner private paired browser verification remains open.
 
 11 November UTC: Supabase conformance details are recorded in SUPABASE_CQL_MVP.md.
+
+11 November UTC: the live Development WEB4 CQL Playground rendered three PolygonIDOASIS teaching rows and two filtered rows from the native provider. The existing demo visitor was reused. Original-owner private paired browser verification remains open.
