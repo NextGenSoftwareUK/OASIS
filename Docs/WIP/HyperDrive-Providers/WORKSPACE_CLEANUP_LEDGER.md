@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+11 November Supabase native PostgREST conformance. Corrected GitHub job 130506351774 passed both modes with exact fixture cleanup and removed the PostgreSQL container. The PostgREST processes, database, download, reports and build outputs were scoped to disposable CI. No local artifacts or uploaded reports were created.
+
 11 November Supabase credential isolation CI. Job 130503718549 ran two PostgREST services on a disposable Linux runner, passed the native credential check, and removed the PostgreSQL container. The download, database and build stayed on the runner. No local artifact or report upload was created.
 
 11 November Neo4j Aura adapter CI. GitHub job 130499437747 confirmed the dedicated Neo4j Community container stopped and was removed after both lifecycle cases passed. The disposable Linux runner held the image, database and build outputs. No local artifacts or uploads were created.
