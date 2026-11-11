@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text.Json;
 using NextGenSoftware.OASIS.Providers.TestSupport;
+using TronNet;
 using Xunit;
 
 namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS.IntegrationTests;
@@ -50,17 +51,54 @@ public class TronNativeStorageLifecycleTests
             File.Move(pending, path, overwrite: true);
         }
 
+        var fresh = Environment.GetEnvironmentVariable("OASIS_TRON_FRESH_LIFECYCLE") == "1";
+        var contract = fresh ? null : Required("OASIS_TRON_LIFECYCLE_CONTRACT");
+        var owner = fresh ? null : Required("OASIS_TRON_LIFECYCLE_OWNER");
+        if (fresh)
+        {
+            const string treGenesis = "0000000000000000c93baa76a4a508f798a96f59156d9eb17ecede8ec845df2f";
+            Assert.Equal(treGenesis, genesis);
+            var signer = Required("OASIS_TRON_STORAGE_PRIVATE_KEY");
+            owner = new TronECKey(signer, TronNetwork.MainNet).GetPublicAddress();
+            using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(2));
+            await using var runtime = new TronSdkRuntime(fullNode, solidityNode, genesis, contractFeeLimitSun: 1000000000);
+            var bytecode = Convert.FromHexString((await File.ReadAllTextAsync(
+                Required("OASIS_TRON_FRESH_BYTECODE"), timeout.Token)).Trim());
+            var deployment = await runtime.NativeTransfers.DeployBytecodeAsync(owner, bytecode, signer, timeout.Token);
+            contract = deployment.ContractAddress;
+            Assert.False(string.IsNullOrWhiteSpace(contract));
+        }
+
         var provider = new TRONOASIS(endpoint.AbsoluteUri, network, chainId,
             fullNodeGrpcEndpoint: fullNode.AbsoluteUri,
             solidityNodeGrpcEndpoint: solidityNode.AbsoluteUri,
             genesisBlockId: genesis,
-            storageContractAddress: Required("OASIS_TRON_LIFECYCLE_CONTRACT"),
-            storageOwnerAddress: Required("OASIS_TRON_LIFECYCLE_OWNER"));
+            storageContractAddress: contract,
+            storageOwnerAddress: owner,
+            contractFeeLimitSun: fresh ? 1000000000 : 100000000);
         var report = await CoreStorageConformance.RunAsync(provider, nameof(TRONOASIS), "native",
-            synchronous, Checkpoint, expectedDefaultDeletion: "absent");
+            synchronous, result => fresh && result.Succeeded ? Task.CompletedTask : Checkpoint(result),
+            expectedDefaultDeletion: "absent");
         Assert.True(report.Succeeded, $"{report.CurrentCase}: {report.FailureType} {report.FailureContract}");
         Assert.True(report.FixtureCleanupComplete);
         Assert.Equal(CoreStorageConformance.ChecksPerMode, report.Passed.Count);
+        if (fresh)
+        {
+            report.CurrentCase = "native-contract-cleanup";
+            report.Succeeded = false;
+            report.FixtureCleanupComplete = false;
+            await Checkpoint(report);
+            using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+            await using var runtime = new TronSdkRuntime(fullNode, solidityNode, genesis);
+            var raw = new TronStorageBackend(runtime.NativeTransfers, owner!, contract!,
+                () => throw new InvalidOperationException("Native cleanup inspection must stay read-only."));
+            Assert.Empty(await raw.ListKeysAsync(string.Empty, timeout.Token));
+            report.CurrentCase = "complete";
+            report.Succeeded = true;
+            report.FixtureCleanupComplete = true;
+            report.CleanupScope = "native-contract-empty";
+            await Checkpoint(report);
+        }
     }
 
     [Theory]
