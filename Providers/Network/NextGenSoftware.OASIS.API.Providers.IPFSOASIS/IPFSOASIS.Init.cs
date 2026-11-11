@@ -29,6 +29,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 {
     public partial class IPFSOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider
     {
+        private readonly SemaphoreSlim _catalogueGate = new(1, 1);
 
         public override OASISResult<bool> ActivateProvider()
         {
@@ -108,6 +109,13 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
         /******************************/
         public async Task<Dictionary<string, HolonResume>> LoadLookupToJson()
         {
+            await _catalogueGate.WaitAsync().ConfigureAwait(false);
+            try { return await LoadCatalogueAsync().ConfigureAwait(false); }
+            finally { _catalogueGate.Release(); }
+        }
+
+        private async Task<Dictionary<string, HolonResume>> LoadCatalogueAsync()
+        {
             if(_OASISDNA?.OASIS?.StorageProviders?.IPFSOASIS == null)
                 throw new InvalidOperationException("IPFS storage configuration is required before reading the private index.");
             var address=_OASISDNA.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress;
@@ -160,6 +168,13 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
         public async Task<string> SaveLookupToFile(Dictionary<string, HolonResume> idLookup)
         {
+            await _catalogueGate.WaitAsync().ConfigureAwait(false);
+            try { return await SaveCatalogueAsync(idLookup).ConfigureAwait(false); }
+            finally { _catalogueGate.Release(); }
+        }
+
+        private async Task<string> SaveCatalogueAsync(Dictionary<string, HolonResume> idLookup)
+        {
             string json = ProtectIndex(JsonConvert.SerializeObject(idLookup));
             var fsn = await IPFSClient.FileSystem.AddTextAsync(json);
 
@@ -170,9 +185,14 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
                 var saved=OASISDNAManager.SaveDNA(_OASISDNAPath, _OASISDNA);
                 EnsureIndexPublication(fsn.Id,previousRoot,saved);
             }
-            catch(IPFSIndexPublicationException) { throw; }
-            catch(Exception cause) { throw new IPFSIndexPublicationException(fsn.Id,previousRoot,cause); }
+            catch (Exception cause)
+            {
+                _OASISDNA.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress = previousRoot;
+                if (cause is IPFSIndexPublicationException) throw;
+                throw new IPFSIndexPublicationException(fsn.Id, previousRoot, cause);
+            }
 
+            _idLookup = idLookup;
             return fsn.Id;
         }
 
@@ -185,15 +205,34 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
         private async Task PublishAcknowledgedRecordAsync(string recordCid, HolonResume record)
         {
-            try { ReplaceIndexEntry(recordCid, record); await SaveLookupToFile(_idLookup); }
-            catch (Exception cause) { throw new IPFSRecordPublicationException(recordCid, cause); }
+            var previousCatalogue = _idLookup;
+            try
+            {
+                _idLookup = new Dictionary<string, HolonResume>(previousCatalogue);
+                ReplaceIndexEntry(recordCid, record);
+                await SaveCatalogueAsync(_idLookup).ConfigureAwait(false);
+            }
+            catch (Exception cause)
+            {
+                _idLookup = previousCatalogue;
+                throw new IPFSRecordPublicationException(recordCid, cause);
+            }
         }
 
         private async Task SavePrivateEntityAsync(IHolonBase entity, string kind, HolonResume index,
             NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PlannedHolonWrite plannedHolon=null,Action validateCaller=null)
         {
+            // Keep catalogue read, native record acknowledgement and durable root publication together.
+            await _catalogueGate.WaitAsync().ConfigureAwait(false);
+            try { await PublishPrivateEntityAsync(entity, kind, index, plannedHolon, validateCaller).ConfigureAwait(false); }
+            finally { _catalogueGate.Release(); }
+        }
+
+        private async Task PublishPrivateEntityAsync(IHolonBase entity, string kind, HolonResume index,
+            NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PlannedHolonWrite plannedHolon, Action validateCaller)
+        {
             if (entity == null || entity.Id == Guid.Empty) throw new ArgumentException("IPFS entity identity must be nonempty.");
-            _idLookup = await LoadLookupToJson();
+            await LoadCatalogueAsync().ConfigureAwait(false);
             var previous = FindIndexEntry(kind, row => row.Id == entity.Id, true);
             if(kind=="holon" && entity is Holon holon){
                 var observed=previous.Value==null?null:await ReadPrivateRecordAsync<Holon>(previous.Key,kind,entity.Id);
