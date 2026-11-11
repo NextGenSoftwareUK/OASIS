@@ -37,3 +37,5 @@ Raw evidence under TestResults/CosmosCqlCurrent, not committed:
 Screenshot cosmos-browser-scoped.png. Prior reports hash-preserved in Archive. Resources/cleanup in shared ledger. Next Polkadot/NEAR breadth then batched catalogue enrollment; full roadmap active.
 
 11 November UTC: HyperDrive passed 52/52 native Cosmos storage cases across both modes through shipping CosmJS 0.39.0 on pinned wasmd. CI verified zero native contract record keys and removed the container. Development `b7352eef90` contains the workflow and suite. The earlier retained-ledger attempt remains blocked at configuration. Hosted native storage and historical ledger recovery remain open. [Cosmos native CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43028889300)
+
+11 November UTC: Railway deployed WEB4 dfe08114e6 (2baa8bb0). Authenticated discovery warmed from 18/106 to 82/106 to 103/106 native and federation ready. Startup failures: Cosmos HTTP 500, Hedera response-header timeout, Nostr WebSocket HTTP 503. Supabase code is deployed; its CQL source remains absent pending the dedicated restricted HTTPS fixture. TRON and CouchDB are also absent.

@@ -1574,3 +1574,5 @@ Exact Supabase WEB4 image build 43062441681 is running.
 11 November UTC: Railway deployed WEB4 cadf5bf85b (c08e176d). Authenticated discovery warmed from 18/106 to 68/106 to 104/106 ready for native and federated CQL. Hedera timed out awaiting headers after 15,007 ms; Nostr received WebSocket HTTP 503 after 129 ms. Supabase, TRON and CouchDB remain absent. Prior functional receipts retain their scope.
 
 11 November UTC: NATS JetStream public browser acceptance on Development WEB4. In the CQL Playground, NATSJetStreamOASIS rendered three rows for the public full preset and two for the public subset. A disposable demo visitor ran read-only queries. Existing private Mongo copies were preserved; original-owner paired browser verification remains open.
+
+11 November UTC: Railway deployed WEB4 dfe08114e6 (2baa8bb0). Authenticated discovery warmed from 18/106 to 82/106 to 103/106 native and federation ready. Startup failures: Cosmos HTTP 500, Hedera response-header timeout, Nostr WebSocket HTTP 503. Supabase code is deployed; its CQL source remains absent pending the dedicated restricted HTTPS fixture. TRON and CouchDB are also absent.
