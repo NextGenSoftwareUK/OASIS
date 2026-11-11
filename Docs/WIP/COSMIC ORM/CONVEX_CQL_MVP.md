@@ -38,3 +38,5 @@ protected reader setting for authorization. The test exercises CQL
 
 General holon and avatar companion functions remain open. The LocalFile
 deployment remains first for the live WEB4 rollout.
+
+11 November UTC: HyperDrive verified 52 native local Convex storage checks and [same-instance companion recovery](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43017572009). The provider rejected activation on a fresh engine without the companion, then activated and deactivated after deployment through the official CLI. Development eed714ba35 includes the matching recovery test. Hosted Convex and live WEB4 CQL acceptance remain open.
