@@ -6,7 +6,7 @@ on:
     paths:
       - '.github/workflows/dragonfly-native-storage.yml'
       - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.DragonflyOASIS/**'
-      - 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.DragonflyOASIS.IntegrationTests/DragonflyCoreStorageConformanceTests.cs'
+      - 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.DragonflyOASIS.IntegrationTests/DragonflyOASISIntegrationTests.cs'
   workflow_dispatch:
 
 permissions:
@@ -82,14 +82,15 @@ jobs:
             sleep 1
           done
           [[ "$(query DBSIZE)" == ':0' ]]
-          export OASIS_DRAGONFLY_CI_FIXTURE="$fixture"
+          export OASIS_DRAGONFLY_LIFECYCLE_REPORT_ROOT="$fixture/reports"
+          export DRAGONFLY_CONN=127.0.0.1:19691,abortConnect=true,connectRetry=0
           export OASIS_DRAGONFLY_STORAGE_ENCRYPTION_KEY="$(openssl rand -base64 32)"
           pwsh -NoProfile -Command '
             ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-DragonflyStorage -Operation {
-              dotnet test "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.DragonflyOASIS.IntegrationTests" --filter "FullyQualifiedName~DragonflyCoreStorageConformanceTests" /m:2 /nr:false /p:UseSharedCompilation=false --logger "console;verbosity=normal"
+              dotnet test "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.DragonflyOASIS.IntegrationTests" --filter "FullyQualifiedName~SharedStorageLifecycle" /m:2 /nr:false /p:UseSharedCompilation=false --logger "console;verbosity=normal"
               if ($LASTEXITCODE -ne 0) { throw "Dragonfly native storage verification failed." }
             }'
           for mode in async sync; do
-            jq -e '.Succeeded and .FixtureCleanupComplete and (.Passed | length == 26)' "$fixture/$mode.json" >/dev/null
+            jq -e '.Succeeded and .FixtureCleanupComplete and (.Passed | length == 26)' "$fixture/reports/$mode/report.json" >/dev/null
           done
           [[ "$(query DBSIZE)" == ':0' ]]
