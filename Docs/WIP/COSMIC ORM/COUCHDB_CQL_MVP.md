@@ -1,5 +1,9 @@
 # CouchDB CQL demo — retained records and revisions
 
+## Development rollout checkpoint
+
+Exact image CI 43101002944 passed on a209b82e9b. The verified CouchDB reader, Core tariff pin and NATS/Waku download fix are on Development at a614a4377f. Railway deployment 1b1ad2f0 is waiting for a build slot. Live 214462362b has no CouchDB enrolment. The Development variable-name check found no dedicated CouchDB CQL settings. The isolated HTTPS teaching database and restricted reader remain the enrollment gate.
+
 ## Source recovery — 2 November 2026
 
 Named provider/CQL/unit/consumer/PowerShell/Python source restored from retained

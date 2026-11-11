@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+11 November: checked Development WEB4 enrollment setting names in memory for GOMap, TRON, Supabase and CouchDB. No values, downloads, or build outputs were written. Temporary Git index removed.
+
 11 November: cancelled Railway build 618a1edc after matching the live runtime configuration and verifying the exact tree diff was limited to BNB tests, workflows and documentation. The queued verified release includes that revision. No local build or download. Temporary Git index removed.
 
 11 November: removed 11 superseded queued Development WEB4 builds after matching repository, ancestry, runtime manifest, volume mounts and environment/service. Retained the live deployment, the verified release, and the separately staged configuration rollout. No local build or download. Temporary Git index removed.
