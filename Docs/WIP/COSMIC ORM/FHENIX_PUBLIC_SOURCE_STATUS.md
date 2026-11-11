@@ -81,3 +81,5 @@ No native fixture replay or source writes. Browser acceptance remains open.
 `2894523b868cb17c92e30ceedddfc91d90c9fc804c81fff99aa85ac5d7a4321c`.
 
 11 November UTC: the Development CQL Playground full public preset rendered three CoFHE Task Manager deployment rows. The two-network subset was selected but not dispatched because a Windows low-battery alert blocked browser input. The existing disposable visitor was reused. Private paired browser acceptance remains open.
+
+11 November UTC: Fhenix public browser acceptance is complete. The Development CQL Playground rendered the earlier three-network preset and the remaining two-network preset. The subset returned FhenixOASIS rows for chain IDs 1 and 11155111. The accepted full preset was not repeated. Original-cohort private paired browser verification remains open.

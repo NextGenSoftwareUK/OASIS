@@ -5,7 +5,7 @@
 - Use work/cosmic-cql-ton-public. Review Development and HyperDrive every 30 minutes. Integrate verified scoped COSMIC batches at most hourly under normal conditions, with critical fixes allowed sooner.
 - Development 2b828fd377 deployed successfully as a64672cb. Its settled discovery check reported 104/106 available. Hedera and Nostr were unavailable.
 - Public browser acceptance carries forward for EOSIO, SOLID and TON (3/2 each), Hedera on fbc0e08e (3/2), Ritual (3/2) and Espresso Systems (3/2). Preserve the original cohorts. Private paired browser checks remain separately open.
-- Fhenix full public browser preset rendered three rows. Its two-network subset was selected but never dispatched. Finish that subset after browser access is restored, using a retained session where available.
+- Fhenix public browser acceptance is complete (3/2). The subset returned chain IDs 1 and 11155111. Original-cohort private paired browser verification remains open.
 - Hedera startup failed before HTTP response headers at 15,009 ms. The shipped guarded handler passed three concurrent reads after startup. Full activation through the deployed provider then passed in an isolated process in 2,727 ms. Running WEB4 registry recovery still needs the retained Development Wizard session, which is absent on this laptop. Use the existing owner action.
 - CI 42938257820 passed all 13 catalogue, admission and diagnostic cases on fda32cf5d3, including both Hedera timeout-stage cases.
 - TRON authenticated qualification awaits the reader key. Process, user, machine and reviewed Railway settings did not expose it. Supabase awaits its reviewed hosted teaching fixture. Keep these in ACTIONS-FOR-DAVID.
