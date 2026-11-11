@@ -1,5 +1,13 @@
 # COSMIC ORM / CQL current status
 
+## GOMap exact Development qualification, 11 November 2026
+
+The three-path dedicated-origin admission update merges cleanly onto
+Development `a614a4377f`. Candidate `aa56e87568` is in
+[qualification run 43104475453](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43104475453).
+The earlier Hedera-base acceptance remains scoped to that revision. The
+dedicated HTTPS OSRM origin is still required for live enrollment.
+
 ## Verified WEB4 release, 11 November 2026
 
 - Exact image CI run 43101002944 passed for source `a209b82e9b` and published digest `sha256:da90ab7c74c0f9d0095fe45ed4c90b9503ab7822ca2f072ae96358cd9abb9dea`. Development merge `a614a4377f` was pushed with the NATS/Waku release asset fix, CouchDB admission and pinned Core.

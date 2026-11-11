@@ -1,5 +1,11 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+11 November GOMap qualification: track temporary tag
+`ci-cosmic-gomap-dev-aa56e87568` until CI run 43104475453 and any
+tag-triggered companion finish. The hosted test runner owns its Mongo
+fixture and cleanup receipt. No local runtime, archive or build output was
+created. The temporary Git index is removed at the end of this update.
+
 11 November WEB4 release: CI built and pushed the exact image in run
 43101002944. The diagnostic trigger tag was removed after both workflows
 finished. The immutable image is retained for release verification. No local

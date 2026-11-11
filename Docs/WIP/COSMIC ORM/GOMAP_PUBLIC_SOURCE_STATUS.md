@@ -1,5 +1,14 @@
 # GOMap public query source review — 8 November 2026
 
+## Development candidate, 11 November 2026
+
+Candidate `aa56e87568` applies the reviewed dedicated-origin change to
+Development `a614a4377f`, preserving CouchDB and the current dependency pins.
+The three changed paths passed the Git whitespace check. Exact hosted
+configuration and loopback HTTP/Mongo tests are queued in
+[CI run 43104475453](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43104475453).
+Live enrollment remains gated on the reviewed dedicated HTTPS OSRM origin.
+
 Status: bounded real HTTP routing client controlled-qualified (28/28); no CQL source admitted, no native route request made, no coverage increment.
 
 The current GOMap project targets net10.0. Its existing OSRMDirectionsProvider uses an injected HttpClient or one shared client, identifies itself with an OASIS user agent, and calls the route HTTP API with full GeoJSON geometry. This is a genuine integration. The README netstandard2.1 description does not describe the current project target. Unity rendering, placement, routing and persistence require separate evidence.
