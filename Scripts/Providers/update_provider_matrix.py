@@ -182,7 +182,7 @@ def build():
   rows.append(f"| [{name}](../../../{rel.as_posix()}) | {role} | {sdk_text} | {status} | {'; '.join(blockers) or 'None recorded within suite scope'} |")
  header=f'''# Provider breadth-first status matrix
 
-Generated from **{len(rows)} shipping provider projects** by `python Scripts/Providers/update_provider_matrix.py`.
+Inventory covers **{len(rows)} shipping provider projects** using the selection rules in `Scripts/Providers/update_provider_matrix.py`.
 Current roles: **{sum("| Non-storage |" in row for row in rows)} non-storage**, **{sum("| Non-storage |" not in row for row in rows)} storage/specialized-storage**. SDK/API source evidence remains unverified for **{sum("| No - unverified |" in row for row in rows)}** providers; **{sum("| No - reviewed missing adapter |" in row for row in rows)}** have hash-bound source reviews proving the current adapter is missing.
 
 Current required storage suite: **{registry.get('currentCoreSuite','core-storage-v1')}**. Earlier-suite totals remain historical and do not establish a current-suite pass.
