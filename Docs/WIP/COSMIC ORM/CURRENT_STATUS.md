@@ -1411,3 +1411,5 @@ KeyDB combined orchestration CI 43051825070 is active. Railway is building b8df6
 11 November UTC: Development ea54de967e carries the verified four-file KeyDB standard CI routing. Generic storage and native restart/federation passed in combined CI 43051825070. Hosted TLS remains open.
 
 11 November UTC: Dragonfly candidate 04eb5a3c9b routes generic storage to the standard matrix and runs the qualified native checkpoint/restart and federation workflow separately. Combined diagnostic 782f0b3408 is submitted on Development ea54de967e. Results and hosted TLS acceptance remain open.
+
+11 November UTC: Railway WEB4 b5fe79a765 is active. Authenticated discovery with the existing visitor showed 105 of 106 sources available. Nostr returned to available on discovery. Blockscout is the sole unavailable listed source and its activation log shows cancellation after 15,010 ms with no HTTP status. Prior query acceptance is preserved. The existing operator recovery path applies if Blockscout remains unavailable.
