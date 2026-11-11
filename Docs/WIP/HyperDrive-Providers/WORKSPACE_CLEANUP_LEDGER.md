@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+11 November successful managed NEAR sandbox CI. Job 130558443335 confirmed an empty native contract, stopped the owned sandbox and removed the temporary ledger and reports. The build, SDK dependencies and ephemeral keys were confined to the disposable runner. No local artifacts or uploads were created.
+
 11 November managed NEAR lifecycle CI. Job 130556061050 removed its owned sandbox and test report directory after the native regression failures. The build, compiler, npm dependencies and keys remained on the disposable runner. No local artifacts or uploads were created.
 
 11 November managed NEAR provisioning CI. Job 130554821914 removed its owned sandbox directory after the RPC port mismatch. The npm packages and contract outputs stayed on the disposable runner. No local artifacts or uploads were created.

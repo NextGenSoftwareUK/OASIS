@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November managed NEAR passed 52/52 and the avatar history regression on native NEAR Sandbox in run 43031215931. Both modes used the shipping near-api-js adapter and confirmed fixture cleanup. A direct contract read found zero records after the managed cases. Development 165e8abaee carries the verified managed shipping changes and tests. Hosted deployment and remaining provider capabilities stay open.
+
 11 November managed NEAR lifecycle reached real transactions in run 43030523082. The async suite stopped on the shipping avatar save acknowledgement count, sync was correctly gated, and the focused history test had omitted enabling provider versioning. The candidate now reports acknowledged save counts and exact loaded counts on the shipping storage paths, explicitly enables history in its regression, and removes only the owned holon tombstones after verifying default deletion visibility. Native rerun pending.
 
 11 November managed NEAR fixture provisioning. Run 43030155418 built the locked contract but reached no managed tests. NEAR Workspaces 5.0.0 chooses the default rpcAddr independently of the configured sandbox port. The worker account tried the random default port while the node listened on 18830. The runner now assigns the same explicit loopback endpoint to both settings. Run 43030523082 at b05a1efc31 passed contract build and entered the managed sandbox step. Development 877318b3c7 records the verified Cosmos, Solana, EOSIO and NEAR contract results in its provider matrix.
