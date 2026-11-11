@@ -19,10 +19,12 @@ public sealed class BnbNativeNftTests
 
         const string rpc = "http://127.0.0.1:19845";
         const int chainId = 714;
-        var owner = new Account(Environment.GetEnvironmentVariable("OASIS_BNB_CI_KEY")!, chainId);
-        var recipient = new Account(Environment.GetEnvironmentVariable("OASIS_BNB_CI_NFT_RECIPIENT_KEY")!, chainId);
+        var ownerKey = Environment.GetEnvironmentVariable("OASIS_BNB_CI_KEY")!;
+        var recipientKey = Environment.GetEnvironmentVariable("OASIS_BNB_CI_NFT_RECIPIENT_KEY")!;
+        var owner = new Account(ownerKey, chainId);
+        var recipient = new Account(recipientKey, chainId);
         var address = Environment.GetEnvironmentVariable("OASIS_BNB_CI_CONTRACT_NFT")!;
-        var provider = new BNBChainOASIS(rpc, owner.PrivateKey, address, chainId);
+        var provider = new BNBChainOASIS(rpc, ownerKey, address, chainId);
         var activation = await provider.ActivateProviderAsync();
         Assert.True(!activation.IsError && activation.Result, activation.Message);
 
@@ -62,15 +64,20 @@ public sealed class BnbNativeNftTests
         Assert.True(!sent.IsError && sent.IsSaved, sent.Message);
         Assert.Equal(recipient.Address, await ownerOf.CallAsync<string>(tokenId), ignoreCase: true);
 
-        var burn = new BurnWeb3NFTRequest { TokenId = token, NFTTokenAddress = address, OwnerPrivateKey = owner.PrivateKey };
-        var rejected = await provider.BurnNFTAsync(burn);
+        BurnWeb3NFTRequest BurnRequest(Account signer, string key) => new()
+        {
+            TokenId = token, NFTTokenAddress = address,
+            OwnerPrivateKey = key, OwnerPublicKey = signer.Address, OwnerSeedPhrase = ""
+        };
+        var rejected = await provider.BurnNFTAsync(BurnRequest(owner, ownerKey));
         Assert.True(rejected.IsError);
         Assert.Equal(recipient.Address, await ownerOf.CallAsync<string>(tokenId), ignoreCase: true);
-        burn.OwnerPrivateKey = recipient.PrivateKey;
-        var burned = await provider.BurnNFTAsync(burn);
+        var burned = await provider.BurnNFTAsync(BurnRequest(recipient, recipientKey));
         Assert.True(!burned.IsError && burned.IsDeleted, burned.Message);
         Assert.Equal(BigInteger.Zero, await balanceOf.CallAsync<BigInteger>(owner.Address));
         Assert.Equal(BigInteger.Zero, await balanceOf.CallAsync<BigInteger>(recipient.Address));
+        var deactivation = await provider.DeActivateProviderAsync();
+        Assert.True(!deactivation.IsError && deactivation.Result, deactivation.Message);
     }
 }
 
