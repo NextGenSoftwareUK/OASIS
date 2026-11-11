@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November Convex response deadline. The shipping HTTP adapter now applies the configured client timeout while reading the response body. A real loopback TCP/HTTP test stalled a successful readiness response after its headers, verified that the body timed out, and completed a subsequent probe on the same backend instance. The test used no hosted Convex deployment and the hosted companion acceptance remains open.
+
 11 November Supabase credential isolation. The shipping PostgREST adapter attaches each project's API key to its own requests and no longer puts credentials on the shared client's default headers. Hosted origins require HTTPS and explicit local PostgREST can still use loopback HTTP. The 34 request and storage tests passed. The five metadata cases then passed with an explicit offline constructor after removing their reflective factory. Dedicated hosted verification remains open.
 
 11 November Polkadot Asset Hub wallet balance. The synchronous shipping wallet method passed through @polkadot/api 17.0.2 against the public HTTPS RPC. It verified the Asset Hub genesis, read a positive finalized treasury DOT balance and posted no continuations to the caller context. No signer or storage contract was configured. Development abf589b08a carries the matching wallet fix and regression test. Shared storage lifecycle verification remains open.

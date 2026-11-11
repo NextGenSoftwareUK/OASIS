@@ -1,5 +1,7 @@
 # Convex native storage baseline
 
+The shipping adapter applies the configured HTTP client timeout to both response headers and body reads. On 11 November, a loopback HTTP transport check verified that a stalled readiness body times out and a later probe can complete on the same adapter. The retained Convex native storage results below cover the separate companion lifecycle.
+
 28October2026. Shipping ConvexOASIS passes canonical core-storage-v2:26async+26sync against the official retained native backend, not a fake HTTP server. Hosted cloud/IAM, all relevant interfaces, concurrency/version stress and global HyperDrive behavior remain open.
 
 ## Implementation and verification

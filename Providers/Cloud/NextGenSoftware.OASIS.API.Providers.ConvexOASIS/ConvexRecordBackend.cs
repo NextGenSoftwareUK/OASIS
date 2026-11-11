@@ -41,12 +41,14 @@ internal sealed class ConvexRecordBackend : IConditionalKeyValueBackend
 
     private async Task<JsonElement> CallAsync(string endpoint, string operation, object args, CancellationToken token)
     {
+        using var deadline = CancellationTokenSource.CreateLinkedTokenSource(token);
+        deadline.CancelAfter(_http.Timeout);
         using var request = new HttpRequestMessage(HttpMethod.Post, new Uri(_origin, "api/" + endpoint));
         request.Headers.Authorization = new AuthenticationHeaderValue("Convex", _adminKey);
         request.Content = new StringContent(JsonSerializer.Serialize(new { path = "oasis/records:" + operation, args, format = "json" }), Encoding.UTF8, "application/json");
-        using var response = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, token).ConfigureAwait(false);
+        using var response = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, deadline.Token).ConfigureAwait(false);
         response.EnsureSuccessStatusCode();
-        using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync(token).ConfigureAwait(false));
+        using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync(deadline.Token).ConfigureAwait(false));
         var root = doc.RootElement;
         if (root.ValueKind != JsonValueKind.Object || !root.TryGetProperty("status", out var status) || status.ValueKind != JsonValueKind.String)
             throw new InvalidDataException("Convex function omitted its status envelope.");
