@@ -102,7 +102,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive
             }
         }
 
-        private async Task DeliverAsync(CancellationToken cancellationToken)
+        internal async Task DeliverAsync(CancellationToken cancellationToken)
         {
             var manager=_providers();
             HolonReplicationRoutes.UseAuthorizationBinding(manager,()=>_authorization.BindingIdentity);
@@ -154,7 +154,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive
                     {
                         var legacy=head.TargetId.StartsWith("hyperdrive-target:",StringComparison.Ordinal);
                         if(!legacy && !head.TargetId.StartsWith("hyperdrive-target-v2:",StringComparison.Ordinal))continue;
-                        if(head.State==HolonDeliveryState.ReconciliationRequired)continue;
+                        if (head.State == HolonDeliveryState.ReconciliationRequired)
+                        {
+                            _logger.LogWarning("Replication {Source} -> {Target} blocked at sequence {Sequence}, operation {OperationId}: {Code}.",
+                                sourceType, head.TargetId, head.Sequence, head.OperationId, head.ErrorCode);
+                            continue;
+                        }
                         IHyperDriveIdempotentReplicationTarget receiver=null;
                         HolonReplicationRouteBinding binding=null;
                         if(legacy)
