@@ -38,3 +38,5 @@ Raw evidence under TestResults/NearCqlCurrent, not committed:
 |near-browser-scoped-proof.json|23F609D8D754BEFE69EA2A9502E3BF4BA8950AE8FD695888B0605D84B56650D2|
 
 Screenshot near-browser-scoped.png. Resources/retention in shared ledger. Next batched Cosmos/Polkadot/NEAR catalogue enrollment; full roadmap remains active.
+
+11 November UTC: Railway marked standalone NEAR wallet revision `ae885fc092` removed after build logs reached image export. The building Cosmos revision `f4d314f7a3` includes NEAR. Development head `6ce625714f` adds the HyperDrive TRON wallet gRPC change on top of both and is queued in Railway. Live WEB4 still serves `fcf2a522e6`. The wallet change is separate from the TRON CQL header reader and its restricted access requirement.

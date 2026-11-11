@@ -3,7 +3,7 @@
 ## Active continuation, 11 November UTC
 
 - Work on `work/cosmic-cql-ton-public`. Review Development and HyperDrive every 30 minutes. Integrate verified scoped COSMIC batches at most hourly under normal conditions.
-- Development head is `f4d314f7a3` (Cosmos Hub wallet). Railway is building `ae885fc092` (NEAR wallet) with the Cosmos successor queued. Both changes are synchronized in HyperDrive.
+- Development head is `6ce625714f` (TRON wallet), queued behind `f4d314f7a3` (Cosmos Hub wallet). Both contain the NEAR wallet revision and are synchronized in HyperDrive.
 - Live Railway WEB4 is still at `fcf2a522e6`. All 106 listed CQL sources reported ready after startup. TRON and Supabase remain absent.
 - Aptos and Nostr reported ready on the current `fcf2a522e6` rollout. Operator recovery stays deferred while they are serving. The earlier Aptos 404 and Nostr WebSocket 503 remain in the provider histories.
 - GOMap candidate `49a3ced97f` passed exact integration and image CI on the Hedera base. Development has since advanced. The dedicated HTTPS OSRM origin remains the enrollment prerequisite.
@@ -959,3 +959,5 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 11 November UTC: Filecoin RPC-v1 finalized-balance presets returned three full and two filtered rows in the live Development CQL Playground. Original-owner MongoDB paired browser verification remains open. No preparation or record saves.
 
 11 November UTC: HyperDrive verified a public TRON wallet balance through its native gRPC client at `6e4449a68f`. Independently probed the published Solidity gRPC GetBlock header-only method for the CQL reader. The genesis reply was 231 bytes with HTTP 200, gRPC OK, no transaction entries and the expected mainnet block ID. The height-1 reply had no block ID and failed validation, so heights 2 and 3 were not requested. This endpoint did not qualify the retained CQL catalogue. Preserve the original authenticated reader path and cohort. [PublicNode endpoints](https://tron.publicnode.com/) and [official TRON protocol](https://raw.githubusercontent.com/tronprotocol/protocol/master/api/api.proto).
+
+11 November UTC: Railway marked standalone NEAR wallet revision `ae885fc092` removed after build logs reached image export. The building Cosmos revision `f4d314f7a3` includes NEAR. Development head `6ce625714f` adds the HyperDrive TRON wallet gRPC change on top of both and is queued in Railway. Live WEB4 still serves `fcf2a522e6`. The wallet change is separate from the TRON CQL header reader and its restricted access requirement.
