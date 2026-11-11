@@ -558,7 +558,7 @@ Status: missing account/configuration information,2 November2026. David approved
 ### Retained Polkadot shared storage fixture
 
 - **Open (2026-11-10).** Identify the machine or backup holding the isolated Polkadot ledger, retained SDK and fixture evidence directory, and make it available to the provider session through a protected channel.
-- **Reason** The guarded shared-suite runner stopped before connecting because TestResults/PolkadotCurrent is absent, and no loopback listener exists on port 19944. The provider agent owns genesis and contract verification, suite execution, and cleanup. Existing public-storage receipts carry forward without replay. [Provider matrix](../HyperDrive-Providers/PROVIDER_MATRIX.md).
+- **Reason** The fresh Parity contracts node passed 52/52 native storage checks, with finalized receipts and independently empty fixture storage. The original ledger remains necessary for retained-data verification and is absent from this worktree. The provider agent owns genesis and contract verification, scoped retained-data checks, and cleanup. [Fresh native run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43041109458) [Provider matrix](../HyperDrive-Providers/PROVIDER_MATRIX.md).
 
 ### Retained Solana validator ledger access
 
