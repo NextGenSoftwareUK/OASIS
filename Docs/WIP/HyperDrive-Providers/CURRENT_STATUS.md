@@ -21,7 +21,7 @@ Public provider count audit (11 November). The inventory lists 234 shipping prov
 
 11 November TRON lifecycle admission. The guarded native runner now rejects mainnet by network label, numeric chain ID in decimal or hexadecimal, or the known mainnet genesis hash before it creates reports or connects. It also rejects malformed chain IDs and genesis hashes. Five admission tests passed and the native theory skipped without the dedicated writable fixture. COSMIC read-only TRON access is separate.
 
-11 November EOSIO public balance. The shipping EosClient passed a live positive-balance read against the Vaulta chain. It checked the chain identity and decoded one positive EOS amount from eosio.token for eosio.saving. The node reported head block 530137880 during identity validation. No signer or transaction was used. Signed storage and wallet facade acceptance remain open.
+11 November EOSIO public balance. The shipping EosClient passed a live positive-balance read against the Vaulta chain. It checked the chain identity and decoded one positive EOS amount from eosio.token for eosio.saving. The node reported head block 530137880 during identity validation. The exact two-file Development candidate 16d22e842e passed the same public check at head block 530138483 and was fast-forwarded into Development. No signer or transaction was used. Signed storage and wallet facade acceptance remain open.
 
 ## Phase and rules
 
