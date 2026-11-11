@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November Firebase Realtime Database storage candidate. A disposable CI job runs both shipping REST storage modes against the checksum-pinned official RTDB 4.11.2 emulator and a fresh demo namespace. It checks all 26 lifecycle cases per mode and verifies the namespace is empty at the end. The interrupted Windows fixture and COSMIC hosted-query work are preserved. Results are pending.
+
 11 November BNB public wallet candidate. CI will verify both shipping balance entry points against the official BSC mainnet RPC with the published wrapped BNB contract as the public read target. It checks chain ID 56, rejection when configured for chain 97, and that storage stays inactive. The job needs no signer, storage contract or private-chain fixture.
 
 11 November BNB BootLoader registration shipped to Development at febb6971d8. The [Development BootLoader job 43086956668](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43086956668) checks the scoped integration with Development dependencies.
