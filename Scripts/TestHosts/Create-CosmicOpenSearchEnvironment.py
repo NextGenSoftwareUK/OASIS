@@ -5,7 +5,6 @@ import bcrypt, yaml, re, argparse, base64, hashlib, json, os, pwd, secrets, shut
 STATE = Path('/var/tmp/oasis-opensearch-cql')
 IMAGE = 'docker.io/opensearchproject/opensearch@sha256:5c20af6b5cb472a74ba99f663bee3dd03afbeced14b3897b220a87fc75278445'
 NAME = 'oasis-opensearch-cql'
-OWNER = pwd.getpwnam('dellams').pw_uid
 
 
 def command(*args):
@@ -202,7 +201,11 @@ def verify_native(container, pending, expected=None):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--verify-original', action='store_true')
+    parser.add_argument('--owner', default='dellams', help='Local account that owns the fixture receipts')
     options = parser.parse_args()
+    OWNER = pwd.getpwnam(options.owner).pw_uid
+    if OWNER == 0:
+        parser.error('The fixture owner must be a non-root account')
     if options.verify_original:
         verify_original()
     else:
