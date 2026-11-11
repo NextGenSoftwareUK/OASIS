@@ -62,6 +62,7 @@ public class TronNativeStorageLifecycleTests
             owner = new TronECKey(signer, TronNetwork.MainNet).GetPublicAddress();
             using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(2));
             await using var runtime = new TronSdkRuntime(fullNode, solidityNode, genesis, contractFeeLimitSun: 1000000000);
+            await runtime.NativeTransfers.VerifyNetworkAsync(timeout.Token);
             var bytecode = Convert.FromHexString((await File.ReadAllTextAsync(
                 Required("OASIS_TRON_FRESH_BYTECODE"), timeout.Token)).Trim());
             var deployment = await runtime.NativeTransfers.DeployBytecodeAsync(owner, bytecode, signer, timeout.Token);

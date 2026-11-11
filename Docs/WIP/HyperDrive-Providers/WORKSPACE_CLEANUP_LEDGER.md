@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+11 November TRE diagnostics CI. Job 130566647551 logged the owned container state and removed its container and ledger after the head-block probe failed. The Solidity compiler, bytecode and outputs remained on the disposable runner. No local artifacts or uploads were created.
+
 11 November TRON fixture CI. Job 130564148374 removed the owned TRE container and ledger after readiness failed. The temporary Solidity compiler and bytecode were confined to the disposable runner. No local outputs or uploads were created.
 
 11 November successful managed NEAR sandbox CI. Job 130558443335 confirmed an empty native contract, stopped the owned sandbox and removed the temporary ledger and reports. The build, SDK dependencies and ephemeral keys were confined to the disposable runner. No local artifacts or uploads were created.
