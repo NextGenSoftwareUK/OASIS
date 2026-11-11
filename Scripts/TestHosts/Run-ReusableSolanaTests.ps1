@@ -116,7 +116,8 @@ try {
     $genesis=Invoke-RestMethod -Uri 'http://127.0.0.1:18899' -Method Post -ContentType 'application/json' -Body '{"jsonrpc":"2.0","id":1,"method":"getGenesisHash"}' -TimeoutSec 3
     # Approved one-time recovery: original ledger/uncertain outcomes remain cold and unresolved.
     # New identity independently observed with finalized0->101 and offline snapshot100/root102 admission.
-    if($genesis.result -ne 'F22uw23o1HuahQiQVfd7Lfi6Q51fv4KNoYAvDnDDpEvj'){throw 'Retained ledger genesis differs; refusing writes.'}
+    $expectedGenesis='F22uw23o1HuahQiQVfd7Lfi6Q51fv4KNoYAvDnDDpEvj'
+    if($genesis.error -or $genesis.result -cne $expectedGenesis){throw 'Retained ledger genesis differs; refusing writes.'}
     $slotBody='{"jsonrpc":"2.0","id":1,"method":"getSlot","params":[{"commitment":"finalized"}]}'
     $initialRoot=Invoke-RestMethod -Uri 'http://127.0.0.1:18899' -Method Post -ContentType 'application/json' -Body $slotBody -TimeoutSec 3
     if($null -eq $initialRoot.result -or $initialRoot.error){throw 'Finalized slot lookup failed; refusing writes.'}
@@ -195,7 +196,7 @@ try {
         # Inspection never needs client signing/encryption keys or a .NET build.
         $publicAddress='Fi4AJCtDCehEVc7CiQVcHC9t57BmKk3B6gtMjWqA4Ffr'
         if($HistorySignatures){
-            & (Join-Path $PSScriptRoot 'Get-SolanaHistoryAvailability.ps1') -Signatures $HistorySignatures | ConvertTo-Json -Depth 6 -Compress | Write-Output
+            & (Join-Path $PSScriptRoot 'Get-SolanaHistoryAvailability.ps1') -Signatures $HistorySignatures -ExpectedGenesis $expectedGenesis | ConvertTo-Json -Depth 6 -Compress | Write-Output
             return
         }
         $body=@{jsonrpc='2.0';id=1;method='getSignaturesForAddress';params=@($publicAddress,@{limit=5;commitment='finalized'})} | ConvertTo-Json -Depth 5 -Compress

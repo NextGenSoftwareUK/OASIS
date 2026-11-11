@@ -3,6 +3,7 @@ $probe=Join-Path $PSScriptRoot 'Get-SolanaHistoryAvailability.ps1'
 $requests=[Collections.Generic.List[object]]::new()
 $mode='available'
 $signature='1'*64
+$genesis='1'*32
 function Invoke-RestMethod {
     param($Uri,$Method,$ContentType,$Body,$TimeoutSec)
     $request=$Body | ConvertFrom-Json
@@ -11,6 +12,10 @@ function Invoke-RestMethod {
         return [pscustomobject]@{error=[pscustomobject]@{code=-32000}}
     }
     $value=switch($request.method){
+        'getGenesisHash' {
+            if($mode -eq 'wrong-genesis'){'2'*43}
+            else {$genesis}
+        }
         'getFirstAvailableBlock' {100}
         'minimumLedgerSlot' {90}
         'getSignatureStatuses' {
@@ -28,22 +33,27 @@ function Invoke-RestMethod {
     }
     [pscustomobject]@{result=$value}
 }
-foreach($mode in @('available','absent','rpc-error','wrong-identity','missing-status-result')){
+foreach($mode in @('available','absent','rpc-error','wrong-identity','missing-status-result','wrong-genesis')){
     $mode=$mode
     $requests.Clear()
     $failed=$false
-    try {$result=& $probe -Signatures @($signature)} catch {$failed=$true; $failure=$_}
-    if($failed -ne ($mode -in @('rpc-error','wrong-identity','missing-status-result'))){throw "Unexpected outcome: $mode; $failure"}
-    if(!$failed -and ($result.Transactions.Count -ne 1 -or $result.Transactions[0].TransactionPresent -ne ($mode -eq 'available'))){throw 'Availability evidence differs.'}
+    try {$result=& $probe -Signatures @($signature) -ExpectedGenesis $genesis} catch {$failed=$true; $failure=$_}
+    if($failed -ne ($mode -in @('rpc-error','wrong-identity','missing-status-result','wrong-genesis'))){throw "Unexpected outcome: $mode; $failure"}
+    if($requests[0].method -ne 'getGenesisHash'){throw 'Ledger identity was not checked first.'}
+    if($mode -eq 'wrong-genesis'){
+        if($requests.Count -ne 1){throw 'Wrong ledger did not stop the history probe.'}
+        continue
+    }
+    if(!$failed -and ($result.GenesisHash -cne $genesis -or $result.Transactions.Count -ne 1 -or $result.Transactions[0].TransactionPresent -ne ($mode -eq 'available'))){throw 'Availability evidence differs.'}
     $lookup=$requests | Where-Object method -eq 'getSignatureStatuses'
     if(@($lookup.params[0]).Count -ne 1 -or $lookup.params[0][0] -ne $signature -or !$lookup.params[1].searchTransactionHistory){throw 'History request changed shape.'}
     if($mode -eq 'missing-status-result'){
-        if($requests.Count -ne 3){throw 'Malformed status did not stop the probe.'}
+        if($requests.Count -ne 4){throw 'Malformed status did not stop the probe.'}
         continue
     }
     $transaction=$requests | Where-Object method -eq 'getTransaction'
     if($transaction.params[1].commitment -ne 'finalized' -or $transaction.params[1].maxSupportedTransactionVersion -ne 1){throw 'Native read options differ.'}
     if($transaction.params[0] -ne $signature){throw 'Transaction signature differs.'}
-    if($requests.Count -ne 4){throw 'Probe retried or issued an unexpected RPC.'}
+    if($requests.Count -ne 5){throw 'Probe retried or issued an unexpected RPC.'}
 }
-'PASS: five availability/error/identity schedules; finalized reads, bounded calls, no submissions.'
+'PASS: six availability/error/identity schedules; genesis checked first, finalized reads, no submissions.'

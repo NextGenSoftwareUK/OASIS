@@ -2,6 +2,8 @@
 param(
     [Parameter(Mandatory)][ValidateCount(1,8)]
     [ValidatePattern('^[1-9A-HJ-NP-Za-km-z]{64,88}$')][string[]]$Signatures,
+    [Parameter(Mandatory)]
+    [ValidatePattern('^[1-9A-HJ-NP-Za-km-z]{32,44}$')][string]$ExpectedGenesis,
     [string]$Endpoint='http://127.0.0.1:18899'
 )
 $ErrorActionPreference='Stop'
@@ -10,6 +12,10 @@ function Read-HistoryRpc([string]$Method,[object[]]$Arguments) {
     $reply=Invoke-RestMethod -Uri $Endpoint -Method Post -ContentType 'application/json' -Body $body -TimeoutSec 5
     if($reply.error -or !$reply.PSObject.Properties['result']){throw "Read-only $Method failed; absence cannot be inferred."}
     return $reply.result
+}
+$genesis=Read-HistoryRpc 'getGenesisHash' @()
+if($genesis -isnot [string] -or $genesis -cne $ExpectedGenesis){
+    throw 'Solana genesis differs from the expected ledger; no history was queried.'
 }
 $first=Read-HistoryRpc 'getFirstAvailableBlock' @()
 $minimum=Read-HistoryRpc 'minimumLedgerSlot' @()
@@ -30,4 +36,4 @@ $rows=for($index=0;$index -lt $Signatures.Count;$index++){
         ConfirmationStatus=if($null -ne $observation){$observation.confirmationStatus}else{$null}
     }
 }
-[pscustomobject]@{FirstAvailableBlock=$first;MinimumLedgerSlot=$minimum;Transactions=@($rows)}
+[pscustomobject]@{GenesisHash=$genesis;FirstAvailableBlock=$first;MinimumLedgerSlot=$minimum;Transactions=@($rows)}
