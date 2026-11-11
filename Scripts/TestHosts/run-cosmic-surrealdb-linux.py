@@ -83,7 +83,7 @@ def main():
                                 command = [DOTNET, VSTEST, str(DLL), '--TestCaseFilter:FullyQualifiedName~' + test_class,
                                     '--ResultsDirectory:' + str(results), '--Logger:trx;LogFileName=' + name + '.trx']
                             subprocess.run(command, env=test_env, cwd=results, stdout=test_log, stderr=subprocess.STDOUT, check=True)
-                        trx = RESULTS / (name + '.trx'); assert trx.stat().st_mtime >= started
+                        trx = results / (name + '.trx'); assert trx.stat().st_mtime >= started
                         counts = ET.parse(trx).find('.//{*}Counters').attrib
                         assert counts['passed'] == counts['total'] == '1' and counts['notExecuted'] == '0'
                         proofs.append({'phase': name, 'passed': 1, 'sha256': hashlib.sha256(trx.read_bytes()).hexdigest()})
