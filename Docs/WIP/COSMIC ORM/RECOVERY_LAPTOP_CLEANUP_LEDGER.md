@@ -5660,3 +5660,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: exact solution CI 43005826333 uses temporary tag ci-cosmic-solution-cbb5e659a0-build. Remove that tag when its runs finish and the results are recorded. The local temporary index was removed. No local build, download, restore or artifact copy.
 
 11 November UTC: AWS S3 browser acceptance reused the existing visitor. No local report, screenshot file, download, runtime, build output or saved holon.
+
+11 November UTC: Azure Blob browser acceptance reused the existing visitor. No local report, screenshot file, download, runtime, build output or saved holon.
