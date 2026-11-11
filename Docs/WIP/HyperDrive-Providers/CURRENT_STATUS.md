@@ -1,6 +1,8 @@
 # Current provider status
 
-11 November Cosmos blockchain contract deployment passed. Run 43028420581 built the locked contract with Rust 1.99.0 and successfully stored and instantiated it in native wasmd. The expected owner and empty record set were verified. The next CI revision runs the direct provider conformance modes with locked CosmJS, separate fresh reports, and a final native key check. The historical retained ledger remains open.
+11 November NEAR native avatar cleanup qualification. Run 43029188382 at 25337ee98f builds the locked NEAR SDK contract on Linux and runs the new atomic deletion action on a fresh NEAR Sandbox. The test covers rejection for a non-owner, deletion of the exact current avatar and detail and their history, preservation of an unrelated row, repeated deletion semantics and empty fixture cleanup. The retained NEAR cohort and COSMIC public reads remain separate. The shipping C# adapter lifecycle remains open.
+
+11 November Cosmos blockchain contract deployment passed. Run 43028420581 built the locked contract with Rust 1.99.0 and successfully stored and instantiated it in native wasmd. The expected owner and empty record set were verified. Run 43028889300 at 7d943c897a runs the direct provider conformance modes with locked CosmJS, separate fresh reports, and a final native key check. The historical retained ledger remains open.
 
 11 November Cosmos blockchain native contract qualification. Run 43028420581 at 2597155b54 builds the locked OASIS CosmWasm contract using Rust 1.99.0 and deploys it to the same digest-pinned wasmd image as the retained runner, with a fresh loopback-only chain. It checks transaction inclusion, contract ownership and an empty native record set. The shipping CosmJS lifecycle suite and the original retained ledger remain separate pending gates. The reviewed COSMIC public read cohort is unaffected.
 
