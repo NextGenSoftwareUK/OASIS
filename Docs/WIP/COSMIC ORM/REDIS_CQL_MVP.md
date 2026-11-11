@@ -163,3 +163,5 @@ and native TLS qualification are still pending.
 [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
 
 11 November UTC: Redis candidate 52ea33e543 runs existing encrypted native CQL before and after restart and MongoDB SDK/HTTP federation on digest-pinned disposable services. The existing retained Windows fixture remains supported. Results are pending. The verified Dragonfly/Valkey batch still applies to Development ea54de967e.
+
+11 November UTC: Redis CI 43057101843 passed five strict phases with zero skips: encrypted native CQL, restart, Mongo replica admission, SDK/HTTP federation and a final native recheck. Candidate 8a0503265b routes generic storage to the standard matrix and the native checks to their dedicated fixture. Combined diagnostic db871820ad is submitted. Hosted TLS acceptance remains open.
