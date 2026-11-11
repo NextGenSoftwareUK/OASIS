@@ -149,6 +149,27 @@ public class FirebaseNativeStorageConformanceTests
             Assert.IsFalse(metadataRows.IsError, metadataRows.Message);
             Assert.AreEqual(child.Id, metadataRows.Result.Single().Children.Single().Id);
 
+            var grandchildNode = new Uri(endpoint, $"oasis_holons/{grandchild.Id:D}.json?ns={DatabaseNamespace}");
+            using var competing = new HttpClient(new InterleaveAfterRead(async token =>
+            {
+                using var patch = new StringContent("{\"name\":\"concurrent update\"}", System.Text.Encoding.UTF8,
+                    "application/json");
+                using var updated = await http.PatchAsync(grandchildNode, patch, token);
+                updated.EnsureSuccessStatusCode();
+            }));
+            var staleProvider = new FirebaseOASIS(endpoint.AbsoluteUri, null, competing, DatabaseNamespace);
+            var stale = await staleProvider.DeleteHolonAsync(grandchild.Id);
+            Assert.IsTrue(stale.IsError);
+            Assert.IsFalse(stale.IsDeleted);
+            Assert.AreEqual(System.Net.HttpStatusCode.PreconditionFailed,
+                ((HttpRequestException)stale.Exception!).StatusCode);
+
+            using (var preserved = JsonDocument.Parse(await http.GetStringAsync(grandchildNode)))
+            {
+                Assert.AreEqual("concurrent update", preserved.RootElement.GetProperty("name").GetString());
+                Assert.IsFalse(preserved.RootElement.GetProperty("isDeleted").GetBoolean());
+            }
+
             var removed = await provider.DeleteHolonAsync(grandchild.Id);
             Assert.IsTrue(removed.IsDeleted && !removed.IsError, removed.Message);
             var live = await provider.LoadHolonAsync(root.Id);
@@ -162,6 +183,29 @@ public class FirebaseNativeStorageConformanceTests
                 using var response = await http.DeleteAsync(
                     new Uri(endpoint, $"oasis_holons/{id:D}.json?ns={DatabaseNamespace}"));
                 response.EnsureSuccessStatusCode();
+            }
+        }
+    }
+
+    private sealed class InterleaveAfterRead(Func<CancellationToken, Task> concurrentWrite)
+        : DelegatingHandler(new HttpClientHandler { AllowAutoRedirect = false })
+    {
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
+            CancellationToken cancellationToken)
+        {
+            var response = await base.SendAsync(request, cancellationToken);
+            if (request.Method != HttpMethod.Get || !response.IsSuccessStatusCode)
+                return response;
+
+            try
+            {
+                await concurrentWrite(cancellationToken);
+                return response;
+            }
+            catch
+            {
+                response.Dispose();
+                throw;
             }
         }
     }
