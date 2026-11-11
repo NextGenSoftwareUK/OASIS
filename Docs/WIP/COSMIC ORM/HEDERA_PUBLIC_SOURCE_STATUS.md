@@ -125,3 +125,5 @@ WEB4 diagnostic regression gate complete: CI 42938257820/job 130253566184 succee
 11 November UTC: standalone Hedera Railway deployment `09567e4c-41ea-4418-a32e-8c1150572d47` at `a7522f4286` is REMOVED. Build logs reached Docker image export and no deployment logs were returned. Live WEB4 still serves `3f5d781f29`. Building successor `fcf2a522e6` includes the Hedera commit by Git ancestry, so verify Hedera and ActivityPub on that successor after cutover.
 
 11 November UTC: verified Railway Development deployment `5e1e3ab0-81f9-4fea-83b8-12e851c999ed` at `fcf2a522e6`. ActivityPubOASIS and HashgraphOASIS both returned three full and two subset rows through their live native public CQL presets. Discovery also reported federation ready. Prior paired and browser evidence retains its original scope.
+
+11 November UTC: Development b1d78063c7 integrates HyperDrive Hedera native storage conformance. CI 43056077700 passed 52/52 on independent Hiero consensus ledgers using compression before encryption, with both contracts confirmed empty afterward. Hosted signed storage and the original-owner paired CQL browser check remain open.
