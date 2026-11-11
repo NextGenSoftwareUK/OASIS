@@ -1,6 +1,6 @@
 # Current resource and cleanup ledger
 
-11 November Cassandra storage verification uses a disposable CI container, two keyspaces and owned checkpoint files. The runner removes its container, volumes, newly pulled image and checkpoint directory on exit. Cleanup confirmation is pending. No local runtime, download or build was created.
+11 November Cassandra storage verification uses a disposable CI container, two keyspaces and owned checkpoint files. The runner removes its container, volumes, newly pulled image and checkpoint directory on exit. Run 43065545986 confirmed removal of its Cassandra container, volumes, image and checkpoint directory after the graph-save failure. Candidate cleanup is pending. No local runtime, download or build was created.
 
 11 November PlanetScale MySQL run 43063077214 reproduced the detail-by-ID failure and CI logged image removal.
 
