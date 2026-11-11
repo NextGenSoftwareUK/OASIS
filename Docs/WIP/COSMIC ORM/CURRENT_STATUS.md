@@ -761,3 +761,5 @@ Hedera exact image CI 42926699339 passed and Development fast-forwarded to 2b828
 EOSIO public browser acceptance is recorded for 10 November. Both presets rendered 3/2 EOSIOOASIS rows. Private MongoDB-paired browser acceptance remains open. See [EOSIO evidence](EOSIO_PUBLIC_SOURCE_STATUS.md).
 
 11 November UTC Hedera checkpoint: Railway a64672cb successfully deployed Development 2b828fd377. HashgraphOASIS activation timed out at response_headers after 15,009 ms with no HTTP status. NostrOASIS separately returned HTTP 503 at WebSocket connect. Both remained unavailable while catalogue warmup advanced to 96/106 ready. The Hedera full browser preset remains open. No settings changed or local build ran.
+
+Development 2b828fd377 settled at 104/106 ready. Only Hedera and Nostr were unavailable. Hedera public browser 3/2 acceptance exists on fbc0e08e. Current-release activation and private paired browser acceptance remain open.
