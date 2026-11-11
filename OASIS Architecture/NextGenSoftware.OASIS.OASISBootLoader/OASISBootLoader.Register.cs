@@ -90,6 +90,11 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                             }
                             break;
 
+                        case ProviderType.SQLServerDBOASIS:
+                            result.Result = new API.Providers.SQLServerDBOASIS.SQLServerDBOASIS(
+                                overrideConnectionString ?? OASISDNA?.OASIS?.StorageProviders?.SQLServerDBOASIS?.ConnectionString);
+                            break;
+
                         case ProviderType.SQLLiteDBOASIS:
                             {
                                 //TODO: need to fix or re-write SQLLiteDBOASIS Provider ASAP!
