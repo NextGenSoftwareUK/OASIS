@@ -3,7 +3,7 @@
 ## Active continuation, 11 November UTC
 
 - Work on `work/cosmic-cql-ton-public`. Review Development and HyperDrive every 30 minutes. Integrate verified scoped COSMIC batches at most hourly under normal conditions.
-- Development head is `a7522f4286`, queued behind the EOSIO wallet build `3f5d781f29`. Live WEB4 at `16d22e842e` reached 106/106 listed CQL sources ready.
+- Development head is `a7522f4286`, pending Railway cutover. Live WEB4 at EOSIO wallet revision `3f5d781f29` reached 106/106 listed CQL sources ready.
 - Aptos and Nostr are ready at `16d22e842e`. Operator recovery stays deferred while they are serving. The earlier Aptos 404 and Nostr WebSocket 503 remain in the provider histories.
 - GOMap candidate `4f60bd0ca9` adds the three-file routing guard and admission test change to `3f5d781f29`. Exact integration and image CI are running. A reviewed dedicated HTTPS OSRM origin remains required for enrollment.
 - Reclaim Protocol and World ID public browser presets passed 3/2. Original-owner paired browser checks remain open.
@@ -928,3 +928,5 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 11 November UTC: Livepeer public orchestrator presets returned three full and two filtered rows in the live Development CQL Playground. The original-owner MongoDB paired browser check remains open. No record preparation or saves.
 
 11 November UTC: GOMap candidate `4f60bd0ca9` passed 12/12 admission and 1/1 WEB4 integration in run 42983923802, zero skipped. Report 13839636000 SHA-256 `2ccdbf1c35f475e6443617d50c5fadd5e0e7ecd78ff532c0e2dd5963caad4c23`. Cleanup report 13839636005 SHA-256 `8b498baa52c81167ec20c89dd61673f2c2e8acde1c6eb718070bdfa09b665225` confirmed container and volume removal. Image 42983926930 is building. Development advanced to `a7522f4286` with two disjoint Hedera wallet files. No GOMap push to Development.
+
+11 November UTC: Railway WEB4 deployment `10675f44-7aab-4589-83d7-730d248638a1` at EOSIO wallet revision `3f5d781f29` succeeded. Authenticated discovery progressed 70/106 to 106/106 ready. EOSIO, Hedera and the other listed priority sources and LocalFile reported native and federated readiness. TRON and Supabase remain absent. This is CQL readiness evidence; the live wallet test is in the HyperDrive handoff.

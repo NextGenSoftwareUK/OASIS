@@ -60,3 +60,5 @@ Primary references: [Vaulta reading state](https://docs.vaulta.com/docs/latest/w
 ### Live public browser acceptance— 10 November 2026
 
 A fresh temporary WEB4 demo session on Development ran both EOSIOOASIS public presets in CQL Playground. The browser rendered three rows for the full account preset and two for the subset, labeled EOSIOOASIS. The original prepared cohort was preserved. Private MongoDB paired browser acceptance remains open.
+
+11 November UTC: Railway WEB4 deployment `10675f44-7aab-4589-83d7-730d248638a1` at EOSIO wallet revision `3f5d781f29` succeeded. Authenticated discovery progressed 70/106 to 106/106 ready. EOSIO, Hedera and the other listed priority sources and LocalFile reported native and federated readiness. TRON and Supabase remain absent. This is CQL readiness evidence; the live wallet test is in the HyperDrive handoff.
