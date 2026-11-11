@@ -70,3 +70,5 @@ A fresh temporary WEB4 demo session on Development ran both EOSIOOASIS public pr
 11 November UTC: Development a5e8fc36c4 includes the verified Antelope contract build workflow and ABI/WASM artifacts. Native live deployment and storage lifecycle remain open.
 
 11 November UTC: HyperDrive verified the shipping EOSIO adapter against an official Antelope Spring 1.2.2 chain. All three native storage cases passed, covering avatar and holon CRUD and avatar-detail update, soft delete and hard delete. Independent chain-table checks confirmed cleanup. Development `c0b8c1eef1` includes the verified changes. Hosted contract deployment, the full shared suite and the original-owner private CQL browser check remain open. [Native storage CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43026743854)
+
+11 November UTC: Development c8832feaa7 integrates HyperDrive EOSIO native storage conformance. CI 43048799690 passed 52/52 across both shipping modes on independent Antelope Spring 1.2.2 ledgers. Independent reads confirmed empty avatar, avatar-detail and holon tables. Hosted signed storage and the original-owner paired CQL browser check remain open.
