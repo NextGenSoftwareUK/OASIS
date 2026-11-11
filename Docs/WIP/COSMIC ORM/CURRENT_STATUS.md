@@ -1117,3 +1117,5 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 11 November UTC: DuckDBOASIS read-only public teaching presets returned 3 full and 2 filtered rows in the live Development WEB4 CQL Playground. Original-owner paired browser verification remains open.
 
 11 November UTC: CloudinaryOASIS public JPEG metadata presets returned 3 full and 2 filtered rows in the live Development WEB4 CQL Playground. Original-owner paired browser and owned asset storage verification remain open.
+
+11 November UTC: HyperDrive verified the shipping Neo4j Aura adapter against a disposable Neo4j Community 5.26.0 Bolt service in CI 43013716620. Both native lifecycle tests passed, including holon metadata selectors, and the container was removed. Hosted Aura TLS and wider operations remain open. COSMIC hosted CQL acceptance is unchanged.
