@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+11 November IPFS separate-process CI. Baseline job 130489021464 and corrected job 130489798827 both stopped the owned Kubo daemon. The lock file, repository, download and build outputs were confined to disposable Windows runners. No uploads or local artifacts were created.
+
 11 November IPFS independent writer CI. Baseline job 130484784884 and corrected job 130486013043 both stopped their owned Kubo process. Downloads, temporary repositories and builds ran on disposable Windows runners. No uploads or local outputs were created.
 
 11 November IPFS concurrent publication CI. Both the baseline and corrected runs stopped their owned Kubo process. GitHub job 130482122676 passed the corrected test. The isolated repositories, downloads and builds ran on disposable runners and no artifact upload was configured. No local artifacts were created.
