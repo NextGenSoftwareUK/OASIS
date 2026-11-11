@@ -3,7 +3,7 @@
 ## Active continuation, 11 November UTC
 
 - Work on `work/cosmic-cql-ton-public`. Review Development and HyperDrive every 30 minutes. Integrate verified scoped COSMIC batches at most hourly under normal conditions.
-- Development head is `a7522f4286`, pending Railway cutover. Live WEB4 at EOSIO wallet revision `3f5d781f29` reached 106/106 listed CQL sources ready.
+- Development head is `fcf2a522e6`, building on Railway with both ActivityPub and Hedera wallet changes. Live WEB4 at `3f5d781f29` reached 106/106 listed CQL sources ready.
 - Aptos and Nostr are ready at `16d22e842e`. Operator recovery stays deferred while they are serving. The earlier Aptos 404 and Nostr WebSocket 503 remain in the provider histories.
 - GOMap candidate `4f60bd0ca9` adds the three-file routing guard and admission test change to `3f5d781f29`. Exact integration and image CI are running. A reviewed dedicated HTTPS OSRM origin remains required for enrollment.
 - Reclaim Protocol and World ID public browser presets passed 3/2. Original-owner paired browser checks remain open.
@@ -936,3 +936,5 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 11 November UTC: Development advanced to `fcf2a522e6` with HyperDrive ActivityPub synchronous read changes. Railway queued it behind Hedera; live WEB4 still serves `3f5d781f29`. The already-running GOMap tests and image on `49a3ced97f` remain useful evidence. Development WEB4 has no GOMap or OSRM variable names configured. Defer another GOMap image rebuild while the dedicated origin is outstanding, so the next exact candidate can qualify both code and enrollment against the then-current base.
 
 11 November UTC: on live Development WEB4 `3f5d781f29`, all 106 listed sources advertised native and federated readiness. Discovery advertised two enabled native and two enabled federation presets for each of 103 sources. The three primary storage providers (MongoDB, SQLite and Neo4j) use the Playground's built-in examples. This checks discovery and preset availability; per-provider execution evidence remains in the matrix.
+
+11 November UTC: standalone Hedera Railway deployment `09567e4c-41ea-4418-a32e-8c1150572d47` at `a7522f4286` is REMOVED. Build logs reached Docker image export and no deployment logs were returned. Live WEB4 still serves `3f5d781f29`. Building successor `fcf2a522e6` includes the Hedera commit by Git ancestry, so verify Hedera and ActivityPub on that successor after cutover.

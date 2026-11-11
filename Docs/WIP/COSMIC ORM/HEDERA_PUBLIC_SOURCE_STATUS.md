@@ -121,3 +121,5 @@ WEB4 diagnostic regression gate complete: CI 42938257820/job 130253566184 succee
 
 
 11 November UTC: on Development c39eba5cd1, Hedera's two MongoDB-paired public presets returned 3 full and 2 filtered rows through the live WEB4 federation endpoint. The selections matched the native preset keys and all returned copies were from Hedera. The independent visitor saw no MongoDB copies. Original private paired browser verification and restart reliability remain open.
+
+11 November UTC: standalone Hedera Railway deployment `09567e4c-41ea-4418-a32e-8c1150572d47` at `a7522f4286` is REMOVED. Build logs reached Docker image export and no deployment logs were returned. Live WEB4 still serves `3f5d781f29`. Building successor `fcf2a522e6` includes the Hedera commit by Git ancestry, so verify Hedera and ActivityPub on that successor after cutover.
