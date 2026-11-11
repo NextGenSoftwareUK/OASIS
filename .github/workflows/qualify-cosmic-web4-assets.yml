@@ -1,0 +1,98 @@
+name: Qualify COSMIC WEB4 native asset image
+
+# Builds Docker/Dockerfile.web4 on a GitHub runner and publishes it to GHCR.
+# Railway's builder runs out of resources during `dotnet publish` of the ONODE
+# WebAPI with no error text, so the sandbox deploys this finished image instead.
+# Private dependencies are cloned inside the Dockerfile at the revisions pinned
+# in Docker/oasis-dependency-versions.env using PRIVATE_SUBMODULE_PAT; the token
+# is a build-stage ARG and never reaches the published final stage.
+
+on:
+  push:
+    tags: [ci-cosmic-web4-assets-build-3845f4723c]
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: qualify-cosmic-web4-native-assets
+  cancel-in-progress: false
+
+jobs:
+  image:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Check out the parent repository (no submodules; the Dockerfile clones pinned ones)
+        uses: actions/checkout@v4
+        with:
+          ref: 3845f4723c0564b9937d5fbb24621c0f34ec8d70
+          submodules: false
+
+      - name: Verify provider SDK source publication contracts
+        run: python3 -B Scripts/validate_all_provider_sdk_publish_manifests.py
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compute image names
+        id: names
+        env:
+          REPOSITORY_OWNER: ${{ github.repository_owner }}
+          EXTRA_IMAGE_TAG: 3845f4723c0564b9937d5fbb24621c0f34ec8d70
+          TEACHING_SIDECARS: 'false'
+        run: |
+          repo="ghcr.io/${REPOSITORY_OWNER,,}/oasis-web4"
+          sha="$(git rev-parse HEAD)"
+          echo "repo=$repo" >> "$GITHUB_OUTPUT"
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+          case "$TEACHING_SIDECARS" in
+            true) image_sha="$sha-teaching" ;;
+            false|'') image_sha="$sha" ;;
+            *) echo "Invalid teaching runtime selection" >&2; exit 1 ;;
+          esac
+          if [[ -n "$EXTRA_IMAGE_TAG" && ! "$EXTRA_IMAGE_TAG" =~ ^[a-zA-Z0-9_][a-zA-Z0-9_.-]{0,127}$ ]]; then
+            echo "Invalid extra image tag" >&2
+            exit 1
+          fi
+          {
+            echo 'tags<<TAGS'
+            echo "$repo:$image_sha"
+            if [[ -n "$EXTRA_IMAGE_TAG" && "$EXTRA_IMAGE_TAG" != "$image_sha" ]]; then
+              echo "$repo:$EXTRA_IMAGE_TAG"
+            fi
+            echo TAGS
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Build and push
+        id: publish
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Docker/Dockerfile.web4
+          push: true
+          provenance: false
+          tags: ${{ steps.names.outputs.tags }}
+          build-args: |
+            GITHUB_PAT=${{ secrets.PRIVATE_SUBMODULE_PAT }}
+            OASIS_INCLUDE_TEACHING_SIDECARS=false
+          cache-from: |
+            type=gha
+            type=gha,scope=pouch-native
+          cache-to: type=gha,mode=max
+
+      - name: Summary
+        env:
+          IMAGE_REPOSITORY: ${{ steps.names.outputs.repo }}
+          SOURCE_SHA: ${{ steps.names.outputs.sha }}
+          IMAGE_DIGEST: ${{ steps.publish.outputs.digest }}
+        run: |
+          [[ "$IMAGE_DIGEST" =~ ^sha256:[0-9a-f]{64}$ ]]
+          printf 'Source commit: `%s`\n\nPublished image: `%s@%s`\n' \
+            "$SOURCE_SHA" "$IMAGE_REPOSITORY" "$IMAGE_DIGEST" >> "$GITHUB_STEP_SUMMARY"
