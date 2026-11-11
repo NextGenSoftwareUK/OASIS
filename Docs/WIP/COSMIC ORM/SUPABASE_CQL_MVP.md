@@ -145,3 +145,5 @@ The retained local gateway evidence is separate.
 11 November UTC: exact WEB4 candidate 020c61c859 includes the verified RavenDB batch and the one-line workflow fix that defaults to the source SHA image tag. Dependency validation passed. Image CI 43072535002 explicitly requests only that SHA and is pending behind the security-patched image. Keep the exact runtime verification gate before Development integration.
 
 11 November UTC: security-patched WEB4 image CI 43071690459 passed on e0575b4536. Exact digest sha256:238254e08a164970cf03ee9ea5310f2c756ef0b1fa3fa84ce129188ba018fa98. Completed Buildx logs list only the e0575b4536 full SHA tag and show no sandbox alias publication. The RavenDB-inclusive image 43072535002 is the remaining exact Development gate.
+
+11 November UTC: Core Development fast-forwarded to 7ddf20c1e1 with the verified Supabase read tariff. The merge preserves concurrent Core history and has the exact source tree of the tested pin 8a5de72b6e, which is now reachable from Core Development. The parent remains at 73f8b98967 and the RavenDB-inclusive image 43072535002 is building. Parent release and live Supabase enrollment remain open.

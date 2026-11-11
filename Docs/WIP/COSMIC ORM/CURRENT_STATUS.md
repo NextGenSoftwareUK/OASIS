@@ -1520,3 +1520,5 @@ Exact Supabase WEB4 image build 43062441681 is running.
 11 November UTC: Railway WEB4 cut over to d93d984b7b, deployment d04ed4c4-2d76-4ea1-b261-393da541fe3b. Authenticated discovery returned 105/106 native and federation ready. Hedera recovered readiness. Nostr remains CQL_SOURCE_UNAVAILABLE. Supabase, TRON and CouchDB remain absent. No accepted query cohort was replayed.
 
 11 November UTC: security-patched WEB4 image CI 43071690459 passed on e0575b4536. Exact digest sha256:238254e08a164970cf03ee9ea5310f2c756ef0b1fa3fa84ce129188ba018fa98. Completed Buildx logs list only the e0575b4536 full SHA tag and show no sandbox alias publication. The RavenDB-inclusive image 43072535002 is the remaining exact Development gate.
+
+11 November UTC: Core Development fast-forwarded to 7ddf20c1e1 with the verified Supabase read tariff. The merge preserves concurrent Core history and has the exact source tree of the tested pin 8a5de72b6e, which is now reachable from Core Development. The parent remains at 73f8b98967 and the RavenDB-inclusive image 43072535002 is building. Parent release and live Supabase enrollment remain open.

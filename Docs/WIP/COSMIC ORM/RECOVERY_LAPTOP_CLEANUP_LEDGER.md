@@ -6156,3 +6156,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: inspected completed security-patched image logs in memory and recorded the exact digest and single published tag. Temporary Git index removed. No local image pull, download, restore or build.
 
 11 November UTC: removed superseded source tag ci-cosmic-supabase-web4-secure-2624a321e7 after the image and companion workflow completed and the exact digest was recorded. Verified tag absence. Retained the active RavenDB-inclusive source tag and Core pin. Temporary Git index removed. No local build, restore, download or image.
+
+11 November UTC: published the tested Core tariff through Core Development and verified the upstream head. Retain the Core diagnostic tag until the active image finishes. Temporary documentation index removed. No local build, restore, download or image.
