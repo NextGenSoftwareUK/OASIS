@@ -9,10 +9,14 @@ on:
       - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/src/Web3CoreOASIS.cs'
       - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/src/Web3CoreOASISBaseProvider.AvatarDelete.cs'
       - 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.BNBChainOASIS.IntegrationTests/**'
+      - '!Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.BNBChainOASIS.IntegrationTests/BnbPublicWalletBalanceTests.cs'
   workflow_dispatch:
   workflow_call:
     inputs:
       bootloader_only:
+        type: boolean
+        default: false
+      public_wallet_only:
         type: boolean
         default: false
     secrets:
@@ -62,10 +66,22 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
+      - name: Read a BNB mainnet balance through the shipping provider
+        if: ${{ inputs.public_wallet_only }}
+        shell: pwsh
+        env:
+          OASIS_BNB_PUBLIC_WALLET_READ: '1'
+        run: |
+          ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-BNBPublicWallet -Operation {
+            dotnet test 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.BNBChainOASIS.IntegrationTests' --filter 'FullyQualifiedName~BnbPublicWalletBalanceTests' /m:2 /nr:false /p:UseSharedCompilation=false --logger 'console;verbosity=normal'
+            if ($LASTEXITCODE -ne 0) { throw 'BNB public wallet verification failed.' }
+          }
       - uses: actions/setup-node@v4
+        if: ${{ !inputs.public_wallet_only }}
         with:
           node-version: '24'
       - name: Run native storage conformance against BNB Smart Chain
+        if: ${{ !inputs.public_wallet_only }}
         shell: bash
         env:
           BNB_BOOTLOADER_ONLY: ${{ inputs.bootloader_only || false }}
