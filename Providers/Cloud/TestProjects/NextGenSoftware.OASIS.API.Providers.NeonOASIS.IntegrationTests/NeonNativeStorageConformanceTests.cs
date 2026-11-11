@@ -107,7 +107,35 @@ public class NeonNativeStorageConformanceTests
         try
         {
             Assert.IsTrue(result.FixtureCleanupComplete);
+            result.CurrentCase = "native-holon-tombstone-cleanup";
+            result.Succeeded = false;
+            result.FixtureCleanupComplete = false;
+            await Checkpoint(result);
+
+            // The storage API hides PostgreSQL tombstones from both point and collection reads.
+            var holonIds = new[] { result.RootId, result.ChildId, result.ImportId }.Concat(result.BatchIds).ToArray();
+            await using (var transaction = await inspection.BeginTransactionAsync())
+            {
+                await using var delete = new NpgsqlCommand(
+                    "DELETE FROM oasis_holons WHERE id = ANY($1) AND is_deleted RETURNING id",
+                    inspection, transaction);
+                delete.Parameters.AddWithValue(holonIds);
+                var removed = new List<Guid>();
+                await using (var rows = await delete.ExecuteReaderAsync())
+                {
+                    while (await rows.ReadAsync())
+                        removed.Add(rows.GetGuid(0));
+                }
+                CollectionAssert.AreEquivalent(holonIds, removed, "Each fixture holon must have a native tombstone.");
+                await transaction.CommitAsync();
+                result.HardCleanedFixtures.AddRange(removed);
+            }
+
             await RequireEmptyTables(requireSchema: true);
+            result.CleanupScope = "native-exact-holon-tombstones-and-empty-current-tables";
+            result.CurrentCase = "complete";
+            result.Succeeded = true;
+            result.FixtureCleanupComplete = true;
         }
         catch (Exception error)
         {

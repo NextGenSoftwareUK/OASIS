@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+11 November Neon native compute CI. Job 130523260874 removed the official compute, pageserver, three safekeepers, storage broker and their network after the fixture cleanup assertion failed. The database, build and receipts stayed on the disposable runner. No local outputs were created.
+
 11 November public provider inventory publication. Verified live HTML and registry names in memory, reused existing site checkouts and ran no local builds or package installs. No downloads, test results, temporary files or build outputs were retained.
 
 11 November Convex companion recovery CI. Job 130512352307 passed and stopped the owned Convex engine. The archive, test database, ephemeral keys, CLI install and build ran on a disposable Linux runner. No upload or local output was created.
