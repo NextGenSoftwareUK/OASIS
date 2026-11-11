@@ -139,7 +139,10 @@ def reviewed_sdk_gap(name,project):
  if not reviewed:return None
  paths={(ROOT/row['path']).resolve() for row in reviewed}
  if paths!={p.resolve() for p in source_files(project.parent)}:return None
- if any(hashlib.sha256((ROOT/row['path']).read_bytes()).hexdigest()!=row['sha256'] for row in reviewed):return None
+ for row in reviewed:
+  content=(ROOT/row['path']).read_bytes()
+  if row.get('normalizeLineEndings'):content=content.replace(b'\r\n',b'\n')
+  if hashlib.sha256(content).hexdigest()!=row['sha256']:return None
  return 'Source-reviewed project has no active native SDK/API adapter; implementation required'
 
 def build():

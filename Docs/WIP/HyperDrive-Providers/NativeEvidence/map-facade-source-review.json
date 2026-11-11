@@ -5,8 +5,8 @@
     {
       "provider": "GoogleMapsOASIS",
       "path": "Providers/Maps/NextGenSoftware.OASIS.API.Providers.GoogleMapsOASIS/GoogleMapsOASIS.cs",
-      "sha256": "accf667db538563ed74f8a6435e1ad894e9bd9b58f4b586335b843585963f098",
-      "literalSuccessReturns": 46,
+      "sha256": "859d4f9c98908182d468042d4a8be5d394580feb71ddc235616bf8f62a079938", "normalizeLineEndings": true,
+      "literalFailureReturns": 47,
       "interpretation": "source gap only; no native capability execution or pass"
     },
     {
