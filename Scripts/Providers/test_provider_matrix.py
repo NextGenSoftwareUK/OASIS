@@ -94,9 +94,14 @@ class ProviderMatrixTests(unittest.TestCase):
 
     def test_complete_inventory_has_no_unclassified_provider_or_template(self):
         text=m.build();rows=[r for r in text.splitlines() if r.startswith('| [')]
-        self.assertEqual(229,len(rows));self.assertFalse(any('| Other / capability review |' in r for r in rows))
+        self.assertEqual(234,len(rows));self.assertFalse(any('| Other / capability review |' in r for r in rows))
         self.assertNotIn('[ProviderNameOASIS]',text)
         self.assertIn('capability-v1',text)
+        for name in ('EthereumOASIS', 'ArbitrumOASIS', 'PolygonOASIS'):
+            with self.subTest(provider=name):
+                row=next(row for row in rows if row.startswith(f'| [{name}]'))
+                self.assertIn('| 52/52 (native; core-storage-v2) |',row)
+                self.assertIn('Public-network acceptance remains open.',row)
 
     def test_negative_sdk_review_requires_unchanged_complete_source(self):
         for name,group in [('zkPassOASIS','Identity'),('HoloOASIS.Desktop','Network')]:
@@ -109,13 +114,13 @@ class ProviderMatrixTests(unittest.TestCase):
         polygon=m.ROOT/'Providers/Identity/NextGenSoftware.OASIS.API.Providers.PolygonIDOASIS/NextGenSoftware.OASIS.API.Providers.PolygonIDOASIS.csproj'
         self.assertIsNone(m.reviewed_sdk_gap('PolygonIDOASIS',polygon))
         self.assertIn('HTTP API client',m.sdk_evidence(polygon))
-        project=m.ROOT/'Providers/Maps/NextGenSoftware.OASIS.API.Providers.GoogleMapsOASIS/NextGenSoftware.OASIS.API.Providers.GoogleMapsOASIS.csproj'
-        self.assertIsNotNone(m.reviewed_sdk_gap('GoogleMapsOASIS',project))
+        project=m.ROOT/'Providers/Identity/NextGenSoftware.OASIS.API.Providers.zkPassOASIS/NextGenSoftware.OASIS.API.Providers.zkPassOASIS.csproj'
+        self.assertIsNotNone(m.reviewed_sdk_gap('zkPassOASIS',project))
         with patch.object(m,'source_files',return_value=iter([])):
-            self.assertIsNone(m.reviewed_sdk_gap('GoogleMapsOASIS',project))
+            self.assertIsNone(m.reviewed_sdk_gap('zkPassOASIS',project))
         class ChangedHash:
             def hexdigest(self):return 'changed'
         with patch.object(m.hashlib,'sha256',return_value=ChangedHash()):
-            self.assertIsNone(m.reviewed_sdk_gap('GoogleMapsOASIS',project))
+            self.assertIsNone(m.reviewed_sdk_gap('zkPassOASIS',project))
 
 if __name__=='__main__':unittest.main()
