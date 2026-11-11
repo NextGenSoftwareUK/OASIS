@@ -6170,3 +6170,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: removed the superseded Core tag ci-cosmic-supabase-tariff-e5802022e9 after the exact image passed. Verified the tested pin remains reachable from Core Development and the active combined CI had already completed checkout and pin validation. Temporary documentation index removed. No local build, restore, image or download.
 
 11 November UTC: validated and fast-forwarded the scoped parent Development release, then read Railway deployment metadata in memory. Temporary documentation index removed. No local image, build, restore or download.
+
+11 November UTC: removed completed Supabase/Milvus and Supabase/RavenDB parent diagnostic tags after both qualification workflows and the exact image build passed. Verified no ci-cosmic-supabase-* parent refs remain and both the release and image source are reachable from Development. Railway release dfe08114e6 remains queued. Temporary documentation index removed. No local build, restore, image or download.
