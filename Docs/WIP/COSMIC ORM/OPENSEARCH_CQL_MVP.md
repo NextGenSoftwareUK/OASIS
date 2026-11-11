@@ -265,3 +265,5 @@ Core `0205f68`, covering both providers and all native and Mongo presets.
 TRX SHA-256 `e61277ee1449a4cb2156be6a9954608f2f7543be7d697b0235315e12b0cd9edb`.
 The native HTTPS fixture compiled with 11 warnings and zero errors.
 Execution needs an owned source and restricted read credentials.
+
+11 November UTC: Development OpenSearch CI passed all four generic storage cases. The remaining three tests stopped at missing fixture prerequisites: owned Mongo replica admission, persistent OpenSearch restart state, and the Mongo federation connection. The next CI change should reuse the existing restart and federation tests on isolated state, preserving the generic storage coverage. Hosted CQL remains open. [OpenSearch job](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43028699870/job/130549848053)
