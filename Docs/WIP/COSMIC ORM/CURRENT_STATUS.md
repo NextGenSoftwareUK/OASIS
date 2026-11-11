@@ -1097,3 +1097,5 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 11 November UTC: ZcashOASIS public block-summary presets returned 3 full and 2 filtered rows in the live Development WEB4 CQL Playground. Original-owner paired browser verification remains open.
 
 11 November UTC: full Web4Site local Node suite passed 125/125 after the renewal-banner change. That local checkout includes other uncommitted website edits. The published renewal commit remains scoped to its three files, with the separate 51 focused checks and Vercel build evidence already recorded. No production promotion.
+
+11 November UTC: Railway 5c6a6f59 succeeded on Development 323c4f54da with the two-instance IPFS publication fix. The retained browser visitor refreshed to 20 available hosted sources during startup. Final readiness remains pending, and the writer-process revision 9aaed91520 was queued at the cutover check.
