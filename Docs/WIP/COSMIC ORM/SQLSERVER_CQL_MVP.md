@@ -179,3 +179,5 @@ Development source still need verification.
 The cohort-free Development discovery check using the retained rehearsal
 visitor reported SQLServerDBOASIS absent or unavailable. Source qualification
 and enrollment remain prerequisites for the hosted query and browser runs.
+
+11 November UTC: Development e5e3ca694c integrates HyperDrive SQL Server native workflow. CI 43050650521 passed both uninterrupted storage modes on SQL Server 2022 Linux 16.0.4222.2. Native SQL verified and removed ten exact owned tombstones, then confirmed all six fixture tables empty. Hosted WEB4 activation remains open.

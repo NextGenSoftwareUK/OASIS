@@ -1395,3 +1395,7 @@ On active WEB4 1c7e670e8d, NostrOASIS was the only listed source unavailable amo
 11 November UTC: KeyDB CI 43050965468 built the pinned official KeyDB 6.3.4 source in the digest-pinned builder and passed all four strict one-test reports with zero skips: encrypted native CQL, restart, Mongo replica admission and SDK/HTTP federation. The runner matched the native process and verified the original fixture after restart. Standard matrix routing and hosted TLS acceptance remain open.
 
 11 November UTC: KeyDB candidate ea54de967e routes generic storage tests to the standard authenticated-key matrix and calls the verified native restart/federation workflow separately. Combined diagnostic 0458ca161c is submitted on Development e5e3ca694c. Standard routing and hosted TLS remain unverified.
+
+11 November UTC: Development e5e3ca694c integrates HyperDrive SQL Server native workflow. CI 43050650521 passed both uninterrupted storage modes on SQL Server 2022 Linux 16.0.4222.2. Native SQL verified and removed ten exact owned tombstones, then confirmed all six fixture tables empty. Hosted WEB4 activation remains open.
+
+KeyDB combined orchestration CI 43051825070 is active. Railway is building b8df606442 with e5e3ca694c queued.
