@@ -5704,3 +5704,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: removed the temporary tag ci-cosmic-solution-7de3c00dad-build after both runs finished. Reused the existing browser visitor and inspected Railway logs in memory. No local report, screenshot file, build or download.
 
 11 November UTC: retained browser session diagnosis used the existing visitor. No replacement visitor, local screenshot file, build, download or report.
+
+11 November UTC: created one replacement disposable browser demo visitor sandbox-327d81f2 after renewal failed for the prior session. Reuse it and reconcile via normal demo expiry. No saved holons, local report, screenshot file, build or download.
