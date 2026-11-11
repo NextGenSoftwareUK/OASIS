@@ -1,0 +1,55 @@
+name: Hedera native storage deployment
+
+on:
+  push:
+    branches: [work/hyperdrive-provider-completion]
+    paths:
+      - '.github/workflows/hedera-native-storage.yml'
+      - 'Scripts/TestHosts/Deploy-HederaLocalStorage.mjs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deployment:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.22.1'
+      - name: Deploy and probe the shipping storage contract through local Hiero consensus
+        shell: bash
+        run: |
+          umask 077
+          fixture="$(mktemp -d "$RUNNER_TEMP/oasis-hedera.XXXXXXXX")"
+          sdk="$PWD/Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS/SdkBridge"
+          [[ ! -e "$sdk/node_modules" ]]
+          export npm_config_cache="$fixture/npm-cache"
+          local_started=false
+          cleanup() {
+            status=$?
+            trap - EXIT
+            if [[ "$local_started" == true ]]; then
+              (cd "$fixture" && npm exec --yes --package=@hashgraph/hedera-local@2.40.2 -- hedera stop) || status=1
+              if docker ps -aq --filter name='^/network-node$' | grep -q .; then status=1; fi
+            fi
+            rm -rf -- "$sdk/node_modules"
+            if [[ "$fixture" == "$RUNNER_TEMP"/oasis-hedera.* ]]; then
+              sudo rm -rf -- "$fixture"
+              test ! -e "$fixture" || status=1
+            fi
+            if (( status == 0 )); then echo "Removed the owned Hiero fixture and SDK dependencies."; fi
+            exit "$status"
+          }
+          trap cleanup EXIT
+          npm ci --prefix "$sdk" --ignore-scripts --no-audit --no-fund
+          npm install --prefix "$fixture" --ignore-scripts --no-audit --no-fund --no-save solc@0.8.26
+          [[ -z "$(docker ps -aq)" ]]
+          local_started=true
+          (cd "$fixture" && npm exec --yes --package=@hashgraph/hedera-local@2.40.2 -- hedera start --host=127.0.0.1 --accounts=1)
+          node Scripts/TestHosts/Deploy-HederaLocalStorage.mjs "$fixture"

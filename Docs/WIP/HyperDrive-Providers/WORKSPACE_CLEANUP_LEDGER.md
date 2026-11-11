@@ -299,4 +299,6 @@ Urgent disk cleanup follow-up: leased standard project clean succeeded for AWS u
 
 11 November SQL Server run 43050650521 passed 52/52 and confirmed removal of its container and owned volumes after all six tables were verified empty. The scoped CI report directory was removed by the successful cleanup trap. No Windows artifacts were created.
 
+11 November Hedera deployment candidate uses a disposable CI runner, an isolated npm cache, owned SDK dependencies and the official local-node teardown. No Windows images, SDK installs or node files were created. Actual teardown remains to be verified.
+
 11 November cleanup recheck in the HyperDrive worktree. The earlier WEB4 count build still occupies 115,007,857 bytes in `oasisweb4.com/node_modules` and 361,528 bytes in `TestResults/Web4ProviderCountBuild`. Both are Git-ignored generated directories, with no linked content or matching active Node process found. Automatic review rejected the scoped recursive removal before execution. No deletion occurred. The four named wallet and ActivityPub build folders were absent from this worktree's top-level TestResults directory.

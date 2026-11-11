@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November Hedera native storage prerequisite. A disposable CI workflow starts the official Hiero Local Node CLI on loopback, compiles the shipping key-value contract with Solidity 0.8.26, deploys it through the shipping Hiero SDK bridge, and checks the native owner and empty key set. This targets the consensus storage path independently of COSMIC's public mirror reader and the retained funded testnet. Native deployment and the subsequent managed lifecycle remain open.
+
 11 November SQL Server run 43050650521 passed both uninterrupted native storage modes on Microsoft SQL Server 2022 Linux 16.0.4222.2. Native SQL verified and removed the ten exact owned tombstones in one transaction, then confirmed all six current and history tables empty. The container was removed. Hosted WEB4 activation remains separate.
 
 11 November SQL Server Linux run 43049754942 passed all 52 managed checks on SQL Server 16.0.4222.2. The independent empty-table check failed because the fixture expected physical removal from the shipping default holon deletion, which retains tombstones. The retry verifies exactly ten owned tombstones from the two reports, deletes only those IDs in one SQL transaction, and then checks all six tables. The provider code and managed test are unchanged.
