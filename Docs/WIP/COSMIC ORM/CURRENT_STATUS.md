@@ -842,3 +842,6 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 11 November UTC: Waku native public message metadata presets rendered 3 full and 2 filtered rows in the live Development WEB4 CQL Playground. The original-owner private paired browser check remains open.
 
 11 November UTC: Akash native indexed provider metadata presets rendered 3 full and 2 filtered rows in the live Development WEB4 CQL Playground. The original-owner private paired browser check remains open.
+
+
+11 November UTC: Development fast-forwarded from 9b8a30a65c to fd40b1ad12 after all 18 regressions and exact teaching image run 42968255251 passed. CI verified the source checkout and published GHCR digest sha256:69f10a53bce119030320976bcc023881276c5777ab843d04d787446fe0a2041b. Railway dev WEB4 deployment b4a2edac-13bd-4a2e-a042-5a7959056268 was observed queued at fd40b1ad12. Live cutover, catalogue and startup verification remain open. Moralis CQL enrollment still requires authenticated source qualification.
