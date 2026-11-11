@@ -1463,3 +1463,7 @@ After warmup, authenticated discovery on Railway f573b5ac at c837fe5ad8 reached 
 Supabase WEB4 boundary CI 43061249200 is active.
 
 11 November UTC: Supabase WEB4 boundary CI 43061249200 passed all nine controlled cases on candidate 7533021f03. The exact candidate WEB4 image build was dispatched with the commit SHA only. Development advanced to 2dd52cf6c0 with CockroachDB storage verification and no overlapping WEB4 or Supabase changes. Hosted source enrollment and live acceptance remain open.
+
+11 November UTC: Development 2ec6cd9cce integrates HyperDrive TimescaleDB native storage conformance. CI 43061942830 passed all 52 checks through the shipping Npgsql adapter on TimescaleDB 2.31.0, with the native extension loaded. Independent SQL verified the owned tombstones and empty current tables. Hosted CQL acceptance remains open.
+
+Exact Supabase WEB4 image build 43062441681 is running.

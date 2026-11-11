@@ -120,3 +120,5 @@ All ten protected-settings tests passed. Eight TimescaleDB WEB4 admission and ni
 `6eb8d7dd444b2196c7e2bc598e9a21925cf75750`. An approved hosted
 TimescaleDB source and live Development verification remain open.
 Admission TRX SHA256 5cfdb891db31197c71f9e6c60becebbc666a44264e6594ab9f33b36b6294f80b.
+
+11 November UTC: Development 2ec6cd9cce integrates HyperDrive TimescaleDB native storage conformance. CI 43061942830 passed all 52 checks through the shipping Npgsql adapter on TimescaleDB 2.31.0, with the native extension loaded. Independent SQL verified the owned tombstones and empty current tables. Hosted CQL acceptance remains open.
