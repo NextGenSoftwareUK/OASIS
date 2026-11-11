@@ -6214,3 +6214,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: removed the superseded CouchDB image tag ci-cosmic-couchdb-image-d262eab8c8 after image run 43086919320 was cancelled and companion run 43086917607 passed. Verified remote deletion and retained the corrected qualification tag. No local build or download.
 
 11 November UTC: observed WEB4 73f8b98967 warmup using the existing visitor. Zero new protected files, avatars, reports, local builds or downloads. Temporary Git index removed.
+
+11 November UTC: removed 12 disposable OpenSearch native DLL extractions (33,889,338 bytes) under LocalState/COSMIC/RecoveryLaptopOpenSearch390/tmp after verifying the exact paths and confirming the OpenSearch Java process had stopped. Free space was 32.45 GiB afterward. Runtime, fixture data and compact evidence retained. Temporary Git index removed.
