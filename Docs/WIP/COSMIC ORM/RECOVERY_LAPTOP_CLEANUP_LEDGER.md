@@ -5904,3 +5904,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: ArangoDB federation diagnostic passed. Companion was still active, so its tag remains tracked. Read logs in memory. Temporary Git index removed. No local build, runtime, database or download.
 
 11 November UTC: synchronized NEAR managed storage evidence and read Railway and CI metadata in memory. Temporary Git index removed. No local build, restore, download or artifact copy.
+
+11 November UTC: both ArangoDB federation diagnostic runs passed. Removed ci-cosmic-arango-federation-b22d4667ba and verified absence. Temporary Git index removed. No local build, restore, database or artifact download.
