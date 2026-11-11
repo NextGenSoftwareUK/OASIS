@@ -240,7 +240,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CassandraOASIS
                 var s = GetSession();
                 if (softDelete)
                 {
-                    var av = (Avatar)loaded.Result; av.IsDeleted = true; av.DeletedDate = DateTime.UtcNow;
+                    var av = (Avatar)loaded.Result; av.DeletedDate = DateTime.UtcNow;
                     s.Execute(s.Prepare($"UPDATE {_keyspace}.oasis_avatars SET is_deleted = true, data_json = ? WHERE id = ?").Bind(Ser(av), id));
                 }
                 else
@@ -526,7 +526,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CassandraOASIS
             try
             {
                 var loaded = await LoadHolonAsync(id); if (loaded.IsError || loaded.Result == null) { OASISErrorHandling.HandleError(ref result, $"CassandraOASIS: Holon '{id}' not found."); return result; }
-                var holon = (Holon)loaded.Result; holon.IsDeleted = true; holon.DeletedDate = DateTime.UtcNow;
+                var holon = (Holon)loaded.Result; holon.DeletedDate = DateTime.UtcNow;
                 var session = GetSession();
                 var update = await session.PrepareAsync($"UPDATE {_keyspace}.oasis_holons SET is_deleted = true, data_json = ? WHERE id = ? IF is_deleted = false");
                 var mutation = await session.ExecuteAsync(update.Bind(Ser(holon), id));

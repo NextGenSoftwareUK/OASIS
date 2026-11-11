@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November Cassandra run 43066102705 stopped at compile time. The candidate now sets the writable DeletedDate, which the shared HolonBase contract uses to derive IsDeleted. The storage and write-ownership cases await the corrected run.
+
 11 November Cassandra graph and deletion candidate. Selected graph rows use one DataStax logged batch for multi-row writes. The provider publishes identities after acknowledgement, preserves stop/continue for top-level roots, and propagates exact metadata, import and export counts. Hard deletion removes the avatar and detail together and removes username/email index entries only when they still point to that avatar. Holon deletion uses a conditional native update. The [initial native run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43065545986) passed the first nine checks per mode, including avatar-detail lookups, and stopped at the graph-save acknowledgement. The candidate run is 43066102705. Candidate storage and save ownership verification remain pending.
 
 11 November Cassandra native storage. The shipping DataStax driver now reports exact acknowledged avatar and point-read counts and uses canonical stored-record serialization for avatar details. A disposable CI run will exercise both storage modes against the digest-pinned Apache Cassandra runtime. Existing COSMIC query and restart evidence carries forward. Storage verification is pending.
