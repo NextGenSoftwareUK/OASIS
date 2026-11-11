@@ -331,6 +331,7 @@
     "CockroachDBOASIS": [
       "Official CockroachDB 26.2.9 passed 52/52 in [run 43060207358](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43060207358) through the shipping Npgsql provider. Native SQL verified exact owned tombstone cleanup and empty current tables in both databases. Hosted acceptance remains open."
     ],
+    "PlanetScaleOASIS": ["Official MySQL 8.4.13 passed 52/52 in [run 43064133424](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43064133424) through the shipping PlanetScale MySqlConnector adapter. Both independent databases were empty after exact owned tombstone removal. Managed PlanetScale verification remains open."],
     "TimescaleDBOASIS": [
       "Official TimescaleDB 2.31.0 passed 52/52 in [run 43061942830](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43061942830) through the shipping Npgsql provider. Both databases loaded the native extension. Native SQL verified exact owned tombstone cleanup and empty current tables. Hosted storage acceptance remains open."
     ],
