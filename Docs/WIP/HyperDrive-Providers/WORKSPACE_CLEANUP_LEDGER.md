@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+11 November Memcached run 43075704036 verified removal of ten exact owned holon records and confirmed both daemons, runtime and checkpoints were removed. No local runtime, build or download was created.
+
 11 November RavenDB run 43071621377 independently removed ten owned holon tombstones and verified both databases had zero documents. CI removed the container, volumes, newly pulled image and checkpoints. No local build, runtime or download was created.
 
 11 November ScyllaDB run 43069185380 independently removed ten owned holon tombstones and verified three empty tables in each keyspace. CI removed the container, volumes, newly pulled image and checkpoints. No local build, runtime or download was created.
