@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November Polkadot Asset Hub wallet balance. The synchronous shipping wallet method passed through @polkadot/api 17.0.2 against the public HTTPS RPC. It verified the Asset Hub genesis, read a positive finalized treasury DOT balance and posted no continuations to the caller context. No signer or storage contract was configured. Shared storage lifecycle verification remains open.
+
 11 November TRON mainnet wallet balance. The synchronous shipping wallet call passed using PublicNode's TLS full and solidity gRPC endpoints. The SDK verified both genesis responses, read a positive solidified TRX balance, and posted no continuations to the caller context. No signer or storage activation was used. Development 6ce625714f carries the matching wallet fix and regression test. The separate writable contract lifecycle still requires the dedicated non-mainnet fixture.
 
 11 November Solana ledger recovery. The history probe now checks the expected genesis before querying any signature and includes the verified genesis in its output. Six protocol controls passed. A read-only mainnet check found a finalized public transaction at slot 468063580 and rejected the retained validator's genesis against that same endpoint before reading history. The original Solana storage fixture remains unavailable and its 4/52 result is unchanged.

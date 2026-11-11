@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+11 November Polkadot public wallet verification. The isolated npm install added 62 packages. Teardown removed all 62, cleaned the isolated npm cache, and left zero files in the redirected bin tree after leased dotnet clean. No chain fixture or raw report was created. Automatic approval review rejected recursive removal of the exact owned `TestResults/HyperDrive-Providers/PolkadotPublicWalletBuild` directory as blocked by policy. The command did not run. The measured remainder was 54,145,626 bytes of build and npm metadata and copied bridge inputs. C: had 43,110,428,672 bytes free at the shared-machine check.
+
 11 November TRON public wallet verification. Reused the existing .NET runtime and package cache. No new SDK environment, chain fixture or raw test report was created. Leased dotnet clean left zero files in the redirected bin tree. The isolated `TestResults/HyperDrive-Providers/TronPublicWalletBuild` tree retains 5,931,676 bytes of restore and intermediate metadata. C: had 46,839,316,480 bytes free at the shared-machine check.
 
 11 November Cosmos Hub wallet verification. Reused the existing Node runtime, locked CosmJS bridge dependencies and .NET package cache. No new SDK environment, chain fixture or raw test report was created. Leased dotnet clean left zero files in the redirected bin tree. The isolated `TestResults/HyperDrive-Providers/CosmosPublicWalletBuild` tree contains 5,863,490 bytes of restore and intermediate metadata. C: had 47,056,670,720 bytes free at the shared-machine check.
