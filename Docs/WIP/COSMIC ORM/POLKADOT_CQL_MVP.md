@@ -35,3 +35,5 @@ Evidence under TestResults/PolkadotCqlCurrent, raw not committed:
 Screenshot polkadot-browser-scoped.png. Paired test duration includes human browser verification and shutdown, not query latency. Resources/retention in shared ledger. Next NEAR, then batched Cosmos/Polkadot/NEAR catalogue entry; full roadmap remains active.
 
 11 November UTC: HyperDrive's pinned Linux build produced and validated the Polkadot records contract WASM. Development `6103e4e632` contains the verified CI change. Native deployment and the storage lifecycle remain open. Existing public CQL acceptance stands. [Polkadot WASM CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43035338351)
+
+11 November UTC: HyperDrive verified native Polkadot records-contract deployment on its disposable contracts node, including private genesis, finalized synthetic funding and the deployed code hash. The managed lifecycle run stopped during compilation on an unused BootLoader reference. HyperDrive removed that reference and owns the managed rerun. Existing COSMIC public CQL acceptance remains recorded. [Native deployment CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43037729937)
