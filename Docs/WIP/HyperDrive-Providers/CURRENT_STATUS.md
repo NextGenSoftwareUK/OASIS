@@ -1,6 +1,6 @@
 # Current provider status
 
-11 November Firebase RTDB passed 52/52 native lifecycle checks at c705c9a236 in run 43104762300. The focused graph, flat export and stale-delete test passed. Each lifecycle mode verified exact native tombstone cleanup and an empty namespace, including the hard-deleted avatar and detail. Hosted rules, revision history and the queued partial hard-delete reconciliation test remain open.
+11 November Firebase RTDB passed 52/52 native lifecycle checks at c705c9a236 in run 43104762300. The focused graph, flat export and stale-delete test passed. Each lifecycle mode verified exact native tombstone cleanup and an empty namespace, including the hard-deleted avatar and detail. Development 59eebd2c11 contains the exact verified Firebase source and lifecycle harness. Hosted rules, revision history and the queued partial hard-delete reconciliation test remain open.
 
 11 November Optimism legacy avatar read. The legacy GUID path now requires the response to contain the requested identity, uses the Core record decoder, and reports invalid payloads instead of inventing an avatar. The legacy HTTP endpoint and storage contract remain unverified. This change is confined to the legacy class. The already queued wallet workflow exercises the separate shipping Web3Core-backed provider.
 
