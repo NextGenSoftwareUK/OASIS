@@ -161,3 +161,5 @@ ORM certification. Website task21cc5be draft awaits publication after this proof
 ## Website publication verified
 
 Website 129c995e706471953eac8a3324eb71acebfd8d9f publishes the Wormhole card with guide413e79ed4 and C#d1f42addf pinned links.105client tests pass. Public HTML180501bytes/SHA25691726f231ab2d8f4c77bb655e1fb6df4263d2cbb02125097ef41593c12b9347c and both scripts match exact git blobs. Raw compact observation TestResults/WormholePublicSourceCurrent/public-assets-observation-1.json; immutable site ACK HostedWormholeReleaseCurrent. Browser interaction remains open. Source/cohort/ACKs frozen; no further hardening absent reproduced bugs. Next red scope: Chainflip public qualification.
+
+11 November UTC: after Railway reported SQL Server revision 400b42ef36 successful (deployment 6d207df7), the live WEB4 Wormhole full public preset returned HTTP 503 CQL_PROVIDER_UNAVAILABLE. The browser still held its previous catalogue. The deployment log tail did not identify a Wormhole cause. Subset and private checks were not run. Keep historical HTTP and replica evidence. Confirm fresh readiness after warmup before another public query.
