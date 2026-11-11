@@ -1,6 +1,6 @@
 # Current provider status
 
-11 November SQLite wallet encryption. The shipping WalletManager generated a local private key and recovery phrase using an ephemeral DNA encryption key. The shipping provider saved the encrypted wallet in a disposable SQLite file. An independent SQLite query found the ciphertext and neither plaintext value. After reopening, WalletManager recovered the same values on a detached response and the loaded wallet retained ciphertext. This covers local wallet encryption and persistence through the tested key configuration.
+11 November SQLite wallet encryption. The shipping WalletManager generated a local private key and recovery phrase using an ephemeral DNA encryption key. The shipping provider saved the encrypted wallet in a disposable SQLite file. An independent SQLite query found the ciphertext and neither plaintext value. After reopening, WalletManager recovered the same values on a detached response and the loaded wallet retained ciphertext. Development 4489034aa1 carries the matching native test. This covers local wallet encryption and persistence through the tested key configuration.
 
 11 November Convex response deadline. The shipping HTTP adapter now applies the configured client timeout while reading the response body. A real loopback TCP/HTTP test stalled a successful readiness response after its headers, verified that the body timed out, and completed a subsequent probe on the same backend instance. Development 2e2a4dc0d3 carries the verified transport and readiness fixes. Hosted companion acceptance remains open.
 
