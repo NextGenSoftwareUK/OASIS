@@ -1,6 +1,8 @@
 # Current resource and cleanup ledger
 
-11 November Memcached run 43074654661 confirmed removal of both daemons, the runtime and checkpoints after the test compile error. No Windows runtime or build was created.
+11 November Memcached run 43075704036 verified removal of ten exact owned holon records and confirmed both daemons, runtime and checkpoints were removed. No local runtime, build or download was created.
+
+11 November Memcached run 43074654661 also removed its disposable resources after the compile failure.
 
 11 November Memcached runs 43073793620 and 43074034963 both confirmed removal of their daemons, runtime and checkpoint files after the managed checks. No Windows build or download was created.
 

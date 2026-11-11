@@ -1,6 +1,6 @@
 # Current provider status
 
-11 November Memcached run 43074654661 started both official daemons and compiled the provider. The independent cleanup test could not compile because both Enyim and Microsoft define NullLoggerFactory. The test now explicitly uses the Microsoft factory, as the shipping adapter does. The complete native storage result remains pending.
+11 November Memcached storage [run 43075704036](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43075704036) at 8ba3eb3adb passed 52/52 through shipping EnyimMemcachedCore on two independent Memcached 1.6.40 daemons. Enyim verified exact native holon fixture removal. CI removed both daemons and checkpoints. The lifecycle pass is scoped to volatile cache storage. Hosted operation, eviction behavior and multi-key atomicity remain open.
 
 11 November Memcached native runs 43073793620 and 43074034963 both started official 1.6.40. The first passed nine checks per mode before graph save. The graph candidate passed 18 per mode through metadata, batch, import and export, then stopped at holon deletion acknowledgement. The next candidate reports native delete outcomes through a single holon path, deletes owned avatar details on hard delete, and independently verifies exact holon fixture removal through Enyim.
 
