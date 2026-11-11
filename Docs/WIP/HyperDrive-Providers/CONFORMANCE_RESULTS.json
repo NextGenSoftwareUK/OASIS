@@ -370,12 +370,8 @@
     "KeyDBOASIS": [
       "Thin facade shares the verified Redis SDK/record policy; 52/52 controlled checks are not native acceptance; actual product runtime/configuration and conditional/scan primitives remain unverified; legacy plaintext layout is refused, no automatic migration"
     ],
-    "ValKeyOASIS": [
-      "Thin facade shares the verified Redis SDK/record policy; 52/52 controlled checks are not native acceptance; actual product runtime/configuration and conditional/scan primitives remain unverified; legacy plaintext layout is refused, no automatic migration"
-    ],
-    "DragonflyOASIS": [
-      "Thin facade shares the verified Redis SDK/record policy; 52/52 controlled checks are not native acceptance; actual product runtime/configuration and conditional/scan primitives remain unverified; legacy plaintext layout is refused, no automatic migration"
-    ],
+    "ValKeyOASIS": [      "Native Valkey 8 passed four avatar and holon save/load smoke cases in [Development CI 43059249089](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43059249089). A separate Valkey 9.0.4 job passed encrypted CQL, restart and MongoDB federation. The shared 52/52 result is controlled. Full native lifecycle, hosted TLS and legacy plaintext migration remain open."    ],
+    "DragonflyOASIS": [      "Native Dragonfly passed four avatar and holon save/load smoke cases in [Development CI 43059249089](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43059249089). A separate Dragonfly 2.0.2 job passed encrypted CQL, restart and MongoDB federation. The shared 52/52 result is controlled. Full native lifecycle, hosted TLS and legacy plaintext migration remain open."    ],
     "GarnetOASIS": [
       "Official Garnet 2.2.5 Windows native coverage is split across 18/26 initial checks per mode and three focused sync/async pairs for tombstone and avatar cleanup, remaining root/batch/import cleanup, and parented-child relationship index cleanup. See the [hash-verified split evidence](NativeEvidence/garnet-split-storage-v2.json). Full provider acceptance and a single registered native shared report remain open. The legacy plaintext layout is refused and has no automatic migration."
     ],
