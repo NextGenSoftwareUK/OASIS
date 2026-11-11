@@ -5822,3 +5822,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: ci-cosmic-solution-dcb8ad88bd-build tracks verification on 8207703684. The superseded ee50d46f0f and 2e896baf2e tags still have active runs. Remove each after its results are recorded. Temporary Git index removed. No local build, restore, download or artifact copy.
 
 11 November UTC: ThreeFold public browser verification reused the existing visitor. No saved holons, local report, screenshot file, build or download. Temporary Git index removed.
+
+11 November UTC: verified the current LayerZero focused CI step and Railway Chainlink publish step in memory. Superseded solution runs still active. Temporary Git index removed. No local build, download or artifact copy.
