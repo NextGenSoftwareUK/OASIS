@@ -156,3 +156,5 @@ Urgent disk cleanup follow-up: leased standard project clean succeeded for AWS u
 11 November Neon connection policy tests used one isolated NeonConnectionBuild output path. All 13 tests passed. Leased standard dotnet clean completed. Automatic approval review rejected recursive removal of the isolated path. The remaining 107 generated files total 5,945,891 bytes. No hosted fixture was contacted.
 
 11 November TRON lifecycle admission checks used one isolated TronAdmissionBuild path. Five admission cases passed and the native theory skipped. No endpoint was contacted and no fixture reports were written. Standard leased dotnet clean completed. Automatic approval review rejected recursive removal of the isolated path. The remaining 107 files total 5,935,280 bytes.
+
+11 November EOSIO public balance test passed against Vaulta. The opt-in process setting was removed and leased standard dotnet clean completed. Automatic approval review rejected recursive removal of EosioPublicBalanceBuild. The remaining 98 files total 5,188,590 bytes. No private key, chain write or fixture database was used.

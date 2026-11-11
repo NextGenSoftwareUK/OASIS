@@ -21,6 +21,8 @@ Public provider count audit (11 November). The inventory lists 234 shipping prov
 
 11 November TRON lifecycle admission. The guarded native runner now rejects mainnet by network label, numeric chain ID in decimal or hexadecimal, or the known mainnet genesis hash before it creates reports or connects. It also rejects malformed chain IDs and genesis hashes. Five admission tests passed and the native theory skipped without the dedicated writable fixture. COSMIC read-only TRON access is separate.
 
+11 November EOSIO public balance. The shipping EosClient passed a live positive-balance read against the Vaulta chain. It checked the chain identity and decoded one positive EOS amount from eosio.token for eosio.saving. The node reported head block 530137880 during identity validation. No signer or transaction was used. Signed storage and wallet facade acceptance remain open.
+
 ## Phase and rules
 
 Active checkpoint, 10 November 2026. Current HyperDrive verification is split between retained native provider evidence and open isolated fixture gates. Development contains the scoped SQL Server avatar/history and graph-read batch at af621f3c3e. Development also contains the concurrent avatar and avatar-detail history regressions at 2a91bda8eb. Both passed separately on LocalDB and compiled together with Development Core 0fc929336 (zero errors). BigQuery hosted lifecycle verification awaits its isolated fixture. HyperDrive routing verification follows provider acceptance.
