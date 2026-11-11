@@ -113,6 +113,8 @@ namespace NextGenSoftware.OASIS.API.Providers.BNBChainOASIS
         IOASISBlockchainStorageProvider,
         IOASISNFTProvider
     {
+        protected override bool UseLegacyGasPricing => true;
+
         public BNBChainOASIS(
             string hostUri = "https://bsc-dataseed.binance.org",
             string chainPrivateKey = "",
