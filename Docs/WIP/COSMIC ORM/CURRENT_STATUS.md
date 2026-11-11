@@ -1,5 +1,11 @@
 # COSMIC ORM / CQL current status
 
+## Live WEB4 and next queued release
+
+11 November UTC: live Development WEB4 268f29c214 warmed to 105/106 CQL sources ready for native and federation. Nostr is unavailable. Supabase, TRON and CouchDB are absent. CouchDB integration a614a4377f is queued as 1b1ad2f0. Development head 6047aff6c50 retains all seven CouchDB and native-download shipping file blobs from the qualified image source a209b82e9b. Its API Core SHA changed during the rewrite, but the full Core tree is identical, including the CouchDB tariff. Other Development changes still make it a distinct build.
+
+GOMap d96350193 remains held while Railway has WEB4 work queued and a dedicated HTTPS OSRM origin is outstanding. The earlier exact candidate a3e95bd537 has an active queued qualification, run 43114731044. The existing CouchDB reader still needs a restricted HTTPS teaching fixture after rollout.
+
 GOMap exact CI 43108783977 passed all 12 controlled cases and the public route plus native MongoDB WEB4 HTTP case on e571025e78. Native 3/2, paired 5/4, foreign private zero. The dedicated HTTPS OSRM origin remains the enrollment gate. Queue-aware Development integration remains pending.
 
 ## Shared Development revision, 11 November 2026
