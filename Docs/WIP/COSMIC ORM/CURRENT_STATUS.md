@@ -1055,3 +1055,5 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 11 November UTC: HyperDrive verified IPFS encrypted current and historical holon versions after a graceful Kubo daemon restart and a fresh provider process in CI 43007340696. This used one disposable repository across both phases. Historical fixture recovery and concurrent publication remain open. The existing hosted CQL acceptance stands, and the live cutover for Development c686a8618d is still building.
 
 11 November UTC: HyperDrive IPFS native concurrency CI 43008085065 reproduced a shared catalogue enumeration failure in PublishAcknowledgedRecordAsync. The shipping provider reported acknowledged CIDs before the overall graph save failed. HyperDrive owns the publication fix. Keep earlier native restart and public CQL evidence within their verified scopes.
+
+11 November UTC: Railway WEB4 deployment c7b533e2 succeeded on Development c686a8618d with the verified native Kubo activation change. Fresh browser catalogue reads during warmup showed 19 then 26 available sources. Final readiness is pending. Preserve prior IPFS CQL query acceptance and separate native storage evidence.
