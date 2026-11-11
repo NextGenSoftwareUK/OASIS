@@ -1,0 +1,57 @@
+name: KeyDB native CQL restart and federation
+on:
+  workflow_dispatch:
+  workflow_call:
+    secrets:
+      PRIVATE_SUBMODULE_PAT:
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  restart:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          path: OASIS
+          submodules: recursive
+          persist-credentials: false
+
+      - name: Read the recorded Libraries revision
+        id: libraries
+        run: |
+          revision="$(sed -n 's/^LIBRARIES_COMMIT=//p' OASIS/Docker/oasis-dependency-versions.env)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "revision=$revision" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.libraries.outputs.revision }}
+          path: NextGenSoftware-Libraries
+          persist-credentials: false
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Verify pinned KeyDB restart and federation
+        working-directory: OASIS
+        shell: bash
+        run: |
+          results="$RUNNER_TEMP/keydb-cql"
+          trap 'for log in "$results"/*.log; do if [[ -f "$log" ]]; then tail -n 60 "$log"; fi; done' ERR
+          mkdir -p -m 700 /var/tmp/oasis-runtimes
+          mkdir -m 700 "$results"
+          docker run --rm --user "$(id -u):$(id -g)" \
+            --env GITHUB_ACTIONS=true \
+            --mount "type=bind,source=$PWD/Scripts/TestHosts/prepare-cosmic-keydb-linux.py,target=/prepare.py,readonly" \
+            --mount "type=bind,source=/var/tmp/oasis-runtimes,target=/var/tmp/oasis-runtimes" \
+            --mount "type=bind,source=$results,target=/results" \
+            python@sha256:3fe825da0a80fa8e2cd79baadeb76b03c0ddf3d6cdbc8346778a0208b9d6038c \
+            python3 -B /prepare.py --ci-results /results
+          python3 -B Scripts/TestHosts/run-cosmic-keydb-linux.py --ci-results "$results" --federated

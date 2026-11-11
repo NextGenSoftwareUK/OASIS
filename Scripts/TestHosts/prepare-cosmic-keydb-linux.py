@@ -11,7 +11,10 @@ import urllib.request
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--resume-build", action="store_true")
+parser.add_argument("--ci-results", type=Path)
 options = parser.parse_args()
+if options.ci_results and os.environ.get("GITHUB_ACTIONS") != "true":
+    raise RuntimeError("CI results require a disposable GitHub Actions runner")
 
 BASE = Path("/var/tmp/oasis-runtimes")
 ROOT = BASE / "keydb-6.3.4"
@@ -19,7 +22,7 @@ BUILD = Path("/var/tmp/oasis-keydb-build-6.3.4")
 COMMIT = "7e7e5e57d25fe246a8201f0acf5e7363c0bf1e14"
 ARCHIVE = BASE / (".downloads/keydb-" + COMMIT + ".tar.gz")
 DIGEST = "08e6dc019bbf7b5b46f2b6879ad87f34db801302c3f37a51f53436abee840ac6"
-RESULTS = Path("/mnt/c/Source/OASIS-cosmic/TestResults/KeyDbCqlCurrent")
+RESULTS = options.ci_results or Path("/mnt/c/Source/OASIS-cosmic/TestResults/KeyDbCqlCurrent")
 ADMISSION = ROOT / "cosmic-runtime-admission.json"
 if ADMISSION.exists():
     record = json.loads(ADMISSION.read_text())
