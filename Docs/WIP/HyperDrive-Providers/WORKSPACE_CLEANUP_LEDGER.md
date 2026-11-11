@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+11 November Firebase run 43105666326 verified exact cleanup of the concurrent-delete fixture and both lifecycle modes. Native RTDB was empty before teardown. The owned emulator, fixture and reports were removed. No local artifacts were created.
+
 11 November Firebase run 43104762300 verified an empty native RTDB namespace after both storage modes and removed the owned emulator, fixture and reports. No local artifacts were created.
 
 11 November Firebase runs 43102301153 and 43102752702 logged removal of the owned RTDB emulator, fixture and reports. The second run passed the focused native graph and stale-delete test. The lifecycle then stopped at classification of the hidden tombstone. No local build, download or raw report was created.
