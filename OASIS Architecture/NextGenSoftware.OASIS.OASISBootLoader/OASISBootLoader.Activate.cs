@@ -250,7 +250,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
         public static OASISResult<IOASISStorageProvider> RegisterProvider(ProviderType providerType, string overrideConnectionString = null, bool forceRegister = false, bool activateProviderIfOASISProviderBootTypeIsHot = true)
         {
-            OASISResult<IOASISStorageProvider> result = null;
+            OASISResult<IOASISStorageProvider> result = new OASISResult<IOASISStorageProvider>();
 
             try
             {
@@ -284,7 +284,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
         public static async Task<OASISResult<IOASISStorageProvider>> RegisterProviderAsync(ProviderType providerType, string overrideConnectionString = null, bool forceRegister = false, bool activateProviderIfOASISProviderBootTypeIsHot = true)
         {
-            OASISResult<IOASISStorageProvider> result = null;
+            OASISResult<IOASISStorageProvider> result = new OASISResult<IOASISStorageProvider>();
 
             try
             {
