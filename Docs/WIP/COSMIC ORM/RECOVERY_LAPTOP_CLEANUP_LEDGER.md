@@ -5460,3 +5460,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: Moralis Development-base candidate uses remote runs 42966807485 and 42966870180. Temporary Git indexes were removed. No local restore, build output, image pull or artifact download.
 
 11 November UTC: MapLibre public browser checks reused the existing visitor. No local report, screenshot file, build output, download or environment was created.
+
+11 November UTC: SEEDS browser acceptance reused the existing demo visitor with no new avatar, report, screenshot file, download or build output.
