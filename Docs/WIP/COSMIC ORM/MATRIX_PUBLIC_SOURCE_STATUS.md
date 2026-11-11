@@ -102,3 +102,5 @@ bounded source contract; leave legacy unchanged and document its gaps only.
 Official contracts: [anonymous alias resolution](https://spec.matrix.org/latest/client-server-api/#get_matrixclientv3directoryroomroomalias),
 [opaque room IDs](https://spec.matrix.org/v1.17/appendices/),
 [v1.16 room-ID change](https://matrix.org/blog/2025/09/17/matrix-v1.16-release/).
+
+11 November UTC: Matrix recovered on the live AvalancheGo WEB4 rollout a05741af68. The existing visitor ran both native public presets. The full query returned three enrolled records and the filtered query returned the exact two-record subset. Existing source and private snapshots were preserved. Browser verification remains open.
