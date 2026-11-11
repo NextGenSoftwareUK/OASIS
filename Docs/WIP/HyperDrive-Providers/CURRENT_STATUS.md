@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November public EVM wallet balance. The shared unsigned Nethereum wallet reader passed on Arbitrum One at cfdae88ff3 and on Polygon PoS at c5b3909ada. The shipping providers returned positive native ETH and POL balances without activating contract storage. The Arbitrum test rejected a mismatched configured chain. The Development change matches the tested providers and shared dependency source. Public-network storage lifecycle verification remains open.
+
 11 November SQLite wallet encryption. The focused native test passed at 77f9ef72fe using the shipping WalletManager and an ephemeral DNA encryption key. It independently inspected the file-backed SQLite row for ciphertext and absence of plaintext, reopened the database, and recovered the same private key and recovery phrase without changing the loaded ciphertext. The scoped Development change carries the verified test. Deployment key custody and rotation remain open.
 
 11 November Neon connection policy. The adapter applies Npgsql VerifyFull to Neon endpoints with explicit ports and host lists. Single-endpoint pooler mapping preserves the port, and explicit lists retain their endpoints and order. All 13 provider and configuration unit tests passed at e4e9605424. The Development change matches the tested Neon source and dependencies. Hosted sync and async lifecycle verification still requires the dedicated Neon database.

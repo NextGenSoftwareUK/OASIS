@@ -53,6 +53,7 @@ public partial class Web3CoreOASISBaseProvider(string hostUri, string chainPriva
     OASISStorageProviderBase, IOASISDBStorageProvider, IOASISNETProvider, IOASISSuperStar, IOASISBlockchainStorageProvider, IOASISNFTProvider
 {
     private readonly string _hostURI = hostUri;
+    private readonly Lazy<Web3> _walletBalanceClient = new(() => new Web3(hostUri));
     private readonly string _chainPrivateKey = chainPrivateKey;
     private readonly string _contractAddress = contractAddress;
     private readonly BigInteger? _expectedChainId = expectedChainId;
