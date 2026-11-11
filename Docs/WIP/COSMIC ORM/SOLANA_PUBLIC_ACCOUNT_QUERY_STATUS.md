@@ -78,3 +78,5 @@ MongoDB federation 5/4 and repeat preparation with zero new saves. The
 subset table was inspected and an independent visitor's privacy check
 passed over HTTP. Earlier open browser notes are historical. The proof
 applies to the reviewed public-account demo. Canonical ORM parity remains open.
+
+11 November UTC: HyperDrive recorded 52/52 shipping Solnet storage cases and logical cleanup on a fresh official Agave 4.3.0 validator. The first CI job timed out during validator shutdown. Development `7951636ce0` contains the verified memo acknowledgement and test changes. The updated bounded teardown is running both storage modes. Original ledger recovery, hosted native storage acceptance and full ORM parity remain open. [Initial run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43023043006), [teardown verification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43027809655)
