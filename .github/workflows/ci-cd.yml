@@ -11,6 +11,11 @@ env:
   NODE_VERSION: '24.x'
 
 jobs:
+  surrealdb-native-cql:
+    uses: ./.github/workflows/surrealdb-native-cql.yml
+    secrets:
+      PRIVATE_SUBMODULE_PAT: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+
   opensearch-native-cql:
     uses: ./.github/workflows/opensearch-native-cql.yml
     secrets:
@@ -202,6 +207,7 @@ jobs:
               SURREALDBOASIS_ENDPOINT=http://127.0.0.1:8000
               SURREALDBOASIS_USERNAME=root
               SURREALDBOASIS_PASSWORD=root
+            filter: FullyQualifiedName~SurrealDBOASISIntegrationTests
 
           # Search engines.
           - name: OpenSearch
