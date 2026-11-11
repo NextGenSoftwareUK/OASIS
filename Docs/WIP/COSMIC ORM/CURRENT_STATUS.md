@@ -1588,3 +1588,5 @@ Exact Supabase WEB4 image build 43062441681 is running.
 11 November UTC: after the AvalancheGo WEB4 rollout restored Cosmos and Hedera readiness, the authenticated visitor ran both native public HTTP presets for each provider. Both returned three full and two filtered rows, with exact preset selections and strict subset containment. Prior private cohorts were preserved.
 
 11 November UTC: combined WEB4 image run 43097362380 reported startup_failure with zero jobs on attempt one. GitHub accepted a rerun of the same workflow and inputs and returned it to queued. The original source remains 3845f4723c; prepared Development merge 6e1bd3587e preserves all nine release paths on 6507bc8563. No Development push or local build.
+
+11 November UTC: combined WEB4 dispatch 43097362380 reached startup_failure again with zero jobs. A tag-triggered qualification 43098289449 uses the existing image workflow steps, a separate concurrency group, and the exact original checkout and sole image tag 3845f4723c. Diagnostic commit cbcdb3d040 adds the workflow outside the built source. Development publication awaits verification.
