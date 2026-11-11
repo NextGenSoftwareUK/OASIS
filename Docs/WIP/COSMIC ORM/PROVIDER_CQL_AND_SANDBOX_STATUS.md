@@ -741,3 +741,5 @@ broader provider contracts remain open. [Evidence](DUCKDB_CQL_MVP.md).
 11 November UTC: reconciled the remaining-work notes for Cardano, ClickHouse and DuckDB with their accepted public browser evidence. Original-owner private browser verification remains open.
 
 11 November UTC: HyperDrive verified the shipping Neo4j Aura adapter against a disposable Neo4j Community 5.26.0 Bolt service in CI 43013716620. Both native lifecycle tests passed, including holon metadata selectors, and the container was removed. Hosted Aura TLS and wider operations remain open. COSMIC hosted CQL acceptance is unchanged.
+
+11 November UTC: HyperDrive's [Supabase native credential isolation CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43014993069) passed at f6906649aa. The shipping provider exercised two independently authenticated local PostgREST 16.5 endpoints against PostgreSQL 16.6, including crossed-credential rejection and isolated holon save/load. This qualifies that native path. Hosted Supabase gateway, writable project, and the restricted HTTPS teaching reader in the Development CQL Playground remain open.

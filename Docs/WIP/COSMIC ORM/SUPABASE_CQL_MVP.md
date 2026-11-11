@@ -107,3 +107,5 @@ The retained local gateway evidence is separate.
 
 
 11 November UTC: Supabase remains absent from the live Development catalogue after c39eba5cd1 cutover. The reviewed HTTPS fixture and restricted reader in ACTIONS-FOR-DAVID remain prerequisites for native and WEB4 acceptance. HyperDrive owns the separate BootLoader and storage conformance work. Preserve the retained local PostgREST proof.
+
+11 November UTC: HyperDrive's [Supabase native credential isolation CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43014993069) passed at f6906649aa. The shipping provider exercised two independently authenticated local PostgREST 16.5 endpoints against PostgreSQL 16.6, including crossed-credential rejection and isolated holon save/load. This qualifies that native path. Hosted Supabase gateway, writable project, and the restricted HTTPS teaching reader in the Development CQL Playground remain open.
