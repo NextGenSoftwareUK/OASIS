@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+11 November managed NEAR provisioning CI. Job 130554821914 removed its owned sandbox directory after the RPC port mismatch. The npm packages and contract outputs stayed on the disposable runner. No local artifacts or uploads were created.
+
 11 November native blockchain cleanup. Cosmos job 130550484963 independently verified empty contract storage and removed its wasmd container and ledger. Solana job 130546850845 removed its owned validator fixture after both modes passed. The builds, reports, downloads and ephemeral secrets stayed on disposable runners. No local artifacts or uploads were created.
 
 11 November NEAR sandbox avatar cleanup. Job 130551514327 stopped the owned sandbox and removed its temporary ledger directory. The locked npm install, WASM and compiler downloads stayed on the disposable runner. No local artifacts or uploads were created.

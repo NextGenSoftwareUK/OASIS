@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November managed NEAR fixture provisioning. Run 43030155418 built the locked contract but reached no managed tests. NEAR Workspaces 5.0.0 chooses the default rpcAddr independently of the configured sandbox port. The worker account tried the random default port while the node listened on 18830. The runner now assigns the same explicit loopback endpoint to both settings.
+
 11 November Cosmos blockchain and Solana native verification. Cosmos run 43028889300 passed both 26-case storage modes through shipping CosmJS 0.39.0 on pinned wasmd, verified zero native contract record keys, and removed its container. Solana run 43027809655 passed both modes and confirmed validator exit and fixture-directory removal. Development b7352eef90 carries both verified CI workflows and the Cosmos direct suite. The historical ledgers and hosted acceptance remain separate. Managed NEAR lifecycle run 43030155418 is queued at aebe6e01a0 against a fresh sandbox.
 
 11 November NEAR contract avatar cleanup passed on native NEAR Sandbox. Run 43029188382 at 25337ee98f rejected a non-owner, removed the exact avatar/detail current and history records, preserved the unrelated row, rejected a repeated deletion and left the contract empty. Development ff0092d851 carries the verified contract and test. The corresponding C# shipping path and broader lifecycle remain open.

@@ -12,7 +12,7 @@ const reportRoot = process.env.OASIS_NEAR_FRESH_REPORT_ROOT;
 assert.ok(reportRoot);
 const port = 18830;
 const endpoint = "http://127.0.0.1:" + port;
-const worker = await Worker.init({ network: "sandbox", port });
+const worker = await Worker.init({ network: "sandbox", port, rpcAddr: endpoint });
 try {
   const owner = worker.rootAccount;
   const signer = await owner.getKey();
