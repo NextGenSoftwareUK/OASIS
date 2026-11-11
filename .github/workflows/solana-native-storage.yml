@@ -55,7 +55,12 @@ jobs:
           validator_pid=""
           cleanup() {
             if [[ -n "$validator_pid" ]]; then
-              kill -INT "$validator_pid" 2>/dev/null || true
+              kill -TERM "$validator_pid" 2>/dev/null || true
+              for attempt in {1..20}; do
+                kill -0 "$validator_pid" 2>/dev/null || break
+                sleep 0.25
+              done
+              if kill -0 "$validator_pid" 2>/dev/null; then kill -KILL "$validator_pid"; fi
               wait "$validator_pid" || true
             fi
             if [[ "$fixture" == "$RUNNER_TEMP"/oasis-agave.* && -d "$fixture" ]]; then
@@ -65,7 +70,7 @@ jobs:
             fi
           }
           trap cleanup EXIT
-          curl --fail --silent --show-error --location \
+          curl --fail --silent --show-error --location --max-time 120 \
             https://github.com/anza-xyz/agave/releases/download/v4.3.0/solana-release-x86_64-unknown-linux-gnu.tar.bz2 \
             --output "$fixture/agave.tar.bz2"
           echo "c97289a8abb1d0efb497d8b5cb285baabd9b7f8ea6647f5d145c5dc8ff3611e8  $fixture/agave.tar.bz2" | sha256sum --check
@@ -90,8 +95,10 @@ jobs:
             if [[ "$attempt" == 90 ]]; then tail -40 "$fixture/validator.log"; exit 1; fi
             sleep 2
           done
-          export OASIS_SOLANA_FRESH_GENESIS="$("$bin/solana" genesis-hash --url "$SOLANA_RPC_URL")"
-          [[ "$OASIS_SOLANA_FRESH_GENESIS" =~ ^[1-9A-HJ-NP-Za-km-z]{32,44}$ ]]
+          genesis="$("$bin/solana" genesis-hash --url "$SOLANA_RPC_URL")"
+          [[ "$genesis" =~ ^[1-9A-HJ-NP-Za-km-z]{32,44}$ ]]
+          export OASIS_SOLANA_FRESH_GENESIS="$genesis"
+          echo "Owned Agave validator reached finalized slot $slot."
           export OASIS_SOLANA_FRESH_CONFORMANCE=1
           export OASIS_SOLANA_STORAGE_ENCRYPTION_KEY="$(openssl rand -base64 32)"
           echo "::add-mask::$OASIS_SOLANA_STORAGE_ENCRYPTION_KEY"
