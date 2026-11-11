@@ -29,6 +29,7 @@ public partial class IPFSOASIS : IAvatarTombstoneStorageProvider
         try
         {
             if(!validSelector) throw new ArgumentException("A nonempty avatar deletion selector is required.");
+            using var lease = await AcquireCatalogueFileLeaseAsync().ConfigureAwait(false);
             var dna = ReadCatalogueMutationDna();
             var snapshot=await LoadCatalogueAsync(dna).ConfigureAwait(false);
             var matches=snapshot.Where(row=>row.Value?.RecordKind=="avatar" && predicate(row.Value)).Take(2).ToList();

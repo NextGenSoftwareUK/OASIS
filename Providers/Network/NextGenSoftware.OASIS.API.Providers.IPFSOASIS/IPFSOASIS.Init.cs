@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Data;
+using System.Diagnostics;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
@@ -36,6 +37,38 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
         private SemaphoreSlim CatalogueGate => string.IsNullOrWhiteSpace(_OASISDNAPath)
             ? _unboundCatalogueGate
             : CatalogueGates.GetOrAdd(OASISDNAManager.ResolveEffectiveOASISDNAPath(_OASISDNAPath), _ => new SemaphoreSlim(1, 1));
+
+        private async Task<FileStream> AcquireCatalogueFileLeaseAsync()
+        {
+            var path = OASISDNAManager.ResolveEffectiveOASISDNAPath(_OASISDNAPath);
+            if (string.IsNullOrWhiteSpace(path))
+                throw new InvalidOperationException("A persisted DNA path is required to publish an IPFS catalogue.");
+            Directory.CreateDirectory(Path.GetDirectoryName(path));
+            var leasePath = path + ".ipfs.lock";
+            var elapsed = Stopwatch.StartNew();
+            while (true)
+            {
+                try
+                {
+                    return new FileStream(leasePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+                }
+                catch (IOException cause) when (IsCatalogueLeaseContention(cause))
+                {
+                    if (elapsed.Elapsed >= TimeSpan.FromSeconds(30))
+                        throw new TimeoutException("The IPFS catalogue writer did not release its file lease.", cause);
+                    await Task.Delay(50).ConfigureAwait(false);
+                }
+            }
+        }
+
+        private static bool IsCatalogueLeaseContention(IOException cause)
+        {
+            if (OperatingSystem.IsWindows())
+                return cause.HResult == unchecked((int)0x80070020);
+            // FileStream exposes the raw EWOULDBLOCK errno from flock on Unix.
+            return (OperatingSystem.IsLinux() && cause.HResult == 11)
+                || (OperatingSystem.IsMacOS() && cause.HResult == 35);
+        }
 
         private OASISDNA ReadCatalogueMutationDna()
         {
@@ -192,7 +225,11 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
         {
             var gate = CatalogueGate;
             await gate.WaitAsync().ConfigureAwait(false);
-            try { return await SaveCatalogueAsync(idLookup, ReadCatalogueMutationDna()).ConfigureAwait(false); }
+            try
+            {
+                using var lease = await AcquireCatalogueFileLeaseAsync().ConfigureAwait(false);
+                return await SaveCatalogueAsync(idLookup, ReadCatalogueMutationDna()).ConfigureAwait(false);
+            }
             finally { gate.Release(); }
         }
 
@@ -250,7 +287,11 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             // Keep catalogue read, native record acknowledgement and durable root publication together.
             var gate = CatalogueGate;
             await gate.WaitAsync().ConfigureAwait(false);
-            try { await PublishPrivateEntityAsync(entity, kind, index, plannedHolon, validateCaller).ConfigureAwait(false); }
+            try
+            {
+                using var lease = await AcquireCatalogueFileLeaseAsync().ConfigureAwait(false);
+                await PublishPrivateEntityAsync(entity, kind, index, plannedHolon, validateCaller).ConfigureAwait(false);
+            }
             finally { gate.Release(); }
         }
 
