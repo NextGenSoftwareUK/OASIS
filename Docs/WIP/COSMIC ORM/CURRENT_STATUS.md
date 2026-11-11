@@ -1045,3 +1045,5 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 11 November UTC: after Railway reported SQL Server revision 400b42ef36 successful (deployment 6d207df7), the live WEB4 Wormhole full public preset returned HTTP 503 CQL_PROVIDER_UNAVAILABLE. The browser still held its previous catalogue. The deployment log tail did not identify a Wormhole cause. Subset and private checks were not run. Keep historical HTTP and replica evidence. Confirm fresh readiness after warmup before another public query.
 
 11 November UTC: after refreshing the live Development WEB4 catalogue to 106 available hosted sources, Wormhole pinned-message public presets returned 3 full and 2 filtered rows. The earlier post-cutover HTTP 503 remains recorded. Original-owner paired browser verification remains open.
+
+11 November UTC: exact solution candidate cbb5e659a0 on SQL Server base 400b42ef36 passed project enrollment, the full production compile and WEB4-WEB10 GraphQL in CI 43005826333. That base is superseded by IPFS c686a8618d. Exact successor candidate 4a3118bd93 is in CI 43007093453 while Railway builds IPFS deployment c7b533e2.
