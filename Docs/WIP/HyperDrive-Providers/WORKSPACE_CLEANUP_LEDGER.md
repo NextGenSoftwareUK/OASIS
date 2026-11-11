@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+10 November BootLoader graph build at 97a7c75829: isolated NuGet restore and .NET 10.0.401 build succeeded under the shared lease (0 errors, 2,139 warnings, 9m35s compile). Verified removal of priority-diagnostics-b33e85a055c14feb8f19ebeba824b52e, including packages, HTTP cache, scratch and redirected build outputs. C: measured 55.49 GiB free afterward. No real backend test ran.
+
 10 November isolated BootLoader restore: stopped the owned restore after several minutes without diagnostics or completion. Compilation did not start. The shared lock was released and the task package, HTTP cache and scratch root priority-restore-20514b2d23f04cdbb226df25a93c5a58 was confirmed absent after cleanup.
 
 10 November priority BootLoader compile: reused bundled PowerShell 7.6.9 and the shared provider build lock. The existing restore manifest refers to 232 package versions without package metadata in its configured folders. Build and project clean both stopped on NETSDK1064 for AWSSDK.DynamoDBv2 3.7.400.15. Confirmed zero files under BootLoader bin afterward. No download, restore or raw report created.
