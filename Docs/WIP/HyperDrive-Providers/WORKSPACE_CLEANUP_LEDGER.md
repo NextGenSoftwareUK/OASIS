@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+10 November (America/Cancun) BootLoader error-propagation build at 820bebbecf passed with 0 errors and 2,139 warnings; compile duration 8m17s. Restore and build ran under the shared lease with isolated packages, HTTP cache, scratch and outputs. The result receipt confirms both exit codes zero and cleanup true. Independently confirmed current-artifacts absent. Retained only the compact receipt. Live registration verification remains open.
+
 Registration error build recovery: session 92516 was missing on resume, with no matching live build process and no recoverable exit result. Under the shared provider build lease, removed 3,559,058,057 bytes from the exact owned priority-errors-8e51c7ab891b4cf7a2a946b4af24ac57 artifact/cache directory and confirmed it absent. The compile outcome for 1626bac589 and 3d36eed517 remains unverified.
 
 10 November BootLoader graph build at 97a7c75829: isolated NuGet restore and .NET 10.0.401 build succeeded under the shared lease (0 errors, 2,139 warnings, 9m35s compile). Verified removal of priority-diagnostics-b33e85a055c14feb8f19ebeba824b52e, including packages, HTTP cache, scratch and redirected build outputs. C: measured 55.49 GiB free afterward. No real backend test ran.
