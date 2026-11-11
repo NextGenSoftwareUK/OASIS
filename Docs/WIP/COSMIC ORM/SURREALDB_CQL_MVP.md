@@ -294,3 +294,5 @@ The retained local source is preserved.
 11 November UTC: published isolated SurrealKV restart CI at `01c0c85118`. The workflow uses the existing checksum-pinned SurrealDB runtime installer and restart runner, with CI's .NET SDK and a disposable report directory. It exercises the same store before and after shutdown. MongoDB federation and hosted CQL remain open.
 
 11 November UTC: the configured generic SurrealDB job exited green with all five tests skipped. The fixture setup had suppressed activation errors. Configured runs now report activation failures directly, while unconfigured runs still skip. Diagnostic ba80622d8d checks activation against the same CI service. [First configured job](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43037408709)
+
+11 November UTC: the initial SurrealKV restart job stopped before downloading the runtime because the installer expected its parent directory to exist. The corrected CI workflow provisions that directory before invoking the unchanged checksum-pinned installer. Diagnostic 182d68ed9e is published. [Initial run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43037652650)
