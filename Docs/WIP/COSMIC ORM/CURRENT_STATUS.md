@@ -1037,3 +1037,5 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 11 November UTC: AWSS3OASIS public object metadata presets returned 3 full and 2 filtered rows in the live Development WEB4 CQL Playground. Original-owner paired browser verification remains open. The presets read object metadata only.
 
 11 November UTC: AzureStorageOASIS public blob properties presets returned 3 full and 2 filtered rows in the live Development WEB4 CQL Playground. Original-owner paired browser verification remains open.
+
+11 November UTC: OracleObjectStorageOASIS public object metadata presets returned 3 full and 2 filtered rows in the live Development WEB4 CQL Playground. Original-owner paired browser verification and owned SDK storage acceptance remain open.

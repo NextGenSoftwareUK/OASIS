@@ -5662,3 +5662,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: AWS S3 browser acceptance reused the existing visitor. No local report, screenshot file, download, runtime, build output or saved holon.
 
 11 November UTC: Azure Blob browser acceptance reused the existing visitor. No local report, screenshot file, download, runtime, build output or saved holon.
+
+11 November UTC: Oracle Object Storage browser acceptance reused the existing visitor. No local report, screenshot file, download, runtime, build output or saved holon.
