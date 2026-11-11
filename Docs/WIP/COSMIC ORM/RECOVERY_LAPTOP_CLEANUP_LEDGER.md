@@ -5430,3 +5430,5 @@ Removed temporary remote tag ci-hed-era-web4-2b828fd377 after successful image C
 Emergency cleanup on 11 November UTC: removed the disposable RecoveryLaptopRavenDB701/ravendb.embedded.7.0.1.nupkg download (149,728,697 bytes). C: free moved from 55,940,956,160 to 56,090,685,440 bytes. No new local build, download or environment.
 
 Ritual browser acceptance used installed Edge and one disposable Development demo avatar sandbox-c42b0303. Reconcile through normal demo expiry. No screenshot file, report, download, local build or runtime install.
+
+11 November UTC Hedera handler comparison: reused existing SDK csc directly with reference assemblies. A private OS-temp cosmic-hedera-handler-* directory contained Probe.cs and 9,728-byte Probe.dll and was removed by TemporaryDirectory after terminal exit 0. Remote /tmp/cosmic-hedera-handler.* contained only Probe.dll and runtimeconfig; the EXIT trap removed both and rmdir completed with exit 0. No restore, shared build outputs, SDK installation, report or local image.
