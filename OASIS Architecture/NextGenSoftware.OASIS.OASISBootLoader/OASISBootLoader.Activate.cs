@@ -180,7 +180,9 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                 //TODO: Think we can have this in ProviderManger and have default connection strings/settings for each provider.
                 if (providerType != ProviderManager.Instance.CurrentStorageProviderType.Value)
                 {
-                    RegisterProvider(providerType, customConnectionString, forceRegister);
+                    var registration = RegisterProvider(providerType, customConnectionString, forceRegister);
+                    if (registration.IsError)
+                        return registration;
                     result = ProviderManager.Instance.SetAndActivateCurrentStorageProvider(providerType, setGlobally);
                 }
 
@@ -222,7 +224,9 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                 //TODO: Think we can have this in ProviderManger and have default connection strings/settings for each provider.
                 if (providerType != ProviderManager.Instance.CurrentStorageProviderType.Value)
                 {
-                    await RegisterProviderAsync(providerType, customConnectionString, forceRegister);
+                    var registration = await RegisterProviderAsync(providerType, customConnectionString, forceRegister);
+                    if (registration.IsError)
+                        return registration;
                     result = await ProviderManager.Instance.SetAndActivateCurrentStorageProviderAsync(providerType, setGlobally);
                 }
 
