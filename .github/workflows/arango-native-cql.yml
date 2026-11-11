@@ -1,4 +1,4 @@
-name: ArangoDB native CQL restart
+name: ArangoDB native CQL restart and federation
 
 on:
   workflow_dispatch:
@@ -40,12 +40,20 @@ jobs:
         working-directory: OASIS
         shell: bash
         run: |
-          state="$(mktemp -d "$RUNNER_TEMP/arango-cql.XXXXXX")"
+          state=/var/tmp/oasis-arangodb-cql
+          mongo_state=/var/tmp/oasis-cosmic-mongo
+          mkdir -m 700 "$state" "$mongo_state"
+          mongo=
           container=
           cleanup() {
-            if [[ -n "$container" ]]; then
-              docker rm -f -v "$container" >/dev/null
+            local failed=0
+            if [[ -n "$mongo" ]]; then
+              docker rm -f -v "$mongo" >/dev/null || failed=1
             fi
+            if [[ -n "$container" ]]; then
+              docker rm -f -v "$container" >/dev/null || failed=1
+            fi
+            return "$failed"
           }
           trap cleanup EXIT
           export COSMIC_ARANGODB_ROOT="$state"
@@ -78,6 +86,37 @@ jobs:
           PY
             test -f "$state/native-baseline.json"
             test ! -e "$state/seed.pending.json"
+            if [[ "$phase" == restart ]]; then
+              mongo="$(docker create --publish 127.0.0.1:27039:27039 mongo:8.0.15 --port 27039 --replSet cosmicLinuxDemoRs --bind_ip_all)"
+              docker start "$mongo" >/dev/null
+              for attempt in {1..30}; do
+                test "$(docker inspect --format '{{.State.Running}}' "$mongo")" = true
+                if docker exec "$mongo" mongosh --quiet --port 27039 --eval 'quit(db.adminCommand({ping:1}).ok === 1 ? 0 : 1)'; then
+                  break
+                fi
+                test "$attempt" -lt 30
+                sleep 1
+              done
+              jq -n --arg id "$container" '{containerId:$id}' > "$state/environment.json"
+              jq -n --arg id "$mongo" '{containerId:$id,port:27039,replica:"cosmicLinuxDemoRs"}' > "$mongo_state/store.json"
+              export OASIS_COSMIC_LINUX_MONGO_STATE="$mongo_state"
+              export OASIS_MONGO_REPLICA_SET_CONNECTION='mongodb://127.0.0.1:27039/?replicaSet=cosmicLinuxDemoRs&serverSelectionTimeoutMS=3000'
+              for test_class in LinuxMongoDemoEnvironmentTests ArangoDBMongoCqlNativeTests ArangoDbNativeCqlTests; do
+                dotnet test Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.ArangoDBOASIS.IntegrationTests \
+                  --no-build --filter "FullyQualifiedName~$test_class" --results-directory "$state" \
+                  --logger "trx;LogFileName=$test_class.trx" /m:2 /nr:false /p:UseSharedCompilation=false
+                python3 - "$state/$test_class.trx" <<'PY'
+          import sys
+          import xml.etree.ElementTree as ET
+          counters = ET.parse(sys.argv[1]).find(".//{*}Counters").attrib
+          if counters["total"] != "1" or counters["passed"] != "1":
+              raise SystemExit("Expected one passing fixture test")
+          PY
+              done
+              test -f "$mongo_state/replica-init.json"
+              test ! -e "$mongo_state/replica-init.pending.json"
+              test ! -e "$state/mongo.pending.json"
+            fi
             docker stop --time 20 "$container" >/dev/null
             test "$(docker inspect --format '{{.State.ExitCode}}' "$container")" = 0
           done
