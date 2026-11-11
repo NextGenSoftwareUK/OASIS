@@ -53,6 +53,16 @@ Each SDK repo has a GitHub workflow `publish.yml` that publishes on push wheneve
 
 Until then the "publish" workflow fails on each push (harmless).
 
+### A2b. Dev-only test accounts (Railway dev environment only)
+
+PIPER's SA-created test staff skip email verification. OASIS honours that only when ALL of these hold, so set them on the **Railway dev** service and never on live:
+
+- `OASIS_ALLOW_PROGRAMMATIC_VERIFICATION=true`
+- the server counts as a dev server: set `OASIS_ENVIRONMENT=development` (recommended, explicit), or `ASPNETCORE_ENVIRONMENT=Development` (this also turns on the developer exception page), or have Railway's `RAILWAY_ENVIRONMENT_NAME` be `development` or `dev`. The Dockerfiles default `ASPNETCORE_ENVIRONMENT` to `Production`, so without one of these the server counts as live. Setting `OASIS_ENVIRONMENT=production` (or `live`) on live forces it off even if another setting is wrong.
+- the test account's email ends in `.invalid`.
+
+Check live has **none** of the first two set. Documented for developers in the WEB4 Avatar API reference, the docs site (Avatar reference) and the Learn site (Avatar identity tutorial).
+
 ### A3. PIPER (M4)
 
 Full context: `C:/Source/PIPERDOCS/milestone4-session-plan-engine/piper-m4-work-log.md` (Open items).
