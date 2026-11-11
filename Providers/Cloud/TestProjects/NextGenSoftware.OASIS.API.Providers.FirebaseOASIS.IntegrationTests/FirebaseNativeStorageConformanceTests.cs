@@ -90,6 +90,62 @@ public class FirebaseNativeStorageConformanceTests
         await checkpoint.WriteAsync(result);
     }
 
+    [TestMethod]
+    public async Task HolonGraphReadAgainstRealtimeDatabase()
+    {
+        if (Environment.GetEnvironmentVariable("OASIS_FIREBASE_STORAGE_CONFORMANCE") != "1")
+            Assert.Inconclusive("Enable only for an isolated Firebase Realtime Database emulator.");
+
+        var endpoint = GetLoopbackEndpoint();
+        using var http = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false });
+        var provider = new FirebaseOASIS(endpoint.AbsoluteUri, null, http, DatabaseNamespace);
+        var root = new Holon { Id = Guid.NewGuid(), Name = "graph root" };
+        var child = new Holon { Id = Guid.NewGuid(), Name = "graph child" };
+        var grandchild = new Holon { Id = Guid.NewGuid(), Name = "graph grandchild" };
+        child.Children.Add(grandchild);
+        root.Children.Add(child);
+
+        try
+        {
+            var saved = await provider.SaveHolonAsync(root);
+            Assert.IsFalse(saved.IsError, saved.Message);
+            Assert.AreEqual(3, saved.SavedCount);
+
+            var rootOnly = provider.LoadHolon(root.Id, loadChildren: false);
+            Assert.IsFalse(rootOnly.IsError, rootOnly.Message);
+            Assert.AreEqual(0, rootOnly.Result.Children.Count);
+
+            var immediate = await provider.LoadHolonAsync(root.Id, recursive: false);
+            Assert.IsFalse(immediate.IsError, immediate.Message);
+            Assert.AreEqual(child.Id, immediate.Result.Children.Single().Id);
+            Assert.AreEqual(0, immediate.Result.Children.Single().Children.Count);
+
+            var clipped = await provider.LoadHolonAsync(root.Id, maxChildDepth: 1);
+            Assert.IsFalse(clipped.IsError, clipped.Message);
+            Assert.AreEqual(child.Id, clipped.Result.Children.Single().Id);
+            Assert.AreEqual(0, clipped.Result.Children.Single().Children.Count);
+
+            var expanded = provider.LoadHolon(root.Id.ToString("D"));
+            Assert.IsFalse(expanded.IsError, expanded.Message);
+            Assert.AreEqual(grandchild.Id, expanded.Result.Children.Single().Children.Single().Id);
+
+            var removed = await provider.DeleteHolonAsync(grandchild.Id);
+            Assert.IsTrue(removed.IsDeleted && !removed.IsError, removed.Message);
+            var live = await provider.LoadHolonAsync(root.Id);
+            Assert.IsFalse(live.IsError, live.Message);
+            Assert.AreEqual(0, live.Result.Children.Single().Children.Count);
+        }
+        finally
+        {
+            foreach (var id in new[] { grandchild.Id, child.Id, root.Id })
+            {
+                using var response = await http.DeleteAsync(
+                    new Uri(endpoint, $"oasis_holons/{id:D}.json?ns={DatabaseNamespace}"));
+                response.EnsureSuccessStatusCode();
+            }
+        }
+    }
+
     private static Uri GetLoopbackEndpoint()
     {
         var url = Environment.GetEnvironmentVariable("FIREBASEOASIS_DATABASEURL");

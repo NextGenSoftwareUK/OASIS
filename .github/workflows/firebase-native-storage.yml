@@ -120,7 +120,7 @@ jobs:
           curl -fsS --max-time 5 "$FIREBASEOASIS_DATABASEURL/.json?ns=$ns" | jq -e '. == null'
           pwsh -NoProfile -Command '
             ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-FirebaseStorage -Operation {
-              dotnet test "Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.FirebaseOASIS.IntegrationTests" --no-build --no-restore --filter "FullyQualifiedName~CoreStorageAgainstRealtimeDatabase" --logger "console;verbosity=normal"
+              dotnet test "Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.FirebaseOASIS.IntegrationTests" --no-build --no-restore --filter "FullyQualifiedName~CoreStorageAgainstRealtimeDatabase|FullyQualifiedName~HolonGraphReadAgainstRealtimeDatabase" --logger "console;verbosity=normal"
               if ($LASTEXITCODE -ne 0) { throw "Firebase native storage verification failed." }
             }'
           for mode in async sync; do

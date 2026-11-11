@@ -615,6 +615,38 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
 
         // ─── Holon loading ────────────────────────────────────────────────────────
 
+        private async Task ExpandHolonChildrenAsync(IEnumerable<IHolon> roots, bool loadChildren,
+            bool recursive, int maxChildDepth, long currentChildDepth)
+        {
+            ArgumentOutOfRangeException.ThrowIfNegative(maxChildDepth);
+            ArgumentOutOfRangeException.ThrowIfNegative(currentChildDepth);
+
+            foreach (var root in roots)
+                await ExpandAsync(root, currentChildDepth, new HashSet<Guid>());
+
+            async Task ExpandAsync(IHolon row, long depth, HashSet<Guid> ancestors)
+            {
+                if (!loadChildren || (maxChildDepth != 0 && depth >= maxChildDepth) ||
+                    (!recursive && depth != currentChildDepth))
+                {
+                    HolonChangeTracking.MarkIncompleteChildSelection(row);
+                    return;
+                }
+
+                ancestors.Add(row.Id);
+                var children = await QueryByFieldAsync<Holon>("oasis_holons", "parentHolonId", row.Id.ToString("D"));
+                foreach (var child in children.Where(child => !child.IsDeleted))
+                {
+                    if (child.ParentHolonId != row.Id || ancestors.Contains(child.Id))
+                        throw new System.IO.InvalidDataException("Firebase child query returned an invalid parent link or cycle.");
+
+                    await ExpandAsync(child, depth + 1, ancestors);
+                    row.Children.Add(child);
+                }
+                ancestors.Remove(row.Id);
+            }
+        }
+
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             var result = new OASISResult<IHolon>();
@@ -622,6 +654,7 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
             {
                 var holon = await GetAsync<Holon>($"/oasis_holons/{id}");
                 if (holon == null || holon.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: No holon found with ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
+                await ExpandHolonChildrenAsync(new[] { holon }, loadChildren, recursive, maxChildDepth, 0);
                 result.Result = holon; result.IsLoaded = true; result.LoadedCount = 1; result.Message = $"FirebaseOASIS: Holon loaded for ID '{id}'.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: Error loading holon '{id}': {ex.Message}"); }
@@ -649,6 +682,7 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
             {
                 var all = await GetAllAsync<Holon>("oasis_holons");
                 var holons = (type == HolonType.All ? all.Where(h => !h.IsDeleted) : all.Where(h => !h.IsDeleted && h.HolonType == type)).Cast<IHolon>().ToList();
+                await ExpandHolonChildrenAsync(holons, loadChildren, recursive, maxChildDepth, curentChildDepth);
                 result.Result = holons; result.IsLoaded = true; result.LoadedCount = holons.Count; result.Message = $"FirebaseOASIS: Loaded {holons.Count} holon(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: Error loading all holons: {ex.Message}"); }
@@ -665,6 +699,7 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
             {
                 var all = await QueryByFieldAsync<Holon>("oasis_holons", "parentHolonId", id.ToString());
                 var holons = (type == HolonType.All ? all.Where(h => !h.IsDeleted) : all.Where(h => !h.IsDeleted && h.HolonType == type)).Cast<IHolon>().ToList();
+                await ExpandHolonChildrenAsync(holons, loadChildren, recursive, maxChildDepth, (long)curentChildDepth + 1);
                 result.Result = holons; result.IsLoaded = true; result.LoadedCount = holons.Count; result.Message = $"FirebaseOASIS: Loaded {holons.Count} holon(s) for parent '{id}'.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: Error loading holons for parent '{id}': {ex.Message}"); }
@@ -756,6 +791,7 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
                     h.MetaData != null &&
                     h.MetaData.TryGetValue(metaKey, out var val) && val?.ToString() == metaValue &&
                     (type == HolonType.All || h.HolonType == type)).Cast<IHolon>().ToList();
+                await ExpandHolonChildrenAsync(holons, loadChildren, recursive, maxChildDepth, curentChildDepth);
                 result.Result = holons; result.IsLoaded = true; result.LoadedCount = holons.Count;
                 result.Message = $"FirebaseOASIS: Loaded {holons.Count} holon(s) where {metaKey}={metaValue}.";
             }
@@ -779,6 +815,7 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
                     return metaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.Any ? checks.Any(c => c) : checks.All(c => c);
                 }
                 var holons = all.Where(h => !h.IsDeleted && IsMatch(h) && (type == HolonType.All || h.HolonType == type)).Cast<IHolon>().ToList();
+                await ExpandHolonChildrenAsync(holons, loadChildren, recursive, maxChildDepth, curentChildDepth);
                 result.Result = holons; result.IsLoaded = true; result.LoadedCount = holons.Count;
                 result.Message = $"FirebaseOASIS: Loaded {holons.Count} holon(s) matching metadata filter.";
             }
