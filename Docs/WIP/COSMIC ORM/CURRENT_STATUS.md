@@ -1461,3 +1461,5 @@ After warmup, authenticated discovery on Railway f573b5ac at c837fe5ad8 reached 
 11 November UTC: Development 2dd52cf6c0 integrates HyperDrive CockroachDB native storage conformance. CI 43060207358 passed all 52 checks through the shipping Npgsql adapter on CockroachDB 26.2.9. Independent SQL verified and removed five exact owned tombstones per mode and confirmed three empty current tables per database. Hosted CQL acceptance remains open.
 
 Supabase WEB4 boundary CI 43061249200 is active.
+
+11 November UTC: Supabase WEB4 boundary CI 43061249200 passed all nine controlled cases on candidate 7533021f03. The exact candidate WEB4 image build was dispatched with the commit SHA only. Development advanced to 2dd52cf6c0 with CockroachDB storage verification and no overlapping WEB4 or Supabase changes. Hosted source enrollment and live acceptance remain open.
