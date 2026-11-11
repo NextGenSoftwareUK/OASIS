@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+11 November successful Neon compute CI. GitHub job 130527402749 removed the owned compute, pageserver, three safekeepers, storage broker and their network. The disposable runner held the images, database, build and test receipts. No local artifacts or uploaded reports were created.
+
 11 November Neon native compute CI. Job 130523260874 removed the official compute, pageserver, three safekeepers, storage broker and their network after the fixture cleanup assertion failed. The database, build and receipts stayed on the disposable runner. No local outputs were created.
 
 11 November public provider inventory publication. Verified live HTML and registry names in memory, reused existing site checkouts and ran no local builds or package installs. No downloads, test results, temporary files or build outputs were retained.
