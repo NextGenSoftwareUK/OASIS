@@ -65,3 +65,5 @@ No native fixture replay or source writes. Browser acceptance remains open.
 
 `EspressoSystemsOASIS-native-http.json`: 11849B, SHA256
 `39c567a13783469e49a23f603534ec8b9a5e632bd571beefee6231ad5744fdd4`.
+
+11 November UTC: EspressoSystemsOASIS passed both public presets in the Development CQL Playground (3 full and 2 subset block headers). Reused the existing disposable demo visitor. Original private cohort verification remains separate. No new avatar, local report, download or build.

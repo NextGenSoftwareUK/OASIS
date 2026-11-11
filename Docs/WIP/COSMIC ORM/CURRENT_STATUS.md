@@ -767,3 +767,5 @@ Development 2b828fd377 settled at 104/106 ready. Only Hedera and Nostr were unav
 Public browser acceptance carried forward from 10 November: SOLID and TON each rendered the full/subset presets (3/2). Private paired browser acceptance still requires the original prepared cohorts.
 
 RitualOASIS public browser acceptance passed on Development on 11 November UTC. Full/subset returned 3/2 block headers. Original-cohort private paired browser acceptance remains open.
+
+11 November UTC: EspressoSystemsOASIS passed both public presets in the Development CQL Playground (3 full and 2 subset block headers). Reused the existing disposable demo visitor. Original private cohort verification remains separate. No new avatar, local report, download or build.
