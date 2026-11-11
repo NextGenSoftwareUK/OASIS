@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+11 November Base wallet and decoder qualification ran on a disposable GitHub runner. The public read used no signer and created no chain fixture. No local download, build output or raw test result was created.
+
 11 November cleanup check. Automatic approval review blocked the leased recursive removal command before execution. The exact owned MongoNativeMetadataBuild and ConvexResponseDeadlineBuild directories remain, with 99 generated files each and a combined 10,317,999 bytes. Both are untracked and contained no reparse points at inspection. No files were deleted or created by the attempt. C: had 34,100,469,760 free bytes at the read-only check.
 
 11 November live inventory recheck used in-memory HTTPS responses. No local build, download file, test environment or generated result was retained. C: showed 34,135,076,864 free bytes during the recheck.
