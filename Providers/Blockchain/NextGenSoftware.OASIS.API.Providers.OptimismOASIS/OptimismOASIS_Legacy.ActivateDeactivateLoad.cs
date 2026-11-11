@@ -368,63 +368,26 @@ namespace NextGenSoftware.OASIS.API.Providers.OptimismOASIS
                     return result;
                 }
 
-                // Convert decimal amount to wei (1 ETH = 10^18 wei)
-                var amountInWei = (long)(amount * 1000000000000000000);
+                if (_web3Client == null || _account == null)
+                    throw new InvalidOperationException("Optimism transfer requires the configured signer.");
+                if (!string.Equals(_account.Address, fromWalletAddress, StringComparison.OrdinalIgnoreCase))
+                    throw new ArgumentException("The sender address must match the configured Optimism signer.", nameof(fromWalletAddress));
+                if (amount <= 0)
+                    throw new ArgumentOutOfRangeException(nameof(amount), "The transfer amount must be positive.");
 
-                // Get account balance and nonce using Optimism API
-                var accountResponse = await _httpClient.GetAsync($"/api/v1/account/{fromWalletAddress}");
-                if (!accountResponse.IsSuccessStatusCode)
+                var receipt = await _web3Client.Eth.GetEtherTransferService()
+                    .TransferEtherAndWaitForReceiptAsync(toWalletAddress, amount);
+                if (receipt?.Status?.Value != BigInteger.One || string.IsNullOrWhiteSpace(receipt.TransactionHash))
+                    throw new InvalidOperationException("The Optimism transfer did not receive a successful native receipt.");
+
+                result.Result = new OptimismTransactionResponse
                 {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to get account info for Optimism address {fromWalletAddress}: {accountResponse.StatusCode}");
-                    return result;
-                }
-
-                var accountContent = await accountResponse.Content.ReadAsStringAsync();
-                var accountData = JsonSerializer.Deserialize<JsonElement>(accountContent);
-
-                var balance = accountData.GetProperty("balance").GetInt64();
-                if (balance < amountInWei)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Insufficient balance. Available: {balance} wei, Required: {amountInWei} wei");
-                    return result;
-                }
-
-                var nonce = accountData.GetProperty("nonce").GetInt64();
-
-                // Create Optimism transaction
-                var transactionRequest = new
-                {
-                    from = fromWalletAddress,
-                    to = toWalletAddress,
-                    value = $"0x{amountInWei:x}",
-                    gas = "0x5208", // 21000 gas for simple transfer
-                    gasPrice = "0x3b9aca00", // 1 gwei
-                    nonce = $"0x{nonce:x}",
-                    data = "0x" // Empty data for simple transfer
+                    TransactionResult = receipt.TransactionHash,
+                    MemoText = memoText
                 };
-
-                // Submit transaction to Optimism network
-                var jsonContent = JsonSerializer.Serialize(transactionRequest);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-
-                var submitResponse = await _httpClient.PostAsync("/api/v1/sendRawTransaction", content);
-                if (submitResponse.IsSuccessStatusCode)
-                {
-                    var responseContent = await submitResponse.Content.ReadAsStringAsync();
-                    var responseData = JsonSerializer.Deserialize<JsonElement>(responseContent);
-
-                    result.Result = new OptimismTransactionResponse
-                    {
-                        TransactionResult = responseData.GetProperty("result").GetString(),
-                        MemoText = memoText
-                    };
-                    result.IsError = false;
-                    result.Message = $"Optimism transaction sent successfully. TX Hash: {result.Result.TransactionResult}";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to submit Optimism transaction: {submitResponse.StatusCode}");
-                }
+                result.IsSaved = true;
+                result.SavedCount = 1;
+                result.Message = $"Optimism transaction confirmed: {receipt.TransactionHash}.";
             }
             catch (Exception ex)
             {
