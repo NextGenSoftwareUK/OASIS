@@ -1,4 +1,5 @@
 using System;
+using NextGenSoftware.OASIS.API.Core.Serialization;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -16,6 +17,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
@@ -76,6 +78,10 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
                 // reserved empty identity through the actual REST contract instead.
                 using var response = await _http.GetAsync(NodeUrl("/oasis_holons/" + Guid.Empty.ToString("D")));
                 response.EnsureSuccessStatusCode();
+                using var payload = await response.Content.ReadAsStreamAsync();
+                using var probe = await JsonDocument.ParseAsync(payload);
+                if (probe.RootElement.ValueKind != JsonValueKind.Null)
+                    throw new InvalidOperationException("Firebase activation requires an empty reserved holon identity.");
                 IsProviderActivated = true;
                 result.Result = true;
                 result.IsError = false;
@@ -128,11 +134,19 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
 
         // ─── Low-level CRUD ───────────────────────────────────────────────────────
 
-        private async Task PutAsync(string path, object data)
+        private async Task PutAcknowledgedAsync(string path, Guid id, JsonNode projection)
         {
-            var content = new StringContent(Serialize(data), Encoding.UTF8, "application/json");
-            var response = await _http.PutAsync(NodeUrl(path), content);
-            response.EnsureSuccessStatusCode();
+            using var request = new HttpRequestMessage(HttpMethod.Put, NodeUrl(path))
+            { Content = new StringContent(projection.ToJsonString(), Encoding.UTF8, "application/json") };
+            try
+            {
+                using var response = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+                response.EnsureSuccessStatusCode();
+                var acknowledged = JsonNode.Parse(await ReadFirebaseAcknowledgement(response));
+                if (!JsonNode.DeepEquals(projection, acknowledged))
+                    throw new System.IO.InvalidDataException("Firebase acknowledgement does not match the proposed record.");
+            }
+            catch (Exception cause) { throw new FirebaseMutationReconciliationException(id, cause); }
         }
 
         private async Task<T?> GetAsync<T>(string path)
@@ -142,6 +156,8 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
             var json = await response.Content.ReadAsStringAsync();
             if (typeof(T) == typeof(Holon))
                 return (T?)(object?)ParseFirebaseHolon(Guid.Parse(path[(path.LastIndexOf('/') + 1)..]), json);
+            if (typeof(T) == typeof(AvatarDetail))
+                return (T?)(object?)ParseFirebaseDetail(Guid.Parse(path[(path.LastIndexOf('/') + 1)..]), JsonNode.Parse(json));
             return Deserialize<T>(json);
         }
 
@@ -174,23 +190,14 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
                     ? (T)(object)(ParseFirebaseHolon(id, pair.Value?.ToJsonString() ?? "null")
                         ?? throw new JsonException("Firebase collection record cannot be null."))
                     : throw new JsonException("Firebase collection holon key must be a canonical GUID.")).ToList();
+            if (typeof(T) == typeof(AvatarDetail))
+                return obj.Select(pair => Guid.TryParseExact(pair.Key, "D", out var id)
+                    ? (T)(object)(ParseFirebaseDetail(id, pair.Value)
+                        ?? throw new JsonException("Firebase collection detail cannot be null."))
+                    : throw new JsonException("Firebase avatar detail key must be a canonical GUID.")).ToList();
             return obj.Select(kvp => kvp.Value is JsonObject value
                 ? Deserialize<T>(value.ToJsonString()) ?? throw new JsonException("Firebase collection record cannot be null.")
                 : throw new JsonException("Firebase collection record must be an object.")).ToList();
-        }
-
-        private async Task<bool> PatchAsync(string path, object patch)
-        {
-            var content = new StringContent(Serialize(patch), Encoding.UTF8, "application/json");
-            var request = new HttpRequestMessage(new HttpMethod("PATCH"), NodeUrl(path)) { Content = content };
-            var response = await _http.SendAsync(request);
-            return response.IsSuccessStatusCode;
-        }
-
-        private async Task<bool> DeleteNodeAsync(string path)
-        {
-            var response = await _http.DeleteAsync(NodeUrl(path));
-            return response.IsSuccessStatusCode;
         }
 
         // ─── Avatar saving ────────────────────────────────────────────────────────
@@ -200,14 +207,28 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
             var result = new OASISResult<IAvatar>();
             try
             {
-                if (avatar.Id == Guid.Empty) avatar.Id = Guid.NewGuid();
-                if (avatar.ProviderUniqueStorageKey == null)
-                    avatar.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
-                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.FirebaseOASIS] = avatar.Id.ToString();
-                await PutAsync($"/oasis_avatars/{avatar.Id}", avatar);
-                result.Result = avatar; result.IsError = false; result.Message = $"FirebaseOASIS: Avatar '{avatar.Username}' saved.";
+                ArgumentNullException.ThrowIfNull(avatar);
+                var id = avatar.Id == Guid.Empty ? Guid.NewGuid() : avatar.Id;
+                var projection = JsonSerializer.SerializeToNode(avatar, avatar.GetType(), _jsonOpts)!.AsObject();
+                projection["id"] = id;
+                if (projection["providerUniqueStorageKey"] is not JsonObject keys)
+                {
+                    keys = new JsonObject();
+                    projection["providerUniqueStorageKey"] = keys;
+                }
+                keys["FirebaseOASIS"] = id.ToString("D");
+                NativeProjection(projection);
+                await PutAcknowledgedAsync($"/oasis_avatars/{id:D}", id, projection);
+
+                avatar.Id = id;
+                avatar.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
+                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.FirebaseOASIS] = id.ToString("D");
+                result.Result = avatar;
+                result.IsSaved = true;
+                result.SavedCount = 1;
+                result.Message = $"FirebaseOASIS: Avatar '{avatar.Username}' saved.";
             }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: Error saving avatar '{avatar.Username}': {ex.Message}"); }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: Error saving avatar: {ex.Message}"); }
             return result;
         }
 
@@ -221,8 +242,8 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
             try
             {
                 var avatar = await GetAsync<Avatar>($"/oasis_avatars/{id}");
-                if (avatar == null || avatar.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: No avatar found with ID '{id}'."); return result; }
-                result.Result = avatar; result.IsError = false; result.Message = $"FirebaseOASIS: Avatar loaded for ID '{id}'.";
+                if (avatar == null || avatar.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: No avatar found with ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
+                result.Result = avatar; result.IsLoaded = true; result.LoadedCount = 1; result.Message = $"FirebaseOASIS: Avatar loaded for ID '{id}'.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: Error loading avatar by ID '{id}': {ex.Message}"); }
             return result;
@@ -236,11 +257,13 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
             try
             {
                 var avatars = await QueryByFieldAsync<Avatar>("oasis_avatars", "username", username);
-                var avatar = avatars.FirstOrDefault(a => !a.IsDeleted);
-                if (avatar == null) { OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: No avatar found with username '{username}'."); return result; }
-                result.Result = avatar; result.IsError = false; result.Message = $"FirebaseOASIS: Avatar loaded for username '{username}'.";
+                var live = avatars.Where(a => !a.IsDeleted).Take(2).ToList();
+                if (live.Count > 1) throw new StorageIdentityAmbiguousException();
+                var avatar = live.SingleOrDefault();
+                if (avatar == null) { OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: No avatar found with username '{username}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
+                result.Result = avatar; result.IsLoaded = true; result.LoadedCount = 1; result.Message = $"FirebaseOASIS: Avatar loaded for username '{username}'.";
             }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: Error loading avatar by username '{username}': {ex.Message}"); }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: Error loading avatar by username '{username}': {ex.Message}"); if (ex is StorageIdentityAmbiguousException) result.ErrorCode = OASISResultErrorCodes.AmbiguousIdentity; }
             return result;
         }
 
@@ -252,11 +275,13 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
             try
             {
                 var avatars = await QueryByFieldAsync<Avatar>("oasis_avatars", "email", avatarEmail);
-                var avatar = avatars.FirstOrDefault(a => !a.IsDeleted);
-                if (avatar == null) { OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: No avatar found with email '{avatarEmail}'."); return result; }
-                result.Result = avatar; result.IsError = false; result.Message = $"FirebaseOASIS: Avatar loaded for email '{avatarEmail}'.";
+                var live = avatars.Where(a => !a.IsDeleted).Take(2).ToList();
+                if (live.Count > 1) throw new StorageIdentityAmbiguousException();
+                var avatar = live.SingleOrDefault();
+                if (avatar == null) { OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: No avatar found with email '{avatarEmail}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
+                result.Result = avatar; result.IsLoaded = true; result.LoadedCount = 1; result.Message = $"FirebaseOASIS: Avatar loaded for email '{avatarEmail}'.";
             }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: Error loading avatar by email '{avatarEmail}': {ex.Message}"); }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: Error loading avatar by email '{avatarEmail}': {ex.Message}"); if (ex is StorageIdentityAmbiguousException) result.ErrorCode = OASISResultErrorCodes.AmbiguousIdentity; }
             return result;
         }
 
@@ -279,7 +304,7 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
             {
                 var all = await GetAllAsync<Avatar>("oasis_avatars");
                 var avatars = all.Where(a => !a.IsDeleted).Cast<IAvatar>().ToList();
-                result.Result = avatars; result.IsError = false; result.Message = $"FirebaseOASIS: Loaded {avatars.Count} avatar(s).";
+                result.Result = avatars; result.IsLoaded = true; result.LoadedCount = avatars.Count; result.Message = $"FirebaseOASIS: Loaded {avatars.Count} avatar(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: Error loading all avatars: {ex.Message}"); }
             return result;
@@ -294,29 +319,102 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
             var result = new OASISResult<bool>();
             try
             {
-                bool ok;
+                var url = NodeUrl($"/oasis_avatars/{id:D}");
+                using var lookup = new HttpRequestMessage(HttpMethod.Get, url);
+                lookup.Headers.Add("X-Firebase-ETag", "true");
+                using var observed = await _http.SendAsync(lookup);
+                observed.EnsureSuccessStatusCode();
+                var avatar = JsonNode.Parse(await ReadFirebaseAcknowledgement(observed));
+                if (avatar == null || softDelete && avatar["isDeleted"]?.GetValue<bool>() == true)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: Avatar '{id}' not found.");
+                    result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
+                    return result;
+                }
+                if (avatar["id"]?.GetValue<Guid>() != id)
+                    throw new System.IO.InvalidDataException("Firebase did not return the requested avatar identity.");
+
                 if (softDelete)
-                    ok = await PatchAsync($"/oasis_avatars/{id}", new { isDeleted = true });
-                else
-                    ok = await DeleteNodeAsync($"/oasis_avatars/{id}");
-                result.Result = ok; result.IsError = !ok;
-                result.Message = ok ? $"FirebaseOASIS: Avatar '{id}' {(softDelete ? "soft" : "hard")}-deleted." : $"FirebaseOASIS: Failed to delete avatar '{id}'.";
+                {
+                    avatar["deletedDate"] = DateTime.UtcNow;
+                    avatar["isDeleted"] = true;
+                }
+                var avatarTag = ReadStrongRevisionTag(observed);
+                var detailRemoved = false;
+                if (!softDelete)
+                {
+                    var detailUrl = NodeUrl($"/oasis_avatar_details/{id:D}");
+                    using var detailLookup = new HttpRequestMessage(HttpMethod.Get, detailUrl);
+                    detailLookup.Headers.Add("X-Firebase-ETag", "true");
+                    using var detailObserved = await _http.SendAsync(detailLookup, HttpCompletionOption.ResponseHeadersRead);
+                    detailObserved.EnsureSuccessStatusCode();
+                    var detailJson = await ReadFirebaseAcknowledgement(detailObserved);
+                    if (ParseFirebaseDetail(id, JsonNode.Parse(detailJson)) != null)
+                    {
+                        await WriteConditionalDeletionAsync(detailUrl, ReadStrongRevisionTag(detailObserved), id, null);
+                        detailRemoved = true;
+                    }
+                }
+
+                try
+                {
+                    await WriteConditionalDeletionAsync(url, avatarTag, id, softDelete ? avatar : null);
+                }
+                catch (Exception cause) when (detailRemoved && cause is not INativeMutationReconciliationRequired)
+                {
+                    // The detail deletion committed, while the avatar delete did not.
+                    throw new FirebaseMutationReconciliationException(id, cause);
+                }
+
+                result.Result = true;
+                result.IsDeleted = true;
+                result.DeletedCount = 1;
+                result.Message = $"FirebaseOASIS: Avatar '{id}' {(softDelete ? "soft" : "hard")}-deleted.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: Error deleting avatar '{id}': {ex.Message}"); }
             return result;
         }
 
+        private async Task WriteConditionalDeletionAsync(string url, string etag,
+            Guid id, JsonNode? tombstone)
+        {
+            using var mutation = new HttpRequestMessage(tombstone == null ? HttpMethod.Delete : HttpMethod.Put, url);
+            if (!mutation.Headers.TryAddWithoutValidation("If-Match", etag))
+                throw new System.IO.InvalidDataException("Firebase revision tag could not be attached to the conditional request.");
+            if (tombstone != null)
+                mutation.Content = new StringContent(tombstone.ToJsonString(), Encoding.UTF8, "application/json");
+
+            try
+            {
+                using var response = await _http.SendAsync(mutation, HttpCompletionOption.ResponseHeadersRead);
+                response.EnsureSuccessStatusCode();
+                var acknowledgement = JsonNode.Parse(await ReadFirebaseAcknowledgement(response));
+                if (!JsonNode.DeepEquals(tombstone, acknowledgement))
+                    throw new System.IO.InvalidDataException("Firebase did not acknowledge the requested deletion.");
+            }
+            catch (Exception cause) when (cause is not HttpRequestException
+                { StatusCode: System.Net.HttpStatusCode.PreconditionFailed })
+            {
+                throw new FirebaseMutationReconciliationException(id, cause);
+            }
+        }
+
         public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true) => DeleteAvatarAsync(id, softDelete).Result;
+
+        private static OASISResult<T> AvatarLookupError<T>(OASISResult<IAvatar> lookup) => new()
+        {
+            IsError = true,
+            ErrorCode = lookup.ErrorCode,
+            ErrorCount = lookup.ErrorCount,
+            Exception = lookup.Exception,
+            Message = lookup.Message
+        };
 
         public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string username, bool softDelete = true)
         {
             var loaded = await LoadAvatarByUsernameAsync(username);
-            if (loaded.IsError || loaded.Result == null)
-            {
-                var r = new OASISResult<bool>();
-                OASISErrorHandling.HandleError(ref r, $"FirebaseOASIS: Avatar '{username}' not found.");
-                return r;
-            }
+            if (loaded.IsError)
+                return AvatarLookupError<bool>(loaded);
             return await DeleteAvatarAsync(loaded.Result.Id, softDelete);
         }
 
@@ -325,12 +423,8 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
         public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string email, bool softDelete = true)
         {
             var loaded = await LoadAvatarByEmailAsync(email);
-            if (loaded.IsError || loaded.Result == null)
-            {
-                var r = new OASISResult<bool>();
-                OASISErrorHandling.HandleError(ref r, $"FirebaseOASIS: Avatar with email '{email}' not found.");
-                return r;
-            }
+            if (loaded.IsError)
+                return AvatarLookupError<bool>(loaded);
             return await DeleteAvatarAsync(loaded.Result.Id, softDelete);
         }
 
@@ -343,14 +437,39 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
 
         // ─── AvatarDetail ─────────────────────────────────────────────────────────
 
+        private static AvatarDetail? ParseFirebaseDetail(Guid id, JsonNode? node)
+        {
+            if (node == null) return null;
+            if (node is not JsonObject row)
+                throw new JsonException("Firebase avatar detail must be an object.");
+            var json = row.TryGetPropertyValue("canonicalDetail", out var payload)
+                ? payload?.GetValue<string>() ?? throw new JsonException("Firebase avatar detail payload is missing.")
+                : row.ToJsonString();
+            var detail = StoredRecordJson.Deserialize<AvatarDetail>(json);
+            if (detail == null || detail.Id != id)
+                throw new JsonException("Firebase avatar detail identity differs from its key.");
+            return detail;
+        }
+
         public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatarDetail)
         {
             var result = new OASISResult<IAvatarDetail>();
             try
             {
-                if (avatarDetail.Id == Guid.Empty) avatarDetail.Id = Guid.NewGuid();
-                await PutAsync($"/oasis_avatar_details/{avatarDetail.Id}", avatarDetail);
-                result.Result = avatarDetail; result.IsError = false; result.Message = "FirebaseOASIS: AvatarDetail saved.";
+                ArgumentNullException.ThrowIfNull(avatarDetail);
+                var id = avatarDetail.Id == Guid.Empty ? Guid.NewGuid() : avatarDetail.Id;
+                var detail = StoredRecordJson.Project<AvatarDetail>(avatarDetail);
+                detail.Id = id;
+                var row = new JsonObject
+                {
+                    ["id"] = id,
+                    ["username"] = detail.Username ?? "",
+                    ["email"] = detail.Email ?? "",
+                    ["canonicalDetail"] = StoredRecordJson.Serialize(detail)
+                };
+                await PutAcknowledgedAsync($"/oasis_avatar_details/{id:D}", id, row);
+                avatarDetail.Id = id;
+                result.Result = avatarDetail; result.IsSaved = true; result.SavedCount = 1; result.Message = "FirebaseOASIS: AvatarDetail saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: Error saving avatar detail: {ex.Message}"); }
             return result;
@@ -364,8 +483,8 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
             try
             {
                 var detail = await GetAsync<AvatarDetail>($"/oasis_avatar_details/{id}");
-                if (detail == null) { OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: No avatar detail found for ID '{id}'."); return result; }
-                result.Result = detail; result.IsError = false; result.Message = $"FirebaseOASIS: AvatarDetail loaded for ID '{id}'.";
+                if (detail == null) { OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: No avatar detail found for ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
+                result.Result = detail; result.IsLoaded = true; result.LoadedCount = 1; result.Message = $"FirebaseOASIS: AvatarDetail loaded for ID '{id}'.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: Error loading avatar detail for '{id}': {ex.Message}"); }
             return result;
@@ -379,11 +498,12 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
             try
             {
                 var details = await QueryByFieldAsync<AvatarDetail>("oasis_avatar_details", "username", username);
-                var detail = details.FirstOrDefault();
-                if (detail == null) { OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: No avatar detail found for username '{username}'."); return result; }
-                result.Result = detail; result.IsError = false; result.Message = $"FirebaseOASIS: AvatarDetail loaded for username '{username}'.";
+                if (details.Count > 1) throw new StorageIdentityAmbiguousException();
+                var detail = details.SingleOrDefault();
+                if (detail == null) { OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: No avatar detail found for username '{username}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
+                result.Result = detail; result.IsLoaded = true; result.LoadedCount = 1; result.Message = $"FirebaseOASIS: AvatarDetail loaded for username '{username}'.";
             }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: Error loading avatar detail by username '{username}': {ex.Message}"); }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: Error loading avatar detail by username '{username}': {ex.Message}"); if (ex is StorageIdentityAmbiguousException) result.ErrorCode = OASISResultErrorCodes.AmbiguousIdentity; }
             return result;
         }
 
@@ -395,11 +515,12 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
             try
             {
                 var details = await QueryByFieldAsync<AvatarDetail>("oasis_avatar_details", "email", email);
-                var detail = details.FirstOrDefault();
-                if (detail == null) { OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: No avatar detail found for email '{email}'."); return result; }
-                result.Result = detail; result.IsError = false; result.Message = $"FirebaseOASIS: AvatarDetail loaded for email '{email}'.";
+                if (details.Count > 1) throw new StorageIdentityAmbiguousException();
+                var detail = details.SingleOrDefault();
+                if (detail == null) { OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: No avatar detail found for email '{email}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
+                result.Result = detail; result.IsLoaded = true; result.LoadedCount = 1; result.Message = $"FirebaseOASIS: AvatarDetail loaded for email '{email}'.";
             }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: Error loading avatar detail by email '{email}': {ex.Message}"); }
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: Error loading avatar detail by email '{email}': {ex.Message}"); if (ex is StorageIdentityAmbiguousException) result.ErrorCode = OASISResultErrorCodes.AmbiguousIdentity; }
             return result;
         }
 
@@ -411,7 +532,7 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
             try
             {
                 var all = await GetAllAsync<AvatarDetail>("oasis_avatar_details");
-                result.Result = all.Cast<IAvatarDetail>().ToList(); result.IsError = false;
+                result.Result = all.Cast<IAvatarDetail>().ToList(); result.IsLoaded = true; result.LoadedCount = all.Count;
                 result.Message = $"FirebaseOASIS: Loaded {all.Count} avatar detail(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: Error loading all avatar details: {ex.Message}"); }
@@ -422,38 +543,68 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
 
         // ─── Holon saving ─────────────────────────────────────────────────────────
 
-        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+        public override Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+            => SaveHolonGraphAsync(holon, saveChildren, recursive, maxChildDepth, 0);
+
+        private async Task<OASISResult<IHolon>> SaveHolonGraphAsync(IHolon holon, bool saveChildren, bool recursive, int maxChildDepth, int currentChildDepth)
         {
             var result = new OASISResult<IHolon>();
             try
             {
-                var id = holon.Id == Guid.Empty ? Guid.NewGuid() : holon.Id;
-                var projection = JsonSerializer.SerializeToNode(holon, holon.GetType(), _jsonOpts)!.AsObject();
-                projection["id"] = id;
-                if (projection["providerUniqueStorageKey"] is not JsonObject keys)
+                var plan = HolonGraphWritePlan.CreateForSave(new[] { holon }, saveChildren, recursive, maxChildDepth, currentChildDepth);
+                var rows = new JsonObject();
+                foreach (var node in plan.Nodes)
                 {
-                    keys = new JsonObject();
-                    projection["providerUniqueStorageKey"] = keys;
+                    var snapshot = node.Snapshot;
+                    var keys = snapshot.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
+                    keys[Core.Enums.ProviderType.FirebaseOASIS] = snapshot.Id.ToString("D");
+
+                    var projection = JsonSerializer.SerializeToNode(node.Source, node.Source.GetType(), HolonRowJsonOptions)!.AsObject();
+                    projection["id"] = snapshot.Id;
+                    projection["parentHolonId"] = snapshot.ParentHolonId;
+                    projection["providerUniqueStorageKey"] = JsonSerializer.SerializeToNode(keys, _jsonOpts);
+                    NativeProjection(projection);
+                    rows.Add(snapshot.Id.ToString("D"), projection);
                 }
-                keys["FirebaseOASIS"] = id.ToString("D");
-                NativeProjection(projection);
-                using var request = new HttpRequestMessage(HttpMethod.Put, NodeUrl($"/oasis_holons/{id:D}"))
-                { Content = new StringContent(projection.ToJsonString(), Encoding.UTF8, "application/json") };
+
+                var rootId = plan.Nodes[0].Snapshot.Id;
+                var singleRow = rows.Count == 1;
+                var payload = singleRow ? rows[rootId.ToString("D")]! : rows;
+                var path = singleRow ? $"/oasis_holons/{rootId:D}" : "/oasis_holons";
+                // Firebase applies all child updates in a single PATCH atomically.
+                using var request = new HttpRequestMessage(singleRow ? HttpMethod.Put : HttpMethod.Patch, NodeUrl(path))
+                { Content = new StringContent(payload.ToJsonString(), Encoding.UTF8, "application/json") };
                 try
                 {
                     using var response = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
                     response.EnsureSuccessStatusCode();
-                    var text = await ReadFirebaseAcknowledgement(response);
-                    var acknowledged = JsonNode.Parse(text);
-                    if (!JsonNode.DeepEquals(projection, acknowledged) || ParseFirebaseHolon(id, text) == null)
-                        throw new System.IO.InvalidDataException("Firebase acknowledgement does not match the proposed canonical holon.");
+                    var acknowledged = JsonNode.Parse(await ReadFirebaseAcknowledgement(response));
+                    if (!JsonNode.DeepEquals(payload, acknowledged))
+                        throw new System.IO.InvalidDataException("Firebase acknowledgement differs from the proposed holon write.");
+                    foreach (var node in plan.Nodes)
+                    {
+                        var id = node.Snapshot.Id;
+                        var row = singleRow ? acknowledged : acknowledged?[id.ToString("D")];
+                        if (row == null || ParseFirebaseHolon(id, row.ToJsonString()) == null)
+                            throw new System.IO.InvalidDataException("Firebase acknowledgement is missing a proposed holon identity.");
+                    }
                 }
-                catch (Exception cause) { throw new FirebaseMutationReconciliationException(id, cause); }
-                holon.Id = id;
-                holon.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
-                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.FirebaseOASIS] = id.ToString("D");
-                result.Result = holon; result.IsSaved = true; result.SavedCount = 1;
-                result.Message = $"FirebaseOASIS: Holon '{holon.Name}' saved.";
+                catch (Exception cause)
+                {
+                    throw new FirebaseMutationReconciliationException(rootId, cause)
+                    { ProposedIds = plan.Nodes.Select(node => node.Snapshot.Id).ToArray() };
+                }
+
+                foreach (var node in plan.Nodes)
+                {
+                    node.Source.Id = node.Snapshot.Id;
+                    node.Source.ParentHolonId = node.Snapshot.ParentHolonId;
+                    node.Source.ProviderUniqueStorageKey = node.Snapshot.ProviderUniqueStorageKey;
+                }
+                result.Result = holon;
+                result.IsSaved = true;
+                result.SavedCount = plan.Nodes.Count;
+                result.Message = $"FirebaseOASIS: {result.SavedCount} holon(s) saved.";
             }
             catch (Exception ex)
             {
@@ -464,20 +615,40 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
             return result;
         }
 
+
         public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
             => SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider).Result;
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
-            var saved = new List<IHolon>(); var errors = new List<string>();
+            var saved = new List<IHolon>();
+            var errors = new List<string>();
             foreach (var holon in holons)
             {
-                var r = await SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
-                if (r.IsError) errors.Add(r.Message ?? ""); else if (r.Result != null) saved.Add(r.Result);
+                var r = await SaveHolonGraphAsync(holon, saveChildren, recursive, maxChildDepth, curentChildDepth);
+                if (r.IsError)
+                {
+                    errors.Add(r.Message);
+                    var needsReconciliation = r.Exception is INativeMutationReconciliationRequired;
+                    if (result.Exception == null || needsReconciliation)
+                    {
+                        result.Exception = r.Exception;
+                        result.ErrorCode = r.ErrorCode;
+                    }
+                    if (!continueOnError || needsReconciliation) break;
+                }
+                else if (r.IsSaved && r.Result != null)
+                {
+                    saved.Add(r.Result);
+                    result.SavedCount += r.SavedCount;
+                }
             }
-            result.Result = saved; result.IsError = errors.Count > 0;
-            result.Message = errors.Count > 0 ? string.Join("; ", errors) : $"FirebaseOASIS: {saved.Count} holon(s) saved.";
+            result.Result = saved;
+            result.IsSaved = saved.Count > 0;
+            result.IsError = errors.Count > 0;
+            result.ErrorCount = errors.Count;
+            result.Message = errors.Count > 0 ? string.Join("; ", errors) : $"FirebaseOASIS: {result.SavedCount} holon(s) saved.";
             return result;
         }
 
@@ -486,14 +657,47 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
 
         // ─── Holon loading ────────────────────────────────────────────────────────
 
+        private async Task ExpandHolonChildrenAsync(IEnumerable<IHolon> roots, bool loadChildren,
+            bool recursive, int maxChildDepth, long currentChildDepth)
+        {
+            ArgumentOutOfRangeException.ThrowIfNegative(maxChildDepth);
+            ArgumentOutOfRangeException.ThrowIfNegative(currentChildDepth);
+
+            foreach (var root in roots)
+                await ExpandAsync(root, currentChildDepth, new HashSet<Guid>());
+
+            async Task ExpandAsync(IHolon row, long depth, HashSet<Guid> ancestors)
+            {
+                if (!loadChildren || (maxChildDepth != 0 && depth >= maxChildDepth) ||
+                    (!recursive && depth != currentChildDepth))
+                {
+                    HolonChangeTracking.MarkIncompleteChildSelection(row);
+                    return;
+                }
+
+                ancestors.Add(row.Id);
+                var children = await QueryByFieldAsync<Holon>("oasis_holons", "parentHolonId", row.Id.ToString("D"));
+                foreach (var child in children.Where(child => !child.IsDeleted))
+                {
+                    if (child.ParentHolonId != row.Id || ancestors.Contains(child.Id))
+                        throw new System.IO.InvalidDataException("Firebase child query returned an invalid parent link or cycle.");
+
+                    await ExpandAsync(child, depth + 1, ancestors);
+                    row.Children.Add(child);
+                }
+                ancestors.Remove(row.Id);
+            }
+        }
+
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             var result = new OASISResult<IHolon>();
             try
             {
                 var holon = await GetAsync<Holon>($"/oasis_holons/{id}");
-                if (holon == null || holon.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: No holon found with ID '{id}'."); return result; }
-                result.Result = holon; result.IsError = false; result.Message = $"FirebaseOASIS: Holon loaded for ID '{id}'.";
+                if (holon == null || holon.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: No holon found with ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
+                await ExpandHolonChildrenAsync(new[] { holon }, loadChildren, recursive, maxChildDepth, 0);
+                result.Result = holon; result.IsLoaded = true; result.LoadedCount = 1; result.Message = $"FirebaseOASIS: Holon loaded for ID '{id}'.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: Error loading holon '{id}': {ex.Message}"); }
             return result;
@@ -520,7 +724,8 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
             {
                 var all = await GetAllAsync<Holon>("oasis_holons");
                 var holons = (type == HolonType.All ? all.Where(h => !h.IsDeleted) : all.Where(h => !h.IsDeleted && h.HolonType == type)).Cast<IHolon>().ToList();
-                result.Result = holons; result.IsError = false; result.Message = $"FirebaseOASIS: Loaded {holons.Count} holon(s).";
+                await ExpandHolonChildrenAsync(holons, loadChildren, recursive, maxChildDepth, curentChildDepth);
+                result.Result = holons; result.IsLoaded = true; result.LoadedCount = holons.Count; result.Message = $"FirebaseOASIS: Loaded {holons.Count} holon(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: Error loading all holons: {ex.Message}"); }
             return result;
@@ -536,7 +741,8 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
             {
                 var all = await QueryByFieldAsync<Holon>("oasis_holons", "parentHolonId", id.ToString());
                 var holons = (type == HolonType.All ? all.Where(h => !h.IsDeleted) : all.Where(h => !h.IsDeleted && h.HolonType == type)).Cast<IHolon>().ToList();
-                result.Result = holons; result.IsError = false; result.Message = $"FirebaseOASIS: Loaded {holons.Count} holon(s) for parent '{id}'.";
+                await ExpandHolonChildrenAsync(holons, loadChildren, recursive, maxChildDepth, (long)curentChildDepth + 1);
+                result.Result = holons; result.IsLoaded = true; result.LoadedCount = holons.Count; result.Message = $"FirebaseOASIS: Loaded {holons.Count} holon(s) for parent '{id}'.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: Error loading holons for parent '{id}': {ex.Message}"); }
             return result;
@@ -563,10 +769,32 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
             var result = new OASISResult<IHolon>();
             try
             {
-                var loaded = await LoadHolonAsync(id, loadChildren: false);
-                if (loaded.IsError || loaded.Result == null) return loaded;
-                loaded.Result.DeletedDate = DateTime.UtcNow;
-                return await SaveHolonAsync(loaded.Result, saveChildren: false);
+                var url = NodeUrl($"/oasis_holons/{id:D}");
+                using var lookup = new HttpRequestMessage(HttpMethod.Get, url);
+                lookup.Headers.Add("X-Firebase-ETag", "true");
+                using var observed = await _http.SendAsync(lookup, HttpCompletionOption.ResponseHeadersRead);
+                observed.EnsureSuccessStatusCode();
+                var storedJson = await ReadFirebaseAcknowledgement(observed);
+                var holon = ParseFirebaseHolon(id, storedJson);
+                if (holon == null || holon.IsDeleted)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: Holon '{id}' not found.");
+                    result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
+                    return result;
+                }
+                var etag = ReadStrongRevisionTag(observed);
+
+                var row = JsonNode.Parse(storedJson)!.AsObject();
+                holon.DeletedDate = DateTime.UtcNow;
+                row["deletedDate"] = holon.DeletedDate;
+                row["isDeleted"] = true;
+                await WriteConditionalDeletionAsync(url, etag, id, row);
+
+                result.Result = holon;
+                result.IsDeleted = true;
+                result.DeletedCount = 1;
+                result.Message = "Firebase holon soft-deleted.";
+                return result;
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
             return result;
@@ -618,7 +846,8 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
                     h.MetaData != null &&
                     h.MetaData.TryGetValue(metaKey, out var val) && val?.ToString() == metaValue &&
                     (type == HolonType.All || h.HolonType == type)).Cast<IHolon>().ToList();
-                result.Result = holons; result.IsError = false;
+                await ExpandHolonChildrenAsync(holons, loadChildren, recursive, maxChildDepth, curentChildDepth);
+                result.Result = holons; result.IsLoaded = true; result.LoadedCount = holons.Count;
                 result.Message = $"FirebaseOASIS: Loaded {holons.Count} holon(s) where {metaKey}={metaValue}.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
@@ -641,7 +870,8 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
                     return metaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.Any ? checks.Any(c => c) : checks.All(c => c);
                 }
                 var holons = all.Where(h => !h.IsDeleted && IsMatch(h) && (type == HolonType.All || h.HolonType == type)).Cast<IHolon>().ToList();
-                result.Result = holons; result.IsError = false;
+                await ExpandHolonChildrenAsync(holons, loadChildren, recursive, maxChildDepth, curentChildDepth);
+                result.Result = holons; result.IsLoaded = true; result.LoadedCount = holons.Count;
                 result.Message = $"FirebaseOASIS: Loaded {holons.Count} holon(s) matching metadata filter.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
@@ -656,24 +886,41 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
         public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
         {
             var saved = await SaveHolonsAsync(holons);
-            return new OASISResult<bool> { Result = !saved.IsError, IsError = saved.IsError, Message = saved.Message };
+            return new OASISResult<bool>
+            {
+                Result = !saved.IsError,
+                IsSaved = saved.IsSaved,
+                SavedCount = saved.SavedCount,
+                IsError = saved.IsError,
+                ErrorCount = saved.ErrorCount,
+                ErrorCode = saved.ErrorCode,
+                Exception = saved.Exception,
+                Message = saved.Message
+            };
         }
 
         public override OASISResult<bool> Import(IEnumerable<IHolon> holons) => ImportAsync(holons).Result;
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
-            => await LoadAllHolonsAsync();
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
+            => ExportLiveHolonsAsync();
 
         public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0) => ExportAllAsync(version).Result;
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
+            => ExportLiveHolonsAsync(avatarId);
+
+        private async Task<OASISResult<IEnumerable<IHolon>>> ExportLiveHolonsAsync(Guid? ownerId = null)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
             try
             {
-                var all = await GetAllAsync<Holon>("oasis_holons");
-                var holons = all.Where(h => !h.IsDeleted && h.CreatedByAvatarId == avatarId).Cast<IHolon>().ToList();
-                result.Result = holons; result.IsError = false; result.Message = $"FirebaseOASIS: Exported {holons.Count} holon(s) for avatar '{avatarId}'.";
+                var rows = await GetAllAsync<Holon>("oasis_holons");
+                var holons = rows.Where(row => !row.IsDeleted &&
+                    (!ownerId.HasValue || row.CreatedByAvatarId == ownerId.Value)).Cast<IHolon>().ToList();
+                result.Result = holons;
+                result.IsLoaded = true;
+                result.LoadedCount = holons.Count;
+                result.Message = $"FirebaseOASIS: Exported {holons.Count} holon(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
             return result;
@@ -684,12 +931,8 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0)
         {
             var avatarResult = await LoadAvatarByUsernameAsync(avatarUsername);
-            if (avatarResult.IsError || avatarResult.Result == null)
-            {
-                var r = new OASISResult<IEnumerable<IHolon>>();
-                OASISErrorHandling.HandleError(ref r, $"FirebaseOASIS: Avatar '{avatarUsername}' not found.");
-                return r;
-            }
+            if (avatarResult.IsError)
+                return AvatarLookupError<IEnumerable<IHolon>>(avatarResult);
             return await ExportAllDataForAvatarByIdAsync(avatarResult.Result.Id, version);
         }
 
@@ -698,12 +941,8 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0)
         {
             var avatarResult = await LoadAvatarByEmailAsync(avatarEmailAddress);
-            if (avatarResult.IsError || avatarResult.Result == null)
-            {
-                var r = new OASISResult<IEnumerable<IHolon>>();
-                OASISErrorHandling.HandleError(ref r, $"FirebaseOASIS: Avatar with email '{avatarEmailAddress}' not found.");
-                return r;
-            }
+            if (avatarResult.IsError)
+                return AvatarLookupError<IEnumerable<IHolon>>(avatarResult);
             return await ExportAllDataForAvatarByIdAsync(avatarResult.Result.Id, version);
         }
 

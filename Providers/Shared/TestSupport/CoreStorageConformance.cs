@@ -41,7 +41,8 @@ public static class CoreStorageConformance
     }
 
     public static async Task<Report> RunAsync(IOASISStorageProvider p, string provider, string mode, bool sync,
-        Func<Report,Task> checkpoint, Func<Guid,bool,Task<OASISResult<bool>>> cleanupSoftDeletedFixture = null, string expectedDefaultDeletion = null)
+        Func<Report,Task> checkpoint, Func<Guid,bool,Task<OASISResult<bool>>> cleanupSoftDeletedFixture = null, string expectedDefaultDeletion = null,
+        Func<Guid,Guid,string,Task<bool>> observeNativeTombstone = null)
     {
         ArgumentNullException.ThrowIfNull(p);ArgumentNullException.ThrowIfNull(checkpoint);
         if (mode is not ("controlled" or "native")) throw new ArgumentException("Execution mode must be explicit.",nameof(mode));
@@ -106,6 +107,8 @@ public static class CoreStorageConformance
                     var tombstones=rows.Where(h=>h.Id==id).ToList();
                     Require(tombstones.Count<=1&&tombstones.All(h=>h.IsDeleted&&h.DeletedDate!=DateTime.MinValue&&h.CreatedByAvatarId==r.OwnerId&&h.Name==expectedName),"no live or corrupted deleted record in raw collection");
                     var needsCleanup=observed.Result!=null||tombstones.Count!=0;
+                    if(!needsCleanup && observeNativeTombstone!=null)
+                        needsCleanup=await observeNativeTombstone(id,r.OwnerId,expectedName);
                     r.DeletionKinds[id]=needsCleanup?"soft":"absent";
                     Require(expectedDefaultDeletion==null||r.DeletionKinds[id]==expectedDefaultDeletion,"declared shipping default deletion contract");
                     if(id==r.ChildId){var children=Collection(sync?p.LoadHolonsForParent(r.RootId,loadChildren:false):await p.LoadHolonsForParentAsync(r.RootId,loadChildren:false));Require(children.All(h=>h.Id!=id),"deleted child excluded from parent membership");}
