@@ -106,3 +106,5 @@ developer route path. The dedicated public origin and live rollout remain open.
 
 
 11 November UTC: exact Development candidate 095805ee91 stages the dedicated-origin admission guard and tests. Remote CI 42977871267 is active. The general Development push hold has been lifted. The live GOMap settings remain gated on the reviewed dedicated OSRM origin. The earlier descriptor tooling stays on COSMIC pending integration against the current Development script.
+
+11 November UTC: Development still points to `94fe19c958`. Dedicated-origin GOMap candidate `095805ee91` is in [targeted qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42977871267) and [exact WEB4 image CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42978537981). Development lacks the GOMap descriptor in its hosted settings verifier. The origin-binding tooling remains on the COSMIC branch for the enrollment step, which requires a reviewed dedicated HTTPS OSRM origin. No live enrollment or Development merge occurred.
