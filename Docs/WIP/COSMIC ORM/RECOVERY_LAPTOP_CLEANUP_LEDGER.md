@@ -1,5 +1,13 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+11 November disk observation: C: reached 19.66 GiB free. No recently
+written file above 75 MiB was found in the COSMIC local state or test
+results. Two recently written OASIS bare-repository packs in another
+session's temporary workspace total about 3.2 GiB, including a backup.
+Preserve them until their owner confirms that the active rewrite and
+rollback evidence are safe. COSMIC verification used remote CI. No
+local build, download or fixture was created. Temporary Git index removed.
+
 11 November: GOMap runs 43108783977 and 43108751891 succeeded. Read both small artifacts in memory. Cleanup artifact 13896725679 SHA-256 9892b1786a83f53a3f04d90f0b43c13b9f6004c115044a0c964dd4c70cbabb90 confirms container and anonymous volumes absent. Retain the candidate tag until Development integration preserves its exact commit. No local artifact, fixture or build output retained. Temporary Git index removed.
 
 11 November GOMap: removed ci-cosmic-gomap-dev-aa56e87568 after qualification and companion completed. Retain ci-cosmic-gomap-dev-count12 until runs 43108783977 and 43108751891 finish. Logs read in memory. No local builds, downloads or fixtures. Temporary Git indices removed.
