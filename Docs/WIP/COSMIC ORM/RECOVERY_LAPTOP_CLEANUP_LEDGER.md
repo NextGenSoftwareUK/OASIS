@@ -5862,3 +5862,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC emergency cleanup: removed and verified absence of RecoveryLaptopMongo82/mongod.log (24,686,360 bytes) and PublicPolygonGatewaysCqlQualification/web4-admission.log (1,010,051 bytes). Retained admission.trx, fixture data and the unrelated running MongoDB Windows service. C: reported 42,259,324,928 bytes free after cleanup. Previously rejected recursive removals were not retried. No local build, restore or download started.
 
 11 November UTC: deleted the temporary ArangoDB verification tag after both CI runs succeeded and verified its absence. Read CI and Railway metadata in memory. Scoped Development fetch excluded tags and submodules. Temporary Git index removed. No local build, restore, runtime or artifact download.
+
+11 November UTC: ArangoDB candidate comparison used temporary Git indices that were removed. Railway metadata was read in memory. No local build, restore, download or test artifact.
