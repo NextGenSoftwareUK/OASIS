@@ -1,3 +1,4 @@
+using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.Providers.TestSupport;
@@ -32,10 +33,42 @@ public sealed class MilvusNativeStorageConformanceTests
             {
                 await File.WriteAllTextAsync(reportPath + ".next", JsonSerializer.Serialize(checkpoint));
                 File.Move(reportPath + ".next", reportPath, overwrite: true);
-            });
+            }, expectedDefaultDeletion: "absent");
         Assert.IsTrue(report.Succeeded,
             $"{report.CurrentCase}: {report.FailureType} {report.FailureContract}; {report.Passed.Count} checks passed.");
         Assert.IsTrue(report.FixtureCleanupComplete);
         Assert.AreEqual(CoreStorageConformance.ChecksPerMode, report.Passed.Count);
+
+        using var client = new HttpClient { BaseAddress = new Uri("http://127.0.0.1:19531/"), Timeout = TimeSpan.FromSeconds(15) };
+        async Task<JsonElement> NativeAsync(string operation, object request)
+        {
+            using var response = await client.PostAsJsonAsync($"v2/vectordb/entities/{operation}", request);
+            response.EnsureSuccessStatusCode();
+            using var payload = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+            Assert.AreEqual(0, payload.RootElement.GetProperty("code").GetInt32(), $"Native Milvus {operation} failed.");
+            return payload.RootElement.Clone();
+        }
+
+        const string holons = "oasis_holons";
+        var ids = new[] { report.RootId, report.ChildId, report.ImportId }.Concat(report.BatchIds)
+            .Select(id => id.ToString("D")).ToArray();
+        var stored = await NativeAsync("get", new { collectionName = holons, id = ids, outputFields = new[] { "id", "doc" }, consistencyLevel = "Strong" });
+        var documents = stored.GetProperty("data").EnumerateArray().ToArray();
+        CollectionAssert.AreEquivalent(ids, documents.Select(row => row.GetProperty("id").GetString()).ToArray());
+        foreach (var row in documents)
+        {
+            using var record = JsonDocument.Parse(row.GetProperty("doc").GetString()!);
+            Assert.AreNotEqual(DateTime.MinValue, record.RootElement.GetProperty("DeletedDate").GetDateTime());
+        }
+        await NativeAsync("delete", new { collectionName = holons, filter = $"id in {JsonSerializer.Serialize(ids)}" });
+        foreach (var collection in new[] { holons, "oasis_avatars", "oasis_avatar_details" })
+        {
+            var remaining = await NativeAsync("query", new
+            {
+                collectionName = collection, filter = "id != \"\"", outputFields = new[] { "id" },
+                consistencyLevel = "Strong", limit = 1
+            });
+            Assert.AreEqual(0, remaining.GetProperty("data").GetArrayLength(), $"Native collection {collection} must be empty.");
+        }
     }
 }
