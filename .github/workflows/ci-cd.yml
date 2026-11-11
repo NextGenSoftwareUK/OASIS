@@ -11,6 +11,21 @@ env:
   NODE_VERSION: '24.x'
 
 jobs:
+  redis-native-cql:
+    uses: ./.github/workflows/redis-native-cql.yml
+    secrets:
+      PRIVATE_SUBMODULE_PAT: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+
+  valkey-native-cql:
+    uses: ./.github/workflows/valkey-native-cql.yml
+    secrets:
+      PRIVATE_SUBMODULE_PAT: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+
+  dragonfly-native-cql:
+    uses: ./.github/workflows/dragonfly-native-cql.yml
+    secrets:
+      PRIVATE_SUBMODULE_PAT: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+
   keydb-native-cql:
     uses: ./.github/workflows/keydb-native-cql.yml
     secrets:
@@ -143,8 +158,7 @@ jobs:
             image: redis:7-alpine
             ports: 6379:6379
             wait: 6379
-            # OwnedNative* tests assert the reusable private test host (127.0.0.1:18679); they run via Scripts/TestHosts/Run-ReusableRedisKeyTests.ps1, not against this service container.
-            filter: TestCategory!~OwnedNative
+            filter: FullyQualifiedName~RedisOASISIntegrationTests
           - name: KeyDB
             project: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.KeyDBOASIS.IntegrationTests
             image: eqalpha/keydb@sha256:6537505c42355ca1f571276bddf83f5b750f760f07b2a185a676481791e388ac
@@ -157,6 +171,7 @@ jobs:
             ports: 6379:6379
             wait: 6379
             docker_args: --ulimit memlock=-1
+            filter: FullyQualifiedName~DragonflyOASISIntegrationTests
           - name: ValKey
             project: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.ValKeyOASIS.IntegrationTests
             image: valkey/valkey:8-alpine
@@ -164,6 +179,7 @@ jobs:
             wait: 6379
             test_env: |
               VALKEY_CONN=127.0.0.1:6379
+            filter: FullyQualifiedName~ValKeyOASISIntegrationTests
           - name: Garnet
             project: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.GarnetOASIS.IntegrationTests
             image: ghcr.io/microsoft/garnet:latest
