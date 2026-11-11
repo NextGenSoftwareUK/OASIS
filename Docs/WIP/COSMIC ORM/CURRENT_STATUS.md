@@ -757,3 +757,5 @@ Hedera cancellation stage diagnostics are published at b5a01a8030. Exact WEB4 im
 Hedera exact Development candidate 2b828fd377 includes the reader, diagnostic allowlist and two regression cases on 2c7806a0da. It retains the Development dependency pins, which differ from the COSMIC feature build. Remote image run 42926699339 is queued behind 42925770019. The image workflow compiles shipping code and does not run the two WEB4 unit cases.
 
 Hedera exact image CI 42926699339 passed and Development fast-forwarded to 2b828fd377. Railway queued a64672cb with 3c05290d still serving. Verify Hedera readiness after cutover and use the new stage diagnostics if activation fails. Two WEB4 unit cases remain unrun.
+
+EOSIO public browser acceptance is recorded for 10 November. Both presets rendered 3/2 EOSIOOASIS rows. Private MongoDB-paired browser acceptance remains open. See [EOSIO evidence](EOSIO_PUBLIC_SOURCE_STATUS.md).

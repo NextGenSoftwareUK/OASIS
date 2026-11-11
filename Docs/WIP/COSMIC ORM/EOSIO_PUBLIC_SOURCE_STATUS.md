@@ -56,3 +56,7 @@ Next: preserve this completed scope and qualify the next red shipping provider, 
 - `TestResults/HostedCqlIntegrationCurrent/EOSIOOASIS-isolation-http.json`: 4775bytes; SHA256 `a01dfa23bf162f23de4aebb8562ea09a8ad90070c270f7c2d2538315256ae8fc`.
 
 Primary references: [Vaulta reading state](https://docs.vaulta.com/docs/latest/web-applications/reading-state/), [native Chain API](https://docs.eosnetwork.com/apis/spring/latest/chain.api/).
+
+### Live public browser acceptance— 10 November 2026
+
+A fresh temporary WEB4 demo session on Development ran both EOSIOOASIS public presets in CQL Playground. The browser rendered three rows for the full account preset and two for the subset, labeled EOSIOOASIS. The original prepared cohort was preserved. Private MongoDB paired browser acceptance remains open.
