@@ -76,10 +76,35 @@ public class NearSharedLifecycleTests
             File.Move(pending, path, overwrite: true);
         }
 
-        var result = await CoreStorageConformance.RunAsync(provider, nameof(NEAROASIS), "native", synchronous, Checkpoint, expectedDefaultDeletion: "absent");
+        var result = await CoreStorageConformance.RunAsync(provider, nameof(NEAROASIS), "native", synchronous,
+            report => report.Succeeded ? Task.CompletedTask : Checkpoint(report), expectedDefaultDeletion: "absent");
         Assert.IsTrue(result.Succeeded, $"{result.CurrentCase}: {result.FailureType} {result.FailureContract}");
         Assert.IsTrue(result.FixtureCleanupComplete);
         Assert.AreEqual(CoreStorageConformance.ChecksPerMode, result.Passed.Count);
+        result.Succeeded = false;
+        result.FixtureCleanupComplete = false;
+        result.CurrentCase = "native-holon-tombstone-cleanup";
+        await Checkpoint(result);
+        try
+        {
+            // The default delete hides tombstones. Remove only the exact owned test holons.
+            foreach (var id in new[] { result.RootId, result.ChildId, result.ImportId }.Concat(result.BatchIds))
+            {
+                var removed = await provider.DeleteHolonByIdAsync(id, softDelete: false);
+                Assert.IsTrue(!removed.IsError && removed.Result && removed.IsDeleted && removed.DeletedCount == 1);
+                result.HardCleanedFixtures.Add(id);
+                await Checkpoint(result);
+            }
+            result.CurrentCase = "complete";
+            result.Succeeded = true;
+            result.FixtureCleanupComplete = true;
+            result.CleanupScope = "logical-absence-and-exact-native-holon-hard-deletion";
+            await Checkpoint(result);
+        }
+        finally
+        {
+            await provider.DeActivateProviderAsync();
+        }
     }
 
     [TestMethod]
@@ -103,7 +128,10 @@ public class NearSharedLifecycleTests
         var provider = new NEAROASIS(
             Required("NEAROASIS_RPCENDPOINT"), Required("NEAROASIS_NETWORKID"),
             Required("NEAROASIS_CHAINID"), Required("NEAROASIS_CONTRACTADDRESS"),
-            Required("NEAROASIS_ACCOUNTID"), Required("NEAROASIS_PRIVATEKEY"));
+            Required("NEAROASIS_ACCOUNTID"), Required("NEAROASIS_PRIVATEKEY"))
+        {
+            IsVersionControlEnabled = true
+        };
         var activated = await provider.ActivateProviderAsync();
         Assert.IsTrue(!activated.IsError && activated.Result);
         try

@@ -182,6 +182,7 @@ public partial class NEAROASIS
                     curentChildDepth, loadChildrenFromProvider,
                     item => OasisJson.Deserialize<Holon>(OasisJson.Serialize(item)));
                 all.Result = all.Result.Select(project).ToList();
+                all.LoadedCount = all.Result.Count();
             }
             catch (Exception ex) { OASISErrorHandling.HandleError(ref all, $"Error projecting NEAR holon graph: {ex.Message}", ex); }
         }
