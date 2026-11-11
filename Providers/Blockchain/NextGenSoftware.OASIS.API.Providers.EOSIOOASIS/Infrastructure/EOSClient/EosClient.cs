@@ -23,15 +23,17 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.EOSClien
         private readonly Uri _eosHostNodeUri;
         private readonly HttpClient _httpClient;
 
-        public EosClient(Uri eosHostNodeUri)
+        public EosClient(Uri eosHostNodeUri) : this(eosHostNodeUri, null) { }
+
+        internal EosClient(Uri eosHostNodeUri, HttpMessageHandler sharedHandler)
         {
             _eosHostNodeUri = eosHostNodeUri;
 
-            _httpClient = new HttpClient
-            {
-                Timeout = TimeSpan.FromSeconds(10),
-                BaseAddress = _eosHostNodeUri
-            };
+            _httpClient = sharedHandler == null
+                ? new HttpClient()
+                : new HttpClient(sharedHandler, disposeHandler: false);
+            _httpClient.Timeout = TimeSpan.FromSeconds(10);
+            _httpClient.BaseAddress = _eosHostNodeUri;
         }
 
         public void Dispose()
@@ -43,7 +45,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.EOSClien
         public async Task<GetNodeInfoResponseDto> GetNodeInfo()
         {
             return await SendRequest<GetNodeInfoResponseDto, object>(null, HttpMethod.Get,
-                new Uri(_eosHostNodeUri + "v1/chain/get_info"));
+                new Uri(_eosHostNodeUri + "v1/chain/get_info")).ConfigureAwait(false);
         }
 
         public async Task<GetTableRowsResponseDto<T>> GetTableRows<T>(GetTableRowsRequestDto getTableRowsRequest)
