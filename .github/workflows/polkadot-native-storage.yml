@@ -1,0 +1,60 @@
+name: Polkadot native storage
+
+on:
+  push:
+    branches: [work/hyperdrive-provider-completion]
+    paths:
+      - '.github/workflows/polkadot-native-storage.yml'
+      - 'Scripts/TestHosts/Build-ReusablePolkadotRecords.sh'
+      - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS/contracts/oasis/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.22.1'
+
+      - name: Build and validate the shipping records contract
+        shell: bash
+        env:
+          CARGO_NET_OFFLINE: 'false'
+        run: |
+          tools="$(mktemp -d "$RUNNER_TEMP/oasis-polkadot.XXXXXXXX")"
+          cleanup() {
+            if [[ "$tools" == "$RUNNER_TEMP"/oasis-polkadot.* && -d "$tools" ]]; then
+              rm -rf -- "$tools"
+              test ! -e "$tools"
+              echo "Removed the owned Binaryen fixture."
+            fi
+          }
+          trap cleanup EXIT
+          install_binaryen() {
+            local version="$1" checksum="$2"
+            local filename="binaryen-version_${version}-x86_64-linux.tar.gz"
+            curl --fail --silent --show-error --location --max-time 120 \
+              "https://github.com/WebAssembly/binaryen/releases/download/version_$version/$filename" \
+              --output "$tools/$filename"
+            echo "$checksum  $tools/$filename" | sha256sum --check
+            tar -xzf "$tools/$filename" -C "$tools"
+            rm -- "$tools/$filename"
+          }
+          install_binaryen 120 ddb097af51d1bdb17300d986b0de7d97422f1933dedb4c9eda3510e0bf4076cc
+          install_binaryen 124 0290c3779fedf592b8da0ded3032ff55c41a2b7bfa2d6bf7b7bac6f0e6e28963
+          rustup toolchain install 1.88.0 --profile minimal --target wasm32-unknown-unknown
+          export PATH="$tools/binaryen-version_120/bin:$PATH"
+          export OASIS_POLKADOT_WASM_LOWERER="$tools/binaryen-version_124/bin/wasm-opt"
+          bash Scripts/TestHosts/Build-ReusablePolkadotRecords.sh records
+          sdk=Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS/SdkBridge
+          npm ci --prefix "$sdk" --no-audit --no-fund
+          node "$sdk/verify-record-contract-artifact.mjs" records
