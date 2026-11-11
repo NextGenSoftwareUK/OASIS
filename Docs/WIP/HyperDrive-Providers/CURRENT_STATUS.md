@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November Firebase ETag root cause. Focused run 43102301153 proved that RTDB 4.11.2 returns a bare base64 ETag, which the .NET typed HTTP ETag reader rejects. The shipping adapter now validates one strong native revision and forwards the exact header value in If-Match. The same reader guards fixture cleanup. The runner removed the emulator and reports. The corrected concurrent delete and full lifecycle still require native confirmation.
+
 11 November Firebase RTDB result. Run 43101286060 compiled both projects and passed the ownership regressions. Official RTDB passed 18 async lifecycle checks, including the graph write, before the first holon deletion failed its acknowledgement/count assertion. Sync was fenced. The graph test ran afterward in the same namespace and observed five retained lifecycle rows plus its own three. The runner removed the owned emulator and reports. CI now starts the focused graph and deletion test in a verified empty namespace before starting the shared lifecycle and prints the underlying delete error there.
 
 11 November Firebase export candidate. Current global and owner exports share a flat native-row read. This preserves one exported row per identity after ordinary graph reads gained child hydration. The native graph test requires three distinct export identities with their parent links and no embedded children. Historical export remains open.

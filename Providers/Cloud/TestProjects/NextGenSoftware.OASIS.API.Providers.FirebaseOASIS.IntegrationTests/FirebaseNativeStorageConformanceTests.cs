@@ -166,8 +166,7 @@ public class FirebaseNativeStorageConformanceTests
                 probe.Headers.Add("X-Firebase-ETag", "true");
                 using var observed = await http.SendAsync(probe);
                 observed.EnsureSuccessStatusCode();
-                var rawTags = observed.Headers.TryGetValues("ETag", out var tags) ? string.Join(", ", tags) : "<missing>";
-                Assert.IsNotNull(observed.Headers.ETag, $"RTDB did not provide a parseable ETag. Raw header: {rawTags}");
+                Assert.IsFalse(string.IsNullOrEmpty(FirebaseOASIS.ReadStrongRevisionTag(observed)));
             }
             using var competing = new HttpClient(new InterleaveAfterRead(async token =>
             {

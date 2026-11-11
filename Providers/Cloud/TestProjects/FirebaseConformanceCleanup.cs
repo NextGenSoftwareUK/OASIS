@@ -15,17 +15,18 @@ internal static class FirebaseConformanceCleanup
         lookup.Headers.Add("X-Firebase-ETag", "true");
         using var observed = await http.SendAsync(lookup);
         observed.EnsureSuccessStatusCode();
-        var tag = observed.Headers.ETag;
+        var tag = NextGenSoftware.OASIS.API.Providers.FirebaseOASIS.FirebaseOASIS.ReadStrongRevisionTag(observed);
         using var stored = JsonDocument.Parse(await observed.Content.ReadAsStringAsync());
         var record = stored.RootElement;
-        if (tag == null || tag.IsWeak || record.ValueKind != JsonValueKind.Object
+        if (record.ValueKind != JsonValueKind.Object
             || !record.TryGetProperty("id", out var storedId) || !storedId.TryGetGuid(out var actual) || actual != fixtureId
             || !record.TryGetProperty("deletedDate", out var deletedDate)
             || !deletedDate.TryGetDateTime(out var when) || when == DateTime.MinValue)
             throw new InvalidOperationException("Only the exact owned Firebase tombstone with a strong ETag may be removed.");
 
         using var delete = new HttpRequestMessage(HttpMethod.Delete, uri);
-        delete.Headers.IfMatch.Add(tag);
+        if (!delete.Headers.TryAddWithoutValidation("If-Match", tag))
+            throw new InvalidOperationException("Cannot attach the observed Firebase fixture revision.");
         using var deleted = await http.SendAsync(delete);
         deleted.EnsureSuccessStatusCode();
         using var remaining = JsonDocument.Parse(await http.GetStringAsync(uri));

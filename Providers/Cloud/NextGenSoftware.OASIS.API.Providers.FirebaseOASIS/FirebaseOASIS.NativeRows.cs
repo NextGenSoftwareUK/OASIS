@@ -96,6 +96,28 @@ public partial class FirebaseOASIS
             throw new FirebaseRepresentationException("Firebase native JSON cannot preserve this numeric value; no write dispatched.");
     }
 
+    internal static string ReadStrongRevisionTag(HttpResponseMessage response)
+    {
+        if (response.Headers.TryGetValues("ETag", out var values))
+        {
+            var tags = values.Take(2).ToArray();
+            if (tags.Length == 1)
+            {
+                var tag = tags[0];
+                if (System.Net.Http.Headers.EntityTagHeaderValue.TryParse(tag, out var parsed) &&
+                    !parsed.IsWeak && parsed.Tag != "*")
+                    return tag;
+
+                // The RTDB emulator also emits an unquoted base64 revision.
+                Span<byte> revision = stackalloc byte[128];
+                if (tag.Length is > 0 and <= 172 && !tag.Any(char.IsWhiteSpace) &&
+                    Convert.TryFromBase64String(tag, revision, out var length) && length > 0)
+                    return tag;
+            }
+        }
+        throw new InvalidDataException("Firebase did not return one strong revision tag.");
+    }
+
     private static async Task<string> ReadFirebaseAcknowledgement(HttpResponseMessage response)
     {
         await using var stream = await response.Content.ReadAsStreamAsync();

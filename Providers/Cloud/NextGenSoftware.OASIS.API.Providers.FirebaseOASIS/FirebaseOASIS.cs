@@ -331,15 +331,15 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
                     result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
                     return result;
                 }
-                if (avatar["id"]?.GetValue<Guid>() != id || observed.Headers.ETag == null)
-                    throw new System.IO.InvalidDataException("Firebase did not return the requested avatar identity and ETag.");
+                if (avatar["id"]?.GetValue<Guid>() != id)
+                    throw new System.IO.InvalidDataException("Firebase did not return the requested avatar identity.");
 
                 if (softDelete)
                 {
                     avatar["deletedDate"] = DateTime.UtcNow;
                     avatar["isDeleted"] = true;
                 }
-                await WriteConditionalDeletionAsync(url, observed.Headers.ETag, id, softDelete ? avatar : null);
+                await WriteConditionalDeletionAsync(url, ReadStrongRevisionTag(observed), id, softDelete ? avatar : null);
 
                 result.Result = true;
                 result.IsDeleted = true;
@@ -350,11 +350,12 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
             return result;
         }
 
-        private async Task WriteConditionalDeletionAsync(string url, System.Net.Http.Headers.EntityTagHeaderValue etag,
+        private async Task WriteConditionalDeletionAsync(string url, string etag,
             Guid id, JsonNode? tombstone)
         {
             using var mutation = new HttpRequestMessage(tombstone == null ? HttpMethod.Delete : HttpMethod.Put, url);
-            mutation.Headers.IfMatch.Add(etag);
+            if (!mutation.Headers.TryAddWithoutValidation("If-Match", etag))
+                throw new System.IO.InvalidDataException("Firebase revision tag could not be attached to the conditional request.");
             if (tombstone != null)
                 mutation.Content = new StringContent(tombstone.ToJsonString(), Encoding.UTF8, "application/json");
 
@@ -756,8 +757,7 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
                     result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
                     return result;
                 }
-                var etag = observed.Headers.ETag ??
-                    throw new System.IO.InvalidDataException("Firebase did not return the requested holon ETag.");
+                var etag = ReadStrongRevisionTag(observed);
 
                 var row = JsonNode.Parse(storedJson)!.AsObject();
                 holon.DeletedDate = DateTime.UtcNow;
