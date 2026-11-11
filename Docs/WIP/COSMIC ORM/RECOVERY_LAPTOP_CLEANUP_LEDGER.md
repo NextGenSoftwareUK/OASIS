@@ -5884,3 +5884,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: removed the temporary QuestDB verification tag after both workflows passed and verified its absence. Scoped Development fetch excluded tags and submodules. Temporary Git index removed. No local build, database, restore or artifact download.
 
 11 November UTC: read Solana teardown and Development ArangoDB CI results in memory. Temporary Git index removed. No local build, database or artifact download.
+
+11 November UTC: read individual ArangoDB CI test outcomes in memory. Temporary Git index removed. No local build, database, log file or artifact download.
