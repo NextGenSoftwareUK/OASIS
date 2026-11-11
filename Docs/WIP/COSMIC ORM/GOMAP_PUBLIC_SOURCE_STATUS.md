@@ -103,3 +103,6 @@ was verified in memory. Cleanup artifact 13678244863 independently confirmed
 that the owned MongoDB container and anonymous volumes were absent. Only the
 compact receipts were retained locally. The native integration exercised the
 developer route path. The dedicated public origin and live rollout remain open.
+
+
+11 November UTC: exact Development candidate 095805ee91 stages the dedicated-origin admission guard and tests. Remote CI 42977871267 is active. The general Development push hold has been lifted. The live GOMap settings remain gated on the reviewed dedicated OSRM origin. The earlier descriptor tooling stays on COSMIC pending integration against the current Development script.
