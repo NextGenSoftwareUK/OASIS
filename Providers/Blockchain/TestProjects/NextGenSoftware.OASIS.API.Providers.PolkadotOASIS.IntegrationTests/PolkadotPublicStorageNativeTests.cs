@@ -73,7 +73,8 @@ public class PolkadotPublicStorageNativeTests
             Assert.IsFalse(Directory.EnumerateFiles(directory, "*-pending.jsonl").Any(),
                 "Reconcile all pending fixture transactions first.");
             Assert.AreEqual(0, (await raw.ListKeysAsync("")).Count);
-            using var deadline = new CancellationTokenSource(TimeSpan.FromMinutes(10));
+            // Fresh CI authoring and SDK subprocesses need time to finalize every mutation.
+            using var deadline = new CancellationTokenSource(TimeSpan.FromMinutes(fresh ? 18 : 10));
             var reportPath = Path.Combine(directory, prefix + ".report.json");
             Assert.IsFalse(File.Exists(reportPath) || File.Exists(reportPath + ".next"));
             var otherPrefix = conformanceSync.Value ? "core-storage-async" : "core-storage-sync";
@@ -113,7 +114,9 @@ public class PolkadotPublicStorageNativeTests
                     return Task.CompletedTask;
                 }), deadline.Token);
 
-            Assert.IsTrue(result.Succeeded, $"{result.CurrentCase}: {result.FailureType}");
+            Assert.IsTrue(result.Succeeded,
+                $"{result.CurrentCase}: {result.FailureType} {result.FailureContract}; " +
+                $"{result.Passed.Count} checks passed, preparation deadline expired: {deadline.IsCancellationRequested}.");
             Assert.IsTrue(result.FixtureCleanupComplete);
             Assert.AreEqual(CoreStorageConformance.ChecksPerMode, result.Passed.Count);
             result.Succeeded = false;
