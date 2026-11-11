@@ -191,3 +191,5 @@ An approved hosted teaching source and live verification are still required.
 
 WEB4 admission tested at Core 68743893cb8ab0f0fc3671f7d7c483cb97df2e8e.
 Admission TRX SHA256 9390561c6525b9b016261e484ba61d6848356e79de2f2dc7f6d091d1eb1db6be.
+
+11 November UTC: Development 2dd52cf6c0 integrates HyperDrive CockroachDB native storage conformance. CI 43060207358 passed all 52 checks through the shipping Npgsql adapter on CockroachDB 26.2.9. Independent SQL verified and removed five exact owned tombstones per mode and confirmed three empty current tables per database. Hosted CQL acceptance remains open.

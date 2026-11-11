@@ -1457,3 +1457,7 @@ Standard Redis, Dragonfly and Valkey jobs are queued or running in Development C
 After warmup, authenticated discovery on Railway f573b5ac at c837fe5ad8 reached 106 of 106 ready for native CQL and federation. Development 31db62c741 remained queued at the rollout check.
 
 11 November UTC: Supabase WEB4 registration is on COSMIC but absent from Development 31db62c741. Candidate 7533021f03 reuses the reviewed registration and preserves the current HyperDrive storage implementation. The restricted reader passes separate gateway and bearer credentials and its transport guard admits the canonical bounded offsets produced by the shipping PostgREST paginator. Diagnostic 58466f5f48 is submitted for nine boundary tests. No hosted settings were applied. The dedicated HTTPS source and restricted reader remain required.
+
+11 November UTC: Development 2dd52cf6c0 integrates HyperDrive CockroachDB native storage conformance. CI 43060207358 passed all 52 checks through the shipping Npgsql adapter on CockroachDB 26.2.9. Independent SQL verified and removed five exact owned tombstones per mode and confirmed three empty current tables per database. Hosted CQL acceptance remains open.
+
+Supabase WEB4 boundary CI 43061249200 is active.
