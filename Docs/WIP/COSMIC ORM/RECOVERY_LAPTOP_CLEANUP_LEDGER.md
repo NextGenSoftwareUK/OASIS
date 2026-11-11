@@ -6252,3 +6252,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: observed WEB4 d262eab8c8 warmup using the existing visitor. No new protected files, avatars, reports, builds or downloads. Temporary documentation index removed.
 
 11 November UTC: track temporary tag ci-cosmic-web4-assets-build-a209b82e9b until exact qualification 43101002944 and companion 43101002957 are terminal. Temporary indices removed. No local build, restore, image or archive.
+
+11 November UTC: read the completed superseded CouchDB image log in memory and recorded its immutable image digest. No local image, logs, build or download retained. Temporary documentation index removed.
