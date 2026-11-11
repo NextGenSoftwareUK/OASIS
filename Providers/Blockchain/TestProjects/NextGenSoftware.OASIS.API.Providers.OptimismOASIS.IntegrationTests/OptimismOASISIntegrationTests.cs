@@ -39,11 +39,13 @@ public class OptimismOASISIntegrationTests
     {
         var fixture = await ReadSepoliaFixtureAsync();
         var provider = new OptimismOASIS(fixture.Rpc, fixture.Key, fixture.Contract, SepoliaChainId);
+        await EvmStorageFixture.RequireEmptyAsync(fixture.Reader, fixture.Contract);
         var report = await CoreStorageConformance.RunAsync(provider, nameof(OptimismOASIS), "native",
             synchronous, _ => Task.CompletedTask, expectedDefaultDeletion: "absent");
         Assert.IsTrue(report.Succeeded, $"{report.CurrentCase}: {report.FailureType} {report.FailureContract}");
         Assert.IsTrue(report.FixtureCleanupComplete);
         Assert.AreEqual(CoreStorageConformance.ChecksPerMode, report.Passed.Count);
+        await EvmStorageFixture.RequireEmptyAsync(fixture.Reader, fixture.Contract);
     }
 
     [TestMethod]

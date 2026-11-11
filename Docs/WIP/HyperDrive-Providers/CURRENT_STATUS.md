@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November Optimism native cleanup checks. The OP Sepolia storage lifecycle now checks avatar, avatar detail and holon counts directly on the dedicated Web3Core contract before writes and after cleanup in both modes. Counts must all be zero. The verified public wallet batch remains scoped to its earlier exact revision. Signed OP Sepolia execution remains open.
+
 11 November Ronin and Immutable native cleanup checks. The Saigon and Immutable testnet storage suites now read avatar, avatar detail and holon counts directly from the dedicated Web3Core contract before each mode and after provider cleanup. Each native count must be zero. This can catch records hidden by the provider read path and prevents writes against an already populated fixture. Signed runs remain pending.
 
 11 November Immutable public wallet harness. The official mainnet RPC returned a positive native IMX balance for the public zero address. The new opt-in integration test uses both shipping balance modes, requires a positive result with storage inactive, and rejects an Optimism endpoint. Enable with OASIS_IMMUTABLE_PUBLIC_WALLET_READ=1. Direct RPC evidence is recorded; the .NET integration run remains open.
