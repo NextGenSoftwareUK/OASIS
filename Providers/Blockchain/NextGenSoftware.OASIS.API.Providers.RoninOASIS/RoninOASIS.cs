@@ -16,6 +16,8 @@ using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
+using Nethereum.Web3;
+using NextGenSoftware.OASIS.Providers.Shared.Evm;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
 using NextGenSoftware.OASIS.API.Core.Managers.Bridge.DTOs;
@@ -31,6 +33,7 @@ namespace NextGenSoftware.OASIS.API.Providers.RoninOASIS
     {
         private readonly HttpClient _http;
         private readonly string _rpcUrl;
+        private readonly Lazy<Web3> _walletBalanceClient;
         private bool _isActivated;
 
         private static readonly JsonSerializerOptions _jsonOpts = new JsonSerializerOptions
@@ -47,6 +50,7 @@ namespace NextGenSoftware.OASIS.API.Providers.RoninOASIS
         {
             _rpcUrl = rpcUrl?.TrimEnd('/') ?? "https://api.roninchain.com/rpc";
             _http = new HttpClient { BaseAddress = new Uri(_rpcUrl + "/") };
+            _walletBalanceClient = new Lazy<Web3>(() => new Web3(_rpcUrl));
 
             ProviderName = "RoninOASIS";
             ProviderDescription = "Ronin provider — EVM-compatible gaming blockchain by Sky Mavis (Axie Infinity), Chain ID 2020.";
@@ -292,14 +296,12 @@ namespace NextGenSoftware.OASIS.API.Providers.RoninOASIS
 
         public OASISResult<ITransactionResponse> UnlockToken(IUnlockWeb3TokenRequest request) => UnlockTokenAsync(request).Result;
 
-        public async Task<OASISResult<double>> GetBalanceAsync(IGetWeb3WalletBalanceRequest request)
-        {
-            var r = new OASISResult<double>();
-            OASISErrorHandling.HandleError(ref r, "RoninOASIS GetBalanceAsync not yet implemented");
-            return r;
-        }
+        public Task<OASISResult<double>> GetBalanceAsync(IGetWeb3WalletBalanceRequest request)
+            => EvmWalletBalance.ReadAsync(request,
+                () => Task.FromResult(new OASISResult<Web3> { Result = _walletBalanceClient.Value }), 2020);
 
-        public OASISResult<double> GetBalance(IGetWeb3WalletBalanceRequest request) => GetBalanceAsync(request).Result;
+        public OASISResult<double> GetBalance(IGetWeb3WalletBalanceRequest request)
+            => GetBalanceAsync(request).GetAwaiter().GetResult();
 
         public async Task<OASISResult<IList<IWalletTransaction>>> GetTransactionsAsync(IGetWeb3TransactionsRequest request)
         {
