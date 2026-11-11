@@ -34,11 +34,14 @@ public sealed class ImmutableZkEVMTestnetStorageTests
         var balance = await reader.Eth.GetBalance.SendRequestAsync(account.Address);
         Assert.IsTrue(balance.Value > 0, "The Immutable testnet fixture signer needs testnet IMX for gas.");
 
+        await EvmStorageFixture.RequireEmptyAsync(reader, contract!);
+
         var provider = new ImmutableZkEVMOASIS(endpoint.AbsoluteUri, key!, contract!, TestnetChainId);
         var report = await CoreStorageConformance.RunAsync(provider, nameof(ImmutableZkEVMOASIS), "native",
             synchronous, _ => Task.CompletedTask, expectedDefaultDeletion: "absent");
         Assert.IsTrue(report.Succeeded, $"{report.CurrentCase}: {report.FailureType} {report.FailureContract}");
         Assert.IsTrue(report.FixtureCleanupComplete);
         Assert.AreEqual(CoreStorageConformance.ChecksPerMode, report.Passed.Count);
+        await EvmStorageFixture.RequireEmptyAsync(reader, contract!);
     }
 }

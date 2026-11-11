@@ -34,11 +34,14 @@ public sealed class RoninSaigonStorageTests
         var balance = await reader.Eth.GetBalance.SendRequestAsync(account.Address);
         Assert.IsTrue(balance.Value > 0, "The Saigon fixture signer needs testnet RON for gas.");
 
+        await EvmStorageFixture.RequireEmptyAsync(reader, contract!);
+
         var provider = new RoninOASIS(endpoint.AbsoluteUri, key!, contract!, SaigonChainId);
         var report = await CoreStorageConformance.RunAsync(provider, nameof(RoninOASIS), "native",
             synchronous, _ => Task.CompletedTask, expectedDefaultDeletion: "absent");
         Assert.IsTrue(report.Succeeded, $"{report.CurrentCase}: {report.FailureType} {report.FailureContract}");
         Assert.IsTrue(report.FixtureCleanupComplete);
         Assert.AreEqual(CoreStorageConformance.ChecksPerMode, report.Passed.Count);
+        await EvmStorageFixture.RequireEmptyAsync(reader, contract!);
     }
 }

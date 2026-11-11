@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November Ronin and Immutable native cleanup checks. The Saigon and Immutable testnet storage suites now read avatar, avatar detail and holon counts directly from the dedicated Web3Core contract before each mode and after provider cleanup. Each native count must be zero. This can catch records hidden by the provider read path and prevents writes against an already populated fixture. Signed runs remain pending.
+
 11 November Immutable public wallet harness. The official mainnet RPC returned a positive native IMX balance for the public zero address. The new opt-in integration test uses both shipping balance modes, requires a positive result with storage inactive, and rejects an Optimism endpoint. Enable with OASIS_IMMUTABLE_PUBLIC_WALLET_READ=1. Direct RPC evidence is recorded; the .NET integration run remains open.
 
 11 November Immutable testnet verification harness. The shared core-storage-v2 suite now has sync and async entry points gated by OASIS_IMMUTABLE_TESTNET_STORAGE_WRITES=1. The fixture checks HTTPS, chain ID 13473 and funded signer before any writes, then requires all cases and exact fixture cleanup. No dedicated settings are present in this session. Build and signed execution remain open. Access is tracked in the owner action ledger.
