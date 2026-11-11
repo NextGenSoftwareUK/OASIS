@@ -33,6 +33,11 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
                     && holon.ProviderUniqueStorageKey.TryGetValue(ProviderType.Value, out var suppliedKey)
                     && !string.IsNullOrWhiteSpace(suppliedKey) ? suppliedKey : guid;
 
+                var metadata = holon.MetaData;
+                var metadataJson = metadata == null ? null : OasisJson.Serialize(new { MetaData = metadata });
+                var metadataTokens = metadata?.Where(pair => pair.Value != null).Select(pair =>
+                    MetadataLookupToken(pair.Key, StoredRecordSearch.MetadataValueText(pair.Value))).ToArray();
+
                 var session = Driver.AsyncSession(WithDatabase);
                 await using var lifetime = session.ConfigureAwait(false);
                 var storedKey = await session.WriteTransactionAsync(async transaction =>
@@ -41,10 +46,11 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
                         MERGE (hl:Holon {GUId: $guid})
                         SET hl.name = $name, hl.description = $description,
                             hl.ParentHolonId = $parent, hl.HolonType = $type,
-                            hl.PreviousVersionId = $previous, hl.ProviderKey = coalesce(hl.ProviderKey, $providerKey)
+                            hl.PreviousVersionId = $previous, hl.ProviderKey = coalesce(hl.ProviderKey, $providerKey),
+                            hl.MetadataJson = $metadataJson, hl.MetaLookupTokens = $metadataTokens
                         RETURN hl.ProviderKey AS providerKey",
                         new { guid, name = holon.Name, description = holon.Description,
-                            previous = holon.PreviousVersionId.ToString("D"), providerKey, parent = holon.ParentHolonId.ToString("D"), type = (int)holon.HolonType }).ConfigureAwait(false);
+                            previous = holon.PreviousVersionId.ToString("D"), providerKey, parent = holon.ParentHolonId.ToString("D"), type = (int)holon.HolonType, metadataJson, metadataTokens }).ConfigureAwait(false);
                     return await cursor.SingleAsync(row => row["providerKey"].As<string>()).ConfigureAwait(false);
                 }).ConfigureAwait(false);
 

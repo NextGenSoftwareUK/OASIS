@@ -9,6 +9,8 @@ Public provider count audit (11 November). The inventory lists 234 shipping prov
 
 11 November EVM evidence reconciliation. Ethereum, Arbitrum and Polygon each retain 52/52 native core-storage-v2 checks through shipping factories and isolated Hardhat contracts at 1ed77c18d6. Both original reports per provider matched the existing hashes and recorded complete fixture cleanup. The conformance registry now uses those reports and links the historical v1 configuration failures. Public-network acceptance remains open. Solana remains at 4/52 while its original validator ledger and protected test wallet are unavailable.
 
+11 November Neo4j Aura metadata. The native driver writes metadata and its exact lookup tokens in the holon upsert transaction. Point and collection reads use the same projection, including typed single-key, all-of and any-of queries. The guarded lifecycle case compiled and skipped without the dedicated Aura fixture. Hosted verification remains open.
+
 ## Phase and rules
 
 Active checkpoint, 10 November 2026. Current HyperDrive verification is split between retained native provider evidence and open isolated fixture gates. Development contains the scoped SQL Server avatar/history and graph-read batch at af621f3c3e. Development also contains the concurrent avatar and avatar-detail history regressions at 2a91bda8eb. Both passed separately on LocalDB and compiled together with Development Core 0fc929336 (zero errors). BigQuery hosted lifecycle verification awaits its isolated fixture. HyperDrive routing verification follows provider acceptance.

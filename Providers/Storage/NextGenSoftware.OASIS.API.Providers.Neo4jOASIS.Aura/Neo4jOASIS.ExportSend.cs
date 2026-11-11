@@ -13,6 +13,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using NextGenSoftware.Utilities;
 using Neo4jNode = Neo4j.Driver.INode;
 
@@ -36,7 +37,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
                         MATCH (hl:Holon) WHERE {predicate}
                         RETURN hl.GUId AS id, hl.name AS name, hl.description AS description,
                                hl.ProviderKey AS providerkey, hl.PreviousVersionId AS previousversionid,
-                               hl.HolonType AS type, hl.ParentHolonId AS parent
+                               hl.HolonType AS type, hl.ParentHolonId AS parent, hl.MetadataJson AS metadata
                         LIMIT 2", new { value }).ConfigureAwait(false);
                     return await cursor.ToListAsync().ConfigureAwait(false);
                 }).ConfigureAwait(false);
@@ -104,7 +105,8 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
         public override Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
             => LoadHolonCollectionAsync(type, null);
 
-        private async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonCollectionAsync(HolonType type, string parentId)
+        private async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonCollectionAsync(
+            HolonType type, string parentId, string[] metadataTokens = null, bool matchAll = true)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
             try
@@ -116,10 +118,13 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
                     var cursor = await transaction.RunAsync(@"
                         MATCH (hl:Holon)
                         WHERE ($allTypes OR hl.HolonType = $type) AND ($parentId IS NULL OR hl.ParentHolonId = $parentId)
+                          AND ($metadataTokens IS NULL
+                            OR ($matchAll AND all(token IN $metadataTokens WHERE token IN coalesce(hl.MetaLookupTokens, [])))
+                            OR (NOT $matchAll AND any(token IN $metadataTokens WHERE token IN coalesce(hl.MetaLookupTokens, []))))
                         RETURN hl.GUId AS id, hl.name AS name, hl.description AS description,
                                hl.ProviderKey AS providerkey, hl.PreviousVersionId AS previousversionid,
-                               hl.HolonType AS type, hl.ParentHolonId AS parent
-                        ORDER BY hl.GUId", new { allTypes = type == HolonType.All, type = (int)type, parentId }).ConfigureAwait(false);
+                               hl.HolonType AS type, hl.ParentHolonId AS parent, hl.MetadataJson AS metadata
+                        ORDER BY hl.GUId", new { allTypes = type == HolonType.All, type = (int)type, parentId, metadataTokens, matchAll }).ConfigureAwait(false);
                     return await cursor.ToListAsync(ReadHolonRecord).ConfigureAwait(false);
                 }).ConfigureAwait(false);
 
@@ -149,6 +154,8 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
                 PreviousVersionId = row["previousversionid"] is string previous ? Guid.Parse(previous) : Guid.Empty,
                 ParentHolonId = row["parent"] is string parent ? Guid.Parse(parent) : Guid.Empty
             };
+            if (row["metadata"] is string metadata)
+                holon.MetaData = OasisJson.DeserializeStored<Holon>(metadata).MetaData;
             if (row["type"] is long type)
                 holon.HolonType = (HolonType)type;
             if (row["providerkey"] is string key)

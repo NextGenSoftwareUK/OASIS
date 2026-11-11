@@ -76,6 +76,9 @@ public class Neo4jAuraNativeTests
         var provider = CreateProvider();
         var parent = new Holon { Id = Guid.NewGuid(), Name = "Aura parent" };
         var child = new Holon { Id = Guid.NewGuid(), Name = $"Aura child {parent.Id:N}", ParentHolonId = parent.Id };
+        var metadataValue = parent.Id.ToString("N");
+        child.MetaData["scope.key"] = metadataValue;
+        child.MetaData["rank"] = 7;
         Console.WriteLine($"Aura holon fixture IDs: parent {parent.Id:D}, child {child.Id:D}");
         var active = await provider.ActivateProviderAsync();
         Assert.IsTrue(active.Result, active.Exception?.GetType().FullName);
@@ -91,6 +94,18 @@ public class Neo4jAuraNativeTests
             Assert.IsTrue(loaded.IsLoaded, loaded.Exception?.GetType().FullName);
             Assert.AreEqual(child.Id, loaded.Result.Id);
             Assert.AreEqual(parent.Id, loaded.Result.ParentHolonId);
+            Assert.AreEqual(metadataValue, loaded.Result.MetaData["scope.key"]?.ToString());
+            var exact = provider.LoadHolonsByMetaData("scope.key", metadataValue, loadChildren: false);
+            Assert.IsTrue(exact.IsLoaded, exact.Message);
+            Assert.AreEqual(1, exact.LoadedCount);
+            Assert.AreEqual(child.Id, exact.Result.Single().Id);
+            var pairs = new Dictionary<string, string> { ["scope.key"] = metadataValue, ["rank"] = "8" };
+            var all = await provider.LoadHolonsByMetaDataAsync(pairs, MetaKeyValuePairMatchMode.All, loadChildren: false);
+            Assert.IsTrue(all.IsLoaded, all.Message);
+            Assert.AreEqual(0, all.LoadedCount);
+            var any = await provider.LoadHolonsByMetaDataAsync(pairs, MetaKeyValuePairMatchMode.Any, loadChildren: false);
+            Assert.IsTrue(any.IsLoaded, any.Message);
+            CollectionAssert.Contains(any.Result.Select(holon => holon.Id).ToArray(), child.Id);
 
             var children = provider.LoadHolonsForParent(parentKey, loadChildren: false);
             Assert.IsTrue(children.IsLoaded, children.Exception?.GetType().FullName);

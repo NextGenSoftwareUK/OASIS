@@ -1,3 +1,4 @@
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 ﻿using System;
 using NextGenSoftware.OASIS.API.Core;
 using System.Collections.Generic;
@@ -119,140 +120,41 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura
         //    throw new NotImplementedException();
         //}
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Neo4j Aura provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                // Load holons by metadata from Neo4j Aura database
-                var holons = new List<IHolon>();
-                
-                using (var session = Driver.AsyncSession())
-                {
-                    var query = "MATCH (h:Holon) WHERE h.MetaData[$metaKey] = $metaValue RETURN h";
-                    var parameters = new Dictionary<string, object>
-                    {
-                        { "metaKey", metaKey },
-                        { "metaValue", metaValue }
-                    };
-                    
-                    var cursor = await session.RunAsync(query, parameters);
-                    var records = await cursor.ToListAsync();
-                    
-                    foreach (var record in records)
-                    {
-                        var holonNode = record["h"].As<Neo4jNode>();
-                        var holon = new Holon
-                        {
-                            Id = Guid.Parse(holonNode["Id"].As<string>()),
-                            Name = holonNode["Name"].As<string>(),
-                            Description = holonNode["Description"].As<string>(),
-                            MetaData = holonNode["MetaData"].As<Dictionary<string, object>>()
-                        };
-                        holons.Add(holon);
-                    }
-                }
-                
-                result.Result = holons;
-                result.IsError = false;
-                result.Message = $"Successfully loaded {holons?.Count ?? 0} holons by metadata from Neo4j Aura";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading holons by metadata from Neo4j Aura: {ex.Message}", ex);
-            }
-            return result;
-        }
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+            => LoadMetadataMatchesAsync(new[] { new KeyValuePair<string, string>(metaKey, metaValue) },
+                MetaKeyValuePairMatchMode.All, type, version);
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            return LoadHolonsByMetaDataAsync(metaKey, metaValue, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
-        }
+            => LoadHolonsByMetaDataAsync(metaKey, metaValue, type, loadChildren, recursive, maxChildDepth,
+                curentChildDepth, continueOnError, loadChildrenFromProvider, version).GetAwaiter().GetResult();
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Neo4j Aura provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                // Load holons by multiple metadata pairs from Neo4j Aura database
-                var holons = new List<IHolon>();
-                
-                using (var session = Driver.AsyncSession())
-                {
-                    var whereConditions = new List<string>();
-                    var parameters = new Dictionary<string, object>();
-                    
-                    int index = 0;
-                    foreach (var pair in metaKeyValuePairs)
-                    {
-                        var keyParam = $"metaKey{index}";
-                        var valueParam = $"metaValue{index}";
-                        
-                        whereConditions.Add($"h.MetaData[${keyParam}] = ${valueParam}");
-                        
-                        parameters[keyParam] = pair.Key;
-                        parameters[valueParam] = pair.Value;
-                        index++;
-                    }
-                    
-                    var whereClause = metaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.All 
-                        ? string.Join(" AND ", whereConditions)
-                        : string.Join(" OR ", whereConditions);
-                    
-                    var query = $"MATCH (h:Holon) WHERE {whereClause} RETURN h";
-                    
-                    var cursor = await session.RunAsync(query, parameters);
-                    var records = await cursor.ToListAsync();
-                    
-                    foreach (var record in records)
-                    {
-                        var holonNode = record["h"].As<Neo4jNode>();
-                        var holon = new Holon
-                        {
-                            Id = Guid.Parse(holonNode["Id"].As<string>()),
-                            Name = holonNode["Name"].As<string>(),
-                            Description = holonNode["Description"].As<string>(),
-                            MetaData = holonNode["MetaData"].As<Dictionary<string, object>>()
-                        };
-                        holons.Add(holon);
-                    }
-                }
-                
-                result.Result = holons;
-                result.IsError = false;
-                result.Message = $"Successfully loaded {holons?.Count ?? 0} holons by metadata pairs from Neo4j Aura";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading holons by metadata pairs from Neo4j Aura: {ex.Message}", ex);
-            }
-            return result;
-        }
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+            => LoadMetadataMatchesAsync(metaKeyValuePairs, metaKeyValuePairMatchMode, type, version);
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+            => LoadHolonsByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode, type, loadChildren,
+                recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version)
+                .GetAwaiter().GetResult();
+
+        private Task<OASISResult<IEnumerable<IHolon>>> LoadMetadataMatchesAsync(
+            IEnumerable<KeyValuePair<string, string>> pairs, MetaKeyValuePairMatchMode mode, HolonType type, int version)
         {
-            return LoadHolonsByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
+            var requested = pairs?.ToArray();
+            if (requested == null || requested.Length == 0 || requested.Any(pair => string.IsNullOrWhiteSpace(pair.Key))
+                || !Enum.IsDefined(typeof(MetaKeyValuePairMatchMode), mode) || !Enum.IsDefined(typeof(HolonType), type)
+                || version != 0)
+            {
+                var result = new OASISResult<IEnumerable<IHolon>>();
+                OASISErrorHandling.HandleError(ref result,
+                    "Neo4j Aura metadata queries require a nonblank key, defined match mode and holon type, and the current version.");
+                return Task.FromResult(result);
+            }
+
+            var tokens = requested.Select(pair => MetadataLookupToken(pair.Key, pair.Value)).ToArray();
+            return LoadHolonCollectionAsync(type, null, tokens, mode == MetaKeyValuePairMatchMode.All);
         }
+
+        private static string MetadataLookupToken(string key, string value) => OasisJson.Serialize(new[] { key, value });
 
         /// <summary>
         /// Creates a deterministic GUID from input string using SHA-256 hash
