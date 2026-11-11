@@ -5,6 +5,7 @@
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
+    <EnableDefaultCompileItems Condition="'$(ScyllaDirectStorageOnly)' == 'true'">false</EnableDefaultCompileItems>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
@@ -16,6 +17,10 @@
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.ScyllaDBOASIS\NextGenSoftware.OASIS.API.Providers.ScyllaDBOASIS.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ScyllaNativeStorageConformanceTests.cs" Condition="'$(ScyllaDirectStorageOnly)' == 'true'" />
+    <Compile Include="../../../Shared/TestSupport/CoreStorageConformance.cs" Link="TestSupport/CoreStorageConformance.cs" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(ScyllaDirectStorageOnly)' != 'true'">
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <Compile Include="../../../../Examples/CosmicCqlDemo/IdentityFederationWalkthrough.cs" Link="Demo/IdentityFederationWalkthrough.cs" />
     <Compile Include="../../../../Examples/CosmicCqlDemo/IdentityFederationApiHost.cs" Link="Demo/IdentityFederationApiHost.cs" />
