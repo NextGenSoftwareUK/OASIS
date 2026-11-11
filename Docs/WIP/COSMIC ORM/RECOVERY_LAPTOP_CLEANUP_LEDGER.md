@@ -5718,3 +5718,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: full Web4Site Node tests ran with the installed runtime and output streamed in memory. No build artifacts, downloads, test reports or new environment.
 
 11 November UTC: two-instance IPFS cutover discovery reused the existing Railway CLI and browser visitor. No local report, screenshot file, download, build output or saved holon.
+
+11 November UTC: removed temporary tag ci-cosmic-solution-7854ac618f-build after both runs finished. The current candidate tag remains active. Catalogue check reused the existing visitor. No local report, screenshot file, build or download.
