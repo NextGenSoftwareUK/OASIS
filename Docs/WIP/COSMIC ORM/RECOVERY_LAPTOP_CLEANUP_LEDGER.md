@@ -6124,3 +6124,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: published the verified scoped Supabase source and test blobs on the existing feature branch. Removed the temporary Git index. CI metadata read in memory. No local build, restore, download or image.
 
 11 November UTC: track parent diagnostic tag ci-cosmic-supabase-web4-cassandra-1ce576c988 until exact image CI and publication finish. Local temporary Git index removed. No local image, restore, download or build.
+
+11 November UTC: after both diagnostic workflows completed and the superseded image build was cancelled, removed parent tag ci-cosmic-supabase-tariff-web4-3b8445942b and verified absence. The combined image tag and Core pin tag remain. Temporary Git index removed. No local image, restore, download or build.
