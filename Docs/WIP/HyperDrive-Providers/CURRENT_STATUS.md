@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November Firebase export candidate. Current global and owner exports share a flat native-row read. This preserves one exported row per identity after ordinary graph reads gained child hydration. The native graph test requires three distinct export identities with their parent links and no embedded children. Historical export remains open.
+
 11 November Firebase graph-only diagnostic result. [Run 43093827848](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43093827848) at 242ba2d847 failed the combined compile and write-acknowledgement step. The Java setup and both native modes were skipped. GitHub returned an unavailable job-log blob and the run archive exposed no log entries, so the exact build or assertion failure is unconfirmed. The later projection, graph-read and conditional-delete revision is still queued in run 43098664726.
 
 11 November Base legacy record decoding candidate. The exported point parsers now decode the existing record JSON with the Core decoder and require exactly one explicit nonempty GUID. Legacy holon_type values remain supported through canonical field decoding. The legacy list and metadata search paths use the same decoder and report malformed rows instead of returning fabricated holons or empty success. Legacy endpoint compatibility and hosted Base storage remain unverified.

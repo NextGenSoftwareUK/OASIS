@@ -876,19 +876,26 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
 
         public override OASISResult<bool> Import(IEnumerable<IHolon> holons) => ImportAsync(holons).Result;
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
-            => await LoadAllHolonsAsync();
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
+            => ExportLiveHolonsAsync();
 
         public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0) => ExportAllAsync(version).Result;
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
+            => ExportLiveHolonsAsync(avatarId);
+
+        private async Task<OASISResult<IEnumerable<IHolon>>> ExportLiveHolonsAsync(Guid? ownerId = null)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
             try
             {
-                var all = await GetAllAsync<Holon>("oasis_holons");
-                var holons = all.Where(h => !h.IsDeleted && h.CreatedByAvatarId == avatarId).Cast<IHolon>().ToList();
-                result.Result = holons; result.IsLoaded = true; result.LoadedCount = holons.Count; result.Message = $"FirebaseOASIS: Exported {holons.Count} holon(s) for avatar '{avatarId}'.";
+                var rows = await GetAllAsync<Holon>("oasis_holons");
+                var holons = rows.Where(row => !row.IsDeleted &&
+                    (!ownerId.HasValue || row.CreatedByAvatarId == ownerId.Value)).Cast<IHolon>().ToList();
+                result.Result = holons;
+                result.IsLoaded = true;
+                result.LoadedCount = holons.Count;
+                result.Message = $"FirebaseOASIS: Exported {holons.Count} holon(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
             return result;

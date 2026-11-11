@@ -141,6 +141,14 @@ public class FirebaseNativeStorageConformanceTests
             Assert.IsFalse(expanded.IsError, expanded.Message);
             Assert.AreEqual(grandchild.Id, expanded.Result.Children.Single().Children.Single().Id);
 
+            var exported = await provider.ExportAllAsync();
+            Assert.IsFalse(exported.IsError, exported.Message);
+            Assert.AreEqual(3, exported.LoadedCount);
+            var exportedRows = exported.Result.ToDictionary(row => row.Id);
+            Assert.AreEqual(root.Id, exportedRows[child.Id].ParentHolonId);
+            Assert.AreEqual(child.Id, exportedRows[grandchild.Id].ParentHolonId);
+            Assert.IsTrue(exportedRows.Values.All(row => row.Children.Count == 0));
+
             var parentRows = await provider.LoadHolonsForParentAsync(root.Id);
             Assert.IsFalse(parentRows.IsError, parentRows.Message);
             Assert.AreEqual(grandchild.Id, parentRows.Result.Single().Children.Single().Id);
