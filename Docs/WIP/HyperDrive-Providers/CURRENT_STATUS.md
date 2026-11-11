@@ -1,4 +1,6 @@
 # Current provider status
+
+11 November NEAR public wallet balance. Both shipping wallet entry points passed against finalized NEAR mainnet state through near-api-js 7.3.1 at 507f4dd419. The scoped Development change uses the same wallet source, bridge, regression test and Core revision. The only difference in the SDK service file is an independent avatar deletion method on the task branch. The existing public mainnet tests were reused. Writable NEAR storage acceptance remains open.
 Updated28October2026. Read this first, then query relevant matrix rows; do not load archives by default.
 
 ## Phase and rules
