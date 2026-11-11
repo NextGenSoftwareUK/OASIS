@@ -75,6 +75,14 @@ jobs:
           PY
             test -f "$state/source-snapshot.json"
             test ! -e "$state/demo-seed.pending.json"
-            docker stop --time 20 "$container" >/dev/null
-            test "$(docker inspect --format '{{.State.ExitCode}}' "$container")" = 0
+            started="$(docker inspect --format '{{.State.StartedAt}}' "$container")"
+            docker stop --time 60 "$container" >/dev/null
+            docker inspect "$container" | jq -e '.[0].State | (.Running == false and .OOMKilled == false and (.ExitCode == 0 or .ExitCode == 143))'
+            shutdown="$(docker logs --since "$started" "$container" 2>&1)"
+            for event in 'QuestDB is shutdown.' 'component=engine from=STOPPING to=STOPPED' 'pg-server closed' 'http-server closed'; do
+              grep -Fq "$event" <<< "$shutdown"
+            done
+            if grep -Eq 'shutdown deferred|shutdown proceeding after lifecycle stop failure' <<< "$shutdown"; then
+              exit 1
+            fi
           done
