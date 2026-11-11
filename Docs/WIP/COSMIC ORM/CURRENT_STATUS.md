@@ -1586,3 +1586,5 @@ Exact Supabase WEB4 image build 43062441681 is running.
 11 November UTC: requested cancellation of superseded image run 43090552807 after its build, push and summary steps succeeded and its post-build step stayed active for eight minutes. The combined image 43097362380 is the Development gate. Retain both temporary image source tags until their runs are terminal and evidence is recorded.
 
 11 November UTC: after the AvalancheGo WEB4 rollout restored Cosmos and Hedera readiness, the authenticated visitor ran both native public HTTP presets for each provider. Both returned three full and two filtered rows, with exact preset selections and strict subset containment. Prior private cohorts were preserved.
+
+11 November UTC: combined WEB4 image run 43097362380 reported startup_failure with zero jobs on attempt one. GitHub accepted a rerun of the same workflow and inputs and returned it to queued. The original source remains 3845f4723c; prepared Development merge 6e1bd3587e preserves all nine release paths on 6507bc8563. No Development push or local build.

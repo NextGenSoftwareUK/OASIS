@@ -6238,3 +6238,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: requested cancellation of superseded image run 43090552807 after its build, push and summary steps succeeded and its post-build step stayed active for eight minutes. The combined image 43097362380 is the Development gate. Retain both temporary image source tags until their runs are terminal and evidence is recorded.
 
 11 November UTC: Cosmos and Hedera public recovery checks reused the existing visitor and processed replies in memory. Zero new protected files, avatars, reports, builds or downloads. Temporary documentation index removed.
+
+11 November UTC: retained the combined image source tag while GitHub retries the same run after a zero-job startup failure. Temporary documentation index removed. No local build, restore, image or download.
