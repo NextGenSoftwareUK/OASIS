@@ -187,3 +187,5 @@ Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cosmic-questdb-https 
 Require one passed test with zero skips before preparing Development
 settings. The test activates the configured source and queries the exact
 full and subset symbol sets through the guarded HTTPS adapter.
+
+11 November UTC: the generic QuestDB CI job started a blank service, but Development activation validates three explicitly provisioned WAL/DEDUP tables. The workflow now provisions those tables in its disposable service before activation. Exact Development candidate `a39046a91f` is queued for focused CI. Development integration and hosted CQL remain open. [QuestDB CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43029367152)
