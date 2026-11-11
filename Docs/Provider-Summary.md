@@ -2,7 +2,9 @@
 
 The OASIS inventory lists **234 shipping provider projects** as of 11 November 2026. That includes 178 storage and specialized-storage projects and 56 non-storage projects. Alternate implementations count separately. Consult the [provider matrix](WIP/HyperDrive-Providers/PROVIDER_MATRIX.md) for backend verification by project and capability.
 
-Browse the [live provider registry](https://web4.oasisomniverse.one/providers.html) and the [public provider guide](https://docs.oasisomniverse.one/providers/overview.html).
+The public registries list the same 234 projects. [Web4Site registry](https://web4.oasisomniverse.one/providers.html) · [OASIS Web4 registry](https://www.oasisweb4.com/providers)
+
+See how the inventory is organized and where to find verification evidence. [OASIS Docs provider overview](https://docs.oasisomniverse.one/providers/overview) · [OASIS Learn provider guide](https://learn.oasisomniverse.one/tutorials/08-providers-production)
 
 The category breakdown below records the 2 October 2026 implementation audit.
 > A provider is counted only if its folder contains a buildable provider class. Packaging variants, libraries, commented-out shells and retired providers are listed under [Not counted](#not-counted) instead.

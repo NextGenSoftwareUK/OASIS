@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November public inventory recheck. Web4Site and oasisweb4.com each served 234 distinct projects and their project lists matched exactly. OASIS Docs, OASIS Learn, the Omniverse, NFT Founders, One World, Our World and WEB6 served current count copy. OPORTAL and its /devportal route responded without an OASIS-wide count. GitHub master still has the older 222 figure in its README. Development has the current count and the README awaits normal production promotion.
+
 11 November KeyDB full storage candidate. A disposable CI job binds the existing guarded sync and async lifecycle to the digest-pinned official KeyDB image. Both modes must report 26 checks and exact cleanup. The runner independently checks for zero native keys and removes only its own fixture. [Run 43095184002](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43095184002) is queued.
 
 11 November KeyDB evidence reconciliation. Four native avatar and holon save/load checks passed against the digest-pinned KeyDB image in [run 43051825070](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43051825070). The separate native KeyDB 6.3.4 job passed encrypted CQL restart and MongoDB federation. Development includes the verified fixture wiring at ea54de967e. The shared 52/52 result is controlled. Full native lifecycle, hosted TLS and legacy plaintext migration remain open.
