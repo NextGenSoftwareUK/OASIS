@@ -13,6 +13,9 @@
     <Compile Include="../../../../Examples/CosmicCqlDemo/IdentityFederationApiHost.cs" Link="Demo/IdentityFederationApiHost.cs" />
     <ProjectReference Include="../../NextGenSoftware.OASIS.API.Providers.MongoOASIS/NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.csproj" />
     <Compile Remove="RedisCoreStorageConformanceTests.cs" />
+    <Compile Remove="ValKeyCoreStorageConformanceTests.cs" />
+    <Compile Include="ValKeyCoreStorageConformanceTests.cs" Condition="'$(IncludeCoreStorageConformance)' == 'true'" />
+    <ProjectReference Include="../../NextGenSoftware.OASIS.API.Providers.ValKeyOASIS/NextGenSoftware.OASIS.API.Providers.ValKeyOASIS.csproj" Condition="'$(IncludeCoreStorageConformance)' == 'true'" />
     <Compile Include="RedisCoreStorageConformanceTests.cs" Condition="'$(IncludeCoreStorageConformance)' == 'true'" />
     <Compile Include="../../../Shared/TestSupport/CoreStorageConformance.cs" Link="TestSupport/CoreStorageConformance.cs" Condition="'$(IncludeCoreStorageConformance)' == 'true'" />
   </ItemGroup>
