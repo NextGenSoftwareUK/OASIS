@@ -1133,3 +1133,5 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 11 November UTC: [combined solution CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43016421964) is active for candidate 91743fb01c. Railway deployment 9964c51b-08c4-410f-a2af-66e67c4c26cb is queued for Development 998a9b5986. The current successful WEB4 revision is 07082d65c0.
 
 11 November UTC: the live Development WEB4 CQL Playground rendered three PolygonIDOASIS teaching rows and two filtered rows from the native provider. The existing demo visitor was reused. Original-owner private paired browser verification remains open.
+
+11 November UTC: HyperDrive's [Supabase native pagination CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43016561338) passed at a994ffa8b2. It used PostgreSQL and PostgREST with 121 rows per listing surface and a 37-row response cap, requiring four native pages. This is loopback evidence for the three listing surfaces. Hosted Supabase CQL still awaits the dedicated HTTPS teaching project and restricted reader.
