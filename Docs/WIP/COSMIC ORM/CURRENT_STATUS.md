@@ -869,3 +869,6 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 11 November UTC: ENS native direct name resolution presets rendered 3 full and 2 filtered rows in the live Development WEB4 CQL Playground. The original-owner private paired browser check remains open.
 
 11 November UTC: Chainflip native public completed-swap presets rendered 3 full and 2 filtered rows in the live Development WEB4 CQL Playground. The original-owner private paired browser check remains open.
+
+
+11 November UTC branch coordination: Development c39eba5cd1 contains the HyperDrive SQL Server registration batch. COSMIC still pins Core 4018beec, while Development pins e5802022. The COSMIC Core pin lacks the bound replication route inventory interfaces used by the deployed worker. Continue integrating exact scoped batches on the Development base; wholesale replication worker or Core pin replacement would mix incompatible contracts. Railway SQL Server revision remains in build.
