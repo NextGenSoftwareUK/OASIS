@@ -1,6 +1,6 @@
 # Current provider status
 
-11 November Solana fresh Agave 4.3.0 passed 52/52 on the shipping Solnet adapter at 22815c2b59. Run 43023043006 logged 26 cases and verified logical cleanup in each mode. The job was canceled after its 30-minute limit while waiting for the background validator to exit following SIGINT. The teardown now sends TERM and bounds shutdown before removing the owned fixture. Original ledger recovery and hosted acceptance remain open.
+11 November Solana fresh Agave 4.3.0 passed 52/52 on the shipping Solnet adapter at 22815c2b59. Run 43023043006 logged 26 cases and verified logical cleanup in each mode. The job was canceled after its 30-minute limit while waiting for the background validator to exit following SIGINT. The teardown now sends TERM and bounds shutdown before removing the owned fixture. Run 43027809655 verifies the updated runner. Development 7951636ce0 contains the already verified memo write acknowledgement and test source. Original ledger recovery and hosted acceptance remain open.
 
 11 November EOSIO native storage passed 3/3 on official Spring 1.2.2. The shipping adapter completed avatar and holon CRUD and avatar-detail update, soft delete and hard delete against the deployed contract. Native table checks verified fixture cleanup. Run 43026743854 passed at 90e2fc4c23. Development c0b8c1eef1 contains the verified storage changes and workflow. Full shared-suite, hosted deployment and remaining capabilities remain open.
 
