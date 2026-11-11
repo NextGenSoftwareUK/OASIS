@@ -252,16 +252,16 @@ public partial class Web3CoreOASISBaseProvider
         {
             TransactionReceipt transactionResult = await _web3CoreOASIS.SendTransactionAsync(toWalletAddress, amount);
 
-            if (transactionResult.HasErrors() is true)
+            if (transactionResult?.Status?.Value != BigInteger.One || string.IsNullOrWhiteSpace(transactionResult.TransactionHash))
             {
                 result.Message = string.Concat(errorMessage, "Web3CoreOASIS transaction performing failed! " +
-                                 $"From: {transactionResult.From}, To: {transactionResult.To}, Amount: {amount}." +
-                                 $"Reason: {transactionResult.Logs}");
+                                 $"From: {transactionResult?.From}, To: {transactionResult?.To}, Amount: {amount}." +
+                                 $"Reason: {transactionResult?.Logs}");
                 OASISErrorHandling.HandleError(ref result, result.Message);
                 return result;
             }
 
-            result.Result.TransactionResult = transactionResult.TransactionHash;
+            result.Result = new TransactionResponse { TransactionResult = transactionResult.TransactionHash };
             TransactionHelper.CheckForTransactionErrors(ref result, true, errorMessage);
         }
         catch (RpcResponseException ex)
@@ -632,13 +632,13 @@ public partial class Web3CoreOASISBaseProvider
             Web3CoreOASIS web3CoreInstance = new(senderAccountPrivateKey, _hostURI, _contractAddress, Web3CoreOASISBaseProviderHelper.Abi);
             TransactionReceipt receipt = await web3CoreInstance.SendTransactionAsync(receiverAccountAddress, amount);
 
-            if (receipt.HasErrors() is true)
+            if (receipt?.Status?.Value != BigInteger.One || string.IsNullOrWhiteSpace(receipt.TransactionHash))
             {
-                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, receipt.Logs));
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, "No successful native transfer receipt. Logs: ", receipt?.Logs));
                 return result;
             }
 
-            result.Result.TransactionResult = receipt.TransactionHash;
+            result.Result = new TransactionResponse { TransactionResult = receipt.TransactionHash };
             TransactionHelper.CheckForTransactionErrors(ref result, true, errorMessage);
         }
         catch (Exception ex)

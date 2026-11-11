@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November Web3Core native transfer candidate. The direct and private-key transfer paths now populate the wallet response from the mined transaction hash and require successful EVM execution status. Previously the response assignment dereferenced an uninitialized result after the native transfer had already completed. C# syntax and diff checks passed. Signed native verification remains open.
+
 11 November Optimism legacy transfer candidate. The ETH transfer now requires the activated signer to match the requested sender and uses the existing Nethereum transfer service with a successful native receipt. This removes the unsupported account and raw-transaction REST routes, fixed gas price and Int64 wei conversion. Signed OP Sepolia verification remains open. This legacy change is outside the verified Development batch.
 
 11 November Optimism legacy native read candidate. Activation now uses Nethereum chain identity and deployed bytecode rather than an HTTP GET to the RPC root. The GUID avatar read uses the same getAvatar contract call as provider-key reads, replacing the unsupported account REST path. Provider keys are validated before the call and malformed metadata surfaces as an error. The legacy ABI deployment still requires real fixture verification. The shipping Web3Core wallet evidence remains separate.
