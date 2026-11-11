@@ -243,3 +243,5 @@ Browser interaction/full native payload copying/reliability remain unverified.
 11 November UTC: the warmed Development 323c4f54da catalogue reached 105 available sources on Railway 5c6a6f59. Startup logs recorded a Blockscout activation timeout at 15,005 ms. Preserve its previously accepted browser results; no provider recovery or preset replay was performed.
 
 11 November UTC: Railway WEB4 b5fe79a765 is active. Authenticated discovery with the existing visitor showed 105 of 106 sources available. Nostr returned to available on discovery. Blockscout is the sole unavailable listed source and its activation log shows cancellation after 15,010 ms with no HTTP status. Prior query acceptance is preserved. The existing operator recovery path applies if Blockscout remains unavailable.
+
+11 November UTC: active Railway WEB4 deployment 73edd8aa at 2df4de082f advertised all 106 listed sources available in authenticated discovery. Blockscout recovered from the prior startup cancellation. Previously accepted query results remain scoped to their original runs. No preset was replayed.

@@ -1425,3 +1425,7 @@ KeyDB combined orchestration CI 43051825070 is active. Railway is building b8df6
 11 November UTC: Valkey 9.0.4 native CI 43055529432 passed the strict encrypted native CQL, restart, Mongo replica admission and SDK/HTTP federation checks. The official digest-pinned image supplied the executable and the runner verified the same native source after restart. Standard CI routing and hosted TLS acceptance remain open.
 
 11 November UTC: Valkey candidate f6084bf424 routes generic storage to the standard matrix and calls the verified 9.0.4 restart/federation workflow separately. Combined diagnostic 8baa31be52 is submitted on Development ea54de967e. Standard CI and hosted TLS verification remain open.
+
+11 November UTC: active Railway WEB4 deployment 73edd8aa at 2df4de082f advertised all 106 listed sources available in authenticated discovery. Blockscout recovered from the prior startup cancellation. Previously accepted query results remain scoped to their original runs. No preset was replayed.
+
+Combined Valkey CI 43056231303 is active.
