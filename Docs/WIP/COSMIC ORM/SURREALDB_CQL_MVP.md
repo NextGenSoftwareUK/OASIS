@@ -314,3 +314,5 @@ The retained local source is preserved.
 11 November UTC: added native SurrealDB tests for GUID avatar-detail round-trip and avatar hard deletion with absence by GUID and username. Diagnostic `9936be0782` runs those cases with the previous five on 3.3.5. Development integration awaits the result.
 
 11 November UTC: the expanded seven-case generic SurrealDB diagnostic is active. The earlier 3.3.5 baseline and typed-ID companion runs have both completed, and their temporary tags were retired. [Expanded CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43040174105)
+
+11 November UTC: the expanded SurrealDB suite passed six cases including hard deletion. Avatar-detail point read reached its native row and failed decoding the stored `IAvatarChakras` field. Candidate `314e936c05` uses the shared stored-record deserializer for all three avatar-detail read paths. The stored representation is preserved. Diagnostic `14aff5293f` is pending. [Expanded CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43040174105)
