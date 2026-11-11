@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -15,6 +17,7 @@ using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.API.Core.Serialization;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Providers.MilvusOASIS
@@ -471,31 +474,43 @@ namespace NextGenSoftware.OASIS.API.Providers.MilvusOASIS
         public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
             => LoadAllHolonsAsync(holonType, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).GetAwaiter().GetResult();
 
-        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+        public override Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+            => SaveHolonGraphAsync(holon, saveChildren, recursive, maxChildDepth, 0);
+
+        private async Task<OASISResult<IHolon>> SaveHolonGraphAsync(IHolon holon, bool saveChildren, bool recursive, int maxChildDepth, int currentChildDepth)
         {
             var result = new OASISResult<IHolon>();
             try
             {
                 if (IsVersionControlEnabled) throw new NotSupportedException("Milvus historical Holon writes are not implemented.");
-                if (holon == null) throw new ArgumentNullException(nameof(holon));
-                var id = holon.Id == Guid.Empty ? Guid.NewGuid() : holon.Id;
-                var keys = holon.ProviderUniqueStorageKey == null
-                    ? new Dictionary<Core.Enums.ProviderType,string>()
-                    : new Dictionary<Core.Enums.ProviderType,string>(holon.ProviderUniqueStorageKey);
-                keys[Core.Enums.ProviderType.MilvusOASIS] = id.ToString("D");
-                var payload = JsonSerializer.SerializeToNode(holon,holon.GetType())!.AsObject();
-                payload["Id"] = id;
-                payload["ProviderUniqueStorageKey"] = JsonSerializer.SerializeToNode(keys);
-                await UpsertDocAsync(CollHolons,id.ToString("D"),payload);
-                holon.Id = id;
-                holon.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
-                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.MilvusOASIS] = id.ToString("D");
-                result.Result = holon; result.IsSaved = true; result.SavedCount = 1;
+                var plan = HolonGraphWritePlan.CreateForSave(new[] { holon }, saveChildren, recursive, maxChildDepth, currentChildDepth);
+                var rows = plan.Nodes.Select(node =>
+                {
+                    var snapshot = node.Snapshot;
+                    var keys = snapshot.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
+                    keys[Core.Enums.ProviderType.MilvusOASIS] = snapshot.Id.ToString("D");
+                    var payload = JsonNode.Parse(node.CapturedIntentJson)!.AsObject();
+                    payload.Remove("$type");
+                    payload["Id"] = snapshot.Id;
+                    payload["ParentHolonId"] = snapshot.ParentHolonId;
+                    payload["ProviderUniqueStorageKey"] = JsonSerializer.SerializeToNode(keys);
+                    return ToRow(payload, snapshot.Id.ToString("D"));
+                }).ToArray();
+                await UpsertRowsAsync(CollHolons, rows);
+
+                foreach (var node in plan.Nodes)
+                {
+                    node.Source.Id = node.Snapshot.Id;
+                    node.Source.ParentHolonId = node.Snapshot.ParentHolonId;
+                    node.Source.ProviderUniqueStorageKey = node.Snapshot.ProviderUniqueStorageKey;
+                }
+                result.Result = holon;
+                result.IsSaved = true;
+                result.SavedCount = rows.Length;
             }
-            catch (Exception ex)
+            catch (Exception error)
             {
-                result.Exception = ex;
-                OASISErrorHandling.HandleError(ref result,$"MilvusOASIS: SaveHolonAsync failed: {ex.Message}");
+                OASISErrorHandling.HandleError(ref result, $"MilvusOASIS: {error.Message}", error);
             }
             return result;
         }
@@ -510,12 +525,12 @@ namespace NextGenSoftware.OASIS.API.Providers.MilvusOASIS
             var errors = new List<string>();
             foreach (var holon in holons)
             {
-                var write = await SaveHolonAsync(holon,saveChildren,recursive,maxChildDepth,continueOnError,saveChildrenOnProvider);
+                var write = await SaveHolonGraphAsync(holon, saveChildren, recursive, maxChildDepth, curentChildDepth);
                 if (write.IsError) { errors.Add(write.Message); if (!continueOnError) break; }
-                else if (write.IsSaved && write.Result != null) saved.Add(write.Result);
+                else if (write.IsSaved && write.Result != null) { saved.Add(write.Result); result.SavedCount += write.SavedCount; }
             }
             result.Result = saved; result.IsError = errors.Count > 0; result.ErrorCount = errors.Count;
-            result.IsSaved = saved.Count > 0; result.SavedCount = saved.Count; result.Message = string.Join("; ",errors);
+            result.IsSaved = result.SavedCount > 0; result.Message = string.Join("; ",errors);
             return result;
         }
 

@@ -133,6 +133,10 @@ jobs:
           export OASIS_MILVUS_CI_FIXTURE="$fixture"
           pwsh -NoProfile -Command '
             ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-MilvusStorage -Operation {
+              if ($env:OASIS_MILVUS_CI_MODE -eq "sync") {
+                dotnet test "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.MilvusOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.MilvusOASIS.UnitTests.csproj" --filter "FullyQualifiedName~MilvusSaveOwnershipTests" /m:2 /nr:false /p:UseSharedCompilation=false --logger "console;verbosity=normal"
+                if ($LASTEXITCODE -ne 0) { throw "Milvus write ownership verification failed." }
+              }
               dotnet test "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.MilvusOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.MilvusOASIS.IntegrationTests.csproj" --filter "FullyQualifiedName~CoreStorageSuiteAgainstMilvus" /m:2 /nr:false /p:UseSharedCompilation=false --logger "console;verbosity=normal"
               if ($LASTEXITCODE -ne 0) { throw "Native Milvus storage verification failed." }
             }'
