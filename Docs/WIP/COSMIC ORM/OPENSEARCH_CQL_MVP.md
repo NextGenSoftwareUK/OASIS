@@ -281,3 +281,5 @@ Execution needs an owned source and restricted read credentials.
 11 November UTC: standard OpenSearch CI fixture orchestration is under verification at ba77981977. Both generic and native coverage are retained. Hosted HTTPS CQL remains open.
 
 11 November UTC: the generic and secured native OpenSearch jobs are queued in [OpenSearch fixture orchestration CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43040976654).
+
+11 November UTC: both OpenSearch CI jobs passed together, including the generic storage matrix and secured native restart/federation workflow. Candidate `18d99faa23` is ready for the next Development batch. The equivalent SurrealDB jobs are running. Hosted HTTPS CQL remains open for both. [OpenSearch CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43040976654) · [SurrealDB CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43042182895)
