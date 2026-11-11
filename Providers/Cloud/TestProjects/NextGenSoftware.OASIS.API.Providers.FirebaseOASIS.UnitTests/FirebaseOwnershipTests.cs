@@ -27,6 +27,50 @@ public class FirebaseOwnershipTests
     private static HttpResponseMessage Response(string json, HttpStatusCode status = HttpStatusCode.OK)
         => new(status) { Content = new StringContent(json, Encoding.UTF8, "application/json") };
 
+    [DataTestMethod, DataRow(false), DataRow(true)]
+    public async Task GraphSavePublishesIdentitiesOnlyAfterCompleteAtomicAcknowledgement(bool omitChild)
+    {
+        using var reply = new Reply((request, text) =>
+        {
+            Assert.AreEqual(HttpMethod.Patch, request.Method);
+            Assert.AreEqual("/oasis_holons.json", request.RequestUri!.AbsolutePath);
+            var rows = JsonNode.Parse(text!)!.AsObject();
+            Assert.AreEqual(2, rows.Count);
+            var parent = rows.Single(row => row.Value!["name"]!.GetValue<string>() == "root");
+            Assert.IsNull(parent.Value!["children"]);
+            Assert.IsNull(parent.Value!["allChildren"]);
+            var childRow = rows.Single(row => row.Key != parent.Key);
+            Assert.AreEqual(Guid.Parse(parent.Key), childRow.Value!["parentHolonId"]!.GetValue<Guid>());
+            if (omitChild) rows.Remove(childRow.Key);
+            return Response(rows.ToJsonString());
+        });
+        using var http = new HttpClient(reply);
+        var provider = new FirebaseOASIS("https://synthetic.invalid", null, http);
+        var root = new Holon { Id = Guid.Empty, Name = "root" };
+        var child = new Holon { Id = Guid.Empty, Name = "child" };
+        root.Children.Add(child);
+
+        var result = await provider.SaveHolonAsync(root);
+
+        Assert.AreEqual(1, reply.Sends);
+        Assert.AreEqual(omitChild, result.IsError);
+        Assert.AreEqual(omitChild ? 0 : 2, result.SavedCount);
+        if (omitChild)
+        {
+            Assert.AreEqual(Guid.Empty, root.Id);
+            Assert.AreEqual(Guid.Empty, child.Id);
+            Assert.AreEqual(Guid.Empty, child.ParentHolonId);
+            Assert.IsInstanceOfType(result.Exception, typeof(INativeMutationReconciliationRequired));
+        }
+        else
+        {
+            Assert.AreNotEqual(Guid.Empty, root.Id);
+            Assert.AreNotEqual(Guid.Empty, child.Id);
+            Assert.AreEqual(root.Id, child.ParentHolonId);
+            Assert.AreEqual(child.Id.ToString("D"), child.ProviderUniqueStorageKey[ProviderType.FirebaseOASIS]);
+        }
+    }
+
     [DataTestMethod][DataRow("http", false)][DataRow("malformed", false)][DataRow("null", false)]
     [DataRow("huge", false)][DataRow("identity", false)][DataRow("payload", false)][DataRow("http", true)]
     public async Task FailedWriteKeepsCallerIdentityAndKeyUntilNativeAcknowledgement(string fault, bool existing)
@@ -55,6 +99,26 @@ public class FirebaseOwnershipTests
         using var dispatched = JsonDocument.Parse(reply.Mutation!);
         Assert.AreEqual(dispatched.RootElement.GetProperty("id").GetGuid(), result.Exception.GetType().GetProperty("ProposedId")!.GetValue(result.Exception));
         if (fault == "http") Assert.AreEqual(HttpStatusCode.ServiceUnavailable, ((HttpRequestException)result.Exception.InnerException!).StatusCode);
+    }
+
+    [TestMethod]
+    public async Task BulkSaveStopsAndReportsUncertainMutationAfterAnAdmissionError()
+    {
+        using var reply = new Reply((_, _) => Response("{}", HttpStatusCode.ServiceUnavailable));
+        using var http = new HttpClient(reply);
+        var provider = new FirebaseOASIS("https://synthetic.invalid", null, http);
+        var uncertain = new Holon { Id = Guid.NewGuid() };
+        var unattempted = new Holon { Id = Guid.NewGuid() };
+
+        var result = await provider.SaveHolonsAsync(new IHolon[] { null!, uncertain, unattempted });
+
+        Assert.IsTrue(result.IsError);
+        Assert.AreEqual(2, result.ErrorCount);
+        Assert.AreEqual(0, result.SavedCount);
+        Assert.AreEqual(1, reply.Sends);
+        Assert.IsInstanceOfType(result.Exception, typeof(INativeMutationReconciliationRequired));
+        using var dispatched = JsonDocument.Parse(reply.Mutation!);
+        Assert.AreEqual(uncertain.Id, dispatched.RootElement.GetProperty("id").GetGuid());
     }
 
     [TestMethod]
@@ -125,19 +189,33 @@ public class FirebaseOwnershipTests
         else Assert.IsTrue((await provider.LoadHolonsForParentAsync(requested, loadChildren: false)).IsError);
     }
 
-    [DataTestMethod][DataRow(true)][DataRow(false)]
-    public async Task SoftDeletePersistsCanonicalDateAndChecksTheSameSaveAcknowledgement(bool reject)
+    [DataTestMethod][DataRow(200)][DataRow(412)][DataRow(503)]
+    public async Task SoftDeleteUsesObservedRevisionAndChecksNativeAcknowledgement(int status)
     {
         var id = Guid.NewGuid();
-        using var reply = new Reply((request, text) => request.Method == HttpMethod.Get
-            ? Response(JsonSerializer.Serialize(new { id, name = "owned" }))
-            : reject ? Response("{}", HttpStatusCode.ServiceUnavailable) : Response(text!));
+        using var reply = new Reply((request, text) =>
+        {
+            if (request.Method == HttpMethod.Get)
+            {
+                Assert.AreEqual("true", request.Headers.GetValues("X-Firebase-ETag").Single());
+                var observed = Response(JsonSerializer.Serialize(new { id, name = "owned" }));
+                observed.Headers.ETag = new System.Net.Http.Headers.EntityTagHeaderValue("\"observed\"");
+                return observed;
+            }
+
+            Assert.AreEqual("\"observed\"", request.Headers.IfMatch.Single().Tag);
+            return status == 200 ? Response(text!) : Response("{}", (HttpStatusCode)status);
+        });
         using var http = new HttpClient(reply);
         var provider = new FirebaseOASIS("https://synthetic.invalid", null, http);
         var result = await provider.DeleteHolonAsync(id);
-        Assert.AreEqual(reject, result.IsError);
-        if (reject) Assert.IsInstanceOfType(result.Exception, typeof(INativeMutationReconciliationRequired));
-        else { Assert.IsTrue(result.IsSaved); Assert.IsTrue(result.Result.IsDeleted); }
+
+        Assert.AreEqual(status != 200, result.IsError);
+        Assert.AreEqual(status == 503, result.Exception is INativeMutationReconciliationRequired);
+        Assert.AreEqual(status == 200, result.IsDeleted);
+        if (status == 200) Assert.IsTrue(result.Result.IsDeleted);
+        if (status == 412) Assert.AreEqual(HttpStatusCode.PreconditionFailed,
+            ((HttpRequestException)result.Exception!).StatusCode);
         using var json = JsonDocument.Parse(reply.Mutation!);
         Assert.AreNotEqual(DateTime.MinValue, json.RootElement.GetProperty("deletedDate").GetDateTime());
     }
