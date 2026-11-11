@@ -6210,3 +6210,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: prepared the scoped CouchDB authority fix and removed its temporary Git index. Requested cancellation of superseded remote build 43086919320. No local image, build, restore or download.
 
 11 November UTC: Track temporary diagnostic tag ci-cosmic-couchdb-catalogue-febb6971d8 through CI and candidate publication. The latest readiness observation reused the existing visitor and generated four protected renewal journal files. No new local build, restore, image, download, or report. Scoped Git index removed.
+
+11 November UTC: removed the superseded CouchDB image tag ci-cosmic-couchdb-image-d262eab8c8 after image run 43086919320 was cancelled and companion run 43086917607 passed. Verified remote deletion and retained the corrected qualification tag. No local build or download.
