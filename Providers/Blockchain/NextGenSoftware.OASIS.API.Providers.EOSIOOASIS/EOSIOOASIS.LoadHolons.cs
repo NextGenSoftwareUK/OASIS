@@ -297,48 +297,11 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             return LoadHolonsForParentAsync(id, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id,
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id,
             HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0,
             int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = ActivateProvider();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                // Query EOSIO smart contract for holons for parent
-                var holonsData = await _eosClient.GetHolonsForParentAsync(id);
-                if (holonsData != null)
-                {
-                    var holons = new List<IHolon>();
-                    foreach (var holonData in holonsData)
-                    {
-                        var holon = ParseEOSIOToHolon(holonData);
-                        if (holon != null)
-                        {
-                            holons.Add(holon);
-                        }
-                    }
-
-                    result.Result = holons;
-                    result.IsError = false;
-                    result.Message = $"Successfully loaded {holons.Count} holons for parent from EOSIO";
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading holons for parent from EOSIO: {ex.Message}", ex);
-            }
-            return result;
-        }
+            => ReadStoredHolonsAsync(row => row.ParentHolonId == id, type, loadChildren, recursive,
+                maxChildDepth, curentChildDepth, loadChildrenFromProvider, version, rootsAreChildren: true);
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey,
             HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0,
@@ -393,144 +356,61 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
         public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All,
             bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0,
             bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                var allHolonDTOs = _holonRepository.ReadAll().Result;
-                if (allHolonDTOs.IsEmpty)
-                    return result;
+            => LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth,
+                continueOnError, loadChildrenFromProvider, version).GetAwaiter().GetResult();
 
-                result.Result =
-                    allHolonDTOs
-                        .Select(holonDto => holonDto.GetBaseHolon())
-                        .ToList();
-                result.IsLoaded = true;
-                result.IsError = false;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, GetEOSExceptionDetails(ex));
-            }
-
-            return result;
-        }
-
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All,
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All,
             bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0,
             bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+            => ReadStoredHolonsAsync(_ => true, type, loadChildren, recursive, maxChildDepth,
+                curentChildDepth, loadChildrenFromProvider, version);
+
+        private async Task<OASISResult<IEnumerable<IHolon>>> ReadStoredHolonsAsync(Func<IHolon, bool> predicate,
+            HolonType type, bool loadChildren, bool recursive, int maxChildDepth, int currentChildDepth,
+            bool childrenFromProvider, int version, bool rootsAreChildren = false)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
             try
             {
-                var allHolonDTOs = await _holonRepository.ReadAll();
-                if (allHolonDTOs.IsEmpty)
-                    return result;
+                if (version != 0)
+                    throw new NotSupportedException("The Antelope holon table exposes only current records.");
 
-                result.Result =
-                    allHolonDTOs
-                        .Select(holonDto => holonDto.GetBaseHolon())
-                        .ToList();
+                var rows = (await _holonRepository.ReadAll().ConfigureAwait(false))
+                    .Where(row => !row.IsDeleted).Select(row => row.GetBaseHolon()).ToArray();
+                var project = HolonGraphProjection.Create(rows, loadChildren, recursive, maxChildDepth,
+                    currentChildDepth, childrenFromProvider,
+                    row => (IHolon)OasisJson.Deserialize(OasisJson.Serialize<object>(row), typeof(Holon)),
+                    rootsAreChildren);
+                var selected = rows.Where(row => (type == HolonType.All || row.HolonType == type) && predicate(row))
+                    .Select(project).ToList();
+                result.Result = selected;
                 result.IsLoaded = true;
-                result.IsError = false;
+                result.LoadedCount = selected.Count;
             }
-            catch (Exception ex)
+            catch (Exception error)
             {
-                OASISErrorHandling.HandleError(ref result, GetEOSExceptionDetails(ex));
+                OASISErrorHandling.HandleError(ref result, GetEOSExceptionDetails(error), error);
             }
-
             return result;
         }
 
-        public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
-        {
-            if (holon == null)
-                throw new ArgumentNullException(nameof(holon));
-
-            var result = new OASISResult<IHolon>();
-            try
-            {
-                var holonInfo = OasisJson.Serialize<object>(holon);
-
-                // Check if avatar with such Id exists, if yes - perform updating, otherwise perform creating
-                var existAvatar = _holonRepository.Read(holon.Id).Result;
-                if (existAvatar != null)
-                {
-                    _holonRepository.Update(new HolonDto
-                    {
-                        Info = holonInfo
-                    }, holon.Id).Wait();
-                }
-                else
-                {
-                    var holonEntityId = HashUtility.GetNumericHash(holon.Id);
-
-                    _holonRepository.Create(new HolonDto
-                    {
-                        Info = holonInfo,
-                        HolonId = holon.Id.ToString(),
-                        EntityId = holonEntityId,
-                        IsDeleted = false
-                    }).Wait();
-                }
-
-                result.Result = holon;
-                result.IsSaved = true;
-                result.IsError = false;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, GetEOSExceptionDetails(ex));
-            }
-
-            return result;
-        }
+        public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true,
+            bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+            => SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider)
+                .GetAwaiter().GetResult();
 
         public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true,
             bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
-            if (holon == null)
-                throw new ArgumentNullException(nameof(holon));
-
-            var result = new OASISResult<IHolon>();
-            try
-            {
-                var holonInfo = OasisJson.Serialize<object>(holon);
-
-                // The existing chain row determines whether to create or update the holon.
-                var existingHolon = await _holonRepository.Read(holon.Id);
-                if (existingHolon != null)
-                {
-                    await _holonRepository.Update(new HolonDto
-                    {
-                        Info = holonInfo
-                    }, holon.Id);
-                }
-                else
-                {
-                    var holonEntityId = HashUtility.GetNumericHash(holon.Id);
-                    await _holonRepository.Create(new HolonDto
-                    {
-                        Info = holonInfo,
-                        HolonId = holon.Id.ToString(),
-                        EntityId = holonEntityId,
-                        IsDeleted = false
-                    });
-                }
-
+            ArgumentNullException.ThrowIfNull(holon);
+            var batch = await SaveHolonBatchAsync(new[] { holon }, saveChildren, recursive, maxChildDepth, 0)
+                .ConfigureAwait(false);
+            var result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>, IHolon>(batch);
+            if (batch.IsSaved)
                 result.Result = holon;
-                result.IsSaved = true;
-                result.SavedCount = 1;
-                result.IsError = false;
-            }
-            catch (Exception ex)
-            {
-                result.Exception = ex;
-                OASISErrorHandling.HandleError(ref result, GetEOSExceptionDetails(ex));
-            }
-
             return result;
         }
+
 
     }
 }

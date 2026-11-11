@@ -143,15 +143,53 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
             }
         }
 
+        public async Task SaveBatchAsync(IReadOnlyList<HolonDto> rows)
+        {
+            var actions = new List<Action>(rows.Count);
+            foreach (var row in rows)
+            {
+                var existing = await Read(Guid.Parse(row.HolonId)).ConfigureAwait(false);
+                if (existing != null && (existing.IsDeleted || existing.EntityId != row.EntityId))
+                    throw new InvalidOperationException("The existing Antelope holon row is deleted or has a conflicting native identity.");
+
+                object data = existing == null
+                    ? new { entityId = row.EntityId, holonId = row.HolonId, info = row.Info }
+                    : new { entityId = row.EntityId, info = row.Info };
+                actions.Add(new Action
+                {
+                    account = _eosAccountName,
+                    authorization = new List<PermissionLevel>
+                    {
+                        new() { actor = _eosAccountName, permission = "active" }
+                    },
+                    name = existing == null ? "addholon" : "setholon",
+                    data = data
+                });
+            }
+
+            var transactionId = await _eos.CreateTransaction(new Transaction { actions = actions }).ConfigureAwait(false);
+            if (string.IsNullOrWhiteSpace(transactionId))
+                throw new InvalidOperationException("Antelope did not acknowledge the holon transaction.");
+        }
+
         public async Task<ImmutableArray<HolonDto>> ReadAll()
         {
-            var holonTableRows = await _eosClient.GetTableRows<HolonDto>(new GetTableRowsRequestDto
+            var request = new GetTableRowsRequestDto { Code = _eosAccountName, Scope = _eosAccountName, Table = _holonTable };
+            var rows = ImmutableArray.CreateBuilder<HolonDto>();
+            var cursors = new HashSet<string>(StringComparer.Ordinal);
+            while (true)
             {
-                Code = _eosAccountName,
-                Scope = _eosAccountName,
-                Table = _holonTable
-            });
-            return holonTableRows.Rows.ToImmutableArray();
+                var page = await _eosClient.GetTableRows<HolonDto>(request).ConfigureAwait(false);
+                if (page?.Rows == null || !page.More.HasValue)
+                    throw new InvalidOperationException("EOSIO did not return a complete holon table page.");
+
+                rows.AddRange(page.Rows);
+                if (!page.More.Value)
+                    return rows.ToImmutable();
+                if (string.IsNullOrWhiteSpace(page.NextKey) || !cursors.Add(page.NextKey))
+                    throw new InvalidOperationException("EOSIO returned an invalid holon table continuation.");
+                request.LowerBound = page.NextKey;
+            }
         }
 
         public async Task<ImmutableArray<HolonDto>> ReadAllByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All)

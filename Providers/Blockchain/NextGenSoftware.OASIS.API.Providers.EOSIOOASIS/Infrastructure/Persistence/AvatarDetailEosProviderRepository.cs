@@ -86,7 +86,9 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
                 $"Received transaction hash response: {pushTransactionResult}.", LogType.Info);
         }
 
-        public async Task<AvatarDetailDto> Read(Guid id)
+        public Task<AvatarDetailDto> Read(Guid id) => ReadOwnedRowAsync(id, includeDeleted: false);
+
+        internal async Task<AvatarDetailDto> ReadOwnedRowAsync(Guid id, bool includeDeleted)
         {
             if (id == null)
                 throw new ArgumentNullException(nameof(id));
@@ -101,7 +103,9 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
                 Limit = 1
             });
             return avatarDetailTableRows.Rows.FirstOrDefault(avatarDetailDto =>
-                avatarDetailDto.IsDeleted != true && avatarDetailDto.EntityId == avatarDetailId && Guid.TryParse(avatarDetailDto.AvatarId, out var owner) && owner == id);
+                (includeDeleted || avatarDetailDto.IsDeleted != true) &&
+                avatarDetailDto.EntityId == avatarDetailId &&
+                Guid.TryParse(avatarDetailDto.AvatarId, out var owner) && owner == id);
         }
 
         public async Task<ImmutableArray<AvatarDetailDto>> ReadAll()
