@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+11 November BNB run 43084066216 confirmed removal of the official binary, private-chain data, temporary keys, storage checkpoints and npm dependencies from the disposable runner. No Windows build or download was created.
+
 11 November BNB run 43083089351 stopped its owned BSC process after the failed write. The job ran on a disposable GitHub runner. The workflow now prints a cleanup confirmation after checking both the fixture and npm dependencies are absent. No Windows runtime, build or download was created.
 
 11 November AvalancheGo run 43080136029 passed both modes and confirmed removal of the container, volumes, newly pulled image, npm dependencies and fixture directory. No Windows runtime, build or download was created.
