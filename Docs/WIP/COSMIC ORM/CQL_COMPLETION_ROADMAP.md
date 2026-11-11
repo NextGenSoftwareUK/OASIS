@@ -10,8 +10,9 @@ means SOLID; ActibityPub means ActivityPub; HetraGraph means Hedera/Hashgraph
 
 Solana, Ethereum, Polygon, Arbitrum, NEAR, Cosmos and Polkadot retain accepted
 scoped live HTTP and browser evidence. IPFS and ActivityPub also retain live HTTP
-and browser proofs. SOLID, TON, Hedera and EOS retain accepted live HTTP evidence;
-their browser gates remain open. TRON has no accepted current live CQL admission: preserve rate-limit/denial
+and browser proofs. SOLID, TON, Hedera and EOS retain accepted live HTTP and
+public browser evidence. Their original-owner private paired browser checks remain
+open. TRON has no accepted current live CQL admission: preserve rate-limit/denial
 outcomes and the authenticated-reader draft/credential preflight; do not retry
 failed unauthenticated endpoints or recreate its original cohort. Use the single
 owner-action list for any missing account/access requirement, preserving existing
