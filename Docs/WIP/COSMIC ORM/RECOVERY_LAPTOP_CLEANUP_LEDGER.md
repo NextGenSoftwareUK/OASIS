@@ -6162,3 +6162,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: fetched Development without tags or submodules and prepared a scoped merge from committed trees. No temporary worktree, local build, restore, image or download.
 
 11 November UTC: reused the existing visitor on WEB4 31db62c741. Ordinary session renewal retained four protected journal files. No new avatar, query report, local build, restore, image or download. Temporary Git index removed.
+
+11 November UTC: inspected the exact image logs in memory and recorded its digest. Track combined verification tag ci-cosmic-supabase-milvus-web4-cadf5bf85b until the workflows finish and integration evidence is recorded. Temporary indices removed. No local image, download, restore or build.
