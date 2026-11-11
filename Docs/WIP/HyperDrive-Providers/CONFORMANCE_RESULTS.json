@@ -329,7 +329,7 @@
       "Canonical native suite12/52 stopped at detail-id acknowledgement; missing LoadedCount fixed and original-fixture read regression2PASS, full-suite rerun pending reviewed fixture cleanup; no routing/recovery depth"
     ],
     "CockroachDBOASIS": [
-      "SQL family unit gate90PASS is not native product conformance; product factory/access still pending"
+      "Official CockroachDB 26.2.9 passed 52/52 in [run 43060207358](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43060207358) through the shipping Npgsql provider. Native SQL verified exact owned tombstone cleanup and empty current tables in both databases. Hosted acceptance remains open."
     ],
     "TimescaleDBOASIS": [
       "SQL family unit gate90PASS is not native product conformance; product factory/access still pending"
