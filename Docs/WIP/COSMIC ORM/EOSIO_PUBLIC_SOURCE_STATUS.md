@@ -66,3 +66,5 @@ A fresh temporary WEB4 demo session on Development ran both EOSIOOASIS public pr
 11 November UTC: the documented original EOSIO owner journal and HTTP reports are still absent from this recovery checkout. Public browser acceptance and prior hosted HTTP/replica receipts remain recorded. Original-owner private browser verification requires recovering that identity and confirming the existing two copies. HyperDrive's contract artifact CI is separate.
 
 11 November UTC: HyperDrive's [Antelope contract build](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43025526058) passed the ABI build/validation and uploaded the antelope-oasis-contract artifact (13857555218, 8,222 bytes) at d4c06c9c91. This is build evidence. Dedicated live deployment and storage lifecycle remain open.
+
+11 November UTC: Development a5e8fc36c4 includes the verified Antelope contract build workflow and ABI/WASM artifacts. Native live deployment and storage lifecycle remain open.
