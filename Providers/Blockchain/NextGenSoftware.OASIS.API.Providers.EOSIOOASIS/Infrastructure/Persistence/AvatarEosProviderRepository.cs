@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -80,8 +80,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
 
             LoggingManager.Log(
                 "Avatar creating request was sent. " +
-                $"Received transaction hash response: {pushTransactionResult}. " +
-                $"Request sent: {JsonConvert.SerializeObject(entity)}", LogType.Info);
+                $"Received transaction hash response: {pushTransactionResult}.", LogType.Info);
         }
 
         public async Task Update(AvatarDto entity, Guid id)
@@ -117,8 +116,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
 
             LoggingManager.Log(
                 "Avatar updating request was sent. " +
-                $"Received transaction hash response: {pushTransactionResult}. " +
-                $"Request sent: {JsonConvert.SerializeObject(entity)}", LogType.Info);
+                $"Received transaction hash response: {pushTransactionResult}.", LogType.Info);
         }
 
         public async Task<AvatarDto> Read(Guid id)
@@ -177,6 +175,9 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
                 }
             });
 
+            if (string.IsNullOrWhiteSpace(pushTransactionResult))
+                throw new InvalidOperationException("EOSIO avatar deletion returned no transaction ID.");
+
             LoggingManager.Log(
                 "Avatar soft-deleting request was sent. " +
                 $"Received transaction hash response: {pushTransactionResult}. " +
@@ -212,6 +213,9 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
                     }
                 }
             });
+
+            if (string.IsNullOrWhiteSpace(pushTransactionResult))
+                throw new InvalidOperationException("EOSIO avatar deletion returned no transaction ID.");
 
             LoggingManager.Log(
                 "Avatar hard-deleting request was sent. " +
