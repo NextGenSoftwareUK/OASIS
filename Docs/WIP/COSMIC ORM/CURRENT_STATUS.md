@@ -1321,3 +1321,5 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 11 November UTC: candidate 18d99faa23 routes the four generic OpenSearch storage tests to the standard matrix and calls the secured native restart/federation workflow from the same pipeline. Diagnostic ba77981977 verifies both jobs. Development integration awaits the combined result.
 
 11 November UTC: all seven generic SurrealDB storage regressions passed on 3.3.5 with zero skips, including avatar-detail GUID round-trip and avatar hard deletion. Candidate `314e936c05` combines typed GUID keys and shared avatar-detail deserialization. Development integration awaits the next verified batch. [SurrealDB CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43040628848)
+
+11 November UTC: SurrealDB diagnostic fce00733da runs the existing native restart and Mongo federation checks with a disposable CI replica set and the verified typed-key and avatar-detail fixes.
