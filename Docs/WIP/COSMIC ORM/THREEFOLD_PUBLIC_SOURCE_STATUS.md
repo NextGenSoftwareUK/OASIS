@@ -128,3 +128,5 @@ Website task/main2170b672851e7b302b3f0f582f7a938667d1ad89 pushed/remote verified
 `cql-demo-preparation.js`: 10241 bytes SHA256 `c1006abf6074616428f93e83e13774ba8a6198f35d8ed097d84323466a8b309a`, HTTP200/exactGitblob match.
 
 `cql-playground.js`: 21871 bytes SHA256 `7cb6210b9adda1e83630fc966926772f8338c43163c24d1abd88c626ad1ad649`, HTTP200/exactGitblob match.
+
+11 November UTC: ThreeFold public node summary presets rendered three full and two filtered rows in the live Development WEB4 Playground. The existing demo visitor was reused. Private paired browser verification remains open.
