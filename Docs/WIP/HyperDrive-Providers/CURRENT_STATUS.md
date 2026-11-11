@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November ScyllaDB storage [run 43069185380](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43069185380) at 3dfbf4908b passed 52/52 through the shipping DataStax adapter on ScyllaDB 2026.3.4. All five write-ownership regressions passed. Both independent keyspaces had three empty native tables after exact cleanup, and CI removed the disposable resources. Hosted and COSMIC CQL acceptance are separate.
+
 11 November Cassandra storage [run 43066716817](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43066716817) at ad046dcec1 passed 52/52 through the shipping DataStax adapter on Apache Cassandra 4.1.12. All five write-ownership regressions passed. Both independent keyspaces had five empty native tables after exact cleanup, and CI removed the disposable resources. Hosted and COSMIC CQL acceptance are separate.
 
 11 November PlanetScale storage [run 43064133424](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43064133424) at 69e965847a passed 52/52 against MySQL 8.4.13 through the shipping adapter. The serializer-only run 43063702938 verified all nine avatar and detail checks per mode before stopping at graph save. The full candidate verified atomic graph persistence, metadata and owner export, import, exact deletion and empty native tables in both modes. Managed PlanetScale and COSMIC CQL acceptance are separate.
