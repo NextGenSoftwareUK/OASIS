@@ -100,3 +100,5 @@ No native fixture replay or source writes. Browser acceptance remains open.
 
 `AxelarOASIS-native-http.json`: 11822B, SHA256
 `1b5e416123683a03948396f22d0112bf7da4b3debe1261aa53cfb7313ac9cfdc`.
+
+11 November UTC: Axelar public mainnet block-header presets rendered 3 full and 2 filtered rows in the live Development WEB4 CQL Playground. The original-owner private paired browser check remains open.
