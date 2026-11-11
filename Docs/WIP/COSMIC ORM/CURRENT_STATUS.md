@@ -1363,3 +1363,7 @@ CouchDB restart and federation diagnostic 43045487847 is active.
 11 November UTC: both CouchDB jobs passed in combined CI 43046007325. The generic storage and restricted-reader checks used the standard matrix fixture. The native CQL restart and MongoDB federation checks used the dedicated fixture. Verified routing is on the COSMIC branch, pending the next Development batch. Hosted HTTPS acceptance remains open.
 
 11 November UTC: Railway deployment 08cbe5d6 succeeded at 73e0d4bb08. The retained public readiness visitor needed renewal. Its single journalled request returned HTTP 200 with a nested application error classified as not found and no replacement cookie. The original protected intent and response are preserved for reconciliation. No catalogue request or replacement visitor was created. Newer Development revisions remain queued.
+
+11 November UTC: Development 3def10424e integrates HyperDrive Polkadot native storage. CI 43041109458 passed all 52 checks across sync and async on the fresh contracts node, with independent native empty-contract checks. Hosted and retained ledger validation remain open. The verified CouchDB CI batch was prepared on this Development base at ea614f3fc6.
+
+11 November UTC: the protected visitor renewal response exactly matched Core's Avatar not found result. The deployed code emits that result when the refresh-token avatar lookup fails, before rotation or persistence. This response does not establish why the provider lookup failed. Keep the original journal for diagnosis.
