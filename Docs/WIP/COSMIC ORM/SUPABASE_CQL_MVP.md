@@ -131,3 +131,5 @@ The retained local gateway evidence is separate.
 11 November UTC: superseded Supabase image run 43062441681 and activation run 43064279367 completed successfully on the earlier Core pin. The exact tariff-enabled candidate remains under qualification in 43066096421 and 43066150933.
 
 11 November UTC: exact tariff-enabled Supabase WEB4 CI 43066096421 passed. The job required all ten WEB4 boundary and query-only admission cases and all five provider activation cases to pass. The feature branch now carries the matching scoped reader and tests. Image 43066150933 is still building on release candidate f5ee717872. Development integration and hosted enrollment remain open.
+
+11 November UTC: Development 1ce576c988 integrated verified Apache Cassandra storage (52/52 plus five ownership cases in HyperDrive CI 43066716817). Cassandra is in the WEB4 project graph. Supabase candidate fcf3a50b57 preserves that verified change and every Supabase reader, test and Core pin blob from tariff-qualified f5ee717872. Exact combined WEB4 image CI 43067946525 was dispatched with a SHA-only image tag. Managed Supabase enrollment remains open.

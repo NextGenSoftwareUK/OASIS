@@ -6122,3 +6122,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: classified exact Railway activation logs in memory and checked the existing operator-session directory. No credentials, log file, build, download or runtime created. Temporary Git indices removed.
 
 11 November UTC: published the verified scoped Supabase source and test blobs on the existing feature branch. Removed the temporary Git index. CI metadata read in memory. No local build, restore, download or image.
+
+11 November UTC: track parent diagnostic tag ci-cosmic-supabase-web4-cassandra-1ce576c988 until exact image CI and publication finish. Local temporary Git index removed. No local image, restore, download or build.
