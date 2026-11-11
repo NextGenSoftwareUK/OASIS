@@ -4,12 +4,12 @@ on:
   push:
     branches: [work/hyperdrive-provider-completion]
     paths:
-      - 'Scripts/TestHosts/deploy-bnb-ci-storage.cjs'
       - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.BNBChainOASIS/**'
       - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/src/Web3CoreOASIS.cs'
       - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/src/Web3CoreOASISBaseProvider.AvatarDelete.cs'
       - 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.BNBChainOASIS.IntegrationTests/**'
       - '!Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.BNBChainOASIS.IntegrationTests/BnbPublicWalletBalanceTests.cs'
+      - '!Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.BNBChainOASIS.IntegrationTests/BnbNativeNftTests.cs'
   workflow_dispatch:
   workflow_call:
     inputs:
@@ -17,6 +17,9 @@ on:
         type: boolean
         default: false
       public_wallet_only:
+        type: boolean
+        default: false
+      nft_only:
         type: boolean
         default: false
     secrets:
@@ -85,6 +88,7 @@ jobs:
         shell: bash
         env:
           BNB_BOOTLOADER_ONLY: ${{ inputs.bootloader_only || false }}
+          BNB_NFT_ONLY: ${{ inputs.nft_only || false }}
         run: |
           fixture="$(mktemp -d "$RUNNER_TEMP/oasis-bnb.XXXXXXXX")"
           contract_root=Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS
@@ -137,6 +141,16 @@ jobs:
           node Scripts/TestHosts/deploy-bnb-ci-storage.cjs
           if [[ "$BNB_BOOTLOADER_ONLY" == true ]]; then
             pwsh -NoProfile -File Scripts/TestHosts/Invoke-BnbBootLoaderActivation.ps1
+            exit
+          fi
+          if [[ "$BNB_NFT_ONLY" == true ]]; then
+            pwsh -NoProfile -Command '
+              $settings = Get-Content -Raw (Join-Path $env:OASIS_BNB_CI_FIXTURE settings.json) | ConvertFrom-Json -AsHashtable
+              foreach ($entry in $settings.GetEnumerator()) { [Environment]::SetEnvironmentVariable($entry.Key, $entry.Value) }
+              ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-BNBNft -Operation {
+                dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.BNBChainOASIS.IntegrationTests" --filter "FullyQualifiedName~BnbNativeNftTests" /m:2 /nr:false /p:UseSharedCompilation=false --logger "console;verbosity=normal"
+                if ($LASTEXITCODE -ne 0) { throw "Native BNB NFT verification failed." }
+              }'
             exit
           fi
           pwsh -NoProfile -Command '

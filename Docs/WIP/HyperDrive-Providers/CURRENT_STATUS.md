@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November BNB NFT candidate. The shipping Web3Core contract now implements owner-authorized ERC-721 burn, matching the adapter ABI. A native Parlia job deploys the contract and checks mint, collection metadata, transfer, non-owner burn rejection, and owner burn with independent native ownership reads. Existing deployments need a compatible contract for this operation. Results are pending.
+
 11 November Valkey full storage candidate. The shipping ValKeyOASIS adapter runs both shared storage modes against the digest-pinned official Valkey 9.0.4 image. The test checks exact tombstone cleanup and native database emptiness. This adds shared lifecycle coverage without replaying the earlier storage smoke or COSMIC restart and federation checks. [Run 43091045329](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43091045329) is queued.
 
 11 November Firebase activation candidate. A successful HTTP status now also has to carry the RTDB JSON null response for the reserved empty holon identity. This keeps an HTML gateway or a wrong JSON endpoint from marking the shipping provider active. Regression cases cover null, empty, HTML and object responses. The combined compile, activation regression and emulator check is pending in run 43090501206.
