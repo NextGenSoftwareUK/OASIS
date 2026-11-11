@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November RavenDB native storage candidate. Shipping RavenDB.Client operations now report exact avatar and read counts, persist canonical avatar details, and wait for native indexes on read queries. The disposable workflow provisions two databases on the official pinned engine and exercises both shared storage modes. COSMIC query and certificate evidence carries forward. Native storage verification is pending.
+
 11 November ScyllaDB storage [run 43069185380](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43069185380) at 3dfbf4908b passed 52/52 through the shipping DataStax adapter on ScyllaDB 2026.3.4. All five write-ownership regressions passed. Both independent keyspaces had three empty native tables after exact cleanup, and CI removed the disposable resources. Hosted and COSMIC CQL acceptance are separate.
 
 11 November ScyllaDB native storage candidate. The shipping DataStax adapter now submits selected graph writes in one logged batch, uses canonical avatar-detail records, fixes indexed lookup syntax, and acknowledges exact storage counts. The new CI job reuses the pinned ScyllaDB engine and checks both storage modes and the existing write-ownership regression. Existing COSMIC query evidence carries forward. Verification is pending.

@@ -18,6 +18,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
+using NextGenSoftware.OASIS.API.Core.Serialization;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 
@@ -178,7 +179,7 @@ namespace NextGenSoftware.OASIS.API.Providers.RavenDBOASIS
                 if (existing != null) { existing.Username = avatar.Username; existing.Email = avatar.Email; existing.IsDeleted = avatar.IsDeleted; existing.DataJson = Ser(avatar); }
                 else { await session.StoreAsync(new AvatarDoc { Id = docId, Username = avatar.Username, Email = avatar.Email, IsDeleted = avatar.IsDeleted, DataJson = Ser(avatar) }, docId); }
                 await session.SaveChangesAsync();
-                result.Result = avatar; result.IsError = false; result.Message = $"RavenDBOASIS: Avatar '{avatar.Username}' saved.";
+                result.Result = avatar; result.IsError = false; result.IsSaved = true; result.SavedCount = 1; result.Message = $"RavenDBOASIS: Avatar '{avatar.Username}' saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"RavenDBOASIS: Error saving avatar: {ex.Message}"); }
             return result;
@@ -197,7 +198,7 @@ namespace NextGenSoftware.OASIS.API.Providers.RavenDBOASIS
                 var doc = await session.LoadAsync<AvatarDoc>($"OasisAvatars/{id}");
                 if (doc == null || doc.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"RavenDBOASIS: No avatar for ID '{id}'."); return result; }
                 var avatar = Des<Avatar>(doc.DataJson); if (avatar == null) { OASISErrorHandling.HandleError(ref result, "RavenDBOASIS: Deserialise failed."); return result; }
-                result.Result = avatar; result.IsError = false; result.Message = "RavenDBOASIS: Avatar loaded.";
+                result.Result = avatar; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "RavenDBOASIS: Avatar loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"RavenDBOASIS: {ex.Message}"); }
             return result;
@@ -211,10 +212,10 @@ namespace NextGenSoftware.OASIS.API.Providers.RavenDBOASIS
             try
             {
                 using var session = GetStore().OpenAsyncSession();
-                var doc = await session.Query<AvatarDoc>().FirstOrDefaultAsync(d => !d.IsDeleted && d.Username == username);
+                var doc = await session.Query<AvatarDoc>().Customize(query => query.WaitForNonStaleResults()).FirstOrDefaultAsync(d => !d.IsDeleted && d.Username == username);
                 if (doc == null) { OASISErrorHandling.HandleError(ref result, $"RavenDBOASIS: No avatar for username '{username}'."); return result; }
                 var avatar = Des<Avatar>(doc.DataJson); if (avatar == null) { OASISErrorHandling.HandleError(ref result, "RavenDBOASIS: Deserialise failed."); return result; }
-                result.Result = avatar; result.IsError = false; result.Message = "RavenDBOASIS: Avatar loaded.";
+                result.Result = avatar; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "RavenDBOASIS: Avatar loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"RavenDBOASIS: {ex.Message}"); }
             return result;
@@ -228,10 +229,10 @@ namespace NextGenSoftware.OASIS.API.Providers.RavenDBOASIS
             try
             {
                 using var session = GetStore().OpenAsyncSession();
-                var doc = await session.Query<AvatarDoc>().FirstOrDefaultAsync(d => !d.IsDeleted && d.Email == email);
+                var doc = await session.Query<AvatarDoc>().Customize(query => query.WaitForNonStaleResults()).FirstOrDefaultAsync(d => !d.IsDeleted && d.Email == email);
                 if (doc == null) { OASISErrorHandling.HandleError(ref result, $"RavenDBOASIS: No avatar for email '{email}'."); return result; }
                 var avatar = Des<Avatar>(doc.DataJson); if (avatar == null) { OASISErrorHandling.HandleError(ref result, "RavenDBOASIS: Deserialise failed."); return result; }
-                result.Result = avatar; result.IsError = false; result.Message = "RavenDBOASIS: Avatar loaded.";
+                result.Result = avatar; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "RavenDBOASIS: Avatar loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"RavenDBOASIS: {ex.Message}"); }
             return result;
@@ -250,9 +251,9 @@ namespace NextGenSoftware.OASIS.API.Providers.RavenDBOASIS
             try
             {
                 using var session = GetStore().OpenAsyncSession();
-                var docs = await session.Query<AvatarDoc>().Where(d => !d.IsDeleted).ToListAsync();
+                var docs = await session.Query<AvatarDoc>().Customize(query => query.WaitForNonStaleResults()).Where(d => !d.IsDeleted).ToListAsync();
                 var avatars = docs.Select(d => Des<Avatar>(d.DataJson)).Where(a => a != null).Cast<IAvatar>().ToList();
-                result.Result = avatars; result.IsError = false; result.Message = $"RavenDBOASIS: Loaded {avatars.Count} avatar(s).";
+                result.Result = avatars; result.IsError = false; result.IsLoaded = true; result.LoadedCount = avatars.Count; result.Message = $"RavenDBOASIS: Loaded {avatars.Count} avatar(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"RavenDBOASIS: {ex.Message}"); }
             return result;
@@ -299,10 +300,10 @@ namespace NextGenSoftware.OASIS.API.Providers.RavenDBOASIS
                 using var session = GetStore().OpenAsyncSession();
                 var docId = $"OasisAvatarDetails/{d.Id}";
                 var existing = await session.LoadAsync<DetailDoc>(docId);
-                if (existing != null) { existing.Username = d.Username; existing.Email = d.Email; existing.DataJson = Ser(d); }
-                else { await session.StoreAsync(new DetailDoc { Id = docId, Username = d.Username, Email = d.Email, DataJson = Ser(d) }, docId); }
+                if (existing != null) { existing.Username = d.Username; existing.Email = d.Email; existing.DataJson = StoredRecordJson.Serialize(d); }
+                else { await session.StoreAsync(new DetailDoc { Id = docId, Username = d.Username, Email = d.Email, DataJson = StoredRecordJson.Serialize(d) }, docId); }
                 await session.SaveChangesAsync();
-                result.Result = d; result.IsError = false; result.Message = "RavenDBOASIS: AvatarDetail saved.";
+                result.Result = d; result.IsError = false; result.IsSaved = true; result.SavedCount = 1; result.Message = "RavenDBOASIS: AvatarDetail saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"RavenDBOASIS: {ex.Message}"); }
             return result;
@@ -318,8 +319,8 @@ namespace NextGenSoftware.OASIS.API.Providers.RavenDBOASIS
                 using var session = GetStore().OpenAsyncSession();
                 var doc = await session.LoadAsync<DetailDoc>($"OasisAvatarDetails/{id}");
                 if (doc == null) { OASISErrorHandling.HandleError(ref result, $"RavenDBOASIS: No detail for ID '{id}'."); return result; }
-                var detail = Des<AvatarDetail>(doc.DataJson); if (detail == null) { OASISErrorHandling.HandleError(ref result, "RavenDBOASIS: Deserialise failed."); return result; }
-                result.Result = detail; result.IsError = false; result.Message = "RavenDBOASIS: AvatarDetail loaded.";
+                var detail = StoredRecordJson.DeserializeStored<AvatarDetail>(doc.DataJson); if (detail == null) { OASISErrorHandling.HandleError(ref result, "RavenDBOASIS: Deserialise failed."); return result; }
+                result.Result = detail; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "RavenDBOASIS: AvatarDetail loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"RavenDBOASIS: {ex.Message}"); }
             return result;
@@ -333,10 +334,10 @@ namespace NextGenSoftware.OASIS.API.Providers.RavenDBOASIS
             try
             {
                 using var session = GetStore().OpenAsyncSession();
-                var doc = await session.Query<DetailDoc>().FirstOrDefaultAsync(d => d.Username == u);
+                var doc = await session.Query<DetailDoc>().Customize(query => query.WaitForNonStaleResults()).FirstOrDefaultAsync(d => d.Username == u);
                 if (doc == null) { OASISErrorHandling.HandleError(ref result, $"RavenDBOASIS: No detail for username '{u}'."); return result; }
-                var detail = Des<AvatarDetail>(doc.DataJson); if (detail == null) { OASISErrorHandling.HandleError(ref result, "RavenDBOASIS: Deserialise failed."); return result; }
-                result.Result = detail; result.IsError = false; result.Message = "RavenDBOASIS: AvatarDetail loaded.";
+                var detail = StoredRecordJson.DeserializeStored<AvatarDetail>(doc.DataJson); if (detail == null) { OASISErrorHandling.HandleError(ref result, "RavenDBOASIS: Deserialise failed."); return result; }
+                result.Result = detail; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "RavenDBOASIS: AvatarDetail loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"RavenDBOASIS: {ex.Message}"); }
             return result;
@@ -350,10 +351,10 @@ namespace NextGenSoftware.OASIS.API.Providers.RavenDBOASIS
             try
             {
                 using var session = GetStore().OpenAsyncSession();
-                var doc = await session.Query<DetailDoc>().FirstOrDefaultAsync(d => d.Email == e);
+                var doc = await session.Query<DetailDoc>().Customize(query => query.WaitForNonStaleResults()).FirstOrDefaultAsync(d => d.Email == e);
                 if (doc == null) { OASISErrorHandling.HandleError(ref result, $"RavenDBOASIS: No detail for email '{e}'."); return result; }
-                var detail = Des<AvatarDetail>(doc.DataJson); if (detail == null) { OASISErrorHandling.HandleError(ref result, "RavenDBOASIS: Deserialise failed."); return result; }
-                result.Result = detail; result.IsError = false; result.Message = "RavenDBOASIS: AvatarDetail loaded.";
+                var detail = StoredRecordJson.DeserializeStored<AvatarDetail>(doc.DataJson); if (detail == null) { OASISErrorHandling.HandleError(ref result, "RavenDBOASIS: Deserialise failed."); return result; }
+                result.Result = detail; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "RavenDBOASIS: AvatarDetail loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"RavenDBOASIS: {ex.Message}"); }
             return result;
@@ -367,9 +368,9 @@ namespace NextGenSoftware.OASIS.API.Providers.RavenDBOASIS
             try
             {
                 using var session = GetStore().OpenAsyncSession();
-                var docs = await session.Query<DetailDoc>().ToListAsync();
-                var details = docs.Select(d => Des<AvatarDetail>(d.DataJson)).Where(d => d != null).Cast<IAvatarDetail>().ToList();
-                result.Result = details; result.IsError = false; result.Message = $"RavenDBOASIS: Loaded {details.Count} detail(s).";
+                var docs = await session.Query<DetailDoc>().Customize(query => query.WaitForNonStaleResults()).ToListAsync();
+                var details = docs.Select(d => StoredRecordJson.DeserializeStored<AvatarDetail>(d.DataJson)).Where(d => d != null).Cast<IAvatarDetail>().ToList();
+                result.Result = details; result.IsError = false; result.IsLoaded = true; result.LoadedCount = details.Count; result.Message = $"RavenDBOASIS: Loaded {details.Count} detail(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"RavenDBOASIS: {ex.Message}"); }
             return result;
@@ -460,7 +461,7 @@ namespace NextGenSoftware.OASIS.API.Providers.RavenDBOASIS
                 var doc = await session.LoadAsync<HolonDoc>($"OasisHolons/{id}");
                 if (doc == null || doc.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"RavenDBOASIS: No holon for ID '{id}'."); return result; }
                 var holon = Des<Holon>(doc.DataJson); if (holon == null) { OASISErrorHandling.HandleError(ref result, "RavenDBOASIS: Deserialise failed."); return result; }
-                result.Result = holon; result.IsError = false; result.Message = "RavenDBOASIS: Holon loaded.";
+                result.Result = holon; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "RavenDBOASIS: Holon loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"RavenDBOASIS: {ex.Message}"); }
             return result;
@@ -479,11 +480,11 @@ namespace NextGenSoftware.OASIS.API.Providers.RavenDBOASIS
             try
             {
                 using var session = GetStore().OpenAsyncSession();
-                var query = session.Query<HolonDoc>().Where(d => !d.IsDeleted);
+                var query = session.Query<HolonDoc>().Customize(query => query.WaitForNonStaleResults()).Where(d => !d.IsDeleted);
                 if (type != HolonType.All) query = query.Where(d => d.HolonType == (int)type);
                 var docs = await query.ToListAsync();
                 var holons = docs.Select(d => Des<Holon>(d.DataJson)).Where(h => h != null).Cast<IHolon>().ToList();
-                result.Result = holons; result.IsError = false; result.Message = $"RavenDBOASIS: Loaded {holons.Count} holon(s).";
+                result.Result = holons; result.IsError = false; result.IsLoaded = true; result.LoadedCount = holons.Count; result.Message = $"RavenDBOASIS: Loaded {holons.Count} holon(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"RavenDBOASIS: {ex.Message}"); }
             return result;
@@ -498,11 +499,11 @@ namespace NextGenSoftware.OASIS.API.Providers.RavenDBOASIS
             {
                 using var session = GetStore().OpenAsyncSession();
                 var parentStr = id.ToString();
-                var query = session.Query<HolonDoc>().Where(d => !d.IsDeleted && d.ParentHolonId == parentStr);
+                var query = session.Query<HolonDoc>().Customize(query => query.WaitForNonStaleResults()).Where(d => !d.IsDeleted && d.ParentHolonId == parentStr);
                 if (type != HolonType.All) query = query.Where(d => d.HolonType == (int)type);
                 var docs = await query.ToListAsync();
                 var holons = docs.Select(d => Des<Holon>(d.DataJson)).Where(h => h != null).Cast<IHolon>().ToList();
-                result.Result = holons; result.IsError = false; result.Message = $"RavenDBOASIS: Loaded {holons.Count} holon(s) for parent '{id}'.";
+                result.Result = holons; result.IsError = false; result.IsLoaded = true; result.LoadedCount = holons.Count; result.Message = $"RavenDBOASIS: Loaded {holons.Count} holon(s) for parent '{id}'.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"RavenDBOASIS: {ex.Message}"); }
             return result;
