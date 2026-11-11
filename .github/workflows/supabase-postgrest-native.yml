@@ -1,0 +1,134 @@
+name: Supabase native PostgREST credentials
+
+on:
+  push:
+    branches: [work/hyperdrive-provider-completion]
+    paths:
+      - '.github/workflows/supabase-postgrest-native.yml'
+      - 'Providers/Cloud/NextGenSoftware.OASIS.API.Providers.SupabaseOASIS/**'
+      - 'Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.SupabaseOASIS.IntegrationTests/SupabaseNativeCredentialIsolationTests.cs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  credentials:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16.6@sha256:557fea37a744d5f4c8faab304b0a90858b53ab119735a88c131fd19dab802f36
+        env:
+          POSTGRES_PASSWORD: fixture-only
+          POSTGRES_DB: oasis_fixture
+        ports: [5432/tcp]
+        options: >-
+          --health-cmd "pg_isready -U postgres -d oasis_fixture"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 15
+    defaults:
+      run:
+        working-directory: OASIS
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          path: OASIS
+          submodules: recursive
+          persist-credentials: false
+
+      - name: Read the recorded Libraries revision
+        id: dependencies
+        shell: bash
+        run: |
+          revision="$(sed -n 's/^LIBRARIES_COMMIT=//p' Docker/oasis-dependency-versions.env)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "libraries=$revision" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependencies.outputs.libraries }}
+          path: NextGenSoftware-Libraries
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Start two independently authenticated PostgREST services and exercise the shipping provider
+        shell: bash
+        env:
+          POSTGRES_CONTAINER: ${{ job.services.postgres.id }}
+          PGRST_DB_URI: postgresql://postgres:fixture-only@127.0.0.1:${{ job.services.postgres.ports[5432] }}/oasis_fixture
+          PGRST_DB_SCHEMAS: public
+          PGRST_SERVER_HOST: 127.0.0.1
+        run: |
+          fixture="$(mktemp -d "$RUNNER_TEMP/oasis-postgrest.XXXXXXXX")"
+          archive="$fixture/postgrest.tar.xz"
+          curl --fail --silent --show-error --location --max-time 90 --output "$archive" +            https://github.com/PostgREST/postgrest/releases/download/v16.5/postgrest-v16.5-linux-static-x86-64.tar.xz
+          printf '%s  %s\n' 5099e7ada38f9f6846cd87c14c5f158b7c165f1e9959665ad412e61f4dceba95 "$archive" | sha256sum --check
+          tar -xJf "$archive" -C "$fixture" postgrest
+          "$fixture/postgrest" --version
+
+          psql=(docker exec -i "$POSTGRES_CONTAINER" psql -X -v ON_ERROR_STOP=1 -U postgres -d oasis_fixture)
+          "${psql[@]}" <<'SQL'
+          CREATE ROLE anon NOLOGIN;
+          CREATE ROLE authenticated NOLOGIN;
+          CREATE ROLE service_role NOLOGIN BYPASSRLS;
+          SQL
+          "${psql[@]}" < Providers/Cloud/NextGenSoftware.OASIS.API.Providers.SupabaseOASIS/supabase-storage-schema.sql
+
+          issue_token() {
+            PGRST_JWT_SECRET="$1" python3 - <<'PY'
+          import base64, hashlib, hmac, json, os, time
+          def encode(data):
+              return base64.urlsafe_b64encode(data).rstrip(b"=")
+          claims = json.dumps({"role": "service_role", "exp": int(time.time()) + 1800}).encode()
+          body = encode(b'{"alg":"HS256","typ":"JWT"}') + b"." + encode(claims)
+          signature = hmac.digest(os.environ["PGRST_JWT_SECRET"].encode(), body, hashlib.sha256)
+          print((body + b"." + encode(signature)).decode())
+          PY
+          }
+          first_secret="$(openssl rand -hex 32)"
+          second_secret="$(openssl rand -hex 32)"
+          export OASIS_SUPABASE_LOCAL_CREDENTIAL_TEST=1
+          export OASIS_SUPABASE_FIRST_POSTGREST=http://127.0.0.1:18091
+          export OASIS_SUPABASE_SECOND_POSTGREST=http://127.0.0.1:18092
+          export OASIS_SUPABASE_FIRST_JWT="$(issue_token "$first_secret")"
+          export OASIS_SUPABASE_SECOND_JWT="$(issue_token "$second_secret")"
+          first_pid=''
+          second_pid=''
+          stop_services() {
+            for pid in "$first_pid" "$second_pid"; do
+              if [[ -n "$pid" ]] && kill -0 "$pid" 2>/dev/null; then
+                kill "$pid"
+                wait "$pid" || [[ "$?" == 143 ]]
+              fi
+            done
+          }
+          trap stop_services EXIT
+          PGRST_SERVER_PORT=18091 PGRST_JWT_SECRET="$first_secret" "$fixture/postgrest" >"$fixture/first.log" 2>&1 &
+          first_pid=$!
+          PGRST_SERVER_PORT=18092 PGRST_JWT_SECRET="$second_secret" "$fixture/postgrest" >"$fixture/second.log" 2>&1 &
+          second_pid=$!
+          ready() {
+            local endpoint="$1" jwt="$2" pid="$3" log="$4"
+            for attempt in {1..25}; do
+              if ! kill -0 "$pid" 2>/dev/null; then cat "$log"; return 1; fi
+              if curl --silent --fail --max-time 2 -H "Authorization: Bearer $jwt" "$endpoint/oasis_holons?select=id&limit=0" >/dev/null; then return 0; fi
+              sleep 1
+            done
+            cat "$log"
+            return 1
+          }
+          ready "$OASIS_SUPABASE_FIRST_POSTGREST" "$OASIS_SUPABASE_FIRST_JWT" "$first_pid" "$fixture/first.log"
+          ready "$OASIS_SUPABASE_SECOND_POSTGREST" "$OASIS_SUPABASE_SECOND_JWT" "$second_pid" "$fixture/second.log"
+          pwsh -NoProfile -Command '
+            ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-SupabaseCredentials -Operation {
+              dotnet test "Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.SupabaseOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.SupabaseOASIS.IntegrationTests.csproj" --filter "FullyQualifiedName~SharedClientSendsEachCredentialOnlyToItsPostgrestService" /m:2 /nr:false /p:UseSharedCompilation=false --logger "console;verbosity=normal"
+              if ($LASTEXITCODE -ne 0) { throw "Native PostgREST credential isolation failed." }
+            }'
