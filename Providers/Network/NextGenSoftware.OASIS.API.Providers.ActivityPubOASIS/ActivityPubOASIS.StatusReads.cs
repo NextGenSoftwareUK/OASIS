@@ -44,7 +44,7 @@ public partial class ActivityPubOASIS
         return result;
     }
 
-    private Holon ProjectMastodonStatus(JsonElement status,string selected=null)
+    private Holon ProjectMastodonStatus(JsonElement status,string selected=null,bool includesSourceText=false)
     {
             static void RequireUniqueObject(JsonElement node){
                 if(node.ValueKind!=JsonValueKind.Object)throw new InvalidDataException("Native status evidence must be an object.");
@@ -61,7 +61,7 @@ public partial class ActivityPubOASIS
             var id=Required(status,"id");if(selected!=null&&id!=selected)throw new InvalidDataException("Native status identity differs from requested ID.");
             var uri=Required(status,"uri");
             if(!Uri.TryCreate(uri,UriKind.Absolute,out var objectUri)||(objectUri.Scheme!=Uri.UriSchemeHttps&&!(objectUri.Scheme==Uri.UriSchemeHttp&&objectUri.IsLoopback)))throw new InvalidDataException("Invalid native status URI.");
-            var content=Required(status,"content",true);var created=Required(status,"created_at");
+            var content=Required(status,includesSourceText?"text":"content",true);var created=Required(status,"created_at");
             if(!DateTimeOffset.TryParse(created,CultureInfo.InvariantCulture,DateTimeStyles.None,out var timestamp))throw new InvalidDataException("Invalid native status timestamp.");
             if(!status.TryGetProperty("account",out var account))throw new InvalidDataException("Missing native status author.");
             RequireUniqueObject(account);
@@ -69,7 +69,8 @@ public partial class ActivityPubOASIS
             var holon=new Holon{Id=MastodonProjectionId("status",id),CreatedByAvatarId=MastodonProjectionId("account",authorId),Name="Mastodon status "+id,CreatedDate=timestamp.UtcDateTime,HolonType=Core.Enums.HolonType.Holon};
             holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.ActivityPubOASIS]=id;
             holon.MetaData[CqlStatusKey]=id;holon.MetaData["MastodonInstance"]=_instanceUrl;
-            holon.MetaData["MastodonObjectUri"]=objectUri.AbsoluteUri;holon.MetaData["MastodonContentHtml"]=content;
+            holon.MetaData["MastodonObjectUri"]=objectUri.AbsoluteUri;
+            holon.MetaData[includesSourceText?"MastodonSourceText":"MastodonContentHtml"]=content;
             holon.MetaData["MastodonAuthorId"]=authorId;holon.MetaData["MastodonAuthorAcct"]=authorAcct;
             if(status.TryGetProperty("in_reply_to_id",out var reply)&&reply.ValueKind!=JsonValueKind.Null){
                 if(reply.ValueKind!=JsonValueKind.String||string.IsNullOrWhiteSpace(reply.GetString()))throw new InvalidDataException("Invalid native reply ID.");
