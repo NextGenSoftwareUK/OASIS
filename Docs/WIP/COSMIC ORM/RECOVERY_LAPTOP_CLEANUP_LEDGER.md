@@ -6246,3 +6246,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: curl downloaded the pinned NATS and Waku bytes into memory for hash, archive member and Linux x64 executable checks. No files, builds, images or reports were retained. Temporary documentation index removed.
 
 11 November UTC: Matrix public recovery checks used the existing visitor and processed the two query responses in memory. Ordinary renewal produced four protected journal files. No new avatar, fixtures, reports, builds or downloads. Temporary documentation index removed.
+
+11 November UTC: GitHub finalized superseded image run 43090552807 as cancelled and companion run 43090551497 as successful. Removed remote ci-cosmic-couchdb-image-214462362b after verifying the superseded commit is an ancestor of the retained combined candidate. No local build, archive, image or restore. Temporary documentation index removed.
