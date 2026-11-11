@@ -73,3 +73,5 @@ shape for the regional SDK test. All 42 offline configuration tests passed
 with synthetic values. Real AWS and live WEB4 acceptance remain pending.
 
 [Programme](CURRENT_STATUS.md) | [Provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) | [Resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
+
+11 November UTC: AWSS3OASIS public object metadata presets returned 3 full and 2 filtered rows in the live Development WEB4 CQL Playground. Original-owner paired browser verification remains open. The presets read object metadata only.

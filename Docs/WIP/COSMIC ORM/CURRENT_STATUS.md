@@ -1033,3 +1033,5 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 11 November UTC: DecentralandOASIS public scene teaching presets returned 3 full and 2 filtered rows in the live Development WEB4 CQL Playground. Original-owner paired browser verification remains open.
 
 11 November UTC: exact two-file solution candidate cbb5e659a0 preserves the verified SQL Server wallet changes at Development 400b42ef36. Remote solution-integrity CI 43005826333 is queued. The preceding MongoDB graph-test deployment fa8ae0f3 succeeded. The candidate changes no runtime source, workflow or dependency pins.
+
+11 November UTC: AWSS3OASIS public object metadata presets returned 3 full and 2 filtered rows in the live Development WEB4 CQL Playground. Original-owner paired browser verification remains open. The presets read object metadata only.
