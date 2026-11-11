@@ -1441,3 +1441,5 @@ Combined Valkey CI 43056231303 is active.
 Dragonfly/Valkey verified batch prepared on this base at 3850e2e078. Combined Redis CI 43057542686 is queued.
 
 11 November UTC: both Redis jobs passed in combined CI 43057542686. Generic storage ran in the standard matrix, and encrypted native CQL, restart and MongoDB federation ran in the dedicated fixture. The independently verified Redis, Dragonfly and Valkey changes are prepared as Development batch d93d984b7b on the current Hedera base. Hosted TLS acceptance remains open.
+
+11 November UTC: Railway deployed WEB4 d1674f5d0f as 6d165d9b, including the verified SurrealDB GUID and avatar-detail fixes. Authenticated discovery showed 105 of 106 listed sources ready, with Nostr unavailable. CouchDB, OpenSearch, Supabase, SurrealDB and TRON were absent. Existing hosted fixture and operator gates remain open.

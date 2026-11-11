@@ -332,3 +332,5 @@ The retained local source is preserved.
 11 November UTC: Development c837fe5ad8 carries the OpenSearch and SurrealDB CI routing verified in runs 43040976654 and 43042182895. Both passed generic storage and native federation. Development pipeline 43043263300 and Railway WEB4 deployment f573b5ac-55d9-4394-a84f-20feb7eaaa87 were queued at inspection. Live acceptance remains gated on restricted HTTPS teaching sources already recorded in ACTIONS-FOR-DAVID.
 
 11 November UTC: both SurrealDB jobs passed in the standard Development pipeline 43043263300 at c837fe5ad8, including generic native storage and the restart/federation workflow. Railway deployment f573b5ac remains queued behind the WEB4 build for 165e8abaee. Hosted HTTPS acceptance remains open.
+
+11 November UTC: Railway deployed WEB4 d1674f5d0f as 6d165d9b, including the verified SurrealDB GUID and avatar-detail fixes. Authenticated discovery showed 105 of 106 listed sources ready, with Nostr unavailable. CouchDB, OpenSearch, Supabase, SurrealDB and TRON were absent. Existing hosted fixture and operator gates remain open.
