@@ -717,6 +717,8 @@ and hosted federation and replication verification.
 
 ## Supabase hosted teaching source access - 2026-11-06 UTC
 
+11 November UTC: WEB4 Development variable-name inventory returned no Supabase settings. Native loopback storage conformance passed 52/52. The reviewed HTTPS teaching project and restricted reader are still needed for the hosted demo.
+
 - Status: 36 provider and eight WEB4 admission checks passed. The native HTTPS qualifier compiled.
 - Owner step: identify an existing dedicated Supabase teaching project. Provide its HTTPS origin and public gateway key, and arrange a separate restricted authenticated reader JWT in protected settings. Review the token's expiry and row policies for the dedicated teaching principal.
 - The catalogue requires three public live roots, one deleted row and one absent ID under the declared actor. Use a live record as the probe. No new paid service or account is requested.
