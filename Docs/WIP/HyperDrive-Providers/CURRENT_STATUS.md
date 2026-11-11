@@ -1,6 +1,6 @@
 # Current provider status
 
-11 November Polygon PoS wallet balance. The synchronous shipping blockchain provider interface returned a positive native POL balance through unsigned Nethereum at PublicNode's Polygon PoS endpoint. The shared wallet reader verified chain 137 and did not activate contract storage or use a signer. Public-network storage lifecycle remains open.
+11 November Polygon PoS wallet balance. The synchronous shipping blockchain provider interface returned a positive native POL balance through unsigned Nethereum at PublicNode's Polygon PoS endpoint. The shared wallet reader verified chain 137 and did not activate contract storage or use a signer. Development e5530b0914 carries the matching shared reader and both the Polygon and Arbitrum tests. Public-network storage lifecycle remains open.
 
 11 November Arbitrum One wallet balance. The shipping Web3Core wallet path now uses an unsigned Nethereum client without activating contract storage. The focused live test read positive ETH on Arbitrum One without caller-context posts and rejected that endpoint when configured for chain 137. This verifies the shared read implementation on the Arbitrum V2 facade. Public-network storage lifecycle verification remains open.
 
