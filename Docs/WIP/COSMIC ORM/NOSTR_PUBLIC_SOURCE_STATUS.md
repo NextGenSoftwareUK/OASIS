@@ -160,3 +160,5 @@ Explicit source recovery implemented at the host lifecycle boundary,same source/
 
 
 11 November UTC: on Development c39eba5cd1, the Nostr native filtered preset passed live WEB4 HTTP with the two expected rows. The earlier browser 503 is preserved. The filtered browser check and relay reliability across connections remain open.
+
+11 November UTC: the filtered Nostr public browser preset rendered two signed events on Development c39eba5cd1. Together with the full three-event browser result on 87793cf704, both native public presets have browser acceptance. The intervening WebSocket 503, relay reliability and the original owner's private paired browser check remain recorded.
