@@ -6180,3 +6180,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: reused the readiness visitor on WEB4 2ec6cd9cce. Ordinary renewal produced four protected rotation files, retained with that visitor. Follow-up readiness and bounded Railway activation logs were read in memory. Temporary Git index removed. No local build, download or query report.
 
 11 November UTC: removed the earlier PlanetScale diagnostic parent tag after both workflows completed. Verified the tested PlanetScale provider, registration, admission tests and Core pin remain identical on the current qualification candidate. Keep the current parent tag and Core pin while CI runs. Temporary documentation index removed. No local build, restore, image or download.
+
+11 November UTC: dispatched the PlanetScale image in remote CI and recorded its run. Temporary documentation index removed. No local build, restore, image or download.
