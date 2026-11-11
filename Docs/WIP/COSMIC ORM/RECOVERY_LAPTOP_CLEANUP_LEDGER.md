@@ -5991,4 +5991,4 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 
 11 November UTC: PouchDB browser checks reused the existing demo visitor. No new avatar, report, screenshot file, download or build output.
 
-11 November UTC: PouchDB browser checks reused the existing demo visitor. No new avatar, report, screenshot file, download or build output.
+11 November UTC: retired the SurrealDB orchestration diagnostic tag after both workflows passed and verified its absence. Inspected Railway build logs and GitHub run metadata in memory. Temporary Git indices removed. No local build, restore, runtime or artifact download.

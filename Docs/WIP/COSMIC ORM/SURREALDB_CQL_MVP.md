@@ -328,3 +328,5 @@ The retained local source is preserved.
 11 November UTC: SurrealDB native restart and MongoDB federation passed on the disposable CI fixtures with the typed-key and avatar-detail fixes. The runner checked replica admission, SDK/HTTP federation and a native source recheck after federation. Hosted CQL and standard CI routing remain open. [SurrealDB federation CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43041575804)
 
 11 November UTC: SurrealDB standard CI candidate `808444b7be` routes generic storage tests to the pinned container with explicit namespace and database setup. The same pipeline invokes the dedicated native restart and Mongo federation workflow. Diagnostic `b34006591d` verifies both jobs. Hosted CQL remains open.
+
+11 November UTC: Development c837fe5ad8 carries the OpenSearch and SurrealDB CI routing verified in runs 43040976654 and 43042182895. Both passed generic storage and native federation. Development pipeline 43043263300 and Railway WEB4 deployment f573b5ac-55d9-4394-a84f-20feb7eaaa87 were queued at inspection. Live acceptance remains gated on restricted HTTPS teaching sources already recorded in ACTIONS-FOR-DAVID.
