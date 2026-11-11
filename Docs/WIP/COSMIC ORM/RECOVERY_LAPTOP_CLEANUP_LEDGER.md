@@ -6074,3 +6074,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: track the Valkey -image diagnostic until both runs finish. Read remote logs and registry metadata in memory. Temporary Git index removed. No local build, restore, image or download.
 
 11 November UTC: removed the superseded Valkey package diagnostic tag and verified absence. Image diagnostic passed; retain its ref until the qualified runner is published. Remote logs inspected in memory. Temporary Git index removed. No local build, restore, image or download.
+
+11 November UTC: track ci-cosmic-valkey-orchestration-ea54de967e until both associated runs finish. Temporary Git indices removed. No local build, runtime, restore or download.

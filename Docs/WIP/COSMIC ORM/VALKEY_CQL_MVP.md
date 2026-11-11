@@ -100,3 +100,5 @@ running it. Hosted native, paired HTTP and browser evidence are pending.
 11 November UTC: Valkey run 43055058247 stopped before tests because the Ubuntu package origin could not resolve. Candidate bca447e8e4 extracts Valkey 9.0.4 from its digest-pinned official image in CI, verifies the version and executable fingerprint, and uses the same isolated restart/federation assertions. The retained package-based fixture path is preserved.
 
 11 November UTC: Valkey 9.0.4 native CI 43055529432 passed the strict encrypted native CQL, restart, Mongo replica admission and SDK/HTTP federation checks. The official digest-pinned image supplied the executable and the runner verified the same native source after restart. Standard CI routing and hosted TLS acceptance remain open.
+
+11 November UTC: Valkey candidate f6084bf424 routes generic storage to the standard matrix and calls the verified 9.0.4 restart/federation workflow separately. Combined diagnostic 8baa31be52 is submitted on Development ea54de967e. Standard CI and hosted TLS verification remain open.
