@@ -409,7 +409,7 @@
       "Thin facade shares the verified Redis SDK/record policy; 52/52 controlled checks are not native acceptance; actual product runtime/configuration and conditional/scan primitives remain unverified; legacy plaintext layout is refused, no automatic migration"
     ],
     "ValKeyOASIS": [
-      "Native Valkey 8 passed four avatar and holon save/load smoke cases in [Development CI 43059249089](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43059249089). A separate Valkey 9.0.4 job passed encrypted CQL, restart and MongoDB federation. The shared 52/52 result is controlled. Full native lifecycle, hosted TLS and legacy plaintext migration remain open."
+      "Official Valkey 9.0.4 passed 52/52 through the shipping StackExchange.Redis adapter in [run 43091045329](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43091045329). Both modes passed exact fixture cleanup and the native database ended empty. Earlier native smoke and CQL restart/federation evidence carries forward. Hosted TLS and plaintext migration remain open."
     ],
     "DragonflyOASIS": [
       "Native Dragonfly passed four avatar and holon save/load smoke cases in [Development CI 43059249089](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43059249089). A separate Dragonfly 2.0.2 job passed encrypted CQL, restart and MongoDB federation. The shared 52/52 result is controlled. Full native lifecycle, hosted TLS and legacy plaintext migration remain open."

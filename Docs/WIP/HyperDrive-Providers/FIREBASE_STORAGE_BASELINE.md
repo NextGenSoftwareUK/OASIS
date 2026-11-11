@@ -2,7 +2,7 @@
 
 ## Current shared storage qualification
 
-11 November 2026. [CI run 43090501206](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43090501206) uses the shipping Realtime Database REST adapter with the checksum-pinned official RTDB 4.11.2 emulator. It creates a disposable demo namespace with the indexes used by the provider, runs both existing storage modes, and checks native namespace emptiness after cleanup. The run is pending. Hosted access and production security rules require their own verification.
+11 November 2026. [CI run 43090501206](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43090501206) uses the shipping Realtime Database REST adapter with the checksum-pinned official RTDB 4.11.2 emulator. It creates a disposable demo namespace with the indexes used by the provider, runs both existing storage modes, and checks native namespace emptiness after cleanup. [Firebase run 43090501206](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43090501206) compiled both test projects and passed all four activation-response cases. Official RTDB 4.11.2 passed the first nine asynchronous lifecycle checks and stopped at graph-save acknowledgement/count. Sync was fenced by the incomplete checkpoint. The shipping SaveHolonAsync writes one root and reports one save even when children are selected. The CI emulator and reports were removed. Hosted access and production security rules require their own verification.
 
 The CI integration entry point uses `OASIS_FIREBASE_STORAGE_CONFORMANCE=1` and `FIREBASEOASIS_DATABASEURL` pointing to the root of the loopback HTTP emulator. Its filter selects `CoreStorageAgainstRealtimeDatabase`. The existing interrupted Windows checkpoint and COSMIC query fixture are preserved.
 

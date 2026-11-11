@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+11 November Valkey run 43091045329 verified zero keys, removed its container, volumes, image and fixture. Firebase run 43090501206 stopped and removed the RTDB emulator, its JAR, fixture and checkpoints after graph-save failed. Both ran on disposable GitHub runners. No Windows build or download was created.
+
 11 November Firebase runs 43089219847 and 43087789287 were cancelled while queued after combined run 43090501206 was scheduled on the newer revision. No local artifacts were created.
 
 11 November BNB Development BootLoader run 43086956668 confirmed removal of the BSC node fixture and npm dependencies. No local outputs were created.
