@@ -759,3 +759,5 @@ Hedera exact Development candidate 2b828fd377 includes the reader, diagnostic al
 Hedera exact image CI 42926699339 passed and Development fast-forwarded to 2b828fd377. Railway queued a64672cb with 3c05290d still serving. Verify Hedera readiness after cutover and use the new stage diagnostics if activation fails. Two WEB4 unit cases remain unrun.
 
 EOSIO public browser acceptance is recorded for 10 November. Both presets rendered 3/2 EOSIOOASIS rows. Private MongoDB-paired browser acceptance remains open. See [EOSIO evidence](EOSIO_PUBLIC_SOURCE_STATUS.md).
+
+11 November UTC Hedera checkpoint: Railway a64672cb successfully deployed Development 2b828fd377. HashgraphOASIS activation timed out at response_headers after 15,009 ms with no HTTP status. NostrOASIS separately returned HTTP 503 at WebSocket connect. Both remained unavailable while catalogue warmup advanced to 96/106 ready. The Hedera full browser preset remains open. No settings changed or local build ran.
