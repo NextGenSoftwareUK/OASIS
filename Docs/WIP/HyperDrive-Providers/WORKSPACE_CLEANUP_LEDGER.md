@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+11 November CockroachDB run 43060207358 passed 52/52, verified and removed ten exact owned tombstones, and confirmed empty current tables in both databases. CI confirmed the process stopped and the runtime, databases and checkpoint files were removed. No Windows runtime, build or download was created.
+
 NuGet restore also reuses shared C:/Users/david/AppData/Local/NuGet/v3-cache and C:/Users/david/AppData/Local/Temp/NuGetScratch (paths confirmed by dotnet nuget locals; sizes/individual historical ownership unmeasured). They are shared caches, not owned disposal targets; no broad removal performed.
 
 PocketBase28October outcome:15 regressions observed red, final24/24 maintained unit cases pass; no native pass claimed. Fixed producer bin7,416,440/obj926,802 B and unit bin46,255,098/obj993,421 B reused/created from existing cache; retained reusable, no download/runtime/service/database/raw report. Safe regeneration via documented bounded cached builds, remove only after owned build/test handles stop and outputs no longer needed. C free104,204,275,712 B after checks (shared-machine observation). Native/full-interface gates remain in DOCUMENT_FAMILY_BASELINE.md; unrelated Core/DNA/BootLoader work preserved.
