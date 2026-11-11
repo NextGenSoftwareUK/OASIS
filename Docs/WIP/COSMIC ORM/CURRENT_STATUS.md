@@ -938,3 +938,5 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 11 November UTC: on live Development WEB4 `3f5d781f29`, all 106 listed sources advertised native and federated readiness. Discovery advertised two enabled native and two enabled federation presets for each of 103 sources. The three primary storage providers (MongoDB, SQLite and Neo4j) use the Playground's built-in examples. This checks discovery and preset availability; per-provider execution evidence remains in the matrix.
 
 11 November UTC: standalone Hedera Railway deployment `09567e4c-41ea-4418-a32e-8c1150572d47` at `a7522f4286` is REMOVED. Build logs reached Docker image export and no deployment logs were returned. Live WEB4 still serves `3f5d781f29`. Building successor `fcf2a522e6` includes the Hedera commit by Git ancestry, so verify Hedera and ActivityPub on that successor after cutover.
+
+11 November UTC: Pinata public raw-block metadata presets returned three full and two filtered rows in the live Development CQL Playground. The original-owner MongoDB paired browser check remains open. No record preparation or saves.
