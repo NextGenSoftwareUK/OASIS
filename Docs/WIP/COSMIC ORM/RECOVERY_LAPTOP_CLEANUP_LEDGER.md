@@ -6194,3 +6194,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: removed both completed PlanetScale diagnostic tags after the exact image and admission workflows passed. Verified the parent candidate and exact Core tariff pin remain reachable from their Development branches and that neither diagnostic tag remains. Both Supabase and PlanetScale Railway deployments were queued. Temporary documentation index removed. No local build, restore, image or download.
 
 11 November UTC: reviewed committed CouchDB activation and rollout metadata. Removed the temporary documentation index. No runtime, local build, restore, query report or download.
+
+11 November UTC: track temporary tags ci-cosmic-couchdb-web4-a18546285f and ci-cosmic-couchdb-tariff-35f04c65f6 through qualification and publication. Temporary indices removed. No local build, restore, image or download.
