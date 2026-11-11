@@ -1,11 +1,11 @@
 # COSMIC ORM / CQL current status
 
-## Shared WEB4 and HyperDrive checkpoint, 11 November 2026 16:57 UTC
+## Shared WEB4 and HyperDrive checkpoint, 11 November 2026
 
-- Railway WEB4 is serving `c837fe5ad8`. Its warmed authenticated catalogue reported 106/106 enrolled sources ready for native and federated queries. The last recorded functional totals are 129 scoped integrations, 96 hosted HTTP proofs and 28 browser proofs.
-- Development head `2ec6cd9cce` includes the verified Sui, CockroachDB and TimescaleDB native storage batches. Those revisions are queued on Railway.
-- Supabase candidate `7533021f03` passed nine WEB4 boundary checks. Exact image build 43062441681 is active. Prepared Development integration `24d780526c` preserves the six candidate file blobs and Docker configuration. Live enrollment still needs the reviewed HTTPS fixture and restricted reader. TRON still needs the dedicated authenticated reader configuration.
-- HyperDrive is qualifying PlanetScale native storage. COSMIC will preserve its existing PlanetScale query evidence and leave that storage run with HyperDrive.
+- Live Development WEB4 `73f8b98967` reached 105/106 native and federated sources after warmup. Nostr failed the relay WebSocket upgrade with HTTP 503. The recorded functional totals are 129 scoped integrations, 96 hosted HTTP proofs and 28 browser proofs.
+- Development head `214462362b` carries verified BNB and key-value provider evidence. Railway is building `881dec7a4a` (Memcached). Supabase `dfe08114e6` and PlanetScale `ab4d0ae3d3` are queued.
+- CouchDB qualification 43088383856 and exact merge candidate image 43090552807 are queued. Both are required before integrating `ab4482e254` into Development.
+- Supabase needs its dedicated HTTPS teaching fixture and restricted reader for live enrollment. TRON still needs the authenticated reader. The existing Wizard operator session is needed for Nostr source recovery.
 
 ## Active continuation, 11 November UTC
 
