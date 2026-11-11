@@ -331,7 +331,9 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
                         case ProviderType.LocalFileOASIS:
                             {
-                                LocalFileOASIS localFileOASIS = new LocalFileOASIS(OASISDNA.OASIS.StorageProviders.LocalFileOASIS.FilePath);
+                                var settings = OASISDNA.OASIS.StorageProviders.LocalFileOASIS;
+                                LocalFileOASIS localFileOASIS = new LocalFileOASIS(
+                                    filePath: settings.FilePath, storageDirectory: settings.StorageDirectory);
                                 localFileOASIS.OnStorageProviderError += LocalFileOASIS_StorageProviderError;
                                 result.Result = localFileOASIS;
                             }

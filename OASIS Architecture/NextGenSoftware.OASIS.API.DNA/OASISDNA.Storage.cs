@@ -290,6 +290,7 @@ namespace NextGenSoftware.OASIS.API.DNA
     public class LocalFileOASISSettings
     {
         public string FilePath { get; set; }
+        public string StorageDirectory { get; set; }
     }
 
     public class AzureOASISProviderSettings
