@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November Memcached run 43074654661 started both official daemons and compiled the provider. The independent cleanup test could not compile because both Enyim and Microsoft define NullLoggerFactory. The test now explicitly uses the Microsoft factory, as the shipping adapter does. The complete native storage result remains pending.
+
 11 November Memcached native runs 43073793620 and 43074034963 both started official 1.6.40. The first passed nine checks per mode before graph save. The graph candidate passed 18 per mode through metadata, batch, import and export, then stopped at holon deletion acknowledgement. The next candidate reports native delete outcomes through a single holon path, deletes owned avatar details on hard delete, and independently verifies exact holon fixture removal through Enyim.
 
 11 November Memcached graph candidate. The shipping adapter now selects graph nodes using the shared write plan, writes the selected parent links, and publishes IDs only after each cache record and its index acknowledge the write. Partial graphs expose exact acknowledged counts and errors. Memcached item writes are independent, so eviction and multi-key atomicity remain separate gates. The native runtime-dependency run 43073793620 is pending.

@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+11 November Memcached run 43074654661 confirmed removal of both daemons, the runtime and checkpoints after the test compile error. No Windows runtime or build was created.
+
 11 November Memcached runs 43073793620 and 43074034963 both confirmed removal of their daemons, runtime and checkpoint files after the managed checks. No Windows build or download was created.
 
 11 November Memcached run 43072655062 removed its extracted runtime, archive and fixture after executable admission failed. The retry installs two runtime libraries on its disposable runner and clears package downloads before starting the daemon. No Windows runtime, build or download was created.

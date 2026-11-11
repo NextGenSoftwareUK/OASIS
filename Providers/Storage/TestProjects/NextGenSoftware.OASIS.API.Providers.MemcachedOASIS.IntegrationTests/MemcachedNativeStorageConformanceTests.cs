@@ -1,7 +1,6 @@
 using System.Text.Json;
 using Enyim.Caching;
 using Enyim.Caching.Configuration;
-using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.Providers.TestSupport;
 
@@ -41,7 +40,7 @@ public sealed class MemcachedNativeStorageConformanceTests
         Assert.IsTrue(report.FixtureCleanupComplete);
         Assert.AreEqual(CoreStorageConformance.ChecksPerMode, report.Passed.Count);
 
-        var logger = NullLoggerFactory.Instance;
+        var logger = Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance;
         var configuration = new MemcachedClientConfiguration(logger, new MemcachedClientOptions
         {
             Servers = new List<Server> { new() { Address = "127.0.0.1", Port = port } }
