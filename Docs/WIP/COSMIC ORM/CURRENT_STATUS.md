@@ -1101,3 +1101,5 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 11 November UTC: Railway 5c6a6f59 succeeded on Development 323c4f54da with the two-instance IPFS publication fix. The retained browser visitor refreshed to 20 available hosted sources during startup. Final readiness remains pending, and the writer-process revision 9aaed91520 was queued at the cutover check.
 
 11 November UTC: live WEB4 323c4f54da reached 102 available sources in the retained visitor after the two-instance IPFS cutover. Superseded exact solution CI 43010606987 passed; current writer-process-base CI 43011781325 remains in progress.
+
+11 November UTC: the warmed Development 323c4f54da catalogue reached 105 available sources on Railway 5c6a6f59. Startup logs recorded a Blockscout activation timeout at 15,005 ms. Preserve its previously accepted browser results; no provider recovery or preset replay was performed.

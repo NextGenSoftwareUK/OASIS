@@ -239,3 +239,5 @@ Browser interaction/full native payload copying/reliability remain unverified.
 | `cql-playground.js` | 21871 | `7cb6210b9adda1e83630fc966926772f8338c43163c24d1abd88c626ad1ad649` |
 
 11 November UTC: Blockscout native public explorer address presets rendered 3 full and 2 filtered rows in the live Development WEB4 CQL Playground. The original-owner private paired browser check remains open.
+
+11 November UTC: the warmed Development 323c4f54da catalogue reached 105 available sources on Railway 5c6a6f59. Startup logs recorded a Blockscout activation timeout at 15,005 ms. Preserve its previously accepted browser results; no provider recovery or preset replay was performed.
