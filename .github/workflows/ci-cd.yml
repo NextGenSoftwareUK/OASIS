@@ -359,6 +359,15 @@ jobs:
               jq --exit-status '.ddl == "OK"'
           done
 
+      - name: Provision the SurrealDB test namespace and database
+        if: matrix.backend.name == 'SurrealDB'
+        shell: bash
+        run: |
+          curl --fail --silent --show-error --max-time 15 --user root:root \
+            --header 'Accept: application/json' --header 'Content-Type: text/plain' \
+            --data-binary 'DEFINE NAMESPACE IF NOT EXISTS oasis; USE NS oasis; DEFINE DATABASE IF NOT EXISTS oasis;' \
+            http://127.0.0.1:8000/sql | jq -e 'length > 0 and all(.[]; .status == "OK")'
+
       - name: Export test environment
         if: matrix.backend.test_env != ''
         run: echo "${{ matrix.backend.test_env }}" >> "$GITHUB_ENV"
