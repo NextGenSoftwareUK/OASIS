@@ -339,7 +339,32 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
                     avatar["deletedDate"] = DateTime.UtcNow;
                     avatar["isDeleted"] = true;
                 }
-                await WriteConditionalDeletionAsync(url, ReadStrongRevisionTag(observed), id, softDelete ? avatar : null);
+                var avatarTag = ReadStrongRevisionTag(observed);
+                var detailRemoved = false;
+                if (!softDelete)
+                {
+                    var detailUrl = NodeUrl($"/oasis_avatar_details/{id:D}");
+                    using var detailLookup = new HttpRequestMessage(HttpMethod.Get, detailUrl);
+                    detailLookup.Headers.Add("X-Firebase-ETag", "true");
+                    using var detailObserved = await _http.SendAsync(detailLookup, HttpCompletionOption.ResponseHeadersRead);
+                    detailObserved.EnsureSuccessStatusCode();
+                    var detailJson = await ReadFirebaseAcknowledgement(detailObserved);
+                    if (ParseFirebaseDetail(id, JsonNode.Parse(detailJson)) != null)
+                    {
+                        await WriteConditionalDeletionAsync(detailUrl, ReadStrongRevisionTag(detailObserved), id, null);
+                        detailRemoved = true;
+                    }
+                }
+
+                try
+                {
+                    await WriteConditionalDeletionAsync(url, avatarTag, id, softDelete ? avatar : null);
+                }
+                catch (Exception cause) when (detailRemoved && cause is not INativeMutationReconciliationRequired)
+                {
+                    // The detail deletion committed, while the avatar delete did not.
+                    throw new FirebaseMutationReconciliationException(id, cause);
+                }
 
                 result.Result = true;
                 result.IsDeleted = true;
