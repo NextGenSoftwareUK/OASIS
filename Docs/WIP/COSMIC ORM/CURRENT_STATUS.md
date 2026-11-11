@@ -1540,3 +1540,5 @@ Exact Supabase WEB4 image build 43062441681 is running.
 11 November UTC: WEB4 TimescaleDB revision 2ec6cd9cce is live (789a7cd0-64cf-4531-ae28-e55ea1f43a06). Authenticated discovery warmed from 68/106 to 104/106 ready for native and federation. Blockscout and Hedera are ready. Cardano activation received HTTP 429 and Nostr WebSocket upgrade received HTTP 503 (NotAWebSocket). Supabase, TRON and CouchDB remain absent. Preserve previously accepted cohorts.
 
 11 November UTC: queued exact PlanetScale WEB4 image 43081579241 for candidate 49d537d2db with its SHA explicitly as the sole tag. Combined admission run 43080851172 remains active. Prepared Core merge 35f04c65f6 preserves Core Development history and has the exact tested PlanetScale pin tree. Parent and Core release publication remain open.
+
+11 November UTC: all 13 combined PlanetScale and Supabase WEB4 admission tests passed in CI 43080851172. Core Development advanced to 35f04c65f6 with the exact source tree of the tested PlanetScale tariff pin 98d9c27ba8. Parent Development integration awaits exact image CI 43081579241. Hosted PlanetScale still needs the reviewed SELECT-only teaching source.
