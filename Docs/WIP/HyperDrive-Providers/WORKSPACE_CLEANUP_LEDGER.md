@@ -303,4 +303,6 @@ Urgent disk cleanup follow-up: leased standard project clean succeeded for AWS u
 
 11 November Hedera run 43051793550 stopped before deployment. The official CLI confirmed it stopped the network and cleaned volumes. The retry checks that the fresh runner has no remaining containers. No Windows outputs were created.
 
+11 November Hedera run 43052606982 stopped at mirror gRPC startup and executed the official local-node teardown. No local artifacts or retained testnet writes were created.
+
 11 November cleanup recheck in the HyperDrive worktree. The earlier WEB4 count build still occupies 115,007,857 bytes in `oasisweb4.com/node_modules` and 361,528 bytes in `TestResults/Web4ProviderCountBuild`. Both are Git-ignored generated directories, with no linked content or matching active Node process found. Automatic review rejected the scoped recursive removal before execution. No deletion occurred. The four named wallet and ActivityPub build folders were absent from this worktree's top-level TestResults directory.

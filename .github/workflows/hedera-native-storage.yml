@@ -88,7 +88,9 @@ jobs:
           npm install --prefix "$fixture" --ignore-scripts --no-audit --no-fund --no-save solc@0.8.26
           [[ -z "$(docker ps -aq)" ]]
           local_started=true
-          (cd "$fixture" && FIRING_UP_RETRY_ATTEMPTS=1200 npm exec --yes --package=@hashgraph/hedera-local@2.40.2 -- hedera start --host=127.0.0.1 --accounts=1)
+          # Upstream generates bind-mounted configuration read by non-root services.
+          # The enclosing mktemp directory and OASIS-owned inputs remain private.
+          (umask 022; cd "$fixture" && FIRING_UP_RETRY_ATTEMPTS=1200 npm exec --yes --package=@hashgraph/hedera-local@2.40.2 -- hedera start --host=127.0.0.1 --accounts=1)
           export OASIS_HEDERA_LOCAL_FIXTURE="$fixture" OASIS_HEDERA_SDK_BRIDGE="$sdk/bridge.mjs"
           export OASIS_HEDERA_LOCAL_SIGNING_KEY=302e020100300506032b65700422042091132178e72057a1d7528025956fe39b0b847f200ab59b2fdd367017f3087137
           export OASIS_HEDERA_LOCAL_ENCRYPTION_KEY="$(openssl rand -base64 32)"
