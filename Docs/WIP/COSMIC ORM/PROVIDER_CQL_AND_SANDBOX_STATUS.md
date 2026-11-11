@@ -803,3 +803,5 @@ broader provider contracts remain open. [Evidence](DUCKDB_CQL_MVP.md).
 11 November UTC: HyperDrive verified all 52 TRON native storage cases on disposable TRE nodes through the shipping TronNet gRPC adapter. Both modes used independent contract deployments, and native reads confirmed both contracts empty after cleanup. Development `6103e4e632` contains the verified CI changes. Hosted storage, retained ledger recovery and authenticated TronGrid CQL remain open. [TRON native CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43035175165)
 
 11 November UTC: HyperDrive's pinned Linux build produced and validated the Polkadot records contract WASM. Development `6103e4e632` contains the verified CI change. Native deployment and the storage lifecycle remain open. Existing public CQL acceptance stands. [Polkadot WASM CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43035338351)
+
+11 November UTC: PouchDB native public teaching presets rendered 3 full and 2 filtered rows in the live Development WEB4 CQL Playground. The original-owner private paired browser check remains open.
