@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November Memcached native storage candidate. Activation now requires a native Enyim response. Username/email lookups decode the same JSON written by the index path and avatar details use canonical serialization. The full storage workflow exercises two isolated official Memcached 1.6.40 daemons. Existing COSMIC query evidence carries forward. Lifecycle verification and durable-provider eligibility remain open.
+
 11 November RavenDB storage [run 43071621377](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43071621377) at 0e7f9d396e passed 52/52 through the shipping RavenDB.Client adapter on RavenDB 7.2.7. All four write-ownership regressions passed. Both independent databases had zero documents after exact cleanup, and CI removed the disposable resources. Hosted and COSMIC CQL acceptance are separate.
 
 11 November RavenDB run 43070212406 started RavenDB 7.2.7, but its version endpoint kept returning HTTP 503 and managed tests did not run. The next candidate carries the same automated EULA setting already used by the repository RavenDB fixture and retains a bounded readiness error response if startup still fails.
