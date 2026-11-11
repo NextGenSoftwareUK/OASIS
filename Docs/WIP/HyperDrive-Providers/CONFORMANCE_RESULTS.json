@@ -380,7 +380,7 @@
       "Official Garnet 2.2.5 Windows native coverage is split across 18/26 initial checks per mode and three focused sync/async pairs for tombstone and avatar cleanup, remaining root/batch/import cleanup, and parented-child relationship index cleanup. See the [hash-verified split evidence](NativeEvidence/garnet-split-storage-v2.json). Full provider acceptance and a single registered native shared report remain open. The legacy plaintext layout is refused and has no automatic migration."
     ],
     "IPFSOASIS": [
-      "Native core-storage-v2 baseline52/52 verified, sync/async26 each, exact fixture cleanup complete;178 controlled tests pass. Reusable owned offline environment ready. CQL remains unenrolled; direct-CID versus named persistent-index execution and full lifecycle/concurrency contracts remain open."
+      "Native core-storage-v2 baseline52/52 verified, sync/async26 each, exact fixture cleanup complete;178 controlled tests pass. Fresh Kubo 0.43.1 fixtures passed graceful restart ([run 43007340696](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43007340696)) and separate-process concurrent publication on [Windows](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43010855757) and [Linux](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43011806925). Historical-data recovery on the retained repository and CQL enrollment remain open."
     ],
     "PinataOASIS": [
       "Real authenticated pin/gateway HTTP transport exists, but mutable GUID index, encrypted record contract, result acknowledgements and graph/version semantics need canonical-suite binding/review; existing pin service is not interchangeable with Kubo repository ownership. No configured isolated account/fixture used; no public pin/write dispatched."

@@ -538,3 +538,8 @@ Status: missing account/configuration information,2 November2026. David approved
   WEB4 project access. Tell the agent when sign-in completes. Keep tokens and
   credentials out of chat and Git.
 - [LocalFile qualification and rollout](../COSMIC%20ORM/LOCALFILE_CQL_MVP.md).
+
+## IPFS retained fixture access
+
+- **Open, 2026-11-11.** Identify the machine that holds the original offline Kubo test repository and protected storage key and make both available to the verification session. Keep the key in protected local storage.
+- Fresh Kubo fixtures passed graceful restart and separate-process concurrent publication on Windows and Linux. The retained fixture is needed to verify historical-data recovery and compatibility. [Provider matrix](../HyperDrive-Providers/PROVIDER_MATRIX.md)
