@@ -46,7 +46,13 @@ async function main() {
       OASIS_BNB_CI_KEY: owner.privateKey,
       OASIS_WEB3CORE_STORAGE_ENCRYPTION_KEY: randomBytes(32).toString('base64')
     };
-    for (const mode of ['SYNC', 'ASYNC']) {
+    const nftOnly = process.env.BNB_NFT_ONLY === 'true';
+    if (nftOnly) {
+      const recipient = ethers.Wallet.createRandom();
+      await (await owner.sendTransaction({ to: recipient.address, value: ethers.parseEther('1') })).wait();
+      settings.OASIS_BNB_CI_NFT_RECIPIENT_KEY = recipient.privateKey;
+    }
+    for (const mode of nftOnly ? ['NFT'] : ['SYNC', 'ASYNC']) {
       const contract = await factory.deploy();
       await contract.waitForDeployment();
       if (await contract.owner() !== owner.address) throw new Error('Unexpected BNB contract owner.');

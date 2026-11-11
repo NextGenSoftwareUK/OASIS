@@ -246,6 +246,8 @@ Deploy the smart contract using:
 npx hardhat run --network localhost scripts/deploy.js
 ```
 
+For BNB Smart Chain, set `OASIS_BNB_DEPLOY_RPC_URL`, `OASIS_BNB_DEPLOY_CHAIN_ID` and the protected `PRIVATE_KEY` for the intended deployer. Then run `npx hardhat run --network bnb scripts/deploy.js`. The command prints the address after the deployment is confirmed and the RPC returns contract bytecode.
+
 ### Testing
 
 Run unit tests using:
