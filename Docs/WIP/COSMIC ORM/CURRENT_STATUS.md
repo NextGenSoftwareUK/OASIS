@@ -1093,3 +1093,5 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 11 November UTC: GitHub reports the Vercel check succeeded for Web4Site renewal-banner commit de1d3ce (deployment 78RmquyRxgnnoUz99orjATuqu1tG). The connected Vercel identity returned HTTP 403 for oasis-team deployment details. Preview browser behavior remains unverified and no production promotion occurred.
 
 11 November UTC: exact solution candidate d8b50fa36f on Development 9aaed91520 passed project enrollment in CI 43011781325. Full production compilation is running. Railway 5c6a6f59 reached WEB4 publish for the two-instance IPFS fix; the two-process successor fc8ccf36 is queued.
+
+11 November UTC: ZcashOASIS public block-summary presets returned 3 full and 2 filtered rows in the live Development WEB4 CQL Playground. Original-owner paired browser verification remains open.
