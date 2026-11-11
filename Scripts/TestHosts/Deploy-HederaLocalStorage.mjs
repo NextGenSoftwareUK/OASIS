@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { resolve } from 'node:path';
 import { execute } from '../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS/SdkBridge/bridge.mjs';
@@ -27,7 +27,7 @@ const request = {
   nodes: { '127.0.0.1:50211': '0.0.3' },
   sender: '0.0.2',
   keyType: 'der',
-  privateKey: '302e020100300506032b65700422042091132178e72057a1d7528025956fe39b0b847f200ab59b2fdd367017f3087137',
+  privateKey: process.env.OASIS_HEDERA_LOCAL_SIGNING_KEY,
   gas: 4_000_000,
   maxFeeTinybars: '10000000000'
 };
@@ -52,4 +52,6 @@ const probe = await execute('storageProbe', storage);
 assert.equal(probe.contractId, deployment.contractId);
 assert.equal(probe.sender, request.sender);
 assert.deepEqual(await execute('storageList', { ...storage, prefix: '' }), []);
-console.log(JSON.stringify({ contractId: deployment.contractId, deploymentTransaction: deployment.transactionId, emptyStorage: true }));
+const evidence = JSON.stringify({ contractId: deployment.contractId, deploymentTransaction: deployment.transactionId, emptyStorage: true });
+writeFileSync(resolve(fixture, 'deployment.json'), evidence, { flag: 'wx' });
+console.log(evidence);

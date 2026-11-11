@@ -6,6 +6,7 @@ on:
     paths:
       - '.github/workflows/hedera-native-storage.yml'
       - 'Scripts/TestHosts/Deploy-HederaLocalStorage.mjs'
+      - 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.IntegrationTests/HederaLocalStorageConformanceTests.cs'
   workflow_dispatch:
 
 permissions:
@@ -14,15 +15,45 @@ permissions:
 jobs:
   deployment:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: OASIS
     steps:
       - uses: actions/checkout@v7
         with:
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          path: OASIS
+          submodules: recursive
           persist-credentials: false
+      - name: Read recorded dependency revisions
+        id: dependencies
+        run: |
+          for dependency in LIBRARIES HOLOCHAIN; do
+            revision="$(sed -n "s/^${dependency}_COMMIT=//p" Docker/oasis-dependency-versions.env)"
+            [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+            echo "${dependency,,}=$revision" >> "$GITHUB_OUTPUT"
+          done
+      - uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependencies.outputs.libraries }}
+          path: NextGenSoftware-Libraries
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - uses: actions/checkout@v7
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          ref: ${{ steps.dependencies.outputs.holochain }}
+          path: holochain-client-csharp
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
       - uses: actions/setup-node@v4
         with:
           node-version: '24.22.1'
-      - name: Deploy and probe the shipping storage contract through local Hiero consensus
+      - name: Deploy the contract and run storage conformance through local Hiero consensus
         shell: bash
         run: |
           umask 077
@@ -35,8 +66,14 @@ jobs:
             status=$?
             trap - EXIT
             if [[ "$local_started" == true ]]; then
+              if (( status != 0 )); then
+                docker ps -a --format '{{.Names}} {{.Status}}'
+                for service in network-node mirror-node-grpc; do
+                  docker logs --tail 25 "$service" >&2 || true
+                done
+              fi
               (cd "$fixture" && npm exec --yes --package=@hashgraph/hedera-local@2.40.2 -- hedera stop) || status=1
-              if docker ps -aq --filter name='^/network-node$' | grep -q .; then status=1; fi
+              [[ -z "$(docker ps -aq)" ]] || status=1
             fi
             rm -rf -- "$sdk/node_modules"
             if [[ "$fixture" == "$RUNNER_TEMP"/oasis-hedera.* ]]; then
@@ -51,5 +88,19 @@ jobs:
           npm install --prefix "$fixture" --ignore-scripts --no-audit --no-fund --no-save solc@0.8.26
           [[ -z "$(docker ps -aq)" ]]
           local_started=true
-          (cd "$fixture" && npm exec --yes --package=@hashgraph/hedera-local@2.40.2 -- hedera start --host=127.0.0.1 --accounts=1)
+          (cd "$fixture" && FIRING_UP_RETRY_ATTEMPTS=1200 npm exec --yes --package=@hashgraph/hedera-local@2.40.2 -- hedera start --host=127.0.0.1 --accounts=1)
+          export OASIS_HEDERA_LOCAL_FIXTURE="$fixture" OASIS_HEDERA_SDK_BRIDGE="$sdk/bridge.mjs"
+          export OASIS_HEDERA_LOCAL_SIGNING_KEY=302e020100300506032b65700422042091132178e72057a1d7528025956fe39b0b847f200ab59b2fdd367017f3087137
+          export OASIS_HEDERA_LOCAL_ENCRYPTION_KEY="$(openssl rand -base64 32)"
           node Scripts/TestHosts/Deploy-HederaLocalStorage.mjs "$fixture"
+          export OASIS_HEDERA_LOCAL_CONTRACT_ID="$(jq -er '.contractId' "$fixture/deployment.json")"
+          [[ "$OASIS_HEDERA_LOCAL_CONTRACT_ID" =~ ^0\.0\.[1-9][0-9]*$ ]]
+          pwsh -NoProfile -Command '
+            ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-HederaStorage -Operation {
+              dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.IntegrationTests.csproj" --filter "FullyQualifiedName~CoreStorageSuiteAgainstHieroConsensus" /m:2 /nr:false /p:UseSharedCompilation=false --logger "console;verbosity=normal"
+              if ($LASTEXITCODE -ne 0) { throw "Native Hedera storage verification failed." }
+            }'
+          for mode in async sync; do
+            jq -e '.Succeeded and .FixtureCleanupComplete and (.Passed | length == 26)' "$fixture/core-storage-$mode.json" >/dev/null
+          done
+          echo "Verified both native Hedera storage modes and independently empty contract keys."

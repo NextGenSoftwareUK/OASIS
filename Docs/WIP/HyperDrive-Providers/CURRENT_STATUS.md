@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November Hedera run 43051793550 pulled the official Hiero stack, then the CLI expired its default ten-second mirror gRPC startup window before deploying. The retry uses the CLI's supported two-minute readiness setting and captures owned service logs on failure. If deployment and empty storage pass, it runs both managed storage modes through the shipping provider and checks native contract keys independently after each. The retained funded testnet remains separate.
+
 11 November Hedera native storage prerequisite. A disposable CI workflow starts the official Hiero Local Node CLI on loopback, compiles the shipping key-value contract with Solidity 0.8.26, deploys it through the shipping Hiero SDK bridge, and checks the native owner and empty key set. This targets the consensus storage path independently of COSMIC's public mirror reader and the retained funded testnet. Native deployment and the subsequent managed lifecycle remain open.
 
 11 November SQL Server run 43050650521 passed both uninterrupted native storage modes on Microsoft SQL Server 2022 Linux 16.0.4222.2. Native SQL verified and removed the ten exact owned tombstones in one transaction, then confirmed all six current and history tables empty. The container was removed. Hosted WEB4 activation remains separate.
