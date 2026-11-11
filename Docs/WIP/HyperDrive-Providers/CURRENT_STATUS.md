@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November Convex native companion recovery. [The official Linux engine and pinned CLI run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43017572009) passed 1/1 at 4bd86ed215. One provider instance rejected activation on a fresh engine without the companion, then activated and deactivated after the native deployment. The provider and companion match the tested revision. The disposable engine stopped. Hosted Convex remains open.
+
 11 November Supabase capped pagination. [Native PostgREST CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43016561338) verified 121 exact IDs for holons, avatars and avatar details with a server cap of 37 rows per response. The verified provider and test match a994ffa8b2. The disposable PostgreSQL service was removed. Hosted project verification remains open.
 
 11 November Supabase native PostgREST. The [credential case](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43014993069) rejected the crossed key and saved and loaded through two independently authenticated endpoints sharing one client. The [storage suite](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43015778894) passed both modes, 26 checks each, with exact fixture cleanup against PostgREST 16.5 and PostgreSQL 16.6. The graph fix writes a uniform parent column on every row. The verified provider and tests match daae2ff8a2. Hosted Supabase gateway and project verification remain open.
