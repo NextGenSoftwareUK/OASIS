@@ -67,10 +67,12 @@ jobs:
           trap cleanup EXIT
           if ! docker image inspect "$image" >/dev/null 2>&1; then image_owned=true; fi
           container="$(docker run -d -p 127.0.0.1:19043:9042 "$image" --smp 1 --memory 1G --developer-mode 1 --overprovisioned 1)"
-          cql=(docker exec "$container" cqlsh 127.0.0.1)
+          container_ip="$(docker inspect --format '{{.NetworkSettings.Networks.bridge.IPAddress}}' "$container")"
+          [[ -n "$container_ip" ]]
+          cql=(docker exec "$container" cqlsh "$container_ip" 9042)
           for attempt in {1..90}; do
-            if timeout 5 "${cql[@]}" -e 'SELECT release_version FROM system.local;' >"$fixture/version.txt" 2>/dev/null; then break; fi
-            [[ "$attempt" != 90 ]]
+            if timeout 5 "${cql[@]}" -e 'SELECT release_version FROM system.local;' >"$fixture/version.txt" 2>"$fixture/readiness.log"; then break; fi
+            if [[ "$attempt" == 90 ]]; then cat "$fixture/readiness.log"; exit 1; fi
             sleep 2
           done
           cat "$fixture/version.txt"

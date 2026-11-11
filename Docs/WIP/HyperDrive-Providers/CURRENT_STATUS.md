@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November ScyllaDB run 43068194121 started engine 2026.3.4. It advertised CQL on the container bridge address, while the readiness probe targeted container loopback. The candidate probes the actual bridge listener and records the final readiness error if it cannot connect. The shipping test still connects through the host loopback mapping. Managed checks did not run.
+
 11 November ScyllaDB native storage candidate. The shipping DataStax adapter now submits selected graph writes in one logged batch, uses canonical avatar-detail records, fixes indexed lookup syntax, and acknowledges exact storage counts. The new CI job reuses the pinned ScyllaDB engine and checks both storage modes and the existing write-ownership regression. Existing COSMIC query evidence carries forward. Verification is pending.
 
 11 November Cassandra storage [run 43066716817](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43066716817) at ad046dcec1 passed 52/52 through the shipping DataStax adapter on Apache Cassandra 4.1.12. All five write-ownership regressions passed. Both independent keyspaces had five empty native tables after exact cleanup, and CI removed the disposable resources. Hosted and COSMIC CQL acceptance are separate.

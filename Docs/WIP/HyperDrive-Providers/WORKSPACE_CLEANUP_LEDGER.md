@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+11 November ScyllaDB run 43068194121 confirmed disposal of its container, volumes, image and checkpoint directory after the readiness failure. No Windows build or download was created.
+
 11 November ScyllaDB storage uses an owned CI container, two keyspaces, and disposable checkpoint files. The workflow removes the container, volumes, newly pulled image and checkpoint directory on exit. Cleanup confirmation is pending. No local build or download was created.
 
 11 November Cassandra run 43066716817 independently removed ten owned holon tombstones and verified five empty tables in each keyspace. CI removed the container, volumes, newly pulled image and checkpoints. No local build, runtime or download was created.
