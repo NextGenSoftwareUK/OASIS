@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November BNB Smart Chain storage [run 43084066216](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43084066216) at bde9eb8a0c passed 52/52 on private Parlia chain 714 after the shipping Nethereum adapter switched to the node gas-price quote. Both modes verified the native validator RPC and shared cleanup. The separate [BootLoader run 43084767090](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43084767090) is pending.
+
 11 November AvalancheGo storage [run 43080136029](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43080136029) at fb90b97f8f passed 52/52 through shipping Nethereum on AvalancheGo 1.14.1 local C-Chain 43112. Both separately deployed contracts started empty, verified ownership and passed shared lifecycle cleanup. CI removed the node and temporary files. Hosted and other capability verification remain open.
 
 11 November public documentation update. OASIS Docs main 41b6723 and OASIS Learn main 082ecdc link the live provider guides to this status page. Learn describes failover, replication and load balancing for eligible configured providers. Fresh public responses served the corrected markup, both status links and the 234-project inventory. The update required no local build, download or retained test artifact.

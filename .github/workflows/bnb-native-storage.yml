@@ -1,0 +1,112 @@
+name: BNB Smart Chain native storage
+
+on:
+  push:
+    branches: [work/hyperdrive-provider-completion]
+    paths:
+      - '.github/workflows/bnb-native-storage.yml'
+      - 'Scripts/TestHosts/deploy-bnb-ci-storage.cjs'
+      - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.BNBChainOASIS/**'
+      - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/src/Web3CoreOASIS.cs'
+      - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/src/Web3CoreOASISBaseProvider.AvatarDelete.cs'
+      - 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.BNBChainOASIS.IntegrationTests/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  storage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: OASIS
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          path: OASIS
+          submodules: recursive
+          persist-credentials: false
+      - name: Read the recorded Libraries revision
+        id: dependencies
+        run: |
+          revision="$(sed -n 's/^LIBRARIES_COMMIT=//p' Docker/oasis-dependency-versions.env)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "libraries=$revision" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependencies.outputs.libraries }}
+          path: NextGenSoftware-Libraries
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Run native storage conformance against BNB Smart Chain
+        shell: bash
+        run: |
+          fixture="$(mktemp -d "$RUNNER_TEMP/oasis-bnb.XXXXXXXX")"
+          contract_root=Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS
+          [[ ! -e "$contract_root/node_modules" ]]
+          node_pid=""
+          cleanup() {
+            status=$?
+            if [[ -n "$node_pid" ]]; then
+              if kill -0 "$node_pid" 2>/dev/null; then kill "$node_pid"; fi
+              wait "$node_pid" || true
+            fi
+            if (( status != 0 )) && [[ -f "$fixture/node.log" ]]; then tail -n 35 "$fixture/node.log"; fi
+            [[ "$fixture" == "$RUNNER_TEMP"/oasis-bnb.* ]] && rm -rf -- "$fixture"
+            rm -rf -- "$contract_root/node_modules"
+            if [[ -e "$fixture" || -e "$contract_root/node_modules" ]]; then
+              status=1
+            else
+              echo "Removed the owned BSC node fixture and npm dependencies."
+            fi
+            exit "$status"
+          }
+          trap cleanup EXIT
+          upstream=https://raw.githubusercontent.com/bnb-chain/bsc/cdb7548b5baacfdae92f9f63437d6456411665f3/tests/truffle/storage
+          curl -fsSL https://github.com/bnb-chain/bsc/releases/download/v1.7.8/geth_linux -o "$fixture/geth"
+          (cd "$fixture"; echo '28466c6b6b279e2026ddcfea09ddadd920d2bcf02efab3c854e4bb0d5a3ae534  geth' | sha256sum -c)
+          chmod +x "$fixture/geth"
+          mkdir -p "$fixture/data/keystore"
+          curl -fsSL "$upstream/genesis.json" -o "$fixture/genesis.json"
+          keyfile=UTC--2023-12-07T03-21-00.035782000Z--03735c2ed70a56cd221e0024eb4bf90243c9d6e9
+          curl -fsSL "$upstream/keystore/$keyfile" -o "$fixture/data/keystore/$keyfile"
+          validator=0x03735c2ed70a56cd221e0024eb4bf90243c9d6e9
+          export OASIS_BNB_CI_FIXTURE="$fixture"
+          export npm_config_cache="$fixture/npm-cache"
+          npm ci --prefix "$contract_root" --no-audit --no-fund
+          node Scripts/TestHosts/deploy-bnb-ci-storage.cjs prepare
+          "$fixture/geth" --datadir "$fixture/data" init "$fixture/genesis.json"
+          "$fixture/geth" --datadir "$fixture/data" --networkid 714 --nodiscover --maxpeers 0 \
+            --http --http.addr 127.0.0.1 --http.port 19845 --http.api eth,net,web3,parlia \
+            --allow-insecure-unlock --unlock "$validator" --password /dev/null \
+            --mine --miner.etherbase "$validator" >"$fixture/node.log" 2>&1 &
+          node_pid=$!
+          for attempt in {1..60}; do
+            kill -0 "$node_pid"
+            if curl -fsS --max-time 3 -H 'Content-Type: application/json' \
+              -d '{"jsonrpc":"2.0","id":1,"method":"eth_blockNumber","params":[]}' http://127.0.0.1:19845 \
+              | jq -e '.result and (.result != "0x0")' >/dev/null; then break; fi
+            [[ "$attempt" != 60 ]]
+            sleep 2
+          done
+          node Scripts/TestHosts/deploy-bnb-ci-storage.cjs
+          pwsh -NoProfile -Command '
+            $settings = Get-Content -Raw (Join-Path $env:OASIS_BNB_CI_FIXTURE settings.json) | ConvertFrom-Json -AsHashtable
+            foreach ($entry in $settings.GetEnumerator()) { [Environment]::SetEnvironmentVariable($entry.Key, $entry.Value) }
+            ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-BNBChainStorage -Operation {
+              dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.BNBChainOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.BNBChainOASIS.IntegrationTests.csproj" --filter "FullyQualifiedName~BnbNativeStorageConformanceTests" /m:2 /nr:false /p:UseSharedCompilation=false --logger "console;verbosity=normal"
+              if ($LASTEXITCODE -ne 0) { throw "Native BNBChain storage verification failed." }
+            }'
+          for mode in async sync; do
+            jq -e '.Succeeded and .FixtureCleanupComplete and (.Passed | length == 26)' "$fixture/$mode.json" >/dev/null
+          done
