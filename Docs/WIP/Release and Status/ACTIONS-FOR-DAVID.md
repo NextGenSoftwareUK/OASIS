@@ -686,3 +686,9 @@ Status: missing account/configuration information,2 November2026. David approved
 - **Status (2026-11-11)** Open. The official Saigon RPC independently confirmed chain ID 202601. The shared storage suite requires a funded signer and dedicated contract.
 - **David action** Identify a disposable Web3Core deployment on Saigon or grant access to deploy one using a testnet-funded signer. Set the protected configuration keys OASIS_RONIN_CONFORMANCE_RPC_URL, OASIS_RONIN_CONFORMANCE_PRIVATE_KEY and OASIS_RONIN_CONFORMANCE_CONTRACT. Keep secrets out of Git and chat.
 - **Reason** The provider agent owns the gated sync and async storage runs and fixture cleanup checks. [Ronin network configuration](https://docs.roninchain.com/developers/smart-contracts/deploy)
+
+### Immutable zkEVM storage fixture
+
+- **Status (2026-11-11)** Open. The official testnet RPC confirmed chain ID 13473. Signed verification requires a dedicated contract and funded signer.
+- **David action** Identify a disposable Web3Core deployment on Immutable testnet or grant access to deploy one with a testnet-funded signer. Set OASIS_IMMUTABLE_CONFORMANCE_RPC_URL, OASIS_IMMUTABLE_CONFORMANCE_PRIVATE_KEY and OASIS_IMMUTABLE_CONFORMANCE_CONTRACT in protected runtime configuration. Keep secrets out of Git and chat.
+- **Reason** The provider agent owns both native storage lifecycle modes and fixture cleanup checks. [Immutable testnet configuration](https://docs.immutable.com/build/unreal/operational-guides/launch-new-collection)
