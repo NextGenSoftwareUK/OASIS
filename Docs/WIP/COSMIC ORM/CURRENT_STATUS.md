@@ -1536,3 +1536,5 @@ Exact Supabase WEB4 image build 43062441681 is running.
 11 November UTC: prepared PlanetScale release 49d537d2db on Development dfe08114e6. The scoped merge retains the Supabase release and restores only the nine verified PlanetScale reader, admission test and pin blobs. Existing PlanetScale CI 43069153145 covered the earlier base; combined verification and managed source qualification remain open. HyperDrive is qualifying Avalanche storage independently.
 
 11 November UTC: queued combined PlanetScale and Supabase WEB4 admission CI 43080851172 on candidate 49d537d2db. The job requires all 13 registration, tariff and transport boundary cases to pass. The Supabase Railway deployment dfe08114e6 remains queued.
+
+11 November UTC: WEB4 TimescaleDB revision 2ec6cd9cce is live (789a7cd0-64cf-4531-ae28-e55ea1f43a06). Authenticated discovery warmed from 68/106 to 104/106 ready for native and federation. Blockscout and Hedera are ready. Cardano activation received HTTP 429 and Nostr WebSocket upgrade received HTTP 503 (NotAWebSocket). Supabase, TRON and CouchDB remain absent. Preserve previously accepted cohorts.

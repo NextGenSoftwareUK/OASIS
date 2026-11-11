@@ -6176,3 +6176,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: prepared the scoped PlanetScale release from committed blobs in a temporary Git index and removed it. Railway queue read in memory. No local image, build, restore or download.
 
 11 November UTC: track temporary tag ci-cosmic-planetscale-web4-dfe08114e6 until combined CI and evidence publication finish. Removed the temporary Git index. No local build, restore, image or download.
+
+11 November UTC: reused the readiness visitor on WEB4 2ec6cd9cce. Ordinary renewal produced four protected rotation files, retained with that visitor. Follow-up readiness and bounded Railway activation logs were read in memory. Temporary Git index removed. No local build, download or query report.
