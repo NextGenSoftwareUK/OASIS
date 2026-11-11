@@ -955,3 +955,5 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 11 November UTC: Sui checkpoint-scoped public object presets returned three full and two filtered rows in the live Development CQL Playground. Original-owner MongoDB paired browser verification remains open. No preparation or record saves.
 
 11 November UTC: Starknet public accepted-header presets returned three full and two filtered rows in the live Development CQL Playground. Original-owner MongoDB paired browser verification remains open. No preparation or record saves.
+
+11 November UTC: Filecoin RPC-v1 finalized-balance presets returned three full and two filtered rows in the live Development CQL Playground. Original-owner MongoDB paired browser verification remains open. No preparation or record saves.
