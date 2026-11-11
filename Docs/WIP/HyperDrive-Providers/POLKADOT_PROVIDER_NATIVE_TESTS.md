@@ -1,5 +1,9 @@
 # Reusable Polkadot/Substrate native transfer checks
 
+## 11 November 2026 — shared storage conformance
+
+The shipping Polkadot provider passed all 52 shared storage checks on the official Parity contracts node v0.42.0 in [run 43041109458](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43041109458). Each mode passed 26 checks, verified every original mutation's finalized receipt, and independently confirmed empty contract storage. The runner reproduced the checked contract code hash and removed the disposable chain and Binaryen fixture. The verified workflow and provider changes are on [Development at 3def10424e](https://github.com/NextGenSoftwareUK/OASIS/commit/3def10424e). Hosted and retained-ledger acceptance remain separate.
+
 ## 26 October: SDK worker storage-key isolation verified
 
 Three real child-process controls first failed against the existing implementation: balance, transaction-status and record-preparation workers all inherited OASIS_POLKADOT_STORAGE_ENCRYPTION_KEY. The existing single process launcher now removes that known parent-only key from ProcessStartInfo.Environment. Parent configuration and adapter-side encryption remain intact; explicit native signing inputs and the owned preparation channel are unchanged. This prevents unnecessary key exposure to the Node worker; it does not claim isolation from the parent OS account or arbitrary unrelated environment secrets.
