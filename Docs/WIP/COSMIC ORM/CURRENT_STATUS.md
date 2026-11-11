@@ -971,3 +971,5 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 11 November UTC: Bittensor public Finney header presets rendered 3 full and 2 filtered rows in the live Development WEB4 CQL Playground. The original-owner private paired browser check remains open.
 
 11 November UTC coordination: Development abf589b08a adds the verified Polkadot Asset Hub wallet balance and its integration test on top of the TRON, Cosmos and NEAR wallet changes. HyperDrive synchronized at c89137b42d. Railway queued deployment 69eb6400-e3a8-488f-82d8-19a459bd9b8b while the TRON image was compiling. The change does not modify the CQL reader. Verify both Polkadot public CQL presets after cutover.
+
+11 November UTC: Railway WEB4 deployment bb2f904c-4197-430b-b0c3-77241d750f60 succeeded at Development 6ce625714f with the TRON wallet change. Protected catalogue warmed from 20/106 to 70/106; the next two reads returned HTTP 401/INVALID_AVATAR using the retained visitor. Final readiness remains unverified. TRON CQL and Supabase were absent in both successful reads. Preserve the visitor journal and accepted cohorts. Polkadot successor abf589b08a was still queued.
