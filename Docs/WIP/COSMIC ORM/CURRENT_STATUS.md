@@ -26,8 +26,9 @@ means SOLID; ActibityPub means ActivityPub; HetraGraph means Hedera/Hashgraph
 
 Solana, Ethereum, Polygon, Arbitrum, NEAR, Cosmos and Polkadot retain accepted
 scoped live HTTP and browser evidence. IPFS and ActivityPub also retain live HTTP
-and browser proofs. SOLID, TON, Hedera and EOS retain accepted live HTTP evidence;
-their browser gates remain open. TRON has no accepted current live CQL admission: preserve rate-limit/denial
+and browser proofs. SOLID, TON, Hedera and EOS have accepted live HTTP and native public
+browser evidence. Their original-owner paired browser checks remain open.
+TRON has no accepted current live CQL admission: preserve rate-limit/denial
 outcomes and the authenticated-reader draft/credential preflight; do not retry
 failed unauthenticated endpoints or recreate its original cohort. Use the single
 owner-action list for any missing account/access requirement, preserving existing
@@ -48,8 +49,9 @@ for these five sources remains open. [Live acceptance and deployment evidence](M
 
 GOMap code deployment `76806353` at `e2286e44` passed package inspection.
 The four prior enrollments remained enabled. GOMap is disabled and its protected
-settings candidate passed offline replay. Development pushes and live settings
-activation are on hold until David explicitly lifts the hold.
+settings candidate passed offline replay and was superseded by the dedicated-origin
+candidate. Scoped Development integration requires exact-revision verification.
+Live GOMap enrollment requires a reviewed dedicated HTTPS OSRM origin.
 [GOMap package and remaining gates](GOMAP_PUBLIC_SOURCE_STATUS.md)
 
 Remaining-provider popularity ranking must use
@@ -891,3 +893,5 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 11 November UTC: GOMap dedicated HTTPS origin enforcement applied to the three shipping/test paths on Development 94fe19c958 as 095805ee910d2ac7a889d233040ef6ca177e6fe5. The protected descriptor tooling remains on the COSMIC branch because the Development script context diverged. No Core pin change. Public enrollment still needs a reviewed OSRM origin and fresh protected settings.
 
 11 November UTC: Development still points to `94fe19c958`. Dedicated-origin GOMap candidate `095805ee91` is in [targeted qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42977871267) and [exact WEB4 image CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42978537981). Development lacks the GOMap descriptor in its hosted settings verifier. The origin-binding tooling remains on the COSMIC branch for the enrollment step, which requires a reviewed dedicated HTTPS OSRM origin. No live enrollment or Development merge occurred.
+
+11 November UTC: synchronized the priority browser status with the provider matrix and provider-specific acceptance records.
