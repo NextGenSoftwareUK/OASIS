@@ -1,3 +1,5 @@
+const { ethers } = require("hardhat");
+
 async function main() {
     const Web3CoreOASIS = await ethers.getContractFactory("Web3CoreOASIS");
     const deployedContract = await Web3CoreOASIS.deploy();
