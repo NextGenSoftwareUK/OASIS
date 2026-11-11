@@ -75,3 +75,5 @@ Hosted immutable evidence:
 - `TestResults/HostedCqlIntegrationCurrent/TelosOASIS-native-http.json`: 13583bytes; SHA256 `a47f0078e31730fdaf95fe482c4d9ceddb29a15f18683586f5d1499341051198`.
 - `TestResults/HostedCqlIntegrationCurrent/TelosOASIS-client-http-flow.json`: 36427bytes; SHA256 `9800d69b59187504fb153b95d0c195c4cb8c2197ae1e7c5ee432c55bf2805dd5`.
 - `TestResults/HostedCqlIntegrationCurrent/TelosOASIS-isolation-http.json`: 5116bytes; SHA256 `0a799efbec630fc1d9eeeeb7cdfda112e2b5bd1f953a21712962b98785679124`.
+
+11 November UTC: TelosOASIS RPC-reported finalized balance presets returned 3 full and 2 filtered rows in the live Development WEB4 CQL Playground. Original-owner paired browser verification remains open.
