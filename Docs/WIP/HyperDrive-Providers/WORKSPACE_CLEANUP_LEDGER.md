@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+11 November Cassandra run 43066716817 independently removed ten owned holon tombstones and verified five empty tables in each keyspace. CI removed the container, volumes, newly pulled image and checkpoints. No local build, runtime or download was created.
+
 11 November PlanetScale MySQL runs 43063702938 and 43064133424 confirmed disposal of their containers, volumes, newly pulled images and checkpoint directories. The full run independently removed ten exact owned tombstones and verified all three native tables empty per database. No Windows runtime, build or download was created.
 
 11 November TimescaleDB run 43061942830 passed both storage modes and independently verified the empty tables. CI removed the owned container, volumes, newly pulled image and checkpoints. No Windows runtime, build or download was created.
