@@ -1,6 +1,6 @@
 # Current provider status
 
-11 November Web3Core native transfer candidate. The direct and private-key transfer paths now populate the wallet response from the mined transaction hash and require successful EVM execution status. Previously the response assignment dereferenced an uninitialized result after the native transfer had already completed. C# syntax and diff checks passed. Signed native verification remains open.
+11 November Web3Core native transfer candidate. The direct and private-key transfer paths now populate the wallet response from the mined transaction hash and require successful EVM execution status. Previously the response assignment dereferenced an uninitialized result after the native transfer had already completed. Direct transfers also ignored the requested sender, and private-key transfers dropped the configured chain ID and gas pricing mode. Direct transfers now reject a signer mismatch before submission, and private-key transfers preserve both network settings. C# syntax and diff checks passed. Signed native verification remains open.
 
 11 November Optimism legacy transfer candidate. The ETH transfer now requires the activated signer to match the requested sender and uses the existing Nethereum transfer service with a successful native receipt. This removes the unsupported account and raw-transaction REST routes, fixed gas price and Int64 wei conversion. Signed OP Sepolia verification remains open. This legacy change is outside the verified Development batch.
 

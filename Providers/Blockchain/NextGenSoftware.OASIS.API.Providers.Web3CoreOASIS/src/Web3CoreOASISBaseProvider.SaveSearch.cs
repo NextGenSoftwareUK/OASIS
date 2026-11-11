@@ -250,6 +250,12 @@ public partial class Web3CoreOASISBaseProvider
 
         try
         {
+            if (!string.Equals(fromWalletAddress, _web3CoreOASIS.SigningAddress, StringComparison.OrdinalIgnoreCase))
+            {
+                OASISErrorHandling.HandleError(ref result, errorMessage + "Requested sender does not match the configured signing account.");
+                return result;
+            }
+
             TransactionReceipt transactionResult = await _web3CoreOASIS.SendTransactionAsync(toWalletAddress, amount);
 
             if (transactionResult?.Status?.Value != BigInteger.One || string.IsNullOrWhiteSpace(transactionResult.TransactionHash))
@@ -629,7 +635,8 @@ public partial class Web3CoreOASISBaseProvider
 
         try
         {
-            Web3CoreOASIS web3CoreInstance = new(senderAccountPrivateKey, _hostURI, _contractAddress, Web3CoreOASISBaseProviderHelper.Abi);
+            Web3CoreOASIS web3CoreInstance = new(senderAccountPrivateKey, _hostURI, _contractAddress,
+                Web3CoreOASISBaseProviderHelper.Abi, _expectedChainId, UseLegacyGasPricing);
             TransactionReceipt receipt = await web3CoreInstance.SendTransactionAsync(receiverAccountAddress, amount);
 
             if (receipt?.Status?.Value != BigInteger.One || string.IsNullOrWhiteSpace(receipt.TransactionHash))
