@@ -145,3 +145,5 @@ local C# query example. All 93 focused Node tests passed. Live HTML matched
 the published blob at SHA-256
 `686cec4adbd6a351028adac073a8c16ef3def6f72b23781aab621cc79b96b767`.
 Interactive browser proof remains open.
+
+11 November UTC: DecentralandOASIS public scene teaching presets returned 3 full and 2 filtered rows in the live Development WEB4 CQL Playground. Original-owner paired browser verification remains open.

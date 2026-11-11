@@ -1029,3 +1029,5 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 11 November UTC: Fantom public canonical-at-read balance presets rendered 3 full and 2 filtered rows in the live Development WEB4 CQL Playground. The original-owner private paired browser check remains open.
 
 11 November UTC: CI 43003208274 verified exact solution candidate ffc42ae1c9 based on Development 1afe6f7923. Project coverage, Railway manifest checks, production build with zero errors and WEB4–WEB10 GraphQL compatibility passed. The diagnostic ancestry step again logged the five existing failures and continued. The candidate changes only the two solution files. The MongoDB graph-test deployment is still building, so no additional Railway deployment was queued.
+
+11 November UTC: DecentralandOASIS public scene teaching presets returned 3 full and 2 filtered rows in the live Development WEB4 CQL Playground. Original-owner paired browser verification remains open.
