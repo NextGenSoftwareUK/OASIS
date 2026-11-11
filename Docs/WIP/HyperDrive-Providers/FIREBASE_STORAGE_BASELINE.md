@@ -1,6 +1,12 @@
 # Firebase Realtime Database checkpoint
 
-28 October 2026. This is an implementation checkpoint, not native conformance certification.
+## Current shared storage qualification
+
+11 November 2026. [CI run 43087789287](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43087789287) uses the shipping Realtime Database REST adapter with the checksum-pinned official RTDB 4.11.2 emulator. It creates a disposable demo namespace with the indexes used by the provider, runs both existing storage modes, and checks native namespace emptiness after cleanup. The run is pending. Hosted access and production security rules require their own verification.
+
+The CI integration entry point uses `OASIS_FIREBASE_STORAGE_CONFORMANCE=1` and `FIREBASEOASIS_DATABASEURL` pointing to the root of the loopback HTTP emulator. Its filter selects `CoreStorageAgainstRealtimeDatabase`. The existing interrupted Windows checkpoint and COSMIC query fixture are preserved.
+
+## 28 October implementation checkpoint
 
 - Shipping API transport: System.Net.Http calling Firebase Realtime Database REST, not Firestore.
 - Existing Firestore1.22.0 cannot verify Realtime Database operations. One distinct RTDB4.11.2 JAR was subsequently cached after inspection:34,495,935 B, SHA256b70d99344caf17c98b6f910fa8f6edf32a7c016cb1035e8915f70d38901eb97f. No SDK/CLI installed.
