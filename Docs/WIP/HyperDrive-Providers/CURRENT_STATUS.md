@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November Solana fresh validator qualification. A disposable Linux CI workflow now provisions a checksum-pinned official Agave 4.3.0 validator, a fresh signer and ledger, and separate test reports for both storage modes. It exercises the shipping Solnet memo write and read paths with the finalized acknowledgement change. The original 4/52 report and retained ledger recovery remain separate. Current result pending.
+
 11 November Neon native storage passed 52/52. The pinned official Neon PostgreSQL 16 compute passed both 26-case storage modes through the shipping Npgsql adapter. Native SQL verified and removed the exact five holon tombstones per mode and confirmed that all three current tables were empty. GitHub Actions run 43022056613 passed at 2bc73c1448. Development 8207703684 carries the verified test, workflow and matrix entry. Hosted pooled TLS and WEB4 activation remain open.
 
 11 November Neon native compute run 43020812312 reached the official compute and passed the async storage interface suite. The independent SQL check found retained holon tombstones. The shipping PostgreSQL-family API hides those tombstones in point and collection reads. The test now verifies all five exact fixture tombstones and removes them transactionally before requiring empty current tables. Sync remained gated after the async cleanup failure. Hosted Neon acceptance remains open.
