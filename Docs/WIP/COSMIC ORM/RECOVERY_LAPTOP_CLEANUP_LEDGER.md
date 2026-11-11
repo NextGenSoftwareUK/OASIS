@@ -5916,3 +5916,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: track ci-cosmic-questdb-restart-165e8abaee-stop and retire the initial tag now that both initial runs are terminal. Temporary Git indices removed. No local build, restore, download or database.
 
 11 November UTC: verified QuestDB native restart CI in memory. The corrected tag remains tracked while the companion runs. Temporary Git index removed. No local build, restore, download or database.
+
+11 November UTC: removed corrected QuestDB diagnostic tag ci-cosmic-questdb-restart-165e8abaee-stop after both runs passed and verified absence. Temporary Git indices removed. No local build, restore, download or database.
