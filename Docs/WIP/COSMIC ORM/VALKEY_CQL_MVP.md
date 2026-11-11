@@ -104,3 +104,5 @@ running it. Hosted native, paired HTTP and browser evidence are pending.
 11 November UTC: Valkey candidate f6084bf424 routes generic storage to the standard matrix and calls the verified 9.0.4 restart/federation workflow separately. Combined diagnostic 8baa31be52 is submitted on Development ea54de967e. Standard CI and hosted TLS verification remain open.
 
 11 November UTC: both Valkey jobs passed in combined CI 43056231303. Generic storage ran in the standard matrix, and encrypted native CQL, restart and MongoDB federation ran in the dedicated fixture. Combined verified Development batch 7a599d7b9d contains only the independent Dragonfly and Valkey CI changes. Hosted TLS acceptance remains open.
+
+11 November UTC: Development d93d984b7b integrates the verified Redis, Dragonfly and Valkey standard CI routing on top of HyperDrive Hedera changes. The batch contains only the three independently qualified fixture-routing patches. Hosted TLS acceptance remains open for all three.

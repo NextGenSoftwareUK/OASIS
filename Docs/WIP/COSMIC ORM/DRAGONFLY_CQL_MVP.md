@@ -108,3 +108,5 @@ with zero errors. Live Dragonfly source and visitor proof remain open.
 11 November UTC: Dragonfly candidate 04eb5a3c9b routes generic storage to the standard matrix and runs the qualified native checkpoint/restart and federation workflow separately. Combined diagnostic 782f0b3408 is submitted on Development ea54de967e. Results and hosted TLS acceptance remain open.
 
 11 November UTC: both Dragonfly jobs passed in combined CI 43054087952. The standard job on ea54de967e failed four fixture-only cases because it lacked the owned Dragonfly and MongoDB roots. The verified candidate routes those tests to the dedicated fixture and leaves generic storage in the standard matrix. Hosted TLS remains open.
+
+11 November UTC: Development d93d984b7b integrates the verified Redis, Dragonfly and Valkey standard CI routing on top of HyperDrive Hedera changes. The batch contains only the three independently qualified fixture-routing patches. Hosted TLS acceptance remains open for all three.

@@ -167,3 +167,5 @@ and native TLS qualification are still pending.
 11 November UTC: Redis CI 43057101843 passed five strict phases with zero skips: encrypted native CQL, restart, Mongo replica admission, SDK/HTTP federation and a final native recheck. Candidate 8a0503265b routes generic storage to the standard matrix and the native checks to their dedicated fixture. Combined diagnostic db871820ad is submitted. Hosted TLS acceptance remains open.
 
 11 November UTC: both Redis jobs passed in combined CI 43057542686. Generic storage ran in the standard matrix, and encrypted native CQL, restart and MongoDB federation ran in the dedicated fixture. The independently verified Redis, Dragonfly and Valkey changes are prepared as Development batch d93d984b7b on the current Hedera base. Hosted TLS acceptance remains open.
+
+11 November UTC: Development d93d984b7b integrates the verified Redis, Dragonfly and Valkey standard CI routing on top of HyperDrive Hedera changes. The batch contains only the three independently qualified fixture-routing patches. Hosted TLS acceptance remains open for all three.
