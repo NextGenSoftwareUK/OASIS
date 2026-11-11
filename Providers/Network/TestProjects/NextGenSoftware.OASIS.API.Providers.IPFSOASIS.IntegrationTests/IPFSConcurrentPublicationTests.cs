@@ -8,19 +8,31 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS.IntegrationTests;
 public sealed class IPFSConcurrentPublicationTests
 {
     [Fact]
-    public async Task ConcurrentAcknowledgedSavesRemainVisibleFromPersistedCatalogue()
+    public Task ConcurrentAcknowledgedSavesRemainVisibleFromPersistedCatalogue()
+        => VerifyPublicationAsync(independentWriters: false);
+
+    [Fact]
+    public Task IndependentWritersPreserveEveryAcknowledgedRecord()
+        => VerifyPublicationAsync(independentWriters: true);
+
+    private static async Task VerifyPublicationAsync(bool independentWriters)
     {
         var endpoint = Environment.GetEnvironmentVariable("IPFSOASIS_TEST_API");
-        var dnaPath = Environment.GetEnvironmentVariable("IPFSOASIS_CONCURRENT_DNA");
+        var path = Environment.GetEnvironmentVariable("IPFSOASIS_CONCURRENT_DNA");
         Assert.False(string.IsNullOrWhiteSpace(endpoint));
-        Assert.False(string.IsNullOrWhiteSpace(dnaPath));
+        Assert.False(string.IsNullOrWhiteSpace(path));
+        var dnaPath = independentWriters ? path + ".independent" : path;
         Assert.False(File.Exists(dnaPath));
 
-        var dna = new OASISDNA();
-        dna.OASIS.StorageProviders = new StorageProviderSettings
+        OASISDNA NewDna()
         {
-            IPFSOASIS = new IPFSOASISSettings { ConnectionString = endpoint }
-        };
+            var dna = new OASISDNA();
+            dna.OASIS.StorageProviders = new StorageProviderSettings
+            {
+                IPFSOASIS = new IPFSOASISSettings { ConnectionString = endpoint }
+            };
+            return dna;
+        }
         var holons = Enumerable.Range(0, 8).Select(index => new Holon
         {
             Id = Guid.NewGuid(),
@@ -29,16 +41,28 @@ public sealed class IPFSConcurrentPublicationTests
             Name = $"concurrent holon {index}"
         }).ToArray();
 
-        var writer = new IPFSOASIS(dna, dnaPath);
+        var writer = new IPFSOASIS(NewDna(), dnaPath);
+        var secondWriter = independentWriters ? new IPFSOASIS(NewDna(), dnaPath) : writer;
         try
         {
             var active = await writer.ActivateProviderAsync();
             Assert.True(active.Result && !active.IsError, active.Message);
-            var saves = await Task.WhenAll(holons.Select(holon => writer.SaveHolonAsync(holon, saveChildren: false)));
+            if (independentWriters)
+            {
+                active = await secondWriter.ActivateProviderAsync();
+                Assert.True(active.Result && !active.IsError, active.Message);
+                var first = await writer.SaveHolonAsync(holons[0], saveChildren: false);
+                Assert.True(first.IsSaved && !first.IsError, first.Message);
+            }
+            var saves = await Task.WhenAll(holons
+                .Skip(independentWriters ? 1 : 0)
+                .Select((holon, index) => (index % 2 == 0 ? secondWriter : writer).SaveHolonAsync(holon, saveChildren: false)));
             Assert.All(saves, saved => Assert.True(saved.IsSaved && !saved.IsError, saved.Message));
         }
         finally
         {
+            if (independentWriters)
+                await secondWriter.DeActivateProviderAsync();
             await writer.DeActivateProviderAsync();
         }
 

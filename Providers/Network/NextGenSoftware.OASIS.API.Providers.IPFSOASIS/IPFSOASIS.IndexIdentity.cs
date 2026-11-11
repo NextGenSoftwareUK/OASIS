@@ -22,13 +22,14 @@ public partial class IPFSOASIS
     }
     private async Task<KeyValuePair<string, HolonResume>> ReadIndexEntryAsync(string kind, Func<HolonResume, bool> predicate)
     {
-        await _catalogueGate.WaitAsync().ConfigureAwait(false);
+        var gate = CatalogueGate;
+        await gate.WaitAsync().ConfigureAwait(false);
         try
         {
             await LoadCatalogueAsync().ConfigureAwait(false);
             return FindIndexEntry(kind, predicate);
         }
-        finally { _catalogueGate.Release(); }
+        finally { gate.Release(); }
     }
 
     private KeyValuePair<string,HolonResume> FindIndexEntry(string kind,Func<HolonResume,bool> predicate,bool allowMissing=false)
