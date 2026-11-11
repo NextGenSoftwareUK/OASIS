@@ -74,9 +74,10 @@ public class NeonNativeStorageConformanceTests
         {
             await using var identify = new NpgsqlCommand(
                 "SELECT EXISTS (SELECT 1 FROM pg_available_extensions WHERE name = 'neon') " +
-                "AND 'neon' = ANY(regexp_split_to_array(current_setting('shared_preload_libraries'), '\\s*,\\s*'))",
+                "AND 'neon' = ANY(regexp_split_to_array(current_setting('shared_preload_libraries'), '\\s*,\\s*')) " +
+                "AND current_setting('neon.timeline_id', true) ~ '^[0-9a-f]{32}$'",
                 inspection);
-            Assert.AreEqual(true, await identify.ExecuteScalarAsync(), "The dedicated compute must load the native Neon extension.");
+            Assert.AreEqual(true, await identify.ExecuteScalarAsync(), "The dedicated compute must load the native Neon extension and have a timeline.");
         }
 
         async Task RequireEmptyTables(bool requireSchema)

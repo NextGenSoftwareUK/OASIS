@@ -63,7 +63,35 @@ jobs:
           OASIS_NEON_LOCAL_CONFORMANCE: '1'
           OASIS_NEON_LOCAL_CONNECTION_STRING: Host=127.0.0.1;Port=55433;Database=oasis_provider_test;Username=cloud_admin;Password=cloud_admin;SSL Mode=Disable
         run: |
-          compose=(docker compose --project-name oasis-neon-fixture --file ../neon-fixture/docker-compose/docker-compose.yml)
+          fixture_compose="$RUNNER_TEMP/oasis-neon-compose.json"
+          docker compose --file ../neon-fixture/docker-compose/docker-compose.yml config --format json > "$fixture_compose"
+          python3 - "$fixture_compose" <<'PY'
+          import json
+          import re
+          import sys
+          from pathlib import Path
+
+          compose_path = Path(sys.argv[1])
+          topology = json.loads(compose_path.read_text())
+          services = topology["services"]
+          del services["minio"], services["minio_create_buckets"]
+          for name in ("pageserver", "safekeeper1", "safekeeper2", "safekeeper3"):
+              services[name]["depends_on"].pop("minio_create_buckets")
+              if name.startswith("safekeeper"):
+                  services[name]["command"] = [
+                      "safekeeper --listen-pg=$$SAFEKEEPER_ADVERTISE_URL "
+                      "--listen-http=0.0.0.0:7676 --id=$$SAFEKEEPER_ID "
+                      "--broker-endpoint=$$BROKER_ENDPOINT -D /data "
+                      "--remote-storage=\"{local_path='/tmp/neon-remote'}\""
+                  ]
+          config = Path("../neon-fixture/docker-compose/pageserver_config/pageserver.toml")
+          content, count = re.subn(r"(?m)^remote_storage=.*$",
+              "remote_storage={local_path='/tmp/neon-remote'}", config.read_text())
+          assert count == 1
+          config.write_text(content)
+          compose_path.write_text(json.dumps(topology))
+          PY
+          compose=(docker compose --project-name oasis-neon-fixture --file "$fixture_compose")
           trap '"${compose[@]}" down --volumes --remove-orphans' EXIT
           "${compose[@]}" up --build --detach compute1
           for attempt in {1..45}; do
