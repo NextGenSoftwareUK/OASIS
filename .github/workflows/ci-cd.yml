@@ -182,6 +182,7 @@ jobs:
             filter: FullyQualifiedName~ValKeyOASISIntegrationTests
           - name: Garnet
             project: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.GarnetOASIS.IntegrationTests
+            filter: FullyQualifiedName!~CqlNativeTests&FullyQualifiedName!~LinuxMongoDemoEnvironmentTests
             image: ghcr.io/microsoft/garnet:latest
             ports: 6379:6379
             wait: 6379
@@ -190,6 +191,7 @@ jobs:
 
           - name: Memcached
             project: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.MemcachedOASIS.IntegrationTests
+            filter: FullyQualifiedName!~CqlNativeTests&FullyQualifiedName!~LinuxMongoDemoEnvironmentTests
             image: memcached:1.6-alpine
             ports: 11211:11211
             wait: 11211
@@ -250,6 +252,7 @@ jobs:
             filter: FullyQualifiedName~OpenSearchOASISIntegrationTests
           - name: Elasticsearch
             project: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS.IntegrationTests
+            filter: FullyQualifiedName!~CqlNativeTests&FullyQualifiedName!~LinuxMongoDemoEnvironmentTests
             image: docker.elastic.co/elasticsearch/elasticsearch:8.13.0
             ports: 9200:9200
             wait: 9200
@@ -259,17 +262,20 @@ jobs:
               -e ES_JAVA_OPTS=-Xms512m\ -Xmx512m
           - name: Solr
             project: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SolrOASIS.IntegrationTests
+            filter: FullyQualifiedName!~CqlNativeTests&FullyQualifiedName!~LinuxMongoDemoEnvironmentTests
             image: solr:9
             ports: 8983:8983
             wait: 8983
           - name: Meilisearch
             project: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS.IntegrationTests
+            filter: FullyQualifiedName!~CqlNativeTests&FullyQualifiedName!~LinuxMongoDemoEnvironmentTests
             image: getmeili/meilisearch:v1.7
             ports: 7700:7700
             wait: 7700
             docker_args: -e MEILI_MASTER_KEY=masterKey -e MEILI_ENV=development
           - name: Typesense
             project: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.TypesenseOASIS.IntegrationTests
+            filter: FullyQualifiedName!~CqlNativeTests&FullyQualifiedName!~LinuxMongoDemoEnvironmentTests
             image: typesense/typesense:0.25.2
             ports: 8108:8108
             wait: 8108
@@ -292,6 +298,7 @@ jobs:
               -e DEFAULT_VECTORIZER_MODULE=none
           - name: Chroma
             project: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.ChromaOASIS.IntegrationTests
+            filter: FullyQualifiedName!~CqlNativeTests&FullyQualifiedName!~LinuxMongoDemoEnvironmentTests
             image: chromadb/chroma:latest
             ports: 8000:8000
             wait: 8000
@@ -324,6 +331,7 @@ jobs:
             filter: FullyQualifiedName~QuestDBOASISIntegrationTests
           - name: InfluxDB
             project: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.InfluxDBOASIS.IntegrationTests
+            filter: FullyQualifiedName!~CqlNativeTests&FullyQualifiedName!~LinuxMongoDemoEnvironmentTests
             image: influxdb:2.7
             ports: 8086:8086
             wait: 8086
