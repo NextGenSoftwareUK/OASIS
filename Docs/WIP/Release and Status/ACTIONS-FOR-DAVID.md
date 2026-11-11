@@ -562,6 +562,10 @@ Status: missing account/configuration information,2 November2026. David approved
 
 - Completed 11 November UTC. Engineering ran the existing restricted-role test on disposable CouchDB 3 in [CI run 43044567583](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43044567583). The old draft PR action is closed. Hosted CouchDB qualification remains a separate gate.
 
+### CouchDB hosted teaching source - 11 November 2026
+
+- Open. Identify an existing HTTPS CouchDB service and provide the protected location of a dedicated non-admin reader for the isolated oasis_holons teaching database. The reader must load the teaching records and be denied document creates, updates and deletes by the database validator. If the isolated database does not exist, identify the existing service and secure provisioning access privately. No credentials in chat or git. [Fixture and admission](../COSMIC%20ORM/COUCHDB_CQL_MVP.md).
+
 ### Cloudflare D1 Worker for Development WEB4
 
 Status 4 November 2026. Pending existing Cloudflare account access, after the
