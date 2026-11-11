@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+11 November successful Spring storage CI. Job 130543241083 independently verified chain table cleanup, stopped the owned node and wallet, and removed the disposable fixture directory including its keys and TRX. No local artifacts or uploads were created.
+
 11 November Spring diagnostics CI. Job 130542638348 logged owned startup diagnostics, stopped the fixture processes and removed the wallet, keys and chain. No local files or uploads were created.
 
 11 November Spring native storage CI. Job 130541682935 removed the owned fixture directory and its ephemeral keys, wallet and chain after the account provisioning failure. The pinned package was removed after installation on the disposable runner. No local outputs or uploaded artifacts were created.
