@@ -152,3 +152,5 @@ Development d167dff13/exact job0096f2e4-f831-4dcd-9cd8-b1d7613781aa SUCCESS,heal
 Explicit source recovery implemented at the host lifecycle boundary,same source/profile retained.27API/controller/discovery/GraphQL tests pass,including non-cooperative cancellation ownership and host/generation/operation fences. No hosted activation/read/query/save/restart performed in this change;current live Nostr outage remains red. See [recovery contract](CQL_SOURCE_RECOVERY.md).
 
 10 November Development fbc0e08e: Nostr remains unavailable in the authenticated catalogue. Its activation log recorded HTTP 503 / NotAWebSocket during connect after 136 ms. The existing Wizard session action in ACTIONS-FOR-DAVID still awaits local sign-in. Preserve the original relay and accepted cohorts for the serialized recovery and subsequent read-only browser check.
+
+11 November UTC: Development 87793cf704 Nostr native public full browser preset rendered 3 signed events. The two-event preset returned HTTP 503 CQL_QUERY_FAILED. Railway logged query-stage WebSocket connect HTTP 503 NotAWebSocket. Subset and private paired browser acceptance remain open. No retry or source change was made.
