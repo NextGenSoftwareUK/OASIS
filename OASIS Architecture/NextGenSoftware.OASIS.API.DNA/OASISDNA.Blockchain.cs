@@ -30,6 +30,8 @@ namespace NextGenSoftware.OASIS.API.DNA
         public string RpcEndpoint { get; set; } = "https://bsc-dataseed.binance.org";
         public string NetworkId { get; set; } = "56";
         public string ChainId { get; set; } = "0x38";
+        public string ChainPrivateKey { get; set; } = "";
+        public string ContractAddress { get; set; } = "";
     }
 
     public class FantomOASISProviderSettings : ProviderSettingsBase

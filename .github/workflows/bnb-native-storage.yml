@@ -4,13 +4,20 @@ on:
   push:
     branches: [work/hyperdrive-provider-completion]
     paths:
-      - '.github/workflows/bnb-native-storage.yml'
       - 'Scripts/TestHosts/deploy-bnb-ci-storage.cjs'
       - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.BNBChainOASIS/**'
       - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/src/Web3CoreOASIS.cs'
       - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/src/Web3CoreOASISBaseProvider.AvatarDelete.cs'
       - 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.BNBChainOASIS.IntegrationTests/**'
   workflow_dispatch:
+  workflow_call:
+    inputs:
+      bootloader_only:
+        type: boolean
+        default: false
+    secrets:
+      PRIVATE_SUBMODULE_PAT:
+        required: true
 
 permissions:
   contents: read
@@ -29,18 +36,28 @@ jobs:
           path: OASIS
           submodules: recursive
           persist-credentials: false
-      - name: Read the recorded Libraries revision
+      - name: Read the recorded dependency revisions
         id: dependencies
         run: |
           revision="$(sed -n 's/^LIBRARIES_COMMIT=//p' Docker/oasis-dependency-versions.env)"
           [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
           echo "libraries=$revision" >> "$GITHUB_OUTPUT"
+          revision="$(sed -n 's/^HOLOCHAIN_COMMIT=//p' Docker/oasis-dependency-versions.env)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "holochain=$revision" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@v7
         with:
           repository: NextGenSoftwareUK/NextGenSoftware-Libraries
           ref: ${{ steps.dependencies.outputs.libraries }}
           path: NextGenSoftware-Libraries
           token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - uses: actions/checkout@v7
+        if: ${{ inputs.bootloader_only }}
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          ref: ${{ steps.dependencies.outputs.holochain }}
+          path: holochain-client-csharp
           persist-credentials: false
       - uses: actions/setup-dotnet@v4
         with:
@@ -50,6 +67,8 @@ jobs:
           node-version: '24'
       - name: Run native storage conformance against BNB Smart Chain
         shell: bash
+        env:
+          BNB_BOOTLOADER_ONLY: ${{ inputs.bootloader_only || false }}
         run: |
           fixture="$(mktemp -d "$RUNNER_TEMP/oasis-bnb.XXXXXXXX")"
           contract_root=Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS
@@ -100,6 +119,10 @@ jobs:
             sleep 2
           done
           node Scripts/TestHosts/deploy-bnb-ci-storage.cjs
+          if [[ "$BNB_BOOTLOADER_ONLY" == true ]]; then
+            pwsh -NoProfile -File Scripts/TestHosts/Invoke-BnbBootLoaderActivation.ps1
+            exit
+          fi
           pwsh -NoProfile -Command '
             $settings = Get-Content -Raw (Join-Path $env:OASIS_BNB_CI_FIXTURE settings.json) | ConvertFrom-Json -AsHashtable
             foreach ($entry in $settings.GetEnumerator()) { [Environment]::SetEnvironmentVariable($entry.Key, $entry.Value) }
