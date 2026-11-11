@@ -235,7 +235,6 @@
 "OASIS Architecture/NextGenSoftware.OASIS.API.Core/Managers/EggsManager.cs","300","public async Task<OASISResult<Egg>> DiscoverEggFromPuzzleAsync(Guid avatarId, string puzzleName, EggType eggType, string name, EggRarity rarity = EggRarity.Epic, int rarityLevel = 5)","False","LocalOrchestration"
 "OASIS Architecture/NextGenSoftware.OASIS.API.Core/Managers/EggsManager.cs","342","public async Task<OASISResult<Egg>> DiscoverHiddenEggAsync(Guid avatarId, string secretLocation, EggType eggType, string name, EggRarity rarity = EggRarity.Legendary, int rarityLevel = 8)","False","LocalOrchestration"
 "OASIS Architecture/NextGenSoftware.OASIS.API.Core/Managers/EggsManager.cs","525","public async Task<OASISResult<Dictionary<string, object>>> GetEggCollectionStatsAsync(Guid avatarId)","True","CoveredManagerDelegation"
-"OASIS Architecture/NextGenSoftware.OASIS.API.Core/Managers/EmailManager.cs","26","public T Get(string? name)","True","ExplicitExternalTransport"
 "OASIS Architecture/NextGenSoftware.OASIS.API.Core/Managers/EmailManager.cs","54","public static string ResolveResendKey(OASISDNA OASISDNA)","True","ExplicitExternalTransport"
 "OASIS Architecture/NextGenSoftware.OASIS.API.Core/Managers/EmailManager.cs","75","public static bool IsEmailConfigured(OASISDNA OASISDNA)","True","ExplicitExternalTransport"
 "OASIS Architecture/NextGenSoftware.OASIS.API.Core/Managers/EmailManager.cs","82","public static void Initialize(OASISDNA OASISDNA)","True","ExplicitExternalTransport"
