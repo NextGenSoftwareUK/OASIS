@@ -14,9 +14,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS.IntegrationTests
     /// Exercises the real CRUD surface against a live backend.
     ///
     /// Connection details come from SURREALDBOASIS_&lt;PARAM&gt; environment variables. When the
-    /// backend is not reachable the provider fails to activate and every test is
-    /// inconclusive rather than failed - so an unconfigured machine reports "skipped"
-    /// instead of red.
+    /// endpoint is absent, the tests are inconclusive. An explicitly configured
+    /// fixture must activate successfully.
     /// </summary>
     [TestClass]
     public class SurrealDBOASISIntegrationTests
@@ -28,8 +27,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS.IntegrationTests
         public void Setup()
         {
             _provider = SurrealDBOASISTestFactory.Create();
-            try { _live = !_provider.ActivateProvider().IsError && _provider.IsProviderActivated; }
-            catch { _live = false; }
+            if (string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("SURREALDBOASIS_ENDPOINT")))
+                return;
+
+            var activation = _provider.ActivateProvider();
+            Assert.IsFalse(activation.IsError, activation.Exception?.ToString() ?? activation.Message);
+            Assert.IsTrue(_provider.IsProviderActivated, "The configured SurrealDB fixture did not activate.");
+            _live = true;
         }
 
         private void RequireLive()
