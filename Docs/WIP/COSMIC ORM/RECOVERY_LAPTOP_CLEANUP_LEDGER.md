@@ -6010,3 +6010,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: removed the superseded CouchDB federation tag after both runs finished and verified absence. The corrected -ready tag remains active. Temporary Git index removed. No local build, restore, runtime or download.
 
 11 November UTC: track ci-cosmic-couchdb-orchestration-a39f5fe06d until both workflows finish. Read CI logs in memory and removed temporary Git indices. No local build, restore, runtime or download.
+
+11 November UTC: removed the standalone CouchDB -ready diagnostic tag after both workflows passed and verified absence. The orchestration tag remains tracked. Temporary Git index removed. No local build, restore, runtime or download.

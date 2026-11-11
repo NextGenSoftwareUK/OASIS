@@ -165,3 +165,5 @@ python -B Scripts/Sandbox/Verify-HostedQuerySource.py CouchDBOASIS --readiness
 11 November UTC: CouchDB restart/federation CI 43045093852 stopped before tests because the first startup probe received a connection reset. Diagnostic 2c2a2266a6 now waits up to 45 seconds for the owned running container to return its expected native version and identity on startup and restart. It fails on terminal HTTP errors or container exit. Native restart and federation remain pending.
 
 11 November UTC: CouchDB CI 43045487847 passed five focused phases with zero skips: native CQL before and after restart, Mongo replica admission, SDK/HTTP federation and final native recheck. Candidate 17df68f439 routes generic storage and restricted reader policy to the standard matrix and native CQL to the dedicated workflow. Combined diagnostic 8a5f86cbfe is submitted. Hosted HTTPS acceptance remains open.
+
+11 November UTC: combined CouchDB standard pipeline diagnostic 43046007325 is queued. It covers generic native storage, restricted reader policy and the separate restart/federation job. Candidate 17df68f439 remains pending those results.
