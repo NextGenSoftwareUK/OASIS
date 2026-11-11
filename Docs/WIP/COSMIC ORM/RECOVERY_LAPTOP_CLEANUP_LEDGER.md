@@ -5656,3 +5656,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC emergency disk audit: Windows reported 39.92 GiB free. Identified three idle disposable COSMIC directories (Solr extracted distribution, OpenSearch tmp and PouchDB npm-tool), approximately 166 MiB total. Automatic command review rejected the removal. No deletion ran and no space reclaimed is attributed to this audit. No local build, download or restore started.
 
 11 November UTC: Decentraland browser acceptance reused the existing visitor. No local report, screenshot file, download, runtime, build output or saved holon.
+
+11 November UTC: exact solution CI 43005826333 uses temporary tag ci-cosmic-solution-cbb5e659a0-build. Remove that tag when its runs finish and the results are recorded. The local temporary index was removed. No local build, download, restore or artifact copy.
