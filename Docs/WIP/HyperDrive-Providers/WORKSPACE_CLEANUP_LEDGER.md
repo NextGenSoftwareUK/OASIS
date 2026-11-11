@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+10 November priority BootLoader compile: reused bundled PowerShell 7.6.9 and the shared provider build lock. The existing restore manifest refers to 232 package versions without package metadata in its configured folders. Build and project clean both stopped on NETSDK1064 for AWSSDK.DynamoDBv2 3.7.400.15. Confirmed zero files under BootLoader bin afterward. No download, restore or raw report created.
+
 10 November urgent disk cleanup: paused provider testing. Leased project cleanup removed 297,278,724 bytes of generated Debug binaries from BigQuery, Dragonfly, KeyDB, Neo4j integration and unit, and Typesense test projects. Reference outputs were excluded. No downloads, environments or raw reports were created for this cleanup. C: measured 40.77 GiB before and 41.09 GiB after on the shared machine.
 
 10 November Garnet fixture guard: Windows skipped the Linux-only case before backend activation. No runtime, database or raw report allocated. Leased project clean reduced private test outputs from 51,555,032 B to 852,532 B with reference cleanup disabled.
