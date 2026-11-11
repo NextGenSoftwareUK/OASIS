@@ -57,3 +57,5 @@ Public [card67](https://web4.oasisomniverse.one/web4-sandbox.html#cql-stargate-c
 published in Web4Site611ee736f37589ab167a833d8425cd0d3bb82b1e. Real C# query
 and evidence links pinned to backend25b4a8508. All119 website client controls
 pass; exact public HTML verified. Original cohort untouched; browser gate open.
+
+11 November UTC: StargateOASIS indexed message observation presets returned 3 full and 2 filtered rows in the live Development WEB4 CQL Playground. Original-owner paired browser verification remains open.
