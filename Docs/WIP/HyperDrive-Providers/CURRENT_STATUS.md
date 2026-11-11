@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November TRON shipping registration guard. BootLoader now surfaces missing TRON storage settings and rejects an RPC override that differs from the configured RPC. The HTTP and gRPC endpoints must be configured together for the selected chain. Previously the requested override was silently ignored. Existing 52/52 TronNet native storage evidence remains applicable to the unchanged provider. C# syntax and diff checks passed. BootLoader runtime verification remains open.
+
 11 November Polkadot shipping registration. BootLoader now constructs the existing native storage adapter using explicit genesis, contract account, code hash, owner and signer settings. The native encryption key continues to resolve through the provider configuration. This adds the application dependency on Polkadot and keeps the provider independent of BootLoader. Existing 52/52 native storage evidence was reused. C# syntax, project XML and diff checks passed. BootLoader build and live configuration verification remain open.
 
 11 November Optimism native cleanup checks. The OP Sepolia storage lifecycle now checks avatar, avatar detail and holon counts directly on the dedicated Web3Core contract before writes and after cleanup in both modes. Counts must all be zero. The verified public wallet batch remains scoped to its earlier exact revision. Signed OP Sepolia execution remains open.
