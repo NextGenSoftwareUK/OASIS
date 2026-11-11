@@ -13,6 +13,8 @@ Public provider count audit (11 November). The inventory lists 234 shipping prov
 
 11 November Supabase storage. PostgREST storage awaits no longer capture the caller context used by the synchronous entry points. Graph saves preserve fields captured from derived holons and retain the staged identity and provider keys. All 39 existing unit tests passed, including the exact decimal payload regression. Dedicated hosted lifecycle verification remains open.
 
+11 November Convex companion readiness. A failed or canceled probe no longer permanently blocks the existing provider instance. Concurrent callers share the protocol verification but can cancel their waits independently. Hosted recovery verification remains open.
+
 ## Phase and rules
 
 Active checkpoint, 10 November 2026. Current HyperDrive verification is split between retained native provider evidence and open isolated fixture gates. Development contains the scoped SQL Server avatar/history and graph-read batch at af621f3c3e. Development also contains the concurrent avatar and avatar-detail history regressions at 2a91bda8eb. Both passed separately on LocalDB and compiled together with Development Core 0fc929336 (zero errors). BigQuery hosted lifecycle verification awaits its isolated fixture. HyperDrive routing verification follows provider acceptance.
