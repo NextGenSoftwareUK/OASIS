@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+11 November TimescaleDB run 43061942830 passed both storage modes and independently verified the empty tables. CI removed the owned container, volumes, newly pulled image and checkpoints. No Windows runtime, build or download was created.
+
 11 November CockroachDB run 43060207358 passed 52/52, verified and removed ten exact owned tombstones, and confirmed empty current tables in both databases. CI confirmed the process stopped and the runtime, databases and checkpoint files were removed. No Windows runtime, build or download was created.
 
 NuGet restore also reuses shared C:/Users/david/AppData/Local/NuGet/v3-cache and C:/Users/david/AppData/Local/Temp/NuGetScratch (paths confirmed by dotnet nuget locals; sizes/individual historical ownership unmeasured). They are shared caches, not owned disposal targets; no broad removal performed.

@@ -332,7 +332,7 @@
       "Official CockroachDB 26.2.9 passed 52/52 in [run 43060207358](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43060207358) through the shipping Npgsql provider. Native SQL verified exact owned tombstone cleanup and empty current tables in both databases. Hosted acceptance remains open."
     ],
     "TimescaleDBOASIS": [
-      "SQL family unit gate90PASS is not native product conformance; product factory/access still pending"
+      "Official TimescaleDB 2.31.0 passed 52/52 in [run 43061942830](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43061942830) through the shipping Npgsql provider. Both databases loaded the native extension. Native SQL verified exact owned tombstone cleanup and empty current tables. Hosted storage acceptance remains open."
     ],
     "GoogleMapsOASIS": [
       "Source-reviewed legacy map facade contains 46 literal success returns without a native client; real map adapter/read-only capability probe required, not a storage-suite candidate"
