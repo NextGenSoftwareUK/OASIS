@@ -1,0 +1,139 @@
+name: Milvus native storage
+
+on:
+  push:
+    branches: [work/hyperdrive-provider-completion]
+    paths:
+      - '.github/workflows/milvus-native-storage.yml'
+      - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.MilvusOASIS/**'
+      - 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.MilvusOASIS.IntegrationTests/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  storage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        mode: [async, sync]
+    defaults:
+      run:
+        working-directory: OASIS
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          path: OASIS
+          submodules: recursive
+          persist-credentials: false
+      - name: Read the recorded Libraries revision
+        id: dependencies
+        run: |
+          revision="$(sed -n 's/^LIBRARIES_COMMIT=//p' Docker/oasis-dependency-versions.env)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "libraries=$revision" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependencies.outputs.libraries }}
+          path: NextGenSoftware-Libraries
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Run native storage conformance against Milvus
+        shell: bash
+        env:
+          OASIS_MILVUS_CI_MODE: ${{ matrix.mode }}
+        run: |
+          image=docker.io/milvusdb/milvus@sha256:e6066d0afc4eeab69b7c9269e49be2b9ae54c740a21c05f230c4e5743c646ee3
+          fixture="$(mktemp -d "$RUNNER_TEMP/oasis-milvus.XXXXXXXX")"
+          container=""
+          image_owned=false
+          cleanup() {
+            status=$?
+            cleanup_status=0
+            if [[ -n "$container" ]]; then
+              if (( status != 0 )); then docker logs --tail 35 "$container" || true; fi
+              docker rm -fv "$container" || cleanup_status=1
+            fi
+            if [[ "$image_owned" == true ]] && docker image inspect "$image" >/dev/null 2>&1; then
+              docker image rm "$image" || cleanup_status=1
+            fi
+            if [[ "$fixture" == "$RUNNER_TEMP"/oasis-milvus.* ]]; then rm -rf -- "$fixture"; fi
+            [[ ! -e "$fixture" ]] || cleanup_status=1
+            if (( cleanup_status == 0 )); then echo "Removed the owned Milvus container, volumes and fixture."; else status=1; fi
+            exit "$status"
+          }
+          trap cleanup EXIT
+          if ! docker image inspect "$image" >/dev/null 2>&1; then image_owned=true; fi
+          cat >"$fixture/user.yaml" <<'YAML'
+          etcd:
+            use: { embed: true }
+            data: { dir: /var/lib/milvus/etcd }
+            endpoints: 127.0.0.1:2379
+          common:
+            storageType: local
+          mq:
+            type: rocksmq
+          rocksmq:
+            path: /var/lib/milvus/rdb_data
+          localStorage:
+            path: /var/lib/milvus/data
+          proxy:
+            port: 19532
+            http: { port: 19530, enabled: true }
+          rootCoord:
+            dmlChannelNum: 4
+          YAML
+          cat >"$fixture/embedEtcd.yaml" <<'YAML'
+          listen-client-urls: http://127.0.0.1:2379
+          advertise-client-urls: http://127.0.0.1:2379
+          quota-backend-bytes: 134217728
+          YAML
+          container="$(docker run -d --cpus 2 --memory 4g -p 127.0.0.1:19531:19530 \
+            -e ETCD_USE_EMBED=true -e ETCD_DATA_DIR=/var/lib/milvus/etcd \
+            -e ETCD_CONFIG_PATH=/etc/oasis-etcd.yaml -e COMMON_STORAGETYPE=local \
+            -e DEPLOY_MODE=STANDALONE -e GOMAXPROCS=2 -e OMP_NUM_THREADS=2 \
+            -v "$fixture/user.yaml:/milvus/configs/user.yaml:ro" \
+            -v "$fixture/embedEtcd.yaml:/etc/oasis-etcd.yaml:ro" "$image" milvus run standalone)"
+          post() {
+            curl --fail-with-body --silent --show-error --max-time 10 -H 'Content-Type: application/json' \
+              -d "$2" "http://127.0.0.1:19531/v2/vectordb/collections/$1"
+          }
+          for attempt in {1..60}; do
+            if post list '{}' >"$fixture/readiness.json" 2>"$fixture/readiness.log" && jq -e '.code == 0 and .data == []' "$fixture/readiness.json" >/dev/null; then break; fi
+            if [[ "$attempt" == 60 ]]; then cat "$fixture/readiness.log" "$fixture/readiness.json"; exit 1; fi
+            sleep 2
+          done
+          for collection in oasis_avatars oasis_avatar_details oasis_holons; do
+            schema="$(jq -nc --arg collection "$collection" '
+              {collectionName:$collection,params:{consistencyLevel:"Strong"},
+               schema:{autoId:false,enableDynamicField:false,fields:[
+                {fieldName:"id",dataType:"VarChar",isPrimary:true,elementTypeParams:{max_length:"64"}},
+                {fieldName:"doc",dataType:"VarChar",elementTypeParams:{max_length:"65535"}},
+                {fieldName:"username",dataType:"VarChar",elementTypeParams:{max_length:"512"}},
+                {fieldName:"email",dataType:"VarChar",elementTypeParams:{max_length:"512"}},
+                {fieldName:"parent_holon_id",dataType:"VarChar",elementTypeParams:{max_length:"64"}},
+                {fieldName:"vector",dataType:"FloatVector",elementTypeParams:{dim:"2"}}]},
+               indexParams:[{fieldName:"vector",indexName:"vector_idx",metricType:"L2",params:{index_type:"FLAT"}}]}')"
+            post create "$schema" | tee "$fixture/$collection-create.json" | jq -e '.code == 0' >/dev/null
+            identity="$(jq -nc --arg collection "$collection" '{collectionName:$collection}')"
+            for attempt in {1..30}; do
+              if post describe "$identity" >"$fixture/$collection.json" && jq -e '.code == 0 and .data.load == "LoadStateLoaded"' "$fixture/$collection.json" >/dev/null; then break; fi
+              if [[ "$attempt" == 30 ]]; then cat "$fixture/$collection.json"; exit 1; fi
+              sleep 2
+            done
+          done
+          export OASIS_MILVUS_CI_FIXTURE="$fixture"
+          pwsh -NoProfile -Command '
+            ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-MilvusStorage -Operation {
+              dotnet test "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.MilvusOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.MilvusOASIS.IntegrationTests.csproj" --filter "FullyQualifiedName~CoreStorageSuiteAgainstMilvus" /m:2 /nr:false /p:UseSharedCompilation=false --logger "console;verbosity=normal"
+              if ($LASTEXITCODE -ne 0) { throw "Native Milvus storage verification failed." }
+            }'
+          jq -e '.Succeeded and .FixtureCleanupComplete and (.Passed | length == 26)' "$fixture/oasis_storage_$OASIS_MILVUS_CI_MODE.json" >/dev/null

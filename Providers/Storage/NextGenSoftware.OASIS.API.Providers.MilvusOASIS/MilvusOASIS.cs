@@ -13,6 +13,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
+using NextGenSoftware.OASIS.API.Core.Serialization;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 
@@ -110,7 +111,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MilvusOASIS
                 else if (doc.IsDeleted)
                     OASISErrorHandling.HandleError(ref result, $"MilvusOASIS: Avatar {id} has been deleted.");
                 else
+                {
                     result.Result = doc;
+                    result.IsLoaded = true;
+                    result.LoadedCount = 1;
+                }
             }
             catch (Exception ex)
             {
@@ -131,7 +136,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MilvusOASIS
                 if (doc == null || doc.IsDeleted)
                     OASISErrorHandling.HandleError(ref result, $"MilvusOASIS: Avatar with username '{username}' not found.");
                 else
+                {
                     result.Result = doc;
+                    result.IsLoaded = true;
+                    result.LoadedCount = 1;
+                }
             }
             catch (Exception ex)
             {
@@ -152,7 +161,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MilvusOASIS
                 if (doc == null || doc.IsDeleted)
                     OASISErrorHandling.HandleError(ref result, $"MilvusOASIS: Avatar with email '{email}' not found.");
                 else
+                {
                     result.Result = doc;
+                    result.IsLoaded = true;
+                    result.LoadedCount = 1;
+                }
             }
             catch (Exception ex)
             {
@@ -191,6 +204,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MilvusOASIS
                     avatar.Id = Guid.NewGuid();
                 await UpsertDocAsync(CollAvatars, avatar.Id.ToString(), avatar);
                 result.Result = avatar;
+                result.IsSaved = true;
+                result.SavedCount = 1;
             }
             catch (Exception ex)
             {
@@ -285,7 +300,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MilvusOASIS
                 if (doc == null)
                     OASISErrorHandling.HandleError(ref result, $"MilvusOASIS: AvatarDetail {id} not found.");
                 else
+                {
                     result.Result = doc;
+                    result.IsLoaded = true;
+                    result.LoadedCount = 1;
+                }
             }
             catch (Exception ex)
             {
@@ -306,7 +325,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MilvusOASIS
                 if (doc == null)
                     OASISErrorHandling.HandleError(ref result, $"MilvusOASIS: AvatarDetail '{username}' not found.");
                 else
+                {
                     result.Result = doc;
+                    result.IsLoaded = true;
+                    result.LoadedCount = 1;
+                }
             }
             catch (Exception ex)
             {
@@ -327,7 +350,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MilvusOASIS
                 if (doc == null)
                     OASISErrorHandling.HandleError(ref result, $"MilvusOASIS: AvatarDetail '{email}' not found.");
                 else
+                {
                     result.Result = doc;
+                    result.IsLoaded = true;
+                    result.LoadedCount = 1;
+                }
             }
             catch (Exception ex)
             {
@@ -366,6 +393,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MilvusOASIS
                     detail.Id = Guid.NewGuid();
                 await UpsertDocAsync(CollAvatarDetails, detail.Id.ToString(), detail);
                 result.Result = detail;
+                result.IsSaved = true;
+                result.SavedCount = 1;
             }
             catch (Exception ex)
             {
@@ -390,7 +419,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MilvusOASIS
                 else if (doc.IsDeleted)
                     OASISErrorHandling.HandleError(ref result, $"MilvusOASIS: Holon {id} has been deleted.");
                 else
+                {
                     result.Result = doc;
+                    result.IsLoaded = true;
+                    result.LoadedCount = 1;
+                }
             }
             catch (Exception ex)
             {
@@ -530,7 +563,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MilvusOASIS
 
         private static Dictionary<string, object> ToRow<T>(T obj, string id)
         {
-            var json = JsonSerializer.Serialize(obj, obj!.GetType());
+            var json = obj is IAvatarDetail detail
+                ? StoredRecordJson.Serialize(detail)
+                : JsonSerializer.Serialize(obj, obj!.GetType());
             if (Encoding.UTF8.GetByteCount(json) > 65535)
                 throw new System.IO.InvalidDataException("Canonical Milvus document exceeds its 65,535-byte VarChar schema.");
             var row = new Dictionary<string, object>
@@ -560,13 +595,17 @@ namespace NextGenSoftware.OASIS.API.Providers.MilvusOASIS
         private static List<T> ParseData<T>(JsonElement root) where T : class
         {
             var list = new List<T>();
-            if (!root.TryGetProperty("data", out var data) || data.ValueKind != JsonValueKind.Array) return list;
+            if (root.GetProperty("code").GetInt32() != 0)
+                throw new System.IO.InvalidDataException("Milvus rejected the native read.");
+            var data = root.GetProperty("data");
             foreach (var el in data.EnumerateArray())
             {
                 if (!el.TryGetProperty("doc", out var docEl)) continue;
                 var raw = docEl.GetString();
                 if (string.IsNullOrEmpty(raw)) continue;
-                var item = JsonSerializer.Deserialize<T>(raw, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                var item = typeof(T) == typeof(AvatarDetail)
+                    ? StoredRecordJson.DeserializeStored<T>(raw)
+                    : JsonSerializer.Deserialize<T>(raw, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                 if (item != null) list.Add(item);
             }
             return list;
@@ -574,9 +613,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MilvusOASIS
 
         private async Task<T?> GetDocAsync<T>(string collection, string id) where T : class
         {
-            var resp = await _http.PostAsync($"{_baseUrl}/v2/vectordb/entities/get",
+            using var resp = await _http.PostAsync($"{_baseUrl}/v2/vectordb/entities/get",
                 Json(new { collectionName = collection, id = new[] { id }, outputFields = new[] { "doc" } }));
-            if (!resp.IsSuccessStatusCode) return null;
+            resp.EnsureSuccessStatusCode();
             var json = await resp.Content.ReadAsStringAsync();
             using var doc = JsonDocument.Parse(json);
             var list = ParseData<T>(doc.RootElement);
@@ -593,9 +632,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MilvusOASIS
 
         private async Task<List<T>> QueryAsync<T>(string collection, string filter, int limit) where T : class
         {
-            var resp = await _http.PostAsync($"{_baseUrl}/v2/vectordb/entities/query",
+            using var resp = await _http.PostAsync($"{_baseUrl}/v2/vectordb/entities/query",
                 Json(new { collectionName = collection, filter, outputFields = new[] { "doc" }, limit }));
-            if (!resp.IsSuccessStatusCode) return new List<T>();
+            resp.EnsureSuccessStatusCode();
             var json = await resp.Content.ReadAsStringAsync();
             using var doc = JsonDocument.Parse(json);
             return ParseData<T>(doc.RootElement);
@@ -603,12 +642,12 @@ namespace NextGenSoftware.OASIS.API.Providers.MilvusOASIS
 
         private async Task<T?> FindOneAsync<T>(string collection, string field, string value) where T : class
         {
-            var results = await QueryAsync<T>(collection, $"{FieldColumn(field)} == \"{value}\"", 1);
+            var results = await QueryAsync<T>(collection, $"{FieldColumn(field)} == {JsonSerializer.Serialize(value)}", 1);
             return results.Count > 0 ? results[0] : null;
         }
 
         private async Task<List<T>> FindAllAsync<T>(string collection, string field, string value) where T : class
-            => await QueryAsync<T>(collection, $"{FieldColumn(field)} == \"{value}\"", 1000);
+            => await QueryAsync<T>(collection, $"{FieldColumn(field)} == {JsonSerializer.Serialize(value)}", 1000);
 
         private async Task<List<T>> GetAllDocsAsync<T>(string collection) where T : class
             => await QueryAsync<T>(collection, "id != \"\"", 1000);

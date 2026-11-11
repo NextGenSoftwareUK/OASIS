@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+11 November Milvus storage uses separate disposable CI containers and temporary configuration/checkpoint directories. The workflow removes the containers, volumes, newly pulled images and fixtures on exit. Cleanup confirmation is pending. No Windows build or download was created.
+
 11 November Memcached run 43075704036 verified removal of ten exact owned holon records and confirmed both daemons, runtime and checkpoints were removed. No local runtime, build or download was created.
 
 11 November Memcached run 43074654661 also removed its disposable resources after the compile failure.

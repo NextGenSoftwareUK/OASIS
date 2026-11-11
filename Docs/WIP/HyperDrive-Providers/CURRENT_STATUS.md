@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November Milvus native storage candidate. The existing REST adapter now requires HTTP and native read success, reports exact point-read and save counts, and uses canonical avatar-detail serialization. Separate disposable sync and async jobs provision the required Strong-consistency collections and vector indexes on pinned Milvus 2.6.26. The native lifecycle result remains open.
+
 11 November Memcached storage [run 43075704036](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43075704036) at 8ba3eb3adb passed 52/52 through shipping EnyimMemcachedCore on two independent Memcached 1.6.40 daemons. Enyim verified exact native holon fixture removal. CI removed both daemons and checkpoints. The lifecycle pass is scoped to volatile cache storage. Hosted operation, eviction behavior and multi-key atomicity remain open.
 
 11 November Memcached native runs 43073793620 and 43074034963 both started official 1.6.40. The first passed nine checks per mode before graph save. The graph candidate passed 18 per mode through metadata, batch, import and export, then stopped at holon deletion acknowledgement. The next candidate reports native delete outcomes through a single holon path, deletes owned avatar details on hard delete, and independently verifies exact holon fixture removal through Enyim.
