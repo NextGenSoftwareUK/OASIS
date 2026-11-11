@@ -5,10 +5,10 @@ if (args.Length != 2 || !File.Exists(args[0])
     || !Enum.TryParse<ProviderType>(args[1], ignoreCase: false, out var providerType)
     || args[1] != providerType.ToString()
     || providerType is not (ProviderType.NeonOASIS or ProviderType.ConvexOASIS
-        or ProviderType.SupabaseOASIS or ProviderType.SQLServerDBOASIS))
+        or ProviderType.SupabaseOASIS or ProviderType.SQLServerDBOASIS or ProviderType.BNBChainOASIS))
 {
     Console.Error.WriteLine(
-        "Usage: BootLoader.TestHarness <protected-fixture-dna-path> <NeonOASIS|ConvexOASIS|SupabaseOASIS|SQLServerDBOASIS>");
+        "Usage: BootLoader.TestHarness <protected-fixture-dna-path> <NeonOASIS|ConvexOASIS|SupabaseOASIS|SQLServerDBOASIS|BNBChainOASIS>");
     return 2;
 }
 
