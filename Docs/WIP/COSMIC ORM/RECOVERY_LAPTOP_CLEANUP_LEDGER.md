@@ -5698,3 +5698,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: Telos browser acceptance reused the existing visitor. No local report, screenshot file, download, runtime, build output or saved holon.
 
 11 November UTC: exact candidate 7854ac618f uses temporary tag ci-cosmic-solution-7854ac618f-build. Remove it and the older ci-cosmic-solution-7de3c00dad-build only after their CI runs are terminal and results recorded. The temporary local index was removed. No local build, restore, download or artifact copy.
+
+11 November UTC: IPFS publication cutover was checked with the existing Railway CLI. Startup logs were inspected in memory. No local report, build, restore, artifact copy or download.

@@ -1077,3 +1077,5 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 11 November UTC: TelosOASIS RPC-reported finalized balance presets returned 3 full and 2 filtered rows in the live Development WEB4 CQL Playground. Original-owner paired browser verification remains open.
 
 11 November UTC: Development 323c4f54da includes HyperDrive's independently verified two-instance IPFS publication fix. Railway 5c6a6f59 is queued behind a1749dd8. Exact two-file solution candidate 7854ac618f incorporates the new base and has been submitted to remote CI. No Development push from COSMIC.
+
+11 November UTC: Railway WEB4 deployment a1749dd8 succeeded at Development 2c11a120ae with the verified single-instance IPFS publication fix. The application reported startup on port 8080. The two-instance successor 323c4f54da remains queued as 5c6a6f59. Catalogue readiness for this cutover remains pending. Exact solution CI on 323c4f54da is 43010606987.
