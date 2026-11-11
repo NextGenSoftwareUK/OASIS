@@ -82,7 +82,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
 
         public OASISResult<double> GetBalance(IGetWeb3WalletBalanceRequest request)
         {
-            return GetBalanceAsync(request).Result;
+            return GetBalanceAsync(request).GetAwaiter().GetResult();
         }
 
         public async Task<OASISResult<double>> GetBalanceAsync(IGetWeb3WalletBalanceRequest request)
@@ -93,7 +93,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                 ArgumentNullException.ThrowIfNull(request);
                 if (string.IsNullOrWhiteSpace(request.WalletAddress))
                     throw new ArgumentException("A TRON wallet address is required.");
-                var balance = await ExecuteNativeRuntimeAsync(client => client.GetNativeBalanceAsync(request.WalletAddress));
+                var balance = await ExecuteNativeRuntimeAsync(client => client.GetNativeBalanceAsync(request.WalletAddress)).ConfigureAwait(false);
                 result.Result = (double)balance; // Shared interface exposes double; SDK conversion retains exact decimal SUN.
                 result.Message = "Native TRX balance read from the solidified account.";
             }
@@ -186,7 +186,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                 token.ThrowIfCancellationRequested();
                 if (string.IsNullOrWhiteSpace(accountAddress))
                     throw new ArgumentException("Account address is required.", nameof(accountAddress));
-                result.Result = await ExecuteNativeRuntimeAsync(client => client.GetNativeBalanceAsync(accountAddress, token), token);
+                result.Result = await ExecuteNativeRuntimeAsync(client => client.GetNativeBalanceAsync(accountAddress, token), token).ConfigureAwait(false);
                 result.Message = "Native TRX account balance retrieved from the solidity node.";
             }
             catch (Exception ex)
