@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November KeyDB full storage candidate. A disposable CI job binds the existing guarded sync and async lifecycle to the digest-pinned official KeyDB image. Both modes must report 26 checks and exact cleanup. The runner independently checks for zero native keys and removes only its own fixture.
+
 11 November KeyDB evidence reconciliation. Four native avatar and holon save/load checks passed against the digest-pinned KeyDB image in [run 43051825070](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43051825070). The separate native KeyDB 6.3.4 job passed encrypted CQL restart and MongoDB federation. Development includes the verified fixture wiring at ea54de967e. The shared 52/52 result is controlled. Full native lifecycle, hosted TLS and legacy plaintext migration remain open.
 
 11 November Dragonfly storage candidate. The shipping adapter runs both shared storage modes against checksum-pinned official Dragonfly 2.0.2 on an isolated runner. The job checks exact holon cleanup and the final native database size. COSMIC restart and federation results carry forward. [Run 43094237991](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43094237991) is queued.

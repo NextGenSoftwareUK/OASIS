@@ -1,0 +1,88 @@
+name: KeyDB native storage
+
+on:
+  push:
+    branches: [work/hyperdrive-provider-completion]
+    paths:
+      - '.github/workflows/keydb-native-storage.yml'
+      - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.KeyDBOASIS/**'
+      - 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.KeyDBOASIS.IntegrationTests/KeyDBOASISIntegrationTests.cs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  storage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: OASIS
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          path: OASIS
+          submodules: recursive
+          persist-credentials: false
+      - name: Read the recorded Libraries revision
+        id: dependencies
+        run: |
+          revision="$(sed -n 's/^LIBRARIES_COMMIT=//p' Docker/oasis-dependency-versions.env)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "libraries=$revision" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependencies.outputs.libraries }}
+          path: NextGenSoftware-Libraries
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Run both storage modes through the shipping KeyDB adapter
+        shell: bash
+        run: |
+          image=docker.io/eqalpha/keydb@sha256:6537505c42355ca1f571276bddf83f5b750f760f07b2a185a676481791e388ac
+          fixture="$(mktemp -d "$RUNNER_TEMP/oasis-keydb.XXXXXXXX")"
+          container=""
+          image_owned=false
+          cleanup() {
+            status=$?
+            if [[ -n "$container" ]]; then
+              if (( status != 0 )); then docker logs --tail 25 "$container" || true; fi
+              docker rm -fv "$container" || status=1
+            fi
+            if [[ "$image_owned" == true ]] && docker image inspect "$image" >/dev/null 2>&1; then
+              docker image rm "$image" || status=1
+            fi
+            [[ "$fixture" == "$RUNNER_TEMP"/oasis-keydb.* ]] && rm -rf -- "$fixture"
+            if [[ -e "$fixture" ]]; then status=1; else echo "Removed the owned KeyDB fixture directory."; fi
+            exit "$status"
+          }
+          trap cleanup EXIT
+          if ! docker image inspect "$image" >/dev/null 2>&1; then image_owned=true; fi
+          container="$(docker create -p 127.0.0.1:19689:6379 "$image")"
+          docker start "$container" >/dev/null
+          for attempt in {1..30}; do
+            [[ "$(docker inspect --format '{{.State.Running}}' "$container")" == true ]]
+            if [[ "$(docker exec "$container" keydb-cli --raw ping 2>/dev/null)" == PONG ]]; then break; fi
+            [[ "$attempt" != 30 ]]
+            sleep 1
+          done
+          docker exec "$container" keydb-server --version
+          [[ "$(docker exec "$container" keydb-cli --raw dbsize)" == 0 ]]
+          export OASIS_KEYDB_LIFECYCLE_REPORT_ROOT="$fixture/reports"
+          export KEYDB_CONN=127.0.0.1:19689,abortConnect=true,connectRetry=0
+          export OASIS_KEYDB_STORAGE_ENCRYPTION_KEY="$(openssl rand -base64 32)"
+          pwsh -NoProfile -Command '
+            ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-KeyDBStorage -Operation {
+              dotnet test "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.KeyDBOASIS.IntegrationTests" --filter "FullyQualifiedName~SharedStorageLifecycle" /m:2 /nr:false /p:UseSharedCompilation=false --logger "console;verbosity=normal"
+              if ($LASTEXITCODE -ne 0) { throw "KeyDB native storage verification failed." }
+            }'
+          for mode in async sync; do
+            jq -e '.Succeeded and .FixtureCleanupComplete and (.Passed | length == 26)' "$fixture/reports/$mode/report.json" >/dev/null
+          done
+          [[ "$(docker exec "$container" keydb-cli --raw dbsize)" == 0 ]]
