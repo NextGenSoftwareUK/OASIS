@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Development WEB4 queue, 11 November 2026
+
+Railway confirmed cancellation of 11 superseded queued Git deployments with matching runtime configuration and ancestor revisions. Verified release a614a4377f and the distinct configuration rollout 4ac92d08 were preserved. Live WEB4 remains 214462362b pending the next cutover.
+
 ## WEB4 warmup verified, 11 November 2026
 
 Railway deployment `80081e54` serves `214462362b`. Authenticated discovery rose from 18 to 105 of 106 sources ready for native and federated CQL. Nostr remains unavailable. Supabase, TRON and CouchDB remain absent. The CouchDB and NATS/Waku release `a614a4377f` is still queued as `1b1ad2f0`.
