@@ -115,3 +115,6 @@ WEB4 diagnostic regression gate complete: CI 42938257820/job 130253566184 succee
 
 
 11 November UTC: Development fd40b1ad12 reproduced the Hedera startup response_headers timeout in 15,017 ms without an HTTP status. Authenticated discovery returned CQL_SOURCE_UNAVAILABLE. Earlier browser acceptance is preserved. Current release recovery remains open.
+
+
+11 November UTC: the new c39eba5cd1 WEB4 instance advertised Hedera native and federated readiness. Both native public presets passed authenticated live HTTP with exact row IDs and counts 3/2. Prior startup failures remain recorded. Private paired browser and restart reliability remain open.
