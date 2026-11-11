@@ -5732,3 +5732,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: DuckDB browser acceptance reused the existing visitor. No local report, screenshot file, download, runtime, build output or saved holon.
 
 11 November UTC: Cloudinary browser acceptance reused the existing visitor. No local report, screenshot file, download, runtime, build output or saved holon.
+
+11 November UTC emergency follow-up: removed the idle untracked Dapr/Garnet garnet-web4-build.log (1,933,213 bytes) and verified it was absent. Kept the compact HTTP test receipts. C: reported 42,534,883,328 bytes free (39.61 GiB) after removal. Earlier rejected cleanup scopes were not retried. No build, download or restore started.
