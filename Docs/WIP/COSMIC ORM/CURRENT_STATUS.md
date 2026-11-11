@@ -1379,3 +1379,5 @@ KeyDB pinned source build and native verification are active in CI 43047936284.
 11 November UTC: KeyDB CI 43047936284 stopped compiling the pinned source because the runner lacked uuid/uuid.h. Candidate 076b4e1deb explicitly installs uuid-dev in CI. The native restart and federation tests did not execute in the first run. Standard CouchDB Development CI 43048587905 and Railway WEB4 deployment d0469a9d are queued.
 
 11 November UTC: Development c8832feaa7 integrates HyperDrive EOSIO native storage conformance. CI 43048799690 passed 52/52 across both shipping modes on independent Antelope Spring 1.2.2 ledgers. Independent reads confirmed empty avatar, avatar-detail and holon tables. Hosted signed storage and the original-owner paired CQL browser check remain open.
+
+11 November UTC: the standard Development pipeline 43048587905 passed both CouchDB jobs at ea614f3fc6. The matrix ran four generic storage tests and the restricted-role native policy, and the dedicated job verified restart and MongoDB federation. Hosted CouchDB still requires the restricted HTTPS teaching fixture.
