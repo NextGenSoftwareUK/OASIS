@@ -1,4 +1,7 @@
 using System;
+using System.Diagnostics;
+using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Holons;
@@ -9,6 +12,52 @@ namespace NextGenSoftware.OASIS.API.Providers.ConvexOASIS.IntegrationTests;
 [TestClass]
 public class ConvexOASISIntegrationTests
 {
+    [TestMethod]
+    public async Task ExistingProviderActivatesAfterCompanionIsDeployed()
+    {
+        if (Environment.GetEnvironmentVariable("OASIS_CONVEX_LOCAL_RECOVERY") != "1")
+            Assert.Inconclusive("Enable only for a fresh disposable Convex engine.");
+
+        var deployment = Environment.GetEnvironmentVariable("CONVEX_SELF_HOSTED_URL");
+        var deployKey = Environment.GetEnvironmentVariable("CONVEX_SELF_HOSTED_ADMIN_KEY");
+        var companionPath = Environment.GetEnvironmentVariable("OASIS_CONVEX_COMPANION_DIRECTORY");
+        Assert.IsTrue(Uri.TryCreate(deployment, UriKind.Absolute, out var endpoint) && endpoint.IsLoopback &&
+            endpoint.Scheme == Uri.UriSchemeHttp && endpoint.AbsolutePath == "/" &&
+            string.IsNullOrEmpty(endpoint.UserInfo) && string.IsNullOrEmpty(endpoint.Query) && string.IsNullOrEmpty(endpoint.Fragment));
+        Assert.IsFalse(string.IsNullOrWhiteSpace(deployKey));
+        Assert.IsTrue(Directory.Exists(companionPath));
+
+        using var provider = new ConvexOASIS(deployment!, deployKey!);
+        var absent = await provider.ActivateProviderAsync();
+        Assert.IsTrue(absent.IsError && !provider.IsProviderActivated, "The fresh engine must begin without the companion.");
+
+        var start = new ProcessStartInfo("node")
+        {
+            WorkingDirectory = companionPath!,
+            UseShellExecute = false
+        };
+        start.ArgumentList.Add(Path.Combine(companionPath!, "node_modules", "convex", "bin", "main.js"));
+        start.ArgumentList.Add("deploy");
+        start.ArgumentList.Add("--yes");
+        using var deploy = Process.Start(start) ?? throw new InvalidOperationException("Could not start the pinned Convex CLI.");
+        using var deadline = new CancellationTokenSource(TimeSpan.FromMinutes(2));
+        try
+        {
+            await deploy.WaitForExitAsync(deadline.Token);
+        }
+        finally
+        {
+            if (!deploy.HasExited)
+                deploy.Kill(entireProcessTree: true);
+        }
+        Assert.AreEqual(0, deploy.ExitCode, "Companion deployment failed.");
+
+        var active = await provider.ActivateProviderAsync();
+        Assert.IsTrue(active.Result && !active.IsError && provider.IsProviderActivated, active.Exception?.GetType().FullName);
+        var inactive = await provider.DeActivateProviderAsync();
+        Assert.IsTrue(inactive.Result && !inactive.IsError && !provider.IsProviderActivated);
+    }
+
     [DataTestMethod]
     [DataRow(false)]
     [DataRow(true)]

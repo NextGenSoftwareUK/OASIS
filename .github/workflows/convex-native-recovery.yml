@@ -1,0 +1,93 @@
+name: Convex native companion recovery
+
+on:
+  push:
+    branches: [work/hyperdrive-provider-completion]
+    paths:
+      - '.github/workflows/convex-native-recovery.yml'
+      - 'Providers/Cloud/NextGenSoftware.OASIS.API.Providers.ConvexOASIS/**'
+      - 'Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.ConvexOASIS.IntegrationTests/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  recovery:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: OASIS
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          path: OASIS
+          submodules: recursive
+          persist-credentials: false
+
+      - name: Read the recorded Libraries revision
+        id: dependencies
+        shell: bash
+        run: |
+          revision="$(sed -n 's/^LIBRARIES_COMMIT=//p' Docker/oasis-dependency-versions.env)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "libraries=$revision" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependencies.outputs.libraries }}
+          path: NextGenSoftware-Libraries
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.22.1'
+
+      - name: Recover the existing provider after installing the companion
+        shell: bash
+        run: |
+          fixture="$(mktemp -d "$RUNNER_TEMP/oasis-convex.XXXXXXXX")"
+          archive="$fixture/backend.zip"
+          asset_url=https://github.com/convex/convex-backend/releases/download/precompiled-2026-10-22-1447815/convex-local-backend-x86_64-unknown-linux-gnu.zip
+          curl --fail --silent --show-error --location --max-time 90 --output "$archive" "$asset_url"
+          printf '%s  %s\n' 7be627d8a8c9175b66a55cf6c4ab63c5f6bde1c412f59fbbe93f64a24a11bd13 "$archive" | sha256sum --check
+          unzip -q "$archive" -d "$fixture"
+          backend="$fixture/convex-local-backend"
+          secret="$(openssl rand -hex 32)"
+          export CONVEX_SELF_HOSTED_URL=http://127.0.0.1:13210
+          export CONVEX_SELF_HOSTED_ADMIN_KEY="$("$backend" keygen admin-key --instance-name oasis-convex --instance-secret "$secret")"
+          export OASIS_CONVEX_STORAGE_KEY="$(openssl rand -base64 32)"
+          export OASIS_CONVEX_LOCAL_RECOVERY=1
+          export OASIS_CONVEX_COMPANION_DIRECTORY="$PWD/Providers/Cloud/NextGenSoftware.OASIS.API.Providers.ConvexOASIS/Companion"
+          npm ci --prefix "$OASIS_CONVEX_COMPANION_DIRECTORY" --no-audit --no-fund
+
+          "$backend" --interface 127.0.0.1 --port 13210 --site-proxy-port 13211 --convex-origin "$CONVEX_SELF_HOSTED_URL" --convex-site http://127.0.0.1:13211 --instance-name oasis-convex --instance-secret "$secret" --disable-beacon --redact-logs-to-client --local-storage "$fixture/storage" "$fixture/convex.sqlite3" >"$fixture/engine.log" 2>&1 &
+          owned_pid=$!
+          stop_engine() {
+            if kill -0 "$owned_pid" 2>/dev/null; then
+              kill "$owned_pid"
+              wait "$owned_pid" || [[ "$?" == 143 ]]
+            fi
+            echo "Convex engine stopped"
+          }
+          trap stop_engine EXIT
+          for attempt in {1..30}; do
+            kill -0 "$owned_pid"
+            if curl --fail --silent --max-time 2 "$CONVEX_SELF_HOSTED_URL/version"; then break; fi
+            if [[ "$attempt" == 30 ]]; then echo "Convex readiness timed out" >&2; exit 1; fi
+            sleep 1
+          done
+
+          pwsh -NoProfile -Command '
+            ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-ConvexRecovery -Operation {
+              dotnet test "Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.ConvexOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.ConvexOASIS.IntegrationTests.csproj" --filter "FullyQualifiedName~ExistingProviderActivatesAfterCompanionIsDeployed" /m:2 /nr:false /p:UseSharedCompilation=false --logger "console;verbosity=normal"
+              if ($LASTEXITCODE -ne 0) { throw "Native Convex recovery failed." }
+            }'
