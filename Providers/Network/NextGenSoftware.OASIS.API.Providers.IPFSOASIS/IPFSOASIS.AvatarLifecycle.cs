@@ -24,11 +24,13 @@ public partial class IPFSOASIS : IAvatarTombstoneStorageProvider
     {
         var result=new OASISResult<bool>();
         var acknowledged=new List<string>();
-        await _catalogueGate.WaitAsync().ConfigureAwait(false);
+        var gate = CatalogueGate;
+        await gate.WaitAsync().ConfigureAwait(false);
         try
         {
             if(!validSelector) throw new ArgumentException("A nonempty avatar deletion selector is required.");
-            var snapshot=await LoadCatalogueAsync().ConfigureAwait(false);
+            var dna = ReadCatalogueMutationDna();
+            var snapshot=await LoadCatalogueAsync(dna).ConfigureAwait(false);
             var matches=snapshot.Where(row=>row.Value?.RecordKind=="avatar" && predicate(row.Value)).Take(2).ToList();
             if(matches.Count>1) throw new StorageIdentityAmbiguousException();
             if(matches.Count==0) return new OASISResult<bool> {IsError=true,ErrorCount=1,ErrorCode=OASISResultErrorCodes.RecordNotFound,Message="No IPFS avatar matches the deletion selector."};
@@ -81,7 +83,7 @@ public partial class IPFSOASIS : IAvatarTombstoneStorageProvider
                 proposed.Remove(selected.Key);
                 foreach(var detail in details) proposed.Remove(detail.Key);
             }
-            await SaveCatalogueAsync(proposed).ConfigureAwait(false);
+            await SaveCatalogueAsync(proposed, dna).ConfigureAwait(false);
             result.Result=true; result.IsSaved=true;
             result.IsDeleted=true; result.DeletedCount=1;
             if(tombstone!=null) AvatarTombstoneEvidence.Attach(result,tombstone);
@@ -94,7 +96,7 @@ public partial class IPFSOASIS : IAvatarTombstoneStorageProvider
             if(cause is StorageIdentityAmbiguousException) result.ErrorCode=OASISResultErrorCodes.AmbiguousIdentity;
             if(cause is StorageLifecycleConflictException) result.ErrorCode=StorageLifecycleConflictException.ErrorCode;
         }
-        finally { _catalogueGate.Release(); }
+        finally { gate.Release(); }
         return result;
     }
 }
