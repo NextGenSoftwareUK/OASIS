@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Data;
 using System.Collections.Generic;
@@ -47,16 +47,17 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             try
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                _ipfsClient = new IpfsClient(_OASISDNA.OASIS.StorageProviders.IPFSOASIS.ConnectionString);
+                var client = new IpfsClient(_OASISDNA.OASIS.StorageProviders.IPFSOASIS.ConnectionString);
                 using CancellationTokenSource timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
                 timeout.CancelAfter(TimeSpan.FromSeconds(10));
-                Dictionary<string, string> version = await _ipfsClient.VersionAsync(timeout.Token);
+                Dictionary<string, string> version = await client.VersionAsync(timeout.Token).ConfigureAwait(false);
                 timeout.Token.ThrowIfCancellationRequested();
 
                 if (version == null || !version.TryGetValue("Version", out var nativeVersion)
                     || string.IsNullOrWhiteSpace(nativeVersion))
                     throw new InvalidOperationException("The IPFS daemon returned no native version.");
 
+                _ipfsClient = client;
                 result.Result = true;
                 IsProviderActivated = true;
             }

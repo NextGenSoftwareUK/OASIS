@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November IPFS activation. Both sync and async provider activation and deactivation cases passed against checksum-pinned offline Kubo 0.43.1 on [GitHub Actions](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43006440924). The provider and integration tests match verified revision fdac8a7b81. Retained storage restart and concurrency acceptance remain open.
+
 11 November SQL Server avatar wallet verification. The shipping provider preserves the stored JSON format and materializes wallet transactions with native evidence. On SQL Server LocalDB 17.0.4025.3 the focused test passed 1/1 with zero skips, covering a current avatar read after a version update and archived wallet and transaction reads by ID and by collection. The disposable database and instance were removed. The verified task revision is b3622db1fe. Full provider acceptance remains open.
 
 11 November MongoDB graph transaction. At c3229c908a the shipping provider passed on a disposable one-member MongoDB 8.2.1 replica set. A native child validation rejection left zero holon rows and both caller IDs unset. The corrected graph committed both records, published both IDs and loaded the expected child. The scoped Development change carries the matching native test. Multi-node and hosted acceptance are separate.
