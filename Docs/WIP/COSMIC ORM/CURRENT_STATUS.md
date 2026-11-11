@@ -755,3 +755,5 @@ Development 3c05290d catalogue reached 104/106 ready. Solana, Ethereum, Polygon,
 Hedera cancellation stage diagnostics are published at b5a01a8030. Exact WEB4 image CI run 42925770019 is in progress. The two-file patch applies cleanly to Development 2c7806a0da, yielding candidate tree fcb6469f835a16e3414c801b4ecfcbf879800247. Development remains unchanged pending verification.
 
 Hedera exact Development candidate 2b828fd377 includes the reader, diagnostic allowlist and two regression cases on 2c7806a0da. It retains the Development dependency pins, which differ from the COSMIC feature build. Remote image run 42926699339 is queued behind 42925770019. The image workflow compiles shipping code and does not run the two WEB4 unit cases.
+
+Hedera exact image CI 42926699339 passed and Development fast-forwarded to 2b828fd377. Railway queued a64672cb with 3c05290d still serving. Verify Hedera readiness after cutover and use the new stage diagnostics if activation fails. Two WEB4 unit cases remain unrun.
