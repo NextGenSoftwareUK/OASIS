@@ -48,3 +48,36 @@ def owned_linux_mongo(results):
                     process.terminate()
                     process.wait(timeout=30)
                 assert process.returncode == 0, "Owned Mongo shutdown failed; preserve store/log"
+
+
+@contextmanager
+def isolated_ci_mongo():
+    """Own one disposable replica set for an ephemeral Linux CI runner."""
+    state = Path("/var/tmp/oasis-cosmic-mongo")
+    state.mkdir(mode=0o700)
+    container = subprocess.check_output([
+        "docker", "create", "--publish", "127.0.0.1:27039:27039",
+        "mongo:8.0.15", "--port", "27039", "--replSet", "cosmicLinuxDemoRs", "--bind_ip_all",
+    ], text=True).strip()
+    try:
+        subprocess.run(["docker", "start", container], check=True)
+        deadline = time.monotonic() + 45
+        while True:
+            if subprocess.check_output(["docker", "inspect", "--format", "{{.State.Running}}", container], text=True).strip() != "true":
+                raise RuntimeError("Owned CI MongoDB exited before readiness")
+            probe = subprocess.run([
+                "docker", "exec", container, "mongosh", "--quiet", "--port", "27039",
+                "--eval", "quit(db.adminCommand({ping:1}).ok === 1 ? 0 : 1)",
+            ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=5)
+            if probe.returncode == 0:
+                break
+            if time.monotonic() >= deadline:
+                raise RuntimeError("Owned CI MongoDB readiness deadline exceeded")
+            time.sleep(1)
+        (state / "store.json").write_text(json.dumps({"containerId": container, "port": 27039, "replica": "cosmicLinuxDemoRs"}))
+        yield {
+            "OASIS_COSMIC_LINUX_MONGO_STATE": str(state),
+            "OASIS_MONGO_REPLICA_SET_CONNECTION": "mongodb://127.0.0.1:27039/?replicaSet=cosmicLinuxDemoRs&serverSelectionTimeoutMS=3000",
+        }
+    finally:
+        subprocess.run(["docker", "rm", "-f", "-v", container], check=True)
