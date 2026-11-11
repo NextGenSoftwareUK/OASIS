@@ -189,3 +189,5 @@ python -B Scripts/Sandbox/Verify-HostedQuerySource.py CouchDBOASIS --readiness
 11 November UTC: Corrected catalogue-authority candidate is under CI in run 43088383856. The additional regression checks that an out-of-catalogue GUID never reaches the native CouchDB transport. Superseded exact-image run 43086919320 was cancelled.
 
 11 November UTC: exact CouchDB WEB4 image build 43090552807 was dispatched for merge candidate ab4482e254 on Development 214462362b. GitHub qualification 43088383856 and the image build must both pass before Development publication. The native reader, regression and Core pin are unchanged from the qualification candidate.
+
+11 November UTC: CouchDB WEB4 qualification 43088383856 passed all eight controlled checks, including the regression that prevents dispatch of IDs outside the authoritative catalogue. The exact WEB4 image 43090552807 is queued. Development advanced to 335be6013a with BNB wallet tests and documentation. Prepared merge cd75512596 preserves the eight qualified paths and passes Railway manifest and gitlink validation.
