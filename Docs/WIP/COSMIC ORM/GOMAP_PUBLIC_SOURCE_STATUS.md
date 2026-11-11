@@ -1,5 +1,7 @@
 # GOMap public query source review — 8 November 2026
 
+11 November: exact candidate aa56e87568 passed all 12 boundary cases with zero skips in CI 43104475453. The workflow still expected eight cases and stopped before the native stage. Candidate e571025e78 changes only the expected boundary count. Exact qualification is queued in 43108783977.
+
 ## Development candidate, 11 November 2026
 
 Candidate `aa56e87568` applies the reviewed dedicated-origin change to

@@ -1,5 +1,7 @@
 # COSMIC ORM / CQL current status
 
+GOMap CI 43104475453 passed all 12 boundary cases, then stopped at the stale eight-case workflow assertion before starting the native fixture. Corrected candidate e571025e78 is queued in run 43108783977. No Development push.
+
 Railway also cancelled build 618a1edc for 335be6013a after verifying it differed from live WEB4 only in BNB tests, CI and documentation. The verified release a614a4377f remains queued.
 
 ## Development WEB4 queue, 11 November 2026
