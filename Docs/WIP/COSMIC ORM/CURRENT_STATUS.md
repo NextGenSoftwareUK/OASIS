@@ -1019,3 +1019,5 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 11 November UTC: Radix ledger-pinned public resource presets rendered 3 full and 2 filtered rows in the live Development WEB4 CQL Playground. The original-owner private paired browser check remains open.
 
 11 November UTC: WEB4 e5530b0914 is live on Railway 06b83b4e-4b8b-4903-afd1-d7b1b15dbcc7. The prior browser visitor could not renew, so the discovery request was not sent. One new disposable visitor sandbox-bfaa6d06 loaded 105 sources. Nostr again failed its WebSocket upgrade with HTTP 503 / NotAWebSocket at 120 ms. MongoDB metadata is building and its graph-test successor remains queued.
+
+11 November UTC: solution candidate ffc42ae1c9 applies the same two reviewed solution files to Development 1afe6f7923, including the independently verified MongoDB graph transaction test. Diagnostic CI 43003208274 is running with the existing ancestry failure recorded. The MongoDB metadata revision is building in Railway, and its graph-test successor is queued. WEB4 serves e5530b0914.
