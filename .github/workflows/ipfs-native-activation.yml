@@ -12,8 +12,8 @@ on:
       scenario:
         description: Native persistence scenario
         type: choice
-        options: [independent, concurrent, restart]
-        default: independent
+        options: [processes, independent, concurrent, restart]
+        default: processes
 
 permissions:
   contents: read
@@ -58,7 +58,7 @@ jobs:
       - name: Verify persistence through the shipping provider on offline Kubo
         shell: pwsh
         env:
-          IPFS_TEST_SCENARIO: ${{ inputs.scenario || 'independent' }}
+          IPFS_TEST_SCENARIO: ${{ inputs.scenario || 'processes' }}
         run: |
           $ErrorActionPreference = 'Stop'
           $PSNativeCommandUseErrorActionPreference = $true
@@ -114,9 +114,12 @@ jobs:
             } elseif ($env:IPFS_TEST_SCENARIO -eq 'concurrent') {
               $testFilter = 'FullyQualifiedName~ConcurrentAcknowledgedSavesRemainVisibleFromPersistedCatalogue'
               $phases = @('concurrent')
-            } else {
+            } elseif ($env:IPFS_TEST_SCENARIO -eq 'independent') {
               $testFilter = 'FullyQualifiedName~IndependentWritersPreserveEveryAcknowledgedRecord'
               $phases = @('independent')
+            } else {
+              $testFilter = 'FullyQualifiedName~SeparateProcessesPreserveEveryAcknowledgedRecord'
+              $phases = @('processes')
             }
             foreach ($phase in $phases) {
               $env:IPFSOASIS_RESTART_PHASE = $phase
@@ -124,6 +127,28 @@ jobs:
               $daemon = Start-Process -FilePath $binary -ArgumentList @('daemon', '--offline') -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $fixture "$phase.log") -RedirectStandardError $errorLog
               try {
                 Wait-KuboReady $daemon $errorLog
+                if ($phase -eq 'processes') {
+                  dotnet build $project /m:2 /nr:false /p:UseSharedCompilation=false
+                  $absoluteProject = (Resolve-Path -LiteralPath $project).Path
+                  $writers = foreach ($participant in @('first', 'second')) {
+                    Start-Job -ArgumentList $absoluteProject, $testFilter, $participant -ScriptBlock {
+                      param($project, $filter, $participant)
+                      $env:IPFSOASIS_PROCESS_PARTICIPANT = $participant
+                      dotnet test $project --no-build --no-restore --filter $filter --logger 'console;verbosity=normal'
+                      if ($LASTEXITCODE -ne 0) { throw "IPFS writer $participant failed." }
+                    }
+                  }
+                  try {
+                    $writers | Wait-Job -Timeout 120 | Out-Null
+                    $writers | Receive-Job -ErrorAction Continue
+                    if (@($writers | Where-Object State -ne 'Completed').Count) { throw 'One or more IPFS writers failed.' }
+                    $env:IPFSOASIS_PROCESS_PARTICIPANT = 'reader'
+                    dotnet test $project --no-build --no-restore --filter $testFilter --logger 'console;verbosity=normal'
+                  } finally {
+                    $writers | Remove-Job -Force
+                  }
+                  continue
+                }
                 $buildOptions = @('/m:2', '/nr:false', '/p:UseSharedCompilation=false')
                 if ($phase -eq 'read') { $buildOptions = @('--no-build', '--no-restore') }
                 Write-Host "IPFS persistence test phase: $phase"
