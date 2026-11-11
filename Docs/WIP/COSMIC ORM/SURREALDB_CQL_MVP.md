@@ -312,3 +312,5 @@ The retained local source is preserved.
 11 November UTC: all five generic SurrealDB storage tests passed with zero skips on 3.3.5 after typed GUID record IDs replaced interpolated keys. The run directly verifies avatar and holon point loads and avatar soft-delete. Avatar-detail point reads and hard deletion changed to the same typed-key representation and still need direct checks. The fix is on the COSMIC branch pending Development integration. [SurrealDB typed-ID CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43039509964)
 
 11 November UTC: added native SurrealDB tests for GUID avatar-detail round-trip and avatar hard deletion with absence by GUID and username. Diagnostic `9936be0782` runs those cases with the previous five on 3.3.5. Development integration awaits the result.
+
+11 November UTC: the expanded seven-case generic SurrealDB diagnostic is active. The earlier 3.3.5 baseline and typed-ID companion runs have both completed, and their temporary tags were retired. [Expanded CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43040174105)
