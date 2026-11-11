@@ -272,3 +272,5 @@ IPFS/SOLID point teachinghost is now native-tested withreadableHTML/API and expl
 11 November UTC: Development 323c4f54da includes HyperDrive's independently verified two-instance IPFS publication fix. Railway 5c6a6f59 is queued behind a1749dd8. Exact two-file solution candidate 7854ac618f incorporates the new base and has been submitted to remote CI. No Development push from COSMIC.
 
 11 November UTC: Railway WEB4 deployment a1749dd8 succeeded at Development 2c11a120ae with the verified single-instance IPFS publication fix. The application reported startup on port 8080. The two-instance successor 323c4f54da remains queued as 5c6a6f59. Catalogue readiness for this cutover remains pending. Exact solution CI on 323c4f54da is 43010606987.
+
+11 November UTC: Development 9aaed91520 contains HyperDrive's verified IPFS writer-process fix. Native Kubo CI 43010855757 preserved all eight acknowledged records across two Windows writer processes sharing a local DNA file. Railway fc8ccf36 is queued. Exact two-file solution candidate d8b50fa36f now verifies the latest Development base.
