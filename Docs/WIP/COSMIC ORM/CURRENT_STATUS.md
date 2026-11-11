@@ -1361,3 +1361,5 @@ CouchDB restart and federation diagnostic 43045487847 is active.
 11 November UTC: combined CouchDB standard pipeline diagnostic 43046007325 is queued. It covers generic native storage, restricted reader policy and the separate restart/federation job. Candidate 17df68f439 remains pending those results.
 
 11 November UTC: both CouchDB jobs passed in combined CI 43046007325. The generic storage and restricted-reader checks used the standard matrix fixture. The native CQL restart and MongoDB federation checks used the dedicated fixture. Verified routing is on the COSMIC branch, pending the next Development batch. Hosted HTTPS acceptance remains open.
+
+11 November UTC: Railway deployment 08cbe5d6 succeeded at 73e0d4bb08. The retained public readiness visitor needed renewal. Its single journalled request returned HTTP 200 with a nested application error classified as not found and no replacement cookie. The original protected intent and response are preserved for reconciliation. No catalogue request or replacement visitor was created. Newer Development revisions remain queued.
