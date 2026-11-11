@@ -696,5 +696,5 @@ Status: missing account/configuration information,2 November2026. David approved
 ### Google Maps Routes API access
 
 - **Status (2026-11-11)** Open. The endpoint rejected an unauthenticated request. Authenticated route verification is pending.
-- **David action** Identify a Google Cloud project with Routes API enabled and provide a restricted test credential through protected configuration. Keep credentials out of Git and chat.
+- **David action** Identify a Google Cloud project with Routes API enabled and provide a restricted test credential through the protected OASIS_GOOGLE_ROUTES_API_KEY setting. Keep credentials out of Git and chat.
 - **Reason** The provider agent owns the authenticated test and evidence capture. [Google Routes API](https://developers.google.com/maps/documentation/routes/compute_route_directions)
