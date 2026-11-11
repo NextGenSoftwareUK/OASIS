@@ -169,7 +169,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
 
         private record AvatarRow(string id, string username, string email, bool is_deleted, string data_json);
         private record AvatarDetailRow(string id, string username, string email, string data_json);
-        private record HolonRow(string id, string? parent_holon_id, int holon_type, bool is_deleted, string data_json);
+        // PostgREST bulk upserts require the same keys on root and child rows.
+        private record HolonRow(string id,
+            [property: JsonIgnore(Condition = JsonIgnoreCondition.Never)] string? parent_holon_id,
+            int holon_type, bool is_deleted, string data_json);
 
         // ─── Avatar saving ────────────────────────────────────────────────────────
 
