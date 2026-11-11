@@ -1,6 +1,6 @@
 # Current provider status
 
-11 November Ronin wallet candidate. The shipping sync and async GetBalance methods now use the shared Nethereum native balance reader and require Ronin mainnet chain ID 2020. The official RPC independently returned chain ID 0x7e4 and a positive native balance for 0xe514d9deb7966c8be0ca922de8a064264ea6bcd4. C# syntax, project XML and diff checks passed. Execution through the shipping provider and the remaining wallet and storage capabilities remain open. The COSMIC public reader is separate.
+11 November Ronin wallet candidate. The shipping sync and async GetBalance methods now use the shared Nethereum native balance reader and require Ronin mainnet chain ID 2020. The official RPC independently returned chain ID 0x7e4 and a positive native balance for 0xe514d9deb7966c8be0ca922de8a064264ea6bcd4. C# syntax, project XML and diff checks passed. The opt-in RoninPublicWalletBalanceTests exercise the shipping sync and async methods against the official RPC and require both to reject a real Optimism endpoint. Set OASIS_RONIN_PUBLIC_WALLET_READ=1 for the targeted run. Test execution and the remaining wallet and storage capabilities remain open. The COSMIC public reader is separate.
 
 11 November priority hosted-fixture check. Neon, Convex and Supabase each retain their existing 52/52 native storage evidence. None of the protected fixture settings for the three hosted runs is present in this session or the Windows user and machine environments. Existing owner actions cover access. The accepted native suites were not rerun.
 
