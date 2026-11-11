@@ -295,3 +295,6 @@ Local retained proofs, moved without byte changes; regenerate new runs using `Sc
 | `conformance-activitypuboasis-current.json` | 615 | `cea9d9793ee2dde71afd3770b19b86433582f2abfa8186a114c9e6cba59be77c` |
 
 11 November synchronous public status and reply reads. The direct-provider integration configuration (ActivityPubDirectProviderOnly=true) passed StatusAndRepliesReadFromLiveMastodonWithoutCallerContext against mastodon.social status 117015608750780726. It checked the native identity and URI, exact reply parent bindings, and zero caller context posts. No token or writes were used. The default linked CQL project currently lacks references required by its linked registration sources.
+## 11 November 2026 authenticated native search and deletion
+
+Official Mastodon 4.4.28 returned 40, 2 and 0 account results for the three authenticated page requests in [run 43043728770](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43043728770). The shipping provider matched every account and the canonical point projection using a token with search and account-read scopes. Both shipping deletion modes returned the exact private status ID and source text from the native acknowledgement. Independent authenticated reads confirmed both statuses absent. The disposable service and fixture were removed. Hosted identity and federation verification remain open.

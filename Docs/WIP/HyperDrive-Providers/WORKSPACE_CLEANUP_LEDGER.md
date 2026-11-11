@@ -279,4 +279,6 @@ Urgent disk cleanup follow-up: leased standard project clean succeeded for AWS u
 
 11 November ActivityPub run 43042831640 removed its owned Mastodon fixture directory after the managed search point-read and deletion acknowledgement failures. The two private statuses belonged only to the discarded CI database. No Windows build, download or fixture was created.
 
+11 November ActivityPub run 43043728770 passed 3/3 and confirmed removal of all four owned containers, the Compose network and the fixture directory. The script exited successfully after its temporary TLS and hosts cleanup. No Windows outputs or test environment were created.
+
 11 November cleanup recheck in the HyperDrive worktree. The earlier WEB4 count build still occupies 115,007,857 bytes in `oasisweb4.com/node_modules` and 361,528 bytes in `TestResults/Web4ProviderCountBuild`. Both are Git-ignored generated directories, with no linked content or matching active Node process found. Automatic review rejected the scoped recursive removal before execution. No deletion occurred. The four named wallet and ActivityPub build folders were absent from this worktree's top-level TestResults directory.
