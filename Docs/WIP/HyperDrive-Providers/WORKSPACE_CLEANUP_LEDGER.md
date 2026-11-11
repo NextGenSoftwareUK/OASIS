@@ -138,3 +138,5 @@ Urgent disk cleanup follow-up: leased standard project clean succeeded for AWS u
 11 November LocalDB readiness: created, started, queried, stopped and deleted only the owned OASISHyperDriveRegistrationProbe instance. Instance-list absence verified. No download or retained fixture database attachment. The query accessed only master metadata.
 
 11 November activation harness graph at 6eaa80d662 compiled with zero errors and 2,140 warnings. Verified ActivationHarness/current-artifacts absent. Retained the compact current-result.json receipt.
+
+11 November SQL Server activation attempt at a5fcf80fcc: removed sqlserver-artifacts and the owned SqlServerBootLoaderFixture after passive boot failed. Confirmed the fixture directory and OASISHyperDriveRegistrationProbe instance are absent. Compact sqlserver-result.json retained.
