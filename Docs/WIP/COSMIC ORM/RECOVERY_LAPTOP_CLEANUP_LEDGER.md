@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+11 November WEB4 `214462362b` readiness used the retained visitor. Initial renewal wrote four protected session files. Subsequent checks reached 105/106 and created zero files. No builds or downloads. Temporary Git index removed.
+
 11 November GOMap qualification: track temporary tag
 `ci-cosmic-gomap-dev-aa56e87568` until CI run 43104475453 and any
 tag-triggered companion finish. The hosted test runner owns its Mongo

@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## WEB4 warmup verified, 11 November 2026
+
+Railway deployment `80081e54` serves `214462362b`. Authenticated discovery rose from 18 to 105 of 106 sources ready for native and federated CQL. Nostr remains unavailable. Supabase, TRON and CouchDB remain absent. The CouchDB and NATS/Waku release `a614a4377f` is still queued as `1b1ad2f0`.
+
 ## GOMap exact Development qualification, 11 November 2026
 
 The three-path dedicated-origin admission update merges cleanly onto
