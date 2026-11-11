@@ -1,6 +1,6 @@
 # Current provider status
 
-11 November Valkey full storage candidate. The shipping ValKeyOASIS adapter runs both shared storage modes against the digest-pinned official Valkey 9.0.4 image. The test checks exact tombstone cleanup and native database emptiness. This adds shared lifecycle coverage without replaying the earlier storage smoke or COSMIC restart and federation checks. Results are pending.
+11 November Valkey full storage candidate. The shipping ValKeyOASIS adapter runs both shared storage modes against the digest-pinned official Valkey 9.0.4 image. The test checks exact tombstone cleanup and native database emptiness. This adds shared lifecycle coverage without replaying the earlier storage smoke or COSMIC restart and federation checks. [Run 43091045329](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43091045329) is queued.
 
 11 November Firebase activation candidate. A successful HTTP status now also has to carry the RTDB JSON null response for the reserved empty holon identity. This keeps an HTML gateway or a wrong JSON endpoint from marking the shipping provider active. Regression cases cover null, empty, HTML and object responses. The combined compile, activation regression and emulator check is pending in run 43090501206.
 
@@ -8,7 +8,7 @@
 
 11 November Firebase Realtime Database storage candidate. A disposable CI job runs both shipping REST storage modes against the checksum-pinned official RTDB 4.11.2 emulator and a fresh demo namespace. It checks all 26 lifecycle cases per mode and verifies the namespace is empty at the end. The interrupted Windows fixture and COSMIC hosted-query work are preserved. [CI run 43090501206](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43090501206) is pending.
 
-11 November BNB public wallet candidate. CI will verify both shipping balance entry points against the official BSC mainnet RPC with the published wrapped BNB contract as the public read target. It checks chain ID 56, rejection when configured for chain 97, and that storage stays inactive. The job needs no signer, storage contract or private-chain fixture. The official endpoint returned chain 56 and a positive raw balance in a separate readiness probe. Provider-path verification is tracked in [run 43087353377](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43087353377).
+11 November BNB public wallet candidate. CI will verify both shipping balance entry points against the official BSC mainnet RPC with the published wrapped BNB contract as the public read target. It checks chain ID 56, rejection when configured for chain 97, and that storage stays inactive. The job needs no signer, storage contract or private-chain fixture. The official endpoint returned chain 56 and a positive raw balance in a separate readiness probe. Both public BNB mainnet wallet balance modes passed through unsigned Nethereum, rejected chain 97 and left storage inactive in [run 43087353377](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43087353377).
 
 11 November BNB BootLoader registration shipped to Development at febb6971d8. The [Development BootLoader job 43086956668](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43086956668) passed passive registration, activation and deactivation with Development dependencies. CI confirmed fixture cleanup.
 
