@@ -114,3 +114,5 @@ developer route path. The dedicated public origin and live rollout remain open.
 11 November UTC: the dedicated HTTPS routing origin is tracked in the [owner action list](../Release%20and%20Status/ACTIONS-FOR-DAVID.md#gomap-public-demo-routing-origin-11-november-2026).
 
 11 November UTC: exact candidate `095805ee91` run 42977871267 passed 12/12 admission and 1/1 WEB4 integration, zero skipped. Report artifact 13836228844 SHA-256 `0e0bbbba05f41497d749e25ca14400c9328b57587ee06cc850096954253c3ee3`. Cleanup artifact 13836308710 SHA-256 `c003191ee3fcaaf8532a31349649436a833d2969a3c3cb1113753a0d9e2fd324` confirms the owned MongoDB container and anonymous volumes were absent.
+
+11 November UTC: GOMap image 42978537981 passed for `095805ee91` and published digest `sha256:c20677c14f4f990d61be9f991a9539fca5d25b4d9423ca0b9b50a52a704fe7b3`. Concurrent Development `8ecc28e3ca` advanced runtime dependency pins and provider project inputs, so the scoped three-file batch was combined with it at `d3a44cef27` without a Development push. Exact integration run 42980766712 and image run 42980770261 are queued.
