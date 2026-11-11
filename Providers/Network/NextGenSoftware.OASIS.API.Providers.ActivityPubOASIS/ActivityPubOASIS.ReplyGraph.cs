@@ -25,7 +25,7 @@ public partial class ActivityPubOASIS
             var nativeDepth=1;
             if(loadChildren&&providerChildren&&(maxDepth==0||currentDepth<maxDepth))
                 nativeDepth=!recursive?2:maxDepth==0?0:(int)Math.Min(int.MaxValue,(long)maxDepth-currentDepth+1);
-            var parent=await ReadMastodonStatusAsync(key,true,true,nativeDepth,version,true);
+            var parent=await ReadMastodonStatusAsync(key,true,true,nativeDepth,version,true).ConfigureAwait(false);
             if(parent.IsError)return Core.Helpers.OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IHolon,IEnumerable<IHolon>>(parent);
             if(parent.Result==null)throw new InvalidDataException("Native parent status read returned no record.");
             var selected=parent.Result.Children.Where(child=>type==Core.Enums.HolonType.All||child.HolonType==type).ToArray();
@@ -38,10 +38,10 @@ public partial class ActivityPubOASIS
     private async Task<IHolon> ReadMastodonReplyGraphAsync(Holon root,bool recursive,int depth)
     {
         var key=root.ProviderUniqueStorageKey[Core.Enums.ProviderType.ActivityPubOASIS];
-        using var response=await _httpClient.GetAsync("/api/v1/statuses/"+Uri.EscapeDataString(key)+"/context");
+        using var response=await _httpClient.GetAsync("/api/v1/statuses/"+Uri.EscapeDataString(key)+"/context").ConfigureAwait(false);
         response.EnsureSuccessStatusCode();
         if(response.Headers.Contains("Mastodon-Async-Refresh"))throw new InvalidDataException("Native reply context is awaiting refresh; no incomplete tree returned.");
-        using var json=JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        using var json=JsonDocument.Parse(await response.Content.ReadAsStringAsync().ConfigureAwait(false));
         if(json.RootElement.ValueKind!=JsonValueKind.Object
             ||!json.RootElement.TryGetProperty("ancestors",out var ancestors)||ancestors.ValueKind!=JsonValueKind.Array
             ||!json.RootElement.TryGetProperty("descendants",out var descendants)||descendants.ValueKind!=JsonValueKind.Array)

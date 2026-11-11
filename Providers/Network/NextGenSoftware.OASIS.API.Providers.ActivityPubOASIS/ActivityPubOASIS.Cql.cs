@@ -112,9 +112,9 @@ public partial class ActivityPubOASIS : ICosmicQueryStorageProvider, ICosmicRead
     {
         if(response.Content.Headers.ContentLength>CqlMaximumStatusBytes)
             throw new CqlStatusLimitException("The native status response exceeds its bounded payload limit.");
-        using var source=await response.Content.ReadAsStreamAsync(token);using var body=new MemoryStream();
+        using var source=await response.Content.ReadAsStreamAsync(token).ConfigureAwait(false);using var body=new MemoryStream();
         var buffer=new byte[16384];int count;
-        while((count=await source.ReadAsync(buffer.AsMemory(),token))!=0)
+        while((count=await source.ReadAsync(buffer.AsMemory(),token).ConfigureAwait(false))!=0)
         {
             if(body.Length+count>CqlMaximumStatusBytes)throw new CqlStatusLimitException("The native status response exceeds its bounded payload limit.");
             body.Write(buffer,0,count);

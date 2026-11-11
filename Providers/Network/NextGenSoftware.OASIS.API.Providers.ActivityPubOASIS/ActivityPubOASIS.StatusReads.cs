@@ -30,11 +30,11 @@ public partial class ActivityPubOASIS
             if(depth<0)throw new ArgumentOutOfRangeException(nameof(depth));
             if(version!=0)throw new NotSupportedException("Native status edit history is not an OASIS holon version.");
             var selected=key.Trim();
-            if(!_isActivated){var activated=await ActivateProviderAsync();if(activated.IsError)return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<bool,IHolon>(activated);}
-            using var response=await _httpClient.GetAsync("/api/v1/statuses/"+Uri.EscapeDataString(selected));response.EnsureSuccessStatusCode();
-            using var document=JsonDocument.Parse(await response.Content.ReadAsStringAsync());var status=document.RootElement;
+            if(!_isActivated){var activated=await ActivateProviderAsync().ConfigureAwait(false);if(activated.IsError)return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<bool,IHolon>(activated);}
+            using var response=await _httpClient.GetAsync("/api/v1/statuses/"+Uri.EscapeDataString(selected)).ConfigureAwait(false);response.EnsureSuccessStatusCode();
+            using var document=JsonDocument.Parse(await response.Content.ReadAsStringAsync().ConfigureAwait(false));var status=document.RootElement;
             var holon=ProjectMastodonStatus(status,selected);
-            result.Result=children&&providerChildren?await ReadMastodonReplyGraphAsync(holon,recursive,depth):holon;
+            result.Result=children&&providerChildren?await ReadMastodonReplyGraphAsync(holon,recursive,depth).ConfigureAwait(false):holon;
             result.LoadedCount=1;
             result.IsLoaded=true;
         }catch(Exception error){
