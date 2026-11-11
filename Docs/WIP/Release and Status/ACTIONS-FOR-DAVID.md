@@ -680,3 +680,9 @@ Status: missing account/configuration information,2 November2026. David approved
 - **Status (2026-11-11)** Open. The shipping Optimism storage lifecycle requires a dedicated OP Sepolia deployment.
 - **David action** Identify a disposable Web3Core deployment or grant access for the provider agent to deploy one with a free-testnet-funded signer. Supply the protected HTTPS endpoint, signer and contract address as OASIS_OPTIMISM_CONFORMANCE_RPC_URL, OASIS_OPTIMISM_CONFORMANCE_PRIVATE_KEY and OASIS_OPTIMISM_CONFORMANCE_CONTRACT.
 - **Reason** The provider agent owns read-only chain identity admission, sync and async storage verification and exact fixture cleanup. [OP Sepolia registry](https://github.com/ethereum-optimism/superchain-registry/blob/main/superchain/configs/sepolia/op.toml)
+
+### Ronin Saigon storage fixture
+
+- **Status (2026-11-11)** Open. The official Saigon RPC independently confirmed chain ID 202601. The shared storage suite requires a funded signer and dedicated contract.
+- **David action** Identify a disposable Web3Core deployment on Saigon or grant access to deploy one using a testnet-funded signer. Set the protected configuration keys OASIS_RONIN_CONFORMANCE_RPC_URL, OASIS_RONIN_CONFORMANCE_PRIVATE_KEY and OASIS_RONIN_CONFORMANCE_CONTRACT. Keep secrets out of Git and chat.
+- **Reason** The provider agent owns the gated sync and async storage runs and fixture cleanup checks. [Ronin network configuration](https://docs.roninchain.com/developers/smart-contracts/deploy)
