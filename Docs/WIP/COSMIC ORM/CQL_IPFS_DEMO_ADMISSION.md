@@ -276,3 +276,5 @@ IPFS/SOLID point teachinghost is now native-tested withreadableHTML/API and expl
 11 November UTC: Development 9aaed91520 contains HyperDrive's verified IPFS writer-process fix. Native Kubo CI 43010855757 preserved all eight acknowledged records across two Windows writer processes sharing a local DNA file. Railway fc8ccf36 is queued. Exact two-file solution candidate d8b50fa36f now verifies the latest Development base.
 
 11 November UTC: Railway 5c6a6f59 succeeded on Development 323c4f54da with the two-instance IPFS publication fix. The retained browser visitor refreshed to 20 available hosted sources during startup. Final readiness remains pending, and the writer-process revision 9aaed91520 was queued at the cutover check.
+
+11 November UTC: HyperDrive CI 43011806925 also verified IPFS writer-process publication on Linux with native Kubo 0.43.1. Two writer processes sharing one local DNA file and a fresh reader preserved all eight acknowledged records. This matches Development 9aaed91520; Railway cutover and historical fixture recovery remain open.
