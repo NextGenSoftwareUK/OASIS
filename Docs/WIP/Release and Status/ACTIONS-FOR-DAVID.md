@@ -692,3 +692,9 @@ Status: missing account/configuration information,2 November2026. David approved
 - **Status (2026-11-11)** Open. The official testnet RPC confirmed chain ID 13473. Signed verification requires a dedicated contract and funded signer.
 - **David action** Identify a disposable Web3Core deployment on Immutable testnet or grant access to deploy one with a testnet-funded signer. Set OASIS_IMMUTABLE_CONFORMANCE_RPC_URL, OASIS_IMMUTABLE_CONFORMANCE_PRIVATE_KEY and OASIS_IMMUTABLE_CONFORMANCE_CONTRACT in protected runtime configuration. Keep secrets out of Git and chat.
 - **Reason** The provider agent owns both native storage lifecycle modes and fixture cleanup checks. [Immutable testnet configuration](https://docs.immutable.com/build/unreal/operational-guides/launch-new-collection)
+
+### Google Maps Routes API access
+
+- **Status (2026-11-11)** Open. The endpoint rejected an unauthenticated request. Authenticated route verification is pending.
+- **David action** Identify a Google Cloud project with Routes API enabled and provide a restricted test credential through protected configuration. Keep credentials out of Git and chat.
+- **Reason** The provider agent owns the authenticated test and evidence capture. [Google Routes API](https://developers.google.com/maps/documentation/routes/compute_route_directions)

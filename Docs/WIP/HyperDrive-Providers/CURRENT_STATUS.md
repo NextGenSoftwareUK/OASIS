@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November Google Maps Routes candidate. The provider can compute a driving route through the official Google Routes REST endpoint using explicit coordinates and a protected credential. The endpoint returned HTTP 403 without a credential. Authenticated route execution, the provider build and existing map rendering operations remain open.
+
 11 November TRON shipping registration guard. BootLoader now surfaces missing TRON storage settings and rejects an RPC override that differs from the configured RPC. The HTTP and gRPC endpoints must be configured together for the selected chain. Previously the requested override was silently ignored. Existing 52/52 TronNet native storage evidence remains applicable to the unchanged provider. C# syntax and diff checks passed. BootLoader runtime verification remains open.
 
 11 November Polkadot shipping registration. BootLoader now constructs the existing native storage adapter using explicit genesis, contract account, code hash, owner and signer settings. The native encryption key continues to resolve through the provider configuration. This adds the application dependency on Polkadot and keeps the provider independent of BootLoader. Existing 52/52 native storage evidence was reused. C# syntax, project XML and diff checks passed. BootLoader build and live configuration verification remain open.

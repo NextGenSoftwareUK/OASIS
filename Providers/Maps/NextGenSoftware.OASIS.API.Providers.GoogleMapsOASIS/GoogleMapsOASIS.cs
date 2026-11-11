@@ -11,7 +11,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleMapsOASIS
     /// Google Maps Platform OASIS Map Provider.
     /// Map operations report failure until a rendering client is connected.
     /// </summary>
-    public class GoogleMapsOASIS : IOASISMapProvider
+    public partial class GoogleMapsOASIS : IOASISMapProvider
     {
         public MapProviderType MapProviderType { get; set; }
         public string MapProviderName { get; set; }
