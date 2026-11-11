@@ -14,13 +14,18 @@ on:
         type: choice
         options: [processes, independent, concurrent, restart]
         default: processes
+      platform:
+        description: Native runner platform
+        type: choice
+        options: [ubuntu-latest, windows-latest]
+        default: ubuntu-latest
 
 permissions:
   contents: read
 
 jobs:
   kubo:
-    runs-on: windows-latest
+    runs-on: ${{ inputs.platform || 'ubuntu-latest' }}
     timeout-minutes: 20
     defaults:
       run:
@@ -64,13 +69,27 @@ jobs:
           $PSNativeCommandUseErrorActionPreference = $true
           $fixture = Join-Path $env:RUNNER_TEMP 'oasis-ipfs-activation'
           New-Item -ItemType Directory -Path $fixture | Out-Null
-          $archive = Join-Path $fixture 'kubo.zip'
-          Invoke-WebRequest -Uri 'https://github.com/ipfs/kubo/releases/download/v0.43.1/kubo_v0.43.1_windows-amd64.zip' -OutFile $archive -TimeoutSec 90
-          if ((Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash -ne 'C25871516DEC4D97CE1D160A26C1E3FDAD294CB0EEA065C0C0343BCFCA86C524') {
+          if ($IsWindows) {
+            $asset = 'kubo_v0.43.1_windows-amd64.zip'
+            $digest = 'C25871516DEC4D97CE1D160A26C1E3FDAD294CB0EEA065C0C0343BCFCA86C524'
+            $binary = Join-Path $fixture 'kubo/ipfs.exe'
+            $processOptions = @{ WindowStyle = 'Hidden' }
+          } else {
+            $asset = 'kubo_v0.43.1_linux-amd64.tar.gz'
+            $digest = '3F2BF974AB2A3EC6D997FAC7D8CB46F59983A7CDDD0B55EF998E6CE379155FB2'
+            $binary = Join-Path $fixture 'kubo/ipfs'
+            $processOptions = @{}
+          }
+          $archive = Join-Path $fixture $asset
+          Invoke-WebRequest -Uri "https://github.com/ipfs/kubo/releases/download/v0.43.1/$asset" -OutFile $archive -TimeoutSec 90
+          if ((Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash -ne $digest) {
             throw 'The Kubo release archive does not match its pinned digest.'
           }
-          Expand-Archive -LiteralPath $archive -DestinationPath $fixture
-          $binary = Join-Path $fixture 'kubo/ipfs.exe'
+          if ($IsWindows) {
+            Expand-Archive -LiteralPath $archive -DestinationPath $fixture
+          } else {
+            tar -xzf $archive -C $fixture kubo/ipfs
+          }
           $env:IPFS_PATH = Join-Path $fixture 'repo'
           $env:IPFSOASIS_TEST_API = 'http://127.0.0.1:18567'
           $env:IPFSOASIS_RESTART_DNA = Join-Path $fixture 'restart-dna.json'
@@ -124,7 +143,7 @@ jobs:
             foreach ($phase in $phases) {
               $env:IPFSOASIS_RESTART_PHASE = $phase
               $errorLog = Join-Path $fixture "$phase.err"
-              $daemon = Start-Process -FilePath $binary -ArgumentList @('daemon', '--offline') -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $fixture "$phase.log") -RedirectStandardError $errorLog
+              $daemon = Start-Process -FilePath $binary -ArgumentList @('daemon', '--offline') @processOptions -PassThru -RedirectStandardOutput (Join-Path $fixture "$phase.log") -RedirectStandardError $errorLog
               try {
                 Wait-KuboReady $daemon $errorLog
                 if ($phase -eq 'processes') {
