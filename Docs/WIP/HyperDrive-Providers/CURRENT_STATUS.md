@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November Cassandra native storage. The shipping DataStax driver now reports exact acknowledged avatar and point-read counts and uses canonical stored-record serialization for avatar details. A disposable CI run will exercise both storage modes against the digest-pinned Apache Cassandra runtime. Existing COSMIC query and restart evidence carries forward. Storage verification is pending.
+
 11 November PlanetScale storage [run 43064133424](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43064133424) at 69e965847a passed 52/52 against MySQL 8.4.13 through the shipping adapter. The serializer-only run 43063702938 verified all nine avatar and detail checks per mode before stopping at graph save. The full candidate verified atomic graph persistence, metadata and owner export, import, exact deletion and empty native tables in both modes. Managed PlanetScale and COSMIC CQL acceptance are separate.
 
 11 November PlanetScale MySQL [run 43063077214](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43063077214) passed six checks per mode on official MySQL 8.4.13, including detail save. Both modes stopped on detail-by-ID acknowledgement. The adapter was using a serializer that cannot materialize the initialized interface-valued avatar-detail fields. The candidate uses the same allowlisted stored-record serializer as canonical PostgreSQL. Full native verification and managed PlanetScale acceptance remain open.

@@ -13,6 +13,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
+using NextGenSoftware.OASIS.API.Core.Serialization;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 
@@ -146,7 +147,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CassandraOASIS
                 // Update lookup tables
                 if (!string.IsNullOrEmpty(avatar.Username)) s.Execute(s.Prepare($"INSERT INTO {_keyspace}.oasis_avatar_by_username (username, id) VALUES (?, ?)").Bind(avatar.Username, avatar.Id));
                 if (!string.IsNullOrEmpty(avatar.Email)) s.Execute(s.Prepare($"INSERT INTO {_keyspace}.oasis_avatar_by_email (email, id) VALUES (?, ?)").Bind(avatar.Email, avatar.Id));
-                result.Result = avatar; result.IsError = false; result.Message = $"CassandraOASIS: Avatar '{avatar.Username}' saved.";
+                result.Result = avatar; result.IsError = false; result.IsSaved = true; result.SavedCount = 1; result.Message = $"CassandraOASIS: Avatar '{avatar.Username}' saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"CassandraOASIS: {ex.Message}"); }
             return await Task.FromResult(result);
@@ -165,7 +166,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CassandraOASIS
                 var row = s.Execute(s.Prepare($"SELECT data_json, is_deleted FROM {_keyspace}.oasis_avatars WHERE id = ?").Bind(id)).FirstOrDefault();
                 if (row == null || row.GetValue<bool>("is_deleted")) { OASISErrorHandling.HandleError(ref result, $"CassandraOASIS: No avatar for ID '{id}'."); return await Task.FromResult(result); }
                 var avatar = Des<Avatar>(row.GetValue<string>("data_json")); if (avatar == null) { OASISErrorHandling.HandleError(ref result, "CassandraOASIS: Deserialise failed."); return await Task.FromResult(result); }
-                result.Result = avatar; result.IsError = false; result.Message = "CassandraOASIS: Avatar loaded.";
+                result.Result = avatar; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "CassandraOASIS: Avatar loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"CassandraOASIS: {ex.Message}"); }
             return await Task.FromResult(result);
@@ -218,7 +219,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CassandraOASIS
                 var s = GetSession();
                 var rows = s.Execute($"SELECT data_json, is_deleted FROM {_keyspace}.oasis_avatars");
                 var avatars = rows.Where(r => !r.GetValue<bool>("is_deleted")).Select(r => Des<Avatar>(r.GetValue<string>("data_json"))).Where(a => a != null).Cast<IAvatar>().ToList();
-                result.Result = avatars; result.IsError = false; result.Message = $"CassandraOASIS: Loaded {avatars.Count} avatar(s).";
+                result.Result = avatars; result.IsError = false; result.IsLoaded = true; result.LoadedCount = avatars.Count; result.Message = $"CassandraOASIS: Loaded {avatars.Count} avatar(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"CassandraOASIS: {ex.Message}"); }
             return await Task.FromResult(result);
@@ -266,8 +267,8 @@ namespace NextGenSoftware.OASIS.API.Providers.CassandraOASIS
             {
                 if (d.Id == Guid.Empty) d.Id = Guid.NewGuid();
                 var s = GetSession();
-                s.Execute(s.Prepare($"INSERT INTO {_keyspace}.oasis_avatar_details (id, username, email, data_json) VALUES (?, ?, ?, ?)").Bind(d.Id, d.Username, d.Email, Ser(d)));
-                result.Result = d; result.IsError = false; result.Message = "CassandraOASIS: AvatarDetail saved.";
+                s.Execute(s.Prepare($"INSERT INTO {_keyspace}.oasis_avatar_details (id, username, email, data_json) VALUES (?, ?, ?, ?)").Bind(d.Id, d.Username, d.Email, StoredRecordJson.Serialize(d)));
+                result.Result = d; result.IsError = false; result.IsSaved = true; result.SavedCount = 1; result.Message = "CassandraOASIS: AvatarDetail saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"CassandraOASIS: {ex.Message}"); }
             return await Task.FromResult(result);
@@ -283,8 +284,8 @@ namespace NextGenSoftware.OASIS.API.Providers.CassandraOASIS
                 var s = GetSession();
                 var row = s.Execute(s.Prepare($"SELECT data_json FROM {_keyspace}.oasis_avatar_details WHERE id = ?").Bind(id)).FirstOrDefault();
                 if (row == null) { OASISErrorHandling.HandleError(ref result, $"CassandraOASIS: No detail for ID '{id}'."); return await Task.FromResult(result); }
-                var detail = Des<AvatarDetail>(row.GetValue<string>("data_json")); if (detail == null) { OASISErrorHandling.HandleError(ref result, "CassandraOASIS: Deserialise failed."); return await Task.FromResult(result); }
-                result.Result = detail; result.IsError = false; result.Message = "CassandraOASIS: AvatarDetail loaded.";
+                var detail = StoredRecordJson.DeserializeStored<AvatarDetail>(row.GetValue<string>("data_json")); if (detail == null) { OASISErrorHandling.HandleError(ref result, "CassandraOASIS: Deserialise failed."); return await Task.FromResult(result); }
+                result.Result = detail; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "CassandraOASIS: AvatarDetail loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"CassandraOASIS: {ex.Message}"); }
             return await Task.FromResult(result);
@@ -297,13 +298,13 @@ namespace NextGenSoftware.OASIS.API.Providers.CassandraOASIS
             var s = GetSession();
             var rows = s.Execute($"SELECT data_json, username, email FROM {_keyspace}.oasis_avatar_details");
             var row = rows.FirstOrDefault(predicate);
-            return row == null ? null : Des<AvatarDetail>(row.GetValue<string>("data_json"));
+            return row == null ? null : StoredRecordJson.DeserializeStored<AvatarDetail>(row.GetValue<string>("data_json"));
         }
 
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string u, int version = 0)
         {
             var result = new OASISResult<IAvatarDetail>();
-            try { var d = await ScanDetailsAsync(r => r.GetValue<string>("username") == u); if (d == null) { OASISErrorHandling.HandleError(ref result, $"CassandraOASIS: No detail for username '{u}'."); return result; } result.Result = d; result.IsError = false; result.Message = "CassandraOASIS: AvatarDetail loaded."; }
+            try { var d = await ScanDetailsAsync(r => r.GetValue<string>("username") == u); if (d == null) { OASISErrorHandling.HandleError(ref result, $"CassandraOASIS: No detail for username '{u}'."); return result; } result.Result = d; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "CassandraOASIS: AvatarDetail loaded."; }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"CassandraOASIS: {ex.Message}"); }
             return result;
         }
@@ -313,7 +314,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CassandraOASIS
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string e, int version = 0)
         {
             var result = new OASISResult<IAvatarDetail>();
-            try { var d = await ScanDetailsAsync(r => r.GetValue<string>("email") == e); if (d == null) { OASISErrorHandling.HandleError(ref result, $"CassandraOASIS: No detail for email '{e}'."); return result; } result.Result = d; result.IsError = false; result.Message = "CassandraOASIS: AvatarDetail loaded."; }
+            try { var d = await ScanDetailsAsync(r => r.GetValue<string>("email") == e); if (d == null) { OASISErrorHandling.HandleError(ref result, $"CassandraOASIS: No detail for email '{e}'."); return result; } result.Result = d; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "CassandraOASIS: AvatarDetail loaded."; }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"CassandraOASIS: {ex.Message}"); }
             return result;
         }
@@ -327,8 +328,8 @@ namespace NextGenSoftware.OASIS.API.Providers.CassandraOASIS
             {
                 var s = GetSession();
                 var rows = s.Execute($"SELECT data_json FROM {_keyspace}.oasis_avatar_details");
-                var details = rows.Select(r => Des<AvatarDetail>(r.GetValue<string>("data_json"))).Where(d => d != null).Cast<IAvatarDetail>().ToList();
-                result.Result = details; result.IsError = false; result.Message = $"CassandraOASIS: Loaded {details.Count} detail(s).";
+                var details = rows.Select(r => StoredRecordJson.DeserializeStored<AvatarDetail>(r.GetValue<string>("data_json"))).Where(d => d != null).Cast<IAvatarDetail>().ToList();
+                result.Result = details; result.IsError = false; result.IsLoaded = true; result.LoadedCount = details.Count; result.Message = $"CassandraOASIS: Loaded {details.Count} detail(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"CassandraOASIS: {ex.Message}"); }
             return await Task.FromResult(result);
@@ -415,7 +416,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CassandraOASIS
                 var row = s.Execute(s.Prepare($"SELECT data_json, is_deleted FROM {_keyspace}.oasis_holons WHERE id = ?").Bind(id)).FirstOrDefault();
                 if (row == null || row.GetValue<bool>("is_deleted")) { OASISErrorHandling.HandleError(ref result, $"CassandraOASIS: No holon for ID '{id}'."); return await Task.FromResult(result); }
                 var holon = Des<Holon>(row.GetValue<string>("data_json")); if (holon == null) { OASISErrorHandling.HandleError(ref result, "CassandraOASIS: Deserialise failed."); return await Task.FromResult(result); }
-                result.Result = holon; result.IsError = false; result.Message = "CassandraOASIS: Holon loaded.";
+                result.Result = holon; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "CassandraOASIS: Holon loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"CassandraOASIS: {ex.Message}"); }
             return await Task.FromResult(result);
@@ -436,7 +437,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CassandraOASIS
                 var s = GetSession();
                 var rows = s.Execute($"SELECT data_json, is_deleted, holon_type FROM {_keyspace}.oasis_holons");
                 var holons = rows.Where(r => !r.GetValue<bool>("is_deleted") && (type == HolonType.All || r.GetValue<int>("holon_type") == (int)type)).Select(r => Des<Holon>(r.GetValue<string>("data_json"))).Where(h => h != null).Cast<IHolon>().ToList();
-                result.Result = holons; result.IsError = false; result.Message = $"CassandraOASIS: Loaded {holons.Count} holon(s).";
+                result.Result = holons; result.IsError = false; result.IsLoaded = true; result.LoadedCount = holons.Count; result.Message = $"CassandraOASIS: Loaded {holons.Count} holon(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"CassandraOASIS: {ex.Message}"); }
             return await Task.FromResult(result);
@@ -453,7 +454,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CassandraOASIS
                 var s = GetSession();
                 var rows = s.Execute($"SELECT data_json, is_deleted, holon_type, parent_holon_id FROM {_keyspace}.oasis_holons");
                 var holons = rows.Where(r => !r.GetValue<bool>("is_deleted") && r.GetValue<Guid>("parent_holon_id") == id && (type == HolonType.All || r.GetValue<int>("holon_type") == (int)type)).Select(r => Des<Holon>(r.GetValue<string>("data_json"))).Where(h => h != null).Cast<IHolon>().ToList();
-                result.Result = holons; result.IsError = false; result.Message = $"CassandraOASIS: Loaded {holons.Count} holon(s) for parent '{id}'.";
+                result.Result = holons; result.IsError = false; result.IsLoaded = true; result.LoadedCount = holons.Count; result.Message = $"CassandraOASIS: Loaded {holons.Count} holon(s) for parent '{id}'.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"CassandraOASIS: {ex.Message}"); }
             return await Task.FromResult(result);

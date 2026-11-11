@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+11 November Cassandra storage verification uses a disposable CI container, two keyspaces and owned checkpoint files. The runner removes its container, volumes, newly pulled image and checkpoint directory on exit. Cleanup confirmation is pending. No local runtime, download or build was created.
+
 11 November PlanetScale MySQL run 43063077214 reproduced the detail-by-ID failure and CI logged image removal.
 
 11 November PlanetScale MySQL runs 43063702938 and 43064133424 confirmed disposal of their containers, volumes, newly pulled images and checkpoint directories. The full run independently removed ten exact owned tombstones and verified all three native tables empty per database. No Windows runtime, build or download was created.
