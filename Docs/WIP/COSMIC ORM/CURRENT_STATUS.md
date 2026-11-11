@@ -1271,3 +1271,5 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 11 November UTC: prepared combined ArangoDB federation and QuestDB restart CI batch 73e0d4bb08 on Development 165e8abaee. Both workflows match the successful diagnostics apart from their manual triggers. The batch awaits Development integration.
 
 11 November UTC: Development `73e0d4bb08` contains the verified ArangoDB MongoDB federation and QuestDB restart workflows. Both are manually dispatched. This batch changes only CI. Hosted HTTPS source admission and live browser checks remain open. [ArangoDB CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43031787640) · [QuestDB CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43033757190)
+
+11 November UTC: candidate 880937b05f routes generic ArangoDB and QuestDB cases to the standard provider matrix and calls the dedicated native fixture workflows from the same pipeline. Diagnostic 37a10ab14d exercises all four jobs. Both fixture workflows retain manual dispatch. Development integration awaits the combined result.

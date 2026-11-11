@@ -5920,3 +5920,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: removed corrected QuestDB diagnostic tag ci-cosmic-questdb-restart-165e8abaee-stop after both runs passed and verified absence. Temporary Git indices removed. No local build, restore, download or database.
 
 11 November UTC: verified the scoped ArangoDB and QuestDB Development push. Temporary documentation index removed. No local build, restore, database or download.
+
+11 November UTC: track ci-cosmic-db-orchestration-73e0d4bb08 until its CI runs are terminal. Temporary Git indices removed. No local build, restore, database or download.
