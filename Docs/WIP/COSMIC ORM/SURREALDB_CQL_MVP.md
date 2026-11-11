@@ -330,3 +330,5 @@ The retained local source is preserved.
 11 November UTC: SurrealDB standard CI candidate `808444b7be` routes generic storage tests to the pinned container with explicit namespace and database setup. The same pipeline invokes the dedicated native restart and Mongo federation workflow. Diagnostic `b34006591d` verifies both jobs. Hosted CQL remains open.
 
 11 November UTC: Development c837fe5ad8 carries the OpenSearch and SurrealDB CI routing verified in runs 43040976654 and 43042182895. Both passed generic storage and native federation. Development pipeline 43043263300 and Railway WEB4 deployment f573b5ac-55d9-4394-a84f-20feb7eaaa87 were queued at inspection. Live acceptance remains gated on restricted HTTPS teaching sources already recorded in ACTIONS-FOR-DAVID.
+
+11 November UTC: both SurrealDB jobs passed in the standard Development pipeline 43043263300 at c837fe5ad8, including generic native storage and the restart/federation workflow. Railway deployment f573b5ac remains queued behind the WEB4 build for 165e8abaee. Hosted HTTPS acceptance remains open.
