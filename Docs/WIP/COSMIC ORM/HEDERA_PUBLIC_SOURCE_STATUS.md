@@ -97,3 +97,5 @@ Development fbc0e08e (1f1021ec6a): Hedera moved from unavailable during startup 
 On Development fbc0e08e the two reviewed federation presets returned three and two public Hedera rows with exact provider and copy identity checks and strict subset containment. The existing visitor had no prepared Mongo copies. The private paired browser flow remains open. No report file or local build output was created.
 
 On fbc0e08e, the browser displayed 3/2 public Hedera rows under the disposable demo visitor. The original private cohort directory is absent on this recovery checkout. Recover the original identity and its completion acknowledgement from the originating machine before verifying the private paired presets. Do not replay the two accepted writes.
+
+At 00:06 UTC on 11 November the recovery laptop reached the configured public mirror probe endpoint and validated all three teaching accounts. This is laptop-to-mirror evidence. Development startup recovery is still open.
