@@ -1089,3 +1089,5 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 11 November UTC: Web4Site work/cosmic-cql de1d3ce surfaces a terminal session-renewal failure in the sign-in banner. All 51 focused session and Playground tests passed, including one failure notification and no renewal replay. The server-side renewal cause remains open. Website live publication and browser verification remain pending.
 
 11 November UTC: Development 9aaed91520 contains HyperDrive's verified IPFS writer-process fix. Native Kubo CI 43010855757 preserved all eight acknowledged records across two Windows writer processes sharing a local DNA file. Railway fc8ccf36 is queued. Exact two-file solution candidate d8b50fa36f now verifies the latest Development base.
+
+11 November UTC: GitHub reports the Vercel check succeeded for Web4Site renewal-banner commit de1d3ce (deployment 78RmquyRxgnnoUz99orjATuqu1tG). The connected Vercel identity returned HTTP 403 for oasis-team deployment details. Preview browser behavior remains unverified and no production promotion occurred.
