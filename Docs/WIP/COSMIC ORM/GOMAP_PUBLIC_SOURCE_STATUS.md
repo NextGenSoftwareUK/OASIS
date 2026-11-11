@@ -163,3 +163,5 @@ An owned Linux service can run the official OSRM backend against the regional Be
 The shared OSRM demo remains limited to its operator policy. The existing bounded developer proof remains useful evidence for the HTTP contract. [OSRM demo policy](https://github.com/Project-OSRM/osrm-backend/wiki/Demo-server).
 
 11 November UTC: exact candidate a3e95bd537 passed CI 43114731044. Job 130839648794 passed the 12 controlled cases and one real route plus MongoDB WEB4 HTTP case with zero skips. Container and anonymous-volume cleanup and its proof upload passed. The later d96350193 combined revision still needs qualification. Hosted enrollment needs a dedicated HTTPS OSRM origin.
+
+11 November UTC: confirmed Development 6047aff6c50 remains the parent of d96350193 and its exact diff remains four GOMap paths. Dispatched [run 43122161010](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43122161010) on d96350193 for the controlled and native WEB4 qualification. No Development push.
