@@ -835,3 +835,6 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 11 November UTC: exact candidate fd40b1ad12 passed CI 42968130827/job 130350032377. Exact checkout verified in CI logs. The 14 WEB4 cases included the native-bound reconciliation barrier case, which logged the blocked route and neither activated nor reclaimed the target. All four Moralis activation/burn cases passed. Image run 42968255251 remains active. Development integration and live checks remain open.
 
 11 November UTC: Intel OpenVINO native model-version metadata presets rendered 3 full and 2 filtered rows in the live Development WEB4 CQL Playground. The original-owner private paired browser check remains open.
+
+
+11 November UTC: Railway Development WEB4 deployment 345d9ec9-7810-4251-9cbf-f2c6e697a738 succeeded on 9b8a30a65c. Its startup log independently reproduced the HashgraphOASIS response_headers activation timeout at 15,008 ms with no upstream HTTP status. The historical public 3/2 browser proof remains recorded. Current-release registry recovery and live query verification remain open.
