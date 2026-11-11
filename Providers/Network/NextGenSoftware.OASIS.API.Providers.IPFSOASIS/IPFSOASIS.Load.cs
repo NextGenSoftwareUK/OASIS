@@ -128,8 +128,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
         public async Task<OASISResult<IHolon>> LoadHolonTemplateAsync(Func<HolonResume,bool> predicate)
         {
-            _idLookup=await LoadLookupToJson();
-            var selected=FindIndexEntry("holon",predicate);
+            var selected=await ReadIndexEntryAsync("holon",predicate);
             var record=await ReadPrivateRecordAsync<Holon>(selected.Key,"holon",selected.Value.Id);
             var result=new OASISResult<IHolon>(record);MarkIpfsLoaded(result);return result;
         }
