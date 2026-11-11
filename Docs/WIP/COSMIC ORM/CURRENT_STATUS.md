@@ -1217,3 +1217,5 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 11 November UTC: fixed the ArangoDB generic CI test client credential mismatch on the task branch. The fixture requires a root password and the generic test client was using the empty constructor default. The test now reads the password exported by the matrix. Native restart and federation still require dedicated fixtures. CI verification pending.
 
 11 November UTC: exact ArangoDB candidate 9e82b80e72 on a5e8fc36c4 carries only the test client password and CI matrix environment changes. The feature workflow has unrelated differences, so the candidate applies the two-line matrix edit to current Development. Remote CI targets the generic ArangoDB test class against its existing fixture. Dedicated native and federation fixtures remain open.
+
+11 November UTC: the first ArangoDB diagnostic workflow was rejected before running because its generated YAML duplicated the matrix block. The corrected workflow uses a single ArangoDB matrix and checks out the same candidate 9e82b80e72. LayerZero deployment ba604fae has begun building.

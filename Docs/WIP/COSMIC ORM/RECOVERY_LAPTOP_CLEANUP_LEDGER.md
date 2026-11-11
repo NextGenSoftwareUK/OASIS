@@ -5854,3 +5854,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: ArangoDB CI credential wiring changes prepared with a temporary Git index. No local build, backend or download.
 
 11 November UTC: ci-cosmic-arango-9e82b80e72-build tracks the remote ArangoDB fixture check. Remove after its runs finish and results are recorded. Temporary Git index removed. No local build, database, runtime or download.
+
+11 November UTC: ci-cosmic-arango-9e82b80e72-verify tracks the corrected diagnostic. Remove it and the earlier -build tag after their respective runs are terminal and recorded. Temporary Git index removed. No local build, database or download.
