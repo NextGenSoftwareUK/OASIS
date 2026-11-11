@@ -1145,3 +1145,5 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 11 November UTC: the live Development WEB4 CQL Playground rendered three cached Bluesky public profile observations and two filtered observations. The existing visitor was reused. Private paired browser verification remains open.
 
 11 November UTC: [solution CI for 91743fb01c](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43016421964) and its Mermaid companion succeeded on the earlier Development base 998a9b5986. Development is now fed6e02d2f, and [CI for the matching candidate 6b91257c2c](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43017264906) remains active.
+
+11 November UTC: Development eed714ba35 adds the verified HyperDrive Convex companion recovery test and handoff. Exact solution candidate d94f2887e4 preserves those changes and carries only the two solution files. Remote CI triggered. Railway queued eed714ba35 behind the building fed6e02d2f rollout. The earlier Supabase deployment 998a9b5986 is marked removed. Hosted Convex acceptance remains separate.
