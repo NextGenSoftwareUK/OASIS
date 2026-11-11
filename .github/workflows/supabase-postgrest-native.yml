@@ -69,7 +69,8 @@ jobs:
         run: |
           fixture="$(mktemp -d "$RUNNER_TEMP/oasis-postgrest.XXXXXXXX")"
           archive="$fixture/postgrest.tar.xz"
-          curl --fail --silent --show-error --location --max-time 90 --output "$archive" +            https://github.com/PostgREST/postgrest/releases/download/v16.5/postgrest-v16.5-linux-static-x86-64.tar.xz
+          asset_url=https://github.com/PostgREST/postgrest/releases/download/v16.5/postgrest-v16.5-linux-static-x86-64.tar.xz
+          curl --fail --silent --show-error --location --max-time 90 --output "$archive" "$asset_url"
           printf '%s  %s\n' 5099e7ada38f9f6846cd87c14c5f158b7c165f1e9959665ad412e61f4dceba95 "$archive" | sha256sum --check
           tar -xJf "$archive" -C "$fixture" postgrest
           "$fixture/postgrest" --version

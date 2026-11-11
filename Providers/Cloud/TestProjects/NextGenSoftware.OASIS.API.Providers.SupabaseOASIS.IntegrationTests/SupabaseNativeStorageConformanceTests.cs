@@ -190,11 +190,23 @@ public class SupabaseNativeStorageConformanceTests
         using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(30) };
         var provider = new SupabaseOASIS(url!, key!, http);
 
+        async Task<HttpResponseMessage> SendFixtureRequest(HttpMethod method, string path)
+        {
+            using var request = new HttpRequestMessage(method, new Uri(endpoint!, path));
+            request.Headers.Add("apikey", key);
+            if (!key!.StartsWith("sb_secret_", StringComparison.Ordinal) &&
+                !key.StartsWith("sb_publishable_", StringComparison.Ordinal))
+                request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", key);
+            if (method == HttpMethod.Delete)
+                request.Headers.Add("Prefer", "return=representation");
+            return await http.SendAsync(request);
+        }
+
         async Task RequireEmptyTables(string phase)
         {
             foreach (var table in new[] { "oasis_avatars", "oasis_avatar_details", "oasis_holons" })
             {
-                using var response = await http.GetAsync(new Uri(endpoint!, $"rest/v1/{table}?select=id&limit=1"));
+                using var response = await SendFixtureRequest(HttpMethod.Get, $"rest/v1/{table}?select=id&limit=1");
                 response.EnsureSuccessStatusCode();
                 using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
                 Assert.IsTrue(document.RootElement.ValueKind == JsonValueKind.Array &&
@@ -207,8 +219,8 @@ public class SupabaseNativeStorageConformanceTests
 
         async Task CleanTombstone(Guid id)
         {
-            using var response = await http.DeleteAsync(
-                new Uri(endpoint!, $"rest/v1/oasis_holons?id=eq.{id:D}&is_deleted=eq.true&select=id"));
+            using var response = await SendFixtureRequest(HttpMethod.Delete,
+                $"rest/v1/oasis_holons?id=eq.{id:D}&is_deleted=eq.true&select=id");
             response.EnsureSuccessStatusCode();
             using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
             var rows = document.RootElement;
