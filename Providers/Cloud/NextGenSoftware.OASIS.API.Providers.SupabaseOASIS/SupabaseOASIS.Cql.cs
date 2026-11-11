@@ -47,7 +47,7 @@ public partial class SupabaseOASIS : ICosmicQueryStorageProvider
             {
                 // Native primary-key selection, not a whole-table managed filter.
                 var filter = "id=in.(" + string.Join(",", selection.Result.Select(id => id.ToString("D")))
-                    + ")&is_deleted=eq.false&order=id.asc&limit=100";
+                    + ")&is_deleted=eq.false";
                 var native = await ReadCompleteHolonRows(filter, cancellationToken);
                 if (native.Count > ids.Count) throw new InvalidDataException("Supabase exceeded the admitted selection.");
                 var seen = new HashSet<Guid>();

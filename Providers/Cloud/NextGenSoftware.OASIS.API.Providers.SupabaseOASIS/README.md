@@ -2,6 +2,8 @@
 
 Connects the OASIS to Supabase via the PostgREST REST API. Uses Supabase's auto-generated REST interface to store OASIS holons and avatars in PostgreSQL. No Supabase SDK required — uses System.Net.Http. Compatible with Supabase cloud and self-hosted instances. Part of the OASIS HOT-Swappable Provider Architecture. Ecosystem: https://oasisomniverse.one
 
+Use an HTTPS deployment URL. Direct PostgREST test deployments may use loopback HTTP. The provider attaches the API key to each PostgREST request. Legacy keys also use bearer authorization. When supplying an HTTP client, disable automatic redirects and omit default Authorization for publishable and secret API keys. [Supabase API keys](https://supabase.com/docs/guides/getting-started/api-keys)
+
 ## Installation
 
 ```sh
@@ -27,6 +29,10 @@ Project references and conditional dependency versions are recorded in the sourc
 Use this package for the responsibility described above, alongside its owning OASIS runtime/provider integration. Inspect the source project's public APIs and owning component documentation for construction and configuration; this package installation command does not start an API server, authenticate an avatar or provision an external service.
 
 Provider adapters require their respective service configuration and credentials. Runtime libraries require the host application's lifecycle and persistent paths where applicable. Supply only the settings actually required by the owning component; do not copy production DNA into a client or public release.
+
+For a new dedicated hosted Supabase database, apply [the storage schema](supabase-storage-schema.sql) as the database owner. The schema grants table access to the Supabase service role and enables row-level security with no client policies. Keep the provider credential server-side.
+
+Save the avatar before its detail record. A hard delete of the avatar removes its detail in the same database transaction. This schema is for new databases. Existing databases require a reviewed migration that preserves their records and checks for orphaned details before adding the foreign key.
 
 ## Errors and security
 

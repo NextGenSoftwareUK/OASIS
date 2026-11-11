@@ -202,11 +202,51 @@ public class SupabaseCqlTests
         var result = await provider.DeleteHolonAsync(One);
         Assert.AreEqual(rejectWrite, result.IsError);
         if (rejectWrite) Assert.IsInstanceOfType(result.Exception, typeof(INativeMutationReconciliationRequired));
-        else { Assert.IsTrue(result.IsSaved); Assert.IsTrue(result.Result.IsDeleted); }
+        else
+        {
+            Assert.IsTrue(result.IsSaved);
+            Assert.IsTrue(result.Result.IsDeleted);
+        }
+        Assert.AreEqual(!rejectWrite, result.IsDeleted);
+        Assert.AreEqual(rejectWrite ? 0 : 1, result.DeletedCount);
         using var row = JsonDocument.Parse(reply.Mutation!);
         Assert.IsTrue(row.RootElement.GetProperty("is_deleted").GetBoolean());
         using var canonical = JsonDocument.Parse(row.RootElement.GetProperty("data_json").GetString()!);
         Assert.AreNotEqual(DateTime.MinValue, canonical.RootElement.GetProperty("deletedDate").GetDateTime());
+    }
+
+    [DataTestMethod]
+    [DataRow("sb_secret_test", false)]
+    [DataRow("sb_publishable_test", false)]
+    [DataRow("legacy-test-token", true)]
+    public async Task ApiKeyUsesTheHeaderForItsCredentialType(string key, bool bearer)
+    {
+        using var reply = new Reply((request, _) =>
+        {
+            if (request.RequestUri!.Host == "unrelated.invalid")
+            {
+                Assert.IsFalse(request.Headers.Contains("apikey"));
+                Assert.IsNull(request.Headers.Authorization);
+            }
+            else
+            {
+                var expected = request.RequestUri.Host == "other-project.invalid" ? "sb_secret_other" : key;
+                Assert.AreEqual(expected, request.Headers.GetValues("apikey").Single());
+                Assert.AreEqual(expected == key && bearer ? $"Bearer {key}" : null,
+                    request.Headers.Authorization?.ToString());
+            }
+            return Response("[]");
+        });
+        using var http = new HttpClient(reply);
+        var first = new SupabaseOASIS("https://synthetic.invalid", key, http);
+        var second = new SupabaseOASIS("https://other-project.invalid", "sb_secret_other", http);
+
+        Assert.IsFalse((await first.ActivateProviderAsync()).IsError);
+        Assert.IsFalse((await second.ActivateProviderAsync()).IsError);
+        using var unrelated = await http.GetAsync("https://unrelated.invalid");
+        unrelated.EnsureSuccessStatusCode();
+        Assert.IsFalse(http.DefaultRequestHeaders.Contains("apikey"));
+        Assert.IsNull(http.DefaultRequestHeaders.Authorization);
     }
 
     [DataTestMethod][DataRow("/rest/v1", "/rest/v1/oasis_holons")][DataRow("", "/oasis_holons")]

@@ -1,3 +1,4 @@
+using System.Net.Http;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Providers.SupabaseOASIS;
@@ -12,9 +13,14 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS.UnitTests
     public class SupabaseOASISProviderTests
     {
         private SupabaseOASIS _provider = null!;
+        private HttpClient _http = null!;
 
         [TestInitialize]
-        public void Setup() => _provider = SupabaseOASISTestFactory.Create();
+        public void Setup()
+        {
+            _http = new HttpClient();
+            _provider = new SupabaseOASIS("https://metadata.invalid", "sb_publishable_metadata", _http);
+        }
 
         [TestMethod]
         public void ProviderType_ShouldBeSet()
@@ -41,6 +47,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS.UnitTests
         {
             if (_provider != null && _provider.IsProviderActivated)
                 _provider.DeActivateProvider();
+            _http?.Dispose();
         }
     }
 }
