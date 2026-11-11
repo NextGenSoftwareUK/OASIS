@@ -1003,3 +1003,5 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 11 November UTC: after warmup on live WEB4 bbb4706313, the refreshed Playground showed 106 available hosted sources. Polkadot public header presets rendered three full and two filtered rows. The earlier startup HTTP 503 remains recorded. Railway still showed bbb4706313 active after verification, with 4489034aa1 queued.
 
 11 November UTC: exact candidate 9feb95e81b applies the same two solution files to Development 4489034aa1. Isolated CI 43000041362 checks coverage, production build and GraphQL schemas. Existing ancestry failures remain visible in the diagnostic run. SQLite wallet-encryption test revision 4489034aa1 is building in Railway while WEB4 serves bbb4706313.
+
+11 November UTC: EigenLayer public operator-registration presets rendered 3 full and 2 filtered rows in the live Development WEB4 CQL Playground. The original-owner private paired browser check remains open.
