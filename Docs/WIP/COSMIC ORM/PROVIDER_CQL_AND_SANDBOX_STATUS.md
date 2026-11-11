@@ -775,3 +775,5 @@ broader provider contracts remain open. [Evidence](DUCKDB_CQL_MVP.md).
 11 November UTC: ThreeFold public node summary presets rendered three full and two filtered rows in the live Development WEB4 Playground. The existing demo visitor was reused. Private paired browser verification remains open.
 
 11 November UTC: OrbitDB public teaching presets returned three full and two filtered rows in the live Development WEB4 CQL Playground. Private paired browser verification remains open.
+
+11 November UTC: after the dRPC settings cutover, live Development WEB4 returned three full and two filtered Chainlink finalized feed rows in the Playground. Prior paired HTTP and replica evidence is preserved. Private paired browser verification remains open.

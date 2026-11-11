@@ -58,3 +58,5 @@ Native ABI reference: [Chainlink AggregatorV3 API](https://docs.chain.link/data-
 11 November UTC: Chainlink public feed observation presets returned three full and two filtered rows in the live Development CQL Playground. Original-owner MongoDB paired browser verification remains open. No preparation or record saves.
 
 11 November UTC: Chainlink's prior public browser acceptance is retained. The configured PublicNode origin pruned Ethereum genesis, causing startup rejection. The dRPC replacement passed exact genesis and all three configured feed checks from Development WEB4. Settings deployment 44149acb is queued. Live activation and browser verification on dRPC remain pending.
+
+11 November UTC: after the dRPC settings cutover, live Development WEB4 returned three full and two filtered Chainlink finalized feed rows in the Playground. Prior paired HTTP and replica evidence is preserved. Private paired browser verification remains open.
