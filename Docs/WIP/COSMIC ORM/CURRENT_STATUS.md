@@ -777,3 +777,5 @@ Hedera diagnostic advance on 11 November UTC: the actual deployed Core guarded .
 Hedera full-provider diagnostic: the actual deployed FromJson/ActivateQuerySourceAsync path passed in an isolated container process in 2,727 ms using the existing configuration. This narrows the startup failure to intermittent request/startup conditions. Controlled recovery of the running WEB4 registry remains open.
 
 CI qualification now includes all seven CqlNativeFailureDiagnosticsTests cases, including response_headers and response_body preservation, alongside six existing catalogue/admission cases. The existing workflow follows work/cosmic-cql-ton-public and requires all 13 cases. CI execution remains pending; the two new stage cases are not claimed passed.
+
+CI run 42938257820, job 130253566184, passed on fda32cf5d3. Its strict TRX gate verified all 13 cases: five public catalogue cases, one DuckDB admission case and seven native failure diagnostic cases. Both Hedera response_headers/response_body preservation cases are now fully qualified in WEB4. Live Hedera registry recovery remains open.
