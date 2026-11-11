@@ -1,4 +1,4 @@
-name: IPFS native activation
+name: IPFS native restart
 
 on:
   push:
@@ -49,7 +49,7 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      - name: Verify the shipping provider on an offline Kubo daemon
+      - name: Verify persisted holon versions across an offline Kubo restart
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
@@ -65,16 +65,17 @@ jobs:
           $binary = Join-Path $fixture 'kubo/ipfs.exe'
           $env:IPFS_PATH = Join-Path $fixture 'repo'
           $env:IPFSOASIS_TEST_API = 'http://127.0.0.1:18567'
+          $env:IPFSOASIS_RESTART_DNA = Join-Path $fixture 'restart-dna.json'
+          $env:OASIS_IPFS_STORAGE_ENCRYPTION_KEY = [Convert]::ToBase64String([Security.Cryptography.RandomNumberGenerator]::GetBytes(32))
           $rpc = @{ NoProxy = $true; UserAgent = 'OASIS-IPFS-NativeTests/1.0'; Method = 'Post' }
           & $binary init --profile=test --empty-repo
           & $binary config Addresses.API /ip4/127.0.0.1/tcp/18567
           & $binary config Addresses.Gateway /ip4/127.0.0.1/tcp/18568
-          $daemon = Start-Process -FilePath $binary -ArgumentList @('daemon', '--offline') -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $fixture 'daemon.log') -RedirectStandardError (Join-Path $fixture 'daemon.err')
-          try {
+          function Wait-KuboReady($daemon, $errorLog) {
             $version = $null
             for ($attempt = 0; $attempt -lt 30 -and !$version; $attempt++) {
               if ($daemon.HasExited) {
-                Get-Content -LiteralPath (Join-Path $fixture 'daemon.err')
+                Get-Content -LiteralPath $errorLog
                 throw 'The owned Kubo daemon exited before readiness.'
               }
               try {
@@ -84,18 +85,35 @@ jobs:
               }
             }
             if ($version.Version -ne '0.43.1') { throw 'The pinned daemon did not become ready.' }
-            Write-Output "Native Kubo version: $($version.Version)"
-            ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner 'CI-IpfsActivation' -Operation {
-              dotnet test 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.IPFSOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.IPFSOASIS.IntegrationTests.csproj' --filter 'FullyQualifiedName~ActivatesAndDeactivatesAgainstDedicatedKubo' /m:2 /nr:false /p:UseSharedCompilation=false --logger 'console;verbosity=normal'
-              if ($LASTEXITCODE -ne 0) { throw 'The IPFS activation integration test failed.' }
-            }
-          } finally {
+            Write-Host "Native Kubo version $($version.Version), process $($daemon.Id)"
+          }
+          function Stop-KuboDaemon($daemon) {
             if (!$daemon.HasExited) {
               try {
                 Invoke-RestMethod @rpc -Uri "$env:IPFSOASIS_TEST_API/api/v0/shutdown" -TimeoutSec 5 | Out-Null
                 if (!$daemon.WaitForExit(10000)) { throw 'The Kubo daemon did not stop.' }
               } finally {
                 if (!$daemon.HasExited) { Stop-Process -Id $daemon.Id }
+              }
+            }
+          }
+          ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner 'CI-IpfsRestart' -Operation {
+            $project = 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.IPFSOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.IPFSOASIS.IntegrationTests.csproj'
+            $testFilter = 'FullyQualifiedName~PersistsCurrentAndHistoricalHolonAcrossDaemonRestart'
+            foreach ($phase in @('write', 'read')) {
+              $env:IPFSOASIS_RESTART_PHASE = $phase
+              $errorLog = Join-Path $fixture "$phase.err"
+              $daemon = Start-Process -FilePath $binary -ArgumentList @('daemon', '--offline') -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $fixture "$phase.log") -RedirectStandardError $errorLog
+              try {
+                Wait-KuboReady $daemon $errorLog
+                $buildOptions = @('/m:2', '/nr:false', '/p:UseSharedCompilation=false')
+                if ($phase -eq 'read') { $buildOptions = @('--no-build', '--no-restore') }
+                Write-Host "IPFS restart test phase: $phase"
+                dotnet test $project --filter $testFilter --logger 'console;verbosity=normal' @buildOptions
+                if ($LASTEXITCODE -ne 0) { throw "The IPFS restart $phase phase failed." }
+              } finally {
+                Stop-KuboDaemon $daemon
+                Write-Host "Stopped native Kubo process $($daemon.Id)"
               }
             }
           }
