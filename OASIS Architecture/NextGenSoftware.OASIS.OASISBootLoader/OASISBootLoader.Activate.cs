@@ -180,7 +180,9 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                 //TODO: Think we can have this in ProviderManger and have default connection strings/settings for each provider.
                 if (providerType != ProviderManager.Instance.CurrentStorageProviderType.Value)
                 {
-                    RegisterProvider(providerType, customConnectionString, forceRegister);
+                    var registration = RegisterProvider(providerType, customConnectionString, forceRegister);
+                    if (registration.IsError)
+                        return registration;
                     result = ProviderManager.Instance.SetAndActivateCurrentStorageProvider(providerType, setGlobally);
                 }
 
@@ -222,7 +224,9 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                 //TODO: Think we can have this in ProviderManger and have default connection strings/settings for each provider.
                 if (providerType != ProviderManager.Instance.CurrentStorageProviderType.Value)
                 {
-                    await RegisterProviderAsync(providerType, customConnectionString, forceRegister);
+                    var registration = await RegisterProviderAsync(providerType, customConnectionString, forceRegister);
+                    if (registration.IsError)
+                        return registration;
                     result = await ProviderManager.Instance.SetAndActivateCurrentStorageProviderAsync(providerType, setGlobally);
                 }
 
@@ -246,12 +250,19 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
         public static OASISResult<IOASISStorageProvider> RegisterProvider(ProviderType providerType, string overrideConnectionString = null, bool forceRegister = false, bool activateProviderIfOASISProviderBootTypeIsHot = true)
         {
-            OASISResult<IOASISStorageProvider> result = null;
+            OASISResult<IOASISStorageProvider> result = new OASISResult<IOASISStorageProvider>();
 
             try
             {
                 if (!IsOASISBooted && !IsOASISBooting)
-                    BootOASIS(OASISDNAPath);
+                {
+                    var bootResult = BootOASIS(OASISDNAPath);
+                    if (bootResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, string.Concat("Error booting OASIS. Reason: ", bootResult.Message));
+                        return result;
+                    }
+                }
 
                 result = RegisterProviderInternal(providerType, overrideConnectionString, forceRegister);
 
@@ -268,12 +279,19 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
         public static async Task<OASISResult<IOASISStorageProvider>> RegisterProviderAsync(ProviderType providerType, string overrideConnectionString = null, bool forceRegister = false, bool activateProviderIfOASISProviderBootTypeIsHot = true)
         {
-            OASISResult<IOASISStorageProvider> result = null;
+            OASISResult<IOASISStorageProvider> result = new OASISResult<IOASISStorageProvider>();
 
             try
             {
                 if (!IsOASISBooted && !IsOASISBooting)
-                    BootOASIS(OASISDNAPath);
+                {
+                    var bootResult = await BootOASISAsync(OASISDNAPath);
+                    if (bootResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, string.Concat("Error booting OASIS. Reason: ", bootResult.Message));
+                        return result;
+                    }
+                }
 
                 result = RegisterProviderInternal(providerType, overrideConnectionString, forceRegister);
 
