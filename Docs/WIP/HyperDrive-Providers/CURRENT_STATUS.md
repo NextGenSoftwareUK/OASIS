@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November RavenDB graph and deletion candidate. RavenDB.Client writes selected graph documents in one optimistic-concurrency session and confirms each change vector before publishing caller identity. Hard avatar deletion removes its detail in the same session. Metadata, import, owner export and delete operations report acknowledged results. The initial run 43070212406 remains in progress. The new candidate runs the existing write-ownership tests and both native storage modes.
+
 11 November RavenDB native storage candidate. Shipping RavenDB.Client operations now report exact avatar and read counts, persist canonical avatar details, and wait for native indexes on read queries. The disposable workflow provisions two databases on the official pinned engine and exercises both shared storage modes. COSMIC query and certificate evidence carries forward. Native storage verification is pending.
 
 11 November ScyllaDB storage [run 43069185380](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43069185380) at 3dfbf4908b passed 52/52 through the shipping DataStax adapter on ScyllaDB 2026.3.4. All five write-ownership regressions passed. Both independent keyspaces had three empty native tables after exact cleanup, and CI removed the disposable resources. Hosted and COSMIC CQL acceptance are separate.

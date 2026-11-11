@@ -78,6 +78,8 @@ jobs:
           export OASIS_RAVEN_CI_FIXTURE="$fixture"
           pwsh -NoProfile -Command '
             ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-RavenDBStorage -Operation {
+              dotnet test "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.RavenDBOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.RavenDBOASIS.UnitTests.csproj" --filter "FullyQualifiedName~RavenDbSaveOwnershipTests" /m:2 /nr:false /p:UseSharedCompilation=false --logger "console;verbosity=normal"
+              if ($LASTEXITCODE -ne 0) { throw "RavenDB write ownership verification failed." }
               dotnet test "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.RavenDBOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.RavenDBOASIS.IntegrationTests.csproj" --filter "FullyQualifiedName~CoreStorageSuiteAgainstRaven" /p:RavenDirectStorageOnly=true /m:2 /nr:false /p:UseSharedCompilation=false --logger "console;verbosity=normal"
               if ($LASTEXITCODE -ne 0) { throw "Native RavenDB storage verification failed." }
             }'
