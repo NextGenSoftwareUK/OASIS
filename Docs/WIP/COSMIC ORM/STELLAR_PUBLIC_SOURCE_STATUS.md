@@ -66,3 +66,5 @@ Stellar hosted completion (1 November): application637a6d49f/Core2dd3c37, exact 
 Original owner/independent visitor and completion ACK preserved; native header catalogue/sourceOwner unchanged. Website card publication is next; browser verification remains open. Earlier sections record the milestone history rather than current pending gates.
 
 Website main d88a0a4 published. Live HTML equals committed bytes: SHA256 be55fc9b52d099588c50cf400d78d6652d315fc698ced617dc6c988c7c285fcc. Focused client test1pass; browser acceptance remains open.
+
+11 November UTC: the retained [5 November browser evidence](RECOVERY_BROWSER_EVIDENCE_2026-11-05.md) closes the Stellar public and private paired browser gate. Web4Site task revision 88b573a updates the stale sandbox card using those results. Website production still serves its previously published copy.
