@@ -202,7 +202,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS
             try
             {
                 await using var client = await GetClientAsync();
-                var rec = await client.Select<AvatarRecord>(new StringRecordId($"oasis_avatars:{id.ToString()}"));
+                var rec = await client.Select<AvatarRecord>(RecordId.From("oasis_avatars", id.ToString("D")));
                 if (rec == null || rec.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"SurrealDBOASIS: No avatar for ID '{id}'."); return result; }
                 var avatar = Des<Avatar>(rec.DataJson);
                 if (avatar == null) { OASISErrorHandling.HandleError(ref result, $"SurrealDBOASIS: Failed to deserialise avatar '{id}'."); return result; }
@@ -283,12 +283,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS
                 await using var client = await GetClientAsync();
                 if (softDelete)
                 {
-                    var rec = await client.Select<AvatarRecord>(new StringRecordId($"oasis_avatars:{id.ToString()}"));
+                    var rec = await client.Select<AvatarRecord>(RecordId.From("oasis_avatars", id.ToString("D")));
                     if (rec == null) { OASISErrorHandling.HandleError(ref result, $"SurrealDBOASIS: Avatar '{id}' not found."); return result; }
                     var av = Des<Avatar>(rec.DataJson); if (av != null) { av.DeletedDate = DateTime.UtcNow; await SaveAvatarAsync(av); }
                     else { rec.IsDeleted = true; await client.Upsert(rec); }
                 }
-                else { await client.Delete(new StringRecordId($"oasis_avatars:{id.ToString()}")); }
+                else { await client.Delete(RecordId.From("oasis_avatars", id.ToString("D"))); }
                 result.Result = true; result.IsError = false; result.Message = $"SurrealDBOASIS: Avatar '{id}' deleted.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SurrealDBOASIS: {ex.Message}"); }
@@ -329,7 +329,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS
             try
             {
                 await using var client = await GetClientAsync();
-                var rec = await client.Select<DetailRecord>(new StringRecordId($"oasis_avatar_details:{id.ToString()}"));
+                var rec = await client.Select<DetailRecord>(RecordId.From("oasis_avatar_details", id.ToString("D")));
                 if (rec == null) { OASISErrorHandling.HandleError(ref result, $"SurrealDBOASIS: No detail for ID '{id}'."); return result; }
                 var d = Des<AvatarDetail>(rec.DataJson); if (d == null) { OASISErrorHandling.HandleError(ref result, "SurrealDBOASIS: Deserialise failed."); return result; }
                 result.Result = d; result.IsError = false; result.Message = "SurrealDBOASIS: AvatarDetail loaded.";
@@ -466,7 +466,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS
             try
             {
                 await using var client = await GetClientAsync();
-                var rec = await client.Select<HolonRecord>(new StringRecordId($"oasis_holons:{id.ToString()}"));
+                var rec = await client.Select<HolonRecord>(RecordId.From("oasis_holons", id.ToString("D")));
                 if (rec == null || rec.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"SurrealDBOASIS: No holon for ID '{id}'."); return result; }
                 var holon = Des<Holon>(rec.DataJson); if (holon == null) { OASISErrorHandling.HandleError(ref result, "SurrealDBOASIS: Deserialise failed."); return result; }
                 result.Result = holon; result.IsError = false; result.Message = "SurrealDBOASIS: Holon loaded.";
