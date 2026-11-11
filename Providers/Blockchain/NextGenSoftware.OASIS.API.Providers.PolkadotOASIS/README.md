@@ -96,6 +96,12 @@ Use this package for the responsibility described above, alongside its owning OA
 
 Provider adapters require their respective service configuration and credentials. Runtime libraries require the host application's lifecycle and persistent paths where applicable. Supply only the settings actually required by the owning component; do not copy production DNA into a client or public release.
 
+### BootLoader storage activation
+
+Configure `OASIS.StorageProviders.PolkadotOASIS` with the contracts node `RpcEndpoint`, expected `GenesisHash`, and the deployed contract's `StorageContractAccountId`, `StorageCodeHash`, and `StorageOwnerAccountId`. Use canonical 32-byte hex values with the `0x` prefix for all four identities.
+
+Supply `ChainPrivateKey` and `OASIS_POLKADOT_STORAGE_ENCRYPTION_KEY` through protected runtime configuration. Provision the pinned Node SDK bridge as described above. Hosted BootLoader activation still requires a dedicated contracts deployment and verification of its runtime settings.
+
 ## Errors and security
 
 For APIs returning `OASISResult<T>`, check `IsError`, `ErrorCode` and `Message`; do not treat a failed result as success. Preserve useful diagnostics without logging access tokens, passwords or private keys. Keep secrets in the host's appropriate protected configuration or platform storage.
