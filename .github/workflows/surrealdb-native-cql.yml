@@ -1,7 +1,11 @@
-name: SurrealDB native CQL restart
+name: SurrealDB native CQL restart and federation
 
 on:
   workflow_dispatch:
+  workflow_call:
+    secrets:
+      PRIVATE_SUBMODULE_PAT:
+        required: true
 
 permissions:
   contents: read
@@ -44,4 +48,4 @@ jobs:
           trap 'for log in "$results"/*.log; do if [[ -f "$log" ]]; then tail -n 60 "$log"; fi; done' ERR
           mkdir -p -m 700 /var/tmp/oasis-runtimes
           python3 -B Scripts/TestHosts/Install-CosmicSurrealDbRuntime.py
-          python3 -B Scripts/TestHosts/run-cosmic-surrealdb-linux.py --ci-results "$results"
+          python3 -B Scripts/TestHosts/run-cosmic-surrealdb-linux.py --ci-results "$results" --federated
