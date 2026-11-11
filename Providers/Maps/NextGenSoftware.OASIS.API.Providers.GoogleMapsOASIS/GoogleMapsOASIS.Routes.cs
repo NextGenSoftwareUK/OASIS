@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -29,7 +30,7 @@ public partial class GoogleMapsOASIS
             return result;
         }
 
-        if (string.IsNullOrWhiteSpace(apiKey) || apiKey.Contains('\r') || apiKey.Contains('\n'))
+        if (string.IsNullOrWhiteSpace(apiKey) || apiKey.Any(character => character < 33 || character > 126))
         {
             OASISErrorHandling.HandleError(ref result, "A Google Routes API credential is required.");
             return result;
@@ -76,9 +77,17 @@ public partial class GoogleMapsOASIS
         {
             throw;
         }
-        catch (Exception error) when (error is HttpRequestException or OperationCanceledException or JsonException or InvalidOperationException or System.Collections.Generic.KeyNotFoundException or FormatException)
+        catch (OperationCanceledException)
         {
-            OASISErrorHandling.HandleError(ref result, "Google Routes request or response validation failed.");
+            OASISErrorHandling.HandleError(ref result, "Google Routes request timed out.");
+        }
+        catch (HttpRequestException)
+        {
+            OASISErrorHandling.HandleError(ref result, "Google Routes transport failed.");
+        }
+        catch (Exception error) when (error is JsonException or InvalidOperationException or System.Collections.Generic.KeyNotFoundException or FormatException or NotSupportedException)
+        {
+            OASISErrorHandling.HandleError(ref result, "Google Routes returned an invalid response.");
         }
 
         return result;
