@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November Sui run 43057684457 verified official executable 1.81.1-e04cf9aa915c, built and published the shipping Move package, and removed the disposable validator fixture. The next workflow revision runs both managed storage modes through the shipping provider and independently checks the native dynamic-field list before and after the suite. COSMIC public reads are outside this run.
+
 11 November Sui native storage prerequisite. The new workflow provisions the official checksum-pinned Sui v1.81.1 local validator and faucet, builds the shipping Move package with the existing pinned framework, and publishes it through the existing SDK fixture. The existing COSMIC public object read and retained routing evidence carry forward. Fresh deployment and the shared managed storage suite remain open.
 
 11 November Hedera run 43056077700 at 9ce880db9a passed all 52 native storage checks on official Hiero consensus 0.72.0. Both independent ledgers deployed the shipping contract, verified its owner and empty initial key set, and passed the complete shipping provider suite with compression before encryption. Native reads confirmed both contracts empty after cleanup, and both fixtures were removed. Funded testnet, hosted activation and other capabilities remain separate.

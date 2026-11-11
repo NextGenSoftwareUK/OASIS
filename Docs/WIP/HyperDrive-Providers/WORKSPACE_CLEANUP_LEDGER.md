@@ -313,4 +313,6 @@ Urgent disk cleanup follow-up: leased standard project clean succeeded for AWS u
 
 11 November Sui native deployment uses a disposable CI runner. The workflow extracts only the Sui executable and removes its download, then tears down its owned ledger, runtime, dependencies and reports. No local artifacts were created. CI teardown remains pending.
 
+11 November Sui run 43057684457 passed native deployment and confirmed removal of the owned runtime, ledger, reports and SDK dependencies. The next candidate writes its managed checkpoints inside the same cleanup scope. No Windows outputs were created.
+
 11 November cleanup recheck in the HyperDrive worktree. The earlier WEB4 count build still occupies 115,007,857 bytes in `oasisweb4.com/node_modules` and 361,528 bytes in `TestResults/Web4ProviderCountBuild`. Both are Git-ignored generated directories, with no linked content or matching active Node process found. Automatic review rejected the scoped recursive removal before execution. No deletion occurred. The four named wallet and ActivityPub build folders were absent from this worktree's top-level TestResults directory.
