@@ -5626,3 +5626,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: removed temporary tag ci-cosmic-solution-ffb8d75c7a-build after CI 42996057873 finished. Logs were inspected in memory. No local build, runtime install, log file or download.
 
 11 November UTC: deBridge browser checks reused the existing demo visitor. No new avatar, report, screenshot file, download or build output.
+
+11 November UTC: Neon cutover and initial Polkadot check reused the existing browser visitor and Railway CLI. No new avatar, download, local report, screenshot file or build output.
