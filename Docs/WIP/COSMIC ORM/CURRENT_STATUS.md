@@ -1592,3 +1592,5 @@ Exact Supabase WEB4 image build 43062441681 is running.
 11 November UTC: combined WEB4 dispatch 43097362380 reached startup_failure again with zero jobs. A tag-triggered qualification 43098289449 uses the existing image workflow steps, a separate concurrency group, and the exact original checkout and sole image tag 3845f4723c. Diagnostic commit cbcdb3d040 adds the workflow outside the built source. Development publication awaits verification.
 
 11 November UTC: Matrix recovered on the live AvalancheGo WEB4 rollout a05741af68. The existing visitor ran both native public presets. The full query returned three enrolled records and the filtered query returned the exact two-record subset. Existing source and private snapshots were preserved. Browser verification remains open.
+
+11 November UTC: Railway deployed IPFS evidence revision d262eab8c8 (796f5e8b). Authenticated discovery warmed from 69/106 to 105/106 native and federation ready. Nostr remains unavailable. Supabase, TRON and CouchDB are absent from discovery. The combined image qualification 43098289449 is queued.

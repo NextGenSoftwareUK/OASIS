@@ -815,3 +815,5 @@ broader provider contracts remain open. [Evidence](DUCKDB_CQL_MVP.md).
 11 November UTC: Railway deployed AvalancheGo WEB4 a05741af68 (83665787). PlanetScale deployment 4a8c893d failed before application publication: the Docker NATS runtime stage received HTTP 403 from GitHub's release asset API for the pinned NATS 2.15.2 archive. The build daemon identified that step as the terminal error. Existing PlanetScale exact-image and qualification evidence remains valid; managed reader enrollment and live acceptance remain open.
 
 11 November UTC: Matrix recovered on the live AvalancheGo WEB4 rollout a05741af68. The existing visitor ran both native public presets. The full query returned three enrolled records and the filtered query returned the exact two-record subset. Existing source and private snapshots were preserved. Browser verification remains open.
+
+11 November UTC: Railway deployed IPFS evidence revision d262eab8c8 (796f5e8b). Authenticated discovery warmed from 69/106 to 105/106 native and federation ready. Nostr remains unavailable. Supabase, TRON and CouchDB are absent from discovery. The combined image qualification 43098289449 is queued.
