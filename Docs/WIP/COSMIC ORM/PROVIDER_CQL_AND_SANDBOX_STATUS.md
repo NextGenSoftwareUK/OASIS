@@ -8,15 +8,15 @@ Updated 9 November 2026 from the accepted Development baseline and retained qual
 |---|---|---|
 | Provider inventory | 234 distinct shipping project paths; alternate implementations retained | Reconciled by project path with the HyperDrive provider matrix. Alternate project paths can share a provider identity. |
 | CQL breadth | 129 recorded scoped integrations | Programme checkpoint, not a new native audit of 129 providers or a universal feature percentage |
-| Development WEB4 | 106 listed on deployment 3c05290d. 104 advertised ready after activation. | Hedera and Nostr were unavailable. TRON and Supabase were absent. Release-specific HTTP and browser acceptance is recorded in the provider rows and [current status](CURRENT_STATUS.md). |
-| Browser demo | 28 functional live flows recorded | HTTP acceptance and matching public website bytes do not prove browser interaction for the remaining 73 enrolled types |
+| Development WEB4 | 106 listed and ready after activation at `fcf2a522e6`. All 106 provider identities have rows in this matrix. | TRON and Supabase remain absent. Readiness, HTTP execution and browser acceptance have separate evidence. |
+| Browser demo | Public native and original-owner paired browser results are tracked per provider below. | The latest public checks include Aptos, Reclaim Protocol, World ID, Discord, Livepeer, Pinata, Cardano and Chainlink. |
 | Priority demo queue | Solana, Ethereum, Polygon, Arbitrum, NEAR, EOS, SOLID, IPFS, ActivityPub, Cosmos, Polkadot, TON, TRON, Hedera | EOSIO, SOLID, TON and Hedera passed both public browser presets. Their original-owner paired browser checks remain open. TRON native/live admission and Supabase hosted qualification remain open. Prepared other-provider batches retained behind this queue |
 | Full WEB4 image | Corrected immutable1c9c39904 image37e966a8 passes exact package and Docker/API/native startup42534822963 | Required TRON+Urbit readers/dependency graph, running Docker healthy gate, API/native probes, exit0/no OOM and owned cleanup verified; no deployment/live CQL acceptance. Earlier missing-curl candidate54be8845a rejected |
 | Core storage suite | 15 retained native core-storage-v2 reports pass52/52; 4 more pass52/52 controlled only | These test the declared storage contract, not every interface method, overload, fee mode, topology or cloud account |
 | Full provider implementation | Incomplete; no defensible per-provider 100% interface percentage | SDK/API source use is evidence of integration, not full native certification; existing placeholders and shipping-path gaps remain explicit |
 | Virtual and hybrid imports | Designed and on roadmap | Existing materialized import/replication exists; universal pointer/lazy/hybrid import modes are not claimed implemented |
 
-Latest sealed live HTTP acceptance: Development deployment 9d5e9388 at ab0e9b2c. The subsequent GOMap code deployment 76806353 at e2286e44 passed package inspection with GOMap disabled. David has placed Development pushes and live activation on hold. The public website remains at the Civic publication. See [live acceptance](CURRENT_STATUS.md) and [GOMap evidence](GOMAP_PUBLIC_SOURCE_STATUS.md).
+Historical sealed live HTTP acceptance is retained for deployment `9d5e9388` at `ab0e9b2c`. Current Development and Railway WEB4 are at `fcf2a522e6`. GOMap candidate `49a3ced97f` passed targeted integration and exact image verification on its Hedera base. Live enrollment needs a reviewed dedicated HTTPS OSRM origin. See [current status](CURRENT_STATUS.md) and [GOMap evidence](GOMAP_PUBLIC_SOURCE_STATUS.md).
 
 ## What the sandbox proves
 
