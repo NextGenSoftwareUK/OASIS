@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -13,7 +15,9 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
+using NextGenSoftware.OASIS.API.Core.Serialization;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Providers.MilvusOASIS
@@ -106,11 +110,21 @@ namespace NextGenSoftware.OASIS.API.Providers.MilvusOASIS
             {
                 var doc = await GetDocAsync<Avatar>(CollAvatars, id.ToString());
                 if (doc == null)
+                {
                     OASISErrorHandling.HandleError(ref result, $"MilvusOASIS: Avatar {id} not found.");
+                    result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
+                }
                 else if (doc.IsDeleted)
+                {
                     OASISErrorHandling.HandleError(ref result, $"MilvusOASIS: Avatar {id} has been deleted.");
+                    result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
+                }
                 else
+                {
                     result.Result = doc;
+                    result.IsLoaded = true;
+                    result.LoadedCount = 1;
+                }
             }
             catch (Exception ex)
             {
@@ -131,7 +145,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MilvusOASIS
                 if (doc == null || doc.IsDeleted)
                     OASISErrorHandling.HandleError(ref result, $"MilvusOASIS: Avatar with username '{username}' not found.");
                 else
+                {
                     result.Result = doc;
+                    result.IsLoaded = true;
+                    result.LoadedCount = 1;
+                }
             }
             catch (Exception ex)
             {
@@ -152,7 +170,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MilvusOASIS
                 if (doc == null || doc.IsDeleted)
                     OASISErrorHandling.HandleError(ref result, $"MilvusOASIS: Avatar with email '{email}' not found.");
                 else
+                {
                     result.Result = doc;
+                    result.IsLoaded = true;
+                    result.LoadedCount = 1;
+                }
             }
             catch (Exception ex)
             {
@@ -170,7 +192,10 @@ namespace NextGenSoftware.OASIS.API.Providers.MilvusOASIS
             try
             {
                 var docs = await GetAllDocsAsync<Avatar>(CollAvatars);
-                result.Result = docs.FindAll(a => !a.IsDeleted);
+                var rows = docs.FindAll(a => !a.IsDeleted);
+                result.Result = rows;
+                result.IsLoaded = true;
+                result.LoadedCount = rows.Count;
             }
             catch (Exception ex)
             {
@@ -191,6 +216,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MilvusOASIS
                     avatar.Id = Guid.NewGuid();
                 await UpsertDocAsync(CollAvatars, avatar.Id.ToString(), avatar);
                 result.Result = avatar;
+                result.IsSaved = true;
+                result.SavedCount = 1;
             }
             catch (Exception ex)
             {
@@ -207,20 +234,27 @@ namespace NextGenSoftware.OASIS.API.Providers.MilvusOASIS
             var result = new OASISResult<bool>();
             try
             {
+                var avatar = await GetDocAsync<Avatar>(CollAvatars, id.ToString("D"));
+                if (avatar == null || (softDelete && avatar.IsDeleted))
+                {
+                    result.IsError = true;
+                    result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
+                    result.Message = $"MilvusOASIS: No avatar to delete for ID '{id}'.";
+                    return result;
+                }
                 if (softDelete)
                 {
-                    var avatar = await GetDocAsync<Avatar>(CollAvatars, id.ToString());
-                    if (avatar != null)
-                    {
-                        avatar.DeletedDate = DateTime.UtcNow;
-                        await UpsertDocAsync(CollAvatars, id.ToString(), avatar);
-                    }
+                    avatar.DeletedDate = DateTime.UtcNow;
+                    await UpsertDocAsync(CollAvatars, id.ToString("D"), avatar);
                 }
                 else
                 {
-                    await DeleteDocAsync(CollAvatars, id.ToString());
+                    await DeleteDocAsync(CollAvatarDetails, id.ToString("D"));
+                    await DeleteDocAsync(CollAvatars, id.ToString("D"));
                 }
                 result.Result = true;
+                result.IsDeleted = true;
+                result.DeletedCount = 1;
             }
             catch (Exception ex)
             {
@@ -283,9 +317,16 @@ namespace NextGenSoftware.OASIS.API.Providers.MilvusOASIS
             {
                 var doc = await GetDocAsync<AvatarDetail>(CollAvatarDetails, id.ToString());
                 if (doc == null)
+                {
                     OASISErrorHandling.HandleError(ref result, $"MilvusOASIS: AvatarDetail {id} not found.");
+                    result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
+                }
                 else
+                {
                     result.Result = doc;
+                    result.IsLoaded = true;
+                    result.LoadedCount = 1;
+                }
             }
             catch (Exception ex)
             {
@@ -306,7 +347,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MilvusOASIS
                 if (doc == null)
                     OASISErrorHandling.HandleError(ref result, $"MilvusOASIS: AvatarDetail '{username}' not found.");
                 else
+                {
                     result.Result = doc;
+                    result.IsLoaded = true;
+                    result.LoadedCount = 1;
+                }
             }
             catch (Exception ex)
             {
@@ -327,7 +372,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MilvusOASIS
                 if (doc == null)
                     OASISErrorHandling.HandleError(ref result, $"MilvusOASIS: AvatarDetail '{email}' not found.");
                 else
+                {
                     result.Result = doc;
+                    result.IsLoaded = true;
+                    result.LoadedCount = 1;
+                }
             }
             catch (Exception ex)
             {
@@ -346,6 +395,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MilvusOASIS
             {
                 var docs = await GetAllDocsAsync<AvatarDetail>(CollAvatarDetails);
                 result.Result = docs;
+                result.IsLoaded = true;
+                result.LoadedCount = docs.Count;
             }
             catch (Exception ex)
             {
@@ -366,6 +417,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MilvusOASIS
                     detail.Id = Guid.NewGuid();
                 await UpsertDocAsync(CollAvatarDetails, detail.Id.ToString(), detail);
                 result.Result = detail;
+                result.IsSaved = true;
+                result.SavedCount = 1;
             }
             catch (Exception ex)
             {
@@ -386,11 +439,21 @@ namespace NextGenSoftware.OASIS.API.Providers.MilvusOASIS
             {
                 var doc = await GetDocAsync<Holon>(CollHolons, id.ToString());
                 if (doc == null)
+                {
                     OASISErrorHandling.HandleError(ref result, $"MilvusOASIS: Holon {id} not found.");
+                    result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
+                }
                 else if (doc.IsDeleted)
+                {
                     OASISErrorHandling.HandleError(ref result, $"MilvusOASIS: Holon {id} has been deleted.");
+                    result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
+                }
                 else
+                {
                     result.Result = doc;
+                    result.IsLoaded = true;
+                    result.LoadedCount = 1;
+                }
             }
             catch (Exception ex)
             {
@@ -408,7 +471,10 @@ namespace NextGenSoftware.OASIS.API.Providers.MilvusOASIS
             try
             {
                 var all = await FindAllAsync<Holon>(CollHolons, "ParentHolonId", id.ToString());
-                result.Result = all.FindAll(h => !h.IsDeleted);
+                var rows = all.FindAll(h => !h.IsDeleted);
+                result.Result = rows;
+                result.IsLoaded = true;
+                result.LoadedCount = rows.Count;
             }
             catch (Exception ex)
             {
@@ -426,7 +492,10 @@ namespace NextGenSoftware.OASIS.API.Providers.MilvusOASIS
             try
             {
                 var docs = await GetAllDocsAsync<Holon>(CollHolons);
-                result.Result = docs.FindAll(h => !h.IsDeleted);
+                var rows = docs.FindAll(h => !h.IsDeleted);
+                result.Result = rows;
+                result.IsLoaded = true;
+                result.LoadedCount = rows.Count;
             }
             catch (Exception ex)
             {
@@ -438,31 +507,43 @@ namespace NextGenSoftware.OASIS.API.Providers.MilvusOASIS
         public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
             => LoadAllHolonsAsync(holonType, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).GetAwaiter().GetResult();
 
-        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+        public override Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+            => SaveHolonGraphAsync(holon, saveChildren, recursive, maxChildDepth, 0);
+
+        private async Task<OASISResult<IHolon>> SaveHolonGraphAsync(IHolon holon, bool saveChildren, bool recursive, int maxChildDepth, int currentChildDepth)
         {
             var result = new OASISResult<IHolon>();
             try
             {
                 if (IsVersionControlEnabled) throw new NotSupportedException("Milvus historical Holon writes are not implemented.");
-                if (holon == null) throw new ArgumentNullException(nameof(holon));
-                var id = holon.Id == Guid.Empty ? Guid.NewGuid() : holon.Id;
-                var keys = holon.ProviderUniqueStorageKey == null
-                    ? new Dictionary<Core.Enums.ProviderType,string>()
-                    : new Dictionary<Core.Enums.ProviderType,string>(holon.ProviderUniqueStorageKey);
-                keys[Core.Enums.ProviderType.MilvusOASIS] = id.ToString("D");
-                var payload = JsonSerializer.SerializeToNode(holon,holon.GetType())!.AsObject();
-                payload["Id"] = id;
-                payload["ProviderUniqueStorageKey"] = JsonSerializer.SerializeToNode(keys);
-                await UpsertDocAsync(CollHolons,id.ToString("D"),payload);
-                holon.Id = id;
-                holon.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
-                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.MilvusOASIS] = id.ToString("D");
-                result.Result = holon; result.IsSaved = true; result.SavedCount = 1;
+                var plan = HolonGraphWritePlan.CreateForSave(new[] { holon }, saveChildren, recursive, maxChildDepth, currentChildDepth);
+                var rows = plan.Nodes.Select(node =>
+                {
+                    var snapshot = node.Snapshot;
+                    var keys = snapshot.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
+                    keys[Core.Enums.ProviderType.MilvusOASIS] = snapshot.Id.ToString("D");
+                    var payload = JsonNode.Parse(node.CapturedIntentJson)!.AsObject();
+                    payload.Remove("$type");
+                    payload["Id"] = snapshot.Id;
+                    payload["ParentHolonId"] = snapshot.ParentHolonId;
+                    payload["ProviderUniqueStorageKey"] = JsonSerializer.SerializeToNode(keys);
+                    return ToRow(payload, snapshot.Id.ToString("D"));
+                }).ToArray();
+                await UpsertRowsAsync(CollHolons, rows);
+
+                foreach (var node in plan.Nodes)
+                {
+                    node.Source.Id = node.Snapshot.Id;
+                    node.Source.ParentHolonId = node.Snapshot.ParentHolonId;
+                    node.Source.ProviderUniqueStorageKey = node.Snapshot.ProviderUniqueStorageKey;
+                }
+                result.Result = holon;
+                result.IsSaved = true;
+                result.SavedCount = rows.Length;
             }
-            catch (Exception ex)
+            catch (Exception error)
             {
-                result.Exception = ex;
-                OASISErrorHandling.HandleError(ref result,$"MilvusOASIS: SaveHolonAsync failed: {ex.Message}");
+                OASISErrorHandling.HandleError(ref result, $"MilvusOASIS: {error.Message}", error);
             }
             return result;
         }
@@ -477,12 +558,12 @@ namespace NextGenSoftware.OASIS.API.Providers.MilvusOASIS
             var errors = new List<string>();
             foreach (var holon in holons)
             {
-                var write = await SaveHolonAsync(holon,saveChildren,recursive,maxChildDepth,continueOnError,saveChildrenOnProvider);
+                var write = await SaveHolonGraphAsync(holon, saveChildren, recursive, maxChildDepth, curentChildDepth);
                 if (write.IsError) { errors.Add(write.Message); if (!continueOnError) break; }
-                else if (write.IsSaved && write.Result != null) saved.Add(write.Result);
+                else if (write.IsSaved && write.Result != null) { saved.Add(write.Result); result.SavedCount += write.SavedCount; }
             }
             result.Result = saved; result.IsError = errors.Count > 0; result.ErrorCount = errors.Count;
-            result.IsSaved = saved.Count > 0; result.SavedCount = saved.Count; result.Message = string.Join("; ",errors);
+            result.IsSaved = result.SavedCount > 0; result.Message = string.Join("; ",errors);
             return result;
         }
 
@@ -491,27 +572,47 @@ namespace NextGenSoftware.OASIS.API.Providers.MilvusOASIS
 
         public async Task<OASISResult<bool>> DeleteHolonSoftAsync(Guid id, bool softDelete = true)
         {
-            var result = new OASISResult<bool>();
+            var deleted = await DeleteHolonRecordAsync(id, softDelete);
+            return new OASISResult<bool>
+            {
+                Result = deleted.IsDeleted,
+                IsDeleted = deleted.IsDeleted,
+                DeletedCount = deleted.DeletedCount,
+                IsError = deleted.IsError,
+                ErrorCode = deleted.ErrorCode,
+                Exception = deleted.Exception,
+                Message = deleted.Message
+            };
+        }
+
+        private async Task<OASISResult<IHolon>> DeleteHolonRecordAsync(Guid id, bool softDelete)
+        {
+            var result = new OASISResult<IHolon>();
             try
             {
+                var key = id.ToString("D");
+                var holon = await GetDocAsync<Holon>(CollHolons, key);
+                if (holon == null || (softDelete && holon.IsDeleted))
+                {
+                    result.IsError = true;
+                    result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
+                    result.Message = $"MilvusOASIS: No holon to delete for ID '{id}'.";
+                    return result;
+                }
                 if (softDelete)
                 {
-                    var holon = await GetDocAsync<Holon>(CollHolons, id.ToString());
-                    if (holon != null)
-                    {
-                        holon.DeletedDate = DateTime.UtcNow;
-                        await UpsertDocAsync(CollHolons, id.ToString(), holon);
-                    }
+                    holon.DeletedDate = DateTime.UtcNow;
+                    await UpsertDocAsync(CollHolons, key, holon);
                 }
                 else
-                {
-                    await DeleteDocAsync(CollHolons, id.ToString());
-                }
-                result.Result = true;
+                    await DeleteDocAsync(CollHolons, key);
+                result.Result = holon;
+                result.IsDeleted = true;
+                result.DeletedCount = 1;
             }
-            catch (Exception ex)
+            catch (Exception error)
             {
-                OASISErrorHandling.HandleError(ref result, $"MilvusOASIS: DeleteHolonAsync failed: {ex.Message}");
+                OASISErrorHandling.HandleError(ref result, $"MilvusOASIS: {error.Message}", error);
             }
             return result;
         }
@@ -530,7 +631,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MilvusOASIS
 
         private static Dictionary<string, object> ToRow<T>(T obj, string id)
         {
-            var json = JsonSerializer.Serialize(obj, obj!.GetType());
+            var json = obj is IAvatarDetail detail
+                ? StoredRecordJson.Serialize(detail)
+                : JsonSerializer.Serialize(obj, obj!.GetType());
             if (Encoding.UTF8.GetByteCount(json) > 65535)
                 throw new System.IO.InvalidDataException("Canonical Milvus document exceeds its 65,535-byte VarChar schema.");
             var row = new Dictionary<string, object>
@@ -560,13 +663,17 @@ namespace NextGenSoftware.OASIS.API.Providers.MilvusOASIS
         private static List<T> ParseData<T>(JsonElement root) where T : class
         {
             var list = new List<T>();
-            if (!root.TryGetProperty("data", out var data) || data.ValueKind != JsonValueKind.Array) return list;
+            if (root.GetProperty("code").GetInt32() != 0)
+                throw new System.IO.InvalidDataException("Milvus rejected the native read.");
+            var data = root.GetProperty("data");
             foreach (var el in data.EnumerateArray())
             {
                 if (!el.TryGetProperty("doc", out var docEl)) continue;
                 var raw = docEl.GetString();
                 if (string.IsNullOrEmpty(raw)) continue;
-                var item = JsonSerializer.Deserialize<T>(raw, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                var item = typeof(T) == typeof(AvatarDetail)
+                    ? StoredRecordJson.DeserializeStored<T>(raw)
+                    : JsonSerializer.Deserialize<T>(raw, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                 if (item != null) list.Add(item);
             }
             return list;
@@ -574,9 +681,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MilvusOASIS
 
         private async Task<T?> GetDocAsync<T>(string collection, string id) where T : class
         {
-            var resp = await _http.PostAsync($"{_baseUrl}/v2/vectordb/entities/get",
-                Json(new { collectionName = collection, id = new[] { id }, outputFields = new[] { "doc" } }));
-            if (!resp.IsSuccessStatusCode) return null;
+            using var resp = await _http.PostAsync($"{_baseUrl}/v2/vectordb/entities/get",
+                Json(new { collectionName = collection, id = new[] { id }, outputFields = new[] { "doc" }, consistencyLevel = "Strong" }));
+            resp.EnsureSuccessStatusCode();
             var json = await resp.Content.ReadAsStringAsync();
             using var doc = JsonDocument.Parse(json);
             var list = ParseData<T>(doc.RootElement);
@@ -585,17 +692,19 @@ namespace NextGenSoftware.OASIS.API.Providers.MilvusOASIS
 
         private async Task DeleteDocAsync(string collection, string id)
         {
-            var resp = await _http.PostAsync($"{_baseUrl}/v2/vectordb/entities/delete",
+            using var resp = await _http.PostAsync($"{_baseUrl}/v2/vectordb/entities/delete",
                 Json(new { collectionName = collection, filter = $"id == \"{id}\"" }));
-            if (resp.StatusCode != System.Net.HttpStatusCode.NotFound)
-                resp.EnsureSuccessStatusCode();
+            resp.EnsureSuccessStatusCode();
+            using var response = JsonDocument.Parse(await resp.Content.ReadAsStringAsync());
+            if (response.RootElement.GetProperty("code").GetInt32() != 0)
+                throw new System.IO.InvalidDataException("Milvus rejected the native deletion.");
         }
 
         private async Task<List<T>> QueryAsync<T>(string collection, string filter, int limit) where T : class
         {
-            var resp = await _http.PostAsync($"{_baseUrl}/v2/vectordb/entities/query",
-                Json(new { collectionName = collection, filter, outputFields = new[] { "doc" }, limit }));
-            if (!resp.IsSuccessStatusCode) return new List<T>();
+            using var resp = await _http.PostAsync($"{_baseUrl}/v2/vectordb/entities/query",
+                Json(new { collectionName = collection, filter, outputFields = new[] { "doc" }, consistencyLevel = "Strong", limit }));
+            resp.EnsureSuccessStatusCode();
             var json = await resp.Content.ReadAsStringAsync();
             using var doc = JsonDocument.Parse(json);
             return ParseData<T>(doc.RootElement);
@@ -603,12 +712,12 @@ namespace NextGenSoftware.OASIS.API.Providers.MilvusOASIS
 
         private async Task<T?> FindOneAsync<T>(string collection, string field, string value) where T : class
         {
-            var results = await QueryAsync<T>(collection, $"{FieldColumn(field)} == \"{value}\"", 1);
+            var results = await QueryAsync<T>(collection, $"{FieldColumn(field)} == {JsonSerializer.Serialize(value)}", 1);
             return results.Count > 0 ? results[0] : null;
         }
 
         private async Task<List<T>> FindAllAsync<T>(string collection, string field, string value) where T : class
-            => await QueryAsync<T>(collection, $"{FieldColumn(field)} == \"{value}\"", 1000);
+            => await QueryAsync<T>(collection, $"{FieldColumn(field)} == {JsonSerializer.Serialize(value)}", 1000);
 
         private async Task<List<T>> GetAllDocsAsync<T>(string collection) where T : class
             => await QueryAsync<T>(collection, "id != \"\"", 1000);
@@ -713,24 +822,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MilvusOASIS
         public override OASISResult<IHolon> DeleteHolon(Guid id)
             => DeleteHolonAsync(id).GetAwaiter().GetResult();
 
-        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
-        {
-            var result = new OASISResult<IHolon>();
-            var loaded = await LoadHolonAsync(id);
-            if (loaded.IsError || loaded.Result == null)
-            {
-                OASISErrorHandling.HandleError(ref result, loaded.Message);
-                return result;
-            }
-
-            var deleted = await DeleteHolonSoftAsync(id, true);
-            if (deleted.IsError)
-                OASISErrorHandling.HandleError(ref result, deleted.Message);
-            else
-                result.Result = loaded.Result;
-
-            return result;
-        }
+        public override Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
+            => DeleteHolonRecordAsync(id, softDelete: true);
 
         public override OASISResult<IHolon> DeleteHolon(string providerKey)
             => DeleteHolonAsync(providerKey).GetAwaiter().GetResult();
@@ -770,6 +863,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MilvusOASIS
             }
 
             result.Result = matches;
+            result.IsLoaded = true;
+            result.LoadedCount = matches.Count;
             return result;
         }
 
@@ -788,7 +883,10 @@ namespace NextGenSoftware.OASIS.API.Providers.MilvusOASIS
 
             if (metaKeyValuePairs == null || metaKeyValuePairs.Count == 0)
             {
-                result.Result = new List<IHolon>(all.Result);
+                var rows = new List<IHolon>(all.Result);
+                result.Result = rows;
+                result.IsLoaded = true;
+                result.LoadedCount = rows.Count;
                 return result;
             }
 
@@ -812,6 +910,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MilvusOASIS
             }
 
             result.Result = matches;
+            result.IsLoaded = true;
+            result.LoadedCount = matches.Count;
             return result;
         }
 
@@ -822,10 +922,12 @@ namespace NextGenSoftware.OASIS.API.Providers.MilvusOASIS
         {
             var result = new OASISResult<bool>();
             var saved = await SaveHolonsAsync(holons);
-            if (saved.IsError)
-                OASISErrorHandling.HandleError(ref result, saved.Message);
-            else
-                result.Result = true;
+            result.Result = saved.IsSaved && !saved.IsError;
+            result.IsError = saved.IsError;
+            result.Exception = saved.Exception;
+            result.Message = saved.Message;
+            result.IsSaved = saved.IsSaved;
+            result.SavedCount = saved.SavedCount;
             return result;
         }
 
@@ -856,6 +958,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MilvusOASIS
             }
 
             result.Result = owned;
+            result.IsLoaded = true;
+            result.LoadedCount = owned.Count;
             return result;
         }
 
