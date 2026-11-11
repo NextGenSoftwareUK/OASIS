@@ -1594,3 +1594,5 @@ Exact Supabase WEB4 image build 43062441681 is running.
 11 November UTC: Matrix recovered on the live AvalancheGo WEB4 rollout a05741af68. The existing visitor ran both native public presets. The full query returned three enrolled records and the filtered query returned the exact two-record subset. Existing source and private snapshots were preserved. Browser verification remains open.
 
 11 November UTC: Railway deployed IPFS evidence revision d262eab8c8 (796f5e8b). Authenticated discovery warmed from 69/106 to 105/106 native and federation ready. Nostr remains unavailable. Supabase, TRON and CouchDB are absent from discovery. The combined image qualification 43098289449 is queued.
+
+11 November UTC: Development 268f29c214 changed the Base provider compiled by WEB4 BootLoader. Combined candidate a209b82e9b preserves those verified Base changes and all nine CouchDB and native-download paths. Dependency and whitespace validation passed. Exact image qualification 43101002944 is queued in the same concurrency group as 43098289449. GitHub returned HTTP 409 to cancellation of the older queued run; retain its evidence and track both handles.
