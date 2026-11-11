@@ -153,3 +153,5 @@ creating a cohort:
 ```powershell
 python -B Scripts/Sandbox/Verify-HostedQuerySource.py CouchDBOASIS --readiness
 ```
+
+11 November UTC: recovered the existing CouchDB native reader-policy test from the COSMIC branch. Diagnostic 33e42af5d9 is published for disposable CI against CouchDB 3. It checks a restricted reader can load the original document and receives the exact role-policy denial on create, update and delete. Hosted reader policy and live acceptance remain open.
