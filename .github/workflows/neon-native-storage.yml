@@ -104,6 +104,10 @@ jobs:
           PY
           compose=(docker compose --project-name oasis-neon-fixture --file "$fixture_compose")
           trap '"${compose[@]}" down --volumes --remove-orphans' EXIT
+          pageserver_image="ghcr.io/neondatabase/neon:$TAG"
+          pageserver_uid="$(docker run --rm --entrypoint id "$pageserver_image" -u)"
+          pageserver_gid="$(docker run --rm --entrypoint id "$pageserver_image" -g)"
+          sudo chown "$pageserver_uid:$pageserver_gid" ../neon-fixture/docker-compose/pageserver_config
           "${compose[@]}" up --detach pageserver safekeeper1 safekeeper2 safekeeper3
           pageserver=http://127.0.0.1:9898
           for attempt in {1..45}; do
