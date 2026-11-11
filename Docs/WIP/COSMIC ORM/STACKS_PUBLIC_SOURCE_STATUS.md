@@ -164,3 +164,5 @@ independent consensus or full ORM certification is established.
 ## Website publication verified
 
 Website `eda15be12b66e12ebaf027145ed95b87b8cea498` publishes the Stacks card, pinned guide23e70d10d and C#3768c2050 links.104client tests pass. Public HTML178107bytes/SHA256ba219e8e890914e0c811cd15de9e435561389a7388b516fe2e93d1de423b04ea and both scripts match exact git blobs. Preparation script SHA256c1006abf6074616428f93e83e13774ba8a6198f35d8ed097d84323466a8b309a. Initial page edit failed before mutation due default text encoding, but the command continued and published draft wording at5782f9c; byte-preserving correctioneda15be is now public-verified. No native or save operations repeated. Raw observation TestResults/StacksPublicSourceCurrent/public-assets-observation-1.json; durable site ACK HostedStacksReleaseCurrent. Browser remains unverified.
+
+11 November UTC: Stacks public principal-state presets rendered 3 full and 2 filtered rows in the live Development WEB4 CQL Playground. The original-owner private paired browser check remains open.
