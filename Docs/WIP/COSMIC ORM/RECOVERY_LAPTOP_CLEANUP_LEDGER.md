@@ -5766,3 +5766,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: removed the completed SafeIndexingCqlQualification/web4-admission.log (1,008,522 bytes) and retained admission.trx (22 passed). C: reported 42,323,992,576 bytes free. Both outstanding solution tags still have an active CI run. Temporary Git index removed. No local build or download.
 
 11 November UTC: Bluesky public browser verification reused the existing visitor. MapLibre coverage was synchronized from existing evidence. No saved holons, local report, screenshot file, build or download. Temporary Git index removed.
+
+11 November UTC: deleted and verified removal of the superseded ci-cosmic-solution-91743fb01c-build tag after both runs succeeded. The 6b91257c2c tag remains active. Temporary local Git index removed. No local build, restore, download or artifact copy.
