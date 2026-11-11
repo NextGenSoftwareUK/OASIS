@@ -221,3 +221,38 @@ jobs:
           }
           gh release upload $env:TAG (Get-ChildItem release-assets/*).FullName --repo $repo --clobber
 
+  # After a real publish, record what was published so the next global release plans cleanly. The global release's
+  # source-aware NuGet plan needs a standalone receipt in Scripts/nuget-publication-provenance.json and pins in
+  # Docker/oasis-dependency-versions.env (+ the HoloNET-ORM gitlink) that match what was published; without them it
+  # refuses ("Component publication requires a reviewed parent dependency-graph receipt"). The receipt is derived from
+  # publication-source-graph.json, which this run recorded from the exact commits it built.
+  record-receipt:
+    needs: publish
+    if: inputs.publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout OASIS master
+        uses: actions/checkout@v4
+        with:
+          ref: master
+      - name: Download the recorded source graph
+        uses: actions/download-artifact@v4
+        with:
+          name: holonet-nupkgs
+          path: published
+      - name: Record receipt, dependency pins and the HoloNET-ORM gitlink
+        run: |
+          set -euo pipefail
+          out=$(python3 Scripts/record_standalone_receipt.py published/publication-source-graph.json .)
+          echo "$out"
+          version=$(echo "$out" | sed -n 's/^version=//p')
+          orm=$(echo "$out" | sed -n 's/^orm_commit=//p')
+          git update-index --add --cacheinfo 160000,"$orm",HoloNET-ORM
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Scripts/nuget-publication-provenance.json Docker/oasis-dependency-versions.env
+          if git diff --cached --quiet; then echo "Receipt and pins already current."; exit 0; fi
+          git commit -m "Record HoloNET $version standalone publication (receipt, dependency pins, HoloNET-ORM gitlink) from run $GITHUB_RUN_ID"
+          git push origin HEAD:master
