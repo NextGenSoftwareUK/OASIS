@@ -65,6 +65,7 @@ jobs:
           $binary = Join-Path $fixture 'kubo/ipfs.exe'
           $env:IPFS_PATH = Join-Path $fixture 'repo'
           $env:IPFSOASIS_TEST_API = 'http://127.0.0.1:18567'
+          $rpc = @{ NoProxy = $true; UserAgent = 'OASIS-IPFS-NativeTests/1.0'; Method = 'Post' }
           & $binary init --profile=test --empty-repo
           & $binary config Addresses.API /ip4/127.0.0.1/tcp/18567
           & $binary config Addresses.Gateway /ip4/127.0.0.1/tcp/18568
@@ -77,7 +78,7 @@ jobs:
                 throw 'The owned Kubo daemon exited before readiness.'
               }
               try {
-                $version = Invoke-RestMethod -NoProxy -Method Post -Uri "$env:IPFSOASIS_TEST_API/api/v0/version" -TimeoutSec 2
+                $version = Invoke-RestMethod @rpc -Uri "$env:IPFSOASIS_TEST_API/api/v0/version" -TimeoutSec 2
               } catch [System.Net.Http.HttpRequestException], [System.Threading.Tasks.TaskCanceledException] {
                 Start-Sleep -Milliseconds 250
               }
@@ -91,7 +92,7 @@ jobs:
           } finally {
             if (!$daemon.HasExited) {
               try {
-                Invoke-RestMethod -NoProxy -Method Post -Uri "$env:IPFSOASIS_TEST_API/api/v0/shutdown" -TimeoutSec 5 | Out-Null
+                Invoke-RestMethod @rpc -Uri "$env:IPFSOASIS_TEST_API/api/v0/shutdown" -TimeoutSec 5 | Out-Null
                 if (!$daemon.WaitForExit(10000)) { throw 'The Kubo daemon did not stop.' }
               } finally {
                 if (!$daemon.HasExited) { Stop-Process -Id $daemon.Id }
