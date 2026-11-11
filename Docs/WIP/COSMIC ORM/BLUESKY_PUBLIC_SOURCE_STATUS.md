@@ -72,3 +72,5 @@ Completion ACK: LocalState/COSMIC/HostedQueryAcceptance-BlueSkyOASIS/cql-http-ac
 ## BlueSky page publication - 2 November 2026
 
 Websiteac0ca0c3cffea71aa9b99ca437d2ee46fa20d9c1 publishes BlueSky with pinned guidea10c6661c and C#f36dd0d56 links. All98client tests pass. Public HTML171143bytes/SHA256dfa7084ba40e8fe691eb2fbf7f9c1c4d9cda7dcdcbade32026f6f9d0fd7fceee and both scripts match exact git blobs. Browser interaction remains open. Raw public observation: TestResults/BlueSkyPublicSourceCurrent/public-assets-observation.json; tests frontend-tests.log. HTTP/asset checks are separate from browser interaction.
+
+11 November UTC: the live Development WEB4 CQL Playground rendered three cached Bluesky public profile observations and two filtered observations. The existing visitor was reused. Private paired browser verification remains open.

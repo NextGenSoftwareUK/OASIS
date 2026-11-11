@@ -1141,3 +1141,5 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 11 November UTC: the live Development WEB4 CQL Playground rendered three PushProtocolOASIS public teaching rows and two filtered rows from the native provider. The existing demo visitor was reused. Private paired browser verification remains open.
 
 11 November UTC: [exact solution candidate 6b91257c2c CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43017264906) is active. Railway shows both Supabase-related Development deployments 998a9b5986 and fed6e02d2f building. The latest successful deployment remains 07082d65c0.
+
+11 November UTC: the live Development WEB4 CQL Playground rendered three cached Bluesky public profile observations and two filtered observations. The existing visitor was reused. Private paired browser verification remains open.
