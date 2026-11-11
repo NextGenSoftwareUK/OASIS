@@ -1413,3 +1413,7 @@ KeyDB combined orchestration CI 43051825070 is active. Railway is building b8df6
 11 November UTC: Dragonfly candidate 04eb5a3c9b routes generic storage to the standard matrix and runs the qualified native checkpoint/restart and federation workflow separately. Combined diagnostic 782f0b3408 is submitted on Development ea54de967e. Results and hosted TLS acceptance remain open.
 
 11 November UTC: Railway WEB4 b5fe79a765 is active. Authenticated discovery with the existing visitor showed 105 of 106 sources available. Nostr returned to available on discovery. Blockscout is the sole unavailable listed source and its activation log shows cancellation after 15,010 ms with no HTTP status. Prior query acceptance is preserved. The existing operator recovery path applies if Blockscout remains unavailable.
+
+11 November UTC: both Dragonfly jobs passed in combined CI 43054087952. The standard job on ea54de967e failed four fixture-only cases because it lacked the owned Dragonfly and MongoDB roots. The verified candidate routes those tests to the dedicated fixture and leaves generic storage in the standard matrix. Hosted TLS remains open.
+
+11 November UTC: KeyDB generic storage and dedicated restart/federation passed in the standard Development pipeline 43053895093 at ea54de967e. Hosted TLS remains open.

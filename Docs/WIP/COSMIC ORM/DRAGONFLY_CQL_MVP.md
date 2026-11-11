@@ -106,3 +106,5 @@ with zero errors. Live Dragonfly source and visitor proof remain open.
 11 November UTC: Dragonfly CI 43053188998 passed the pinned 2.0.2 encrypted native CQL, checkpoint, restart and MongoDB federation checks. The runner verified the native process and preserved the source across restart. Standard matrix routing and hosted TLS acceptance remain open.
 
 11 November UTC: Dragonfly candidate 04eb5a3c9b routes generic storage to the standard matrix and runs the qualified native checkpoint/restart and federation workflow separately. Combined diagnostic 782f0b3408 is submitted on Development ea54de967e. Results and hosted TLS acceptance remain open.
+
+11 November UTC: both Dragonfly jobs passed in combined CI 43054087952. The standard job on ea54de967e failed four fixture-only cases because it lacked the owned Dragonfly and MongoDB roots. The verified candidate routes those tests to the dedicated fixture and leaves generic storage in the standard matrix. Hosted TLS remains open.

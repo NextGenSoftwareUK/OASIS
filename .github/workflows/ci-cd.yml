@@ -11,6 +11,11 @@ env:
   NODE_VERSION: '24.x'
 
 jobs:
+  dragonfly-native-cql:
+    uses: ./.github/workflows/dragonfly-native-cql.yml
+    secrets:
+      PRIVATE_SUBMODULE_PAT: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+
   keydb-native-cql:
     uses: ./.github/workflows/keydb-native-cql.yml
     secrets:
@@ -157,6 +162,7 @@ jobs:
             ports: 6379:6379
             wait: 6379
             docker_args: --ulimit memlock=-1
+            filter: FullyQualifiedName~DragonflyOASISIntegrationTests
           - name: ValKey
             project: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.ValKeyOASIS.IntegrationTests
             image: valkey/valkey:8-alpine
