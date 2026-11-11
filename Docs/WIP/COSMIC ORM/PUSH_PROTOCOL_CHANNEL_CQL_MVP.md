@@ -113,3 +113,5 @@ local C# example. All 114 website tests passed. The live 228,645-byte HTML
 matched the exact Git blob at SHA-256
 00fa5ae7020cb0aac6a50dd3b4a0eb771908c236e187b6175424275b8d1c5c58.
 Interactive browser acceptance remains open.
+
+11 November UTC: the live Development WEB4 CQL Playground rendered three PushProtocolOASIS public teaching rows and two filtered rows from the native provider. The existing demo visitor was reused. Private paired browser verification remains open.

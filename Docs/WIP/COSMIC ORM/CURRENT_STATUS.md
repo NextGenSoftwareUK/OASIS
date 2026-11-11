@@ -1137,3 +1137,5 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 11 November UTC: HyperDrive's [Supabase native pagination CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43016561338) passed at a994ffa8b2. It used PostgreSQL and PostgREST with 121 rows per listing surface and a 37-row response cap, requiring four native pages. This is loopback evidence for the three listing surfaces. Hosted Supabase CQL still awaits the dedicated HTTPS teaching project and restricted reader.
 
 11 November UTC: Development fed6e02d2f adds the HyperDrive Supabase conformance test and handoff updates. Railway queued df04b6d2-d78d-4168-a444-73366f6e3259. Exact solution candidate 6b91257c2c carries the same two solution blobs on the new Development base. Remote CI was triggered.
+
+11 November UTC: the live Development WEB4 CQL Playground rendered three PushProtocolOASIS public teaching rows and two filtered rows from the native provider. The existing demo visitor was reused. Private paired browser verification remains open.
