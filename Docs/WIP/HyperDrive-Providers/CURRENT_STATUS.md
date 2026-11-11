@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November Cosmos Hub wallet balance. The synchronous shipping wallet call passed a real Cosmos Hub bank read through CosmJS 0.39.0 at 051b3c03c2. It returned positive ATOM without a signer, storage activation or caller-context posts. The Development candidate matches the tested shipping provider, SDK bridge and shared dependency source. This evidence covers wallet balance only. Writable storage remains open.
+
 11 November NEAR public wallet balance. Both shipping wallet entry points passed against finalized NEAR mainnet state through near-api-js 7.3.1 at 507f4dd419. The scoped Development change uses the same wallet source, bridge, regression test and Core revision. The only difference in the SDK service file is an independent avatar deletion method on the task branch. The existing public mainnet tests were reused. Writable NEAR storage acceptance remains open.
 Updated28October2026. Read this first, then query relevant matrix rows; do not load archives by default.
 
