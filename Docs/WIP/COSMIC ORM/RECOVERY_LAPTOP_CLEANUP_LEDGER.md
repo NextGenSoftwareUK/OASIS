@@ -5942,3 +5942,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: track ci-cosmic-surrealdb-generic-1c7e670e8d until both runs are terminal. Temporary Git indices removed. No local build, restore, image, database or download.
 
 11 November UTC: track ci-cosmic-surrealdb-restart-b8df606442 until its CI jobs finish. Checked Python syntax in memory and removed temporary Git indices. No local build, restore, runtime, database or download.
+
+11 November UTC: track ci-cosmic-surrealdb-generic-b8df606442-activation and retire the initial generic tag after its companion finishes. Temporary Git indices removed. No local build, restore, database or download.

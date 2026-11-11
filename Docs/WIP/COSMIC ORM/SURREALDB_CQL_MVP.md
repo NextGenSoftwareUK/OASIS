@@ -292,3 +292,5 @@ The retained local source is preserved.
 11 November UTC: the standard SurrealDB matrix started a service but supplied no constructor environment settings. Candidate 4825f82b2c wires the local endpoint and synthetic credentials into the test factory. Diagnostic 2a0fd6ea48 runs the five generic cases. Require actual passes with zero skips before integrating. Native restart/federation and hosted CQL remain open.
 
 11 November UTC: published isolated SurrealKV restart CI at `01c0c85118`. The workflow uses the existing checksum-pinned SurrealDB runtime installer and restart runner, with CI's .NET SDK and a disposable report directory. It exercises the same store before and after shutdown. MongoDB federation and hosted CQL remain open.
+
+11 November UTC: the configured generic SurrealDB job exited green with all five tests skipped. The fixture setup had suppressed activation errors. Configured runs now report activation failures directly, while unconfigured runs still skip. Diagnostic ba80622d8d checks activation against the same CI service. [First configured job](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43037408709)
