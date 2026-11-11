@@ -2,6 +2,8 @@
 
 Shared OASIS routing. IOASISRoutingProvider now provides renderer-independent WGS84 geometry and distance. Google Maps uses Google Routes, GOMap uses its existing OSRM client, Mapbox uses Directions v5 and HERE uses Routing v8. The four transport implementations and contract compiled in memory. The OSRM interface returned a live 1,888-metre route with 133 points. Google, Mapbox and HERE live verification require configured credentials. The Our World routing report records GO Map rendering with Mapbox Directions in the enabled Unity scene. The game checkout was read only.
 
+Immutable public wallet CI succeeded at 58b51808295 in run 43117122572. GitHub reports success for the step selecting both shipping balance modes against Immutable mainnet and the wrong-chain control. The job metadata confirms step success. Signed testnet storage and BootLoader runtime activation remain open.
+
 11 November Ronin public wallet CI succeeded at bc05ec20e2c in run 43114758564. GitHub reports success for the step that enables and selects the sync and async shipping balance test against Ronin mainnet and its wrong-chain control. Job log access returned HTTP 403, so the per-case transcript was unavailable. The run predates BootLoader registration and native fixture cleanup checks. Signed Saigon storage remains open.
 
 11 November Google Routes geometry. The provider decodes and validates the official encoded polyline before acknowledging a route and exposes ordered WGS84 points for rendering. The opt-in live test verifies both route endpoints. In-memory compilation and execution decoded the published Google example and rejected truncated input. No output files were created. Authenticated execution and map rendering remain open.
