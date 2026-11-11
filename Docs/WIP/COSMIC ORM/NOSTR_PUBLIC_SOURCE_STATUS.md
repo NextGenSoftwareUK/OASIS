@@ -186,3 +186,5 @@ Explicit source recovery implemented at the host lifecycle boundary,same source/
 11 November UTC: on deployment 882d3bd1 the activation log records a WebSocket HTTP 503. The retained source and prior acceptance were preserved. The current unavailable state is at relay connection, before query execution.
 
 11 November UTC: Nostr returned to available in authenticated discovery on WEB4 b5fe79a765. Prior query acceptance remains recorded.
+
+11 November UTC: live WEB4 ea614f3fc6 reports Hedera activation timed out awaiting response headers after 15,008 ms with no HTTP status. Nostr's relay returned HTTP 503 during WebSocket upgrade (NotAWebSocket). Discovery remains 104/106. The protected Development Wizard session is absent on this laptop. Keep the existing operator recovery action open.

@@ -127,3 +127,5 @@ WEB4 diagnostic regression gate complete: CI 42938257820/job 130253566184 succee
 11 November UTC: verified Railway Development deployment `5e1e3ab0-81f9-4fea-83b8-12e851c999ed` at `fcf2a522e6`. ActivityPubOASIS and HashgraphOASIS both returned three full and two subset rows through their live native public CQL presets. Discovery also reported federation ready. Prior paired and browser evidence retains its original scope.
 
 11 November UTC: Development b1d78063c7 integrates HyperDrive Hedera native storage conformance. CI 43056077700 passed 52/52 on independent Hiero consensus ledgers using compression before encryption, with both contracts confirmed empty afterward. Hosted signed storage and the original-owner paired CQL browser check remain open.
+
+11 November UTC: live WEB4 ea614f3fc6 reports Hedera activation timed out awaiting response headers after 15,008 ms with no HTTP status. Nostr's relay returned HTTP 503 during WebSocket upgrade (NotAWebSocket). Discovery remains 104/106. The protected Development Wizard session is absent on this laptop. Keep the existing operator recovery action open.
