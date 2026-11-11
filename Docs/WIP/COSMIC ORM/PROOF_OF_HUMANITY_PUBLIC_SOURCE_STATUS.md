@@ -83,3 +83,5 @@ local C# example. All 114 client tests passed. Public HTML was HTTP 200,
 239108 bytes, identical to the exact commit, SHA-256
 `8773ee77638a24988968db32a15d58069424ac2e03604639a03d244198e65666`.
 This verifies publication; functional browser interaction remains open.
+
+11 November UTC: the live Development WEB4 CQL Playground rendered 3 rows for the full native ProofOfHumanityOASIS public teaching preset and 2 rows for the native subset. Private MongoDB paired browser verification remains open.

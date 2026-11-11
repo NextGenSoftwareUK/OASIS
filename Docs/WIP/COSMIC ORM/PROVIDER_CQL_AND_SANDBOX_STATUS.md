@@ -595,3 +595,5 @@ Windows replay. Website698e102 updates existing card22 and preserves local
 eec1271ac6348716c32771bca66d4d8d229e31e1e1d251b00557d179cc229a09
 matches Git. Coverage119local/78liveHTTP/28functional browser. Browser and
 broader provider contracts remain open. [Evidence](DUCKDB_CQL_MVP.md).
+
+11 November UTC: the live Development WEB4 CQL Playground rendered 3 rows for the full native ProofOfHumanityOASIS public teaching preset and 2 rows for the native subset. Private MongoDB paired browser verification remains open.
