@@ -644,7 +644,7 @@ Status: missing account/configuration information,2 November2026. David approved
 
 ### Provider inventory count on separate public sites
 
-- **Status (2026-11-10)** Branch access resolved through local Git. The 234 provider-project inventory copy is verified live on founders.oasisomniverse.one (NFT Founders main e5dbb6b), www.oasisomniverse.one (Omniverse main f793074), web4.oasisomniverse.one (Web4Site main e086f21), and www.oasisweb4.com (main 6c5452e). [OurWorldSite](https://github.com/NextGenSoftwareUK/OurWorldSite/tree/work/provider-inventory-count) has a pushed source update; its live deployment remains unverified. Directory counts and full provider acceptance remain separately evidenced.
+- **Status (2026-11-10)** Branch access resolved through local Git. The 234 provider-project inventory copy is verified live on founders.oasisomniverse.one (NFT Founders main e5dbb6b), www.oasisomniverse.one (Omniverse main f793074), web4.oasisomniverse.one (Web4Site main e086f21), and www.oasisweb4.com (main 6c5452e). [OurWorldSite](https://ourworld.oasisomniverse.one/) main 8c5498f is verified live with the 234 Provider Projects pill and updated inventory copy (HTTP 200; old pill absent). Directory counts and full provider acceptance remain separately evidenced.
 - **David action** Closed for branch access. Site integration, deployment verification and the remaining count audits are agent-owned.
 - **Reason** Update the public inventory claims independently of backend acceptance. Preserve site ownership and existing deployment workflows.
 
