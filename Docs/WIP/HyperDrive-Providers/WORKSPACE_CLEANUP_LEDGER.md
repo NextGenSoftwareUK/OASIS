@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+11 November public provider inventory publication. Verified live HTML and registry names in memory, reused existing site checkouts and ran no local builds or package installs. No downloads, test results, temporary files or build outputs were retained.
+
 11 November Convex companion recovery CI. Job 130512352307 passed and stopped the owned Convex engine. The archive, test database, ephemeral keys, CLI install and build ran on a disposable Linux runner. No upload or local output was created.
 
 11 November Supabase pagination CI. GitHub job 130509010214 passed all three listing cases and removed the PostgreSQL container. The temporary PostgREST services, archive, seeded rows, ID manifest and build were confined to the disposable runner. No local artifacts or uploads were created.
