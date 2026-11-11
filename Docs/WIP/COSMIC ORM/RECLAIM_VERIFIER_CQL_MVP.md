@@ -104,3 +104,5 @@ is live at Web4Site 6c95279 with native and MongoDB instructions and a local
 C# query example. All 114 website tests passed. The live 230,997-byte HTML
 matched Git SHA-256 272edabde09f1ad5eb7936c47e33c28561e413abff40f74ba6e6c1eb5bf3b285.
 Interactive browser acceptance remains open.
+
+11 November UTC: Reclaim Protocol public teaching presets returned three full and two filtered rows in the live Development WEB4 CQL Playground. Original-owner paired browser verification remains open. No preparation or record saves.
