@@ -167,3 +167,5 @@ The immutable public publisher descriptor is prepared at
 `LocalState/COSMIC/HostedSourceRolloutCurrent/graph-studio-public-descriptor.json`
 (49 bytes, SHA256 `de20548bd9331b2a0484e84daf1f917588838c401ae2cda175de48129f97c13e`).
 It matches the original catalogue byte-for-byte; no live setting was changed.
+
+11 November UTC: The Graph Studio public indexing-status presets rendered 3 full and 2 subset rows in the live Development WEB4 CQL Playground. Private MongoDB paired browser verification and general entity queries remain open.

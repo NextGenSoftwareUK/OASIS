@@ -5452,3 +5452,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: Proof of Humanity public browser checks reused the existing demo visitor. No new avatar, local screenshot file, report, download, build output or environment was created.
 
 11 November UTC: Polygon ID public browser checks reused the existing demo visitor. No new avatar, local screenshot file, report, download, build output or environment was created.
+
+11 November UTC: The Graph Studio browser checks reused the existing demo visitor. No local report, screenshot file, build output, download or environment was created.
