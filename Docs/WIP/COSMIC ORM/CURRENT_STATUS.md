@@ -806,3 +806,5 @@ MidenOASIS public browser acceptance passed on 11 November UTC. The Development 
 HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 November UTC. Both Development full/subset presets rendered 3/2 public teaching records. Original-cohort private paired browser verification remains open.
 
 11 November UTC: the live Development WEB4 CQL Playground rendered 3 rows for the full native ProofOfHumanityOASIS public teaching preset and 2 rows for the native subset. Private MongoDB paired browser verification remains open.
+
+11 November UTC: the live Development WEB4 CQL Playground rendered 3 rows for the full native PolygonIDOASIS public schema preset and 2 rows for the native subset. Private MongoDB paired browser verification remains open.
