@@ -6232,3 +6232,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: probed four read-only requests against the existing configured Cosmos REST origin. Protected Railway configuration and responses were processed in memory. No protected values, fixtures, reports, builds or downloads were written. Temporary documentation index removed.
 
 11 November UTC: read bounded Railway build logs for failed PlanetScale rollout and observed new AvalancheGo WEB4 warmup. No local image, build, restore or download. Existing visitor renewal produced four protected journal files. Temporary documentation index removed.
+
+11 November UTC: streamed pinned NATS and Waku release archives through SHA-256 verification in memory. No archive, local image, build, restore or report retained. Temporary Git indices removed. Track ci-cosmic-web4-assets-74acdd1ffd until exact CI and release publication.
