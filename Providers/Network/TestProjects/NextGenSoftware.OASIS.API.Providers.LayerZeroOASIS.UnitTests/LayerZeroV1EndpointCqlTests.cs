@@ -84,7 +84,7 @@ public sealed class LayerZeroV1EndpointCqlTests
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token)
         {
             Assert.AreEqual(HttpMethod.Post, request.Method);
-            Assert.AreEqual("https://ethereum-rpc.publicnode.com/", request.RequestUri!.AbsoluteUri);
+            Assert.AreEqual("https://eth.drpc.org/", request.RequestUri!.AbsoluteUri);
             using var document = JsonDocument.Parse(await request.Content!.ReadAsByteArrayAsync(token));
             var body = document.RootElement;
             var method = body.GetProperty("method").GetString()!;

@@ -29,7 +29,7 @@ public sealed class LayerZeroV1EndpointQuerySource : KeyValueStorageProviderBase
 
     private static readonly Dictionary<string, Deployment> Reviewed = new(StringComparer.Ordinal)
     {
-        ["ethereum"] = new(new Uri("https://ethereum-rpc.publicnode.com/"), "0x1",
+        ["ethereum"] = new(new Uri("https://eth.drpc.org/"), "0x1",
             "0xd4e56740f876aef8c010b86a40d5f56745a118d0906a34e69aec8c0db1cb8fa3",
             "0x66a71dcef29a0ffbdbe3c6a460a3b5bc225cd675", 1, 101),
         ["polygon"] = new(new Uri("https://tenderly.rpc.polygon.community/"), "0x89",

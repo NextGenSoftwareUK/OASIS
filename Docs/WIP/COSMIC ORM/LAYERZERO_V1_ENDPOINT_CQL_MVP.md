@@ -109,3 +109,5 @@ is live at Web4Site 6c95279 with native and MongoDB instructions and a local
 C# query example. All 114 website tests passed. The live 230,997-byte HTML
 matched Git SHA-256 272edabde09f1ad5eb7936c47e33c28561e413abff40f74ba6e6c1eb5bf3b285.
 Interactive browser acceptance remains open.
+
+11 November UTC: the pinned Ethereum RPC returns pruned-history error 4444 for genesis. The reviewed Ethereum origin in the task branch now points to dRPC. Laptop checks passed all three canonical endpoint ABI calls and chain ID. Focused CI and hosted verification are pending. Preserved genesis, contract, network and source identities.
