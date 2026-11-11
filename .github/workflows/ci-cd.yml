@@ -11,6 +11,16 @@ env:
   NODE_VERSION: '24.x'
 
 jobs:
+  opensearch-native-cql:
+    uses: ./.github/workflows/opensearch-native-cql.yml
+    secrets:
+      PRIVATE_SUBMODULE_PAT: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+
+  surrealdb-native-cql:
+    uses: ./.github/workflows/surrealdb-native-cql.yml
+    secrets:
+      PRIVATE_SUBMODULE_PAT: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+
   arango-native-cql:
     uses: ./.github/workflows/arango-native-cql.yml
     secrets:
@@ -189,10 +199,15 @@ jobs:
             docker_args: -e JAVA_OPTS=-Darcadedb.server.rootPassword=playwithdata
           - name: SurrealDB
             project: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS.IntegrationTests
-            image: surrealdb/surrealdb:latest
+            image: surrealdb/surrealdb:v3.3.5
             ports: 8000:8000
             wait: 8000
             command: start --user root --pass root --bind 0.0.0.0:8000 memory
+            test_env: |
+              SURREALDBOASIS_ENDPOINT=http://127.0.0.1:8000
+              SURREALDBOASIS_USERNAME=root
+              SURREALDBOASIS_PASSWORD=root
+            filter: FullyQualifiedName~SurrealDBOASISIntegrationTests
 
           # Search engines.
           - name: OpenSearch
@@ -204,6 +219,7 @@ jobs:
               -e discovery.type=single-node
               -e DISABLE_SECURITY_PLUGIN=true
               -e OPENSEARCH_INITIAL_ADMIN_PASSWORD=Str0ngOasis!Pass
+            filter: FullyQualifiedName~OpenSearchOASISIntegrationTests
           - name: Elasticsearch
             project: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS.IntegrationTests
             image: docker.elastic.co/elasticsearch/elasticsearch:8.13.0
@@ -356,6 +372,15 @@ jobs:
             curl --fail-with-body --silent --show-error --max-time 15 --get               --data-urlencode "query=$sql" http://127.0.0.1:9000/exec |
               jq --exit-status '.ddl == "OK"'
           done
+
+      - name: Provision the SurrealDB test namespace and database
+        if: matrix.backend.name == 'SurrealDB'
+        shell: bash
+        run: |
+          curl --fail --silent --show-error --max-time 15 --user root:root \
+            --header 'Accept: application/json' --header 'Content-Type: text/plain' \
+            --data-binary 'DEFINE NAMESPACE IF NOT EXISTS oasis; USE NS oasis; DEFINE DATABASE IF NOT EXISTS oasis;' \
+            http://127.0.0.1:8000/sql | jq -e 'length > 0 and all(.[]; .status == "OK")'
 
       - name: Export test environment
         if: matrix.backend.test_env != ''

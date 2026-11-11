@@ -1,7 +1,7 @@
 """Reuse one original authenticated loopback SurrealKV store across native restarts."""
 from pathlib import Path
 import argparse, fcntl, shutil, hashlib, json, os, secrets, signal, socket, subprocess, time
-from cosmic_linux_mongo_service import owned_linux_mongo
+from cosmic_linux_mongo_service import isolated_ci_mongo, owned_linux_mongo
 import urllib.error, urllib.request
 import xml.etree.ElementTree as ET
 
@@ -89,7 +89,8 @@ def main():
                         proofs.append({'phase': name, 'passed': 1, 'sha256': hashlib.sha256(trx.read_bytes()).hexdigest()})
                     report(phase)
                     if phase == 'native-restart' and options.federated:
-                        with owned_linux_mongo(results) as mongo_env:
+                        mongo = isolated_ci_mongo() if options.ci_results else owned_linux_mongo(results)
+                        with mongo as mongo_env:
                             report('mongo-init', 'LinuxMongoDemoEnvironmentTests', mongo_env)
                             report('mongo-federation', 'SurrealDBMongoCqlNativeTests',
                                 {**mongo_env, 'COSMIC_SURREALDB_MONGO_SERVE': '1' if options.serve else '0'})
