@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
@@ -48,6 +49,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
     {
         private readonly HttpClient _http;
         private readonly string _baseUrl;
+        private readonly string _apiKey;
+        private readonly AuthenticationHeaderValue? _legacyAuthorization;
 
         private static readonly JsonSerializerOptions _jsonOpts = new JsonSerializerOptions
         {
@@ -65,13 +68,17 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
             // explicitly selects an empty path. Never guess or retry another route.
             if (restApiPath == null || restApiPath.Length > 0 && (!restApiPath.StartsWith("/") || restApiPath.Contains("?") || restApiPath.Contains("#")))
                 throw new ArgumentException("Supply a REST path or an explicit empty path.", nameof(restApiPath));
-            _baseUrl = supabaseUrl.TrimEnd('/') + restApiPath.TrimEnd('/');
+            if (!Uri.TryCreate(supabaseUrl, UriKind.Absolute, out var endpoint) ||
+                (endpoint.Scheme != Uri.UriSchemeHttps && !(endpoint.Scheme == Uri.UriSchemeHttp && endpoint.IsLoopback)) ||
+                endpoint.UserInfo.Length != 0 || endpoint.Query.Length != 0 || endpoint.Fragment.Length != 0)
+                throw new ArgumentException("Use HTTPS or loopback HTTP without embedded credentials, query or fragment.", nameof(supabaseUrl));
+            ArgumentException.ThrowIfNullOrWhiteSpace(apiKey);
+            _baseUrl = endpoint.AbsoluteUri.TrimEnd('/') + restApiPath.TrimEnd('/');
             _http = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
-            _http.DefaultRequestHeaders.Add("apikey", apiKey);
+            _apiKey = apiKey;
             if (!apiKey.StartsWith("sb_secret_", StringComparison.Ordinal) &&
                 !apiKey.StartsWith("sb_publishable_", StringComparison.Ordinal))
-                _http.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiKey}");
-            _http.DefaultRequestHeaders.Add("Prefer", "return=representation");
+                _legacyAuthorization = new AuthenticationHeaderValue("Bearer", apiKey);
             ProviderName = "SupabaseOASIS";
             ProviderDescription = "Supabase provider (PostgREST REST API over PostgreSQL)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.SupabaseOASIS);
@@ -85,7 +92,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
             var result = new OASISResult<bool>();
             try
             {
-                using var response = await _http.GetAsync($"{_baseUrl}/oasis_holons?select=id&limit=0").ConfigureAwait(false);
+                using var request = CreatePostgrestRequest(HttpMethod.Get, "oasis_holons?select=id&limit=0");
+                using var response = await _http.SendAsync(request).ConfigureAwait(false);
                 response.EnsureSuccessStatusCode();
                 using var rows = JsonDocument.Parse(await response.Content.ReadAsStringAsync().ConfigureAwait(false));
                 if (rows.RootElement.ValueKind != JsonValueKind.Array) throw new System.IO.InvalidDataException("Expected a PostgREST array.");
@@ -114,6 +122,17 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
 
         // ─── Helpers ─────────────────────────────────────────────────────────────
 
+        private HttpRequestMessage CreatePostgrestRequest(HttpMethod method, string path)
+        {
+            if (_legacyAuthorization == null && _http.DefaultRequestHeaders.Contains("Authorization"))
+                throw new InvalidOperationException("Supabase API keys require an HTTP client without default Authorization.");
+
+            var request = new HttpRequestMessage(method, $"{_baseUrl}/{path}");
+            request.Headers.Add("apikey", _apiKey);
+            request.Headers.Authorization = _legacyAuthorization;
+            return request;
+        }
+
         private static string Serialize(object obj) => JsonSerializer.Serialize(obj, _jsonOpts);
         private static T? Deserialize<T>(string json) => JsonSerializer.Deserialize<T>(json, _jsonOpts);
         private static List<T> DeserializeList<T>(string json) =>
@@ -128,10 +147,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
         {
             var columns = includeDeletion ? "id,username,email,is_deleted,data_json" : "id,username,email,data_json";
             var proposed = JsonSerializer.SerializeToNode(row, _jsonOpts);
-            using var request = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}/{table}?select={columns}")
-            {
-                Content = JsonContent(row)
-            };
+            using var request = CreatePostgrestRequest(HttpMethod.Post, $"{table}?select={columns}");
+            request.Content = JsonContent(row);
             request.Headers.Add("Prefer", "resolution=merge-duplicates,return=representation");
             try
             {
@@ -303,8 +320,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
             try
             {
                 var activeFilter = softDelete ? "&is_deleted=eq.false" : "";
-                using var request = new HttpRequestMessage(softDelete ? HttpMethod.Patch : HttpMethod.Delete,
-                    $"{_baseUrl}/oasis_avatars?id=eq.{id}{activeFilter}&select=id,is_deleted");
+                using var request = CreatePostgrestRequest(softDelete ? HttpMethod.Patch : HttpMethod.Delete,
+                    $"oasis_avatars?id=eq.{id}{activeFilter}&select=id,is_deleted");
                 request.Headers.Add("Prefer", "return=representation");
                 if (softDelete)
                     request.Content = JsonContent(new { is_deleted = true });
@@ -479,10 +496,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
                         (int)snapshot.HolonType, snapshot.IsDeleted, SerializeHolonPayload(node));
                 }).ToArray();
                 var expected = rows.ToDictionary(row => row.id, StringComparer.Ordinal);
-                using var req = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}/oasis_holons")
-                {
-                    Content = JsonContent(rows.Length == 1 ? (object)rows[0] : rows)
-                };
+                using var req = CreatePostgrestRequest(HttpMethod.Post, "oasis_holons");
+                req.Content = JsonContent(rows.Length == 1 ? (object)rows[0] : rows);
                 req.Headers.Add("Prefer", "resolution=merge-duplicates,return=representation");
                 try
                 {

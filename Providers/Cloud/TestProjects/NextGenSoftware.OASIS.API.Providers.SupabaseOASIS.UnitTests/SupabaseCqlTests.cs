@@ -219,18 +219,34 @@ public class SupabaseCqlTests
     [DataRow("sb_secret_test", false)]
     [DataRow("sb_publishable_test", false)]
     [DataRow("legacy-test-token", true)]
-    public void ApiKeyUsesTheHeaderForItsCredentialType(string key, bool bearer)
+    public async Task ApiKeyUsesTheHeaderForItsCredentialType(string key, bool bearer)
     {
-        using var http = new HttpClient();
-        _ = new SupabaseOASIS("https://synthetic.invalid", key, http);
-        Assert.AreEqual(key, http.DefaultRequestHeaders.GetValues("apikey").Single());
-        if (bearer)
+        using var reply = new Reply((request, _) =>
         {
-            Assert.AreEqual("Bearer", http.DefaultRequestHeaders.Authorization?.Scheme);
-            Assert.AreEqual(key, http.DefaultRequestHeaders.Authorization?.Parameter);
-        }
-        else
-            Assert.IsNull(http.DefaultRequestHeaders.Authorization);
+            if (request.RequestUri!.Host == "unrelated.invalid")
+            {
+                Assert.IsFalse(request.Headers.Contains("apikey"));
+                Assert.IsNull(request.Headers.Authorization);
+            }
+            else
+            {
+                var expected = request.RequestUri.Host == "other-project.invalid" ? "sb_secret_other" : key;
+                Assert.AreEqual(expected, request.Headers.GetValues("apikey").Single());
+                Assert.AreEqual(expected == key && bearer ? $"Bearer {key}" : null,
+                    request.Headers.Authorization?.ToString());
+            }
+            return Response("[]");
+        });
+        using var http = new HttpClient(reply);
+        var first = new SupabaseOASIS("https://synthetic.invalid", key, http);
+        var second = new SupabaseOASIS("https://other-project.invalid", "sb_secret_other", http);
+
+        Assert.IsFalse((await first.ActivateProviderAsync()).IsError);
+        Assert.IsFalse((await second.ActivateProviderAsync()).IsError);
+        using var unrelated = await http.GetAsync("https://unrelated.invalid");
+        unrelated.EnsureSuccessStatusCode();
+        Assert.IsFalse(http.DefaultRequestHeaders.Contains("apikey"));
+        Assert.IsNull(http.DefaultRequestHeaders.Authorization);
     }
 
     [DataTestMethod][DataRow("/rest/v1", "/rest/v1/oasis_holons")][DataRow("", "/oasis_holons")]

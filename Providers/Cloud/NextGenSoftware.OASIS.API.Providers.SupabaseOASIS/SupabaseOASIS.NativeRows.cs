@@ -69,8 +69,8 @@ public partial class SupabaseOASIS
         long? expectedTotal = null;
         do
         {
-            using var request = new HttpRequestMessage(HttpMethod.Get,
-                $"{_baseUrl}/{query}&order=id.asc&limit={(singleIdentity ? 1 : 100)}&offset={rows.Count}");
+            using var request = CreatePostgrestRequest(HttpMethod.Get,
+                $"{query}&order=id.asc&limit={(singleIdentity ? 1 : 100)}&offset={rows.Count}");
             request.Headers.Add("Prefer", "count=exact");
             using var response = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, token).ConfigureAwait(false);
             response.EnsureSuccessStatusCode();

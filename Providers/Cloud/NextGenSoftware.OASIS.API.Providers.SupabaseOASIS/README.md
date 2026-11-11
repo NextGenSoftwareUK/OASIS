@@ -2,6 +2,8 @@
 
 Connects the OASIS to Supabase via the PostgREST REST API. Uses Supabase's auto-generated REST interface to store OASIS holons and avatars in PostgreSQL. No Supabase SDK required — uses System.Net.Http. Compatible with Supabase cloud and self-hosted instances. Part of the OASIS HOT-Swappable Provider Architecture. Ecosystem: https://oasisomniverse.one
 
+Use an HTTPS deployment URL. Direct PostgREST test deployments may use loopback HTTP. The provider attaches the API key to each PostgREST request. Legacy keys also use bearer authorization. When supplying an HTTP client, disable automatic redirects and omit default Authorization for publishable and secret API keys. [Supabase API keys](https://supabase.com/docs/guides/getting-started/api-keys)
+
 ## Installation
 
 ```sh
