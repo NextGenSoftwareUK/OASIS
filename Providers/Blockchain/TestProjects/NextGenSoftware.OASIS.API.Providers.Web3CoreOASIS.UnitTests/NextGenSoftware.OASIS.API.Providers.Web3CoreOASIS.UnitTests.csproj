@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <Compile Include="../../../Shared/TestSupport/NativeCodeGenesisContract.cs" Link="TestSupport/NativeCodeGenesisContract.cs" />
     <Compile Include="../../../../Examples/CosmicCqlDemo/IdentityFederationApiHost.cs" Link="Demo/IdentityFederationApiHost.cs" />
     <Compile Include="../../../../Examples/CosmicCqlDemo/EvmV2OwnedWalkthrough.cs" Link="Demo/EvmV2OwnedWalkthrough.cs" />
     <Compile Include="../../../../Examples/CosmicCqlDemo/IdentityFederationWalkthrough.cs" Link="Demo/IdentityFederationWalkthrough.cs" />
