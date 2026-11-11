@@ -67,6 +67,7 @@ jobs:
           docker compose --file ../neon-fixture/docker-compose/docker-compose.yml config --format json > "$fixture_compose"
           python3 - "$fixture_compose" <<'PY'
           import json
+          import os
           import re
           import sys
           from pathlib import Path
@@ -89,20 +90,33 @@ jobs:
               "remote_storage={local_path='/tmp/neon-remote'}", config.read_text())
           assert count == 1
           config.write_text(content)
-          wrapper = Path("../neon-fixture/docker-compose/compute_wrapper/Dockerfile")
-          dockerfile = wrapper.read_text()
-          update = "apt-get update"
-          assert dockerfile.count(update) == 1
-          dockerfile = dockerfile.replace(update,
-              "sed -i -e 's|http://deb.debian.org/debian-security|https://security.debian.org/debian-security|g' "
-              "-e 's|http://deb.debian.org/debian|https://deb.debian.org/debian|g' /etc/apt/sources.list && "
-              "apt-get -o Acquire::https::No-Cache=true -o APT::Update::Error-Mode=any update")
-          wrapper.write_text(dockerfile)
+          compute = services["compute1"]
+          del compute["build"]
+          compute["image"] = "ghcr.io/neondatabase/compute-node-v16:" + os.environ["COMPUTE_TAG"]
+          compute["entrypoint"] = ["/usr/local/bin/compute_ctl"]
+          compute["command"] = [
+              "--pgdata", "/var/db/postgres/compute",
+              "-C", "postgresql://cloud_admin@localhost:55433/postgres",
+              "-b", "/usr/local/bin/postgres", "--compute-id", "oasis-ci",
+              "--config", "/var/db/postgres/configs/config.json", "--dev",
+          ]
           compose_path.write_text(json.dumps(topology))
           PY
           compose=(docker compose --project-name oasis-neon-fixture --file "$fixture_compose")
           trap '"${compose[@]}" down --volumes --remove-orphans' EXIT
-          "${compose[@]}" up --build --detach compute1
+          "${compose[@]}" up --detach pageserver safekeeper1 safekeeper2 safekeeper3
+          pageserver=http://127.0.0.1:9898
+          for attempt in {1..45}; do
+            if curl --fail --silent --max-time 2 "$pageserver/v1/tenant" >/dev/null; then break; fi
+            if [[ "$attempt" == 45 ]]; then "${compose[@]}" logs --tail 80; exit 1; fi
+            sleep 2
+          done
+          tenant="$(openssl rand -hex 16)"
+          timeline="$(openssl rand -hex 16)"
+          curl --fail-with-body --silent --show-error --max-time 20 -X PUT -H 'Content-Type: application/json' -d '{"mode":"AttachedSingle","generation":1,"tenant_conf":{}}' "$pageserver/v1/tenant/$tenant/location_config"
+          curl --fail-with-body --silent --show-error --max-time 60 -X POST -H 'Content-Type: application/json' -d "{\"new_timeline_id\":\"$timeline\",\"pg_version\":16}" "$pageserver/v1/tenant/$tenant/timeline/"
+          sed -i -e "s/TENANT_ID/$tenant/g" -e "s/TIMELINE_ID/$timeline/g" ../neon-fixture/docker-compose/compute_wrapper/var/db/postgres/configs/config.json
+          "${compose[@]}" up --detach compute1
           for attempt in {1..45}; do
             if "${compose[@]}" exec -T compute1 pg_isready -h 127.0.0.1 -p 55433 -U cloud_admin -d postgres; then break; fi
             if [[ "$attempt" == 45 ]]; then "${compose[@]}" logs --tail 80; exit 1; fi
