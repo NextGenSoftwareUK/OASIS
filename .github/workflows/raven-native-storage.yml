@@ -66,10 +66,10 @@ jobs:
           }
           trap cleanup EXIT
           if ! docker image inspect "$image" >/dev/null 2>&1; then image_owned=true; fi
-          container="$(docker run -d -p 127.0.0.1:18003:8080 \
-            -e RAVEN_Setup_Mode=None -e RAVEN_Security_UnsecuredAccessAllowed=PrivateNetwork \
+          container="$(docker run -d --network host \
+            -e RAVEN_Setup_Mode=None -e RAVEN_Security_UnsecuredAccessAllowed=Local \
             -e RAVEN_License_Eula_Accepted=true \
-            -e RAVEN_ServerUrl=http://0.0.0.0:8080 -e RAVEN_PublicServerUrl=http://127.0.0.1:18003 "$image")"
+            -e RAVEN_ServerUrl=http://127.0.0.1:18003 -e RAVEN_ServerUrl_Tcp=tcp://127.0.0.1:18888 "$image")"
           for attempt in {1..60}; do
             if curl --fail-with-body --silent --show-error --max-time 3 http://127.0.0.1:18003/build/version >"$fixture/version.json" 2>"$fixture/readiness.log"; then break; fi
             if [[ "$attempt" == 60 ]]; then cat "$fixture/readiness.log"; head -c 1024 "$fixture/version.json"; exit 1; fi

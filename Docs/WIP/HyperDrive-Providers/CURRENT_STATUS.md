@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November RavenDB run 43070985964 captured the HTTP 503 reason. The wildcard HTTP listener was outside the private unsecured range allowed by RavenDB 7.2.7. The corrected CI fixture binds HTTP and TCP directly to runner loopback and selects RavenDB Local mode. The SDK endpoint stays at 127.0.0.1:18003. Managed storage checks have yet to run.
+
 11 November RavenDB run 43070212406 started RavenDB 7.2.7, but its version endpoint kept returning HTTP 503 and managed tests did not run. The next candidate carries the same automated EULA setting already used by the repository RavenDB fixture and retains a bounded readiness error response if startup still fails.
 
 11 November RavenDB graph and deletion candidate. RavenDB.Client writes selected graph documents in one optimistic-concurrency session and confirms each change vector before publishing caller identity. Hard avatar deletion removes its detail in the same session. Metadata, import, owner export and delete operations report acknowledged results. The initial run 43070212406 remains in progress. The new candidate runs the existing write-ownership tests and both native storage modes.
