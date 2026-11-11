@@ -5952,3 +5952,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: removed and verified absence of the superseded SurrealDB -root, -activation and original generic tags after all associated workflows finished. Track the new -trx tag and existing -schema tag. Temporary Git indices removed. No local build, restore, runtime or download.
 
 11 November UTC: inspected SurrealDB schema and point-read CI failures in memory. Temporary Git index removed. No local build, restore, database or download.
+
+11 November UTC: track ci-cosmic-surrealdb-generic-b8df606442-v335 until both workflows finish. The native restart companion was still active. Temporary Git indices removed. No local build, restore, runtime or download.
