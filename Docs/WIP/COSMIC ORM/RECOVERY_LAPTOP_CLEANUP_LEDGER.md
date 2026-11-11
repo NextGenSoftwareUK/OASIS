@@ -5858,3 +5858,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: ci-cosmic-arango-9e82b80e72-verify tracks the corrected diagnostic. Remove it and the earlier -build tag after their respective runs are terminal and recorded. Temporary Git index removed. No local build, database or download.
 
 11 November UTC: removed ci-cosmic-arango-9e82b80e72-build after the diagnostic rejection and companion run were both terminal. Confirmed absence. The -verify tag remains active. Temporary Git index removed. No local build, backend, download or artifact copy.
+
+11 November UTC emergency cleanup: removed and verified absence of RecoveryLaptopMongo82/mongod.log (24,686,360 bytes) and PublicPolygonGatewaysCqlQualification/web4-admission.log (1,010,051 bytes). Retained admission.trx, fixture data and the unrelated running MongoDB Windows service. C: reported 42,259,324,928 bytes free after cleanup. Previously rejected recursive removals were not retried. No local build, restore or download started.
