@@ -37,32 +37,15 @@ public partial class CouchDBOASIS : ICosmicQueryStorageProvider
             if(IsVersionControlEnabled)return Error("CQL_CAPABILITY_UNSUPPORTED","Version-control mode requires a verified revision query policy.");
             cancellationToken.ThrowIfCancellationRequested();
             if(!IsProviderActivated)return Error("CQL_PROVIDER_INACTIVE","Activate configured CouchDB before querying.");
-            var rows=new List<IHolon>();long bytesRead=0;
-            foreach(var id in selected.Result)
+            var rows = new List<IHolon>();
+            var budget = new CqlPayloadBudget();
+            foreach (var id in selected.Result.Where(id => plan.Query.ReadAccess.CanRead(id, false, Guid.Empty)))
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var key=id.ToString("D");
-                using var request=new HttpRequestMessage(HttpMethod.Get,$"{_baseUrl}/{DbHolons}/{Uri.EscapeDataString(key)}?conflicts=true");
-                using var response=await _http.SendAsync(request,HttpCompletionOption.ResponseHeadersRead,cancellationToken);
-                if(response.StatusCode==HttpStatusCode.NotFound)continue;
-                response.EnsureSuccessStatusCode();
-                using var stream=await response.Content.ReadAsStreamAsync(cancellationToken);
-                using var payload=new MemoryStream();var buffer=new byte[8192];int count;
-                while((count=await stream.ReadAsync(buffer,cancellationToken))!=0)
-                {
-                    bytesRead=checked(bytesRead+count);
-                    if(bytesRead>4*1024*1024)return Error("CQL_QUERY_LIMIT","Complete native payload exceeds4MiB.");
-                    payload.Write(buffer,0,count);
-                }
-                using var document=JsonDocument.Parse(payload.ToArray());var native=document.RootElement;
-                if(!native.TryGetProperty("_id",out var nativeId) || nativeId.GetString()!=key ||
-                    !native.TryGetProperty("_rev",out var revision) || revision.ValueKind!=JsonValueKind.String || string.IsNullOrWhiteSpace(revision.GetString()))
-                    throw new InvalidDataException("Native CouchDB identity/revision acknowledgement differs from selected key.");
-                if(native.TryGetProperty("_conflicts",out var conflicts) &&
-                    (conflicts.ValueKind!=JsonValueKind.Array || conflicts.GetArrayLength()!=0))
-                    return Error("CQL_REVISION_AMBIGUOUS","Resolve native CouchDB conflicts before selecting records.");
-                var row=JsonSerializer.Deserialize<Holon>(native.GetRawText(),new JsonSerializerOptions{PropertyNameCaseInsensitive=true});
-                if(row==null || row.Id!=id || !plan.Query.ReadAccess.CanRead(row))throw new InvalidDataException("Native holon differs from read authority.");
+                var row = await ReadCqlHolonAsync(id, budget, cancellationToken);
+                if (row == null) continue;
+                if (!plan.Query.ReadAccess.CanRead(row))
+                    throw new InvalidDataException("Native holon differs from read authority.");
                 if(row.IsDeleted)continue;
                 row.Children=Array.Empty<IHolon>();rows.Add(row);
             }
@@ -72,8 +55,87 @@ public partial class CouchDBOASIS : ICosmicQueryStorageProvider
             cancellationToken.ThrowIfCancellationRequested();
             return new(Array.AsReadOnly<IHolon>(page)){IsLoaded=true,LoadedCount=page.Length};
         }
+        catch (CqlPayloadLimitException cause)
+        { return Error("CQL_QUERY_LIMIT", "Complete native payload exceeds 4 MiB.", cause); }
+        catch (CqlRevisionConflictException cause)
+        { return Error("CQL_REVISION_AMBIGUOUS", "Resolve native CouchDB conflicts before selecting records.", cause); }
         catch(OperationCanceledException cause) when(cancellationToken.IsCancellationRequested)
         {return Error("CQL_QUERY_CANCELLED","CouchDB query cancelled; no partial rows published.",cause);}
         catch(Exception cause){return Error("CQL_QUERY_FAILED","Native CouchDB query failed; no partial rows published.",cause);}
     }
+
+    protected async Task<OASISResult<bool>> VerifyPublicQueryProbeAsync(Guid id, CancellationToken cancellationToken)
+    {
+        IsProviderActivated = false;
+        try
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var row = await ReadCqlHolonAsync(id, new CqlPayloadBudget(), cancellationToken);
+            if (row == null || row.IsDeleted || !row.IsPublic)
+                throw new InvalidDataException("CouchDB did not return the configured public teaching record.");
+
+            cancellationToken.ThrowIfCancellationRequested();
+            IsProviderActivated = true;
+            return new(true);
+        }
+        catch (Exception cause)
+        {
+            return new()
+            {
+                IsError = true,
+                ErrorCount = 1,
+                ErrorCode = cause is OperationCanceledException && cancellationToken.IsCancellationRequested
+                    ? "CQL_QUERY_CANCELLED" : "CQL_QUERY_SOURCE_UNAVAILABLE",
+                Message = "CouchDB could not verify its public teaching record.",
+                Exception = cause
+            };
+        }
+    }
+
+    private async Task<Holon> ReadCqlHolonAsync(Guid id, CqlPayloadBudget budget, CancellationToken cancellationToken)
+    {
+        var key = id.ToString("D");
+        using var request = new HttpRequestMessage(HttpMethod.Get, $"{_baseUrl}/{DbHolons}/{Uri.EscapeDataString(key)}?conflicts=true");
+        using var response = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+        if (response.StatusCode == HttpStatusCode.NotFound) return null;
+        response.EnsureSuccessStatusCode();
+
+        await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+        using var payload = new MemoryStream();
+        var buffer = new byte[8192];
+        int count;
+        while ((count = await stream.ReadAsync(buffer, cancellationToken)) != 0)
+        {
+            budget.Consume(count);
+            payload.Write(buffer, 0, count);
+        }
+
+        using var document = JsonDocument.Parse(payload.ToArray());
+        var native = document.RootElement;
+        if (!native.TryGetProperty("_id", out var nativeId) || nativeId.GetString() != key ||
+            !native.TryGetProperty("_rev", out var revision) || revision.ValueKind != JsonValueKind.String ||
+            string.IsNullOrWhiteSpace(revision.GetString()))
+            throw new InvalidDataException("Native CouchDB identity or revision differs from the selected key.");
+        if (native.TryGetProperty("_conflicts", out var conflicts) &&
+            (conflicts.ValueKind != JsonValueKind.Array || conflicts.GetArrayLength() != 0))
+            throw new CqlRevisionConflictException();
+
+        var row = JsonSerializer.Deserialize<Holon>(native.GetRawText(), new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        if (row == null || row.Id != id)
+            throw new InvalidDataException("Native holon differs from the selected key.");
+        return row;
+    }
+
+    private sealed class CqlPayloadBudget
+    {
+        private int bytesRead;
+        public void Consume(int count)
+        {
+            bytesRead = checked(bytesRead + count);
+            if (bytesRead > 4 * 1024 * 1024) throw new CqlPayloadLimitException();
+        }
+    }
+
+    private sealed class CqlPayloadLimitException : Exception { }
+    private sealed class CqlRevisionConflictException : Exception { }
 }
