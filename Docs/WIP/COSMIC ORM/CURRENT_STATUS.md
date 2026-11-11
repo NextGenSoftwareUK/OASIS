@@ -1065,3 +1065,5 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 11 November UTC: solution CI 43007093453 passed enrollment, full production build and WEB4-WEB10 GraphQL on 4a3118bd93. Before push, Development advanced to 2c11a120ae with HyperDrive's verified IPFS catalogue publication fix. Native Kubo CI 43008574348 passed eight overlapping saves with exact readback through a fresh provider. The two-file solution candidate 7de3c00dad now includes that base and is submitted to remote CI. Cross-instance IPFS writers and historical fixture recovery remain open.
 
 11 November UTC: solution candidate 7de3c00dad is running in CI 43009278058 on Development 2c11a120ae. Railway a1749dd8 is queued for the IPFS publication fix. Live WEB4 remains on c686a8618d.
+
+11 November UTC: HyperlaneOASIS indexed message observation presets returned 3 full and 2 filtered rows in the live Development WEB4 CQL Playground. Original-owner paired browser verification remains open.

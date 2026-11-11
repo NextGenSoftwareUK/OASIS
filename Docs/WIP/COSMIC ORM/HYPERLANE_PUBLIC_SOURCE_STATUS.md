@@ -151,3 +151,5 @@ links pinned tobackendcc95932bd. All119 website controls pass. Public HTTP200
 HTML248913B SHA256e98bb31b143f81791ff94faa96b6459da5ed79bf63adecf9139f7827b2708848
 matches the exact committed blob. Compact receipt retained; no downloaded HTML,
 new environment or accepted cohort replay. Browser interaction remains open.
+
+11 November UTC: HyperlaneOASIS indexed message observation presets returned 3 full and 2 filtered rows in the live Development WEB4 CQL Playground. Original-owner paired browser verification remains open.
