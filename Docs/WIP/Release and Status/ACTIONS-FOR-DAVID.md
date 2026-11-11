@@ -575,7 +575,7 @@ Status: missing account/configuration information,2 November2026. David approved
 
 ### EOSIO / Antelope native write acceptance
 
-- **Build CI access (2026-11-11)** The draft PR path returned HTTP 403 on 10 November. The provider branch now runs the same pinned Linux compiler directly in [GitHub Actions](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43025034876). No owner action is needed for this build. The provider agent owns build verification and artifact review.
+- **Build verification (2026-11-11, complete)** The pinned compiler [built the matching ABI and WASM](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43025526058). Both hashes and all three avatar-detail actions were verified. The separate test deployment access below remains open.
 
 - **Status (9 November 2026)** Open. The provider build passed. Public chain reads do not exercise signed contract writes.
 - **Action** If a retained Antelope test deployment exists, identify its RPC endpoint, chain ID and deployed OASIS contract account. Make a signer authorized for that test account available through the existing secret channel. Keep credentials out of the repo and chat.

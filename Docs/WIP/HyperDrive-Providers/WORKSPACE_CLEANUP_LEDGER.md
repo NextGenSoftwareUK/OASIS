@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+11 November successful Antelope build. Job 130539157022 removed the CDT download and published an 8,222-byte ABI/WASM archive with one-day retention. Verified the archive in memory and retained only the two tracked deployment files. No local compiler, archive or temporary files were left.
+
 11 November Antelope build CI. Job 130537519606 verified and installed the pinned CDT package on its disposable runner and removed the download. It failed in the WASM linker and did not upload ABI or WASM. No local installation or build outputs were created.
 
 11 November successful Neon compute CI. GitHub job 130527402749 removed the owned compute, pageserver, three safekeepers, storage broker and their network. The disposable runner held the images, database, build and test receipts. No local artifacts or uploaded reports were created.

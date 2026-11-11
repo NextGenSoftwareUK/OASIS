@@ -72,6 +72,10 @@
                 {
                     "name": "info",
                     "type": "string"
+                },
+                {
+                    "name": "isDeleted",
+                    "type": "bool$"
                 }
             ]
         },
@@ -104,6 +108,20 @@
                 {
                     "name": "entityId",
                     "type": "int32"
+                }
+            ]
+        },
+        {
+            "name": "harddetail",
+            "base": "",
+            "fields": [
+                {
+                    "name": "entityId",
+                    "type": "int32"
+                },
+                {
+                    "name": "holonId",
+                    "type": "string"
                 }
             ]
         },
@@ -154,6 +172,24 @@
             ]
         },
         {
+            "name": "setdetail",
+            "base": "",
+            "fields": [
+                {
+                    "name": "entityId",
+                    "type": "int32"
+                },
+                {
+                    "name": "holonId",
+                    "type": "string"
+                },
+                {
+                    "name": "info",
+                    "type": "string"
+                }
+            ]
+        },
+        {
             "name": "setholon",
             "base": "",
             "fields": [
@@ -174,6 +210,20 @@
                 {
                     "name": "entityId",
                     "type": "int32"
+                }
+            ]
+        },
+        {
+            "name": "softdetail",
+            "base": "",
+            "fields": [
+                {
+                    "name": "entityId",
+                    "type": "int32"
+                },
+                {
+                    "name": "holonId",
+                    "type": "string"
                 }
             ]
         },
@@ -210,6 +260,11 @@
             "ricardian_contract": ""
         },
         {
+            "name": "harddetail",
+            "type": "harddetail",
+            "ricardian_contract": ""
+        },
+        {
             "name": "hardholon",
             "type": "hardholon",
             "ricardian_contract": ""
@@ -220,6 +275,11 @@
             "ricardian_contract": ""
         },
         {
+            "name": "setdetail",
+            "type": "setdetail",
+            "ricardian_contract": ""
+        },
+        {
             "name": "setholon",
             "type": "setholon",
             "ricardian_contract": ""
@@ -227,6 +287,11 @@
         {
             "name": "softavatar",
             "type": "softavatar",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "softdetail",
+            "type": "softdetail",
             "ricardian_contract": ""
         },
         {
@@ -258,7 +323,68 @@
             "key_types": []
         }
     ],
-    "ricardian_clauses": [],
+    "ricardian_clauses": [
+        {
+            "id": "Intent",
+            "body": "The intention of the authors and invoker of this smart contract is to ..."
+        },
+        {
+            "id": "Term",
+            "body": "This Contrct expires at the conclusion of code execution."
+        },
+        {
+            "id": "Warranty",
+            "body": "{{ name }} shall uphold its Obligations under this Contract in a timely and workmanlike manner, using knowledge and recommendations for performing the services which meet generally acceptable standards set forth by Telos Blockchain Network Block Producers."
+        },
+        {
+            "id": "Default",
+            "body": "The occurrence of any of the following shall constitute a material default under this Contract:"
+        },
+        {
+            "id": "Remedies",
+            "body": "In addition to any and all other rights a party may have available according to law, if a party defaults by failing to substantially perform any provision, term or condition of this Contract, the other party may terminate the Contract by providing written notice to the defaulting party. This notice shall describe with sufficient detail the nature of the default. The party receiving such notice shall promptly be removed from being a Block Producer and this Contract shall be automatically terminated.\""
+        },
+        {
+            "id": "Force Majeure",
+            "body": "If performance of this Contract or any obligation under this Contract is prevented, restricted, or interfered with by causes beyond either party's reasonable control (\\\"Force Majeure\\\"), and if the party unable to carry out its obligations gives the other party prompt written notice of such event, then the obligations of the party invoking this provision shall be suspended to the extent necessary by such event. The term Force Majeure shall include, without limitation, acts of God, fire, explosion, vandalism, storm or other similar occurrence, orders or acts of military or civil authority, or by national emergencies, insurrections, riots, or wars, or strikes, lock-outs, work stoppages, or supplier failures. The excused party shall use reasonable efforts under the circumstances to avoid or remove such causes of non-performance and shall proceed to perform with reasonable dispatch whenever such causes are removed or ceased. An act or omission shall be deemed within the reasonable control of a party if committed, omitted, or caused by such party, or its employees, officers, agents, or affiliates.\""
+        },
+        {
+            "id": "Dispute Resolution",
+            "body": "Any controversies or disputes arising out of or relating to this Contract will be resolved by binding arbitration under Telos Blockchain Network Arbitration Rules and Procedures. The arbitrator's award will be final.\""
+        },
+        {
+            "id": "Entire Agreement",
+            "body": "This Contract contains the entire agreement of the parties, and there are no other promises or conditions in any other agreement whether oral or written concerning the subject matter of this Contract. This Contract supersedes any prior written or oral agreements between the parties, except for the Telos Blockchain Network Core Governance Documents\""
+        },
+        {
+            "id": "Severability",
+            "body": "If any provision of this Contract will be held to be invalid or unenforceable for any reason, the remaining provisions will continue to be valid and enforceable. If a court finds that any provision of this Contract is invalid or unenforceable, but that by limiting such provision it would become valid and enforceable, then such provision will be deemed to be written, construed, and enforced as so limited.\""
+        },
+        {
+            "id": "Governing Law",
+            "body": "This Contract shall be construed in accordance with the Telos Blockchain Network Core Governance Documents, previously referenced."
+        },
+        {
+            "id": "Notice",
+            "body": "Any notice or communication required or permitted under this Contract shall be sufficiently given if delivered to a verifiable email address or to such other email address as one party may have publicly furnished in writing, or published on a broadcast contract provided by this blockchain for purposes of providing notices of this type."
+        },
+        {
+            "id": "Waiver of Contractual Right",
+            "body": "The failure of either party to enforce any provision of this Contract shall not be construed as a waiver or limitation of that party's right to subsequently enforce and compel strict compliance with every provision of this Contract."
+        },
+        {
+            "id": "Arbitrator's Fees to Prevailing Party",
+            "body": "In any action arising hereunder or any separate action pertaining to the validity of this Agreement, both sides shall pay half the initial cost of arbitration, and the prevailing party shall be awarded reasonable arbitrator's fees and costs."
+        },
+        {
+            "id": "Construction and Interpretation",
+            "body": "The rule requiring construction or interpretation against the drafter is waived. The document shall be deemed as if it were drafted by both parties in a mutual effort.\""
+        },
+        {
+            "id": "In Witness Whereof",
+            "body": "IN WITNESS WHEREOF, the parties hereto have caused this Agreement to be executed by themselves or their duly authorized representatives as of the date of execution, and authorized as proven by the cryptographic signature on the transaction that invokes this contract."
+        }
+    ],
     "variants": [],
     "action_results": []
 }
