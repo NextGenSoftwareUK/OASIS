@@ -5630,3 +5630,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: Neon cutover and initial Polkadot check reused the existing browser visitor and Railway CLI. No new avatar, download, local report, screenshot file or build output.
 
 11 November UTC: Polkadot post-cutover browser checks reused the existing demo visitor. No new avatar, saved holon, report, download or local build output.
+
+11 November UTC: candidate and CI tag used temporary Git indexes that were removed. Remove ci-cosmic-solution-9feb95e81b-build after CI 43000041362 is terminal. No local build, restore, artifact download or runtime install.
