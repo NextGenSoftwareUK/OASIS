@@ -1,6 +1,6 @@
 # Current provider status
 
-11 November Milvus native runs 43076942965 and 43077349886 provisioned the real engine. The baseline passed nine checks before graph save. The graph candidate passed 13 per mode, including graph and point update, then stopped at parent collection acknowledgement. The next candidate returns exact collection and import counts, requests Strong consistency explicitly, verifies native deletion responses, and checks fixture cleanup independently.
+11 November Milvus storage [run 43078055694](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43078055694) at 652853ec7f passed 52/52 through the shipping REST v2 adapter on Milvus 2.6.26. All 14 write-ownership checks passed. Each mode independently removed five exact owned holon tombstones and confirmed all three collections empty. Hosted storage, historical versions and vector-specific capabilities remain open.
 
 11 November Milvus graph candidate. Selected rows share one native REST upsert, and the adapter checks the exact returned ID set and count before publishing caller IDs. The existing write-ownership checks cover the staged payload and failure handling. Initial native run 43076942965 is still in progress. Native graph and lifecycle verification remain open.
 

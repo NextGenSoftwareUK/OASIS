@@ -1,6 +1,8 @@
 # Current resource and cleanup ledger
 
-11 November Milvus runs 43076942965 and 43077349886 removed the disposable containers, volumes, images and fixtures after managed checks. The next candidate also verifies empty native collections on success. No local runtime, build or download was created.
+11 November Milvus run 43078055694 independently removed ten owned holon tombstones and verified three empty collections per mode. CI removed both containers, volumes, newly pulled images and fixtures. No local build, runtime or download was created.
+
+11 November Milvus run 43077349886 also removed its disposable resources after the parent-query failure.
 
 11 November Milvus storage uses separate disposable CI containers and temporary configuration/checkpoint directories. The workflow removes the containers, volumes, newly pulled images and fixtures on exit. Cleanup confirmation is pending. No Windows build or download was created.
 
