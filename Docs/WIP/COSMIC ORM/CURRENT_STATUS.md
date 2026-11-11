@@ -1409,3 +1409,5 @@ KeyDB combined orchestration CI 43051825070 is active. Railway is building b8df6
 11 November UTC: Dragonfly CI 43053188998 passed the pinned 2.0.2 encrypted native CQL, checkpoint, restart and MongoDB federation checks. The runner verified the native process and preserved the source across restart. Standard matrix routing and hosted TLS acceptance remain open.
 
 11 November UTC: Development ea54de967e carries the verified four-file KeyDB standard CI routing. Generic storage and native restart/federation passed in combined CI 43051825070. Hosted TLS remains open.
+
+11 November UTC: Dragonfly candidate 04eb5a3c9b routes generic storage to the standard matrix and runs the qualified native checkpoint/restart and federation workflow separately. Combined diagnostic 782f0b3408 is submitted on Development ea54de967e. Results and hosted TLS acceptance remain open.
