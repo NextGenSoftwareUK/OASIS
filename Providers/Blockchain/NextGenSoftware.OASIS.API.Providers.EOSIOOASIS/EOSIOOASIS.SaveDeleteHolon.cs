@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -143,46 +143,24 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             return result;
         }
 
-        public override OASISResult<IHolon> DeleteHolon(Guid id)
-        {
-            if (id == null)
-                throw new ArgumentNullException(nameof(id));
-
-            var result = new OASISResult<IHolon>();
-            try
-            {
-                _holonRepository.DeleteHard(id).Wait();
-                result.IsSaved = true;
-                result.IsError = false;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, ex.Message);
-            }
-
-            return result;
-        }
+        public override OASISResult<IHolon> DeleteHolon(Guid id) => DeleteHolonAsync(id).GetAwaiter().GetResult();
 
         public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
         {
-            if (id == null)
-                throw new ArgumentNullException(nameof(id));
+            if (id == Guid.Empty)
+                throw new ArgumentException("A nonempty holon ID is required.", nameof(id));
 
             var result = new OASISResult<IHolon>();
             try
             {
-                //if (softDelete)
-                //    await _holonRepository.DeleteSoft(id);
-                //else
-                //    await _holonRepository.DeleteHard(id);
-
-                await _holonRepository.DeleteHard(id);
-                result.IsSaved = true;
+                await _holonRepository.DeleteHard(id).ConfigureAwait(false);
+                result.IsDeleted = true;
+                result.DeletedCount = 1;
                 result.IsError = false;
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, ex.Message);
+                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
             }
 
             return result;

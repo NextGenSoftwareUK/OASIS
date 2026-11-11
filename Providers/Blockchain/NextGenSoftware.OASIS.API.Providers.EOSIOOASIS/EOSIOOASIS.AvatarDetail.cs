@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -410,46 +410,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
         }
 
         public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail Avatar)
-        {
-            if (Avatar == null)
-                throw new ArgumentNullException(nameof(Avatar));
-
-            var result = new OASISResult<IAvatarDetail>();
-            try
-            {
-                var avatarDetailInfo = OasisJson.Serialize<object>(Avatar);
-
-                // Check if avatar with such Id exists, if yes - perform updating, otherwise perform creating
-                var existAvatarDetail = _avatarDetailRepository.Read(Avatar.Id).Result;
-                if (existAvatarDetail != null)
-                {
-                    _avatarRepository.Update(new AvatarDto
-                    {
-                        Info = avatarDetailInfo
-                    }, Avatar.Id).Wait();
-                }
-                else
-                {
-                    var avatarDetailEntityId = HashUtility.GetNumericHash(Avatar.Id);
-                    _avatarDetailRepository.Create(new AvatarDetailDto
-                    {
-                        Info = avatarDetailInfo,
-                        AvatarId = Avatar.Id.ToString(),
-                        EntityId = avatarDetailEntityId
-                    }).Wait();
-                }
-
-                result.Result = Avatar;
-                result.IsSaved = true;
-                result.IsError = false;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, GetEOSExceptionDetails(ex));
-            }
-
-            return result;
-        }
+            => SaveAvatarDetailAsync(Avatar).GetAwaiter().GetResult();
 
         public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail Avatar)
         {
@@ -459,27 +420,18 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             var result = new OASISResult<IAvatarDetail>();
             try
             {
-                var avatarDetailInfo = OasisJson.Serialize<object>(Avatar);
+                var detail = new AvatarDetailDto
+                {
+                    Info = OasisJson.Serialize<object>(Avatar),
+                    AvatarId = Avatar.Id.ToString(),
+                    EntityId = HashUtility.GetNumericHash(Avatar.Id)
+                };
 
-                // Check if avatar with such Id exists, if yes - perform updating, otherwise perform creating
-                var existAvatarDetail = await _avatarDetailRepository.Read(Avatar.Id);
-                if (existAvatarDetail != null)
-                {
-                    await _avatarRepository.Update(new AvatarDto
-                    {
-                        Info = avatarDetailInfo
-                    }, Avatar.Id);
-                }
+                var existingDetail = await _avatarDetailRepository.Read(Avatar.Id).ConfigureAwait(false);
+                if (existingDetail == null)
+                    await _avatarDetailRepository.Create(detail).ConfigureAwait(false);
                 else
-                {
-                    var avatarDetailEntityId = HashUtility.GetNumericHash(Avatar.Id);
-                    await _avatarDetailRepository.Create(new AvatarDetailDto
-                    {
-                        Info = avatarDetailInfo,
-                        AvatarId = Avatar.Id.ToString(),
-                        EntityId = avatarDetailEntityId
-                    });
-                }
+                    await _avatarDetailRepository.Update(detail, Avatar.Id).ConfigureAwait(false);
 
                 result.Result = Avatar;
                 result.IsSaved = true;
@@ -493,30 +445,32 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             return result;
         }
 
-        public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true)
-        {
-            if (id == null)
-                throw new ArgumentNullException(nameof(id));
+        public Task<OASISResult<bool>> HardDeleteAvatarDetailAsync(Guid id)
+            => DeleteAvatarDetailAsync(id, softDelete: false);
 
+        public async Task<OASISResult<bool>> DeleteAvatarDetailAsync(Guid id, bool softDelete = true)
+        {
             var result = new OASISResult<bool>();
             try
             {
                 if (softDelete)
-                    _avatarRepository.DeleteSoft(id).Wait();
+                    await _avatarDetailRepository.DeleteSoft(id).ConfigureAwait(false);
                 else
-                    _avatarRepository.DeleteHard(id).Wait();
-
+                    await _avatarDetailRepository.DeleteHard(id).ConfigureAwait(false);
                 result.Result = true;
-                result.IsSaved = true;
-                result.IsError = false;
+                result.IsDeleted = true;
+                result.DeletedCount = 1;
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, GetEOSExceptionDetails(ex));
+                OASISErrorHandling.HandleError(ref result, GetEOSExceptionDetails(ex), ex);
             }
 
             return result;
         }
+
+        public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true)
+            => DeleteAvatarAsync(id, softDelete).GetAwaiter().GetResult();
 
         public override OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true)
         {
@@ -542,7 +496,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                     await _avatarRepository.DeleteHard(id);
 
                 result.Result = true;
-                result.IsSaved = true;
+                result.IsDeleted = true;
+                result.DeletedCount = 1;
                 result.IsError = false;
             }
             catch (Exception ex)

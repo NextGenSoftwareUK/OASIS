@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -51,7 +51,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.EOSClien
         public async Task<GetTableRowsResponseDto<T>> GetTableRows<T>(GetTableRowsRequestDto getTableRowsRequest)
         {
             return await SendRequest<GetTableRowsResponseDto<T>, GetTableRowsRequestDto>(getTableRowsRequest,
-                HttpMethod.Post, new Uri(_eosHostNodeUri + "v1/chain/get_table_rows"));
+                HttpMethod.Post, new Uri(_eosHostNodeUri + "v1/chain/get_table_rows")).ConfigureAwait(false);
         }
 
         public async Task<string[]> GetCurrencyBalance(GetCurrencyBalanceRequestDto getCurrencyBalanceRequestDto)
@@ -190,7 +190,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.EOSClien
         {
             // Real EOSIO implementation: Call EOSIO blockchain API to get currency balance
             return await SendRequest<string[], GetCurrencyBalanceRequestDto>(getCurrencyBalanceRequestDto,
-                HttpMethod.Post, new Uri(_eosHostNodeUri + "v1/chain/get_currency_balance"));
+                HttpMethod.Post, new Uri(_eosHostNodeUri + "v1/chain/get_currency_balance")).ConfigureAwait(false);
         }
 
         public async Task<object> GetHolonByProviderKeyAsync(string providerKey)
@@ -210,7 +210,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.EOSClien
                 };
                 
                 var contractResponse = await SendRequest<object, object>(contractRequest,
-                    HttpMethod.Post, new Uri(_eosHostNodeUri + "v1/chain/get_table_rows"));
+                    HttpMethod.Post, new Uri(_eosHostNodeUri + "v1/chain/get_table_rows")).ConfigureAwait(false);
                 
                 // Parse REAL EOSIO smart contract data
                 return ParseEOSIOToHolon(contractResponse, providerKey);
@@ -241,7 +241,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.EOSClien
                 };
                 
                 var contractResponse = await SendRequest<object, object>(contractRequest,
-                    HttpMethod.Post, new Uri(_eosHostNodeUri + "v1/chain/get_table_rows"));
+                    HttpMethod.Post, new Uri(_eosHostNodeUri + "v1/chain/get_table_rows")).ConfigureAwait(false);
                 
                 // Parse REAL EOSIO smart contract data
                 var holon = ParseEOSIOToHolon(contractResponse, parentId.ToString());
@@ -277,7 +277,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.EOSClien
                 };
                 
                 var contractResponse = await SendRequest<object, object>(contractRequest,
-                    HttpMethod.Post, new Uri(_eosHostNodeUri + "v1/chain/get_table_rows"));
+                    HttpMethod.Post, new Uri(_eosHostNodeUri + "v1/chain/get_table_rows")).ConfigureAwait(false);
                 
                 // Parse REAL EOSIO smart contract data
                 var holon = ParseEOSIOToHolon(contractResponse, providerKey);
@@ -353,7 +353,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.EOSClien
                 };
                 
                 var avatarResponse = await SendRequest<object, object>(avatarRequest,
-                    HttpMethod.Post, new Uri(_eosHostNodeUri + "v1/chain/get_table_rows"));
+                    HttpMethod.Post, new Uri(_eosHostNodeUri + "v1/chain/get_table_rows")).ConfigureAwait(false);
                 
                 // Get avatar details from smart contract
                 var avatarDetailRequest = new
@@ -367,7 +367,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.EOSClien
                 };
                 
                 var avatarDetailResponse = await SendRequest<object, object>(avatarDetailRequest,
-                    HttpMethod.Post, new Uri(_eosHostNodeUri + "v1/chain/get_table_rows"));
+                    HttpMethod.Post, new Uri(_eosHostNodeUri + "v1/chain/get_table_rows")).ConfigureAwait(false);
                 
                 // Get holons for avatar from smart contract
                 var holonsRequest = new
@@ -382,7 +382,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.EOSClien
                 };
                 
                 var holonsResponse = await SendRequest<object, object>(holonsRequest,
-                    HttpMethod.Post, new Uri(_eosHostNodeUri + "v1/chain/get_table_rows"));
+                    HttpMethod.Post, new Uri(_eosHostNodeUri + "v1/chain/get_table_rows")).ConfigureAwait(false);
                 
                 // Parse REAL EOSIO smart contract data for complete avatar export
                 return ParseEOSIOToAvatarExport(avatarResponse, avatarDetailResponse, holonsResponse, avatarId);
@@ -521,7 +521,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.EOSClien
                     limit = 1
                 };
 
-                var usernameIndexResp = await SendRequest<object, object>(usernameIndexQuery, HttpMethod.Post, new Uri(_eosHostNodeUri + "v1/chain/get_table_rows"));
+                var usernameIndexResp = await SendRequest<object, object>(usernameIndexQuery, HttpMethod.Post, new Uri(_eosHostNodeUri + "v1/chain/get_table_rows")).ConfigureAwait(false);
                 var rows = (Newtonsoft.Json.Linq.JArray)Newtonsoft.Json.Linq.JObject.Parse(Newtonsoft.Json.JsonConvert.SerializeObject(usernameIndexResp))["rows"];
                 if (rows == null || rows.Count == 0) return null;
                 var avatarIdStr = rows[0]["id"]?.ToString();
@@ -551,7 +551,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.EOSClien
                     limit = 1
                 };
 
-                var emailIndexResp = await SendRequest<object, object>(emailIndexQuery, HttpMethod.Post, new Uri(_eosHostNodeUri + "v1/chain/get_table_rows"));
+                var emailIndexResp = await SendRequest<object, object>(emailIndexQuery, HttpMethod.Post, new Uri(_eosHostNodeUri + "v1/chain/get_table_rows")).ConfigureAwait(false);
                 var rows = (Newtonsoft.Json.Linq.JArray)Newtonsoft.Json.Linq.JObject.Parse(Newtonsoft.Json.JsonConvert.SerializeObject(emailIndexResp))["rows"];
                 if (rows == null || rows.Count == 0) return null;
                 var avatarIdStr = rows[0]["id"]?.ToString();
@@ -577,7 +577,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.EOSClien
                     limit = 1000
                 };
 
-                return await SendRequest<object, object>(holonsRequest, HttpMethod.Post, new Uri(_eosHostNodeUri + "v1/chain/get_table_rows"));
+                return await SendRequest<object, object>(holonsRequest, HttpMethod.Post, new Uri(_eosHostNodeUri + "v1/chain/get_table_rows")).ConfigureAwait(false);
             }
             catch (Exception)
             {
@@ -614,7 +614,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.EOSClien
                                         upper_bound = holonParam.Name,
                                         limit = 100
                                     };
-                                    var resp = await SendRequest<object, object>(holonByName, HttpMethod.Post, new Uri(_eosHostNodeUri + "v1/chain/get_table_rows"));
+                                    var resp = await SendRequest<object, object>(holonByName, HttpMethod.Post, new Uri(_eosHostNodeUri + "v1/chain/get_table_rows")).ConfigureAwait(false);
                                     results.Add(resp);
                                 }
 
@@ -622,7 +622,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.EOSClien
                                 if (holonParam.Description)
                                 {
                                     var holonAll = new { code = "oasiscontract", scope = "oasiscontract", table = "holons", limit = 1000 };
-                                    var resp = await SendRequest<object, object>(holonAll, HttpMethod.Post, new Uri(_eosHostNodeUri + "v1/chain/get_table_rows"));
+                                    var resp = await SendRequest<object, object>(holonAll, HttpMethod.Post, new Uri(_eosHostNodeUri + "v1/chain/get_table_rows")).ConfigureAwait(false);
                                     results.Add(resp);
                                 }
                         }
@@ -644,7 +644,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.EOSClien
                                         upper_bound = avatarParam.Username,
                                         limit = 1
                                     };
-                                    var resp = await SendRequest<object, object>(avatarByUsername, HttpMethod.Post, new Uri(_eosHostNodeUri + "v1/chain/get_table_rows"));
+                                    var resp = await SendRequest<object, object>(avatarByUsername, HttpMethod.Post, new Uri(_eosHostNodeUri + "v1/chain/get_table_rows")).ConfigureAwait(false);
                                     results.Add(resp);
                                 }
 
@@ -661,7 +661,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.EOSClien
                                         upper_bound = avatarParam.Email,
                                         limit = 1
                                     };
-                                    var resp = await SendRequest<object, object>(avatarByEmail, HttpMethod.Post, new Uri(_eosHostNodeUri + "v1/chain/get_table_rows"));
+                                    var resp = await SendRequest<object, object>(avatarByEmail, HttpMethod.Post, new Uri(_eosHostNodeUri + "v1/chain/get_table_rows")).ConfigureAwait(false);
                                     results.Add(resp);
                                 }
                         }

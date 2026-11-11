@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -81,6 +81,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                         return result;
                     }
                     result.Result = deleteResult.Result;
+                    result.IsDeleted = deleteResult.IsDeleted;
+                    result.DeletedCount = deleteResult.DeletedCount;
                     result.IsError = false;
                     result.Message = "Avatar deleted successfully by email from EOSIO";
                 }
@@ -129,6 +131,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                         return result;
                     }
                     result.Result = deleteResult.Result;
+                    result.IsDeleted = deleteResult.IsDeleted;
+                    result.DeletedCount = deleteResult.DeletedCount;
                     result.IsError = false;
                     result.Message = "Avatar deleted successfully by username from EOSIO";
                 }
@@ -181,6 +185,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                         return result;
                     }
                     result.Result = deleteResult.Result;
+                    result.IsDeleted = deleteResult.IsDeleted;
+                    result.DeletedCount = deleteResult.DeletedCount;
                     result.IsError = false;
                     result.Message = "Avatar deleted successfully by provider key from EOSIO";
                 }
@@ -198,56 +204,32 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
         public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true,
             int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            if (id == null)
-                throw new ArgumentNullException(nameof(id));
-
-            var result = new OASISResult<IHolon>();
-            try
-            {
-                var holonDto = _holonRepository.Read(id).Result;
-                var holonEntity = holonDto.GetBaseHolon();
-                if (holonEntity == null)
-                {
-                    result.IsLoaded = false;
-                    result.IsError = true;
-                    result.Message = "Holon with such ID, not found!";
-                    return result;
-                }
-
-                result.Result = holonEntity;
-                result.IsLoaded = true;
-                result.IsError = false;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, GetEOSExceptionDetails(ex));
-            }
-
-            return result;
-        }
+            => LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version)
+                .GetAwaiter().GetResult();
 
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true,
             bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            if (id == null)
-                throw new ArgumentNullException(nameof(id));
+            if (id == Guid.Empty)
+                throw new ArgumentException("A nonempty holon ID is required.", nameof(id));
 
             var result = new OASISResult<IHolon>();
             try
             {
-                var holonDto = await _holonRepository.Read(id);
-                var holonEntity = holonDto.GetBaseHolon();
+                var holonDto = await _holonRepository.Read(id).ConfigureAwait(false);
+                var holonEntity = holonDto?.GetBaseHolon();
                 if (holonEntity == null)
                 {
                     result.IsLoaded = false;
                     result.IsError = true;
+                    result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
                     result.Message = "Holon with such ID, not found!";
                     return result;
                 }
 
                 result.Result = holonEntity;
                 result.IsLoaded = true;
+                result.LoadedCount = 1;
                 result.IsError = false;
             }
             catch (Exception ex)
@@ -515,9 +497,9 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 var holonInfo = OasisJson.Serialize<object>(holon);
 
-                // Check if avatar with such Id exists, if yes - perform updating, otherwise perform creating
-                var existAvatar = await _holonRepository.Read(holon.Id);
-                if (existAvatar != null)
+                // The existing chain row determines whether to create or update the holon.
+                var existingHolon = await _holonRepository.Read(holon.Id);
+                if (existingHolon != null)
                 {
                     await _holonRepository.Update(new HolonDto
                     {
@@ -538,10 +520,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
                 result.Result = holon;
                 result.IsSaved = true;
+                result.SavedCount = 1;
                 result.IsError = false;
             }
             catch (Exception ex)
             {
+                result.Exception = ex;
                 OASISErrorHandling.HandleError(ref result, GetEOSExceptionDetails(ex));
             }
 
