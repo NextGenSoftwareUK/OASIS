@@ -152,3 +152,5 @@ Urgent disk cleanup follow-up: leased standard project clean succeeded for AWS u
 11 November Supabase context and payload tests reused one isolated SupabaseContextBuild output path. All 39 tests passed after the payload fix. Leased standard dotnet clean completed. Automatic approval review rejected recursive removal of the isolated path. The remaining 99 generated files total 5,161,785 bytes. No hosted fixture was contacted.
 
 11 November Convex readiness build and tests used one isolated ConvexReadinessBuild output path. 24 tests passed and six native cases skipped without a fixture. Standard leased dotnet clean completed. Automatic approval review rejected recursive removal of the isolated path. The remaining 99 generated files total 5,161,647 bytes.
+
+11 November Neon connection policy tests used one isolated NeonConnectionBuild output path. All 13 tests passed. Leased standard dotnet clean completed. Automatic approval review rejected recursive removal of the isolated path. The remaining 107 generated files total 5,945,891 bytes. No hosted fixture was contacted.

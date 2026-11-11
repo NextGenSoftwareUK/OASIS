@@ -15,6 +15,8 @@ Public provider count audit (11 November). The inventory lists 234 shipping prov
 
 11 November Convex companion readiness. A failed or canceled probe no longer permanently blocks the existing provider instance. Concurrent callers share the protocol verification but can cancel their waits independently. Hosted recovery verification remains open.
 
+11 November Neon connection policy. Neon endpoints with inline ports or in explicit host lists now receive Npgsql VerifyFull. A single endpoint can be mapped to its pooler without changing its port. Explicit host lists retain their order, ports and endpoint names. All 13 configuration and provider unit tests passed. Hosted sync and async lifecycle verification still requires the dedicated Neon database.
+
 ## Phase and rules
 
 Active checkpoint, 10 November 2026. Current HyperDrive verification is split between retained native provider evidence and open isolated fixture gates. Development contains the scoped SQL Server avatar/history and graph-read batch at af621f3c3e. Development also contains the concurrent avatar and avatar-detail history regressions at 2a91bda8eb. Both passed separately on LocalDB and compiled together with Development Core 0fc929336 (zero errors). BigQuery hosted lifecycle verification awaits its isolated fixture. HyperDrive routing verification follows provider acceptance.
