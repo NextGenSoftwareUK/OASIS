@@ -910,3 +910,5 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 11 November UTC: Reclaim Protocol public teaching presets returned three full and two filtered rows in the live Development WEB4 CQL Playground. Original-owner paired browser verification remains open. No preparation or record saves.
 
 11 November UTC: World ID public registry and verifier teaching presets returned three full and two filtered rows in the live Development WEB4 CQL Playground. The original-owner MongoDB paired browser check remains open. No preparation or record saves.
+
+11 November UTC: Railway Development WEB4 deployment `1e8dd0e0-9655-4957-ad56-38d5310648cd` at `371f3d5dc4` reached 106/106 listed sources ready. Aptos activated at generation 1 and both native public HTTP presets passed 3/2 using the retained visitor. Defer Wizard recovery while Aptos is ready. The original cohort was preserved and the Aptos browser check remains open.
