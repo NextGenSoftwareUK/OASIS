@@ -288,3 +288,5 @@ HTTPS execution remains pending an owned source and VIEWER credentials.
 The retained local source is preserved.
 
 11 November UTC: standard SurrealDB CI ran eight cases. Three fixture-dependent tests failed at admission because the job lacked the owned Mongo root, Mongo replica connection, and retained SurrealDB source. Five generic storage cases skipped, so the job provides no generic storage acceptance. The CI fixture work must qualify both the generic path and the native restart/federation path. [SurrealDB Development job](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43028699870/job/130549847896)
+
+11 November UTC: the standard SurrealDB matrix started a service but supplied no constructor environment settings. Candidate 4825f82b2c wires the local endpoint and synthetic credentials into the test factory. Diagnostic 2a0fd6ea48 runs the five generic cases. Require actual passes with zero skips before integrating. Native restart/federation and hosted CQL remain open.
