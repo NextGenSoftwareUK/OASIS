@@ -73,3 +73,5 @@ Settingscfe35470 SUCCESS at parentaffe57190/Corebe397f1. Original cohort native3
 Website5d9845c published with guide64f448f84/C#affe57190. Public HTML200/153728bytes/SHA2564ebca2803c9c4739e6ac5a15043b7ca4b8feabf55731dd8868be192c6b59f81f exactly matches committed git blob; working checkout CRLF differs only in line endings. Compact site-publication.json retained outside Docs. Browser gate remains open.
 
 11 November UTC: Railway Development WEB4 deployment `5e1e3ab0-81f9-4fea-83b8-12e851c999ed` at `fcf2a522e6` succeeded with ActivityPub and Hedera changes. Catalogue readiness progressed from 35/106 to 106/106. Listed priorities and LocalFile reported native and federated readiness. Cardano's browser full preset was rejected as unavailable during startup, then discovery reported Cardano ready. Cardano browser execution remains open.
+
+11 November UTC: after startup on `fcf2a522e6`, Cardano historical indexed-header presets returned three full and two filtered rows in the live Development CQL Playground. The earlier startup rejection remains recorded. The original-owner MongoDB paired browser check remains open. No preparation or saves.
