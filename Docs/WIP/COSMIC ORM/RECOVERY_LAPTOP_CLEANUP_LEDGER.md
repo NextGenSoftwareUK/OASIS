@@ -6288,3 +6288,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: read the completed superseded CouchDB image log in memory and recorded its immutable image digest. No local image, logs, build or download retained. Temporary documentation index removed.
 
 11 November UTC: verified WEB4 febb6971d8 warmup with the existing visitor. Four protected renewal files retained. No new avatars, reports, builds or downloads. Temporary documentation index removed.
+
+11 November UTC: verified both public Arweave presets in one throwaway Development browser session and closed the tab. No private records, downloads, local builds or reports were created. Temporary Git index removed.
