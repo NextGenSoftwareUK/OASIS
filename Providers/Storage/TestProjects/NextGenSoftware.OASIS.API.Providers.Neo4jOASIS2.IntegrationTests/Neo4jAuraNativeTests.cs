@@ -148,14 +148,17 @@ public class Neo4jAuraNativeTests
 
     private static AuraProvider CreateProvider()
     {
-        if (Environment.GetEnvironmentVariable("OASIS_NEO4J_AURA_LIFECYCLE") != "1")
-            Assert.Inconclusive("Enable only for a disposable Neo4j Aura database.");
+        var localFixture = Environment.GetEnvironmentVariable("OASIS_NEO4J_AURA_LOCAL_FIXTURE") == "1";
+        if (!localFixture && Environment.GetEnvironmentVariable("OASIS_NEO4J_AURA_LIFECYCLE") != "1")
+            Assert.Inconclusive("Enable only for a dedicated disposable Neo4j fixture.");
 
         var endpoint = Environment.GetEnvironmentVariable("OASIS_NEO4J_AURA_URI");
         var username = Environment.GetEnvironmentVariable("OASIS_NEO4J_AURA_USERNAME");
         var password = Environment.GetEnvironmentVariable("OASIS_NEO4J_AURA_PASSWORD");
         Assert.IsTrue(Uri.TryCreate(endpoint, UriKind.Absolute, out var uri) &&
-            (uri.Scheme is "neo4j+s" or "bolt+s") && string.IsNullOrEmpty(uri.UserInfo));
+            string.IsNullOrEmpty(uri.UserInfo) &&
+            (localFixture ? uri.Scheme == "bolt" && uri.IsLoopback : uri.Scheme is "neo4j+s" or "bolt+s"),
+            "The local fixture requires loopback Bolt. The hosted fixture requires certificate-verified TLS.");
         Assert.IsFalse(string.IsNullOrWhiteSpace(username));
         Assert.IsFalse(string.IsNullOrWhiteSpace(password));
 

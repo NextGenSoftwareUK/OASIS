@@ -1,4 +1,4 @@
-name: Neo4j V2 native harness
+name: Neo4j native provider verification
 
 on:
   push:
@@ -6,9 +6,16 @@ on:
     paths:
       - '.github/workflows/neo4j-v2-native.yml'
       - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2/**'
+      - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura/**'
       - 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2.IntegrationTests/**'
       - 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2.TestHarness/**'
   workflow_dispatch:
+    inputs:
+      scenario:
+        description: Provider scenario
+        type: choice
+        options: [aura, v2]
+        default: aura
 
 permissions:
   contents: read
@@ -63,6 +70,7 @@ jobs:
           dotnet-version: '10.0.x'
 
       - name: Exercise the V2 package through native Bolt
+        if: inputs.scenario == 'v2'
         shell: pwsh
         env:
           OASIS_NEO4J_V2_CONFORMANCE: '1'
@@ -76,4 +84,19 @@ jobs:
             if ($LASTEXITCODE -ne 0) { throw 'Native Neo4j V2 harness build failed.' }
             dotnet run --project $project --no-build
             if ($LASTEXITCODE -ne 0) { throw 'Native Neo4j V2 harness failed.' }
+          }
+
+      - name: Exercise Aura adapter storage through native Bolt
+        if: inputs.scenario != 'v2'
+        shell: pwsh
+        env:
+          OASIS_NEO4J_AURA_LOCAL_FIXTURE: '1'
+          OASIS_NEO4J_AURA_URI: bolt://127.0.0.1:${{ job.services.neo4j.ports[7687] }}
+          OASIS_NEO4J_AURA_USERNAME: neo4j
+          OASIS_NEO4J_AURA_PASSWORD: oasis-fixture-only
+        run: |
+          ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner 'CI-Neo4jAuraNative' -Operation {
+            $project = 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2.IntegrationTests/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2.IntegrationTests.csproj'
+            dotnet test $project --filter 'FullyQualifiedName~Neo4jAuraNativeTests' /m:2 /nr:false /p:UseSharedCompilation=false --logger 'console;verbosity=normal'
+            if ($LASTEXITCODE -ne 0) { throw 'Native Neo4j Aura adapter tests failed.' }
           }
