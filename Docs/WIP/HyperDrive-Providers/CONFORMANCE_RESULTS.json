@@ -348,7 +348,8 @@
     "SupabaseOASIS": ["Native PostgREST CQL fixture covers query and restart behavior. Shared lifecycle adapter compiles and discovers both modes, which require the dedicated hosted project. Graph and detail storage changes have local regression evidence; hosted graph, detail and lifecycle acceptance remain open."],
     "ActivityPubOASIS": ["Real public Mastodon read checks are recorded in the [ActivityPub audit](ACTIVITYPUB_PROVIDER_IMPLEMENTATION_AUDIT.md). Authenticated paged search and owned status mutations still need a dedicated Mastodon test identity."],
     "SQLServerDBOASIS": [
-      "Native LocalDB lifecycle checks passed across retained sync/async checkpoints and targeted continuations, with independent empty-table verification. No single uninterrupted shared-suite result is registered. See PROVIDER_COMPLETION_CONTINUATION.md."
+      "Native LocalDB lifecycle checks passed across retained sync/async checkpoints and targeted continuations, with independent empty-table verification. No single uninterrupted shared-suite result is registered. See PROVIDER_COMPLETION_CONTINUATION.md.",
+      "Shipping BootLoader registered, activated and deactivated the provider against LocalDB 17.0.4025.3 and SQL Server confirmed all six activation tables. See the [native activation receipt](NativeEvidence/sqlserver-bootloader-localdb.complete.json) at c277943300. Hosted WEB4 activation remains open."
     ],
     "PostgreSQLOASIS": [
       "Canonical native suite12/52 stopped at detail-id acknowledgement; missing LoadedCount fixed and original-fixture read regression2PASS, full-suite rerun pending reviewed fixture cleanup; no routing/recovery depth"

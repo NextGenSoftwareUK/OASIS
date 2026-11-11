@@ -1,0 +1,18 @@
+{
+  "diagnostics": [
+    "LocalDB instance \"OASISHyperDriveRegistrationProbe\" created with version 17.0.4025.3.",
+    "LocalDB instance \"OASISHyperDriveRegistrationProbe\" started.",
+    "DNA Load Success: True",
+    "Registered, activated and deactivated SQLServerDBOASIS through BootLoader.",
+    "Verified six SQL Server tables created through activation.",
+    "LocalDB instance \"OASISHyperDriveRegistrationProbe\" stopped.",
+    "LocalDB instance \"OASISHyperDriveRegistrationProbe\" deleted.",
+    "Removed the isolated SQL Server activation fixture."
+  ],
+  "cleanup": true,
+  "revision": "c277943300ba5af872dc016d954e65a740e66e37",
+  "buildExit": 0,
+  "restoreExit": 0,
+  "phase": "passed",
+  "sourceReceiptSha256": "2bf05b460e119da0c6a6efa9f7d8b9e2ad7f4a9bd64968b610e6bae3d87e2da0"
+}
