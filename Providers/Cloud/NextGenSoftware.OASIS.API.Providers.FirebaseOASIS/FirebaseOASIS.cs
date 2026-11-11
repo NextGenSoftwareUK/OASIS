@@ -334,24 +334,12 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
                 if (avatar["id"]?.GetValue<Guid>() != id || observed.Headers.ETag == null)
                     throw new System.IO.InvalidDataException("Firebase did not return the requested avatar identity and ETag.");
 
-                using var mutation = new HttpRequestMessage(softDelete ? HttpMethod.Put : HttpMethod.Delete, url);
-                mutation.Headers.IfMatch.Add(observed.Headers.ETag);
                 if (softDelete)
                 {
                     avatar["deletedDate"] = DateTime.UtcNow;
                     avatar["isDeleted"] = true;
-                    mutation.Content = new StringContent(avatar.ToJsonString(), Encoding.UTF8, "application/json");
                 }
-
-                try
-                {
-                    using var response = await _http.SendAsync(mutation);
-                    response.EnsureSuccessStatusCode();
-                    var acknowledgement = JsonNode.Parse(await ReadFirebaseAcknowledgement(response));
-                    if (!JsonNode.DeepEquals(softDelete ? avatar : null, acknowledgement))
-                        throw new System.IO.InvalidDataException("Firebase did not acknowledge the requested avatar deletion.");
-                }
-                catch (Exception cause) { throw new FirebaseMutationReconciliationException(id, cause); }
+                await WriteConditionalDeletionAsync(url, observed.Headers.ETag, id, softDelete ? avatar : null);
 
                 result.Result = true;
                 result.IsDeleted = true;
@@ -360,6 +348,29 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: Error deleting avatar '{id}': {ex.Message}"); }
             return result;
+        }
+
+        private async Task WriteConditionalDeletionAsync(string url, System.Net.Http.Headers.EntityTagHeaderValue etag,
+            Guid id, JsonNode? tombstone)
+        {
+            using var mutation = new HttpRequestMessage(tombstone == null ? HttpMethod.Delete : HttpMethod.Put, url);
+            mutation.Headers.IfMatch.Add(etag);
+            if (tombstone != null)
+                mutation.Content = new StringContent(tombstone.ToJsonString(), Encoding.UTF8, "application/json");
+
+            try
+            {
+                using var response = await _http.SendAsync(mutation, HttpCompletionOption.ResponseHeadersRead);
+                response.EnsureSuccessStatusCode();
+                var acknowledgement = JsonNode.Parse(await ReadFirebaseAcknowledgement(response));
+                if (!JsonNode.DeepEquals(tombstone, acknowledgement))
+                    throw new System.IO.InvalidDataException("Firebase did not acknowledge the requested deletion.");
+            }
+            catch (Exception cause) when (cause is not HttpRequestException
+                { StatusCode: System.Net.HttpStatusCode.PreconditionFailed })
+            {
+                throw new FirebaseMutationReconciliationException(id, cause);
+            }
         }
 
         public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true) => DeleteAvatarAsync(id, softDelete).Result;
@@ -732,15 +743,29 @@ namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS
             var result = new OASISResult<IHolon>();
             try
             {
-                var loaded = await LoadHolonAsync(id, loadChildren: false);
-                if (loaded.IsError || loaded.Result == null) return loaded;
-                loaded.Result.DeletedDate = DateTime.UtcNow;
-                var saved = await SaveHolonAsync(loaded.Result, saveChildren: false);
-                if (saved.IsError) return saved;
-                if (!saved.IsSaved || saved.Result == null)
-                    throw new InvalidOperationException("Firebase did not acknowledge the holon soft deletion.");
+                var url = NodeUrl($"/oasis_holons/{id:D}");
+                using var lookup = new HttpRequestMessage(HttpMethod.Get, url);
+                lookup.Headers.Add("X-Firebase-ETag", "true");
+                using var observed = await _http.SendAsync(lookup, HttpCompletionOption.ResponseHeadersRead);
+                observed.EnsureSuccessStatusCode();
+                var storedJson = await ReadFirebaseAcknowledgement(observed);
+                var holon = ParseFirebaseHolon(id, storedJson);
+                if (holon == null || holon.IsDeleted)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"FirebaseOASIS: Holon '{id}' not found.");
+                    result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
+                    return result;
+                }
+                var etag = observed.Headers.ETag ??
+                    throw new System.IO.InvalidDataException("Firebase did not return the requested holon ETag.");
 
-                result.Result = saved.Result;
+                var row = JsonNode.Parse(storedJson)!.AsObject();
+                holon.DeletedDate = DateTime.UtcNow;
+                row["deletedDate"] = holon.DeletedDate;
+                row["isDeleted"] = true;
+                await WriteConditionalDeletionAsync(url, etag, id, row);
+
+                result.Result = holon;
                 result.IsDeleted = true;
                 result.DeletedCount = 1;
                 result.Message = "Firebase holon soft-deleted.";

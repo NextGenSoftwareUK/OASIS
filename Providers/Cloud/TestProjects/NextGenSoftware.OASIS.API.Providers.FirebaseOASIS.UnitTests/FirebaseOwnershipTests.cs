@@ -189,19 +189,33 @@ public class FirebaseOwnershipTests
         else Assert.IsTrue((await provider.LoadHolonsForParentAsync(requested, loadChildren: false)).IsError);
     }
 
-    [DataTestMethod][DataRow(true)][DataRow(false)]
-    public async Task SoftDeletePersistsCanonicalDateAndChecksTheSameSaveAcknowledgement(bool reject)
+    [DataTestMethod][DataRow(200)][DataRow(412)][DataRow(503)]
+    public async Task SoftDeleteUsesObservedRevisionAndChecksNativeAcknowledgement(int status)
     {
         var id = Guid.NewGuid();
-        using var reply = new Reply((request, text) => request.Method == HttpMethod.Get
-            ? Response(JsonSerializer.Serialize(new { id, name = "owned" }))
-            : reject ? Response("{}", HttpStatusCode.ServiceUnavailable) : Response(text!));
+        using var reply = new Reply((request, text) =>
+        {
+            if (request.Method == HttpMethod.Get)
+            {
+                Assert.AreEqual("true", request.Headers.GetValues("X-Firebase-ETag").Single());
+                var observed = Response(JsonSerializer.Serialize(new { id, name = "owned" }));
+                observed.Headers.ETag = new System.Net.Http.Headers.EntityTagHeaderValue("\"observed\"");
+                return observed;
+            }
+
+            Assert.AreEqual("\"observed\"", request.Headers.IfMatch.Single().Tag);
+            return status == 200 ? Response(text!) : Response("{}", (HttpStatusCode)status);
+        });
         using var http = new HttpClient(reply);
         var provider = new FirebaseOASIS("https://synthetic.invalid", null, http);
         var result = await provider.DeleteHolonAsync(id);
-        Assert.AreEqual(reject, result.IsError);
-        if (reject) Assert.IsInstanceOfType(result.Exception, typeof(INativeMutationReconciliationRequired));
-        else { Assert.IsTrue(result.IsSaved); Assert.IsTrue(result.Result.IsDeleted); }
+
+        Assert.AreEqual(status != 200, result.IsError);
+        Assert.AreEqual(status == 503, result.Exception is INativeMutationReconciliationRequired);
+        Assert.AreEqual(status == 200, result.IsDeleted);
+        if (status == 200) Assert.IsTrue(result.Result.IsDeleted);
+        if (status == 412) Assert.AreEqual(HttpStatusCode.PreconditionFailed,
+            ((HttpRequestException)result.Exception!).StatusCode);
         using var json = JsonDocument.Parse(reply.Mutation!);
         Assert.AreNotEqual(DateTime.MinValue, json.RootElement.GetProperty("deletedDate").GetDateTime());
     }
