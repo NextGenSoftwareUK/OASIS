@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+11 November Spring native storage CI. Job 130541682935 removed the owned fixture directory and its ephemeral keys, wallet and chain after the account provisioning failure. The pinned package was removed after installation on the disposable runner. No local outputs or uploaded artifacts were created.
+
 11 November successful Antelope build. Job 130539157022 removed the CDT download and published an 8,222-byte ABI/WASM archive with one-day retention. Verified the archive in memory and retained only the two tracked deployment files. No local compiler, archive or temporary files were left.
 
 11 November Antelope build CI. Job 130537519606 verified and installed the pinned CDT package on its disposable runner and removed the download. It failed in the WASM linker and did not upload ABI or WASM. No local installation or build outputs were created.
