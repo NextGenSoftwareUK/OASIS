@@ -157,96 +157,21 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
         public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
         {
-            var result = new OASISResult<bool>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = ActivateProvider();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                if (holons == null || !holons.Any())
-                {
-                    OASISErrorHandling.HandleError(ref result, "No holons provided for import");
-                    return result;
-                }
-
-                // Import each holon to EOSIO blockchain
-                foreach (var holon in holons)
-                {
-                    var saveResult = await SaveHolonAsync(holon);
-                    if (saveResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Error importing holon {holon.Id}: {saveResult.Message}");
-                        return result;
-                    }
-                }
-
-                result.Result = true;
-                result.IsError = false;
-                result.Message = $"Successfully imported {holons.Count()} holons to EOSIO";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error importing holons to EOSIO: {ex.Message}", ex);
-            }
+            var batch = await SaveHolonsAsync(holons).ConfigureAwait(false);
+            var result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>, bool>(batch);
+            result.Result = batch.IsSaved;
             return result;
         }
 
         public override OASISResult<bool> Import(IEnumerable<IHolon> holons)
-        {
-            return ImportAsync(holons).Result;
-        }
+            => ImportAsync(holons).GetAwaiter().GetResult();
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = ActivateProvider();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                // Export all holons for avatar from EOSIO blockchain
-                var holonsData = await _eosClient.ExportAllDataForAvatarByIdAsync(avatarId);
-                var holons = new List<IHolon>();
-
-                if (holonsData != null)
-                {
-                    // Parse the exported data into holons
-                    var holon = ParseEOSIOToHolon(holonsData);
-                    if (holon != null)
-                    {
-                        holons.Add(holon);
-                    }
-                }
-
-                result.Result = holons;
-                result.IsError = false;
-                result.Message = $"Successfully exported {holons.Count} holons for avatar from EOSIO";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error exporting avatar data from EOSIO: {ex.Message}", ex);
-            }
-            return result;
-        }
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
+            => ReadStoredHolonsAsync(row => row.CreatedByAvatarId == avatarId, HolonType.All,
+                false, false, 0, 0, false, version);
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0)
-        {
-            return ExportAllDataForAvatarByIdAsync(avatarId, version).Result;
-        }
+            => ExportAllDataForAvatarByIdAsync(avatarId, version).GetAwaiter().GetResult();
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0)
         {

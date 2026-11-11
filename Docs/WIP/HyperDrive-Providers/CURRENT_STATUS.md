@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November EOSIO run 43047808703 passed the first 14 async checks, including the atomic graph save, point update and parent query, then failed the metadata collection acknowledgement. The candidate now projects complete paged contract rows through the shared metadata matcher, returns exact collection counts, and uses the same row path for owner export. Import reuses the native batch save and propagates its acknowledgement. The extended paths still need native verification.
+
 11 November EOSIO run 43046966627 passed the first nine shared checks in each mode and failed graph save. The old shipping path persisted only the root. The candidate now uses the shared graph planner and submits all selected holon writes as one native Antelope transaction. Parent queries use the stored graph rows and paginate the native table. The retry must verify these paths and expose the remaining shared-suite gaps.
 
 11 November Polkadot passed 52/52 in native run 43041109458 at 9520298841. Both shipping modes verified 26 checks, exact finalized mutation receipts and independently empty contract storage on the fresh Parity contracts node. CI removed the owned fixture. Hosted and retained ledgers remain separate.

@@ -297,31 +297,11 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             return LoadHolonsForParentAsync(id, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id,
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id,
             HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0,
             int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                var rows = (await _holonRepository.ReadAll().ConfigureAwait(false))
-                    .Where(row => !row.IsDeleted).Select(row => row.GetBaseHolon()).ToArray();
-                var project = HolonGraphProjection.Create(rows, loadChildren, recursive, maxChildDepth,
-                    curentChildDepth, loadChildrenFromProvider,
-                    row => (IHolon)OasisJson.Deserialize(OasisJson.Serialize<object>(row), typeof(Holon)),
-                    rootsAreChildren: true);
-                var matches = rows.Where(row => row.ParentHolonId == id &&
-                    (type == HolonType.All || row.HolonType == type)).Select(project).ToList();
-                result.Result = matches;
-                result.IsLoaded = true;
-                result.LoadedCount = matches.Count;
-            }
-            catch (Exception error)
-            {
-                OASISErrorHandling.HandleError(ref result, GetEOSExceptionDetails(error), error);
-            }
-            return result;
-        }
+            => ReadStoredHolonsAsync(row => row.ParentHolonId == id, type, loadChildren, recursive,
+                maxChildDepth, curentChildDepth, loadChildrenFromProvider, version, rootsAreChildren: true);
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey,
             HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0,
@@ -376,52 +356,41 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
         public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All,
             bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0,
             bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                var allHolonDTOs = _holonRepository.ReadAll().Result;
-                if (allHolonDTOs.IsEmpty)
-                    return result;
+            => LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth,
+                continueOnError, loadChildrenFromProvider, version).GetAwaiter().GetResult();
 
-                result.Result =
-                    allHolonDTOs
-                        .Select(holonDto => holonDto.GetBaseHolon())
-                        .ToList();
-                result.IsLoaded = true;
-                result.IsError = false;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, GetEOSExceptionDetails(ex));
-            }
-
-            return result;
-        }
-
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All,
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All,
             bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0,
             bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+            => ReadStoredHolonsAsync(_ => true, type, loadChildren, recursive, maxChildDepth,
+                curentChildDepth, loadChildrenFromProvider, version);
+
+        private async Task<OASISResult<IEnumerable<IHolon>>> ReadStoredHolonsAsync(Func<IHolon, bool> predicate,
+            HolonType type, bool loadChildren, bool recursive, int maxChildDepth, int currentChildDepth,
+            bool childrenFromProvider, int version, bool rootsAreChildren = false)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
             try
             {
-                var allHolonDTOs = await _holonRepository.ReadAll();
-                if (allHolonDTOs.IsEmpty)
-                    return result;
+                if (version != 0)
+                    throw new NotSupportedException("The Antelope holon table exposes only current records.");
 
-                result.Result =
-                    allHolonDTOs
-                        .Select(holonDto => holonDto.GetBaseHolon())
-                        .ToList();
+                var rows = (await _holonRepository.ReadAll().ConfigureAwait(false))
+                    .Where(row => !row.IsDeleted).Select(row => row.GetBaseHolon()).ToArray();
+                var project = HolonGraphProjection.Create(rows, loadChildren, recursive, maxChildDepth,
+                    currentChildDepth, childrenFromProvider,
+                    row => (IHolon)OasisJson.Deserialize(OasisJson.Serialize<object>(row), typeof(Holon)),
+                    rootsAreChildren);
+                var selected = rows.Where(row => (type == HolonType.All || row.HolonType == type) && predicate(row))
+                    .Select(project).ToList();
+                result.Result = selected;
                 result.IsLoaded = true;
-                result.IsError = false;
+                result.LoadedCount = selected.Count;
             }
-            catch (Exception ex)
+            catch (Exception error)
             {
-                OASISErrorHandling.HandleError(ref result, GetEOSExceptionDetails(ex));
+                OASISErrorHandling.HandleError(ref result, GetEOSExceptionDetails(error), error);
             }
-
             return result;
         }
 

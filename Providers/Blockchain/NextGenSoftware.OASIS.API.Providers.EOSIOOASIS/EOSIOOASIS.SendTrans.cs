@@ -10,6 +10,7 @@ using NextGenSoftware.Logging;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Avatar;
@@ -383,105 +384,43 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
         //    throw new NotImplementedException();
         //}
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue,
+            HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0,
+            int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+            => LoadHolonsByMetaDataAsync(new Dictionary<string, string> { [metaKey ?? ""] = metaValue },
+                MetaKeyValuePairMatchMode.All, type, loadChildren, recursive, maxChildDepth, curentChildDepth,
+                continueOnError, loadChildrenFromProvider, version);
+
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue,
+            HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0,
+            int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+            => LoadHolonsByMetaDataAsync(metaKey, metaValue, type, loadChildren, recursive, maxChildDepth, curentChildDepth,
+                continueOnError, loadChildrenFromProvider, version).GetAwaiter().GetResult();
+
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(
+            Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode,
+            HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0,
+            int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            string errorMessage = "Error in LoadHolonsByMetaDataAsync method in EOSIOOASIS Provider. Reason: ";
-
-            try
+            if (metaKeyValuePairs == null || metaKeyValuePairs.Count == 0 ||
+                metaKeyValuePairs.Keys.Any(string.IsNullOrWhiteSpace) || !Enum.IsDefined(metaKeyValuePairMatchMode))
             {
-                if (string.IsNullOrEmpty(metaKey) || string.IsNullOrEmpty(metaValue))
-                {
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} MetaKey and MetaValue cannot be null or empty");
-                    return result;
-                }
-
-                // Search for holons by metadata using EOSIO repository
-                var holons = await _holonRepository.ReadAllByMetaData(metaKey, metaValue, type);
-
-                if (holons != null && holons.Any())
-                {
-                    var holonList = new List<IHolon>();
-                    foreach (var holonDto in holons)
-                    {
-                        var holon = JsonConvert.DeserializeObject<Holon>(holonDto.Info);
-                        if (holon != null)
-                        {
-                            holonList.Add(holon);
-                        }
-                    }
-
-                    result.Result = holonList;
-                    result.IsError = false;
-                }
-                else
-                {
-                    result.Result = new List<IHolon>();
-                    result.IsError = false;
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {ex.Message}", ex);
+                var result = new OASISResult<IEnumerable<IHolon>>();
+                OASISErrorHandling.HandleError(ref result, "Valid metadata keys and a defined match mode are required.");
+                return Task.FromResult(result);
             }
 
-            return result;
+            var filter = new Dictionary<string, string>(metaKeyValuePairs, StringComparer.Ordinal);
+            return ReadStoredHolonsAsync(row => StoredRecordSearch.MatchesMetadata(row.MetaData, filter, metaKeyValuePairMatchMode),
+                type, loadChildren, recursive, maxChildDepth, curentChildDepth, loadChildrenFromProvider, version);
         }
 
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            return LoadHolonsByMetaDataAsync(metaKey, metaValue, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
-        }
-
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            string errorMessage = "Error in LoadHolonsByMetaDataAsync method in EOSIOOASIS Provider. Reason: ";
-
-            try
-            {
-                if (metaKeyValuePairs == null || !metaKeyValuePairs.Any())
-                {
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} MetaKeyValuePairs cannot be null or empty");
-                    return result;
-                }
-
-                // Search for holons by multiple metadata key-value pairs using EOSIO repository
-                var holons = await _holonRepository.ReadAllByMetaData(metaKeyValuePairs, metaKeyValuePairMatchMode, type);
-
-                if (holons != null && holons.Any())
-                {
-                    var holonList = new List<IHolon>();
-                    foreach (var holonDto in holons)
-                    {
-                        var holon = JsonConvert.DeserializeObject<Holon>(holonDto.Info);
-                        if (holon != null)
-                        {
-                            holonList.Add(holon);
-                        }
-                    }
-
-                    result.Result = holonList;
-                    result.IsError = false;
-                }
-                else
-                {
-                    result.Result = new List<IHolon>();
-                    result.IsError = false;
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {ex.Message}", ex);
-            }
-
-            return result;
-        }
-
-        public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            return LoadHolonsByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
-        }
+        public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(
+            Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode,
+            HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0,
+            int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+            => LoadHolonsByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode, type, loadChildren, recursive,
+                maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).GetAwaiter().GetResult();
 
         public async Task<OASISResult<IWeb3NFT>> LoadOnChainNFTDataAsync(string nftTokenAddress)
         {
