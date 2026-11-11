@@ -1,5 +1,9 @@
 # Current provider status
 
+11 November AvalancheGo storage [run 43080136029](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43080136029) at fb90b97f8f passed 52/52 through shipping Nethereum on AvalancheGo 1.14.1 local C-Chain 43112. Both separately deployed contracts started empty, verified ownership and passed shared lifecycle cleanup. CI removed the node and temporary files. Hosted and other capability verification remain open.
+
+11 November public documentation update. OASIS Docs main 41b6723 and OASIS Learn main 082ecdc link the live provider guides to this status page. Learn describes failover, replication and load balancing for eligible configured providers. Fresh public responses served the corrected markup, both status links and the 234-project inventory. The update required no local build, download or retained test artifact.
+
 11 November Milvus storage [run 43078055694](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43078055694) at 652853ec7f passed 52/52 through the shipping REST v2 adapter on Milvus 2.6.26. All 14 write-ownership checks passed. Each mode independently removed five exact owned holon tombstones and confirmed all three collections empty. Hosted storage, historical versions and vector-specific capabilities remain open.
 
 11 November Memcached storage [run 43075704036](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43075704036) at 8ba3eb3adb passed 52/52 through shipping EnyimMemcachedCore on two independent Memcached 1.6.40 daemons. Enyim verified exact native holon fixture removal. CI removed both daemons and checkpoints. The lifecycle pass is scoped to volatile cache storage. Hosted operation, eviction behavior and multi-key atomicity remain open.
