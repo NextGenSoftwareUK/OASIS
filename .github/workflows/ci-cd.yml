@@ -11,6 +11,11 @@ env:
   NODE_VERSION: '24.x'
 
 jobs:
+  keydb-native-cql:
+    uses: ./.github/workflows/keydb-native-cql.yml
+    secrets:
+      PRIVATE_SUBMODULE_PAT: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+
   couchdb-native-cql:
     uses: ./.github/workflows/couchdb-native-cql.yml
     secrets:
@@ -145,6 +150,7 @@ jobs:
             image: eqalpha/keydb@sha256:6537505c42355ca1f571276bddf83f5b750f760f07b2a185a676481791e388ac
             ports: 6379:6379
             wait: 6379
+            filter: FullyQualifiedName~KeyDBOASISIntegrationTests
           - name: Dragonfly
             project: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.DragonflyOASIS.IntegrationTests
             image: docker.dragonflydb.io/dragonflydb/dragonfly:latest
