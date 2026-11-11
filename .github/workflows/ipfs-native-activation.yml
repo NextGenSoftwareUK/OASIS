@@ -1,0 +1,100 @@
+name: IPFS native activation
+
+on:
+  push:
+    branches: [work/hyperdrive-provider-completion]
+    paths:
+      - '.github/workflows/ipfs-native-activation.yml'
+      - 'Providers/Network/NextGenSoftware.OASIS.API.Providers.IPFSOASIS/**'
+      - 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.IPFSOASIS.IntegrationTests/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  kubo:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: OASIS
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          path: OASIS
+          submodules: recursive
+          persist-credentials: false
+
+      - name: Resolve the recorded Libraries revision
+        id: dependencies
+        shell: pwsh
+        run: |
+          $entries = @(Get-Content Docker/oasis-dependency-versions.env | Where-Object { $_ -match '^LIBRARIES_COMMIT=' })
+          if ($entries.Count -ne 1 -or $entries[0] -notmatch '^LIBRARIES_COMMIT=([a-f0-9]{40})$') {
+            throw 'Expected one valid Libraries dependency revision.'
+          }
+          "libraries=$($Matches[1])" >> $env:GITHUB_OUTPUT
+
+      - uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependencies.outputs.libraries }}
+          path: NextGenSoftware-Libraries
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Verify the shipping provider on an offline Kubo daemon
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $true
+          $fixture = Join-Path $env:RUNNER_TEMP 'oasis-ipfs-activation'
+          New-Item -ItemType Directory -Path $fixture | Out-Null
+          $archive = Join-Path $fixture 'kubo.zip'
+          Invoke-WebRequest -Uri 'https://github.com/ipfs/kubo/releases/download/v0.43.1/kubo_v0.43.1_windows-amd64.zip' -OutFile $archive -TimeoutSec 90
+          if ((Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash -ne 'C25871516DEC4D97CE1D160A26C1E3FDAD294CB0EEA065C0C0343BCFCA86C524') {
+            throw 'The Kubo release archive does not match its pinned digest.'
+          }
+          Expand-Archive -LiteralPath $archive -DestinationPath $fixture
+          $binary = Join-Path $fixture 'kubo/ipfs.exe'
+          $env:IPFS_PATH = Join-Path $fixture 'repo'
+          $env:IPFSOASIS_TEST_API = 'http://127.0.0.1:18567'
+          & $binary init --profile=test --empty-repo
+          & $binary config Addresses.API /ip4/127.0.0.1/tcp/18567
+          & $binary config Addresses.Gateway /ip4/127.0.0.1/tcp/18568
+          $daemon = Start-Process -FilePath $binary -ArgumentList @('daemon', '--offline') -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $fixture 'daemon.log') -RedirectStandardError (Join-Path $fixture 'daemon.err')
+          try {
+            $version = $null
+            for ($attempt = 0; $attempt -lt 30 -and !$version; $attempt++) {
+              if ($daemon.HasExited) {
+                Get-Content -LiteralPath (Join-Path $fixture 'daemon.err')
+                throw 'The owned Kubo daemon exited before readiness.'
+              }
+              try {
+                $version = Invoke-RestMethod -NoProxy -Method Post -Uri "$env:IPFSOASIS_TEST_API/api/v0/version" -TimeoutSec 2
+              } catch [System.Net.Http.HttpRequestException], [System.Threading.Tasks.TaskCanceledException] {
+                Start-Sleep -Milliseconds 250
+              }
+            }
+            if ($version.Version -ne '0.43.1') { throw 'The pinned daemon did not become ready.' }
+            Write-Output "Native Kubo version: $($version.Version)"
+            ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner 'CI-IpfsActivation' -Operation {
+              dotnet test 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.IPFSOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.IPFSOASIS.IntegrationTests.csproj' --filter 'FullyQualifiedName~ActivatesAndDeactivatesAgainstDedicatedKubo' /m:2 /nr:false /p:UseSharedCompilation=false --logger 'console;verbosity=normal'
+              if ($LASTEXITCODE -ne 0) { throw 'The IPFS activation integration test failed.' }
+            }
+          } finally {
+            if (!$daemon.HasExited) {
+              try {
+                Invoke-RestMethod -NoProxy -Method Post -Uri "$env:IPFSOASIS_TEST_API/api/v0/shutdown" -TimeoutSec 5 | Out-Null
+                if (!$daemon.WaitForExit(10000)) { throw 'The Kubo daemon did not stop.' }
+              } finally {
+                if (!$daemon.HasExited) { Stop-Process -Id $daemon.Id }
+              }
+            }
+          }
