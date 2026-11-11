@@ -1197,3 +1197,5 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 11 November UTC: Railway deployment 44149acb-ee5a-4fa6-ad01-1dac388b466b succeeded on a7a7ae31aa with Chainlink dRPC configured. Live reader and preset checks are pending warmup. The superseded exact LayerZero candidate ee50d46f0f passed both workflow runs. The current candidate dcb8ad88bd still matches Development 8207703684 and its CI is active.
 
 11 November UTC: after the dRPC settings cutover, live Development WEB4 returned three full and two filtered Chainlink finalized feed rows in the Playground. Prior paired HTTP and replica evidence is preserved. Private paired browser verification remains open.
+
+11 November UTC: fast-forwarded Development from 8207703684 to dcb8ad88bd after exact CI passed the focused LayerZero v1 tests, production build, WEB4–WEB10 GraphQL verification and Mermaid companion. The batch contains only the LayerZero source and focused test plus the two solution files. The diagnostic tolerated existing branch-ancestry findings on unchanged pins. Live LayerZero acceptance remains pending deployment and Playground verification.

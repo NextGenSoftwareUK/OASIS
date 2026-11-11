@@ -117,3 +117,5 @@ Interactive browser acceptance remains open.
 11 November UTC: the focused LayerZero v1 test step passed for exact candidate a2990f712c in [CI 43020496094](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43020496094). The full production build is running. Development integration and live browser acceptance remain pending.
 
 11 November UTC: the focused LayerZero v1 tests passed on exact Development candidate dcb8ad88bd in [CI 43022922018](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43022922018). Production compilation is active. Development is still at base 8207703684.
+
+11 November UTC: exact candidate dcb8ad88bd passed [combined CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43022922018) and was fast-forwarded into Development. Live browser verification remains open.
