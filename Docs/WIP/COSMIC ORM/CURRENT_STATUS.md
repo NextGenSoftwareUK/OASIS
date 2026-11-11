@@ -1183,3 +1183,5 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 11 November UTC: the live Development WEB4 Playground rendered three TheSandboxOASIS public teaching records and two filtered records. The existing demo visitor was reused. Private paired browser verification remains open.
 
 11 November UTC: after WEB4 warmup on deployment 15c57e25, Civic public presets rendered three full and two filtered rows in the Development Playground. The earlier pre-dispatch 503 remains recorded and its cause is unverified. Private paired browser verification remains open.
+
+11 November UTC: Development 5d37e92056 adds the HyperDrive Neon native test, workflow and matrix. Exact candidate 2e896baf2e preserves that batch and changes only the two solution files, LayerZero v1 source and focused test. Remote CI triggered. Chainlink settings deployment 44149acb remains queued, and the new Development revision also has a queued Railway build.
