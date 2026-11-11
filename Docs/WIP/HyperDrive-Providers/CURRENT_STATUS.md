@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November Neon connection policy. The adapter applies Npgsql VerifyFull to Neon endpoints with explicit ports and host lists. Single-endpoint pooler mapping preserves the port, and explicit lists retain their endpoints and order. All 13 provider and configuration unit tests passed at e4e9605424. The Development change matches the tested Neon source and dependencies. Hosted sync and async lifecycle verification still requires the dedicated Neon database.
+
 11 November Convex transport. The shipping adapter now bounds response body reads by its configured HTTP timeout. At 3251b0d07c a loopback HTTP test stalled after headers, observed the timeout, and confirmed a later readiness probe succeeded on the same adapter. The Development change matches the tested provider, test source and shared dependencies. Hosted companion and lifecycle verification remain open.
 
 11 November Polkadot Asset Hub wallet balance. The synchronous shipping wallet method passed a live finalized treasury DOT read through @polkadot/api 17.0.2 at 4ecb58e194. The test verified the Asset Hub genesis and required zero caller-context posts. It used no signer or storage contract. The scoped Development change matches the tested shipping source, SDK lockfile and shared dependencies. Writable storage verification remains open.
