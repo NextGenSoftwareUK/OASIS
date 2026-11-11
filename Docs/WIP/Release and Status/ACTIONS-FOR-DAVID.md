@@ -644,9 +644,9 @@ Status: missing account/configuration information,2 November2026. David approved
 
 ### Provider inventory count on separate public sites
 
-- **Status (2026-11-10)** Branch access resolved through local Git. The 234 provider-project inventory copy is verified live on founders.oasisomniverse.one (NFT Founders main e5dbb6b), www.oasisomniverse.one (Omniverse main f793074), web4.oasisomniverse.one (Web4Site main e086f21), and www.oasisweb4.com (main 6c5452e). [OurWorldSite](https://ourworld.oasisomniverse.one/) main 8c5498f is verified live with the 234 Provider Projects pill and updated inventory copy (HTTP 200; old pill absent). Directory counts and full provider acceptance remain separately evidenced.
-- **David action** Closed for branch access. Site integration, deployment verification and the remaining count audits are agent-owned.
-- **Reason** Update the public inventory claims independently of backend acceptance. Preserve site ownership and existing deployment workflows.
+- **Status (2026-11-11)** Closed. Scoped changes were published through the writable checkouts. Live count confirmed on [Web4Site](https://web4.oasisomniverse.one/providers.html), [OASIS Web4](https://www.oasisweb4.com/providers) and [OASIS Omniverse](https://www.oasisomniverse.one/).
+- **Context** [Public provider count audit](../HyperDrive-Providers/CURRENT_STATUS.md).
+
 
 ### Priority-provider ONODE CI access
 

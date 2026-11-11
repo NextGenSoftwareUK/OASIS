@@ -140,3 +140,7 @@ Urgent disk cleanup follow-up: leased standard project clean succeeded for AWS u
 11 November activation harness graph at 6eaa80d662 compiled with zero errors and 2,140 warnings. Verified ActivationHarness/current-artifacts absent. Retained the compact current-result.json receipt.
 
 11 November SQL Server activation attempt at a5fcf80fcc: removed sqlserver-artifacts and the owned SqlServerBootLoaderFixture after passive boot failed. Confirmed the fixture directory and OASISHyperDriveRegistrationProbe instance are absent. Compact sqlserver-result.json retained.
+
+11 November corrected SQL Server activation at c277943300 passed. Verified the exact sqlserver-artifacts and SqlServerBootLoaderFixture paths are absent and the owned OASISHyperDriveRegistrationProbe instance is absent. Retained the compact sqlserver-fixed-result.json receipt.
+
+11 November public provider inventory update used temporary Git indexes only. All were removed and the temporary index prefix was checked for remnants. Site source and production responses were checked without installing dependencies, downloading binaries or generating site builds locally.
