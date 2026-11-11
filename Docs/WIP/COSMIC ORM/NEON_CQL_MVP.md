@@ -21,3 +21,5 @@ All 17 protected-settings checks passed. Eight Neon, nine CockroachDB and
 eight TimescaleDB WEB4 admission tests passed without skips at Core
 `2b1b991d070c3c90c1ade36c6b4ab4309d6e655a`. The admission TRX SHA-256 is
 `2f2f356cf020ab93418ed20514e7778219b4c5b352357e5dccd7015cc5ed449b`.
+
+11 November UTC: [HyperDrive Neon native storage CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43022056613) passed 52/52 on the official PostgreSQL 16 compute through the shipping Npgsql adapter. Native SQL verified and cleaned the exact fixture tombstones. Development 8207703684 contains the verified Neon test, workflow and matrix update. Hosted pooled TLS, the dedicated CQL reader and live WEB4 activation remain open.
