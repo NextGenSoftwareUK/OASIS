@@ -112,3 +112,6 @@ WEB4 diagnostic regression gate complete: CI 42938257820/job 130253566184 succee
 
 
 11 November UTC: Railway Development WEB4 deployment 345d9ec9-7810-4251-9cbf-f2c6e697a738 succeeded on 9b8a30a65c. Its startup log independently reproduced the HashgraphOASIS response_headers activation timeout at 15,008 ms with no upstream HTTP status. The historical public 3/2 browser proof remains recorded. Current-release registry recovery and live query verification remain open.
+
+
+11 November UTC: Development fd40b1ad12 reproduced the Hedera startup response_headers timeout in 15,017 ms without an HTTP status. Authenticated discovery returned CQL_SOURCE_UNAVAILABLE. Earlier browser acceptance is preserved. Current release recovery remains open.
