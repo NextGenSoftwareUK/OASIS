@@ -6148,3 +6148,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: reused the existing readiness visitor on WEB4 ea54de967e without renewal. Fetched Development without tags or submodules and removed the temporary Git indices. No local build, query report, restore, image or download.
 
 11 November UTC: track parent tag ci-cosmic-supabase-web4-raven-73f8b98967 through the combined image build. Removed the temporary index and ran dependency validation on committed files. No local build, restore, image or download.
+
+11 November UTC: built scoped PlanetScale feature and Core commits using temporary Git indices, removed both indices and validated the exact parent manifest. No local build, restore, runtime, download or image.
