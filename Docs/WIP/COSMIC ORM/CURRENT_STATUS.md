@@ -1,5 +1,7 @@
 # COSMIC ORM / CQL current status
 
+GOMap exact CI 43108783977 passed all 12 controlled cases and the public route plus native MongoDB WEB4 HTTP case on e571025e78. Native 3/2, paired 5/4, foreign private zero. The dedicated HTTPS OSRM origin remains the enrollment gate. Queue-aware Development integration remains pending.
+
 ## Shared Development revision, 11 November 2026
 
 Development 59eebd2c11 includes HyperDrive's verified Firebase RTDB storage changes and preserves all nine paths of the qualified CouchDB and NATS/Waku batch at a614a4377f. Railway deployments 4879c6fe and 1b1ad2f0 are queued. Live 214462362b remains the 105/106 readiness baseline. GOMap candidate e571025e78 merges cleanly onto 59eebd2c11 with all four qualification paths intact. Wait for the native fixture result before integration.

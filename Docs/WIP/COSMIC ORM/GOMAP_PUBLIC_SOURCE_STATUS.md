@@ -1,5 +1,7 @@
 # GOMap public query source review — 8 November 2026
 
+11 November: exact corrected candidate e571025e78 passed CI 43108783977. Twelve boundary cases and one native WEB4 HTTP case passed with zero skips. Artifact 13894954949 SHA-256 125ea99465fd77b1131f26d58a4b9c8950cbfd3f6aded0cf981231b2f02d30cd confirms native 3/2, paired 5/4, foreign private 0, foreign public 3, two fixture saves and nine receipts. Cleanup artifact 13896725679 confirms the owned container and anonymous volumes are absent. Hosted enrollment, browser and replica acceptance remain open.
+
 11 November: exact candidate aa56e87568 passed all 12 boundary cases with zero skips in CI 43104475453. The workflow still expected eight cases and stopped before the native stage. Candidate e571025e78 changes only the expected boundary count. Exact qualification is queued in 43108783977.
 
 ## Development candidate, 11 November 2026
