@@ -1451,3 +1451,7 @@ Dragonfly/Valkey verified batch prepared on this base at 3850e2e078. Combined Re
 Standard Redis, Dragonfly and Valkey jobs are queued or running in Development CI 43059249089. Railway WEB4 deployment d04ed4c4 is queued.
 
 11 November UTC: Railway WEB4 c837fe5ad8 deployed successfully as f573b5ac. During warmup, authenticated discovery advertised 93 of 106 listed sources ready for native and federation queries, with 13 reporting not ready. The previous deployment reached 106 of 106. Development head 31db62c741 is queued. The Development Redis-family pipeline had passed all three dedicated jobs and the Dragonfly matrix job; Redis and Valkey matrix results remained pending at observation.
+
+11 November UTC: all six Redis, Dragonfly and Valkey jobs passed in the standard Development pipeline 43059249089 at d93d984b7b. Each provider passed its generic storage matrix job and its dedicated native restart/federation job. Hosted TLS acceptance remains open.
+
+After warmup, authenticated discovery on Railway f573b5ac at c837fe5ad8 reached 106 of 106 ready for native CQL and federation. Development 31db62c741 remained queued at the rollout check.

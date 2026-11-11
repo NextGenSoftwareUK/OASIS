@@ -110,3 +110,5 @@ with zero errors. Live Dragonfly source and visitor proof remain open.
 11 November UTC: both Dragonfly jobs passed in combined CI 43054087952. The standard job on ea54de967e failed four fixture-only cases because it lacked the owned Dragonfly and MongoDB roots. The verified candidate routes those tests to the dedicated fixture and leaves generic storage in the standard matrix. Hosted TLS remains open.
 
 11 November UTC: Development d93d984b7b integrates the verified Redis, Dragonfly and Valkey standard CI routing on top of HyperDrive Hedera changes. The batch contains only the three independently qualified fixture-routing patches. Hosted TLS acceptance remains open for all three.
+
+11 November UTC: all six Redis, Dragonfly and Valkey jobs passed in the standard Development pipeline 43059249089 at d93d984b7b. Each provider passed its generic storage matrix job and its dedicated native restart/federation job. Hosted TLS acceptance remains open.

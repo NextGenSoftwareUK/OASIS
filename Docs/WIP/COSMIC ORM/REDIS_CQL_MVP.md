@@ -169,3 +169,5 @@ and native TLS qualification are still pending.
 11 November UTC: both Redis jobs passed in combined CI 43057542686. Generic storage ran in the standard matrix, and encrypted native CQL, restart and MongoDB federation ran in the dedicated fixture. The independently verified Redis, Dragonfly and Valkey changes are prepared as Development batch d93d984b7b on the current Hedera base. Hosted TLS acceptance remains open.
 
 11 November UTC: Development d93d984b7b integrates the verified Redis, Dragonfly and Valkey standard CI routing on top of HyperDrive Hedera changes. The batch contains only the three independently qualified fixture-routing patches. Hosted TLS acceptance remains open for all three.
+
+11 November UTC: all six Redis, Dragonfly and Valkey jobs passed in the standard Development pipeline 43059249089 at d93d984b7b. Each provider passed its generic storage matrix job and its dedicated native restart/federation job. Hosted TLS acceptance remains open.
