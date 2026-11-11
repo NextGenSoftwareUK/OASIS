@@ -1219,3 +1219,5 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 11 November UTC: exact ArangoDB candidate 9e82b80e72 on a5e8fc36c4 carries only the test client password and CI matrix environment changes. The feature workflow has unrelated differences, so the candidate applies the two-line matrix edit to current Development. Remote CI targets the generic ArangoDB test class against its existing fixture. Dedicated native and federation fixtures remain open.
 
 11 November UTC: the first ArangoDB diagnostic workflow was rejected before running because its generated YAML duplicated the matrix block. The corrected workflow uses a single ArangoDB matrix and checks out the same candidate 9e82b80e72. LayerZero deployment ba604fae has begun building.
+
+11 November UTC: corrected [ArangoDB fixture CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43026834539) started for candidate 9e82b80e72. It executes the generic ArangoDB test class using the configured fixture password. The earlier rejected workflow tag was removed.
