@@ -19,7 +19,7 @@ on:
         description: Extra image tag besides the commit SHA (leave empty for a commit-only build)
         required: false
         type: string
-        default: sandbox
+        default: ''
       teaching_sidecars:
         description: Include pinned GUN and OrbitDB teaching runtimes
         required: false
