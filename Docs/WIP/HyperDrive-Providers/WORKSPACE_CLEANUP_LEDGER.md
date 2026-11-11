@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+11 November Firebase runs 43102301153 and 43102752702 logged removal of the owned RTDB emulator, fixture and reports. The second run passed the focused native graph and stale-delete test. The lifecycle then stopped at classification of the hidden tombstone. No local build, download or raw report was created.
+
 11 November Firebase run 43101286060 logged removal of the owned RTDB emulator, fixture and reports after the native deletion acknowledgement failure. No Windows build, download or raw report was created.
 
 11 November superseded Dragonfly run 43094237991 finished cancelled. GitHub reports no executed steps for job 130778844756. There is no recorded fixture creation in that run and no local runtime, build or report was created.
