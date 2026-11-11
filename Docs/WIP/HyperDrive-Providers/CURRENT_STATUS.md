@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November Cassandra graph and deletion candidate. Selected graph rows use one DataStax logged batch for multi-row writes. The provider publishes identities after acknowledgement, preserves stop/continue for top-level roots, and propagates exact metadata, import and export counts. Hard deletion removes the avatar and detail together and removes username/email index entries only when they still point to that avatar. Holon deletion uses a conditional native update. The initial run 43065545986 is still in progress. Candidate storage and save ownership verification remain pending.
+
 11 November Cassandra native storage. The shipping DataStax driver now reports exact acknowledged avatar and point-read counts and uses canonical stored-record serialization for avatar details. A disposable CI run will exercise both storage modes against the digest-pinned Apache Cassandra runtime. Existing COSMIC query and restart evidence carries forward. Storage verification is pending.
 
 11 November PlanetScale storage [run 43064133424](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43064133424) at 69e965847a passed 52/52 against MySQL 8.4.13 through the shipping adapter. The serializer-only run 43063702938 verified all nine avatar and detail checks per mode before stopping at graph save. The full candidate verified atomic graph persistence, metadata and owner export, import, exact deletion and empty native tables in both modes. Managed PlanetScale and COSMIC CQL acceptance are separate.

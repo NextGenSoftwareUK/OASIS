@@ -77,6 +77,8 @@ jobs:
           export OASIS_CASSANDRA_CI_FIXTURE="$fixture"
           pwsh -NoProfile -Command '
             ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-CassandraStorage -Operation {
+              dotnet test "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.CassandraOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.CassandraOASIS.UnitTests.csproj" --filter "FullyQualifiedName~CassandraSaveOwnershipTests" /m:2 /nr:false /p:UseSharedCompilation=false --logger "console;verbosity=normal"
+              if ($LASTEXITCODE -ne 0) { throw "Cassandra write ownership verification failed." }
               dotnet test "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.CassandraOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.CassandraOASIS.IntegrationTests.csproj" --filter "FullyQualifiedName~CoreStorageSuiteAgainstCassandra" /p:CassandraDirectStorageOnly=true /m:2 /nr:false /p:UseSharedCompilation=false --logger "console;verbosity=normal"
               if ($LASTEXITCODE -ne 0) { throw "Native Cassandra storage verification failed." }
             }'
