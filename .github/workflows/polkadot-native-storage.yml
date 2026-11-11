@@ -90,6 +90,7 @@ jobs:
       - name: Deploy the records contract and run native storage conformance
         shell: bash
         run: |
+          umask 077
           fixture="$(mktemp -d "$RUNNER_TEMP/oasis-polkadot-chain.XXXXXXXX")"
           pid=""
           cleanup() {
@@ -125,7 +126,9 @@ jobs:
             jq -e 'select(.id == "dev" and .chainType == "Development") |
               .properties={tokenDecimals:12,tokenSymbol:"UNIT",ss58Format:42} |
               .relay_chain="rococo-local" | .para_id=1000' >"$fixture/chain-spec.json"
+          openssl rand -out "$fixture/node-key" 32
           "$binary" --chain "$fixture/chain-spec.json" --alice --force-authoring --base-path "$fixture/ledger" \
+            --node-key-file "$fixture/node-key" \
             --rpc-port 19944 --listen-addr /ip4/127.0.0.1/tcp/19945 --no-prometheus --no-telemetry \
             --no-mdns --out-peers 0 --in-peers 0 --offchain-worker never --state-pruning archive \
             --blocks-pruning archive --database rocksdb --name oasis-ci-polkadot >"$fixture/node.log" 2>&1 &
