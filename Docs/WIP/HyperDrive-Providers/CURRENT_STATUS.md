@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November Ronin public wallet CI succeeded at bc05ec20e2c in run 43114758564. GitHub reports success for the step that enables and selects the sync and async shipping balance test against Ronin mainnet and its wrong-chain control. Job log access returned HTTP 403, so the per-case transcript was unavailable. The run predates BootLoader registration and native fixture cleanup checks. Signed Saigon storage remains open.
+
 11 November Google Routes geometry. The provider decodes and validates the official encoded polyline before acknowledging a route and exposes ordered WGS84 points for rendering. The opt-in live test verifies both route endpoints. In-memory compilation and execution decoded the published Google example and rejected truncated input. No output files were created. Authenticated execution and map rendering remain open.
 
 11 November Google Routes compile check. The Routes implementation emitted a 15,360-byte assembly in memory against the cached OASIS Common 2.0.0 package. Compiling the complete map provider against cached Core 2.0.0 failed because that package lacks the GoogleMaps enum member present in the pinned Core source. The project now requires the pinned Core source because the 2.0.0 package lacks the required enum. Full project compilation and authenticated execution remain open. No local build output or downloads were created.
