@@ -1,0 +1,75 @@
+name: ArangoDB native CQL restart
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  restart:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          path: OASIS
+          submodules: recursive
+          persist-credentials: false
+
+      - name: Read the recorded Libraries revision
+        id: libraries
+        run: |
+          revision="$(sed -n 's/^LIBRARIES_COMMIT=//p' OASIS/Docker/oasis-dependency-versions.env)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "revision=$revision" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.libraries.outputs.revision }}
+          path: NextGenSoftware-Libraries
+          persist-credentials: false
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Run native CQL before and after ArangoDB restart
+        working-directory: OASIS
+        shell: bash
+        run: |
+          state="$(mktemp -d "$RUNNER_TEMP/arango-cql.XXXXXX")"
+          container=
+          cleanup() {
+            if [[ -n "$container" ]]; then
+              docker rm -f -v "$container" >/dev/null
+            fi
+          }
+          trap cleanup EXIT
+          export COSMIC_ARANGODB_ROOT="$state"
+          password="$(openssl rand -hex 32)"
+          echo "::add-mask::$password"
+          (umask 077; jq -n --arg password "$password" '{username:"root",password:$password}' > "$state/credentials.json")
+          export ARANGO_ROOT_PASSWORD="$password"
+          container="$(docker create --env ARANGO_ROOT_PASSWORD --publish 127.0.0.1:18529:8529 docker.io/library/arangodb@sha256:ddaeda57726a6ff42186a3fea205a848585c92fd54814b892193925338f9e25c)"
+          for phase in first restart; do
+            docker start "$container" >/dev/null
+            curl --fail --silent --show-error --retry 12 --retry-connrefused --retry-max-time 45 --max-time 5 \
+              --user "root:$password" http://127.0.0.1:18529/_api/version | jq -e '.version == "3.12.12"'
+            dotnet test Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.ArangoDBOASIS.IntegrationTests \
+              --filter 'FullyQualifiedName~ArangoDbNativeCqlTests' --results-directory "$state" \
+              --logger "trx;LogFileName=$phase.trx" /m:2 /nr:false /p:UseSharedCompilation=false
+            python3 - "$state/$phase.trx" <<'PY'
+          import sys
+          import xml.etree.ElementTree as ET
+          counters = ET.parse(sys.argv[1]).find(".//{*}Counters").attrib
+          if counters["total"] != "1" or counters["passed"] != "1":
+              raise SystemExit("Expected one passing native ArangoDB test")
+          PY
+            test -f "$state/native-baseline.json"
+            test ! -e "$state/seed.pending.json"
+            docker stop --time 20 "$container" >/dev/null
+            test "$(docker inspect --format '{{.State.ExitCode}}' "$container")" = 0
+          done
