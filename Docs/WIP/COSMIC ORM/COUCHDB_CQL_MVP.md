@@ -1,5 +1,7 @@
 # CouchDB CQL demo — retained records and revisions
 
+11 November queue update: Railway deployment 4879c6fe for 59eebd2c11 includes the nine verified CouchDB and native asset paths unchanged, plus HyperDrive's Firebase storage release. If it supersedes 1b1ad2f0, apply the cutover checks to 4879c6fe and its exact serving revision.
+
 ## Development rollout checkpoint
 
 Exact image CI 43101002944 passed on a209b82e9b. The verified CouchDB reader, Core tariff pin and NATS/Waku download fix are on Development at a614a4377f. Railway deployment 1b1ad2f0 is waiting for a build slot. Live 214462362b has no CouchDB enrolment. The Development variable-name check found no dedicated CouchDB CQL settings. The isolated HTTPS teaching database and restricted reader remain the enrollment gate.
