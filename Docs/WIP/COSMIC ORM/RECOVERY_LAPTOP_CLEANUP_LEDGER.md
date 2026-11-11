@@ -5912,3 +5912,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: inspected standard QuestDB CI outcomes in memory. Temporary Git index removed. No local build, restore, database or artifact download.
 
 11 November UTC: track ci-cosmic-questdb-restart-165e8abaee until its CI runs are terminal. Temporary Git indices removed. No local build, restore, download or database.
+
+11 November UTC: track ci-cosmic-questdb-restart-165e8abaee-stop and retire the initial tag now that both initial runs are terminal. Temporary Git indices removed. No local build, restore, download or database.
