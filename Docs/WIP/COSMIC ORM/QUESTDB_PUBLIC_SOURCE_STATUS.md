@@ -205,3 +205,5 @@ full and subset symbol sets through the guarded HTTPS adapter.
 11 November UTC: Development `73e0d4bb08` contains the verified ArangoDB MongoDB federation and QuestDB restart workflows. Both are manually dispatched. This batch changes only CI. Hosted HTTPS source admission and live browser checks remain open. [ArangoDB CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43031787640) · [QuestDB CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43033757190)
 
 11 November UTC: candidate 880937b05f routes generic ArangoDB and QuestDB cases to the standard provider matrix and calls the dedicated native fixture workflows from the same pipeline. Diagnostic 37a10ab14d exercises all four jobs. Both fixture workflows retain manual dispatch. Development integration awaits the combined result.
+
+11 November UTC: combined database CI passed all four jobs, covering generic ArangoDB and QuestDB plus their dedicated restart and federation fixture tests. Candidate `880937b05f` is ready for the next Development batch. Hosted CQL remains open for both providers. [Combined CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43034639175)
