@@ -878,3 +878,6 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 
 
 11 November UTC: Railway Development WEB4 deployment 4f089f36-8c19-488e-a0a7-5017f56b5732 succeeded on SQL Server registration revision c39eba5cd1. Catalogue warmed from 25/106 to 106/106 native ready. Hedera, Nostr, LocalFile and all previously enrolled priority providers advertised native and federated readiness. The native Hedera public presets returned the expected three full and two filtered row IDs through WEB4. Hedera private paired browser and restart reliability remain open. TRON and Supabase remain absent.
+
+
+11 November UTC: on Development c39eba5cd1, the Nostr native filtered preset passed live WEB4 HTTP with the two expected rows. The earlier browser 503 is preserved. The filtered browser check and relay reliability across connections remain open.

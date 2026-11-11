@@ -157,3 +157,6 @@ Explicit source recovery implemented at the host lifecycle boundary,same source/
 
 
 11 November UTC: traced the Nostr filtered-browser HTTP 503 to the WebSocket upgrade. NostrPublicRelayRead opens the guarded socket before ReadConnectedAsync serializes or sends the REQ frame, so the failing connection had not sent the two-event filter to the relay. The successful full read and failed subset therefore show intermittent handshake failure. Relay availability across new connections remains open. Keep the reviewed source and preserve the failed operation for reconciliation.
+
+
+11 November UTC: on Development c39eba5cd1, the Nostr native filtered preset passed live WEB4 HTTP with the two expected rows. The earlier browser 503 is preserved. The filtered browser check and relay reliability across connections remain open.
