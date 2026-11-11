@@ -3,7 +3,7 @@
 ## Active continuation, 11 November UTC
 
 - Work on `work/cosmic-cql-ton-public`. Review Development and HyperDrive every 30 minutes. Integrate verified scoped COSMIC batches at most hourly under normal conditions.
-- Development head is `fcf2a522e6`, building on Railway with both ActivityPub and Hedera wallet changes. Live WEB4 at `3f5d781f29` reached 106/106 listed CQL sources ready.
+- Development head and live Railway WEB4 are at `fcf2a522e6`. All 106 listed CQL sources reported ready after startup. TRON and Supabase remain absent.
 - Aptos and Nostr are ready at `16d22e842e`. Operator recovery stays deferred while they are serving. The earlier Aptos 404 and Nostr WebSocket 503 remain in the provider histories.
 - GOMap candidate `4f60bd0ca9` adds the three-file routing guard and admission test change to `3f5d781f29`. Exact integration and image CI are running. A reviewed dedicated HTTPS OSRM origin remains required for enrollment.
 - Reclaim Protocol and World ID public browser presets passed 3/2. Original-owner paired browser checks remain open.
@@ -942,3 +942,5 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 11 November UTC: Pinata public raw-block metadata presets returned three full and two filtered rows in the live Development CQL Playground. The original-owner MongoDB paired browser check remains open. No record preparation or saves.
 
 11 November UTC: GOMap candidate `49a3ced97f` on the Hedera base passed the exact teaching image build [42986091320](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/42986091320). CI registry logs confirm commit-only digest `sha256:6aa8eb9494ee7831129bdb6b1f5057b259907a8f594634d5718259ffb6ac5952`. Development already contains the later ActivityPub change at `fcf2a522e6`. Keep this image and the passing tests as qualification evidence. Live enrollment still needs the reviewed dedicated HTTPS OSRM origin.
+
+11 November UTC: Railway Development WEB4 deployment `5e1e3ab0-81f9-4fea-83b8-12e851c999ed` at `fcf2a522e6` succeeded with ActivityPub and Hedera changes. Catalogue readiness progressed from 35/106 to 106/106. Listed priorities and LocalFile reported native and federated readiness. Cardano's browser full preset was rejected as unavailable during startup, then discovery reported Cardano ready. Cardano browser execution remains open.

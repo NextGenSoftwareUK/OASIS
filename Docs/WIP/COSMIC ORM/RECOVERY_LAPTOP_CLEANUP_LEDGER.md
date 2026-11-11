@@ -5578,3 +5578,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: Pinata public browser checks reused the existing visitor. No local report, screenshot file, runtime, download or build output.
 
 11 November UTC: confirmed GOMap image digest from CI logs in memory. No local image pull, artifact, download, runtime or build output.
+
+11 November UTC: ActivityPub/Hedera cutover and Cardano browser attempt reused existing visitors and Railway CLI. No local screenshot file, report, runtime, download or build output.
