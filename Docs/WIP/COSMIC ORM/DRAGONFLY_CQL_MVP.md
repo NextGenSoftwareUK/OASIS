@@ -102,3 +102,5 @@ Dragonfly version before enrollment.
 All 14 WEB4 Redis-family admission tests passed against Core
 `79b52a7f8bc9bfd06c1317956ad5d4855df2a379`. The native fixture compiled
 with zero errors. Live Dragonfly source and visitor proof remain open.
+
+11 November UTC: Dragonfly CI 43053188998 passed the pinned 2.0.2 encrypted native CQL, checkpoint, restart and MongoDB federation checks. The runner verified the native process and preserved the source across restart. Standard matrix routing and hosted TLS acceptance remain open.
