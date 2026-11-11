@@ -6112,3 +6112,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: Supabase activation/pagination qualification uses temporary remote tag ci-cosmic-supabase-pagination-2ec6cd9cce. Retire the tag after its workflows finish and evidence is recorded. Local temporary Git indices were removed. No local restore, image pull, report download or test environment.
 
 11 November UTC: refreshed Development without tags or submodules and prepared Supabase integration on the PlanetScale head. The temporary index was removed. Railway and CI metadata and bounded build logs were inspected in memory. No local build, restore or download.
+
+11 November UTC: track Core tag ci-cosmic-supabase-tariff-e5802022e9 and parent tag ci-cosmic-supabase-tariff-web4-3b8445942b until exact CI and scoped publication finish. Temporary Git indices removed. Build and tests are remote. No local image, restore, download or test environment.
