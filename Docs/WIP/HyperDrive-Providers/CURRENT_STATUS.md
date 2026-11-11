@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November Memcached run 43072655062 failed before daemon startup when the checksum-verified binary exited 127 on its version check. The candidate installs the documented libevent and Lua runtime dependencies on the disposable runner and prints linker diagnostics on admission failure. Batch saves now report exact acknowledged counts and errors. Indexed reads distinguish missing keys from failed reads. Native verification remains pending.
+
 11 November Memcached native storage candidate. Activation now requires a native Enyim response. Username/email lookups decode the same JSON written by the index path and avatar details use canonical serialization. The full storage workflow exercises two isolated official Memcached 1.6.40 daemons. Existing COSMIC query evidence carries forward. Lifecycle verification and durable-provider eligibility remain open.
 
 11 November RavenDB storage [run 43071621377](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43071621377) at 0e7f9d396e passed 52/52 through the shipping RavenDB.Client adapter on RavenDB 7.2.7. All four write-ownership regressions passed. Both independent databases had zero documents after exact cleanup, and CI removed the disposable resources. Hosted and COSMIC CQL acceptance are separate.

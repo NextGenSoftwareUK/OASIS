@@ -69,7 +69,13 @@ jobs:
           }
           trap cleanup EXIT
           mkdir -p "$(dirname "$runtime")"
-          python3 Scripts/TestHosts/prepare-cosmic-memcached-linux.py
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends libevent-2.1-7t64 liblua5.4-0
+          sudo apt-get clean
+          if ! python3 Scripts/TestHosts/prepare-cosmic-memcached-linux.py; then
+            if [[ -x "$runtime/usr/bin/memcached" ]]; then ldd "$runtime/usr/bin/memcached"; fi
+            exit 1
+          fi
           for port in 11231 11232; do
             "$runtime/usr/bin/memcached" -l 127.0.0.1 -p "$port" -U 0 -m 16 >"$fixture/$port.log" 2>&1 &
             pids+=("$!")

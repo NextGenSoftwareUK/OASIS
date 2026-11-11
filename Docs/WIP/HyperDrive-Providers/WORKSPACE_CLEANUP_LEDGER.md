@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+11 November Memcached run 43072655062 removed its extracted runtime, archive and fixture after executable admission failed. The retry installs two runtime libraries on its disposable runner and clears package downloads before starting the daemon. No Windows runtime, build or download was created.
+
 11 November Memcached native storage verification uses two disposable loopback daemons, a checksum-verified runtime and temporary checkpoints on CI. The workflow stops both processes and removes the runtime, archive and fixtures. Cleanup confirmation is pending. No local build or download was created.
 
 11 November RavenDB run 43071621377 independently removed ten owned holon tombstones and verified both databases had zero documents. CI removed the container, volumes, newly pulled image and checkpoints. No local build, runtime or download was created.
