@@ -1375,3 +1375,5 @@ CouchDB restart and federation diagnostic 43045487847 is active.
 11 November UTC: Development ea614f3fc6 carries the verified CouchDB CI wiring on top of HyperDrive Polkadot changes. The four-file batch matches the focused CI candidate. The combined run executed four generic tests and verified the restricted role plus native restart and MongoDB federation. Hosted HTTPS acceptance remains open.
 
 KeyDB pinned source build and native verification are active in CI 43047936284.
+
+11 November UTC: KeyDB CI 43047936284 stopped compiling the pinned source because the runner lacked uuid/uuid.h. Candidate 076b4e1deb explicitly installs uuid-dev in CI. The native restart and federation tests did not execute in the first run. Standard CouchDB Development CI 43048587905 and Railway WEB4 deployment d0469a9d are queued.

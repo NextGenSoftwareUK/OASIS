@@ -106,3 +106,5 @@ The shared WEB4 admission run passed 13/13 against Core
 `0561f11287d7913b235106cfc261484ae73db41c`. The native TLS fixture compiled
 with zero errors. The admission tests covered distinct authority, settings
 validation and rejecting an SDK connection to a different endpoint.
+
+11 November UTC: KeyDB CI 43047936284 stopped compiling the pinned source because the runner lacked uuid/uuid.h. Candidate 076b4e1deb explicitly installs uuid-dev in CI. The native restart and federation tests did not execute in the first run. Standard CouchDB Development CI 43048587905 and Railway WEB4 deployment d0469a9d are queued.
