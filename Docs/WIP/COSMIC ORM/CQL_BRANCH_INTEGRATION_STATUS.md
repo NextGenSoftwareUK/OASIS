@@ -1,5 +1,20 @@
 # CQL branch integration status
 
+## Core tariff reconciliation, 11 November 2026
+
+Development pins Core 9c0aa3851a and the COSMIC branch pins 812d3a000d.
+The exact StorageQueryTariff provider set has 112 entries on Development
+and 170 on the feature pin. Every Development entry is present on the
+feature pin. The 58 additional entries include Firebase, Infura, TRON
+and Urbit. These are explicit tariff eligibility entries. Hosted grants,
+provider activation and native evidence remain separate requirements.
+
+The two Core trees also differ across 40 files, including HyperDrive
+replication. Preserve Development Core for the scoped GOMap merge,
+which already includes GOMap tariff eligibility. Reconcile additional
+tariff entries with their reviewed reader scopes before advancing the
+shared Core pin. Keep parent gitlink and deployment manifest in sync.
+
 ## Current Development coordination
 
 Review Development and HyperDrive every 30 minutes. Batch verified, non-overlapping COSMIC changes and leave at least 30 minutes between Development pushes. Check the latest shared push and the Railway WEB4 queue before integrating. Defer routine pushes while the preceding WEB4 release is queued. Use work/cosmic-cql-ton-public for feature work.
