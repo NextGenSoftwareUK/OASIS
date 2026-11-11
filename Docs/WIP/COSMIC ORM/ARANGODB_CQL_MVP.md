@@ -50,3 +50,5 @@ Admission TRX SHA256
 `a98217a443336f380162b69701b3b0130defedf71c64b7eea1c87262477c03ed`.
 The fixture was compiled here. The approved hosted ArangoDB source and
 live Development verification are still pending.
+
+11 November UTC: [ArangoDB provider integration CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43026834539) passed with the authenticated fixture and the scoped candidate `9e82b80e72`. The companion run also passed. Development advanced to `c0b8c1eef1` with the independently verified EOSIO native storage batch while this diagnostic ran. The ArangoDB correction is on the COSMIC branch pending integration, and its separate native restart and federation gates remain open.

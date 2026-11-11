@@ -1221,3 +1221,5 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 11 November UTC: the first ArangoDB diagnostic workflow was rejected before running because its generated YAML duplicated the matrix block. The corrected workflow uses a single ArangoDB matrix and checks out the same candidate 9e82b80e72. LayerZero deployment ba604fae has begun building.
 
 11 November UTC: corrected [ArangoDB fixture CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43026834539) started for candidate 9e82b80e72. It executes the generic ArangoDB test class using the configured fixture password. The earlier rejected workflow tag was removed.
+
+11 November UTC: [ArangoDB provider integration CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43026834539) passed with the authenticated fixture and the scoped candidate `9e82b80e72`. The companion run also passed. Development advanced to `c0b8c1eef1` with the independently verified EOSIO native storage batch while this diagnostic ran. The ArangoDB correction is on the COSMIC branch pending integration, and its separate native restart and federation gates remain open.
