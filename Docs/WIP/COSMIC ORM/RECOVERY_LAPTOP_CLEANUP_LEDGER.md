@@ -5724,3 +5724,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: warmed catalogue check reused the existing visitor and read Railway logs in memory. No local build, download, report, screenshot file or new visitor.
 
 11 November UTC: ClickHouse browser acceptance reused the existing visitor. No local report, screenshot file, download, runtime, build output or saved holon.
+
+11 November UTC: solution candidate 08d96be3b1 uses temporary tag ci-cosmic-solution-08d96be3b1-build. Remove it and the prior d8b50fa36f tag after their runs finish and results are recorded. The temporary local index was removed. No local build, restore, download or artifact copy.

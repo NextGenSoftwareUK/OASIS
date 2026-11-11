@@ -1107,3 +1107,5 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 11 November UTC: HyperDrive CI 43011806925 also verified IPFS writer-process publication on Linux with native Kubo 0.43.1. Two writer processes sharing one local DNA file and a fresh reader preserved all eight acknowledged records. This matches Development 9aaed91520; Railway cutover and historical fixture recovery remain open.
 
 11 November UTC: ClickHouseOASIS read-only public country-summary presets returned 3 full and 2 filtered rows in the live Development WEB4 CQL Playground. Original-owner paired browser verification remains open. HyperDrive owns the separate writable storage work.
+
+11 November UTC: Development 07082d65c0 adds HyperDrive's Neo4j V2 package and harness batch. Railway f08726a5 is queued behind the IPFS writer-process build. Exact solution candidate 08d96be3b1 preserves those changes and adds only the two solution files; remote CI was triggered. Existing Neo4j CQL acceptance is separate from the V2 harness.
