@@ -1383,3 +1383,7 @@ KeyDB pinned source build and native verification are active in CI 43047936284.
 11 November UTC: the standard Development pipeline 43048587905 passed both CouchDB jobs at ea614f3fc6. The matrix ran four generic storage tests and the restricted-role native policy, and the dedicated job verified restart and MongoDB federation. Hosted CouchDB still requires the restricted HTTPS teaching fixture.
 
 11 November UTC: Railway WEB4 deployment 882d3bd1 at 1c7e670e8d remained active before and after authenticated discovery. A separate temporary public visitor saw 105 of 106 sources ready. ActivityPub and Hedera advertised native and federation readiness. CouchDB, OpenSearch, SurrealDB, Supabase and TRON were absent. This was discovery only. The original visitor journal and accepted private cohorts remain intact.
+
+11 November UTC: KeyDB run 43048779525 stopped installing uuid-dev because the Ubuntu Resolute mirrors failed DNS resolution. Candidate b2979f73ba pins Ubuntu 24.04 and makes package index failures explicit with bounded transport timeouts. Native build and tests remain pending.
+
+On active WEB4 1c7e670e8d, NostrOASIS was the only listed source unavailable among 106. Reused the separate public visitor for discovery. The existing Nostr operator recovery action remains open.

@@ -108,3 +108,5 @@ with zero errors. The admission tests covered distinct authority, settings
 validation and rejecting an SDK connection to a different endpoint.
 
 11 November UTC: KeyDB CI 43047936284 stopped compiling the pinned source because the runner lacked uuid/uuid.h. Candidate 076b4e1deb explicitly installs uuid-dev in CI. The native restart and federation tests did not execute in the first run. Standard CouchDB Development CI 43048587905 and Railway WEB4 deployment d0469a9d are queued.
+
+11 November UTC: KeyDB run 43048779525 stopped installing uuid-dev because the Ubuntu Resolute mirrors failed DNS resolution. Candidate b2979f73ba pins Ubuntu 24.04 and makes package index failures explicit with bounded transport timeouts. Native build and tests remain pending.

@@ -180,3 +180,5 @@ Explicit source recovery implemented at the host lifecycle boundary,same source/
 11 November UTC: live Development WEB4 c686a8618d reached 105 available hosted sources after IPFS cutover. Railway deployment c7b533e2 recorded Nostr activation WebSocket HTTP 503 / NotAWebSocket at 738 ms. Prior signed-event browser acceptance remains recorded. No source recovery was requested.
 
 11 November UTC: Railway startup logs for live Development WEB4 07082d65c0 (deployment f08726a5) show Nostr activation again failed during WebSocket connect with HTTP 503 / NotAWebSocket after 107 ms. This revision did not establish Nostr readiness. Prior successful public browser reads remain valid within their recorded scope. No source recovery, settings change or subscription was initiated.
+
+11 November UTC: authenticated discovery on WEB4 1c7e670e8d still returned CQL_SOURCE_UNAVAILABLE for Nostr. Existing operator recovery and accepted original cohort evidence remain recorded.
