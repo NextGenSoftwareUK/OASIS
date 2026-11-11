@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+11 November Linux IPFS separate-process CI. GitHub job 130493008518 confirmed that the owned Kubo 0.43.1 daemon stopped after all three test processes passed. The archive, repository, lock and build outputs ran on a disposable Linux runner. No upload or local output was created.
+
 11 November IPFS separate-process CI. Baseline job 130489021464 and corrected job 130489798827 both stopped the owned Kubo daemon. The lock file, repository, download and build outputs were confined to disposable Windows runners. No uploads or local artifacts were created.
 
 11 November IPFS independent writer CI. Baseline job 130484784884 and corrected job 130486013043 both stopped their owned Kubo process. Downloads, temporary repositories and builds ran on disposable Windows runners. No uploads or local outputs were created.
