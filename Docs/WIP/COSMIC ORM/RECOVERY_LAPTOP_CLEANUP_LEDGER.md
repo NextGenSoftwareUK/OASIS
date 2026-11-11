@@ -5468,3 +5468,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: replacement regression run 42968130827 and exact teaching image run 42968255251 use remote runners. Cancellation requested for superseded remote image run 42966870180. No local download, restore, image or test output. Temporary Git index removed.
 
 11 November UTC: The Sandbox browser acceptance reused the existing demo visitor with no new avatar, report, screenshot file, download or build output.
+
+11 November UTC: NATS JetStream browser checks reused the existing demo visitor. No new avatar, report, screenshot file, download or build output.

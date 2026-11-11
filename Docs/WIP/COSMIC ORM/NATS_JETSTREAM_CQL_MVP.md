@@ -320,3 +320,5 @@ matched the exact committed Git bytes on first observation. Compact receipt
 retained; no downloaded HTML file, browser interaction or cohort replay.
 Browser acceptance remains open. Continue the next eligible independent
 provider scope while preserving accepted sources and owner deferrals.
+
+11 November UTC: NATS JetStream native public presets rendered 3 full and 2 filtered rows in the live Development WEB4 CQL Playground. The original-owner private paired browser check remains open.
