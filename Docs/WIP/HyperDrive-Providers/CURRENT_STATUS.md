@@ -1,6 +1,6 @@
 # Current provider status
 
-11 November Cosmos Hub wallet balance. The synchronous shipping wallet method passed a live read of the distribution account through CosmJS 0.39.0. It returned a positive ATOM balance on cosmoshub-4 with no signer, storage activation or posts to the caller synchronization context. The prior contract storage result remains 0/52 before native dispatch and the retained wasmd fixture remains open.
+11 November Cosmos Hub wallet balance. The synchronous shipping wallet method passed a live read of the distribution account through CosmJS 0.39.0. It returned a positive ATOM balance on cosmoshub-4 with no signer, storage activation or posts to the caller synchronization context. Development f4d314f7a3 carries the scoped wallet fix with matching shipping provider, SDK bridge and shared dependencies. The prior contract storage result remains 0/52 before native dispatch and the retained wasmd fixture remains open.
 
 11 November matrix reconciliation. Scoped notes from 35 provider rows now live in the conformance registry so they survive regeneration. The regenerated matrix preserves all 234 project identities, all prior row notes and the registered conformance metadata. Scoped native checks and interrupted runs remain documented in the notes for providers without a registered suite result.
 
