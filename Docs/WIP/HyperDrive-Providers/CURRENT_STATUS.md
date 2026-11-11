@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November Immutable public wallet harness. The official mainnet RPC returned a positive native IMX balance for the public zero address. The new opt-in integration test uses both shipping balance modes, requires a positive result with storage inactive, and rejects an Optimism endpoint. Enable with OASIS_IMMUTABLE_PUBLIC_WALLET_READ=1. Direct RPC evidence is recorded; the .NET integration run remains open.
+
 11 November Immutable testnet verification harness. The shared core-storage-v2 suite now has sync and async entry points gated by OASIS_IMMUTABLE_TESTNET_STORAGE_WRITES=1. The fixture checks HTTPS, chain ID 13473 and funded signer before any writes, then requires all cases and exact fixture cleanup. No dedicated settings are present in this session. Build and signed execution remain open. Access is tracked in the owner action ledger.
 
 11 November Immutable zkEVM storage candidate. The shipping adapter now uses Web3Core for storage and wallet operations. Removed the local record echoes, fabricated delete and empty collection responses, and wallet stubs. Both official endpoints independently confirmed chain identity, 13371 for mainnet and 13473 for testnet. The existing RPC-only constructor supports mainnet balance reads. The COSMIC public reader was untouched. C# syntax and diff checks passed. BootLoader now constructs the adapter from the ImmutableZkEVMOASIS storage settings. Provider and BootLoader builds, live wallet execution and native storage conformance remain open.
