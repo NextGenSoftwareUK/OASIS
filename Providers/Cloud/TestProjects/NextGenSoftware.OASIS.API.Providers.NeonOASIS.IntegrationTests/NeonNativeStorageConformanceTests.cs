@@ -14,15 +14,20 @@ public class NeonNativeStorageConformanceTests
     [DataRow(true)]
     public async Task CoreStorageSuiteAgainstNeon(bool sync)
     {
-        var connection = Environment.GetEnvironmentVariable("OASIS_NEON_CONFORMANCE_CONNECTION_STRING");
+        var localFixture = Environment.GetEnvironmentVariable("OASIS_NEON_LOCAL_CONFORMANCE") == "1";
+        var connection = Environment.GetEnvironmentVariable(localFixture
+            ? "OASIS_NEON_LOCAL_CONNECTION_STRING"
+            : "OASIS_NEON_CONFORMANCE_CONNECTION_STRING");
         if (string.IsNullOrWhiteSpace(connection))
             Assert.Inconclusive("Set OASIS_NEON_CONFORMANCE_CONNECTION_STRING to a dedicated Neon test database.");
 
         var settings = new NpgsqlConnectionStringBuilder(connection);
         Assert.IsTrue(settings.Host is { } host && !host.Contains(',') &&
-            host.EndsWith(".neon.tech", StringComparison.OrdinalIgnoreCase) &&
-            host[..host.IndexOf('.')].EndsWith("-pooler", StringComparison.OrdinalIgnoreCase),
-            "Native conformance requires the explicit Neon pooled endpoint so inspection and provider writes use the same host.");
+            (localFixture
+                ? host == "127.0.0.1"
+                : host.EndsWith(".neon.tech", StringComparison.OrdinalIgnoreCase) &&
+                  host[..host.IndexOf('.')].EndsWith("-pooler", StringComparison.OrdinalIgnoreCase)),
+            "Supply the dedicated hosted Neon pooled endpoint or an explicitly enabled loopback Neon compute.");
         Assert.AreEqual("oasis_provider_test", settings.Database,
             "Native conformance requires the dedicated test database.");
 
@@ -31,7 +36,7 @@ public class NeonNativeStorageConformanceTests
             root = root.Parent;
         Assert.IsNotNull(root, "Run this test from the repository.");
 
-        var directory = Path.Combine(root.FullName, "TestResults", "ProviderConformanceCurrent",
+        var directory = Path.Combine(root.FullName, "TestResults", localFixture ? "NeonLocalConformance" : "ProviderConformanceCurrent",
             nameof(NeonOASIS), sync ? "sync" : "async");
         Directory.CreateDirectory(directory);
         using var lease = new FileStream(Path.Combine(Path.GetDirectoryName(directory)!, "environment.lock"),
@@ -62,9 +67,18 @@ public class NeonNativeStorageConformanceTests
             File.Move(pendingPath, reportPath, overwrite: true);
         }
 
-        settings.SslMode = SslMode.VerifyFull;
+        settings.SslMode = localFixture ? SslMode.Disable : SslMode.VerifyFull;
         await using var inspection = new NpgsqlConnection(settings.ConnectionString);
         await inspection.OpenAsync();
+        if (localFixture)
+        {
+            await using var identify = new NpgsqlCommand(
+                "SELECT EXISTS (SELECT 1 FROM pg_available_extensions WHERE name = 'neon') " +
+                "AND 'neon' = ANY(regexp_split_to_array(current_setting('shared_preload_libraries'), '\\s*,\\s*')) " +
+                "AND current_setting('neon.timeline_id', true) ~ '^[0-9a-f]{32}$'",
+                inspection);
+            Assert.AreEqual(true, await identify.ExecuteScalarAsync(), "The dedicated compute must load the native Neon extension and have a timeline.");
+        }
 
         async Task RequireEmptyTables(bool requireSchema)
         {
@@ -84,7 +98,7 @@ public class NeonNativeStorageConformanceTests
         }
 
         await RequireEmptyTables(requireSchema: false);
-        var provider = new NeonOASIS(connection!);
+        var provider = new NeonOASIS(settings.ConnectionString, usePooler: !localFixture);
         var result = await CoreStorageConformance.RunAsync(
             provider, nameof(NeonOASIS), "native", sync, report => report.Succeeded ? Task.CompletedTask : Checkpoint(report),
             expectedDefaultDeletion: "absent");
@@ -93,7 +107,35 @@ public class NeonNativeStorageConformanceTests
         try
         {
             Assert.IsTrue(result.FixtureCleanupComplete);
+            result.CurrentCase = "native-holon-tombstone-cleanup";
+            result.Succeeded = false;
+            result.FixtureCleanupComplete = false;
+            await Checkpoint(result);
+
+            // The storage API hides PostgreSQL tombstones from both point and collection reads.
+            var holonIds = new[] { result.RootId, result.ChildId, result.ImportId }.Concat(result.BatchIds).ToArray();
+            await using (var transaction = await inspection.BeginTransactionAsync())
+            {
+                await using var delete = new NpgsqlCommand(
+                    "DELETE FROM oasis_holons WHERE id = ANY($1) AND is_deleted RETURNING id",
+                    inspection, transaction);
+                delete.Parameters.AddWithValue(holonIds);
+                var removed = new List<Guid>();
+                await using (var rows = await delete.ExecuteReaderAsync())
+                {
+                    while (await rows.ReadAsync())
+                        removed.Add(rows.GetGuid(0));
+                }
+                CollectionAssert.AreEquivalent(holonIds, removed, "Each fixture holon must have a native tombstone.");
+                await transaction.CommitAsync();
+                result.HardCleanedFixtures.AddRange(removed);
+            }
+
             await RequireEmptyTables(requireSchema: true);
+            result.CleanupScope = "native-exact-holon-tombstones-and-empty-current-tables";
+            result.CurrentCase = "complete";
+            result.Succeeded = true;
+            result.FixtureCleanupComplete = true;
         }
         catch (Exception error)
         {
