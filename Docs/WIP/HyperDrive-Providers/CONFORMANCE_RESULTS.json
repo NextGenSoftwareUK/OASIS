@@ -392,7 +392,7 @@
       "Thin facade shares the verified Redis SDK/record policy; 52/52 controlled checks are not native acceptance; actual product runtime/configuration and conditional/scan primitives remain unverified; legacy plaintext layout is refused, no automatic migration"
     ],
     "GarnetOASIS": [
-      "Official Garnet 2.2.5 Windows native storage coverage is split across 18/26 per mode, two focused cleanup passes, and two remaining-deletion passes. Independent empty database checks passed. See PROVIDER_COMPLETION_CONTINUATION.md for exact report hashes. Full provider acceptance and a single registered native shared report remain open."
+      "Official Garnet 2.2.5 Windows native coverage is split across 18/26 initial checks per mode and three focused sync/async pairs for tombstone and avatar cleanup, remaining root/batch/import cleanup, and parented-child relationship index cleanup. See the [hash-verified split evidence](NativeEvidence/garnet-split-storage-v2.json). Full provider acceptance and a single registered native shared report remain open."
     ],
     "IPFSOASIS": [
       "Native core-storage-v2 baseline52/52 verified, sync/async26 each, exact fixture cleanup complete;178 controlled tests pass. Reusable owned offline environment ready. CQL remains unenrolled; direct-CID versus named persistent-index execution and full lifecycle/concurrency contracts remain open."
