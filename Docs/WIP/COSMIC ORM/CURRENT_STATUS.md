@@ -860,3 +860,6 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 11 November UTC: Railway WEB4 deployment 3ef1004e-982f-4d28-98e1-ec4a420ec03f succeeded on documentation-only Development successor 87793cf704. Authenticated catalogue warmed from 20/106 to 105/106. Nostr returned to native and federated readiness, Hedera alone returned CQL_SOURCE_UNAVAILABLE. All other previously ready priority sources and LocalFile advertised both query paths. TRON and Supabase were absent. No live source recovery or business query was dispatched.
 
 11 November UTC: Development 87793cf704 Nostr native public full browser preset rendered 3 signed events. The two-event preset returned HTTP 503 CQL_QUERY_FAILED. Railway logged query-stage WebSocket connect HTTP 503 NotAWebSocket. Subset and private paired browser acceptance remain open. No retry or source change was made.
+
+
+11 November UTC: traced the Nostr filtered-browser HTTP 503 to the WebSocket upgrade. NostrPublicRelayRead opens the guarded socket before ReadConnectedAsync serializes or sends the REQ frame, so the failing connection had not sent the two-event filter to the relay. The successful full read and failed subset therefore show intermittent handshake failure. Relay availability across new connections remains open. Keep the reviewed source and preserve the failed operation for reconciliation.
