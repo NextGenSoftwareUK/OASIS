@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November Valkey full storage candidate. The shipping ValKeyOASIS adapter runs both shared storage modes against the digest-pinned official Valkey 9.0.4 image. The test checks exact tombstone cleanup and native database emptiness. This adds shared lifecycle coverage without replaying the earlier storage smoke or COSMIC restart and federation checks. Results are pending.
+
 11 November Firebase activation candidate. A successful HTTP status now also has to carry the RTDB JSON null response for the reserved empty holon identity. This keeps an HTML gateway or a wrong JSON endpoint from marking the shipping provider active. Regression cases cover null, empty, HTML and object responses. The combined compile, activation regression and emulator check is pending in run 43090501206.
 
 11 November Valkey and Dragonfly evidence reconciliation. Development run 43059249089 at d93d984b7b passed four native avatar/holon smoke cases for each provider and separate encrypted CQL restart/federation jobs. The shared 52-case native lifecycle remains open for both. No tests were repeated.
