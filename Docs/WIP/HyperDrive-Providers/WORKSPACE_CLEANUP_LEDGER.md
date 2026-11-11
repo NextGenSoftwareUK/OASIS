@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+11 November Firebase run 43101286060 logged removal of the owned RTDB emulator, fixture and reports after the native deletion acknowledgement failure. No Windows build, download or raw report was created.
+
 11 November superseded Dragonfly run 43094237991 finished cancelled. GitHub reports no executed steps for job 130778844756. There is no recorded fixture creation in that run and no local runtime, build or report was created.
 
 11 November Base wallet and decoder qualification ran on a disposable GitHub runner. The public read used no signer and created no chain fixture. No local download, build output or raw test result was created.
