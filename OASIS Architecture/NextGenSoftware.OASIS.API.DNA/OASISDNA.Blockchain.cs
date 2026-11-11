@@ -25,6 +25,14 @@ namespace NextGenSoftware.OASIS.API.DNA
         public string Network { get; set; } = "polkadot";
     }
 
+    public class ImmutableZkEVMOASISProviderSettings : ProviderSettingsBase
+    {
+        public string RpcEndpoint { get; set; } = "https://rpc.immutable.com";
+        public string ChainId { get; set; } = "13371";
+        public string ChainPrivateKey { get; set; }
+        public string ContractAddress { get; set; }
+    }
+
     public class RoninOASISProviderSettings : ProviderSettingsBase
     {
         public string RpcEndpoint { get; set; } = "https://api.roninchain.com/rpc";

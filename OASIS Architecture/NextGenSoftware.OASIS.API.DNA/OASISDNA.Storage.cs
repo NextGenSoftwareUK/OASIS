@@ -67,6 +67,7 @@ namespace NextGenSoftware.OASIS.API.DNA
         public BitcoinOASISProviderSettings BitcoinOASIS { get; set; }
         public CardanoOASISProviderSettings CardanoOASIS { get; set; }
         public PolkadotOASISProviderSettings PolkadotOASIS { get; set; }
+        public ImmutableZkEVMOASISProviderSettings ImmutableZkEVMOASIS { get; set; }
         public RoninOASISProviderSettings RoninOASIS { get; set; }
         public BNBChainOASISProviderSettings BNBChainOASIS { get; set; }
         public FantomOASISProviderSettings FantomOASIS { get; set; }

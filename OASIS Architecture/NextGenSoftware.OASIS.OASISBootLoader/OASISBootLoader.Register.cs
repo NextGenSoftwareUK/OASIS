@@ -387,6 +387,19 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                         //    }
                         //    break;
 
+                        case ProviderType.ImmutableZkEVMOASIS:
+                        {
+                            var settings = OASISDNA.OASIS.StorageProviders.ImmutableZkEVMOASIS
+                                ?? throw new InvalidOperationException("Immutable zkEVM storage settings are required.");
+                            var provider = new NextGenSoftware.OASIS.API.Providers.ImmutableZkEVMOASIS.ImmutableZkEVMOASIS(
+                                overrideConnectionString ?? settings.RpcEndpoint,
+                                settings.ChainPrivateKey, settings.ContractAddress,
+                                EvmProviderFactory.ParseChainId(settings.ChainId, "Immutable zkEVM"));
+                            provider.OnStorageProviderError += (_, error) => HandleProviderError("ImmutableZkEVMOASIS", error);
+                            result.Result = provider;
+                        }
+                        break;
+
                         case ProviderType.RoninOASIS:
                         {
                             var settings = OASISDNA.OASIS.StorageProviders.RoninOASIS
