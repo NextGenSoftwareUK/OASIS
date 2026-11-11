@@ -1,5 +1,7 @@
 # COSMIC ORM / CQL current status
 
+Railway also cancelled build 618a1edc for 335be6013a after verifying it differed from live WEB4 only in BNB tests, CI and documentation. The verified release a614a4377f remains queued.
+
 ## Development WEB4 queue, 11 November 2026
 
 Railway confirmed cancellation of 11 superseded queued Git deployments with matching runtime configuration and ancestor revisions. Verified release a614a4377f and the distinct configuration rollout 4ac92d08 were preserved. Live WEB4 remains 214462362b pending the next cutover.
