@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November Milvus storage [run 43078055694](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43078055694) at 652853ec7f passed 52/52 through the shipping REST v2 adapter on Milvus 2.6.26. All 14 write-ownership checks passed. Each mode independently removed five exact owned holon tombstones and confirmed all three collections empty. Hosted storage, historical versions and vector-specific capabilities remain open.
+
 11 November Memcached storage [run 43075704036](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43075704036) at 8ba3eb3adb passed 52/52 through shipping EnyimMemcachedCore on two independent Memcached 1.6.40 daemons. Enyim verified exact native holon fixture removal. CI removed both daemons and checkpoints. The lifecycle pass is scoped to volatile cache storage. Hosted operation, eviction behavior and multi-key atomicity remain open.
 
 11 November RavenDB storage [run 43071621377](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43071621377) at 0e7f9d396e passed 52/52 through the shipping RavenDB.Client adapter on RavenDB 7.2.7. All four write-ownership regressions passed. Both independent databases had zero documents after exact cleanup, and CI removed the disposable resources. Hosted and COSMIC CQL acceptance are separate.
