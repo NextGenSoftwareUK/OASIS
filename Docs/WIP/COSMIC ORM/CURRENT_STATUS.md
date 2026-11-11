@@ -1169,3 +1169,5 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 11 November UTC: LayerZero v1's reviewed Ethereum origin now points to dRPC on the COSMIC branch. Exact candidate a2990f712c adds the provider and focused test to the verified two-solution-file candidate on eed714ba35. Focused LayerZero tests and full solution verification were triggered remotely. Ethereum settings rollout 15c57e25 is still building.
 
 11 November UTC: dRPC preflight from the live Development WEB4 container passed exact Ethereum genesis, finalized block and all three LayerZero v1 canonical ABI calls, including contract chain ID. The replacement code and focused test are in candidate a2990f712c. CI 43020496094 is active. Live activation and browser verification remain pending.
+
+11 November UTC: Railway deployment 15c57e25-493e-48fc-b955-0cc66aec0534 reached SUCCESS on eed714ba35 with the Ethereum dRPC setting. Initial browser discovery showed 36 then 44 sources during warmup. The queried startup logs showed ChainLink, LayerZero v1 and Nostr failures, with no Ethereum activation error in the observed sample. Ethereum preset execution remains pending.

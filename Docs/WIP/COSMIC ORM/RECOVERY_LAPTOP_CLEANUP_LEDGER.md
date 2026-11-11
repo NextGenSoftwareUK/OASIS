@@ -5800,3 +5800,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: LayerZero dRPC preflight reused the installed Railway CLI, SSH identity and container Node. No local build, download, artifact or new test environment. Temporary Git index removed.
 
 11 November UTC: inspected LayerZero CI step results in memory. No local build, download or artifact copy. Temporary Git index removed.
+
+11 November UTC: verified Ethereum settings rollout metadata and inspected initial catalogue warmup using the existing browser visitor. No local screenshot file, report, saved holon, build or download. Temporary Git index removed.
