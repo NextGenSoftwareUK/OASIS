@@ -1059,3 +1059,5 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 11 November UTC: Railway WEB4 deployment c7b533e2 succeeded on Development c686a8618d with the verified native Kubo activation change. Fresh browser catalogue reads during warmup showed 19 then 26 available sources. Final readiness is pending. Preserve prior IPFS CQL query acceptance and separate native storage evidence.
 
 11 November UTC: fresh Development WEB4 discovery on the IPFS activation deployment c686a8618d reached 42 available hosted sources during warmup. IPFSOASIS was selectable and loaded its native public CID preset. Existing query results were preserved without replay. Full catalogue readiness remains pending.
+
+11 November UTC: live Development WEB4 c686a8618d reached 105 available hosted sources after IPFS cutover. Railway deployment c7b533e2 recorded Nostr activation WebSocket HTTP 503 / NotAWebSocket at 738 ms. Prior signed-event browser acceptance remains recorded. No source recovery was requested.
