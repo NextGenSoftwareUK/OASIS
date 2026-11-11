@@ -5,8 +5,9 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <EnableDefaultCompileItems Condition="'$(SqlServerDirectStorageOnly)' == 'true'">false</EnableDefaultCompileItems>
   </PropertyGroup>
-  <ItemGroup>
+  <ItemGroup Condition="'$(SqlServerDirectStorageOnly)' != 'true'">
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <Compile Include="../../../../Examples/CosmicCqlDemo/ContentFederationPresets.cs" Link="Demo/ContentFederationPresets.cs" />
     <Compile Include="../../../../Examples/CosmicCqlDemo/IdentityFederationWalkthrough.cs" Link="Demo/IdentityFederationWalkthrough.cs" />
@@ -24,6 +25,7 @@
     <ProjectReference Include="..\..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="SqlServerNativeStorageConformanceTests.cs" Condition="'$(SqlServerDirectStorageOnly)' == 'true'" />
     <Compile Include="../../../Shared/TestSupport/CoreStorageConformance.cs" Link="TestSupport/CoreStorageConformance.cs" />
   </ItemGroup>
 </Project>
