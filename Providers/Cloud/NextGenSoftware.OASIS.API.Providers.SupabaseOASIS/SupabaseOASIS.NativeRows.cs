@@ -26,10 +26,11 @@ public partial class SupabaseOASIS
 {
     private static async Task<string> ReadBoundedBody(HttpResponseMessage response, CancellationToken token)
     {
-        await using var stream = await response.Content.ReadAsStreamAsync(token);
+        var stream = await response.Content.ReadAsStreamAsync(token).ConfigureAwait(false);
+        await using var streamLifetime = stream.ConfigureAwait(false);
         using var buffer = new MemoryStream();
         var block = new byte[16384];
-        for (var read = await stream.ReadAsync(block, token); read != 0; read = await stream.ReadAsync(block, token))
+        for (var read = await stream.ReadAsync(block, token).ConfigureAwait(false); read != 0; read = await stream.ReadAsync(block, token).ConfigureAwait(false))
         {
             if (buffer.Length + read > 4 * 1024 * 1024)
                 throw new InvalidDataException("Supabase native response exceeds the 4 MiB boundary.");

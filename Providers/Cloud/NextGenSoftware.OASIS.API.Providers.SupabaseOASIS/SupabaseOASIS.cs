@@ -135,9 +135,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
             request.Headers.Add("Prefer", "resolution=merge-duplicates,return=representation");
             try
             {
-                using var response = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+                using var response = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false);
                 response.EnsureSuccessStatusCode();
-                using var document = JsonDocument.Parse(await ReadBoundedBody(response, default));
+                using var document = JsonDocument.Parse(await ReadBoundedBody(response, default).ConfigureAwait(false));
                 var rows = document.RootElement;
                 if (rows.ValueKind != JsonValueKind.Array || rows.GetArrayLength() != 1
                     || !rows[0].GetProperty("id").TryGetGuid(out var acknowledgedId) || acknowledgedId != id
@@ -173,7 +173,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
                 var json = projection.ToJsonString(_jsonOpts);
                 var row = new { id, username = avatar.Username ?? "", email = avatar.Email ?? "",
                     is_deleted = avatar.IsDeleted, data_json = json };
-                await UpsertAvatarRowAsync("oasis_avatars", id, row, includeDeletion: true);
+                await UpsertAvatarRowAsync("oasis_avatars", id, row, includeDeletion: true).ConfigureAwait(false);
 
                 avatar.Id = id;
                 avatar.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
@@ -219,7 +219,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
         private async Task<Avatar?> GetAvatarByFilterAsync(string filter)
         {
             var rows = await ReadCompleteRows($"oasis_avatars?{filter}&is_deleted=eq.false",
-                DeserializeList<AvatarRow>, row => ParseAvatarRow(row).Id, default, singleIdentity: true);
+                DeserializeList<AvatarRow>, row => ParseAvatarRow(row).Id, default, singleIdentity: true).ConfigureAwait(false);
             return rows.Count == 0 ? null : ParseAvatarRow(rows[0]);
         }
 
@@ -228,7 +228,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
             var result = new OASISResult<IAvatar>();
             try
             {
-                var avatar = await GetAvatarByFilterAsync($"id=eq.{id}");
+                var avatar = await GetAvatarByFilterAsync($"id=eq.{id}").ConfigureAwait(false);
                 if (avatar == null) { OASISErrorHandling.HandleError(ref result, $"SupabaseOASIS: No avatar found with ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
                 if (avatar.Id != id)
                     throw new System.IO.InvalidDataException("Supabase returned a different avatar identity.");
@@ -245,7 +245,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
             var result = new OASISResult<IAvatar>();
             try
             {
-                var avatar = await GetAvatarByFilterAsync($"username=eq.{Uri.EscapeDataString(username)}");
+                var avatar = await GetAvatarByFilterAsync($"username=eq.{Uri.EscapeDataString(username)}").ConfigureAwait(false);
                 if (avatar == null) { OASISErrorHandling.HandleError(ref result, $"SupabaseOASIS: No avatar found with username '{username}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
                 result.Result = avatar; result.IsLoaded = true; result.LoadedCount = 1; result.Message = $"SupabaseOASIS: Avatar loaded for username '{username}'.";
             }
@@ -260,7 +260,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
             var result = new OASISResult<IAvatar>();
             try
             {
-                var avatar = await GetAvatarByFilterAsync($"email=eq.{Uri.EscapeDataString(avatarEmail)}");
+                var avatar = await GetAvatarByFilterAsync($"email=eq.{Uri.EscapeDataString(avatarEmail)}").ConfigureAwait(false);
                 if (avatar == null) { OASISErrorHandling.HandleError(ref result, $"SupabaseOASIS: No avatar found with email '{avatarEmail}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
                 result.Result = avatar; result.IsLoaded = true; result.LoadedCount = 1; result.Message = $"SupabaseOASIS: Avatar loaded for email '{avatarEmail}'.";
             }
@@ -272,7 +272,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
         {
-            if (Guid.TryParse(providerKey, out Guid id)) return await LoadAvatarAsync(id, version);
+            if (Guid.TryParse(providerKey, out Guid id)) return await LoadAvatarAsync(id, version).ConfigureAwait(false);
             var result = new OASISResult<IAvatar>();
             OASISErrorHandling.HandleError(ref result, $"SupabaseOASIS: providerKey '{providerKey}' is not a valid GUID.");
             return result;
@@ -312,9 +312,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
                 bool found;
                 try
                 {
-                    using var response = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+                    using var response = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false);
                     response.EnsureSuccessStatusCode();
-                    using var document = JsonDocument.Parse(await ReadBoundedBody(response, default));
+                    using var document = JsonDocument.Parse(await ReadBoundedBody(response, default).ConfigureAwait(false));
                     var rows = document.RootElement;
                     if (rows.ValueKind != JsonValueKind.Array || rows.GetArrayLength() > 1)
                         throw new System.IO.InvalidDataException("Supabase returned an invalid avatar deletion acknowledgement.");
@@ -346,18 +346,18 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
 
         public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string username, bool softDelete = true)
         {
-            var loaded = await LoadAvatarByUsernameAsync(username);
+            var loaded = await LoadAvatarByUsernameAsync(username).ConfigureAwait(false);
             if (loaded.IsError) return AvatarLookupError<bool>(loaded);
-            return await DeleteAvatarAsync(loaded.Result.Id, softDelete);
+            return await DeleteAvatarAsync(loaded.Result.Id, softDelete).ConfigureAwait(false);
         }
 
         public override OASISResult<bool> DeleteAvatarByUsername(string username, bool softDelete = true) => DeleteAvatarByUsernameAsync(username, softDelete).Result;
 
         public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string email, bool softDelete = true)
         {
-            var loaded = await LoadAvatarByEmailAsync(email);
+            var loaded = await LoadAvatarByEmailAsync(email).ConfigureAwait(false);
             if (loaded.IsError) return AvatarLookupError<bool>(loaded);
-            return await DeleteAvatarAsync(loaded.Result.Id, softDelete);
+            return await DeleteAvatarAsync(loaded.Result.Id, softDelete).ConfigureAwait(false);
         }
 
         public override OASISResult<bool> DeleteAvatarByEmail(string email, bool softDelete = true) => DeleteAvatarByEmailAsync(email, softDelete).Result;
@@ -379,7 +379,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
                 projection.Id = id;
                 var json = StoredRecordJson.Serialize(projection);
                 var row = new { id, username = avatarDetail.Username ?? "", email = avatarDetail.Email ?? "", data_json = json };
-                await UpsertAvatarRowAsync("oasis_avatar_details", id, row);
+                await UpsertAvatarRowAsync("oasis_avatar_details", id, row).ConfigureAwait(false);
 
                 avatarDetail.Id = id;
                 result.Result = avatarDetail;
@@ -399,7 +399,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
             try
             {
                 var rows = await ReadCompleteRows($"oasis_avatar_details?id=eq.{id}",
-                    DeserializeList<AvatarDetailRow>, row => ParseAvatarDetailRow(row).Id, default, singleIdentity: true);
+                    DeserializeList<AvatarDetailRow>, row => ParseAvatarDetailRow(row).Id, default, singleIdentity: true).ConfigureAwait(false);
                 if (rows.Count == 0) { OASISErrorHandling.HandleError(ref result, $"SupabaseOASIS: No avatar detail found for ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
                 if (rows[0].id != id.ToString("D"))
                     throw new System.IO.InvalidDataException("Supabase returned a different avatar detail identity.");
@@ -418,7 +418,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
             try
             {
                 var rows = await ReadCompleteRows($"oasis_avatar_details?username=eq.{Uri.EscapeDataString(username)}",
-                    DeserializeList<AvatarDetailRow>, row => ParseAvatarDetailRow(row).Id, default, singleIdentity: true);
+                    DeserializeList<AvatarDetailRow>, row => ParseAvatarDetailRow(row).Id, default, singleIdentity: true).ConfigureAwait(false);
                 if (rows.Count == 0) { OASISErrorHandling.HandleError(ref result, $"SupabaseOASIS: No avatar detail found for username '{username}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
                 result.Result = ParseAvatarDetailRow(rows[0]); result.IsLoaded = true; result.LoadedCount = 1;
                 result.Message = $"SupabaseOASIS: AvatarDetail loaded for username '{username}'.";
@@ -435,7 +435,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
             try
             {
                 var rows = await ReadCompleteRows($"oasis_avatar_details?email=eq.{Uri.EscapeDataString(email)}",
-                    DeserializeList<AvatarDetailRow>, row => ParseAvatarDetailRow(row).Id, default, singleIdentity: true);
+                    DeserializeList<AvatarDetailRow>, row => ParseAvatarDetailRow(row).Id, default, singleIdentity: true).ConfigureAwait(false);
                 if (rows.Count == 0) { OASISErrorHandling.HandleError(ref result, $"SupabaseOASIS: No avatar detail found for email '{email}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
                 result.Result = ParseAvatarDetailRow(rows[0]); result.IsLoaded = true; result.LoadedCount = 1;
                 result.Message = $"SupabaseOASIS: AvatarDetail loaded for email '{email}'.";
@@ -476,7 +476,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
                     snapshot.ProviderUniqueStorageKey[Core.Enums.ProviderType.SupabaseOASIS] = snapshot.Id.ToString("D");
                     return new HolonRow(snapshot.Id.ToString("D"),
                         snapshot.ParentHolonId == Guid.Empty ? null : snapshot.ParentHolonId.ToString("D"),
-                        (int)snapshot.HolonType, snapshot.IsDeleted, Serialize(snapshot));
+                        (int)snapshot.HolonType, snapshot.IsDeleted, SerializeHolonPayload(node));
                 }).ToArray();
                 var expected = rows.ToDictionary(row => row.id, StringComparer.Ordinal);
                 using var req = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}/oasis_holons")
@@ -486,9 +486,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
                 req.Headers.Add("Prefer", "resolution=merge-duplicates,return=representation");
                 try
                 {
-                    using var response = await _http.SendAsync(req, HttpCompletionOption.ResponseHeadersRead);
+                    using var response = await _http.SendAsync(req, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false);
                     response.EnsureSuccessStatusCode();
-                    var acknowledged = ReadNativeRows(await ReadBoundedBody(response, default));
+                    var acknowledged = ReadNativeRows(await ReadBoundedBody(response, default).ConfigureAwait(false));
                     if (acknowledged.Count != rows.Length || acknowledged.Any(row =>
                         !expected.Remove(row.id, out var proposed) || row != proposed))
                         throw new System.IO.InvalidDataException("Supabase acknowledgement does not match the proposed graph rows.");
@@ -516,6 +516,20 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
             return result;
         }
 
+        private static string SerializeHolonPayload(PlannedHolonWrite node)
+        {
+            using var captured = JsonDocument.Parse(node.CapturedIntentJson);
+            var payload = JsonSerializer.SerializeToElement(node.Snapshot, _jsonOpts).EnumerateObject()
+                .ToDictionary(property => property.Name, property => property.Value, StringComparer.Ordinal);
+            foreach (var property in captured.RootElement.EnumerateObject())
+            {
+                if (property.Name != "$type")
+                    payload.TryAdd(JsonNamingPolicy.CamelCase.ConvertName(property.Name), property.Value);
+            }
+
+            return Serialize(payload);
+        }
+
         public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
             => SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider).Result;
 
@@ -525,7 +539,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
             var saved = new List<IHolon>(); var errors = new List<string>();
             foreach (var holon in holons)
             {
-                var r = await SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
+                var r = await SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider).ConfigureAwait(false);
                 if (r.IsError || !r.IsSaved || r.Result == null)
                 {
                     errors.Add(r.Message ?? "Supabase did not acknowledge the holon save.");
@@ -550,7 +564,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
 
         private async Task<List<Holon>> GetHolonsByFilterAsync(string filter)
         {
-            var rows = await ReadCompleteHolonRows(filter, default);
+            var rows = await ReadCompleteHolonRows(filter, default).ConfigureAwait(false);
             return rows.Select(ParseHolon).ToList();
         }
 
@@ -559,7 +573,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
             var result = new OASISResult<IHolon>();
             try
             {
-                var holons = await GetHolonsByFilterAsync($"id=eq.{id}&is_deleted=eq.false");
+                var holons = await GetHolonsByFilterAsync($"id=eq.{id}&is_deleted=eq.false").ConfigureAwait(false);
                 if (holons.Count > 1 || holons.Count == 1 && holons[0].Id != id) throw new System.IO.InvalidDataException("Supabase returned unexpected primary identities.");
                 if (holons.Count == 0) { OASISErrorHandling.HandleError(ref result, $"SupabaseOASIS: No holon found with ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
                 result.Result = holons[0]; result.IsLoaded = true; result.LoadedCount = 1; result.Message = $"SupabaseOASIS: Holon loaded for ID '{id}'.";
@@ -573,7 +587,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
 
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            if (Guid.TryParse(providerKey, out Guid id)) return await LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version);
+            if (Guid.TryParse(providerKey, out Guid id)) return await LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).ConfigureAwait(false);
             var result = new OASISResult<IHolon>();
             OASISErrorHandling.HandleError(ref result, $"SupabaseOASIS: providerKey '{providerKey}' is not a valid GUID.");
             return result;
@@ -588,7 +602,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
             try
             {
                 string filter = type == HolonType.All ? "is_deleted=eq.false" : $"is_deleted=eq.false&holon_type=eq.{(int)type}";
-                var holons = (await GetHolonsByFilterAsync(filter)).Cast<IHolon>().ToList();
+                var holons = (await GetHolonsByFilterAsync(filter).ConfigureAwait(false)).Cast<IHolon>().ToList();
                 result.Result = holons; result.IsLoaded = true; result.LoadedCount = holons.Count; result.Message = $"SupabaseOASIS: Loaded {holons.Count} holon(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SupabaseOASIS: Error loading all holons: {ex.Message}"); }
@@ -606,7 +620,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
                 string filter = type == HolonType.All
                     ? $"parent_holon_id=eq.{id}&is_deleted=eq.false"
                     : $"parent_holon_id=eq.{id}&is_deleted=eq.false&holon_type=eq.{(int)type}";
-                var holons = (await GetHolonsByFilterAsync(filter)).Cast<IHolon>().ToList();
+                var holons = (await GetHolonsByFilterAsync(filter).ConfigureAwait(false)).Cast<IHolon>().ToList();
                 result.Result = holons; result.IsLoaded = true; result.LoadedCount = holons.Count; result.Message = $"SupabaseOASIS: Loaded {holons.Count} holon(s) for parent '{id}'.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SupabaseOASIS: Error loading holons for parent '{id}': {ex.Message}"); }
@@ -618,7 +632,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            if (Guid.TryParse(providerKey, out Guid id)) return await LoadHolonsForParentAsync(id, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
+            if (Guid.TryParse(providerKey, out Guid id)) return await LoadHolonsForParentAsync(id, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).ConfigureAwait(false);
             var result = new OASISResult<IEnumerable<IHolon>>();
             OASISErrorHandling.HandleError(ref result, $"SupabaseOASIS: providerKey '{providerKey}' is not a valid GUID.");
             return result;
@@ -634,13 +648,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
             var result = new OASISResult<IHolon>();
             try
             {
-                var loaded = await LoadHolonAsync(id, loadChildren: false);
+                var loaded = await LoadHolonAsync(id, loadChildren: false).ConfigureAwait(false);
                 if (loaded.IsError || loaded.Result == null) return loaded;
                 // A soft delete is one canonical acknowledged write. Keep the
                 // payload and native deletion projection in agreement, with the
                 // same uncertain-outcome contract as every other holon save.
                 loaded.Result.DeletedDate = DateTime.UtcNow;
-                var saved = await SaveHolonAsync(loaded.Result, saveChildren: false);
+                var saved = await SaveHolonAsync(loaded.Result, saveChildren: false).ConfigureAwait(false);
                 if (!saved.IsError && saved.IsSaved)
                 {
                     saved.IsDeleted = true;
@@ -657,7 +671,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
 
         public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
         {
-            if (Guid.TryParse(providerKey, out Guid id)) return await DeleteHolonAsync(id);
+            if (Guid.TryParse(providerKey, out Guid id)) return await DeleteHolonAsync(id).ConfigureAwait(false);
             var result = new OASISResult<IHolon>();
             OASISErrorHandling.HandleError(ref result, $"SupabaseOASIS: providerKey '{providerKey}' is not a valid GUID.");
             return result;
@@ -673,7 +687,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
             try
             {
                 string? query = searchParams.SearchGroups?.OfType<SearchTextGroup>().FirstOrDefault()?.SearchQuery?.ToLower();
-                var all = await GetHolonsByFilterAsync("is_deleted=eq.false");
+                var all = await GetHolonsByFilterAsync("is_deleted=eq.false").ConfigureAwait(false);
                 var holons = string.IsNullOrEmpty(query) ? all.Cast<IHolon>().ToList()
                     : all.Where(h => h.Name?.ToLower().Contains(query) == true || h.Description?.ToLower().Contains(query) == true).Cast<IHolon>().ToList();
                 result.Result = new SearchResults { SearchResultHolons = holons, NumberOfResults = holons.Count };
@@ -693,7 +707,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
             var result = new OASISResult<IEnumerable<IHolon>>();
             try
             {
-                var all = await LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
+                var all = await LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).ConfigureAwait(false);
                 if (all.IsError) return all;
                 var holons = all.Result.Where(h => h.MetaData != null && h.MetaData.TryGetValue(metaKey, out var v) && v?.ToString() == metaValue).ToList();
                 result.Result = holons; result.IsLoaded = true; result.LoadedCount = holons.Count;
@@ -711,7 +725,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
             var result = new OASISResult<IEnumerable<IHolon>>();
             try
             {
-                var all = await LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
+                var all = await LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).ConfigureAwait(false);
                 if (all.IsError) return all;
                 bool IsMatch(IHolon h)
                 {
@@ -734,7 +748,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
 
         public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
         {
-            var saved = await SaveHolonsAsync(holons);
+            var saved = await SaveHolonsAsync(holons).ConfigureAwait(false);
             return new OASISResult<bool>
             {
                 Result = !saved.IsError,
@@ -748,7 +762,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
 
         public override OASISResult<bool> Import(IEnumerable<IHolon> holons) => ImportAsync(holons).Result;
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0) => await LoadAllHolonsAsync(version: version);
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0) => await LoadAllHolonsAsync(version: version).ConfigureAwait(false);
         public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0) => ExportAllAsync(version).Result;
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
@@ -756,7 +770,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
             var result = new OASISResult<IEnumerable<IHolon>>();
             try
             {
-                var all = await GetHolonsByFilterAsync("is_deleted=eq.false");
+                var all = await GetHolonsByFilterAsync("is_deleted=eq.false").ConfigureAwait(false);
                 var holons = all.Where(h => h.CreatedByAvatarId == avatarId).Cast<IHolon>().ToList();
                 result.Result = holons; result.IsLoaded = true; result.LoadedCount = holons.Count; result.Message = $"SupabaseOASIS: Exported {holons.Count} holon(s) for avatar '{avatarId}'.";
             }
@@ -768,18 +782,18 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0)
         {
-            var a = await LoadAvatarByUsernameAsync(avatarUsername, version);
+            var a = await LoadAvatarByUsernameAsync(avatarUsername, version).ConfigureAwait(false);
             if (a.IsError) return AvatarLookupError<IEnumerable<IHolon>>(a);
-            return await ExportAllDataForAvatarByIdAsync(a.Result.Id, version);
+            return await ExportAllDataForAvatarByIdAsync(a.Result.Id, version).ConfigureAwait(false);
         }
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0) => ExportAllDataForAvatarByUsernameAsync(avatarUsername, version).Result;
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0)
         {
-            var a = await LoadAvatarByEmailAsync(avatarEmailAddress, version);
+            var a = await LoadAvatarByEmailAsync(avatarEmailAddress, version).ConfigureAwait(false);
             if (a.IsError) return AvatarLookupError<IEnumerable<IHolon>>(a);
-            return await ExportAllDataForAvatarByIdAsync(a.Result.Id, version);
+            return await ExportAllDataForAvatarByIdAsync(a.Result.Id, version).ConfigureAwait(false);
         }
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0) => ExportAllDataForAvatarByEmailAsync(avatarEmailAddress, version).Result;
