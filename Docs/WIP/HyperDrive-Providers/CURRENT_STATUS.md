@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November TRON mainnet wallet balance. The synchronous shipping wallet call passed using PublicNode's TLS full and solidity gRPC endpoints. The SDK verified both genesis responses, read a positive solidified TRX balance, and posted no continuations to the caller context. No signer or storage activation was used. The separate writable contract lifecycle still requires the dedicated non-mainnet fixture.
+
 11 November Solana ledger recovery. The history probe now checks the expected genesis before querying any signature and includes the verified genesis in its output. Six protocol controls passed. A read-only mainnet check found a finalized public transaction at slot 468063580 and rejected the retained validator's genesis against that same endpoint before reading history. The original Solana storage fixture remains unavailable and its 4/52 result is unchanged.
 
 11 November Cosmos Hub wallet balance. The synchronous shipping wallet method passed a live read of the distribution account through CosmJS 0.39.0. It returned a positive ATOM balance on cosmoshub-4 with no signer, storage activation or posts to the caller synchronization context. Development f4d314f7a3 carries the scoped wallet fix with matching shipping provider, SDK bridge and shared dependencies. The prior contract storage result remains 0/52 before native dispatch and the retained wasmd fixture remains open.
