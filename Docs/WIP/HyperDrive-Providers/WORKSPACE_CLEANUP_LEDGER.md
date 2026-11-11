@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+11 November Neo4j Aura adapter CI. GitHub job 130499437747 confirmed the dedicated Neo4j Community container stopped and was removed after both lifecycle cases passed. The disposable Linux runner held the image, database and build outputs. No local artifacts or uploads were created.
+
 11 November Neo4j V2 harness CI. Job 130497281183 built and ran the standalone harness on a disposable Linux runner. GitHub confirmed the Neo4j service container was stopped and removed. No upload, local download, container, database or build output was created.
 
 11 November Neo4j V2 native CI. Job 130494942531 ran the digest-pinned Neo4j Community container and test build on a disposable GitHub Linux runner. No upload, local image, database, download or build output was created.
