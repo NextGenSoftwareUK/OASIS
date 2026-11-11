@@ -1,6 +1,6 @@
 # Current provider status
 
-11 November MongoDB metadata queries. The shipping provider saved three holons to a fresh MongoDB 8.2.1 standalone server. Synchronous and asynchronous metadata queries both returned the exact expected GUID sets and loaded counts for All and Any. The test used the installed MongoDB binary on a disposable loopback port and left the historical conformance fixture untouched.
+11 November MongoDB metadata queries. The shipping provider saved three holons to a fresh MongoDB 8.2.1 standalone server. Synchronous and asynchronous metadata queries both returned the exact expected GUID sets and loaded counts for All and Any. The test used the installed MongoDB binary on a disposable loopback port and left the historical conformance fixture untouched. Development 88dcb9ada1 carries the matching source and test.
 
 11 November Polygon PoS wallet balance. The synchronous shipping blockchain provider interface returned a positive native POL balance through unsigned Nethereum at PublicNode's Polygon PoS endpoint. The shared wallet reader verified chain 137 and did not activate contract storage or use a signer. Development e5530b0914 carries the matching shared reader and both the Polygon and Arbitrum tests. Public-network storage lifecycle remains open.
 
