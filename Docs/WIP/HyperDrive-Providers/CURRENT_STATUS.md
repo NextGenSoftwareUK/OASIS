@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November PlanetScale storage [run 43064133424](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43064133424) at 69e965847a passed 52/52 against MySQL 8.4.13 through the shipping adapter. The serializer-only run 43063702938 verified all nine avatar and detail checks per mode before stopping at graph save. The full candidate verified atomic graph persistence, metadata and owner export, import, exact deletion and empty native tables in both modes. Managed PlanetScale and COSMIC CQL acceptance are separate.
+
 11 November TimescaleDB [run 43061942830](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43061942830) at 49b6c88a17 passed all 52 shared storage checks through the shipping Npgsql provider against official TimescaleDB 2.31.0. Each mode used its own database with the native extension loaded. Independent SQL verified ten exact owned tombstones and three empty current tables per database. CI removed the container, volumes and fixture. Existing COSMIC CQL evidence carries forward.
 
 11 November CockroachDB [run 43060207358](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43060207358) at 8c630a82ae passed all 52 shared storage checks through the shipping Npgsql provider on official CockroachDB 26.2.9. Each mode used its own database. Independent native SQL verified and removed five exact owned tombstones per mode and confirmed three empty current tables in each database. CI removed the runtime and fixture. Hosted and COSMIC CQL acceptance are separate.
