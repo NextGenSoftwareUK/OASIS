@@ -32,11 +32,14 @@ if [[ -z "$CDT_CPP" ]]; then
     exit 1
 fi
 
-mkdir -p "./build/$contract" || exit 1
-"$CDT_CPP" -I="./contracts/$contract/include/" -R="./contracts/$contract/resources" -o="./build/$contract/$contract.wasm" -contract="$contract" -abigen "./contracts/$contract/src/$contract.cpp" || exit 1
+source_root="$(pwd -P)/contracts/$contract"
+output_root="$(pwd -P)/build/$contract"
+mkdir -p "$output_root" || exit 1
+# CDT looks up its generated dispatcher by the absolute source filename.
+"$CDT_CPP" -I "$source_root/include" -R "$source_root/resources" -o "$output_root/$contract.wasm" -contract "$contract" -abigen "$source_root/src/$contract.cpp" || exit 1
 
 # The managed provider requires all three avatar-detail mutation actions.
-python3 - "./build/$contract/$contract.abi" <<'PY'
+python3 - "$output_root/$contract.abi" <<'PY'
 import json
 import sys
 
