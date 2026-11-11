@@ -17,8 +17,12 @@ esac
 target="$repo/TestResults/PolkadotCurrent/record-contract-target"
 rustup="${OASIS_RUSTUP:-$HOME/.cargo/bin/rustup}"
 [[ -x "$rustup" ]] || { echo 'Reuse the installed rustup runtime.' >&2; exit 1; }
-[[ "$(wasm-opt --version)" == 'wasm-opt version 120' ]] || { echo 'Expected retained Binaryen120.' >&2; exit 1; }
-[[ "$(wasm-metadce --version)" == 'wasm-metadce version 120' ]] || { echo 'Expected retained Binaryen120 metadce.' >&2; exit 1; }
+optimizer_version="$(wasm-opt --version)"
+metadce_version="$(wasm-metadce --version)"
+[[ "$optimizer_version" == 'wasm-opt version 120' || "$optimizer_version" == 'wasm-opt version 120 '* ]] ||
+    { echo "Expected Binaryen120, observed $optimizer_version." >&2; exit 1; }
+[[ "$metadce_version" == 'wasm-metadce version 120' || "$metadce_version" == 'wasm-metadce version 120 '* ]] ||
+    { echo "Expected Binaryen120 metadce, observed $metadce_version." >&2; exit 1; }
 cd "$contract" # Cargo discovers the target-specific .cargo/config.toml here.
 CARGO_NET_OFFLINE="${CARGO_NET_OFFLINE:-true}" "$rustup" run 1.88.0 cargo build --locked --release --no-default-features \
     --manifest-path "$manifest" --target wasm32-unknown-unknown --jobs 2 --target-dir "$target"

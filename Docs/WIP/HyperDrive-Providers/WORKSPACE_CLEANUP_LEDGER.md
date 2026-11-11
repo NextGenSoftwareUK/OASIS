@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+11 November Polkadot build CI. Job 130571109668 removed both Binaryen downloads after extraction and removed the owned Binaryen directory on exit. Rust remained confined to the disposable runner. No local files or uploads were created.
+
 11 November TRON native CI. Job 130569680181 removed the owned container and ledger after the gRPC initialization failure. Build, Solidity tooling, bytecode and key material remained on the disposable runner. No local artifacts or uploads were created.
 
 11 November TRE diagnostics CI. Job 130566647551 logged the owned container state and removed its container and ledger after the head-block probe failed. The Solidity compiler, bytecode and outputs remained on the disposable runner. No local artifacts or uploads were created.

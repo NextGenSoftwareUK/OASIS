@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November Polkadot portable contract build. Run 43034919547 verified both published Binaryen archive hashes and installed Rust 1.88.0, then stopped at the optimizer version check before compiling. The checker now accepts the pinned release number with its official build suffix and logs the reported version on mismatch. The build and native deployment remain open.
+
 11 November TRON reached the managed lifecycle in run 43034506261. Private HTTP genesis passed, but both test modes stopped before signing because TronNet 0.2.0 selected Grpc.Core 2.26.0. Its runtime detection treats .NET 10 as legacy Linux and imports the obsolete libdl.so name. The provider now explicitly selects upstream Grpc.Core 2.46.6, whose platform detection covers .NET 5 and later. Native deployment and storage verification remain pending. Polkadot run 43034919547 at 7418d0b7e5 verifies a portable pinned Rust and Binaryen build of the shipping records contract.
 
 11 November TRON TRE probe diagnosis. Run 43033618460 confirmed the container stayed live and the wallet head-block route returned HTTP 200, but the response did not satisfy the parsed height gate. The next candidate admits the fixture only on its exact private HTTP genesis and checks both native gRPC genesis identities through the shipping client before signing or deploying. Storage execution is still pending.
