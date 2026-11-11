@@ -6292,3 +6292,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: verified both public Arweave presets in one throwaway Development browser session and closed the tab. No private records, downloads, local builds or reports were created. Temporary Git index removed.
 
 11 November UTC: checked Railway deployment state and reconciled the GOMap candidate with the current Development tip using temporary Git indices only. Both indices were removed. No local build, image, report, download or new worktree.
+
+11 November UTC: track temporary remote tag ci-cosmic-gomap-a3e95bd537 until exact GOMap run 43114731044 is terminal, then remove it. The runner owns its MongoDB fixture and outputs. Temporary Git index removed; no local environment, artifacts or downloads.
