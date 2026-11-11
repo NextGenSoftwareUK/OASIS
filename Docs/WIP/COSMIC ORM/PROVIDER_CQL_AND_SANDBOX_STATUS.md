@@ -745,3 +745,5 @@ broader provider contracts remain open. [Evidence](DUCKDB_CQL_MVP.md).
 11 November UTC: HyperDrive's [Supabase native credential isolation CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43014993069) passed at f6906649aa. The shipping provider exercised two independently authenticated local PostgREST 16.5 endpoints against PostgreSQL 16.6, including crossed-credential rejection and isolated holon save/load. This qualifies that native path. Hosted Supabase gateway, writable project, and the restricted HTTPS teaching reader in the Development CQL Playground remain open.
 
 11 November UTC: priority queue was reconciled against the existing live evidence. Public browser acceptance is recorded for all enrolled priorities. TRON authenticated CQL and Supabase hosted CQL still require their restricted reader sources. Private paired browser checks are tracked separately by provider.
+
+11 November UTC: the live Development WEB4 CQL Playground rendered three SEEDSOASIS teaching rows and two filtered rows from the native provider. The existing demo visitor was reused. Original-owner private paired browser verification remains open.
