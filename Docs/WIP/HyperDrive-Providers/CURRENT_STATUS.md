@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November MongoDB graph transaction. At c3229c908a the shipping provider passed on a disposable one-member MongoDB 8.2.1 replica set. A native child validation rejection left zero holon rows and both caller IDs unset. The corrected graph committed both records, published both IDs and loaded the expected child. The scoped Development change carries the matching native test. Multi-node and hosted acceptance are separate.
+
 11 November MongoDB metadata queries. The shipping provider passed synchronous and asynchronous All and Any queries against an isolated MongoDB 8.2.1 standalone server at 740c02a863. All four calls returned the exact expected GUID sets and loaded counts. The Development change matches the tested provider and shared dependencies. The disposable server and files were removed. This run covers standalone metadata queries.
 
 11 November public EVM wallet balance. The shared unsigned Nethereum wallet reader passed on Arbitrum One at cfdae88ff3 and on Polygon PoS at c5b3909ada. The shipping providers returned positive native ETH and POL balances without activating contract storage. The Arbitrum test rejected a mismatched configured chain. The Development change matches the tested providers and shared dependency source. Public-network storage lifecycle verification remains open.
