@@ -210,3 +210,5 @@ All114 client tests passed. Public HTML HTTP200/241209bytes matches the
 exact commit, SHA256
 `6f7bdcb4539ff934085ad2c52b9ec7860b9f6c46b73a41b2f54bf54aabd802d3`.
 This is publication proof; functional browser verification remains open.
+
+11 November UTC: OrbitDB public teaching presets returned three full and two filtered rows in the live Development WEB4 CQL Playground. Private paired browser verification remains open.

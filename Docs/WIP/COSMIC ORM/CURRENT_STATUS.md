@@ -1191,3 +1191,5 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 11 November UTC: exact combined solution and LayerZero candidate dcb8ad88bd is based on Development 8207703684, preserving the Neon conformance changes. The four task blobs are identical to the prior candidate. CI triggered. Chainlink settings deployment 44149acb remains building.
 
 11 November UTC: ThreeFold public node summary presets rendered three full and two filtered rows in the live Development WEB4 Playground. The existing demo visitor was reused. Private paired browser verification remains open.
+
+11 November UTC: OrbitDB public teaching presets returned three full and two filtered rows in the live Development WEB4 CQL Playground. Private paired browser verification remains open.
