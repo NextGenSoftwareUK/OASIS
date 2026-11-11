@@ -113,3 +113,5 @@ native process proofs. Initial discovery/close failures are preserved and fixed;
 no original accepted source was replayed or replaced. SDK cache reused, no new
 runtime. Packaging, shipping CQL/enrollment and actual hosting remain open;
 current overall counts103/60/28 unchanged. [Exact source/runtime preparation](POUCHDB_HOSTED_RUNTIME_PREPARATION.md).
+
+11 November UTC: PouchDB native public teaching presets rendered 3 full and 2 filtered rows in the live Development WEB4 CQL Playground. The original-owner private paired browser check remains open.
