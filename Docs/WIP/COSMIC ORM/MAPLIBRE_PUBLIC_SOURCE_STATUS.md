@@ -258,3 +258,5 @@ evidence seal assumed the native and prepared names used the same block
 and stopped before writing a receipt. The corrected seal checked the
 same contract label and valid block format from the retained reports,
 without replaying queries or writes. Browser acceptance remains open.
+
+11 November UTC: MapLibre public style-document presets rendered 3 full and 2 subset rows in the live Development WEB4 CQL Playground. Private MongoDB paired browser verification and rendering SDK coverage remain open.

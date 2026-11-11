@@ -816,3 +816,5 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 11 November UTC: exact Moralis candidate c907e8793e51e0160a26e162fceafae69f2b417c stages two provider changes and two regression files on Development 9b87fda434272761436517a36ed52cec5f97b08b. Exact-base CI is required before integration. No deployment or local build started.
 
 11 November UTC: exact Development-base Moralis candidate c907e8793e is in regression run 42966807485 and commit-only WEB4 image run 42966870180. Keep both gates open until results are verified. Development still points to 9b87fda434.
+
+11 November UTC: MapLibre public style-document presets rendered 3 full and 2 subset rows in the live Development WEB4 CQL Playground. Private MongoDB paired browser verification and rendering SDK coverage remain open.
