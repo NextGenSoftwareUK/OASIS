@@ -1,6 +1,6 @@
 """Reuse one original authenticated loopback SurrealKV store across native restarts."""
 from pathlib import Path
-import argparse, fcntl, hashlib, json, os, secrets, signal, socket, subprocess, time
+import argparse, fcntl, shutil, hashlib, json, os, secrets, signal, socket, subprocess, time
 from cosmic_linux_mongo_service import owned_linux_mongo
 import urllib.error, urllib.request
 import xml.etree.ElementTree as ET
@@ -24,8 +24,15 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--federated", action="store_true")
     parser.add_argument("--serve", action="store_true")
+    parser.add_argument("--ci-results", type=Path)
     options = parser.parse_args()
     assert not options.serve or options.federated
+    results = options.ci_results or RESULTS
+    if options.ci_results:
+        results.mkdir(mode=0o700)
+    ci_dotnet = shutil.which("dotnet") if options.ci_results else None
+    if options.ci_results and not ci_dotnet:
+        raise RuntimeError("CI must provision the .NET SDK")
     assert os.geteuid() != 0, 'Use the existing non-root runtime owner'
     assert hashlib.sha256(RUNTIME.read_bytes()).hexdigest() == HASH
     if not STATE.exists():
@@ -50,7 +57,7 @@ def main():
                 assert probe.connect_ex(('127.0.0.1', 18001)) != 0, 'Existing listener is not owned by this run'
             env = {**os.environ, 'SURREAL_USER': config['username'], 'SURREAL_PASS': config['password'],
                    'SURREAL_TELEMETRY_DISABLE': 'true', 'TOKIO_WORKER_THREADS': '2'}
-            with (RESULTS / (phase + '-server.log')).open('w') as log:
+            with (results / (phase + '-server.log')).open('w') as log:
                 node = subprocess.Popen([str(RUNTIME), 'start', '--no-banner', '--bind', '127.0.0.1:18001',
                     '--deny-guests', 'surrealkv://' + str(STATE / 'data')], env=env, stdout=log, stderr=subprocess.STDOUT)
                 try:
@@ -65,17 +72,24 @@ def main():
                         test_env = {**os.environ, 'DOTNET_ROOT': str(Path(DOTNET).parent), 'COSMIC_SURREALDB_ROOT': str(STATE)}
                         test_env.update(extra or {})
                         started = time.time()
-                        with (RESULTS / (name + '.log')).open('w') as test_log:
-                            subprocess.run([DOTNET, VSTEST, str(DLL), '--TestCaseFilter:FullyQualifiedName~' + test_class,
-                                '--ResultsDirectory:' + str(RESULTS), '--Logger:trx;LogFileName=' + name + '.trx'],
-                                env=test_env, cwd=RESULTS, stdout=test_log, stderr=subprocess.STDOUT, check=True)
+                        with (results / (name + '.log')).open('w') as test_log:
+                            if ci_dotnet:
+                                project = DLL.parents[3] / "NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS.IntegrationTests.csproj"
+                                test_env.pop("DOTNET_ROOT", None)
+                                command = [ci_dotnet, "test", str(project), "--filter", "FullyQualifiedName~" + test_class,
+                                    "--results-directory", str(results), "--logger", "trx;LogFileName=" + name + ".trx",
+                                    "/m:2", "/nr:false", "/p:UseSharedCompilation=false"]
+                            else:
+                                command = [DOTNET, VSTEST, str(DLL), '--TestCaseFilter:FullyQualifiedName~' + test_class,
+                                    '--ResultsDirectory:' + str(results), '--Logger:trx;LogFileName=' + name + '.trx']
+                            subprocess.run(command, env=test_env, cwd=results, stdout=test_log, stderr=subprocess.STDOUT, check=True)
                         trx = RESULTS / (name + '.trx'); assert trx.stat().st_mtime >= started
                         counts = ET.parse(trx).find('.//{*}Counters').attrib
                         assert counts['passed'] == counts['total'] == '1' and counts['notExecuted'] == '0'
                         proofs.append({'phase': name, 'passed': 1, 'sha256': hashlib.sha256(trx.read_bytes()).hexdigest()})
                     report(phase)
                     if phase == 'native-restart' and options.federated:
-                        with owned_linux_mongo(RESULTS) as mongo_env:
+                        with owned_linux_mongo(results) as mongo_env:
                             report('mongo-init', 'LinuxMongoDemoEnvironmentTests', mongo_env)
                             report('mongo-federation', 'SurrealDBMongoCqlNativeTests',
                                 {**mongo_env, 'COSMIC_SURREALDB_MONGO_SERVE': '1' if options.serve else '0'})
