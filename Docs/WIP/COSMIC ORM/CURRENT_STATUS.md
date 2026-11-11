@@ -1317,3 +1317,5 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 11 November UTC: added native SurrealDB tests for GUID avatar-detail round-trip and avatar hard deletion with absence by GUID and username. Diagnostic `9936be0782` runs those cases with the previous five on 3.3.5. Development integration awaits the result.
 
 11 November UTC: the expanded SurrealDB suite passed six cases including hard deletion. Avatar-detail point read reached its native row and failed decoding the stored `IAvatarChakras` field. Candidate `314e936c05` uses the shared stored-record deserializer for all three avatar-detail read paths. The stored representation is preserved. Diagnostic `14aff5293f` is pending. [Expanded CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43040174105)
+
+11 November UTC: candidate 18d99faa23 routes the four generic OpenSearch storage tests to the standard matrix and calls the secured native restart/federation workflow from the same pipeline. Diagnostic ba77981977 verifies both jobs. Development integration awaits the combined result.

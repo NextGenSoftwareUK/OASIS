@@ -5974,3 +5974,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: track ci-cosmic-surrealdb-generic-b8df606442-detail-json until both CI runs finish. The prior -detail-delete tag remains tracked until its companion finishes. Temporary Git indices removed. No local build, restore, database or download.
 
 11 November UTC: removed and verified absence of the superseded SurrealDB -detail-delete tag. Located the active -detail-json run in memory. Temporary Git index removed. No local build, restore, database or download.
+
+11 November UTC: track ci-cosmic-opensearch-orchestration-2df4de082f until both CI runs finish. Temporary Git indices removed. No local build, restore, database or download.
