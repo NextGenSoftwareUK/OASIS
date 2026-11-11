@@ -119,3 +119,5 @@ Interactive browser acceptance remains open.
 11 November UTC: the focused LayerZero v1 tests passed on exact Development candidate dcb8ad88bd in [CI 43022922018](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43022922018). Production compilation is active. Development is still at base 8207703684.
 
 11 November UTC: exact candidate dcb8ad88bd passed [combined CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43022922018) and was fast-forwarded into Development. Live browser verification remains open.
+
+11 November UTC: Railway deployment `ba604fae-510c-4e38-9ca8-3c511884eaf3` succeeded at Development `dcb8ad88bd`. On the live WEB4 CQL Playground, `LayerZeroOASIS` returned three rows for the native public teaching preset and two for the filtered preset after the dRPC fix. Operations `11f7b081-7025-9916-e2db-48a267789bd5` and `5331dd0c-ca02-1476-bddc-e341c210f2a4`. Earlier paired and replica evidence remains recorded. Original-owner private browser verification is still open.
