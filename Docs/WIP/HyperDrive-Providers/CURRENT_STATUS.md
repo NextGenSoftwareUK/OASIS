@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November Memcached native runs 43073793620 and 43074034963 both started official 1.6.40. The first passed nine checks per mode before graph save. The graph candidate passed 18 per mode through metadata, batch, import and export, then stopped at holon deletion acknowledgement. The next candidate reports native delete outcomes through a single holon path, deletes owned avatar details on hard delete, and independently verifies exact holon fixture removal through Enyim.
+
 11 November Memcached graph candidate. The shipping adapter now selects graph nodes using the shared write plan, writes the selected parent links, and publishes IDs only after each cache record and its index acknowledge the write. Partial graphs expose exact acknowledged counts and errors. Memcached item writes are independent, so eviction and multi-key atomicity remain separate gates. The native runtime-dependency run 43073793620 is pending.
 
 11 November Memcached run 43072655062 failed before daemon startup when the checksum-verified binary exited 127 on its version check. The candidate installs the documented libevent and Lua runtime dependencies on the disposable runner and prints linker diagnostics on admission failure. Batch saves now report exact acknowledged counts and errors. Indexed reads distinguish missing keys from failed reads. Native verification remains pending.

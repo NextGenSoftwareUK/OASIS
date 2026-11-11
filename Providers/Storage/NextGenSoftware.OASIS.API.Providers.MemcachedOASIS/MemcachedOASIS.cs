@@ -132,7 +132,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MemcachedOASIS
             if (!await _client.SetAsync(SafeKey(key), json, 0))
                 throw new System.IO.IOException("Memcached did not acknowledge the cache write.");
         }
-        private async Task DeleteAsync(string key) => await _client.RemoveAsync(SafeKey(key));
+        private async Task DeleteAsync(string key)
+        {
+            if (!await _client.RemoveAsync(SafeKey(key)))
+                throw new System.IO.IOException("Memcached did not acknowledge the cache deletion.");
+        }
 
         private async Task<List<string>> GetIndexAsync(string indexKey)
         {
@@ -251,9 +255,30 @@ namespace NextGenSoftware.OASIS.API.Providers.MemcachedOASIS
             var result = new OASISResult<bool>();
             try
             {
-                if (softDelete) { var load = await LoadAvatarAsync(id); if (!load.IsError && load.Result != null) { var a = (Avatar)load.Result; a.DeletedDate = DateTime.UtcNow; await SaveAvatarAsync(a); } }
-                else { await DeleteAsync($"avatar:{id}"); await RemoveFromIndexAsync("avatars:index", id.ToString()); }
-                result.Result = true; result.IsError = false; result.Message = $"MemcachedOASIS: Avatar '{id}' deleted.";
+                var key = $"avatar:{id}";
+                var avatar = await GetAsync<Avatar>(key);
+                if (avatar == null || (softDelete && avatar.IsDeleted))
+                {
+                    result.IsError = true;
+                    result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
+                    result.Message = $"MemcachedOASIS: No avatar to delete for ID '{id}'.";
+                    return result;
+                }
+                if (softDelete)
+                {
+                    avatar.DeletedDate = DateTime.UtcNow;
+                    await SetAsync(key, avatar);
+                }
+                else
+                {
+                    var detailKey = $"avatar-detail:{id}";
+                    if (await GetStoredJsonAsync(detailKey) != null) await DeleteAsync(detailKey);
+                    await DeleteAsync(key);
+                    await RemoveFromIndexAsync("avatars:index", id.ToString("D"));
+                }
+                result.Result = true;
+                result.IsDeleted = true;
+                result.DeletedCount = 1;
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"MemcachedOASIS: {ex.Message}"); }
             return result;
@@ -451,7 +476,55 @@ namespace NextGenSoftware.OASIS.API.Providers.MemcachedOASIS
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string pk, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadHolonsForParentAsync(pk, holonType, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
 
         public async Task<OASISResult<bool>> DeleteHolonSoftAsync(Guid id, bool softDelete = true)
-        { var result = new OASISResult<bool>(); try { if (softDelete) { var load = await LoadHolonAsync(id); if (!load.IsError && load.Result != null) { var h = (Holon)load.Result; h.DeletedDate = DateTime.UtcNow; await SaveHolonAsync(h); } } else { await DeleteAsync($"holon:{id}"); await RemoveFromIndexAsync("holons:index", id.ToString()); } result.Result = true; result.IsError = false; result.Message = $"MemcachedOASIS: Holon '{id}' deleted."; } catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"MemcachedOASIS: {ex.Message}"); } return result; }
+        {
+            var deleted = await DeleteHolonRecordAsync(id, softDelete);
+            return new OASISResult<bool>
+            {
+                Result = deleted.IsDeleted,
+                IsDeleted = deleted.IsDeleted,
+                DeletedCount = deleted.DeletedCount,
+                IsError = deleted.IsError,
+                ErrorCode = deleted.ErrorCode,
+                Exception = deleted.Exception,
+                Message = deleted.Message
+            };
+        }
+
+        private async Task<OASISResult<IHolon>> DeleteHolonRecordAsync(Guid id, bool softDelete)
+        {
+            var result = new OASISResult<IHolon>();
+            try
+            {
+                var key = $"holon:{id}";
+                var holon = await GetAsync<Holon>(key);
+                if (holon == null || (softDelete && holon.IsDeleted))
+                {
+                    result.IsError = true;
+                    result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
+                    result.Message = $"MemcachedOASIS: No holon to delete for ID '{id}'.";
+                    return result;
+                }
+                if (softDelete)
+                {
+                    holon.DeletedDate = DateTime.UtcNow;
+                    await SetAsync(key, holon);
+                }
+                else
+                {
+                    await DeleteAsync(key);
+                    await RemoveFromIndexAsync("holons:index", id.ToString("D"));
+                }
+                result.Result = holon;
+                result.IsDeleted = true;
+                result.DeletedCount = 1;
+            }
+            catch (Exception error)
+            {
+                OASISErrorHandling.HandleError(ref result, $"MemcachedOASIS: {error.Message}", error);
+            }
+            return result;
+        }
+
         public OASISResult<bool> DeleteHolonSoft(Guid id, bool softDelete = true) => DeleteHolonSoftAsync(id, softDelete).Result;
         public async Task<OASISResult<bool>> DeleteHolonSoftAsync(string pk, bool softDelete = true) { if (Guid.TryParse(pk, out Guid id)) return await DeleteHolonSoftAsync(id, softDelete); var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, $"MemcachedOASIS: Invalid GUID '{pk}'."); return r; }
         public OASISResult<bool> DeleteHolonSoft(string pk, bool softDelete = true) => DeleteHolonSoftAsync(pk, softDelete).Result;
@@ -500,24 +573,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MemcachedOASIS
         public override OASISResult<IHolon> DeleteHolon(Guid id)
             => DeleteHolonAsync(id).GetAwaiter().GetResult();
 
-        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
-        {
-            var result = new OASISResult<IHolon>();
-            var loaded = await LoadHolonAsync(id);
-            if (loaded.IsError || loaded.Result == null)
-            {
-                OASISErrorHandling.HandleError(ref result, loaded.Message);
-                return result;
-            }
-
-            var deleted = await DeleteHolonSoftAsync(id, true);
-            if (deleted.IsError)
-                OASISErrorHandling.HandleError(ref result, deleted.Message);
-            else
-                result.Result = loaded.Result;
-
-            return result;
-        }
+        public override Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
+            => DeleteHolonRecordAsync(id, softDelete: true);
 
         public override OASISResult<IHolon> DeleteHolon(string providerKey)
             => DeleteHolonAsync(providerKey).GetAwaiter().GetResult();
