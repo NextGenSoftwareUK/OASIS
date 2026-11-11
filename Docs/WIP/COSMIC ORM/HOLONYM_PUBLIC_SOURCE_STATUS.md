@@ -204,3 +204,5 @@ HTML271531bytes/SHA256c4e4012d5306b4f0baa4dbd8aa3a5ad1ad0f34a6a2b20d2a4175276e8a
 matches exact Git bytes, HTTP200, card present. Existing119client controls
 cover unchanged client logic; this changes HTML wording/links only. No new
 browser claim, archive download, native write, cohort or source replay.
+
+11 November UTC: the live Development CQL Playground rendered 3/2 HolonymOASIS public teaching records for its full and subset presets. Original-cohort private paired browser verification remains open.
