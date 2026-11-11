@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November BNB public wallet verification. CI will verify both shipping balance entry points against the official BSC mainnet RPC with the published wrapped BNB contract as the public read target. It checks chain ID 56, rejection when configured for chain 97, and that storage stays inactive. The job needs no signer, storage contract or private-chain fixture. The official endpoint returned chain 56 and a positive raw balance in a separate readiness probe. Both public BNB mainnet wallet balance modes passed through unsigned Nethereum, rejected chain 97 and left storage inactive in [run 43087353377](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43087353377).
+
 11 November Valkey and Dragonfly evidence reconciliation. Development run 43059249089 at d93d984b7b passed four native avatar/holon smoke cases for each provider and separate encrypted CQL restart/federation jobs. The shared 52-case native lifecycle remains open for both. No tests were repeated.
 
 11 November BNB BootLoader registration shipped to Development at febb6971d8. The [Development BootLoader job 43086956668](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43086956668) passed passive registration, activation and deactivation with Development dependencies. CI confirmed fixture cleanup.
