@@ -1063,3 +1063,5 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 11 November UTC: live Development WEB4 c686a8618d reached 105 available hosted sources after IPFS cutover. Railway deployment c7b533e2 recorded Nostr activation WebSocket HTTP 503 / NotAWebSocket at 738 ms. Prior signed-event browser acceptance remains recorded. No source recovery was requested.
 
 11 November UTC: solution CI 43007093453 passed enrollment, full production build and WEB4-WEB10 GraphQL on 4a3118bd93. Before push, Development advanced to 2c11a120ae with HyperDrive's verified IPFS catalogue publication fix. Native Kubo CI 43008574348 passed eight overlapping saves with exact readback through a fresh provider. The two-file solution candidate 7de3c00dad now includes that base and is submitted to remote CI. Cross-instance IPFS writers and historical fixture recovery remain open.
+
+11 November UTC: solution candidate 7de3c00dad is running in CI 43009278058 on Development 2c11a120ae. Railway a1749dd8 is queued for the IPFS publication fix. Live WEB4 remains on c686a8618d.
