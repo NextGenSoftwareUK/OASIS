@@ -763,3 +763,5 @@ EOSIO public browser acceptance is recorded for 10 November. Both presets render
 11 November UTC Hedera checkpoint: Railway a64672cb successfully deployed Development 2b828fd377. HashgraphOASIS activation timed out at response_headers after 15,009 ms with no HTTP status. NostrOASIS separately returned HTTP 503 at WebSocket connect. Both remained unavailable while catalogue warmup advanced to 96/106 ready. The Hedera full browser preset remains open. No settings changed or local build ran.
 
 Development 2b828fd377 settled at 104/106 ready. Only Hedera and Nostr were unavailable. Hedera public browser 3/2 acceptance exists on fbc0e08e. Current-release activation and private paired browser acceptance remain open.
+
+Public browser acceptance carried forward from 10 November: SOLID and TON each rendered the full/subset presets (3/2). Private paired browser acceptance still requires the original prepared cohorts.
