@@ -1,6 +1,6 @@
 # Provider implementation CQL COSMIC and HyperDrive status
 
-Updated 9 November 2026 from the accepted Development baseline and retained qualification evidence. The live demo is usable within its enrolled scopes; the full provider programme and EF/NHibernate parity remain incomplete.
+Updated 11 November 2026 from the accepted Development baseline and retained qualification evidence. The live demo is usable within its enrolled scopes; the full provider programme and EF/NHibernate parity remain incomplete.
 
 ## Current coverage
 
@@ -8,15 +8,15 @@ Updated 9 November 2026 from the accepted Development baseline and retained qual
 |---|---|---|
 | Provider inventory | 234 distinct shipping project paths; alternate implementations retained | Reconciled by project path with the HyperDrive provider matrix. Alternate project paths can share a provider identity. |
 | CQL breadth | 129 recorded scoped integrations | Programme checkpoint, not a new native audit of 129 providers or a universal feature percentage |
-| Development WEB4 | 106 listed and ready after activation at `fcf2a522e6`. All 106 provider identities have rows in this matrix. | TRON and Supabase remain absent. Readiness, HTTP execution and browser acceptance have separate evidence. |
-| Browser demo | Public native and original-owner paired browser results are tracked per provider below. | The latest public checks include Aptos, Reclaim Protocol, World ID, Discord, Livepeer, Pinata, Cardano and Chainlink. |
+| Development WEB4 | 106 listed, 105 ready after activation at `f4d314f7a3`. Nostr failed its WebSocket upgrade with HTTP 503. All 106 provider identities have rows in this matrix. | TRON and Supabase remain absent. Readiness, HTTP execution and browser acceptance have separate evidence. |
+| Browser demo | Public native and original-owner paired browser results are tracked per provider below. | Recent public browser checks include Sui, Starknet, Filecoin, Stacks and Bittensor. NEAR and Cosmos each passed the full and filtered public HTTP presets on `f4d314f7a3`. |
 | Priority demo queue | Solana, Ethereum, Polygon, Arbitrum, NEAR, EOS, SOLID, IPFS, ActivityPub, Cosmos, Polkadot, TON, TRON, Hedera | EOSIO, SOLID, TON and Hedera passed both public browser presets. Their original-owner paired browser checks remain open. TRON native/live admission and Supabase hosted qualification remain open. Prepared other-provider batches retained behind this queue |
 | Full WEB4 image | Corrected immutable1c9c39904 image37e966a8 passes exact package and Docker/API/native startup42534822963 | Required TRON+Urbit readers/dependency graph, running Docker healthy gate, API/native probes, exit0/no OOM and owned cleanup verified; no deployment/live CQL acceptance. Earlier missing-curl candidate54be8845a rejected |
 | Core storage suite | 15 retained native core-storage-v2 reports pass52/52; 4 more pass52/52 controlled only | These test the declared storage contract, not every interface method, overload, fee mode, topology or cloud account |
 | Full provider implementation | Incomplete; no defensible per-provider 100% interface percentage | SDK/API source use is evidence of integration, not full native certification; existing placeholders and shipping-path gaps remain explicit |
 | Virtual and hybrid imports | Designed and on roadmap | Existing materialized import/replication exists; universal pointer/lazy/hybrid import modes are not claimed implemented |
 
-Historical sealed live HTTP acceptance is retained for deployment `9d5e9388` at `ab0e9b2c`. Current Development and Railway WEB4 are at `fcf2a522e6`. GOMap candidate `49a3ced97f` passed targeted integration and exact image verification on its Hedera base. Live enrollment needs a reviewed dedicated HTTPS OSRM origin. See [current status](CURRENT_STATUS.md) and [GOMap evidence](GOMAP_PUBLIC_SOURCE_STATUS.md).
+Historical sealed live HTTP acceptance is retained for deployment `9d5e9388` at `ab0e9b2c`. Railway WEB4 serves `f4d314f7a3`. Development head `6ce625714f` adds the TRON wallet change and is building in Railway. The TRON CQL reader still requires restricted access. GOMap candidate `49a3ced97f` passed targeted integration and exact image verification on its Hedera base. Live enrollment needs a reviewed dedicated HTTPS OSRM origin. See [current status](CURRENT_STATUS.md) and [GOMap evidence](GOMAP_PUBLIC_SOURCE_STATUS.md).
 
 ## What the sandbox proves
 
