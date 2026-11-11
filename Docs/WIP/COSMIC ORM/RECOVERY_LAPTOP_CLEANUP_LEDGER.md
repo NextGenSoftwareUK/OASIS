@@ -6166,3 +6166,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: inspected the exact image logs in memory and recorded its digest. Track combined verification tag ci-cosmic-supabase-milvus-web4-cadf5bf85b until the workflows finish and integration evidence is recorded. Temporary indices removed. No local image, download, restore or build.
 
 11 November UTC: reused the existing readiness visitor without rotation on 2dd52cf6c0 and inspected the bounded Railway activation log in memory. Temporary Git index removed. No local query report, build, restore, image or download.
+
+11 November UTC: removed the superseded Core tag ci-cosmic-supabase-tariff-e5802022e9 after the exact image passed. Verified the tested pin remains reachable from Core Development and the active combined CI had already completed checkout and pin validation. Temporary documentation index removed. No local build, restore, image or download.
