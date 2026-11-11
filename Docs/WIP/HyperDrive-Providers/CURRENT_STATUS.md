@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November Polkadot native storage. Run 43036417847 at 229e1acd3e provisions the checksum-pinned Parity contracts node and verifies its private genesis before funding the synthetic owner. It deploys the format-verified records artifact with the existing finalized submission path, then runs both shipping storage modes with exact receipts and independent empty-contract checks. The disposable reports are separate from the retained Polkadot and COSMIC fixtures. Verification is pending.
+
 11 November TRON native TRE storage passed 52/52 in run 43035175165 through the shipping TronNet gRPC client with Grpc.Core 2.46.6. Both private node identities were verified before signing, each mode deployed its own contract, and independent native reads confirmed both contracts empty. Polkadot run 43035338351 built and validated the records WASM format with pinned Linux tooling. Its native contract deployment and storage lifecycle remain open. Development 6103e4e632 carries both verified CI changes. Hosted TRON and the retained ledger remain separate.
 
 11 November Polkadot portable contract build. Run 43034919547 verified both published Binaryen archive hashes and installed Rust 1.88.0, then stopped at the optimizer version check before compiling. The checker now accepts the pinned release number with its official build suffix and logs the reported version on mismatch. The build and native deployment remain open.
