@@ -104,3 +104,6 @@ with `Actor`, three `LiveIds`, `DeletedId` and `MissingId`. Use one live ID
 as the probe. All 36 controlled provider and eight WEB4 admission tests
 passed. The native HTTPS fixture compiled and awaits the reviewed source.
 The retained local gateway evidence is separate.
+
+
+11 November UTC: Supabase remains absent from the live Development catalogue after c39eba5cd1 cutover. The reviewed HTTPS fixture and restricted reader in ACTIONS-FOR-DAVID remain prerequisites for native and WEB4 acceptance. HyperDrive owns the separate BootLoader and storage conformance work. Preserve the retained local PostgREST proof.

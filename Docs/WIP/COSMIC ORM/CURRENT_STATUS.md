@@ -886,3 +886,6 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 
 
 11 November UTC: on Development c39eba5cd1, Hedera's two MongoDB-paired public presets returned 3 full and 2 filtered rows through the live WEB4 federation endpoint. The selections matched the native preset keys and all returned copies were from Hedera. The independent visitor saw no MongoDB copies. Original private paired browser verification and restart reliability remain open.
+
+
+11 November UTC coordination: Development 94fe19c958 now contains the retained Ethereum, Polygon and Arbitrum native storage reports. The six changed paths are evidence, matrix and checkout-attribute files. No COSMIC runtime integration is needed for this batch. Supabase's WEB4 gate still requires the dedicated teaching project and restricted reader, while HyperDrive owns shipping BootLoader and storage conformance for the provider.
