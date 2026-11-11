@@ -6306,3 +6306,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: superseded WEB4 runs 43097362339, 43098289449 and 43098289469 report queued but have zero jobs. GitHub rejected both normal and forced cancellation with HTTP 409; the force endpoint says the runs have not been queued. Keep their exact temporary tags until GitHub reports a terminal state. The active GOMap run 43114731044 has one queued web4 job. Temporary documentation index removed; no local outputs.
 
 11 November UTC: verified the exact Waku rehearsal scratch directory cosmic-waku-repair-342ymvwh under Windows Temp was empty and was not a reparse point. Removed it nonrecursively and confirmed absence. No file bytes reclaimed by this removal. C: reported approximately 19.59 GiB free during the audit. Temporary documentation index removed.
+
+11 November UTC: reviewed OSRM hosting options and Berlin extract metadata. No PBF, graph, container or other file was downloaded, and no remote service was provisioned. Temporary documentation index removed.

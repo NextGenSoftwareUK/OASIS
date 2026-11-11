@@ -153,3 +153,11 @@ developer route path. The dedicated public origin and live rollout remain open.
 11 November UTC: all private dependency manifest pins match the gitlinks in a3e95bd537. Exact candidate qualification is queued in [GitHub Actions run 43114731044](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43114731044). This dispatch uses a temporary CI tag and does not move Development.
 
 11 November UTC: Development advanced to 6047aff6c50. Prepared d96350193b5f19349ce32507b743ff771e9ca6b9 on that tip with the same four GOMap files. New Development changes cover the CI workflow, WEB4 route manifest and Litestream dependency. Qualification 43114731044 covers the earlier a3e95bd537 candidate; this newer combined candidate is still unqualified.
+
+## Dedicated routing options
+
+Reuse an existing dedicated HTTPS OSRM service if its operator permits the expected Development sandbox traffic and the service returns the three reviewed Berlin driving routes. Qualify TLS, the actual route response contract, concurrency and visible OpenStreetMap attribution before enrollment. [OpenStreetMap attribution guidance](https://osmfoundation.org/wiki/Licence/Attribution_Guidelines).
+
+An owned Linux service can run the official OSRM backend against the regional Berlin car graph. Pin the OSRM release and a dated PBF with its checksum, prepare the graph using extract, partition and customize in CI or on the remote build host, and publish only the prepared graph with the runtime behind HTTPS. The Berlin PBF was listed at about 95 MB on 11 November. Graph size, peak preparation memory and runtime capacity still require measurement. The three exact public presets must pass on that graph before deployment. [Berlin extract](https://download.geofabrik.de/europe/germany/berlin.html), [OSRM tools](https://project-osrm.org/docs/v26.6.1/tools).
+
+The shared OSRM demo remains limited to its operator policy. The existing bounded developer proof remains useful evidence for the HTTP contract. [OSRM demo policy](https://github.com/Project-OSRM/osrm-backend/wiki/Demo-server).
