@@ -5608,3 +5608,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: Bittensor browser checks reused the existing demo visitor. No new avatar, report, screenshot file, download or build output.
 
 11 November UTC: TRON wallet cutover discovery reused the existing protected visitor and Railway CLI. No new avatar, local report, download or build output. Retain the journal after HTTP 401/INVALID_AVATAR.
+
+11 November UTC: the retained browser session refreshed providers without creating another visitor or saving data. No local screenshot file, query report, download or build output.
