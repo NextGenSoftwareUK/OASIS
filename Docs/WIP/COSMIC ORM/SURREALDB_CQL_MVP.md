@@ -316,3 +316,5 @@ The retained local source is preserved.
 11 November UTC: the expanded seven-case generic SurrealDB diagnostic is active. The earlier 3.3.5 baseline and typed-ID companion runs have both completed, and their temporary tags were retired. [Expanded CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43040174105)
 
 11 November UTC: the expanded SurrealDB suite passed six cases including hard deletion. Avatar-detail point read reached its native row and failed decoding the stored `IAvatarChakras` field. Candidate `314e936c05` uses the shared stored-record deserializer for all three avatar-detail read paths. The stored representation is preserved. Diagnostic `14aff5293f` is pending. [Expanded CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43040174105)
+
+11 November UTC: the shared-deserializer candidate is running in [SurrealDB fixture CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43040628848). The previous expanded run and companion are terminal, and their diagnostic tag was removed.
