@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Live CouchDB reader release
+
+11 November UTC: Railway WEB4 deployment 1b1ad2f0 succeeded at a614a4377f. Discovery warmed from 38/106 to 105/106 ready for native and federated CQL. NATS JetStream and Waku both became ready. Nostr remains unavailable. CouchDB, Supabase and TRON are absent. CouchDB code is live and still requires its restricted HTTPS teaching fixture for acceptance.
+
 ## Live WEB4 and next queued release
 
 11 November UTC: live Development WEB4 268f29c214 warmed to 105/106 CQL sources ready for native and federation. Nostr is unavailable. Supabase, TRON and CouchDB are absent. CouchDB integration a614a4377f is queued as 1b1ad2f0. Development head 6047aff6c50 retains all seven CouchDB and native-download shipping file blobs from the qualified image source a209b82e9b. Its API Core SHA changed during the rewrite, but the full Core tree is identical, including the CouchDB tariff. Other Development changes still make it a distinct build.
