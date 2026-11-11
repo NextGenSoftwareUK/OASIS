@@ -1,0 +1,95 @@
+name: Dragonfly native storage
+
+on:
+  push:
+    branches: [work/hyperdrive-provider-completion]
+    paths:
+      - '.github/workflows/dragonfly-native-storage.yml'
+      - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.DragonflyOASIS/**'
+      - 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.DragonflyOASIS.IntegrationTests/DragonflyCoreStorageConformanceTests.cs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  storage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: OASIS
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          path: OASIS
+          submodules: recursive
+          persist-credentials: false
+      - name: Read the recorded Libraries revision
+        id: dependencies
+        run: |
+          revision="$(sed -n 's/^LIBRARIES_COMMIT=//p' Docker/oasis-dependency-versions.env)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "libraries=$revision" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependencies.outputs.libraries }}
+          path: NextGenSoftware-Libraries
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Run both storage modes through the shipping Dragonfly adapter
+        shell: bash
+        run: |
+          fixture="$(mktemp -d "$RUNNER_TEMP/oasis-dragonfly.XXXXXXXX")"
+          server=""
+          cleanup() {
+            status=$?
+            if [[ -n "$server" ]]; then
+              if kill -0 "$server" 2>/dev/null; then kill "$server"; fi
+              wait "$server" || true
+            fi
+            if (( status != 0 )) && [[ -f "$fixture/server.log" ]]; then tail -n 25 "$fixture/server.log"; fi
+            [[ "$fixture" == "$RUNNER_TEMP"/oasis-dragonfly.* ]] && rm -rf -- "$fixture"
+            if [[ -e "$fixture" ]]; then status=1; else echo "Removed the owned Dragonfly runtime, data and reports."; fi
+            exit "$status"
+          }
+          trap cleanup EXIT
+          curl -fsSL https://github.com/dragonflydb/dragonfly/releases/download/v2.0.2/dragonfly-x86_64.tar.gz -o "$fixture/dragonfly.tar.gz"
+          (cd "$fixture"; echo 'eb9dfe654c69ab190cb3aa329ed3599ebe19c5e9a3a437bb7bc38ef52f665c88  dragonfly.tar.gz' | sha256sum -c)
+          tar -xzf "$fixture/dragonfly.tar.gz" -C "$fixture" dragonfly-x86_64
+          "$fixture/dragonfly-x86_64" --version | grep -F 'v2.0.2'
+          mkdir "$fixture/data"
+          "$fixture/dragonfly-x86_64" --bind=127.0.0.1 --port=19691 --admin_port=0 --proactor_threads=1 \
+            --dir="$fixture/data" --dbfilename=fixture.rdb --maxmemory=256mb --cache_mode=false \
+            --epoll_file_threads=1 >"$fixture/server.log" 2>&1 &
+          server=$!
+          query() {
+            python3 -c 'import socket,sys
+          with socket.create_connection(("127.0.0.1", 19691), 3) as client:
+              client.sendall((sys.argv[1] + "\r\n").encode("ascii"))
+              with client.makefile("rb") as response:
+                  print(response.readline().decode("ascii").strip())' "$1"
+          }
+          for attempt in {1..30}; do
+            kill -0 "$server"
+            if [[ "$(query PING 2>/dev/null)" == '+PONG' ]]; then break; fi
+            [[ "$attempt" != 30 ]]
+            sleep 1
+          done
+          [[ "$(query DBSIZE)" == ':0' ]]
+          export OASIS_DRAGONFLY_CI_FIXTURE="$fixture"
+          export OASIS_DRAGONFLY_STORAGE_ENCRYPTION_KEY="$(openssl rand -base64 32)"
+          pwsh -NoProfile -Command '
+            ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-DragonflyStorage -Operation {
+              dotnet test "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.DragonflyOASIS.IntegrationTests" --filter "FullyQualifiedName~DragonflyCoreStorageConformanceTests" /m:2 /nr:false /p:UseSharedCompilation=false --logger "console;verbosity=normal"
+              if ($LASTEXITCODE -ne 0) { throw "Dragonfly native storage verification failed." }
+            }'
+          for mode in async sync; do
+            jq -e '.Succeeded and .FixtureCleanupComplete and (.Passed | length == 26)' "$fixture/$mode.json" >/dev/null
+          done
+          [[ "$(query DBSIZE)" == ':0' ]]
