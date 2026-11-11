@@ -80,3 +80,5 @@ local C# example. All 114 client tests passed. Public HTML was HTTP 200,
 239108 bytes, identical to the exact commit, SHA-256
 `8773ee77638a24988968db32a15d58069424ac2e03604639a03d244198e65666`.
 This verifies publication; functional browser interaction remains open.
+
+11 November UTC: CloudinaryOASIS public JPEG metadata presets returned 3 full and 2 filtered rows in the live Development WEB4 CQL Playground. Original-owner paired browser and owned asset storage verification remain open.

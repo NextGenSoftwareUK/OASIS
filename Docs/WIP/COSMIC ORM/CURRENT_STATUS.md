@@ -1115,3 +1115,5 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 11 November UTC: HyperDrive's Neo4j V2 Bolt activation and native harness are integrated in Development 07082d65c0. CI 43012374982 covered activation/deactivation; CI 43013084815 covered avatar and holon saves and reads, holon search, and deletion. This V2 evidence leaves canonical CQL and hosted Aura coverage separately scoped.
 
 11 November UTC: DuckDBOASIS read-only public teaching presets returned 3 full and 2 filtered rows in the live Development WEB4 CQL Playground. Original-owner paired browser verification remains open.
+
+11 November UTC: CloudinaryOASIS public JPEG metadata presets returned 3 full and 2 filtered rows in the live Development WEB4 CQL Playground. Original-owner paired browser and owned asset storage verification remain open.
