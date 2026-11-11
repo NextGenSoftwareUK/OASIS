@@ -1171,3 +1171,5 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 11 November UTC: dRPC preflight from the live Development WEB4 container passed exact Ethereum genesis, finalized block and all three LayerZero v1 canonical ABI calls, including contract chain ID. The replacement code and focused test are in candidate a2990f712c. CI 43020496094 is active. Live activation and browser verification remain pending.
 
 11 November UTC: Railway deployment 15c57e25-493e-48fc-b955-0cc66aec0534 reached SUCCESS on eed714ba35 with the Ethereum dRPC setting. Initial browser discovery showed 36 then 44 sources during warmup. The queried startup logs showed ChainLink, LayerZero v1 and Nostr failures, with no Ethereum activation error in the observed sample. Ethereum preset execution remains pending.
+
+11 November UTC: on live Development WEB4 deployment 15c57e25 at eed714ba35, the native Ethereum dRPC presets rendered three full and two filtered public balance rows. This restores the public demo after PublicNode genesis pruning. Prior paired and replica evidence is preserved. No private records were created or replayed.
