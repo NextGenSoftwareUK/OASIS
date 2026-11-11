@@ -6190,3 +6190,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: reused the existing readiness visitor for two catalogue reads on 3b8445942b. No renewal files, query reports, local build, restore, image or download. Temporary documentation index removed.
 
 11 November UTC: read the completed PlanetScale image logs in memory, validated exact dependency pins and published the scoped Development merge. Temporary documentation index removed. No local image, restore, download or build.
+
+11 November UTC: removed both completed PlanetScale diagnostic tags after the exact image and admission workflows passed. Verified the parent candidate and exact Core tariff pin remain reachable from their Development branches and that neither diagnostic tag remains. Both Supabase and PlanetScale Railway deployments were queued. Temporary documentation index removed. No local build, restore, image or download.
