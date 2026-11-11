@@ -71,3 +71,4 @@ Providers/Shared/Contracts/OASISKeyValueStore.sol text eol=lf
 # required leading space. Do not flag that patch syntax as trailing whitespace.
 Scripts/patches/*.patch whitespace=-blank-at-eol
 Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-tonoasis-current.json text eol=lf
+Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-*-local-v2.json text eol=lf
