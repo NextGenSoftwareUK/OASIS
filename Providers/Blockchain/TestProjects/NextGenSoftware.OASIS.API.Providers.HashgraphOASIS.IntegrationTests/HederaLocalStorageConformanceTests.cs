@@ -73,7 +73,7 @@ public sealed class HederaLocalStorageConformanceTests
             {
                 DetailFailure += $" {error.GetType().Name}";
                 if (error is HederaNativeMutationReconciliationException native)
-                    DetailFailure += $" status={native.Evidence.NativeStatus}";
+                    DetailFailure += $" stage={native.Evidence.Stage} status={native.Evidence.NativeStatus}";
             }
             return result;
         }

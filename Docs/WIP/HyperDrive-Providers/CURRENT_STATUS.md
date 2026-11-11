@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November Hedera run 43055014445 reproduced the detail-save failure on two independently deployed consensus ledgers. Both modes passed the first five checks. The SDK exposed a reconciliation exception with no native status. The candidate enables the existing backward-readable compression format before encryption to reduce the signed contract call payload. The next run also reports the failure stage if needed. The transaction size hypothesis and full suite remain unverified.
+
 11 November Hedera run 43053560805 deployed contract 0.0.1006, verified its owner and empty keys, and built the managed suite. Async passed activation and all four avatar checks, then stopped at avatar-detail save. Sync was fenced because the async fixture retained three keys. The next run uses separate ledgers per mode and captures the SDK error type and native status for the failing detail save without logging payloads or keys.
 
 11 November Hedera run 43052606982 used the extended readiness window and captured the native cause. The mirror gRPC process could not read its bind-mounted application.yml because the CLI inherited the outer private umask. The next runner uses the upstream file mode for the CLI subprocess while keeping the enclosing fixture and OASIS-generated inputs private. No deployment or managed tests ran.

@@ -6,6 +6,7 @@ on:
     paths:
       - '.github/workflows/hedera-native-storage.yml'
       - 'Scripts/TestHosts/Deploy-HederaLocalStorage.mjs'
+      - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS/HederaStorageConfiguration.cs'
       - 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.IntegrationTests/HederaLocalStorageConformanceTests.cs'
   workflow_dispatch:
 
