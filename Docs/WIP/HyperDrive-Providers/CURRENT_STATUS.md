@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November PlanetScale MySQL graph and deletion candidate. Both shipping graph entry points use the shared write plan and a single native transaction. Import, metadata and owner export propagate operation results and exact counts. Hard avatar deletion removes its detail atomically. The serializer-only run 43063702938 is still pending. COSMIC is working on its separate PlanetScale read-source registration. Integrate additive project references only after checking Development. Native verification remains pending.
+
 11 November PlanetScale MySQL [run 43063077214](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43063077214) passed six checks per mode on official MySQL 8.4.13, including detail save. Both modes stopped on detail-by-ID acknowledgement. The adapter was using a serializer that cannot materialize the initialized interface-valued avatar-detail fields. The candidate uses the same allowlisted stored-record serializer as canonical PostgreSQL. Full native verification and managed PlanetScale acceptance remain open.
 
 11 November TimescaleDB [run 43061942830](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43061942830) at 49b6c88a17 passed all 52 shared storage checks through the shipping Npgsql provider against official TimescaleDB 2.31.0. Each mode used its own database with the native extension loaded. Independent SQL verified ten exact owned tombstones and three empty current tables per database. CI removed the container, volumes and fixture. Existing COSMIC CQL evidence carries forward.
