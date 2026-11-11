@@ -1,6 +1,6 @@
 # Current provider status
 
-11 November RavenDB run 43070985964 captured the HTTP 503 reason. The wildcard HTTP listener was outside the private unsecured range allowed by RavenDB 7.2.7. The corrected CI fixture binds HTTP and TCP directly to runner loopback and selects RavenDB Local mode. The SDK endpoint stays at 127.0.0.1:18003. Managed storage checks have yet to run.
+11 November RavenDB storage [run 43071621377](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43071621377) at 0e7f9d396e passed 52/52 through the shipping RavenDB.Client adapter on RavenDB 7.2.7. All four write-ownership regressions passed. Both independent databases had zero documents after exact cleanup, and CI removed the disposable resources. Hosted and COSMIC CQL acceptance are separate.
 
 11 November RavenDB run 43070212406 started RavenDB 7.2.7, but its version endpoint kept returning HTTP 503 and managed tests did not run. The next candidate carries the same automated EULA setting already used by the repository RavenDB fixture and retains a bounded readiness error response if startup still fails.
 

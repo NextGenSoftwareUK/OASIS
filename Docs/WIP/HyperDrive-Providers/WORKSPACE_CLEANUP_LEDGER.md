@@ -1,6 +1,8 @@
 # Current resource and cleanup ledger
 
-11 November RavenDB run 43070985964 confirmed removal of its container, volumes, image and checkpoints after RavenDB rejected the wildcard listener. No local runtime or build was created.
+11 November RavenDB run 43071621377 independently removed ten owned holon tombstones and verified both databases had zero documents. CI removed the container, volumes, newly pulled image and checkpoints. No local build, runtime or download was created.
+
+11 November RavenDB run 43070985964 also removed its disposable resources after the readiness failure.
 
 11 November RavenDB run 43070212406 confirmed removal of its container, volumes, image and checkpoints after HTTP readiness failed. No local runtime or build was created.
 
