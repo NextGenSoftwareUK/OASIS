@@ -19,6 +19,8 @@ Public provider count audit (11 November). The inventory lists 234 shipping prov
 
 11 November Garnet evidence. Verified the hashes of both original native checkpoints and three focused sync/async result pairs, including the parented-child cleanup. The [split evidence](NativeEvidence/garnet-split-storage-v2.json) now records their exact scope and outcomes. The controlled suite and full native acceptance remain separate. Development records the same split evidence at 371f3d5dc4.
 
+11 November TRON lifecycle admission. The guarded native runner now rejects mainnet by network label, numeric chain ID in decimal or hexadecimal, or the known mainnet genesis hash before it creates reports or connects. It also rejects malformed chain IDs and genesis hashes. Five admission tests passed and the native theory skipped without the dedicated writable fixture. COSMIC read-only TRON access is separate.
+
 ## Phase and rules
 
 Active checkpoint, 10 November 2026. Current HyperDrive verification is split between retained native provider evidence and open isolated fixture gates. Development contains the scoped SQL Server avatar/history and graph-read batch at af621f3c3e. Development also contains the concurrent avatar and avatar-detail history regressions at 2a91bda8eb. Both passed separately on LocalDB and compiled together with Development Core 0fc929336 (zero errors). BigQuery hosted lifecycle verification awaits its isolated fixture. HyperDrive routing verification follows provider acceptance.

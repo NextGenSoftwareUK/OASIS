@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Json;
 using NextGenSoftware.OASIS.Providers.TestSupport;
 using Xunit;
@@ -15,9 +16,9 @@ public class TronNativeStorageLifecycleTests
         var fullNode = LoopbackEndpoint("OASIS_TRON_LIFECYCLE_FULL_GRPC");
         var solidityNode = LoopbackEndpoint("OASIS_TRON_LIFECYCLE_SOLIDITY_GRPC");
         var network = Required("OASIS_TRON_LIFECYCLE_NETWORK");
-        Assert.False(network.Equals("mainnet", StringComparison.OrdinalIgnoreCase));
         var chainId = Required("OASIS_TRON_LIFECYCLE_CHAIN_ID");
-        Assert.False(chainId.Equals("0x2b6653dc", StringComparison.OrdinalIgnoreCase));
+        var genesis = Required("OASIS_TRON_LIFECYCLE_GENESIS");
+        RequireNonMainnetIdentity(network, chainId, genesis);
 
         var root = Required("OASIS_TRON_LIFECYCLE_REPORT_ROOT");
         Directory.CreateDirectory(root);
@@ -52,7 +53,7 @@ public class TronNativeStorageLifecycleTests
         var provider = new TRONOASIS(endpoint.AbsoluteUri, network, chainId,
             fullNodeGrpcEndpoint: fullNode.AbsoluteUri,
             solidityNodeGrpcEndpoint: solidityNode.AbsoluteUri,
-            genesisBlockId: Required("OASIS_TRON_LIFECYCLE_GENESIS"),
+            genesisBlockId: genesis,
             storageContractAddress: Required("OASIS_TRON_LIFECYCLE_CONTRACT"),
             storageOwnerAddress: Required("OASIS_TRON_LIFECYCLE_OWNER"));
         var report = await CoreStorageConformance.RunAsync(provider, nameof(TRONOASIS), "native",
@@ -60,6 +61,35 @@ public class TronNativeStorageLifecycleTests
         Assert.True(report.Succeeded, $"{report.CurrentCase}: {report.FailureType} {report.FailureContract}");
         Assert.True(report.FixtureCleanupComplete);
         Assert.Equal(CoreStorageConformance.ChecksPerMode, report.Passed.Count);
+    }
+
+    [Theory]
+    [InlineData("mainnet", "1", false)]
+    [InlineData("local", "728126428", false)]
+    [InlineData("local", "0X02B6653DC", false)]
+    [InlineData("local", "1", true)]
+    [InlineData("local", "unknown", false)]
+    public void MainnetAndInvalidIdentitiesAreRejectedBeforeStorage(
+        string network, string chainId, bool mainnetGenesis)
+    {
+        var genesis = mainnetGenesis ? TronPublicHeaderMetadataSource.PublicGenesis : new string('1', 64);
+        Assert.Throws<ArgumentException>(() => RequireNonMainnetIdentity(network, chainId, genesis));
+    }
+
+    private static void RequireNonMainnetIdentity(string network, string chainId, string genesis)
+    {
+        const uint mainnetChainId = 0x2b6653dc;
+        var hex = chainId.StartsWith("0x", StringComparison.OrdinalIgnoreCase);
+        var value = hex ? chainId.AsSpan(2) : chainId.AsSpan();
+        if (!uint.TryParse(value, hex ? NumberStyles.AllowHexSpecifier : NumberStyles.None,
+                CultureInfo.InvariantCulture, out var numericChainId) || numericChainId == 0)
+            throw new ArgumentException("A valid numeric TRON chain ID is required.", nameof(chainId));
+        if (genesis.Length != 64 || !genesis.All(Uri.IsHexDigit))
+            throw new ArgumentException("A 64-digit TRON genesis block ID is required.", nameof(genesis));
+        if (network.Trim().Equals("mainnet", StringComparison.OrdinalIgnoreCase)
+            || numericChainId == mainnetChainId
+            || genesis.Equals(TronPublicHeaderMetadataSource.PublicGenesis, StringComparison.OrdinalIgnoreCase))
+            throw new ArgumentException("The native storage lifecycle requires a non-mainnet TRON fixture.");
     }
 
     private sealed class NativeLifecycleTheoryAttribute : TheoryAttribute
