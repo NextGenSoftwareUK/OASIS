@@ -1,4 +1,4 @@
-name: IPFS native restart
+name: IPFS native persistence
 
 on:
   push:
@@ -8,6 +8,12 @@ on:
       - 'Providers/Network/NextGenSoftware.OASIS.API.Providers.IPFSOASIS/**'
       - 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.IPFSOASIS.IntegrationTests/**'
   workflow_dispatch:
+    inputs:
+      scenario:
+        description: Native persistence scenario
+        type: choice
+        options: [concurrent, restart]
+        default: concurrent
 
 permissions:
   contents: read
@@ -49,8 +55,10 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      - name: Verify persisted holon versions across an offline Kubo restart
+      - name: Verify persistence through the shipping provider on offline Kubo
         shell: pwsh
+        env:
+          IPFS_TEST_SCENARIO: ${{ inputs.scenario || 'concurrent' }}
         run: |
           $ErrorActionPreference = 'Stop'
           $PSNativeCommandUseErrorActionPreference = $true
@@ -66,6 +74,7 @@ jobs:
           $env:IPFS_PATH = Join-Path $fixture 'repo'
           $env:IPFSOASIS_TEST_API = 'http://127.0.0.1:18567'
           $env:IPFSOASIS_RESTART_DNA = Join-Path $fixture 'restart-dna.json'
+          $env:IPFSOASIS_CONCURRENT_DNA = Join-Path $fixture 'concurrent-dna.json'
           $env:OASIS_IPFS_STORAGE_ENCRYPTION_KEY = [Convert]::ToBase64String([Security.Cryptography.RandomNumberGenerator]::GetBytes(32))
           $rpc = @{ NoProxy = $true; UserAgent = 'OASIS-IPFS-NativeTests/1.0'; Method = 'Post' }
           & $binary init --profile=test --empty-repo
@@ -97,10 +106,16 @@ jobs:
               }
             }
           }
-          ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner 'CI-IpfsRestart' -Operation {
+          ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner 'CI-IpfsPersistence' -Operation {
             $project = 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.IPFSOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.IPFSOASIS.IntegrationTests.csproj'
-            $testFilter = 'FullyQualifiedName~PersistsCurrentAndHistoricalHolonAcrossDaemonRestart'
-            foreach ($phase in @('write', 'read')) {
+            if ($env:IPFS_TEST_SCENARIO -eq 'restart') {
+              $testFilter = 'FullyQualifiedName~PersistsCurrentAndHistoricalHolonAcrossDaemonRestart'
+              $phases = @('write', 'read')
+            } else {
+              $testFilter = 'FullyQualifiedName~ConcurrentAcknowledgedSavesRemainVisibleFromPersistedCatalogue'
+              $phases = @('concurrent')
+            }
+            foreach ($phase in $phases) {
               $env:IPFSOASIS_RESTART_PHASE = $phase
               $errorLog = Join-Path $fixture "$phase.err"
               $daemon = Start-Process -FilePath $binary -ArgumentList @('daemon', '--offline') -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $fixture "$phase.log") -RedirectStandardError $errorLog
@@ -108,9 +123,9 @@ jobs:
                 Wait-KuboReady $daemon $errorLog
                 $buildOptions = @('/m:2', '/nr:false', '/p:UseSharedCompilation=false')
                 if ($phase -eq 'read') { $buildOptions = @('--no-build', '--no-restore') }
-                Write-Host "IPFS restart test phase: $phase"
+                Write-Host "IPFS persistence test phase: $phase"
                 dotnet test $project --filter $testFilter --logger 'console;verbosity=normal' @buildOptions
-                if ($LASTEXITCODE -ne 0) { throw "The IPFS restart $phase phase failed." }
+                if ($LASTEXITCODE -ne 0) { throw "The IPFS persistence $phase phase failed." }
               } finally {
                 Stop-KuboDaemon $daemon
                 Write-Host "Stopped native Kubo process $($daemon.Id)"
