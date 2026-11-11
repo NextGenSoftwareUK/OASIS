@@ -3,41 +3,38 @@
   "results": [
     {
       "provider": "EthereumOASIS",
-      "suite": "core-storage-v1",
-      "mode": "blocked-before-native",
-      "passed": 0,
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 52,
       "total": 52,
-      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-ethereumoasis-current.json",
-      "sha256": "95d79b93f8d3448f3f9bf25ba9deeded885c14343a53f074cb4111ae3c7cba5e",
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-ethereumoasis-local-v2.json",
+      "sha256": "39a32720879817caaaaac81ff850b4d074f3a4e36cd2a856ff05d625e4b0c38a",
       "blockers": [
-        "async: configuration: System.InvalidOperationException",
-        "sync: configuration: System.InvalidOperationException"
+        "Shipping factory against isolated Hardhat loopback Web3Core contracts, 26 checks per mode with fixture cleanup verified at 1ed77c18d6. [Native run reports](NativeEvidence/conformance-ethereumoasis-local-v2.json). [Earlier configuration failure](NativeEvidence/conformance-ethereumoasis-current.json). Public-network acceptance remains open."
       ]
     },
     {
       "provider": "ArbitrumOASIS",
-      "suite": "core-storage-v1",
-      "mode": "blocked-before-native",
-      "passed": 0,
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 52,
       "total": 52,
-      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-arbitrumoasis-current.json",
-      "sha256": "97e2a0c50249af2cb0ac662221e077b8389a6e38af2393fdb3dd50c3ddb2807f",
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-arbitrumoasis-local-v2.json",
+      "sha256": "69896e3da0d34e6708c09ad30772c3a7fb88fc87e26e4b5e6d8ee85901aacd3a",
       "blockers": [
-        "async: configuration: System.InvalidOperationException",
-        "sync: configuration: System.InvalidOperationException"
+        "Shipping factory against isolated Hardhat loopback Web3Core contracts, 26 checks per mode with fixture cleanup verified at 1ed77c18d6. [Native run reports](NativeEvidence/conformance-arbitrumoasis-local-v2.json). [Earlier configuration failure](NativeEvidence/conformance-arbitrumoasis-current.json). Public-network acceptance remains open."
       ]
     },
     {
       "provider": "PolygonOASIS",
-      "suite": "core-storage-v1",
-      "mode": "blocked-before-native",
-      "passed": 0,
+      "suite": "core-storage-v2",
+      "mode": "native",
+      "passed": 52,
       "total": 52,
-      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-polygonoasis-current.json",
-      "sha256": "655738bb849506547ff7a78de349d0ce814b3216b84558eef4d9c854a32599da",
+      "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-polygonoasis-local-v2.json",
+      "sha256": "65ea4d35049c09deeca852815378377bd37dbccfc98cc8643cf7d046315ca2a1",
       "blockers": [
-        "async: configuration: System.InvalidOperationException",
-        "sync: configuration: System.InvalidOperationException"
+        "Shipping factory against isolated Hardhat loopback Web3Core contracts, 26 checks per mode with fixture cleanup verified at 1ed77c18d6. [Native run reports](NativeEvidence/conformance-polygonoasis-local-v2.json). [Earlier configuration failure](NativeEvidence/conformance-polygonoasis-current.json). Public-network acceptance remains open."
       ]
     },
     {
@@ -336,15 +333,6 @@
     ],
     "TimescaleDBOASIS": [
       "SQL family unit gate90PASS is not native product conformance; product factory/access still pending"
-    ],
-    "EthereumOASIS": [
-      "V2 shared Nethereum factory bound; loopback config/runtime prerequisite absent; four factory checks and BootLoader build are not native conformance"
-    ],
-    "ArbitrumOASIS": [
-      "V2 shared Nethereum factory bound; loopback config/runtime prerequisite absent; four factory checks and BootLoader build are not native conformance"
-    ],
-    "PolygonOASIS": [
-      "V2 shared Nethereum factory bound; loopback config/runtime prerequisite absent; four factory checks and BootLoader build are not native conformance"
     ],
     "GoogleMapsOASIS": [
       "Source-reviewed legacy map facade contains 46 literal success returns without a native client; real map adapter/read-only capability probe required, not a storage-suite candidate"
