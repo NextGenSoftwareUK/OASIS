@@ -1,4 +1,4 @@
-name: Neo4j V2 native activation
+name: Neo4j V2 native harness
 
 on:
   push:
@@ -7,6 +7,7 @@ on:
       - '.github/workflows/neo4j-v2-native.yml'
       - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2/**'
       - 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2.IntegrationTests/**'
+      - 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2.TestHarness/**'
   workflow_dispatch:
 
 permissions:
@@ -69,7 +70,10 @@ jobs:
           OASIS_NEO4J_V2_USERNAME: neo4j
           OASIS_NEO4J_V2_PASSWORD: oasis-fixture-only
         run: |
-          ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner 'CI-Neo4jV2Activation' -Operation {
-            dotnet test 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2.IntegrationTests/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2.IntegrationTests.csproj' --filter 'FullyQualifiedName~V2EntryPointActivatesAgainstDedicatedNeo4j' /m:2 /nr:false /p:UseSharedCompilation=false --logger 'console;verbosity=normal'
-            if ($LASTEXITCODE -ne 0) { throw 'Native Neo4j V2 activation failed.' }
+          ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner 'CI-Neo4jV2Harness' -Operation {
+            $project = 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2.TestHarness/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2.TestHarness.csproj'
+            dotnet build $project /m:2 /nr:false /p:UseSharedCompilation=false
+            if ($LASTEXITCODE -ne 0) { throw 'Native Neo4j V2 harness build failed.' }
+            dotnet run --project $project --no-build
+            if ($LASTEXITCODE -ne 0) { throw 'Native Neo4j V2 harness failed.' }
           }
