@@ -15,15 +15,17 @@ public class SupabaseNativeStorageConformanceTests
     [DataRow("detail", "OASIS_SUPABASE_PAGINATION_DETAIL_IDS")]
     public async Task ListingReturnsEveryPreseededIdentityAcrossPages(string kind, string manifestVariable)
     {
-        if (Environment.GetEnvironmentVariable("OASIS_SUPABASE_PAGINATION") != "1")
-            Assert.Inconclusive("Enable only for a dedicated Supabase pagination fixture.");
+        var localFixture = Environment.GetEnvironmentVariable("OASIS_SUPABASE_LOCAL_PAGINATION") == "1";
+        if (!localFixture && Environment.GetEnvironmentVariable("OASIS_SUPABASE_PAGINATION") != "1")
+            Assert.Inconclusive("Enable only for a dedicated Supabase or loopback PostgREST pagination fixture.");
 
-        var url = Environment.GetEnvironmentVariable("OASIS_SUPABASE_CONFORMANCE_URL");
-        var key = Environment.GetEnvironmentVariable("OASIS_SUPABASE_CONFORMANCE_SERVICE_KEY");
+        var url = Environment.GetEnvironmentVariable(localFixture ? "OASIS_SUPABASE_FIRST_POSTGREST" : "OASIS_SUPABASE_CONFORMANCE_URL");
+        var key = Environment.GetEnvironmentVariable(localFixture ? "OASIS_SUPABASE_FIRST_JWT" : "OASIS_SUPABASE_CONFORMANCE_SERVICE_KEY");
         var manifest = Environment.GetEnvironmentVariable(manifestVariable);
         Assert.IsTrue(Uri.TryCreate(url, UriKind.Absolute, out var endpoint) &&
-            endpoint.Scheme == Uri.UriSchemeHttps &&
-            endpoint.Host.EndsWith(".supabase.co", StringComparison.OrdinalIgnoreCase) &&
+            (localFixture
+                ? endpoint.Scheme == Uri.UriSchemeHttp && endpoint.IsLoopback
+                : endpoint.Scheme == Uri.UriSchemeHttps && endpoint.Host.EndsWith(".supabase.co", StringComparison.OrdinalIgnoreCase)) &&
             endpoint.AbsolutePath == "/" && string.IsNullOrEmpty(endpoint.Query) &&
             string.IsNullOrEmpty(endpoint.Fragment) && string.IsNullOrEmpty(endpoint.UserInfo));
         Assert.IsFalse(string.IsNullOrWhiteSpace(key));
@@ -34,8 +36,8 @@ public class SupabaseNativeStorageConformanceTests
         Assert.IsNotNull(expected);
         Assert.IsTrue(expected.Length > 100 && expected.Distinct().Count() == expected.Length);
 
-        using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(30) };
-        var provider = new SupabaseOASIS(url!, key!, http);
+        using var http = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false }) { Timeout = TimeSpan.FromSeconds(30) };
+        var provider = new SupabaseOASIS(url!, key!, http, localFixture ? "" : "/rest/v1");
         var active = await provider.ActivateProviderAsync();
         Assert.IsTrue(active.Result, active.Exception?.GetType().FullName);
         try
@@ -63,6 +65,7 @@ public class SupabaseNativeStorageConformanceTests
                     Assert.Fail($"Unknown listing kind {kind}.");
                     break;
             }
+            Console.WriteLine($"Supabase {kind} listing verified {expected.Length} exact identities.");
         }
         finally
         {
