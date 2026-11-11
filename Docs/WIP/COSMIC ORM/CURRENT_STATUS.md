@@ -1181,3 +1181,5 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 11 November UTC: [CI for exact LayerZero and solution candidate ee50d46f0f](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43021905566) is active on Development base a7a7ae31aa.
 
 11 November UTC: the live Development WEB4 Playground rendered three TheSandboxOASIS public teaching records and two filtered records. The existing demo visitor was reused. Private paired browser verification remains open.
+
+11 November UTC: after WEB4 warmup on deployment 15c57e25, Civic public presets rendered three full and two filtered rows in the Development Playground. The earlier pre-dispatch 503 remains recorded and its cause is unverified. Private paired browser verification remains open.
