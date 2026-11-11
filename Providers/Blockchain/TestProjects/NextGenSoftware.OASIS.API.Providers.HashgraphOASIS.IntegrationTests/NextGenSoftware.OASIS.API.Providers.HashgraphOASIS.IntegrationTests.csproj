@@ -16,6 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="../../../Shared/TestSupport/CoreStorageConformance.cs" Link="TestSupport/CoreStorageConformance.cs" />
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.HashgraphOASIS\NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.csproj" />
     <None Update="Fixtures\hedera-process-boundary.mjs" CopyToOutputDirectory="PreserveNewest" />
     <None Update="Fixtures\hedera-collection.mjs" CopyToOutputDirectory="PreserveNewest" />
