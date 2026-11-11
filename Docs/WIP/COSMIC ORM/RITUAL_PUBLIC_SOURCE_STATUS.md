@@ -57,3 +57,5 @@ No native fixture replay or source writes. Browser acceptance remains open.
 
 `RitualOASIS-native-http.json`: 11359B, SHA256
 `bc8d8e53b9bd38ba969e513daddf581e7619ba5b4764fdf36c10125e6dddaf1b`.
+
+11 November UTC: Development CQL Playground rendered three RitualOASIS public block headers for heights 1-3 and two for heights 1-2 using a disposable demo visitor. The original private cohort remains sealed. Private paired browser verification remains open.

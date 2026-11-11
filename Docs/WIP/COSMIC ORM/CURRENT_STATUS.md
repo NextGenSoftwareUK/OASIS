@@ -765,3 +765,5 @@ EOSIO public browser acceptance is recorded for 10 November. Both presets render
 Development 2b828fd377 settled at 104/106 ready. Only Hedera and Nostr were unavailable. Hedera public browser 3/2 acceptance exists on fbc0e08e. Current-release activation and private paired browser acceptance remain open.
 
 Public browser acceptance carried forward from 10 November: SOLID and TON each rendered the full/subset presets (3/2). Private paired browser acceptance still requires the original prepared cohorts.
+
+RitualOASIS public browser acceptance passed on Development on 11 November UTC. Full/subset returned 3/2 block headers. Original-cohort private paired browser acceptance remains open.
