@@ -38,22 +38,24 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
         {
             try
             {
-                // Test API connection
-                var response = await _httpClient.GetAsync($"{_baseUrl}/info");
+                using var response = await _httpClient.GetAsync($"{_baseUrl.TrimEnd('/')}/web3/version");
+                IsProviderActivated = response.IsSuccessStatusCode;
                 if (response.IsSuccessStatusCode)
-                {
-                    IsProviderActivated = true;
                     return new OASISResult<bool>(true);
-                }
-                else
+
+                return new OASISResult<bool>(false)
                 {
-                    return new OASISResult<bool>(false) { Message = "Failed to connect to Moralis API" };
-                }
+                    IsError = true,
+                    ErrorCount = 1,
+                    ErrorCode = "MORALIS_ACTIVATION_HTTP_ERROR",
+                    Message = $"Moralis API activation returned HTTP {(int)response.StatusCode}."
+                };
             }
             catch (Exception ex)
             {
+                IsProviderActivated = false;
                 var result = new OASISResult<bool>(false);
-                OASISErrorHandling.HandleError(ref result, $"Error activating Moralis provider: {ex.Message}", ex);
+                OASISErrorHandling.HandleError(ref result, "Moralis API activation failed.", ex);
                 return result;
             }
         }
