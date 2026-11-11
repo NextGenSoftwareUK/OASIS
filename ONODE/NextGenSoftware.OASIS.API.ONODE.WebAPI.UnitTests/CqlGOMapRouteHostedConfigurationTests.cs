@@ -101,6 +101,22 @@ public sealed class CqlGOMapRouteHostedConfigurationTests
         Assert.False(source.IsProviderActivated);
     }
 
-    private static IConfiguration Settings(string owner) => new ConfigurationBuilder()
-        .AddInMemoryCollection(new Dictionary<string, string?> { [Setting] = owner }).Build();
+    [Theory]
+    [InlineData(null)]
+    [InlineData("http://routing.example")]
+    [InlineData("https://router.project-osrm.org")]
+    [InlineData("https://routing.openstreetmap.de.")]
+    public void OwnerWithoutDedicatedHttpsOriginFailsBeforeRegistration(string? origin)
+    {
+        var services = new ServiceCollection();
+        Assert.Throws<InvalidOperationException>(() => services.AddReviewedNetworkReadSources(Settings(Owner, origin)));
+        Assert.Empty(services);
+    }
+
+    private static IConfiguration Settings(string owner, string? origin = "https://routing.example") =>
+        new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
+        {
+            [Setting] = owner,
+            ["CQL_GOMAP_ROUTE_QUERY_SOURCE_ORIGIN"] = origin
+        }).Build();
 }
