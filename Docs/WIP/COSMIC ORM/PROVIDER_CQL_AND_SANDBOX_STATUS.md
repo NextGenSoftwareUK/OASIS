@@ -779,3 +779,5 @@ broader provider contracts remain open. [Evidence](DUCKDB_CQL_MVP.md).
 11 November UTC: after the dRPC settings cutover, live Development WEB4 returned three full and two filtered Chainlink finalized feed rows in the Playground. Prior paired HTTP and replica evidence is preserved. Private paired browser verification remains open.
 
 11 November UTC: Intel OpenVINO's public model-version browser result is recorded in CURRENT_STATUS.md. Private paired browser verification remains open.
+
+11 November UTC: LayerZero v1's dRPC fix passed exact CI and is queued on Railway deployment ba604fae. Prior public browser evidence remains recorded.
