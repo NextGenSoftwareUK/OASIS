@@ -943,7 +943,7 @@ Power recovery verified on 11 November UTC: battery 21% and charging (Win32_Batt
 
 ### GOMap public demo routing origin (11 November 2026)
 
-**Status** Awaiting an approved dedicated endpoint for Development WEB4. Identify the existing dedicated HTTPS OSRM origin, if available, and where its operator terms are documented. The demo needs permission for concurrent sandbox traffic and must meet the operator's attribution rules. If no endpoint is available, the COSMIC task will document hosting options before any paid provisioning decision. Keep credentials in private configuration. [GOMap scope and endpoint review](../COSMIC%20ORM/GOMAP_PUBLIC_SOURCE_STATUS.md).
+**Status** Awaiting an approved dedicated endpoint for Development WEB4. The exact GOMap candidate passed its 12 boundary checks and native WEB4 HTTP/MongoDB qualification in [CI run 43108783977](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43108783977). Scoped Development merge 274ff42adb is prepared and waits on the existing WEB4 deployment queue. Identify the existing dedicated HTTPS OSRM origin, if available, and where its operator terms are documented. The demo needs permission for concurrent sandbox traffic and must meet the operator's attribution rules. If no endpoint is available, the COSMIC task will document hosting options before any paid provisioning decision. Keep credentials in private configuration. [GOMap scope and endpoint review](../COSMIC%20ORM/GOMAP_PUBLIC_SOURCE_STATUS.md).
 
 ### Hosted ArangoDB and QuestDB teaching fixtures (11 November 2026)
 
