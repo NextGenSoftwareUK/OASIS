@@ -79,3 +79,5 @@ Evidence in `TestResults/HostedCqlIntegrationCurrent/`, retained sourceOwner/cat
 | SuiOASIS-native-http.json | `1c63b45d54a1a268f0ebe1ac45ac5e202a6613cc6997d401bf99b58e4d2a444b` |
 | SuiOASIS-client-http-flow.json | `2b3b990994635b9f2ab169a1c665664fedebc7aca8d190a3c9aac2f3399a9011` |
 | SuiOASIS-isolation-http.json | `4b45192d96bdbfaff28f45d54ac37d2f04c9d50ba3f28723439d8c2f3ee2dd89` |
+
+11 November UTC: Sui checkpoint-scoped public object presets returned three full and two filtered rows in the live Development CQL Playground. Original-owner MongoDB paired browser verification remains open. No preparation or record saves.
