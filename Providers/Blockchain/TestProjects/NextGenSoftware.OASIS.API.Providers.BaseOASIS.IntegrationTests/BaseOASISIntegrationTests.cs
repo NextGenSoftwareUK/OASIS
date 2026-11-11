@@ -44,6 +44,38 @@ public class BaseOASISIntegrationTests
         Assert.True((await provider.DeActivateProviderAsync()).Result);
     }
 
+    [BasePublicWalletTheory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task PublicWalletBalanceUsesBaseMainnetWithoutStorageActivation(bool synchronous)
+    {
+        const string rpc = "https://mainnet.base.org";
+        var request = new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests.GetWeb3WalletBalanceRequest
+        {
+            WalletAddress = "0x4200000000000000000000000000000000000006"
+        };
+        var provider = new BaseOASIS(rpc);
+        var result = synchronous ? provider.GetBalance(request) : await provider.GetBalanceAsync(request);
+        Assert.False(result.IsError, result.Message);
+        Assert.True(result.IsLoaded && double.IsFinite(result.Result) && result.Result > 0);
+        Assert.False(provider.IsProviderActivated);
+
+        var wrongChain = new BaseOASIS(rpc, chainId: 84532);
+        var rejected = synchronous ? wrongChain.GetBalance(request) : await wrongChain.GetBalanceAsync(request);
+        Assert.True(rejected.IsError);
+        Assert.Contains("chain ID", rejected.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.False(wrongChain.IsProviderActivated);
+    }
+
+    private sealed class BasePublicWalletTheoryAttribute : TheoryAttribute
+    {
+        public BasePublicWalletTheoryAttribute()
+        {
+            if (Environment.GetEnvironmentVariable("OASIS_BASE_PUBLIC_WALLET_READ") != "1")
+                Skip = "Requires explicit opt-in to read the public Base RPC.";
+        }
+    }
+
     [Fact]
     public async Task Activation_RejectsUnreachableRpc()
     {
