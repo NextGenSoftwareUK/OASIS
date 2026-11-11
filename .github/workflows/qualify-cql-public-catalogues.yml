@@ -5,6 +5,8 @@ on:
     branches: [work/cosmic-cql-ton-public]
     paths:
       - '.github/workflows/qualify-cql-public-catalogues.yml'
+      - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.MoralisOASIS/MoralisOASIS.ActivateDeactivateLoad.cs'
+      - 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.MoralisOASIS.UnitTests/MoralisActivationTests.cs'
       - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.MoralisOASIS/MoralisOASIS.NFTHelpers.cs'
       - 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.MoralisOASIS.UnitTests/MoralisBurnCapabilityTests.cs'
       - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlPublicReadCatalogue.cs'
@@ -67,16 +69,16 @@ jobs:
               throw 'All 13 catalogue, admission and diagnostic cases must pass'
             }
           }
-      - name: Verify Moralis rejects unsupported NFT burns
+      - name: Verify Moralis activation and unsupported NFT burns
         working-directory: OASIS
         shell: pwsh
         run: |
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner moralis-capability-ci -Operation {
-            dotnet test Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.MoralisOASIS.UnitTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~MoralisBurnCapabilityTests' --results-directory TestResults/MoralisBurnCapabilityCurrent --logger 'trx;LogFileName=capability.trx'
+            dotnet test Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.MoralisOASIS.UnitTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~MoralisBurnCapabilityTests|FullyQualifiedName~MoralisActivationTests' --results-directory TestResults/MoralisBurnCapabilityCurrent --logger 'trx;LogFileName=capability.trx'
             if ($LASTEXITCODE) { throw 'Moralis burn capability regression failed' }
             [xml]$report = Get-Content TestResults/MoralisBurnCapabilityCurrent/capability.trx
-            if ($report.TestRun.ResultSummary.Counters.passed -ne '2' -or $report.TestRun.ResultSummary.Counters.total -ne '2') {
-              throw 'Both Moralis unsupported burn cases must pass'
+            if ($report.TestRun.ResultSummary.Counters.passed -ne '4' -or $report.TestRun.ResultSummary.Counters.total -ne '4') {
+              throw 'All four Moralis activation and burn cases must pass'
             }
           }
       - uses: actions/upload-artifact@v7

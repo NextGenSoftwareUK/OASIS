@@ -796,3 +796,5 @@ CI run 42938257820, job 130253566184, passed on fda32cf5d3. Its strict TRX gate 
 Moralis BurnNFT and BurnNFTAsync now return MORALIS_NFT_BURN_UNSUPPORTED before activation. Two focused sync and async checks cover the failure result and zero activation attempts. Remote CI qualification is pending.
 
 Moralis qualification passed on 8ad7386771 in CI run 42961187971/job 130327846767. Both sync and async unsupported-burn regressions passed with zero activation attempts, and all 13 catalogue/admission/diagnostic cases passed. The correction is on the COSMIC branch. Moralis CQL enrollment and Development integration remain open.
+
+Moralis activation now calls the documented authenticated /web3/version route on the configured API base. A failed HTTP response clears readiness and returns IsError=true with its HTTP status. CI qualification covers v2/v2.2 route and key transmission, then 403 denial after success. Live credential qualification and CQL enrollment remain open.
