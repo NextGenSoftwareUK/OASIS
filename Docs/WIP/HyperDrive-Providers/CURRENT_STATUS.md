@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November KeyDB evidence reconciliation. Four native avatar and holon save/load checks passed against the digest-pinned KeyDB image in [run 43051825070](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43051825070). The separate native KeyDB 6.3.4 job passed encrypted CQL restart and MongoDB federation. Development includes the verified fixture wiring at ea54de967e. The shared 52/52 result is controlled. Full native lifecycle, hosted TLS and legacy plaintext migration remain open.
+
 11 November Web3Core deployment job [43092941435](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43092941435) passed the shipping Hardhat deployment on native BSC. Hardhat compiled 148 Solidity files with the Paris target and the native RPC verified deployed bytecode.
 
 11 November BNB NFT verification. The shipping Web3Core contract now implements owner-authorized ERC-721 burn, matching the adapter ABI. A native Parlia job deploys the contract and checks mint, collection metadata, transfer, non-owner burn rejection, and owner burn with independent native ownership reads. Existing deployments need a compatible contract for this operation. [Run 43092221100](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43092221100) passed mint, collection metadata, transfer, non-owner rejection and owner burn against the freshly deployed contract. The earlier queued revision was superseded before it ran.

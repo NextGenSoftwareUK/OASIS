@@ -368,7 +368,7 @@
     ],
     "RedisOASIS": [],
     "KeyDBOASIS": [
-      "Thin facade shares the verified Redis SDK/record policy; 52/52 controlled checks are not native acceptance; actual product runtime/configuration and conditional/scan primitives remain unverified; legacy plaintext layout is refused, no automatic migration"
+      "Four native avatar and holon save/load checks passed against the digest-pinned KeyDB image in [run 43051825070](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43051825070). The separate native KeyDB 6.3.4 job passed encrypted CQL restart and MongoDB federation. Development includes the verified fixture wiring at ea54de967e. The shared 52/52 result is controlled. Full native lifecycle, hosted TLS and legacy plaintext migration remain open."
     ],
     "ValKeyOASIS": [
       "Official Valkey 9.0.4 passed 52/52 through the shipping StackExchange.Redis adapter in [run 43091045329](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43091045329). Both modes passed exact fixture cleanup and the native database ended empty. Earlier native smoke and CQL restart/federation evidence carries forward. Hosted TLS and plaintext migration remain open."

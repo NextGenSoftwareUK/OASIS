@@ -543,3 +543,22 @@ Status: missing account/configuration information,2 November2026. David approved
 
 - **Open, 2026-11-11.** Identify the machine that holds the original offline Kubo test repository and protected storage key and make both available to the verification session. Keep the key in protected local storage.
 - Fresh Kubo fixtures passed graceful restart and separate-process concurrent publication on Windows and Linux. The retained fixture is needed to verify historical-data recovery and compatibility. [Provider matrix](../HyperDrive-Providers/PROVIDER_MATRIX.md)
+
+### NEAR dedicated lifecycle fixture
+
+- **Status (11 November 2026)** Fresh native NEAR Sandbox passed both storage modes and the avatar-history deletion check, with zero native fixture keys. Access to the retained environment and hosted writable verification remain open. [CI evidence](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43031215931)
+- **Action** If the retained NEAR test environment is available, identify its host and authorize access to a disposable writable OASIS contract with its dedicated test signer through the existing protected channel. Keep signing material and credentials out of Git and chat. The retained host needs the pinned NEAR toolchain on Linux to build the checked-in TypeScript contract and measure deletion gas before deploying it to the disposable fixture. This Windows host has no registered WSL distribution and its default Node version is 18.18.0.
+- **Reason** The provider agent will verify chain and contract identity, configure the run and report directory, and reconcile only test-owned records. Preserve existing COSMIC/CQL data.
+- **Context** [NEAR lifecycle evidence](../HyperDrive-Providers/PROVIDER_COMPLETION_CONTINUATION.md). The provider agent verified that the new VerifySharedLifecycle runner stops before startup when Ubuntu WSL is unavailable (ca2657e75e). On the retained host, the agent owns launcher synchronization, the build lease and the two live modes.
+
+### Cosmos retained wasmd fixture
+
+- **Status (11 November 2026)** Fresh native wasmd passed both shipping CosmJS storage modes and left zero fixture keys. Access to the original retained environment remains open. [CI evidence](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43028889300)
+- **Action** If the original wasmd test fixture is retained on another device, identify the device and its existing protected test environment so the provider agent can access it. Keep signer material out of Git and chat. The provider agent verified on 2026-11-10 that the guarded Conformance command stops before startup because Ubuntu WSL is unavailable (5a96413305). The agent owns the build lease, fixture admission, sync/async execution, and evidence preservation after access is available.
+- **Reason** The agent must confirm the retained chain and contract identity and reconcile historical pending operations against that ledger. Preserve the original ledger and evidence.
+- **Context** [Cosmos verification notes](../HyperDrive-Providers/PROVIDER_COMPLETION_CONTINUATION.md).
+
+### TRON dedicated native storage fixture
+
+- **Open, 2026-11-11.** Fresh native TRE passed both shipping gRPC storage modes and confirmed an empty contract after cleanup. Identify the retained or hosted isolated TRON node and the authorized disposable OASIS record contract for the remaining verification. Provide the non-secret node, network and contract identities through the existing configuration channel. Configure the signer and persisted storage encryption key through protected local settings. The provider team owns identity, receipt and cleanup verification. [Native CI evidence](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43035175165)
+- **Harness ready.** The build passed and the filtered suite skipped with the opt-in disabled. For the native run, set OASIS_TRON_STORAGE_LIFECYCLE=1 and configure OASIS_TRON_LIFECYCLE_RPC, OASIS_TRON_LIFECYCLE_FULL_GRPC and OASIS_TRON_LIFECYCLE_SOLIDITY_GRPC as loopback HTTP endpoints. Set the non-mainnet OASIS_TRON_LIFECYCLE_NETWORK, numeric decimal or 0x-prefixed OASIS_TRON_LIFECYCLE_CHAIN_ID, 64-digit hexadecimal OASIS_TRON_LIFECYCLE_GENESIS, OASIS_TRON_LIFECYCLE_CONTRACT, OASIS_TRON_LIFECYCLE_OWNER and OASIS_TRON_LIFECYCLE_REPORT_ROOT. Provide OASIS_TRON_STORAGE_PRIVATE_KEY and OASIS_TRON_STORAGE_ENCRYPTION_KEY only through protected local configuration. Select TronNativeStorageLifecycleTests under the provider build lease. Existing reports require reconciliation before replay.
