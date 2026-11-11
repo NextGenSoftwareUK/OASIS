@@ -2,6 +2,10 @@ name: QuestDB native CQL restart
 
 on:
   workflow_dispatch:
+  workflow_call:
+    secrets:
+      PRIVATE_SUBMODULE_PAT:
+        required: true
 
 permissions:
   contents: read
