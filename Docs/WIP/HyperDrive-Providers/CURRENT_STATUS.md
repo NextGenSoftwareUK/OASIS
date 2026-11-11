@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November RavenDB storage [run 43071621377](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43071621377) at 0e7f9d396e passed 52/52 through the shipping RavenDB.Client adapter on RavenDB 7.2.7. All four write-ownership regressions passed. Both independent databases had zero documents after exact cleanup, and CI removed the disposable resources. Hosted and COSMIC CQL acceptance are separate.
+
 11 November ScyllaDB storage [run 43069185380](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43069185380) at 3dfbf4908b passed 52/52 through the shipping DataStax adapter on ScyllaDB 2026.3.4. All five write-ownership regressions passed. Both independent keyspaces had three empty native tables after exact cleanup, and CI removed the disposable resources. Hosted and COSMIC CQL acceptance are separate.
 
 11 November Cassandra storage [run 43066716817](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43066716817) at ad046dcec1 passed 52/52 through the shipping DataStax adapter on Apache Cassandra 4.1.12. All five write-ownership regressions passed. Both independent keyspaces had five empty native tables after exact cleanup, and CI removed the disposable resources. Hosted and COSMIC CQL acceptance are separate.
