@@ -17,7 +17,7 @@ Public provider count audit (11 November). The inventory lists 234 shipping prov
 
 11 November Neon connection policy. Neon endpoints with inline ports or in explicit host lists now receive Npgsql VerifyFull. A single endpoint can be mapped to its pooler without changing its port. Explicit host lists retain their order, ports and endpoint names. All 13 configuration and provider unit tests passed. Hosted sync and async lifecycle verification still requires the dedicated Neon database.
 
-11 November Garnet evidence. Verified the hashes of both original native checkpoints and three focused sync/async result pairs, including the parented-child cleanup. The [split evidence](NativeEvidence/garnet-split-storage-v2.json) now records their exact scope and outcomes. The controlled suite and full native acceptance remain separate.
+11 November Garnet evidence. Verified the hashes of both original native checkpoints and three focused sync/async result pairs, including the parented-child cleanup. The [split evidence](NativeEvidence/garnet-split-storage-v2.json) now records their exact scope and outcomes. The controlled suite and full native acceptance remain separate. Development records the same split evidence at 371f3d5dc4.
 
 ## Phase and rules
 
