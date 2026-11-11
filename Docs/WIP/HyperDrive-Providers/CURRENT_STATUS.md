@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November AvalancheGo run 43079640797 failed before bootstrap. The pinned image has a default command but no entrypoint, so passing flags replaced its executable. The candidate invokes the image command explicitly and captures the created container ID before starting it. Contract deployment and storage verification remain pending.
+
 11 November Avalanche native C-Chain candidate. A disposable GitHub runner starts digest-pinned AvalancheGo 1.14.1 with local chain ID 43112, waits for C-Chain bootstrap, and deploys the shipping Web3Core contract twice with an ephemeral owner. Sync and async shared storage suites use the shipping Avalanche adapter through Nethereum. Existing Ganache evidence and COSMIC public reads carry forward. Native AvalancheGo verification is pending.
 
 11 November Milvus storage [run 43078055694](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43078055694) at 652853ec7f passed 52/52 through the shipping REST v2 adapter on Milvus 2.6.26. All 14 write-ownership checks passed. Each mode independently removed five exact owned holon tombstones and confirmed all three collections empty. Hosted storage, historical versions and vector-specific capabilities remain open.

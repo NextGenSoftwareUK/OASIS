@@ -73,12 +73,14 @@ jobs:
           }
           trap cleanup EXIT
           if ! docker image inspect "$image" >/dev/null 2>&1; then image_owned=true; fi
-          container="$(docker run -d -p 127.0.0.1:19650:9650 "$image" \
+          container="$(docker create -p 127.0.0.1:19650:9650 "$image" ./avalanchego \
             --network-id=local --http-host=0.0.0.0 --http-allowed-hosts=127.0.0.1,localhost \
             --bootstrap-ips= --bootstrap-ids= --sybil-protection-enabled=false \
             --snow-sample-size=1 --snow-preference-quorum-size=1 --snow-confidence-quorum-size=1)"
+          docker start "$container" >/dev/null
           rpc=http://127.0.0.1:19650
           for attempt in {1..60}; do
+            [[ "$(docker inspect --format '{{.State.Running}}' "$container")" == true ]]
             if curl -fsS --max-time 3 -H 'Content-Type: application/json' \
               -d '{"jsonrpc":"2.0","id":1,"method":"info.isBootstrapped","params":{"chain":"C"}}' "$rpc/ext/info" \
               | jq -e '.result.isBootstrapped == true' >/dev/null; then break; fi
