@@ -41,12 +41,14 @@ internal sealed class ConvexRecordBackend : IConditionalKeyValueBackend
 
     private async Task<JsonElement> CallAsync(string endpoint, string operation, object args, CancellationToken token)
     {
+        using var deadline = CancellationTokenSource.CreateLinkedTokenSource(token);
+        deadline.CancelAfter(_http.Timeout);
         using var request = new HttpRequestMessage(HttpMethod.Post, new Uri(_origin, "api/" + endpoint));
         request.Headers.Authorization = new AuthenticationHeaderValue("Convex", _adminKey);
         request.Content = new StringContent(JsonSerializer.Serialize(new { path = "oasis/records:" + operation, args, format = "json" }), Encoding.UTF8, "application/json");
-        using var response = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, token);
+        using var response = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, deadline.Token).ConfigureAwait(false);
         response.EnsureSuccessStatusCode();
-        using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync(token));
+        using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync(deadline.Token).ConfigureAwait(false));
         var root = doc.RootElement;
         if (root.ValueKind != JsonValueKind.Object || !root.TryGetProperty("status", out var status) || status.ValueKind != JsonValueKind.String)
             throw new InvalidDataException("Convex function omitted its status envelope.");
@@ -65,11 +67,19 @@ internal sealed class ConvexRecordBackend : IConditionalKeyValueBackend
     private Task ReadyAsync(CancellationToken token)
     {
         token.ThrowIfCancellationRequested();
-        lock (_readyLock) return _ready ??= VerifyLayoutAsync(token);
+        Task verification;
+        lock (_readyLock)
+        {
+            // The shared probe has the HTTP client timeout; each caller can stop waiting independently.
+            if (_ready == null || _ready.IsFaulted || _ready.IsCanceled)
+                _ready = VerifyLayoutAsync(CancellationToken.None);
+            verification = _ready;
+        }
+        return verification.WaitAsync(token);
     }
     private async Task VerifyLayoutAsync(CancellationToken token)
     {
-        var value = await CallAsync("query", "verify", new { }, token);
+        var value = await CallAsync("query", "verify", new { }, token).ConfigureAwait(false);
         if (value.ValueKind != JsonValueKind.Object || Text(value, "protocol") != "oasis-private-records-v1")
             throw new InvalidDataException("Deploy the matching private-record companion; preserve existing data before changing layouts.");
     }
