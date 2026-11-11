@@ -108,3 +108,5 @@ running it. Hosted native, paired HTTP and browser evidence are pending.
 11 November UTC: Development d93d984b7b integrates the verified Redis, Dragonfly and Valkey standard CI routing on top of HyperDrive Hedera changes. The batch contains only the three independently qualified fixture-routing patches. Hosted TLS acceptance remains open for all three.
 
 11 November UTC: all six Redis, Dragonfly and Valkey jobs passed in the standard Development pipeline 43059249089 at d93d984b7b. Each provider passed its generic storage matrix job and its dedicated native restart/federation job. Hosted TLS acceptance remains open.
+
+11 November UTC: Development fa8f81332c carries Valkey 9.0.4 native storage conformance. The shipping StackExchange.Redis adapter passed 52/52 in CI 43091045329, with exact fixture cleanup and an empty native database in both modes. Prior native CQL restart and federation evidence carries forward. Hosted TLS and plaintext migration remain open.
