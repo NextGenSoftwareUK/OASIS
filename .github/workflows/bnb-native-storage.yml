@@ -7,6 +7,8 @@ on:
       - '.github/workflows/bnb-native-storage.yml'
       - 'Scripts/TestHosts/deploy-bnb-ci-storage.cjs'
       - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.BNBChainOASIS/**'
+      - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/src/Web3CoreOASIS.cs'
+      - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/src/Web3CoreOASISBaseProvider.AvatarDelete.cs'
       - 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.BNBChainOASIS.IntegrationTests/**'
   workflow_dispatch:
 
@@ -62,7 +64,11 @@ jobs:
             if (( status != 0 )) && [[ -f "$fixture/node.log" ]]; then tail -n 35 "$fixture/node.log"; fi
             [[ "$fixture" == "$RUNNER_TEMP"/oasis-bnb.* ]] && rm -rf -- "$fixture"
             rm -rf -- "$contract_root/node_modules"
-            if [[ -e "$fixture" || -e "$contract_root/node_modules" ]]; then status=1; fi
+            if [[ -e "$fixture" || -e "$contract_root/node_modules" ]]; then
+              status=1
+            else
+              echo "Removed the owned BSC node fixture and npm dependencies."
+            fi
             exit "$status"
           }
           trap cleanup EXIT

@@ -20,6 +20,7 @@ public sealed class Web3CoreOASIS
     private readonly NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OwnedNativePreparationScope _preparation=new();
     private readonly SemaphoreSlim _mutationGate;
     private readonly string _blockchainUrl;
+    private readonly bool _useLegacyGasPricing;
     internal string SigningAddress=>_web3.TransactionManager.Account.Address;
     internal bool HasNativePreparation => _preparation.HasCurrent;
     internal async Task<BigInteger> ReadChainIdAsync()=> (await _web3.Eth.ChainId.SendRequestAsync()).Value;
@@ -129,6 +130,12 @@ public sealed class Web3CoreOASIS
             throw new InvalidOperationException("Admitted native-value recovery requires a value-aware journal contract before submission.");
         // Signing must not consume a cached nonce if preparation fails before submission.
         input.Nonce=await _web3.Eth.Transactions.GetTransactionCount.SendRequestAsync(input.From,BlockParameter.CreatePending());
+        if (_useLegacyGasPricing)
+        {
+            input.GasPrice = await _web3.Eth.GasPrice.SendRequestAsync();
+            if (input.GasPrice.Value <= 0)
+                throw new InvalidOperationException("The EVM RPC must quote a positive gas price for legacy transactions.");
+        }
         var signed=await _web3.TransactionManager.SignTransactionAsync(input);
         var bytes=signed.HexToByteArray();
         if(bytes.Length==0) throw new InvalidOperationException("EVM signer returned empty signed transaction.");
@@ -146,16 +153,22 @@ public sealed class Web3CoreOASIS
     }
 
     public Web3CoreOASIS(string accountPrivateKey, string blockchainUrl, string contractAddress, string abi,BigInteger? chainId=null)
-        : this(accountPrivateKey, blockchainUrl, contractAddress, abi, chainId, new SemaphoreSlim(1, 1)) { }
+        : this(accountPrivateKey, blockchainUrl, contractAddress, abi, chainId, false) { }
+
+    internal Web3CoreOASIS(string accountPrivateKey, string blockchainUrl, string contractAddress, string abi,
+        BigInteger? chainId, bool useLegacyGasPricing)
+        : this(accountPrivateKey, blockchainUrl, contractAddress, abi, chainId, new SemaphoreSlim(1, 1), useLegacyGasPricing) { }
 
     private Web3CoreOASIS(string accountPrivateKey, string blockchainUrl, string contractAddress, string abi,
-        BigInteger? chainId, SemaphoreSlim mutationGate)
+        BigInteger? chainId, SemaphoreSlim mutationGate, bool useLegacyGasPricing)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(blockchainUrl);
         ArgumentException.ThrowIfNullOrEmpty(contractAddress);
         ArgumentException.ThrowIfNullOrEmpty(abi);
 
         _web3 = new(new Account(accountPrivateKey,chainId), blockchainUrl);
+        _web3.TransactionManager.UseLegacyAsDefault = useLegacyGasPricing;
+        _useLegacyGasPricing = useLegacyGasPricing;
         _contractAddress = contractAddress;
         _abi = abi;
         _chainId = chainId;
@@ -168,7 +181,7 @@ public sealed class Web3CoreOASIS
 
     internal Web3CoreOASIS ForContractTransaction(string privateKey,string contractAddress,string abi)
     {
-        var sdk = new Web3CoreOASIS(privateKey, _blockchainUrl, contractAddress, abi, _chainId, _mutationGate);
+        var sdk = new Web3CoreOASIS(privateKey, _blockchainUrl, contractAddress, abi, _chainId, _mutationGate, _useLegacyGasPricing);
         if (HasNativePreparation)
             throw new InvalidOperationException("Contract transaction target or signer differs from the admitted native preparation owner.");
         return sdk;
