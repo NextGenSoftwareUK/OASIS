@@ -148,3 +148,5 @@ Unified launcher supports `-Provider ActivityPub -ArchiveCompletedDemo`, with
 `-ShowPlan` and `-VerifyOnly`. No hosted deployment/productionJWT/billing claim.
 See [interactive guide/evidence](CQL_INTERACTIVE_POINT_DEMO.md). Broader CQL remains
 red; existing green social/query gates were not rerun.
+
+11 November UTC: verified Railway Development deployment `5e1e3ab0-81f9-4fea-83b8-12e851c999ed` at `fcf2a522e6`. ActivityPubOASIS and HashgraphOASIS both returned three full and two subset rows through their live native public CQL presets. Discovery also reported federation ready. Prior paired and browser evidence retains its original scope.

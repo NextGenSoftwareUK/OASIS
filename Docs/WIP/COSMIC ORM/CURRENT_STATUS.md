@@ -946,3 +946,5 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 11 November UTC: Railway Development WEB4 deployment `5e1e3ab0-81f9-4fea-83b8-12e851c999ed` at `fcf2a522e6` succeeded with ActivityPub and Hedera changes. Catalogue readiness progressed from 35/106 to 106/106. Listed priorities and LocalFile reported native and federated readiness. Cardano's browser full preset was rejected as unavailable during startup, then discovery reported Cardano ready. Cardano browser execution remains open.
 
 11 November UTC: after startup on `fcf2a522e6`, Cardano historical indexed-header presets returned three full and two filtered rows in the live Development CQL Playground. The earlier startup rejection remains recorded. The original-owner MongoDB paired browser check remains open. No preparation or saves.
+
+11 November UTC: verified Railway Development deployment `5e1e3ab0-81f9-4fea-83b8-12e851c999ed` at `fcf2a522e6`. ActivityPubOASIS and HashgraphOASIS both returned three full and two subset rows through their live native public CQL presets. Discovery also reported federation ready. Prior paired and browser evidence retains its original scope.
