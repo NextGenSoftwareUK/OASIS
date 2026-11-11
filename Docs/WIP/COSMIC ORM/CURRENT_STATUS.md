@@ -1542,3 +1542,5 @@ Exact Supabase WEB4 image build 43062441681 is running.
 11 November UTC: queued exact PlanetScale WEB4 image 43081579241 for candidate 49d537d2db with its SHA explicitly as the sole tag. Combined admission run 43080851172 remains active. Prepared Core merge 35f04c65f6 preserves Core Development history and has the exact tested PlanetScale pin tree. Parent and Core release publication remain open.
 
 11 November UTC: all 13 combined PlanetScale and Supabase WEB4 admission tests passed in CI 43080851172. Core Development advanced to 35f04c65f6 with the exact source tree of the tested PlanetScale tariff pin 98d9c27ba8. Parent Development integration awaits exact image CI 43081579241. Hosted PlanetScale still needs the reviewed SELECT-only teaching source.
+
+11 November UTC: Development a05741af68 adds verified AvalancheGo storage conformance (52/52, CI 43080136029). The batch changes test code, workflow and evidence, with no shipping WEB4 input changes. Prepared PlanetScale merge ab4d0ae3d3 preserves both histories and passes dependency validation. PlanetScale image 43081579241 remains active and Supabase rollout dfe08114e6 remains queued.
