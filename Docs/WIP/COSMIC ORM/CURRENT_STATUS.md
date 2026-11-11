@@ -1584,3 +1584,5 @@ Exact Supabase WEB4 image build 43062441681 is running.
 11 November UTC: WEB4 candidate 3845f4723c combines the qualified CouchDB reader with direct upstream release downloads for pinned NATS 2.15.2 and Waku 0.39.2. Both archive bytes matched the existing SHA-256 pins. Railway manifest, seven Dockerfiles and parent gitlinks validate. Exact image 43097362380 is queued. Current live AvalancheGo revision a05741af68 warmed to 105/106 ready, with Cosmos and Hedera restored and Nostr unavailable.
 
 11 November UTC: requested cancellation of superseded image run 43090552807 after its build, push and summary steps succeeded and its post-build step stayed active for eight minutes. The combined image 43097362380 is the Development gate. Retain both temporary image source tags until their runs are terminal and evidence is recorded.
+
+11 November UTC: after the AvalancheGo WEB4 rollout restored Cosmos and Hedera readiness, the authenticated visitor ran both native public HTTP presets for each provider. Both returned three full and two filtered rows, with exact preset selections and strict subset containment. Prior private cohorts were preserved.

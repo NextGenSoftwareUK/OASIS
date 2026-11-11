@@ -139,3 +139,5 @@ WEB4 diagnostic regression gate complete: CI 42938257820/job 130253566184 succee
 11 November UTC: Railway WEB4 cut over to Sui storage revision 31db62c741 (deployment 1974ed95-8e85-4c76-80a0-3ec9f9b4fea8). Authenticated discovery returned 104/106 native and federated ready. Hedera and Nostr reported CQL_SOURCE_UNAVAILABLE. Supabase, TRON and CouchDB remain absent. CockroachDB revision 2dd52cf6c0 is building. Exact Supabase image CI 43072535002 remains active.
 
 11 November UTC: Railway deployed WEB4 cadf5bf85b (c08e176d). Authenticated discovery warmed from 18/106 to 68/106 to 104/106 ready for native and federated CQL. Hedera timed out awaiting headers after 15,007 ms; Nostr received WebSocket HTTP 503 after 129 ms. Supabase, TRON and CouchDB remain absent. Prior functional receipts retain their scope.
+
+11 November UTC: after the AvalancheGo WEB4 rollout restored Cosmos and Hedera readiness, the authenticated visitor ran both native public HTTP presets for each provider. Both returned three full and two filtered rows, with exact preset selections and strict subset containment. Prior private cohorts were preserved.

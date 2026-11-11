@@ -6236,3 +6236,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: streamed pinned NATS and Waku release archives through SHA-256 verification in memory. No archive, local image, build, restore or report retained. Temporary Git indices removed. Track ci-cosmic-web4-assets-74acdd1ffd until exact CI and release publication.
 
 11 November UTC: requested cancellation of superseded image run 43090552807 after its build, push and summary steps succeeded and its post-build step stayed active for eight minutes. The combined image 43097362380 is the Development gate. Retain both temporary image source tags until their runs are terminal and evidence is recorded.
+
+11 November UTC: Cosmos and Hedera public recovery checks reused the existing visitor and processed replies in memory. Zero new protected files, avatars, reports, builds or downloads. Temporary documentation index removed.
