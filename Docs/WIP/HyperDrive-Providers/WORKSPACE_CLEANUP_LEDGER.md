@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+11 November Supabase credential isolation CI. Job 130503718549 ran two PostgREST services on a disposable Linux runner, passed the native credential check, and removed the PostgreSQL container. The download, database and build stayed on the runner. No local artifact or report upload was created.
+
 11 November Neo4j Aura adapter CI. GitHub job 130499437747 confirmed the dedicated Neo4j Community container stopped and was removed after both lifecycle cases passed. The disposable Linux runner held the image, database and build outputs. No local artifacts or uploads were created.
 
 11 November Neo4j V2 harness CI. Job 130497281183 built and ran the standalone harness on a disposable Linux runner. GitHub confirmed the Neo4j service container was stopped and removed. No upload, local download, container, database or build output was created.

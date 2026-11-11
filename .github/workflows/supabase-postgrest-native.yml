@@ -1,4 +1,4 @@
-name: Supabase native PostgREST credentials
+name: Supabase native PostgREST
 
 on:
   push:
@@ -7,7 +7,14 @@ on:
       - '.github/workflows/supabase-postgrest-native.yml'
       - 'Providers/Cloud/NextGenSoftware.OASIS.API.Providers.SupabaseOASIS/**'
       - 'Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.SupabaseOASIS.IntegrationTests/SupabaseNativeCredentialIsolationTests.cs'
+      - 'Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.SupabaseOASIS.IntegrationTests/SupabaseNativeStorageConformanceTests.cs'
   workflow_dispatch:
+    inputs:
+      scenario:
+        description: PostgREST verification scenario
+        type: choice
+        options: [storage, credentials]
+        default: storage
 
 permissions:
   contents: read
@@ -62,6 +69,7 @@ jobs:
       - name: Start two independently authenticated PostgREST services and exercise the shipping provider
         shell: bash
         env:
+          OASIS_SUPABASE_TEST_SCENARIO: ${{ inputs.scenario || 'storage' }}
           POSTGRES_CONTAINER: ${{ job.services.postgres.id }}
           PGRST_DB_URI: postgresql://postgres:fixture-only@127.0.0.1:${{ job.services.postgres.ports[5432] }}/oasis_fixture
           PGRST_DB_SCHEMAS: public
@@ -130,6 +138,11 @@ jobs:
           ready "$OASIS_SUPABASE_SECOND_POSTGREST" "$OASIS_SUPABASE_SECOND_JWT" "$second_pid" "$fixture/second.log"
           pwsh -NoProfile -Command '
             ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-SupabaseCredentials -Operation {
-              dotnet test "Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.SupabaseOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.SupabaseOASIS.IntegrationTests.csproj" --filter "FullyQualifiedName~SharedClientSendsEachCredentialOnlyToItsPostgrestService" /m:2 /nr:false /p:UseSharedCompilation=false --logger "console;verbosity=normal"
-              if ($LASTEXITCODE -ne 0) { throw "Native PostgREST credential isolation failed." }
+              $case = "SharedClientSendsEachCredentialOnlyToItsPostgrestService"
+              if ($env:OASIS_SUPABASE_TEST_SCENARIO -eq "storage") {
+                $env:OASIS_SUPABASE_LOCAL_STORAGE_CONFORMANCE = "1"
+                $case = "CoreStorageSuiteAgainstSupabase"
+              }
+              dotnet test "Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.SupabaseOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.SupabaseOASIS.IntegrationTests.csproj" --filter "FullyQualifiedName~$case" /m:2 /nr:false /p:UseSharedCompilation=false --logger "console;verbosity=normal"
+              if ($LASTEXITCODE -ne 0) { throw "Native PostgREST verification failed." }
             }'

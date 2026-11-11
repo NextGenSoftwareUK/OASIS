@@ -138,17 +138,19 @@ public class SupabaseNativeStorageConformanceTests
     [DataRow(true)]
     public async Task CoreStorageSuiteAgainstSupabase(bool sync)
     {
-        if (Environment.GetEnvironmentVariable("OASIS_SUPABASE_STORAGE_CONFORMANCE") != "1")
-            Assert.Inconclusive("Enable this suite only for a dedicated Supabase test project.");
+        var localFixture = Environment.GetEnvironmentVariable("OASIS_SUPABASE_LOCAL_STORAGE_CONFORMANCE") == "1";
+        if (!localFixture && Environment.GetEnvironmentVariable("OASIS_SUPABASE_STORAGE_CONFORMANCE") != "1")
+            Assert.Inconclusive("Enable only for a dedicated Supabase or loopback PostgREST fixture.");
 
-        var url = Environment.GetEnvironmentVariable("OASIS_SUPABASE_CONFORMANCE_URL");
-        var key = Environment.GetEnvironmentVariable("OASIS_SUPABASE_CONFORMANCE_SERVICE_KEY");
+        var url = Environment.GetEnvironmentVariable(localFixture ? "OASIS_SUPABASE_FIRST_POSTGREST" : "OASIS_SUPABASE_CONFORMANCE_URL");
+        var key = Environment.GetEnvironmentVariable(localFixture ? "OASIS_SUPABASE_FIRST_JWT" : "OASIS_SUPABASE_CONFORMANCE_SERVICE_KEY");
         Assert.IsTrue(Uri.TryCreate(url, UriKind.Absolute, out var endpoint) &&
-            endpoint.Scheme == Uri.UriSchemeHttps &&
-            endpoint.Host.EndsWith(".supabase.co", StringComparison.OrdinalIgnoreCase) &&
+            (localFixture
+                ? endpoint.Scheme == Uri.UriSchemeHttp && endpoint.IsLoopback
+                : endpoint.Scheme == Uri.UriSchemeHttps && endpoint.Host.EndsWith(".supabase.co", StringComparison.OrdinalIgnoreCase)) &&
             endpoint.AbsolutePath == "/" && string.IsNullOrEmpty(endpoint.Query) &&
             string.IsNullOrEmpty(endpoint.Fragment) && string.IsNullOrEmpty(endpoint.UserInfo),
-            "Supply the dedicated hosted Supabase project URL.");
+            "Supply the dedicated hosted Supabase origin or an explicitly enabled loopback PostgREST origin.");
         Assert.IsFalse(string.IsNullOrWhiteSpace(key), "Supply the dedicated project's protected server key.");
 
         var root = new DirectoryInfo(AppContext.BaseDirectory);
@@ -156,7 +158,7 @@ public class SupabaseNativeStorageConformanceTests
             root = root.Parent;
         Assert.IsNotNull(root, "Run this test from the repository.");
 
-        var directory = Path.Combine(root.FullName, "TestResults", "ProviderConformanceCurrent",
+        var directory = Path.Combine(root.FullName, "TestResults", localFixture ? "SupabasePostgrestLocal" : "ProviderConformanceCurrent",
             nameof(SupabaseOASIS), sync ? "sync" : "async");
         Directory.CreateDirectory(directory);
         using var lease = new FileStream(Path.Combine(Path.GetDirectoryName(directory)!, "environment.lock"),
@@ -187,8 +189,9 @@ public class SupabaseNativeStorageConformanceTests
             File.Move(pendingPath, reportPath, overwrite: true);
         }
 
-        using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(30) };
-        var provider = new SupabaseOASIS(url!, key!, http);
+        using var http = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false }) { Timeout = TimeSpan.FromSeconds(30) };
+        var restPath = localFixture ? "" : "rest/v1/";
+        var provider = new SupabaseOASIS(url!, key!, http, localFixture ? "" : "/rest/v1");
 
         async Task<HttpResponseMessage> SendFixtureRequest(HttpMethod method, string path)
         {
@@ -206,7 +209,7 @@ public class SupabaseNativeStorageConformanceTests
         {
             foreach (var table in new[] { "oasis_avatars", "oasis_avatar_details", "oasis_holons" })
             {
-                using var response = await SendFixtureRequest(HttpMethod.Get, $"rest/v1/{table}?select=id&limit=1");
+                using var response = await SendFixtureRequest(HttpMethod.Get, $"{restPath}{table}?select=id&limit=1");
                 response.EnsureSuccessStatusCode();
                 using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
                 Assert.IsTrue(document.RootElement.ValueKind == JsonValueKind.Array &&
@@ -220,7 +223,7 @@ public class SupabaseNativeStorageConformanceTests
         async Task CleanTombstone(Guid id)
         {
             using var response = await SendFixtureRequest(HttpMethod.Delete,
-                $"rest/v1/oasis_holons?id=eq.{id:D}&is_deleted=eq.true&select=id");
+                $"{restPath}oasis_holons?id=eq.{id:D}&is_deleted=eq.true&select=id");
             response.EnsureSuccessStatusCode();
             using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
             var rows = document.RootElement;
@@ -261,5 +264,6 @@ public class SupabaseNativeStorageConformanceTests
         Assert.IsTrue(result.Succeeded, $"{result.CurrentCase}: {result.FailureType}");
         Assert.IsTrue(result.FixtureCleanupComplete);
         Assert.AreEqual(CoreStorageConformance.ChecksPerMode, result.Passed.Count);
+        Console.WriteLine($"Supabase {(sync ? "sync" : "async")} native conformance: {result.Passed.Count} checks passed, exact fixture cleanup verified.");
     }
 }
