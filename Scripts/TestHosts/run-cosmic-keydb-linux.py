@@ -7,6 +7,7 @@ import json
 import os
 from pathlib import Path
 import secrets
+import shutil
 import socket
 import subprocess
 import sys
@@ -16,21 +17,29 @@ import xml.etree.ElementTree as ET
 parser = argparse.ArgumentParser()
 parser.add_argument("--federated", action="store_true")
 parser.add_argument("--serve", action="store_true")
+parser.add_argument("--ci-results", type=Path)
 options = parser.parse_args()
+if options.ci_results and os.environ.get("GITHUB_ACTIONS") != "true":
+    raise RuntimeError("CI results require a disposable GitHub Actions runner")
 if options.serve and not options.federated:
     raise RuntimeError("Serve requires explicit federation")
 sys.dont_write_bytecode = True
-from cosmic_linux_mongo_service import owned_linux_mongo
+from cosmic_linux_mongo_service import isolated_ci_mongo, owned_linux_mongo
 
-ROOT = Path("/mnt/c/Source/OASIS-cosmic")
+ROOT = Path(__file__).resolve().parents[2] if options.ci_results else Path("/mnt/c/Source/OASIS-cosmic")
 STATE = Path("/var/tmp/oasis-keydb-cql")
-RESULTS = ROOT / "TestResults/KeyDbCqlCurrent"
+RESULTS = options.ci_results or ROOT / "TestResults/KeyDbCqlCurrent"
 RUNTIME = Path("/var/tmp/oasis-runtimes/keydb-6.3.4")
 DAEMON = RUNTIME / "src/keydb-server"
 DIGEST = "309fe740e931ab61f4cdcc2ccb22359fca8241959ce1600224cb170dde821e29"
 DOTNET = "/var/tmp/oasis-runtimes/dotnet-10.0.12/dotnet"
 RUNNER = "/mnt/c/Users/david/.nuget/packages/microsoft.testplatform.portable/18.11.0/tools/net8.0/vstest.console.dll"
 ASSEMBLY = ROOT / "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.KeyDBOASIS.IntegrationTests/bin/Debug/net10.0/NextGenSoftware.OASIS.API.Providers.KeyDBOASIS.IntegrationTests.dll"
+if options.ci_results:
+    admission = json.loads((RUNTIME / "cosmic-runtime-admission.json").read_text())
+    assert admission["sourceCommit"] == "7e7e5e57d25fe246a8201f0acf5e7363c0bf1e14"
+    assert admission["archiveSha256"] == "08e6dc019bbf7b5b46f2b6879ad87f34db801302c3f37a51f53436abee840ac6"
+    DIGEST = admission["files"]["src/keydb-server"]
 assert hashlib.sha256(DAEMON.read_bytes()).hexdigest() == DIGEST
 assert not DAEMON.is_symlink()
 STATE.mkdir(exist_ok=True, mode=0o700)
@@ -49,9 +58,16 @@ def private_file(path, value):
 def report(test, filename, env):
     started = time.time()
     with (RESULTS / (filename + ".log")).open("w") as output:
-        subprocess.run([DOTNET, RUNNER, str(ASSEMBLY), "--TestCaseFilter:FullyQualifiedName~" + test,
-                        "--ResultsDirectory:" + str(RESULTS), "--Logger:trx;LogFileName=" + filename + ".trx"],
-                       env=env, stdout=output, stderr=subprocess.STDOUT, check=True)
+        if options.ci_results:
+            project = ASSEMBLY.parents[3] / (ASSEMBLY.stem + ".csproj")
+            command = [shutil.which("dotnet"), "test", str(project), "--filter", "FullyQualifiedName~" + test,
+                       "--results-directory", str(RESULTS), "--logger", "trx;LogFileName=" + filename + ".trx",
+                       "/m:2", "/nr:false", "/p:UseSharedCompilation=false"]
+            env = {key: value for key, value in env.items() if key != "DOTNET_ROOT"}
+        else:
+            command = [DOTNET, RUNNER, str(ASSEMBLY), "--TestCaseFilter:FullyQualifiedName~" + test,
+                       "--ResultsDirectory:" + str(RESULTS), "--Logger:trx;LogFileName=" + filename + ".trx"]
+        subprocess.run(command, env=env, stdout=output, stderr=subprocess.STDOUT, check=True)
     path = RESULTS / (filename + ".trx")
     assert path.stat().st_mtime >= started
     count = ET.parse(path).find(".//{*}Counters").attrib
@@ -146,7 +162,8 @@ with (STATE / "runner.lock").open("a") as lease:
                             # Match normal server restart semantics without accepting a live listener.
                             reservation.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
                             reservation.bind(("127.0.0.1", 5121))
-                    with owned_linux_mongo(RESULTS) as mongo_env:
+                    mongo = isolated_ci_mongo() if options.ci_results else owned_linux_mongo(RESULTS)
+                    with mongo as mongo_env:
                         pair_env = dict(env, **mongo_env, OASIS_KEYDB_MONGO_SERVE="1" if options.serve else "0")
                         results["mongo-init"] = report("LinuxMongoDemoEnvironmentTests", "mongo-init", pair_env)
                         results["federation"] = report("KeyDBMongoCqlNativeTests", "keydb-mongo-federation", pair_env)

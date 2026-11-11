@@ -1399,3 +1399,5 @@ On active WEB4 1c7e670e8d, NostrOASIS was the only listed source unavailable amo
 11 November UTC: Development e5e3ca694c integrates HyperDrive SQL Server native workflow. CI 43050650521 passed both uninterrupted storage modes on SQL Server 2022 Linux 16.0.4222.2. Native SQL verified and removed ten exact owned tombstones, then confirmed all six fixture tables empty. Hosted WEB4 activation remains open.
 
 KeyDB combined orchestration CI 43051825070 is active. Railway is building b8df606442 with e5e3ca694c queued.
+
+11 November UTC: both KeyDB jobs passed in combined CI 43051825070. Generic storage ran in the standard matrix fixture and encrypted native CQL, restart and MongoDB federation ran in the dedicated fixture. Verified wiring is published on the COSMIC branch. Development candidate ea54de967e awaits the next verified batch. Hosted TLS acceptance remains open.

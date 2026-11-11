@@ -6050,3 +6050,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: track ci-cosmic-keydb-orchestration-e5e3ca694c until both runs finish. Temporary Git indices removed. No local build, runtime, restore or download.
 
 11 November UTC: retired the standalone KeyDB builder diagnostic after both workflows passed and verified absence. Combined CI retains the tested runner. Temporary Git index removed. No local build, restore or download.
+
+11 November UTC: inspected combined KeyDB CI results in memory. Temporary Git index removed. No local build, restore, runtime or download.
