@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November TRON native lifecycle qualification. Run 43032881378 at ace77f93d3 reuses the digest-pinned TRE runtime on a fresh loopback-only CI chain. It requires the known private genesis, compiles the shared storage contract with Solidity 0.8.26 targeting Paris, deploys one contract per mode through the shipping gRPC client and requires empty native contract keys after both storage modes. The retained ledger and COSMIC public reader are separate.
+
 11 November managed NEAR passed 52/52 and the avatar history regression on native NEAR Sandbox in run 43031215931. Both modes used the shipping near-api-js adapter and confirmed fixture cleanup. A direct contract read found zero records after the managed cases. Development 165e8abaee carries the verified managed shipping changes and tests. Hosted deployment and remaining provider capabilities stay open.
 
 11 November managed NEAR lifecycle reached real transactions in run 43030523082. The async suite stopped on the shipping avatar save acknowledgement count, sync was correctly gated, and the focused history test had omitted enabling provider versioning. The candidate now reports acknowledged save counts and exact loaded counts on the shipping storage paths, explicitly enables history in its regression, and removes only the owned holon tombstones after verifying default deletion visibility. Native rerun pending.
