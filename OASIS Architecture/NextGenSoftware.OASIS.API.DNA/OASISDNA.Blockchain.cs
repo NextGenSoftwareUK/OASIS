@@ -23,6 +23,11 @@ namespace NextGenSoftware.OASIS.API.DNA
     {
         public string RpcEndpoint { get; set; } = "wss://rpc.polkadot.io";
         public string Network { get; set; } = "polkadot";
+        public string GenesisHash { get; set; }
+        public string ChainPrivateKey { get; set; }
+        public string StorageContractAccountId { get; set; }
+        public string StorageCodeHash { get; set; }
+        public string StorageOwnerAccountId { get; set; }
     }
 
     public class ImmutableZkEVMOASISProviderSettings : ProviderSettingsBase

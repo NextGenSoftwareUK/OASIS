@@ -378,14 +378,21 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                         //    }
                         //    break;
 
-                        //case ProviderType.PolkadotOASIS:
-                        //    {
-                        //        PolkadotOASIS polkadotOASIS = new PolkadotOASIS(
-                        //            OASISDNA.OASIS.StorageProviders.PolkadotOASIS.RpcEndpoint,
-                        //            OASISDNA.OASIS.StorageProviders.PolkadotOASIS.Network);
-                        //        result.Result = polkadotOASIS;
-                        //    }
-                        //    break;
+                        case ProviderType.PolkadotOASIS:
+                        {
+                            var settings = OASISDNA.OASIS.StorageProviders.PolkadotOASIS
+                                ?? throw new InvalidOperationException("Polkadot storage settings are required.");
+                            if (!System.Text.RegularExpressions.Regex.IsMatch(settings.GenesisHash ?? "", "^0x[0-9a-fA-F]{64}$"))
+                                throw new InvalidOperationException("Polkadot storage requires the expected genesis hash.");
+                            var storage = new NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.PolkadotStorageConfiguration(
+                                settings.StorageContractAccountId, settings.StorageCodeHash, settings.StorageOwnerAccountId);
+                            var provider = new NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.PolkadotOASIS(
+                                overrideConnectionString ?? settings.RpcEndpoint, settings.GenesisHash,
+                                settings.ChainPrivateKey, bridgePoolAddress: null, storage: storage);
+                            provider.OnStorageProviderError += (_, error) => HandleProviderError("PolkadotOASIS", error);
+                            result.Result = provider;
+                        }
+                        break;
 
                         case ProviderType.ImmutableZkEVMOASIS:
                         {

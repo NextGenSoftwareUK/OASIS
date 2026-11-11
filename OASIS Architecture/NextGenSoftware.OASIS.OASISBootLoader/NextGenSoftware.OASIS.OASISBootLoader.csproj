@@ -61,6 +61,7 @@
     <ProjectReference Include="..\..\..\NextGenSoftware-Libraries\NextGenSoftware.Logging.NLog\NextGenSoftware.Logging.NLog.csproj" />
     <ProjectReference Include="..\..\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.ImmutableZkEVMOASIS\NextGenSoftware.OASIS.API.Providers.ImmutableZkEVMOASIS.csproj" />
     <ProjectReference Include="..\..\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.RoninOASIS\NextGenSoftware.OASIS.API.Providers.RoninOASIS.csproj" />
+    <ProjectReference Include="..\..\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.PolkadotOASIS\NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.csproj" />
     <ProjectReference Include="..\..\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.BNBChainOASIS\NextGenSoftware.OASIS.API.Providers.BNBChainOASIS.csproj" />
     <ProjectReference Include="..\..\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.CardanoOASIS\NextGenSoftware.OASIS.API.Providers.CardanoOASIS.csproj" />
     <ProjectReference Include="..\..\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS\NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS.csproj" />

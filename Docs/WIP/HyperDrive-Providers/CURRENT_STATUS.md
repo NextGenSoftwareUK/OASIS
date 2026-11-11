@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November Polkadot shipping registration. BootLoader now constructs the existing native storage adapter using explicit genesis, contract account, code hash, owner and signer settings. The native encryption key continues to resolve through the provider configuration. This adds the application dependency on Polkadot and keeps the provider independent of BootLoader. Existing 52/52 native storage evidence was reused. C# syntax, project XML and diff checks passed. BootLoader build and live configuration verification remain open.
+
 11 November Optimism native cleanup checks. The OP Sepolia storage lifecycle now checks avatar, avatar detail and holon counts directly on the dedicated Web3Core contract before writes and after cleanup in both modes. Counts must all be zero. The verified public wallet batch remains scoped to its earlier exact revision. Signed OP Sepolia execution remains open.
 
 11 November Ronin and Immutable native cleanup checks. The Saigon and Immutable testnet storage suites now read avatar, avatar detail and holon counts directly from the dedicated Web3Core contract before each mode and after provider cleanup. Each native count must be zero. This can catch records hidden by the provider read path and prevents writes against an already populated fixture. Signed runs remain pending.
