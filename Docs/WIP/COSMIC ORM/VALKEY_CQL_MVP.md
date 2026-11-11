@@ -96,3 +96,5 @@ running it. Hosted native, paired HTTP and browser evidence are pending.
 [Resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md).
 
 11 November UTC: Valkey candidate 71f7485e2f runs the existing hash-pinned Valkey 9.0.4 restart and encrypted CQL tests in isolated CI with a disposable MongoDB replica for SDK/HTTP federation. Results remain pending. Dragonfly's verified candidate still applies to Development ea54de967e.
+
+11 November UTC: Valkey run 43055058247 stopped before tests because the Ubuntu package origin could not resolve. Candidate bca447e8e4 extracts Valkey 9.0.4 from its digest-pinned official image in CI, verifies the version and executable fingerprint, and uses the same isolated restart/federation assertions. The retained package-based fixture path is preserved.
