@@ -5926,3 +5926,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: removed ci-cosmic-db-orchestration-73e0d4bb08 after both workflows passed and verified absence. Temporary Git index removed. No local build, restore, database or download.
 
 11 November UTC: inspected OpenSearch CI and Railway build logs in memory. Temporary Git index removed. No local build, restore, database or download.
+
+11 November UTC: track ci-cosmic-opensearch-restart-73e0d4bb08 until its CI runs are terminal. Temporary Git indices removed. Provisioner syntax checked in memory. No local build, restore, database, image or download.
