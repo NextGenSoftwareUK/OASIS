@@ -6302,3 +6302,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: removed remote temporary GOMap tag ci-cosmic-gomap-dev-count12 after both exact runs 43108783977 and 43108751891 succeeded. The completed ci-cosmic-web4-assets-build-a209b82e9b tag was already absent. Current GOMap tag stays tracked for queued run 43114731044. EOSIO journal discovery created no files, builds or sessions. Free space observed at 19.69 GiB. Temporary documentation index removed.
 
 11 November UTC: read completed CouchDB WEB4 image job 130792133898 in memory and recorded its exact source SHA and manifest digest. No local image, log file, build, download or new environment. Temporary documentation index removed.
+
+11 November UTC: superseded WEB4 runs 43097362339, 43098289449 and 43098289469 report queued but have zero jobs. GitHub rejected both normal and forced cancellation with HTTP 409; the force endpoint says the runs have not been queued. Keep their exact temporary tags until GitHub reports a terminal state. The active GOMap run 43114731044 has one queued web4 job. Temporary documentation index removed; no local outputs.
