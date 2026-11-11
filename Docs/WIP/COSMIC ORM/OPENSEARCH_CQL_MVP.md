@@ -279,3 +279,5 @@ Execution needs an owned source and restricted read credentials.
 11 November UTC: Development `2df4de082f` contains the verified OpenSearch restart/federation and SurrealDB restart workflows and fixture scripts. Both are manually dispatched. SurrealDB generic storage and federation remain open, as does hosted HTTPS CQL for both providers. [OpenSearch CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43037028447) · [SurrealDB restart CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43038591878)
 
 11 November UTC: standard OpenSearch CI fixture orchestration is under verification at ba77981977. Both generic and native coverage are retained. Hosted HTTPS CQL remains open.
+
+11 November UTC: the generic and secured native OpenSearch jobs are queued in [OpenSearch fixture orchestration CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43040976654).
