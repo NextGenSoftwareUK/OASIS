@@ -1,5 +1,11 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+11 November WEB4 release: CI built and pushed the exact image in run
+43101002944. The diagnostic trigger tag was removed after both workflows
+finished. The immutable image is retained for release verification. No local
+runtime, download, image or build output was created. The temporary Git
+index for this documentation update is removed when the update finishes.
+
 Aptos preparation on 5 November hit the daily call limit. Its partial-save
 state is unknown; retain the browser journal and request/operation identifiers
 in RECOVERY_BROWSER_EVIDENCE_2026-11-05.md for reconciliation. Twenty-six

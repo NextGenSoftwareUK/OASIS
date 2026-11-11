@@ -1,5 +1,10 @@
 # COSMIC ORM / CQL current status
 
+## Verified WEB4 release, 11 November 2026
+
+- Exact image CI run 43101002944 passed for source `a209b82e9b` and published digest `sha256:da90ab7c74c0f9d0095fe45ed4c90b9503ab7822ca2f072ae96358cd9abb9dea`. Development merge `a614a4377f` was pushed with the NATS/Waku release asset fix, CouchDB admission and pinned Core.
+- Railway WEB4 deployment `1b1ad2f0-6438-4ad0-9cc3-333204864c1a` is queued. Live `febb6971d8` still reports 105/106 native and federated sources ready. Nostr is unavailable. CouchDB, TRON and Supabase still await their separate live enrollment prerequisites.
+
 ## Shared WEB4 and HyperDrive checkpoint, 11 November 2026
 
 - Live Development WEB4 `d262eab8c8` reached 105/106 native and federated sources after warmup. Nostr remains unavailable. Cosmos and Hedera public queries retain their verified 3/2 recovery evidence from the preceding rollout. The recorded functional totals are 129 scoped integrations, 96 hosted HTTP proofs and 28 browser proofs.
