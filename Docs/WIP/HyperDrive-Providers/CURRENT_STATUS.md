@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November MongoDB metadata queries. The shipping provider passed synchronous and asynchronous All and Any queries against an isolated MongoDB 8.2.1 standalone server at 740c02a863. All four calls returned the exact expected GUID sets and loaded counts. The Development change matches the tested provider and shared dependencies. The disposable server and files were removed. This run covers standalone metadata queries.
+
 11 November public EVM wallet balance. The shared unsigned Nethereum wallet reader passed on Arbitrum One at cfdae88ff3 and on Polygon PoS at c5b3909ada. The shipping providers returned positive native ETH and POL balances without activating contract storage. The Arbitrum test rejected a mismatched configured chain. The Development change matches the tested providers and shared dependency source. Public-network storage lifecycle verification remains open.
 
 11 November SQLite wallet encryption. The focused native test passed at 77f9ef72fe using the shipping WalletManager and an ephemeral DNA encryption key. It independently inspected the file-backed SQLite row for ciphertext and absence of plaintext, reopened the database, and recovered the same private key and recovery phrase without changing the loaded ciphertext. The scoped Development change carries the verified test. Deployment key custody and rotation remain open.
