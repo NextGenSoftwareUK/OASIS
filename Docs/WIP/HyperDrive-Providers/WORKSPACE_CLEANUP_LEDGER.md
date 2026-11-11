@@ -268,3 +268,5 @@ Urgent disk cleanup follow-up: leased standard project clean succeeded for AWS u
 11 November Polkadot run 43036417847 stopped before funding or deployment and confirmed removal of its owned contracts-node fixture on the disposable CI runner. The next candidate stores its generated node identity inside that same cleanup scope. No Windows build, download or fixture was created.
 
 11 November Polkadot run 43037729937 finalized funding and contract deployment on its disposable chain, then confirmed removal of the owned Substrate fixture after the managed compile failed. No Windows build, download or test environment was created.
+
+11 November cleanup recheck in the HyperDrive worktree. The earlier WEB4 count build still occupies 115,007,857 bytes in `oasisweb4.com/node_modules` and 361,528 bytes in `TestResults/Web4ProviderCountBuild`. Both are Git-ignored generated directories, with no linked content or matching active Node process found. Automatic review rejected the scoped recursive removal before execution. No deletion occurred. The four named wallet and ActivityPub build folders were absent from this worktree's top-level TestResults directory.
