@@ -11,6 +11,40 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS.IntegrationTests
 {
 	public class IPFSOASISIntegrationTests
 	{
+		[Theory]
+		[InlineData(false)]
+		[InlineData(true)]
+		public async Task ActivatesAndDeactivatesAgainstDedicatedKubo(bool synchronous)
+		{
+			var endpoint = Environment.GetEnvironmentVariable("IPFSOASIS_TEST_API");
+			Assert.False(string.IsNullOrWhiteSpace(endpoint), "Configure the dedicated disposable Kubo test repository.");
+			var dna = new OASISDNA();
+			dna.OASIS.StorageProviders = new StorageProviderSettings
+			{
+				IPFSOASIS = new IPFSOASISSettings { ConnectionString = endpoint }
+			};
+			var dnaPath = Path.Combine(Path.GetTempPath(), $"ipfsoasis-activation-{Guid.NewGuid():N}.json");
+			var provider = new IPFSOASIS(dna, dnaPath);
+			try
+			{
+				var activation = synchronous ? provider.ActivateProvider() : await provider.ActivateProviderAsync();
+				Assert.True(activation.Result && !activation.IsError, activation.Message);
+				Assert.True(provider.IsProviderActivated);
+				Assert.NotNull(provider.IPFSClient);
+			}
+			finally
+			{
+				try
+				{
+					var deactivation = synchronous ? provider.DeActivateProvider() : await provider.DeActivateProviderAsync();
+					Assert.True(deactivation.Result && !deactivation.IsError, deactivation.Message);
+					Assert.False(provider.IsProviderActivated);
+					Assert.Null(provider.IPFSClient);
+				}
+				finally { File.Delete(dnaPath); }
+			}
+		}
+
 		[Fact]
 		public async Task SaveLoadRoundTrip_IPFS()
 		{
