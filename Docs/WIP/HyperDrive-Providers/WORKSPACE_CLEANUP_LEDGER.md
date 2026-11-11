@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+11 November Valkey run 43091045329 verified zero keys, removed its container, volumes, image and fixture.
+
 11 November BNB Development BootLoader run 43086956668 confirmed removal of the BSC node fixture and npm dependencies. No local outputs were created.
 
 11 November BNB BootLoader run 43085641543 confirmed cleanup of the owned BSC node, binary, chain data, temporary DNA, signing material and npm dependencies. The disposable runner retired its build workspace. No Windows build or download was created.
