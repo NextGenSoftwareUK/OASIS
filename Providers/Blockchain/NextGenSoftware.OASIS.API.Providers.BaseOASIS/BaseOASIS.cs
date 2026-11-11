@@ -57,22 +57,22 @@ namespace NextGenSoftware.OASIS.API.Providers.BaseOASIS;
 
 public static class BaseOASISHelpers
 {
-    public static Avatar ParseBaseToAvatar(JsonElement jsonElement)
+    public static Avatar ParseBaseToAvatar(JsonElement jsonElement) => ParseRecord<Avatar>(jsonElement);
+
+    public static AvatarDetail ParseBaseToAvatarDetail(JsonElement jsonElement) => ParseRecord<AvatarDetail>(jsonElement);
+
+    public static IHolon ParseBaseToHolon(JsonElement jsonElement) => ParseRecord<Holon>(jsonElement);
+
+    private static T ParseRecord<T>(JsonElement row) where T : HolonBase
     {
-        // Implementation for parsing JSON to Avatar
-        return new Avatar();
-    }
-    
-    public static AvatarDetail ParseBaseToAvatarDetail(JsonElement jsonElement)
-    {
-        // Implementation for parsing JSON to AvatarDetail
-        return new AvatarDetail();
-    }
-    
-    public static IHolon ParseBaseToHolon(JsonElement jsonElement)
-    {
-        // Implementation for parsing JSON to Holon
-        return new Holon();
+        if (row.ValueKind != JsonValueKind.Object || !row.TryGetProperty("id", out var key) ||
+            key.ValueKind != JsonValueKind.String || !key.TryGetGuid(out var id) || id == Guid.Empty)
+            throw new InvalidDataException("Base record must contain a nonempty GUID identity.");
+
+        var record = NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.DeserializeStored<T>(row.GetRawText());
+        if (record == null || record.Id != id)
+            throw new InvalidDataException("Base record identity disagrees with its decoded payload.");
+        return record;
     }
 }
 

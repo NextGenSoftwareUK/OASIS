@@ -5,6 +5,7 @@ on:
     branches: [work/hyperdrive-provider-completion]
     paths:
       - '.github/workflows/base-public-wallet.yml'
+      - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.BaseOASIS/**'
       - 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.BaseOASIS.IntegrationTests/BaseOASISIntegrationTests.cs'
   workflow_dispatch:
 
