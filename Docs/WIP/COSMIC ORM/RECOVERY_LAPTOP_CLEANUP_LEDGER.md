@@ -5456,3 +5456,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: The Graph Studio browser checks reused the existing demo visitor. No local report, screenshot file, build output, download or environment was created.
 
 11 November UTC: SubQuery public browser checks reused the existing visitor. No local report, screenshot file, build output, download or environment was created.
+
+11 November UTC: Moralis Development-base candidate uses remote runs 42966807485 and 42966870180. Temporary Git indexes were removed. No local restore, build output, image pull or artifact download.
