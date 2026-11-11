@@ -1351,3 +1351,7 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 11 November UTC: Development WEB4 health returned HTTP 200 on the active deployment window for 165e8abaee. Successors c837fe5ad8 and a39f5fe06d are queued. CouchDB restart and federation CI 43045093852 is running. Development WEB4 has no CouchDB-named protected settings, and the recovery workspace has no CouchDB teaching descriptor. Hosted acceptance needs an existing HTTPS teaching database and its restricted reader.
 
 11 November UTC: CouchDB restart/federation CI 43045093852 stopped before tests because the first startup probe received a connection reset. Diagnostic 2c2a2266a6 now waits up to 45 seconds for the owned running container to return its expected native version and identity on startup and restart. It fails on terminal HTTP errors or container exit. Native restart and federation remain pending.
+
+11 November UTC: HyperDrive ActivityPub CI 43043728770 passed all three managed checks on Mastodon 4.4.28: authenticated two-page search over 42 accounts with exact point projection and two owned private status deletions with independently verified absence. Development a39f5fe06d includes the change. Railway is building earlier revision 73e0d4bb08. Existing public CQL browser and MongoDB federation evidence retains its original scope.
+
+CouchDB restart and federation diagnostic 43045487847 is active.

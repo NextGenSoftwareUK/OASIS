@@ -150,3 +150,5 @@ See [interactive guide/evidence](CQL_INTERACTIVE_POINT_DEMO.md). Broader CQL rem
 red; existing green social/query gates were not rerun.
 
 11 November UTC: verified Railway Development deployment `5e1e3ab0-81f9-4fea-83b8-12e851c999ed` at `fcf2a522e6`. ActivityPubOASIS and HashgraphOASIS both returned three full and two subset rows through their live native public CQL presets. Discovery also reported federation ready. Prior paired and browser evidence retains its original scope.
+
+11 November UTC: HyperDrive ActivityPub CI 43043728770 passed all three managed checks on Mastodon 4.4.28: authenticated two-page search over 42 accounts with exact point projection and two owned private status deletions with independently verified absence. Development a39f5fe06d includes the change. Railway is building earlier revision 73e0d4bb08. Existing public CQL browser and MongoDB federation evidence retains its original scope.
