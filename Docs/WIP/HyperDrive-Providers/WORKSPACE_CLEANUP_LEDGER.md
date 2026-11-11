@@ -283,4 +283,6 @@ Urgent disk cleanup follow-up: leased standard project clean succeeded for AWS u
 
 11 November EOSIO shared conformance reuses the Spring CI runner's existing exact fixture cleanup in each independently isolated job. The checkpoint report is written inside the disposable fixture. No Windows runtime, build or database was created. CI teardown remains to be verified.
 
+11 November Polkadot run 43041109458 passed both modes and confirmed removal of the Binaryen and Substrate fixtures. EOSIO run 43046140551 confirmed removal of both independently scoped Antelope fixture directories after the first native failure. No Windows outputs were created.
+
 11 November cleanup recheck in the HyperDrive worktree. The earlier WEB4 count build still occupies 115,007,857 bytes in `oasisweb4.com/node_modules` and 361,528 bytes in `TestResults/Web4ProviderCountBuild`. Both are Git-ignored generated directories, with no linked content or matching active Node process found. Automatic review rejected the scoped recursive removal before execution. No deletion occurred. The four named wallet and ActivityPub build folders were absent from this worktree's top-level TestResults directory.

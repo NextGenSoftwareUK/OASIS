@@ -1,5 +1,9 @@
 # Current provider status
 
+11 November Polkadot passed 52/52 in native run 43041109458 at 9520298841. Both shipping modes verified 26 checks, exact finalized mutation receipts and independently empty contract storage on the fresh Parity contracts node. CI removed the owned fixture. Hosted and retained ledgers remain separate.
+
+11 November EOSIO run 43046140551 reached native activation in both modes and failed at avatar-save acknowledgement count. Both fixtures were removed. The provider now reports exact avatar and detail save and point-read counts, and resolves username and email through the contract's stored records with complete pagination and ambiguity rejection. This replaces the old account-name guesses. The new candidate still needs native verification.
+
 11 November EOSIO shared storage. The Spring CI fixture now runs the existing 26-check shared conformance contract in two separate jobs, each with an independently deployed ledger and the shipping provider. The run selects the new conformance test only. Existing native avatar, holon and avatar-detail evidence remains recorded at 43026743854. Each new mode must pass its checkpoint report and independent native table checks. Verification is pending.
 
 11 November ActivityPub run 43043728770 at 1234c1270f passed all three managed native checks on Mastodon 4.4.28. The provider matched all 42 authenticated accounts across two pages and canonical point projection. Both shipping deletion entry points acknowledged the exact source text and native reads independently confirmed each private status absent. All fixture containers, network and directory were removed. Hosted identity and federation remain separate.

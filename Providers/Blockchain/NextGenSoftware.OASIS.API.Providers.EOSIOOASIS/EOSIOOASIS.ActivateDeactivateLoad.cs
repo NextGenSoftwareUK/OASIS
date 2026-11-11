@@ -233,17 +233,19 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             try
             {
                 var avatarDto = await _avatarRepository.Read(Id);
-                var avatarEntity = avatarDto.GetBaseAvatar();
+                var avatarEntity = avatarDto?.GetBaseAvatar();
                 if (avatarEntity == null)
                 {
                     result.IsLoaded = false;
                     result.IsError = true;
                     result.Message = "Avatar with such ID, not found!";
+                    result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
                     return result;
                 }
 
                 result.Result = avatarEntity;
                 result.IsLoaded = true;
+                result.LoadedCount = 1;
                 result.IsError = false;
             }
             catch (Exception ex)
@@ -254,202 +256,48 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             return result;
         }
 
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0)
+        public override Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0)
+            => FindStoredIdentityAsync<IAvatar>(async () => (await _avatarRepository.ReadAll().ConfigureAwait(false))
+                .Select(row => row.GetBaseAvatar()), avatar => avatar.Email, avatarEmail);
+
+        public override Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0)
+            => FindStoredIdentityAsync<IAvatar>(async () => (await _avatarRepository.ReadAll().ConfigureAwait(false))
+                .Select(row => row.GetBaseAvatar()), avatar => avatar.Username, avatarUsername);
+
+        private static async Task<OASISResult<T>> FindStoredIdentityAsync<T>(
+            Func<Task<IEnumerable<T>>> read, Func<T, string> selector, string value) where T : class
         {
-            var response = new OASISResult<IAvatar>();
+            var result = new OASISResult<T>();
             try
             {
-                if (!IsProviderActivated)
+                ArgumentException.ThrowIfNullOrWhiteSpace(value);
+                var rows = await read().ConfigureAwait(false);
+                var matches = rows.Where(row => string.Equals(selector(row), value, StringComparison.OrdinalIgnoreCase))
+                    .Take(2).ToArray();
+                if (matches.Length == 0)
                 {
-                    var activateResult = ActivateProvider();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate EOSIO provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
-
-                // Query EOSIO blockchain for avatar by email using account lookup
-                // First, we need to find the account name associated with the email
-                var accountName = await FindEOSIOAccountByEmailAsync(avatarEmail);
-                if (string.IsNullOrEmpty(accountName))
-                {
-                    OASISErrorHandling.HandleError(ref response, "EOSIO account not found for email");
-                    return response;
-                }
-
-                // Get EOSIO account using EOS client
-                dynamic accountResponse;
-                if (_eosClient != null)
-                {
-                    var accountResult = await _eosClient.GetAccountAsync(new GetAccountDtoRequest { AccountName = accountName });
-                    if (accountResult != null)
-                    {
-                        accountResponse = new { IsError = false, Result = new { AccountName = accountName, AccountData = accountResult } };
-                    }
-                    else
-                    {
-                        accountResponse = new { IsError = true, Result = (object)null };
-                    }
-                }
-                else
-                {
-                    accountResponse = new { IsError = false, Result = new { AccountName = accountName } };
-                }
-
-                if (accountResponse.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Error loading EOSIO account: Account not found");
-                    return response;
-                }
-
-                if (accountResponse.Result != null)
-                {
-                    var avatar = new Avatar
-                    {
-                        Id = CreateDeterministicGuid($"{Core.Enums.ProviderType.EOSIOOASIS}:{accountName}"),
-                        Username = accountName,
-                        Email = avatarEmail,
-                        FirstName = accountResponse.Result.AccountName,
-                        LastName = "",
-                        CreatedDate = DateTime.Now,
-                        ModifiedDate = DateTime.Now,
-                        // Address = "",
-                        // Country = "",
-                        // Postcode = "",
-                        // Mobile = "",
-                        // Landline = "",
-                        // Title = "",
-                        // DOB = DateTime.MinValue,
-                        AvatarType = new EnumValue<AvatarType>(AvatarType.User),
-                        // KarmaAkashicRecords = 0,
-                        // Level = 1,
-                        // XP, HP, Mana, Stamina not available on Avatar interface
-                        Description = $"EOSIO account: {accountName}",
-                        // Website, Language not available on Avatar interface
-                        ProviderWallets = new Dictionary<Core.Enums.ProviderType, List<IProviderWallet>>(),
-                        MetaData = new Dictionary<string, object>
-                        {
-                            ["EOSIOAccountName"] = accountName,
-                            ["EOSIOAccountCreated"] = DateTime.Now,
-                            ["EOSIOAccountLastCodeUpdate"] = DateTime.Now,
-                            ["EOSIOAccountPermissions"] = "[]",
-                            ["EOSIOAccountTotalResources"] = "{}",
-                            ["EOSIOAccountSelfDelegatedBandwidth"] = "{}",
-                            ["EOSIOAccountRefundRequest"] = "{}",
-                            ["EOSIOAccountVoterInfo"] = "{}",
-                            ["Provider"] = "EOSIOOASIS"
-                        }
-                    };
-
-                    response.Result = avatar;
-                    response.IsError = false;
-                    response.Message = "Avatar loaded successfully by email from EOSIO";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref response, "EOSIO account not found");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref response, $"Error loading avatar by email from EOSIO: {ex.Message}", ex);
-            }
-            return response;
-        }
-
-        private async Task<string> FindEOSIOAccountByEmailAsync(string email)
-        {
-            try
-            {
-                // Real EOSIO implementation: Query EOSIO blockchain for account by email
-                // Use EOSIO RPC API to search for accounts
-                var accountName = await _eosClient.GetAccount(new GetAccountDtoRequest()
-                {
-                    AccountName = email.Split('@')[0] // Use email prefix as account name
-                });
-                return accountName?.AccountName;
-            }
-            catch
-            {
-                return null;
-            }
-        }
-
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0)
-        {
-            var response = new OASISResult<IAvatar>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = ActivateProvider();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate EOSIO provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
-
-                // Real EOSIO implementation: Query EOSIO blockchain for avatar by username
-                var accountResponse = await _eosClient.GetAccount(new GetAccountDtoRequest()
-                {
-                    AccountName = avatarUsername
-                });
-
-                if (accountResponse != null)
-                {
-                    var avatar = ParseEOSIOToAvatar(accountResponse, avatarUsername);
-                    if (avatar != null)
-                    {
-                        response.Result = avatar;
-                        response.IsError = false;
-                        response.Message = "Avatar loaded from EOSIO by username successfully";
-                    }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref response, "Failed to parse avatar from EOSIO response");
-                    }
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref response, "Avatar not found on EOSIO blockchain");
-                }
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error loading avatar by username from EOSIO: {ex.Message}");
-            }
-            return response;
-        }
-
-        public override OASISResult<IAvatar> LoadAvatar(Guid Id, int version = 0)
-        {
-            var result = new OASISResult<IAvatar>();
-            try
-            {
-                var avatarDto = _avatarRepository.Read(Id).Result;
-                var avatarEntity = JsonConvert.DeserializeObject<Avatar>(avatarDto.Info);
-                if (avatarEntity == null)
-                {
-                    result.IsLoaded = false;
                     result.IsError = true;
-                    result.Message = "Avatar with such ID, not found!";
+                    result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
+                    result.Message = "EOSIO storage identity was not found.";
                     return result;
                 }
 
-                result.Result = avatarEntity;
-                result.IsLoaded = true;
-                result.IsError = false;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, ex.Message);
-            }
+                if (matches.Length != 1)
+                    throw new StorageIdentityAmbiguousException();
 
+                result.Result = matches[0];
+                result.IsLoaded = true;
+                result.LoadedCount = 1;
+            }
+            catch (Exception error)
+            {
+                OASISErrorHandling.HandleError(ref result, "EOSIO storage identity lookup failed.", error);
+            }
             return result;
         }
+
+        public override OASISResult<IAvatar> LoadAvatar(Guid Id, int version = 0)
+            => LoadAvatarAsync(Id, version).GetAwaiter().GetResult();
 
         public override OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail, int version = 0)
         {
@@ -521,34 +369,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
         }
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0)
-        {
-            if (id == null)
-                throw new ArgumentNullException(nameof(id));
-
-            var result = new OASISResult<IAvatarDetail>();
-            try
-            {
-                var avatarDetailDto = _avatarDetailRepository.Read(id).Result;
-                var avatarDetailEntity = avatarDetailDto.GetBaseAvatarDetail();
-                if (avatarDetailEntity == null)
-                {
-                    result.IsLoaded = false;
-                    result.IsError = true;
-                    result.Message = "Avatar Detail with such ID, not found!";
-                    return result;
-                }
-
-                result.Result = avatarDetailEntity;
-                result.IsLoaded = true;
-                result.IsError = false;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, ex.Message);
-            }
-
-            return result;
-        }
+            => LoadAvatarDetailAsync(id, version).GetAwaiter().GetResult();
 
     }
 }

@@ -136,13 +136,27 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
 
         public async Task<ImmutableArray<AvatarDto>> ReadAll()
         {
-            var avatarTableRows = await _eosClient.GetTableRows<AvatarDto>(new GetTableRowsRequestDto
+            var request = new GetTableRowsRequestDto
             {
                 Code = _eosAccountName,
                 Scope = _eosAccountName,
                 Table = _avatarTable
-            });
-            return avatarTableRows.Rows.ToImmutableArray();
+            };
+            var rows = ImmutableArray.CreateBuilder<AvatarDto>();
+            var cursors = new HashSet<string>(StringComparer.Ordinal);
+            while (true)
+            {
+                var page = await _eosClient.GetTableRows<AvatarDto>(request).ConfigureAwait(false);
+                if (page?.Rows == null || !page.More.HasValue)
+                    throw new InvalidOperationException("EOSIO did not return a complete avatar table page.");
+
+                rows.AddRange(page.Rows.Where(row => !row.IsDeleted));
+                if (!page.More.Value)
+                    return rows.ToImmutable();
+                if (string.IsNullOrWhiteSpace(page.NextKey) || !cursors.Add(page.NextKey))
+                    throw new InvalidOperationException("EOSIO returned an invalid avatar table continuation.");
+                request.LowerBound = page.NextKey;
+            }
         }
 
         public async Task DeleteSoft(Guid id)
