@@ -376,3 +376,5 @@ SHA256eec1271ac6348716c32771bca66d4d8d229e31e1e1d251b00557d179cc229a09,
 is byte-identical to the committed blob. Guide and real C# read-only
 example are pinned to backend8e7931835. Browser interaction remains open.
 [Hosted/local demo](https://web4.oasisomniverse.one/web4-sandbox.html#cql-duckdb-catalogue).
+
+11 November UTC: DuckDBOASIS read-only public teaching presets returned 3 full and 2 filtered rows in the live Development WEB4 CQL Playground. Original-owner paired browser verification remains open.

@@ -1113,3 +1113,5 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 11 November UTC: solution CI 43011781325 passed the full compile and WEB4-WEB10 GraphQL on the superseded IPFS writer-process base. The exact Neo4j V2 base is now in CI 43013627769 for candidate 08d96be3b1. Railway still serves 323c4f54da while the IPFS successor builds.
 
 11 November UTC: HyperDrive's Neo4j V2 Bolt activation and native harness are integrated in Development 07082d65c0. CI 43012374982 covered activation/deactivation; CI 43013084815 covered avatar and holon saves and reads, holon search, and deletion. This V2 evidence leaves canonical CQL and hosted Aura coverage separately scoped.
+
+11 November UTC: DuckDBOASIS read-only public teaching presets returned 3 full and 2 filtered rows in the live Development WEB4 CQL Playground. Original-owner paired browser verification remains open.
