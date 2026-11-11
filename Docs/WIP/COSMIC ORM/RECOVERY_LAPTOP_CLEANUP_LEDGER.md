@@ -6174,3 +6174,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: removed completed Supabase/Milvus and Supabase/RavenDB parent diagnostic tags after both qualification workflows and the exact image build passed. Verified no ci-cosmic-supabase-* parent refs remain and both the release and image source are reachable from Development. Railway release dfe08114e6 remains queued. Temporary documentation index removed. No local build, restore, image or download.
 
 11 November UTC: prepared the scoped PlanetScale release from committed blobs in a temporary Git index and removed it. Railway queue read in memory. No local image, build, restore or download.
+
+11 November UTC: track temporary tag ci-cosmic-planetscale-web4-dfe08114e6 until combined CI and evidence publication finish. Removed the temporary Git index. No local build, restore, image or download.
