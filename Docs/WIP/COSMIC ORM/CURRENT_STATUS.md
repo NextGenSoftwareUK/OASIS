@@ -905,3 +905,5 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 11 November UTC: GOMap image 42978537981 passed for `095805ee91` and published digest `sha256:c20677c14f4f990d61be9f991a9539fca5d25b4d9423ca0b9b50a52a704fe7b3`. Concurrent Development `8ecc28e3ca` advanced runtime dependency pins and provider project inputs, so the scoped three-file batch was combined with it at `d3a44cef27` without a Development push. Exact integration run 42980766712 and image run 42980770261 are queued.
 
 11 November UTC: Reclaim Protocol public teaching presets returned three full and two filtered rows in the live Development WEB4 CQL Playground. Original-owner paired browser verification remains open. No preparation or record saves.
+
+11 November UTC: World ID public registry and verifier teaching presets returned three full and two filtered rows in the live Development WEB4 CQL Playground. The original-owner MongoDB paired browser check remains open. No preparation or record saves.

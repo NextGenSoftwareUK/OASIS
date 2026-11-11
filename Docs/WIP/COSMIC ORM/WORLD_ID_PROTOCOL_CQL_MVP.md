@@ -96,3 +96,5 @@ is live at Web4Site e87fbba with instructions and the local C# example.
 All 114 website tests passed. The live 232,176-byte HTML matched Git
 SHA-256 472a1f22ac1784390af4593b97129e23d438a20f6f6efccf89d568a383014244.
 Interactive browser acceptance remains open.
+
+11 November UTC: World ID public registry and verifier teaching presets returned three full and two filtered rows in the live Development WEB4 CQL Playground. The original-owner MongoDB paired browser check remains open. No preparation or record saves.
