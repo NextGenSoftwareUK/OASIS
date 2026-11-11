@@ -622,7 +622,7 @@ Status: missing account/configuration information,2 November2026. David approved
 ### IPFS retained fixture access
 
 - **Open, 2026-11-10.** Identify the machine that still holds the retained offline Kubo test repository and protected storage key, and make that fixture available to the provider verification session. Keep the key in protected local storage and keep credentials out of Git and chat.
-- **Reason** The historical 52/52 native baseline carries forward. The documented Kubo binary and fixture paths are absent on this Windows host. The retained fixture is needed to verify outstanding restart and concurrent lifecycle behavior without recreating the repository or replaying the accepted cohort. [Provider matrix](../HyperDrive-Providers/PROVIDER_MATRIX.md)
+- **Reason** The historical 52/52 native baseline carries forward. Fresh Kubo 0.43.1 fixtures verified graceful restart and separate-process concurrent publication on Windows and Linux. The original repository and protected key are still needed to verify historical-data recovery and compatibility with that retained data. [Provider matrix](../HyperDrive-Providers/PROVIDER_MATRIX.md)
 
 ### Pinata hosted round-trip fixture
 
