@@ -1,0 +1,142 @@
+name: Sui native storage deployment
+
+on:
+  push:
+    branches: [work/hyperdrive-provider-completion]
+    paths:
+      - '.github/workflows/sui-native-storage.yml'
+      - 'Scripts/TestHosts/install-sui-framework.sh'
+      - 'Scripts/TestHosts/build-sui-contract.sh'
+      - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.SuiOASIS/contracts/**'
+      - 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.SuiOASIS.IntegrationTests/SuiLocalStorageConformanceTests.cs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deployment:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: OASIS
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          path: OASIS
+          submodules: recursive
+          persist-credentials: false
+      - name: Read the recorded Libraries revision
+        id: dependencies
+        run: |
+          revision="$(sed -n 's/^LIBRARIES_COMMIT=//p' Docker/oasis-dependency-versions.env)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "libraries=$revision" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependencies.outputs.libraries }}
+          path: NextGenSoftware-Libraries
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.22.1'
+      - name: Build and deploy the shipping Move storage package
+        shell: bash
+        run: |
+          umask 077
+          runtime=/var/tmp/oasis-runtimes/sui-1.81.1
+          network=/var/tmp/oasis-sui/network
+          reports="$PWD/TestResults/SuiRuntime"
+          provider="$PWD/Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.SuiOASIS"
+          sdk="$provider/SdkBridge"
+          package="$provider/contracts"
+          [[ ! -e /var/tmp/oasis-sui && ! -e "$runtime" && ! -e "$reports" &&
+            ! -e "$sdk/node_modules" && ! -e "$package/deps" && ! -e "$package/build" && ! -e "$package/Move.lock" ]]
+          pid=""
+          cleanup() {
+            status=$?
+            if [[ -n "$pid" ]]; then
+              if (( status != 0 )); then tail -40 "$runtime/sui.log"; fi
+              kill -TERM "$pid" 2>/dev/null || true
+              for attempt in {1..20}; do
+                kill -0 "$pid" 2>/dev/null || break
+                sleep 0.25
+              done
+              if kill -0 "$pid" 2>/dev/null; then kill -KILL "$pid"; fi
+              wait "$pid" || true
+            fi
+            rm -rf -- "$runtime" "$network" "$reports" "$sdk/node_modules" "$package/deps" "$package/build"
+            rm -f -- "$package/Move.lock"
+            if [[ ! -e "$runtime" && ! -e "$network" && ! -e "$reports" && ! -e "$sdk/node_modules" ]]; then
+              echo "Removed the owned Sui runtime, ledger, reports and SDK dependencies."
+            else
+              status=1
+            fi
+            exit "$status"
+          }
+          trap cleanup EXIT
+          mkdir -p "$runtime" "$network" "$reports"
+          archive="$runtime/sui.tgz"
+          curl --fail --silent --show-error --location --max-time 240 \
+            https://github.com/MystenLabs/sui/releases/download/testnet-v1.81.1/sui-testnet-v1.81.1-ubuntu-x86_64.tgz \
+            --output "$archive"
+          echo "d921910fdedf5ae2bc3f08a7236c57819a457ce53a8cc60c85f3653c7831b5d4  $archive" | sha256sum --check
+          entry="$(tar -tzf "$archive" | awk '/(^|\/)sui$/ {print}')"
+          [[ -n "$entry" && "$entry" != *$'\n'* ]]
+          tar -xOzf "$archive" "$entry" >"$runtime/sui"
+          chmod u+x "$runtime/sui"
+          rm -- "$archive"
+          "$runtime/sui" --version | grep -F '1.81.1'
+          export SUI_CONFIG_DIR="$network" TMPDIR="$network" npm_config_cache="$runtime/npm-cache"
+          "$runtime/sui" start --force-regenesis --with-faucet=127.0.0.1:9123 --fullnode-rpc-port 9000 \
+            >"$runtime/sui.log" 2>&1 &
+          pid=$!
+          for attempt in {1..60}; do
+            kill -0 "$pid"
+            if reply="$(curl --fail --silent --max-time 3 -H 'Content-Type: application/json' \
+              --data '{"jsonrpc":"2.0","id":1,"method":"sui_getChainIdentifier","params":[]}' http://127.0.0.1:9000)" &&
+              [[ -n "$reply" ]] && jq -e '.result | strings | length > 0' <<<"$reply" >/dev/null; then break; fi
+            [[ "$attempt" != 60 ]]
+            sleep 2
+          done
+          bash Scripts/TestHosts/install-sui-framework.sh
+          bash Scripts/TestHosts/build-sui-contract.sh
+          npm ci --prefix "$sdk" --ignore-scripts --no-audit --no-fund
+          export OASIS_SUI_TEST_DEPLOYMENT="$reports/deployment.json"
+          node "$sdk/prepare-test-fixture.mjs"
+          jq -e '.state == "ready" and (.packageAddress | test("^0x[0-9a-f]{64}$")) and
+            (.storageObjectId | test("^0x[0-9a-f]{64}$"))' "$OASIS_SUI_TEST_DEPLOYMENT" >/dev/null
+          jq '{chainId, packageAddress, storageObjectId}' "$OASIS_SUI_TEST_DEPLOYMENT"
+          export OASIS_SUI_CI_STORAGE_DEPLOYMENT="$OASIS_SUI_TEST_DEPLOYMENT"
+          export OASIS_SUI_SDK_BRIDGE="$sdk/bridge.mjs"
+          export OASIS_SUI_STORAGE_ENCRYPTION_KEY="$(openssl rand -base64 32)"
+          verify_empty_contract() {
+            node --input-type=module - <<'JS'
+          import assert from 'node:assert/strict';
+          import { readFileSync } from 'node:fs';
+          import { invoke } from './Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.SuiOASIS/SdkBridge/bridge.mjs';
+          const fixture = JSON.parse(readFileSync(process.env.OASIS_SUI_CI_STORAGE_DEPLOYMENT, 'utf8'));
+          const { chainId, packageAddress, storageObjectId } = fixture;
+          const keys = await invoke({ operation: 'list', rpcEndpoint: 'http://127.0.0.1:9000',
+            network: 'localnet', chainId, packageAddress, storageObjectId, prefix: '' });
+          assert.deepEqual(keys, []);
+          JS
+          }
+          verify_empty_contract
+          pwsh -NoProfile -Command '
+            ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-SuiStorage -Operation {
+              dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.SuiOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.SuiOASIS.IntegrationTests.csproj" --filter "FullyQualifiedName~CoreStorageSuiteAgainstOfficialSui" /p:SuiDirectStorageOnly=true /m:2 /nr:false /p:UseSharedCompilation=false --logger "console;verbosity=normal"
+              if ($LASTEXITCODE -ne 0) { throw "Native Sui storage verification failed." }
+            }'
+          for mode in async sync; do
+            jq -e '.Succeeded and .FixtureCleanupComplete and (.Passed | length == 26)' "$reports/core-storage-$mode.json" >/dev/null
+          done
+          verify_empty_contract
+          echo "Verified both native Sui storage modes and independently empty contract keys."
