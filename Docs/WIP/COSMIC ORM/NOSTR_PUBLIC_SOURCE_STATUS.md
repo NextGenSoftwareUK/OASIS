@@ -194,3 +194,5 @@ Explicit source recovery implemented at the host lifecycle boundary,same source/
 11 November UTC: Railway WEB4 cut over to d93d984b7b, deployment d04ed4c4-2d76-4ea1-b261-393da541fe3b. Authenticated discovery returned 105/106 native and federation ready. Hedera recovered readiness. Nostr remains CQL_SOURCE_UNAVAILABLE. Supabase, TRON and CouchDB remain absent. No accepted query cohort was replayed.
 
 11 November UTC: WEB4 TimescaleDB revision 2ec6cd9cce is live (789a7cd0-64cf-4531-ae28-e55ea1f43a06). Authenticated discovery warmed from 68/106 to 104/106 ready for native and federation. Blockscout and Hedera are ready. Cardano activation received HTTP 429 and Nostr WebSocket upgrade received HTTP 503 (NotAWebSocket). Supabase, TRON and CouchDB remain absent. Preserve previously accepted cohorts.
+
+11 November UTC: startup logs on live WEB4 73f8b98967 confirm Nostr failed at WebSocket connect before subscription (HTTP 503, NotAWebSocket, 135 ms). Existing scoped query and browser evidence stands. Operator recovery still requires the existing Development Wizard session.
