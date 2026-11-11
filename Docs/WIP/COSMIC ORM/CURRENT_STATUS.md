@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Live Firebase-inclusive WEB4 rollout
+
+Railway deployment fb56067d succeeded at 2b84863745. Discovery warmed from 43/106 to 105/106 sources ready for native and federated CQL, including NATS JetStream and Waku. Nostr remains unavailable. CouchDB, Supabase and TRON remain absent. This checks hosted catalogue readiness; Firebase native lifecycle evidence remains in the HyperDrive handoff.
+
 ## Live CouchDB reader release
 
 11 November UTC: Railway WEB4 deployment 1b1ad2f0 succeeded at a614a4377f. Discovery warmed from 38/106 to 105/106 ready for native and federated CQL. NATS JetStream and Waku both became ready. Nostr remains unavailable. CouchDB, Supabase and TRON are absent. CouchDB code is live and still requires its restricted HTTPS teaching fixture for acceptance.
