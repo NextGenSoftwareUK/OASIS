@@ -845,3 +845,6 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 
 
 11 November UTC: Development fast-forwarded from 9b8a30a65c to fd40b1ad12 after all 18 regressions and exact teaching image run 42968255251 passed. CI verified the source checkout and published GHCR digest sha256:69f10a53bce119030320976bcc023881276c5777ab843d04d787446fe0a2041b. Railway dev WEB4 deployment b4a2edac-13bd-4a2e-a042-5a7959056268 was observed queued at fd40b1ad12. Live cutover, catalogue and startup verification remain open. Moralis CQL enrollment still requires authenticated source qualification.
+
+
+11 November UTC pre-cutover baseline: Railway was still serving Development 9b8a30a65c while fd40b1ad12 was queued. Authenticated catalogue discovery showed 105/106 native sources ready. LocalFile and Nostr advertised native and federation readiness. HashgraphOASIS alone was unavailable with CQL_SOURCE_UNAVAILABLE. TRON and Supabase were absent. No provider query, recovery or cohort write was dispatched.
