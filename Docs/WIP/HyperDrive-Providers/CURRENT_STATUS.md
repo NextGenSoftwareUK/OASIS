@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November Immutable zkEVM storage candidate. The shipping adapter now uses Web3Core for storage and wallet operations. Removed the local record echoes, fabricated delete and empty collection responses, and wallet stubs. Both official endpoints independently confirmed chain identity, 13371 for mainnet and 13473 for testnet. The existing RPC-only constructor supports mainnet balance reads. The COSMIC public reader was untouched. C# syntax and diff checks passed. Provider build, BootLoader registration and native conformance remain open.
+
 11 November Optimism shipping registration. BootLoader now uses the configured RPC, explicit chain ID, signer and Web3Core contract for the shipping Optimism adapter. The existing settings retain their mainnet defaults. This closes the commented-out registration path. C# syntax and diff checks passed. BootLoader build and signed OP Sepolia activation remain open.
 
 11 November Ronin shipping registration. BootLoader now constructs the Web3Core-backed Ronin storage adapter from the RoninOASIS storage settings. It uses the existing EVM chain parser and storage error hook. Signed configuration and runtime acceptance remain open. The COSMIC public query registration was left intact. Ronin public wallet run 43114758564 remains queued.
