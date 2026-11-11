@@ -72,3 +72,5 @@ Original owner/independent visitor, save intents/ACKs and completion hashes reta
 11 November UTC: Aptos qualifies for explicit same-source recovery through the existing Wizard-only Development endpoint. The retained operator session directory is absent on this laptop. The shared owner action tracks private sign-in. Recovery must use fresh discovery host and generation, preserve a single operation receipt and verify native 3/2 without resaving the old cohort.
 
 11 November UTC: Railway Development WEB4 deployment `1e8dd0e0-9655-4957-ad56-38d5310648cd` at `371f3d5dc4` reached 106/106 listed sources ready. Aptos activated at generation 1 and both native public HTTP presets passed 3/2 using the retained visitor. Defer Wizard recovery while Aptos is ready. The original cohort was preserved and the Aptos browser check remains open.
+
+11 November UTC: after catalogue refresh showed 106 available hosted sources, the Aptos version-selected public browser presets returned three full and two filtered account rows in Development WEB4. The original-owner paired browser check remains open. No records were prepared or saved.
