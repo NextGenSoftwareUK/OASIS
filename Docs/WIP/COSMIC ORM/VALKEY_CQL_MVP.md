@@ -102,3 +102,5 @@ running it. Hosted native, paired HTTP and browser evidence are pending.
 11 November UTC: Valkey 9.0.4 native CI 43055529432 passed the strict encrypted native CQL, restart, Mongo replica admission and SDK/HTTP federation checks. The official digest-pinned image supplied the executable and the runner verified the same native source after restart. Standard CI routing and hosted TLS acceptance remain open.
 
 11 November UTC: Valkey candidate f6084bf424 routes generic storage to the standard matrix and calls the verified 9.0.4 restart/federation workflow separately. Combined diagnostic 8baa31be52 is submitted on Development ea54de967e. Standard CI and hosted TLS verification remain open.
+
+11 November UTC: both Valkey jobs passed in combined CI 43056231303. Generic storage ran in the standard matrix, and encrypted native CQL, restart and MongoDB federation ran in the dedicated fixture. Combined verified Development batch 7a599d7b9d contains only the independent Dragonfly and Valkey CI changes. Hosted TLS acceptance remains open.

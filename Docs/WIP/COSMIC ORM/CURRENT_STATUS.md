@@ -1429,3 +1429,5 @@ KeyDB combined orchestration CI 43051825070 is active. Railway is building b8df6
 11 November UTC: active Railway WEB4 deployment 73edd8aa at 2df4de082f advertised all 106 listed sources available in authenticated discovery. Blockscout recovered from the prior startup cancellation. Previously accepted query results remain scoped to their original runs. No preset was replayed.
 
 Combined Valkey CI 43056231303 is active.
+
+11 November UTC: both Valkey jobs passed in combined CI 43056231303. Generic storage ran in the standard matrix, and encrypted native CQL, restart and MongoDB federation ran in the dedicated fixture. Combined verified Development batch 7a599d7b9d contains only the independent Dragonfly and Valkey CI changes. Hosted TLS acceptance remains open.

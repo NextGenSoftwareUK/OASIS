@@ -11,6 +11,11 @@ env:
   NODE_VERSION: '24.x'
 
 jobs:
+  valkey-native-cql:
+    uses: ./.github/workflows/valkey-native-cql.yml
+    secrets:
+      PRIVATE_SUBMODULE_PAT: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+
   dragonfly-native-cql:
     uses: ./.github/workflows/dragonfly-native-cql.yml
     secrets:
@@ -168,6 +173,7 @@ jobs:
             image: valkey/valkey:8-alpine
             ports: 6379:6379
             wait: 6379
+            filter: FullyQualifiedName~ValKeyOASISIntegrationTests
           - name: Garnet
             project: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.GarnetOASIS.IntegrationTests
             image: ghcr.io/microsoft/garnet:latest
