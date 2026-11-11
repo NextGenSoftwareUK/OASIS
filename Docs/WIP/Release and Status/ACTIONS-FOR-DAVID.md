@@ -674,3 +674,9 @@ Status: missing account/configuration information,2 November2026. David approved
 - **Status (2026-11-11)** Open. The live Base CQL public-reader evidence carries forward. The shipping Nethereum storage lifecycle still needs a dedicated Base Sepolia deployment.
 - **David action** Identify an existing disposable Base Sepolia fixture or grant access to deploy the OASIS Web3Core contract with a free-testnet-funded test signer. Supply its HTTPS endpoint, signer and contract address through protected configuration as OASIS_BASE_RPC_URL, OASIS_BASE_PRIVATE_KEY and OASIS_BASE_CONTRACT_ADDRESS.
 - **Reason** The provider agent owns chain identity admission, the shipping storage checks, transaction evidence and cleanup. [Base network documentation](https://docs.base.org/get-started/connect-to-base)
+
+### OP Sepolia hosted storage fixture
+
+- **Status (2026-11-11)** Open. The shipping Optimism storage lifecycle requires a dedicated OP Sepolia deployment.
+- **David action** Identify a disposable Web3Core deployment or grant access for the provider agent to deploy one with a free-testnet-funded signer. Supply the protected HTTPS endpoint, signer and contract address as OASIS_OPTIMISM_CONFORMANCE_RPC_URL, OASIS_OPTIMISM_CONFORMANCE_PRIVATE_KEY and OASIS_OPTIMISM_CONFORMANCE_CONTRACT.
+- **Reason** The provider agent owns read-only chain identity admission, sync and async storage verification and exact fixture cleanup. [OP Sepolia registry](https://github.com/ethereum-optimism/superchain-registry/blob/main/superchain/configs/sepolia/op.toml)
