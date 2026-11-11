@@ -1,0 +1,75 @@
+name: Neo4j V2 native activation
+
+on:
+  push:
+    branches: [work/hyperdrive-provider-completion]
+    paths:
+      - '.github/workflows/neo4j-v2-native.yml'
+      - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2/**'
+      - 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2.IntegrationTests/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  bolt:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      neo4j:
+        image: neo4j:5.26.0-community@sha256:5a015e53de1895e7eee1574ae0325cf8c4b89587222778108c594bdd45a474b5
+        env:
+          NEO4J_AUTH: neo4j/oasis-fixture-only
+        ports:
+          - 7687/tcp
+        options: >-
+          --health-cmd "cypher-shell -u neo4j -p oasis-fixture-only 'RETURN 1'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 15
+    defaults:
+      run:
+        working-directory: OASIS
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          path: OASIS
+          submodules: recursive
+          persist-credentials: false
+
+      - name: Read the recorded Libraries revision
+        id: dependencies
+        shell: pwsh
+        run: |
+          $entries = @(Get-Content Docker/oasis-dependency-versions.env | Where-Object { $_ -match '^LIBRARIES_COMMIT=' })
+          if ($entries.Count -ne 1 -or $entries[0] -notmatch '^LIBRARIES_COMMIT=([a-f0-9]{40})$') {
+            throw 'Expected one valid Libraries dependency revision.'
+          }
+          "libraries=$($Matches[1])" >> $env:GITHUB_OUTPUT
+
+      - uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependencies.outputs.libraries }}
+          path: NextGenSoftware-Libraries
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Exercise the V2 package through native Bolt
+        shell: pwsh
+        env:
+          OASIS_NEO4J_V2_CONFORMANCE: '1'
+          OASIS_NEO4J_V2_URI: bolt://127.0.0.1:${{ job.services.neo4j.ports[7687] }}
+          OASIS_NEO4J_V2_USERNAME: neo4j
+          OASIS_NEO4J_V2_PASSWORD: oasis-fixture-only
+        run: |
+          ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner 'CI-Neo4jV2Activation' -Operation {
+            dotnet test 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2.IntegrationTests/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2.IntegrationTests.csproj' --filter 'FullyQualifiedName~V2EntryPointActivatesAgainstDedicatedNeo4j' /m:2 /nr:false /p:UseSharedCompilation=false --logger 'console;verbosity=normal'
+            if ($LASTEXITCODE -ne 0) { throw 'Native Neo4j V2 activation failed.' }
+          }
