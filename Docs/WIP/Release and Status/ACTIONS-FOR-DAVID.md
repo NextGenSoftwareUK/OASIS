@@ -613,6 +613,11 @@ Status: missing account/configuration information,2 November2026. David approved
 - **Reason** The agent needs explicit test resource boundaries before exercising hosted SDK writes and exact cleanup.
 - **Context** [Google Cloud and BigQuery provider evidence](../HyperDrive-Providers/PROVIDER_MATRIX.md).
 
+#### Firebase Realtime Database hosted fixture
+
+- **Open, 11 November 2026.** Identify an empty, dedicated hosted Realtime Database origin and authorize its test identity and request budget. Provision read and write permissions and the provider's username, email and parent-holon indexes in that disposable database. Provide the short-lived credential through the protected environment.
+- The provider agent owns endpoint admission, both lifecycle runs, conditional cleanup and independent empty-root verification. [Firebase storage checkpoint](../HyperDrive-Providers/FIREBASE_STORAGE_BASELINE.md)
+
 ### Convex hosted companion acceptance
 
 - **Status (9 November 2026)** Open. Local Convex passed 52/52 storage lifecycle checks. The hosted activation case compiled and skipped because no deployment was configured.

@@ -1,7 +1,6 @@
 using System.Text.Json;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Holons;
-using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.Providers.TestSupport;
 
 namespace NextGenSoftware.OASIS.API.Providers.FirebaseOASIS.IntegrationTests;
@@ -76,34 +75,11 @@ public class FirebaseNativeStorageConformanceTests
         using (var initial = await Read(""))
             Assert.AreEqual(JsonValueKind.Null, initial.RootElement.ValueKind, "Use an empty dedicated namespace.");
 
-        async Task<OASISResult<bool>> HardClean(Guid id, bool _)
-        {
-            var path = $"oasis_holons/{id:D}";
-            using var lookup = new HttpRequestMessage(HttpMethod.Get, Node(path));
-            lookup.Headers.Add("X-Firebase-ETag", "true");
-            using var observed = await http.SendAsync(lookup);
-            observed.EnsureSuccessStatusCode();
-            var tag = observed.Headers.ETag;
-            Assert.IsNotNull(tag, "Firebase must supply an ETag for the fixture record.");
-            using var stored = JsonDocument.Parse(await observed.Content.ReadAsStringAsync());
-            Assert.IsTrue(stored.RootElement.TryGetProperty("id", out var storedId) &&
-                storedId.TryGetGuid(out var actual) && actual == id &&
-                stored.RootElement.TryGetProperty("deletedDate", out var deletedDate) &&
-                deletedDate.TryGetDateTime(out var when) && when != DateTime.MinValue,
-                "Only the matching soft-deleted fixture may be removed.");
-            using var delete = new HttpRequestMessage(HttpMethod.Delete, Node(path));
-            delete.Headers.IfMatch.Add(tag);
-            using var deleted = await http.SendAsync(delete);
-            deleted.EnsureSuccessStatusCode();
-            using var remaining = await Read(path);
-            Assert.AreEqual(JsonValueKind.Null, remaining.RootElement.ValueKind);
-            return new OASISResult<bool> { Result = true, IsDeleted = true, DeletedCount = 1 };
-        }
-
         var provider = new FirebaseOASIS(endpoint.AbsoluteUri, null, http, DatabaseNamespace);
         var checkpoint = new AtomicConformanceCheckpoint<CoreStorageConformance.Report>(reportPath);
         var result = await CoreStorageConformance.RunAsync(provider, nameof(FirebaseOASIS), "native", sync,
-            report => report.Succeeded ? Task.CompletedTask : checkpoint.WriteAsync(report), HardClean,
+            report => report.Succeeded ? Task.CompletedTask : checkpoint.WriteAsync(report),
+            (id, _) => FirebaseConformanceCleanup.RemoveHolonTombstoneAsync(http, Node($"oasis_holons/{id:D}"), id),
             expectedDefaultDeletion: "soft");
 
         Assert.IsTrue(result.Succeeded, $"{result.CurrentCase}: {result.FailureType}");
