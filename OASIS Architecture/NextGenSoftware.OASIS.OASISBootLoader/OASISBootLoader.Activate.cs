@@ -251,7 +251,14 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
             try
             {
                 if (!IsOASISBooted && !IsOASISBooting)
-                    BootOASIS(OASISDNAPath);
+                {
+                    var bootResult = BootOASIS(OASISDNAPath);
+                    if (bootResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, string.Concat("Error booting OASIS. Reason: ", bootResult.Message));
+                        return result;
+                    }
+                }
 
                 result = RegisterProviderInternal(providerType, overrideConnectionString, forceRegister);
 
@@ -278,7 +285,14 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
             try
             {
                 if (!IsOASISBooted && !IsOASISBooting)
-                    BootOASIS(OASISDNAPath);
+                {
+                    var bootResult = await BootOASISAsync(OASISDNAPath);
+                    if (bootResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, string.Concat("Error booting OASIS. Reason: ", bootResult.Message));
+                        return result;
+                    }
+                }
 
                 result = RegisterProviderInternal(providerType, overrideConnectionString, forceRegister);
 
