@@ -1071,3 +1071,5 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 11 November UTC: SynapseOASIS indexed RFQ transaction observation presets returned 3 full and 2 filtered rows in the live Development WEB4 CQL Playground. Original-owner paired browser verification remains open.
 
 11 November UTC: IPFS independent-writer baseline CI 43009364727 showed an acknowledgement versus persistence mismatch. Two instances sharing one DNA file acknowledged eight records, but a fresh reader recovered only four. HyperDrive's candidate reloads the persisted catalogue before mutation and serializes by DNA path; native verification 43009731953 is running. This differs from the earlier single-instance enumeration failure.
+
+11 November UTC: IPFS independent-writer CI 43009731953 passed on native Kubo 0.43.1. Two provider instances in one process shared a DNA file, and a fresh reader recovered all eight acknowledged records. The tested fix is owned by HyperDrive. Separate processes, historical fixture recovery and rollout of this follow-up remain open.
