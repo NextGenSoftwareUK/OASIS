@@ -6142,3 +6142,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: inspected the remote build log in memory. The earlier digest is recorded in the status docs. Cancelled the security-patched run with the default tag and queued the corrected dispatch. Keep its source ref for exact verification. No local image pull, build, restore or download.
 
 11 November UTC: executed the existing image naming step against four tag inputs. Removed its temporary output directory and scoped documentation Git index. No local image, download, restore or build.
+
+11 November UTC: removed superseded parent tag ci-cosmic-supabase-web4-cassandra-1ce576c988 after its image and tag workflows passed and its digest was recorded. Verified the tag is absent. The security-patched image tag and the pinned Core reference remain in use. Temporary Git index removed. No local image, restore, build or download.
