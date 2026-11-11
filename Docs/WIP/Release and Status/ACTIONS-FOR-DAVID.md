@@ -455,7 +455,7 @@ See [COSMIC current status](../COSMIC%20ORM/CURRENT_STATUS.md).
 | Hosted Oracle Database / OCI | **Deferred** — no existing Oracle account; David said leave hosting pending | Only if David resumes. Then record the actual account/connection/wallet setup needed here; request paths or variable names only, never secret values. |
 | First AWS demo | **Approved** — use a public S3 dataset | Decision implemented: anonymous native metadata reads and Mongo pairing verified through hosted HTTP. No AWS account or bucket setup needed for this demo. |
 | Temporary demo avatar daily calls | **Approved: 200** | Implemented/live-verified. Normal Free accounts stay at 20; token/spending limits unchanged. No further approval requested. |
-| Browser access for demo verification | **Already supplied** — David opened the demo in Edge; the demo is also open in the in-app browser | The agent must resolve its control/verification tooling. Do not repeatedly ask David to open it. Record any genuinely new manual step here before asking. |
+| Browser access for demo verification | Public browser checks passed for EOSIO, SOLID, TON and Hedera. The inspected recovery browser directory contains the public visitor only. | The private paired browser checks require the original demo owner and existing MongoDB copies. Restore the session on the originating machine or identify its protected location privately. Preserve the accepted cohorts. |
 
 These decisions do not close unrelated full-provider, production release, device
 or credential actions elsewhere in this file. No blanket cloud spending, on-chain

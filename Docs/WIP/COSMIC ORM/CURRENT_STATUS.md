@@ -1337,3 +1337,5 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 11 November UTC: Development c837fe5ad8 carries the OpenSearch and SurrealDB CI routing verified in runs 43040976654 and 43042182895. Both passed generic storage and native federation. Development pipeline 43043263300 and Railway WEB4 deployment f573b5ac-55d9-4394-a84f-20feb7eaaa87 were queued at inspection. Live acceptance remains gated on restricted HTTPS teaching sources already recorded in ACTIONS-FOR-DAVID.
 
 11 November UTC: both SurrealDB jobs passed in the standard Development pipeline 43043263300 at c837fe5ad8, including generic native storage and the restart/federation workflow. Railway deployment f573b5ac remains queued behind the WEB4 build for 165e8abaee. Hosted HTTPS acceptance remains open.
+
+11 November UTC: recovery checkout contains the protected public demo visitor. The original private owner sessions for the EOSIO, SOLID, TON and Hedera paired browser checks were not found in the inspected COSMIC recovery directories. Resume private browser verification with the original owner and existing copies. Public browser and private HTTP evidence remains accepted.
