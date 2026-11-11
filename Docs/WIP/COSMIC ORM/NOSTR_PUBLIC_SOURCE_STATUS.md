@@ -1,5 +1,9 @@
 # Nostr public event qualification
 
+## Live WEB4 activation evidence, 11 November 2026
+
+Railway deployment 80081e54 (214462362b) logged Nostr activation failure at WebSocket connect at 21:38:10 UTC. HTTP 503, NotAWebSocket, elapsed 184 ms. Discovery reached 105/106 ready with Nostr unavailable. The failure occurred before event selection. Preserve the signed catalogue and accepted cohorts. Operator recovery remains pending. Read the deployment log in memory with no local artifact or native replay.
+
 Updated 2 November 2026. **Scoped hosted functional HTTP gates verified; reliability root cause/browser remain open.** Stable source owner/catalogue now retained after explicit actual manager/LINQ qualification; no API/hosted enrollment.
 
 ## Original discovery evidence (preserved)
