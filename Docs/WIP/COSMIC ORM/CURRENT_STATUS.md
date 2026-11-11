@@ -775,3 +775,5 @@ Power recovery on 11 November UTC: laptop charging at 21%. Retained Edge session
 Hedera diagnostic advance on 11 November UTC: the actual deployed Core guarded .NET handler completed all three concurrent mirror reads with HTTP 200 in 335-3,551 ms. Standard .NET controls also passed. Startup-specific conditions and variable upstream latency remain candidates. Registry recovery and current-release query acceptance remain open.
 
 Hedera full-provider diagnostic: the actual deployed FromJson/ActivateQuerySourceAsync path passed in an isolated container process in 2,727 ms using the existing configuration. This narrows the startup failure to intermittent request/startup conditions. Controlled recovery of the running WEB4 registry remains open.
+
+CI qualification now includes all seven CqlNativeFailureDiagnosticsTests cases, including response_headers and response_body preservation, alongside six existing catalogue/admission cases. The existing workflow follows work/cosmic-cql-ton-public and requires all 13 cases. CI execution remains pending; the two new stage cases are not claimed passed.
