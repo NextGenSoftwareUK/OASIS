@@ -830,3 +830,6 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 11 November UTC: NATS JetStream native public presets rendered 3 full and 2 filtered rows in the live Development WEB4 CQL Playground. The original-owner private paired browser check remains open.
 
 11 November UTC: PouchDB native public teaching presets rendered 3 full and 2 filtered rows in the live Development WEB4 CQL Playground. The original-owner private paired browser check remains open.
+
+
+11 November UTC: exact candidate fd40b1ad12 passed CI 42968130827/job 130350032377. Exact checkout verified in CI logs. The 14 WEB4 cases included the native-bound reconciliation barrier case, which logged the blocked route and neither activated nor reclaimed the target. All four Moralis activation/burn cases passed. Image run 42968255251 remains active. Development integration and live checks remain open.
