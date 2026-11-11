@@ -6216,3 +6216,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: observed WEB4 73f8b98967 warmup using the existing visitor. Zero new protected files, avatars, reports, local builds or downloads. Temporary Git index removed.
 
 11 November UTC: removed 12 disposable OpenSearch native DLL extractions (33,889,338 bytes) under LocalState/COSMIC/RecoveryLaptopOpenSearch390/tmp after verifying the exact paths and confirming the OpenSearch Java process had stopped. Free space was 32.45 GiB afterward. Runtime, fixture data and compact evidence retained. Temporary Git index removed.
+
+11 November UTC: track temporary tag ci-cosmic-couchdb-image-214462362b until exact image CI and release evidence are recorded. Image build runs on GitHub. No local image, build, restore or download. Temporary documentation index removed.

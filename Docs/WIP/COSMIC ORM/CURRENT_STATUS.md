@@ -1566,3 +1566,5 @@ Exact Supabase WEB4 image build 43062441681 is running.
 11 November UTC: Live Development WEB4 revision 2624a321e7 reports 105/106 enrolled sources ready for native and federated CQL. Nostr is unavailable on this revision. Supabase dfe08114e6 and PlanetScale ab4d0ae3d3 are merged and queued on Railway. Supabase, TRON and CouchDB are absent from the live catalogue. CouchDB corrected catalogue-authority CI is queued at run 43088383856; superseded image run 43086919320 is cancelled.
 
 11 November UTC: Railway WEB4 deployed 73f8b98967 (deployment 1df37422). Authenticated native and federated readiness rose from 15/106 to 72/106 and then 105/106 after warmup. Nostr remained unavailable. Supabase, TRON and CouchDB were absent. This is catalogue readiness; functional acceptance retains its recorded revisions.
+
+11 November UTC: exact CouchDB WEB4 image build 43090552807 was dispatched for merge candidate ab4482e254 on Development 214462362b. GitHub qualification 43088383856 and the image build must both pass before Development publication. The native reader, regression and Core pin are unchanged from the qualification candidate.
