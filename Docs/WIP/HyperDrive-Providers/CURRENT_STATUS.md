@@ -1,6 +1,6 @@
 # Current provider status
 
-11 November Optimism verification candidate. The public mainnet RPC returned a positive native wallet balance. CI now exercises both shipping balance modes and rejects a mismatched chain identity. The integration project uses a guarded shared storage lifecycle on a dedicated OP Sepolia contract. It replaces assertion-only reads and default-config writes that had no usable fixture. Public provider test results and hosted storage acceptance remain open.
+11 November Optimism verification candidate. The public mainnet RPC returned a positive native wallet balance. CI now exercises both shipping balance modes and rejects a mismatched chain identity. The integration project uses a guarded shared storage lifecycle on a dedicated OP Sepolia contract. It replaces assertion-only reads and default-config writes that had no usable fixture. [Public wallet run 43106297359](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43106297359) is queued. Hosted storage acceptance remains open.
 
 11 November Firebase hard-delete recovery test. The native fixture now updates the avatar after the provider observes its revision, then checks that detail deletion succeeds, the stale avatar deletion is rejected, and the result requires reconciliation. Independent RTDB reads verify the concurrent avatar value and the absent detail. The test cleans its two exact GUID paths. [Combined lifecycle and reconciliation run 43105666326](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43105666326) is queued.
 
