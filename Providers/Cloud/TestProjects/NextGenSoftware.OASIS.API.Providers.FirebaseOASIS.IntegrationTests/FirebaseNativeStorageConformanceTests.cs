@@ -170,7 +170,7 @@ public class FirebaseNativeStorageConformanceTests
                 observed.EnsureSuccessStatusCode();
                 Assert.IsFalse(string.IsNullOrEmpty(FirebaseOASIS.ReadStrongRevisionTag(observed)));
             }
-            using var competing = new HttpClient(new InterleaveAfterRead(async token =>
+            using var competing = new HttpClient(new InterleaveAfterRead(grandchildNode, async token =>
             {
                 using var patch = new StringContent("{\"name\":\"concurrent update\"}", System.Text.Encoding.UTF8,
                     "application/json");
@@ -208,14 +208,67 @@ public class FirebaseNativeStorageConformanceTests
         }
     }
 
-    private sealed class InterleaveAfterRead(Func<CancellationToken, Task> concurrentWrite)
+    [TestMethod]
+    public async Task HardAvatarDeleteReportsPartialCommitAgainstRealtimeDatabase()
+    {
+        if (Environment.GetEnvironmentVariable("OASIS_FIREBASE_STORAGE_CONFORMANCE") != "1")
+            Assert.Inconclusive("Enable only for an isolated Firebase Realtime Database emulator.");
+
+        var endpoint = GetLoopbackEndpoint();
+        using var http = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false });
+        var provider = new FirebaseOASIS(endpoint.AbsoluteUri, null, http, DatabaseNamespace);
+        var id = Guid.NewGuid();
+        var avatarNode = new Uri(endpoint, $"oasis_avatars/{id:D}.json?ns={DatabaseNamespace}");
+        var detailNode = new Uri(endpoint, $"oasis_avatar_details/{id:D}.json?ns={DatabaseNamespace}");
+        var avatar = new Avatar { Id = id, Username = "partial-delete", Email = "partial@example.invalid" };
+        var detail = new AvatarDetail { Id = id, Username = avatar.Username, Email = avatar.Email };
+
+        try
+        {
+            var savedAvatar = await provider.SaveAvatarAsync(avatar);
+            Assert.IsTrue(savedAvatar.IsSaved && !savedAvatar.IsError, savedAvatar.Message);
+            var savedDetail = await provider.SaveAvatarDetailAsync(detail);
+            Assert.IsTrue(savedDetail.IsSaved && !savedDetail.IsError, savedDetail.Message);
+
+            using var competing = new HttpClient(new InterleaveAfterRead(avatarNode, async token =>
+            {
+                using var patch = new StringContent("{\"firstName\":\"concurrent update\"}",
+                    System.Text.Encoding.UTF8, "application/json");
+                using var updated = await http.PatchAsync(avatarNode, patch, token);
+                updated.EnsureSuccessStatusCode();
+            }));
+            var staleProvider = new FirebaseOASIS(endpoint.AbsoluteUri, null, competing, DatabaseNamespace);
+            var result = await staleProvider.DeleteAvatarAsync(id, softDelete: false);
+            Assert.IsTrue(result.IsError, result.Message);
+            Assert.IsFalse(result.IsDeleted);
+            Assert.IsTrue(result.Exception is NextGenSoftware.OASIS.API.Core.Interfaces.INativeMutationReconciliationRequired,
+                result.Exception?.GetBaseException().Message);
+            Assert.IsTrue(result.Exception?.GetBaseException() is HttpRequestException
+                { StatusCode: System.Net.HttpStatusCode.PreconditionFailed });
+
+            using var storedAvatar = JsonDocument.Parse(await http.GetStringAsync(avatarNode));
+            Assert.AreEqual("concurrent update", storedAvatar.RootElement.GetProperty("firstName").GetString());
+            using var storedDetail = JsonDocument.Parse(await http.GetStringAsync(detailNode));
+            Assert.AreEqual(JsonValueKind.Null, storedDetail.RootElement.ValueKind);
+        }
+        finally
+        {
+            foreach (var node in new[] { detailNode, avatarNode })
+            {
+                using var response = await http.DeleteAsync(node);
+                response.EnsureSuccessStatusCode();
+            }
+        }
+    }
+
+    private sealed class InterleaveAfterRead(Uri observedNode, Func<CancellationToken, Task> concurrentWrite)
         : DelegatingHandler(new HttpClientHandler { AllowAutoRedirect = false })
     {
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
             CancellationToken cancellationToken)
         {
             var response = await base.SendAsync(request, cancellationToken);
-            if (request.Method != HttpMethod.Get || !response.IsSuccessStatusCode)
+            if (request.Method != HttpMethod.Get || request.RequestUri != observedNode || !response.IsSuccessStatusCode)
                 return response;
 
             try
