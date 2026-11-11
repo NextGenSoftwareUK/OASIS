@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November Firebase RTDB result. Run 43101286060 compiled both projects and passed the ownership regressions. Official RTDB passed 18 async lifecycle checks, including the graph write, before the first holon deletion failed its acknowledgement/count assertion. Sync was fenced. The graph test ran afterward in the same namespace and observed five retained lifecycle rows plus its own three. The runner removed the owned emulator and reports. CI now starts the focused graph and deletion test in a verified empty namespace before starting the shared lifecycle and prints the underlying delete error there.
+
 11 November Firebase export candidate. Current global and owner exports share a flat native-row read. This preserves one exported row per identity after ordinary graph reads gained child hydration. The native graph test requires three distinct export identities with their parent links and no embedded children. Historical export remains open.
 
 11 November Firebase graph-only diagnostic result. [Run 43093827848](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43093827848) at 242ba2d847 failed the combined compile and write-acknowledgement step. The Java setup and both native modes were skipped. GitHub returned an unavailable job-log blob and the run archive exposed no log entries, so the exact build or assertion failure is unconfirmed. The later projection, graph-read and conditional-delete revision is still queued in run 43098664726.

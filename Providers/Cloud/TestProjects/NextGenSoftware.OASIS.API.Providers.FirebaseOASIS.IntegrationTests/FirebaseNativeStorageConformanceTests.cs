@@ -99,6 +99,9 @@ public class FirebaseNativeStorageConformanceTests
         var endpoint = GetLoopbackEndpoint();
         using var http = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false });
         var provider = new FirebaseOASIS(endpoint.AbsoluteUri, null, http, DatabaseNamespace);
+        using (var initial = JsonDocument.Parse(await http.GetStringAsync(new Uri(endpoint, $".json?ns={DatabaseNamespace}"))))
+            Assert.AreEqual(JsonValueKind.Null, initial.RootElement.ValueKind, "Use an empty dedicated namespace.");
+
         var root = new Holon { Id = Guid.NewGuid(), Name = "graph root" };
         var child = new Holon { Id = Guid.NewGuid(), Name = "graph child" };
         var grandchild = new Holon { Id = Guid.NewGuid(), Name = "graph grandchild" };
@@ -167,7 +170,7 @@ public class FirebaseNativeStorageConformanceTests
             }));
             var staleProvider = new FirebaseOASIS(endpoint.AbsoluteUri, null, competing, DatabaseNamespace);
             var stale = await staleProvider.DeleteHolonAsync(grandchild.Id);
-            Assert.IsTrue(stale.IsError);
+            Assert.IsTrue(stale.IsError, "A concurrent native write must invalidate the observed ETag.");
             Assert.IsFalse(stale.IsDeleted);
             Assert.AreEqual(System.Net.HttpStatusCode.PreconditionFailed,
                 ((HttpRequestException)stale.Exception!).StatusCode);
@@ -179,7 +182,7 @@ public class FirebaseNativeStorageConformanceTests
             }
 
             var removed = await provider.DeleteHolonAsync(grandchild.Id);
-            Assert.IsTrue(removed.IsDeleted && !removed.IsError, removed.Message);
+            Assert.IsTrue(removed.IsDeleted && !removed.IsError, removed.Exception?.GetBaseException().Message ?? removed.Message);
             var live = await provider.LoadHolonAsync(root.Id);
             Assert.IsFalse(live.IsError, live.Message);
             Assert.AreEqual(0, live.Result.Children.Single().Children.Count);
