@@ -810,3 +810,5 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 11 November UTC: the live Development WEB4 CQL Playground rendered 3 rows for the full native PolygonIDOASIS public schema preset and 2 rows for the native subset. Private MongoDB paired browser verification remains open.
 
 11 November UTC: The Graph Studio public indexing-status presets rendered 3 full and 2 subset rows in the live Development WEB4 CQL Playground. Private MongoDB paired browser verification and general entity queries remain open.
+
+11 November UTC: SubQuery dictionary public presets rendered 3 full and 2 subset rows in the live Development WEB4 CQL Playground. Original-owner private MongoDB paired browser verification remains open.
