@@ -1,8 +1,10 @@
 # OASIS Provider Summary
 
-_234 shipping provider projects in the [current inventory](WIP/HyperDrive-Providers/PROVIDER_MATRIX.md). The category breakdown below records the October audit — last updated: 2026-10-02 (implementation audit)_
+The OASIS inventory lists **234 shipping provider projects** as of 11 November 2026. That includes 178 storage and specialized-storage projects and 56 non-storage projects. Alternate implementations count separately. Consult the [provider matrix](WIP/HyperDrive-Providers/PROVIDER_MATRIX.md) for backend verification by project and capability.
 
-> The current inventory counts 178 storage and specialized-storage projects and 56 non-storage projects. Alternate implementations are counted separately. Backend verification is tracked in the inventory matrix.
+Browse the [live provider registry](https://web4.oasisomniverse.one/providers.html) and the [public provider guide](https://docs.oasisomniverse.one/providers/overview.html).
+
+The category breakdown below records the 2 October 2026 implementation audit.
 > A provider is counted only if its folder contains a buildable provider class. Packaging variants, libraries, commented-out shells and retired providers are listed under [Not counted](#not-counted) instead.
 > Each provider lives in exactly one canonical folder; the Ceramic and Moralis duplicates in `Network/` were removed on 2026-10-02 in favour of the more complete `Blockchain/` copies.
 

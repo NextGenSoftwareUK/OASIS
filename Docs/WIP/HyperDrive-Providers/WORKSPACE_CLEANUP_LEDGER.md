@@ -262,3 +262,5 @@ Urgent disk cleanup follow-up: leased standard project clean succeeded for AWS u
 11 November Hedera synchronous wallet balance passed against the live testnet mirror. Leased standard dotnet clean completed and the process opt-in was removed. Automatic approval review rejected recursive removal of HederaWalletReadBuild. The remaining 107 files total 5,187,033 bytes. No signer, chain write or fixture database was used.
 
 11 November ActivityPub synchronous status and reply tests reused one ActivityPubSynchronousReadBuild path. Leased standard dotnet clean completed after both configurations. Automatic approval review rejected recursive removal. The remaining 107 generated files total 5,881,738 bytes. The public-read process opt-in was removed.
+
+11 November public provider count recheck used in-memory HTTPS responses and existing checkouts. No local build, install, downloaded file, test environment or generated report was created. C: free space observed at 42,186,285,056 bytes before the recheck.
