@@ -55,6 +55,12 @@ jobs:
           node_pid=""
           wallet_pid=""
           cleanup() {
+            status=$?
+            if [[ "$status" -ne 0 ]]; then
+              for log in "$fixture/node.log" "$fixture/wallet.log"; do
+                if [[ -f "$log" ]]; then tail -60 "$log"; fi
+              done
+            fi
             for pid in "$node_pid" "$wallet_pid"; do
               [[ -n "$pid" ]] || continue
               kill -TERM "$pid" 2>/dev/null || true
@@ -108,6 +114,7 @@ jobs:
           cli=(cleos --url "$OASIS_ANTELOPE_ENDPOINT" --wallet-url http://127.0.0.1:18900)
           "${cli[@]}" wallet create --to-console >"$fixture/wallet-password"
           "${cli[@]}" wallet import --private-key "$private"
+          echo "Creating the disposable OASIS contract account."
           "${cli[@]}" create account eosio "$OASIS_ANTELOPE_ACCOUNT" "$public" "$public"
           contract="Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.EOSIOOASIS/SmartContracts/build/oasis"
           "${cli[@]}" set contract "$OASIS_ANTELOPE_ACCOUNT" "$contract" oasis.wasm oasis.abi -p "$OASIS_ANTELOPE_ACCOUNT@active"
