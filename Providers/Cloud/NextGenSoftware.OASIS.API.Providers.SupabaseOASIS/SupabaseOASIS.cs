@@ -63,6 +63,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
             : this(supabaseUrl, apiKey, new HttpClient(new HttpClientHandler { AllowAutoRedirect = false })) { }
 
         public SupabaseOASIS(string supabaseUrl, string apiKey, HttpClient httpClient, string restApiPath = "/rest/v1")
+            : this(supabaseUrl, apiKey, httpClient, restApiPath, null) { }
+
+        protected SupabaseOASIS(string supabaseUrl, string apiKey, HttpClient httpClient, string restApiPath, string? readerToken)
         {
             // Hosted Supabase uses /rest/v1; a directly hosted PostgREST service
             // explicitly selects an empty path. Never guess or retry another route.
@@ -76,7 +79,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS
             _baseUrl = endpoint.AbsoluteUri.TrimEnd('/') + restApiPath.TrimEnd('/');
             _http = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
             _apiKey = apiKey;
-            if (!apiKey.StartsWith("sb_secret_", StringComparison.Ordinal) &&
+            if (readerToken != null)
+            {
+                ArgumentException.ThrowIfNullOrWhiteSpace(readerToken);
+                _legacyAuthorization = new AuthenticationHeaderValue("Bearer", readerToken);
+            }
+            else if (!apiKey.StartsWith("sb_secret_", StringComparison.Ordinal) &&
                 !apiKey.StartsWith("sb_publishable_", StringComparison.Ordinal))
                 _legacyAuthorization = new AuthenticationHeaderValue("Bearer", apiKey);
             ProviderName = "SupabaseOASIS";

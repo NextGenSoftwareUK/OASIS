@@ -22,6 +22,35 @@ public partial class SupabaseOASIS : ICosmicQueryStorageProvider
     public CosmicQueryCapabilities QueryCapabilities => QueryProviderType == Core.Enums.ProviderType.SupabaseOASIS
         ? BoundedIdentityCqlCompiler.Capabilities : UnsupportedAlias;
 
+    private static string QueryFilter(IEnumerable<Guid> ids) =>
+        "id=in.(" + string.Join(",", ids.Select(id => id.ToString("D")))
+            + ")&is_deleted=eq.false";
+
+    protected async Task<OASISResult<bool>> VerifyPublicQueryProbeAsync(Guid id, CancellationToken cancellationToken)
+    {
+        IsProviderActivated = false;
+        try
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (id == Guid.Empty || QueryProviderType != Core.Enums.ProviderType.SupabaseOASIS)
+                throw new InvalidOperationException("An explicit Supabase teaching probe is required.");
+            var native = await ReadCompleteHolonRows(QueryFilter(new[] { id }), cancellationToken);
+            var row = native.Count == 1 ? ParseHolon(native[0]) : null;
+            if (row == null || row.Id != id || !row.IsPublic)
+                throw new InvalidDataException("Supabase did not return one exact public teaching record.");
+            cancellationToken.ThrowIfCancellationRequested();
+            IsProviderActivated = true;
+            return new(true);
+        }
+        catch (Exception cause)
+        {
+            return new() { IsError = true, ErrorCount = 1,
+                ErrorCode = cause is OperationCanceledException && cancellationToken.IsCancellationRequested
+                    ? "CQL_QUERY_CANCELLED" : "CQL_QUERY_SOURCE_UNAVAILABLE",
+                Message = "Supabase did not verify its public teaching record.", Exception = cause };
+        }
+    }
+
     public async Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicQueryAsync<T>(
         CosmicQueryPlan<T> plan, int maximumResults = 100,
         CancellationToken cancellationToken = default) where T : IHolon
@@ -46,9 +75,7 @@ public partial class SupabaseOASIS : ICosmicQueryStorageProvider
             if (ids.Count > 0)
             {
                 // Native primary-key selection, not a whole-table managed filter.
-                var filter = "id=in.(" + string.Join(",", selection.Result.Select(id => id.ToString("D")))
-                    + ")&is_deleted=eq.false";
-                var native = await ReadCompleteHolonRows(filter, cancellationToken);
+                var native = await ReadCompleteHolonRows(QueryFilter(selection.Result), cancellationToken);
                 if (native.Count > ids.Count) throw new InvalidDataException("Supabase exceeded the admitted selection.");
                 var seen = new HashSet<Guid>();
                 string? previous = null;
