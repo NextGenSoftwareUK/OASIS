@@ -5642,3 +5642,5 @@ Holonym and Self Protocol public browser acceptance reused sandbox-7a8ee2a8. Fou
 11 November UTC: removed temporary remote tag ci-cosmic-solution-9feb95e81b-build after CI 43000041362 completed. Logs were inspected in memory. No local build, restore, image pull or artifact download.
 
 11 November UTC: Radix browser checks reused the existing demo visitor. No new avatar, report, screenshot file, download or build output.
+
+11 November UTC: created one disposable browser demo avatar sandbox-bfaa6d06 after the earlier visitor could not renew. Reuse this session for public checks and reconcile through normal demo expiry. No saved holon, local report, screenshot file, download or build output.
