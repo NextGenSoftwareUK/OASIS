@@ -25,6 +25,14 @@ namespace NextGenSoftware.OASIS.API.DNA
         public string Network { get; set; } = "polkadot";
     }
 
+    public class RoninOASISProviderSettings : ProviderSettingsBase
+    {
+        public string RpcEndpoint { get; set; } = "https://api.roninchain.com/rpc";
+        public string ChainId { get; set; } = "2020";
+        public string ChainPrivateKey { get; set; }
+        public string ContractAddress { get; set; }
+    }
+
     public class BNBChainOASISProviderSettings : ProviderSettingsBase
     {
         public string RpcEndpoint { get; set; } = "https://bsc-dataseed.binance.org";

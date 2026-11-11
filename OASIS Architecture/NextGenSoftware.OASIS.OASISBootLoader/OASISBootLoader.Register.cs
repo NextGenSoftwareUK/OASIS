@@ -387,6 +387,19 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                         //    }
                         //    break;
 
+                        case ProviderType.RoninOASIS:
+                        {
+                            var settings = OASISDNA.OASIS.StorageProviders.RoninOASIS
+                                ?? throw new InvalidOperationException("Ronin storage settings are required.");
+                            var provider = new NextGenSoftware.OASIS.API.Providers.RoninOASIS.RoninOASIS(
+                                overrideConnectionString ?? settings.RpcEndpoint,
+                                settings.ChainPrivateKey, settings.ContractAddress,
+                                EvmProviderFactory.ParseChainId(settings.ChainId, "Ronin"));
+                            provider.OnStorageProviderError += (_, error) => HandleProviderError("RoninOASIS", error);
+                            result.Result = provider;
+                        }
+                        break;
+
                         case ProviderType.BNBChainOASIS:
                         {
                             var settings = OASISDNA.OASIS.StorageProviders.BNBChainOASIS

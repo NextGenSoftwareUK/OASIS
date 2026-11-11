@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November Ronin shipping registration. BootLoader now constructs the Web3Core-backed Ronin storage adapter from the RoninOASIS storage settings. It uses the existing EVM chain parser and storage error hook. Signed configuration and runtime acceptance remain open. The COSMIC public query registration was left intact. Ronin public wallet run 43114758564 remains queued.
+
 11 November Ronin Saigon verification harness. The native core-storage-v2 suite now exercises both shipping storage modes when explicitly enabled with OASIS_RONIN_SAIGON_STORAGE_WRITES=1. It validates an HTTPS fixture, checks Saigon chain identity and signer funds, and requires all cases plus fixture cleanup. The official Saigon endpoint independently confirmed chain ID 202601. The protected fixture settings are absent from the current session. Build and signed execution remain open, with access tracked in the owner action ledger.
 
 11 November Ronin storage candidate. The shipping adapter now uses Web3Core for storage and wallet operations. Removed the local avatar and holon echoes, empty collection and search responses, false delete acknowledgement, and wallet stubs. Read-only balance remains available through the existing RPC-only constructor. Signed storage requires a configured Web3Core contract and signer on chain 2020 or Saigon chain 202601. The independent COSMIC public reader was untouched. C# syntax, project XML and diff checks passed. Ronin storage and signed wallet acceptance remain open.
