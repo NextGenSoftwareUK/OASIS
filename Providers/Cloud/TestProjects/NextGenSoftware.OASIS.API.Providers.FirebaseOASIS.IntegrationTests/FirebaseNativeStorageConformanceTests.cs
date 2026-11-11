@@ -161,6 +161,14 @@ public class FirebaseNativeStorageConformanceTests
             Assert.AreEqual(child.Id, metadataRows.Result.Single().Children.Single().Id);
 
             var grandchildNode = new Uri(endpoint, $"oasis_holons/{grandchild.Id:D}.json?ns={DatabaseNamespace}");
+            using (var probe = new HttpRequestMessage(HttpMethod.Get, grandchildNode))
+            {
+                probe.Headers.Add("X-Firebase-ETag", "true");
+                using var observed = await http.SendAsync(probe);
+                observed.EnsureSuccessStatusCode();
+                var rawTags = observed.Headers.TryGetValues("ETag", out var tags) ? string.Join(", ", tags) : "<missing>";
+                Assert.IsNotNull(observed.Headers.ETag, $"RTDB did not provide a parseable ETag. Raw header: {rawTags}");
+            }
             using var competing = new HttpClient(new InterleaveAfterRead(async token =>
             {
                 using var patch = new StringContent("{\"name\":\"concurrent update\"}", System.Text.Encoding.UTF8,
@@ -172,8 +180,9 @@ public class FirebaseNativeStorageConformanceTests
             var stale = await staleProvider.DeleteHolonAsync(grandchild.Id);
             Assert.IsTrue(stale.IsError, "A concurrent native write must invalidate the observed ETag.");
             Assert.IsFalse(stale.IsDeleted);
-            Assert.AreEqual(System.Net.HttpStatusCode.PreconditionFailed,
-                ((HttpRequestException)stale.Exception!).StatusCode);
+            Assert.IsTrue(stale.Exception is HttpRequestException
+                { StatusCode: System.Net.HttpStatusCode.PreconditionFailed },
+                $"Expected RTDB HTTP 412. Observed {stale.Exception?.GetType().Name}: {stale.Exception?.GetBaseException().Message}");
 
             using (var preserved = JsonDocument.Parse(await http.GetStringAsync(grandchildNode)))
             {
