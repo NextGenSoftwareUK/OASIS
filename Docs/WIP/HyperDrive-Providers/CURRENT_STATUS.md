@@ -1,6 +1,6 @@
 # Current provider status
 
-11 November BNB Smart Chain storage candidate. The disposable CI job pins official BSC v1.7.8 and its upstream single-validator Parlia test genesis. It verifies the validator RPC and uses separately deployed Web3Core contracts for sync and async shared storage through the shipping Nethereum adapter. Native results are pending. BootLoader registration remains commented out in a file with active COSMIC changes. Hosted storage, the public legacy adapter and other capabilities still need review.
+11 November BNB Smart Chain storage candidate. The disposable CI job pins official BSC v1.7.8 and its upstream single-validator Parlia test genesis. It verifies the validator RPC and uses separately deployed Web3Core contracts for sync and async shared storage through the shipping Nethereum adapter. [CI run 43083089351](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43083089351) is pending. No Windows build, download or test data was created. BootLoader registration remains commented out in a file with active COSMIC changes. Hosted storage, the public legacy adapter and other capabilities still need review.
 
 11 November AvalancheGo storage [run 43080136029](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43080136029) at fb90b97f8f passed 52/52 through shipping Nethereum on AvalancheGo 1.14.1 local C-Chain 43112. Both separately deployed contracts started empty, verified ownership and passed shared lifecycle cleanup. CI removed the node and temporary files. Hosted and other capability verification remain open.
 
