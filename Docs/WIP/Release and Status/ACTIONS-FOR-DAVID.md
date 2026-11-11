@@ -698,3 +698,9 @@ Status: missing account/configuration information,2 November2026. David approved
 - **Status (2026-11-11)** Open. The endpoint rejected an unauthenticated request. Authenticated route verification is pending.
 - **David action** Identify a Google Cloud project with Routes API enabled and provide a restricted test credential through the protected OASIS_GOOGLE_ROUTES_API_KEY setting. Keep credentials out of Git and chat.
 - **Reason** The provider agent owns the authenticated test and evidence capture. [Google Routes API](https://developers.google.com/maps/documentation/routes/compute_route_directions)
+
+### Mapbox and HERE live routing access
+
+- **Status** Open. The shared routing adapters compile in memory. The provider test credentials are absent from the current session.
+- **David action** Identify authorized test access for Mapbox Directions v5 and HERE Routing v8. Supply restricted credentials through protected configuration as OASIS_MAPBOX_ACCESS_TOKEN and OASIS_HERE_ROUTING_API_KEY. Keep credentials out of Git and chat.
+- **Reason** The provider agent owns authenticated verification of route distance and geometry. [Mapbox Directions](https://docs.mapbox.com/api/navigation/directions/) and [HERE Routing](https://docs.here.com/routing/docs/routing-v8-route-geometry)

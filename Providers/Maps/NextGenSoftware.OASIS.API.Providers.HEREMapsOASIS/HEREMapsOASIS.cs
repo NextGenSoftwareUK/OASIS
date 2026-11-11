@@ -12,7 +12,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HEREMapsOASIS
     /// Provides enterprise-grade routing, navigation, geocoding, and
     /// real-time traffic data via the HERE Maps REST APIs.
     /// </summary>
-    public class HEREMapsOASIS : IOASISMapProvider
+    public partial class HEREMapsOASIS : IOASISMapProvider
     {
         public MapProviderType MapProviderType { get; set; }
         public string MapProviderName { get; set; }

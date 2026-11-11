@@ -1,5 +1,9 @@
-﻿using System;
+using System;
 using System.Drawing;
+using System.Threading;
+using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Contracts.Interfaces;
+using NextGenSoftware.OASIS.API.Providers.MapboxOASIS.Services.MapboxDirections;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
@@ -7,8 +11,14 @@ using NextGenSoftware.OASIS.API.Core.Objects;
 
 namespace NextGenSoftware.OASIS.API.Providers.MapboxOASIS
 {
-    public class MapBoxOASIS : IOASISMapProvider
+    public class MapBoxOASIS : IOASISMapProvider, IOASISRoutingProvider
     {
+        private readonly MapboxDirectionsService _directions = new();
+
+        public Task<RoutingRoute> ComputeRouteAsync(RoutingCoordinate origin, RoutingCoordinate destination,
+            RoutingType travelMode, CancellationToken cancellationToken = default)
+            => _directions.ComputeRouteAsync(origin, destination, travelMode, cancellationToken);
+
         public MapProviderType MapProviderType { get; set; }
         public string MapProviderName { get; set; }
         public string MapProviderDescription { get; set; }

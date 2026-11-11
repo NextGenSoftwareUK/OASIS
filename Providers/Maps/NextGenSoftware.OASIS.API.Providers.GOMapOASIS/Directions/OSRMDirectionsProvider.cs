@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
@@ -15,7 +16,7 @@ using NextGenSoftware.OASIS.Common;
 namespace NextGenSoftware.OASIS.API.Providers.GOMapOASIS.Directions
 {
     /// <summary>One bounded OSRM route request. Public demo use is non-commercial and at most one request/second.</summary>
-    public class OSRMDirectionsProvider : IDirectionsAPIProvider
+    public class OSRMDirectionsProvider : IDirectionsAPIProvider, IOASISRoutingProvider
     {
         public const string DefaultBaseUrl = "https://router.project-osrm.org";
         private static readonly HttpClient SharedClient = new HttpClient(new SocketsHttpHandler {
@@ -36,6 +37,23 @@ namespace NextGenSoftware.OASIS.API.Providers.GOMapOASIS.Directions
             var result = await GetRouteAsync(startPoint, endPoint, routingType).ConfigureAwait(false);
             LastError = result.IsError ? result.Message : null;
             return result.IsError ? new List<Geolocation>() : new List<Geolocation>(result.Result.Geometry);
+        }
+
+        public async Task<RoutingRoute> ComputeRouteAsync(RoutingCoordinate origin, RoutingCoordinate destination,
+            RoutingType travelMode, CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (travelMode != RoutingType.Driving &&
+                string.Equals(BaseUrl?.TrimEnd('/'), DefaultBaseUrl, StringComparison.OrdinalIgnoreCase))
+                throw new NotSupportedException("Configure an OSRM deployment with the requested travel profile. The public demo is driving-only.");
+
+            var result = await GetRouteAsync(new Geolocation(origin.Latitude, origin.Longitude),
+                new Geolocation(destination.Latitude, destination.Longitude), travelMode, cancellationToken).ConfigureAwait(false);
+            if (result.IsError)
+                throw new InvalidOperationException(result.Message);
+
+            return new RoutingRoute(result.Result.DistanceMetres, result.Result.Geometry.Select(
+                point => new RoutingCoordinate(point.Latitude, point.Longitude)));
         }
 
         public async Task<OASISResult<OSRMRouteObservation>> GetRouteAsync(Geolocation startPoint, Geolocation endPoint,

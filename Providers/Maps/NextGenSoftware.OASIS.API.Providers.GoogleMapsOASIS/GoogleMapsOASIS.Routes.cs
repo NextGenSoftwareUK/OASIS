@@ -7,10 +7,11 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.API.Contracts.Interfaces;
 
 namespace NextGenSoftware.OASIS.API.Providers.GoogleMapsOASIS;
 
-public partial class GoogleMapsOASIS
+public partial class GoogleMapsOASIS : IOASISRoutingProvider
 {
     private static readonly Uri ComputeRoutesEndpoint = new("https://routes.googleapis.com/directions/v2:computeRoutes");
     private static readonly HttpClient RoutesClient = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false })
@@ -22,10 +23,38 @@ public partial class GoogleMapsOASIS
 
     public sealed record DrivingRoute(int DistanceMeters, string EncodedPolyline, IReadOnlyList<RoutePoint> Points);
 
-    public async Task<OASISResult<DrivingRoute>> ComputeDrivingRouteAsync(
+    public async Task<RoutingRoute> ComputeRouteAsync(RoutingCoordinate origin, RoutingCoordinate destination,
+        RoutingType travelMode, CancellationToken cancellationToken = default)
+    {
+        var mode = travelMode switch
+        {
+            RoutingType.Driving => "DRIVE",
+            RoutingType.Walking => "WALK",
+            RoutingType.Cycling => "BICYCLE",
+            _ => throw new ArgumentOutOfRangeException(nameof(travelMode))
+        };
+
+        var result = await ComputeGoogleRouteAsync(origin.Latitude, origin.Longitude, destination.Latitude,
+            destination.Longitude, Environment.GetEnvironmentVariable("OASIS_GOOGLE_ROUTES_API_KEY"),
+            mode, cancellationToken).ConfigureAwait(false);
+        if (result.IsError)
+            throw new InvalidOperationException(result.Message);
+
+        return new RoutingRoute(result.Result.DistanceMeters, result.Result.Points.Select(
+            point => new RoutingCoordinate(point.Latitude, point.Longitude)));
+    }
+
+    public Task<OASISResult<DrivingRoute>> ComputeDrivingRouteAsync(
         double originLatitude, double originLongitude, double destinationLatitude, double destinationLongitude,
         string apiKey, CancellationToken cancellationToken = default)
+        => ComputeGoogleRouteAsync(originLatitude, originLongitude, destinationLatitude, destinationLongitude,
+            apiKey, "DRIVE", cancellationToken);
+
+    private static async Task<OASISResult<DrivingRoute>> ComputeGoogleRouteAsync(
+        double originLatitude, double originLongitude, double destinationLatitude, double destinationLongitude,
+        string apiKey, string travelMode, CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         var result = new OASISResult<DrivingRoute>();
         if (!ValidCoordinates(originLatitude, originLongitude) || !ValidCoordinates(destinationLatitude, destinationLongitude))
         {
@@ -46,7 +75,7 @@ public partial class GoogleMapsOASIS
         {
             origin = Waypoint(originLatitude, originLongitude),
             destination = Waypoint(destinationLatitude, destinationLongitude),
-            travelMode = "DRIVE"
+            travelMode
         });
 
         try
@@ -62,7 +91,7 @@ public partial class GoogleMapsOASIS
             if (body == null || !body.RootElement.TryGetProperty("routes", out var routes) ||
                 routes.ValueKind != JsonValueKind.Array || routes.GetArrayLength() == 0)
             {
-                OASISErrorHandling.HandleError(ref result, "Google Routes returned no driving route.");
+                OASISErrorHandling.HandleError(ref result, "Google Routes returned no route.");
                 return result;
             }
 
