@@ -17,6 +17,7 @@ using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.API.Core.Serialization;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Providers.MemcachedOASIS
@@ -324,17 +325,46 @@ namespace NextGenSoftware.OASIS.API.Providers.MemcachedOASIS
 
         // ─── Holons ───────────────────────────────────────────────────────────────
 
-        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+        public override Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+            => SaveHolonGraphAsync(holon, saveChildren, recursive, maxChildDepth, 0, continueOnError);
+
+        private async Task<OASISResult<IHolon>> SaveHolonGraphAsync(IHolon holon, bool saveChildren, bool recursive, int maxChildDepth, int currentChildDepth, bool continueOnError)
         {
             var result = new OASISResult<IHolon>();
             try
             {
-                if (holon.Id == Guid.Empty) holon.Id = Guid.NewGuid();
-                await SetAsync($"holon:{holon.Id}", holon);
-                await AddToIndexAsync("holons:index", holon.Id.ToString());
-                result.Result = holon; result.IsError = false; result.IsSaved = true; result.SavedCount = 1; result.Message = $"MemcachedOASIS: Holon '{holon.Name}' saved.";
+                var plan = HolonGraphWritePlan.CreateForSave(new[] { holon }, saveChildren, recursive, maxChildDepth, currentChildDepth);
+                foreach (var node in plan.Nodes)
+                {
+                    try
+                    {
+                        var snapshot = node.Snapshot;
+                        var keys = snapshot.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
+                        keys[Core.Enums.ProviderType.MemcachedOASIS] = snapshot.Id.ToString("D");
+                        await SetAsync($"holon:{snapshot.Id}", snapshot);
+                        await AddToIndexAsync("holons:index", snapshot.Id.ToString("D"));
+
+                        node.Source.Id = snapshot.Id;
+                        node.Source.ParentHolonId = snapshot.ParentHolonId;
+                        node.Source.ProviderUniqueStorageKey = keys;
+                        result.SavedCount++;
+                        if (ReferenceEquals(node.Source, holon)) result.Result = holon;
+                    }
+                    catch (Exception error)
+                    {
+                        result.Exception ??= error;
+                        result.ErrorCount++;
+                        if (!continueOnError) break;
+                    }
+                }
+                result.IsSaved = result.SavedCount > 0;
+                if (result.ErrorCount > 0)
+                    OASISErrorHandling.HandleError(ref result, "Memcached did not acknowledge every graph record and its index.", result.Exception, incrementErrorCount: false);
             }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"MemcachedOASIS: Error saving holon: {ex.Message}"); }
+            catch (Exception error)
+            {
+                OASISErrorHandling.HandleError(ref result, error.Message, error);
+            }
             return result;
         }
 
@@ -347,17 +377,18 @@ namespace NextGenSoftware.OASIS.API.Providers.MemcachedOASIS
             var errors = new List<string>();
             foreach (var holon in holons)
             {
-                var write = await SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
+                var write = await SaveHolonGraphAsync(holon, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError);
+                result.SavedCount += write.SavedCount;
                 if (write.IsError)
                 {
                     errors.Add(write.Message);
+                    if (write.Result != null) saved.Add(write.Result);
                     result.Exception ??= write.Exception;
                     if (!continueOnError) break;
                 }
                 else if (write.IsSaved && write.Result != null)
                 {
                     saved.Add(write.Result);
-                    result.SavedCount += write.SavedCount;
                 }
             }
             result.Result = saved;

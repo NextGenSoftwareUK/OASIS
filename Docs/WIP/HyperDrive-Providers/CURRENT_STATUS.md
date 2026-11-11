@@ -1,5 +1,7 @@
 # Current provider status
 
+11 November Memcached graph candidate. The shipping adapter now selects graph nodes using the shared write plan, writes the selected parent links, and publishes IDs only after each cache record and its index acknowledge the write. Partial graphs expose exact acknowledged counts and errors. Memcached item writes are independent, so eviction and multi-key atomicity remain separate gates. The native runtime-dependency run 43073793620 is pending.
+
 11 November Memcached run 43072655062 failed before daemon startup when the checksum-verified binary exited 127 on its version check. The candidate installs the documented libevent and Lua runtime dependencies on the disposable runner and prints linker diagnostics on admission failure. Batch saves now report exact acknowledged counts and errors. Indexed reads distinguish missing keys from failed reads. Native verification remains pending.
 
 11 November Memcached native storage candidate. Activation now requires a native Enyim response. Username/email lookups decode the same JSON written by the index path and avatar details use canonical serialization. The full storage workflow exercises two isolated official Memcached 1.6.40 daemons. Existing COSMIC query evidence carries forward. Lifecycle verification and durable-provider eligibility remain open.
