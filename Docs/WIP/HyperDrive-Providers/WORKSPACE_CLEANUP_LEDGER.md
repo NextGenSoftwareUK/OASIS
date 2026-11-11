@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+11 November Avalanche storage uses a disposable CI node, contract deployments, npm dependencies and temporary credentials/checkpoints. The runner removes the container, volumes, newly pulled image, dependencies and fixture directory on exit. Cleanup confirmation is pending. No Windows runtime or build was created.
+
 11 November Milvus run 43078055694 independently removed ten owned holon tombstones and verified three empty collections per mode. CI removed both containers, volumes, newly pulled images and fixtures. No local build, runtime or download was created.
 
 11 November Milvus run 43077349886 also removed its disposable resources after the parent-query failure.
