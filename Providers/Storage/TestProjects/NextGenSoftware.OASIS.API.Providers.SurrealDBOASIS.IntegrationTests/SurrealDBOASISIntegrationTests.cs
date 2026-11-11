@@ -44,6 +44,47 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS.IntegrationTests
         }
 
         [TestMethod]
+        public async Task AvatarDetail_RoundTripsByGuid()
+        {
+            RequireLive();
+
+            var detail = new AvatarDetail { Id = Guid.NewGuid(), Karma = 29 };
+            var saved = await _provider.SaveAvatarDetailAsync(detail);
+            Assert.IsFalse(saved.IsError, saved.Message);
+
+            var loaded = await _provider.LoadAvatarDetailAsync(detail.Id);
+            Assert.IsFalse(loaded.IsError, loaded.Message);
+            Assert.IsNotNull(loaded.Result);
+            Assert.AreEqual(detail.Id, loaded.Result.Id);
+            Assert.AreEqual(detail.Karma, loaded.Result.Karma);
+        }
+
+        [TestMethod]
+        public async Task HardDeletedAvatar_IsAbsentByGuidAndUsername()
+        {
+            RequireLive();
+
+            var id = Guid.NewGuid();
+            var avatar = new Avatar { Id = id, Username = $"oasis-it-{id:N}", Email = $"{id:N}@test.local" };
+            var saved = await _provider.SaveAvatarAsync(avatar);
+            Assert.IsFalse(saved.IsError, saved.Message);
+            var before = await _provider.LoadAvatarAsync(id);
+            Assert.IsFalse(before.IsError, before.Message);
+            Assert.AreEqual(id, before.Result?.Id);
+
+            var deleted = await _provider.DeleteAvatarAsync(id, softDelete: false);
+            Assert.IsFalse(deleted.IsError, deleted.Message);
+            Assert.IsTrue(deleted.Result);
+
+            var byId = await _provider.LoadAvatarAsync(id);
+            Assert.IsNull(byId.Exception);
+            Assert.IsNull(byId.Result);
+            var byUsername = await _provider.LoadAvatarByUsernameAsync(avatar.Username);
+            Assert.IsNull(byUsername.Exception);
+            Assert.IsNull(byUsername.Result);
+        }
+
+        [TestMethod]
         public async Task SaveAndLoadAvatar_RoundTrips()
         {
             RequireLive();
