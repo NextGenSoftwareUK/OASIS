@@ -365,10 +365,18 @@ jobs:
       - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 10.0.x
+      - name: NuGet trusted publishing login (short-lived key, nothing stored)
+        id: nuget_login
+        if: inputs.publish
+        continue-on-error: true
+        uses: NuGet/login@v1
+        with:
+          user: dellams
       - name: Verify the reviewed package set and publish it
         shell: pwsh
         env:
-          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+          # The trusted-publishing key when the login worked, else the NUGET_API_KEY secret.
+          NUGET_API_KEY: ${{ steps.nuget_login.outputs.NUGET_API_KEY || secrets.NUGET_API_KEY }}
         run: |
           if ([string]::IsNullOrWhiteSpace($env:NUGET_API_KEY)) { throw 'NUGET_API_KEY is required for publication.' }
           $plan = Get-Content -Raw -LiteralPath 'artifacts/global-release-plan/release-plan.json' | ConvertFrom-Json
@@ -482,10 +490,18 @@ jobs:
       - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 8.0.x
+      - name: NuGet trusted publishing login (short-lived key, nothing stored)
+        id: nuget_login
+        if: inputs.publish
+        continue-on-error: true
+        uses: NuGet/login@v1
+        with:
+          user: dellams
       - name: Pack and optionally publish the distinct Unity NuGet package
         shell: pwsh
         env:
-          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+          # The trusted-publishing key when the login worked, else the NUGET_API_KEY secret.
+          NUGET_API_KEY: ${{ steps.nuget_login.outputs.NUGET_API_KEY || secrets.NUGET_API_KEY }}
           VERSION: ${{ needs.plan.outputs.edge_unity_nuget_version }}
         run: |
           $archive = (Resolve-Path artifacts/edge-unity/edge-runtime-release/com.nextgensoftware.oasis.edge.tgz).Path
