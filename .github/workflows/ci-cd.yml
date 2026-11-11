@@ -263,6 +263,7 @@ jobs:
             image: questdb/questdb:latest
             ports: 8812:8812
             wait: 8812
+            docker_args: -p 127.0.0.1:9000:9000
           - name: InfluxDB
             project: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.InfluxDBOASIS.IntegrationTests
             image: influxdb:2.7
@@ -332,6 +333,15 @@ jobs:
           echo "::error::${{ matrix.backend.name }} never opened port $port."
           docker logs oasis-backend || true
           exit 1
+
+      - name: Provision QuestDB storage fixture tables
+        if: matrix.backend.name == 'QuestDB'
+        run: |
+          for table in oasis_avatars oasis_avatar_details oasis_holons; do
+            sql="CREATE TABLE $table (id SYMBOL, data VARCHAR, ts TIMESTAMP) TIMESTAMP(ts) PARTITION BY DAY WAL DEDUP UPSERT KEYS(ts, id)"
+            curl --fail-with-body --silent --show-error --max-time 15 --get               --data-urlencode "query=$sql" http://127.0.0.1:9000/exec |
+              jq --exit-status '.ddl == "OK"'
+          done
 
       - name: Export test environment
         if: matrix.backend.test_env != ''
