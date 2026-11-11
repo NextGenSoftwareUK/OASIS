@@ -275,3 +275,5 @@ Execution needs an owned source and restricted read credentials.
 11 November UTC: OpenSearch federation diagnostic `b4ff3d1e2c` extends the passing secured restart workflow with a disposable Mongo replica set. It runs existing replica admission, SDK/HTTP federation, and the post-federation native source recheck. Hosted HTTPS teaching-source acceptance remains open.
 
 11 November UTC: OpenSearch passed all five isolated CI phases with zero skips, including Mongo replica admission, native SDK/HTTP federation, and a final source recheck. Hosted HTTPS CQL remains open. [OpenSearch federation CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43037028447)
+
+11 November UTC: Development `2df4de082f` contains the verified OpenSearch restart/federation and SurrealDB restart workflows and fixture scripts. Both are manually dispatched. SurrealDB generic storage and federation remain open, as does hosted HTTPS CQL for both providers. [OpenSearch CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43037028447) · [SurrealDB restart CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43038591878)
