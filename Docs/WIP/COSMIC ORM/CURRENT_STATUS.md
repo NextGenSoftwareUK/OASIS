@@ -1355,3 +1355,5 @@ HolonymOASIS and SelfProtocolOASIS public browser acceptance passed on 11 Novemb
 11 November UTC: HyperDrive ActivityPub CI 43043728770 passed all three managed checks on Mastodon 4.4.28: authenticated two-page search over 42 accounts with exact point projection and two owned private status deletions with independently verified absence. Development a39f5fe06d includes the change. Railway is building earlier revision 73e0d4bb08. Existing public CQL browser and MongoDB federation evidence retains its original scope.
 
 CouchDB restart and federation diagnostic 43045487847 is active.
+
+11 November UTC: CouchDB CI 43045487847 passed five focused phases with zero skips: native CQL before and after restart, Mongo replica admission, SDK/HTTP federation and final native recheck. Candidate 17df68f439 routes generic storage and restricted reader policy to the standard matrix and native CQL to the dedicated workflow. Combined diagnostic 8a5f86cbfe is submitted. Hosted HTTPS acceptance remains open.
