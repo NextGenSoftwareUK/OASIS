@@ -105,12 +105,15 @@ jobs:
           export OASIS_ANTELOPE_ACCOUNT=oasisfixture
           for attempt in {1..45}; do
             if ! kill -0 "$node_pid" 2>/dev/null; then tail -40 "$fixture/node.log"; exit 1; fi
-            info="$(curl --silent --max-time 2 "$OASIS_ANTELOPE_ENDPOINT/v1/chain/get_info")" || info=''
-            if jq -e '.head_block_num > 1' <<< "$info" >/dev/null 2>&1; then break; fi
+            if info="$(curl --fail --silent --max-time 2 "$OASIS_ANTELOPE_ENDPOINT/v1/chain/get_info")" &&
+               [[ -n "$info" ]] &&
+               jq -e '.head_block_num > 1' <<< "$info" >/dev/null 2>&1; then break; fi
             if [[ "$attempt" == 45 ]]; then tail -40 "$fixture/node.log"; exit 1; fi
             sleep 1
           done
-          export OASIS_ANTELOPE_CHAIN_ID="$(jq -er '.chain_id | select(test("^[0-9a-f]{64}$"))' <<< "$info")"
+          chain_id="$(jq -er '.chain_id | select(test("^[0-9a-f]{64}$"))' <<< "$info")"
+          [[ "$chain_id" =~ ^[0-9a-f]{64}$ ]]
+          export OASIS_ANTELOPE_CHAIN_ID="$chain_id"
           cli=(cleos --url "$OASIS_ANTELOPE_ENDPOINT" --wallet-url http://127.0.0.1:18900)
           "${cli[@]}" wallet create --to-console >"$fixture/wallet-password"
           "${cli[@]}" wallet import --private-key "$private"
@@ -118,8 +121,9 @@ jobs:
           "${cli[@]}" create account eosio "$OASIS_ANTELOPE_ACCOUNT" "$public" "$public"
           contract="Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.EOSIOOASIS/SmartContracts/build/oasis"
           "${cli[@]}" set contract "$OASIS_ANTELOPE_ACCOUNT" "$contract" oasis.wasm oasis.abi -p "$OASIS_ANTELOPE_ACCOUNT@active"
-          "${cli[@]}" get abi "$OASIS_ANTELOPE_ACCOUNT" | jq -e '
-            [.actions[].name] | contains(["setdetail", "softdetail", "harddetail"])' >/dev/null
+          deployed_abi="$("${cli[@]}" get abi "$OASIS_ANTELOPE_ACCOUNT")"
+          [[ -n "$deployed_abi" ]]
+          jq -e '(["setdetail", "softdetail", "harddetail"] - [.actions[].name]) == []' <<< "$deployed_abi" >/dev/null
           export OASIS_ANTELOPE_PRIVATE_KEY="$private"
           export OASIS_ANTELOPE_LIFECYCLE_WRITES=1
           export OASIS_ANTELOPE_DETAIL_CONTRACT_READY=1
