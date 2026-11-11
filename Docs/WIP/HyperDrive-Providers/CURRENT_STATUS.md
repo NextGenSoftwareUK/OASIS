@@ -1,6 +1,6 @@
 # Current provider status
 
-11 November AvalancheGo run 43079640797 failed before bootstrap. The pinned image has a default command but no entrypoint, so passing flags replaced its executable. The candidate invokes the image command explicitly and captures the created container ID before starting it. Contract deployment and storage verification remain pending.
+11 November AvalancheGo storage [run 43080136029](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43080136029) at fb90b97f8f passed 52/52 through shipping Nethereum on AvalancheGo 1.14.1 local C-Chain 43112. Both separately deployed contracts started empty, verified ownership and passed shared lifecycle cleanup. CI removed the node and temporary files. Hosted and other capability verification remain open.
 
 11 November Avalanche native C-Chain candidate. A disposable GitHub runner starts digest-pinned AvalancheGo 1.14.1 with local chain ID 43112, waits for C-Chain bootstrap, and deploys the shipping Web3Core contract twice with an ephemeral owner. Sync and async shared storage suites use the shipping Avalanche adapter through Nethereum. Existing Ganache evidence and COSMIC public reads carry forward. Native AvalancheGo verification is pending.
 

@@ -1,6 +1,8 @@
 # Current resource and cleanup ledger
 
-11 November AvalancheGo run 43079640797 removed its image and fixture after container startup failed. The disposable runner retired the job. The retry records the container ID before starting it so explicit cleanup also covers startup failure. No local build or download was created.
+11 November AvalancheGo run 43080136029 passed both modes and confirmed removal of the container, volumes, newly pulled image, npm dependencies and fixture directory. No Windows runtime, build or download was created.
+
+11 November AvalancheGo run 43079640797 also removed its disposable resources after the startup failure.
 
 11 November Avalanche storage uses a disposable CI node, contract deployments, npm dependencies and temporary credentials/checkpoints. The runner removes the container, volumes, newly pulled image, dependencies and fixture directory on exit. Cleanup confirmation is pending. No Windows runtime or build was created.
 
