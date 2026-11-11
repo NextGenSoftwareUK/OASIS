@@ -541,16 +541,16 @@ Status: missing account/configuration information,2 November2026. David approved
   credentials out of chat and Git.
 - [LocalFile qualification and rollout](../COSMIC%20ORM/LOCALFILE_CQL_MVP.md).
 
-### Neon native storage test database
+### Neon hosted storage test database
 
-- **Status (2026-11-09)** Open. The provider worktree has no Neon native conformance connection configured.
+- **Status (2026-11-11)** Open for hosted acceptance. Official Neon compute passed the 52-case native storage lifecycle with exact cleanup. The hosted pooled connection remains the next gate. [Native run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43022056613)
 - **David action** Grant access to a disposable Neon branch with a dedicated database named oasis_provider_test. An existing dedicated database is suitable if it has that name and no OASIS test records. Configure its pooled Npgsql connection string (using the explicit Neon -pooler hostname) through protected local configuration as OASIS_NEON_CONFORMANCE_CONNECTION_STRING. Keep the connection string out of Git and chat.
 - **Reason** The native suite writes and deletes OASIS fixtures and requires a real Neon endpoint with verified TLS. The provider agent owns schema and conformance engineering after access is available.
 - **Context** [Provider completion continuation](../HyperDrive-Providers/PROVIDER_COMPLETION_CONTINUATION.md).
 
 ### Supabase hosted storage test project
 
-- **Status (2026-11-09)** Open. No hosted storage test project URL or protected server key was present in the provider test process.
+- **Status (2026-11-11)** Open for hosted storage acceptance. Native PostgREST passed the 52-case storage lifecycle with exact cleanup. The WEB4 CQL deployment has a separate restricted read-only fixture requirement. [Native storage run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43015778894)
 - **David action** Designate an empty disposable hosted Supabase project or grant access to one. Configure its project URL as OASIS_SUPABASE_CONFORMANCE_URL and its server-side test credential as OASIS_SUPABASE_CONFORMANCE_SERVICE_KEY through protected local configuration. Keep the credential out of Git and chat.
 - **Reason** The sync and async lifecycle suite writes and removes exact test records. The provider agent owns schema setup and verification once access is available.
 - **Context** [Provider completion continuation](../HyperDrive-Providers/PROVIDER_COMPLETION_CONTINUATION.md).
@@ -620,8 +620,8 @@ Status: missing account/configuration information,2 November2026. David approved
 
 ### Convex hosted companion acceptance
 
-- **Status (9 November 2026)** Open. Local Convex passed 52/52 storage lifecycle checks. The hosted activation case compiled and skipped because no deployment was configured.
-- **Action** Identify the dedicated Convex test deployment with the OASIS companion installed. For the disposable write test set OASIS_CONVEX_HOSTED_TEST_WRITES=1. Supply its HTTPS origin via OASIS_CONVEX_HOSTED_TEST_URL and make its deploy key and persisted test storage key available through the protected environment. Keep secrets out of Git and chat.
+- **Status (2026-11-11)** Open for hosted acceptance. Local Convex passed 52/52 storage lifecycle checks. The official engine also verified recovery after installing the companion on the same provider instance. [Companion recovery run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43017572009)
+- **Action** Identify the dedicated Convex test deployment with the OASIS companion installed. For the disposable write test set OASIS_CONVEX_HOSTED_TEST_WRITES=1. Supply its HTTPS origin via OASIS_CONVEX_HOSTED_TEST_URL and set OASIS_CONVEX_HOSTED_TEST_DEPLOY_KEY and OASIS_CONVEX_STORAGE_KEY in the protected environment. Keep secrets out of Git and chat.
 - **Reason** The agent must verify authenticated activation and then the hosted storage lifecycle without touching production data.
 - **Context** [Convex storage evidence](../HyperDrive-Providers/CONVEX_STORAGE_BASELINE.md).
 
