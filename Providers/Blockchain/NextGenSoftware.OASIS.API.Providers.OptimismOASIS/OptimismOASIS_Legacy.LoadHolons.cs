@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -453,19 +453,22 @@ namespace NextGenSoftware.OASIS.API.Providers.OptimismOASIS
                     return response;
                 }
 
-                // Real Optimism implementation: Load avatar by provider key (avatarId)
+                if (!Guid.TryParse(providerKey, out var id) || id == Guid.Empty)
+                    throw new ArgumentException("An Optimism avatar provider key must be a nonempty GUID.", nameof(providerKey));
+
+                // Provider keys use the same GUID string as the contract writer.
                 // Provider key is the avatar ID string
                 try
                 {
                     var getAvatarFunction = _contract.GetFunction("getAvatar");
-                    var avatarData = await getAvatarFunction.CallDeserializingToObjectAsync<GetAvatarOutputDTO>(providerKey);
+                    var avatarData = await getAvatarFunction.CallDeserializingToObjectAsync<GetAvatarOutputDTO>(id.ToString("D"));
 
                     if (avatarData != null)
                     {
                         // Found avatar - convert to IAvatar
                         var avatar = new Avatar
                         {
-                            Id = Guid.Parse(providerKey),
+                            Id = id,
                             Username = avatarData.Username,
                             Email = avatarData.Email,
                             FirstName = avatarData.FirstName,
@@ -473,17 +476,12 @@ namespace NextGenSoftware.OASIS.API.Providers.OptimismOASIS
                             AvatarType = new EnumValue<AvatarType>(Enum.Parse<AvatarType>(avatarData.AvatarType))
                         };
 
-                        // Parse metadata if available
                         if (!string.IsNullOrEmpty(avatarData.Metadata))
-                        {
-                            try
-                            {
-                                avatar.MetaData = JsonSerializer.Deserialize<Dictionary<string, object>>(avatarData.Metadata);
-                            }
-                            catch { }
-                        }
+                            avatar.MetaData = JsonSerializer.Deserialize<Dictionary<string, object>>(avatarData.Metadata);
 
                         response.Result = avatar;
+                        response.IsLoaded = true;
+                        response.LoadedCount = 1;
                         response.IsError = false;
                         response.Message = "Avatar loaded successfully from Optimism by provider key";
                         return response;

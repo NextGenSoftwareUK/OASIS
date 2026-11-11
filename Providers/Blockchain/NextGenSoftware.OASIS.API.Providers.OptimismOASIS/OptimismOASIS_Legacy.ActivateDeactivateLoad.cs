@@ -59,37 +59,30 @@ namespace NextGenSoftware.OASIS.API.Providers.OptimismOASIS
                     return response;
                 }
 
-                // Initialize Web3 client for Optimism
-                if (!string.IsNullOrEmpty(_privateKey))
+                if (!BigInteger.TryParse(_chainId, out var expectedChain) || expectedChain <= 0)
+                    throw new InvalidOperationException("Optimism requires a positive configured chain ID.");
+
+                var account = string.IsNullOrEmpty(_privateKey) ? null : new Account(_privateKey, expectedChain);
+                var web3 = account == null ? new Web3(_rpcEndpoint) : new Web3(account, _rpcEndpoint);
+                var chain = await web3.Eth.ChainId.SendRequestAsync();
+                if (chain == null || chain.Value != expectedChain)
+                    throw new InvalidOperationException("The Optimism RPC chain ID does not match the configured chain.");
+
+                Contract contract = null;
+                if (!string.IsNullOrEmpty(_contractAddress) && _contractAddress != "0x0000000000000000000000000000000000000000")
                 {
-                    _account = new Account(_privateKey, BigInteger.Parse(_chainId));
-                    _web3Client = new Web3(_account, _rpcEndpoint);
-                }
-                else
-                {
-                    _web3Client = new Web3(_rpcEndpoint);
+                    var code = await web3.Eth.GetCode.SendRequestAsync(_contractAddress);
+                    if (string.IsNullOrWhiteSpace(code) || code == "0x")
+                        throw new InvalidOperationException("The configured Optimism contract has no deployed code.");
+                    contract = web3.Eth.GetContract(GetOptimismContractABI(), _contractAddress);
                 }
 
-                // Test connection to Optimism RPC endpoint
-                var testResponse = await _httpClient.GetAsync("/");
-                if (testResponse.IsSuccessStatusCode)
-                {
-                    // Initialize smart contract if address is provided
-                    if (!string.IsNullOrEmpty(_contractAddress) && _contractAddress != "0x0000000000000000000000000000000000000000")
-                    {
-                        // Load contract ABI and initialize contract
-                        var contractAbi = GetOptimismContractABI();
-                        _contract = _web3Client.Eth.GetContract(contractAbi, _contractAddress);
-                    }
-
-                    _isActivated = true;
-                    response.Result = true;
-                    response.Message = "Optimism provider activated successfully with Web3 integration";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to connect to Optimism RPC endpoint: {testResponse.StatusCode}");
-                }
+                _account = account;
+                _web3Client = web3;
+                _contract = contract;
+                _isActivated = true;
+                response.Result = true;
+                response.Message = "Optimism provider activated successfully with Web3 integration.";
             }
             catch (Exception ex)
             {
@@ -130,45 +123,8 @@ namespace NextGenSoftware.OASIS.API.Providers.OptimismOASIS
             return DeActivateProviderAsync().Result;
         }
 
-        public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0)
-        {
-            var response = new OASISResult<IAvatar>();
-
-            try
-            {
-                if (!_isActivated)
-                {
-                    OASISErrorHandling.HandleError(ref response, "Optimism provider is not activated");
-                    return response;
-                }
-
-                // Load avatar from Optimism blockchain
-                var queryUrl = $"/api/v1/accounts/{id}";
-
-                var httpResponse = await _httpClient.GetAsync(queryUrl);
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    var content = await httpResponse.Content.ReadAsStringAsync();
-                    var avatar = ParseOptimismToAvatar(id, content);
-                    response.Result = avatar;
-                    response.IsError = false;
-                    response.IsLoaded = true;
-                    response.LoadedCount = 1;
-                    response.Message = "Avatar loaded successfully from Optimism blockchain";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to load avatar from Optimism blockchain: {httpResponse.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error loading avatar from Optimism: {ex.Message}");
-            }
-
-            return response;
-        }
+        public override Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0)
+            => LoadAvatarByProviderKeyAsync(id.ToString("D"), version);
 
         public override OASISResult<IAvatar> LoadAvatar(Guid id, int version = 0)
         {
@@ -285,29 +241,6 @@ namespace NextGenSoftware.OASIS.API.Providers.OptimismOASIS
         }
 
 
-
-        /// <summary>
-        /// Parse Optimism blockchain response to Avatar object
-        /// </summary>
-        private static Avatar ParseOptimismToAvatar(Guid expectedId, string optimismJson)
-        {
-            using var document = JsonDocument.Parse(optimismJson);
-            var row = document.RootElement;
-            if (row.ValueKind != JsonValueKind.Object)
-                throw new System.IO.InvalidDataException("Optimism avatar response must contain a record object.");
-
-            var identities = row.EnumerateObject().Where(property =>
-                string.Equals(property.Name, "id", StringComparison.OrdinalIgnoreCase)).ToArray();
-            if (expectedId == Guid.Empty || identities.Length != 1 ||
-                identities[0].Value.ValueKind != JsonValueKind.String ||
-                !identities[0].Value.TryGetGuid(out var storedId) || storedId != expectedId)
-                throw new System.IO.InvalidDataException("Optimism avatar response does not identify the requested record.");
-
-            var avatar = NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.DeserializeStored<Avatar>(optimismJson);
-            if (avatar == null || avatar.Id != expectedId)
-                throw new System.IO.InvalidDataException("Optimism avatar identity differs from the decoded record.");
-            return avatar;
-        }
 
         /// <summary>
         /// Convert Avatar to Optimism blockchain format
