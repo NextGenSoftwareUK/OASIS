@@ -4,6 +4,7 @@ on:
   push:
     branches: [work/hyperdrive-provider-completion]
     paths:
+      - '.github/workflows/firebase-native-storage.yml'
       - 'Providers/Cloud/NextGenSoftware.OASIS.API.Providers.FirebaseOASIS/**'
       - 'Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.FirebaseOASIS.IntegrationTests/FirebaseNativeStorageConformanceTests.cs'
   workflow_dispatch:
@@ -49,8 +50,7 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
-      - name: Compile the Firebase conformance entry points
-        if: ${{ inputs.compile_only }}
+      - name: Compile the Firebase conformance entry points and check activation
         shell: pwsh
         run: |
           ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-FirebaseCompile -Operation {
@@ -60,6 +60,9 @@ jobs:
               dotnet build $project /p:IncludeCoreStorageConformance=true /m:2 /nr:false /p:UseSharedCompilation=false --verbosity quiet
               if ($LASTEXITCODE -ne 0) { throw "Firebase test project failed to compile: $project" }
             }
+            $unit = $projects | Where-Object { $_ -like '*UnitTests.csproj' }
+            dotnet test $unit --no-build --no-restore /p:IncludeCoreStorageConformance=true --filter 'FullyQualifiedName~ActivationRequiresTheRealtimeDatabaseMissingRecordResponse' --logger 'console;verbosity=normal'
+            if ($LASTEXITCODE -ne 0) { throw 'Firebase activation response regression failed.' }
           }
       - uses: actions/setup-java@v4
         if: ${{ !inputs.compile_only }}
@@ -117,7 +120,7 @@ jobs:
           curl -fsS --max-time 5 "$FIREBASEOASIS_DATABASEURL/.json?ns=$ns" | jq -e '. == null'
           pwsh -NoProfile -Command '
             ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-FirebaseStorage -Operation {
-              dotnet test "Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.FirebaseOASIS.IntegrationTests" --filter "FullyQualifiedName~CoreStorageAgainstRealtimeDatabase" /m:2 /nr:false /p:UseSharedCompilation=false --logger "console;verbosity=normal"
+              dotnet test "Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.FirebaseOASIS.IntegrationTests" --no-build --no-restore --filter "FullyQualifiedName~CoreStorageAgainstRealtimeDatabase" --logger "console;verbosity=normal"
               if ($LASTEXITCODE -ne 0) { throw "Firebase native storage verification failed." }
             }'
           for mode in async sync; do
