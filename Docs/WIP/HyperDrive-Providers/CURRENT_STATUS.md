@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. Canonical HoloOASIS now tells HoloNET to reuse an installed app when a new provider instance opens the same conductor. The pinned SDK defaults to uninstalling the prior app, which would replace the agent and its storage. The native startup harness now reopens the app through a fresh provider instance and requires the same native agent identity and successful deactivation. Runtime verification remains open.
+
 12 November Cancun time. [Linux HoloOASIS job 131072482346](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43185791290/job/131072482346) reached the downloaded conductor, installed the shipping hApp, and connected the authenticated app socket. Deactivation failed after the admin connection shut down the conductor before the app socket disconnected. Canonical HoloOASIS now closes the app socket first. The Linux fixture confirmed directory cleanup. [Windows job 131070904621](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43185313802/job/131070904621) installed and enabled the hApp and stopped while waiting for the capability grant. Both focused startup results remain open.
 
 12 November Cancun time. All seven Railway APIs reported deployment success at Azure Cosmos DB revision `4fef831e0be6`. Added a separate Linux HoloOASIS startup job that builds on the resolved Development pins, starts with an empty SDK cache and no conductor listener, and exercises download, activation and deactivation through BootLoader. The job checks the downloaded conductor version and listener shutdown. CI execution and deployed WEB4 HoloOASIS verification remain open.

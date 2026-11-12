@@ -102,7 +102,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                                 OASIS_HAPP_ID,
                                 OASIS_HAPP_PATH,
                                 OASIS_HAPP_ROLE_NAME,
-                                CapGrantAccessType.Transferable);
+                                CapGrantAccessType.Transferable,
+                                uninstallhAppIfAlreadyInstalled: false);
 
                             if (installedAppResult != null && installedAppResult.IsSuccess && !installedAppResult.IsError)
                             {
