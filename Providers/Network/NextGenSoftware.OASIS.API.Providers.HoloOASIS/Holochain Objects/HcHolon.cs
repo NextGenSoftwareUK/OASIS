@@ -19,6 +19,9 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
         [HolochainRustFieldName("id")]
         public Guid Id { get; set; }
 
+        [HolochainRustFieldName("created_by_avatar_id")]
+        public Guid? CreatedByAvatarId { get; set; }
+
         [HolochainRustFieldName("name")]
         public string Name { get; set; }
 

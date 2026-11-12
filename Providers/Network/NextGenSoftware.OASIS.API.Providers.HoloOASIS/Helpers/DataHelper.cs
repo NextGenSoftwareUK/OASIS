@@ -553,6 +553,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
             hcHolon.Name = holon.Name;
             hcHolon.Description = holon.Description;
             hcHolon.CreatedBy = holon.CreatedByAvatarId.ToString();
+            if (hcHolon is HcHolon nativeHolon)
+                nativeHolon.CreatedByAvatarId = holon.CreatedByAvatarId;
             hcHolon.CreatedDate = holon.CreatedDate;
             hcHolon.ModifiedBy = holon.ModifiedByAvatarId.ToString();
             hcHolon.ModifiedDate = holon.ModifiedDate;
@@ -607,7 +609,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
                 Id = hcHolon.Id,
                 Name = hcHolon.Name,
                 Description = hcHolon.Description,
-                CreatedByAvatarId = ParseGuidOrEmpty(hcHolon.CreatedBy),
+                CreatedByAvatarId = (hcHolon as HcHolon)?.CreatedByAvatarId ?? ParseGuidOrEmpty(hcHolon.CreatedBy),
                 CreatedDate = hcHolon.CreatedDate,
                 ModifiedByAvatarId = ParseGuidOrEmpty(hcHolon.ModifiedBy),
                 ModifiedDate = hcHolon.ModifiedDate,
@@ -657,6 +659,9 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
 
         public static IHolon ConvertKeyValuePairToHolon(Dictionary<string, string> keyValuePair)
         {
+            var ownerId = keyValuePair.TryGetValue("created_by_avatar_id", out var owner)
+                ? Guid.Parse(owner)
+                : ParseGuidOrEmpty(keyValuePair["created_by"]);
             Holon holon = new Holon
             {
                 Id = new Guid(keyValuePair["id"]),
@@ -670,7 +675,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
                 CreatedProviderType = new Utilities.EnumValue<ProviderType>((ProviderType)Enum.Parse(typeof(ProviderType), keyValuePair["created_provider_type"])),
                 CustomKey = keyValuePair["custom_key"],
                 IsActive = Convert.ToBoolean(keyValuePair["is_active"]),
-                CreatedByAvatarId = new Guid(keyValuePair["created_by"]),
+                CreatedByAvatarId = ownerId,
                 CreatedDate = Convert.ToDateTime(keyValuePair["created_date"]),
                 ModifiedByAvatarId = new Guid(keyValuePair["modified_by"]),
                 ModifiedDate = Convert.ToDateTime(keyValuePair["modified_date"]),
@@ -717,6 +722,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
                 name = holon.Name,
                 description = holon.Description,
                 created_by = holon.CreatedByAvatarId.ToString(),
+                created_by_avatar_id = holon.CreatedByAvatarId.ToString(),
                 created_date = holon.CreatedDate.ToString(),
                 modified_by = holon.ModifiedByAvatarId.ToString(),
                 modified_date = holon.ModifiedDate.ToString(),

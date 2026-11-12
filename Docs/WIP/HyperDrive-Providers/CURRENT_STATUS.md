@@ -17,6 +17,8 @@
 
 ## Verification log
 
+12 November Cancun time. [Canonical native run 43172617448](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43172617448) passed 17 of 26 checks in both modes, including metadata selection, batch save and import. Both stopped at owner export. HoloNET ORM assigns the conductor agent key to the `created_by` audit field. HoloOASIS now persists the OASIS creator GUID in `created_by_avatar_id` and uses it for owner selection. Existing records whose legacy audit field contains a GUID retain that ownership. Records containing only an agent key cannot recover a creator GUID from that field. Native verification remains open. Development WEB4 reported success at `497c16e87695`.
+
 12 November Cancun time. Reconciled existing 52/52 evidence for Solana, Cosmos chain, Polkadot and TRON against the exact successful native CI jobs. Each logged 26 checks in both modes and its cleanup gate. The registry records run, job, revision and backend. Original local checkpoint reports remain preserved. No provider tests were rerun for this reconciliation.
 
 12 November Cancun time. [Native run 43171424613](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43171424613) passed 10 checks per mode and then failed the holon-ID read. The pinned HoloNET ORM serializes dictionaries as JSON strings inside the native record. The new reader originally treated that value as a native map. It now decodes the stored JSON string as well as an object-valued native field, with untrusted MessagePack settings. Real-conductor verification of the corrected codec remains open.

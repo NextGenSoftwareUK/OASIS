@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+12 November canonical HoloOASIS run 43172617448 reached 17 checks in both modes before owner export failed. It used the disposable Windows runner and no local build output, download or report.
+
 12 November canonical HoloOASIS run 43171424613 reached 10 checks per mode before the holon-ID result failed. It used disposable Windows CI and created no local build output, download, or report.
 
 12 November canonical HoloOASIS run 43170248569 reported 14 checks per mode before metadata selection failed. Superseded run 43166769837 reached the 20-minute hosted limit. Both used disposable hosted Windows runners. No local build output, download, or report was created.
