@@ -5,18 +5,24 @@
 | Area | Recorded status |
 | --- | --- |
 | Project inventory | 234 projects: 178 storage or specialized storage, including the obsolete Desktop compatibility wrapper, and 56 non-storage. |
-| Shared storage coverage | All 53 matrix entries recorded at 52/52 native core-storage-v2 have reconciled evidence. The registry contains 23 reports verified against their SHA-256 hashes and 30 passes independently checked against completed native CI jobs and their cleanup gates. |
+| Shared storage coverage | All 54 matrix entries recorded at 52/52 native core-storage-v2 have reconciled evidence. The registry contains 23 reports verified against their SHA-256 hashes and 31 passes independently checked against completed native CI jobs and their cleanup gates. |
 | Priority storage providers | The matrix records 52/52 native checks for Supabase, Solana, MongoDB, SQLite, Neo4j, SQL Server, Oracle, AWS DynamoDB and S3, IPFS, NEAR, Cosmos chain, Azure Cosmos DB, Google Firestore, Polkadot, Solid, Polygon, Arbitrum, TRON, EOSIO, TON, and Hedera/Hashgraph. Several use isolated native engines, emulators or local networks. See each row for hosted and capability gaps. |
 | ActivityPub and routing | ActivityPub has 5/5 native capability checks. GOMap passed a public OSRM driving route. Authenticated Google Routes, Mapbox and HERE checks remain open. Niantic and WRLD still have reviewed adapter gaps. |
 | Canonical HoloOASIS | Top priority. Both modes passed all 52 native core-storage-v2 checks on the official Windows conductor with the verified identity-delete hApp in [run 43178174352](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43178174352). The verified bundle is packaged on the provider branch. Hosted, multi-agent and broader capability acceptance remain open. |
 | HoloOASIS.Desktop | Obsolete in source, package metadata and repository documentation at `45d6665da989`. The six-file compatibility and documentation batch reached Development at `70d3fbb4a31c`. Published NuGet metadata and live site listings still need the obsolescence update. |
-| Development | `c82faa749a36` integrates the verified Qdrant storage and embedding lifecycle after seven successful Meilisearch deployments. The Qdrant Railway rollout and live HyperDrive HoloOASIS writes remain open. |
+| Development | `c82faa749a36` integrates the verified Qdrant storage and embedding lifecycle after seven successful Meilisearch deployments. All seven Qdrant Railway deployments succeeded. Live HyperDrive HoloOASIS writes remain open. |
 | BootLoader startup | The shipping registration, activation and deactivation path passed against native Polkadot and TRON fixtures and the Microsoft Azure Cosmos DB emulator. [Azure Cosmos DB job 131055311882](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43180594194/job/131055311882) confirmed fixture teardown. |
 | HyperDrive | Global automatic failover, replication and load balancing await provider acceptance. Dragonfly and KeyDB full native runs were queued at the coverage review. |
 
 [Provider matrix](PROVIDER_MATRIX.md) · [Evidence registry](CONFORMANCE_RESULTS.json) · [Cleanup ledger](WORKSPACE_CLEANUP_LEDGER.md)
 
 ## Verification log
+
+12 November Cancun time. Both [exact Weaviate Development jobs](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43284284598) passed 26/26 with no skips, empty native collections and verified teardown on tree `886f054f98cb057620d3086ee5ee4e9b3dd9149d`. Candidate `28aeb68f79fd` reproduces the tree on Qdrant Development. If COSMIC advances first, refresh the candidate against the new parent.
+
+12 November Cancun time. Coordination for the 14:07:53 Development window. The priority COSMIC HoloOASIS candidate `4a071c9ec906` is based on current Qdrant Development, and its [exact native conductor job](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43282212891) succeeded. All seven Qdrant deployments are green. Leave the next window available for the COSMIC candidate if it is release-ready. Requalify Weaviate against the new parent after that integration.
+
+12 November Cancun time. Both [Weaviate jobs](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43283609814) passed all 26 shared storage checks against Weaviate 1.39.8 and independently verified all three collections empty. Native graph writes, import and avatar/detail deletion passed. [Exact Development qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43284284598) applies the three scoped provider and fixture paths to the current Development parent and verifies the resulting tree. Hosted, deeper graph and broader capability acceptance remain open.
 
 12 November Cancun time. Both [Weaviate jobs](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43282991049) passed six native checks, including all three avatar lookups and the detail save. The first detail read failed. The adapter now decodes stored details and holons with the shared persisted-record serializer used by Qdrant. Import forwards the native write count, and hard avatar deletion removes its matching detail before deleting the avatar. Native verification of these changes remains open.
 

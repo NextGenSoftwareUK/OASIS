@@ -1,5 +1,11 @@
 # Current resource and cleanup ledger
 
+12 November exact Weaviate Development run 43284284598 confirmed both jobs independently removed their exact fixtures, native nodes, volumes and checkpoint directories. Candidate commit creation generated no local test files.
+
+12 November Weaviate candidate tree reconstruction used one temporary Git index. The index was removed and its absence verified. No worktree, local build output or test environment was created.
+
+12 November Weaviate run 43283609814 completed both modes and verified exact fixture cleanup and three independently empty native collections. Both disposable runner jobs removed the owned container, volumes and checkpoint directory. No local build, download or report was created.
+
 12 November Weaviate run 43282991049 stopped at the detail lookup after six successful checks per mode. Both hosted jobs removed their owned node, volumes and checkpoint directory. No local test output was generated.
 
 12 November Weaviate run 43282382446 stopped at the avatar read acknowledgement after two successful checks per mode. Both hosted runners removed their owned node, volumes and checkpoint directory. No local test output was generated.
