@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. A read-only check inside exact WEB4 deployment `beee483d-ff42-4aff-9708-2612b0700cb8` verified the packaged hApp digest and effective local HoloOASIS settings. The deployed HyperDrive enabled list and prepared admission configuration omit HoloOASIS, no CQL HoloOASIS settings were present, and the configured admin port had no listener. This identifies the live enrollment gap. No settings, data or processes were changed. The existing owner entry records the scope for a Development fixture.
+
 12 November Cancun time. [Firestore job 131099234527](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43193729592/job/131099234527) passed one native startup check with zero skips and verified cleanup on Development `4838fdd9e694`. Candidate `13711062c58a` reproduces the exact two-file CI tree `4d5287b2f0299d1012da589e08c4e0cf138c596d`. All seven Railway deployments succeeded on the baseline. WEB4 deployment `beee483d-ff42-4aff-9708-2612b0700cb8` returned healthy; filtered logs showed a HoloOASIS boot mention without conductor activation evidence. No hosted storage request was sent.
 
 12 November Cancun time. Reconciled Blockscout's previously recorded native .NET address reads and Development WEB4 public full/subset browser results with the provider matrix. The evidence applies to the dedicated query-only CQL source. The legacy adapter, private paired browser flow and intermittent hosted startup remain open. The COSMIC fixture and recorded requests were preserved without replay.
