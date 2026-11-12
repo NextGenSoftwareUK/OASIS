@@ -6394,3 +6394,5 @@ Track ci-cosmic-urbit-web4-98fae8117c for native federation run 43153031802. Ret
 Track ci-cosmic-urbit-web4-2784481190 for corrected native federation CI 43154020812. Failed candidate ci-cosmic-urbit-web4-98fae8117c started no native fixture. Keep existing evidence refs until the rerun qualifies the replacement. Compiler errors inspected in memory; no downloaded logs, local build or fixture. Temporary Git indices removed.
 
 Track ci-cosmic-urbit-web4-3aef8cd60a through cold-cache CI 43155994072. Candidate 2784481190 compiled both test hosts but started no fixture because the cache was missing. Runtime assets remain CI-only. Temporary Git indices removed. No local build, downloaded logs, fixture or environment.
+
+Track ci-cosmic-urbit-web4-412b95a3db for native federation CI 43157661058. Earlier cold-cache CI built assets on its disposable runner and stopped before fixtures. Local framing tests ran with bytecode disabled and retained no files. Temporary Git indices removed. No local runtime, fixture, download or log artifact.
