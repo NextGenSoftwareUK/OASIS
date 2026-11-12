@@ -3,9 +3,12 @@ param(
     [Parameter(Mandatory)][string]$Project,
     [Parameter(Mandatory)][string]$Happ,
     [Parameter(Mandatory)][string]$ResultsDirectory,
-    [string]$Configuration = 'Release'
+    [string]$Configuration = 'Release',
+    [string]$DesktopProject,
+    [string]$CqlProject
 )
 $ErrorActionPreference = 'Stop'
+if ($DesktopProject -and $CqlProject) { throw 'Select one native qualification project.' }
 function Assert-CompleteTestReport([string]$Path, [int]$Minimum) {
     [xml]$report = Get-Content -LiteralPath $Path -Raw
     $counters = $report.SelectSingleNode('//*[local-name()="Counters"]')
@@ -17,6 +20,7 @@ function Assert-CompleteTestReport([string]$Path, [int]$Minimum) {
 if ($env:GITHUB_ACTIONS -ne 'true' -or -not $IsWindows) {
     throw 'This fixture provisions a Windows hosted-runner conductor only; no local installation is allowed.'
 }
+$Project = (Resolve-Path -LiteralPath $Project).Path
 $resources = Join-Path (Split-Path (Split-Path $Project -Parent) -Parent) 'NextGenSoftware.Holochain.HoloNET.Client/Resources'
 $tools = @{
     'hc-0.7.0.exe' = '643ed26e84a7ae72a454bd78b9427b50883fb1306406ba7b5fa4857c61c6b322'
@@ -43,51 +47,56 @@ if (Test-Path -LiteralPath $fixture) { throw 'Conductor fixture already exists; 
 New-Item -ItemType Directory -Path $fixture | Out-Null
 $fixture = (Resolve-Path -LiteralPath $fixture).Path
 $Happ = (Resolve-Path -LiteralPath $Happ).Path
-$Project = (Resolve-Path -LiteralPath $Project).Path
-$holonetRoot = Split-Path (Split-Path $Project -Parent) -Parent
-$legacy = Join-Path $holonetRoot 'NextGenSoftware.Holochain.HoloNET.Client.Tests/Fixtures/legacy-oasis.happ'
-if (-not (Test-Path -LiteralPath $legacy)) { $legacy = Join-Path $holonetRoot 'HoloNET-Manager/NextGenSoftware.Holochain.HoloNET.Manager/OASIS_hAPP/oasis.happ' }
-if (-not (Test-Path -LiteralPath $legacy)) { throw 'Pinned legacy hApp rejection fixture is missing; the full release suite must not skip it.' }
-$legacyBlob = (& git hash-object $legacy).Trim()
-if ($LASTEXITCODE -ne 0 -or $legacyBlob -ne '4069c5da8349f7a866f46fd0bc9a17e4dcef70c0') { throw 'Legacy hApp rejection fixture differs from the reviewed Git blob.' }
+if ($CqlProject) { $CqlProject = (Resolve-Path -LiteralPath $CqlProject).Path }
+elseif ($DesktopProject) { $DesktopProject = (Resolve-Path -LiteralPath $DesktopProject).Path }
+else {
+    $holonetRoot = Split-Path (Split-Path $Project -Parent) -Parent
+    $legacy = Join-Path $holonetRoot 'NextGenSoftware.Holochain.HoloNET.Client.Tests/Fixtures/legacy-oasis.happ'
+    if (-not (Test-Path -LiteralPath $legacy)) { $legacy = Join-Path $holonetRoot 'HoloNET-Manager/NextGenSoftware.Holochain.HoloNET.Manager/OASIS_hAPP/oasis.happ' }
+    if (-not (Test-Path -LiteralPath $legacy)) { throw 'Pinned legacy hApp rejection fixture is missing; the full release suite must not skip it.' }
+    $legacyBlob = (& git hash-object $legacy).Trim()
+    if ($LASTEXITCODE -ne 0 -or $legacyBlob -ne '4069c5da8349f7a866f46fd0bc9a17e4dcef70c0') { throw 'Legacy hApp rejection fixture differs from the reviewed Git blob.' }
+}
 $ResultsDirectory = (Resolve-Path -LiteralPath $ResultsDirectory).Path
 $saved = @{}
-$names = @('HOLONET_LIVE_ADMIN_URI', 'HOLONET_LIVE_HAPP_PATH', 'HOLONET_LIVE_CLONE_HAPP_PATH', 'HOLONET_LIVE_MEMPROOFS_HAPP_PATH', 'HOLONET_LIVE_HC_BIN', 'HOLONET_GENERATE_HAPP_TO', 'HOLONET_GENERATE_HAPP_VERSION', 'HOLONET_LIVE_GENERATED_HAPP_DIR', 'HOLONET_LIVE_GENERATED_SRC_DIR')
+$names = @('OASIS_CQL_HOLOOASIS_NATIVE', 'OASIS_HOLOCHAIN_ADMIN_URI', 'HOLONET_LIVE_ADMIN_URI', 'HOLONET_LIVE_HAPP_PATH', 'HOLONET_LIVE_CLONE_HAPP_PATH', 'HOLONET_LIVE_MEMPROOFS_HAPP_PATH', 'HOLONET_LIVE_HC_BIN', 'HOLONET_GENERATE_HAPP_TO', 'HOLONET_GENERATE_HAPP_VERSION', 'HOLONET_LIVE_GENERATED_HAPP_DIR', 'HOLONET_LIVE_GENERATED_SRC_DIR')
 foreach ($name in $names) { $saved[$name] = [Environment]::GetEnvironmentVariable($name) }
 $process = $null
 Push-Location $fixture
 try {
-    $generated = Join-Path (Split-Path $PSScriptRoot -Parent) 'artifacts/holonet-generated-fixture/package'
-    $identity = Get-Content (Join-Path $generated 'manifest.json') -Raw | ConvertFrom-Json
-    $clientCommit = (& git -C (Split-Path (Split-Path $Project -Parent) -Parent) rev-parse HEAD).Trim()
-    if ($LASTEXITCODE -ne 0 -or $identity.sourceCommit -ne $clientCommit -or $identity.holochainVersion -ne '0.7.1') { throw 'Generated fixture source/version mismatch.' }
-    foreach ($file in $identity.files.PSObject.Properties) {
-        if ($file.Name -match '(^/|\.\.|:)') { throw 'Unsafe generated fixture catalogue path.' }
-        if ((Get-FileHash (Join-Path $generated $file.Name) -Algorithm SHA256).Hash -ine $file.Value) { throw 'Generated fixture digest mismatch.' }
-    }
-    foreach ($required in @('holonet_game.happ', 'CSharp/Player.cs', 'CSharp/GameItem.cs')) {
-        if (-not $identity.files.PSObject.Properties[$required]) { throw "Missing generated fixture contract: $required" }
-    }
-    $env:HOLONET_LIVE_GENERATED_HAPP_DIR = $generated
-    $env:HOLONET_LIVE_GENERATED_SRC_DIR = $generated
-    $env:HOLONET_GENERATE_HAPP_TO = Join-Path $fixture 'generated-test-output'
-    $env:HOLONET_GENERATE_HAPP_VERSION = '0.7.1'
-    foreach ($variant in @('clone', 'memproofs')) {
-        $directory = Join-Path $fixture $variant
-        & $hc app unpack $Happ --output $directory
-        if ($LASTEXITCODE -ne 0) { throw 'Unable to unpack the verified hApp fixture.' }
-        $manifest = Join-Path $directory 'happ.yaml'
-        $yaml = Get-Content -LiteralPath $manifest -Raw
-        $pattern = if ($variant -eq 'clone') { 'clone_limit: 0' } else { 'allow_deferred_memproofs: false' }
-        $replacement = if ($variant -eq 'clone') { 'clone_limit: 3' } else { 'allow_deferred_memproofs: true' }
-        if ([regex]::Matches($yaml, [regex]::Escape($pattern)).Count -ne 1) { throw "Unexpected $variant fixture manifest contract." }
-        $yaml.Replace($pattern, $replacement) | Set-Content -LiteralPath $manifest
-        & $hc app pack $directory
-        if ($LASTEXITCODE -ne 0) { throw "Unable to pack $variant hApp fixture." }
-        $bundle = @(Get-ChildItem -LiteralPath $directory -Filter '*.happ' -File)
-        if ($bundle.Count -ne 1) { throw "Expected one $variant hApp bundle." }
-        $variable = if ($variant -eq 'clone') { 'HOLONET_LIVE_CLONE_HAPP_PATH' } else { 'HOLONET_LIVE_MEMPROOFS_HAPP_PATH' }
-        [Environment]::SetEnvironmentVariable($variable, $bundle[0].FullName)
+    if (-not $DesktopProject -and -not $CqlProject) {
+        $generated = Join-Path (Split-Path $PSScriptRoot -Parent) 'artifacts/holonet-generated-fixture/package'
+        $identity = Get-Content (Join-Path $generated 'manifest.json') -Raw | ConvertFrom-Json
+        $clientCommit = (& git -C (Split-Path (Split-Path $Project -Parent) -Parent) rev-parse HEAD).Trim()
+        if ($LASTEXITCODE -ne 0 -or $identity.sourceCommit -ne $clientCommit -or $identity.holochainVersion -ne '0.7.1') { throw 'Generated fixture source/version mismatch.' }
+        foreach ($file in $identity.files.PSObject.Properties) {
+            if ($file.Name -match '(^/|\.\.|:)') { throw 'Unsafe generated fixture catalogue path.' }
+            if ((Get-FileHash (Join-Path $generated $file.Name) -Algorithm SHA256).Hash -ine $file.Value) { throw 'Generated fixture digest mismatch.' }
+        }
+        foreach ($required in @('holonet_game.happ', 'CSharp/Player.cs', 'CSharp/GameItem.cs')) {
+            if (-not $identity.files.PSObject.Properties[$required]) { throw "Missing generated fixture contract: $required" }
+        }
+        $env:HOLONET_LIVE_GENERATED_HAPP_DIR = $generated
+        $env:HOLONET_LIVE_GENERATED_SRC_DIR = $generated
+        $env:HOLONET_GENERATE_HAPP_TO = Join-Path $fixture 'generated-test-output'
+        $env:HOLONET_GENERATE_HAPP_VERSION = '0.7.1'
+        foreach ($variant in @('clone', 'memproofs')) {
+            $directory = Join-Path $fixture $variant
+            & $hc app unpack $Happ --output $directory
+            if ($LASTEXITCODE -ne 0) { throw 'Unable to unpack the verified hApp fixture.' }
+            $manifest = Join-Path $directory 'happ.yaml'
+            $yaml = Get-Content -LiteralPath $manifest -Raw
+            $pattern = if ($variant -eq 'clone') { 'clone_limit: 0' } else { 'allow_deferred_memproofs: false' }
+            $replacement = if ($variant -eq 'clone') { 'clone_limit: 3' } else { 'allow_deferred_memproofs: true' }
+            if ([regex]::Matches($yaml, [regex]::Escape($pattern)).Count -ne 1) { throw "Unexpected $variant fixture manifest contract." }
+            $yaml.Replace($pattern, $replacement) | Set-Content -LiteralPath $manifest
+            & $hc app pack $directory
+            if ($LASTEXITCODE -ne 0) { throw "Unable to pack $variant hApp fixture." }
+            $bundle = @(Get-ChildItem -LiteralPath $directory -Filter '*.happ' -File)
+            if ($bundle.Count -ne 1) { throw "Expected one $variant hApp bundle." }
+            $variable = if ($variant -eq 'clone') { 'HOLONET_LIVE_CLONE_HAPP_PATH' } else { 'HOLONET_LIVE_MEMPROOFS_HAPP_PATH' }
+            [Environment]::SetEnvironmentVariable($variable, $bundle[0].FullName)
+        }
     }
     # Embedded lair uses the verified conductor binary; no additional installation.
     if (@(Get-NetTCPConnection -LocalPort 65464 -State Listen -ErrorAction SilentlyContinue).Count) {
@@ -120,10 +129,24 @@ try {
     $env:HOLONET_LIVE_ADMIN_URI = 'ws://127.0.0.1:65464'
     $env:HOLONET_LIVE_HAPP_PATH = $Happ
     $env:HOLONET_LIVE_HC_BIN = $hc
-    # Complementary partitions: auto-start owns its conductors and must run only after this one exits.
-    & dotnet test $Project --configuration $Configuration --filter 'FullyQualifiedName!~LiveConductorAutoStartTests' --logger 'trx;LogFileName=holonet-app-authentication.trx' --results-directory $ResultsDirectory --nologo
-    if ($LASTEXITCODE -ne 0) { throw 'HoloNET live release tests failed.' }
-    Assert-CompleteTestReport (Join-Path $ResultsDirectory 'holonet-app-authentication.trx') 1188
+    if ($CqlProject) {
+        $env:OASIS_CQL_HOLOOASIS_NATIVE = '1'
+        & dotnet test $CqlProject --configuration $Configuration --filter 'FullyQualifiedName~CqlHoloOasisConductorTests' --logger 'trx;LogFileName=holo-cql-native.trx' --results-directory $ResultsDirectory /m:2 /nr:false /p:UseSharedCompilation=false --blame-hang-timeout 2m --blame-hang-dump-type none
+        if ($LASTEXITCODE -ne 0) { throw 'Native HoloOASIS CQL lifecycle failed.' }
+        Assert-CompleteTestReport (Join-Path $ResultsDirectory 'holo-cql-native.trx') 1
+    }
+    elseif ($DesktopProject) {
+        $env:OASIS_HOLOCHAIN_ADMIN_URI = $env:HOLONET_LIVE_ADMIN_URI
+        & dotnet test $DesktopProject --configuration $Configuration --filter 'FullyQualifiedName~DesktopAvatarAndHolonCrud' --logger 'trx;LogFileName=holo-desktop-native.trx' --results-directory $ResultsDirectory /m:2 /nr:false /p:UseSharedCompilation=false
+        if ($LASTEXITCODE -ne 0) { throw 'Native Holo Desktop lifecycle failed.' }
+        Assert-CompleteTestReport (Join-Path $ResultsDirectory 'holo-desktop-native.trx') 1
+    }
+    else {
+        # Complementary partitions: auto-start owns its conductors and must run only after this one exits.
+        & dotnet test $Project --configuration $Configuration --filter 'FullyQualifiedName!~LiveConductorAutoStartTests' --logger 'trx;LogFileName=holonet-app-authentication.trx' --results-directory $ResultsDirectory --nologo
+        if ($LASTEXITCODE -ne 0) { throw 'HoloNET live release tests failed.' }
+        Assert-CompleteTestReport (Join-Path $ResultsDirectory 'holonet-app-authentication.trx') 1188
+    }
 }
 finally {
     if ($process) {
@@ -157,6 +180,8 @@ finally {
     foreach ($name in $names) { [Environment]::SetEnvironmentVariable($name, $saved[$name]) }
     Pop-Location
 }
+
+if ($DesktopProject -or $CqlProject) { return }
 
 # The upstream lifecycle tests intentionally kill conductor processes. Keep them
 # isolated from the shared-conductor suite, but require their own release report.
