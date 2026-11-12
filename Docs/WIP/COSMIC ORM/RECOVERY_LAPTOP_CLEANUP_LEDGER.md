@@ -6490,3 +6490,5 @@ Track temporary `ci-cosmic-holooasis-managed-465664cb12` for corrected qualifica
 12 November Cancun time. Deleted and verified removal of `ci-cosmic-holooasis-managed-925f36416e` and `ci-cosmic-holooasis-managed-e0a5b74974` after both superseded image builds terminated. Retained CI receipts in the status log and the corrected `ci-cosmic-holooasis-managed-465664cb12` tag for active qualification. No local files downloaded.
 
 Track temporary tag `ci-cosmic-holooasis-managed-895caf7c58` for reconciled exact qualification runs `43198084857` and `43198093353`. The temporary Git index was removed automatically. No local image, runtime, downloads or results were created.
+
+12 November Cancun time. Confirmed terminal cancellation of superseded WEB4 image run `43195372961`, then deleted and verified removal of its temporary `ci-cosmic-holooasis-managed-465664cb12` tag. The current exact candidate tag `ci-cosmic-holooasis-managed-895caf7c58` remains active. No image pulled locally.
