@@ -7,6 +7,7 @@ on:
       - '.github/workflows/holo-desktop-provider-build.yml'
       - 'Scripts/test_holonet_live_release.ps1'
       - 'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/Repositories/GenericRepository.cs'
+      - 'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/Helpers/DataHelper.cs'
       - 'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop/**'
       - 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests/**'
   workflow_dispatch:
@@ -68,6 +69,7 @@ jobs:
           $paths = @(
             'Scripts/test_holonet_live_release.ps1'
             'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/Repositories/GenericRepository.cs'
+            'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/Helpers/DataHelper.cs'
             'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop/HoloOASIS.cs'
             'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop/README.md'
             'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests/HoloOASISIntegrationTests.cs'

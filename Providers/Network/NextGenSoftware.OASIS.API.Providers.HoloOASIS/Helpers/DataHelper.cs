@@ -332,12 +332,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
                 Children = hcAvatarDetail.Children,
                 Country = hcAvatarDetail.Country,
                 County = hcAvatarDetail.County,
-                CreatedByAvatarId = new Guid(hcAvatarDetail.CreatedBy),
+                CreatedByAvatarId = ParseGuidOrEmpty(hcAvatarDetail.CreatedBy),
                 CreatedDate = hcAvatarDetail.CreatedDate,
                 CreatedOASISType = hcAvatarDetail.CreatedOASISType,
                 CreatedProviderType = hcAvatarDetail.CreatedProviderType,
                 CustomKey = hcAvatarDetail.CustomKey,
-                DeletedByAvatarId = new Guid(hcAvatarDetail.DeletedBy),
+                DeletedByAvatarId = ParseGuidOrEmpty(hcAvatarDetail.DeletedBy),
                 DeletedDate = hcAvatarDetail.DeletedDate,
                 Description = hcAvatarDetail.Description,
                 DimensionLevelIds = (Dictionary<DimensionLevel, Guid>)hcAvatarDetail.DimensionLevelIds,
@@ -359,7 +359,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
                 MetaData = hcAvatarDetail.MetaData,
                 Mobile = hcAvatarDetail.Mobile,
                 Model3D = hcAvatarDetail.Model3D,
-                ModifiedByAvatarId = new Guid(hcAvatarDetail.ModifiedBy),
+                ModifiedByAvatarId = ParseGuidOrEmpty(hcAvatarDetail.ModifiedBy),
                 ModifiedDate = hcAvatarDetail.ModifiedDate,
                 // Name is read-only, use the Name property from the source
                 // The Name property will be computed from FirstName, LastName, Title in AvatarDetail
@@ -386,7 +386,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
                 ActiveObjectiveId = hcAvatarDetail.ActiveObjectiveId
             };
 
-            avatarDetail.ProviderUniqueStorageKey[ProviderType.HoloOASIS] = hcAvatarDetail.EntryHash;
+            avatarDetail.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
+            avatarDetail.ProviderUniqueStorageKey[ProviderType.HoloOASIS] = hcAvatarDetail.ActionHash;
             return avatarDetail;
         }
 

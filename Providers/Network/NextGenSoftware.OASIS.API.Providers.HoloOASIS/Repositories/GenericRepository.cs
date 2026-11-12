@@ -90,7 +90,10 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Repositories
                     if (!string.IsNullOrEmpty(zomeLoadFunctionName))
                         hcObject.ZomeLoadEntryFunction = zomeLoadFunctionName;
 
-                    result = HandleLoadResponse(hcObject.LoadByCustomField(fieldValue, fieldName, version, customDataKeyValuePairs, UseReflection), hcObjectType, fieldName, fieldValue, hcObject, result, "Load");
+                    var response = version == 0
+                        ? hcObject.LoadByCustomField(fieldValue, fieldName, customDataKeyValuePairs, UseReflection)
+                        : hcObject.LoadByCustomField(fieldValue, fieldName, version, customDataKeyValuePairs, UseReflection);
+                    result = HandleLoadResponse(response, hcObjectType, fieldName, fieldValue, hcObject, result, "Load");
                 }
             }
             catch (Exception ex)
