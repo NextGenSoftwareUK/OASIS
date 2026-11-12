@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. All seven Railway APIs reported deployment success at Azure Cosmos DB revision `4fef831e0be6`. Added a separate Linux HoloOASIS startup job that builds on the resolved Development pins, starts with an empty SDK cache and no conductor listener, and exercises download, activation and deactivation through BootLoader. The job checks the downloaded conductor version and listener shutdown. CI execution and deployed WEB4 HoloOASIS verification remain open.
+
 12 November Cancun time. [HoloOASIS BootLoader run 43184458138](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43184458138) stopped before conductor execution because the runner overlap check used an older common revision. The runner blob on Development `4fef831e0be6` matches the provider branch parent immediately before the startup change. The startup runner and harness now use that reviewed baseline. Other files retain their existing overlap checks. A corrected native result remains open.
 
 12 November Cancun time. Development already pins HoloNET client `9f897b7ace60b6bdb5fda37e54ca932682122dd4`, which contains the conductor auto-download change and enables auto-start and auto-download by default. Canonical HoloOASIS passes the configured admin URI into that SDK configuration. The checked-in DNA enables local mode. The owner list marks the pin action resolved. Hosted Linux startup and effective Railway configuration still need runtime evidence. [Windows BootLoader run 43184458138](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43184458138) is in progress.

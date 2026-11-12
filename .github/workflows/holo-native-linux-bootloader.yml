@@ -1,0 +1,110 @@
+name: HoloOASIS Linux conductor startup
+
+on:
+  push:
+    branches: [work/hyperdrive-provider-completion]
+    paths:
+      - '.github/workflows/holo-native-linux-bootloader.yml'
+      - 'Scripts/TestHosts/Invoke-HoloLinuxBootLoaderActivation.ps1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  activation:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: OASIS
+    steps:
+      - name: Resolve the Development baseline
+        id: baseline
+        shell: bash
+        working-directory: ${{ github.workspace }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          revision="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/Development" --jq .object.sha)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "revision=$revision" >> "$GITHUB_OUTPUT"
+          echo "Qualifying Linux HoloOASIS on Development $revision"
+
+      - uses: actions/checkout@v7
+        with:
+          path: provider-source
+          persist-credentials: false
+
+      - uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          ref: ${{ steps.baseline.outputs.revision }}
+          path: OASIS
+          submodules: recursive
+          persist-credentials: false
+
+      - name: Admit HoloOASIS to the unchanged startup harness
+        shell: bash
+        run: |
+          path='OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader.TestHarness/Program.cs'
+          expected="$(git hash-object "$path")"
+          git -C ../provider-source fetch --no-tags --depth=1 origin 4fef831e0be670475bcaba71e6b46cf99c22c447
+          reviewed="$(git -C ../provider-source rev-parse "4fef831e0be670475bcaba71e6b46cf99c22c447:$path")"
+          incoming="$(git -C ../provider-source rev-parse "HEAD:$path")"
+          [[ "$expected" == "$reviewed" || "$expected" == "$incoming" ]]
+          cp -- "../provider-source/$path" "$path"
+          install -m 644 ../provider-source/Scripts/TestHosts/Invoke-HoloLinuxBootLoaderActivation.ps1 Scripts/TestHosts/
+
+      - name: Read the recorded Libraries revision
+        id: dependencies
+        shell: bash
+        run: |
+          revision="$(sed -n 's/^LIBRARIES_COMMIT=//p' Docker/oasis-dependency-versions.env)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "libraries=$revision" >> "$GITHUB_OUTPUT"
+          revision="$(sed -n 's/^HOLOCHAIN_COMMIT=//p' Docker/oasis-dependency-versions.env)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "holochain=$revision" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependencies.outputs.libraries }}
+          path: NextGenSoftware-Libraries
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+
+      - uses: actions/checkout@v7
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          ref: ${{ steps.dependencies.outputs.holochain }}
+          path: holochain-client-csharp
+          persist-credentials: false
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Download and start the official conductor through HoloNET
+        shell: bash
+        run: |
+          umask 077
+          fixture="$(mktemp -d "$RUNNER_TEMP/oasis-holo-linux.XXXXXXXX")"
+          cleanup() {
+            rm -rf -- "$fixture"
+            test ! -e "$fixture"
+            echo "Removed the owned HoloNET conductor cache and fixture directory."
+          }
+          trap cleanup EXIT
+          export OASIS_HOLO_LINUX_CI_FIXTURE="$fixture"
+          export HOLONET_CONDUCTOR_FOLDER="$fixture/conductors"
+          if command -v holochain || ss -H -ltn 'sport = :8888' | grep -q .; then
+            echo "An existing conductor binary or listener would invalidate the startup fixture."
+            exit 1
+          fi
+          pwsh -NoProfile -File Scripts/TestHosts/Invoke-HoloLinuxBootLoaderActivation.ps1
+          if ss -H -ltn 'sport = :8888' | grep -q .; then
+            echo "A conductor is still listening after provider deactivation."
+            exit 1
+          fi
