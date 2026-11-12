@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+12 November computed the expected TRON routing tree with one temporary Git index, removed it and verified it was absent. No local build, download, ledger or test results were created.
+
 12 November composed EOSIO candidate 8265a34f570d using one temporary Git index. Removed it and confirmed absence. No local builds, downloads or reports were created.
 
 12 November EOSIO routing run 43331151683 confirmed removal of each owned Antelope fixture directory after the native assertions. No local build, download or report was created.
