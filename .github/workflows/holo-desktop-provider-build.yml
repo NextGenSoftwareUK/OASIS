@@ -74,8 +74,8 @@ jobs:
         run: |
           $PSNativeCommandUseErrorActionPreference = $true
           # This runner baseline already includes the native CQL mode.
-          $runnerBase = '279ba0f0a99a76a68f19f0f03b35ef0a01d0fb58'
-          $startupBase = '4fef831e0be670475bcaba71e6b46cf99c22c447'
+          $startupBase = '4838fdd9e694dfd7a36b64f61fd8fc200eb96668'
+          $storageBase = '4fef831e0be670475bcaba71e6b46cf99c22c447'
           $source = '../provider-source'
           $paths = @(
             'Scripts/test_holonet_live_release.ps1'
@@ -92,9 +92,11 @@ jobs:
             'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests/HoloOASISIntegrationTests.cs'
             'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests.csproj'
           )
-          git -C $source fetch --no-tags --depth=1 --filter=blob:none origin $runnerBase $startupBase
+          git -C $source fetch --no-tags --depth=1 --filter=blob:none origin $startupBase $storageBase
           foreach ($path in $paths) {
-            $base = if ($path -eq 'Scripts/test_holonet_live_release.ps1') { $runnerBase } else { $startupBase }
+            $base = if ($path -eq 'Scripts/test_holonet_live_release.ps1' -or
+              $path -like '*/NextGenSoftware.OASIS.OASISBootLoader.TestHarness/Program.cs' -or
+              $path -like '*/NextGenSoftware.OASIS.API.Providers.HoloOASIS/HoloOASIS.ActivateDeactivateLoad.cs') { $startupBase } else { $storageBase }
             $before = git -C $source ls-tree $base -- $path
             $after = git -C $source ls-tree HEAD -- $path
             $current = git ls-tree HEAD -- $path

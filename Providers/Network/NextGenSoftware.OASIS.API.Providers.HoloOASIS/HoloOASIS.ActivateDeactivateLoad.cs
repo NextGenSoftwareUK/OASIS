@@ -41,7 +41,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 {
     public partial class HoloOASIS
     {
-
+        private bool _ownsAppClient;
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
         {
@@ -108,6 +108,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                             if (installedAppResult != null && installedAppResult.IsSuccess && !installedAppResult.IsError)
                             {
                                 BindAppClient(installedAppResult.HoloNETClientAppAgent);
+                                _ownsAppClient = true;
                                 IsProviderActivated = true;
                                 result.Result = true;
                             }
@@ -189,8 +190,16 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                     (holoNETClientAppAgent != null && holoNETClientAppAgent.IsDisconnected && !holoNETClientAppAgent.IsError);
                 if (adminDisconnected && appDisconnected)
                 {
-                    result.Result = true;
                     IsProviderActivated = false;
+                    if (_ownsAppClient)
+                    {
+                        var closedApp = HoloNETClientAppAgent;
+                        HoloNETClientAppAgent = null;
+                        _genericRepository = null;
+                        _ownsAppClient = false;
+                        (closedApp as IDisposable)?.Dispose();
+                    }
+                    result.Result = true;
                 }
             }
             catch (Exception e)

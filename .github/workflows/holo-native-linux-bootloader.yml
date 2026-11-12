@@ -48,12 +48,13 @@ jobs:
       - name: Apply the reviewed HoloOASIS lifecycle and harness changes
         shell: bash
         run: |
-          git -C ../provider-source fetch --no-tags --depth=1 origin 4fef831e0be670475bcaba71e6b46cf99c22c447
+          base=4838fdd9e694dfd7a36b64f61fd8fc200eb96668
+          git -C ../provider-source fetch --no-tags --depth=1 origin "$base"
           for path in \
             'OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader.TestHarness/Program.cs' \
             'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/HoloOASIS.ActivateDeactivateLoad.cs'; do
             expected="$(git hash-object "$path")"
-            reviewed="$(git -C ../provider-source rev-parse "4fef831e0be670475bcaba71e6b46cf99c22c447:$path")"
+            reviewed="$(git -C ../provider-source rev-parse "$base:$path")"
             incoming="$(git -C ../provider-source rev-parse "HEAD:$path")"
             [[ "$expected" == "$reviewed" || "$expected" == "$incoming" ]]
             cp -- "../provider-source/$path" "$path"
