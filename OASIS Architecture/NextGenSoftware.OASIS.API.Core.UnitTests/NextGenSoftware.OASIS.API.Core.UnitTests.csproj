@@ -87,4 +87,8 @@
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlUrbitReadSourceRegistration.cs" Link="Production/CqlUrbitReadSourceRegistration.cs" />
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlReadSourceProfile.cs" Link="Production/CqlReadSourceProfile.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../Providers/Network/NextGenSoftware.OASIS.API.Providers.InfuraOASIS/NextGenSoftware.OASIS.API.Providers.InfuraOASIS.csproj" />
+    <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlInfuraReadSourceRegistration.cs" Link="Production/CqlInfuraReadSourceRegistration.cs" />
+  </ItemGroup>
 </Project>

@@ -1,0 +1,95 @@
+name: Qualify retired Infura IPFS capability boundary
+
+on:
+  push:
+    branches: [work/cosmic-cql-ton-public]
+    paths:
+      - '.github/workflows/qualify-infura-ipfs-retirement.yml'
+      - 'Providers/Network/NextGenSoftware.OASIS.API.Providers.InfuraOASIS/**'
+      - 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/InfuraIpfsRetirementTests.cs'
+      - 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/InfuraNativeCqlTests.cs'
+  workflow_dispatch:
+    inputs:
+      authenticated_native:
+        description: Verify live Infura using the configured authorized server key and secret
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: infura-ipfs-retirement-qualification
+  cancel-in-progress: false
+
+jobs:
+  boundary:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          path: OASIS
+          submodules: true
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - name: Validate exact dependency pins
+        id: dependency
+        working-directory: OASIS
+        run: |
+          python3 -B Scripts/validate_railway_dependency_manifest.py --require-gitlinks
+          grep -E '^(LIBRARIES_COMMIT|HOLOCHAIN_COMMIT)=[0-9a-f]{40}$' Docker/oasis-dependency-versions.env >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependency.outputs.LIBRARIES_COMMIT }}
+          path: NextGenSoftware-Libraries
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          ref: ${{ steps.dependency.outputs.HOLOCHAIN_COMMIT }}
+          path: holochain-client-csharp
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+      - name: Verify actual provider retirement and retained input preservation
+        working-directory: OASIS
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner infura-ipfs-retirement-ci -Operation {
+            $project = 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/NextGenSoftware.OASIS.API.Core.UnitTests.csproj'
+            dotnet test $project /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~InfuraIpfsRetirementTests' --results-directory TestResults/InfuraIpfsRetirementCurrent --logger 'trx;LogFileName=query.trx'
+            if ($LASTEXITCODE) { throw 'Infura retirement qualification failed' }
+            [xml]$report = Get-Content TestResults/InfuraIpfsRetirementCurrent/query.trx
+            $counts = $report.TestRun.ResultSummary.Counters
+            if ($counts.total -ne '5' -or $counts.executed -ne '5' -or $counts.passed -ne '5') { throw 'All 5 Infura controls must execute and pass' }
+          }
+      - name: Verify explicitly requested authenticated Infura CQL
+        if: github.event_name == 'workflow_dispatch' && inputs.authenticated_native
+        working-directory: OASIS
+        shell: pwsh
+        env:
+          COSMIC_INFURA_VERIFY_NATIVE: '1'
+          CQL_INFURA_API_KEY: ${{ secrets.CQL_INFURA_API_KEY }}
+          CQL_INFURA_API_SECRET: ${{ secrets.CQL_INFURA_API_SECRET }}
+        run: |
+          if (!$env:CQL_INFURA_API_KEY -or !$env:CQL_INFURA_API_SECRET) {
+            throw 'Configure authorized Infura credentials before native qualification.'
+          }
+          $project = 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/NextGenSoftware.OASIS.API.Core.UnitTests.csproj'
+          dotnet test $project --no-build --no-restore /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~InfuraNativeCqlTests' --results-directory TestResults/InfuraIpfsRetirementCurrent --logger 'trx;LogFileName=native.trx'
+          if ($LASTEXITCODE) { throw 'Authenticated Infura qualification failed' }
+          [xml]$report = Get-Content TestResults/InfuraIpfsRetirementCurrent/native.trx
+          $counts = $report.TestRun.ResultSummary.Counters
+          if ($counts.total -ne '1' -or $counts.executed -ne '1' -or $counts.passed -ne '1') {
+            throw 'The authenticated Infura case must execute and pass'
+          }
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        if: always()
+        with:
+          name: infura-ipfs-retirement-controls
+          path: OASIS/TestResults/InfuraIpfsRetirementCurrent/
+          retention-days: 7
