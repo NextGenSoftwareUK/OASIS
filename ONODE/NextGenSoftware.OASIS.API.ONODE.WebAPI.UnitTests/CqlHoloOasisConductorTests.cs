@@ -153,7 +153,7 @@ public sealed class CqlHoloOasisConductorTests
         }
     }
 
-    private static OASISDNA CreateFixtureDna(Uri endpoint)
+    internal static OASISDNA CreateFixtureDna(Uri endpoint)
     {
         var provider = Provider.ToString();
         return new()
