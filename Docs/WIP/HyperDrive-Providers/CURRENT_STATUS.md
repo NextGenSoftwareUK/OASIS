@@ -10,13 +10,15 @@
 | ActivityPub and routing | ActivityPub has 5/5 native capability checks. GOMap passed a public OSRM driving route. Authenticated Google Routes, Mapbox and HERE checks remain open. Niantic and WRLD still have reviewed adapter gaps. |
 | Canonical HoloOASIS | Top priority. Both modes passed all 52 native core-storage-v2 checks on the official Windows conductor with the verified identity-delete hApp in [run 43178174352](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43178174352). The verified bundle is packaged on the provider branch. Hosted, multi-agent and broader capability acceptance remain open. |
 | HoloOASIS.Desktop | Obsolete in source, package metadata and repository documentation at `45d6665da989`. The six-file compatibility and documentation batch reached Development at `70d3fbb4a31c`. Published NuGet metadata and live site listings still need the obsolescence update. |
-| Development | `d74e43b9def4` contains COSMIC managed HoloOASIS after seven successful Weaviate deployments. The managed rollout and live HyperDrive HoloOASIS writes remain open. |
+| Development | `df02d6f43bfe` integrates verified priority routing tests after the managed HoloOASIS rollout and public CQL acceptance. The new rollout and live HoloOASIS HyperDrive writes remain open. |
 | BootLoader startup | The shipping registration, activation and deactivation path passed against native Polkadot and TRON fixtures and the Microsoft Azure Cosmos DB emulator. [Azure Cosmos DB job 131055311882](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43180594194/job/131055311882) confirmed fixture teardown. |
 | HyperDrive | Priority-provider failover, replication and load balancing verification is active. Whole-inventory acceptance remains open. |
 
 [Provider matrix](PROVIDER_MATRIX.md) · [Evidence registry](CONFORMANCE_RESULTS.json) · [Cleanup ledger](WORKSPACE_CLEANUP_LEDGER.md)
 
 ## Verification log
+
+12 November Cancun time. Development advanced to `df02d6f43bfe` with six verified SQL Server, Supabase and S3 routing test paths after all seven preceding deployments and managed HoloOASIS live public CQL acceptance. The remote ref and dependency manifest were verified. The [Development workflow](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43301182316) was created at 15:31:41 Cancun time. The next review is after 16:01:41. [Oracle routing run 43300382334](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43300382334) passed both native modes with bidirectional replication, both outage directions and an even RoundRobin split. Exact Development qualification uses two scoped test paths. Hosted Oracle remains deferred.
 
 12 November Cancun time. [Exact AWS S3 adapter qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43299430529) passed both modes on tree `f6220cfdaa3c346346e289f53856078f5ca48e0c`. Candidate `df02d6f43bfe` combines the six non-overlapping SQL Server, Supabase and AWS S3 test paths on `d74e43b9def4`. All seven predecessor deployments are green. Recheck the exact managed HoloOASIS settings cutover with COSMIC after 15:28:38 before integration. Added an Oracle Free and SQLite routing job using a digest-pinned Linux Oracle Database Free image and exact native cleanup. Hosted Oracle stays deferred.
 
