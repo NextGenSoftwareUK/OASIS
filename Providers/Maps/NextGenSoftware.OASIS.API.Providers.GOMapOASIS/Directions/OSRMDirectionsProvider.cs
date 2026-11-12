@@ -67,7 +67,10 @@ namespace NextGenSoftware.OASIS.API.Providers.GOMapOASIS.Directions
                 if (!Uri.TryCreate(BaseUrl, UriKind.Absolute, out var origin) || origin.Scheme != "https" ||
                     origin.UserInfo.Length != 0 || origin.Query.Length != 0 || origin.Fragment.Length != 0 || origin.AbsolutePath != "/")
                     throw new InvalidDataException("An explicit HTTPS OSRM origin without credentials, path or query is required.");
-                if (routingType != RoutingType.Driving &&\n                    string.Equals(origin.GetLeftPart(UriPartial.Authority), DefaultBaseUrl, StringComparison.OrdinalIgnoreCase))\n                    throw new InvalidDataException("Configure an OSRM deployment with the requested travel profile. The public demo is driving-only.");\n                var profile = routingType == RoutingType.Driving ? "driving" : routingType == RoutingType.Cycling ? "cycling" : "foot";
+                if (routingType != RoutingType.Driving &&
+                    string.Equals(origin.GetLeftPart(UriPartial.Authority), DefaultBaseUrl, StringComparison.OrdinalIgnoreCase))
+                    throw new InvalidDataException("Configure an OSRM deployment with the requested travel profile. The public demo is driving-only.");
+                var profile = routingType == RoutingType.Driving ? "driving" : routingType == RoutingType.Cycling ? "cycling" : "foot";
                 var url = origin.GetLeftPart(UriPartial.Authority) + "/route/v1/" + profile + "/" +
                     Coordinates(startPoint) + ";" + Coordinates(endPoint) + "?overview=full&geometries=geojson&alternatives=false&steps=false&generate_hints=false";
                 using var request = new HttpRequestMessage(HttpMethod.Get, url);

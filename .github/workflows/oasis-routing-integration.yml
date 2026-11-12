@@ -53,6 +53,6 @@ jobs:
               dotnet build $project /m:2 /nr:false /p:UseSharedCompilation=false
               if ($LASTEXITCODE -ne 0) { throw "Routing build failed for $provider." }
             }
-            dotnet test "Providers/Maps/TestProjects/NextGenSoftware.OASIS.API.Providers.GOMapOASIS.IntegrationTests" --filter "FullyQualifiedName~SharedRoutingInterfaceReturnsLiveDrivingRoute" /m:2 /nr:false /p:UseSharedCompilation=false --logger "console;verbosity=normal"
+            dotnet test "Providers/Maps/TestProjects/NextGenSoftware.OASIS.API.Providers.GOMapOASIS.IntegrationTests" --filter "FullyQualifiedName~SharedRoutingInterfaceReturnsLiveDrivingRoute|FullyQualifiedName~PublicOsrmRejectsUnsupportedTravelProfiles" /m:2 /nr:false /p:UseSharedCompilation=false --logger "console;verbosity=normal"
             if ($LASTEXITCODE -ne 0) { throw "GOMap shared routing verification failed." }
           }
