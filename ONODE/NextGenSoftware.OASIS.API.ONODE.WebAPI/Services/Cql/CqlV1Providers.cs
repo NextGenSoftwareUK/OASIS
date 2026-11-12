@@ -12,10 +12,12 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using ArbitrumProvider = NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.ArbitrumOASIS_Web3Core;
+using CosmosProvider = NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.CosmosBlockChainOASIS;
 using EosioProvider = NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.EOSIOOASIS;
 using EthereumProvider = NextGenSoftware.OASIS.API.Providers.EthereumOASIS.EthereumOASIS_Web3Core;
 using HoloOasisProvider = NextGenSoftware.OASIS.API.Providers.HoloOASIS.HoloOASIS;
 using NearProvider = NextGenSoftware.OASIS.API.Providers.NEAROASIS.NEAROASIS;
+using PolkadotProvider = NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.PolkadotOASIS;
 using PolygonProvider = NextGenSoftware.OASIS.API.Providers.PolygonOASIS.PolygonOASIS;
 using SolanaProvider = NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.SolanaOASIS;
 
@@ -69,6 +71,8 @@ public sealed class CqlHostedSourceRegistry : ICqlHostedSourceRegistry
     private readonly string arbitrumPublicAccountConfiguration;
     private readonly string nearPublicAccountConfiguration;
     private readonly string eosioPublicAccountConfiguration;
+    private readonly string cosmosPublicValidatorConfiguration;
+    private readonly string polkadotPublicHeaderConfiguration;
 
     private readonly ILogger<CqlHostedSourceRegistry> logger;
 
@@ -88,6 +92,8 @@ public sealed class CqlHostedSourceRegistry : ICqlHostedSourceRegistry
         arbitrumPublicAccountConfiguration = configuration?["CQL_ARBITRUM_PUBLIC_SOURCE_JSON"];
         nearPublicAccountConfiguration = configuration?["CQL_NEAR_PUBLIC_SOURCE_JSON"];
         eosioPublicAccountConfiguration = configuration?["CQL_EOSIO_PUBLIC_SOURCE_JSON"];
+        cosmosPublicValidatorConfiguration = configuration?["CQL_COSMOS_PUBLIC_SOURCE_JSON"];
+        polkadotPublicHeaderConfiguration = configuration?["CQL_POLKADOT_PUBLIC_SOURCE_JSON"];
     }
 
     public IOASISStorageProvider Find(ProviderType provider)
@@ -126,6 +132,10 @@ public sealed class CqlHostedSourceRegistry : ICqlHostedSourceRegistry
                 near.ConfigurePublicAccountQuery(nearPublicAccountConfiguration);
             if (storage is EosioProvider eosio && eosioPublicAccountConfiguration != null)
                 eosio.ConfigurePublicAccountQuery(eosioPublicAccountConfiguration);
+            if (storage is CosmosProvider cosmos && cosmosPublicValidatorConfiguration != null)
+                cosmos.ConfigurePublicValidatorQuery(cosmosPublicValidatorConfiguration);
+            if (storage is PolkadotProvider polkadot && polkadotPublicHeaderConfiguration != null)
+                polkadot.ConfigurePublicHeaderQuery(polkadotPublicHeaderConfiguration);
         }
         if (storage.ProviderType?.Value != provider || storage is not ICosmicQueryStorageProvider adapter
             || adapter.QueryProviderType != provider || adapter.QueryCapabilities == null
