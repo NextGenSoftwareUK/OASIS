@@ -18,6 +18,22 @@ public class FirebaseReadFailureTests
     }
 
     [DataTestMethod]
+    [DataRow("null", true), DataRow("", false), DataRow("<html>gateway</html>", false), DataRow("{}", false)]
+    public async Task ActivationRequiresTheRealtimeDatabaseMissingRecordResponse(string body, bool accepted)
+    {
+        using var reply = new Reply(HttpStatusCode.OK, body);
+        using var http = new HttpClient(reply);
+        var provider = new FirebaseOASIS("https://synthetic.invalid", null, http);
+
+        var result = await provider.ActivateProviderAsync();
+
+        Assert.AreEqual(accepted, result.Result);
+        Assert.AreEqual(!accepted, result.IsError);
+        Assert.AreEqual(accepted, provider.IsProviderActivated);
+        Assert.AreEqual("/oasis_holons/00000000-0000-0000-0000-000000000000.json", reply.LastUri!.AbsolutePath);
+    }
+
+    [DataTestMethod]
     [DataRow(401, "point"), DataRow(403, "point"), DataRow(429, "point"), DataRow(500, "point")]
     [DataRow(401, "query"), DataRow(403, "query"), DataRow(429, "query"), DataRow(500, "query")]
     [DataRow(401, "list"), DataRow(403, "list"), DataRow(429, "list"), DataRow(500, "list")]

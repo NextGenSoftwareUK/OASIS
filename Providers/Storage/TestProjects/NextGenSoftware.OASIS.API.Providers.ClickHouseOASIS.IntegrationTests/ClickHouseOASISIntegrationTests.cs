@@ -10,13 +10,18 @@ namespace NextGenSoftware.OASIS.API.Providers.ClickHouseOASIS.IntegrationTests
     public class ClickHouseOASISIntegrationTests
     {
         private ClickHouseOASIS _provider = null!;
-        private static readonly string ConnectionString = Environment.GetEnvironmentVariable("CLICKHOUSE_CONN") ?? "Host=localhost;Port=8123;Database=oasis;Username=default;Password=";
 
         [TestInitialize]
         public void Setup()
         {
-            _provider = new ClickHouseOASIS(ConnectionString);
-            _provider.ActivateProvider();
+            var connectionString = Environment.GetEnvironmentVariable("CLICKHOUSE_CONN");
+            if (Environment.GetEnvironmentVariable("OASIS_CLICKHOUSE_STORAGE_TEST_WRITES") != "1" ||
+                string.IsNullOrWhiteSpace(connectionString))
+                Assert.Inconclusive("Configure an isolated writable ClickHouse instance for the storage tests.");
+
+            _provider = new ClickHouseOASIS(connectionString!);
+            var activation = _provider.ActivateProvider();
+            Assert.IsTrue(activation.Result && !activation.IsError, activation.Message);
         }
 
         [TestMethod]

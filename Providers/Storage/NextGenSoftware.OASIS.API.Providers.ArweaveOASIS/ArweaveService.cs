@@ -14,6 +14,7 @@ public interface IArweaveService
     Task<string> PostTransactionAsync(byte[] data, string contentType, Dictionary<string, string> tags = null);
     Task<byte[]> GetTransactionDataAsync(string txId);
     Task<List<string>> QueryByTagsAsync(Dictionary<string, string> tags);
+    Task<List<string>> QueryOwnedByTagsAsync(Dictionary<string, string> tags);
 }
 
 /// <summary>
@@ -76,16 +77,12 @@ public sealed class ArweaveService : IArweaveService
     public async Task<byte[]> GetTransactionDataAsync(string txId)
     {
         if (string.IsNullOrWhiteSpace(txId))
-            return null;
-        try
-        {
-            using var response = await InvokeAsync(new { operation = "get", gateway = _gatewayUrl, id = txId });
-            return Convert.FromBase64String(RequiredString(response.RootElement, "dataBase64"));
-        }
-        catch
-        {
-            return null;
-        }
+            throw new ArgumentException("An Arweave transaction identity is required.", nameof(txId));
+
+        // Transport/protocol failures must reach the provider's OASISResult boundary.
+        // Returning null here would misreport unavailable or corrupt data as absent.
+        using var response = await InvokeAsync(new { operation = "get", gateway = _gatewayUrl, id = txId });
+        return Convert.FromBase64String(RequiredString(response.RootElement, "dataBase64"));
     }
 
     public async Task<List<string>> QueryByTagsAsync(Dictionary<string, string> tags)
@@ -101,6 +98,20 @@ public sealed class ArweaveService : IArweaveService
             .Where(value => !string.IsNullOrWhiteSpace(value))
             .ToList();
     }
+
+    public async Task<List<string>> QueryOwnedByTagsAsync(Dictionary<string, string> tags)
+    {
+        if (string.IsNullOrWhiteSpace(_walletJson))
+            throw new InvalidOperationException("A configured Arweave wallet is required for owner-pinned discovery.");
+        using var wallet = JsonDocument.Parse(_walletJson);
+        using var response = await InvokeAsync(new { operation = "queryOwned", gateway = _gatewayUrl,
+            wallet = wallet.RootElement, tags = tags ?? new Dictionary<string,string>() });
+        return response.RootElement.GetProperty("ids").EnumerateArray().Select(value => RequiredIdentity(value)).ToList();
+    }
+
+    private static string RequiredIdentity(JsonElement value)
+        => value.ValueKind == JsonValueKind.String && !string.IsNullOrWhiteSpace(value.GetString())
+            ? value.GetString() : throw new InvalidDataException("Native Arweave identity acknowledgement is malformed.");
 
     private async Task<JsonDocument> InvokeAsync(object request)
     {

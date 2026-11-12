@@ -84,6 +84,48 @@ Observed GitHub runs41085351582 CI/CD queued,41085351698 ONET/ONODE in progress,
 Next: observe this exact deployment to terminal status, then actual hosted session,
 query and isolation checks. Static Web4Site publication still pending live proof.
 
+Task reconciliation finished: parent work/cosmic-cql includes published Development ancestry and release audit notes; Core4607d7c source equals prior task7e9cd72. Bounded Core/Mongo/SQLite/Neo/WEB4 producer restoration succeeded, no restore/download. Scoped Development is still parentdfceb1392/Core432c613; broader task APIs were not swept into deployment. Next check exact live deploymentefd2c5c1, last observedBUILDING.
+
+## Hosted execution follow-up — stage-limit root cause
+
+Exact deploymentefd2c5c1 reached SUCCESS/parentdfceb1392. New session
+sandbox-82eb0daa /e4e0facc-ed47-4820-83f6-fae0b69d6726 succeeds and has1free
+subscription. CQL now passes admission but its row query returned503CQL_QUERY_FAILED;
+retain operation610b294d-b037-980a-5b73-eb33fab22a6d and key
+ af6ff26f-2fbf-4451-b5ec-1e1ee13c5863; no automatic retry/replay.
+
+Read-only source metadata showed618sampled Holon rows, string IDs/schema1, valid
+membership guard. QueryPlanner-only explain of the production inherited-access
+template proved the cause:56stages, native7749501, hosted maximum50. No business
+rows returned or data changed. This is a hosted resource-limit bug, not damaged data.
+
+Fix: advance ancestor flags/frontier and remove the temporary lookup field in the
+same native $set stage via $$REMOVE. Full16level walk and visibility semantics are
+preserved;56becomes40stages. No lowered depth, inherited-policy disable or fallback.
+Regression fails beforefix(observed56),2controls pass after,3native ancestor tests
+pass/0skip including all16levels/17th exclusion, cycles/missing parents and cleanup.
+Hosted queryPlanner accepts the fixed40stage template, zero mutation commands.
+This is not yet a successfully executed hosted CQL query: deploy the focused fix next.
+
+Native runner Scripts/TestHosts/run-mongo-cql-ancestor-linux.py reuses the same owned
+Mongo8.3.13/27039 and .NET runtime. Fixed cosmic_cql_ancestor_tests namespace starts
+absent, owner marker checked before removal; fixture removed and native shutdown0.
+Broader Task2nd-deployment candidate must include only this translator/test fix and
+needed runner, preserving the scoped Core432c613 pin on Development.
+
+- `TestResults/Web4SandboxCqlCurrent/hosted-query-smoke.json`: 939B, SHA256 `9fde7ebfd0ce0ecbce29586d81365cff06d1d57e798cba7df8fb9cc782f21c99`.
+
+- `TestResults/Web4SandboxCqlCurrent/hosted-inherited-plan-before.json`: 1787B, SHA256 `901ffe0d6cb34e65c4a6f9eff862e6ed909bd388299629fa901181410f2f8509`.
+
+- `TestResults/Web4SandboxCqlCurrent/mongo-stage-regression-before.trx`: 3508B, SHA256 `9c1112562dafe6c4b9aeda18fa8d57dbcda89bb88123a026cb24d1ac2d9eb531`.
+
+- `TestResults/Web4SandboxCqlCurrent/mongo-stage-controls.trx`: 4171B, SHA256 `d578247c88ab5d1274338cfccbbf77da4aa05e2c06081a945a7571b994c374a9`.
+
+- `TestResults/Web4SandboxCqlCurrent/mongo-ancestor-native.trx`: 5596B, SHA256 `320d719d18695511c4848534d6a3c887bee8e6fcea1fe13fdfeb2a0646ac858d`.
+
+- `TestResults/Web4SandboxCqlCurrent/hosted-accounting-readiness.json`: 1653B, SHA256 `9132ea5372b6cbd04ddecbd4fe68e88d6e820c531bdf7187802d1d29d78b594a`.
+
+
 ## Focused hosted Mongo stage-limit correction
 
 First deploymentefd2c5c1 is SUCCESS. A new demo session gets1free subscription;
@@ -284,3 +326,139 @@ Seven native cases pass/no skips; TestResults/Web4SandboxCqlCurrent/mongo-replic
 ### Actual Mongo-to-SQLite operator host
 
 Native operator route1/1 passes/no skips: TestResults/ReplicaRepairNativeCurrent/mongo-sqlite-repair.trx SHA256 3227FE0AC1904B4574054AEDFC80D186B9F9D879277B28AAE993A0A87347765F. API/schema/admission controls71/71 pass/no skips: TestResults/Web4SandboxCqlCurrent/repair-release-controls.trx SHA256 78281D22BA4D5DA8EBF00974A311C7E36D1BCAF8BEBC74DC37CCC37059D08708. Shipping WEB4/SQLite/test builds pass without restore. First native run passed logical assertions but cleanup encountered pooled SQLite handles; local fixture now disables pooling, exact previous target version5/SourceCompleted journal checked and teardown reconciled, failure evidence retained. Final fresh proof cleans all owned fixtures and stops Mongo. Hosted read-only recheck still shows exact sequence6/version4 conflict. Reviewed request persisted before mutation at LocalState/COSMIC/HostedReplicaRepairCurrent/request.json SHA256 3E2C691C3578239C0A9DE2A6524D881AB19C396E927B264AB0A51F479C25AD58; hosted application pending.
+
+### Hosted repair release dispatched
+
+Verified fast-forward source publication completed: Core Developmentff670ec65eb2d6e98ec0858af146eba704752b20 and parent Development51f3c4c3a1f70ccd4c30a09533c1cdc4861115b3, both ls-remote verified after fetch/ancestry checks. Exact Railway deployment1c73a0b5-3d76-4cd6-9aab-1fb178ebd45b is QUEUED (Waiting for build slot). Prior active ca0c6055-2ab7-4517-b790-40431aa4e7d5 still serves e6c09bf; no duplicate deployment requested. Metadata-only request staging attempt timed out connecting SSH port22, before any remote command ran; same local request preserved. No hosted repair executed yet. Next observe this same deployment, resolve current SSH instance, stage identical request and run the verified shell-only repair; retain its durable original journal.
+
+### Resumable hosted acceptance without save replay
+
+Eight offline verifier protocol controls pass/no skips, including actual Windows DPAPI round-trip, ciphertext excluding mock plaintext, corrupt-cipher refusal, no token replacement and resume preflight rejection before hosted calls when original credentials/acknowledgements are missing. Future session ciphertext is stored separately under protected LocalState; metadata/reports never contain bearer values. --resume skips all three saves and reuses the original owner/visitor sessions when available. This does not recover the old lost token or establish hosted acceptance. Existing original cohort remains preserved. Repair deployment1c73a0b5-3d76-4cd6-9aab-1fb178ebd45b still QUEUED; no extra deployment started.
+
+### Hosted three-database demo acceptance achieved
+
+Exact deployment1c73a0b5-3d76-4cd6-9aab-1fb178ebd45b SUCCESS, running commit51f3c4c3a1f70ccd4c30a09533c1cdc4861115b3 verified/health200. Explicit missing-baseline repairs completed source sequences6(version4)/8(version17); immutable initialization IDs d1779b77-77bb-4dd4-b558-65985ae62db0 and b1c16263-bec5-4bc7-9c7d-5b05ec8da7ee. Original six target obligations Completed/no unfinished SQLite head; actual old3SQLite identity/name/owner/version1 checks pass. Retained native proof SHA25647B157DE38B3BB1FAD2F17F47FD5DEE2C5838D3D64F63D40CEDDF942C03C8789.
+
+Sequence8 initial review incorrectly took record creator for queued actor; policy correctly denied before journal/submission. Probe now reads actual payload ActorId separately. Real native Mongo-to-SQLite regression uses differing creator/writer, verifies wrong-actor refusal before journal, then succeeds/preserves creator and normal5;1pass/no skips, latest TRX SHA2564C35B531535ED2D4768E8EC44815437AA0C25BE64D0EF772526EF0C1781DD33A. Corrected hosted request retained SAME init ID; no business write replay.
+
+Original cohort archived intact/incomplete due lost owner session; acknowledged writes/replicas preserved, no impersonation. New cohort in same environment uses protected DPAPI sessions. Hosted verifier35 HTTP steps/no failures:3saves,9exact point reads,12owner row queries,3owner LongCount queries,1federation6physical coffee copies,3foreign-owner empty queries,2free sessions+2subscription checks. All HTTP200. Report TestResults/Web4SandboxCqlCurrent/hosted-demo-verification.json SHA2563B3D58D8754395F2EDB1A29015D52651B1294155FCB97517FBBC6B8900DC2DEA. Persistent fixture completed=true/pending=null, SHA25668DCBBADB22F5CE3359DE4BE6B256599161307306FB35838C984F6ACE86699B7. This proves the stated demo flow, not full EF/failure/placement/cutover acceptance; X10 parents remain red. Next Oracle content pairing and browser publication; Azure stays pending/free-only.
+
+### Oracle content pairing and real browser milestone
+
+Scoped port preserves current Coreff670ec/routing and hosted repair; broad merge aborted with no source loss. Oracle compiler13/13pass/no skips, TRX TestResults/OracleCurrent/oracle-content-compiler.trx SHA256E145462962D1355052D048AFF56995EC4E0772C55112C697A238A5FA35A41909. Native scenario1/1pass/no skips includes21Oracle queries,4paired C# presets,4HTTPpresets,2forged/unknown request rejections; retained Oracle4records/native timestamps unchanged and exact owned Mongo DB/journal removed. Final interactive run repeats proof across service restart then4real browser button checks; nativeTRX SHA25675635B1ABFE92E6F9EA3D0B802B534F96115040A28017DE07DE514283C3838F1. Name/description/metadata/combined copies2/4/4/2 with both provider identities. Browser proof JSON SHA256A8C5F6C7C268096A37A2F6097AE882CE060E3FCA4487FA6556FC56E7544E49F9; full screenshot193049bytes SHA256226EFECEFC0C11FF59C8BEAC38DAD6A2D780ABA1896338191B615A90CB209DE1 under TestResults/OracleCurrent. Stop API returned200; runner terminalexit0, owned ports27029/5090closed, Oraclecontainerexited. Main demo project builds without restore; manifest/gitlinks unchanged/valid. No Development push or hosted Oracle claim. Next integrate this preset into existing Web4Site CQL demo catalogue.
+
+### Existing Web4Site CQL catalogue published
+
+Web4Site feature081023874adf5d2ef2606b434dee15a44f1cf7c2 and docsdd90f1df3b44b5556f084c01fa40906b6d070e26 pushed to task branch/main after fetch/ancestry checks. Existing public https://web4.oasisomniverse.one/web4-sandbox.html now serves Oracle local catalogue (browser verified). GitHub Production deployment7449727369 success; served cql-playground.js SHA25614713C357DA45E5411224F49E69E363B21BE80DB1882B43EF4B056B6BEAC50A4 matches tested source.17client tests/no skips; no dependencies installed. Existing hosted selector remains3providers; local Oracle links use fixed127.0.0.1:5090 and preset only, no bearer/actor/editor forwarding.
+
+Actual browser catalogue selectionmetadata opens separate native page and automatically returns presetmetadata/count4/Mongo2/Oracle2. Proof TestResults/Web4SandboxCqlCurrent/web4-oracle-catalogue-proof.json SHA2566D81646DE0C0B179BA60C18D226FB538D0FA47EBAA10DE874D55200F126CDDFC; screenshot58755bytes SHA256E862F46CA1B7048F7AB837B21A4BF56F8CCF4B9DC3E1C3788827BE6145E3AA76. Native full result216081bytes SHA25689713E51AADC42F5F52543E5AA4F59373A188762009EB3A235024A7901C5C30B. Updated real native scenario1pass/no skips (21queries/4SDK/4HTTP/2rejections) TRX SHA2565C77E464587631ECF54DE24A854A07E87D0F594D8BD3A36BD31AA84F1ED0400D. Exact owned previewPID47884 stopped after command/listener checks; native runner25723 exited0/owned DBremoved/Oraclecontainerexited. Backend code changes here affect only teaching host/examples/tests, no new Railway Development deployment. Hosted Oracle remains unproved.
+
+### IPFS multi-record and Mongo-paired scoped port
+
+Core task0d41300885f3a59e5d3638bf46dcb708950787e9 cherry-picks only native key-set descriptor/capability (two files), source/submodule push remote verified and parentmanifest/gitlink advanced together. No broad routing merge.23shared controls pass/no skips, protocol-keyset-controls.trx SHA2562015234C9F30E5E7278D3BA6180E1CFFBF12C84CB485D635B84909B8FD8A9559.17IPFS controls pass/no skips, ipfs-keyset-controls.trx SHA25669E12450D5E36E1910C3D195026FD11238DBE5D11F19CF9C7EE8A4A1E3BF8DE3. Native1/1pass/no skips, ipfs-cql-keyset-native.trx SHA256586C7798D538362A39604C8FB4A1FEE4CF70203FEBB40EE5149D7AF2B3A2FDD3. Selected3encrypted IPFS rows/2subset, exact source identity/visibility/full-result validation, SDK/HTTP and Mongo pairing5/4physical copies verified. Fresh native-mongo-IPFSOASIS-federation.json131bytes confirms3IPFS+2Mongo and exactcleanup.
+
+Initial consumer build found unused node-default BootLoader resolver pulled through production-service wildcard; fixture already supplies explicit resolver/read policy, so node-default composition is now excluded alongside existing CqlV1Providers exclusion. Real shipping query/controller owners still exercised; no provider behavior weakened. Existing Kubo/repo/key reused, exact owned catalogue records/Mongo DB removed, closurecomplete/pendingjournalsabsent, runner37796exit0/portsclosed. No new runtime/download/restore/environment or Development deploy. SOLID next.
+
+
+## SOLID bounded multi-record demo verified (30 October)
+
+31 controlled tests and one real retained SOLID Pod + Mongo scenario passed, zero failures/skips. Three selected SOLID records and two Mongo records yielded five federated copies; unselected Mongo records were excluded. SDK and teaching HTTP acceptance share the bounded key-set contract. This is explicit resource-key membership, not arbitrary Pod scans or general text predicates. The opt-in factory flag defaults to false.
+
+All three owned SOLID records were conditionally deleted and absence verified; completion journal is LocalState/COSMIC/SolidCurrent/cql-keyset-complete.json. The owned Mongo fixture was removed, no pending journal remains, and ports13000/27029 are closed. Retained identity, Pod volume and reusable Mongo data remain protected for reuse. No installs, downloads or restores.
+
+Evidence (regenerable under worktree TestResults):
+- SolidCurrent/solid-keyset-controls.trx:31 passed; SHA25602C82B1D2E4F69B3A14DACC65AF67235D49ECD8D19682C9CA9A4CEC2331F11A4.
+- SolidCurrent/solid-cql-keyset-native.trx:1 passed; SHA256B135523E8719F2CE0B2924D09B9B896AD272AAE3AAD9B106BB285DD381890F58.
+- DemoBreadthCurrent/native-mongo-SOLIDOASIS-federation.json:5 total/3 SOLID/2 Mongo; exactCleanupVerified=true.
+
+Next: ActivityPub multi-record acceptance, then catalogue enrollment. Hosted SOLID and unrestricted content queries remain unproved.
+
+
+## ActivityPub bounded multi-record demo verified (30 October)
+
+10 key-set controls and one live mastodon.social + Mongo scenario passed, no failures/skips. CQL metadata membership selects three existing public status IDs using one native batch request, validates the entire response and preserves canonical provenance; the teaching HTTP path also passes. Federation returns five copies (three public statuses +two owned Mongo rows), excluding an unselected Mongo row. No account/token/posting, no arbitrary timeline scan and no general text-query claim. Key-set support is explicitly opt-in.
+
+Owned Mongo fixture cleanup verified, pending journal absent, ports27029/5088 closed. Public statuses remain unchanged. TestResults/DemoBreadthCurrent/native-mongo-ActivityPubOASIS-federation.json records counts and exactCleanupVerified=true.
+
+- TestResults/DemoBreadthCurrent/activitypub-keyset-controls.trx:10 passed; SHA256FD8AEC12309DEA070B0DBC64E4FD095C6A37FB495A56E717CB32370E08A080AD.
+- TestResults/DemoBreadthCurrent/native-mongo-mastodon.trx:1 passed; SHA256D5E7C338DF6A01FE3FB60B5D28E05ED9B6A82F2C55B05CB772995CE81E0FA1A6.
+
+Reproduce: pwsh Scripts/TestHosts/Run-ReusableProtocolMongoTests.ps1 -Provider ActivityPub -ArchiveCompletedDemo. Next: accurate catalogue enrollment of all three verified protocol profiles; full parity remains deferred.
+
+
+## Protocol catalogue published (30 October)
+
+Web4Site feature/main a5cc53b3ec16fbdb345871433f16cdb174d59803, production deployment7450130226 success. Public CQL Playground section5 now lists separate IPFS/SOLID/ActivityPub +Mongo commands and fixed loopback5088 launch link. Bounds/local environment/identity isolation/teardown limits are explicit; hosted selector remains three databases.17 client controls pass. Actual browser catalogue -> ActivityPub native page -> federation button returned5copies/Mongo2/ActivityPub3. Native runner exited0 after POST/demo/shutdown, exact owned Mongo cleanup verified and pending journal absent. Static preview5151 owned process also stopped; no downloads/install/restore.
+
+Screenshots under TestResults/Web4SandboxCqlCurrent: protocol-catalogue-public.png (282677bytes, SHA256E21031710B084F659B33DCC501AAFDACF17841850977F632C2EE4380C83E4A4D), protocol-catalogue-native-result.png (195577bytes, SHA256EFBED69B0F951B7058CD1DA48A6972DF2995479224DF2E443BA3C130FA5811D8). No raw evidence committed. Public catalogue confirmation does not imply hosted protocol integration or full parity. Next Solana browser admission.
+
+
+## Browser acceptance verified — 30 October
+
+Retained Agave4.3.0/genesis and schema3 index/acknowledged seed reused. One live native schedule passed with submittedNewSeed=false/sourceWrites=0. All nine browser buttons completed HTTP200/settled: rows1, selected rows1, Count1, LongCount"1", Anytrue, empty Count0, nested metadata rows1, metadata count"1", selected metadata rows1. Each completed response was captured after query buttons were re-enabled. Projection preserves amount"9007199254740993" and missing=null, with actual Solana receipt, declared coverage/checkpoint/finalized head and explicit SQLite execution provider.
+
+Evidence under TestResults/SolanaCurrent (raw files not committed): browser-query-proof.json SHA2561B26C4B13F2A8D335FE73315E7F4AE3264BD2D83B82B1BC70DA32292F650F15E; browser-selected-metadata.png SHA256772C589BAFDA629FC1B6FB42329B31B362B58C038F70261D712BE8B1E3287408; solana-indexed-metadata-native.trx SHA256A267AEF5E0549B0D5164BEDBA8DCEBA9B9EE881C47602958E73C6EE2761B39DE. Previous completed reports hash-archived by runner.
+
+Command: wrap Run-ReusableSolanaTests.ps1 -IndexedMetadataDemo -ServeIndexedDemo -ArchiveCompletedDemo once in Invoke-WithProviderBuildLease.ps1. Native host5089. POST/demo/shutdown returned202; runner exited0, validator process and18899/5089 listeners absent. Original seed/index/keys/ledger retained. Free bytes66961833984before/66858381312after. No runtime/install/download/restore/new ledger/funding/source write.
+
+This closes browser rendering/click acceptance for this local declared-range demo. It does not close original-history recovery, hosted-chain identity/settlement, full parity or Mongo+Solana federation. Next reconcile the latter's preserved implementation/current proof and catalogue entry.
+
+30 October mixed Mongo+Solana outcome:8controls/1native case and actual browser matching2/empty0 passed.0chain writes/reseed. Exact owned cosmic_cql_mongo_solana_demo removed after independent ownership/readback verification; MongoSolanaCurrent pending journal absent. Owned ports27029/18899/5091 closed and runner exit0. Retained SolanaMetadataCurrent index/ack, WSL ledger/keys and shared Mongo data/runtime remain reusable. Free66823819264before/65956491264after; generated builds/logs/TRX disposable/regenerable, no install/download/restore. Evidence/hashes/commands in CQL_MONGO_SOLANA_NATIVE_VERIFICATION.md. Next catalogue enrollment.
+
+30 October Solana catalogue milestone: Web4Site main00992cdd8ef9e497b9a27ca37063bae00fb15ad5, production7450271298success. Public CQL section6 and expanded exact runner command/fixed5091link verified in browser.17client controls pass. Screenshot TestResults/Web4SandboxCqlCurrent/solana-catalogue-public.png339225bytes/SHA256DD3CA59B2BFA7981A16DB65926D9046112200B64E9D9AAAD1106ACB0DDBC2BC5. No service startup/install/download or fixture changes this publication; original retained resources remain reusable. Native matching/empty evidence in CQL_MONGO_SOLANA_NATIVE_VERIFICATION.md; catalogue is local launcher, not hosted chain integration. Next AWS red demo scope.
+
+30 October AWS scoped outcome:13controls+2nativecases and browser all5/subset4/shutdown passed; original3AWS records/seed retained unchanged. Exact owned cosmic_cql_mongo_aws_demo removed, AwsCql/mongo.pending.json absent;18002/27029/5096listeners absent/runner exit0. Existing oasis-cosmic-cql-dynamo stopped, retained runtime/data reusable. No downloads/install/restore/new environment. Generated builds/logs/TRX/screenshots under TestResults/AwsCqlCurrent (sizes unmeasured/regenerable); hashes/limits/commands AWS_CQL_MVP.md. Shared runtime only read from original checkout; all source/build/test writes confined to OASIS-cosmic. Next catalogue enrollment.
+
+30 October AWS catalogue published: Web4Site main6d443600bd2d239880c3e8e48885496f733b49e8 / Production7450340129success. Public CQL section7/expanded exact runner command/fixed5096link verified.17client controls pass. TestResults/Web4SandboxCqlCurrent/aws-catalogue-public.png384293bytes/SHA25676B09EFB10B4DACF479B0183F49EE4087807E1C638EEEC4988FE18B2494BEC92. No native services/install/download/restore or fixture changes for publication. Full native proof/limits AWS_CQL_MVP.md; hosted AWS and metadata/text queries remain open. Next Ethereum breadth scope per user order.
+
+30 October Ethereum outcome:12controls+2nativecases/browser all5/subset4/shutdown pass. Original Ganache chain31338/contract/3records and EvmCql seed229bytes/key262bytes retained,0query transactions. Exact owned cosmic_cql_mongo_ethereum_demo removed/pending journal absent;18547/27029/5097listeners absent/runner exit0. Node stdin graceful shutdown flushed retained chain. Existing runtime/data reusable; generated outputs/logs/TRX/screenshots only TestResults/EthereumCqlCurrent (size unmeasured/regenerable). No install/download/restore/new environment. Hashes/limits/commands ETHEREUM_CQL_MVP.md. Next catalogue enrollment.
+
+30 October Ethereum catalogue published: Web4Site mainf3689900e3b80d6b51ac478700b02ed43b49c79e / production7450406689success. Public section8/expanded command/fixed5097link verified in browser,17client controls pass. Screenshot TestResults/Web4SandboxCqlCurrent/ethereum-catalogue-public.png430943bytes/SHA25694DCB1DDB0FA0464D871B76929EF73753C8D8C2702475EF1D3E42071C6FB3864. No service startup/install/download/restore or newdata/session for publication; retained resources unchanged. Next Polygon/Arbitrum breadth.
+
+30 October Polygon outcome:7controls+2nativecases/browser all5/subset4/shutdown pass. Original EvmCql/Polygon seed229bytes/contract/3records/key/chain retained,0query transactions. Exact owned cosmic_cql_mongo_polygon_demo removed, Polygon/mongo.pending.json absent;18547/27029/5098listeners absent and runner exit0. Graceful Node flush completed, existing runtimes/data reusable. Generated contract JSON/builds/logs/TRX/screenshots only TestResults/EthereumCqlCurrent (size unmeasured/regenerable). No install/download/restore/new environment. Hashes/limits/commands POLYGON_CQL_MVP.md. Next Arbitrum and batched catalogue enrollment.
+
+30 October Arbitrum outcome:7controls+2nativecases/browser5/4/shutdown pass via actual V2 factory. Original contract/3records/seed229bytes/key/chain retained,0query transactions. Exact owned cosmic_cql_mongo_arbitrum_demo removed, pending journal absent,18547/27029/5099listeners absent, runner exit0/Node flushed. Reusable runtime/data preserved; generated logs/TRX/builds/screenshots only TestResults/EthereumCqlCurrent (size unmeasured/regenerable); no install/download/restore/new environment. Hashes/limits/commands ARBITRUM_CQL_MVP.md. Web4Site main2e95776 combined Polygon/Arbitrum catalogue pending public verification; screenshot planned TestResults/Web4SandboxCqlCurrent/polygon-arbitrum-catalogue-public.png. Next Google breadth.
+
+30 October Polygon/Arbitrum catalogue verified: Web4Site main2e9577691149831249e24dea455b8335f48f3036 / Production7450502708success. Public section9 expanded commands and fixed5098/5099links confirmed in browser. Screenshot TestResults/Web4SandboxCqlCurrent/polygon-arbitrum-catalogue-public.png 484203bytes/SHA256E0D74C0E7BEBAF3B10D12712553DF17DCF579CF49093F9621EA6CC2E536516A6. HTML-only addition; no extra green client hardening. No new services/install/download/restore/data for publication. Next Google breadth; hosted services and deeper query parity remain open.
+
+30 October Google Firestore outcome:7controls+2nativecases/browser5/4/shutdown pass. Original native checkpoint/manifest689bytes/seed173bytes retained/hash-validated; no reseed. Exact owned cosmic_cql_mongo_firestore_demo removed, FirestoreCql/mongo.pending.json absent, actual teachingport5100 (planned5103 corrected),18084-18086/27029/5100listeners absent, runner exit0. Existing Java/runtime/checkpoint reusable; generated logs/TRX/builds/screenshots only TestResults/FirestoreCqlCurrent (size unmeasured/regenerable). No install/download/restore/new environment. Hashes/limits/commands FIRESTORE_CQL_MVP.md. Next catalogue enrollment.
+
+30 October Google catalogue published/verified: Web4Site mainebea3cd96e4d9ee7d79a72a5cad3b23034f0cbaf / production7450559533success. Public section10/expanded command/fixed5100link confirmed. Screenshot TestResults/Web4SandboxCqlCurrent/google-catalogue-public.png 529140bytes/SHA256CDD3BCA93B4F128F2B51B8F07C95014BAEE3E5871CD3DB57E57A51B0B088477B. HTML-only addition, no extra green client hardening; no local service/install/download/restore/newsession/data for publication. Next Cosmos blockchain, distinct from Azure Cosmos DB.
+
+30 October Cosmos blockchain outcome:14controls+2nativecases/browser5/4/shutdown pass. Original contract/key/3records/4signed submissions retained; seedSHA256D981416656A1ABC862D033D8E5C0FCB62BF11026ECE24605314CFB0B368F5B66 unchanged/11statefiles. Exact owned cosmic_cql_mongo_cosmos_demo removed/pending journal absent;26657/27029/5101listeners absent/runner exit0,wasmd stopped with SIGINT before Podman killed idle container process after10secondtimeout; containerexited. Existing ledger/runtime/SDK/data reusable; generated builds/logs/TRX/screenshots only TestResults/CosmosCqlCurrent(sizeunmeasured/regenerable). No install/download/restore/newenvironment/reseed. Hashes/limits COSMOS_BLOCKCHAIN_CQL_MVP.md. Next Polkadot/NEAR then batched catalogue.
+
+30 October Polkadot outcome:7controls+1native paired SDK/HTTP schedule/browser5/4/shutdown pass. Original seedSHA256F5038F40B99B3A0B8F64B3EEFF931F2426DCCC459AE54AB7B3D7DD864A497FE8/3prepared+ack writes/key/ledger retained,0source writes. Exact owned cosmic_cql_mongo_polkadot_demo removed, pending journal absent;19944/19945/27029/5102listeners absent, runner exit0/exactowned node stopped. Existing SDK/runtime/data reusable; generated builds/logs/TRX/screenshots only TestResults/PolkadotCqlCurrent(sizeunmeasured/regenerable). No install/download/restore/newenvironment. Standalone native report archived, not rerun in paired scope. Hashes/limits POLKADOT_CQL_MVP.md. Next NEAR/batched catalogue.
+
+30 October NEAR outcome:8query/cancellation+10encrypted snapshot controls+1real paired SDK/HTTP schedule/browser5/4/shutdown pass. Original source manifest196bytes/SHA256DC09EFE6C8D9482A67B83D6500D98F35AE27F7C14CBD0A46C0A980004A71E559/key/ledger retained,0source writes. Exact owned cosmic_cql_mongo_near_demo removed, pending journal absent;3030/24567/27029/5103listeners absent, runner exit0/exactowned node stopped. Controlled cancellation worker verified absent. Existing SDK/runtime/data reusable; generated builds/logs/TRX/screenshots only TestResults/NearCqlCurrent(sizeunmeasured/regenerable). No install/download/restore/newenvironment. Standalone native and unrelated write suites not rerun; reflection callers updated only for signature. Hashes/limits NEAR_CQL_MVP.md. Next batched catalogue.
+
+30 October Cosmos/Polkadot/NEAR catalogue published: Web4Site main7c6daa9af66bacdc1b3f218964d8e6ff92143cf4 / Production7450756715success. Public section11/all3expanded commands/fixed5101-5103links verified. Screenshot TestResults/Web4SandboxCqlCurrent/native-chain-catalogue-public.png 601286bytes/SHA25607C38281176F46B1856E67DE4025ED7654C7025D2C111F979D031AEC1887827C. HTML-only addition; no extra green hardening or localservice/install/download/restore/newdata/session. Retained native proofs linked by provider reports. Next reconcile preserved broader-provider proofs against current branch, work only red demo/integration gaps.
+
+30 October S3 outcome:7controls+initialnative+restart+paired schedules/browser5/4 pass. Created one reusable oasis-cosmic-cql-s3 container/image3d5ffffec36e6efdda5ed906939f1b4d0976f03fc33d1ea31ddcc67833089691 with exact LocalState/COSMIC/S3Cql/data mount, measured18176bytes/10files. Seed173bytes/SHA256813DB2D8975DADD106D068EE6C688606B528B92D99FB7332BC5BDC412808240C, CurrentUserDPAPIkey262bytes/locks retained, sourcebucketcosmic-cql-owned retained. Test-only localcredentials, no cloudcredentials/account/cost. Exact owned cosmic_cql_mongo_s3_demo removed, pending journal absent;19100/19101/27029/5107listeners absent, runner exit0/containerexited. No install/download/restore. New build outputs/logs/TRX/screenshots only TestResults/AwsS3CqlCurrent(sizeunmeasured/regenerable). Safe recreation uses pinned cached image/original key+seed+data; do not delete key/data or reset pending outcomes. Disposable outputs can be regenerated by Run-CosmicS3CqlNative.ps1. Cleanup of persistent owned bucket/store requires explicit closure preserving acknowledged source/evidence; no unrelated cleanup. Initial compile/path failures retained, no native mutation before path correction. Hashes/limits AWS_S3_CQL_MVP.md.
+
+30 October S3 catalogue published: Web4Site mainbe387df23b00eb3e1aa4c1c85c218f3b57f90612 / Production7450897618success. Public section12/expanded command/fixed5107link verified. Screenshot TestResults/Web4SandboxCqlCurrent/s3-catalogue-public.png 639328bytes/SHA256D6512CE60718EC11C92B8A30AAE0D330768FB82F2992BFAA15DE24D32D81B4E4. HTML-only addition; no extra green hardening or localservice/install/download/restore/newdata/session for publication. Next TRON original-source/native admission redgate; preserve historical fence/journals, no blind replay/reset.
+
+## TRON native restart repair
+
+Initial native schedule passed; restart lost the last acknowledged synthetic record and receipt. Owned TRE interval mining and empty-block snapshot drain now run before graceful shutdown. Explicit one-time restoration passed (1 test), then native restart/3-record/subset2/missing/unchanged-payload/all-preparation-hashes passed (1 test). Seven earlier controls remain scoped evidence. Report and hashes: [TRON_CQL_MVP.md](TRON_CQL_MVP.md). Native gate verified; Mongo/HTTP/browser/catalogue remains red. No hosted/deployment claim; original historical fence/unknown transaction untouched.
+
+## TRON Mongo and public catalogue milestone
+
+Native paired acceptance1passed/0skip (33s); SDK and HTTP all5/subset4 physical rows,3/2 distinct selected identities, actor/unknown rejection, inactive-source503/no partial result, source payload/preparation hash preservation and exact Mongo fixture cleanup. TRX0FAA79F2F76454CBB3193F2145F15119F1221520034B2F54D0EF694DE049938E, pathTestResults/TronCqlCurrent/tron-mongo-federation.trx. Browser both buttons verified. Native services stopped/TREexited/pendingabsent/seedunchanged. Web4Site main836e4af2a249d67709307c19df90018d26ee7fb0/Production7451345916success; public section13 expanded command/fixed5108link verified. ScreenshotTestResults/TronCqlCurrent/tron-catalogue-public.png/E7FB0B056898C4565B3161683A5F860D71528545751AC99BFC44EBBFF50E70E9. Initial combined frontend edit/Git command rejected by automatic review with only blocked-by-policy; separate purpose-built file edit and Git checks succeeded. No hosted credentials/session forwarded. Backend remains task-scoped; no new Railway backend deployment. Full goal remains open; TON red native admission assessment next.
+
+## TON native contract and capability-admission milestone
+
+Native TON audit found existing EVM wrapper/false full-support claims, now corrected in source metadata/README/package/DNA. Native TVM storage contract passes5subcases+parent6TAP: owner binding, three Unicode/precise/long-cell values, update/delete isolation, foreign mutation denial, unchanged reads and separate-process serialized reload. Actual TVM bytecode hash AAEB2265C8AE71B197C15AE76DDA55596ABE088ED17DD64C35875A9C7B361CF1. A genuine CQL planning regression failed1beforefix; shared Web3Core compiler authority whitelist now also controls advertised capabilities. Eight controls pass, including positive Polygon/Arbitrum admission. Exact hashes/resources/remaining red native provider/CQL/Mongo/browser gates in TON_CQL_MVP.md. No public chain/account/token/service or persistent source created. One pinned reusable SDK tree96,885,441bytes, no duplicate Node runtime; offline TypeScript cache reuse. Full goal stays open.
+
+## TON native source owner and encrypted canonical storage
+
+Native contract dictionary getter added for mandatory private-store verification; earlier code/TAP archived by hash. SDK owns exact localTVM UUID/code/address/owner, pending mutation fence, atomic snapshot/ACK, bounded reads and no automatic replay. Combined contract6+SDK7=13native test results pass/no skips. C# process bridge/shared encryption saves3canonicalholons and reopens through independent workers; readonly/key/OSlease/pre-cancel/source-hash controls pass (one18s scenario). Hashes and precise limits in TON_CQL_MVP.md. Exact SDK/C# synthetic fixtures and test snapshot removed after owned process exit; no persistentdemo/privatekeys/newdownload/runtime/environment/service. Actual shipping TON adapter still EVM-based, so native CQL/browser demo stays red pending replacement. CAS/fullHyperDrive/publicnetwork/crash schedules remain open.
+
+TON receipt inspection correction: genuine before-failure exposed wrong-code ACK acceptance. Pending/ACK code identity is now validated in SDK/C# boundaries; all13native+1C#integration results pass after fix. Hashes/archived priorpass receipts and remaining limits in TON_CQL_MVP.md. Syntheticfixturesremoved/runnerexit0, no new environment/download. Actual TON adapter/CQL remains next red gate.
+
+## Actual native TON adapter and CQL milestone
+
+TONOASIS EVM inheritance/dependency removed from production; mandatory shared encrypted storage/native lifecycle owner and bounded CQL now execute through the actual adapter. Fourteen tests pass/no skips (13capability/metadata/lifecycle controls+one actualnative3holon/CQL3/subset2/missing0/budget/cancel/inactive/source-preservation scenario). TRX71C876F8D7AD73DC3D075B7DA5E86E25B607F4A618C0772800DFD29BBE20418A. Initial duplicate-catalogue test error preserved; separate opted-in fixture inspection verified3knowncanonicalrows/all4ACKs/code/owner/sourcebytes before exactteardown,1pass/4E6B391E0565D71A71F91EA25999BEBEA9429309F9E6ABD2166D40EBE1AF9ED7. No unknownnativeoutcome/replay/productionreset. Readonly fixture paths absent, servicesnone; retainedsource/Mongo/browser/catalogue next. Full parity/publicnetwork/HyperDrive/CAS stillred. Details TON_CQL_MVP.md.
+
+## TON retained-source, federation and catalogue milestone
+
+Retained native setup1passed14s; independent runnerreopen1passed8s, identical native source/seed/protectedkey/all4ACK hashes. LocalState/COSMIC/TonCql10files221347bytes retained. MongoSDK/HTTP/browser all5/subset4, rejection/sourcefailure/no-partial and exacttemporarycleanup1passed (serve2m46s). Source unchanged; MongoDBcosmic_cql_mongo_ton_demo absent,27029/5109closed, pending/readyabsent. Public CQLsection14 main107ce90d996c6ab3b4326b66f819db8f9b6876ad/Production7452230200success, exactcommand/fixed5109link verified. Intro corrected to distinguish hosted API from local emulators. Evidence/hashes TON_CQL_MVP.md; rawoutputs onlyTestResults. No realnetwork/token/newruntime/download. Backendtaskbranch only, no Railway backendpush. Next use preservedAzureBlobproof toclose missingintegration/catalogue, no greenhardening; hostedCosmospending/fullgoalopen.

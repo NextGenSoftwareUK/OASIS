@@ -1,20 +1,75 @@
 # Return after the MVP demo
 
-Updated 30 October 2026. These remain part of the full goal; they are deferred, not complete.
+## Virtual Holons and hybrid import
 
-Current priority: fix reproducible demo blockers and deliver provider breadth/presets. Do not expand generic recovery infrastructure or parity depth ahead of the demo.
+Use the [Virtual Holons import proposal](OASIS_Virtual_Holons_Import_Proposal.docx) for the follow-on design. Start with one read-only provider
+collection. Verify stable identity, tenant isolation, bounded native
+execution, provenance, and zero per-row persistence. Prove federation
+with materialized Holons, then verify explicit snapshot saves separately
+from cache expiry, invalidation, erasure, and storage accounting.
 
-| Later work | Current evidence / remaining acceptance |
+Updated 31 October 2026. These remain part of the full goal; they are deferred, not complete.
+
+Priority now: reproducible demo blockers, actual hosted breadth/presets and scoped HyperDrive gates. Do not redo green scopes or expand parity depth ahead of the demo.
+
+| Later work | Verified foundation and remaining scope |
 |---|---|
-| Durable initialization application coordinator | Native baseline, read-only source preparation and target-receipt inspection exist; durable intent, single submission, interrupted-call recovery and operator/API composition remain. |
-| Fenced source reconciliation and queue completion | Require exact authoritative source/target evidence and atomic source-state comparison; never skip/reset a held entry or replay acknowledged writes. Hosted SQLite conflict remains a demo blocker to inspect, not permission to bypass this requirement. |
-| Atomic late enrollment / future-write cutover | Baseline primitives do not certify gap-free enrollment while new source writes race capture. |
-| Large-store baseline/migration operations | Neo receipt audit currently bounded at 10000; Mongo migration batches1–128. Scaling, operator tooling and full operational acceptance remain. |
-| Deep LINQ / EF / NHibernate parity | Resume red checklist rows, especially All/element/numeric terminals after entity-selected stages, reselection and graph composition. Keep green scopes/cursors frozen absent a reproduced bug. |
-| General POCO mapping and migrations tooling | Unrestricted entities without IHolon, model mapping/conventions, schema diff/up/down/scaffolding remain deferred. |
-| Full ORM acceptance audit | Reconcile tracking/save ownership, conditional concurrency, child loading/saving/depth parameters, rollback/history/deltas, placement and migration against original requirements/provider tests. Existing focused proofs do not establish 100% completion. |
-| Broad provider production depth | MVP queries/presets do not certify complete provider semantics, auth, billing/settlement, scaling or cross-provider snapshot consistency. |
+| Operator recovery / late enrollment | Durable reviewed application, target receipts and fenced source completion exist; all6native routes/manager continuations/interleavings pass. Wider hosted/operator authorization and complete operational acceptance remain red. |
+| Primary-authority placement cutover | Replica baseline-to-live delivery is not migration of write authority. Define authority epochs, admission and in-flight operation ownership before implementation. |
+| Large-store baseline/migration | Existing bounded receipt audits and migration batches are not scale certification. Preserve independent target state and all original obligations. |
+| Production uncertain commits | Three-store application ACK loss and real loopback HTTP disconnect pass. Production controller/auth/settlement, native-DB connection faults, process crashes and larger/protected graphs remain separate. |
+| Mixed read/write representations | One admission factory rejects overlapping native signers and unsigned/query-only providers. Design operation/representation-scoped authorization/pricing and native/HTTP tests; do not remove the fence or silently substitute sources. |
+| Deep LINQ / EF / NHibernate parity | Resume red rows, especially post-entity-selected terminals, reselection and graph composition. Keep green scopes/cursors frozen absent a bug. |
+| POCO mapping and migrations tooling | Unrestricted non-IHolon entities, conventions/model mapping, schema diff/up/down/scaffolding remain deferred. |
+| Full ORM acceptance audit | Reconcile tracking/save ownership, conditional concurrency, child load/save/depth parameters, rollback/history/deltas and migration/placement against original requirements. Focused proofs are not100%acceptance. |
+| Broad provider production depth | Read-only MVPs do not certify owned native writes, auth/settlement/scaling, replication or distributed snapshots. Public-chain RPC finality is not independent settlement proof. |
 
-Hosted Azure remains pending at the user's direction (free-only; no existing free subscription). Broader provider order and demo gates remain in CURRENT_STATUS and the strict checklist. Legacy HyperDrive issues are documentation-only; implementation changes remain V2 only.
+The hosted SQLite6/8barrier was explicitly repaired; it is not an outstanding blocker. Preserve the original evidence and do not resave/reset it. Hosted Azure/Oracle remain deferred; no signup/payment re-asks. V2 implementation only, legacy issues document-only.
 
-Recovery entry: [CURRENT_STATUS](CURRENT_STATUS.md). Feature acceptance: [CQL_PARITY_CHECKLIST](CQL_PARITY_CHECKLIST.md). Native recovery limits: [REPLICA_BASELINE_AND_RECOVERY](REPLICA_BASELINE_AND_RECOVERY.md).
+Recovery: [CURRENT_STATUS](CURRENT_STATUS.md). Acceptance: [checklist](CQL_PARITY_CHECKLIST.md). Details: [recovery](REPLICA_BASELINE_AND_RECOVERY.md), [expansion](CQL_DEMO_EXPANSION_ROADMAP.md). [Superseded backlog](Archive/STATUS_BEFORE_PUBLIC_READ_PROFILE_RECONCILIATION_2026-10-31.md).
+
+## Native activation diagnostics found during XRPL demo
+
+Reproducible operator gap: `CqlV1Providers.ActivateReadSourceAsync` discards the provider OASISResult.Exception when raising CQL_SOURCE_ACTIVATION_FAILED; `CqlHostedSources` records/logs only the outer InvalidOperationException and public CQL_SOURCE_UNAVAILABLE. Deployed XRPL endpoint returned HTTP402, but identifying that required a read-only in-container RPC probe. Later preserve a sanitized native failure type/stage/HTTP status for operators, with tests proving credentials, URLs/tokens and raw exception messages stay out of public discovery/logs. Do not add retries or weaken readiness. Evidence and exact original/correction deployments: [XRPL status](XRPL_PUBLIC_SOURCE_STATUS.md#hosted-endpoint-correction). Current demo fix is the explicit, tested free endpoint migration; this diagnostics improvement remains open.
+
+Algorand public-source qualification (1 November): anonymous algod versions and indexer block0 agree Mainnet genesis; account address checksum works. Free indexer explicitly rejects account `round` rewind with HTTP400. A future account profile must expose current-state semantics explicitly, or use separately qualified immutable headers; do not promise pinned account snapshots or silently remove a requested round. No Algorand CQL admission granted.
+
+## Reproduced demo blocker — session renewal (do before further breadth)
+
+SandboxController.StartSession creates/authenticates a temporary avatar but omits the generated refresh cookie that AvatarAuthController issues. Acceptance tooling retained only JWT, so deployment waits outlived the original bearer. Normal avatar/refresh-token successfully renews the same owned avatar. Fix shared cookie issuance and browser/harness credential retention/rotation, with tests and explicit unknown-outcome handling. Preserve account identity and original demo copies; do not extend bearer expiry, replace the owner or mint test bearers directly. HTTP Radix acceptance used documented owned-fixture credential recovery, not automatic browser renewal. No David action needed.
+
+Session root-fix progress: shared issuance/CORS/proxy correction is live and same-avatar secure rotation passes. Live logout owner check fails on the intentionally redacted request token list; Coreb835014 authoritative-owner correction passes5V2 tests, consumer/deploy verification pending. Frontend publication and actual browser lifecycle remain open. Preserve the original known Unauthorized response and continue only through the explicitly journalled correction path. [Current rollout](SESSION_RENEWAL_STATUS.md).
+
+Session lifecycle HTTP correction and frontend publication completed at d9332469d/backend and9e18b7d/website. Original avatar secure rotation/revoke/rejected-reuse verified;0provider saves. Reproduced issuance/proxy/redacted-owner blockers resolved in this scope. Actual browser interaction/expiry observation remain separate open gates; do not replay completed cohort. [Proof](SESSION_RENEWAL_STATUS.md#live-lifecycle-and-page-publication-complete).
+
+
+## Full native payload mapping for browser demo copies
+
+Verified1November2026 against Filecoin hosted proof: generic cql-demo-preparation.js copies source identity/name/description and mapped provenance fields into private Mongo records; FilecoinBalanceWei, FilecoinBlockHash and other native metadata remain only in native rows. Existing key-membership/federation/privacy/replica proofs remain valid within that scope; do not claim full state migration. Before full migration demos, define safe domain-payload projection distinct from reserved owner/revision/encryption/provider state, preserve exact native scalar types/observation time, and test metadata round-trip/querying. Define explicit conditional, journalled schema upgrades for existing owned copies; never silently rewrite acknowledged cohorts, clone credentials/system ownership, or backfill other avatars. This is a remaining full-goal requirement, not completed by the MVP. Evidence: TestResults/HostedCqlIntegrationCurrent/FilecoinOASIS-{native-http,client-http-flow}.json; scope recorded in immutable completion ACK.
+
+Native diagnostic update2November: the Nostr reproduced leaf-query failure now drives shared safe diagnostics work. Activation wrappers preserve original cause; activation and leaf-query logs whitelist categories/stages/typed status only. Sixfocused tests pass; code rollout/live verification pending. Earlier XRPL operator gap is not declared fully resolved until deployed evidence proves it. See NOSTR_PUBLIC_SOURCE_STATUS.md.
+
+
+## Read-source operational recovery after bounded startup exhaustion
+
+Blockscout startup upstreamHTTP500 exposed the one-shot activation latch. An
+explicit per-profile two-attempt/5s-backoff/shared30s startup policy is tested;
+it is not complete operator recovery. Later implement authorized serialized
+reactivation after exhaustion with clear readiness/state ownership, cancellation
+and safe evidence; no hidden fallback, normal-query retries or signing/writes.
+Retain original profile/config/cohort when recovering. Validate sustained live
+read availability separately: Blockscout earlier15s timeout and Nostr intermittent
+503causes remain unresolved. Do not harden completed provider query cells merely
+to reproduce green. [Current Blockscout evidence](BLOCKSCOUT_PUBLIC_SOURCE_STATUS.md).
+
+## Reproduced local launcher blocker — recover before further breadth
+
+Published website commands reference 35 launchers absent from the current branch; retained source exists at sandbox-integration pin 237403a75b6983e013141cf7ba44bf66858abafd. Recover scoped provider/demo source dependencies, beginning with DuckDB, preserve current changes, verify controlled builds and command paths. Do not replay original accepted native cohorts or create replacement environments. This is a current demo-link bug, not deferred parity work. [Exact report](LOCAL_LAUNCHER_INTEGRATION_GAP.md).
+
+2November update:all37launcher files now exist;runtime/configuration gates remain.
+Sixth release d167dff13 succeeds;59/60profiles ready,Nostr activation connect
+HTTP503/NotAWebSocket. Explicit serialized source recovery is now a current demo
+blocker rather than later operational polish. Do not replay its acknowledged
+cohort,substitute a relay,silently retry normal queries or restart the whole host.
+Safe diagnostics/original pending and completed startup observations retained in
+LocalState/COSMIC/HostedLauncherRecoverySixthReleaseCurrent.

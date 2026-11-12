@@ -18,6 +18,11 @@ public partial class SolanaOASIS
     private async Task<List<IWalletTransaction>> ReadNativeHistoryEffectsAsync(SignatureStatusInfo signature,string wallet,WalletTransaction summary)
     {
         var tx=await _transactionReader(signature.Signature,default);
+        return MapNativeHistoryEffects(signature, wallet, summary, tx);
+    }
+
+    private static List<IWalletTransaction> MapNativeHistoryEffects(SignatureStatusInfo signature, string wallet, WalletTransaction summary, TransactionMetaSlotInfo tx)
+    {
         if(tx?.Transaction?.Message?.AccountKeys==null || tx.Transaction.Message.Instructions==null || tx.Meta==null)
             throw new InvalidDataException("Solana transaction details are missing; history is incomplete.");
         if(tx.Slot!=signature.Slot || tx.Transaction.Signatures==null || tx.Transaction.Signatures.FirstOrDefault()!=signature.Signature

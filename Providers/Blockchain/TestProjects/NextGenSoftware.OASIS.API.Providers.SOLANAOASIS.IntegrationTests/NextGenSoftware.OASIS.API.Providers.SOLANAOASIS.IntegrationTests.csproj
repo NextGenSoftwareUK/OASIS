@@ -6,10 +6,13 @@
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
+    <EnableDefaultCompileItems Condition="'$(SolanaDirectProviderOnly)' == 'true'">false</EnableDefaultCompileItems>
+    <IncludeCoreStorageConformance Condition="'$(SolanaDirectProviderOnly)' == 'true'">true</IncludeCoreStorageConformance>
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="../../../Shared/TestSupport/IndexedHttpLedger.cs" Link="Shared/IndexedHttpLedger.cs" />
+    <Compile Include="../../../Shared/TestSupport/IndexedHttpLedger.cs" Link="Shared/IndexedHttpLedger.cs" Condition="'$(SolanaDirectProviderOnly)' != 'true'" />
+    <Compile Include="SolanaCoreStorageConformanceTests.cs" Condition="'$(SolanaDirectProviderOnly)' == 'true'" />
     <Compile Include="..\..\..\Shared\TestSupport\CoreStorageConformance.cs" Link="Shared\CoreStorageConformance.cs" Condition="'$(IncludeCoreStorageConformance)' == 'true'" />
     <Compile Remove="SolanaCoreStorageConformanceTests.cs" Condition="'$(IncludeCoreStorageConformance)' != 'true'" />
   </ItemGroup>
@@ -21,13 +24,18 @@
     <PackageReference Include="coverlet.collector" Version="6.0.0" />
   </ItemGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="'$(SolanaDirectProviderOnly)' != 'true'">
     <Compile Include="../../../../Examples/CosmicCqlDemo/ChainIndexedMetadataWalkthrough.cs" Link="Demo/ChainIndexedMetadataWalkthrough.cs" />
     <Compile Include="../../../../Examples/CosmicCqlDemo/IndexedChainDemoPage.cs" Link="Demo/IndexedChainDemoPage.cs" />
     <Compile Include="../../../../Examples/CosmicCqlDemo/ChainIndexedWalkthrough.cs" Link="Demo/ChainIndexedWalkthrough.cs" />
+    <Compile Include="../../../../Examples/CosmicCqlDemo/MixedFederationWalkthrough.cs" Link="Demo/MixedFederationWalkthrough.cs" />
+    <Compile Include="../../../../Examples/CosmicCqlDemo/MixedFederationApiHost.cs" Link="Demo/MixedFederationApiHost.cs" />
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <ProjectReference Include="../../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj" />
     <ProjectReference Include="../../../Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.SOLANAOASIS\NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.csproj" />
   </ItemGroup>
 

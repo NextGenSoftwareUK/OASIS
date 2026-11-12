@@ -30,8 +30,21 @@
     <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" Condition="Exists('..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj')" />
     <PackageReference Include="NextGenSoftware.OASIS.API.Core" Version="2.0.0" Condition="!Exists('..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj')" />
     <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.Common\NextGenSoftware.OASIS.Common.csproj" />
+    <ProjectReference Include="../../Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <None Update="Companion/package.json" Pack="true" PackagePath="contentFiles/any/any/ConvexCompanion/package.json" />
+    <None Update="Companion/package-lock.json" Pack="true" PackagePath="contentFiles/any/any/ConvexCompanion/package-lock.json" />
+    <None Update="Companion/convex.json" Pack="true" PackagePath="contentFiles/any/any/ConvexCompanion/convex.json" />
+    <None Update="Companion/tsconfig.json" Pack="true" PackagePath="contentFiles/any/any/ConvexCompanion/tsconfig.json" />
+    <None Update="Companion/README.md" Pack="true" PackagePath="contentFiles/any/any/ConvexCompanion/README.md" />
+    <None Update="Companion/convex/schema.ts" Pack="true" PackagePath="contentFiles/any/any/ConvexCompanion/convex/schema.ts" />
+    <None Update="Companion/convex/oasis/records.ts" Pack="true" PackagePath="contentFiles/any/any/ConvexCompanion/convex/oasis/records.ts" />
+  </ItemGroup>
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+      <_Parameter1>NextGenSoftware.OASIS.API.Providers.ConvexOASIS.UnitTests</_Parameter1>
+    </AssemblyAttribute>
     <None Include="README.md" Pack="true" PackagePath="/" />
   </ItemGroup>
 </Project>

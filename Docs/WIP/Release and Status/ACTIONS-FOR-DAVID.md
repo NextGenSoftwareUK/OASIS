@@ -2,6 +2,8 @@
 
 The single list of everything that needs you: your accounts, phones, admin rights, approvals or a decision. Everything else is done or in progress. Tick items off and tell Claude when one is done; it picks up the next step. Never paste passwords, API keys, tokens or connection strings into chat.
 
+All agents must record owner-dependent requests here before asking, update answers, and preserve deferred decisions without repeatedly asking. Agent implementation/tool failures remain agent work.
+
 Last updated 31 October 2026. This file replaces `OWNER_SETUP_CHECKLIST.md` (merged into Part B below) and the PIPER work log's action list (Part A).
 
 ## Open actions at a glance
@@ -17,6 +19,7 @@ Last updated 31 October 2026. This file replaces `OWNER_SETUP_CHECKLIST.md` (mer
 | 8 | **Add two DNS records so the new HoloNET docs and learn sites go live** (NameSilo) | E1 |
 | 9 | Rotate the Arbitrum testnet key and the block-explorer API key that were committed to git (removed from files, still in history) | E2 |
 | 7 | Older items: phone tests, WSL disk, Vercel branch check, oasisweb4 site decision, iOS runtime script, Git LFS budget, upstream Holochain PRs | D |
+| 10 | COSMIC/CQL: decide follow-up Default-routing fix publication; hosted Azure/Oracle remain deferred | F |
 
 ---
 
@@ -49,6 +52,16 @@ Each SDK repo has a GitHub workflow `publish.yml` that publishes on push wheneve
 - [ ] For each of the 7 packages on npmjs.com: package → **Settings → Trusted publishing → GitHub Actions** → owner `NextGenSoftwareUK`, the matching repo (`OASIS-API-Javascipt-Package-WEB4`, `OASIS-API-Javascript-Package-WEB5` … `WEB10`), workflow `publish.yml`.
 
 Until then the "publish" workflow fails on each push (harmless).
+
+### A2b. Dev-only test accounts (Railway dev environment only)
+
+PIPER's SA-created test staff skip email verification. OASIS honours that only when ALL of these hold, so set them on the **Railway dev** service and never on live:
+
+- `OASIS_ALLOW_PROGRAMMATIC_VERIFICATION=true`
+- the server counts as a dev server: set `OASIS_ENVIRONMENT=development` (recommended, explicit), or `ASPNETCORE_ENVIRONMENT=Development` (this also turns on the developer exception page), or have Railway's `RAILWAY_ENVIRONMENT_NAME` be `development` or `dev`. The Dockerfiles default `ASPNETCORE_ENVIRONMENT` to `Production`, so without one of these the server counts as live. Setting `OASIS_ENVIRONMENT=production` (or `live`) on live forces it off even if another setting is wrong.
+- the test account's email ends in `.invalid`.
+
+Check live has **none** of the first two set. Documented for developers in the WEB4 Avatar API reference, the docs site (Avatar reference) and the Learn site (Avatar identity tutorial).
 
 ### A3. PIPER (M4)
 
@@ -287,7 +300,12 @@ Claude installs the 0.7 shared runtime and runs the bridge test; you'll only nee
 
 **iPhone:** needs a Mac (or a device farm). The simulator tests pass in CI.
 
-### 3. Shrink the WSL disk (gets ~10+ GB back)
+### 3. Compact the WSL disk (administrator required; updated 2 November)
+
+**2 November evidence:** cleanup recovered about16.1GB of Windows artifacts; latest free60.9GB. WSL trim/cache cleanup completed and Ubuntu stopped. The98.6GBVHD still holds92.3GBof used filesystem data, so compaction alone offers roughly6GB, not80GB. This agent is not elevated; administrator compaction remains pending. [Measured recovery/retention plan](../Cleanup/DISK_RECOVERY_CURRENT.md).
+
+**Decision resolved 2 November 2026: KEEP BOTH.** David explicitly retained `/home/dellams/miniforge3` (34.5GB) and `/home/dellams/art-ml-models` (2.8GB). Exclude both from cleanup; do not ask again unless David changes this decision. Existing provider containers/volumes/chain ledgers also remain preserved; no blanket prune or dataset reset authorized by their stopped state.
+
 
 In **Ubuntu**:
 ```bash
@@ -310,8 +328,8 @@ exit
 ```
 Don't use `wsl --manage ... --set-sparse --allow-unsafe` (WSL warns it can corrupt the disk).
 
-Optional, your call: `miniforge3` (33 GB), ML models (2.6 GB) and two PyTorch wheels (1.6 GB) in WSL aren't from this work.
-Delete them before compacting if you don't need them.
+Personal Miniforge and ML models are retained by David's 2 November decision.
+Other personal ML resources are not authorized for removal.
 
 ### 4. Check Vercel before deleting old branches
 
@@ -429,6 +447,50 @@ put it in the `NUGET_API_KEY` secret of NextGenSoftwareUK/OASIS (Settings > Secr
 it re-runs the publish (about 25 minutes), attaches the packages to the v4.6.0 GitHub release and checks every package is on nuget.org.
 **Status:** open, 1 November 2026. **Details:** failed run https://github.com/NextGenSoftwareUK/OASIS/actions/runs/41338513590 (the step "Push to NuGet.org").
 
+---
+
+## Part F — COSMIC ORM / CQL demo owner decisions (31 October 2026)
+
+Current owner decision: **1 November 2026: David explicitly authorized as many Development pushes as needed to test and fix the live demo. Do not ask again for daily-cadence exceptions for this work.** Production/master promotion and new hosting spend remain outside this authorization.
+See [COSMIC current status](../COSMIC%20ORM/CURRENT_STATUS.md).
+
+| Item | Status / David's decision | When action is needed |
+|---|---|---|
+| Existing development Wizard/admin session for CQL source recovery (3 November2026) | **David offered an existing Wizard account;awaiting local sign-in**. Code deployed;27controlled cases/live401+403 pass. Secure local helper and4offline checks ready. | In your own terminal run `python Scripts/Sandbox/Prepare-CqlRecoveryOperatorSession.py` from `C:/Source/OASIS2` (current laptop), enter your existing development Wizard username/password privately,then tell the agent sign-in is complete. No password/token in chat,account creation or role promotion. Needed for admin-only Nostr recovery;agent owns tests/recovery/journalling. [Secure steps](../COSMIC%20ORM/CQL_SOURCE_RECOVERY.md#secure-local-sign-in). |
+| Consolidated Development batch timing (31 October) | **Approved; published** — David replied “Publish one consolidated batch now”. Development now parent57174def3/Core6bbd015, both remote-verified; newer public-provider expansion remains on its separate task branch | One additional consolidated Development publication authorized. No master/production promotion or hosting spend. [Scope/evidence](../COSMIC%20ORM/HOSTED_SANDBOX_INTEGRATION_PLAN.md#consolidated-release-preflight--31-october-2026). |
+| Default-routing follow-up publication (31 October) | **Approved and deployed, 1 November 2026** — David replied “Publish correction now”; Development051ac6af7 is live, Railway d8876691 SUCCESS; Default preservation and three-source failover verified for the live-found V2 controller acquisition bug.13guard+61controllerHTTPtests pass0skips; original routing fixture/3replicas preserved | First approved extra batch57174def3 deployedSUCCESS, revealing Default is bound toMongo before balancing. Dailycadence exception needed for another deployment. No provider expansion/Corepin/hosting spend. [Root cause/tests](../COSMIC%20ORM/HOSTED_SANDBOX_INTEGRATION_PLAN.md#live-default-routing-root-cause-and-scoped-fix--31-october-2026). |
+| Expansion SDK packaging correction (1 November) | **Approved and published, 1 November 2026** - David replied Publish packaging correction now. Development89681ce40 is pushed and remote-verified; observe its exact deployment before enrollment. Expansion build failed before enrollment; the prior routing release remains live | Seven Polkadot imported modules were omitted from the publish manifest. Actual MSBuild publish metadata, five bridge closure checks and two regression tests pass. No settings, new hosting or production/master promotion. [Details](../COSMIC%20ORM/HOSTED_SANDBOX_INTEGRATION_PLAN.md#polkadot-publish-root-cause---1-november-2026). |
+| Hosted PostgreSQL CQL demo (1 November 2026) | **Deferred by David, 1 November 2026** - David replied "Leave hosted PostgreSQL pending". Local native/paired HTTP proof is preserved; no new paid resource or account created. | No owner setup is needed now. Preserve this deferral and continue other providers; do not re-ask for access or provision hosting. Revisit only when David resumes hosted PostgreSQL. [Local proof and placement gap](../COSMIC%20ORM/POSTGRESQL_CQL_MVP.md#next-placement-work). |
+| Hosted Azure Cosmos | **Deferred** — free only; no existing free subscription; David said leave hosted Azure pending | Only if David chooses to resume. No paid upgrade, card/signup request or new account creation now. |
+| Hosted Oracle Database / OCI | **Deferred** — no existing Oracle account; David said leave hosting pending | Only if David resumes. Then record the actual account/connection/wallet setup needed here; request paths or variable names only, never secret values. |
+| First AWS demo | **Approved** — use a public S3 dataset | Decision implemented: anonymous native metadata reads and Mongo pairing verified through hosted HTTP. No AWS account or bucket setup needed for this demo. |
+| Temporary demo avatar daily calls | **Approved: 200** | Implemented/live-verified. Normal Free accounts stay at 20; token/spending limits unchanged. No further approval requested. |
+| Browser access for demo verification | **Already supplied** — David opened the demo in Edge; the demo is also open in the in-app browser | The agent must resolve its control/verification tooling. Do not repeatedly ask David to open it. Record any genuinely new manual step here before asking. |
+
+These decisions do not close unrelated full-provider, production release, device
+or credential actions elsewhere in this file. No blanket cloud spending, on-chain
+funding, paid account setup or production promotion is authorized here.
+
+All future David-dependent actions from this COSMIC/CQL work belong in this list,
+with date, reason, exact next step and supporting links. Do not create another
+David checklist or turn code/test/automation fixes into owner setup tasks.
+
+---
+
+## OurWorld OLAND — Vercel team access
+
+**Status:** no owner action currently required,1 November2026. Vercel private reads still403, but WEB4 already has a configured Stripe test key and Solana devnet wallet. Agent will reuse those existing server settings. Earlier Vercel sign-in requests can be ignored for OLAND setup.
+
+**Action:** re-authenticate the Vercel connector to the OASIS team when a fresh consent link is provided. Earlier single-use links expire after10 minutes; do not reuse expired links or paste secrets into chat.
+
+**Why:** private founders development Stripe settings returned403 requiring team authorization. David confirmed reuse of the founders treasury; its public wallet and development Solana/Stripe test modes are already verified. Agent-owned API/provider implementation, tests and deployment verification remain agent work.
+
+**Details:** [OLAND payment setup and implementation status](<../Our World/oland-purchase/implementation-status.md>); [Unity task status](<C:/Source/Our-World/Docs/WIP/oland-purchase/implementation-status.md>). No private values are recorded here. Do not mark access complete until a private environment read succeeds.
+
+
+
+OLAND clarification,1 November2026: David reported Vercel approval completed; private connector reads still returned403, but access is no longer required for OLAND. OLAND land pricing already exists in the API. Wallet conversion uses explicit public market quotes; no CoinGecko key setup action is required for OLAND development checkout. Preserve any separate credential actions for provider billing.
+
 ### E5. HoloOASIS in the WEB4 API: use HoloNET's auto-downloaded conductor (dev first, then live)
 **Context:** WEB4 API on Railway (`Docker/Dockerfile.web4`, `Docker/entrypoint.onode.sh`, `Docker/oasis-dependency-versions.env`); HoloNET `main` (commit 4daa7437 or later).
 **Why:** HoloNET now downloads and starts the official Holochain conductor itself on Linux (`HoloNETDNA.AutoDownloadConductor`, proven on Ubuntu, macOS and Windows runners), so the image needs no Holochain binary. The WEB4 image builds HoloNET from a pinned commit, which predates this.
@@ -440,3 +502,84 @@ it re-runs the publish (about 25 minutes), attaches the packages to the v4.6.0 G
 **Why:** you asked for Embedded packages for every OS and conductor version. Each package holds one OS/CPU and one version, so the count depends on the matrix. Compressed binaries keep each Client package at roughly 25 to 30 MB; the ORM, API and HyperNET variants are thin and depend on the matching Client one.
 **Action:** choose the CPUs: Linux x64 only, or x64 and arm64; macOS Apple Silicon only, or Apple Silicon and Intel (each extra CPU doubles that OS's packages: 16 new packages for one CPU per OS and both versions, 32 for both CPUs); and whether older Holochain versions (0.6.x, 0.5.x) get Embedded packages too.
 **Status:** open, 2 November 2026.
+
+
+### Our World place metadata source preference — 2 November 2026
+Status: awaiting optional preference. Recommended: free-only sources first (OSM, OpenActive, venue-published calendars/structured data; optional Geoapify free quota), with provider labels and missing fields shown honestly. Alternative: allow a separately capped paid review/rating source after evaluating its map-use terms. No account/key/payment action requested yet; public Overpass is currently at capacity, an agent-owned integration/availability finding. Details: [Worldscape implementation status](<../Our World/oland-purchase/places-api-build.log>); source terms: https://www.geoapify.com/pricing/ and https://developers.google.com/maps/documentation/places/web-service/policies . This preference affects enrichment scope, not the authorized Places Visited/history implementation.
+
+2 November2026 update: David chose **Free sources only**. Preference resolved; paid sources remain disabled. No account/key/payment request has been made. Do not re-ask this budget preference.
+
+
+### Our World — existing Geoapify free-project key location
+Status: missing account/configuration information,2 November2026. David approved free sources only. Identify an existing Geoapify free project/secure environment containing its key, or configure GEOAPIFY_API_KEY as a secret on existing Railway development WEB4. No payment card or paid upgrade requested. Why: no Geoapify/Places/Overpass variables were found on that service; the public Overpass source is currently at capacity. Agent continues history/UI/API implementation and owns provider wiring, quota caps and testing. [Secure setup instructions](<../Our World/worldscape-places/free-place-source-setup.md>).
+
+2 November2026 update: David confirmed he has no Geoapify account/key. Do not re-ask where an existing key is stored. A new free account/project is the remaining optional owner setup; adapter and shared free-credit cap are agent work. Keep paid plans disabled. Continue independent Places Visited/history and open-data work.
+
+
+2 November2026 update: David configured GEOAPIFY_API_KEY on Railway development WEB4. Verified key presence without logging its value. Owner account/key setup complete; API deployment and hosted source/quota checks remain agent-owned. Do not ask David to configure the key again.
+
+
+## COSMIC CQL LocalFile qualification files from the newer laptop
+
+- Resolved 2026-11-04. David authorized recreation. A separate public teaching
+  cohort was created and qualified on this laptop. SDK export and WEB4 bootstrap
+  parser each passed one test. The publisher accepted the replacement bundle
+  and both source hashes. Recovery of the original files is no longer needed
+  for the demo. The earlier cohort was not overwritten.
+- [Replacement qualification and rollout](../COSMIC%20ORM/LOCALFILE_CQL_MVP.md).
+
+## Railway access for Development WEB4 rollout from this laptop
+
+- Status 2026-11-04: the installed Railway CLI returned Unauthorized on the
+  read-only account check. The LocalFile publisher needs authenticated access
+  to read the current Development WEB4 settings and verify the exact release.
+- The replacement LocalFile bundle is qualified. Sign in privately with
+  `railway login` on this laptop using the existing account with Development
+  WEB4 project access. Tell the agent when sign-in completes. Keep tokens and
+  credentials out of chat and Git.
+- [LocalFile qualification and rollout](../COSMIC%20ORM/LOCALFILE_CQL_MVP.md).
+
+## IPFS retained fixture access
+
+- **Open, 2026-11-11.** Identify the machine that holds the original offline Kubo test repository and protected storage key and make both available to the verification session. Keep the key in protected local storage.
+- Fresh Kubo fixtures passed graceful restart and separate-process concurrent publication on Windows and Linux. The retained fixture is needed to verify historical-data recovery and compatibility. [Provider matrix](../HyperDrive-Providers/PROVIDER_MATRIX.md)
+
+### NEAR dedicated lifecycle fixture
+
+- **Status (11 November 2026)** Fresh native NEAR Sandbox passed both storage modes and the avatar-history deletion check, with zero native fixture keys. Access to the retained environment and hosted writable verification remain open. [CI evidence](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43031215931)
+- **Action** If the retained NEAR test environment is available, identify its host and authorize access to a disposable writable OASIS contract with its dedicated test signer through the existing protected channel. Keep signing material and credentials out of Git and chat. The retained host needs the pinned NEAR toolchain on Linux to build the checked-in TypeScript contract and measure deletion gas before deploying it to the disposable fixture. This Windows host has no registered WSL distribution and its default Node version is 18.18.0.
+- **Reason** The provider agent will verify chain and contract identity, configure the run and report directory, and reconcile only test-owned records. Preserve existing COSMIC/CQL data.
+- **Context** [NEAR lifecycle evidence](../HyperDrive-Providers/PROVIDER_COMPLETION_CONTINUATION.md). The provider agent verified that the new VerifySharedLifecycle runner stops before startup when Ubuntu WSL is unavailable (ca2657e75e). On the retained host, the agent owns launcher synchronization, the build lease and the two live modes.
+
+### Cosmos retained wasmd fixture
+
+- **Status (11 November 2026)** Fresh native wasmd passed both shipping CosmJS storage modes and left zero fixture keys. Access to the original retained environment remains open. [CI evidence](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43028889300)
+- **Action** If the original wasmd test fixture is retained on another device, identify the device and its existing protected test environment so the provider agent can access it. Keep signer material out of Git and chat. The provider agent verified on 2026-11-10 that the guarded Conformance command stops before startup because Ubuntu WSL is unavailable (5a96413305). The agent owns the build lease, fixture admission, sync/async execution, and evidence preservation after access is available.
+- **Reason** The agent must confirm the retained chain and contract identity and reconcile historical pending operations against that ledger. Preserve the original ledger and evidence.
+- **Context** [Cosmos verification notes](../HyperDrive-Providers/PROVIDER_COMPLETION_CONTINUATION.md).
+
+### TRON dedicated native storage fixture
+
+- **Open, 2026-11-11.** Fresh native TRE passed both shipping gRPC storage modes and confirmed an empty contract after cleanup. Identify the retained or hosted isolated TRON node and the authorized disposable OASIS record contract for the remaining verification. Provide the non-secret node, network and contract identities through the existing configuration channel. Configure the signer and persisted storage encryption key through protected local settings. The provider team owns identity, receipt and cleanup verification. [Native CI evidence](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43035175165)
+- **Harness ready.** The build passed and the filtered suite skipped with the opt-in disabled. For the native run, set OASIS_TRON_STORAGE_LIFECYCLE=1 and configure OASIS_TRON_LIFECYCLE_RPC, OASIS_TRON_LIFECYCLE_FULL_GRPC and OASIS_TRON_LIFECYCLE_SOLIDITY_GRPC as loopback HTTP endpoints. Set the non-mainnet OASIS_TRON_LIFECYCLE_NETWORK, numeric decimal or 0x-prefixed OASIS_TRON_LIFECYCLE_CHAIN_ID, 64-digit hexadecimal OASIS_TRON_LIFECYCLE_GENESIS, OASIS_TRON_LIFECYCLE_CONTRACT, OASIS_TRON_LIFECYCLE_OWNER and OASIS_TRON_LIFECYCLE_REPORT_ROOT. Provide OASIS_TRON_STORAGE_PRIVATE_KEY and OASIS_TRON_STORAGE_ENCRYPTION_KEY only through protected local configuration. Select TronNativeStorageLifecycleTests under the provider build lease. Existing reports require reconciliation before replay.
+
+### Neon hosted storage test database
+
+- **Status (2026-11-11)** Open for hosted acceptance. Official Neon compute passed the 52-case native storage lifecycle with exact cleanup. The hosted pooled connection remains the next gate. [Native run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43022056613)
+- **David action** Grant access to a disposable Neon branch with a dedicated database named oasis_provider_test. An existing dedicated database is suitable if it has that name and no OASIS test records. Configure its pooled Npgsql connection string (using the explicit Neon -pooler hostname) through protected local configuration as OASIS_NEON_CONFORMANCE_CONNECTION_STRING. Keep the connection string out of Git and chat.
+- **Reason** The native suite writes and deletes OASIS fixtures and requires a real Neon endpoint with verified TLS. The provider agent owns schema and conformance engineering after access is available.
+- **Context** [Provider completion continuation](../HyperDrive-Providers/PROVIDER_COMPLETION_CONTINUATION.md).
+
+### Supabase hosted storage test project
+
+- **Status (2026-11-11)** Open for hosted storage acceptance. Native PostgREST passed the 52-case storage lifecycle with exact cleanup. The WEB4 CQL deployment has a separate restricted read-only fixture requirement. [Native storage run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43015778894)
+- **David action** Designate an empty disposable hosted Supabase project or grant access to one. Configure its project URL as OASIS_SUPABASE_CONFORMANCE_URL and its server-side test credential as OASIS_SUPABASE_CONFORMANCE_SERVICE_KEY through protected local configuration. Keep the credential out of Git and chat.
+- **Reason** The sync and async lifecycle suite writes and removes exact test records. The provider agent owns schema setup and verification once access is available.
+- **Context** [Provider completion continuation](../HyperDrive-Providers/PROVIDER_COMPLETION_CONTINUATION.md).
+
+### Convex hosted companion acceptance
+
+- **Status (2026-11-11)** Open for hosted acceptance. Local Convex passed 52/52 storage lifecycle checks. The official engine also verified recovery after installing the companion on the same provider instance. [Companion recovery run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43017572009)
+- **Action** Identify the dedicated Convex test deployment with the OASIS companion installed. For the disposable write test set OASIS_CONVEX_HOSTED_TEST_WRITES=1. Supply its HTTPS origin via OASIS_CONVEX_HOSTED_TEST_URL and set OASIS_CONVEX_HOSTED_TEST_DEPLOY_KEY and OASIS_CONVEX_STORAGE_KEY in the protected environment. Keep secrets out of Git and chat.
+- **Reason** The agent must verify authenticated activation and then the hosted storage lifecycle without touching production data.
+- **Context** [Convex storage evidence](../HyperDrive-Providers/CONVEX_STORAGE_BASELINE.md).

@@ -436,7 +436,7 @@ public partial class CqlV1Web4Tests
     [InlineData("All")]
     [InlineData("Default")]
     [InlineData("999")]
-    [InlineData("EthereumOASIS")]
+    [InlineData("HoloOASIS")]
     public async Task InvalidProviderDoesNotResolve(string provider)
     {
         var type = ProviderType.SQLLiteDBOASIS;

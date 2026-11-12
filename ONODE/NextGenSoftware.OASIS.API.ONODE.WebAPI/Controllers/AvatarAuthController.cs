@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
@@ -94,10 +94,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 avatarType,
                 OASISType.OASISAPIREST,
                 callerIsWizard: callerIsWizard,
-                // Suppression is honoured for a Wizard caller, and for any caller when the operator has
-                // enabled programmatic signup. Previously a non-Wizard's suppressVerificationEmail:true was
-                // silently ignored, so programmatic signup had no way to complete verification.
-                suppressVerificationEmail: model.SuppressVerificationEmail && (callerIsWizard || ProgrammaticVerificationAllowed())
+                // Suppression is honoured for a Wizard caller. For anyone else it is honoured only when the operator
+                // enabled programmatic signup AND this is a positively identified development server AND the email is
+                // a ".invalid" address (see ProgrammaticVerificationPolicy); otherwise it is ignored and the email is sent.
+                suppressVerificationEmail: Services.ProgrammaticVerificationPolicy.ShouldSuppress(
+                    model.SuppressVerificationEmail, callerIsWizard, model.Email, ProgrammaticVerificationAllowed())
             );
 
             if (exposeDiagnostics)
@@ -146,7 +147,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         /// <summary>
         /// Whether a non-Wizard caller may set suppressVerificationEmail:true (programmatic signup).
-        /// Enabled with OASIS_ALLOW_PROGRAMMATIC_VERIFICATION=true / OASIS:AllowProgrammaticVerification=true.
+        /// Enabled with OASIS_ALLOW_PROGRAMMATIC_VERIFICATION=true / OASIS:AllowProgrammaticVerification=true, and even then
+        /// only on a development server for ".invalid" emails (ProgrammaticVerificationPolicy). This is just the operator switch.
         /// </summary>
         private bool ProgrammaticVerificationAllowed()
         {
@@ -515,11 +517,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (string.IsNullOrEmpty(token))
                 return HttpResponseHelper.FormatResponse(new OASISResult<string>() { Result = "Token is required", IsError = true });
 
-            // users can revoke their own tokens and admins can revoke any tokens
-            if (!Avatar.OwnsToken(token) && Avatar.AvatarType.Value != AvatarType.Wizard)
-                return HttpResponseHelper.FormatResponse(new OASISResult<string>() { Result = "Unauthorized", IsError = true }, HttpStatusCode.Unauthorized);
-
-            return HttpResponseHelper.FormatResponse(AvatarManager.RevokeToken(token, ipAddress()));
+            // The request avatar is intentionally redacted. Core resolves the exact
+            // refresh credential and checks its authoritative owner before mutation.
+            var revoked = AvatarManager.RevokeToken(token, ipAddress(), Avatar);
+            if (!revoked.IsError) AvatarSessionCookie.Clear(HttpContext);
+            return HttpResponseHelper.FormatResponse(revoked);
         }
 
         /// <summary>
@@ -628,16 +630,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         private void setTokenCookie(string token)
-        {
-            var refreshDays = OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.Security?.RefreshTokenExpirationDays ?? 7;
-            if (refreshDays <= 0) refreshDays = 7;
-            var cookieOptions = new CookieOptions
-            {
-                HttpOnly = true,
-                Expires = DateTime.UtcNow.AddDays(refreshDays)
-            };
-            Response.Cookies.Append("refreshToken", token, cookieOptions);
-        }
+            => AvatarSessionCookie.Append(HttpContext, token);
 
         private string ipAddress()
         {

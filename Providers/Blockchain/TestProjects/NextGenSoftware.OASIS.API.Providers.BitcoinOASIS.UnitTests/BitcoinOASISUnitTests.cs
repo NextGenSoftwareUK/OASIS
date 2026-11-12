@@ -25,7 +25,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.UnitTests
             var providerType = _provider.ProviderType;
 
             // Assert
-            Assert.AreEqual(ProviderType.BitcoinOASIS, providerType);
+            Assert.AreEqual(ProviderType.BitcoinOASIS, providerType.Value);
         }
 
         [TestMethod]
@@ -89,14 +89,9 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.UnitTests
         }
 
         [TestMethod]
-        public void GetProviderVersion_ShouldReturnValidVersion()
+        public void ProviderCategory_ShouldBeBlockchain()
         {
-            // Arrange & Act
-            var version = _provider.GetProviderVersion();
-
-            // Assert
-            Assert.IsNotNull(version);
-            Assert.IsFalse(string.IsNullOrEmpty(version));
+            Assert.AreEqual(ProviderCategory.Blockchain, _provider.ProviderCategory.Value);
         }
 
         [TestCleanup]

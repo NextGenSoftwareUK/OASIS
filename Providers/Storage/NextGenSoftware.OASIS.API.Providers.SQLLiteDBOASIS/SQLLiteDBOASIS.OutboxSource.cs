@@ -5,7 +5,7 @@ using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 
-public partial class SQLLiteDBOASIS : IHolonReplicationOutboxSource
+public partial class SQLLiteDBOASIS : IBoundHolonReplicationOutboxSource
 {
     public OASISResult<IHolonReplicationReadinessOutbox> GetHolonReplicationOutbox()
     {
@@ -15,4 +15,18 @@ public partial class SQLLiteDBOASIS : IHolonReplicationOutboxSource
         catch(Exception cause){return new OASISResult<IHolonReplicationReadinessOutbox>{IsError=true,ErrorCount=1,
             ErrorCode="COSMIC_OUTBOX_SOURCE_UNAVAILABLE",Message="The activated provider has no usable durable outbox binding.",Exception=cause};}
     }
+    public OASISResult<IHolonReplicationRouteInventoryOutbox> GetBoundHolonReplicationOutbox(CosmicStorageIdentity expectedSource)
+    {
+        ArgumentNullException.ThrowIfNull(expectedSource);
+        if (!IsProviderActivated)
+            return new() { IsError=true, ErrorCount=1, ErrorCode="COSMIC_OUTBOX_SOURCE_NOT_ACTIVATED",
+                Message="Activate the native provider before capturing a bound outbox." };
+        try { return new(new SqliteHolonReplicationOutbox(_appDataContext.Database.GetConnectionString(), null, expectedSource)); }
+        catch (Exception cause)
+        {
+            return new() { IsError=true, ErrorCount=1, ErrorCode="COSMIC_OUTBOX_SOURCE_UNAVAILABLE",
+                Message="The activated provider cannot capture the expected native outbox.", Exception=cause };
+        }
+    }
+
 }

@@ -19,11 +19,15 @@ if [[ "$1" == "oasis" ]]; then
     contract=oasis
 else
     echo "need contract"
-    exit 0
+    exit 2
 fi
 
 #oasis account
 account=$2
+if [[ -z "$account" ]]; then
+    echo "need account" >&2
+    exit 2
+fi
 
 #network
 if [[ "$3" == "mainnet" ]]; then 
@@ -37,10 +41,12 @@ elif [[ "$3" == "local" ]]; then
     network="Local"
 else
     echo "need network"
-    exit 0
+    exit 2
 fi
 
 echo ">>> Deploying $contract contract to $account on $network..."
 
-# eosio v1.8.0
+# Build both artifacts from this checkout before publishing the contract.
+cd -- "$(dirname -- "${BASH_SOURCE[0]}")" || exit 1
+OASIS_SCRIPT_NO_PAUSE=1 bash ./build.sh "$contract" || exit 1
 cleos -u $url set contract $account ./build/$contract/ $contract.wasm $contract.abi -p $account

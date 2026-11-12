@@ -81,6 +81,8 @@ async function execute(input) {
     case "balance": {
       const accountId = input.targetAccountId ?? input.accountId;
       if (!accountId) throw new Error("targetAccountId is required");
+      const networkId = await provider.getNetworkId();
+      if (networkId !== input.networkId) throw new Error("NEAR wallet balance endpoint network mismatch");
       const state = await provider.viewAccount({ accountId, blockQuery: { finality: "final" } });
       return { amount: state.amount.toString(), locked: state.locked.toString(), storageUsage: state.storage_usage };
     }

@@ -1,8 +1,11 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS;
 using System;
 using System.Threading.Tasks;
+using System.Text.Json;
+using NextGenSoftware.OASIS.Providers.TestSupport;
 
 namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.IntegrationTests
 {
@@ -14,8 +17,11 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.IntegrationTests
         [TestInitialize]
         public async Task Setup()
         {
-            string endpoint = Environment.GetEnvironmentVariable("OASIS_ANTELOPE_ENDPOINT") ?? "http://127.0.0.1:8888/";
-            string account = Environment.GetEnvironmentVariable("OASIS_ANTELOPE_ACCOUNT") ?? "eosio";
+            if (Environment.GetEnvironmentVariable("OASIS_ANTELOPE_LIFECYCLE_WRITES") != "1")
+                Assert.Inconclusive("Enable writes only for the dedicated disposable Antelope contract.");
+
+            string endpoint = Environment.GetEnvironmentVariable("OASIS_ANTELOPE_ENDPOINT") ?? throw new AssertInconclusiveException("OASIS_ANTELOPE_ENDPOINT must be the dedicated native test endpoint.");
+            string account = Environment.GetEnvironmentVariable("OASIS_ANTELOPE_ACCOUNT") ?? throw new AssertInconclusiveException("OASIS_ANTELOPE_ACCOUNT must identify the dedicated test contract.");
             string chainId = Environment.GetEnvironmentVariable("OASIS_ANTELOPE_CHAIN_ID")
                 ?? throw new AssertInconclusiveException("OASIS_ANTELOPE_CHAIN_ID must identify a running Antelope chain.");
             string privateKey = Environment.GetEnvironmentVariable("OASIS_ANTELOPE_PRIVATE_KEY")
@@ -39,6 +45,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.IntegrationTests
                 LastName = "Runtime"
             };
 
+            Console.WriteLine($"Antelope avatar fixture ID: {avatar.Id:D}");
             var saved = await _provider.SaveAvatarAsync(avatar);
             Assert.IsFalse(saved.IsError, saved.Message);
 
@@ -53,6 +60,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.IntegrationTests
             Assert.AreEqual("Updated", loaded.Result.FirstName);
 
             var deleted = await _provider.DeleteAvatarAsync(avatar.Id, false);
+            Assert.IsTrue(deleted.IsDeleted, deleted.Message);
+            Assert.AreEqual(1, deleted.DeletedCount);
             Assert.IsFalse(deleted.IsError, deleted.Message);
         }
 
@@ -66,8 +75,11 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.IntegrationTests
                 Description = "Official Antelope node verification"
             };
 
+            Console.WriteLine($"Antelope holon fixture ID: {holon.Id:D}");
             var saved = await _provider.SaveHolonAsync(holon);
-            Assert.IsFalse(saved.IsError, saved.Message);
+            Assert.IsFalse(saved.IsError, saved.Exception?.GetType().FullName);
+            Assert.IsTrue(saved.IsSaved);
+            Assert.AreEqual(1, saved.SavedCount);
 
             var loaded = await _provider.LoadHolonAsync(holon.Id);
             Assert.IsFalse(loaded.IsError, loaded.Message);
@@ -75,15 +87,92 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.IntegrationTests
 
             holon.Description = "Updated on chain";
             var updated = await _provider.SaveHolonAsync(holon);
-            Assert.IsFalse(updated.IsError, updated.Message);
+            Assert.IsFalse(updated.IsError, updated.Exception?.GetType().FullName);
+            Assert.IsTrue(updated.IsSaved);
+            Assert.AreEqual(1, updated.SavedCount);
             loaded = await _provider.LoadHolonAsync(holon.Id);
             Assert.AreEqual("Updated on chain", loaded.Result.Description);
 
             var deleted = await _provider.DeleteHolonAsync(holon.Id);
             Assert.IsFalse(deleted.IsError, deleted.Message);
+            Assert.IsTrue(deleted.IsDeleted);
+            Assert.AreEqual(1, deleted.DeletedCount);
+
+            var missing = await _provider.LoadHolonAsync(holon.Id, loadChildren: false);
+            Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, missing.ErrorCode);
+            Assert.IsNull(missing.Result);
+            Assert.IsFalse(missing.IsLoaded);
+            Assert.AreEqual(0, missing.LoadedCount);
+        }
+
+        [TestMethod]
+        public async Task AvatarDetailUpdateAndHardDelete_PersistOnAntelope()
+        {
+            if (Environment.GetEnvironmentVariable("OASIS_ANTELOPE_DETAIL_CONTRACT_READY") != "1")
+                Assert.Inconclusive("Requires the dedicated contract rebuilt with setdetail, softdetail and harddetail.");
+
+            var detail = new AvatarDetail { Id = Guid.NewGuid(), Karma = 17 };
+            var saved = await _provider.SaveAvatarDetailAsync(detail);
+            Assert.IsFalse(saved.IsError, saved.Message);
+
+            try
+            {
+                detail.Karma = 29;
+                var updated = await _provider.SaveAvatarDetailAsync(detail);
+                Assert.IsFalse(updated.IsError, updated.Message);
+
+                var loaded = await _provider.LoadAvatarDetailAsync(detail.Id);
+                Assert.IsFalse(loaded.IsError, loaded.Message);
+                Assert.AreEqual(detail.Id, loaded.Result.Id);
+                Assert.AreEqual(detail.Karma, loaded.Result.Karma);
+
+                var softDeleted = await _provider.DeleteAvatarDetailAsync(detail.Id);
+                Assert.IsFalse(softDeleted.IsError, softDeleted.Message);
+                Assert.IsTrue(softDeleted.IsDeleted);
+                Assert.AreEqual(1, softDeleted.DeletedCount);
+
+                var hidden = await _provider.LoadAvatarDetailAsync(detail.Id);
+                Assert.IsFalse(hidden.IsLoaded);
+                Assert.IsNull(hidden.Result);
+            }
+            finally
+            {
+                var deleted = await _provider.HardDeleteAvatarDetailAsync(detail.Id);
+                Assert.IsFalse(deleted.IsError, deleted.Message);
+                Assert.AreEqual(1, deleted.DeletedCount);
+
+                var missing = await _provider.LoadAvatarDetailAsync(detail.Id);
+                Assert.IsFalse(missing.IsLoaded);
+                Assert.IsNull(missing.Result);
+            }
         }
 
         [TestCleanup]
         public void Cleanup() => _provider?.DeActivateProvider();
+
+        [TestMethod]
+        public async Task CoreStorageConformanceOnOfficialAntelope()
+        {
+            var mode = Environment.GetEnvironmentVariable("OASIS_ANTELOPE_STORAGE_MODE");
+            if (mode is not ("sync" or "async"))
+                Assert.Inconclusive("Select a storage mode on the disposable Antelope fixture.");
+            Assert.AreEqual("http://127.0.0.1:18888", Environment.GetEnvironmentVariable("OASIS_ANTELOPE_ENDPOINT"));
+            Assert.AreEqual("oasisfixture", Environment.GetEnvironmentVariable("OASIS_ANTELOPE_ACCOUNT"));
+
+            var directory = Environment.GetEnvironmentVariable("OASIS_ANTELOPE_RESULTS")!;
+            Directory.CreateDirectory(directory);
+            var path = Path.Combine(directory, "core-storage.json");
+            Assert.IsFalse(File.Exists(path));
+            var report = await CoreStorageConformance.RunAsync(_provider, nameof(EOSIOOASIS), "native",
+                mode == "sync", async checkpoint =>
+                {
+                    await File.WriteAllTextAsync(path + ".next", JsonSerializer.Serialize(checkpoint));
+                    File.Move(path + ".next", path, overwrite: true);
+                }, expectedDefaultDeletion: "absent");
+            Assert.IsTrue(report.Succeeded,
+                $"{report.CurrentCase}: {report.FailureType} {report.FailureContract}; {report.Passed.Count} checks passed.");
+            Assert.IsTrue(report.FixtureCleanupComplete);
+            Assert.AreEqual(CoreStorageConformance.ChecksPerMode, report.Passed.Count);
+        }
     }
 }

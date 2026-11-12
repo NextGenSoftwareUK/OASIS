@@ -11,6 +11,20 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests;
 public class DeleteAcknowledgementTests
 {
     [DataTestMethod]
+    [DataRow(false,false,false)] [DataRow(false,true,false)] [DataRow(true,false,false)] [DataRow(true,true,false)]
+    [DataRow(false,false,true)] [DataRow(false,true,true)] [DataRow(true,false,true)] [DataRow(true,true,true)]
+    public async Task AvatarAndDetailDeletionReportOneSelectedRoot(bool synchronous,bool soft,bool detail)
+    {
+        var provider=new TestProvider(new InMemoryBackend());var id=Guid.NewGuid();
+        if(detail)Assert.IsFalse((await provider.SaveAvatarDetailAsync(new AvatarDetail {Id=id})).IsError);
+        else Assert.IsFalse((await provider.SaveAvatarAsync(new Avatar {Id=id,Username="synthetic-count"})).IsError);
+        var result=detail
+            ? (synchronous ? provider.DeleteAvatarDetail(id,soft):await provider.DeleteAvatarDetailAsync(id,soft))
+            : (synchronous ? provider.DeleteAvatar(id,soft):await provider.DeleteAvatarAsync(id,soft));
+        Assert.IsFalse(result.IsError,result.Message);Assert.IsTrue(result.IsDeleted);Assert.AreEqual(1,result.DeletedCount);
+    }
+
+    [DataTestMethod]
     [DataRow(false,false)] [DataRow(true,false)] [DataRow(false,true)] [DataRow(true,true)]
     public async Task CorruptPairedDetailRejectsAvatarDeleteBeforeAnyMutation(bool synchronous,bool soft)
     {

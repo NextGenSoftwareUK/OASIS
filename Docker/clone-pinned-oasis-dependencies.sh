@@ -23,6 +23,9 @@ clone_at() {
     destination="$2"
     revision="$3"
     git clone --no-checkout "https://${GITHUB_PAT}@github.com/NextGenSoftwareUK/${repository}.git" "${destination}"
+    # A manifest commit may be available without being advertised by a branch.
+    # Fetch that exact object unconditionally before checking out the pin.
+    git -C "${destination}" fetch --no-tags origin "${revision}"
     git -C "${destination}" checkout --detach "${revision}"
 }
 

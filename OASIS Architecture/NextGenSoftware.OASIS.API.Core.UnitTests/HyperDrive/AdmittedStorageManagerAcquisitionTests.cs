@@ -92,4 +92,50 @@ public class AdmittedStorageManagerAcquisitionTests
         });
         release.SetResult();await detached;
     }
+    [Fact]
+    public void OrdinaryV2RoutingAcquisitionUsesItsConfigurationWithoutRequiringAdmission()
+    {
+        Assert.Null(PreparedStorageExecution.Current);
+        var dna=Dna();var provider=Mock.Of<IOASISStorageProvider>();var expected=new object();
+        var reads=0;var selections=0;var creations=0;
+        Assert.True(AdmittedStorageManagerAcquisition.TryCreate(()=>{reads++;return dna;},
+            ()=>{selections++;return provider;},(selected,configuration)=>{
+                creations++;Assert.Same(provider,selected);Assert.Same(dna,configuration);return expected;
+            },out var result,admissionOnly:false));
+        Assert.Same(expected,result);Assert.Equal(1,reads);Assert.Equal(1,selections);Assert.Equal(1,creations);
+    }
+
+    [Theory]
+    [InlineData(false)] [InlineData(true)]
+    public void OrdinaryNonV2OrMissingDnaLeavesTheExistingAcquisitionPathWithoutProviderWork(bool missing)
+    {
+        var dna=Dna();dna.OASIS.HyperDriveMode=HyperDriveModes.Legacy;
+        Assert.False(AdmittedStorageManagerAcquisition.TryCreate<object>(()=>missing?null:dna,
+            ()=>throw new Exception("provider selected"),(_,_)=>throw new Exception("factory called"),out var result,
+            admissionOnly:false));
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public void OrdinaryV2FactoryFailurePropagatesWithoutAnotherAcquisitionPath()
+    {
+        var failure=new IOException("original acquisition failure");
+        Assert.Same(failure,Assert.Throws<IOException>(()=>AdmittedStorageManagerAcquisition.TryCreate<object>(
+            Dna,()=>null,(_,_)=>throw failure,out _,admissionOnly:false)));
+    }
+
+    [Theory]
+    [InlineData(false)] [InlineData(true)]
+    public async Task OrdinaryRoutingOptInDoesNotRelaxAdmittedV2Guard(bool missing)
+    {
+        var dna=Dna();dna.OASIS.HyperDriveMode=HyperDriveModes.Legacy;
+        await Policy().RunAsync(()=>{
+            Assert.Equal(PreparedStorageExecution.RejectedCode,Assert.Throws<UsageProtocolException>(()=>
+                AdmittedStorageManagerAcquisition.TryCreate<object>(()=>missing?null:dna,
+                    ()=>throw new Exception("provider selected"),(_,_)=>throw new Exception("factory called"),out _,
+                    admissionOnly:false)).Code);
+            return Task.FromResult(0);
+        });
+    }
+
 }

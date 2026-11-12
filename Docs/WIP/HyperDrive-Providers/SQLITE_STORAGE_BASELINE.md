@@ -37,3 +37,7 @@ Use the existing build lease and cached producer/consumer projects with `Include
 Existing successful reports must be reviewed/preserved before a rerun; never delete them or replay failed fixtures to obtain green. The fixed memory-only save/metadata count controls dispose their providers; no durable runtime is allocated for those cases.
 
 Continue other provider families. Oracle local52/52 remains distinct from cloud acceptance; default OCI profile and Oracle/OCI process configuration were rechecked absent on28October. Existing matrix warnings about additional unimplemented SQLite interface methods remain open; this baseline does not erase them.
+
+On 10 November, NativeImportReportsActualGraphAcknowledgementsAndPublishesIds passed in sync and async modes (2 passed, 0 failed or skipped). The shipping provider used the real SQLite engine with an in-memory database and verified graph write acknowledgements and generated IDs. Existing lifecycle and wallet checks were excluded.
+
+On 10 November, eight focused ordinary child-role cases passed against the file-backed SQLite provider. They verified ordered named children, membership preservation on root-only writes, replacement authority from complete observations, publication after acknowledgement, and rollback of observations and parent edges. Fixture files were absent after teardown.

@@ -1,6 +1,20 @@
 # Replica baseline and recovery status
 
-Updated 30 October 2026. X10a/X10b remain incomplete; this is native implementation evidence, not hosted repair approval.
+Updated 31 October 2026. X10a/X10b remain incomplete across all providers. The reviewed Mongo-to-SQLite demo repairs have completed; do not repeat them. Historical checkpoints below are implementation history, not new repair instructions.
+
+## Current verified checkpoint
+
+The shell-only reviewed initialization completed held source sequence6 and reviewed sequence8. Preserved follow-up inspection at2026-10-30T21:32:05.5938103Z shows all6selected obligations Completed with null errors, no held SQLite queue head, and zero mutation commands in that inspection. The host command acknowledged successful target application/fenced source completion. The independent follow-up proves source/outbox completion only; it explicitly does not inspect destination contents or query acceptance. Do not use that inspection as destination-row proof. Current demo writes also have independent matching SQLite/Neo4j replica/query proofs in CURRENT_STATUS.
+
+Evidence under `TestResults/Web4SandboxCqlCurrent`:
+
+| File | SHA256 |
+| --- | --- |
+| `hosted-repair-command.log` (sequence6 success) | `c0a5cc31358e009154ef51281cfe11788897fe36ce34048b9855e46131912ec7` |
+| `hosted-repair-8-reviewed-command.log` (sequence8 success) | `9211fe9a24c19dd43454b11e91c2fa5369d28bf51f0439820baa576ffb0b0c5b` |
+| `hosted-repair-after-8.log` (completed obligations/no held SQLite head) | `4679f2115b557eddc3a64ed96a4f67bb2b9eeb13bb95ffeca78082534d698662` |
+
+Reinspection here read preserved evidence only; it did not reconnect to native stores, mutate the host, replay repair operations or retest green scopes. These observations do not certify today's entire queue, general tenant-safe operator APIs, all source/target routes, automatic future-write cutover or larger-store audit admission. Those remain red. All six directed shell routes now have local/native proof as summarized below; remaining limitations concern hosted/operator/cutover scope. Preserve original request/journal/receipt evidence; no replacement requests.
 
 ## Implemented: explicit SQLite initial baseline
 
@@ -71,11 +85,11 @@ The first hard-delete test exposed a new implementation defect: the initial rece
 ## Still required
 
 1. Operator/API composition of the implemented Mongo migration where historical receipts require it, plus larger-store Neo receipt-audit admission. Native primitives and local migration proofs still do not establish end-to-end enrollment acceptance.
-2. Complete the preparation stage with durable intent/target-application/reconciliation handling and source completion, reauthorizing before writes. Preparation now verifies the original atomically enrolled snapshot rather than loading mutable current records. Atomic future-write enrollment/cutover still requires its own protocol and acceptance.
-3. An authorized, fenced reconciliation/resume protocol for an existing blocked obligation. Baseline initialization alone does not change queue state or retroactively complete an earlier update. Preserve original delivery evidence and independently verify the target before resuming.
+2. Complete atomic future-write enrollment/cutover and generalize authorized composition beyond the verified Mongo-to-SQLite route. Durable one-obligation application, reauthorization, target receipt recovery and source completion already exist; reuse them instead of adding another owner.
+3. Broader source/target and hosted tenant-isolation acceptance for the existing fenced reconciliation/resume protocol. The reviewed Mongo-to-SQLite held obligations have been completed with exact target acknowledgements; this is not a general public repair authorization. Preserve original delivery evidence and independently verify targets.
 4. Operator/UI/API composition and hosted three-database acceptance, including tenant isolation. Never expose the trusted primitive directly as unauthenticated repair.
 
-Hosted queue sequence 6 remains blocked at a version-4 holon. It has not been bootstrapped, skipped, reset or replayed. Read-only target inspection now confirms no matching current/head/history/receipt in the SQLite database opened by the API; explicit baseline application and fenced completion are still required. Hosted Azure remains separately pending/free-only.
+At the earlier read-only checkpoint, sequence6 held a version4holon with no matching target history. The reviewed baseline application and fenced completion subsequently succeeded (current checkpoint above). Do not repeat that repair or reset/skip/replay obligations. Hosted Azure remains separately deferred/free-only.
 
 ## Demo-specific Mongo source completion
 
@@ -87,12 +101,168 @@ Seven native cases pass/no skips (new MongoBaselineCompletionTests plus six base
 
 HolonReplicaInitializationApplication composes explicit host policy/preparation, configured target receipt recovery and native fenced source completion. A host-owned protected journal path records only the reviewed metadata, checksum, receipt digest and Prepared/Submitted/TargetCommitted/SourceCompleted phase. Exclusive file ownership and flushed atomic publication precede submission. The current source, route and policy are reauthorized on every run and again before source completion. A submitted operation with no target receipt refuses resubmission; a committed immutable receipt recovers the same operation after a lost response. Completed replay verifies exact source/target acknowledgements without rewriting the journal. Unknown temporary publication, journal mismatch, revoked policy or uncertain native result remains an explicit error. No automatic future-write cutover or public repair grant is added.
 
-Verification:23 shared controls pass (six new interrupted/application scenarios);8 real Mongo native cases pass, including durable application against real source/target, original held version4, read-only completed replay and ordinary version5 delivery. This does not yet prove the actual hosted Mongo-to-SQLite route. Next is a scoped operator host/route proof and execution; hosted writes have not been changed.
+Verification:23 shared controls pass (six new interrupted/application scenarios);8 real Mongo native cases pass, including durable application against real source/target, original held version4, read-only completed replay and ordinary version5 delivery. This local proof preceded the hosted Mongo-to-SQLite repair, which subsequently passed as recorded in the current checkpoint above. Other routes and automatic cutover remain unverified.
 
 ## Shell-only demo repair host
 
 WEB4 now recognizes --cosmic-repair-baseline followed by the protected reviewed request path, before HTTP host creation. Requires OASIS_SANDBOX=true and configured V2 OASIS_DNA_JSON; no public endpoint. The strict request contains operator/catalog/init operation identities, exact source sequence/operation/actor/root/payload SHA256, nonsecret configured-store identity and existing target file. Source credentials/endpoints come only from node configuration. Missing target files and endpoint/payload mismatches refuse before target writes. A separate .application.json beside the request is the protected durable journal; preserve request, operation ID and journal across interrupted calls.
 
-Example inside the deployed dev service: dotnet NextGenSoftware.OASIS.API.ONODE.WebAPI.dll --cosmic-repair-baseline /data/COSMIC/ReplicaRepair/request.json . Never generate a replacement request after a submitted/unknown outcome. The command is intentionally scoped to Mongo-to-SQLite for this reproduced demo blocker; broader operator tooling remains deferred.
+Example inside the deployed dev service: dotnet NextGenSoftware.OASIS.API.ONODE.WebAPI.dll --cosmic-repair-baseline /data/COSMIC/ReplicaRepair/request.json . Never generate a replacement request after a submitted/unknown outcome. The deployed command supports Mongo-to-SQLite. Task code additionally verifies Neo-to-SQLite and SQLite-to-Mongo as detailed below; these additional routes are not deployed. Broader operator tooling remains deferred.
 
-Run Scripts/Sandbox/Test-CqlReplicaBaselineRepair.ps1 after the bounded producer/consumer builds. One real native command case passes/no skips; source versions1-3 were never enrolled, held4 initialized and source-completed, replay unchanged, then ordinary5 delivered. Exact source DB/SQLite/journal fixtures removed after ownership/absence checks.71 HTTP/schema/admission controls also pass. Hosted execution remains pending.
+Run Scripts/Sandbox/Test-CqlReplicaBaselineRepair.ps1 after the bounded producer/consumer builds. One real native command case passes/no skips; source versions1-3 were never enrolled, held4 initialized and source-completed, replay unchanged, then ordinary5 delivered. Exact source DB/SQLite/journal fixtures removed after ownership/absence checks.71 HTTP/schema/admission controls also pass. Hosted Mongo-to-SQLite sequence6/8execution subsequently passed; see the current checkpoint above. Broader operator/API composition remains pending.
+
+
+## Reviewed request boundary fix — pending release
+
+The shell command previously used ordinary JSON deserialization, which silently accepted duplicate reviewed fields with last-value semantics. A request could therefore display one operator/operation identity to a reviewer while deserializing another. The command now uses one bounded reader (8KiB, depth4), requires an object, rejects duplicate decoded property names and unknown fields, and preserves the canonical Request record/serialization used by existing policy bindings. No native connection is created by parsing. Existing completed requests/journals were not modified or replayed.
+
+13API/schema controls pass, including reproduction of the old duplicate behavior on the shipping Request type, actual new-reader rejection for6identity fields, canonical identity preservation, nonobject/unknown/oversize rejection and the actual file read boundary. The exclusive owned8,193B test file was removed after handles closed. Evidence `TestResults/HostedCqlIntegrationCurrent/replica-reviewed-request.trx`, SHA256 `F5048790B4E42E8F177A2D6F96D97C977705553B1046A7EA1D188CD585A61398`. This is a reproduced parser bug fix, not another test of completed native repair.
+
+This initial Mongo-only implementation checkpoint is superseded by the Neo-to-SQLite and SQLite-to-Mongo task milestones below. All three sources now have native fenced completion evidence; the two additional shell routes still need release/hosted acceptance. Remaining route pairs, operator/API acceptance and automatic future-write cutover remain gaps.
+
+
+## SQLite source-side fenced completion — pending release
+
+`SqliteHolonReplicationOutbox.CompleteInitializedBaselineAsync` now composes with the existing `HolonReplicaInitializationApplication`. This trusted capability requires application reauthorization and the exact committed receipt read from the configured target; it grants no HTTP/operator permission by itself.
+
+An IMMEDIATE native transaction validates the frozen source payload, original operation/attempt/digest, target-bound baseline fingerprint, current oldest held target head and affirmative no-unresolved-execution evidence. It records the exact initialization acknowledgement and completes only that obligation atomically, preserving payload, original error/message and recovery evidence. Exact replay (including reopened clients) observes the same acknowledgement without timestamp or source changes. Absent/changed receipts and stale attempts fail; cancellation before submission does not mutate the source.
+
+Acknowledgements live in `CosmicHolonOutboxInitializationCompletion`, created by both the existing EnsureCreated schema-upgrade owner and migration20261031180000. No historical migration was changed. Downgrade refuses when this table contains acknowledgements rather than dropping required recovery evidence.
+
+Native SQLite-to-SQLite tests actually commit source1..4, enroll5, obtain a real target lineage rejection, review/initialize/complete the held5, reopen and exactly replay, reject absent/changed receipts/stale attempts, race two completion clients (one acknowledgement), refuse destructive downgrade, then deliver ordinary6. The durable application variant uses the existing coordinator and verifies unchanged completed journal replay. This is not yet cross-provider/hosted SQLite-source acceptance or automatic cutover. Neo4j source completion was subsequently implemented/native-verified below; host/operator composition and automatic cutover remain open.
+
+Evidence under `TestResults/HostedCqlIntegrationCurrent`: `sqlite-source-completion-regressions.trx`6passed/0skipped SHA256 `991DEFAD993E811A05CF56F990296DF5D85DF04A0D518AECFFDDB84407F2D25E`; `sqlite-source-completion-outbox.trx`15passed/0skipped SHA256 `BD3991D393F5029D11FEA9048B0D84DAF6B7C2FCEC2B797AC2D10E66030FC557`. Runs overlap; do not sum them as distinct cases. New test source: `Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.IntegrationTests/ReplicaBaselineCompletionTests.cs`.
+
+Owned source/target DBs and WAL/SHM/application files were removed after successful teardown; absence verified. `LocalState/COSMIC/SqliteBaselineCompletionCurrent/fixture.json`407B retains cleaned ownership evidence. Existing runtimes/caches reused, no new services/downloads. Task-only, no deployment.
+
+
+## Neo4j source-side fenced completion — pending release
+
+`NeoHolonReplicationOutbox.CompleteInitializedBaselineAsync` now uses the existing native transaction owner. It locks the reviewed obligation, validates the frozen payload/source operation/attempt/digest, target-bound baseline fingerprint and exact current held head, and requires affirmative no-unresolved-native-execution evidence. Source completion and checksum-bound acknowledgement properties commit together on that node. Original payload/error/recovery evidence remains intact. Exact replay rolls back the observational transaction and returns the existing acknowledgement without rewriting timestamps. Changed/absent receipts, stale source and invalid state refuse; unknown commit outcomes retain the existing reconciliation behavior.
+
+Two native Neo4j-to-SQLite cases pass/no skips: actual source1..4with enrollment at4, real target lineage rejection, direct and existing durable-coordinator completion, absent/changed receipt rejection, stale attempt refusal, pre-write cancellation, competing native clients, exact reopened-client/completed-journal replay, and ordinary5delivery. The target independently loads version5and the source owner is checked. No public repair grant, new recovery owner or automatic future-write cutover was introduced.
+
+Source/test: `NeoHolonReplicationOutbox.Initialization.cs` and `Neo4jSourceBaselineCompletionTests.cs`. Existing runner mode `Scripts/TestHosts/Run-ReusableNeo4jTests.ps1 -CosmicSourceCompletion` owns the retained environment/build lease composition; use one outer provider build lease. Evidence `TestResults/Neo4jCurrent/neo4j-source-completion-current.trx`, SHA256 `579AD59BF37232304B4DA8C756C8C4283EA5393A9D8F24176492111548CE70DC`. No new runtime/image/restore/download.
+
+The first consumer build exposed missing shipping CQL source dependencies in the integration project; exact PublicReadCatalogue/HostedSources/HostedQueryExamples files are now linked, without stubs. It failed before native startup/writes; original failure log remains under TestResults/HostedCqlIntegrationCurrent.
+
+Owned source root/history/receipts/outbox nodes were deleted by exact journalled identities and absence rechecked; owned SQLite target/WAL/SHM/application files removed. Global counters/schema/independent records remain reusable. Durable `LocalState/COSMIC/Neo4jSourceCompletionCurrent/fixture.json`520B remains cleaned=true. Owned attached process37680 exited; exact retained container/image is stopped, with no listeners17687/17688. Broader hosted routes, operator/API isolation and automatic cutover remain red.
+
+
+## Reviewed Neo4j-to-SQLite host composition — pending release
+
+The existing shell-only command now supports exactly two reviewed source profiles: omitted `SourceProvider` retains MongoDB; explicit `Neo4jOASIS` selects the configured Neo source. All other names/aliases/default/provider types are rejected before native composition. Target remains the existing configured SQLite file. Native endpoints/credentials come exclusively from node DNA; no URI, password or connection string is accepted in the request.
+
+The optional source field is omitted when null during serialization, preserving the original ten-field request and policy binding for previously reviewed Mongo operations/journals. Neo source identity hashes the configured absolute endpoint and principal (not password); it is not a databaseUUID claim. The exact frozen source operation/digest must match before target activation. Both routes use the same preparation policy, durable application and native fenced completion owners; there is no new public repair endpoint or failover/retry path.
+
+20API/schema cases pass/no skips, including legacy serialization, unsupported-profile rejection before native I/O, endpoint/principal binding and the earlier strict request controls. One new native reviewed Neo-to-SQLite case passes/no skips: actual held4, wrong configured identity/digest refusal, reviewed application/completion, byte-unchanged completed-journal replay, unchanged failure evidence, exact receipt binding and ordinary5delivery. The source queue must be empty for that test target before writes, so it cannot claim an unrelated obligation. Existing direct/durable source-completion proofs remain separate.
+
+Evidence: `TestResults/HostedCqlIntegrationCurrent/replica-reviewed-source.trx` SHA256 `E2FBEEE5478DACEA2A7D19FF4491D9493A4AD65B38562406D0E44893F9721996`; `TestResults/Neo4jCurrent/neo4j-reviewed-source-repair-current.trx` SHA256 `9FEBA42290C72D41A6687D30FA4096813C854028F57301A08C2A2543D7C99324`. Runner `Run-ReusableNeo4jTests.ps1 -CosmicReviewedSourceRepair` under one outer provider build lease.
+
+Owned native IDs and SQLite/application files were removed and absence rechecked; retained container stopped/attached process45344exited. No hosted repair/deployment or new installation. Hosted Neo route acceptance, SQLite-source operator routes, public/operator API isolation, larger-store admission and automatic enrollment/cutover remain incomplete.
+
+
+## Reviewed SQLite-to-Mongo host composition — pending release
+
+The same shell command now enrolls a third explicit route, SQLite-to-Mongo. `SourceProvider: SQLLiteDBOASIS`, `TargetProvider: MongoDBOASIS`, `TargetStoreIdentity` and null `TargetFile` bind this route; endpoints/credentials remain node-owned. Omitted optional fields retain the original ten-field Mongo-to-SQLite serialization/binding. Neo-to-SQLite remains supported. Same-store and all other route pairs fail before native composition.
+
+SQLite source identity hashes its existing configured file. Both source and target files (where applicable) must already exist; memory/replacement files are refused. Mongo target identity pins configured servers/database, and the command checks that database exists before activation can create collections. A reviewed missing target cannot silently create another environment. Source completion delegates to its native SQLite owner; target initialization/recovery remains the existing immutable-receipt owner. Target and source resources close independently on every exit.
+
+21API/schema controls pass/no skips, including preserved legacy binding and explicit route matrix. One native SQLite-to-Mongo reviewed-command case passes/no skips: actual source1..4/enroll4, real lineage rejection, wrong target identity and nonexistent reviewed database refusal (database remains absent), durable reviewed application/completion, exact journal replay, preserved original failure and ordinary5delivery with target version/owner verified. This is local/native host composition, not hosted SQLite-source or public-API authorization proof.
+
+Evidence: `TestResults/HostedCqlIntegrationCurrent/sqlite-source-host-controls.trx` SHA256 `B5505773C431B06F223010B2100393E47DAEEA8806968940EB7330FFF4A647C2`; `TestResults/ReplicaRepairNativeCurrent/sqlite-mongo-repair.trx` SHA256 `DFFFE0AA32F772033E31055ED0373125A3024FE354C9C8CBD8DBC66026B6644C`. Runner `Scripts/Sandbox/Test-CqlReplicaBaselineRepair.ps1 -SqliteSource` owns its existing native/build lease; do not nest another lease. Its original mode now filters only the original Mongo-to-SQLite case, preserving one-pass/no-skip counts.
+
+Owned target DB `cosmic_sqlite_source_baseline_target` was dropped only after marker verification and absence rechecked. Owned persistent source/application files under `LocalState/COSMIC/SqliteSourceRepairNative` removed after closure; cleaned fixture454B and lock0B remain. Mongo27029stopped/no listener; reusable runtime/data directory retained. No new install/download/environment or hosted mutation. Remaining routes/hosted acceptance/operator isolation and automatic cutover stay red.
+
+## Reviewed Neo4j-to-Mongo host composition — pending release
+
+The same shell-only owner now supports a fourth explicit route: Neo4j-to-Mongo. SourceProvider Neo4jOASIS, TargetProvider MongoDBOASIS, null TargetFile and reviewed TargetStoreIdentity bind configured endpoints; no request credential/URI, automatic replay, target replacement or public permission is added. Target database must already exist. Remaining Neo targets and same-store routes remain refused.
+
+21API/schema cases and1native case pass, zero skips. Native test [NeoSourceMongoRepairCommandTests.cs](../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/NeoSourceMongoRepairCommandTests.cs) commits actual source versions1..4 with first enrollment at4, observes real lineage refusal, rejects wrong target identity and a missing target database without provisioning, completes durable reviewed recovery, verifies byte-unchanged journal replay/original failure evidence, then delivers ordinary5 and independently reads target version/actor. Test refuses an unrelated pending Mongo-target obligation before source writes. Native source operations are journalled before submission.
+
+Runner: bounded no-restore API/test build under one provider lease, then `Scripts/Sandbox/Test-CqlReplicaBaselineRepair.ps1 -NeoSource` (runner owns its lease; do not nest). Reuses existing stopped pinned Neo container and Mongo runtime/store; no new environment/download. TestResults/ReplicaRepairNativeCurrent/neo-mongo-controls.trx SHA2561D4E1CE655FCE2640D30B451E1C7C79B299A7FBA04A259892405E1B7CB23F4EA; neo-mongo-repair.trx SHA2567164AB4CB27F2828E3B34228F0FF874DBD052AED743488D83959DDFE6B86FFD2. Full API/test build succeeds; existing unrelated warnings remain.
+
+Owned Mongo target cosmic_neo_source_baseline_target dropped only after marker verification and database absence rechecked; nonexistent ..._must_not_create remains absent. Exact Neo root/history/receipt/outbox IDs removed with native absence assertion, shared counters/schema untouched. Application files removed after closure. Durable LocalState/COSMIC/NeoSourceMongoRepairNative retains cleaned fixture568B and lock0B. Owned process handle completed, container inspected exited, no27029/17687/17688listeners. This is local native composition; no hosted execution or full automatic cutover/tenant-safe operator-API claim. X10a/X10b remain red.
+
+## Reviewed targets in Neo4j — pending release
+
+The same reviewed command now supports the remaining Mongo-to-Neo and SQLite-to-Neo routes. TargetProvider Neo4jOASIS, null TargetFile and reviewed TargetStoreIdentity pin the node-configured endpoint/principal via NeoStoreIdentity. This is endpoint/principal binding, not a databaseUUID claim; the provider uses that principal's configured default database. No database selection, URI or credentials come from caller JSON. Native activation operates in the existing configured database; the command does not create databases. Existing history/receipt/current-row absence fences and the same durable application/source completion remain responsible for initialization safety.
+
+All6directed cross-provider routes now have local/native shell composition proof:
+
+| Source | Target | Native proving case |
+| --- | --- | --- |
+| MongoDB | SQLite | ReplicaBaselineRepairCommandTests.ReviewedCommandRepairsActualMongoToSqlite |
+| SQLite | MongoDB | SqliteSourceRepairCommandTests.cs |
+| Neo4j | SQLite | Neo4jSourceBaselineCompletionTests.NativeNeoReviewedRepairCommandUsesConfiguredSourceAndPreservesOriginalBinding |
+| Neo4j | MongoDB | NeoSourceMongoRepairCommandTests.cs |
+| MongoDB | Neo4j | NeoTargetRepairCommandTests.ReviewedCommandRepairsActualMongoToNeoAndPreservesNormalNextDelivery |
+| SQLite | Neo4j | NeoTargetRepairCommandTests.ReviewedCommandRepairsActualSqliteToNeoAndPreservesNormalNextDelivery |
+
+New [Neo target scenarios](../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/NeoTargetRepairCommandTests.cs) each commit source1..4 with first enrollment at4, observe the real target lineage barrier, refuse wrong target identity/source digest before a journal exists, initialize the reviewed baseline and preserve source failure details. Completed replay leaves journal bytes unchanged. Independent target loads verify version4/actor, then ordinary replicated5/name/actor. Same-store and non-enrolled providers remain rejected; original ten-field binding remains covered.
+
+Full API/test build passes,21API/schema controls and2native cases pass with zero skips. Runner `Scripts/Sandbox/Test-CqlReplicaBaselineRepair.ps1 -NeoTarget` reuses the existing Mongo and stopped pinned Neo container under its one lease. Evidence TestResults/ReplicaRepairNativeCurrent/neo-target-controls.trx SHA25606D7388773198C9BEE779F9810005B337A3413881A741D4E1D2B83A95B677F31; reviewed-neo-target-repair.trx SHA256B45A5BF7476F8FB776976D6ACF0C9A4BBCBB16F6F7E82D17EB43E15197896971.
+
+Marker-verified owned Mongo source DB removed/absence rechecked; closed owned SQLite source/application files removed; exact Neo target root/history/head/receipt IDs removed and native absence asserted. Only cleaned manifests/locks remain,580B and582B respectively. Both services stopped, container inspected exited, no27029/17687/17688listeners. No hosted mutation/deployment or new environments. All route cells in X10a/X10b stay red: automatic enrollment/cutover, broader hosted and tenant-safe operator acceptance remain unverified.
+
+## Real manager continuation after reviewed recovery — pending release
+
+Two new native cases in NeoTargetRepairCommandTests.cs call actual `HolonManager.SaveOwnedHolonAsync` for every source version on MongoDB/SQLite. No explicit ReplicationEnrollment is supplied. The node defaults to replicationOFF, the avatar context enables replication/list selection, and per-call replicationOFF keeps versions1..3unenrolled. At4the request enables replication; its atomically enrolled original obligation hits the genuine missing-lineage barrier. The same reviewed shell recovery installs4and completes its obligation. A later owned Save of5automatically enrolls a new obligation via effective routing; ordinary delivery and independent Neo load confirm5/name/actor. Context overrides are restored in finally.
+
+Both cases pass/no skips on native services after full API/test build. Runner `Scripts/Sandbox/Test-CqlReplicaBaselineRepair.ps1 -ManagerCutover` owns its single service/build lease. TestResults/ReplicaRepairNativeCurrent/managed-neo-cutover.trx SHA256207A5D6524796C44768F6454A7773264044E1A93B0C3C3954E655607779CE9B5. This verifies two source-to-target paths through the real manager, rather than constructing enrollment directly in the provider test. The existing manager/routing implementation passed unchanged; no production bug is inferred or artificial code change added.
+
+This does not implement automatic baseline authorization, change the primary write authority, persist an avatar setting through HTTP, or certify the remaining4manager directions/hosted operator matrix. The initializer remains explicitly reviewed; normal lineage is not relaxed. Broader X10a/X10b rows stay red.
+
+Native owned fixture cleanup/absence passed, marker-verified Mongo source cosmic_managed_neo_cutover_source removed, closed SQLite/application files removed and exact Neo memberships absent. Retained cleaned manifests595B/597B plus0B locks under LocalState/COSMIC/{MongoToNeoRepairNative-ManagerCutover,SqliteToNeoRepairNative-ManagerCutover}; services stopped/container exited/no27029/17687/17688listeners. No live hosted avatar, save or deployment.
+
+## All six manager continuation directions — pending release
+
+Four additional native cases in [ManagerReplicaContinuationTests.cs](../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/ManagerReplicaContinuationTests.cs) pass/no skips: Mongo-to-SQLite, SQLite-to-Mongo, Neo-to-SQLite, Neo-to-Mongo. Alongside the preceding2Neo-target cases, all6directions now exercise actual SaveOwnedHolonAsync, not manually constructed enrollment. The new cases deliberately give the node a self-only replication list, the avatar the target list, and requests OFF for1..3/ON for4and5. Each confirms no early obligations, real4lineage barrier, reviewed recovery/exact journal replay, independent target4, automatic next-save enrollment and ordinary target5/name/owner, then empty pending queue. Ambient request/avatar settings restore in finally.
+
+Full API/test build succeeds. Runner `Scripts/Sandbox/Test-CqlReplicaBaselineRepair.ps1 -RemainingManagerRoutes` requires exactly4native passes/no skips and reuses one Mongo/Neo startup batch and one lease. TestResults/ReplicaRepairNativeCurrent/remaining-managed-continuation.trx SHA25634DAB4CE90C71BA29B8843FC5C18AF0C66749073FB2B9EE4C89E7EB02E3186FE.
+
+All owned marker-verified Mongo fixtures, exact Neo memberships and closed SQLite/application files removed; native absence assertions pass. LocalState/COSMIC/ManagerContinuation retains only cleaned fixture/lock pairs: MongoDBOASIS-SQLLiteDBOASIS665B, SQLLiteDBOASIS-MongoDBOASIS665B, Neo4jOASIS-SQLLiteDBOASIS661B, Neo4jOASIS-MongoDBOASIS657B (locks0B). Both services stopped, container inspected exited, no27029/17687/17688listeners. No new runtimes/services or hosted mutation.
+
+Remaining cutover scope is precise: prove that source writes arriving while the reviewed version4baseline is held/prepared remain atomically enrolled and are delivered after that baseline, without a snapshot-to-live gap or skipped obligations. Existing continuation tests save5after baseline completion; they do not prove this interleaving. Primary-authority migration is separate placement work and is not inferred from replica enrollment. Larger-store admission/hosted/operator cases also remain red.
+
+## Writes committed during baseline installation — pending release
+
+Six new native ManagerInFlight cases in ManagerReplicaContinuationTests.cs cover every directed Mongo/SQLite/Neo pair. The existing durable application writes Prepared/Submitted before calling a controlled async gate. The gate pauses before delegating to the real native initialization owner; native receipt reads and commits remain real. While paused, an actual SaveOwnedHolonAsync commits source5with request/avatar-derived enrollment. Tests prove the pending queue still starts at original4and no target row exists. After releasing/joining the owned application, target4is independently observed; ordinary dispatch installs5, another manager save/dispatch installs6, owner/name/version match and pending queue empties. All roots are single-record saveChildren:false; this does not extend the scope to arbitrary concurrent graphs or a primary-authority switch.
+
+Initial run:4passes/2SQLite-target completed-journal replay failures, zero skips. The failed test composed its first application with a mixed-separator SQLite endpoint, whereas the shell canonicalizes it. Both native baseline4applications and source completions had succeeded; source5remained enrolled/pending. This was a test-composition binding mismatch, not a production receiver bypass or lost write. Correction uses Path.GetFullPath at the application boundary, retains reviewed-request.json before submission and surfaces replay error details. No production algorithm or journal format was changed.
+
+Original failed fixtures were explicitly reconciled by [InFlightFixtureReconciliationTests.cs](../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/InFlightFixtureReconciliationTests.cs): inspect original completed4source obligation and exact committed target initialization receipt/digest/fingerprint, confirm source5/target4and original pending5operation, flush an exact delivery intent, deliver that already-enrolled5normally, independently verify target5/source completion/empty queue. No new Save, initialization or replacement operation. The completed original application journal remained byte-unchanged. Its original catalogue UUID was not retained by the first test, so no reconstruction or policy-hash bypass was attempted. Original journal/fixture and delivery intent/ACK are retained under each affected state's OriginalFailure/. Both reconciliations pass/no skips; owned native rows/DBs/files then cleaned with marker/absence checks.
+
+Only the2affected SQLite cases were rerun after that verified cleanup; both pass/no skips through target6. The4passing Mongo/Neo-target scopes were not repeated. Thus current acceptance is4original passes +2corrected passes, not a claim that the original6-case command passed. Full API/test builds succeeded.
+
+| Evidence under TestResults/ReplicaRepairNativeCurrent | Result | SHA256 |
+| --- | --- | --- |
+| managed-in-flight-cutover.trx | original4pass/2fail | 4B7F66BEAE22CE1B2F1602745C99957481385A4CD3497D36C86A931F9BFF0E2A |
+| reviewed-inflight-sqlite-fixture.trx | 2reviewed continuations pass | 2D3D921ED6BB6A31237FFCD97A2556450D1C78BD3E536227828DFB73B311A315 |
+| corrected-inflight-sqlite.trx | 2corrected native cases pass | 28B95C2F307022083C844144CD848B3A5165C39A4099590C8CC3C921C1F92C93 |
+
+Runner flags are -InFlightManagerRoutes (six original case names), -ReconcileInFlightSqlite (explicit original fixture continuation) and -CorrectedSqliteInFlight (only affected cases). These gates are complete; do not rerun green cases or original reconciliation. All6fixed -InFlight states are cleaned=true; no owned SQLite DB/application files remain. Retained totals704/3517/704/3517/712/708B by Mongo-Neo/Mongo-SQLite/Neo-Mongo/Neo-SQLite/SQLite-Mongo/SQLite-Neo, including original failure evidence and corrected reviewed metadata where applicable. Both services stopped, container inspected exited, no27029/17687/17688listeners. Hosted/operator/larger-store and broader placement acceptance remain red.
+
+## Lost application acknowledgement after real native commit — pending release
+
+Three native async owned-root cases in [LostCommittedAckTests.cs](../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/LostCommittedAckTests.cs) cover Mongo, SQLite and Neo as authority, with the other two as actual native replica targets. Real native providers commit the source graph, conditional receipt and both outbox obligations. A test DispatchProxy returns an explicit reconciliation-required error only after native success; it does not replace data storage or fake a receipt. Failover/replication/load-balancing are ON in the manager registry, while the conditional authority remains explicit/pinned.
+
+Each case verifies exactly1conditional/atomic mutation attempt,1native commit and0legacy mutation attempts. The caller remains version0/empty versionId/dirty after the lost ACK; no caller publication is inferred from provider persistence. Both other stores have no record before manual dispatch, including after status recovery. The original actor/authority/conditions/enrollment/selected graph/relationships are flushed before commit using existing StoredRecordJson and role-manifest codecs. A fresh manager restores that synthetic original request from disk and performs ReadConditionalHolonWriteOutcomeAsync; the real immutable native receipt says Committed for that operation/actor/authority and returns its committed delta summary. Lookup does not change pending attempt/state or caller tracking. No Save/init/claim/replay is used for recovery. Ordinary workers subsequently deliver exactly the two enrolled copies with matching logical version1/versionId/name/owner and empty queues; source revision stays unchanged.
+
+Scope: controlled application ACK loss after known native commit, async single plaintext synthetic root/saveChildren:false, trusted manager/receipt interface. This is not a real dropped database connection, hosted HTTP admission/settlement or protected-preparation/permission certification. Existing production logic passed unchanged; no artificial production fix was added. Broader X10 remains red.
+
+Initial3cases passed; before acceptance, added explicit attempt/legacy counters so a swallowed retry exception cannot masquerade as one committed row. Original successful intents/manifests were moved into fixed PriorCommitProof/ after verified native cleanup, original TRX retained, then the changed3cases reran in the same environment and all passed/no skips. No uncertain operation was retried. A test-only bounded BuildProjectReferences=false compilation reused the already full-built unchanged shipping API/Core binaries under the lease; no manual DLL copy/restore.
+
+Runner `Scripts/Sandbox/Test-CqlReplicaBaselineRepair.ps1 -LostCommittedAck`. Evidence under TestResults/ReplicaRepairNativeCurrent: lost-committed-ack.trx SHA256F27FE42831BF4118FC3F638E0DA27C12A5DB8CBAA7C3BA1C279867FE435C34C3 (final3pass); lost-committed-ack-initial.trx SHA256520934E8BE35EBE0F6DE74C0296FA54D2AA82ADFF279337017633990ADC7D0AF (initial3pass).
+
+Native fixture cleanup passes: owner-marker-verified cosmic_lost_ack_{Authority} DBs dropped/absence checked, exact Neo root/head/history/receipt/outbox memberships removed with native absence, closed SQLite files removed. LocalState/COSMIC/LostCommittedAck/{MongoDBOASIS,Neo4jOASIS,SQLLiteDBOASIS} retains only cleaned metadata/original synthetic intents and prior proof, total7178/7170/7186B respectively (5files each). No owned SQLite DB remains. Both services stopped, container inspected exited, no27029/17687/17688listeners. No hosted account/save or paid resource introduced.
+
+## Real loopback HTTP acknowledgement disconnect — 31 October
+
+[LostTransportAckTests.cs](../../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/LostTransportAckTests.cs) adds3native cases: Mongo/SQLite/Neo authority, actual Kestrel HTTP POST and HttpClient, server abort only after successful SaveOwnedHolonAsync returns the committed native version1. No application-error result is injected in these cases. NativeAckLossProxy remains a counting/intent-capture seam and returns the real native success; its original application-ACK-loss default is unchanged. Each request deserializes a separate server holon, so the caller's original object remains version0/empty versionId/dirty when HttpClient throws. Exactly1POST/1atomic mutation attempt/1native commit/0legacy mutation calls are required.
+
+The shared native fixture then restores the captured original conditional request from disk, uses a fresh manager's read-only receipt lookup, verifies Committed/actor/operation/authority/delta and unchanged pending attempts, and delivers the2original outbox obligations normally. All3cases pass/no skips; both copies match source revision/name/owner and queues drain without another Save or initialization. Native fixture cleanup verifies marker/owned IDs, absent Mongo DBs, no retained SQLite DBs and zero exact Neo records; all3cleaned manifests true. Mongo listener27029absent and retained Neo container exited after runner teardown.
+
+Evidence `TestResults/ReplicaRepairNativeCurrent/lost-transport-ack.trx`, SHA25671FEFE3E383FDD7F09A73BC81142FD7D4D5B86194C22903D6D2FACA46DB86FB2. Original2compile failures were test-import omissions, corrected before any native run; their logs remain beside final successful build. Run only via existing runner -LostTransportAck after a leased bounded build. Original request files/manifests remain under LocalState/COSMIC/LostTransportAck; replay is refused while original intents exist.
+
+Scope remains controlled loopback transport with real native stores and manager/outbox code. It does not certify a dropped native-database connection, production WEB4 controller/auth/billing/durable settlement, process crash between commit and capture, multi-root/protected graphs or hosted transport faults. Those broader X10requirements remain red. Production implementation passed unchanged; no workaround was introduced.

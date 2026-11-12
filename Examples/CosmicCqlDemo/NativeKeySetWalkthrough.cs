@@ -8,7 +8,8 @@ using NextGenSoftware.OASIS.Common;
 namespace CosmicCqlDemo;
 
 /// <summary>
-/// The same bounded IN query through HolonManager and LINQ on IPFS, SOLID or Mastodon.
+/// The same bounded IN query through HolonManager and LINQ on IPFS, SOLID,
+/// Mastodon or explicit public Solana/Google/Ethereum/Polygon/Arbitrum/Cosmos/Polkadot/NEAR/Base/Avalanche/BNB metadata profiles.
 /// The caller supplies an activated, explicitly enrolled native adapter and existing keys.
 /// </summary>
 public static class NativeKeySetWalkthrough
@@ -21,13 +22,11 @@ public static class NativeKeySetWalkthrough
         TextWriter output,
         CancellationToken cancellationToken = default)
     {
-        var metadataKey = adapter.QueryProviderType switch
-        {
-            ProviderType.IPFSOASIS => "IPFSRecordCid",
-            ProviderType.SOLIDOASIS => "SolidRecordId",
-            ProviderType.ActivityPubOASIS => "MastodonStatusId",
-            _ => throw new ArgumentException("Select an enrolled protocol key-set adapter.", nameof(adapter))
-        };
+        // The provider's enrolled strategy owns its native metadata key. New
+        // adapters must not need a second provider-name registry in this demo.
+        var descriptor = adapter.QueryCapabilities.StringKeySetLookup
+            ?? throw new ArgumentException("Enroll native membership before running this walkthrough.", nameof(adapter));
+        var metadataKey = descriptor.MetadataKey;
 
         // 1. Freeze the chosen source keys. These are native CIDs/resource GUIDs/status
         // IDs, not interchangeable OASIS projection IDs. No discovery scan is implied.
@@ -72,8 +71,10 @@ public static class NativeKeySetWalkthrough
     {
         if (mongo.QueryProviderType != ProviderType.MongoDBOASIS)
             throw new ArgumentException("The first target must be the explicitly configured Mongo provider.", nameof(mongo));
-        if (protocol.QueryProviderType is not (ProviderType.IPFSOASIS or ProviderType.SOLIDOASIS or ProviderType.ActivityPubOASIS))
-            throw new ArgumentException("Select IPFS, SOLID or Mastodon as the second target.", nameof(protocol));
+        // Native membership capabilities are the enrollment contract. A historical
+        // provider-name list must not reject later adapters before planning.
+        if (protocol.QueryProviderType == mongo.QueryProviderType)
+            throw new ArgumentException("Select a distinct second provider.", nameof(protocol));
         var descriptor = protocol.QueryCapabilities.StringKeySetLookup
             ?? throw new ArgumentException("Enroll native membership on the protocol target before planning.", nameof(protocol));
         var keys = nativeKeys.ToArray();

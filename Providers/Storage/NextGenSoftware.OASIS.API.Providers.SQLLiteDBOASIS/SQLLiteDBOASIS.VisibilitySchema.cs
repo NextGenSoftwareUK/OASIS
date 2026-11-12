@@ -18,11 +18,21 @@ public partial class SQLLiteDBOASIS
         using (var receiptSchema = connection.CreateCommand())
         {
             receiptSchema.Transaction = transaction.GetDbTransaction();
-            receiptSchema.CommandText = CosmicSqliteSchema.CreatePreparationTable+"; "+CosmicSqliteSchema.CreateReceiptTable+"; "+CosmicSqliteSchema.CreateReplicaHeadTable+"; "+CosmicSqliteSchema.CreateOutboxTable+"; "+CosmicSqliteSchema.CreateRevisionArchive+"; "+CosmicSqliteSchema.CreateRevisionKeyIndex+"; "+CosmicSqliteSchema.CreateRevisionCollectionIndex+"; "+CosmicSqliteSchema.CreateRevisionParentIndex;
+            receiptSchema.CommandText = CosmicSqliteSchema.CreateDestinationBindings+"; "+CosmicSqliteSchema.CreatePreparationTable+"; "+CosmicSqliteSchema.CreateReceiptTable+"; "+CosmicSqliteSchema.CreateReplicaHeadTable+"; "+CosmicSqliteSchema.CreateOutboxTable+"; "+CosmicSqliteSchema.CreateRevisionArchive+"; "+CosmicSqliteSchema.CreateRevisionKeyIndex+"; "+CosmicSqliteSchema.CreateRevisionCollectionIndex+"; "+CosmicSqliteSchema.CreateRevisionParentIndex;
+            receiptSchema.CommandText += "; " + CosmicSqliteSchema.CreateMigrationFence;
+            receiptSchema.CommandText += "; " + CosmicSqliteSchema.CreateMigrationReplicaAdoption;
             await receiptSchema.ExecuteNonQueryAsync().ConfigureAwait(false);
         }
+        await EnsureColumnsAsync(connection,transaction.GetDbTransaction(),"CosmicMigrationFence",
+            new Dictionary<string,string> {{"MutationDigest",CosmicSqliteSchema.MigrationMutationDigestDefinition}}).ConfigureAwait(false);
         await EnsureColumnsAsync(connection,transaction.GetDbTransaction(),"CosmicHolonOutbox",CosmicSqliteSchema.OutboxDeliveryColumns()).ConfigureAwait(false);
         await EnsureColumnsAsync(connection,transaction.GetDbTransaction(),"CosmicHolonOutbox",CosmicSqliteSchema.OutboxRecoveryColumns()).ConfigureAwait(false);
+        using(var completionSchema=connection.CreateCommand())
+        {
+            completionSchema.Transaction=transaction.GetDbTransaction();
+            completionSchema.CommandText=CosmicSqliteSchema.CreateOutboxInitializationCompletionTable;
+            await completionSchema.ExecuteNonQueryAsync().ConfigureAwait(false);
+        }
         foreach(var table in new[] {"Holon","Avatar","AvatarDetail"})
             await EnsureColumnsAsync(connection,transaction.GetDbTransaction(),table,new Dictionary<string,string> {
                 {"IsPublic","INTEGER NOT NULL DEFAULT 0"},

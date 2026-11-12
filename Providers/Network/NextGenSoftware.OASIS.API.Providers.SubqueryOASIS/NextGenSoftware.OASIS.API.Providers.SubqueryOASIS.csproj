@@ -32,4 +32,8 @@
   <ItemGroup>
     <None Update="README.md"><PackagePath>\</PackagePath><Pack>True</Pack></None>
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.csproj" />
+    <InternalsVisibleTo Include="NextGenSoftware.OASIS.API.Providers.SubqueryOASIS.UnitTests" />
+  </ItemGroup>
 </Project>

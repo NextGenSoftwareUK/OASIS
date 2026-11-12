@@ -118,6 +118,19 @@ namespace NextGenSoftware.OASIS.API.Providers.SynapseOASIS
             };
         }
 
+        internal void ConfigureBoundedPublicReads()
+        {
+            _http.MaxResponseContentBufferSize = 256 * 1024;
+            _http.Timeout = TimeSpan.FromSeconds(15);
+            _http.DefaultRequestHeaders.Accept.ParseAdd("application/json");
+            _http.DefaultRequestHeaders.UserAgent.ParseAdd("OASIS-SynapseRead/1.0");
+        }
+
+        internal Task<OASISResult<JsonElement>> GetIndexedTransactionAsync(string id, CancellationToken token)
+            => GetJsonAsync($"transaction-id/{Uri.EscapeDataString(id)}", token);
+
+        internal void DisposePublicReadClient() => _http.Dispose();
+
         private async Task<OASISResult<JsonElement>> GetJsonAsync(string path, CancellationToken ct)
         {
             try

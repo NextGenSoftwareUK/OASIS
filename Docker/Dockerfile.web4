@@ -13,21 +13,114 @@ FROM ipfs/kubo:v0.43.1@sha256:b293923d66e490e70ced64df42ea7a6cf7eac2740e3fb29101
 # Same immutable CSS 7.1.8 image already retained by the local SOLID environment.
 FROM solidproject/community-server@sha256:125727897fde6e2225239a0748bf47d8fa559cac065d5694dc10f6428799e9f2 AS provider_solid
 
+# A separately targetable SDK qualification reuses the exact shipped Node image.
+FROM provider_node AS provider_pouch
+COPY Docker/PouchDbRuntime/ /opt/pouchdb/
+WORKDIR /opt/pouchdb
+RUN npm ci --omit=dev --no-audit --no-fund
+COPY Docker/host-sandbox-pouchdb.cjs Docker/host-sandbox-ipfs.cjs Docker/verify-pouchdb-runtime.cjs /qualification/Docker/
+COPY Docker/PouchDbRuntime/ /qualification/Docker/PouchDbRuntime/
+COPY Scripts/Sandbox/test_hosted_pouchdb_runtime.cjs /qualification/Scripts/Sandbox/
+RUN node --test /qualification/Scripts/Sandbox/test_hosted_pouchdb_runtime.cjs
+RUN node /qualification/Docker/verify-pouchdb-runtime.cjs /opt/pouchdb
+
+FROM provider_node AS provider_teaching_sidecars
+ARG OASIS_INCLUDE_TEACHING_SIDECARS=false
+COPY ["Providers/Other/NextGenSoftware.OASIS.API.Providers.OrbitDBOASIS/CqlTeachingCompanion/package.json", "Providers/Other/NextGenSoftware.OASIS.API.Providers.OrbitDBOASIS/CqlTeachingCompanion/package-lock.json", "Providers/Other/NextGenSoftware.OASIS.API.Providers.OrbitDBOASIS/CqlTeachingCompanion/serve-teaching.mjs", "Providers/Other/NextGenSoftware.OASIS.API.Providers.OrbitDBOASIS/CqlTeachingCompanion/teaching-store.mjs", "/opt/teaching/orbitdb/"]
+COPY ["Providers/Other/NextGenSoftware.OASIS.API.Providers.GUNOASIS/CqlTeachingCompanion/package.json", "Providers/Other/NextGenSoftware.OASIS.API.Providers.GUNOASIS/CqlTeachingCompanion/package-lock.json", "Providers/Other/NextGenSoftware.OASIS.API.Providers.GUNOASIS/CqlTeachingCompanion/serve-teaching.mjs", "Providers/Other/NextGenSoftware.OASIS.API.Providers.GUNOASIS/CqlTeachingCompanion/teaching-store.mjs", "/opt/teaching/gun/"]
+RUN case "$OASIS_INCLUDE_TEACHING_SIDECARS" in \
+      false) ;; \
+      true) npm ci --prefix /opt/teaching/orbitdb --cache /tmp/oasis-teaching-npm --ignore-scripts --no-audit --no-fund \
+        && npm ci --prefix /opt/teaching/gun --cache /tmp/oasis-teaching-npm --ignore-scripts --no-audit --no-fund \
+        && rm -rf /tmp/oasis-teaching-npm ;; \
+      *) echo "Invalid optional teaching runtime build flag" >&2; exit 1 ;; \
+    esac
+
+FROM provider_node AS provider_openvino
+# Resolve the official image from the one runtime pin manifest. OCI-aware
+# extraction preserves its complete userspace, including layer whiteouts.
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates skopeo umoci \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+COPY Scripts/TestHosts/openvino-model-server-pins.json /openvino/pins.json
+COPY Docker/host-sandbox-openvino.cjs Docker/provision-sandbox-openvino.cjs /openvino/
+RUN node /openvino/provision-sandbox-openvino.cjs /models /openvino/pins.json
+RUN image="$(node -p 'require("/openvino/pins.json").image')" \
+    && skopeo copy --override-os linux --override-arch amd64 "docker://${image}" oci:/tmp/openvino-image:runtime \
+    && umoci unpack --rootless --image /tmp/openvino-image:runtime /tmp/openvino-bundle \
+    && mkdir -p /opt/ovms-rootfs \
+    && cp -a /tmp/openvino-bundle/rootfs/. /opt/ovms-rootfs/ \
+    && test ! -L /opt/ovms-rootfs/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2 \
+    && test -x /opt/ovms-rootfs/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2 \
+    && rm -rf /tmp/openvino-image /tmp/openvino-bundle
+
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
+# The pinned Waku binary loads PostgreSQL and OpenMP libraries during startup,
+# including when the teaching source uses SQLite.
+RUN sed -i -e 's|http://archive.ubuntu.com/ubuntu|https://archive.ubuntu.com/ubuntu|g' \
+           -e 's|http://security.ubuntu.com/ubuntu|https://security.ubuntu.com/ubuntu|g' /etc/apt/sources.list.d/ubuntu.sources \
+    && apt-get update -o APT::Update::Error-Mode=any \
+    && apt-get install -y --no-install-recommends libpq5 libgomp1 libstdc++6 libgcc-s1 openssl libaio1t64 liburing2 \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 EXPOSE 8080
+
+FROM base AS provider_waku
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl \
+    && mkdir /opt/waku \
+    && curl --disable --fail --no-progress-meter --show-error --location --max-redirs 3 --max-time 90 \
+       --retry 2 --retry-max-time 180 \
+       https://github.com/logos-messaging/logos-delivery/releases/download/v0.39.2/waku-v0.39.2-amd64-linux.tar.gz \
+       --output /tmp/waku.tar.gz \
+    && echo '063d4386623e3dcfa6e59908dd57bbc2a420f26875ea50f7adb3c5b348ba9b87  /tmp/waku.tar.gz' | sha256sum --check \
+    && mkdir /tmp/waku-runtime \
+    && tar -xzf /tmp/waku.tar.gz -C /tmp/waku-runtime \
+    && install -m 755 /tmp/waku-runtime/build/logosdeliverynode /opt/waku/logosdeliverynode \
+    && /opt/waku/logosdeliverynode --version \
+    && rm /tmp/waku.tar.gz && rm -rf /tmp/waku-runtime \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+FROM base AS provider_nats
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl \
+    && mkdir /tmp/nats-runtime \
+    && curl --disable --fail --no-progress-meter --show-error --location --max-redirs 3 --max-time 90 \
+       --retry 2 --retry-max-time 180 \
+       https://github.com/nats-io/nats-server/releases/download/v2.15.2/nats-server-v2.15.2-linux-amd64.tar.gz \
+       --output /tmp/nats-runtime/native.tar.gz \
+    && echo '67cb8e10bc6f0c4b47f75a728529a20953dbae2a4f9a4a52ae8517d65ae303ff  /tmp/nats-runtime/native.tar.gz' | sha256sum --check --strict \
+    && tar -xzf /tmp/nats-runtime/native.tar.gz -C /tmp/nats-runtime \
+    && install -m 755 /tmp/nats-runtime/nats-server-v2.15.2-linux-amd64/nats-server /usr/local/bin/nats-server \
+    && test "$(nats-server --version)" = 'nats-server: v2.15.2' \
+    && rm -rf /tmp/nats-runtime \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Exact Dapr/Garnet archives shared with the Linux native qualification.
+# Python/download dependencies stay in this build stage; final image receives runtimes only.
+FROM base AS provider_dapr
+COPY Scripts/TestHosts/DaprNativeRuntimes.py Scripts/TestHosts/dapr-linux-runtime-pins.json /qualification/
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates python3 build-essential cmake git libaio-dev liburing-dev uuid-dev \
+    && python3 -B /qualification/DaprNativeRuntimes.py --install-linux /opt/provider-runtimes \
+    && /opt/provider-runtimes/daprd/daprd --version \
+    && /opt/provider-runtimes/garnet/net10.0/GarnetServer --version \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 COPY --from=provider_node /usr/local/ /usr/local/
 
 COPY Docker/oasis-dependency-versions.env /tmp/oasis-dependency-versions.env
-RUN apt-get update && apt-get install -y --no-install-recommends git \
+RUN sed -i -e 's|http://archive.ubuntu.com/ubuntu|https://archive.ubuntu.com/ubuntu|g' \
+           -e 's|http://security.ubuntu.com/ubuntu|https://security.ubuntu.com/ubuntu|g' /etc/apt/sources.list.d/ubuntu.sources \
+    && apt-get update -o APT::Update::Error-Mode=any \
+    && apt-get install -y --no-install-recommends git \
     && . /tmp/oasis-dependency-versions.env \
     && git clone --no-checkout "${LIBRARIES_REPO}" /NextGenSoftware-Libraries \
+    && git -C /NextGenSoftware-Libraries fetch --no-tags origin "${LIBRARIES_COMMIT}" \
     && git -C /NextGenSoftware-Libraries checkout --detach "${LIBRARIES_COMMIT}" \
     && git clone --no-checkout "${HOLOCHAIN_REPO}" /holochain-client-csharp \
+    && git -C /holochain-client-csharp fetch --no-tags origin "${HOLOCHAIN_COMMIT}" \
     && git -C /holochain-client-csharp checkout --detach "${HOLOCHAIN_COMMIT}" \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+COPY --from=provider_pouch /opt/pouchdb /opt/pouchdb
 
 WORKDIR /src
 COPY . .
@@ -49,9 +142,9 @@ RUN test -f "/src/STAR ODK/NextGenSoftware.OASIS.STAR.STARDNA/DNA/OASIS_DNA.json
         "/src/STAR ODK/NextGenSoftware.OASIS.STAR.STARDNA/DNA/OASIS_DNA.json")
 
 WORKDIR "/src/ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI"
-RUN dotnet restore "NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj"
+RUN dotnet restore "NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj" -p:Configuration=Release -p:UseAppHost=false -m:2 -nr:false -p:UseSharedCompilation=false
 # Two workers (the repo bound), no compiler server, and errors-only output: the warning flood otherwise fills the build log and hides the real error.
-RUN dotnet publish "NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj" -c Release -o /app/publish /p:UseAppHost=false -m:2 -nr:false -p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
+RUN dotnet publish "NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj" --no-restore -c Release -o /app/publish /p:UseAppHost=false -m:2 -nr:false -p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
 
 RUN test -f /app/publish/DNA/STAR_DNA.json
 
@@ -59,22 +152,49 @@ RUN bash /src/Docker/package-provider-sdk-bridges.sh /app/publish
 
 FROM base AS final
 WORKDIR /app
+COPY --from=provider_openvino /opt/ovms-rootfs/ /opt/ovms-rootfs/
+COPY --from=provider_openvino /models/ /models/
+COPY Scripts/TestHosts/openvino-model-server-pins.json /app/openvino-model-server-pins.json
+COPY Docker/host-sandbox-openvino.cjs /app/host-sandbox-openvino.cjs
+RUN ln -s /opt/ovms-rootfs/ovms /ovms
 COPY --from=provider_node /usr/local/bin/node /usr/local/bin/node
 COPY --from=provider_ipfs /usr/local/bin/ipfs /usr/local/bin/ipfs
+COPY --from=provider_nats /usr/local/bin/nats-server /usr/local/bin/nats-server
+COPY --from=provider_dapr /opt/provider-runtimes/daprd/daprd /opt/dapr/daprd
+COPY --from=provider_dapr /opt/provider-runtimes/garnet/net10.0/ /opt/garnet/
+COPY --from=provider_waku /opt/waku /opt/waku
 COPY --from=provider_solid /community-server /opt/solid
+COPY --from=build /opt/pouchdb /opt/pouchdb
+COPY --from=provider_teaching_sidecars /opt/teaching /opt/teaching
 RUN node --version
+RUN node -e "const load=require('node:module').createRequire('/opt/pouchdb/package.json');if(load('pouchdb').version!=='9.0.0'||typeof load('leveldown')!=='function')throw Error('PouchDB native runtime differs');load('express-pouchdb')"
 RUN ipfs version --enc=json
+RUN test "$(nats-server --version)" = 'nats-server: v2.15.2' && openssl version
+RUN /opt/waku/logosdeliverynode --version
 RUN node -e "if(require('/opt/solid/package.json').version!=='7.1.8')throw Error('CSS version differs');require('/opt/solid/dist/init/AppRunner');require('/opt/solid/node_modules/n3')"
 COPY --from=build /app/publish .
+RUN test -s /app/runtimes/linux-x64/native/libduckdb.so \
+    && ldd /app/runtimes/linux-x64/native/libduckdb.so > /tmp/duckdb-libraries.txt \
+    && cat /tmp/duckdb-libraries.txt \
+    && ! grep -F 'not found' /tmp/duckdb-libraries.txt \
+    && rm /tmp/duckdb-libraries.txt
 COPY Docker/entrypoint.onode.sh /entrypoint.sh
 COPY Docker/host-sandbox-ipfs.cjs /app/host-sandbox-ipfs.cjs
 COPY Docker/host-sandbox-solid.cjs /app/host-sandbox-solid.cjs
+COPY Docker/host-sandbox-pouchdb.cjs /app/host-sandbox-pouchdb.cjs
+COPY Docker/host-sandbox-teaching.cjs /app/host-sandbox-teaching.cjs
+COPY Docker/host-sandbox-waku.cjs /app/host-sandbox-waku.cjs
+COPY Docker/host-sandbox-duckdb.cjs /app/host-sandbox-duckdb.cjs
+COPY Docker/host-sandbox-nats.cjs /app/host-sandbox-nats.cjs
+COPY Docker/host-sandbox-dapr.cjs /app/host-sandbox-dapr.cjs
+COPY Docker/provision-sandbox-dapr.cjs /app/provision-sandbox-dapr.cjs
+COPY Docker/DaprRuntime/ /app/DaprRuntime/
 RUN sed -i 's/\r//' /entrypoint.sh && chmod +x /entrypoint.sh
 
 ENV ASPNETCORE_ENVIRONMENT=Production
 ENV ASPNETCORE_URLS=http://+:8080
 
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:8080/api/health || exit 1
+  CMD ["node", "-e", "fetch('http://127.0.0.1:8080/api/health',{signal:AbortSignal.timeout(2000),redirect:'error'}).then(r=>process.exit(r.status===200?0:1)).catch(()=>process.exit(1))"]
 
 ENTRYPOINT ["/entrypoint.sh"]

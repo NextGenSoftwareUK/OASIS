@@ -35,4 +35,8 @@
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.PolkadotOASIS\NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Include="../../../../Examples/CosmicCqlDemo/NativeKeySetWalkthrough.cs" Link="PublishedDemo/NativeKeySetWalkthrough.cs" />
+    <Compile Include="../../../../Examples/CosmicCqlDemo/PolkadotPublicWalkthrough.cs" Link="PublishedDemo/PolkadotPublicWalkthrough.cs" />
+  </ItemGroup>
 </Project>

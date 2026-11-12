@@ -77,3 +77,7 @@ The prerequisite is a successful WEB4 decision response. Deploy the corrected
 ONODE WebAPI to development, verify this request, and only then resume the
 idempotent seeder; do not bypass the authority in WEB5 or the seed scripts.
 Use the [Subscription API](API%20Documentation/WEB4%20OASIS%20API/Subscription-API.md), [Postman collection](API%20Documentation/WEB4%20OASIS%20API/WEB4-Subscription-Usage.postman_collection.json), and [test commands/live release gates](../WIP/Subscriptions/WEB4_SUBSCRIPTION_USAGE_OPERATIONS.md). Change deployed submodule gitlinks and `Docker/oasis-dependency-versions.env` together and run the required validators and all seven publishes.
+
+## Inline settlement ownership
+
+Publishing immutable settlement evidence and reserving its inline delivery lease is one atomic outbox transition (`EnqueueAndClaimAsync`). The HTTP request owns that lease while awaiting authority acknowledgement. Background delivery can claim it after expiry or explicit release following a failed delivery; it cannot win an unclaimed gap between enqueue and request delivery. Genuine authority outages still return durable pending outcomes. Preserve the operation ID and reconcile it; never repeat provider execution to obtain a successful response. Recovery-only enqueue remains the worker-owned path.

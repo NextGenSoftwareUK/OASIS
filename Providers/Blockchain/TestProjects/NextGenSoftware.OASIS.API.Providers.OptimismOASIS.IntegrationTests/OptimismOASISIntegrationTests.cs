@@ -1,138 +1,62 @@
+using System.Numerics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NextGenSoftware.OASIS.API.Providers.OptimismOASIS;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Objects;
-using System.Threading.Tasks;
-using System;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests;
+using NextGenSoftware.OASIS.Providers.TestSupport;
 
-namespace NextGenSoftware.OASIS.API.Providers.OptimismOASIS.IntegrationTests
+namespace NextGenSoftware.OASIS.API.Providers.OptimismOASIS.IntegrationTests;
+
+[TestClass, DoNotParallelize]
+public class OptimismOASISIntegrationTests
 {
-    [TestClass]
-    public class OptimismOASISIntegrationTests
+    private const int SepoliaChainId = 11155420;
+
+    [DataTestMethod, DataRow(false), DataRow(true)]
+    public async Task PublicWalletUsesOptimismMainnetWithoutStorageActivation(bool synchronous)
     {
-        private OptimismOASIS _provider;
+        if (Environment.GetEnvironmentVariable("OASIS_OPTIMISM_PUBLIC_WALLET_READ") != "1")
+            Assert.Inconclusive("Enable the public Optimism RPC read explicitly.");
 
-        [TestInitialize]
-        public void Setup()
+        const string rpc = "https://mainnet.optimism.io";
+        var request = new GetWeb3WalletBalanceRequest
         {
-            _provider = new OptimismOASIS();
-        }
+            WalletAddress = "0x4200000000000000000000000000000000000006"
+        };
+        var provider = new OptimismOASIS(rpc);
+        var result = synchronous ? provider.GetBalance(request) : await provider.GetBalanceAsync(request);
+        Assert.IsFalse(result.IsError, result.Message);
+        Assert.IsTrue(result.IsLoaded && double.IsFinite(result.Result) && result.Result > 0);
+        Assert.IsFalse(provider.IsProviderActivated);
 
-        [TestMethod]
-        public async Task SaveAvatar_ShouldReturnSuccessResult()
-        {
-            // Arrange
-            var avatar = new Avatar
-            {
-                Id = Guid.NewGuid(),
-                Username = "TestUser",
-                Email = "test@example.com",
-                FirstName = "Test",
-                LastName = "User"
-            };
+        var wrongChain = new OptimismOASIS(rpc, "", "", SepoliaChainId);
+        var rejected = synchronous ? wrongChain.GetBalance(request) : await wrongChain.GetBalanceAsync(request);
+        Assert.IsTrue(rejected.IsError);
+        Assert.IsTrue(rejected.Message.Contains("chain ID", StringComparison.OrdinalIgnoreCase));
+        Assert.IsFalse(wrongChain.IsProviderActivated);
+    }
 
-            // Act
-            var result = await _provider.SaveAvatarAsync(avatar);
+    [DataTestMethod, DataRow(false), DataRow(true)]
+    public async Task SharedStorageUsesDedicatedOptimismSepoliaContract(bool synchronous)
+    {
+        var rpc = Environment.GetEnvironmentVariable("OASIS_OPTIMISM_CONFORMANCE_RPC_URL");
+        if (string.IsNullOrWhiteSpace(rpc))
+            Assert.Inconclusive("Configure the dedicated Optimism Sepolia fixture.");
 
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsFalse(result.IsError);
-            Assert.IsNotNull(result.Result);
-        }
+        var key = Environment.GetEnvironmentVariable("OASIS_OPTIMISM_CONFORMANCE_PRIVATE_KEY");
+        var contract = Environment.GetEnvironmentVariable("OASIS_OPTIMISM_CONFORMANCE_CONTRACT");
+        Assert.IsFalse(string.IsNullOrWhiteSpace(key), "Configure the dedicated test signer.");
+        Assert.IsFalse(string.IsNullOrWhiteSpace(contract), "Configure the dedicated Web3Core test contract.");
+        Assert.IsTrue(Uri.TryCreate(rpc, UriKind.Absolute, out var endpoint) &&
+            endpoint.Scheme == Uri.UriSchemeHttps && string.IsNullOrEmpty(endpoint.UserInfo));
 
-        [TestMethod]
-        public async Task LoadAvatar_ShouldReturnAvatar()
-        {
-            // Arrange
-            var avatarId = Guid.NewGuid();
+        var readOnly = new Nethereum.Web3.Web3(endpoint!.AbsoluteUri);
+        var observed = await readOnly.Eth.ChainId.SendRequestAsync();
+        Assert.AreEqual(new BigInteger(SepoliaChainId), observed.Value);
 
-            // Act
-            var result = await _provider.LoadAvatarAsync(avatarId);
-
-            // Assert
-            Assert.IsNotNull(result);
-            // Note: This might return an error if avatar doesn't exist, which is expected
-        }
-
-        [TestMethod]
-        public async Task SaveHolon_ShouldReturnSuccessResult()
-        {
-            // Arrange
-            var holon = new Holon
-            {
-                Id = Guid.NewGuid(),
-                Name = "TestHolon",
-                Description = "Test Holon Description"
-            };
-
-            // Act
-            var result = await _provider.SaveHolonAsync(holon);
-
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsFalse(result.IsError);
-        }
-
-        [TestMethod]
-        public async Task LoadHolon_ShouldReturnHolon()
-        {
-            // Arrange
-            var holonId = Guid.NewGuid();
-
-            // Act
-            var result = await _provider.LoadHolonAsync(holonId);
-
-            // Assert
-            Assert.IsNotNull(result);
-            // Note: This might return an error if holon doesn't exist, which is expected
-        }
-
-        [TestMethod]
-        public async Task SearchAvatars_ShouldReturnSearchResults()
-        {
-            // Arrange
-            var searchParams = new SearchParams
-            {
-                SearchQuery = "test",
-                SearchType = SearchType.Avatar
-            };
-
-            // Act
-            var result = await _provider.SearchAvatarsAsync(searchParams);
-
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsFalse(result.IsError);
-            Assert.IsNotNull(result.Result);
-        }
-
-        [TestMethod]
-        public async Task SearchHolons_ShouldReturnSearchResults()
-        {
-            // Arrange
-            var searchParams = new SearchParams
-            {
-                SearchQuery = "test",
-                SearchType = SearchType.Holon
-            };
-
-            // Act
-            var result = await _provider.SearchHolonsAsync(searchParams);
-
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsFalse(result.IsError);
-            Assert.IsNotNull(result.Result);
-        }
-
-        [TestCleanup]
-        public void Cleanup()
-        {
-            if (_provider != null && _provider.IsProviderActivated)
-            {
-                _provider.DeActivateProvider();
-            }
-        }
+        var provider = new OptimismOASIS(endpoint.AbsoluteUri, key!, contract!, SepoliaChainId);
+        var report = await CoreStorageConformance.RunAsync(provider, nameof(OptimismOASIS), "native",
+            synchronous, _ => Task.CompletedTask, expectedDefaultDeletion: "absent");
+        Assert.IsTrue(report.Succeeded, $"{report.CurrentCase}: {report.FailureType} {report.FailureContract}");
+        Assert.IsTrue(report.FixtureCleanupComplete);
+        Assert.AreEqual(CoreStorageConformance.ChecksPerMode, report.Passed.Count);
     }
 }

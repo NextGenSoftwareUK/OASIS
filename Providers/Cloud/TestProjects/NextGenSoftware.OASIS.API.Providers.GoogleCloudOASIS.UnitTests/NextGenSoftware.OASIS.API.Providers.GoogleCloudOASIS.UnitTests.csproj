@@ -26,4 +26,8 @@
     <Compile Include="../../../Shared/TestSupport/CloudStorageDiscoveryAssertions.cs" Link="TestSupport/CloudStorageDiscoveryAssertions.cs" />
     <Compile Include="../../../Shared/TestSupport/AllVersionExportVisibilityAssertions.cs" Link="TestSupport/AllVersionExportVisibilityAssertions.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Include="../../../../Examples/CosmicCqlDemo/NativeKeySetWalkthrough.cs" Link="PublishedDemo/NativeKeySetWalkthrough.cs" />
+    <Compile Include="../../../../Examples/CosmicCqlDemo/GooglePublicWalkthrough.cs" Link="PublishedDemo/GooglePublicWalkthrough.cs" />
+  </ItemGroup>
 </Project>

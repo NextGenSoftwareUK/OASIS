@@ -173,3 +173,27 @@ Repeating preparation reuses unchanged acknowledged snapshots. It does not post
 to ActivityPub. A different visitor has different private records. Public leaf
 examples need no preparation. Separate local examples remain linked below the
 hosted controls. Federation spans moving provider reads, without a global snapshot.
+
+
+## Provider-partitioned public example configuration
+
+The shared `CQL_HOSTED_QUERY_EXAMPLES_JSON` object remains supported. Larger
+catalogues compose with the `CQL_HOSTED_QUERY_EXAMPLES` configuration section:
+set one environment variable such as `CQL_HOSTED_QUERY_EXAMPLES__SeiOASIS`
+to that provider's JSON **array** of examples. The double underscore maps to the
+standard .NET configuration section separator. Requests retain the existing
+`id`, `label`, `request` and optional `operation` schema.
+
+Each provider must have exactly one configuration owner across the shared object
+and partitions. Duplicates, unsupported providers, malformed arrays, nested
+configuration and conflicting request ownership are errors. There is no override
+or fallback after a parsing error. The combined catalogue remains bounded to
+262,144 characters and each provider retains the existing one-to-eight example
+limit. Railway rejected the40,443-character combined demo variable at its32,768
+character value limit; the seventeen provider partitions are at most2,399
+characters each, preserving all68presets without reducing query scope.
+
+These values are public example requests, never credentials or read grants.
+Admission, native capabilities, authenticated ownership and work limits still
+apply independently. The repository's guarded partition publisher preserves
+original failed journals and verifies exact desired settings before deployment.

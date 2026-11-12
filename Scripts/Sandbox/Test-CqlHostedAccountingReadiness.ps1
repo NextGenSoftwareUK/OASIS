@@ -45,7 +45,8 @@ try {
 }
 finally {
     Remove-Item Env:COSMIC_HOSTED_ACCOUNTING_PROBE,Env:COSMIC_HOSTED_ACCOUNTING_URI,Env:COSMIC_HOSTED_ACCOUNTING_DATABASE -ErrorAction SilentlyContinue
-    $authorityUri = $null; $configurationValues = $null; $configText = $null; $dnaValues = $null
+    Remove-Item Env:COSMIC_HOSTED_PROVIDER_URI,Env:COSMIC_HOSTED_PROVIDER_DATABASE -ErrorAction SilentlyContinue
+    $authorityUri = $null; $configurationValues = $null; $configText = $null; $dnaValues = $null; $providerUri = $null
 }
 if ($probeExit -ne 0) { throw 'Probe failed; inspect the sanitized fixed log.' }
 Get-Content -LiteralPath (Join-Path $results $(if ($Replication) { 'hosted-replication-readiness.json' } else { 'hosted-accounting-readiness.json' }))

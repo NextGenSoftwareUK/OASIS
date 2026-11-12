@@ -18,7 +18,7 @@ using NextGenSoftware.OASIS.Common;
 namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests;
 
 [TestClass]
-public class HolonReplicationHostingTests
+public partial class HolonReplicationHostingTests
 {
     private static readonly Guid Actor=Guid.Parse("a4f43980-6060-4642-9c94-91d13ee8f47e");
     private static readonly DateTime Now=new(2026,10,19,12,0,0,DateTimeKind.Utc);

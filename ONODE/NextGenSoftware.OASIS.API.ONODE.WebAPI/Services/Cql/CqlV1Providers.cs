@@ -1,4 +1,8 @@
 using System;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Queries;
@@ -12,20 +16,32 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 /// <summary>Read the existing host registry. Missing/inactive providers do not trigger activation or failover.</summary>
 public sealed class CqlV1Providers : ICqlV1Providers
 {
+    private readonly ICqlHostedSourceRegistry sources;
+    public CqlV1Providers(ICqlHostedSourceRegistry sources = null) => this.sources = sources;
+
     public IOASISStorageProvider Resolve(ProviderType? requested)
     {
         var registry = ProviderManager.Instance;
-        var provider = requested.HasValue ? registry.GetStorageProvider(requested.Value) : registry.CurrentStorageProvider;
+        var provider = requested.HasValue
+            ? sources == null ? registry.GetStorageProvider(requested.Value) : sources.Find(requested.Value)
+            : registry.CurrentStorageProvider;
         if (provider == null || !provider.IsProviderActivated) throw new InvalidOperationException("Provider unavailable.");
         return provider;
     }
 
     public HolonManager CreateManager(IOASISStorageProvider provider)
+        => CreateQueryManager(OASISBootLoader.OASISBootLoader.OASISDNA, ProviderManager.Instance);
+
+    internal static HolonManager CreateQueryManager(NextGenSoftware.OASIS.API.DNA.OASISDNA dna, ProviderManager registry)
     {
-        var dna = OASISBootLoader.OASISBootLoader.OASISDNA;
         if (dna?.OASIS?.HyperDriveMode != NextGenSoftware.OASIS.API.DNA.HyperDriveModes.V2)
             throw new InvalidOperationException("CQL requires Hyperdrive V2.");
-        return new HolonManager(provider, dna, ProviderManager.Instance);
+        // CQL dispatch owns an explicit, already-admitted adapter snapshot.
+        // Supplying it to the storage-manager constructor would register it,
+        // activate it or subscribe persistent events as a constructor side effect.
+        // In particular a read-only representation must never replace or conflict
+        // with a wallet-backed canonical provider of the same enum type.
+        return new HolonManager(null, dna, registry);
     }
 }
 
@@ -35,17 +51,37 @@ public sealed class CqlV1Providers : ICqlV1Providers
 /// provider or editing replication/failover lists. Registry owns provider lifetime.</summary>
 public sealed class CqlHostedSourceRegistry : ICqlHostedSourceRegistry
 {
+    private readonly IReadOnlyDictionary<ProviderType, CqlReadSourceProfile> profiles;
+
+    private readonly ILogger<CqlHostedSourceRegistry> logger;
+
+    public CqlHostedSourceRegistry(IEnumerable<CqlReadSourceProfile> profiles = null)
+        : this(profiles, NullLogger<CqlHostedSourceRegistry>.Instance) { }
+
+    public CqlHostedSourceRegistry(IEnumerable<CqlReadSourceProfile> profiles, ILogger<CqlHostedSourceRegistry> logger)
+    {
+        this.profiles = (profiles ?? Array.Empty<CqlReadSourceProfile>())
+            .ToDictionary(profile => profile.Storage.ProviderType.Value);
+        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    }
+
     public IOASISStorageProvider Find(ProviderType provider)
-        => ProviderManager.Instance.GetStorageProvider(provider);
+        => profiles.TryGetValue(provider, out var profile) ? profile.Storage
+            : ProviderManager.Instance.GetStorageProvider(provider);
 
     public async Task ActivateReadSourceAsync(ProviderType provider, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        var registration = await OASISBootLoader.OASISBootLoader.RegisterProviderAsync(provider,
-            activateProviderIfOASISProviderBootTypeIsHot: false);
-        if (registration == null || registration.IsError || registration.Result == null)
-            throw new InvalidOperationException("CQL_SOURCE_REGISTRATION_FAILED");
-        var storage = registration.Result;
+        IOASISStorageProvider storage;
+        if (profiles.TryGetValue(provider, out var profile)) storage = profile.Storage;
+        else
+        {
+            var registration = await OASISBootLoader.OASISBootLoader.RegisterProviderAsync(provider,
+                activateProviderIfOASISProviderBootTypeIsHot: false);
+            if (registration == null || registration.IsError || registration.Result == null)
+                throw new InvalidOperationException("CQL_SOURCE_REGISTRATION_FAILED");
+            storage = registration.Result;
+        }
         if (storage.ProviderType?.Value != provider || storage is not ICosmicQueryStorageProvider adapter
             || adapter.QueryProviderType != provider || adapter.QueryCapabilities == null
             || storage is not ICosmicReadOnlyQueryActivation activationProvider)
@@ -55,9 +91,24 @@ public sealed class CqlHostedSourceRegistry : ICqlHostedSourceRegistry
         // Await the owning provider operation; do not detach it on an observation timeout.
         using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         deadline.CancelAfter(TimeSpan.FromSeconds(30));
-        var activation = await activationProvider.ActivateQuerySourceAsync(deadline.Token);
-        cancellationToken.ThrowIfCancellationRequested();
-        if (activation == null || activation.IsError || !activation.Result || !storage.IsProviderActivated)
-            throw new InvalidOperationException("CQL_SOURCE_ACTIVATION_FAILED");
+        var policy = profile?.ActivationPolicy ?? CqlReadSourceActivationPolicy.None;
+        for (int attempt = 1; ; attempt++)
+        {
+            // One shared30s budget includes every health-check attempt and delay.
+            // Each native operation is awaited before any subsequent attempt.
+            deadline.Token.ThrowIfCancellationRequested();
+            var activation = await activationProvider.ActivateQuerySourceAsync(deadline.Token);
+            cancellationToken.ThrowIfCancellationRequested();
+            if (activation != null && !activation.IsError && activation.Result && storage.IsProviderActivated)
+                return;
+            var failure = new InvalidOperationException("CQL_SOURCE_ACTIVATION_FAILED", activation?.Exception);
+            int? status = policy.RetryStatus(activation?.Exception, attempt);
+            if (!status.HasValue || deadline.IsCancellationRequested) throw failure;
+            CqlNativeFailureDiagnostics.Record(logger, provider, true, failure);
+            logger.LogWarning(new EventId(4832, "CqlSourceActivationRetry"),
+                "CQL source activation retry provider={Provider} completedAttempt={Attempt} maximumAttempts={MaximumAttempts} delayMilliseconds={DelayMilliseconds} httpStatus={HttpStatus}",
+                provider, attempt, policy.MaximumAttempts, (int)policy.RetryDelay.TotalMilliseconds, status.Value);
+            await Task.Delay(policy.RetryDelay, deadline.Token);
+        }
     }
 }

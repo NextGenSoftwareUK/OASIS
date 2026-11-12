@@ -64,6 +64,7 @@
   <ItemGroup>
     <PackageReference Include="BouncyCastle.Cryptography" Version="2.6.2" Aliases="BouncyCastleCryptography" />
   </ItemGroup>
+  <ItemGroup><ProjectReference Include="..\..\Shared\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.csproj" /></ItemGroup>
   <!-- Chaos.NaCl is a sibling project with no NuGet package: keep it private and ship its DLL inside this package. -->
   <PropertyGroup>
     <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);IncludeChaosNaClInPackage</TargetsForTfmSpecificBuildOutput>

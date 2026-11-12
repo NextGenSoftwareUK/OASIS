@@ -1,5 +1,5 @@
 function Start-ReusableAzuriteHost {
-    param([Parameter(Mandatory)][string]$Workspace)
+    param([Parameter(Mandatory)][string]$Workspace,[string]$DataDirectory)
     $retainedRuntime=Join-Path $env:USERPROFILE '.cache/oasis-runtimes/azurite-3.37.0/node_modules/azurite/dist/src/blob/main.js'
     $retainedPackage=Join-Path $env:USERPROFILE '.cache/oasis-runtimes/azurite-3.37.0/node_modules/azurite/package.json'
     if(!(Test-Path -LiteralPath $retainedRuntime) -or (Get-Content $retainedPackage -Raw|ConvertFrom-Json).version -ne '3.37.0'){throw 'Pinned retained Azurite missing; no download or substitute.'}
@@ -8,7 +8,8 @@ function Start-ReusableAzuriteHost {
     $retainedStart.UseShellExecute=$false;$retainedStart.CreateNoWindow=$true;$retainedStart.WindowStyle='Hidden'
     $retainedStart.RedirectStandardInput=$true;$retainedStart.RedirectStandardOutput=$true;$retainedStart.RedirectStandardError=$true
     $retainedStart.WorkingDirectory=$Workspace
-    foreach($retainedArgument in @((Join-Path $PSScriptRoot 'RetainedAzuriteHost.cjs'),$retainedRuntime,(Join-Path $Workspace 'conformance-data'))){[void]$retainedStart.ArgumentList.Add($retainedArgument)}
+    if(!$DataDirectory){$DataDirectory=Join-Path $Workspace 'conformance-data'}
+    foreach($retainedArgument in @((Join-Path $PSScriptRoot 'RetainedAzuriteHost.cjs'),$retainedRuntime,$DataDirectory)){[void]$retainedStart.ArgumentList.Add($retainedArgument)}
     $retainedProcess=[Diagnostics.Process]::Start($retainedStart)
     [pscustomobject]@{Process=$retainedProcess;Output=$retainedProcess.StandardOutput.ReadToEndAsync();Error=$retainedProcess.StandardError.ReadToEndAsync();Workspace=$Workspace;Runtime=$retainedRuntime}
 }

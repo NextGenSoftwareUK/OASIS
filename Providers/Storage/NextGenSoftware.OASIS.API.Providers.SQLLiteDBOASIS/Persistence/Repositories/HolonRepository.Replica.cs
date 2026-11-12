@@ -25,6 +25,14 @@ public partial class HolonRepository
         =>request==null ? ConditionalError("COSMIC_REPLICA_WRITE_INVALID","A committed replica request is required.")
             :ExecuteAtomicHolonWrite(null,request,token);
 
+    public OASISResult<IEnumerable<IHolon>> ApplyBoundCommittedHolonReplica(CommittedHolonReplicaRequest request,
+        CosmicStorageIdentity expectedStorage, CancellationToken token)
+    {
+        ArgumentNullException.ThrowIfNull(expectedStorage);
+        return request == null ? ConditionalError("COSMIC_REPLICA_WRITE_INVALID", "A committed replica request is required.")
+            : ExecuteAtomicHolonWrite(null, request, token, expectedStorage: expectedStorage);
+    }
+
     public OASISResult<IEnumerable<IHolon>> InitializeCommittedHolonReplica(CommittedHolonReplicaRequest request,CancellationToken token)
         =>request==null ? ConditionalError("COSMIC_REPLICA_WRITE_INVALID","A committed source snapshot is required.")
             :ExecuteAtomicHolonWrite(null,request,token,initialReplicaBaseline:true);

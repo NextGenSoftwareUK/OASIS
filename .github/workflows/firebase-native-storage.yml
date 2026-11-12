@@ -1,0 +1,132 @@
+name: Firebase Realtime Database storage
+
+on:
+  push:
+    branches: [work/hyperdrive-provider-completion]
+    paths:
+      - '.github/workflows/firebase-native-storage.yml'
+      - 'Providers/Cloud/NextGenSoftware.OASIS.API.Providers.FirebaseOASIS/**'
+      - 'Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.FirebaseOASIS.IntegrationTests/FirebaseNativeStorageConformanceTests.cs'
+  workflow_dispatch:
+  workflow_call:
+    inputs:
+      compile_only:
+        type: boolean
+        default: false
+    secrets:
+      PRIVATE_SUBMODULE_PAT:
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  storage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: OASIS
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          path: OASIS
+          submodules: recursive
+          persist-credentials: false
+      - name: Read the recorded Libraries revision
+        id: dependencies
+        run: |
+          revision="$(sed -n 's/^LIBRARIES_COMMIT=//p' Docker/oasis-dependency-versions.env)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "libraries=$revision" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependencies.outputs.libraries }}
+          path: NextGenSoftware-Libraries
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Compile both conformance entry points and check Firebase write acknowledgements
+        shell: pwsh
+        run: |
+          ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-FirebaseCompile -Operation {
+            $projects = @(git ls-files '*FirebaseOASIS*Tests.csproj')
+            if ($LASTEXITCODE -ne 0 -or $projects.Count -ne 2) { throw 'Could not identify both Firebase test projects.' }
+            foreach ($project in $projects) {
+              dotnet build $project /p:IncludeCoreStorageConformance=true /m:2 /nr:false /p:UseSharedCompilation=false --verbosity quiet
+              if ($LASTEXITCODE -ne 0) { throw "Firebase test project failed to compile: $project" }
+            }
+            $unit = $projects | Where-Object { $_ -like '*UnitTests.csproj' }
+            dotnet test $unit --no-build --no-restore /p:IncludeCoreStorageConformance=true --filter 'FullyQualifiedName~FirebaseOwnershipTests' --logger 'console;verbosity=normal'
+            if ($LASTEXITCODE -ne 0) { throw 'Firebase write acknowledgement regression failed.' }
+          }
+      - uses: actions/setup-java@v4
+        if: ${{ !inputs.compile_only }}
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Run both storage modes through the RTDB REST adapter
+        if: ${{ !inputs.compile_only }}
+        shell: bash
+        run: |
+          fixture="$(mktemp -d "$RUNNER_TEMP/oasis-firebase.XXXXXXXX")"
+          reports=TestResults/ProviderConformanceCurrent/FirebaseOASIS
+          [[ ! -e "$reports" ]]
+          server=""
+          cleanup() {
+            status=$?
+            if [[ -n "$server" ]]; then
+              if kill -0 "$server" 2>/dev/null; then kill "$server"; fi
+              wait "$server" || true
+            fi
+            if (( status != 0 )); then
+              if [[ -f "$fixture/server.log" ]]; then tail -n 30 "$fixture/server.log"; fi
+              for mode in async sync; do
+                if [[ -f "$reports/$mode.json" ]]; then
+                  jq '{CurrentCase, FailureType, FailureContract, FixtureCleanupComplete, passed: (.Passed | length)}' "$reports/$mode.json"
+                fi
+              done
+            fi
+            [[ "$fixture" == "$RUNNER_TEMP"/oasis-firebase.* ]] && rm -rf -- "$fixture"
+            rm -rf -- "$reports"
+            if [[ -e "$fixture" || -e "$reports" ]]; then status=1; else echo "Removed the owned RTDB emulator, fixture and reports."; fi
+            exit "$status"
+          }
+          trap cleanup EXIT
+          curl -fsSL 'https://storage.googleapis.com/firebase-preview-drop/emulator/firebase-database-emulator-v4.11.2.jar' -o "$fixture/database.jar"
+          (cd "$fixture"; echo 'b70d99344caf17c98b6f910fa8f6edf32a7c016cb1035e8915f70d38901eb97f  database.jar' | sha256sum -c)
+          export FIREBASEOASIS_DATABASEURL=http://127.0.0.1:19091
+          export OASIS_FIREBASE_STORAGE_CONFORMANCE=1
+          ns=demo-oasis-provider-conformance
+          (
+            cd "$fixture"
+            exec java -Xms64m -Xmx256m -XX:ActiveProcessorCount=2 -jar database.jar \
+              --host 127.0.0.1 --port 19091 --single_project_mode Error
+          ) >"$fixture/server.log" 2>&1 &
+          server=$!
+          for attempt in {1..30}; do
+            kill -0 "$server"
+            if curl -fsS --max-time 3 -H 'Authorization: Bearer owner' "$FIREBASEOASIS_DATABASEURL/.json?ns=$ns" | jq -e '. == null' >/dev/null; then break; fi
+            [[ "$attempt" != 30 ]]
+            sleep 1
+          done
+          curl -fsS --max-time 5 -X PUT -H 'Authorization: Bearer owner' -H 'Content-Type: application/json' \
+            -d '{"rules":{".read":true,".write":true,"oasis_avatars":{".indexOn":["username","email"]},"oasis_avatar_details":{".indexOn":["username","email"]},"oasis_holons":{".indexOn":["parentHolonId"]}}}' \
+            "$FIREBASEOASIS_DATABASEURL/.settings/rules.json?ns=$ns" >/dev/null
+          curl -fsS --max-time 5 "$FIREBASEOASIS_DATABASEURL/.json?ns=$ns" | jq -e '. == null'
+          pwsh -NoProfile -Command '
+            ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-FirebaseStorage -Operation {
+              $project = "Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.FirebaseOASIS.IntegrationTests"
+              dotnet test $project --no-build --no-restore --filter "FullyQualifiedName~HolonGraphReadAgainstRealtimeDatabase|FullyQualifiedName~HardAvatarDeleteReportsPartialCommitAgainstRealtimeDatabase" --logger "console;verbosity=normal"
+              if ($LASTEXITCODE -ne 0) { throw "Firebase native graph verification failed." }
+              dotnet test $project --no-build --no-restore --filter "FullyQualifiedName~CoreStorageAgainstRealtimeDatabase" --logger "console;verbosity=normal"
+              if ($LASTEXITCODE -ne 0) { throw "Firebase native storage verification failed." }
+            }'
+          for mode in async sync; do
+            jq -e '.Succeeded and .FixtureCleanupComplete and (.Passed | length == 26)' "$reports/$mode.json" >/dev/null
+          done
+          curl -fsS --max-time 5 "$FIREBASEOASIS_DATABASEURL/.json?ns=$ns" | jq -e '. == null'

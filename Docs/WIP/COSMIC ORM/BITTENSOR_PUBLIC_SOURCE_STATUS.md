@@ -1,0 +1,202 @@
+# Bittensor public chain-header demo scope
+
+Updated 2 November 2026. Native readiness and C# HolonManager/LINQ CQL passed; CLI and local HTTP/Mongo pass. Hosted acceptance and sandbox publication now pass within the bounded header
+scope. Totals61integrated query types/57hosted functional proofs/5browser verified;
+52browser gates remain open.
+
+## Selected interface and scope
+
+[OnFinality's operator documentation](https://www.onfinality.io/en/networks/bittensor-finney)
+publishes anonymous HTTPS `https://bittensor-finney.api.onfinality.io/public`
+and5RPS limit. This probe used one request per second, no API key/account.
+[Official Bittensor docs](https://preview.bittensor.com/docs/concepts/network)
+identify Subtensor as a Substrate chain. The independent
+[polkadot-js registry](https://github.com/polkadot-js/common/blob/9281daa14c2c2a41708c3489de8770a064525577/packages/networks/src/defaults/genesis.ts)
+pins Finney genesis
+`0x2f0555cc76fc2840a25a6ea3b9637146806f1f44b090c175ffde2a7e5ab36c03`.
+Registry source was cached and checked after qualification against the same
+previously selected constant; this did not change/replay the native request.
+
+Existing BittensorOASIS targets a legacy Taostats path; its current
+[operator RPC docs](https://taostats.io/docs/api-reference/rpc-live/post-rpc-http)
+require an API key. Legacy code unchanged; this anonymous Subtensor scope is
+separate. No paid account, node, SDK, wallet, signing or AI request was created.
+
+## First native readiness evidence
+
+`Scripts/Sandbox/Probe-BittensorPublicReadiness.py` reused the existing offline
+Polkadot SCALE/Blake2b codec without changing/invoking its network probe.
+4tests in `test_bittensor_public_probe.py` passed: valid ancestry; wrong anchor,
+tampered content, parent/count mismatches; strict RPC id/errors; duplicate JSON
+and noncanonical height rejection. These are qualifier controls, not CQL tests.
+
+Exactly5HTTP200responses: genesis, reported finalized head, three parent-linked
+headers. All three hashes recomputed locally; heights consecutive. Total native
+response bytes2169. No retries, block bodies, storage scans or metadata downloads.
+The finality anchor is node-reported: no GRANDPA proof, independent consensus,
+AI inference, miner/subnet metrics, balances or native writes are certified.
+
+Exclusive consumed intent/ACK under
+`LocalState/COSMIC/BittensorPublicQualificationCurrent/`;5raw responses
+are hash-matched and retained in `native/`. Raw reports also at
+`TestResults/BittensorPublicSourceCurrent/` (6files/6237bytes at qualification).
+Do not delete intent or run this as a fresh qualification to recreate green.
+
+| Durable artifact | Bytes | SHA256 |
+|---|---:|---|
+| `qualification.intent.json` | 347 | `6397ebceac1c400e1b2e8964f5491b82d87697cf4380d73e7a8999f17a2d0f24` |
+| `qualification.json` | 4068 | `26bcc6e7d643597d8b3910ef516fe2b40d32eff150671cca6d550cd08c020c27` |
+| `registry-genesis.ts` | 7981 | `cecf733de00b6f8d681e912cd5a2190026a20943e7cece7086b24450c784ac74` |
+
+Per-response SHA256 values are retained in the qualification ACK. No raw evidence
+is committed to Docs. Environment/retention recorded in the existing ledger.
+
+## Read-only CQL adapter milestone
+
+`BittensorPublicHeaderMetadataSource` implements `BittensorBlockHash` metadata
+equality/IN with bounded paging over1â€“8configured keys. It checks configured
+Finney genesis, SCALE/Blake2b header hashes and RPC-reported canonical finalized
+height membership. Unknown keys fail before network, malformed/partial native
+reads fail the whole result, and Take(0) cannot hide a source failure.
+
+Guarded factory transport,256KiB/response,15s linked per-request deadline,
+cancellation and a shared one-request-per-second gate bound public RPC use.
+Stable IDs bind projection owner/Bittensor provider/genesis/native block hash.
+Public Name/Description and whitelisted header metadata include an explicit
+node-reported policy and `BittensorConsensusVerified=false`. Holon Save/Delete
+are rejected at the boundary without native requests or input mutation.
+
+23controlled adapter cases pass, including four independent SCALE width
+vectors, tampering/network/canonical-history/envelope/size errors, paging,
+unknown keys, cancellation before/during reads, endpoint validation and writes.
+1first native CQL test passes in24seconds: actual developer walkthrough
+`Examples/CosmicCqlDemo/BittensorPublicWalkthrough.cs`, linked into the provider
+test host, returns3then2via shared HolonManager/LINQ. This is not merely a
+qualifier or mocked transport. Source keys are exactly the original readiness
+three; one persistent projection namespace is retained. No readiness replay.
+
+Retained `LocalState/COSMIC/HostedBittensorPublicSourceCurrent/source.json`,
+exclusive `native-cql.intent.json` and `native-cql.ack.json` bind original source
+and first CQL test. ACK SHA256:
+`2b95078006005145625dc20c425aa04f9865d38f82e8c0b87f16e89d33d5bc11`.
+Raw TRX/logs: `TestResults/BittensorPublicSourceCurrent/adapter.trx` (23pass),
+`native-cql.trx` (1pass). Per-file hashes are retained in ACK; no raw evidence
+committed to docs. Reusable cache-only runner:
+`pwsh -NoProfile -File Scripts/Sandbox/Test-BittensorPublicMetadata.ps1`.
+Do not repeat its -Native mode: acceptance intent is consumed.
+
+## CLI / local HTTP integration milestone
+
+Actual `CosmicCqlDemo --bittensor-public <source.json>` returns3/2. Core1/API3
+read-admission tests and9pure publisher tests pass. First actual local HTTP
+cohort returns native3/2, Mongo-paired5/4, foreign-private0/public3. Two original
+SDK-owned version1private copies and9receipts verified; exact owned fixture
+cleaned and Mongo stopped. This is not replication/production-billing acceptance.
+
+Core source commit `d3f92df63ffea195ca83f057246387b03b9f3068` pushed/remote
+verified; parent gitlink and manifest advance together in this batch. Full API
+and actual demo project builds pass. CLI return-type compile mistake corrected
+before its first native run; original failed build log preserved. First HTTP
+discovery skipped before fixture creation due a wrong copied environment key;
+corrected before the first actual native cohort, skipped result retained.
+
+Protected hosted candidate prepared only:3values/four native+Mongo presets,
+DNA unchanged. Actual exported query inputs pass4shipping compiler/capability
+plans in1test. Initial full audit-review input shape was rejected; runner now
+exports the two exact public input fields without altering the full review.
+No native replay, service mutation, activation or deployment occurred.
+
+Durable `local-integration.ack.json` SHA256:
+`1b751fca989d31f6eb779d0c13e33b800c90bf36155b9c48a7c16b4253d12509`;
+accepted original TRX compressed under `HostedBittensorPublicSourceCurrent/evidence/`
+(5509bytes). CLI/config/local qualification ACKs retained beside source.json.
+Protected candidates `HostedSourceRolloutCurrent/bittensor-public-` before193894
+and candidate196982bytes. Raw test counts/hash paths remain outside docs.
+
+## Exact next step
+
+Parent `dee15ae9fb58006c85c51b87927ab71f075c40d5` is committed/pushed and
+remote-verified; dependency manifest/seven Dockerfiles/gitlinks pass. Next merge
+verified Core/parent work into Development and observe the exact deployment.
+Only after matching successful code, apply the frozen3value candidate once with
+per-key ACKs and full observed equality, then first hosted native/Mongo/reuse/
+privacy/replica cohort and independent audit. Publish the sandbox card and
+pinned guide/CLI links after that proof. Never replay accepted local/readiness
+cohorts or change source owner/keys for green.
+
+[Developer guide](../../Devs/BITTENSOR_PUBLIC_HEADER_CQL_GUIDE.md). Hosted/browser
+remain open.188completed generated folders/2,154,947,374logical bytes retained:
+automatic approval review rejected cleanup as blocked by policy; no retry or
+bypass. Exact paths/sizes are in the resource ledger. No David action needed.
+
+## Development publication and current verified wait
+
+Parent Development `e8d2d75df48a5caa6b6a849201c34494928b8462` and Core
+Development `d3f92df63ffea195ca83f057246387b03b9f3068` advanced by verified
+fast-forward pushes; remote hashes and dependency manifest/gitlinks checked.
+No force push, branch switch, production promotion or source/owner change.
+
+Exactly one matching code job `11aa820e-7883-41ab-ae3b-8f2d890c3ff6` observed
+QUEUED with explicit `Waiting for build slot` reason. This is an active job,
+not a terminal build failure. Keep observing that ID; do not submit another.
+Exclusive code.intent.json binds expected code/Core/source/candidate/prior jobs
+in `LocalState/COSMIC/HostedBittensorReleaseCurrent/`; protected pre-publication
+inventory and code.deployment.json retained. Raw compact status/reason under
+`TestResults/BittensorPublicSourceCurrent/`. No hosted settings applied yet.
+
+New independent offline auditor `Audit-HostedBittensorAcceptance.py` has2passing
+methods/12negative cases covering source/owner/height/hash/policy/consensus/
+excluded payload/replica/private visibility/operation/pending/resave errors.
+`Verify-HostedQuerySource.py` now accepts Bittensor; argument validation passes.
+Neither tool has started a hosted cohort. No green-provider gate was repeated.
+
+Website task `a5ae6ae9e46d9f5574a76e4196aab6b42e22330d` adds14spacedHTMLlines
+with explicit hosted-pending text and pinned guide/C#links. Main stays20129f5;
+card is unpublished until hosted acceptance. JS unchanged, browser stays open.
+
+Latest observation: the same code job11aa820e-7883-41ab-ae3b-8f2d890c3ff6
+advanced to BUILDING at exacte8d2d75df. No replacement build requested; settings
+and first hosted cohort remain unstarted until SUCCESS.
+
+Code11aa820eSUCCESS. Frozen source/candidate digests and full live baseline
+matched. Original3values applied once on exacte8d2d75df with shared mutation
+owner, skip-deploys/per-key ACKs/full candidate observation and unchanged DNA.
+Task branch restored afterward. settings.intent/settings.ack retained in
+HostedBittensorReleaseCurrent; original protected files unchanged.
+Exactly one activation submitted:549fdb68-2f97-4ae2-8cf8-7106efa3e71c, BUILDING
+at samee8d2d75df. Exclusive activation.intent and protected submission receipt
+plus activation.deployment retained. No hosted cohort/session/copies yet.
+
+## First hosted acceptance and publication completed
+
+Original activation549fdb68SUCCESS at exacte8d2d75df; first source discovery
+available/federationAvailable with4presets. Exactly two original temporary
+visitor sessions; original owner reused from discovery preflight. Native3/2,
+Mongo5/4, repeat0new2existing, foreign0private3public and exact SQLite/Neo4j
+2replicas each pass.2normal API version1saves/pending0; independent auditor
+passes. No continuation/resave/replacement owner or native-source write.
+
+Original proof at TestResults/HostedCqlIntegrationCurrent, with compressed
+copies6818bytes and manifest under HostedQueryAcceptance-BittensorOASIS/evidence:
+
+| Artifact | Bytes | SHA256 |
+|---|---:|---|
+| BittensorOASIS-native-http.json | 16890 | 92ee0bf8afd608d6cfff556915cad9ef60cbf1b98128d5433064c5e4c708f3d4 |
+| BittensorOASIS-client-http-flow.json | 43111 | 23e4618d5f20fdef6ba7c260d793654f2e7f1873459f88d818136df97501f907 |
+| BittensorOASIS-isolation-http.json | 6932 | ce320431a119ab10aeed8989bdf9f7ec6bfd5f4ca002b51513a732b876144bd7 |
+| cql-http-acceptance.acknowledged.json | retained durable | 3711a6057bb14de76e9be1b93c38e96334350d8f4fbb1fc1598a86858e22567d |
+
+Website main/taskbc313792dd345107904cfdf7ec2789ba62ccceee publishes the card,
+explicit node-reported/no AI/no full-payload limits and pinnede8d2d75guide/C#links.
+All3publicassets match exact git blobs: HTML196929bytes/SHA256
+dfe8e9bb4fddf2a4d9690ee8b806c647f8a7df26f335cd547470321bc6c9e2d3;
+preparationJS10241bytes/c1006abf6074616428f93e83e13774ba8a6198f35d8ed097d84323466a8b309a;
+playgroundJS21871bytes/7cb6210b9adda1e83630fc966926772f8338c43163c24d1abd88c626ad1ad649.
+DOM IDs unique; JS unchanged, prior108controls not re-hardened/repeated.
+Browser interaction remains unverified. Raw static observation at
+TestResults/BittensorPublicSourceCurrent/published-site-observation-1.json.
+
+The milestone is frozen; next work is red Aztec source discovery. Earlier
+"next step" sections above record historical stages, not outstanding deployment.
+No remaining Bittensor runtime work absent a reproducible bug. Broader ORM/
+AI/subnet/native-write/finality-proof and browser scopes remain unachieved.

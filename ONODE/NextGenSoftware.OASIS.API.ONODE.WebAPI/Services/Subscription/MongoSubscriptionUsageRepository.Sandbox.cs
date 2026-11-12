@@ -23,7 +23,7 @@ public sealed partial class MongoSubscriptionUsageRepository : ISandboxSubscript
             await EnsureOpeningBalanceAsync(session, ct);
             var existing = await Subscriptions.Find(session, record => record.UserId == avatarId).FirstOrDefaultAsync(ct);
             if (existing != null) {
-                if (IsSandboxFreeSubscription(existing) && existing.CreatedAt == createdUtc && existing.SandboxExpiresAtUtc == expiresUtc)
+                if (SandboxSubscriptionRules.IsIssuedFreeSubscription(existing) && existing.CreatedAt == createdUtc && existing.SandboxExpiresAtUtc == expiresUtc)
                     return true; // Same issuance is idempotent; it never extends a lifetime.
                 throw new SubscriptionUsageConflictException("Sandbox issuance cannot replace an existing subscription or change its lifetime.");
             }
@@ -41,11 +41,6 @@ public sealed partial class MongoSubscriptionUsageRepository : ISandboxSubscript
             return true;
         }, token);
     }
-
-    private static bool IsSandboxFreeSubscription(SubscriptionRecord record) =>
-        record != null && record.SandboxExpiresAtUtc.HasValue && record.CurrentPeriodEnd == record.SandboxExpiresAtUtc &&
-        record.PlanId == "free" && record.Status is "free" or "active" && !record.PayAsYouGoEnabled &&
-        record.StripeCustomerId == null && record.StripeSubscriptionId == null;
 
     public async Task<SandboxSubscriptionSweep> RetireSandboxSubscriptionsAsync(int maximumRecords, CancellationToken token)
     {
@@ -83,7 +78,7 @@ public sealed partial class MongoSubscriptionUsageRepository : ISandboxSubscript
             var retired = await TransactAsync(async (session, ct) => {
                 await EnsureOpeningBalanceAsync(session, ct);
                 var record = await Subscriptions.Find(session, value => value.UserId == candidate.UserId).FirstOrDefaultAsync(ct);
-                if (!IsSandboxFreeSubscription(record) || record.SandboxExpiresAtUtc > _time.GetUtcNow().UtcDateTime) return false;
+                if (!SandboxSubscriptionRules.IsIssuedFreeSubscription(record) || record.SandboxExpiresAtUtc > _time.GetUtcNow().UtcDateTime) return false;
                 // Authorize also writes this subscription document. Snapshot transactions serialize
                 // retirement against a concurrent reservation; unresolved work is never orphaned.
                 if (await _events.Find(session, entry => entry.UserId == record.UserId &&

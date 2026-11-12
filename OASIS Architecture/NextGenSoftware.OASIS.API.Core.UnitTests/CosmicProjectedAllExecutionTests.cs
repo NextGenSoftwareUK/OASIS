@@ -16,7 +16,7 @@ public partial class CosmicProjectedAllTests
         public CosmicProjectionCapabilities ProjectionCapabilities => Columns;
         public CosmicProjectionCompositionCapabilities CompositionCapabilities => Profile(Enabled);
         public bool Enabled = true, Loaded = true;
-        public int Calls, Count;
+        public int Calls, Count, CounterexampleRows;
         public long Counterexamples;
         public string? Failure;
         public Action? DuringRead;
@@ -28,7 +28,7 @@ public partial class CosmicProjectedAllTests
             Calls++; Seen = limits; DuringRead?.Invoke();
             if (Failure != null) return Task.FromResult(new OASISResult<CosmicProjectedAllPacket> { IsError = true, ErrorCode = Failure });
             var input = Enumerable.Range(1, Count).Select(index => new CosmicProjectionInputRow(
-                Guid.Parse($"00000000-0000-0000-0000-{index:D12}"), true, Guid.Empty, new object[] { index }, Array.Empty<object>())).ToArray();
+                Guid.Parse($"00000000-0000-0000-0000-{index:D12}"), true, Guid.Empty, new object[] { index<=CounterexampleRows ? 0 : index }, Array.Empty<object>())).ToArray();
             var proof = new CosmicProjectionCompositionPacket(input, Array.Empty<CosmicProjectionStageProof>(),
                 input.Select(row => new CosmicProjectionCompositionRow(row.Id, row.Values.ToArray())).ToArray(), Count, 0);
             return Task.FromResult(new OASISResult<CosmicProjectedAllPacket>(new(proof, Counterexamples)) { IsLoaded = Loaded });
@@ -57,12 +57,23 @@ public partial class CosmicProjectedAllTests
     [InlineData(150, 1, false)]
     public async Task NativeReductionIsNotLimitedByTheDefaultRowPage(int count, int counterexamples, bool expected)
     {
-        var adapter = new NativeAll(ProviderType.MongoDBOASIS) { Count = count, Counterexamples = counterexamples };
+        var adapter = new NativeAll(ProviderType.MongoDBOASIS) { Count = count, Counterexamples = counterexamples, CounterexampleRows = counterexamples };
         var result = await CosmicProjectedAllExecutor.ExecuteAsync(ExecutionPlan(200, adapter.QueryProviderType), new[] { adapter });
         Assert.False(result.IsError, result.Message);
         Assert.True(result.IsLoaded);
         Assert.Equal(expected, Assert.Single(result.Result.Providers).Value);
         Assert.Equal(1, adapter.Calls);
+    }
+
+    [Theory]
+    [InlineData(0,1)]
+    [InlineData(1,0)]
+    public async Task WithinRangeNativeCounterexamplesMustAgreeWithTheCompleteProof(int actual,int claimed)
+    {
+        var adapter=new NativeAll(ProviderType.SQLLiteDBOASIS){Count=1,Counterexamples=claimed,CounterexampleRows=actual};
+        var result=await CosmicProjectedAllExecutor.ExecuteAsync(ExecutionPlan(2,adapter.QueryProviderType),new[]{adapter});
+        Assert.Equal("CQL_PROVIDER_RESULT_INVALID",result.ErrorCode);
+        Assert.Null(result.Result);
     }
 
     [Fact]

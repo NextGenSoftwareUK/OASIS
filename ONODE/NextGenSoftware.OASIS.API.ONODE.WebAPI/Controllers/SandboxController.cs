@@ -89,10 +89,24 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
             OASISResult<IAvatar> authResult = await Program.AvatarManager.AuthenticateAsync(username, password, HttpContext.Connection.RemoteIpAddress?.ToString());
 
-            if (authResult.IsError || authResult.Result == null)
-                return BadRequest(new OASISResult<IAvatar> { IsError = true, Message = $"Could not sign in the sandbox avatar: {authResult.Message}" });
+            return CompleteSession(HttpContext, authResult);
+        }
 
-            return Ok(authResult);
+        // Publish neither bearer nor cookie until the same avatar has a complete
+        // authenticated session. A later renewal must retain this identity.
+        internal static ActionResult<OASISResult<IAvatar>> CompleteSession(
+            Microsoft.AspNetCore.Http.HttpContext context, OASISResult<IAvatar> authenticated)
+        {
+            if (authenticated == null || authenticated.IsError || authenticated.Result == null)
+                return new BadRequestObjectResult(new OASISResult<IAvatar> { IsError = true,
+                    Message = $"Could not sign in the sandbox avatar: {authenticated?.Message}" });
+            if (string.IsNullOrWhiteSpace(authenticated.Result.JwtToken) ||
+                string.IsNullOrWhiteSpace(authenticated.Result.RefreshToken))
+                return new ObjectResult(new OASISResult<IAvatar> { IsError = true,
+                    ErrorCode = "AUTH_SESSION_INCOMPLETE", Message = "The demo session has no complete authentication credentials." })
+                    { StatusCode = 503 };
+            Helpers.AvatarSessionCookie.Append(context, authenticated.Result.RefreshToken);
+            return new OkObjectResult(authenticated);
         }
 
         /// <summary>Lists providers this avatar has taken offline and when each comes back.</summary>

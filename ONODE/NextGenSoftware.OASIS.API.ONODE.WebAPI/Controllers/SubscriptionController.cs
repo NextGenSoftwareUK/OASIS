@@ -69,7 +69,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <summary>Reserve against the authenticated avatar and independently authenticated consuming service.</summary>
         [Microsoft.AspNetCore.Authorization.Authorize]
         [HttpPost("usage/authorize")]
-        public async Task<ActionResult> AuthorizeUsage([FromBody] UsageAuthorizationRequest request)
+        public async Task<ActionResult> AuthorizeUsage([FromBody] UsageAuthorizationRequest request, [FromServices] OASISSub.IAppAccountRepository appAccounts = null)
         {
             var userId = GetCurrentUserId();
             if (string.IsNullOrEmpty(userId)) return Unauthorized(new { IsError = true, Message = "User not authenticated." });
@@ -78,7 +78,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 if (request == null) return BadRequest(new { IsError = true, Code = "INVALID_USAGE_AUTHORIZATION" });
                 if (request.GrantId != null) return BadRequest(new { IsError = true, Code = "INVALID_USAGE_AUTHORIZATION", Message = "Delegated grants are only accepted on usage/authorize-delegated." });
                 OASISSub.SubscriptionServiceIdentity.RequireService(HttpContext, _configuration, request.ConsumingService);
-                var decision = await _subscriptionService.AuthorizeUsageAsync(userId, await GetCurrentKarmaAsync(userId), request, HttpContext.RequestAborted);
+                // Optional app credentials (forwarded by the consuming service): the app's plan applies if it beats the user's own.
+                var (app, appError) = await ResolveAppAsync(appAccounts);
+                if (appError != null) return appError;
+                var karma = await GetCurrentKarmaAsync(userId);
+                var decision = app == null
+                    ? await _subscriptionService.AuthorizeUsageAsync(userId, karma, request, HttpContext.RequestAborted)
+                    : await _subscriptionService.AuthorizeUsageAsync(userId, karma, request, app, HttpContext.RequestAborted);
                 return StatusCode(decision.StatusCode, decision);
             }
             catch (UnauthorizedAccessException ex) { return Unauthorized(new { IsError = true, Code = "SERVICE_IDENTITY_REQUIRED", ex.Message }); }
@@ -821,6 +827,18 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         // ── Helpers ──────────────────────────────────────────────────────────
+
+        /// <summary>No app headers: (null, null). Valid: the app. Present but invalid, partial, disabled or unsupported: a 401.</summary>
+        private async Task<(OASISSub.AppAccountRecord App, ActionResult Error)> ResolveAppAsync(OASISSub.IAppAccountRepository appAccounts)
+        {
+            var headers = Request.Headers;
+            if (!headers.ContainsKey(OASISSub.AppAccountRules.AppIdHeader) && !headers.ContainsKey(OASISSub.AppAccountRules.AppKeyHeader))
+                return (null, null);
+            var app = appAccounts == null ? null : await appAccounts.VerifyAppCredentialAsync(
+                headers[OASISSub.AppAccountRules.AppIdHeader].ToString(), headers[OASISSub.AppAccountRules.AppKeyHeader].ToString(), HttpContext.RequestAborted);
+            return app != null ? (app, null)
+                : (null, Unauthorized(new { IsError = true, Code = "APP_CREDENTIAL_INVALID", Message = "The app credential is invalid or the app account is disabled." }));
+        }
 
         private string GetCurrentUserId()
         {

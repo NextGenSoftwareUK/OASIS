@@ -90,6 +90,11 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                             }
                             break;
 
+                        case ProviderType.SQLServerDBOASIS:
+                            result.Result = new API.Providers.SQLServerDBOASIS.SQLServerDBOASIS(
+                                overrideConnectionString ?? OASISDNA?.OASIS?.StorageProviders?.SQLServerDBOASIS?.ConnectionString);
+                            break;
+
                         case ProviderType.SQLLiteDBOASIS:
                             {
                                 //TODO: need to fix or re-write SQLLiteDBOASIS Provider ASAP!
@@ -112,8 +117,10 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
                         case ProviderType.AWSS3OASIS:
                             {
-                                result.Result = AwsS3ProviderFactory.Create(
-                                    OASISDNA.OASIS.StorageProviders.AWSS3OASIS, overrideConnectionString);
+                                var settings = OASISDNA.OASIS.StorageProviders.AWSS3OASIS;
+                                result.Result = settings?.PublicObjectMetadataOnly == true
+                                    ? AwsS3ProviderFactory.CreatePublicMetadata(settings, overrideConnectionString)
+                                    : AwsS3ProviderFactory.Create(settings, overrideConnectionString);
                             }
                             break;
 
@@ -272,10 +279,8 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                             break;
                         case ProviderType.RootstockOASIS:
                             {
-                                RootstockOASIS RootstockOASIS = new(
-                                    OASISDNA.OASIS.StorageProviders.RootstockOASIS.ConnectionString,
-                                    OASISDNA.OASIS.StorageProviders.RootstockOASIS.ChainPrivateKey,
-                                    OASISDNA.OASIS.StorageProviders.RootstockOASIS.ContractAddress);
+                                var RootstockOASIS = EvmProviderFactory.CreateRootstock(
+                                    OASISDNA.OASIS.StorageProviders.RootstockOASIS,overrideConnectionString);
                                 RootstockOASIS.OnStorageProviderError += RootstockOASIS_StorageProviderError;
                                 result.Result = RootstockOASIS;
                             }
@@ -301,7 +306,9 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
                         case ProviderType.LocalFileOASIS:
                             {
-                                LocalFileOASIS localFileOASIS = new LocalFileOASIS(OASISDNA.OASIS.StorageProviders.LocalFileOASIS.FilePath);
+                                var settings = OASISDNA.OASIS.StorageProviders.LocalFileOASIS;
+                                LocalFileOASIS localFileOASIS = new LocalFileOASIS(
+                                    filePath: settings.FilePath, storageDirectory: settings.StorageDirectory);
                                 localFileOASIS.OnStorageProviderError += LocalFileOASIS_StorageProviderError;
                                 result.Result = localFileOASIS;
                             }
@@ -346,24 +353,33 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                         //    }
                         //    break;
 
-                        //case ProviderType.PolkadotOASIS:
-                        //    {
-                        //        PolkadotOASIS polkadotOASIS = new PolkadotOASIS(
-                        //            OASISDNA.OASIS.StorageProviders.PolkadotOASIS.RpcEndpoint,
-                        //            OASISDNA.OASIS.StorageProviders.PolkadotOASIS.Network);
-                        //        result.Result = polkadotOASIS;
-                        //    }
-                        //    break;
+                        case ProviderType.PolkadotOASIS:
+                        {
+                            var settings = OASISDNA.OASIS.StorageProviders.PolkadotOASIS
+                                ?? throw new InvalidOperationException("Polkadot storage settings are required.");
+                            if (!System.Text.RegularExpressions.Regex.IsMatch(settings.GenesisHash ?? "", "^0x[0-9a-fA-F]{64}$"))
+                                throw new InvalidOperationException("Polkadot storage requires the expected genesis hash.");
+                            var storage = new NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.PolkadotStorageConfiguration(
+                                settings.StorageContractAccountId, settings.StorageCodeHash, settings.StorageOwnerAccountId);
+                            var provider = new NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.PolkadotOASIS(
+                                overrideConnectionString ?? settings.RpcEndpoint, settings.GenesisHash,
+                                settings.ChainPrivateKey, bridgePoolAddress: null, storage: storage);
+                            provider.OnStorageProviderError += (_, error) => HandleProviderError("PolkadotOASIS", error);
+                            result.Result = provider;
+                        }
+                        break;
 
-                        //case ProviderType.BNBChainOASIS:
-                        //    {
-                        //        BNBChainOASIS bnbChainOASIS = new BNBChainOASIS(
-                        //            OASISDNA.OASIS.StorageProviders.BNBChainOASIS.RpcEndpoint,
-                        //            OASISDNA.OASIS.StorageProviders.BNBChainOASIS.NetworkId,
-                        //            OASISDNA.OASIS.StorageProviders.BNBChainOASIS.ChainId);
-                        //        result.Result = bnbChainOASIS;
-                        //    }
-                        //    break;
+                        case ProviderType.BNBChainOASIS:
+                        {
+                            var settings = OASISDNA.OASIS.StorageProviders.BNBChainOASIS
+                                ?? throw new InvalidOperationException("BNB Smart Chain storage settings are required.");
+                            var provider = new BNBChainOASIS(overrideConnectionString ?? settings.RpcEndpoint,
+                                settings.ChainPrivateKey, settings.ContractAddress,
+                                EvmProviderFactory.ParseChainId(settings.ChainId, "BNB Smart Chain"));
+                            provider.OnStorageProviderError += (_, error) => HandleProviderError("BNBChainOASIS", error);
+                            result.Result = provider;
+                        }
+                        break;
 
                         //case ProviderType.FantomOASIS:
                         //    {
@@ -419,27 +435,35 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
                         case ProviderType.TRONOASIS:
                         {
-                             var tronProvider = new TRONOASIS(
-                                 OASISDNA.OASIS.StorageProviders.TRONOASIS.RpcEndpoint ?? "https://api.trongrid.io",
-                                 OASISDNA.OASIS.StorageProviders.TRONOASIS.Network ?? "mainnet",
-                                 OASISDNA.OASIS.StorageProviders.TRONOASIS.ChainId ?? "728126428",
-                                 fullNodeGrpcEndpoint: OASISDNA.OASIS.StorageProviders.TRONOASIS.FullNodeGrpcEndpoint,
-                                 solidityNodeGrpcEndpoint: OASISDNA.OASIS.StorageProviders.TRONOASIS.SolidityNodeGrpcEndpoint,
-                                 genesisBlockId: OASISDNA.OASIS.StorageProviders.TRONOASIS.GenesisBlockId,
-                                 signingKeyEnvironmentVariable: OASISDNA.OASIS.StorageProviders.TRONOASIS.SigningKeyEnvironmentVariable,
-                                 apiKeyEnvironmentVariable: OASISDNA.OASIS.StorageProviders.TRONOASIS.ApiKeyEnvironmentVariable,
-                                 escrowContractAddress: OASISDNA.OASIS.StorageProviders.TRONOASIS.EscrowContractAddress,
-                                 contractAddress: OASISDNA.OASIS.StorageProviders.TRONOASIS.ContractAddress,
-                                 bridgePoolWalletAddress: OASISDNA.OASIS.StorageProviders.TRONOASIS.BridgePoolWalletAddress,
-                                 storageContractAddress: OASISDNA.OASIS.StorageProviders.TRONOASIS.StorageContractAddress,
-                                 storageOwnerAddress: OASISDNA.OASIS.StorageProviders.TRONOASIS.StorageOwnerAddress,
-                                 storageSigningKeyEnvironmentVariable: OASISDNA.OASIS.StorageProviders.TRONOASIS.StorageSigningKeyEnvironmentVariable,
-                                 storageEncryptionKeyEnvironmentVariable: OASISDNA.OASIS.StorageProviders.TRONOASIS.StorageEncryptionKeyEnvironmentVariable,
-                                 contractFeeLimitSun: OASISDNA.OASIS.StorageProviders.TRONOASIS.ContractFeeLimitSun,
-                                 idBoundEscrow: TronEscrowConfiguration.Create(OASISDNA.OASIS.StorageProviders.TRONOASIS.IdBoundTokenEscrow));
-                                tronProvider.OnStorageProviderError += TRONOASIS_StorageProviderError;
-                                result.Result = tronProvider;
-                                break;
+                            var settings = OASISDNA.OASIS.StorageProviders.TRONOASIS
+                                ?? throw new InvalidOperationException("TRON storage settings are required.");
+                            var rpcEndpoint = settings.RpcEndpoint ?? "https://api.trongrid.io";
+                            if (overrideConnectionString != null &&
+                                !string.Equals(overrideConnectionString, rpcEndpoint, StringComparison.Ordinal))
+                                throw new ArgumentException("TRON registration requires the configured RPC endpoint and its matching gRPC settings.",
+                                    nameof(overrideConnectionString));
+
+                            var tronProvider = new TRONOASIS(
+                                 rpcEndpoint,
+                                 settings.Network ?? "mainnet",
+                                 settings.ChainId ?? "728126428",
+                                 fullNodeGrpcEndpoint: settings.FullNodeGrpcEndpoint,
+                                 solidityNodeGrpcEndpoint: settings.SolidityNodeGrpcEndpoint,
+                                 genesisBlockId: settings.GenesisBlockId,
+                                 signingKeyEnvironmentVariable: settings.SigningKeyEnvironmentVariable,
+                                 apiKeyEnvironmentVariable: settings.ApiKeyEnvironmentVariable,
+                                 escrowContractAddress: settings.EscrowContractAddress,
+                                 contractAddress: settings.ContractAddress,
+                                 bridgePoolWalletAddress: settings.BridgePoolWalletAddress,
+                                 storageContractAddress: settings.StorageContractAddress,
+                                 storageOwnerAddress: settings.StorageOwnerAddress,
+                                 storageSigningKeyEnvironmentVariable: settings.StorageSigningKeyEnvironmentVariable,
+                                 storageEncryptionKeyEnvironmentVariable: settings.StorageEncryptionKeyEnvironmentVariable,
+                                 contractFeeLimitSun: settings.ContractFeeLimitSun,
+                                 idBoundEscrow: TronEscrowConfiguration.Create(settings.IdBoundTokenEscrow));
+                            tronProvider.OnStorageProviderError += TRONOASIS_StorageProviderError;
+                            result.Result = tronProvider;
+                            break;
                         }
 
                         case ProviderType.HashgraphOASIS:
@@ -488,10 +512,8 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
                         case ProviderType.AvalancheOASIS:
                         {
-                            var avalancheProvider = new AvalancheOASIS(
-                                OASISDNA.OASIS.StorageProviders.AvalancheOASIS.RpcEndpoint ?? "https://api.avax.network/ext/bc/C/rpc",
-                                OASISDNA.OASIS.StorageProviders.AvalancheOASIS.ChainPrivateKey ?? "",
-                                OASISDNA.OASIS.StorageProviders.AvalancheOASIS.ContractAddress ?? "");
+                            var avalancheProvider = EvmProviderFactory.CreateAvalanche(
+                                OASISDNA.OASIS.StorageProviders.AvalancheOASIS,overrideConnectionString);
                             avalancheProvider.OnStorageProviderError += AvalancheOASIS_StorageProviderError;
                             result.Result = avalancheProvider;
                         }

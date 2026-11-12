@@ -50,10 +50,10 @@ public partial class HolonRepository
             .Limit(1).AnyAsync(token).ConfigureAwait(false))throw new MongoReplicaConflictException(ids);
     }
 
-    private async Task PrepareCommittedReplicaEntitiesAsync(IClientSessionHandle session, List<NativeHolon> entries,
+    private async Task PrepareCommittedReplicaEntitiesAsync(IMongoDatabase database, IClientSessionHandle session, List<NativeHolon> entries,
         IReadOnlyDictionary<Guid, BsonDocument> observations, CommittedHolonReplicaPlan plan, CancellationToken cancellation)
     {
-        var heads = _dbContext.MongoDB.GetCollection<BsonDocument>("CosmicReplicaHead");
+        var heads = database.GetCollection<BsonDocument>("CosmicReplicaHead");
         var previous = new Dictionary<Guid, IHolon>(); var conflicts = new List<Guid>();
         foreach (var row in entries.OrderBy(row => row.HolonId))
         {
@@ -69,24 +69,10 @@ public partial class HolonRepository
             Holon stored; Guid revision; bool hardDeleted; string sourceId; string sourceKind;
             try
             {
-                string Text(string name) => head.TryGetValue(name, out var value) && value.IsString ? value.AsString
-                    : throw new InvalidDataException("Committed replica head field is missing or invalid: " + name);
-                var snapshot = Text("SnapshotJson");
-                if (Text("SnapshotDigest") != ReplicaHeadDigest(snapshot)) throw new InvalidDataException("Committed replica head checksum is invalid.");
-                sourceId = Text("SourceId"); sourceKind = Text("SourceAuthority");
-                if (string.IsNullOrWhiteSpace(sourceId) || sourceId != sourceId.Trim() || sourceId.Length > 256
-                    || !Enum.TryParse<ProviderType>(sourceKind, out var sourceAuthority))
-                    throw new InvalidDataException("Committed replica source identity is invalid.");
-                CosmicConcurrency.ValidateAuthority(sourceAuthority);
-                if (!head.TryGetValue("HardDeleted", out var deleted) || !deleted.IsBoolean)
-                    throw new InvalidDataException("Committed replica deletion state is invalid.");
-                hardDeleted = deleted.AsBoolean;
-                stored = StoredRecordJson.DeserializeStored<Holon>(snapshot);
-                if (stored == null || stored.Id != row.HolonId || stored.Version < 1 || stored.VersionId == Guid.Empty
-                    || !Guid.TryParse(Text("ProviderRevisionId"), out revision) || revision == Guid.Empty || revision == stored.VersionId
-                    || CosmicConcurrency.GetProviderRevisionId(stored, ProviderType.MongoDBOASIS) != revision
-                    || hardDeleted && !stored.IsDeleted)
-                    throw new InvalidDataException("Committed replica head snapshot/revision is inconsistent.");
+                var validated = ReadProtectedReplicaHead(head, row.HolonId);
+                stored = validated.Snapshot; revision = validated.Evidence.ProviderRevisionId;
+                hardDeleted = validated.Evidence.HardDeleted;
+                sourceId = validated.Evidence.SourceId; sourceKind = validated.Evidence.SourceAuthority.ToString();
             }
             catch (Exception cause) when (cause is InvalidDataException or ArgumentException or FormatException)
             { throw new MongoReplicaHeadException("Committed MongoDB replica head is invalid.", cause); }
@@ -112,10 +98,20 @@ public partial class HolonRepository
         }
     }
 
-    private async Task WriteCommittedReplicaHeadsAsync(IClientSessionHandle session,
+    private static HolonReplicaHeadRecord ReadProtectedReplicaHead(BsonDocument head, Guid id)
+    {
+        string Text(string name) => head.TryGetValue(name, out var value) && value.IsString ? value.AsString
+            : throw new InvalidDataException("Committed replica head field is missing or invalid: " + name);
+        if (!head.TryGetValue("HardDeleted", out var deleted) || !deleted.IsBoolean)
+            throw new InvalidDataException("Committed replica deletion state is invalid.");
+        return HolonReplicaHeadRecord.Read(id, ProviderType.MongoDBOASIS, Text("SourceId"), Text("SourceAuthority"),
+            Text("SnapshotJson"), Text("SnapshotDigest"), Text("ProviderRevisionId"), deleted.AsBoolean);
+    }
+
+    private async Task WriteCommittedReplicaHeadsAsync(IMongoDatabase database, IClientSessionHandle session,
         IReadOnlyDictionary<Guid, BsonDocument> bodies, CommittedHolonReplicaPlan plan, CancellationToken cancellation)
     {
-        var heads = _dbContext.MongoDB.GetCollection<BsonDocument>("CosmicReplicaHead");
+        var heads = database.GetCollection<BsonDocument>("CosmicReplicaHead");
         foreach (var pair in bodies.OrderBy(pair => pair.Key))
         {
             var record = DataHelper.ConvertMongoEntityToOASISHolon(BsonSerializer.Deserialize<NativeHolon>(pair.Value), false);

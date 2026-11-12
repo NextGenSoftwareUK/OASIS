@@ -1,5 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Security.Cryptography.X509Certificates;
+using System.Text.Json.Nodes;
+using Raven.Client.Documents.Operations;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -14,7 +18,9 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
+using NextGenSoftware.OASIS.API.Core.Serialization;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Providers.RavenDBOASIS
@@ -32,11 +38,12 @@ namespace NextGenSoftware.OASIS.API.Providers.RavenDBOASIS
     ///   serverUrls — one or more RavenDB server URLs (e.g. ["http://localhost:8080"])
     ///   database   — RavenDB database name (e.g. "oasis")
     /// </summary>
-    public class RavenDBOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
+    public partial class RavenDBOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
     {
         private readonly string[] _serverUrls;
         private readonly string _database;
         private IDocumentStore? _store;
+        private readonly X509Certificate2? _clientCertificate;
 
         private static readonly JsonSerializerOptions _jsonOpts = new JsonSerializerOptions
         {
@@ -46,7 +53,22 @@ namespace NextGenSoftware.OASIS.API.Providers.RavenDBOASIS
         };
 
         public RavenDBOASIS(string[] serverUrls, string database = "oasis")
+            : this(serverUrls, database, null)
         {
+        }
+
+        /// <summary>Use caller-owned client credentials with normal HTTPS server validation.</summary>
+        public RavenDBOASIS(string[] serverUrls, string database, X509Certificate2? clientCertificate)
+        {
+            if (clientCertificate != null)
+            {
+                if (!clientCertificate.HasPrivateKey)
+                    throw new ArgumentException("A client certificate requires its private key.", nameof(clientCertificate));
+                if (serverUrls == null || serverUrls.Length == 0 || serverUrls.Any(url =>
+                    !Uri.TryCreate(url, UriKind.Absolute, out var uri) || uri.Scheme != Uri.UriSchemeHttps))
+                    throw new ArgumentException("Certificate authentication requires explicit HTTPS server URLs.", nameof(serverUrls));
+            }
+            _clientCertificate = clientCertificate;
             _serverUrls = serverUrls;
             _database = database;
             ProviderName = "RavenDBOASIS";
@@ -55,12 +77,28 @@ namespace NextGenSoftware.OASIS.API.Providers.RavenDBOASIS
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
         }
 
+        private readonly object _storeGate = new object();
+
         private IDocumentStore GetStore()
         {
-            if (_store != null) return _store;
-            _store = new DocumentStore { Urls = _serverUrls, Database = _database };
-            _store.Initialize();
-            return _store;
+            lock (_storeGate)
+            {
+                if (_store != null) return _store;
+                var store = new DocumentStore { Urls = _serverUrls, Database = _database, Certificate = _clientCertificate };
+                // The caller owns credentials across SDK store disposal/recreation.
+                store.Conventions.DisposeCertificate = false;
+                try
+                {
+                    store.Initialize();
+                    _store = store;
+                    return store;
+                }
+                catch
+                {
+                    store.Dispose();
+                    throw;
+                }
+            }
         }
 
         private static string Ser(object o) => JsonSerializer.Serialize(o, _jsonOpts);
@@ -99,7 +137,14 @@ namespace NextGenSoftware.OASIS.API.Providers.RavenDBOASIS
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
         {
             var result = new OASISResult<bool>();
-            try { GetStore(); result.Result = true; result.IsError = false; result.Message = "RavenDBOASIS activated."; }
+            try
+            {
+                IsProviderActivated = false;
+                await GetStore().Maintenance.SendAsync(new GetStatisticsOperation());
+                IsProviderActivated = true;
+                result.Result = true;
+                result.Message = "RavenDBOASIS activated.";
+            }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"RavenDBOASIS: Error activating — {ex.Message}"); }
             return await Task.FromResult(result);
         }
@@ -108,7 +153,12 @@ namespace NextGenSoftware.OASIS.API.Providers.RavenDBOASIS
 
         public override async Task<OASISResult<bool>> DeActivateProviderAsync()
         {
-            _store?.Dispose(); _store = null;
+            lock (_storeGate)
+            {
+                IsProviderActivated = false;
+                _store?.Dispose();
+                _store = null;
+            }
             return await Task.FromResult(new OASISResult<bool> { Result = true, IsError = false, Message = "RavenDBOASIS deactivated." });
         }
 
@@ -130,7 +180,7 @@ namespace NextGenSoftware.OASIS.API.Providers.RavenDBOASIS
                 if (existing != null) { existing.Username = avatar.Username; existing.Email = avatar.Email; existing.IsDeleted = avatar.IsDeleted; existing.DataJson = Ser(avatar); }
                 else { await session.StoreAsync(new AvatarDoc { Id = docId, Username = avatar.Username, Email = avatar.Email, IsDeleted = avatar.IsDeleted, DataJson = Ser(avatar) }, docId); }
                 await session.SaveChangesAsync();
-                result.Result = avatar; result.IsError = false; result.Message = $"RavenDBOASIS: Avatar '{avatar.Username}' saved.";
+                result.Result = avatar; result.IsError = false; result.IsSaved = true; result.SavedCount = 1; result.Message = $"RavenDBOASIS: Avatar '{avatar.Username}' saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"RavenDBOASIS: Error saving avatar: {ex.Message}"); }
             return result;
@@ -147,9 +197,9 @@ namespace NextGenSoftware.OASIS.API.Providers.RavenDBOASIS
             {
                 using var session = GetStore().OpenAsyncSession();
                 var doc = await session.LoadAsync<AvatarDoc>($"OasisAvatars/{id}");
-                if (doc == null || doc.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"RavenDBOASIS: No avatar for ID '{id}'."); return result; }
+                if (doc == null || doc.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"RavenDBOASIS: No avatar for ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
                 var avatar = Des<Avatar>(doc.DataJson); if (avatar == null) { OASISErrorHandling.HandleError(ref result, "RavenDBOASIS: Deserialise failed."); return result; }
-                result.Result = avatar; result.IsError = false; result.Message = "RavenDBOASIS: Avatar loaded.";
+                result.Result = avatar; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "RavenDBOASIS: Avatar loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"RavenDBOASIS: {ex.Message}"); }
             return result;
@@ -163,10 +213,10 @@ namespace NextGenSoftware.OASIS.API.Providers.RavenDBOASIS
             try
             {
                 using var session = GetStore().OpenAsyncSession();
-                var doc = await session.Query<AvatarDoc>().FirstOrDefaultAsync(d => !d.IsDeleted && d.Username == username);
+                var doc = await session.Query<AvatarDoc>().Customize(query => query.WaitForNonStaleResults()).FirstOrDefaultAsync(d => !d.IsDeleted && d.Username == username);
                 if (doc == null) { OASISErrorHandling.HandleError(ref result, $"RavenDBOASIS: No avatar for username '{username}'."); return result; }
                 var avatar = Des<Avatar>(doc.DataJson); if (avatar == null) { OASISErrorHandling.HandleError(ref result, "RavenDBOASIS: Deserialise failed."); return result; }
-                result.Result = avatar; result.IsError = false; result.Message = "RavenDBOASIS: Avatar loaded.";
+                result.Result = avatar; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "RavenDBOASIS: Avatar loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"RavenDBOASIS: {ex.Message}"); }
             return result;
@@ -180,10 +230,10 @@ namespace NextGenSoftware.OASIS.API.Providers.RavenDBOASIS
             try
             {
                 using var session = GetStore().OpenAsyncSession();
-                var doc = await session.Query<AvatarDoc>().FirstOrDefaultAsync(d => !d.IsDeleted && d.Email == email);
+                var doc = await session.Query<AvatarDoc>().Customize(query => query.WaitForNonStaleResults()).FirstOrDefaultAsync(d => !d.IsDeleted && d.Email == email);
                 if (doc == null) { OASISErrorHandling.HandleError(ref result, $"RavenDBOASIS: No avatar for email '{email}'."); return result; }
                 var avatar = Des<Avatar>(doc.DataJson); if (avatar == null) { OASISErrorHandling.HandleError(ref result, "RavenDBOASIS: Deserialise failed."); return result; }
-                result.Result = avatar; result.IsError = false; result.Message = "RavenDBOASIS: Avatar loaded.";
+                result.Result = avatar; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "RavenDBOASIS: Avatar loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"RavenDBOASIS: {ex.Message}"); }
             return result;
@@ -202,9 +252,9 @@ namespace NextGenSoftware.OASIS.API.Providers.RavenDBOASIS
             try
             {
                 using var session = GetStore().OpenAsyncSession();
-                var docs = await session.Query<AvatarDoc>().Where(d => !d.IsDeleted).ToListAsync();
+                var docs = await session.Query<AvatarDoc>().Customize(query => query.WaitForNonStaleResults()).Where(d => !d.IsDeleted).ToListAsync();
                 var avatars = docs.Select(d => Des<Avatar>(d.DataJson)).Where(a => a != null).Cast<IAvatar>().ToList();
-                result.Result = avatars; result.IsError = false; result.Message = $"RavenDBOASIS: Loaded {avatars.Count} avatar(s).";
+                result.Result = avatars; result.IsError = false; result.IsLoaded = true; result.LoadedCount = avatars.Count; result.Message = $"RavenDBOASIS: Loaded {avatars.Count} avatar(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"RavenDBOASIS: {ex.Message}"); }
             return result;
@@ -223,9 +273,13 @@ namespace NextGenSoftware.OASIS.API.Providers.RavenDBOASIS
                 var doc = await session.LoadAsync<AvatarDoc>($"OasisAvatars/{id}");
                 if (doc == null) { OASISErrorHandling.HandleError(ref result, $"RavenDBOASIS: Avatar '{id}' not found."); return result; }
                 if (softDelete) { var av = Des<Avatar>(doc.DataJson); if (av != null) { av.DeletedDate = DateTime.UtcNow; doc.IsDeleted = true; doc.DataJson = Ser(av); } else doc.IsDeleted = true; }
-                else { session.Delete(doc); }
+                else
+                {
+                    session.Delete(doc);
+                    session.Delete($"OasisAvatarDetails/{id}");
+                }
                 await session.SaveChangesAsync();
-                result.Result = true; result.IsError = false; result.Message = $"RavenDBOASIS: Avatar '{id}' deleted.";
+                result.Result = true; result.IsError = false; result.IsDeleted = true; result.DeletedCount = 1; result.Message = $"RavenDBOASIS: Avatar '{id}' deleted.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"RavenDBOASIS: {ex.Message}"); }
             return result;
@@ -251,10 +305,10 @@ namespace NextGenSoftware.OASIS.API.Providers.RavenDBOASIS
                 using var session = GetStore().OpenAsyncSession();
                 var docId = $"OasisAvatarDetails/{d.Id}";
                 var existing = await session.LoadAsync<DetailDoc>(docId);
-                if (existing != null) { existing.Username = d.Username; existing.Email = d.Email; existing.DataJson = Ser(d); }
-                else { await session.StoreAsync(new DetailDoc { Id = docId, Username = d.Username, Email = d.Email, DataJson = Ser(d) }, docId); }
+                if (existing != null) { existing.Username = d.Username; existing.Email = d.Email; existing.DataJson = StoredRecordJson.Serialize(d); }
+                else { await session.StoreAsync(new DetailDoc { Id = docId, Username = d.Username, Email = d.Email, DataJson = StoredRecordJson.Serialize(d) }, docId); }
                 await session.SaveChangesAsync();
-                result.Result = d; result.IsError = false; result.Message = "RavenDBOASIS: AvatarDetail saved.";
+                result.Result = d; result.IsError = false; result.IsSaved = true; result.SavedCount = 1; result.Message = "RavenDBOASIS: AvatarDetail saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"RavenDBOASIS: {ex.Message}"); }
             return result;
@@ -269,9 +323,9 @@ namespace NextGenSoftware.OASIS.API.Providers.RavenDBOASIS
             {
                 using var session = GetStore().OpenAsyncSession();
                 var doc = await session.LoadAsync<DetailDoc>($"OasisAvatarDetails/{id}");
-                if (doc == null) { OASISErrorHandling.HandleError(ref result, $"RavenDBOASIS: No detail for ID '{id}'."); return result; }
-                var detail = Des<AvatarDetail>(doc.DataJson); if (detail == null) { OASISErrorHandling.HandleError(ref result, "RavenDBOASIS: Deserialise failed."); return result; }
-                result.Result = detail; result.IsError = false; result.Message = "RavenDBOASIS: AvatarDetail loaded.";
+                if (doc == null) { OASISErrorHandling.HandleError(ref result, $"RavenDBOASIS: No detail for ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
+                var detail = StoredRecordJson.DeserializeStored<AvatarDetail>(doc.DataJson); if (detail == null) { OASISErrorHandling.HandleError(ref result, "RavenDBOASIS: Deserialise failed."); return result; }
+                result.Result = detail; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "RavenDBOASIS: AvatarDetail loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"RavenDBOASIS: {ex.Message}"); }
             return result;
@@ -285,10 +339,10 @@ namespace NextGenSoftware.OASIS.API.Providers.RavenDBOASIS
             try
             {
                 using var session = GetStore().OpenAsyncSession();
-                var doc = await session.Query<DetailDoc>().FirstOrDefaultAsync(d => d.Username == u);
+                var doc = await session.Query<DetailDoc>().Customize(query => query.WaitForNonStaleResults()).FirstOrDefaultAsync(d => d.Username == u);
                 if (doc == null) { OASISErrorHandling.HandleError(ref result, $"RavenDBOASIS: No detail for username '{u}'."); return result; }
-                var detail = Des<AvatarDetail>(doc.DataJson); if (detail == null) { OASISErrorHandling.HandleError(ref result, "RavenDBOASIS: Deserialise failed."); return result; }
-                result.Result = detail; result.IsError = false; result.Message = "RavenDBOASIS: AvatarDetail loaded.";
+                var detail = StoredRecordJson.DeserializeStored<AvatarDetail>(doc.DataJson); if (detail == null) { OASISErrorHandling.HandleError(ref result, "RavenDBOASIS: Deserialise failed."); return result; }
+                result.Result = detail; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "RavenDBOASIS: AvatarDetail loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"RavenDBOASIS: {ex.Message}"); }
             return result;
@@ -302,10 +356,10 @@ namespace NextGenSoftware.OASIS.API.Providers.RavenDBOASIS
             try
             {
                 using var session = GetStore().OpenAsyncSession();
-                var doc = await session.Query<DetailDoc>().FirstOrDefaultAsync(d => d.Email == e);
+                var doc = await session.Query<DetailDoc>().Customize(query => query.WaitForNonStaleResults()).FirstOrDefaultAsync(d => d.Email == e);
                 if (doc == null) { OASISErrorHandling.HandleError(ref result, $"RavenDBOASIS: No detail for email '{e}'."); return result; }
-                var detail = Des<AvatarDetail>(doc.DataJson); if (detail == null) { OASISErrorHandling.HandleError(ref result, "RavenDBOASIS: Deserialise failed."); return result; }
-                result.Result = detail; result.IsError = false; result.Message = "RavenDBOASIS: AvatarDetail loaded.";
+                var detail = StoredRecordJson.DeserializeStored<AvatarDetail>(doc.DataJson); if (detail == null) { OASISErrorHandling.HandleError(ref result, "RavenDBOASIS: Deserialise failed."); return result; }
+                result.Result = detail; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "RavenDBOASIS: AvatarDetail loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"RavenDBOASIS: {ex.Message}"); }
             return result;
@@ -319,9 +373,9 @@ namespace NextGenSoftware.OASIS.API.Providers.RavenDBOASIS
             try
             {
                 using var session = GetStore().OpenAsyncSession();
-                var docs = await session.Query<DetailDoc>().ToListAsync();
-                var details = docs.Select(d => Des<AvatarDetail>(d.DataJson)).Where(d => d != null).Cast<IAvatarDetail>().ToList();
-                result.Result = details; result.IsError = false; result.Message = $"RavenDBOASIS: Loaded {details.Count} detail(s).";
+                var docs = await session.Query<DetailDoc>().Customize(query => query.WaitForNonStaleResults()).ToListAsync();
+                var details = docs.Select(d => StoredRecordJson.DeserializeStored<AvatarDetail>(d.DataJson)).Where(d => d != null).Cast<IAvatarDetail>().ToList();
+                result.Result = details; result.IsError = false; result.IsLoaded = true; result.LoadedCount = details.Count; result.Message = $"RavenDBOASIS: Loaded {details.Count} detail(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"RavenDBOASIS: {ex.Message}"); }
             return result;
@@ -331,22 +385,56 @@ namespace NextGenSoftware.OASIS.API.Providers.RavenDBOASIS
 
         // ─── Holon saving ─────────────────────────────────────────────────────────
 
-        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+        public override Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+            => SaveHolonGraphAsync(holon, saveChildren, recursive, maxChildDepth, 0);
+
+        private async Task<OASISResult<IHolon>> SaveHolonGraphAsync(IHolon holon, bool saveChildren, bool recursive, int maxChildDepth, int currentChildDepth)
         {
             var result = new OASISResult<IHolon>();
             try
             {
-                if (holon.Id == Guid.Empty) holon.Id = Guid.NewGuid();
-                if (holon.ProviderUniqueStorageKey == null) holon.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
-                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.RavenDBOASIS] = holon.Id.ToString();
+                var plan = HolonGraphWritePlan.CreateForSave(new[] { holon }, saveChildren, recursive, maxChildDepth, currentChildDepth);
+                var staged = new List<(PlannedHolonWrite Node, HolonDoc Document, string Id)>();
                 using var session = GetStore().OpenAsyncSession();
-                var docId = $"OasisHolons/{holon.Id}";
-                var existing = await session.LoadAsync<HolonDoc>(docId);
-                var rec = new HolonDoc { Id = docId, ParentHolonId = holon.ParentHolonId.ToString(), HolonType = (int)holon.HolonType, IsDeleted = holon.IsDeleted, DataJson = Ser(holon) };
-                if (existing != null) { existing.ParentHolonId = rec.ParentHolonId; existing.HolonType = rec.HolonType; existing.IsDeleted = rec.IsDeleted; existing.DataJson = rec.DataJson; }
-                else { await session.StoreAsync(rec, docId); }
+                session.Advanced.UseOptimisticConcurrency = true;
+                var documentIds = plan.Nodes.Select(node => $"OasisHolons/{node.Snapshot.Id:D}").ToArray();
+                var existing = await session.LoadAsync<HolonDoc>(documentIds);
+                for (var index = 0; index < plan.Nodes.Count; index++)
+                {
+                    var node = plan.Nodes[index];
+                    var snapshot = node.Snapshot;
+                    var keys = snapshot.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
+                    keys[Core.Enums.ProviderType.RavenDBOASIS] = snapshot.Id.ToString("D");
+                    var id = documentIds[index];
+                    var current = existing[id];
+                    var document = current ?? new HolonDoc { Id = id };
+                    document.ParentHolonId = snapshot.ParentHolonId.ToString();
+                    document.HolonType = (int)snapshot.HolonType;
+                    document.IsDeleted = snapshot.IsDeleted;
+                    document.DataJson = Ser(snapshot);
+                    if (current == null) await session.StoreAsync(document, id);
+                    staged.Add((node, document, id));
+                }
                 await session.SaveChangesAsync();
-                result.Result = holon; result.IsError = false; result.Message = $"RavenDBOASIS: Holon '{holon.Name}' saved.";
+
+                var changeVectors = staged.Select(row =>
+                {
+                    var vector = session.Advanced.GetChangeVectorFor(row.Document);
+                    if (row.Document.Id != row.Id || string.IsNullOrWhiteSpace(vector))
+                        throw new InvalidDataException("RavenDB did not acknowledge a staged document identity/change vector.");
+                    return vector;
+                }).ToArray();
+                foreach (var row in staged)
+                {
+                    var node = row.Node;
+                    node.Source.Id = node.Snapshot.Id;
+                    node.Source.ParentHolonId = node.Snapshot.ParentHolonId;
+                    node.Source.ProviderUniqueStorageKey = node.Snapshot.ProviderUniqueStorageKey;
+                }
+                result.Result = holon;
+                result.IsSaved = true;
+                result.SavedCount = staged.Count;
+                result.MetaData["RavenDB.ChangeVector"] = changeVectors[0];
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"RavenDBOASIS: {ex.Message}"); }
             return result;
@@ -358,8 +446,24 @@ namespace NextGenSoftware.OASIS.API.Providers.RavenDBOASIS
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
             var saved = new List<IHolon>(); var errors = new List<string>();
-            foreach (var h in holons) { var r = await SaveHolonAsync(h, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider); if (r.IsError) errors.Add(r.Message ?? ""); else if (r.Result != null) saved.Add(r.Result); }
-            result.Result = saved; result.IsError = errors.Count > 0; result.Message = errors.Count > 0 ? string.Join("; ", errors) : $"RavenDBOASIS: {saved.Count} holon(s) saved.";
+            var savedCount = 0;
+            foreach (var h in holons)
+            {
+                var write = await SaveHolonGraphAsync(h, saveChildren, recursive, maxChildDepth, curentChildDepth);
+                if (write.IsError)
+                {
+                    errors.Add(write.Message);
+                    if (!continueOnError) break;
+                }
+                else if (write.IsSaved && write.Result != null) { saved.Add(write.Result); savedCount += write.SavedCount; }
+            }
+            result.Result = saved;
+            result.IsError = errors.Count > 0;
+            result.ErrorCount = errors.Count;
+            result.IsSaved = saved.Count > 0;
+            result.SavedCount = savedCount;
+            result.Message = string.Join("; ", errors);
+
             return result;
         }
 
@@ -374,9 +478,9 @@ namespace NextGenSoftware.OASIS.API.Providers.RavenDBOASIS
             {
                 using var session = GetStore().OpenAsyncSession();
                 var doc = await session.LoadAsync<HolonDoc>($"OasisHolons/{id}");
-                if (doc == null || doc.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"RavenDBOASIS: No holon for ID '{id}'."); return result; }
+                if (doc == null || doc.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"RavenDBOASIS: No holon for ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
                 var holon = Des<Holon>(doc.DataJson); if (holon == null) { OASISErrorHandling.HandleError(ref result, "RavenDBOASIS: Deserialise failed."); return result; }
-                result.Result = holon; result.IsError = false; result.Message = "RavenDBOASIS: Holon loaded.";
+                result.Result = holon; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "RavenDBOASIS: Holon loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"RavenDBOASIS: {ex.Message}"); }
             return result;
@@ -395,11 +499,11 @@ namespace NextGenSoftware.OASIS.API.Providers.RavenDBOASIS
             try
             {
                 using var session = GetStore().OpenAsyncSession();
-                var query = session.Query<HolonDoc>().Where(d => !d.IsDeleted);
+                var query = session.Query<HolonDoc>().Customize(query => query.WaitForNonStaleResults()).Where(d => !d.IsDeleted);
                 if (type != HolonType.All) query = query.Where(d => d.HolonType == (int)type);
                 var docs = await query.ToListAsync();
                 var holons = docs.Select(d => Des<Holon>(d.DataJson)).Where(h => h != null).Cast<IHolon>().ToList();
-                result.Result = holons; result.IsError = false; result.Message = $"RavenDBOASIS: Loaded {holons.Count} holon(s).";
+                result.Result = holons; result.IsError = false; result.IsLoaded = true; result.LoadedCount = holons.Count; result.Message = $"RavenDBOASIS: Loaded {holons.Count} holon(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"RavenDBOASIS: {ex.Message}"); }
             return result;
@@ -414,11 +518,11 @@ namespace NextGenSoftware.OASIS.API.Providers.RavenDBOASIS
             {
                 using var session = GetStore().OpenAsyncSession();
                 var parentStr = id.ToString();
-                var query = session.Query<HolonDoc>().Where(d => !d.IsDeleted && d.ParentHolonId == parentStr);
+                var query = session.Query<HolonDoc>().Customize(query => query.WaitForNonStaleResults()).Where(d => !d.IsDeleted && d.ParentHolonId == parentStr);
                 if (type != HolonType.All) query = query.Where(d => d.HolonType == (int)type);
                 var docs = await query.ToListAsync();
                 var holons = docs.Select(d => Des<Holon>(d.DataJson)).Where(h => h != null).Cast<IHolon>().ToList();
-                result.Result = holons; result.IsError = false; result.Message = $"RavenDBOASIS: Loaded {holons.Count} holon(s) for parent '{id}'.";
+                result.Result = holons; result.IsError = false; result.IsLoaded = true; result.LoadedCount = holons.Count; result.Message = $"RavenDBOASIS: Loaded {holons.Count} holon(s) for parent '{id}'.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"RavenDBOASIS: {ex.Message}"); }
             return result;
@@ -441,10 +545,23 @@ namespace NextGenSoftware.OASIS.API.Providers.RavenDBOASIS
                 using var session = GetStore().OpenAsyncSession();
                 var doc = await session.LoadAsync<HolonDoc>($"OasisHolons/{id}");
                 if (doc == null) { OASISErrorHandling.HandleError(ref result, $"RavenDBOASIS: Holon '{id}' not found."); return result; }
-                var holon = Des<Holon>(doc.DataJson); if (holon != null) { holon.DeletedDate = DateTime.UtcNow; doc.IsDeleted = true; doc.DataJson = Ser(holon); }
-                else doc.IsDeleted = true;
+                session.Advanced.UseOptimisticConcurrency = true;
+                if (doc.IsDeleted)
+                {
+                    result.IsError = true;
+                    result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
+                    result.Message = $"RavenDBOASIS: No live holon to delete for ID '{id}'.";
+                    return result;
+                }
+                var holon = Des<Holon>(doc.DataJson)
+                    ?? throw new InvalidDataException("RavenDB holon data is missing.");
+                holon.DeletedDate = DateTime.UtcNow;
+                doc.IsDeleted = true;
+                doc.DataJson = Ser(holon);
                 await session.SaveChangesAsync();
-                result.Result = holon ?? new Holon { Id = id }; result.IsError = false; result.Message = $"RavenDBOASIS: Holon '{id}' soft-deleted.";
+                result.Result = holon;
+                result.IsDeleted = true;
+                result.DeletedCount = 1;
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"RavenDBOASIS: {ex.Message}"); }
             return result;
@@ -467,22 +584,22 @@ namespace NextGenSoftware.OASIS.API.Providers.RavenDBOASIS
         public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0) => SearchAsync(searchParams, loadChildren, recursive, maxChildDepth, continueOnError, version).Result;
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        { var all = await LoadAllHolonsAsync(type); var holons = all.Result?.Where(h => h.MetaData != null && h.MetaData.TryGetValue(metaKey, out var v) && v?.ToString() == metaValue).ToList() ?? new List<IHolon>(); return new OASISResult<IEnumerable<IHolon>> { Result = holons, IsError = false, Message = $"RavenDBOASIS: {holons.Count} holon(s)." }; }
+        { var all = await LoadAllHolonsAsync(type); if (all.IsError) return all; var holons = all.Result?.Where(h => h.MetaData != null && h.MetaData.TryGetValue(metaKey, out var v) && v?.ToString() == metaValue).ToList() ?? new List<IHolon>(); return new OASISResult<IEnumerable<IHolon>> { Result = holons, IsLoaded = true, LoadedCount = holons.Count, Message = $"RavenDBOASIS: {holons.Count} holon(s)." }; }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadHolonsByMetaDataAsync(metaKey, metaValue, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKvp, MetaKeyValuePairMatchMode mode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        { var all = await LoadAllHolonsAsync(type); bool IsMatch(IHolon h) { if (h.MetaData == null) return false; var checks = metaKvp.Select(kvp => h.MetaData.TryGetValue(kvp.Key, out var v) && v?.ToString() == kvp.Value); return mode == MetaKeyValuePairMatchMode.Any ? checks.Any(c => c) : checks.All(c => c); } var holons = all.Result?.Where(IsMatch).ToList() ?? new List<IHolon>(); return new OASISResult<IEnumerable<IHolon>> { Result = holons, IsError = false, Message = $"RavenDBOASIS: {holons.Count} holon(s)." }; }
+        { var all = await LoadAllHolonsAsync(type); if (all.IsError) return all; bool IsMatch(IHolon h) { if (h.MetaData == null) return false; var checks = metaKvp.Select(kvp => h.MetaData.TryGetValue(kvp.Key, out var v) && v?.ToString() == kvp.Value); return mode == MetaKeyValuePairMatchMode.Any ? checks.Any(c => c) : checks.All(c => c); } var holons = all.Result?.Where(IsMatch).ToList() ?? new List<IHolon>(); return new OASISResult<IEnumerable<IHolon>> { Result = holons, IsLoaded = true, LoadedCount = holons.Count, Message = $"RavenDBOASIS: {holons.Count} holon(s)." }; }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKvp, MetaKeyValuePairMatchMode mode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadHolonsByMetaDataAsync(metaKvp, mode, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
 
         // ─── Import / Export ──────────────────────────────────────────────────────
 
-        public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons) { var s = await SaveHolonsAsync(holons); return new OASISResult<bool> { Result = !s.IsError, IsError = s.IsError, Message = s.Message }; }
+        public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons) { var s = await SaveHolonsAsync(holons); return new OASISResult<bool> { Result = s.IsSaved && !s.IsError, IsError = s.IsError, IsSaved = s.IsSaved, SavedCount = s.SavedCount, Exception = s.Exception, Message = s.Message }; }
         public override OASISResult<bool> Import(IEnumerable<IHolon> holons) => ImportAsync(holons).Result;
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0) => await LoadAllHolonsAsync();
         public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0) => ExportAllAsync(version).Result;
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0) { var all = await LoadAllHolonsAsync(); var h = all.Result?.Where(x => x.CreatedByAvatarId == avatarId).ToList() ?? new List<IHolon>(); return new OASISResult<IEnumerable<IHolon>> { Result = h, IsError = false, Message = $"RavenDBOASIS: {h.Count} holon(s)." }; }
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0) { var all = await LoadAllHolonsAsync(); if (all.IsError) return all; var h = all.Result?.Where(x => x.CreatedByAvatarId == avatarId).ToList() ?? new List<IHolon>(); return new OASISResult<IEnumerable<IHolon>> { Result = h, IsLoaded = true, LoadedCount = h.Count, Message = $"RavenDBOASIS: {h.Count} holon(s)." }; }
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0) => ExportAllDataForAvatarByIdAsync(avatarId, version).Result;
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string u, int version = 0) { var a = await LoadAvatarByUsernameAsync(u); if (a.IsError || a.Result == null) { var r = new OASISResult<IEnumerable<IHolon>>(); OASISErrorHandling.HandleError(ref r, "Not found."); return r; } return await ExportAllDataForAvatarByIdAsync(a.Result.Id, version); }
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string u, int version = 0) => ExportAllDataForAvatarByUsernameAsync(u, version).Result;

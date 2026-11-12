@@ -1,0 +1,40 @@
+{
+  "release": "2026.4.1",
+  "image": "openvino/model_server@sha256:148e3fe802261ed0b5b634de3bbccdefe7176a218ec34a88e382b40704c34a1c",
+  "compressedImageBytes": 239270733,
+  "sourceCommit": "6c25e51e064b967b371decb305483d6fb76032b1",
+  "modelName": "cosmic_dummy",
+  "versions": [
+    "1",
+    "2",
+    "3"
+  ],
+  "files": {
+    "dummy.xml": {
+      "bytes": 3876,
+      "sha256": "40bd24e5b824f1bfa9c3c2c91fdf2962352f2ecce2d51283e0ec2b78aae08338"
+    },
+    "dummy.bin": {
+      "bytes": 4,
+      "sha256": "e00e5eb9444182f352323374ef4e08ebcb784725fdd4fd612d7730540b3e0c8c"
+    }
+  },
+  "input": {
+    "name": "b",
+    "datatype": "FP32",
+    "shape": [
+      1,
+      10
+    ]
+  },
+  "output": {
+    "name": "a",
+    "datatype": "FP32",
+    "shape": [
+      1,
+      10
+    ]
+  },
+  "addConstant": 1,
+  "serverVersion": "2026.4.1.cfc9ac721"
+}

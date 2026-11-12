@@ -174,8 +174,17 @@ namespace NextGenSoftware.OASIS.API.Providers.OptimismOASIS
             string hostUri = "https://mainnet.optimism.io",
             string chainPrivateKey = "",
             string contractAddress = "")
-            : base(hostUri, chainPrivateKey, contractAddress)
+            : this(hostUri, chainPrivateKey, contractAddress, new System.Numerics.BigInteger(10)) { }
+
+        public OptimismOASIS(
+            string hostUri,
+            string chainPrivateKey,
+            string contractAddress,
+            System.Numerics.BigInteger? chainId)
+            : base(hostUri, chainPrivateKey, contractAddress, chainId ?? new System.Numerics.BigInteger(10))
         {
+            if (chainId.HasValue && chainId.Value <= 0)
+                throw new ArgumentOutOfRangeException(nameof(chainId), "An explicit chain identity must be positive.");
             ProviderName = "OptimismOASIS";
             ProviderDescription = "Optimism Provider - Ethereum Layer 2 using Web3Core";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.OptimismOASIS);

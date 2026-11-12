@@ -1,5 +1,35 @@
 # CQL architecture
 
+## Proposed virtual import boundary
+
+See the [Virtual Holons import proposal](OASIS_Virtual_Holons_Import_Proposal.docx). Materialized import persists owned Holon payloads for
+HyperDrive replication. Virtual import would persist a collection mapping
+and resolve bounded native queries into ephemeral Holons with stable IDs.
+Keep mapping revisions in provenance and keep sensitive source keys private.
+Replicating the mapping carries the reference. Reading the payload still
+requires authorized access to the native provider.
+
+Hybrid mode would add explicitly selected cached or persisted records.
+An explicit snapshot save creates an owned Holon with source provenance.
+A source update requires its own authorization and write capability.
+
+Host-owned read-source activation recovery is explicit per CqlReadSourceProfile. Blockscout opts into at most2awaited health checks, one5s delay, shared30s aggregate deadline, and only typedHTTP500/502/503/504. Other profiles default to1attempt. No user query/write/signing operation, auth/rate-limit error, malformed data or timeout is retried. Failed attempts are logged with safe typed event4831 and recovery event4832; exhausted recovery remains unavailable.
+
+Blockscout uses shared query/read-only activation contracts with bounded configured address lookup and full validation before paging. Exact nullable balances/update heights and a public metadata allowlist avoid fabricated zeroes/private-field leakage. Explorer instance is part of source provenance/projected IDs. [Contract and limits](../../Devs/BLOCKSCOUT_PUBLIC_ADDRESS_CQL_GUIDE.md). Original read timeout preserved; successful read-only completion is functional proof, not reliability certification.
+
+Celestia implements the shared ICosmicQueryStorageProvider/ICosmicReadOnlyQueryActivation contracts as a separate pinned-header read profile. Its explicit height catalogue maps to node-reported block IDs; bounded full selection is validated before paging, with native writes refused. This is not trusted consensus or data-availability verification. [Configuration, capabilities and proof limits](../../Devs/CELESTIA_PUBLIC_HEADER_CQL_GUIDE.md). Hosted HTTP3/2+Mongo5/4/reuse/privacy/exact replicas2/2 verified; card/public bytes6a863c7 verified; browser interaction remains separate.
+
+Current scope (2 November 2026):55integrated query types/50scoped hosted functional HTTP proofs; browser5verified/45open. Matrix uses the shared HolonManager planner/deferred LINQ, explicit read-source activation and query-only tariff/admission boundaries. Alias equality/membership and complete-selection paging do not create a second query engine or grant native writes. [Profile contract](../../Devs/MATRIX_PUBLIC_ROOM_CQL_GUIDE.md), [current state](CURRENT_STATUS.md), [source/HTTP/replication/publication proof](MATRIX_PUBLIC_SOURCE_STATUS.md). Earlier dated checkpoints below remain historical.
+
+## Historical Azure checkpoint — 1 November 2026
+
+**40 providers have scoped hosted HTTP evidence; 5 have browser evidence and 35 browser gates remain open.** Azure Blob passes native3/2, Mongo-paired5/4, repeat0new/2existing, foreign-private0/public3 and exact SQLite/Neo4j replicas2/2. Two private saves acknowledged at version1; completion ACK prevents replay. Azure is anonymous public Blob properties, not hosted Cosmos DB or owned Azure writes.
+
+Latest hosted acceptance: parent bccef53d6dbe0ec75028220b34eb0d3f2b0f4db8 / Core d133cc20c29441158da0e590d7f3c85b351dd826. Code job e6a98438-bf39-444e-89eb-5367322525bc and single settings job8e382a80-86ec-4d1d-8709-ca459f9e9781 succeeded. Exactly3settings applied once with per-key ACKs and complete candidate equality; canonical DNA/unrelated settings preserved. Original Azure cohort completion ACK retained; never replay it. Website969462188cd122f3dd0a2523b782e6f3ea2deefa publishes the Azure card with guide781bed195/C#bccef53d6 links. Public HTML158677bytes/SHA256f0ff7eccd617edcb3a754ce82a8b09184ce3a666ccf57aa84328ba07025c2106 and both script bytes match exact git blobs;92client tests pass. Browser interaction and real-expiry gates remain separate.
+
+There are **45 currently integrated query types**: 3 canonical adapters, 38 bounded public/source profiles and 4 local PostgreSQL/Azure/Oracle/AWS implementations. PostgreSQL content and AWS DynamoDB Local identity queries pass native and local Mongo/HTTP checks; hosted PostgreSQL/owned AWS remain open. Azure Blob public properties pass SDK, manager/LINQ, local and hosted HTTP/Mongo checks. Hosted40/tariffs40/browser5/open35. Preserved broad-branch prototypes are not silently counted as current hosted coverage. Full ORM/EF parity/HyperDrive certification remains incomplete.
+
+
 Current implementation state: [CURRENT_STATUS](CURRENT_STATUS.md); feature acceptance: [parity checklist](CQL_PARITY_CHECKLIST.md).
 
 1. **Capture:** bounded immutable query/selected-stage intent and closed literals; no user callback execution.
@@ -7,6 +37,54 @@ Current implementation state: [CURRENT_STATUS](CURRENT_STATUS.md); feature accep
 3. **Own execution:** V2 HolonManager and physical-attempt owner; preflight all targets and re-admit actual contracts before dispatch.
 4. **Native adapters:** Mongo aggregation/snapshot owner, SQLite serializable read owner, Neo4j captured scalar pipeline/read owner. Do not invent stronger provider consistency.
 5. **Validate/return:** acknowledged complete detached evidence, exact values and shared remaining work; materialize only where the requested result contract permits it.
+
+## Explicit read representations
+
+CqlReadSourceProfile owns an explicitly configured query-only adapter and its
+read activation/lifetime. CqlHostedSourceRegistry resolves that representation
+for CQL without registering it as the canonical wallet/default write provider.
+The query manager remains unbound; named adapters and actual capabilities are
+captured and re-admitted by the shared planner/executor. No failed native query
+silently substitutes a Mongo copy or another endpoint.
+
+Discovery combines explicit host permission, query tariff, activation and native
+capability planning. A supported provider enum alone grants nothing. Missing Mongo
+can disable a paired example while retaining the source's native leaf examples.
+Examples own fixed Rows/Federation operations and named scope, not executable URLs.
+
+StorageQueryTariff derives capture bounds from its single supported unsigned-read
+set. PreparedStorageExecution still needs independent server permission and a
+captured price; its query-only set cannot authorize storage writes. The current
+factory rejects overlap with native signing bindings. Simultaneous public-read
+and canonical signed-write representations for one provider need a future
+operation/representation-aware admission contract; removing the fence is not a fix.
+
+Public EVM adapters share EvmPublicAccountMetadataSource in Web3Core. Fixed trusted
+descriptors bind provider, chain ID, genesis hash, metadata names and allowed RPC
+path. Ethereum/Polygon remain root-path-only; Arbitrum uses the official /rpc path.
+Every selected balance is read against one RPC-reported finalized canonical hash.
+The descriptor does not come from query JSON; wallet/signer fields are forbidden.
+This is native provenance, not a light-client settlement proof. Google/S3 use
+anonymous metadata-only SDK operations rather than owned encrypted record storage.
+
+All public views retain NativeRecordHolonMapper identities: stable mapping owner,
+provider, source namespace and native key. Visitor preparation instead requests
+Core-derived IDs in the actor's cosmic-cql-demo namespace, journals a create-only
+Mongo save before submission and retains uncertain outcomes. These snapshots can
+replicate through normal V2 owned writes; native public views are not replication
+targets. PreserveCopies returns physical provenance, not a cross-provider snapshot.
+
+Only explicitly declared metadata keys remain queryable when snapshot encryption
+is active. AdditionalQueryableKeys is trusted runtime/deployment policy, separate
+from globally reserved system keys. Native errors, late malformed values and empty
+pages still require complete protected-source validation before publication.
+
+Deployment configuration must match the source/application/Core revision. Joint
+public-profile candidates compose their permissions/examples once; independent
+candidates from the same old snapshot are not sequential updates to apply. Exact
+pins, release scope, host acceptance and remaining gates belong in CURRENT_STATUS.
+
+## Native query and selected-stage owners
 
 For projected All, native counterexample reduction follows every selected stage. Complete source/stage evidence validates before the Boolean is published; final row evidence and the terminal scan consume their budgets.
 Source relationship composition has separate admission from entity All predicates. All three native source compilers now support the separate source-composition capability. Complete protected scopes are validated before business truth and paging; source predicates stay native.
@@ -240,5 +318,88 @@ before selected participation is accepted. It retains ProviderDefault consistenc
 limits and does not advertise snapshot isolation. No owner hydrates application
 source entities as an intermediate query engine.
 
-Combined graph sources, reselection and element/cardinality/numeric terminals
+Combined graph sources and All/element/numeric terminals
 following this selection remain unintegrated. Q01f stays red.
+
+Bitcoin native milestone (1 November): bounded public-header equality/key-set source passes20 controlled checks and real shared-manager C#/CLI3/2. [Guide](../../Devs/BITCOIN_PUBLIC_HEADER_CQL_GUIDE.md), [proof/next HTTP gates](BITCOIN_PUBLIC_SOURCE_STATUS.md). No hosted admission, full Bitcoin consensus or canonical on-chain write claim; live count remains26.
+
+Bitcoin API milestone1November: explicit lazy read profile, independent tariff, actual four-preset planner and local HTTP3/2+Mongo5/4/isolation pass. Protected candidate prepared only; hosted/browser open. [Proof and exact rollout next step](BITCOIN_PUBLIC_SOURCE_STATUS.md). No signed-chain writes or hosted certification inferred.
+
+Bitcoin hosted completion1November: exact f71e482c SUCCESS at19ebbfe2c/Core7317ba1. Normal visitors pass native3/2, paired5/4, repeat0new, foreign-private0 and SQLite/Neo4j replicas2/2. Totals27HTTP/5browser/22browseropen; no Bitcoin source writes. Earlier Bitcoin pending notes superseded. [Proof/hashes](HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md#additional-bitcoin-acceptance).
+
+XRPL native milestone1November: bounded hash-verified header CQL passes21controls,1real C# walkthrough and actualCLI3/2. [Guide](../../Devs/XRPL_PUBLIC_HEADER_CQL_GUIDE.md), [proof/next HTTP gates](XRPL_PUBLIC_SOURCE_STATUS.md). Counts30implemented/29deployed tariff/27hosted HTTP; no XRPL hosting or signed-write claim.
+
+XRPL API milestone1November: explicit read-only profile/admission, four exact shipping-planned presets and local HTTP3/2+Mongo5/4/private0 pass. Protected candidate prepared only; hosting/browser remain open, live27unchanged. [Proof and rollout next](XRPL_PUBLIC_SOURCE_STATUS.md).
+
+XRPL hosted completion1November: free Ripple endpoint correction74bdf044 SUCCESS/c6e7f14ba/Coree032d0a, native3/2, paired5/4, repeat0new, private0 and replicas2/2. Prior402/expired-empty cohort preserved; explicit post-fix cohort has original ACKs. Counts28HTTP/5browser/23browseropen; no source writes. [Proof/hashes](HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md#additional-xrpl-acceptance).
+
+Stellar complete header decoder1November:20cases pass, including real protocol29 headers, all5specified StellarValue unions and exact signed/unsigned64bit fields. Next CQL adapter must bind API metadata to decoded identities before publication. [Proof](STELLAR_PUBLIC_SOURCE_STATUS.md#complete-header-decoder-milestone). No Stellar CQL/hosted certification yet.
+
+Stellar native CQL1November: complete XDR-bound sequence-key queries pass21source+1real C# controls and actualCLI3/2. [Guide](../../Devs/STELLAR_PUBLIC_HEADER_CQL_GUIDE.md), [proof/HTTP next](STELLAR_PUBLIC_SOURCE_STATUS.md#native-cql--developer-demo-complete). Counts31implemented/30deployed tariff/28hosted HTTP; no Stellar hosting grant.
+
+Stellar API milestone1November: independent read-only admission, exact four-preset shipping planner and local HTTP3/2+Mongo5/4/private0 pass; protected3setting candidate prepared only. Hosting/browser remain open; live28unchanged. [Proof/next rollout](STELLAR_PUBLIC_SOURCE_STATUS.md#api--local-http-complete).
+
+Stellar hosted completion (1 November): application637a6d49f/Core2dd3c37, exact settings deployment3eda0ea7 SUCCESS. Native3/2, private Mongo2, federation5/4, repeat0new/2existing, foreign-private0/public3, replicas2/2 pass. Counts29hosted HTTP,5browser,24browser-open;31deployed query-tariff types. Read-only hash-pinned public headers, no Stellar writes or consensus/signature verification. [Evidence](HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md#additional-stellar-acceptance).
+
+Algorand native CQL milestone (1 November):21controlled +1real HolonManager3/2 pass, actual commented CLI3/2 passes. Explicit current-account catalogue, SHA512/256 address checksums, exact UInt64 strings and per-row rounds; no historical/shared snapshot or source writes.32implemented query types/31deployed tariff/29hosted HTTP. API/hosting remain open. [Guide](../../Devs/ALGORAND_PUBLIC_ACCOUNT_CQL_GUIDE.md), [proof/next gates](ALGORAND_PUBLIC_SOURCE_STATUS.md).
+
+Algorand API/local HTTP milestone (1 November):3API/prepared+1Core+1native HTTP tests pass;3publisher+1client controls pass. Native3/2, pairedMongo5/4, foreign-private0 verified locally. Original marker-verified fixture removed and ACKs retained. Protected3setting candidate prepared only; hosted/browser pending. [Proof](ALGORAND_PUBLIC_SOURCE_STATUS.md#api-and-local-http-complete).
+
+Aptos native milestone1November:25controlled+1real HolonManager3/2 pass/no skips, actual commentedCLI3/2 passes. Explicit Mainnet account catalogue and one requested ledger version per source query; exact sequence strings, no state/consensus proof or cross-provider snapshot.33implemented query types;29hosted HTTP unchanged. API/hosting remain open. [Guide](../../Devs/APTOS_PUBLIC_ACCOUNT_CQL_GUIDE.md), [proof](APTOS_PUBLIC_SOURCE_STATUS.md#native-cql-milestone).
+
+Aptos API/local HTTP milestone1November:2API+1Core+1native HTTP pass/no skips,3pure publisher+1client controls pass. Native3/2, Mongo federation5/4 and foreign-private0 locally verified; marker-owned fixture removed/ACKs retained. Coree845c62/task-only. Protected candidate/export planner and hosting wait for current Algorand rollout. [Proof](APTOS_PUBLIC_SOURCE_STATUS.md#api-and-local-http-milestone).
+
+Algorand hosted completion1November:7a9ca308e/Corec17db5f, exact settingsf3ee7f37 SUCCESS. Native3/2, paired5/4, repeat0new/2existing, foreign-private0/public3, replicas2/2 pass. Current-account/per-response-round semantics, exact quantities; no source writes/historical/shared snapshot. Counts30hosted HTTP/5browser/25open,32deployed query-tariff types. [Proof/hashes](HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md#additional-algorand-acceptance).
+
+Hedera/Hashgraph native milestone1November:21controlled+1real shared HolonManager3/2 tests pass/no skips; actual commentedCLI3/2 passes. LatestIndexed account catalogue, exact tinybars/native timestamps and strict official Mainnet endpoint; no SDK payment, source writes, freshness/shared snapshot or consensus proof.34implemented query types/30hosted HTTP; API/hosting remain open. [Guide](../../Devs/HEDERA_PUBLIC_ACCOUNT_CQL_GUIDE.md), [proof](HEDERA_PUBLIC_SOURCE_STATUS.md#native-cql-milestone).
+
+Hedera API/local HTTP milestone1November:2API+1Core+1native HTTP+1actual4preset shipping planner pass/no skips;3publisher+1client controls pass. Native3/2, Mongo federation5/4 and private0 locally verified; owned fixture removed/ACKs retained. Protected3setting candidate prepared only, Core89b5ffa/task-only. Hosted/cloud query/browser gates remain open. [Proof](HEDERA_PUBLIC_SOURCE_STATUS.md#api-and-local-http-complete).
+
+Aptos hosted completion1November:1cfb893c8/Coree845c62, exact settings1c100994 SUCCESS. Native3/2, paired5/4, repeat0new/2existing, foreign-private0/public3, replicas2/2 pass. Per-native-query ledger version and exact strings; no cross-provider historical snapshot, state/consensus proof or source writes. Counts31hosted HTTP/5browser/26open;33deployed query-tariff types. [Proof/hashes](HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md#additional-aptos-acceptance).
+
+Radix native resource CQL: [commented C# guide](../../Devs/RADIX_PUBLIC_RESOURCE_CQL_GUIDE.md). 50/50 tests and actual CLI3/2 verified; API/localHTTP/hosted scopes pass; browser renewal remains open. Exact supply strings and one Gateway ledger state per query.
+
+
+Radix hosted milestone: original cohort completed at74aaa9b4d/Core8b79301 after settlement correction; no duplicate saves. [Scope, failure history and hashes](RADIX_PUBLIC_SOURCE_STATUS.md#hosted-acceptance-complete). Browser renewal/interaction remain separate. Earlier deployed-tariff headlines incorrectly included local Azure/Oracle: actual live catalogue35, implemented types37.
+
+Starknet bounded header profile: [setup/commented C# guide](../../Devs/STARKNET_PUBLIC_HEADER_CQL_GUIDE.md), [native/API/local HTTP proof and pending hosted gates](STARKNET_PUBLIC_SOURCE_STATUS.md). Explicit enrolled block-hash equality/membership, exact field/integer strings and RPC-reported L1 acceptance. Local paired3+2/2+2results and visitor privacy verified; hosted/browser publication separate.
+
+AzureStorageOASIS also has an explicitly configured anonymous public Blob-properties representation: HEAD-only SDK reads, bounded AzureBlobKey equality/IN, exact string byte lengths, no canonical storage registration or default-write change. See [profile and limits](AZURE_PUBLIC_BLOB_STATUS.md).
+
+Fantom Opera adds an immutable latest-canonical-at-read EVM descriptor policy: hash-pinned EIP-1898 balances plus a final height/hash fence. The policy is an init property preserving the existing descriptor constructor, and is not a request-controlled fallback. Existing finalized profiles keep their semantics. Native and hosted HTTP/Mongo/privacy/replica proof now pass; browser interaction is separate. See [Fantom scope](FANTOM_PUBLIC_SOURCE_STATUS.md).
+
+
+## Filecoin native identity in the shared EVM reader
+
+Filecoin selects an immutable native genesis-CID identity policy before any request. It verifies mainnet chain314 and the exact singleton genesis tipset CID/height0 via Filecoin.ChainGetGenesis, then uses the existing finalized/hash-bound balance path. This is a specified representation, not an after-failure alternate genesis method. Existing provider descriptors retain Ethereum block0 hash checks and the original constructor signature. Configuration cannot select the policy or pin. Controlled/native manager and actual CLI3/2 pass; Local and hosted WEB4/Mongo/reuse/privacy/replicas pass; browser interaction remains separate. Generic private demo records retain identity/name/description, not full native metadata. FilecoinBalanceWei holds FEVM attoFIL decimal strings; no ETH unit or cross-provider currency equivalence. [Source scope](FILECOIN_PUBLIC_SOURCE_STATUS.md).
+
+
+## Native EOSIO/Vaulta account query profile
+
+EosioPublicAccountMetadataSource implements the shared capability-aware query and read-only activation contracts in the existing EOSIO project, separate from legacy signed storage. The API lazily registers CQL_EOSIO_PUBLIC_SOURCE_JSON; independent read permission/free tariff is required. Native get_info checks mainnet identity, then get_account reads only explicit configured names. Key equality/membership is bounded to8names/13characters, errors publish no partial page and64-bit quantities remain decimal strings. Account responses have independent head markers: no common finalized snapshot is implied. Hosted native3/2, paired Mongo5/4, reuse/privacy and exact SQLite/Neo4j replica gates pass. Browser Mongo copies currently retain identity/name/description/provenance rather than all native fields. See [scope/evidence](EOSIO_PUBLIC_SOURCE_STATUS.md) and [developer guide](../../Devs/EOSIO_PUBLIC_ACCOUNT_CQL_GUIDE.md).
+
+
+## ChainLink public feed query profile
+
+ChainLinkPublicFeedMetadataSource is a separate anonymous read-only profile in the existing provider project. Shared CQL plans bound exact configured proxy equality/membership, then chain/genesis checks and an RPC-reported finalized block bind all description/decimals/latestRoundData calls by EIP1898 hash. ABI validation preserves exact signed int256 answers/uint80 rounds/uint256 times as strings and publishes no partial page. Explicit CQL_CHAINLINK_PUBLIC_SOURCE_JSON, independent read permission/free tariff and4presets keep signed storage separate. Hosted native3/2/Mongo5/4/reuse/privacy/exact SQLite+Neo4j replicas pass; full browser native-payload mapping and interaction remain separate gaps. No current-price or independent consensus guarantee. [Scope/evidence](CHAINLINK_PUBLIC_SOURCE_STATUS.md).
+
+## Nostr signed public event source - 2 November 2026
+
+Nostr read-only CQL source passes32focused CQL/transport controls plus36signature/schema tests and actual manager/LINQ3/2. Bounded configured immutable event-ID equality/membership only, complete matching EOSE and verified NIP01hash/BIP340signature before paging. Metadata retains exact signed event fields; no native write/search/identity/freshness/completeness claim. API/Mongo/hosted gates pending. Current breadth51integrated/46hosted; [guide](../../Devs/NOSTR_PUBLIC_EVENT_CQL_GUIDE.md), [evidence](NOSTR_PUBLIC_SOURCE_STATUS.md).
+
+Nostr API/local milestone2November: Core1/API2/localHTTP1/publisher9/prepared1/client1 pass. Actual native3/2, Mongo5/4 and visitor privacy verified; original two saves preserved during read-only correction/continuation, exact owned fixture removed. Three-key candidate/four presets prepared, no hosted settings mutated yet. [Current proof](NOSTR_PUBLIC_SOURCE_STATUS.md).
+
+Bittensor bounded header source uses the same HolonManager/LINQ and WEB4 compiler/read-admission pipeline: configured Finney block-hash eq/IN+paging, guarded RPC/local content-hash checks, explicit node-reported finality policy and read-only tariff. Canonical V2 API saves own private Mongo copies and replication delivery; public source never enters the write registry. [Scope/evidence](BITTENSOR_PUBLIC_SOURCE_STATUS.md).
+
+### Zcash public-source boundary
+
+ZcashPublicBlockMetadataSource is an explicit ICosmicQueryStorageProvider/read activation profile, separate from the legacy wallet provider. A configured height/hash catalogue drives bounded point summaries; genesis/network/units/height/hash validation precedes row publication. It uses shared HolonManager/LINQ planning and capability admission. The HTTP registration, compiler and server read tariff require explicit enrollment; source registration never grants native write routing. [Evidence and hosted gate](ZCASH_PUBLIC_SOURCE_STATUS.md).
+
+### Public analytical and grid node profiles
+
+ClickHousePublicCountryMetadataSource executes fixed typed-parameterSQL against the qualified publiccountries table; ThreeFoldPublicNodeMetadataSource composes a bounded set of explicit nativepointreads. Both share HolonManager/LINQ admission, canonical publicholon mapping, access/page handling and explicitread-onlymutation boundary. Source projectionowner/key/namespace are durable; no ownedprovider write route is inferred. ThreeFold remains separate from its canonical MinIO-backed provider implementation. Shared developer walkthroughs resolve the native metadata key from StringKeySetLookup.MetadataKey. Server providerpermission/tariff enrollment remains independent and explicit.
+
+
+## Explicit activation recovery
+
+The host owns one activation gate per enrolled read-only source,shared by startup and explicit Wizard recovery. Discovery exposes process identity/generation;requests from another host or stale generations cannot start activation. One bounded immutable receipt per source prevents duplicate completed requests from reactivating;receipts are historical,in-memory,not business outbox history. Pending/cancelled/failed attempts remain unavailable;native ownership is awaited even if cancellation is ignored. Query/discovery paths never trigger recovery.27controller/discovery/schema tests pass;hosted gate remains open. See [contract](CQL_SOURCE_RECOVERY.md).

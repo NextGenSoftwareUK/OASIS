@@ -1,0 +1,158 @@
+name: Antelope native storage
+
+on:
+  push:
+    branches: [work/hyperdrive-provider-completion]
+    paths:
+      - '.github/workflows/antelope-native-storage.yml'
+      - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.EOSIOOASIS/**'
+      - 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.IntegrationTests/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  storage:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        mode: [async, sync]
+    defaults:
+      run:
+        working-directory: OASIS
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          path: OASIS
+          submodules: recursive
+          persist-credentials: false
+
+      - name: Read the recorded Libraries revision
+        id: dependencies
+        shell: bash
+        run: |
+          revision="$(sed -n 's/^LIBRARIES_COMMIT=//p' Docker/oasis-dependency-versions.env)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "libraries=$revision" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependencies.outputs.libraries }}
+          path: NextGenSoftware-Libraries
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Deploy the checked-in OASIS contract and run the native suite
+        shell: bash
+        run: |
+          umask 077
+          fixture="$(mktemp -d "$RUNNER_TEMP/oasis-antelope.XXXXXXXX")"
+          node_pid=""
+          wallet_pid=""
+          cleanup() {
+            status=$?
+            if [[ "$status" -ne 0 ]]; then
+              for log in "$fixture/node.log" "$fixture/wallet.log"; do
+                if [[ -f "$log" ]]; then tail -60 "$log"; fi
+              done
+            fi
+            for pid in "$node_pid" "$wallet_pid"; do
+              [[ -n "$pid" ]] || continue
+              kill -TERM "$pid" 2>/dev/null || true
+              for attempt in {1..20}; do
+                kill -0 "$pid" 2>/dev/null || break
+                sleep 0.25
+              done
+              if kill -0 "$pid" 2>/dev/null; then kill -KILL "$pid"; fi
+              wait "$pid" || true
+            done
+            if [[ "$fixture" == "$RUNNER_TEMP"/oasis-antelope.* && -d "$fixture" ]]; then
+              rm -rf -- "$fixture"
+              test ! -e "$fixture"
+              echo "Removed the owned Antelope fixture directory."
+            fi
+          }
+          trap cleanup EXIT
+          curl --fail --silent --show-error --location --max-time 120 \
+            https://github.com/AntelopeIO/spring/releases/download/v1.2.2/antelope-spring_1.2.2_amd64.deb \
+            --output "$fixture/spring.deb"
+          echo "531ed1c965f94dd7732f5e900401f132170769c45b7589819a0ba1336627687a  $fixture/spring.deb" | sha256sum --check
+          sudo apt-get install -y "$fixture/spring.deb"
+          rm -- "$fixture/spring.deb"
+          nodeos --full-version
+          keys="$(cleos create key --to-console)"
+          private="$(sed -n 's/^Private key: //p' <<< "$keys")"
+          public="$(sed -n 's/^Public key: //p' <<< "$keys")"
+          [[ -n "$private" && -n "$public" ]]
+          echo "::add-mask::$private"
+          jq -n --arg key "$public" --arg timestamp "$(date -u +%Y-%m-%dT%H:%M:%S.000)" \
+            '{initial_timestamp:$timestamp, initial_key:$key}' >"$fixture/genesis.json"
+          mkdir "$fixture/wallet"
+          nodeos --data-dir "$fixture/chain" --config-dir "$fixture/config" --genesis-json "$fixture/genesis.json" \
+            --http-server-address 127.0.0.1:18888 --p2p-listen-endpoint 127.0.0.1:19876 \
+            --plugin eosio::chain_api_plugin --plugin eosio::producer_plugin --enable-stale-production \
+            --producer-name eosio --signature-provider "$public=KEY:$private" >"$fixture/node.log" 2>&1 &
+          node_pid=$!
+          keosd --wallet-dir "$fixture/wallet" --http-server-address 127.0.0.1:18900 \
+            --unix-socket-path "$fixture/keosd.sock" >"$fixture/wallet.log" 2>&1 &
+          wallet_pid=$!
+          export OASIS_ANTELOPE_ENDPOINT=http://127.0.0.1:18888
+          export OASIS_ANTELOPE_ACCOUNT=oasisfixture
+          for attempt in {1..45}; do
+            if ! kill -0 "$node_pid" 2>/dev/null; then tail -40 "$fixture/node.log"; exit 1; fi
+            if info="$(curl --fail --silent --max-time 2 "$OASIS_ANTELOPE_ENDPOINT/v1/chain/get_info")" &&
+               [[ -n "$info" ]] &&
+               jq -e '.head_block_num > 1' <<< "$info" >/dev/null 2>&1; then break; fi
+            if [[ "$attempt" == 45 ]]; then tail -40 "$fixture/node.log"; exit 1; fi
+            sleep 1
+          done
+          chain_id="$(jq -er '.chain_id | select(test("^[0-9a-f]{64}$"))' <<< "$info")"
+          [[ "$chain_id" =~ ^[0-9a-f]{64}$ ]]
+          export OASIS_ANTELOPE_CHAIN_ID="$chain_id"
+          cli=(cleos --url "$OASIS_ANTELOPE_ENDPOINT" --wallet-url http://127.0.0.1:18900)
+          "${cli[@]}" wallet create --to-console >"$fixture/wallet-password"
+          "${cli[@]}" wallet import --private-key "$private"
+          echo "Creating the disposable OASIS contract account."
+          "${cli[@]}" create account eosio "$OASIS_ANTELOPE_ACCOUNT" "$public" "$public"
+          contract="Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.EOSIOOASIS/SmartContracts/build/oasis"
+          "${cli[@]}" set contract "$OASIS_ANTELOPE_ACCOUNT" "$contract" oasis.wasm oasis.abi -p "$OASIS_ANTELOPE_ACCOUNT@active"
+          deployed_abi="$("${cli[@]}" get abi "$OASIS_ANTELOPE_ACCOUNT")"
+          [[ -n "$deployed_abi" ]]
+          jq -e '(["setdetail", "softdetail", "harddetail"] - [.actions[].name]) == []' <<< "$deployed_abi" >/dev/null
+          export OASIS_ANTELOPE_PRIVATE_KEY="$private"
+          export OASIS_ANTELOPE_LIFECYCLE_WRITES=1
+          export OASIS_ANTELOPE_DETAIL_CONTRACT_READY=1
+          export OASIS_ANTELOPE_RESULTS="$fixture/results"
+          export OASIS_ANTELOPE_STORAGE_MODE="${{ matrix.mode }}"
+          pwsh -NoProfile -Command '
+            ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-AntelopeStorage -Operation {
+              dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.IntegrationTests.csproj" --filter "FullyQualifiedName~CoreStorageConformanceOnOfficialAntelope" --results-directory $env:OASIS_ANTELOPE_RESULTS --logger "trx;LogFileName=antelope.trx" --logger "console;verbosity=normal" /m:2 /nr:false /p:UseSharedCompilation=false
+              if ($LASTEXITCODE -ne 0) { throw "Native Antelope storage verification failed." }
+            }'
+          python3 - "$fixture/results/antelope.trx" <<'PY'
+          import sys
+          import xml.etree.ElementTree as ET
+
+          tree = ET.parse(sys.argv[1])
+          passed = {row.get("testName") for row in tree.findall(".//{*}UnitTestResult")
+                    if row.get("outcome") == "Passed"}
+          expected = {"CoreStorageConformanceOnOfficialAntelope"}
+          if not expected <= passed:
+              raise SystemExit(f"Missing native lifecycle passes: {sorted(expected - passed)}")
+          PY
+          jq -e '.Succeeded and .FixtureCleanupComplete and (.Passed | length == 26)' \
+            "$fixture/results/core-storage.json" >/dev/null
+          for table in avatar avatardetail holon; do
+            "${cli[@]}" get table "$OASIS_ANTELOPE_ACCOUNT" "$OASIS_ANTELOPE_ACCOUNT" "$table" \
+              | jq -e '(.rows | length == 0) and (.more == false)' >/dev/null
+          done
+          echo "Verified 26 Antelope storage checks in $OASIS_ANTELOPE_STORAGE_MODE mode and independent native table cleanup."

@@ -9,12 +9,4 @@
       <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2\NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Content Include="OASIS_DNA.Development.json">
-        <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-      </Content>
-    </ItemGroup>
-
 </Project>

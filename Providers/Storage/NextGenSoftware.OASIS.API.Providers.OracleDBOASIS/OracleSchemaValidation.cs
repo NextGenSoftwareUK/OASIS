@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Oracle.ManagedDataAccess.Client;
 
@@ -29,7 +30,7 @@ public partial class OracleDBOASIS
         return Convert.ToInt32(await command.ExecuteScalarAsync())==names.Length;
     }
 
-    private static async Task ValidateStorageSchemaAsync(OracleConnection connection)
+    private static async Task ValidateStorageSchemaAsync(OracleConnection connection, CancellationToken cancellationToken = default)
     {
         var expected=StorageSchema;
         foreach(var table in expected){
@@ -37,8 +38,8 @@ public partial class OracleDBOASIS
             await using var command=CreateCommand("SELECT c.COLUMN_NAME,c.DATA_TYPE,c.DATA_LENGTH,c.NULLABLE,c.DATA_PRECISION,c.DATA_SCALE,c.CHAR_LENGTH,c.DEFAULT_LENGTH,c.CHAR_USED,t.TEMPORARY,t.DURATION,c.IDENTITY_COLUMN,c.VIRTUAL_COLUMN,ic.GENERATION_TYPE FROM USER_TAB_COLS c JOIN USER_TABLES t ON t.TABLE_NAME=c.TABLE_NAME LEFT JOIN USER_TAB_IDENTITY_COLS ic ON ic.TABLE_NAME=c.TABLE_NAME AND ic.COLUMN_NAME=c.COLUMN_NAME WHERE c.TABLE_NAME=:TableName AND c.USER_GENERATED='YES'",connection);
             command.Parameters.Add("TableName",OracleDbType.Varchar2).Value=table.Key;
             var missing=new HashSet<string>(table.Value.Keys,StringComparer.Ordinal);
-            await using var reader=await command.ExecuteReaderAsync();
-            while(await reader.ReadAsync()){
+            await using var reader=await command.ExecuteReaderAsync(cancellationToken);
+            while(await reader.ReadAsync(cancellationToken)){
                 var column=reader.GetString(0);
                 if(!table.Value.TryGetValue(column,out var required)){
                     // Canonical INSERTs omit extra columns. A required stored column
@@ -77,8 +78,8 @@ LEFT JOIN USER_INDEXES i ON i.INDEX_NAME=c.INDEX_NAME
 WHERE c.TABLE_NAME=:TableName AND c.CONSTRAINT_TYPE='P' ORDER BY cc.POSITION",connection);
             command.Parameters.Add("TableName",OracleDbType.Varchar2).Value=table;
             var columns=new List<string>();string status=null,validated=null,deferrable=null,indexStatus=null;
-            await using var reader=await command.ExecuteReaderAsync();
-            while(await reader.ReadAsync()){
+            await using var reader=await command.ExecuteReaderAsync(cancellationToken);
+            while(await reader.ReadAsync(cancellationToken)){
                 columns.Add(reader.GetString(0));status=reader.GetString(1);validated=reader.GetString(2);deferrable=reader.GetString(3);
                 indexStatus=reader.IsDBNull(4)?null:reader.GetString(4);
             }

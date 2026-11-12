@@ -48,6 +48,6 @@ public class CqlMastodonWeb4AdmissionTests
         Assert.Equal(5,StorageQueryTariff.Capture(tariffs,allowed).Length);
         Assert.Throws<ArgumentException>(()=>StorageQueryTariff.Capture(tariffs,allowed.Take(4)));
         Assert.Throws<ArgumentException>(()=>StorageQueryTariff.Capture(
-            new[]{new StorageQueryTariff(ProviderType.SolanaOASIS,0.001m,"protocol-test")},new[]{ProviderType.SolanaOASIS}));
+            new[]{new StorageQueryTariff(ProviderType.SolanaOASIS,0.001m,"protocol-test")},allowed));
     }
 }

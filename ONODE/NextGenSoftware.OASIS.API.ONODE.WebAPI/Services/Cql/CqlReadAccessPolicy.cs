@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -37,6 +38,7 @@ public static partial class CqlV1Endpoint
         ProviderType? requested, ICqlV1Providers providers, PreparedStorageExecution admission, bool includeCloudReadProfile=false)
     {
         var resolved = http.RequestServices?.GetService(typeof(ICqlReadAccessPolicy));
+        var keyed = false;
         if (resolved == null)
         {
             var registered = http.RequestServices?.GetService(typeof(IServiceProviderIsService)) as IServiceProviderIsService;
@@ -44,14 +46,36 @@ public static partial class CqlV1Endpoint
                 throw new ReadPolicyRejected(503, "CQL_ACCESS_POLICY_INVALID");
             if ((http.RequestServices?.GetService(typeof(CqlReadPolicyRequirement)) as CqlReadPolicyRequirement)?.Required == true)
                 throw new ReadPolicyRejected(503, "CQL_ACCESS_POLICY_REQUIRED");
-            return null; // Unenrolled hosts retain their explicit owner/public contract.
+            // Keyed policies belong to a concrete provider, including within a
+            // federated request. Unenrolled hosts keep their existing contract.
+            var keyedServices = http.RequestServices?.GetService<IServiceProviderIsKeyedService>();
+            keyed = keyedServices != null && CqlV1Compiler.ReadProfiles.Any(provider =>
+                keyedServices.IsKeyedService(typeof(ICqlReadAccessPolicy), provider));
+            if (!keyed) return null;
         }
-        if (resolved is not ICqlReadAccessPolicy service)
+        if (!keyed && resolved is not ICqlReadAccessPolicy)
             throw new ReadPolicyRejected(503, "CQL_ACCESS_POLICY_INVALID");
 
         if (!TryResolveEligible(providers, requested, admission, out var storage, out var adapter, out var selected,
             includeCloudReadProfile:includeCloudReadProfile))
             throw new ReadPolicyRejected(403, "CQL_PROVIDER_NOT_ELIGIBLE");
+
+        if (keyed)
+        {
+            resolved = http.RequestServices.GetKeyedService<ICqlReadAccessPolicy>(selected);
+            if (resolved == null)
+            {
+                if (http.RequestServices.GetRequiredService<IServiceProviderIsKeyedService>()
+                    .IsKeyedService(typeof(ICqlReadAccessPolicy), selected))
+                    throw new ReadPolicyRejected(503, "CQL_ACCESS_POLICY_INVALID");
+                // Freeze the resolved target once even when its visibility rule
+                // remains ordinary owner/public. No grant crosses provider scope.
+                var ordinary = CosmicQueryReadAccess.OwnerOrPublic(actor);
+                if (ordinary.IsError) throw new ReadPolicyRejected(503, "CQL_ACCESS_POLICY_INVALID");
+                return new ReadPolicyObservation(storage, adapter, selected, ordinary.Result);
+            }
+        }
+        var service = (ICqlReadAccessPolicy)resolved;
 
         OASISResult<CosmicQueryReadAccess> authorization;
         try { authorization = service.Authorize(actor, selected); }

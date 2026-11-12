@@ -1,0 +1,134 @@
+name: Neon native storage
+
+on:
+  push:
+    branches: [work/hyperdrive-provider-completion]
+    paths:
+      - '.github/workflows/neon-native-storage.yml'
+      - 'Providers/Cloud/NextGenSoftware.OASIS.API.Providers.NeonOASIS/**'
+      - 'Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.NeonOASIS.IntegrationTests/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  storage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: OASIS
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          path: OASIS
+          submodules: recursive
+          persist-credentials: false
+
+      - name: Read the recorded Libraries revision
+        id: dependencies
+        shell: bash
+        run: |
+          revision="$(sed -n 's/^LIBRARIES_COMMIT=//p' Docker/oasis-dependency-versions.env)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "libraries=$revision" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependencies.outputs.libraries }}
+          path: NextGenSoftware-Libraries
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+
+      - uses: actions/checkout@v7
+        with:
+          repository: neondatabase/neon
+          ref: fa504217c61bbcaf5c512d75830564541f917f8f
+          path: neon-fixture
+          persist-credentials: false
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Run both storage modes against the Neon pageserver and compute
+        shell: bash
+        env:
+          TAG: latest@sha256:7a4f124917bb929964b2d696d710f19584f80bb9bd51b2af4a6e2425434c761f
+          COMPUTE_TAG: latest@sha256:b3e151661bd2ee11eb2843c8926001966cb23969227e9673c5f42fc3fbe14249
+          PG_VERSION: '16'
+          OASIS_NEON_LOCAL_CONFORMANCE: '1'
+          OASIS_NEON_LOCAL_CONNECTION_STRING: Host=127.0.0.1;Port=55433;Database=oasis_provider_test;Username=cloud_admin;Password=cloud_admin;SSL Mode=Disable
+        run: |
+          fixture_compose="$RUNNER_TEMP/oasis-neon-compose.json"
+          docker compose --file ../neon-fixture/docker-compose/docker-compose.yml config --format json > "$fixture_compose"
+          python3 - "$fixture_compose" <<'PY'
+          import json
+          import os
+          import re
+          import sys
+          from pathlib import Path
+
+          compose_path = Path(sys.argv[1])
+          topology = json.loads(compose_path.read_text())
+          services = topology["services"]
+          del services["minio"], services["minio_create_buckets"]
+          for name in ("pageserver", "safekeeper1", "safekeeper2", "safekeeper3"):
+              services[name]["depends_on"].pop("minio_create_buckets")
+              if name.startswith("safekeeper"):
+                  services[name]["command"] = [
+                      "safekeeper --listen-pg=$$SAFEKEEPER_ADVERTISE_URL "
+                      "--listen-http=0.0.0.0:7676 --id=$$SAFEKEEPER_ID "
+                      "--broker-endpoint=$$BROKER_ENDPOINT -D /data "
+                      "--remote-storage=\"{local_path='/tmp/neon-remote'}\""
+                  ]
+          config = Path("../neon-fixture/docker-compose/pageserver_config/pageserver.toml")
+          content, count = re.subn(r"(?m)^remote_storage=.*$",
+              "remote_storage={local_path='/tmp/neon-remote'}", config.read_text())
+          assert count == 1
+          config.write_text(content)
+          compute = services["compute1"]
+          del compute["build"]
+          compute["image"] = "ghcr.io/neondatabase/compute-node-v16:" + os.environ["COMPUTE_TAG"]
+          compute["entrypoint"] = ["/usr/local/bin/compute_ctl"]
+          compute["command"] = [
+              "--pgdata", "/var/db/postgres/compute",
+              "-C", "postgresql://cloud_admin@localhost:55433/postgres",
+              "-b", "/usr/local/bin/postgres", "--compute-id", "oasis-ci",
+              "--config", "/var/db/postgres/configs/config.json", "--dev",
+          ]
+          compose_path.write_text(json.dumps(topology))
+          PY
+          compose=(docker compose --project-name oasis-neon-fixture --file "$fixture_compose")
+          trap '"${compose[@]}" down --volumes --remove-orphans' EXIT
+          pageserver_image="ghcr.io/neondatabase/neon:$TAG"
+          pageserver_uid="$(docker run --rm --entrypoint id "$pageserver_image" -u)"
+          pageserver_gid="$(docker run --rm --entrypoint id "$pageserver_image" -g)"
+          sudo chown "$pageserver_uid:$pageserver_gid" ../neon-fixture/docker-compose/pageserver_config
+          "${compose[@]}" up --detach pageserver safekeeper1 safekeeper2 safekeeper3
+          pageserver=http://127.0.0.1:9898
+          for attempt in {1..45}; do
+            if curl --fail --silent --max-time 2 "$pageserver/v1/tenant" >/dev/null; then break; fi
+            if [[ "$attempt" == 45 ]]; then "${compose[@]}" logs --tail 80; exit 1; fi
+            sleep 2
+          done
+          tenant="$(openssl rand -hex 16)"
+          timeline="$(openssl rand -hex 16)"
+          curl --fail-with-body --silent --show-error --max-time 20 -X PUT -H 'Content-Type: application/json' -d '{"mode":"AttachedSingle","generation":1,"tenant_conf":{}}' "$pageserver/v1/tenant/$tenant/location_config"
+          curl --fail-with-body --silent --show-error --max-time 60 -X POST -H 'Content-Type: application/json' -d "{\"new_timeline_id\":\"$timeline\",\"pg_version\":16}" "$pageserver/v1/tenant/$tenant/timeline/"
+          sed -i -e "s/TENANT_ID/$tenant/g" -e "s/TIMELINE_ID/$timeline/g" ../neon-fixture/docker-compose/compute_wrapper/var/db/postgres/configs/config.json
+          "${compose[@]}" up --detach compute1
+          for attempt in {1..45}; do
+            if "${compose[@]}" exec -T compute1 pg_isready -h 127.0.0.1 -p 55433 -U cloud_admin -d postgres; then break; fi
+            if [[ "$attempt" == 45 ]]; then "${compose[@]}" logs --tail 80; exit 1; fi
+            sleep 2
+          done
+          "${compose[@]}" exec -T -e PGPASSWORD=cloud_admin compute1 psql -h 127.0.0.1 -p 55433 -U cloud_admin -d postgres -v ON_ERROR_STOP=1 -c 'CREATE DATABASE oasis_provider_test'
+          pwsh -NoProfile -Command '
+            ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-NeonStorage -Operation {
+              dotnet test "Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.NeonOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.NeonOASIS.IntegrationTests.csproj" --filter "FullyQualifiedName~CoreStorageSuiteAgainstNeon" /m:2 /nr:false /p:UseSharedCompilation=false --logger "console;verbosity=normal"
+              if ($LASTEXITCODE -ne 0) { throw "Native Neon storage verification failed." }
+            }'

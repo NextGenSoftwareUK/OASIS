@@ -26,6 +26,8 @@ public sealed class CqlV1Request
     public bool Descending { get; set; }
     public int Skip { get; set; }
     public int Take { get; set; } = 25;
+    // Explicit execution budget for the leaf endpoint; federation has its own global budget.
+    public int MaximumDurationMilliseconds { get; set; } = 5000;
     public bool IncludeMetadata { get; set; }
     public CqlV1Graph? Graph { get; set; }
 }

@@ -1,0 +1,28 @@
+name: Provider SDK publish contracts
+on:
+  push:
+    branches: [Development, master]
+    paths:
+      - 'Providers/Blockchain/**/*.csproj'
+      - 'Providers/Blockchain/**/SdkBridge/**'
+      - 'Providers/Shared/**/*.mjs'
+      - 'Scripts/*provider_sdk_publish_manifest*.py'
+      - '.github/workflows/provider-sdk-publish-contracts.yml'
+  pull_request:
+    paths:
+      - 'Providers/Blockchain/**/*.csproj'
+      - 'Providers/Blockchain/**/SdkBridge/**'
+      - 'Providers/Shared/**/*.mjs'
+      - 'Scripts/*provider_sdk_publish_manifest*.py'
+      - '.github/workflows/provider-sdk-publish-contracts.yml'
+permissions:
+  contents: read
+jobs:
+  source-contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - run: python3 -B -m unittest discover -s Scripts -p test_provider_sdk_publish_manifest.py
+      - run: python3 -B Scripts/validate_all_provider_sdk_publish_manifests.py

@@ -50,10 +50,26 @@ namespace NextGenSoftware.OASIS.API.Providers.GOMapOASIS.IntegrationTests
         }
 
         [TestMethod]
+        public async Task SharedRoutingInterfaceReturnsLiveDrivingRoute()
+        {
+            IOASISRoutingProvider provider = _provider;
+            var origin = new RoutingCoordinate(52.517037, 13.388860);
+            var destination = new RoutingCoordinate(52.529407, 13.397634);
+            var route = await provider.ComputeRouteAsync(origin, destination, RoutingType.Driving);
+
+            Assert.IsTrue(route.DistanceMeters > 0);
+            Assert.IsTrue(route.Points.Count >= 2);
+            Assert.AreEqual(origin.Latitude, route.Points[0].Latitude, 0.005);
+            Assert.AreEqual(origin.Longitude, route.Points[0].Longitude, 0.005);
+            Assert.AreEqual(destination.Latitude, route.Points[^1].Latitude, 0.005);
+            Assert.AreEqual(destination.Longitude, route.Points[^1].Longitude, 0.005);
+        }
+
+        [TestMethod]
         public async Task GetDirectionsAsync_ShouldReturnARoutePassingNearBothEnds()
         {
             List<Geolocation> route = await _provider.DirectionsAPI.GetDirectionsAsync(
-                StPauls, TowerOfLondon, RoutingType.Walking);
+                StPauls, TowerOfLondon, RoutingType.Driving);
 
             Assert.IsTrue(route.Count >= 2, "Expected a multi-point route geometry.");
 
@@ -67,7 +83,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GOMapOASIS.IntegrationTests
         public async Task GetDirectionsAsync_ShouldReturnALongerPathThanTheStraightLine()
         {
             List<Geolocation> route = await _provider.DirectionsAPI.GetDirectionsAsync(
-                StPauls, TowerOfLondon, RoutingType.Walking);
+                StPauls, TowerOfLondon, RoutingType.Driving);
 
             double travelled = 0.0;
             for (int i = 1; i < route.Count; i++)
@@ -76,25 +92,25 @@ namespace NextGenSoftware.OASIS.API.Providers.GOMapOASIS.IntegrationTests
             double straightLine = _provider.CalculateDistance(StPauls, TowerOfLondon);
 
             Assert.IsTrue(travelled >= straightLine,
-                $"A walked route ({travelled}m) cannot be shorter than the straight line ({straightLine}m).");
+                $"A driving route ({travelled}m) cannot be shorter than the straight line ({straightLine}m).");
         }
 
         [TestMethod]
-        public async Task GetDirectionsAsync_ShouldDifferByRoutingProfile()
+        public async Task PublicOsrmRejectsUnsupportedTravelProfiles()
         {
-            List<Geolocation> walking = await _provider.DirectionsAPI.GetDirectionsAsync(
-                StPauls, TowerOfLondon, RoutingType.Walking);
-
-            List<Geolocation> driving = await _provider.DirectionsAPI.GetDirectionsAsync(
-                StPauls, TowerOfLondon, RoutingType.Driving);
-
-            Assert.IsTrue(walking.Count > 0 && driving.Count > 0);
+            var provider = new OSRMDirectionsProvider();
+            foreach (var mode in new[] { RoutingType.Walking, RoutingType.Cycling })
+            {
+                var result = await provider.GetRouteAsync(StPauls, TowerOfLondon, mode);
+                Assert.IsTrue(result.IsError);
+                StringAssert.Contains(result.Message, "public demo is driving-only");
+            }
         }
 
         [TestMethod]
         public async Task CreateAndDrawRoutedPathAsync_ShouldQueueTheRealRouteGeometry()
         {
-            Assert.IsTrue(await _provider.CreateAndDrawRoutedPathAsync(StPauls, TowerOfLondon));
+            Assert.IsTrue(await _provider.CreateAndDrawRoutedPathAsync(StPauls, TowerOfLondon, RoutingType.Driving));
 
             var command = _provider.DrainCommands()
                 .Single(c => c.CommandType == Bridge.GOMapCommandType.DrawRoute);

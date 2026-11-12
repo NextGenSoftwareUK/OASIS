@@ -2,6 +2,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 
 internal static class CosmicSqliteSchema
 {
+    internal const string CreateMigrationReplicaAdoption = "CREATE TABLE IF NOT EXISTS CosmicMigrationReplicaAdoption (MigrationId TEXT PRIMARY KEY NOT NULL, RequestJson TEXT NOT NULL, RequestHash TEXT NOT NULL CHECK(length(RequestHash)=64), PreparationHash TEXT NOT NULL CHECK(length(PreparationHash)=64), RecordCount INTEGER NOT NULL CHECK(RecordCount BETWEEN 1 AND 4096))";
+    internal const string MigrationMutationDigestDefinition = "TEXT NULL CHECK(MutationDigest IS NULL OR (FenceState='Held' AND length(MutationDigest)=64 AND MutationDigest NOT GLOB '*[^0-9A-F]*'))";
+    internal const string AddMigrationMutationDigest = "ALTER TABLE CosmicMigrationFence ADD COLUMN MutationDigest " + MigrationMutationDigestDefinition;
+    internal const string CreateMigrationFence = "CREATE TABLE IF NOT EXISTS CosmicMigrationFence (MigrationId TEXT PRIMARY KEY NOT NULL, RequestJson TEXT NOT NULL, RequestHash TEXT NOT NULL CHECK(length(RequestHash)=64), OwnerToken TEXT NOT NULL, FenceState TEXT NOT NULL CHECK(FenceState IN ('Held','Cancelled')))";
+    internal const string CreateDestinationBindings = "CREATE TABLE IF NOT EXISTS CosmicDestinationBinding (SourceBinding TEXT NOT NULL CHECK(length(SourceBinding)=64), TargetAuthority TEXT NOT NULL, RecordJson TEXT NOT NULL, RecordDigest TEXT NOT NULL CHECK(length(RecordDigest)=64), PRIMARY KEY(SourceBinding,TargetAuthority))";
+    internal const string CreateOutboxInitializationCompletionTable = "CREATE TABLE IF NOT EXISTS CosmicHolonOutboxInitializationCompletion (Sequence INTEGER PRIMARY KEY NOT NULL REFERENCES CosmicHolonOutbox(Sequence), EvidenceJson TEXT NOT NULL, EvidenceDigest TEXT NOT NULL CHECK(length(EvidenceDigest)=64))";
     internal const string CreatePreparationTable = "CREATE TABLE IF NOT EXISTS CosmicWritePreparation (OperationId TEXT PRIMARY KEY NOT NULL, ActorId TEXT NOT NULL, PayloadJson TEXT NOT NULL, CreatedAtUtc TEXT NOT NULL)";
     internal const string CreateRevisionCollectionIndex = "CREATE INDEX IF NOT EXISTS IX_CosmicHolonRevision_CollectionVersion ON CosmicHolonRevision(Version, HolonId)";
     internal const string CreateRevisionParentIndex = "CREATE INDEX IF NOT EXISTS IX_CosmicHolonRevision_ParentVersion ON CosmicHolonRevision(json_extract(RecordJson,'$.ParentHolonId'), Version)";

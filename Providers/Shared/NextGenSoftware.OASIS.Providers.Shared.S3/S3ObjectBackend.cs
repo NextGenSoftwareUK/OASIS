@@ -18,6 +18,9 @@ public sealed class S3ObjectBackend : IConditionalKeyValueBackend
     private static readonly UTF8Encoding Utf8 = new(false, true);
     private readonly IAmazonS3 _client;
     private readonly string _bucket, _prefix;
+    private readonly string[] _legacyPrefixes;
+    private readonly object _layoutLock = new();
+    private Task? _layoutCheck;
 
     // AWSSDK.S3 3.7.502 keeps service presence separately from its public bool.
     // Core's IsPropertySet explicitly excludes S3. Bind to the SDK's own exact
@@ -30,15 +33,52 @@ public sealed class S3ObjectBackend : IConditionalKeyValueBackend
     private static extern bool HasNativeKeyCount(ListObjectsV2Response response);
 
     public S3ObjectBackend(IAmazonS3 client, string bucket, string objectPrefix = "")
+        : this(client, bucket, objectPrefix, Array.Empty<string>()) { }
+
+    public S3ObjectBackend(IAmazonS3 client, string bucket, string objectPrefix, IReadOnlyList<string> legacyPrefixes)
     {
         ArgumentNullException.ThrowIfNull(client);
         ArgumentException.ThrowIfNullOrWhiteSpace(bucket);
         ArgumentNullException.ThrowIfNull(objectPrefix);
+        ArgumentNullException.ThrowIfNull(legacyPrefixes);
+        if (legacyPrefixes.Any(string.IsNullOrWhiteSpace))
+            throw new ArgumentException("Legacy layout prefixes must be explicit nonempty keys.", nameof(legacyPrefixes));
         if (client.Config.MaxErrorRetry != 0)
             throw new ArgumentException("S3 storage requires MaxErrorRetry=0; uncertain mutations must not be replayed by the SDK.", nameof(client));
         if (objectPrefix.Length > 0 && (!objectPrefix.EndsWith('/') || objectPrefix.Split('/').Any(p => p is "." or "..")))
             throw new ArgumentException("Object prefix must end in '/' and cannot contain navigation segments.", nameof(objectPrefix));
         _client = client; _bucket = bucket; _prefix = objectPrefix;
+        _legacyPrefixes = legacyPrefixes.ToArray();
+    }
+
+    // Every transport entry point shares this read-only check, including callers
+    // that dispatch a storage operation without first activating the provider.
+    // A failed/uncertain check is never retried within this provider instance.
+    private Task CheckLayoutAsync(CancellationToken token)
+    {
+        token.ThrowIfCancellationRequested();
+        if (_legacyPrefixes.Length == 0) return Task.CompletedTask;
+        lock (_layoutLock) return _layoutCheck ??= CheckLegacyPrefixesAsync(token);
+    }
+
+    private async Task CheckLegacyPrefixesAsync(CancellationToken token)
+    {
+        foreach (var prefix in _legacyPrefixes)
+        {
+            var response = await _client.ListObjectsV2Async(new ListObjectsV2Request
+                { BucketName = _bucket, Prefix = prefix, MaxKeys = 1 }, token);
+            Complete(response.HttpStatusCode, HttpStatusCode.OK, "legacy layout inspection");
+            if (response.S3Objects == null || !HasNativeCompletionFlag(response) || !HasNativeKeyCount(response)
+                || response.KeyCount != response.S3Objects.Count
+                || response.Prefix != null && response.Prefix != prefix
+                || response.CommonPrefixes is { Count: > 0 }
+                || !response.IsTruncated && !string.IsNullOrEmpty(response.NextContinuationToken))
+                throw new InvalidDataException("S3 legacy layout inspection omitted its completion state.");
+            if (response.S3Objects.Count != 0)
+                throw new InvalidDataException("Legacy plaintext OASIS objects exist; preserve them and review migration before selecting the encrypted layout.");
+            if (response.IsTruncated)
+                throw new InvalidDataException("S3 legacy layout inspection returned an incomplete empty page.");
+        }
     }
 
     private string Key(string key)
@@ -73,6 +113,7 @@ public sealed class S3ObjectBackend : IConditionalKeyValueBackend
     public async Task<KeyValueObservation?> ReadObservedAsync(string key, CancellationToken cancellationToken = default)
     {
         var physical = Key(key); cancellationToken.ThrowIfCancellationRequested();
+        await CheckLayoutAsync(cancellationToken);
         try
         {
             using var response = await _client.GetObjectAsync(new GetObjectRequest { BucketName = _bucket, Key = physical, ChecksumMode = ChecksumMode.ENABLED }, cancellationToken);
@@ -106,6 +147,7 @@ public sealed class S3ObjectBackend : IConditionalKeyValueBackend
     private async Task WriteAsync(string key, string value, string? revision, bool create, CancellationToken token)
     {
         var physical = Key(key); ArgumentNullException.ThrowIfNull(value); token.ThrowIfCancellationRequested();
+        await CheckLayoutAsync(token);
         var bytes = Utf8.GetBytes(value);
         using var stream = new MemoryStream(bytes, false);
         var checksum = Convert.ToBase64String(SHA256.HashData(bytes));
@@ -133,6 +175,7 @@ public sealed class S3ObjectBackend : IConditionalKeyValueBackend
     private async Task DeleteAsync(string key, string? revision, CancellationToken token)
     {
         var physical = Key(key); token.ThrowIfCancellationRequested();
+        await CheckLayoutAsync(token);
         try
         {
             var response = await _client.DeleteObjectAsync(new DeleteObjectRequest { BucketName = _bucket, Key = physical, IfMatch = revision }, token);
@@ -147,6 +190,7 @@ public sealed class S3ObjectBackend : IConditionalKeyValueBackend
     public async Task<IReadOnlyList<string>> ListKeysAsync(string prefix, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(prefix); cancellationToken.ThrowIfCancellationRequested();
+        await CheckLayoutAsync(cancellationToken);
         var physical = _prefix + prefix;
         // Request the documented XML-safe format. The pinned v3 SDK leaves these
         // fields encoded; normalize exactly once using the response's format tag.
@@ -209,6 +253,7 @@ public sealed class S3ObjectBackend : IConditionalKeyValueBackend
     public async Task VerifyAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        await CheckLayoutAsync(cancellationToken);
         var response = await _client.HeadBucketAsync(new HeadBucketRequest { BucketName = _bucket }, cancellationToken);
         Complete(response.HttpStatusCode, HttpStatusCode.OK, "HEAD bucket");
     }

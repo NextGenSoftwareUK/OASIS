@@ -8,6 +8,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.UnitTests;
 [TestClass]
 public class Neo4jLifecycleTests
 {
+    private const int RequiredConstraintKinds = 8;
     public class DriverProbe : DispatchProxy
     {
         public int Verifications;
@@ -17,9 +18,23 @@ public class Neo4jLifecycleTests
         public Exception? VerifyFailure;
         public Exception? CloseFailure;
         public Exception? SchemaFailure;
-        public long ConstraintKinds = 7;
+        public long ConstraintKinds = RequiredConstraintKinds;
+        public long MigrationConstraintKinds = 2;
+        public bool InstallMigrationConstraints = true;
+        public bool MigrationMarkerExists = true;
+        public long MigrationHistoryCount;
+        public bool MigrationMarkerValid = true;
+        public int MigrationConstraintCreates;
         public int SchemaRuns;
         public int SchemaCreates;
+        public bool TargetIndexExists = true;
+        public bool TargetIndexOnline = true;
+        public bool TargetIndexShapeValid = true;
+        public bool InstallTargetIndex = true;
+        public string TargetIndexName = "oasis_cosmic_outbox_target_order";
+        public int TargetIndexCreates;
+        public int TargetIndexWaits;
+        public Exception? TargetIndexWaitFailure;
         public bool InstallAfterCreates;
         public Exception? SchemaWriteFailure;
         public Exception? CqlUpgradeFailure;
@@ -74,11 +89,52 @@ public class Neo4jLifecycleTests
                 {
                     if(Owner.SchemaWriteFailure!=null)return Task.FromException<IResultCursor>(Owner.SchemaWriteFailure);
                     Owner.SchemaCreates++;
-                    if(Owner.InstallAfterCreates && Owner.SchemaCreates==7)Owner.ConstraintKinds=7;
+                    if (query.Contains("oasis_cosmic_migration_", StringComparison.Ordinal))
+                    {
+                        Owner.MigrationConstraintCreates++;
+                        if (Owner.InstallMigrationConstraints && Owner.MigrationConstraintCreates == 2) Owner.MigrationConstraintKinds = 2;
+                    }
+                    if(Owner.InstallAfterCreates && Owner.SchemaCreates==RequiredConstraintKinds)Owner.ConstraintKinds=RequiredConstraintKinds;
                 }
 
+                if (args![0] is string indexQuery && indexQuery.StartsWith("CREATE RANGE INDEX", StringComparison.Ordinal))
+                {
+                    if (Owner.SchemaWriteFailure != null) return Task.FromException<IResultCursor>(Owner.SchemaWriteFailure);
+                    Owner.TargetIndexCreates++;
+                    if (Owner.InstallTargetIndex) Owner.TargetIndexExists = true;
+                }
+                if (args[0] is string awaitQuery && awaitQuery.StartsWith("CALL db.awaitIndex", StringComparison.Ordinal))
+                {
+                    Owner.TargetIndexWaits++;
+                    if (Owner.TargetIndexWaitFailure != null) return Task.FromException<IResultCursor>(Owner.TargetIndexWaitFailure);
+                    Owner.TargetIndexOnline = Owner.TargetIndexExists;
+                }
                 var cursor=DispatchProxy.Create<IResultCursor,SchemaCursorProbe>();
-                ((SchemaCursorProbe)cursor).Count=Owner.ConstraintKinds;
+                var probe = (SchemaCursorProbe)cursor;
+                probe.Count=Owner.ConstraintKinds;
+                probe.Name=Owner.TargetIndexName;
+                if (args[0] is string migrationQuery)
+                {
+                    if (migrationQuery.StartsWith("SHOW CONSTRAINTS", StringComparison.Ordinal) && migrationQuery.Contains("CosmicMigrationRecordGate", StringComparison.Ordinal))
+                        probe.Count = Owner.MigrationConstraintKinds;
+                    if (migrationQuery.Contains("CosmicMigrationRecordGate {HolonId:$schema}", StringComparison.Ordinal))
+                    {
+                        if (migrationQuery.StartsWith("MERGE", StringComparison.Ordinal))
+                        {
+                            if (Owner.SchemaWriteFailure != null) return Task.FromException<IResultCursor>(Owner.SchemaWriteFailure);
+                            Owner.MigrationMarkerExists = true;
+                        }
+                        probe.Empty = !Owner.MigrationMarkerExists;
+                        probe.Count = Owner.MigrationMarkerValid ? 1 : -1;
+                    }
+                    if (migrationQuery.StartsWith("MATCH (f:CosmicMigrationFence)", StringComparison.Ordinal)) probe.Count = Owner.MigrationHistoryCount;
+                }
+                if (args[0] is string show && show.StartsWith("SHOW INDEXES", StringComparison.Ordinal))
+                {
+                    var exists = Owner.TargetIndexExists && Owner.TargetIndexShapeValid;
+                    probe.Count = exists && Owner.TargetIndexOnline ? 1 : 0;
+                    probe.Empty = show.Contains("RETURN name", StringComparison.Ordinal) && !exists;
+                }
                 return Task.FromResult(cursor);
             }
             throw new InvalidOperationException("Unexpected schema session call: "+method.Name);
@@ -103,6 +159,7 @@ public class Neo4jLifecycleTests
     }
     public class SchemaCursorProbe : DispatchProxy
     {
+        public string Name = "oasis_cosmic_outbox_target_order";
         public long Count;public bool Empty;private int reads;
         protected override object? Invoke(MethodInfo? method,object?[]? args)
         {
@@ -110,7 +167,7 @@ public class Neo4jLifecycleTests
             if(method.Name=="FetchAsync")return Task.FromResult(!Empty && reads++==0);
             if(method.Name=="get_Current")
             {
-                var record=DispatchProxy.Create<IRecord,SchemaRecordProbe>();((SchemaRecordProbe)record).Count=Count;return record;
+                var record=DispatchProxy.Create<IRecord,SchemaRecordProbe>();((SchemaRecordProbe)record).Count=Count;((SchemaRecordProbe)record).Name=Name;return record;
             }
             throw new InvalidOperationException("Unexpected schema cursor call: "+method.Name);
         }
@@ -118,8 +175,11 @@ public class Neo4jLifecycleTests
     public class SchemaRecordProbe : DispatchProxy
     {
         public long Count;
+        public string Name = "oasis_cosmic_outbox_target_order";
         protected override object? Invoke(MethodInfo? method,object?[]? args)
-            => method!.Name=="get_Item" && (string)args![0]! == "count" ? Count
+            => method!.Name=="get_Item" ? (string)args![0]! switch {
+                "count" => Count, "format" => Count, "name" => Name,
+                _ => throw new InvalidOperationException("Unexpected schema field.") }
                 : throw new InvalidOperationException("Unexpected schema record call: "+method.Name);
     }
 
@@ -216,7 +276,7 @@ public class Neo4jLifecycleTests
         owned.Probe.SchemaFailure=null;owned.Probe.ConstraintKinds=1;
         var incomplete=synchronous ? provider.ActivateProvider() : await provider.ActivateProviderAsync();
         Assert.IsTrue(incomplete.IsError);Assert.IsInstanceOfType(incomplete.Exception,typeof(InvalidDataException));Assert.IsFalse(provider.IsProviderActivated);
-        owned.Probe.ConstraintKinds=7;
+        owned.Probe.ConstraintKinds=RequiredConstraintKinds;
         var active=synchronous ? provider.ActivateProvider() : await provider.ActivateProviderAsync();
         Assert.IsFalse(active.IsError,active.Message);Assert.IsTrue(provider.IsProviderActivated);
         Assert.IsFalse((await provider.DeActivateProviderAsync()).IsError);
@@ -228,10 +288,22 @@ public class Neo4jLifecycleTests
         var owned=NewDriver();owned.Probe.ConstraintKinds=0;owned.Probe.InstallAfterCreates=true;
         var provider=new Provider("bolt://127.0.0.1:17687","owned","owned",()=>owned.Driver);
         var initial=synchronous ? provider.ActivateProvider() : await provider.ActivateProviderAsync();
-        Assert.IsFalse(initial.IsError,initial.Message);Assert.AreEqual(7,owned.Probe.SchemaCreates);
+        Assert.IsFalse(initial.IsError,initial.Message);Assert.AreEqual(RequiredConstraintKinds,owned.Probe.SchemaCreates);
         owned.Probe.SchemaWriteFailure=new UnauthorizedAccessException("DDL privilege is not available after provisioning");
         var existing=synchronous ? provider.ActivateProvider() : await provider.ActivateProviderAsync();
-        Assert.IsFalse(existing.IsError,existing.Message);Assert.AreEqual(7,owned.Probe.SchemaCreates);
+        Assert.IsFalse(existing.IsError,existing.Message);Assert.AreEqual(RequiredConstraintKinds,owned.Probe.SchemaCreates);
         Assert.IsFalse((await provider.DeActivateProviderAsync()).IsError);
     }
+    [DataTestMethod]
+    [DataRow(false)] [DataRow(true)]
+    public async Task SevenPriorConstraintsCannotSatisfyTheDestinationCatalogueGate(bool synchronous)
+    {
+        var owned=NewDriver();owned.Probe.ConstraintKinds=7;
+        var provider=new Provider("bolt://127.0.0.1:17687","owned","owned",()=>owned.Driver);
+        var result=synchronous?provider.ActivateProvider():await provider.ActivateProviderAsync();
+        Assert.IsTrue(result.IsError);Assert.IsFalse(provider.IsProviderActivated);
+        Assert.IsInstanceOfType<InvalidDataException>(result.Exception);
+        Assert.AreEqual(RequiredConstraintKinds,owned.Probe.SchemaCreates);
+    }
+
 }

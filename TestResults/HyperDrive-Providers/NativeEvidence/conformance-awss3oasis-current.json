@@ -1,40 +1,19 @@
 {
   "suite": "core-storage-v2",
-  "provider": "AWSS3OASIS",
-  "executionTarget": "MinIO S3-compatible server; not hosted AWS S3",
-  "bindingProviderLabel": "AWSS3OASIS-MinIO",
-  "sourceCommit": "58563f6c0c0b55e7b05a6558bdb72413e0d24d57",
-  "runUrl": "https://github.com/NextGenSoftwareUK/OASIS/actions/runs/40731869610",
-  "jobId": 122970030713,
-  "artifactId": 12835013488,
-  "artifactDigest": "sha256:013b4cd9c838f7e103b4cce7efe3d362b85886c3e89219cc33094ecf6edcd194",
-  "previousRegistryEntry": {
-    "provider": "AWSS3OASIS",
-    "suite": "core-storage-v1",
-    "mode": "blocked-before-native",
-    "passed": 0,
-    "total": 52,
-    "report": "Docs/WIP/HyperDrive-Providers/NativeEvidence/conformance-awss3oasis-current.json",
-    "sha256": "286e49489debc8fd63556dcd945ed41aedf5d618684c51f32fe732d36abf3ccb",
-    "blockers": [
-      "async: configuration: System.InvalidOperationException",
-      "sync: configuration: System.InvalidOperationException"
-    ]
-  },
   "runs": [
     {
       "SuiteVersion": "core-storage-v2",
       "Provider": "AWSS3OASIS-MinIO",
       "Mode": "native",
       "Synchronous": false,
-      "OwnerId": "5b2de1a6-dd76-43d1-a23b-57d02e772027",
-      "RootId": "8016d937-1d04-4abe-8bbe-76968f8e97c5",
-      "ChildId": "9d550703-d189-45fd-85c0-2e79f00da442",
+      "OwnerId": "227fa461-fb90-4489-858a-b3503c51983f",
+      "RootId": "2cb654b6-6a5f-41cf-89eb-70375a71d7d8",
+      "ChildId": "23074812-08eb-4e00-9437-1878e5de7cea",
       "BatchIds": [
-        "a984e506-b3b0-447c-934c-04c5eb3ddf9f",
-        "0c35753c-76bd-4cd6-9630-5f6871900b49"
+        "5495f3b2-7c31-4739-8962-e59c97480043",
+        "bb6b7454-2e36-471b-8b02-280441c887ed"
       ],
-      "ImportId": "0da1a699-1654-4a49-9199-81c299fbf362",
+      "ImportId": "1fa87c3c-04ae-4c39-abd1-045bf3edda03",
       "Passed": [
         "activate",
         "avatar-save",
@@ -54,11 +33,11 @@
         "batch-save-null-metadata",
         "import",
         "owner-export",
-        "holon-delete-9d550703d18945fd85c02e79f00da442",
-        "holon-delete-8016d9371d044abe8bbe76968f8e97c5",
-        "holon-delete-0da1a69916544a49919981c299fbf362",
-        "holon-delete-a984e506b3b0447c934c04c5eb3ddf9f",
-        "holon-delete-0c35753c76bd4cd696305f6871900b49",
+        "holon-delete-2307481208eb4e0094371878e5de7cea",
+        "holon-delete-2cb654b66a5f41cf89eb70375a71d7d8",
+        "holon-delete-1fa87c3c04ae4c39abd1045bf3edda03",
+        "holon-delete-5495f3b27c3147398962e59c97480043",
+        "holon-delete-bb6b74542e36471b8b02280441c887ed",
         "avatar-delete",
         "avatar-detail-absence",
         "deactivate"
@@ -67,11 +46,11 @@
       "FailureType": "",
       "FailureContract": "",
       "DeletionKinds": {
-        "9d550703-d189-45fd-85c0-2e79f00da442": "absent",
-        "8016d937-1d04-4abe-8bbe-76968f8e97c5": "absent",
-        "0da1a699-1654-4a49-9199-81c299fbf362": "absent",
-        "a984e506-b3b0-447c-934c-04c5eb3ddf9f": "absent",
-        "0c35753c-76bd-4cd6-9630-5f6871900b49": "absent"
+        "23074812-08eb-4e00-9437-1878e5de7cea": "absent",
+        "2cb654b6-6a5f-41cf-89eb-70375a71d7d8": "absent",
+        "1fa87c3c-04ae-4c39-abd1-045bf3edda03": "absent",
+        "5495f3b2-7c31-4739-8962-e59c97480043": "absent",
+        "bb6b7454-2e36-471b-8b02-280441c887ed": "absent"
       },
       "HardCleanedFixtures": [],
       "ExpectedDefaultDeletion": "absent",
@@ -84,14 +63,14 @@
       "Provider": "AWSS3OASIS-MinIO",
       "Mode": "native",
       "Synchronous": true,
-      "OwnerId": "17fd4f63-48d5-406b-a295-2b80503c6046",
-      "RootId": "7c6df567-a0cc-48e7-a67c-b4064a636ba5",
-      "ChildId": "c7e51ea6-e79a-4a37-936e-44ce39478928",
+      "OwnerId": "0a9358fb-a44f-4f10-8039-af44cd113ec9",
+      "RootId": "0d7301fd-4b68-47d7-ac7a-03872e845dc9",
+      "ChildId": "6c21e7ce-f275-4c82-abeb-00885a7775c0",
       "BatchIds": [
-        "71937d46-8d01-4af8-8a9d-a4a60b7e74f0",
-        "84c1ea42-d1a5-4fa6-bf53-338bb66a6842"
+        "9c77bd64-6015-4a68-8dc1-341e7b083568",
+        "18b69ac9-986e-46d3-869b-384bd1ee9229"
       ],
-      "ImportId": "cb8227bd-1d5a-4789-bd1f-ef795d66dca1",
+      "ImportId": "3f60e433-3c2f-4a17-86aa-cbb2f77a4b8e",
       "Passed": [
         "activate",
         "avatar-save",
@@ -111,11 +90,11 @@
         "batch-save-null-metadata",
         "import",
         "owner-export",
-        "holon-delete-c7e51ea6e79a4a37936e44ce39478928",
-        "holon-delete-7c6df567a0cc48e7a67cb4064a636ba5",
-        "holon-delete-cb8227bd1d5a4789bd1fef795d66dca1",
-        "holon-delete-71937d468d014af88a9da4a60b7e74f0",
-        "holon-delete-84c1ea42d1a54fa6bf53338bb66a6842",
+        "holon-delete-6c21e7cef2754c82abeb00885a7775c0",
+        "holon-delete-0d7301fd4b6847d7ac7a03872e845dc9",
+        "holon-delete-3f60e4333c2f4a1786aacbb2f77a4b8e",
+        "holon-delete-9c77bd6460154a688dc1341e7b083568",
+        "holon-delete-18b69ac9986e46d3869b384bd1ee9229",
         "avatar-delete",
         "avatar-detail-absence",
         "deactivate"
@@ -124,11 +103,11 @@
       "FailureType": "",
       "FailureContract": "",
       "DeletionKinds": {
-        "c7e51ea6-e79a-4a37-936e-44ce39478928": "absent",
-        "7c6df567-a0cc-48e7-a67c-b4064a636ba5": "absent",
-        "cb8227bd-1d5a-4789-bd1f-ef795d66dca1": "absent",
-        "71937d46-8d01-4af8-8a9d-a4a60b7e74f0": "absent",
-        "84c1ea42-d1a5-4fa6-bf53-338bb66a6842": "absent"
+        "6c21e7ce-f275-4c82-abeb-00885a7775c0": "absent",
+        "0d7301fd-4b68-47d7-ac7a-03872e845dc9": "absent",
+        "3f60e433-3c2f-4a17-86aa-cbb2f77a4b8e": "absent",
+        "9c77bd64-6015-4a68-8dc1-341e7b083568": "absent",
+        "18b69ac9-986e-46d3-869b-384bd1ee9229": "absent"
       },
       "HardCleanedFixtures": [],
       "ExpectedDefaultDeletion": "absent",
@@ -137,5 +116,10 @@
       "Succeeded": true
     }
   ],
-  "postSuiteBucketEmpty": "Both MSTest cases passed after independent SDK ListObjectsV2 empty bucket assertions."
+  "verification": {
+    "ciRun": 40754776833,
+    "ciJob": 123050672281,
+    "sourceCommit": "d7d1458ab9042997b5ceabc285a8bddd009d9d0a",
+    "target": "MinIO-compatible; not hosted AWS"
+  }
 }

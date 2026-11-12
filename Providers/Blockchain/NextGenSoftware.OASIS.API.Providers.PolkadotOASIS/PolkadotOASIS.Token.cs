@@ -96,7 +96,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
                 }
 
                 var address = request.WalletAddress;
-                result.Result = await ReadNativeBalanceAsync(address);
+                result.Result = await ReadNativeBalanceAsync(address).ConfigureAwait(false);
                 result.Message = "Native free balance read from finalized Polkadot runtime storage.";
             }
             catch (Exception ex)

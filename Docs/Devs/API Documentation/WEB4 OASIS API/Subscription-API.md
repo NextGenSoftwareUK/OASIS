@@ -88,6 +88,22 @@ Reports use OASISResult envelopes. A successful check can contain findings; insp
 
 Correction kinds are explicitly `billing-adjustment` or `provider-measurement`. The latter must name a receipt already belonging to that operation. Only its receipt-specific delta changes the expected provider amount during independent reconciliation; general billing adjustments change ledger and billing totals without claiming that a provider measurement changed.
 
+### Plan grants and app accounts
+
+Under `/api/subscription/admin/` (administrator claim plus allowlist, or the `Wizard` avatar). Every change is audited with the administrator and a reason (at least 5 characters).
+
+| Method/path | Purpose |
+|---|---|
+| POST plan-grant | Put an avatar on free, bronze, silver, gold or enterprise without Stripe: `{ userId, planId, reason, expiresAtUtc? }` (expiry at most 10 years). 409 if the avatar has an active Stripe subscription; granting `free` reverts. |
+| GET app-accounts | List app accounts (keys are never returned) |
+| POST app-accounts | Create an app account `{ appId, name, planId, reason, pooledQuota?, perUserPlanId? }`. The response contains `apiKey` once; only its hash is stored. `appId` is 3 to 40 lowercase letters, digits or hyphens. |
+| POST app-accounts/{appId}/rotate-key | Issue a new key; the old one stops working |
+| POST app-accounts/{appId} | Change `planId`, `status` (`active`, `disabled`), and for finite plans `pooledQuota` / `perUserPlanId` |
+| GET app-accounts/{appId}/top-users?limit=10 | The avatars using the most of a pooled app's quota this UTC month, busiest first: `userId`, `requests`, `units`, `settledCostUsd` (limit 1 to 100). 404 if the app does not exist. |
+| GET app-accounts/{appId}/usage | Pool usage for a pooled app: this month and today against the plan limits, with used fractions (`monthlyRequestsUsedFraction`, `dailyCallsUsedFraction`) `poolActive` and a `status` of `ok`, `warning` (80% of a limit) or `exhausted` (100%). 404 if the app does not exist. |
+
+**Calling with an app account.** An application's server may add `X-OASIS-App-Id` and `X-OASIS-App-Key` to a request that carries the user's bearer token. WEB4 then evaluates the request against the more generous of the app's plan and the user's own plan, so an app never makes a user worse off. Invalid, partial or disabled-app credentials are rejected with 401; requests without these headers behave exactly as before. Usage and settlement stay recorded against the signed-in avatar. By default the app plan is a per-user entitlement, so app accounts accept only the `enterprise` plan. With the server setting `OASIS_POOLED_APP_QUOTAS=true`, a finite plan may be created with `pooledQuota: true` (and optional `perUserPlanId`, default `silver`): it is then one pool shared by all the app's users, and exhaustion is denied with `APP_`-prefixed codes such as `APP_MONTHLY_REQUEST_LIMIT_EXCEEDED`. `GET app-accounts/{appId}/usage` shows the pool against its limits and `GET app-accounts/{appId}/top-users` shows who is using it. The metric `subscription.ledger.pool_threshold` fires at 80% and 100%. `OASIS_POOL_SHARDS` (1 to 16, default 1) spreads a very busy pool over several documents; with more than one shard the limit can be overshot by the requests in flight at that instant. The headers are accepted both on WEB4's own authorization path and on `usage/authorize` (used by WEB5 to WEB10); the shared client in OASIS-API-Core (used by WEB5 to WEB10) sends them on `usage/authorize` when both the `OASIS_APP_ID` and `OASIS_APP_KEY` environment variables are set on the calling service, and sends neither otherwise.
+
 ## Subscription and billing lifecycle
 
 The controller also exposes:

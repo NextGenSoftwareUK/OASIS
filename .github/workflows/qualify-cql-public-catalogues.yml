@@ -1,0 +1,71 @@
+name: Qualify CQL public catalogues
+
+on:
+  push:
+    branches: [work/cosmic-teaching-release-candidate]
+    paths:
+      - '.github/workflows/qualify-cql-public-catalogues.yml'
+      - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlPublicReadCatalogue.cs'
+      - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/CqlPublicReadCatalogueTests.cs'
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Exact reviewed source commit
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  catalogue:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ inputs.ref || github.sha }}
+          path: OASIS
+          submodules: true
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - name: Read reviewed dependency pins
+        id: dependency
+        working-directory: OASIS
+        run: |
+          python3 -B Scripts/validate_railway_dependency_manifest.py --require-gitlinks
+          grep -E '^(LIBRARIES_COMMIT|HOLOCHAIN_COMMIT)=[0-9a-f]{40}$' Docker/oasis-dependency-versions.env >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependency.outputs.LIBRARIES_COMMIT }}
+          path: NextGenSoftware-Libraries
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          ref: ${{ steps.dependency.outputs.HOLOCHAIN_COMMIT }}
+          path: holochain-client-csharp
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+      - name: Verify catalogues and DuckDB native/federated preset admission
+        working-directory: OASIS
+        shell: pwsh
+        run: |
+          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner public-catalogue-ci -Operation {
+            dotnet test ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CqlPublicReadCatalogueTests|FullyQualifiedName~CqlDuckDbHostedAdmissionTests' --results-directory TestResults/CqlPublicReadCatalogueCurrent --logger 'trx;LogFileName=catalogue.trx'
+            if ($LASTEXITCODE) { throw 'Public catalogue regression failed' }
+            [xml]$report = Get-Content TestResults/CqlPublicReadCatalogueCurrent/catalogue.trx
+            if ($report.TestRun.ResultSummary.Counters.passed -ne '6' -or $report.TestRun.ResultSummary.Counters.total -ne '6') {
+              throw 'All five catalogue cases and the DuckDB four-preset admission case must pass'
+            }
+          }
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: cql-public-catalogue-regression
+          path: OASIS/TestResults/CqlPublicReadCatalogueCurrent/catalogue.trx
+          if-no-files-found: error
+          retention-days: 30

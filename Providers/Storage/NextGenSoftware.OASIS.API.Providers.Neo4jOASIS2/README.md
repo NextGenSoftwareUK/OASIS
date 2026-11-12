@@ -1,6 +1,6 @@
 # NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2
 
-Connects the OASIS to Neo4j -- the world's leading native graph database. Stores OASIS holons, avatars, and karma relationships as graph nodes and edges, enabling powerful graph traversal, social network analysis, and karma chain queries via Cypher. Part of the OASIS HOT-Swappable Provider Architecture. Ecosystem: https://oasisomniverse.one
+The V2 package exposes the Neo4jOASIS2 entry point over the canonical Neo4jOASIS storage provider. It uses the official Neo4j driver, the same stored record format and the same Neo4jOASIS provider identity.
 
 ## Installation
 

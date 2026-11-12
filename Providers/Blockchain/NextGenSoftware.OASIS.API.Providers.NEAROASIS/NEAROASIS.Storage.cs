@@ -36,6 +36,7 @@ public partial class NEAROASIS
     }
 
     private static string HistoryPrefix(string key) => $"history:{key}:";
+    private static string HolonRecordKey(Guid id) => $"holon:{id:D}";
 
     // Mutates only the caller's already-detached proposed snapshot. No SDK/native writes occur here.
     private static async Task<KeyValuePair<string,string>?> StageObservedRecordVersionAsync<T>(T proposed,NearSdkService.StoredSnapshot observed,bool history,
@@ -131,6 +132,8 @@ public partial class NEAROASIS
             if (avatar?.IsDeleted == true)
                 return new OASISResult<IAvatar>(null) { Message = $"Avatar {id} is deleted on NEAR." };
             result.Result = avatar;
+            result.IsLoaded = true;
+            result.LoadedCount = 1;
             result.Message = "Avatar loaded from NEAR contract storage.";
         }
         catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error loading avatar from NEAR: {ex.Message}", ex); }
@@ -152,6 +155,7 @@ public partial class NEAROASIS
             PublishRecordStamp(avatar,snapshot,publication.ValidateUnchanged,tx);
             result.Result = avatar;
             result.IsSaved=true;
+            result.SavedCount = 1;
             result.Message = $"Avatar saved to NEAR contract storage in transaction {tx}.";
         }
         catch (Exception ex) { HandleRecordSaveError(ref result, $"Error saving avatar to NEAR: {ex.Message}", ex); }
@@ -163,6 +167,7 @@ public partial class NEAROASIS
         var result = new OASISResult<bool>();
         try
         {
+            if (id == Guid.Empty) throw new ArgumentException("A nonempty avatar ID is required.", nameof(id));
             if (!await EnsureSdkActiveAsync(result)) return result;
             if (softDelete)
             {
@@ -177,10 +182,11 @@ public partial class NEAROASIS
             }
             else
             {
-                await DeleteStoredVersionsAsync($"avatar:{id:D}");
-                await _sdk.DeleteAsync($"avatar:{id:D}");
+                await _sdk.DeleteAvatarRecordsAsync(id);
             }
             result.Result = true;
+            result.IsDeleted = true;
+            result.DeletedCount = 1;
             result.Message = softDelete ? "Avatar tombstone saved to NEAR contract storage." : "Avatar removed from NEAR contract storage.";
         }
         catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error deleting avatar from NEAR: {ex.Message}", ex); }
@@ -194,6 +200,8 @@ public partial class NEAROASIS
         {
             if (!await EnsureSdkActiveAsync(result)) return result;
             result.Result = (await ReadStoredVersionsAsync<Avatar>("avatar:", version)).Cast<IAvatar>().ToList();
+            result.IsLoaded = true;
+            result.LoadedCount = result.Result.Count();
         }
         catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error loading avatars from NEAR: {ex.Message}", ex); }
         return result;
@@ -205,12 +213,14 @@ public partial class NEAROASIS
         try
         {
             if (!await EnsureSdkActiveAsync(result)) return result;
-            var holon = await ReadStoredVersionAsync<Holon>($"holon:{id:D}", id, version);
+            var holon = await ReadStoredVersionAsync<Holon>(HolonRecordKey(id), id, version);
             if (holon == null)
                 return new OASISResult<IHolon>(null) { Message = $"Holon {id} was not found on NEAR." };
             if (holon?.IsDeleted == true)
                 return new OASISResult<IHolon>(null) { Message = $"Holon {id} is deleted on NEAR." };
             result.Result = holon;
+            result.IsLoaded = true;
+            result.LoadedCount = 1;
             result.Message = "Holon loaded from NEAR contract storage.";
         }
         catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error loading holon from NEAR: {ex.Message}", ex); }
@@ -228,12 +238,13 @@ public partial class NEAROASIS
             var snapshot = PrepareRecordSnapshot<Holon>(publication.Proposal);
             if (!await EnsureSdkActiveAsync(result)) return result;
             publication.ValidateUnchanged();
-            var tx=await WriteObservedRecordAsync($"holon:{snapshot.Id:D}",snapshot,history,plannedHolon);
+            var tx=await WriteObservedRecordAsync(HolonRecordKey(snapshot.Id),snapshot,history,plannedHolon);
             recordAcknowledgement?.Invoke(tx);
             PublishRecordStamp(holon,snapshot,publication.ValidateUnchanged,tx);
             if(holon is Holon source)source.ChildRoleManifestJson=snapshot.ChildRoleManifestJson;
             result.Result = holon;
             result.IsSaved=true;
+            result.SavedCount = 1;
             result.Message = $"Holon saved to NEAR contract storage in transaction {tx}.";
         }
         catch (Exception ex) { HandleRecordSaveError(ref result, $"Error saving holon to NEAR: {ex.Message}", ex); }
@@ -254,6 +265,8 @@ public partial class NEAROASIS
             var saved = await SaveHolonRecordAsync(loaded.Result);
             if (saved.IsError) return saved;
             result.Result = saved.Result;
+            result.IsDeleted = true;
+            result.DeletedCount = 1;
             result.Message = "Holon tombstone saved to NEAR contract storage.";
         }
         catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error deleting holon from NEAR: {ex.Message}", ex); }
@@ -267,6 +280,8 @@ public partial class NEAROASIS
         {
             if (!await EnsureSdkActiveAsync(result)) return result;
             result.Result = (await ReadStoredVersionsAsync<Holon>("holon:", version)).Cast<IHolon>().ToList();
+            result.IsLoaded = true;
+            result.LoadedCount = result.Result.Count();
             result.Message = "Holons loaded from NEAR contract storage.";
         }
         catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error loading holons from NEAR: {ex.Message}", ex); }
@@ -285,6 +300,8 @@ public partial class NEAROASIS
             if (detail?.IsDeleted == true)
                 return new OASISResult<IAvatarDetail>(null) { Message = $"Avatar detail {id} is deleted on NEAR." };
             result.Result = detail;
+            result.IsLoaded = true;
+            result.LoadedCount = 1;
             result.Message = "Avatar detail loaded from NEAR contract storage.";
         }
         catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail from NEAR: {ex.Message}", ex); }
@@ -306,6 +323,7 @@ public partial class NEAROASIS
             PublishRecordStamp(detail,snapshot,publication.ValidateUnchanged,tx);
             result.Result = detail;
             result.IsSaved=true;
+            result.SavedCount = 1;
             result.Message = $"Avatar detail saved to NEAR contract storage in transaction {tx}.";
         }
         catch (Exception ex) { HandleRecordSaveError(ref result, $"Error saving avatar detail to NEAR: {ex.Message}", ex); }
@@ -319,6 +337,8 @@ public partial class NEAROASIS
         {
             if (!await EnsureSdkActiveAsync(result)) return result;
             result.Result = (await ReadStoredVersionsAsync<AvatarDetail>("avatar-detail:", version)).Cast<IAvatarDetail>().ToList();
+            result.IsLoaded = true;
+            result.LoadedCount = result.Result.Count();
             result.Message = "Avatar details loaded from NEAR contract storage.";
         }
         catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error loading avatar details from NEAR: {ex.Message}", ex); }

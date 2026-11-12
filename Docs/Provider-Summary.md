@@ -1,8 +1,12 @@
 # OASIS Provider Summary
 
-_222 working providers across 9 categories — last updated: 2026-10-02 (implementation audit)_
+The OASIS inventory lists **234 shipping provider projects** as of 11 November 2026. That includes 178 storage and specialized-storage projects and 56 non-storage projects. Alternate implementations count separately. Consult the [provider matrix](WIP/HyperDrive-Providers/PROVIDER_MATRIX.md) for backend verification by project and capability.
 
-> Provider count is derived directly from the `Providers/` directory tree.
+The public registries list the same 234 projects. [Web4Site registry](https://web4.oasisomniverse.one/providers.html) · [OASIS Web4 registry](https://www.oasisweb4.com/providers)
+
+See how the inventory is organized and where to find verification evidence. [OASIS Docs provider overview](https://docs.oasisomniverse.one/providers/overview) · [OASIS Learn provider guide](https://learn.oasisomniverse.one/tutorials/08-providers-production)
+
+The category breakdown below records the 2 October 2026 implementation audit.
 > A provider is counted only if its folder contains a buildable provider class. Packaging variants, libraries, commented-out shells and retired providers are listed under [Not counted](#not-counted) instead.
 > Each provider lives in exactly one canonical folder; the Ceramic and Moralis duplicates in `Network/` were removed on 2026-10-02 in favour of the more complete `Blockchain/` copies.
 
@@ -26,7 +30,7 @@ Each provider also has a `ProviderCapabilities` list (secondary capabilities —
 | Social | `Social` | 12 |
 | Storage | `Storage` (most) · `StorageLocal` (LocalFile, SQLite, DuckDB) | 64 |
 
-**Total working providers: 222**
+**October audit total: 222**
 
 ---
 

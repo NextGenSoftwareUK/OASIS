@@ -3,10 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.Json.Nodes;
+using System.IO;
 using System.Threading.Tasks;
+using System.Threading;
 using SurrealDb.Net;
 using SurrealDb.Net.Models;
-using SurrealDb.Net.Models.Auth;
+using Microsoft.Extensions.DependencyInjection;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
@@ -39,7 +42,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS
     ///   ns        — SurrealDB namespace (e.g. "oasis")
     ///   db        — SurrealDB database (e.g. "oasis")
     /// </summary>
-    public class SurrealDBOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
+    public partial class SurrealDBOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
     {
         private readonly string _endpoint;
         private readonly string _username;
@@ -67,12 +70,23 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
         }
 
-        private async Task<SurrealDbClient> GetClientAsync()
+        private async Task<SurrealDbClient> GetClientAsync(CancellationToken cancellationToken = default)
         {
-            var client = new SurrealDbClient(_endpoint);
-            await client.SignIn(new RootAuth { Username = _username, Password = _password });
-            await client.Use(_ns, _db);
-            return client;
+            var client = new SurrealDbClient(new SurrealDbOptions
+            {
+                Endpoint = _endpoint, Namespace = _ns, Database = _db,
+                Username = _username, Password = _password, AuthLevel = "Root"
+            });
+            try
+            {
+                await client.Connect(cancellationToken);
+                return client;
+            }
+            catch
+            {
+                await client.DisposeAsync();
+                throw;
+            }
         }
 
         private static string Ser(object obj) => JsonSerializer.Serialize(obj, _jsonOpts);
@@ -112,8 +126,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS
             var result = new OASISResult<bool>();
             try
             {
-                // Just verify connection works
+                // Activation state belongs to the acknowledged configured connection.
+                IsProviderActivated = false;
                 await using var client = await GetClientAsync();
+                var schema = await client.RawQuery("DEFINE TABLE IF NOT EXISTS oasis_holons SCHEMALESS; DEFINE TABLE IF NOT EXISTS oasis_avatars SCHEMALESS; DEFINE TABLE IF NOT EXISTS oasis_avatar_details SCHEMALESS;");
+                schema.EnsureAllOks();
+                IsProviderActivated = true;
                 result.Result = true; result.IsError = false;
                 result.Message = "SurrealDBOASIS activated — connected to SurrealDB.";
             }
@@ -122,7 +140,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS
         }
 
         public override OASISResult<bool> ActivateProvider() => ActivateProviderAsync().Result;
-        public override async Task<OASISResult<bool>> DeActivateProviderAsync() => await Task.FromResult(new OASISResult<bool> { Result = true, IsError = false, Message = "SurrealDBOASIS deactivated." });
+        public override Task<OASISResult<bool>> DeActivateProviderAsync()
+        {
+            IsProviderActivated = false;
+            return Task.FromResult(new OASISResult<bool> { Result = true, Message = "SurrealDBOASIS deactivated." });
+        }
         public override OASISResult<bool> DeActivateProvider() => DeActivateProviderAsync().Result;
 
         // ─── Avatar saving ────────────────────────────────────────────────────────
@@ -154,7 +176,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS
             try
             {
                 await using var client = await GetClientAsync();
-                var rec = await client.Select<AvatarRecord>(new StringRecordId($"oasis_avatars:{id.ToString()}"));
+                var rec = await client.Select<AvatarRecord>(RecordId.From("oasis_avatars", id.ToString("D")));
                 if (rec == null || rec.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"SurrealDBOASIS: No avatar for ID '{id}'."); return result; }
                 var avatar = Des<Avatar>(rec.DataJson);
                 if (avatar == null) { OASISErrorHandling.HandleError(ref result, $"SurrealDBOASIS: Failed to deserialise avatar '{id}'."); return result; }
@@ -235,12 +257,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS
                 await using var client = await GetClientAsync();
                 if (softDelete)
                 {
-                    var rec = await client.Select<AvatarRecord>(new StringRecordId($"oasis_avatars:{id.ToString()}"));
+                    var rec = await client.Select<AvatarRecord>(RecordId.From("oasis_avatars", id.ToString("D")));
                     if (rec == null) { OASISErrorHandling.HandleError(ref result, $"SurrealDBOASIS: Avatar '{id}' not found."); return result; }
                     var av = Des<Avatar>(rec.DataJson); if (av != null) { av.DeletedDate = DateTime.UtcNow; await SaveAvatarAsync(av); }
                     else { rec.IsDeleted = true; await client.Upsert(rec); }
                 }
-                else { await client.Delete(new StringRecordId($"oasis_avatars:{id.ToString()}")); }
+                else { await client.Delete(RecordId.From("oasis_avatars", id.ToString("D"))); }
                 result.Result = true; result.IsError = false; result.Message = $"SurrealDBOASIS: Avatar '{id}' deleted.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SurrealDBOASIS: {ex.Message}"); }
@@ -281,9 +303,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS
             try
             {
                 await using var client = await GetClientAsync();
-                var rec = await client.Select<DetailRecord>(new StringRecordId($"oasis_avatar_details:{id.ToString()}"));
+                var rec = await client.Select<DetailRecord>(RecordId.From("oasis_avatar_details", id.ToString("D")));
                 if (rec == null) { OASISErrorHandling.HandleError(ref result, $"SurrealDBOASIS: No detail for ID '{id}'."); return result; }
-                var d = Des<AvatarDetail>(rec.DataJson); if (d == null) { OASISErrorHandling.HandleError(ref result, "SurrealDBOASIS: Deserialise failed."); return result; }
+                var d = NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.DeserializeStored<AvatarDetail>(rec.DataJson); if (d == null) { OASISErrorHandling.HandleError(ref result, "SurrealDBOASIS: Deserialise failed."); return result; }
                 result.Result = d; result.IsError = false; result.Message = "SurrealDBOASIS: AvatarDetail loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SurrealDBOASIS: {ex.Message}"); }
@@ -297,7 +319,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS
             await using var client = await GetClientAsync();
             var all = await client.Select<DetailRecord>("oasis_avatar_details");
             var rec = all.FirstOrDefault(predicate);
-            return rec == null ? null : Des<AvatarDetail>(rec.DataJson);
+            return rec == null ? null : NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.DeserializeStored<AvatarDetail>(rec.DataJson);
         }
 
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string u, int version = 0)
@@ -327,7 +349,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS
             {
                 await using var client = await GetClientAsync();
                 var all = await client.Select<DetailRecord>("oasis_avatar_details");
-                var details = all.Select(r => Des<AvatarDetail>(r.DataJson)).Where(d => d != null).Cast<IAvatarDetail>().ToList();
+                var details = all.Select(r => NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.DeserializeStored<AvatarDetail>(r.DataJson)).Where(d => d != null).Cast<IAvatarDetail>().ToList();
                 result.Result = details; result.IsError = false; result.Message = $"SurrealDBOASIS: Loaded {details.Count} detail(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SurrealDBOASIS: {ex.Message}"); }
@@ -343,13 +365,40 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS
             var result = new OASISResult<IHolon>();
             try
             {
-                if (holon.Id == Guid.Empty) holon.Id = Guid.NewGuid();
-                if (holon.ProviderUniqueStorageKey == null) holon.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
-                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.SurrealDBOASIS] = holon.Id.ToString();
+                if (holon == null) throw new ArgumentNullException(nameof(holon));
+                var id = holon.Id == Guid.Empty ? Guid.NewGuid() : holon.Id;
+                var keys = holon.ProviderUniqueStorageKey == null
+                    ? new Dictionary<Core.Enums.ProviderType, string>()
+                    : new Dictionary<Core.Enums.ProviderType, string>(holon.ProviderUniqueStorageKey);
+                keys[Core.Enums.ProviderType.SurrealDBOASIS] = id.ToString("D");
+
+                // Stage the wire identity without changing the caller before native acknowledgement.
+                var payload = JsonSerializer.SerializeToNode(holon, holon.GetType(), _jsonOpts)!.AsObject();
+                payload["id"] = id;
+                payload["providerUniqueStorageKey"] = JsonSerializer.SerializeToNode(keys, _jsonOpts);
+                var rec = new HolonRecord
+                {
+                    Id = SurrealDb.Net.Models.RecordId.From("oasis_holons", id.ToString("D")),
+                    ParentHolonId = holon.ParentHolonId.ToString(),
+                    HolonType = (int)holon.HolonType,
+                    IsDeleted = holon.IsDeleted,
+                    DataJson = payload.ToJsonString(_jsonOpts)
+                };
                 await using var client = await GetClientAsync();
-                var rec = new HolonRecord { Id = SurrealDb.Net.Models.RecordId.From("oasis_holons", holon.Id.ToString()), ParentHolonId = holon.ParentHolonId.ToString(), HolonType = (int)holon.HolonType, IsDeleted = holon.IsDeleted, DataJson = Ser(holon) };
-                await client.Upsert(rec);
-                result.Result = holon; result.IsError = false; result.Message = $"SurrealDBOASIS: Holon '{holon.Name}' saved.";
+                var acknowledged = await client.Upsert(rec);
+                if (acknowledged is null || acknowledged.Id is null ||
+                    acknowledged.Id.ToString() != rec.Id.ToString() ||
+                    Des<Holon>(acknowledged.DataJson)?.Id != id)
+                    throw new InvalidDataException("SurrealDB upsert did not acknowledge the staged holon identity.");
+
+                holon.Id = id;
+                holon.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
+                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.SurrealDBOASIS] = id.ToString("D");
+                result.Result = holon;
+                result.IsSaved = true;
+                result.SavedCount = 1;
+                // HolonManager owns clean-state and revision publication.
+
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SurrealDBOASIS: {ex.Message}"); }
             return result;
@@ -361,8 +410,23 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
             var saved = new List<IHolon>(); var errors = new List<string>();
-            foreach (var h in holons) { var r = await SaveHolonAsync(h, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider); if (r.IsError) errors.Add(r.Message ?? ""); else if (r.Result != null) saved.Add(r.Result); }
-            result.Result = saved; result.IsError = errors.Count > 0; result.Message = errors.Count > 0 ? string.Join("; ", errors) : $"SurrealDBOASIS: {saved.Count} holon(s) saved.";
+            foreach (var h in holons)
+            {
+                var r = await SaveHolonAsync(h, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
+                if (r.IsError)
+                {
+                    errors.Add(r.Message ?? "Native holon save failed.");
+                    if (!continueOnError) break;
+                }
+                else if (r.IsSaved && r.Result != null) saved.Add(r.Result);
+            }
+            result.Result = saved;
+            result.IsError = errors.Count > 0;
+            result.ErrorCount = errors.Count;
+            result.IsSaved = saved.Count > 0;
+            result.SavedCount = saved.Count;
+            result.Message = errors.Count > 0 ? string.Join("; ", errors) : $"SurrealDBOASIS: {saved.Count} holon(s) saved.";
+
             return result;
         }
 
@@ -376,7 +440,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS
             try
             {
                 await using var client = await GetClientAsync();
-                var rec = await client.Select<HolonRecord>(new StringRecordId($"oasis_holons:{id.ToString()}"));
+                var rec = await client.Select<HolonRecord>(RecordId.From("oasis_holons", id.ToString("D")));
                 if (rec == null || rec.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"SurrealDBOASIS: No holon for ID '{id}'."); return result; }
                 var holon = Des<Holon>(rec.DataJson); if (holon == null) { OASISErrorHandling.HandleError(ref result, "SurrealDBOASIS: Deserialise failed."); return result; }
                 result.Result = holon; result.IsError = false; result.Message = "SurrealDBOASIS: Holon loaded.";

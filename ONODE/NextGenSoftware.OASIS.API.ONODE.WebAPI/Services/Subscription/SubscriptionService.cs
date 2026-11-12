@@ -13,8 +13,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
     {
         private readonly ISubscriptionUsageRepository _usageRepository;
         private readonly ISubscriptionBillingRepository _billing;
-        public SubscriptionService(ILogger<SubscriptionService> logger, ISubscriptionUsageRepository usageRepository, ISubscriptionBillingRepository billing)
-        { _usageRepository = usageRepository; _billing = billing; }
+        private readonly TimeProvider _clock;
+        private readonly ILogger<SubscriptionService> _logger;
+        public SubscriptionService(ILogger<SubscriptionService> logger, ISubscriptionUsageRepository usageRepository, ISubscriptionBillingRepository billing,
+            TimeProvider clock = null)
+        { _logger = logger; _usageRepository = usageRepository; _billing = billing; _clock = clock ?? TimeProvider.System; }
 
         public Task<SubscriptionRecord> GetSubscriptionAsync(string userId) => _billing.GetSubscriptionAsync(userId);
         public Task<SubscriptionRecord> GetSubscriptionByStripeCustomerIdAsync(string stripeCustomerId) => _billing.FindSubscriptionAsync(stripeCustomerId, true);
@@ -32,8 +35,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
             var aggregate = await _usageRepository.GetAggregateForPeriodAsync(userId, new DateTime(year, month, 1, 0, 0, 0, DateTimeKind.Utc), CancellationToken.None);
             return new UsageRecord { UserId = userId, Year = year, Month = month, RequestCount = aggregate.MonthlyRequests, LastUpdated = aggregate.UpdatedAtUtc };
         }
+        public Task<SubscriptionAuthorizationDecision> AuthorizeUsageAsync(
+            string userId, int karma, UsageAuthorizationRequest request, CancellationToken cancellationToken) =>
+            AuthorizeUsageAsync(userId, karma, request, null, cancellationToken);
+
         public async Task<SubscriptionAuthorizationDecision> AuthorizeUsageAsync(
-            string userId, int karma, UsageAuthorizationRequest request, CancellationToken cancellationToken)
+            string userId, int karma, UsageAuthorizationRequest request, AppAccountRecord app, CancellationToken cancellationToken)
         {
             if (!Guid.TryParse(userId, out var avatarId))
                 return Denied(401, "INVALID_AVATAR", "The authenticated avatar ID is invalid.");
@@ -46,10 +53,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
             if (!SubscriptionServiceIdentity.IsService(normalizedService))
                 return Denied(400, "INVALID_CONSUMING_SERVICE", "ConsumingService must be a supported WEB4-WEB10 ledger identity.");
 
-            var now = DateTime.UtcNow;
+            var now = _clock.GetUtcNow().UtcDateTime;
             var usageEvent = new SubscriptionUsageEvent
             {
                 OperationId = request.OperationId,
+                AppId = app?.AppId,
+                AppPlanId = app == null ? null : AppAccountRules.UsesPool(app) ? AppAccountRules.PerUserPlan(app) : app.PlanId,
+                PooledAppId = AppAccountRules.UsesPool(app) ? app.AppId : null,
+                PooledAppPlanId = AppAccountRules.UsesPool(app) ? app.PlanId : null,
                 UserId = userId,
                 ConsumingService = normalizedService,
                 Endpoint = request.Endpoint?.Trim(),
@@ -62,6 +73,30 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
                 ExpiresAtUtc = now.AddMinutes(15),
                 AuthorizedAtUtc = now
             };
+
+            // Every avatar is entitled to the free plan. Avatars created through plain registration have no
+            // subscription record, which made their first write fail with SUBSCRIPTION_REQUIRED. Provision the
+            // free plan on first use. SaveSubscriptionAsync is idempotent for an existing free plan and refuses
+            // to overwrite a paid one, and a failure here falls through to the normal denial below.
+            if (Guid.TryParseExact(userId, "D", out _))
+            {
+                try
+                {
+                    if (await _billing.GetSubscriptionAsync(userId) == null)
+                        await _billing.SaveSubscriptionAsync(new SubscriptionRecord
+                        {
+                            UserId = userId,
+                            PlanId = "free",
+                            Status = "active",
+                            CurrentPeriodStart = now,
+                            CurrentPeriodEnd = now.AddYears(10)
+                        });
+                }
+                catch (Exception ex)
+                {
+                    _logger?.LogWarning(ex, "Could not auto-provision the free plan for avatar {AvatarId}.", userId);
+                }
+            }
 
             try
             {
@@ -99,7 +134,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
         {
             if (!Guid.TryParse(userId, out var avatarId)) throw new ArgumentException("Invalid avatar id.", nameof(userId));
             var subscription = await LoadSubscriptionAsync(avatarId) ?? throw new InvalidOperationException("A valid OASIS subscription is required.");
-            var policy = GetUsagePolicy(subscription.PlanId, karma);
+            var policy = SandboxSubscriptionRules.EffectivePolicy(GetUsagePolicy(subscription.PlanId, karma),
+                subscription, _clock.GetUtcNow().UtcDateTime);
             var aggregate = await _usageRepository.GetAggregateAsync(userId, cancellationToken);
             return new SubscriptionUsageSummary
             {

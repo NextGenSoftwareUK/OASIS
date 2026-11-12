@@ -1,0 +1,15 @@
+{
+  "sha256": "4fd29e90bd30fc0da82d1f90f213d01fb32a325018b081e937ecadb517871b31",
+  "packageBytes": 45554,
+  "companionFiles": [
+    "package.json",
+    "package-lock.json",
+    "convex.json",
+    "tsconfig.json",
+    "README.md",
+    "convex/schema.ts",
+    "convex/oasis/records.ts"
+  ],
+  "secretsOrNodeModulesIncluded": false,
+  "disposablePackageRemovedAfterVerification": true
+}
