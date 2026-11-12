@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+12 November HoloOASIS run 43323308845 passed exact native deletion and completed on its disposable Windows CI runner. No local conductor, runtime, database or test report was created.
+
 12 November reproduced the exact Solana CI tree from combined candidate b37daf68dd8c using one temporary Git index. It was removed and verified absent. No local runtime, build or test report was created.
 
 12 November Solana run 43320905435 confirmed removal of its owned Agave runtime, ledger, signer, SQLite files and test output. No local runtime, build or test report was created.

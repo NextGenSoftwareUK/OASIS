@@ -4,7 +4,7 @@
 
 | Priority provider | Existing evidence carried forward | Remaining verification |
 | --- | --- | --- |
-| HoloOASIS | Live public CQL reads and native direct storage. Two acknowledged owner snapshots reached Neo4j. | Live canonical-provider routing and writes. SQLite delivery remains blocked at outbox sequence 543 under COSMIC coordination. Verify eligible failover, selection and replication once the exact bindings are ready. |
+| HoloOASIS | Canonical provider and SQLite passed bidirectional replication and read failover, even RoundRobin, and exact native deletion in sync and async on the official conductor. [Native CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43323308845) | Hosted SQLite outbox sequence 543, live writes, and collection mapping remain open. |
 | Solana | Shared native Agave storage pass. | [Agave and SQLite routing](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43318892483) passed both replication and read failover directions and even RoundRobin in both modes. Exact Development and hosted write verification remain open. The older hosted cohort named Solana exercised MongoDB, SQLite and Neo4j as the routing stores. |
 | MongoDB | Hosted replication and read failover to SQLite. Request-scoped Auto selected MongoDB. Native MongoDB and SQLite cases also exercise RoundRobin. | Exact current hosted revision, eligible write outcomes and broader provider pairings. |
 | SQLite | Hosted replica and read failover to MongoDB. Request-scoped Auto selected SQLite. Native MongoDB and SQLite cases also exercise RoundRobin. | SQL Server pairing passed bidirectional replication and outage failover, plus RoundRobin, against the exact Weaviate Development tree. Hosted coverage and the HoloOASIS outbox remain open. |
