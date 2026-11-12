@@ -117,12 +117,18 @@ namespace NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS
         {
             using var request = new HttpRequestMessage(HttpMethod.Put, $"{_baseUrl}/{index}/_doc/{id}") { Content = Json(obj) };
             using var response = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+            await RequireWriteAcknowledgementAsync(response, index, id, "created", "updated");
+        }
+
+        private static async Task RequireWriteAcknowledgementAsync(HttpResponseMessage response, string index, string id,
+            params string[] outcomes)
+        {
             response.EnsureSuccessStatusCode();
             using var acknowledgement = await ReadNativeResponseAsync(response, 64 * 1024, default);
             var ack = acknowledgement.RootElement;
             if (!MatchesDocument(ack, index, id) ||
                 ack.GetProperty("_version").GetInt64() < 1 || ack.GetProperty("_seq_no").GetInt64() < 0 ||
-                ack.GetProperty("_primary_term").GetInt64() < 1 || ack.GetProperty("result").GetString() is not ("created" or "updated") ||
+                ack.GetProperty("_primary_term").GetInt64() < 1 || !System.Linq.Enumerable.Contains(outcomes, ack.GetProperty("result").GetString()) ||
                 ack.GetProperty("_shards").GetProperty("failed").GetInt32() != 0 ||
                 ack.GetProperty("_shards").GetProperty("successful").GetInt32() < 1)
                 throw new System.IO.InvalidDataException("Native write did not acknowledge the staged identity/revision.");
@@ -131,13 +137,14 @@ namespace NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS
         private async Task DeleteDocAsync(string index, string id)
         {
             using var response = await _http.DeleteAsync($"{_baseUrl}/{index}/_doc/{id}");
-            response.EnsureSuccessStatusCode();
-            using var acknowledgement = await ReadNativeResponseAsync(response, 64 * 1024, default);
-            var ack = acknowledgement.RootElement;
-            if (!MatchesDocument(ack, index, id) || ack.GetProperty("result").GetString() != "deleted" ||
-                ack.GetProperty("_shards").GetProperty("failed").GetInt32() != 0 ||
-                ack.GetProperty("_shards").GetProperty("successful").GetInt32() < 1)
-                throw new System.IO.InvalidDataException("Native delete did not acknowledge the requested document.");
+            await RequireWriteAcknowledgementAsync(response, index, id, "deleted");
+        }
+
+        private async Task TombstoneDocAsync(string index, string id)
+        {
+            using var content = Json(new { doc = new { deletedDate = DateTime.UtcNow, isDeleted = true } });
+            using var response = await _http.PostAsync($"{_baseUrl}/{index}/_update/{id}", content);
+            await RequireWriteAcknowledgementAsync(response, index, id, "updated");
         }
 
         private async Task<List<T>> SearchByTermAsync<T>(string index, string field, string value)
@@ -279,7 +286,7 @@ namespace NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS
             var result = new OASISResult<bool>();
             try
             {
-                if (softDelete) { var load = await LoadAvatarAsync(id); if (!load.IsError && load.Result != null) { var a = (Avatar)load.Result; a.DeletedDate = DateTime.UtcNow; await SaveAvatarAsync(a); } }
+                if (softDelete) { await TombstoneDocAsync(IdxAvatars, id.ToString()); }
                 else { await DeleteDocAsync(IdxAvatars, id.ToString()); }
                 result.Result = true; result.IsError = false; result.Message = $"OpenSearchOASIS: Avatar '{id}' deleted.";
             }
@@ -489,7 +496,9 @@ namespace NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS
             var result = new OASISResult<bool>();
             try
             {
-                if (softDelete) { var load = await LoadHolonAsync(id); if (!load.IsError && load.Result != null) { var h = (Holon)load.Result; h.DeletedDate = DateTime.UtcNow; await SaveHolonAsync(h); } }
+                if (softDelete && IsVersionControlEnabled)
+                    return new OASISResult<bool> { IsError = true, ErrorCount = 1, ErrorCode = "COSMIC_CAPABILITY_UNSUPPORTED", Message = "Version-control writes require a verified native history policy." };
+                if (softDelete) { await TombstoneDocAsync(IdxHolons, id.ToString()); }
                 else { await DeleteDocAsync(IdxHolons, id.ToString()); }
                 result.Result = true; result.IsError = false; result.Message = $"OpenSearchOASIS: Holon '{id}' deleted.";
             }

@@ -10,7 +10,7 @@ namespace NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS.IntegrationTests;
 public class OpenSearchNativeDocumentLifecycleTests
 {
     [TestMethod]
-    public async Task HardDeleteRequiresTheNativeDocumentAcknowledgement()
+    public async Task DeletesRequireNativeDocumentAcknowledgements()
     {
         const string origin = "http://127.0.0.1:19210";
         Assert.AreEqual("owned-ci-19210", Environment.GetEnvironmentVariable("OASIS_OPENSEARCH_DOCUMENT_FIXTURE"));
@@ -48,13 +48,28 @@ public class OpenSearchNativeDocumentLifecycleTests
             Assert.IsTrue(rejected.IsError);
             Assert.IsFalse(rejected.Result);
             Assert.AreEqual(HttpStatusCode.Forbidden, (rejected.Exception as HttpRequestException)?.StatusCode);
+            var rejectedTombstone = await provider.DeleteHolonSoftAsync(holon.Id);
+            Assert.IsTrue(rejectedTombstone.IsError);
+            Assert.IsFalse(rejectedTombstone.Result);
+            Assert.AreEqual(HttpStatusCode.Forbidden, (rejectedTombstone.Exception as HttpRequestException)?.StatusCode);
             using var retained = await client.GetAsync($"/oasis_holons/_doc/{holon.Id:D}");
             Assert.AreEqual(HttpStatusCode.OK, retained.StatusCode);
+            using var retainedBody = JsonDocument.Parse(await retained.Content.ReadAsStringAsync());
+            Assert.IsFalse(retainedBody.RootElement.GetProperty("_source").GetProperty("isDeleted").GetBoolean());
         }
         finally
         {
             await SetWriteBlock(false);
         }
+
+        var tombstone = await provider.DeleteHolonSoftAsync(holon.Id);
+        Assert.IsFalse(tombstone.IsError, tombstone.Message);
+        Assert.IsTrue(tombstone.Result);
+        using var tombstoneBody = JsonDocument.Parse(await client.GetStringAsync($"/oasis_holons/_doc/{holon.Id:D}"));
+        var source = tombstoneBody.RootElement.GetProperty("_source");
+        Assert.IsTrue(source.GetProperty("isDeleted").GetBoolean());
+        Assert.AreEqual(holon.Name, source.GetProperty("name").GetString());
+        Assert.IsNull((await provider.LoadHolonAsync(holon.Id, loadChildren: false)).Result);
 
         var deleted = await provider.DeleteHolonSoftAsync(holon.Id, softDelete: false);
         Assert.IsFalse(deleted.IsError, deleted.Message);
