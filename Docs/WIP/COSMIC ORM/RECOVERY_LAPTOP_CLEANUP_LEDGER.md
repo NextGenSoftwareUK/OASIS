@@ -6404,3 +6404,5 @@ Native federation CI 43157661058 succeeded with owned Mongo database absence ver
 Removed four superseded Urbit CI tags ending 33977c56be, 98fae8117c, 2784481190 and 3aef8cd60a. Retain the successful native federation tag ending 412b95a3db, the current-base qualification tag ending 27d07f280c and Core tag ending 7ea7639c through release verification. No local build, fixture or download. Temporary documentation index removed.
 
 Web4Site EOS/TON card test run used existing Node and temporary exact tracked inputs. All 122 tests passed; the directory and temporary index were removed. No dependencies, logs, packages or runtime retained.
+
+Inspected only Infura setting names through existing Railway authentication. Prepared a one-line Core candidate with a temporary Git index and removed it. No local build, credentials retained, runtime or download.

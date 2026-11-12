@@ -90,3 +90,5 @@ The workflow's authenticated_native input enables one native test after the
 authorized key and secret are available as protected Actions settings. It uses
 the registered reader to verify three finalized accounts and a two-account
 subset, with the exact preset IDs. The native case awaits authorized access.
+
+12 November UTC. Checked the three scoped Infura CQL settings by name only. Neither the recovery laptop nor WEB4 Development has any of them. The existing protected access action remains open. Prepared local Core candidate 9e4ee4a0 on the verified Urbit Core candidate 7ea7639c. It adds only the explicit Infura read tariff and preserves Urbit and TRON. WEB4 reconciliation and exact qualification remain open. No hosted request, tag or Development push.
