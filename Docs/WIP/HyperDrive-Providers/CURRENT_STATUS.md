@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. [Windows HoloOASIS job 131078300096](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43187513738/job/131078300096) again stopped during activation. The harness now reports the returned HoloOASIS error message. The shared Windows fixture runner preserves the CQL mode from Development `279ba0f0a99a`, and its overlay skips provider files unchanged on the task branch so Development's CQL changes remain in the test. The earlier Linux pass remains recorded. Windows and the new Linux baseline check remain open.
+
 12 November Cancun time. [Linux HoloOASIS job 131078300392](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43187513755/job/131078300392) passed on Development `4fef831e0be6` with provider revision `4e2e7ee73eea`. It downloaded official Holochain 0.7.1 through HoloNET, registered, activated and deactivated through BootLoader, reopened the original native app agent, shut down its listener and removed the fixture. Development advanced independently to `279ba0f0a99a` with the native-qualified CQL integration and a changed Core pin. The Linux job now logs the exact staged tree for qualification against the new Development head. Windows and live WEB4 remain open.
 
 12 November Cancun time. Canonical HoloOASIS now tells HoloNET to reuse an installed app when a new provider instance opens the same conductor. The pinned SDK defaults to uninstalling the prior app, which would replace the agent and its storage. The native startup harness now reopens the app through a fresh provider instance and requires the same native agent identity and successful deactivation. Runtime verification remains open.

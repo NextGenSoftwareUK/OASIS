@@ -28,6 +28,8 @@ if (activation.IsError || provider is null || provider.ProviderType?.Value != pr
     || !provider.IsProviderActivated)
 {
     Console.Error.WriteLine($"Activation failed for {providerType}.");
+    if (providerType == ProviderType.HoloOASIS)
+        Console.Error.WriteLine(activation.Message);
     return 1;
 }
 
@@ -39,6 +41,8 @@ var deactivation = await provider.DeActivateProviderAsync();
 if (deactivation.IsError || !deactivation.Result || provider.IsProviderActivated)
 {
     Console.Error.WriteLine($"Deactivation failed for {providerType}.");
+    if (providerType == ProviderType.HoloOASIS)
+        Console.Error.WriteLine(deactivation.Message);
     return 1;
 }
 

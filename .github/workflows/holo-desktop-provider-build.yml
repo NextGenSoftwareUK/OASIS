@@ -73,8 +73,8 @@ jobs:
         shell: pwsh
         run: |
           $PSNativeCommandUseErrorActionPreference = $true
-          # Development integration of the verified Desktop lifecycle.
-          $scopeBase = 'bfa0be4be2339117809eeba784c46a7c4940f100'
+          # This runner baseline already includes the native CQL mode.
+          $runnerBase = '279ba0f0a99a76a68f19f0f03b35ef0a01d0fb58'
           $startupBase = '4fef831e0be670475bcaba71e6b46cf99c22c447'
           $source = '../provider-source'
           $paths = @(
@@ -92,15 +92,13 @@ jobs:
             'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests/HoloOASISIntegrationTests.cs'
             'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests.csproj'
           )
-          git -C $source fetch --no-tags --depth=1 --filter=blob:none origin $scopeBase $startupBase
+          git -C $source fetch --no-tags --depth=1 --filter=blob:none origin $runnerBase $startupBase
           foreach ($path in $paths) {
-            $base = if ($path -eq 'Scripts/test_holonet_live_release.ps1' -or
-              $path -like '*/NextGenSoftware.OASIS.API.Providers.HoloOASIS/HoloOASIS.ActivateDeactivateLoad.cs' -or
-              $path -like '*/NextGenSoftware.OASIS.OASISBootLoader.TestHarness/Program.cs') { $startupBase } else { $scopeBase }
+            $base = if ($path -eq 'Scripts/test_holonet_live_release.ps1') { $runnerBase } else { $startupBase }
             $before = git -C $source ls-tree $base -- $path
             $after = git -C $source ls-tree HEAD -- $path
             $current = git ls-tree HEAD -- $path
-            if ($current -ceq $after) { continue }
+            if ($before -ceq $after -or $current -ceq $after) { continue }
             if ($current -cne $before) { throw "Development has an overlapping change in $path." }
             if (-not $after) { throw "Provider source is missing $path." }
             Copy-Item -LiteralPath (Join-Path $source $path) -Destination $path -Force
@@ -108,6 +106,7 @@ jobs:
             $staged = git ls-files --stage -- $path
             if (($after -split '\s+')[2] -cne ($staged -split '\s+')[1]) { throw "Staged content differs from provider source in $path." }
           }
+          Write-Output "Qualified input tree: $(git write-tree)"
       - name: Read the recorded Libraries revision
         id: dependencies
         shell: bash

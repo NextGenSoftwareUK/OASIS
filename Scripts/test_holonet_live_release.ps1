@@ -6,10 +6,12 @@ param(
     [string]$Configuration = 'Release',
     [string]$DesktopProject,
     [string]$BootLoaderProject,
-    [switch]$HoloConformance
+    [switch]$HoloConformance,
+    [string]$CqlProject
 )
 $ErrorActionPreference = 'Stop'
-if ($BootLoaderProject -and ($DesktopProject -or $HoloConformance)) {
+if (($BootLoaderProject -and ($DesktopProject -or $HoloConformance -or $CqlProject)) -or
+    ($DesktopProject -and $CqlProject)) {
     throw 'Select one provider verification path.'
 }
 if ($HoloConformance -and -not $DesktopProject) {
@@ -53,7 +55,8 @@ if (Test-Path -LiteralPath $fixture) { throw 'Conductor fixture already exists; 
 New-Item -ItemType Directory -Path $fixture | Out-Null
 $fixture = (Resolve-Path -LiteralPath $fixture).Path
 $Happ = (Resolve-Path -LiteralPath $Happ).Path
-if ($DesktopProject) { $DesktopProject = (Resolve-Path -LiteralPath $DesktopProject).Path }
+if ($CqlProject) { $CqlProject = (Resolve-Path -LiteralPath $CqlProject).Path }
+elseif ($DesktopProject) { $DesktopProject = (Resolve-Path -LiteralPath $DesktopProject).Path }
 elseif ($BootLoaderProject) { $BootLoaderProject = (Resolve-Path -LiteralPath $BootLoaderProject).Path }
 else {
     $holonetRoot = Split-Path (Split-Path $Project -Parent) -Parent
@@ -65,12 +68,12 @@ else {
 }
 $ResultsDirectory = (Resolve-Path -LiteralPath $ResultsDirectory).Path
 $saved = @{}
-$names = @('OASIS_HOLOCHAIN_ADMIN_URI', 'OASIS_HOLOCHAIN_REPORT_DIR', 'HOLONET_LIVE_ADMIN_URI', 'HOLONET_LIVE_HAPP_PATH', 'HOLONET_LIVE_CLONE_HAPP_PATH', 'HOLONET_LIVE_MEMPROOFS_HAPP_PATH', 'HOLONET_LIVE_HC_BIN', 'HOLONET_GENERATE_HAPP_TO', 'HOLONET_GENERATE_HAPP_VERSION', 'HOLONET_LIVE_GENERATED_HAPP_DIR', 'HOLONET_LIVE_GENERATED_SRC_DIR')
+$names = @('OASIS_CQL_HOLOOASIS_NATIVE', 'OASIS_HOLOCHAIN_ADMIN_URI', 'OASIS_HOLOCHAIN_REPORT_DIR', 'HOLONET_LIVE_ADMIN_URI', 'HOLONET_LIVE_HAPP_PATH', 'HOLONET_LIVE_CLONE_HAPP_PATH', 'HOLONET_LIVE_MEMPROOFS_HAPP_PATH', 'HOLONET_LIVE_HC_BIN', 'HOLONET_GENERATE_HAPP_TO', 'HOLONET_GENERATE_HAPP_VERSION', 'HOLONET_LIVE_GENERATED_HAPP_DIR', 'HOLONET_LIVE_GENERATED_SRC_DIR')
 foreach ($name in $names) { $saved[$name] = [Environment]::GetEnvironmentVariable($name) }
 $process = $null
 Push-Location $fixture
 try {
-    if (-not ($DesktopProject -or $BootLoaderProject)) {
+    if (-not ($DesktopProject -or $BootLoaderProject -or $CqlProject)) {
         $generated = Join-Path (Split-Path $PSScriptRoot -Parent) 'artifacts/holonet-generated-fixture/package'
         $identity = Get-Content (Join-Path $generated 'manifest.json') -Raw | ConvertFrom-Json
         $clientCommit = (& git -C (Split-Path (Split-Path $Project -Parent) -Parent) rev-parse HEAD).Trim()
@@ -179,6 +182,12 @@ try {
             if (Test-Path -LiteralPath $dnaPath) { Remove-Item -LiteralPath $dnaPath }
         }
     }
+    elseif ($CqlProject) {
+        $env:OASIS_CQL_HOLOOASIS_NATIVE = '1'
+        & dotnet test $CqlProject --configuration $Configuration --filter 'FullyQualifiedName~CqlHoloOasisConductorTests' --logger 'trx;LogFileName=holo-cql-native.trx' --results-directory $ResultsDirectory /m:2 /nr:false /p:UseSharedCompilation=false --blame-hang-timeout 2m --blame-hang-dump-type none
+        if ($LASTEXITCODE -ne 0) { throw 'Native HoloOASIS CQL lifecycle failed.' }
+        Assert-CompleteTestReport (Join-Path $ResultsDirectory 'holo-cql-native.trx') 1
+    }
     elseif ($DesktopProject) {
         $env:OASIS_HOLOCHAIN_ADMIN_URI = $env:HOLONET_LIVE_ADMIN_URI
         $env:OASIS_HOLOCHAIN_REPORT_DIR = $ResultsDirectory
@@ -230,7 +239,7 @@ finally {
     Pop-Location
 }
 
-if ($DesktopProject -or $BootLoaderProject) { return }
+if ($DesktopProject -or $BootLoaderProject -or $CqlProject) { return }
 
 # The upstream lifecycle tests intentionally kill conductor processes. Keep them
 # isolated from the shared-conductor suite, but require their own release report.
