@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. Polkadot and Solana both passed both native routing modes on Ethereum Development 716711320680. Polkadot qualified expected tree f9363d2bd46479cc0a0befe99b053c0434f5411e in run 43325457200. Solana qualified expected tree be588b32617c0a14fe74904a4f10ffa97f02762f in run 43325461947. The combined candidate is 1cb79150df51. The prior push workflows began at 18:01:47 Cancun time, so review the next Development batch after 18:31:47 and verify the current remote and full Railway fleet. HoloOASIS native collection correction run 43327487394 is independent.
+
 12 November Cancun time. [Solana](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43325461947) passed both modes on expected tree be588b32617c0a14fe74904a4f10ffa97f02762f and verified Agave teardown. [HoloOASIS collection check](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43326086808) reproduced a missing mapped identity in both modes with entry bytes and action hash present. The collection reader now takes the UUID from the native entry field map, which is scoped to the entry rather than the record envelope. Native CI will verify the correction.
 
 12 November 18:08 Cancun time. Independently reproduced the expected Polkadot tree f9363d2bd46479cc0a0befe99b053c0434f5411e and Solana tree be588b32617c0a14fe74904a4f10ffa97f02762f from combined candidate 1cb79150df51 and Ethereum parent 716711320680. Compare these to the two native qualification logs before integration. The preceding Railway fleet had four successful and three pending deployments during this check.
