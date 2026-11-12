@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+12 November Solana run 43320905435 confirmed removal of its owned Agave runtime, ledger, signer, SQLite files and test output. No local runtime, build or test report was created.
+
 12 November Polkadot run 43320904876 removed its owned Binaryen and Substrate fixtures and MongoDB outbox container and volumes. The temporary index for c7cddf103ef5 was removed and verified absent. No local runtime, build or test report was created.
 
 12 November canonical HoloOASIS routing uses a disposable hosted conductor and SQLite files under the runner results directory. The temporary index for combined audit-trail Development candidate b37daf68dd8c was removed and verified absent. No local build, runtime or reports were created.
