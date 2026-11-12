@@ -61,6 +61,7 @@ CS_SDK_RULES=[
  ('OCI Object Storage SDK',r'\bOci\.ObjectstorageService\b',r'\.(?:GetObject|PutObject|ListObjects|DeleteObject)\('),
  ('StackExchange.Redis',r'\bStackExchange\.Redis\b',r'\bConnectionMultiplexer\.(?:Connect|ConnectAsync)\(|\.(?:StringGetAsync|StringSetAsync|ScriptEvaluateAsync)\('),
  ('Microsoft.Data.SqlClient',r'\bMicrosoft\.Data\.SqlClient\b',r'new\s+SqlConnection\b|\bSqlConnection\s+\w+\s*=\s*new\s*\('),
+ ('Nethereum signature verifier',r'\bNethereum\.Signer\b',r'new\s+EthereumMessageSigner\s*\(\)\.EcRecover\('),
  ('Nethereum',r'\bNethereum\b',r'CreateWeb3WithAccount\s*\(|\.Eth\.[\w.]+(?:SendRequestAsync|SendTransactionAsync)\s*\(|new\s+(?:Nethereum\.Web3\.)?Web3\b'),
  ('MongoDB.Driver',r'MongoDB\.Driver|\bIMongoDatabase\b',r'new\s+MongoClient\b|\.MongoClient\.(?:GetDatabase|StartSessionAsync)|\.(?:FindAsync|InsertOneAsync|ReplaceOneAsync)\('),
  ('AWS S3 SDK',r'Amazon\.S3|\bIAmazonS3\b',r'AmazonS3Client|\.(?:GetObjectAsync|PutObjectAsync|ListObjectsV2Async)\('),
@@ -193,20 +194,31 @@ def build():
   else:
    status='Not run (capability-v1)' if role=='Non-storage' else 'Not run'
    if not blockers:blockers.append('Capability identity/activation/read-only probe pending; storage suite N/A' if role=='Non-storage' else 'Shared-suite adapter/run pending')
+  supplementary=registry.get('supplementaryConformance',{}).get(name)
+  if supplementary:
+   status=supplementary if status=='Not run (capability-v1)' else f'{status}; {supplementary}'
   gap=reviewed_sdk_gap(name,project) if not sdk else None
   if gap:blockers.append(gap)
   elif not sdk:blockers.append('Real SDK/API not yet source-reviewed')
   sdk_text='Yes - '+', '.join(sdk) if sdk else ('No - reviewed missing adapter' if gap else 'No - unverified')
   blockers=list(dict.fromkeys(blockers))
   rows.append(f"| [{name}](../../../{rel.as_posix()}) | {role} | {sdk_text} | {status} | {'; '.join(blockers) or 'None recorded within suite scope'} |")
+ native_reports=sum(
+  entry['mode']=='native' and entry['suite']==registry['currentCoreSuite']
+  and entry['passed']==entry['total']==52 and name not in ci_evidence and name not in obsolete
+  for name,entry in evidence.items()
+ )
+ native_ci=sum(name not in obsolete for name in ci_evidence)
  header=f'''# Provider breadth-first status matrix
 
 Inventory covers **{len(rows)} shipping provider projects** using the selection rules in `Scripts/Providers/update_provider_matrix.py`.
 
-Obsolete compatibility wrappers remain in the project inventory and are marked in the conformance column.
+Obsolete compatibility wrappers remain in the inventory. Ongoing HoloOASIS acceptance is tracked under the canonical provider.
 Current roles: **{sum("| Non-storage |" in row for row in rows)} non-storage**, **{sum("| Non-storage |" not in row for row in rows)} storage/specialized-storage**. SDK/API source evidence remains unverified for **{sum("| No - unverified |" in row for row in rows)}** providers; **{sum("| No - reviewed missing adapter |" in row for row in rows)}** have hash-bound source reviews proving the current adapter is missing.
 
 Current required storage suite: **{registry.get('currentCoreSuite','core-storage-v1')}**. Earlier-suite totals remain historical and do not establish a current-suite pass.
+
+The [evidence registry](CONFORMANCE_RESULTS.json) records **{native_reports + native_ci}** native shared-storage passes across **{native_reports}** hash-bound reports and **{native_ci}** verified CI runs. Each pass applies to its recorded backend and revision.
 
 One row per provider project; tests/harness/demo and provider-template projects excluded. Alternate implementations remain separate rows. Non-storage providers require capability review rather than disappearing.
 
@@ -219,7 +231,7 @@ Family order: EVM, SQL (Oracle priority), Document (AWS priority), key-value/obj
 | Family | Shared owner | Breadth work | Time-box |
 |---|---|---|---|
 | EVM | Existing Nethereum Web3CoreOASISBaseProvider | Ethereum/Arbitrum/Polygon V2 share one base; 4factory controls/BootLoader build pass, 6native cases blocked by local config | Started 26 Oct; ~1 day |
-| SQL | PostgreSqlFamilyProviderBase reusing canonical PostgreSQLOASIS / Npgsql | PostgreSQL and Oracle v2 native52/52PASS; PostgreSQL shared collection counts fixed with original-fixture read2PASS; Cockroach/Timescale/Neon thin facades; DuckDB native52/52, MotherDuck shares DuckDB policy (cloud open), other product-native runs pending | Foundation started 26 Oct; ~1 day |
+| SQL | PostgreSqlFamilyProviderBase reusing canonical PostgreSQLOASIS / Npgsql | PostgreSQL and Oracle v2 native52/52PASS; PostgreSQL shared collection counts fixed with original-fixture read2PASS; Official Neon compute and Supabase PostgREST passed 52/52 with verified fixture cleanup; hosted Neon pooled TLS and hosted Supabase remain open. DuckDB passed 52/52; MotherDuck cloud acceptance remains open | Foundation started 26 Oct; ~1 day |
 | Document | Existing Mongo/Azure Cosmos/Firestore owners; DynamoDB owner for AWS alias + shared record policy | Mongo, Azure Cosmos, Google Firestore, AWS alias and DynamoDB native52/52PASS each; AWS official SDK on local3.3.2/new synthetic store, all5native tables empty; historical data not restored/cloud acceptance pending; Convex native52/52 on official retained engine with shared encrypted policy and real companion; Firebase RTDB 4.11.2 native52/52 with an empty namespace after each mode | Started 26 Oct; ~1 day |
 | Key-value/object | Existing KeyValueStorageProviderBase / S3StorageProviderBase / native transports | Redis v2 and hosted Upstash REST native52/52PASS each; Valkey 9.0.4 native 52/52; KeyDB and Dragonfly native smoke passed, full lifecycle pending; Garnet 2.2.5 has split native lifecycle evidence; AWSS3 adapter native52/52 on CI MinIO; shipping MinIO shared S3 facade native52/52; ThreeFold52/52CONTROLLED/QSS gates open | Started 26 Oct; ~1 day |
 | IPFS/content-addressed | Existing IPFS owner + encrypted record policy; distinct pin/Lotus transports | IPFS native52/52 summary recovered with exact registry hash; retained runtime/key/lifecycle acceptance remains separate; Pinata/Filecoin record-contract gaps recorded before extraction | Started 26 Oct; ~1 day |
