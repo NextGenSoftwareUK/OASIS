@@ -15,6 +15,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
+using NextGenSoftware.OASIS.API.Core.Serialization;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 
@@ -69,7 +70,9 @@ namespace NextGenSoftware.OASIS.API.Providers.QdrantOASIS
         }
 
         private static string Ser(object o) => JsonSerializer.Serialize(o, _jsonOpts);
-        private static T? Des<T>(string? json) => json == null ? default : JsonSerializer.Deserialize<T>(json, _jsonOpts);
+        private static T? Des<T>(string? json) => json == null ? default
+            : typeof(T) == typeof(AvatarDetail) ? StoredRecordJson.DeserializeStored<T>(json)
+            : JsonSerializer.Deserialize<T>(json, _jsonOpts);
 
         // ─── Qdrant REST helpers ──────────────────────────────────────────────────
 
@@ -232,17 +235,30 @@ namespace NextGenSoftware.OASIS.API.Providers.QdrantOASIS
             var result = new OASISResult<IAvatar>();
             try
             {
-                if (avatar.Id == Guid.Empty) avatar.Id = Guid.NewGuid();
-                if (avatar.ProviderUniqueStorageKey == null) avatar.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
-                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.QdrantOASIS] = avatar.Id.ToString();
-                await UpsertPointAsync("oasis_avatars", avatar.Id.ToString(), new Dictionary<string, object?>
+                ArgumentNullException.ThrowIfNull(avatar);
+                var id = avatar.Id == Guid.Empty ? Guid.NewGuid() : avatar.Id;
+                var key = id.ToString("D");
+                var keys = avatar.ProviderUniqueStorageKey == null
+                    ? new Dictionary<Core.Enums.ProviderType, string>()
+                    : new Dictionary<Core.Enums.ProviderType, string>(avatar.ProviderUniqueStorageKey);
+                keys[Core.Enums.ProviderType.QdrantOASIS] = key;
+                var document = JsonSerializer.SerializeToNode(avatar, avatar.GetType(), _jsonOpts)!.AsObject();
+                document["id"] = id;
+                document["providerUniqueStorageKey"] = JsonSerializer.SerializeToNode(keys, _jsonOpts);
+                await UpsertPointAsync("oasis_avatars", key, new Dictionary<string, object?>
                 {
                     ["username"] = avatar.Username,
                     ["email"] = avatar.Email,
                     ["is_deleted"] = avatar.IsDeleted,
-                    ["data_json"] = Ser(avatar)
+                    ["data_json"] = document.ToJsonString(_jsonOpts)
                 });
-                result.Result = avatar; result.IsError = false; result.Message = $"QdrantOASIS: Avatar '{avatar.Username}' saved.";
+                avatar.Id = id;
+                avatar.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
+                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.QdrantOASIS] = key;
+                result.Result = avatar;
+                result.IsSaved = true;
+                result.SavedCount = 1;
+                result.Message = $"QdrantOASIS: Avatar '{avatar.Username}' saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"QdrantOASIS: {ex.Message}"); }
             return result;
@@ -260,7 +276,7 @@ namespace NextGenSoftware.OASIS.API.Providers.QdrantOASIS
                 var point = await GetPointAsync("oasis_avatars", id.ToString());
                 if (point == null || GetPayloadBool(point.Value, "is_deleted")) { OASISErrorHandling.HandleError(ref result, $"QdrantOASIS: No avatar for ID '{id}'."); return result; }
                 var avatar = Des<Avatar>(GetPayloadStr(point.Value, "data_json")); if (avatar == null) { OASISErrorHandling.HandleError(ref result, "QdrantOASIS: Deserialise failed."); return result; }
-                result.Result = avatar; result.IsError = false; result.Message = "QdrantOASIS: Avatar loaded.";
+                result.Result = avatar; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "QdrantOASIS: Avatar loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"QdrantOASIS: {ex.Message}"); }
             return result;
@@ -279,7 +295,7 @@ namespace NextGenSoftware.OASIS.API.Providers.QdrantOASIS
         public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string username, int version = 0)
         {
             var result = new OASISResult<IAvatar>();
-            try { var a = await ScanAvatarsAsync(p => GetPayloadStr(p, "username") == username); if (a == null) { OASISErrorHandling.HandleError(ref result, $"QdrantOASIS: No avatar for username '{username}'."); return result; } result.Result = a; result.IsError = false; result.Message = "QdrantOASIS: Avatar loaded."; }
+            try { var a = await ScanAvatarsAsync(p => GetPayloadStr(p, "username") == username); if (a == null) { OASISErrorHandling.HandleError(ref result, $"QdrantOASIS: No avatar for username '{username}'."); return result; } result.Result = a; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "QdrantOASIS: Avatar loaded."; }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"QdrantOASIS: {ex.Message}"); }
             return result;
         }
@@ -289,7 +305,7 @@ namespace NextGenSoftware.OASIS.API.Providers.QdrantOASIS
         public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string email, int version = 0)
         {
             var result = new OASISResult<IAvatar>();
-            try { var a = await ScanAvatarsAsync(p => GetPayloadStr(p, "email") == email); if (a == null) { OASISErrorHandling.HandleError(ref result, $"QdrantOASIS: No avatar for email '{email}'."); return result; } result.Result = a; result.IsError = false; result.Message = "QdrantOASIS: Avatar loaded."; }
+            try { var a = await ScanAvatarsAsync(p => GetPayloadStr(p, "email") == email); if (a == null) { OASISErrorHandling.HandleError(ref result, $"QdrantOASIS: No avatar for email '{email}'."); return result; } result.Result = a; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "QdrantOASIS: Avatar loaded."; }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"QdrantOASIS: {ex.Message}"); }
             return result;
         }
@@ -349,9 +365,21 @@ namespace NextGenSoftware.OASIS.API.Providers.QdrantOASIS
             var result = new OASISResult<IAvatarDetail>();
             try
             {
-                if (d.Id == Guid.Empty) d.Id = Guid.NewGuid();
-                await UpsertPointAsync("oasis_avatar_details", d.Id.ToString(), new Dictionary<string, object?> { ["username"] = d.Username, ["email"] = d.Email, ["data_json"] = Ser(d) });
-                result.Result = d; result.IsError = false; result.Message = "QdrantOASIS: AvatarDetail saved.";
+                ArgumentNullException.ThrowIfNull(d);
+                var id = d.Id == Guid.Empty ? Guid.NewGuid() : d.Id;
+                var document = JsonSerializer.SerializeToNode(d, d.GetType(), _jsonOpts)!.AsObject();
+                document["id"] = id;
+                await UpsertPointAsync("oasis_avatar_details", id.ToString("D"), new Dictionary<string, object?>
+                {
+                    ["username"] = d.Username,
+                    ["email"] = d.Email,
+                    ["data_json"] = document.ToJsonString(_jsonOpts)
+                });
+                d.Id = id;
+                result.Result = d;
+                result.IsSaved = true;
+                result.SavedCount = 1;
+                result.Message = "QdrantOASIS: AvatarDetail saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"QdrantOASIS: {ex.Message}"); }
             return result;
@@ -367,7 +395,7 @@ namespace NextGenSoftware.OASIS.API.Providers.QdrantOASIS
                 var point = await GetPointAsync("oasis_avatar_details", id.ToString());
                 if (point == null) { OASISErrorHandling.HandleError(ref result, $"QdrantOASIS: No detail for ID '{id}'."); return result; }
                 var d = Des<AvatarDetail>(GetPayloadStr(point.Value, "data_json")); if (d == null) { OASISErrorHandling.HandleError(ref result, "QdrantOASIS: Deserialise failed."); return result; }
-                result.Result = d; result.IsError = false; result.Message = "QdrantOASIS: AvatarDetail loaded.";
+                result.Result = d; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "QdrantOASIS: AvatarDetail loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"QdrantOASIS: {ex.Message}"); }
             return result;
@@ -377,9 +405,9 @@ namespace NextGenSoftware.OASIS.API.Providers.QdrantOASIS
 
         private async Task<AvatarDetail?> ScanDetailsAsync(Func<JsonElement, bool> pred) { var pts = await ScrollAsync("oasis_avatar_details"); var p = pts.FirstOrDefault(pred); return p.ValueKind == JsonValueKind.Undefined ? null : Des<AvatarDetail>(GetPayloadStr(p, "data_json")); }
 
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string u, int version = 0) { var result = new OASISResult<IAvatarDetail>(); try { var d = await ScanDetailsAsync(p => GetPayloadStr(p, "username") == u); if (d == null) { OASISErrorHandling.HandleError(ref result, $"QdrantOASIS: No detail for username '{u}'."); return result; } result.Result = d; result.IsError = false; result.Message = "QdrantOASIS: AvatarDetail loaded."; } catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"QdrantOASIS: {ex.Message}"); } return result; }
+        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string u, int version = 0) { var result = new OASISResult<IAvatarDetail>(); try { var d = await ScanDetailsAsync(p => GetPayloadStr(p, "username") == u); if (d == null) { OASISErrorHandling.HandleError(ref result, $"QdrantOASIS: No detail for username '{u}'."); return result; } result.Result = d; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "QdrantOASIS: AvatarDetail loaded."; } catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"QdrantOASIS: {ex.Message}"); } return result; }
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string u, int version = 0) => LoadAvatarDetailByUsernameAsync(u, version).Result;
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string e, int version = 0) { var result = new OASISResult<IAvatarDetail>(); try { var d = await ScanDetailsAsync(p => GetPayloadStr(p, "email") == e); if (d == null) { OASISErrorHandling.HandleError(ref result, $"QdrantOASIS: No detail for email '{e}'."); return result; } result.Result = d; result.IsError = false; result.Message = "QdrantOASIS: AvatarDetail loaded."; } catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"QdrantOASIS: {ex.Message}"); } return result; }
+        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string e, int version = 0) { var result = new OASISResult<IAvatarDetail>(); try { var d = await ScanDetailsAsync(p => GetPayloadStr(p, "email") == e); if (d == null) { OASISErrorHandling.HandleError(ref result, $"QdrantOASIS: No detail for email '{e}'."); return result; } result.Result = d; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "QdrantOASIS: AvatarDetail loaded."; } catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"QdrantOASIS: {ex.Message}"); } return result; }
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string e, int version = 0) => LoadAvatarDetailByEmailAsync(e, version).Result;
 
         public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
