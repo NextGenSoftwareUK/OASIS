@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. Prepared TRON candidate b53b3c603d6d on the recovery-based routing stack. Its four qualified inputs match run 43332332675 and do not overlap the COSMIC stack through 52fb8c366232. The recovered Development revision 18f227af493a was still rolling out across all seven services at inspection.
+
 12 November Cancun time. TRON routing CI 43332332675 passed both modes with zero skips on expected tree db6995f8021c171021acd77542fcdfbad3092a70 and removed its disposable TRE fixture. Development advanced to COSMIC WEB4 recovery 18f227af493a. Confirm that rollout before publishing the prepared HyperDrive candidate.
 
 12 November Cancun time. TRON exact Development qualification 43332332675 applies four routing test inputs to shipping Development and uses a disposable TRE node. Independently reproduced expected tree db6995f8021c171021acd77542fcdfbad3092a70 on 716711320680. The retained transaction and its original ledger are outside this fixture.
