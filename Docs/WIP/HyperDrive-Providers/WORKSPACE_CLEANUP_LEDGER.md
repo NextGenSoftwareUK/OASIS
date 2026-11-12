@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+12 November Supabase routing run 43296247756 stopped at compilation. The runner confirmed removal of its owned PostgREST processes and fixture directory. No local build output or runtime was created.
+
 12 November rebuilt the scoped SQL routing integration candidate on managed HoloOASIS Development using one temporary Git index. The index was removed and independently confirmed absent. No local worktree, build, test output or fixture was created.
 
 12 November Supabase routing qualification uses the existing disposable PostgREST CI runner. The exit trap owns both PostgREST processes and the single directory containing its archive, SQLite files and test reports. No local database, runtime or build output was created.

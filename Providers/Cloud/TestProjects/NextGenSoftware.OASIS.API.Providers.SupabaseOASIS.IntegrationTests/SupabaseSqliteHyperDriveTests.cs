@@ -3,13 +3,14 @@ using System.Net.Sockets;
 using System.Text.Json;
 using System.Net.Http.Headers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive;
 using NextGenSoftware.OASIS.API.DNA;
-using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
+using SqliteProvider = NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.SQLLiteDBOASIS;
 using NextGenSoftware.OASIS.API.Providers.SupabaseOASIS;
 using NextGenSoftware.Utilities;
 
@@ -36,7 +37,7 @@ public sealed class SupabaseSqliteHyperDriveTests
 
         var sqlitePath = Path.Combine(fixture, sync ? "routing-sync.db" : "routing-async.db");
         Assert.IsFalse(File.Exists(sqlitePath));
-        using var sqlite = new SQLLiteDBOASIS($"Data Source={sqlitePath};Pooling=False");
+        using var sqlite = new SqliteProvider($"Data Source={sqlitePath};Pooling=False");
         using var client = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false }) { Timeout = TimeSpan.FromSeconds(3) };
         var supabase = new SupabaseOASIS(endpoint, key!, client, "");
         var attempted = new List<Guid>();
@@ -104,7 +105,7 @@ public sealed class SupabaseSqliteHyperDriveTests
             await VerifyFailoverAsync(dna, candidates, selected, sync, unavailableSupabase, sqlite);
 
             var unavailablePath = Path.Combine(fixture, "missing.db");
-            using var unavailableSqlite = new SQLLiteDBOASIS($"Data Source={unavailablePath};Mode=ReadWrite;Pooling=False;Default Timeout=1");
+            using var unavailableSqlite = new SqliteProvider($"Data Source={unavailablePath};Mode=ReadWrite;Pooling=False;Default Timeout=1");
             await VerifyFailoverAsync(dna, candidates, selected, sync, unavailableSqlite, supabase);
             Assert.IsFalse(File.Exists(unavailablePath));
         }

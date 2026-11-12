@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. [Supabase routing run 43296247756](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43296247756) started authenticated PostgREST and stopped compiling the new integration case. The case now imports the Core routing request and aliases the SQLite class explicitly to avoid the sibling namespace collision. Native routing execution remains open.
+
 12 November Cancun time. Development advanced to COSMIC managed HoloOASIS `d74e43b9def4`. The [Development push workflow](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43295617572) was created at 14:58:38 Cancun time. The next integration review is after 15:28:38. Candidate `f48b59f8aca1` carries the exact two SQL routing test blobs from the qualified Weaviate tree onto the HoloOASIS parent. The eight intervening changes are limited to the HoloOASIS provider and WEB4 CQL integration. SQL provider and test inputs, Core gitlinks and the dependency manifest match. Existing native evidence carries forward. Supabase and SQLite [routing CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43296247756) is active.
 
 12 November Cancun time. Added Supabase and SQLite V2 routing qualification against the existing pinned PostgREST and PostgreSQL runner. Both modes check direct replica reads, RoundRobin attribution and outage failover in both directions. Each mode deletes its exact PostgreSQL fixture IDs. The runner independently requires all three tables empty. The hosted Supabase project and COSMIC reader fixture remain separately tracked.
