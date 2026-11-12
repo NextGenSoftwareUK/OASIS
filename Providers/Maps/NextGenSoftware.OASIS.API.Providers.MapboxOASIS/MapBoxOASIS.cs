@@ -11,7 +11,7 @@ using NextGenSoftware.OASIS.API.Core.Objects;
 
 namespace NextGenSoftware.OASIS.API.Providers.MapboxOASIS
 {
-    public class MapBoxOASIS : IOASISMapProvider, IOASISRoutingProvider
+    public class MapBoxOASIS : Core.Interfaces.IOASISMapProvider, IOASISRoutingProvider
     {
         private readonly MapboxDirectionsService _directions = new();
 

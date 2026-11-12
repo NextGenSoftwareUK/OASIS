@@ -5,6 +5,8 @@ on:
     branches: [work/hyperdrive-provider-completion]
     paths:
       - '.github/workflows/oasis-routing-integration.yml'
+      - 'Providers/Maps/**'
+      - '**/IOASISRoutingProvider.cs'
   workflow_dispatch:
 
 permissions:
