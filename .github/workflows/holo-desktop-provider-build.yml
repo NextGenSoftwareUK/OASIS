@@ -1,0 +1,155 @@
+name: Holo Desktop native verification
+
+on:
+  push:
+    branches: [work/hyperdrive-provider-completion]
+    paths:
+      - '.github/workflows/holo-desktop-provider-build.yml'
+      - 'Scripts/test_holonet_live_release.ps1'
+      - 'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop/**'
+      - 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests/**'
+  workflow_dispatch:
+    inputs:
+      development_revision:
+        description: Development commit to qualify (defaults to the current Development head)
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  storage:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: OASIS
+    steps:
+      - name: Resolve the Development baseline
+        id: baseline
+        shell: pwsh
+        working-directory: ${{ github.workspace }}
+        env:
+          REQUESTED_REVISION: ${{ inputs.development_revision }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $headers = @{ Authorization = "Bearer $env:GH_TOKEN" }
+          $repository = "$env:GITHUB_API_URL/repos/$env:GITHUB_REPOSITORY"
+          $development = (Invoke-RestMethod -Headers $headers -Uri "$repository/git/ref/heads/Development").object.sha
+          $revision = $env:REQUESTED_REVISION
+          if ($revision) {
+            if ($revision -cnotmatch '^[a-f0-9]{40}$') { throw 'Expected a full Development commit SHA.' }
+            $ancestry = Invoke-RestMethod -Headers $headers -Uri "$repository/compare/$revision...$development"
+            if ($ancestry.status -notin @('ahead', 'identical')) { throw 'Requested revision is outside Development history.' }
+          }
+          else { $revision = $development }
+          "development=$revision" >> $env:GITHUB_OUTPUT
+          Write-Output "Qualifying provider revision $env:GITHUB_SHA against Development $revision"
+      - uses: actions/checkout@v7
+        with:
+          path: provider-source
+          persist-credentials: false
+      - uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          ref: ${{ steps.baseline.outputs.development }}
+          path: OASIS
+          submodules: recursive
+          persist-credentials: false
+      - name: Apply the scoped Desktop changes
+        shell: pwsh
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+          # Parent of the first Desktop adapter change. The shared runner already
+          # included equivalent changes on both branches after their merge base.
+          $scopeBase = '06ab3c0561c18a587bbda19efd5d580ba8f91813'
+          $source = '../provider-source'
+          $paths = @(
+            'Scripts/test_holonet_live_release.ps1'
+            'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop/HoloOASIS.cs'
+            'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop/README.md'
+            'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests/HoloOASISIntegrationTests.cs'
+            'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests.csproj'
+          )
+          git -C $source fetch --no-tags --depth=1 --filter=blob:none origin $scopeBase
+          foreach ($path in $paths) {
+            $before = git -C $source ls-tree $scopeBase -- $path
+            $after = git -C $source ls-tree HEAD -- $path
+            $current = git ls-tree HEAD -- $path
+            if ($current -ceq $after) { continue }
+            if ($current -cne $before) { throw "Development has an overlapping change in $path." }
+            if (-not $after) { throw "Provider source is missing $path." }
+            Copy-Item -LiteralPath (Join-Path $source $path) -Destination $path -Force
+            git add -- $path
+            $staged = git ls-files --stage -- $path
+            if (($after -split '\s+')[2] -cne ($staged -split '\s+')[1]) { throw "Staged content differs from provider source in $path." }
+          }
+      - name: Read the recorded Libraries revision
+        id: dependencies
+        shell: bash
+        run: |
+          revision="$(sed -n 's/^LIBRARIES_COMMIT=//p' Docker/oasis-dependency-versions.env)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "libraries=$revision" >> "$GITHUB_OUTPUT"
+          revision="$(sed -n 's/^HOLOCHAIN_COMMIT=//p' Docker/oasis-dependency-versions.env)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "holochain=$revision" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependencies.outputs.libraries }}
+          path: NextGenSoftware-Libraries
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - uses: actions/checkout@v7
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          ref: ${{ steps.dependencies.outputs.holochain }}
+          path: holochain-client-csharp
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Retrieve verified hApp from the pinned producer run
+        uses: actions/download-artifact@v7
+        with:
+          name: verified-holooasis-happ
+          run-id: 42662935082
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/oasis-holo-desktop-happ
+      - name: Run Desktop storage against the pinned conductor
+        shell: pwsh
+        run: |
+          $artifact = Join-Path $env:RUNNER_TEMP 'oasis-holo-desktop-happ'
+          $happ = Join-Path $artifact 'oasis.happ'
+          $manifest = Get-Content -LiteralPath (Join-Path $artifact 'build-manifest.json') -Raw | ConvertFrom-Json
+          if ($manifest.sourceCommit -notmatch '^[a-f0-9]{40}$' -or
+              (Get-FileHash -LiteralPath $happ -Algorithm SHA256).Hash -ine $manifest.artifactSha256) {
+            throw 'The verified producer bundle failed provenance checks.'
+          }
+          Copy-Item -LiteralPath $happ -Destination 'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/OASIS_hAPP/oasis.happ' -Force
+          $client = '../holochain-client-csharp/NextGenSoftware.Holochain.HoloNET.Client.Tests/NextGenSoftware.Holochain.HoloNET.Client.Tests.csproj'
+          $project = 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests.csproj'
+          try {
+            ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-HoloDesktop -Operation {
+              ./Scripts/test_holonet_live_release.ps1 -Project $client -Happ $happ -ResultsDirectory $artifact -DesktopProject $project
+            }
+          }
+          catch {
+            $message = $_.Exception.Message.Replace('%', '%25').Replace("`r", '%0D').Replace("`n", '%0A')
+            Write-Output "::error title=Holo Desktop fixture::$message"
+            $report = Join-Path $artifact 'holo-desktop-native.trx'
+            if (Test-Path -LiteralPath $report) {
+              [xml]$xml = Get-Content -LiteralPath $report -Raw
+              foreach ($failure in $xml.SelectNodes('//*[local-name()="UnitTestResult" and @outcome="Failed"]')) {
+                $detail = $failure.SelectSingleNode('.//*[local-name()="Message"]').InnerText
+                if ($detail) {
+                  $detail = $detail.Substring(0, [Math]::Min($detail.Length, 1200))
+                  $detail = $detail.Replace('%', '%25').Replace("`r", '%0D').Replace("`n", '%0A')
+                  Write-Output "::error title=Holo Desktop storage assertion::$detail"
+                }
+              }
+            }
+            throw
+          }
