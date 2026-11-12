@@ -7,8 +7,10 @@ on:
       - '.github/workflows/qualify-holooasis-cql-signing.yml'
       - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/CqlHoloOasisSigningTests.cs'
       - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/CqlHoloOasisConductorTests.cs'
+      - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/CqlHoloOasisDevelopmentConductorTests.cs'
       - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/HoloOasisReadSigner.cs'
       - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/HoloOasisReadSource.cs'
+      - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/HoloOasisDevelopmentConductor.cs'
 
 permissions:
   contents: read
@@ -45,16 +47,21 @@ jobs:
       - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 10.0.x
-      - name: Verify signing and scope
+      - name: Prepare the disposable Linux conductor state root
+        run: sudo install -d -o "$(id -u)" -g "$(id -g)" /data/COSMIC/HoloOasisCql
+      - name: Verify signing, visibility and Linux conductor startup
         working-directory: OASIS
         shell: pwsh
+        env:
+          OASIS_CQL_HOLOOASIS_LINUX: '1'
+          HOLONET_CONDUCTOR_FOLDER: ${{ runner.temp }}/oasis-holonet-tools
         run: |
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner holooasis-cql-ci -Operation {
-            dotnet test ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CqlHoloOasisSigningTests' --results-directory TestResults/HoloOasisCql --logger 'trx;LogFileName=signing.trx'
-            if ($LASTEXITCODE) { throw 'HoloOASIS CQL signing qualification failed' }
+            dotnet test ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CqlHoloOasisSigningTests|FullyQualifiedName~CqlHoloOasisDevelopmentConductorTests' --results-directory TestResults/HoloOasisCql --logger 'trx;LogFileName=signing.trx'
+            if ($LASTEXITCODE) { throw 'HoloOASIS CQL signing or conductor qualification failed' }
             [xml]$report = Get-Content TestResults/HoloOasisCql/signing.trx
             $counts = $report.TestRun.ResultSummary.Counters
-            if ($counts.passed -ne '7' -or $counts.total -ne '7' -or $counts.executed -ne '7') {
-              throw 'All seven HoloOASIS signing and visibility cases must execute and pass'
+            if ($counts.passed -ne '9' -or $counts.total -ne '9' -or $counts.executed -ne '9') {
+              throw 'All nine HoloOASIS signing, visibility and startup cases must execute and pass'
             }
           }
