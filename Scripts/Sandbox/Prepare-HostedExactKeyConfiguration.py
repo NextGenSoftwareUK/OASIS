@@ -1,5 +1,6 @@
 """Prepare a protected WEB4 settings candidate from a reviewed protected baseline."""
 import argparse
+import base64
 import importlib.util
 import json
 import re
