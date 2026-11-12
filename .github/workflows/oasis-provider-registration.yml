@@ -1,0 +1,52 @@
+name: OASIS provider registration
+
+on:
+  push:
+    branches: [work/hyperdrive-provider-completion]
+    paths:
+      - '.github/workflows/oasis-provider-registration.yml'
+      - 'OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/**'
+      - 'OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader.UnitTests/ProviderRegistrationFailureTests.cs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  registration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: OASIS
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          path: OASIS
+          submodules: recursive
+          persist-credentials: false
+      - name: Read the recorded Libraries revision
+        id: dependencies
+        run: |
+          revision="$(sed -n 's/^LIBRARIES_COMMIT=//p' Docker/oasis-dependency-versions.env)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "libraries=$revision" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependencies.outputs.libraries }}
+          path: NextGenSoftware-Libraries
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Build BootLoader and verify registration failures
+        shell: pwsh
+        run: |
+          ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-ProviderRegistration -Operation {
+            $project = 'OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader.UnitTests/NextGenSoftware.OASIS.OASISBootLoader.UnitTests.csproj'
+            dotnet test $project --filter 'FullyQualifiedName~ProviderRegistrationFailureTests' /m:2 /nr:false /p:UseSharedCompilation=false --logger 'console;verbosity=normal'
+            if ($LASTEXITCODE -ne 0) { throw 'BootLoader registration verification failed.' }
+          }
