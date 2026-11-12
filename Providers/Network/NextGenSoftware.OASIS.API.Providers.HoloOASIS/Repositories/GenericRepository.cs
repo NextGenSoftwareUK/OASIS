@@ -285,8 +285,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Repositories
 
                 ZomeFunctionCallBackEventArgs response = await hcObject.DeleteByCustomFieldAsync(fieldValue, fieldName, customDataKeyValuePairs);
 
-                if (response != null)
-                    result = HandleDeleteResponse(response, hcObjectType, fieldName, fieldValue, hcObject, result, "DeleteAsync");
+                result = HandleDeleteResponse(response, hcObjectType, fieldName, fieldValue, hcObject, result, "DeleteAsync");
             }
             catch (Exception ex)
             {
@@ -324,8 +323,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Repositories
 
                 ZomeFunctionCallBackEventArgs response = hcObject.DeleteByCustomField(fieldValue, fieldName, customDataKeyValuePairs);
 
-                if (response != null)
-                    result = HandleDeleteResponse(response, hcObjectType, fieldName, fieldValue, hcObject, result, "Delete");
+                result = HandleDeleteResponse(response, hcObjectType, fieldName, fieldValue, hcObject, result, "Delete");
             }
             catch (Exception ex)
             {
@@ -392,8 +390,14 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Repositories
             {
                 if (!response.IsError)
                 {
+                    if (response.Records?.Count != 1 || string.IsNullOrWhiteSpace(response.Records[0].ActionHash))
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Holochain did not acknowledge one deleted {hcObjectType} action in {methodName}.");
+                        return result;
+                    }
+
                     result.IsDeleted = true;
-                    result.IsError = false;
+                    result.DeletedCount = 1;
                 }
                 else
                     OASISErrorHandling.HandleError(ref result, $"Error deleting {hcObjectType} with {fieldName} {fieldValue} in the {methodName} method in the GenericRepository in the HoloOASIS Provider. Reason: {response.Message}");

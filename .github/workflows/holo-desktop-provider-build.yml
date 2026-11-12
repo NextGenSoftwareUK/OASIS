@@ -9,6 +9,7 @@ on:
       - 'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/Repositories/GenericRepository.cs'
       - 'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/Helpers/DataHelper.cs'
       - 'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/HoloOASIS.AvatarDetail.cs'
+      - 'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/HoloOASIS.ActivateDeactivateLoad.cs'
       - 'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop/**'
       - 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests/**'
   workflow_dispatch:
@@ -72,6 +73,7 @@ jobs:
             'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/Repositories/GenericRepository.cs'
             'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/Helpers/DataHelper.cs'
             'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/HoloOASIS.AvatarDetail.cs'
+            'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/HoloOASIS.ActivateDeactivateLoad.cs'
             'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop/HoloOASIS.cs'
             'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop/README.md'
             'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests/HoloOASISIntegrationTests.cs'

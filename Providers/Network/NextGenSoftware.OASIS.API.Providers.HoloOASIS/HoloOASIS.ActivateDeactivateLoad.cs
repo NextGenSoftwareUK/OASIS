@@ -376,7 +376,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                 if (response != null && !response.IsError && response.IsDeleted)
                 {
                     result.Result = true;
-                    result.IsError = false;
+                    result.IsDeleted = true;
+                    result.DeletedCount = response.DeletedCount;
                     result.Message = "Avatar deleted successfully from Holochain";
                 }
                 else
@@ -404,7 +405,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                 if (response != null && !response.IsError && response.IsDeleted)
                 {
                     result.Result = true;
-                    result.IsError = false;
+                    result.IsDeleted = true;
+                    result.DeletedCount = response.DeletedCount;
                     result.Message = "Avatar deleted successfully from Holochain";
                 }
                 else

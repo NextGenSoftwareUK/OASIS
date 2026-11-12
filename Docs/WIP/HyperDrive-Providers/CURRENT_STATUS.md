@@ -17,6 +17,8 @@
 
 ## Verification log
 
+12 November Cancun time. The HoloNET repository now reports one deleted action only when the zome returns a native record with an action hash. A missing response now enters the error handler. GUID-based avatar deletes also carry the acknowledgement and count through the public result. This covers action-level acknowledgement. Record-wide deletion across linked revisions and avatar-detail cleanup remain open.
+
 12 November Cancun time. [Canonical run 43170248569](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43170248569) passed 14 checks in each mode, including graph save and parent lookup, then failed metadata selection. The pinned HoloNET SDK flattens MessagePack fields into strings for reflection, which cannot hydrate a metadata dictionary. Canonical HoloOASIS now decodes holon metadata from the original native record bytes for point and collection reads. This preserves the latest-action selection and leaves native delete semantics open. The next conductor result is pending.
 
 12 November Cancun time. [Canonical native run 43167789855](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43167789855) passed graph save and the parent-ID query in synchronous mode, then stopped at metadata selection. Asynchronous mode stopped at avatar ID lookup. The pinned hApp returns linked actions in ascending timestamp order, including earlier actions for an updated identity. The provider now selects the last returned action per holon ID before type, metadata or owner filtering. Verification remains open. Native deletion currently deletes one action and can expose an older linked action after deletion. The hApp's delete and current-read semantics still need reconciliation.
