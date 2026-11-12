@@ -1,5 +1,22 @@
 # Current provider status
 
+## Coverage checkpoint · 12 November 2026, Cancun
+
+| Area | Recorded status |
+| --- | --- |
+| Project inventory | 234 projects: 178 storage or specialized storage, including the obsolete Desktop compatibility wrapper, and 56 non-storage. |
+| Shared storage coverage | The matrix records 45 projects at 52/52 native core-storage-v2. The evidence registry contains 23 corresponding reports, all verified against their recorded SHA-256 hashes. The other 22 matrix entries still need reconciliation with the registry. |
+| Priority storage providers | The matrix records 52/52 native checks for Neon, Convex, Supabase, Solana, MongoDB, SQLite, Neo4j, SQL Server, Oracle, AWS DynamoDB and S3, IPFS, NEAR, Cosmos chain, Azure Cosmos DB, Google Firestore, Polkadot, Solid, Polygon, Arbitrum, TRON, EOSIO, TON, and Hedera/Hashgraph. Several use isolated native engines, emulators or local networks. See each row for hosted and capability gaps. |
+| ActivityPub and routing | ActivityPub has 5/5 native capability checks. GOMap passed a public OSRM driving route. Authenticated Google Routes, Mapbox and HERE checks remain open. Niantic and WRLD still have reviewed adapter gaps. |
+| Canonical HoloOASIS | Top priority. Both modes passed avatar and avatar-detail checks through the Desktop entry point before reaching the graph-save gap. Canonical graph save and the native parent-query change are under verification in runs [43165294724](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43165294724) and [43166769837](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43166769837). Both were active at inspection. |
+| HoloOASIS.Desktop | Obsolete in source, package metadata and repository documentation at `45d6665da989`. Retained for compatibility. Published NuGet metadata and live site listings still need the obsolescence update. |
+| Development | All seven APIs reported deployment success at `bfa0be4be233`. Development subsequently advanced to `4fdb30c2fae4`, with WEB4 pending at inspection. |
+| HyperDrive | Global automatic failover, replication and load balancing await provider acceptance. Dragonfly and KeyDB full native runs were queued at the coverage review. |
+
+[Provider matrix](PROVIDER_MATRIX.md) · [Evidence registry](CONFORMANCE_RESULTS.json) · [Cleanup ledger](WORKSPACE_CLEANUP_LEDGER.md)
+
+## Verification log
+
 12 November Cancun time. The canonical parent-ID collection path now sends the requested GUID as the native zome's scalar input through the activated HoloNET app-agent client. The previous path created a new unbound collection client and sent an anchor and option object instead of the parent ID. The new path maps and counts returned native records and honors the holon type filter. The change is awaiting real-conductor verification.
 
 12 November Cancun time. HoloOASIS.Desktop is obsolete and retained for compatibility. Desktop-specific acceptance work is closed. Canonical HoloOASIS remains top priority, including local conductor connections. [Canonical native conformance run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43165294724) was queued at inspection.
