@@ -53,6 +53,11 @@ jobs:
               dotnet build $project /m:2 /nr:false /p:UseSharedCompilation=false
               if ($LASTEXITCODE -ne 0) { throw "Routing build failed for $provider." }
             }
+            $mapbox = 'Providers/Maps/TestProjects/NextGenSoftware.OASIS.API.Providers.MapboxOASIS'
+            dotnet test "${mapbox}.UnitTests" /m:2 /nr:false /p:UseSharedCompilation=false
+            if ($LASTEXITCODE -ne 0) { throw "Mapbox adapter unit tests failed." }
+            dotnet build "${mapbox}.TestHarness" /m:2 /nr:false /p:UseSharedCompilation=false
+            if ($LASTEXITCODE -ne 0) { throw "Mapbox routing harness build failed." }
             dotnet test "Providers/Maps/TestProjects/NextGenSoftware.OASIS.API.Providers.GOMapOASIS.IntegrationTests" --filter "FullyQualifiedName~SharedRoutingInterfaceReturnsLiveDrivingRoute|FullyQualifiedName~PublicOsrmRejectsUnsupportedTravelProfiles" /m:2 /nr:false /p:UseSharedCompilation=false --logger "console;verbosity=normal"
             if ($LASTEXITCODE -ne 0) { throw "GOMap shared routing verification failed." }
           }

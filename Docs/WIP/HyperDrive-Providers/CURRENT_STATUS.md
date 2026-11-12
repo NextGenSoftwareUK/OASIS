@@ -1,5 +1,7 @@
 # Current provider status
 
+BootLoader run 43130238989 failed to compile HoloNET ORM, Cardano and Hedera because its checkout omitted the pinned HoloNET Client and Chaos.NaCl sibling. The workflow now uses the same manifest-pinned source checkout as the verified BNB BootLoader job. Routing CI now runs the corrected Mapbox unit project and builds the live harness. Both follow-up runs are pending.
+
 Mapbox solution test projects now use the actual map adapter. The unit project checks identity and invalid travel mode. The console harness makes an opt-in real driving request through the shared contract and exits with a failure code if the credential is missing or the request fails. Both replace legacy tests for nonexistent storage operations. Build and authenticated execution remain open.
 
 BootLoader registration CI now builds the current provider registration batch and runs the existing startup error checks in both sync and async paths on a disposable runner. This gate covers build and startup failure propagation. Live activation of the newly registered providers still requires provider-specific fixtures.
