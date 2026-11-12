@@ -197,3 +197,5 @@ are dated observations, not the current status. Git archive blob SHA256 (LF):
 12 November UTC. Exact current-base boundary CI 43160306525 is running on 27d07f280c. HyperDrive's separate Holo Desktop batch is also verified and waiting for the shared window. Recheck current Development and Railway before publishing Urbit. Hosted enrollment remains open.
 
 12 November UTC. Exact current-base CI 43160306525 passed all 30 hosted boundary tests. Holo Desktop went first at Development bfa0be4be233. Its six paths do not overlap Urbit and its project is referenced only by its own integration tests. Local candidate 751e5ca190 preserves all 38 Urbit files byte for byte. Wait for the Holo Desktop deployment and shared push window. Hosted fixture remains open.
+
+12 November UTC. Exact candidate 4fdb30c2fa/Core 26e09b26 passed all 30 boundary checks in CI 43165188191. Development fast-forwarded to this revision after the shared window elapsed. WEB4 deployment 7729887171 was created at 06:10:24 UTC. Live readiness and hosted Urbit enrollment remain open.

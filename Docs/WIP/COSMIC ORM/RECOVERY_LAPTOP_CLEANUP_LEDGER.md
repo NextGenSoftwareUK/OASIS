@@ -6410,3 +6410,5 @@ Inspected only Infura setting names through existing Railway authentication. Pre
 Track CI tags ci-cosmic-infura-core-9e4ee4a0 and ci-cosmic-infura-web4-3c5559c601 for 43163893924. The Holo Desktop cutover read reused the retained visitor and wrote four protected renewal files. Temporary Git indices removed. No local build, image or download.
 
 Track ci-cosmic-urbit-web4-4fdb30c2fa and ci-cosmic-infura-web4-2420a01cb9 for the new Core-pin qualifications. Retain prior evidence tags through supersession. Candidate and documentation temporary indices removed. No local build, downloads, fixture or image.
+
+Urbit WEB4 4fdb30c2fa and Core 26e09b26 published on Development. Retain the native and current qualification refs through cutover verification. Exact Infura image CI 43166337078 uses an immutable commit tag. No local build, runtime, image or download. Temporary documentation index removed.
