@@ -1,0 +1,31 @@
+# Priority provider HyperDrive routing evidence
+
+12 November 2026. This ledger tracks automatic routing for the priority providers. A direct provider lifecycle pass is evidence that a backend can store the fixture. A routing pass also requires the shipping HyperDrive entry point and evidence of the provider that served the request or received the replica.
+
+| Priority provider | Existing evidence carried forward | Remaining verification |
+| --- | --- | --- |
+| HoloOASIS | Live public CQL reads and native direct storage. Two acknowledged owner snapshots reached Neo4j. | Live canonical-provider routing and writes. SQLite delivery remains blocked at outbox sequence 543 under COSMIC coordination. Verify eligible failover, selection and replication once the exact bindings are ready. |
+| Solana | Shared native Agave storage pass. | Locate or verify a routed Solana cohort with native attempts and exact target reads. The older hosted cohort named Solana exercised MongoDB, SQLite and Neo4j as the routing stores. |
+| MongoDB | Hosted replication and read failover to SQLite. Request-scoped Auto selected MongoDB. Native MongoDB and SQLite cases also exercise RoundRobin. | Exact current hosted revision, eligible write outcomes and broader provider pairings. |
+| SQLite | Hosted replica and read failover to MongoDB. Request-scoped Auto selected SQLite. Native MongoDB and SQLite cases also exercise RoundRobin. | SQL Server pairing in progress. HoloOASIS outbox reconciliation remains separately scoped. |
+| Neo4j | Hosted replica and read failover to MongoDB. Request-scoped Auto selected Neo4j. Archived native credential-specific replication, RoundRobin and closed-Bolt failover also passed. | Current hosted RoundRobin distribution and additional operation classes. |
+| Supabase | Native PostgREST storage lifecycle. | Hosted protected fixture and eligible routing verification. |
+| SQL Server | Native SQL Server direct lifecycle. | SQL Server and SQLite routing qualification is active. |
+| Oracle | Native Oracle Free direct lifecycle. | Verify eligible routed storage against Oracle Free and qualify hosted TCPS separately. |
+| AWS | Archived local DynamoDB and SQLite routing, failover, RoundRobin and replication. | Scope hosted IAM and S3 separately. |
+| IPFS | Archived offline Kubo and SQLite routing, selection, failover and replication. | Current hosted and durable recovery evidence. |
+| NEAR | Direct native storage lifecycle. | Identify or execute an eligible routed cohort with native receipts. |
+| Cosmos blockchain | Archived retained chain matrix passed replication in both directions, all eight balancing strategies and actual stopped-node failover. | Hosted and current retained-ledger acceptance. |
+| Azure | Archived Azure Storage and SQLite routing and emulator selection/failover. | Reconcile Azure Cosmos DB separately and verify hosted Azure paths. |
+| Google Cloud | Archived Firestore SDK, SQLite and LocalFile replication, failover and selection. | Hosted Firestore and separately scoped GCS and BigQuery capabilities. |
+| Polkadot | Native storage lifecycle and separate public contract evidence. | Verify routed operation classes and eligible destination stores. |
+| ActivityPub | Native capability checks and live public reads. | Determine which social operations support same-capability failover and selection. Shared storage replication does not apply to the social-only contract. |
+| Solid | Native Pod storage lifecycle. | Verify eligible routed Pod operations, identity and federation separately. |
+| Polygon | Archived real local-chain encrypted storage and NFT scenarios. | Reconcile routed operation evidence and verify missing pairings. |
+| Arbitrum | Archived local-chain storage and V2 policy scenarios. | Reconcile exact route and native mutation receipts per operation before crediting all three behaviours. |
+| TRON | Archived native RoundRobin and failover evidence. | Reconcile the retained mutation before counting a replica and qualify hosted routing separately. |
+| EOSIO | Native Antelope storage lifecycle and public Vaulta balance reads. | Verify eligible routed storage and native target reads. |
+| TON | Native local TVM storage lifecycle. | Verify eligible routed storage and public transport separately. |
+| Hedera / Hashgraph | Native Hiero storage lifecycle and archived non-funded checks. | Funded testnet and hosted CQL fixture gaps remain open. Verify eligible routed storage with native confirmation. |
+
+Sources for this checkpoint are the [native routing archive](Archive/HYPERDRIVE_V2_PROVIDER_IO_COVERAGE.md), the [hosted routing plan and receipts](../COSMIC%20ORM/HOSTED_SANDBOX_INTEGRATION_PLAN.md), the [COSMIC handoff](../COSMIC%20ORM/CURRENT_STATUS.md), and the [provider matrix](PROVIDER_MATRIX.md). Existing scoped passes carry forward. Auto selection and RoundRobin distribution have separate assertions. Native outages, sandbox faults, replica delivery, and direct provider storage each retain their own evidence.
