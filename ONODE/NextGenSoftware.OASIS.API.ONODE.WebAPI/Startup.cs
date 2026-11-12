@@ -826,21 +826,12 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             if (Configuration["CQL_BNB_PUBLIC_SOURCE_JSON"] is string bnbPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
                     NextGenSoftware.OASIS.API.Providers.BNBChainOASIS.BnbPublicAccountMetadataSource.FromJson(bnbPublicSource)));
-            if (Configuration["CQL_NEAR_PUBLIC_SOURCE_JSON"] is string nearPublicSource)
-                services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
-                    NextGenSoftware.OASIS.API.Providers.NEAROASIS.NearPublicAccountMetadataSource.FromJson(nearPublicSource)));
             if (Configuration["CQL_POLKADOT_PUBLIC_SOURCE_JSON"] is string polkadotPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
                     NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.PolkadotPublicHeaderMetadataSource.FromJson(polkadotPublicSource)));
             if (Configuration["CQL_COSMOS_PUBLIC_SOURCE_JSON"] is string cosmosPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
                     NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.CosmosPublicValidatorMetadataSource.FromJson(cosmosPublicSource)));
-            if (Configuration["CQL_ARBITRUM_PUBLIC_SOURCE_JSON"] is string arbitrumPublicSource)
-                services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
-                    NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.ArbitrumPublicAccountMetadataSource.FromJson(arbitrumPublicSource)));
-            if (Configuration["CQL_POLYGON_PUBLIC_SOURCE_JSON"] is string polygonPublicSource)
-                services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
-                    NextGenSoftware.OASIS.API.Providers.PolygonOASIS.PolygonPublicAccountMetadataSource.FromJson(polygonPublicSource)));
             if (Configuration["CQL_AZURE_BLOB_PUBLIC_SOURCE_JSON"] is string azureBlobPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
                     NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS.AzureBlobPublicMetadataSource.FromJson(azureBlobPublicSource)));
