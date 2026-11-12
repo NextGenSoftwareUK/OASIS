@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+12 November used one temporary Git index to reproduce the HoloOASIS and Solid CI trees and compose candidate a9cb8732db2f. The index was removed and verified absent. No local runtime, builds or test reports were created.
+
 12 November Solid run 43328962741 removed its owned private Pod server, SQLite files and test output. No local build or downloads.
 
 12 November Polkadot run 43325457200 confirmed removal of owned Binaryen and Substrate fixtures and the MongoDB outbox container and volumes. No local runtime, build or test report was created.
