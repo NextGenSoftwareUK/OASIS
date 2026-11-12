@@ -6496,3 +6496,5 @@ Track temporary tag `ci-cosmic-holooasis-managed-895caf7c58` for reconciled exac
 12 November Cancun time. Renewed the existing HoloOASIS sandbox visitor after its access-token deadline. The same visitor has 1,000 daily calls remaining. Renewal added four protected or journal files totaling 6,273 bytes under `LocalState/COSMIC/HoloOasisHostedCqlVisitor` and updated the protected session file. Retain them through managed live verification. No new avatar, query receipt, runtime or download was created.
 
 Track temporary `ci-cosmic-holooasis-managed-e54973c380` for exact lifecycle and image runs `43203824366` and `43203830583`. The temporary Git index was removed. No local image, runtime or download was created. Retain the preceding exact tag until the replacement qualifies.
+
+12 November Cancun time. Deleted and verified removal of superseded exact CI tag `ci-cosmic-holooasis-managed-895caf7c58` after replacement `e54973c380c9` passed lifecycle and image qualification and reached Development. Retain the current tag through hosted acceptance. No local image or download was created.
