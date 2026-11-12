@@ -116,8 +116,13 @@ jobs:
           umask 077
           fixture="$(mktemp -d "$RUNNER_TEMP/oasis-polkadot-chain.XXXXXXXX")"
           pid=""
+          mongo=""
           cleanup() {
             status=$?
+            if [[ -n "$mongo" ]]; then
+              docker rm --force --volumes "$mongo" >/dev/null || status=1
+              if docker inspect "$mongo" >/dev/null 2>&1; then status=1; fi
+            fi
             if [[ "$status" -ne 0 && -f "$fixture/node.log" ]]; then tail -60 "$fixture/node.log"; fi
             if [[ -n "$pid" ]]; then
               kill -TERM "$pid" 2>/dev/null || true
@@ -132,7 +137,9 @@ jobs:
               rm -rf -- "$fixture"
               test ! -e "$fixture"
               echo "Removed the owned Substrate fixture."
+              if [[ -n "$mongo" ]]; then echo "Removed the owned MongoDB outbox container and volumes."; fi
             fi
+            exit "$status"
           }
           trap cleanup EXIT
           curl --fail --silent --show-error --location --max-time 120 \
@@ -180,6 +187,13 @@ jobs:
             exit 0
           fi
           if [[ "$POLKADOT_ROUTING" == true ]]; then
+            mongo="$(docker run --detach --publish 127.0.0.1:27029:27017 mongo:7)"
+            for attempt in {1..30}; do
+              if docker exec "$mongo" mongosh --quiet --eval 'quit(db.runCommand({ping:1}).ok === 1 ? 0 : 1)' >/dev/null 2>&1; then break; fi
+              if [[ "$attempt" == 30 ]]; then exit 1; fi
+              sleep 1
+            done
+            export OASIS_POLKADOT_ROUTING_MONGO='mongodb://127.0.0.1:27029/?serverSelectionTimeoutMS=5000'
             export OASIS_POLKADOT_CI_FIXTURE="$fixture"
             export OASIS_POLKADOT_STORAGE_ENCRYPTION_KEY="$(openssl rand -base64 32)"
             echo "::add-mask::$OASIS_POLKADOT_STORAGE_ENCRYPTION_KEY"

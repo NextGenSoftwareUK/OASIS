@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+12 November prepared Polkadot routing adds a disposable hosted MongoDB outbox with per-case databases and removes its container and volumes during fixture teardown. No local runtime, build or result was created.
+
 12 November Polkadot routing run 43307162656 verified removal of the owned Substrate fixture after both cases rejected the unowned write. No local build, runtime or report was created.
 
 12 November Solid run 43308005485 confirmed removal of the owned server and runner directory after Pod provisioning failed. No local artifacts were created.

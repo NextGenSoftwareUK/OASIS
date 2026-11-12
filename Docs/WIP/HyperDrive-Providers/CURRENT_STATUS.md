@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. Wired Polkadot into HyperDrive's prepared storage interface. Each native record mutation verifies the signed original against its configured network, owner, contract, action and key before usage outbox persistence. Sponsored writes requiring verified total fee ceilings retain the existing rejection. The routing fixture now uses a real disposable MongoDB usage outbox and checks persisted native originals plus empty contract after cleanup. Qualification is pending.
+
 12 November Cancun time. [Polkadot replacement CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43307162656) reached native storage in both modes and rejected the initial write because record writes require an admitted durable preparation owner. The adapter exposes its low-level preparation scope but does not implement IPreparedNativeStorageProvider, which the router uses for admitted storage. The native ownership guard correctly prevented a submission. The runner removed the owned Substrate fixture. Investigate the missing shipping integration before counting routed Polkadot replication.
 
 12 November Cancun time. [Solid routing CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43308005485) started the pinned server and created its account. The Pod request returned HTTP 400 because the account requires a login method. Added the password registration step used by the retained provisioning script, with a generated and masked runner-only password. Cleanup passed and routing did not execute. Replacement CI is pending.
