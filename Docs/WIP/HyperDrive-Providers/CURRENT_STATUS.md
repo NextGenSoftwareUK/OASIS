@@ -631,3 +631,7 @@ Holo Desktop native CI now consumes the verified hApp artifact from run 42662935
 Holo Desktop run 43154151480 retrieved the verified hApp successfully, then failed in the conductor/lifecycle step. GitHub exposed only a generic exit code. The workflow now publishes the fixture exception and failed test assertion as annotations for diagnosis. No live pass is claimed.
 
 Holo Desktop diagnostic run 43155153231 found that the conductor tool path was derived from a relative project path before the runner changed directories. The runner now resolves the project path before deriving the verified tool paths. The [native rerun](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43156037841) passed at 00115a7a9ea7. The single selected Desktop test passed its report gate against the official Windows conductor using the verified hApp. It covered avatar and holon create, read, update and delete, and provider deactivation. Conductor teardown passed. Full shared storage conformance remains open.
+
+### Azure Cosmos DB BootLoader fixture
+
+12 November Cancun time. Added a branch CI check for the shipping BootLoader registration, activation and deactivation path against a digest-pinned Microsoft Azure Cosmos DB emulator. This exercises the remaining local startup gate using the SDK and the three native OASIS containers. The accepted 52-check storage suite is outside this run. CI execution and hosted Azure acceptance remain open.

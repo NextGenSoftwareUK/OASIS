@@ -1,0 +1,83 @@
+name: Azure Cosmos DB emulator BootLoader
+
+on:
+  push:
+    branches: [work/hyperdrive-provider-completion]
+    paths:
+      - '.github/workflows/azure-cosmos-db-bootloader.yml'
+      - 'Scripts/TestHosts/Invoke-AzureCosmosDBBootLoaderActivation.ps1'
+      - 'OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader.TestHarness/**'
+      - 'Providers/Cloud/NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  activation:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: OASIS
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          path: OASIS
+          submodules: recursive
+          persist-credentials: false
+
+      - name: Read the recorded Libraries revision
+        id: dependencies
+        shell: bash
+        run: |
+          revision="$(sed -n 's/^LIBRARIES_COMMIT=//p' Docker/oasis-dependency-versions.env)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "libraries=$revision" >> "$GITHUB_OUTPUT"
+          revision="$(sed -n 's/^HOLOCHAIN_COMMIT=//p' Docker/oasis-dependency-versions.env)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "holochain=$revision" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependencies.outputs.libraries }}
+          path: NextGenSoftware-Libraries
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+
+      - uses: actions/checkout@v7
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          ref: ${{ steps.dependencies.outputs.holochain }}
+          path: holochain-client-csharp
+          persist-credentials: false
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Activate and deactivate the shipping provider through BootLoader
+        shell: bash
+        run: |
+          umask 077
+          fixture="$(mktemp -d "$RUNNER_TEMP/oasis-azure-cosmos.XXXXXXXX")"
+          container=""
+          cleanup() {
+            local status=$?
+            if [[ -n "$container" ]]; then
+              if [[ "$status" -ne 0 ]]; then
+                docker logs --tail 60 "$container" || true
+              fi
+              docker rm --force --volumes "$container"
+            fi
+            rm -rf -- "$fixture"
+            test ! -e "$fixture"
+            echo "Removed the owned Azure Cosmos DB fixture and container."
+          }
+          trap cleanup EXIT
+          image=mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator@sha256:db53613dae19d0a3d5ad50688d14aa6e957af082dafea56b52e1bd3a6b3f1406
+          container="$(docker run --detach --publish 127.0.0.1:8080:8080 --publish 127.0.0.1:8081:8081 "$image" --protocol https --enable-explorer false)"
+          curl --fail --silent --show-error --retry 45 --retry-delay 2 --retry-all-errors --max-time 5 http://127.0.0.1:8080/ready
+          OASIS_AZURE_COSMOS_CI_FIXTURE="$fixture" pwsh -NoProfile -File Scripts/TestHosts/Invoke-AzureCosmosDBBootLoaderActivation.ps1
