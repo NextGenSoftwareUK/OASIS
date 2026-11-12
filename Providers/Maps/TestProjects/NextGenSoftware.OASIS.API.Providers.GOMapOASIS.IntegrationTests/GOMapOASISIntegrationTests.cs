@@ -50,6 +50,22 @@ namespace NextGenSoftware.OASIS.API.Providers.GOMapOASIS.IntegrationTests
         }
 
         [TestMethod]
+        public async Task SharedRoutingInterfaceReturnsLiveDrivingRoute()
+        {
+            IOASISRoutingProvider provider = _provider;
+            var origin = new RoutingCoordinate(52.517037, 13.388860);
+            var destination = new RoutingCoordinate(52.529407, 13.397634);
+            var route = await provider.ComputeRouteAsync(origin, destination, RoutingType.Driving);
+
+            Assert.IsTrue(route.DistanceMeters > 0);
+            Assert.IsTrue(route.Points.Count >= 2);
+            Assert.AreEqual(origin.Latitude, route.Points[0].Latitude, 0.005);
+            Assert.AreEqual(origin.Longitude, route.Points[0].Longitude, 0.005);
+            Assert.AreEqual(destination.Latitude, route.Points[^1].Latitude, 0.005);
+            Assert.AreEqual(destination.Longitude, route.Points[^1].Longitude, 0.005);
+        }
+
+        [TestMethod]
         public async Task GetDirectionsAsync_ShouldReturnARoutePassingNearBothEnds()
         {
             List<Geolocation> route = await _provider.DirectionsAPI.GetDirectionsAsync(
