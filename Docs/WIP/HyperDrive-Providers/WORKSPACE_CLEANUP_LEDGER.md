@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+12 November Solana qualification 43325461947 confirmed removal of the Agave fixture directory after two native routing passes. No local builds, downloads or test reports were created.
+
 12 November independently reproduced both scoped trees for candidate 1cb79150df51 with one temporary Git index. Removed the index and confirmed it was absent. No local runtime, build, database or test report was created.
 
 12 November HoloOASIS run 43323308845 passed exact native deletion and completed on its disposable Windows CI runner. No local conductor, runtime, database or test report was created.

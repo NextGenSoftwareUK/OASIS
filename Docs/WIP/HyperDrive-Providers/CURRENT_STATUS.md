@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. [Solana](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43325461947) passed both modes on expected tree be588b32617c0a14fe74904a4f10ffa97f02762f and verified Agave teardown. [HoloOASIS collection check](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43326086808) reproduced a missing mapped identity in both modes with entry bytes and action hash present. The collection reader now takes the UUID from the native entry field map, which is scoped to the entry rather than the record envelope. Native CI will verify the correction.
+
 12 November 18:08 Cancun time. Independently reproduced the expected Polkadot tree f9363d2bd46479cc0a0befe99b053c0434f5411e and Solana tree be588b32617c0a14fe74904a4f10ffa97f02762f from combined candidate 1cb79150df51 and Ethereum parent 716711320680. Compare these to the two native qualification logs before integration. The preceding Railway fleet had four successful and three pending deployments during this check.
 
 12 November Cancun time. Added a native collection assertion to the HoloOASIS and SQLite fixture. It compares the exact replicated IDs returned by the sync and async Holochain collection entry points and preserves native point-read cleanup. The provider now reports which record-mapping invariant failed without logging record contents. The existing point-read routing pass still stands. The collection check is pending native CI.

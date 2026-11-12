@@ -174,15 +174,17 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                 foreach (var record in response.Records)
                 {
                     var entry = (object)record.EntryDataObject as HcHolon;
-                    if (entry == null || entry.Id == Guid.Empty || string.IsNullOrWhiteSpace(record.ActionHash))
+                    // Read the identity from the entry itself, independently of the record envelope.
+                    if (entry == null || string.IsNullOrWhiteSpace(record.ActionHash) ||
+                        record.EntryKeyValuePairs == null ||
+                        !record.EntryKeyValuePairs.TryGetValue("id", out var nativeId) ||
+                        !(nativeId is string id) || !Guid.TryParse(id, out var holonId) || holonId == Guid.Empty)
                     {
-                        OASISErrorHandling.HandleError(ref result,
-                            $"Holochain {function} returned an invalid record. " +
-                            $"Holon mapped: {entry != null}, identity present: {entry != null && entry.Id != Guid.Empty}, " +
-                            $"action hash present: {!string.IsNullOrWhiteSpace(record.ActionHash)}, entry bytes present: {record.Bytes?.Length > 0}.");
+                        OASISErrorHandling.HandleError(ref result, $"Holochain {function} returned an invalid holon record or identity.");
                         return result;
                     }
 
+                    entry.Id = holonId;
                     entry.ActionHash = record.ActionHash;
                     current[entry.Id] = (entry, record);
                 }
