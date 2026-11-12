@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core;
@@ -14,7 +15,9 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
+using NextGenSoftware.OASIS.API.Core.Serialization;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS
@@ -106,8 +109,13 @@ namespace NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS
                 record.GetProperty("_source").ValueKind != JsonValueKind.Object)
                 throw new System.IO.InvalidDataException("Native read did not acknowledge the requested document.");
 
-            return record.GetProperty("_source").Deserialize<T>(_jsonOpts);
+            return DecodeDocument<T>(record.GetProperty("_source"));
         }
+
+        private static T? DecodeDocument<T>(JsonElement source)
+            => typeof(T) == typeof(AvatarDetail)
+                ? StoredRecordJson.DeserializeStored<T>(source.GetRawText())
+                : source.Deserialize<T>(_jsonOpts);
 
         private static bool MatchesDocument(JsonElement record, string index, string id)
             => record.TryGetProperty("_index", out var actualIndex) && actualIndex.GetString() == index &&
@@ -147,20 +155,33 @@ namespace NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS
             await RequireWriteAcknowledgementAsync(response, index, id, "updated");
         }
 
-        private async Task SaveDocumentAsync(string index, IHolonBase record)
+        private async Task SaveDocumentAsync(string index, IHolonBase record, Guid? plannedId = null, Guid? parentId = null)
         {
             ArgumentNullException.ThrowIfNull(record);
-            var id = record.Id == Guid.Empty ? Guid.NewGuid() : record.Id;
+            var id = plannedId ?? (record.Id == Guid.Empty ? Guid.NewGuid() : record.Id);
             var key = id.ToString("D");
             var keys = record.ProviderUniqueStorageKey == null
                 ? new Dictionary<Core.Enums.ProviderType, string>()
                 : new Dictionary<Core.Enums.ProviderType, string>(record.ProviderUniqueStorageKey);
             keys[Core.Enums.ProviderType.OpenSearchOASIS] = key;
-            var payload = JsonSerializer.SerializeToNode(record, record.GetType(), _jsonOpts)!.AsObject();
+            JsonObject payload;
+            if (record is IAvatarDetail detail)
+            {
+                var canonical = JsonNode.Parse(StoredRecordJson.Serialize(detail))!.AsObject();
+                payload = new JsonObject();
+                foreach (var property in canonical)
+                    payload.Add(JsonNamingPolicy.CamelCase.ConvertName(property.Key), property.Value?.DeepClone());
+            }
+            else
+                payload = JsonSerializer.SerializeToNode(record, record.GetType(), _jsonOpts)!.AsObject();
             payload["id"] = id;
             payload["providerUniqueStorageKey"] = JsonSerializer.SerializeToNode(keys, _jsonOpts);
+            if (parentId.HasValue)
+                payload["parentHolonId"] = parentId.Value;
             await UpsertDocAsync(index, key, payload);
             record.Id = id;
+            if (parentId.HasValue && record is IHolon holon)
+                holon.ParentHolonId = parentId.Value;
             record.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
             record.ProviderUniqueStorageKey[Core.Enums.ProviderType.OpenSearchOASIS] = key;
         }
@@ -192,7 +213,7 @@ namespace NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS
             foreach (var hit in hits.EnumerateArray())
             {
                 if (!hit.TryGetProperty("_source", out var src)) continue;
-                var item = JsonSerializer.Deserialize<T>(src.GetRawText(), _jsonOpts);
+                var item = DecodeDocument<T>(src);
                 if (item != null) list.Add(item);
             }
             return list;
@@ -403,7 +424,11 @@ namespace NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS
 
         // ─── Holons ───────────────────────────────────────────────────────────────
 
-        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+        public override Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+            => SaveGraphAsync(holon, saveChildren, recursive, maxChildDepth, 0, continueOnError);
+
+        private async Task<OASISResult<IHolon>> SaveGraphAsync(IHolon holon, bool saveChildren, bool recursive,
+            int maxChildDepth, int currentChildDepth, bool continueOnError)
         {
             var result = new OASISResult<IHolon>();
             try
@@ -411,10 +436,33 @@ namespace NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS
                 if (holon == null) throw new ArgumentNullException(nameof(holon));
                 if (IsVersionControlEnabled)
                     return new OASISResult<IHolon> { IsError = true, ErrorCount = 1, ErrorCode = "COSMIC_CAPABILITY_UNSUPPORTED", Message = "Version-control writes require a verified native history policy." };
-                await SaveDocumentAsync(IdxHolons, holon);
-                result.Result = holon;
-                result.IsSaved = true;
-                result.SavedCount = 1;
+                var plan = HolonGraphWritePlan.CreateForSave(new[] { holon }, saveChildren, recursive, maxChildDepth, currentChildDepth);
+                var failed = new HashSet<Guid>();
+                foreach (var node in plan.Nodes)
+                {
+                    var record = node.Snapshot;
+                    if (failed.Contains(record.ParentHolonId))
+                    {
+                        failed.Add(record.Id);
+                        continue;
+                    }
+
+                    try
+                    {
+                        await SaveDocumentAsync(IdxHolons, node.Source, record.Id, record.ParentHolonId);
+                        if (ReferenceEquals(node.Source, holon))
+                            result.Result = holon;
+                        result.SavedCount++;
+                    }
+                    catch (Exception ex)
+                    {
+                        failed.Add(record.Id);
+                        OASISErrorHandling.HandleError(ref result, $"OpenSearch did not save holon '{record.Id}'.", ex);
+                        if (!continueOnError)
+                            break;
+                    }
+                }
+                result.IsSaved = result.SavedCount == plan.Nodes.Count;
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"OpenSearchOASIS: Error saving holon: {ex.Message}"); }
             return result;
@@ -428,7 +476,8 @@ namespace NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS
             var saved = new List<IHolon>(); var errors = new List<string>();
             foreach (var h in holons)
             {
-                var write = await SaveHolonAsync(h, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
+                var write = await SaveGraphAsync(h, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError);
+                result.SavedCount += write.SavedCount;
                 if (write.IsError)
                 {
                     errors.Add(write.Message);
@@ -440,7 +489,6 @@ namespace NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS
             result.IsError = errors.Count > 0;
             result.ErrorCount = errors.Count;
             result.IsSaved = saved.Count > 0;
-            result.SavedCount = saved.Count;
             result.Message = string.Join("; ", errors);
             return result;
         }
@@ -622,6 +670,8 @@ namespace NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS
             }
 
             result.Result = matches;
+            result.IsLoaded = true;
+            result.LoadedCount = matches.Count;
             return result;
         }
 
@@ -641,6 +691,8 @@ namespace NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS
             if (metaKeyValuePairs == null || metaKeyValuePairs.Count == 0)
             {
                 result.Result = new List<IHolon>(all.Result);
+                result.IsLoaded = true;
+                result.LoadedCount = all.LoadedCount;
                 return result;
             }
 
@@ -664,6 +716,8 @@ namespace NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS
             }
 
             result.Result = matches;
+            result.IsLoaded = true;
+            result.LoadedCount = matches.Count;
             return result;
         }
 
@@ -674,10 +728,11 @@ namespace NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS
         {
             var result = new OASISResult<bool>();
             var saved = await SaveHolonsAsync(holons);
-            if (saved.IsError)
-                OASISErrorHandling.HandleError(ref result, saved.Message);
+            result.SavedCount = saved.SavedCount;
+            if (saved.IsError || !saved.IsSaved)
+                OASISErrorHandling.HandleError(ref result, saved.Message, saved.Exception);
             else
-                result.Result = true;
+                result.Result = result.IsSaved = true;
             return result;
         }
 
@@ -708,6 +763,8 @@ namespace NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS
             }
 
             result.Result = owned;
+            result.IsLoaded = true;
+            result.LoadedCount = owned.Count;
             return result;
         }
 

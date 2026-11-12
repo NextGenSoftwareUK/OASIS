@@ -464,3 +464,5 @@ Urgent disk cleanup follow-up: leased standard project clean succeeded for AWS u
 12 November Cancun time. HoloOASIS Linux job 131108586243 confirmed listener shutdown and removed the owned conductor cache and fixture directory. Windows job 131108586275 completed its conductor process teardown on the disposable runner. The combined integration tree used one temporary Git index that was removed on completion. No local test environments or builds were created.
 
 12 November Cancun time. The OpenSearch document fixture runs on a disposable GitHub runner with a loopback-only node. The exit handler removes the owned container, volumes and test directory. No local image, build, or test output was created. CI cleanup evidence is pending.
+
+12 November Cancun time. OpenSearch shared run 43199861002 confirmed both owned nodes, volumes and temporary fixture directories were removed after the avatar-detail read failure. The focused document job 131117468115 also completed on a disposable runner. No local builds or downloads were created.
