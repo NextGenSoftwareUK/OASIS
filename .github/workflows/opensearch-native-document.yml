@@ -7,13 +7,24 @@ on:
       - '.github/workflows/opensearch-native-document.yml'
       - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS/OpenSearchOASIS.cs'
       - 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS.IntegrationTests/OpenSearchNativeDocumentLifecycleTests.cs'
+      - 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS.IntegrationTests/OpenSearchNativeStorageConformanceTests.cs'
   workflow_dispatch:
+    inputs:
+      scope:
+        description: Native verification scope
+        type: choice
+        default: storage
+        options: [storage, document]
 
 permissions:
   contents: read
 
 jobs:
   activation:
+    strategy:
+      fail-fast: false
+      matrix:
+        mode: ${{ fromJSON(inputs.scope == 'document' && '["async"]' || '["async","sync"]') }}
     runs-on: ubuntu-22.04
     timeout-minutes: 30
     defaults:
@@ -59,6 +70,9 @@ jobs:
 
       - name: Verify the shipping REST adapter against OpenSearch
         shell: bash
+        env:
+          OASIS_OPENSEARCH_MODE: ${{ matrix.mode }}
+          OASIS_OPENSEARCH_TEST_SCOPE: ${{ inputs.scope || 'storage' }}
         run: |
           umask 077
           fixture="$(mktemp -d "$RUNNER_TEMP/oasis-opensearch.XXXXXXXX")"
@@ -69,6 +83,11 @@ jobs:
               if [[ "$status" -ne 0 ]]; then docker logs --tail 40 "$container" || true; fi
               docker rm --force --volumes "$container"
             fi
+            for checkpoint in "$fixture"/storage-*.json; do
+              if [[ -f "$checkpoint" ]]; then
+                jq -c '{case:.CurrentCase,checks:(.Passed | length),cleanup:.FixtureCleanupComplete,contract:.FailureContract}' "$checkpoint"
+              fi
+            done
             rm -rf -- "$fixture"
             test ! -e "$fixture"
             echo "Removed the owned OpenSearch node, volumes and fixture."
@@ -88,7 +107,12 @@ jobs:
           pwsh -NoProfile -Command '
             ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-OpenSearchNativeDocument -Operation {
               $project = "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS.IntegrationTests"
-              dotnet test $project --filter "FullyQualifiedName~OpenSearchNativeDocumentLifecycleTests" --logger "trx;LogFileName=opensearch.trx" --results-directory $env:OASIS_OPENSEARCH_REPORT_DIRECTORY /m:2 /nr:false /p:UseSharedCompilation=false
+              $test = if ($env:OASIS_OPENSEARCH_TEST_SCOPE -eq "document") {
+                "OpenSearchNativeDocumentLifecycleTests"
+              } else {
+                "OpenSearchNativeStorageConformanceTests"
+              }
+              dotnet test $project --filter "FullyQualifiedName~$test" --logger "trx;LogFileName=opensearch.trx" --results-directory $env:OASIS_OPENSEARCH_REPORT_DIRECTORY /m:2 /nr:false /p:UseSharedCompilation=false
               if ($LASTEXITCODE -ne 0) { throw "OpenSearch native document check failed." }
               [xml]$report = Get-Content -LiteralPath (Join-Path $env:OASIS_OPENSEARCH_REPORT_DIRECTORY "opensearch.trx") -Raw
               $counters = $report.SelectSingleNode("//*[local-name()=`"Counters`"]")

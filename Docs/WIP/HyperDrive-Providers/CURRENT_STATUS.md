@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. [OpenSearch document job 131117468115](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43199080480/job/131117468115) passed the focused soft and hard delete check. The shared storage fixture now runs the two 26-check modes against separate disposable OpenSearch nodes and verifies exact tombstone cleanup and empty native indices on success. The adapter stages avatar, avatar-detail and holon identity until write acknowledgement, marks native reads and deletes with their counts, and waits for search visibility after writes. Shared suite execution remains open.
+
 12 November Cancun time. OpenSearch avatar and holon soft deletion now sends a native partial document update and requires its acknowledgement. The former path could discard read or save failures and still report deletion. The focused native holon check covers denied soft and hard deletes, an acknowledged tombstone that preserves the record name, and physical removal. Full storage verification remains open.
 
 12 November Cancun time. OpenSearch point reads now distinguish a native missing-document acknowledgement from upstream HTTP and response errors. Hard deletes require the requested document identity and a successful native shard acknowledgement. The earlier transport ignored the delete response and could report success for a denied write. The focused CI fixture uses a digest-pinned OpenSearch 3.9.0 node to prove rejection under a native write block, then successful deletion and independent absence. Existing COSMIC read evidence was left in place. Full storage, soft deletion and hosted verification remain open.
