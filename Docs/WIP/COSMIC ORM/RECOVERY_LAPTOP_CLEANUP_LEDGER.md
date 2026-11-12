@@ -6344,3 +6344,5 @@ Track temporary ci-cosmic-tron-core-a7fa20bf and ci-cosmic-tron-web4-d4b9bf1ba8 
 12 November UTC: GOMap run 43126881982 completed with native cleanup proof. Retain ci-cosmic-gomap-8917f041c4 until the corrected candidate has a durable published ref. Temporary documentation index removed. No local builds, reports or downloads.
 
 12 November UTC: track temporary ci-cosmic-gomap-7233b008a0 for combined run 43129754540. Temporary Git indices removed. No local build, download or fixture.
+
+12 November UTC: removed ci-cosmic-gomap-8917f041c4 after verifying its five CQL file blobs match retained ci-cosmic-gomap-7233b008a0. Combined run 43129754540 remains active. Windows reported 20.66 GiB free. No local output, build or download. Temporary documentation index removed.
