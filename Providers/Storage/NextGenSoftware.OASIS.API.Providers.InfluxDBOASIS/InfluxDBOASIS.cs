@@ -14,6 +14,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
+using NextGenSoftware.OASIS.API.Core.Serialization;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 using System.Text.Json;
@@ -65,7 +66,10 @@ namespace NextGenSoftware.OASIS.API.Providers.InfluxDBOASIS
         }
 
         private static string Ser(object o) => JsonSerializer.Serialize(o, _jsonOpts);
-        private static T? Des<T>(string? json) => json == null ? default : JsonSerializer.Deserialize<T>(json, _jsonOpts);
+        private static T? Des<T>(string? json) => json == null ? default
+            : typeof(T) == typeof(AvatarDetail) ? StoredRecordJson.DeserializeStored<T>(json)
+            : typeof(T) == typeof(Holon) ? (T)(object)StoredRecordJson.DeserializeStoredHolon(json)
+            : JsonSerializer.Deserialize<T>(json, _jsonOpts);
 
         private InfluxDBClient GetClient() => _client ??= InfluxDBClientFactory.Create(_url, _token.ToCharArray());
 
@@ -139,18 +143,30 @@ from(bucket: ""{EscapeFlux(bucket)}"")
             var result = new OASISResult<IAvatar>();
             try
             {
-                if (avatar.Id == Guid.Empty) avatar.Id = Guid.NewGuid();
-                if (avatar.ProviderUniqueStorageKey == null) avatar.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
-                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.InfluxDBOASIS] = avatar.Id.ToString();
+                ArgumentNullException.ThrowIfNull(avatar);
+                var id = avatar.Id == Guid.Empty ? Guid.NewGuid() : avatar.Id;
+                var keys = avatar.ProviderUniqueStorageKey == null
+                    ? new Dictionary<Core.Enums.ProviderType, string>()
+                    : new Dictionary<Core.Enums.ProviderType, string>(avatar.ProviderUniqueStorageKey);
+                keys[Core.Enums.ProviderType.InfluxDBOASIS] = id.ToString("D");
+                var payload = JsonSerializer.SerializeToNode(avatar, avatar.GetType(), _jsonOpts)!.AsObject();
+                payload["id"] = id;
+                payload["providerUniqueStorageKey"] = JsonSerializer.SerializeToNode(keys, _jsonOpts);
                 var point = PointData.Measurement("oasis_avatars")
-                    .Tag("id", avatar.Id.ToString())
+                    .Tag("id", id.ToString("D"))
                     .Tag("username", avatar.Username ?? "")
                     .Tag("email", avatar.Email ?? "")
                     .Field("is_deleted", avatar.IsDeleted)
-                    .Field("data_json", Ser(avatar))
+                    .Field("data_json", payload.ToJsonString(_jsonOpts))
                     .Timestamp(DateTime.UtcNow, WritePrecision.Ns);
                 await WritePointAsync(point);
-                result.Result = avatar; result.IsError = false; result.Message = $"InfluxDBOASIS: Avatar '{avatar.Username}' saved.";
+                avatar.Id = id;
+                avatar.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
+                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.InfluxDBOASIS] = id.ToString("D");
+                result.Result = avatar;
+                result.IsSaved = true;
+                result.SavedCount = 1;
+                result.Message = $"InfluxDBOASIS: Avatar '{avatar.Username}' saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"InfluxDBOASIS: {ex.Message}"); }
             return result;
@@ -174,7 +190,7 @@ from(bucket: ""{EscapeFlux(bucket)}"")
         public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0)
         {
             var result = new OASISResult<IAvatar>();
-            try { var a = await LoadAvatarByTagAsync("id", id.ToString()); if (a == null) { OASISErrorHandling.HandleError(ref result, $"InfluxDBOASIS: No avatar for ID '{id}'."); return result; } result.Result = a; result.IsError = false; result.Message = "InfluxDBOASIS: Avatar loaded."; }
+            try { var a = await LoadAvatarByTagAsync("id", id.ToString()); if (a == null) { OASISErrorHandling.HandleError(ref result, $"InfluxDBOASIS: No avatar for ID '{id}'."); return result; } result.Result = a; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "InfluxDBOASIS: Avatar loaded."; }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"InfluxDBOASIS: {ex.Message}"); }
             return result;
         }
@@ -184,7 +200,7 @@ from(bucket: ""{EscapeFlux(bucket)}"")
         public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string username, int version = 0)
         {
             var result = new OASISResult<IAvatar>();
-            try { var a = await LoadAvatarByTagAsync("username", username); if (a == null) { OASISErrorHandling.HandleError(ref result, $"InfluxDBOASIS: No avatar for username '{username}'."); return result; } result.Result = a; result.IsError = false; result.Message = "InfluxDBOASIS: Avatar loaded."; }
+            try { var a = await LoadAvatarByTagAsync("username", username); if (a == null) { OASISErrorHandling.HandleError(ref result, $"InfluxDBOASIS: No avatar for username '{username}'."); return result; } result.Result = a; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "InfluxDBOASIS: Avatar loaded."; }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"InfluxDBOASIS: {ex.Message}"); }
             return result;
         }
@@ -194,7 +210,7 @@ from(bucket: ""{EscapeFlux(bucket)}"")
         public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string email, int version = 0)
         {
             var result = new OASISResult<IAvatar>();
-            try { var a = await LoadAvatarByTagAsync("email", email); if (a == null) { OASISErrorHandling.HandleError(ref result, $"InfluxDBOASIS: No avatar for email '{email}'."); return result; } result.Result = a; result.IsError = false; result.Message = "InfluxDBOASIS: Avatar loaded."; }
+            try { var a = await LoadAvatarByTagAsync("email", email); if (a == null) { OASISErrorHandling.HandleError(ref result, $"InfluxDBOASIS: No avatar for email '{email}'."); return result; } result.Result = a; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "InfluxDBOASIS: Avatar loaded."; }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"InfluxDBOASIS: {ex.Message}"); }
             return result;
         }
@@ -255,12 +271,20 @@ from(bucket: ""{EscapeFlux(bucket)}"")
             var result = new OASISResult<IAvatarDetail>();
             try
             {
-                if (d.Id == Guid.Empty) d.Id = Guid.NewGuid();
+                ArgumentNullException.ThrowIfNull(d);
+                var id = d.Id == Guid.Empty ? Guid.NewGuid() : d.Id;
+                var payload = JsonSerializer.SerializeToNode(d, d.GetType(), _jsonOpts)!.AsObject();
+                payload["id"] = id;
                 var point = PointData.Measurement("oasis_avatar_details")
-                    .Tag("id", d.Id.ToString()).Tag("username", d.Username ?? "").Tag("email", d.Email ?? "")
-                    .Field("data_json", Ser(d)).Timestamp(DateTime.UtcNow, WritePrecision.Ns);
+                    .Tag("id", id.ToString("D")).Tag("username", d.Username ?? "").Tag("email", d.Email ?? "")
+                    .Field("data_json", payload.ToJsonString(_jsonOpts))
+                    .Timestamp(DateTime.UtcNow, WritePrecision.Ns);
                 await WritePointAsync(point);
-                result.Result = d; result.IsError = false; result.Message = "InfluxDBOASIS: AvatarDetail saved.";
+                d.Id = id;
+                result.Result = d;
+                result.IsSaved = true;
+                result.SavedCount = 1;
+                result.Message = "InfluxDBOASIS: AvatarDetail saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"InfluxDBOASIS: {ex.Message}"); }
             return result;
@@ -276,11 +300,11 @@ from(bucket: ""{EscapeFlux(bucket)}"")
             return rec == null ? null : Des<AvatarDetail>(Field(rec, "data_json"));
         }
 
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0) { var result = new OASISResult<IAvatarDetail>(); try { var d = await LoadDetailByTagAsync("id", id.ToString()); if (d == null) { OASISErrorHandling.HandleError(ref result, $"InfluxDBOASIS: No detail for ID '{id}'."); return result; } result.Result = d; result.IsError = false; result.Message = "InfluxDBOASIS: AvatarDetail loaded."; } catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"InfluxDBOASIS: {ex.Message}"); } return result; }
+        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0) { var result = new OASISResult<IAvatarDetail>(); try { var d = await LoadDetailByTagAsync("id", id.ToString()); if (d == null) { OASISErrorHandling.HandleError(ref result, $"InfluxDBOASIS: No detail for ID '{id}'."); return result; } result.Result = d; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "InfluxDBOASIS: AvatarDetail loaded."; } catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"InfluxDBOASIS: {ex.Message}"); } return result; }
         public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0) => LoadAvatarDetailAsync(id, version).Result;
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string u, int version = 0) { var result = new OASISResult<IAvatarDetail>(); try { var d = await LoadDetailByTagAsync("username", u); if (d == null) { OASISErrorHandling.HandleError(ref result, $"InfluxDBOASIS: No detail for username '{u}'."); return result; } result.Result = d; result.IsError = false; result.Message = "InfluxDBOASIS: AvatarDetail loaded."; } catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"InfluxDBOASIS: {ex.Message}"); } return result; }
+        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string u, int version = 0) { var result = new OASISResult<IAvatarDetail>(); try { var d = await LoadDetailByTagAsync("username", u); if (d == null) { OASISErrorHandling.HandleError(ref result, $"InfluxDBOASIS: No detail for username '{u}'."); return result; } result.Result = d; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "InfluxDBOASIS: AvatarDetail loaded."; } catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"InfluxDBOASIS: {ex.Message}"); } return result; }
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string u, int version = 0) => LoadAvatarDetailByUsernameAsync(u, version).Result;
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string e, int version = 0) { var result = new OASISResult<IAvatarDetail>(); try { var d = await LoadDetailByTagAsync("email", e); if (d == null) { OASISErrorHandling.HandleError(ref result, $"InfluxDBOASIS: No detail for email '{e}'."); return result; } result.Result = d; result.IsError = false; result.Message = "InfluxDBOASIS: AvatarDetail loaded."; } catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"InfluxDBOASIS: {ex.Message}"); } return result; }
+        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string e, int version = 0) { var result = new OASISResult<IAvatarDetail>(); try { var d = await LoadDetailByTagAsync("email", e); if (d == null) { OASISErrorHandling.HandleError(ref result, $"InfluxDBOASIS: No detail for email '{e}'."); return result; } result.Result = d; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "InfluxDBOASIS: AvatarDetail loaded."; } catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"InfluxDBOASIS: {ex.Message}"); } return result; }
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string e, int version = 0) => LoadAvatarDetailByEmailAsync(e, version).Result;
 
         public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)

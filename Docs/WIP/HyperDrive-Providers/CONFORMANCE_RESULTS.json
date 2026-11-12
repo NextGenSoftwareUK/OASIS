@@ -1,6 +1,15 @@
 {
   "schemaVersion": 1,
   "verifiedNativeCiRuns": {
+    "GarnetOASIS": {
+      "suite": "core-storage-v2",
+      "backend": "Garnet 2.2.5 via the shipping StackExchange.Redis adapter with Lua transaction mode",
+      "runId": 43289726927,
+      "jobIds": [131432443510, 131432444466],
+      "revision": "2cbea850cff23c9798d71190396619ffaab97b00",
+      "passed": {"async": 26, "sync": 26},
+      "cleanup": "Both modes ran in separate Linux fixtures, verified exact cleanup and independently checked zero native keys. The runners removed their owned runtime, logs, data and checkpoints."
+    },
     "DragonflyOASIS": {
       "suite": "core-storage-v2",
       "backend": "Dragonfly 2.0.2 via the shipping StackExchange.Redis adapter",
@@ -804,7 +813,7 @@
       "Official Valkey 9.0.4 passed 52/52 through the shipping StackExchange.Redis adapter in [run 43091045329](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43091045329). Both modes passed exact fixture cleanup and the native database ended empty. Earlier native smoke and CQL restart/federation evidence carries forward. Hosted TLS and plaintext migration remain open."
     ],
     "DragonflyOASIS": ["The native Dragonfly lifecycle passed all 52 shared checks. Separate Dragonfly 2.0.2 CQL evidence covers encrypted restart and MongoDB federation. Hosted TLS and legacy plaintext migration remain open."],
-    "GarnetOASIS": ["Official Garnet 2.2.5 Windows native coverage is split across 18/26 initial checks per mode and three focused sync/async pairs for tombstone and avatar cleanup, remaining root/batch/import cleanup, and parented-child relationship index cleanup. See the [hash-verified split evidence](NativeEvidence/garnet-split-storage-v2.json). Full provider acceptance and a single registered native shared report remain open. The legacy plaintext layout is refused and has no automatic migration. The Development-pinned build passed."],
+    "GarnetOASIS": ["Official Garnet 2.2.5 Linux passed the complete native shared suite with Lua transaction mode enabled. The [historical Windows split evidence](NativeEvidence/garnet-split-storage-v2.json) carries forward. Hosted scripting and TLS, legacy plaintext migration and broader capability acceptance remain open."],
     "IPFSOASIS": ["Native core-storage-v2 baseline52/52 verified, sync/async26 each, exact fixture cleanup complete;178 controlled tests pass. Fresh Kubo fixtures cover restart and concurrent publication. The owner ledger tracks access to the original repository for historical-data recovery and compatibility verification. Separate COSMIC/CQL evidence is recorded in 8f8a93dce7. Both activation and deactivation entry points subsequently passed against offline Kubo 0.43.1 in [GitHub Actions](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43006440924) and shipped in Development c686a8618d. A fresh offline repository retained both encrypted holon versions through a graceful daemon restart and a fresh provider test process (GitHub Actions run 43007340696). Eight concurrent saves through one provider instance all remained visible to a fresh provider on native Kubo (GitHub Actions run 43008574348, Development 2c11a120ae). Two independently configured provider instances in the same process also preserved all eight acknowledged records through one durable catalogue (GitHub Actions run 43009731953, Development 323c4f54da). Two separate Windows writer processes sharing one local DNA file preserved all eight records for a third reader process after the file lease fix (GitHub Actions run 43010855757, Development 9aaed91520). The same three-process scenario passed independently on Linux using native Kubo 0.43.1 (GitHub Actions run 43011806925)."],
     "PinataOASIS": ["Authenticated HTTP upload, paged pin listing, exact GUID and CID reads, and unpin acknowledgement build successfully. The guarded hosted holon round trip builds and covers generated GUID, GUID/CID readback, parent and metadata listings, typed owner export, and exact unpin (19312ab205). Hosted execution has no recorded result. Durable mutable identity, encrypted records, graph and version semantics remain open."],
     "FilecoinOASIS": [

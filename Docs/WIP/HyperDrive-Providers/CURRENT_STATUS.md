@@ -5,7 +5,7 @@
 | Area | Recorded status |
 | --- | --- |
 | Project inventory | 234 projects: 178 storage or specialized storage, including the obsolete Desktop compatibility wrapper, and 56 non-storage. |
-| Shared storage coverage | All 56 matrix entries recorded at 52/52 native core-storage-v2 have reconciled evidence. The registry contains 23 reports verified against their SHA-256 hashes and 33 passes independently checked against completed native CI jobs and their cleanup gates. |
+| Shared storage coverage | All 57 matrix entries recorded at 52/52 native core-storage-v2 have reconciled evidence. The registry contains 23 reports verified against their SHA-256 hashes and 34 passes independently checked against completed native CI jobs and their cleanup gates. |
 | Priority storage providers | The matrix records 52/52 native checks for Supabase, Solana, MongoDB, SQLite, Neo4j, SQL Server, Oracle, AWS DynamoDB and S3, IPFS, NEAR, Cosmos chain, Azure Cosmos DB, Google Firestore, Polkadot, Solid, Polygon, Arbitrum, TRON, EOSIO, TON, and Hedera/Hashgraph. Several use isolated native engines, emulators or local networks. See each row for hosted and capability gaps. |
 | ActivityPub and routing | ActivityPub has 5/5 native capability checks. GOMap passed a public OSRM driving route. Authenticated Google Routes, Mapbox and HERE checks remain open. Niantic and WRLD still have reviewed adapter gaps. |
 | Canonical HoloOASIS | Top priority. Both modes passed all 52 native core-storage-v2 checks on the official Windows conductor with the verified identity-delete hApp in [run 43178174352](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43178174352). The verified bundle is packaged on the provider branch. Hosted, multi-agent and broader capability acceptance remain open. |
@@ -17,6 +17,10 @@
 [Provider matrix](PROVIDER_MATRIX.md) · [Evidence registry](CONFORMANCE_RESULTS.json) · [Cleanup ledger](WORKSPACE_CLEANUP_LEDGER.md)
 
 ## Verification log
+
+12 November Cancun time. Both [InfluxDB jobs](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43290452035) activated the shipping provider against InfluxDB 2.7.12 and stopped at the avatar-save acknowledgement contract. Avatar and detail writes now publish caller identities and counts after native acknowledgement. Point reads report their loaded count and details and holons use the shared stored-record decoder. The follow-up must verify these paths and the remaining lifecycle.
+
+12 November Cancun time. Both [Garnet jobs](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43289726927) passed all 26 native storage checks with Lua transactions enabled, verified exact cleanup and independently confirmed zero native keys. Hosted scripting, TLS and broader acceptance remain open. Added an independent InfluxDB 2.7.12 lifecycle qualification through its shipping SDK adapter on a disposable bucket. It requires exact native tombstone observation, cleanup and a final empty bucket. Native InfluxDB execution remains open.
 
 12 November Cancun time. [Garnet run 43288930206](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43288930206) passed 11 async checks and stopped on the first conditional holon update. The sync case stopped at empty-database admission because the first failure retained its records. The shipping adapter uses Lua for atomic conditional mutation. The disposable server now enables Lua transaction mode, verifies EVAL before dispatch and isolates each mode in its own job. Native verification of this configuration remains open.
 
@@ -706,7 +710,7 @@ The current process exposes none of the hosted fixture variables listed in [Acti
 | Native compatible52/52 | Shipping AWSS3OASIS on existing CI MinIO; independent empty-bucket checks passed; hosted AWS/IAM open |
 | Recovered native52/52 summaries | SOLID/IPFS reports recovered from isolated checkout with exact registry hashes/contracts; original failed reports preserved, lifecycle/full-interface gates open |
 | Controlled52/52 baseline | KeyDB, Dragonfly and ThreeFold. Valkey subsequently passed the full native suite. |
-| Garnet native split evidence | Official Garnet 2.2.5 passed targeted lifecycle and cleanup checks across several runs. Full provider acceptance and a single registered native shared-suite report remain open. |
+| Garnet native split evidence | Historical Windows split checks remain recorded. Linux Garnet 2.2.5 passed the full native shared lifecycle with Lua transactions enabled. Hosted and broader acceptance remain open. |
 | Non-storage ActivityPub | Native public-GET capability5/5, controlled291; full social operations open |
 | Other controlled cases | Firebase23, Appwrite19, PocketBase24, Convex24; these do not certify native storage |
 | Partial native | Solana4/52; original referenced history unavailable, unresolved outcomes preserved |
