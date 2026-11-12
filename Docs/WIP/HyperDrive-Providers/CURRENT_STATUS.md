@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. Both [Weaviate jobs](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43282382446) passed avatar save and stopped on the single-record read acknowledgement. The provider now reports counts for successful avatar and detail lookups and distinguishes native absence from transport failures. Holon graph writes now use the shared write plan, honor depth and report the number of acknowledged native records. The next run must verify these changes. Qdrant Development currently has three successful and four pending Railway statuses.
+
 12 November Cancun time. Development advanced to `c82faa749a36` with the exact six-file Qdrant qualification tree after the half-hour window and seven successful preceding API deployments. The remote ref and Railway dependency pins were verified. The [Development push workflow](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43281841746) was created at 13:37:53 Cancun time. Use 14:07:53 as the earliest next integration review and verify the Qdrant rollout and current remote parent then.
 
 12 November Cancun time. Both [Weaviate jobs](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43281493425) reached native avatar storage on the pinned Weaviate node. The shared suite stopped at save acknowledgement because the public result omitted the saved flag and count. Avatar and detail writes now publish their generated identity and result only after native acknowledgement. The next run must verify this change and the remaining lifecycle.
