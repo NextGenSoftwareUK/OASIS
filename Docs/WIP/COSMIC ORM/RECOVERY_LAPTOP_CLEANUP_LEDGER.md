@@ -6382,3 +6382,5 @@ TRON CQL reached Development at WEB4 2441de16f2 and Core d7692071. Keep the matc
 Web4Site exact Dapr card verification used existing Node and a temporary directory containing only the tracked site inputs and six test files from df6fd4c. All 122 tests passed. The temporary directory was removed and no reports, packages or new environment were retained.
 
 Removed both temporary CI tags ci-cosmic-tron-web4-2441de16f2 and ci-cosmic-tron-core-d7692071 after successful cutover. The first catalogue read reused the retained visitor and wrote four protected renewal files; the follow-up wrote none. No local build, install, fixture or download. Temporary documentation index removed.
+
+Used the existing Railway sign-in and public GraphQL endpoint to confirm the exact WEB4 deployment and read filtered startup diagnostics in memory. No CLI reinstall, logs file, native query, fixture or new environment. Temporary documentation index removed.

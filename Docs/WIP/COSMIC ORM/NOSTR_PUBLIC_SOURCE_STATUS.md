@@ -200,3 +200,5 @@ Explicit source recovery implemented at the host lifecycle boundary,same source/
 11 November UTC: WEB4 TimescaleDB revision 2ec6cd9cce is live (789a7cd0-64cf-4531-ae28-e55ea1f43a06). Authenticated discovery warmed from 68/106 to 104/106 ready for native and federation. Blockscout and Hedera are ready. Cardano activation received HTTP 429 and Nostr WebSocket upgrade received HTTP 503 (NotAWebSocket). Supabase, TRON and CouchDB remain absent. Preserve previously accepted cohorts.
 
 11 November UTC: startup logs on live WEB4 73f8b98967 confirm Nostr failed at WebSocket connect before subscription (HTTP 503, NotAWebSocket, 135 ms). Existing scoped query and browser evidence stands. Operator recovery still requires the existing Development Wizard session.
+
+12 November UTC: on exact live WEB4 2441de16f2, Railway deployment 6e1c394a-b474-46af-8a31-2d968aff1ff1 records activation failure at WebSocket connect with HTTP 503 / NotAWebSocket. It failed before event subscription or verification. Prior public and original-owner evidence is retained. Operator recovery remains open.
