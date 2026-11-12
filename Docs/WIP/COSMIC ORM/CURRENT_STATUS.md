@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## HoloOASIS first in the WEB4 demo queue
+
+Canonical HoloOASIS is now the first priority. HyperDrive owns native conductor graph-save and parent-query work in runs 43165294724 and 43166769837. COSMIC owns the separate WEB4 query admission, bounded fixture and sandbox checks. The canonical provider already exposes native GUID point reads through the HoloNET repository. It does not yet expose the CQL adapter required by WEB4 discovery. The initial demo should qualify exact owner-authorized GUID reads against a real conductor, then pair them with private MongoDB copies and verify the browser. Desktop remains a compatibility wrapper.
+
 ## Coverage snapshot — 12 November 2026 UTC
 
 - **Live Development WEB4:** the last authenticated check on `bfa0be4be233` found **105/106** enrolled sources ready for both native and federated CQL. Hedera, Dapr, Waku and NATS were ready. Nostr was unavailable. The Urbit rollout at `4fdb30c2fa` is in progress.

@@ -1,8 +1,8 @@
 # CQL completion roadmap
 
-## User priority order updated 8 November 2026
+## User priority order updated 12 November 2026
 
-Solana → Ethereum → Polygon → Arbitrum → NEAR → EOS/EOSIO → SOLID → IPFS →
+HoloOASIS → Solana → Ethereum → Polygon → Arbitrum → NEAR → EOS/EOSIO → SOLID → IPFS →
 ActivityPub → Cosmos → Polkadot → TON → TRON → Hedera/Hashgraph, then remaining
 providers in popularity order. This matches the latest user-edited goal. OLID
 means SOLID; ActibityPub means ActivityPub; HetraGraph means Hedera/Hashgraph
