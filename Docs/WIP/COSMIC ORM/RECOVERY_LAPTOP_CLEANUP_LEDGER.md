@@ -6376,3 +6376,5 @@ Removed superseded ci-cosmic-tron-web4-79c18e0944 after replacement CI 431411685
 Dapr browser check used one temporary in-app tab and one Development throwaway demo avatar. No private records were prepared and no file, screenshot, local database, build, download or environment was created. Browser control timed out after the second refresh; the temporary tab was not marked for retention.
 
 Post-cutover catalogue verification reused the retained readiness visitor and created four protected renewal files. No local build, downloads or query data. Temporary documentation index removed.
+
+TRON CQL reached Development at WEB4 2441de16f2 and Core d7692071. Keep the matching CI tags through cutover verification, then remove both. No local build, image, fixture or download. Temporary documentation index removed.
