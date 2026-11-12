@@ -1,8 +1,7 @@
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using NextGenSoftware.Holochain.HoloNET.Client;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
+using IoFile = System.IO.File;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests;
 
@@ -20,9 +19,7 @@ public sealed class CqlHoloOasisDevelopmentConductorTests
     [Fact]
     public void LeavesTheConductorDisabledWithoutExplicitAdmission()
     {
-        var services = new ServiceCollection();
-        HoloOasisDevelopmentConductor.Register(services, new ConfigurationBuilder().Build());
-        Assert.Empty(services);
+        Assert.Null(HoloOasisDevelopmentConductor.CreateIfEnabled(new ConfigurationBuilder().Build()));
     }
 
     [HoloOasisLinuxConductorFact]
@@ -34,10 +31,8 @@ public sealed class CqlHoloOasisDevelopmentConductorTests
             ["RAILWAY_ENVIRONMENT_NAME"] = "Development",
             ["CQL_HOLOOASIS_LOCAL_DEMO:Enabled"] = "true"
         }).Build();
-        var services = new ServiceCollection();
-        HoloOasisDevelopmentConductor.Register(services, configuration);
-        using var provider = services.BuildServiceProvider();
-        var hosted = Assert.Single(provider.GetServices<IHostedService>());
+        var hosted = Assert.IsType<HoloOasisDevelopmentConductor>(
+            HoloOasisDevelopmentConductor.CreateIfEnabled(configuration));
         await hosted.StartAsync(default);
         try
         {
@@ -64,10 +59,10 @@ public sealed class CqlHoloOasisDevelopmentConductorTests
         }
         finally
         {
-            await hosted.StopAsync(default);
+            await hosted.StopAsync();
         }
 
-        using var lease = File.Open("/data/COSMIC/HoloOasisCql/web4.lock",
+        using var lease = IoFile.Open("/data/COSMIC/HoloOasisCql/web4.lock",
             FileMode.Open, FileAccess.ReadWrite, FileShare.None);
     }
 }
