@@ -1,5 +1,9 @@
 # Current resource and cleanup ledger
 
+12 November Dragonfly run 43286941356 verified exact cleanup and zero native keys, then stopped its owned process and removed the runtime archive, data, logs and checkpoints. No local build or test output was created.
+
+12 November KeyDB run 43286531112 verified exact cleanup and zero native keys, then removed its container, volumes, digest-pinned image and fixture directory. No local test output was created.
+
 12 November Dragonfly run 43286531187 stopped during native startup and confirmed removal of the owned runner archive, data and report directory. The revised invocation directs process logs into that same directory. No local download or runtime was created.
 
 12 November reconstructed the exact Weaviate pagination candidate tree in one temporary Git index. The index was removed and independently verified absent.

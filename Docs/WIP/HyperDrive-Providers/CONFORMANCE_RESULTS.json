@@ -1,6 +1,24 @@
 {
   "schemaVersion": 1,
   "verifiedNativeCiRuns": {
+    "DragonflyOASIS": {
+      "suite": "core-storage-v2",
+      "backend": "Dragonfly 2.0.2 via the shipping StackExchange.Redis adapter",
+      "runId": 43286941356,
+      "jobIds": [131422716015],
+      "revision": "e7132fac7b2a9f77d719374b9f5f0081845fa4ea",
+      "passed": {"async": 26, "sync": 26},
+      "cleanup": "Both modes verified exact fixture cleanup and an empty native database. The runner independently checked zero keys and removed the owned runtime, data and checkpoints."
+    },
+    "KeyDBOASIS": {
+      "suite": "core-storage-v2",
+      "backend": "KeyDB 6.3.4 via the shipping StackExchange.Redis adapter",
+      "runId": 43286531112,
+      "jobIds": [131421284058],
+      "revision": "7bf8caeaffb9022ec63863a46fb9b56f4b0c81d3",
+      "passed": {"async": 26, "sync": 26},
+      "cleanup": "Both modes verified exact fixture cleanup and an empty native database. The runner independently checked zero keys and removed the owned container, volume, image and checkpoint directory."
+    },
     "WeaviateOASIS": {
       "suite": "core-storage-v2",
       "backend": "Weaviate 1.39.8 via the shipping REST and GraphQL storage adapter",
@@ -781,15 +799,11 @@
       "Shared S3 facade reverified52/52 on native MinIO-compatible CI service after consolidation; native hosted AWS/IAM, full relevant interfaces and global routing remain open."
     ],
     "RedisOASIS": [],
-    "KeyDBOASIS": [
-      "Four native avatar and holon save/load checks passed against the digest-pinned KeyDB image in [run 43051825070](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43051825070). The separate native KeyDB 6.3.4 job passed encrypted CQL restart and MongoDB federation. Development includes the verified fixture wiring at ea54de967e. The shared 52/52 result is controlled. Full native lifecycle, hosted TLS and legacy plaintext migration remain open."
-    ],
+    "KeyDBOASIS": ["The native KeyDB lifecycle passed all 52 shared checks. Separate KeyDB 6.3.4 CQL evidence covers encrypted restart and MongoDB federation. Hosted TLS and legacy plaintext migration remain open."],
     "ValKeyOASIS": [
       "Official Valkey 9.0.4 passed 52/52 through the shipping StackExchange.Redis adapter in [run 43091045329](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43091045329). Both modes passed exact fixture cleanup and the native database ended empty. Earlier native smoke and CQL restart/federation evidence carries forward. Hosted TLS and plaintext migration remain open."
     ],
-    "DragonflyOASIS": [
-      "Native Dragonfly passed four avatar and holon save/load smoke cases in [Development CI 43059249089](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43059249089). A separate Dragonfly 2.0.2 job passed encrypted CQL, restart and MongoDB federation. The shared 52/52 result is controlled. Full native lifecycle, hosted TLS and legacy plaintext migration remain open."
-    ],
+    "DragonflyOASIS": ["The native Dragonfly lifecycle passed all 52 shared checks. Separate Dragonfly 2.0.2 CQL evidence covers encrypted restart and MongoDB federation. Hosted TLS and legacy plaintext migration remain open."],
     "GarnetOASIS": ["Official Garnet 2.2.5 Windows native coverage is split across 18/26 initial checks per mode and three focused sync/async pairs for tombstone and avatar cleanup, remaining root/batch/import cleanup, and parented-child relationship index cleanup. See the [hash-verified split evidence](NativeEvidence/garnet-split-storage-v2.json). Full provider acceptance and a single registered native shared report remain open. The legacy plaintext layout is refused and has no automatic migration. The Development-pinned build passed."],
     "IPFSOASIS": ["Native core-storage-v2 baseline52/52 verified, sync/async26 each, exact fixture cleanup complete;178 controlled tests pass. Fresh Kubo fixtures cover restart and concurrent publication. The owner ledger tracks access to the original repository for historical-data recovery and compatibility verification. Separate COSMIC/CQL evidence is recorded in 8f8a93dce7. Both activation and deactivation entry points subsequently passed against offline Kubo 0.43.1 in [GitHub Actions](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43006440924) and shipped in Development c686a8618d. A fresh offline repository retained both encrypted holon versions through a graceful daemon restart and a fresh provider test process (GitHub Actions run 43007340696). Eight concurrent saves through one provider instance all remained visible to a fresh provider on native Kubo (GitHub Actions run 43008574348, Development 2c11a120ae). Two independently configured provider instances in the same process also preserved all eight acknowledged records through one durable catalogue (GitHub Actions run 43009731953, Development 323c4f54da). Two separate Windows writer processes sharing one local DNA file preserved all eight records for a third reader process after the file lease fix (GitHub Actions run 43010855757, Development 9aaed91520). The same three-process scenario passed independently on Linux using native Kubo 0.43.1 (GitHub Actions run 43011806925)."],
     "PinataOASIS": ["Authenticated HTTP upload, paged pin listing, exact GUID and CID reads, and unpin acknowledgement build successfully. The guarded hosted holon round trip builds and covers generated GUID, GUID/CID readback, parent and metadata listings, typed owner export, and exact unpin (19312ab205). Hosted execution has no recorded result. Durable mutable identity, encrypted records, graph and version semantics remain open."],

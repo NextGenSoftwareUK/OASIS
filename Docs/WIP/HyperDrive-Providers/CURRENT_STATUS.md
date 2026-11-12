@@ -5,18 +5,24 @@
 | Area | Recorded status |
 | --- | --- |
 | Project inventory | 234 projects: 178 storage or specialized storage, including the obsolete Desktop compatibility wrapper, and 56 non-storage. |
-| Shared storage coverage | All 54 matrix entries recorded at 52/52 native core-storage-v2 have reconciled evidence. The registry contains 23 reports verified against their SHA-256 hashes and 31 passes independently checked against completed native CI jobs and their cleanup gates. |
+| Shared storage coverage | All 56 matrix entries recorded at 52/52 native core-storage-v2 have reconciled evidence. The registry contains 23 reports verified against their SHA-256 hashes and 33 passes independently checked against completed native CI jobs and their cleanup gates. |
 | Priority storage providers | The matrix records 52/52 native checks for Supabase, Solana, MongoDB, SQLite, Neo4j, SQL Server, Oracle, AWS DynamoDB and S3, IPFS, NEAR, Cosmos chain, Azure Cosmos DB, Google Firestore, Polkadot, Solid, Polygon, Arbitrum, TRON, EOSIO, TON, and Hedera/Hashgraph. Several use isolated native engines, emulators or local networks. See each row for hosted and capability gaps. |
 | ActivityPub and routing | ActivityPub has 5/5 native capability checks. GOMap passed a public OSRM driving route. Authenticated Google Routes, Mapbox and HERE checks remain open. Niantic and WRLD still have reviewed adapter gaps. |
 | Canonical HoloOASIS | Top priority. Both modes passed all 52 native core-storage-v2 checks on the official Windows conductor with the verified identity-delete hApp in [run 43178174352](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43178174352). The verified bundle is packaged on the provider branch. Hosted, multi-agent and broader capability acceptance remain open. |
 | HoloOASIS.Desktop | Obsolete in source, package metadata and repository documentation at `45d6665da989`. The six-file compatibility and documentation batch reached Development at `70d3fbb4a31c`. Published NuGet metadata and live site listings still need the obsolescence update. |
-| Development | `c82faa749a36` integrates the verified Qdrant storage and embedding lifecycle after seven successful Meilisearch deployments. All seven Qdrant Railway deployments succeeded. Live HyperDrive HoloOASIS writes remain open. |
+| Development | `a421cd7a8c5b` integrates the verified Weaviate native lifecycle and cursor pagination after seven successful Qdrant deployments. The Weaviate rollout and live HyperDrive HoloOASIS writes remain open. |
 | BootLoader startup | The shipping registration, activation and deactivation path passed against native Polkadot and TRON fixtures and the Microsoft Azure Cosmos DB emulator. [Azure Cosmos DB job 131055311882](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43180594194/job/131055311882) confirmed fixture teardown. |
-| HyperDrive | Global automatic failover, replication and load balancing await provider acceptance. The original Dragonfly and KeyDB native lifecycle runs still report queued with zero jobs. Existing smoke and CQL results remain recorded. |
+| HyperDrive | Global automatic failover, replication and load balancing await provider acceptance. KeyDB and Dragonfly each passed all 52 native lifecycle checks. |
 
 [Provider matrix](PROVIDER_MATRIX.md) · [Evidence registry](CONFORMANCE_RESULTS.json) · [Cleanup ledger](WORKSPACE_CLEANUP_LEDGER.md)
 
 ## Verification log
+
+12 November Cancun time. Development advanced to `a421cd7a8c5b` with the four-file qualified Weaviate tree. The [COSMIC status](../COSMIC%20ORM/CURRENT_STATUS.md) released this window while its HoloOASIS image and BootLoader qualifications were active. The remote ref and dependency pins were verified. The [Development push workflow](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43287693479) was created at 14:12:01 Cancun time. The next review is after 14:42:01 with a fresh remote-parent and preceding-rollout check.
+
+12 November Cancun time. [Dragonfly run 43286941356](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43286941356) passed all 52 shared lifecycle checks against checksum-pinned Dragonfly 2.0.2, with exact cleanup and a final independent zero-key check. Hosted TLS and legacy plaintext migration remain open.
+
+12 November Cancun time. [KeyDB run 43286531112](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43286531112) passed all 52 shared lifecycle checks against native KeyDB 6.3.4, with exact cleanup and a final independent zero-key check. Hosted TLS and legacy plaintext migration remain open.
 
 12 November Cancun time. [Dragonfly run 43286531187](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43286531187) verified the official Dragonfly 2.0.2 archive, then the native process rejected the RDB filename under its default snapshot format. The fixture now sets the same explicit RDB format as the verified native CQL runner and writes its logs into the owned directory. No lifecycle cases ran in the failed job.
 
