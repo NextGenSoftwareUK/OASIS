@@ -35,6 +35,9 @@ jobs:
           revision="$(sed -n 's/^LIBRARIES_COMMIT=//p' Docker/oasis-dependency-versions.env)"
           [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
           echo "libraries=$revision" >> "$GITHUB_OUTPUT"
+          revision="$(sed -n 's/^HOLOCHAIN_COMMIT=//p' Docker/oasis-dependency-versions.env)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "holochain=$revision" >> "$GITHUB_OUTPUT"
 
       - uses: actions/checkout@v7
         with:
@@ -42,6 +45,13 @@ jobs:
           ref: ${{ steps.dependencies.outputs.libraries }}
           path: NextGenSoftware-Libraries
           token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+
+      - uses: actions/checkout@v7
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          ref: ${{ steps.dependencies.outputs.holochain }}
+          path: holochain-client-csharp
           persist-credentials: false
 
       - uses: actions/setup-dotnet@v4
@@ -128,6 +138,7 @@ jobs:
           export OASIS_TRON_LIFECYCLE_FULL_GRPC=http://127.0.0.1:50051
           export OASIS_TRON_LIFECYCLE_SOLIDITY_GRPC=http://127.0.0.1:50052
           export OASIS_TRON_LIFECYCLE_REPORT_ROOT="$fixture/reports"
+          export OASIS_TRON_BOOTLOADER_ACTIVATION=1 OASIS_TRON_CI_FIXTURE="$fixture"
           export OASIS_TRON_FRESH_BYTECODE="$fixture/storage.hex"
           export OASIS_TRON_STORAGE_LIFECYCLE=1 OASIS_TRON_FRESH_LIFECYCLE=1
           # This well-known key is funded only on the validated private fixture.
@@ -143,3 +154,4 @@ jobs:
             jq -e '.Succeeded and .FixtureCleanupComplete and (.Passed | length == 26)' "$fixture/reports/$mode.json" >/dev/null
             echo "$mode: 26 native checks and empty contract verified."
           done
+          pwsh -NoProfile -File Scripts/TestHosts/Invoke-TronBootLoaderActivation.ps1

@@ -98,6 +98,12 @@ public class TronNativeStorageLifecycleTests
             report.Succeeded = true;
             report.FixtureCleanupComplete = true;
             report.CleanupScope = "native-contract-empty";
+            if (!synchronous && Environment.GetEnvironmentVariable("OASIS_TRON_BOOTLOADER_ACTIVATION") == "1")
+            {
+                await using var identity = new FileStream(Path.Combine(root, "bootloader-contract.json"),
+                    FileMode.CreateNew, FileAccess.Write, FileShare.None);
+                await JsonSerializer.SerializeAsync(identity, new { Contract = contract, Owner = owner });
+            }
             await Checkpoint(report);
         }
     }
