@@ -16,6 +16,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
+using NextGenSoftware.OASIS.API.Core.Serialization;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using NextGenSoftware.Utilities;
@@ -68,7 +69,10 @@ namespace NextGenSoftware.OASIS.API.Providers.WeaviateOASIS
         }
 
         private static string Ser(object o) => JsonSerializer.Serialize(o, _jsonOpts);
-        private static T? Des<T>(string? json) => json == null ? default : JsonSerializer.Deserialize<T>(json, _jsonOpts);
+        private static T? Des<T>(string? json) => json == null ? default
+            : typeof(T) == typeof(AvatarDetail) ? StoredRecordJson.DeserializeStored<T>(json)
+            : typeof(T) == typeof(Holon) ? (T)(object)StoredRecordJson.DeserializeStoredHolon(json)
+            : JsonSerializer.Deserialize<T>(json, _jsonOpts);
 
         // ─── REST helpers ─────────────────────────────────────────────────────────
 
@@ -107,10 +111,10 @@ namespace NextGenSoftware.OASIS.API.Providers.WeaviateOASIS
             if (!resp.IsSuccessStatusCode) throw new Exception($"Weaviate PUT {path} → {(int)resp.StatusCode}: {raw}");
         }
 
-        private async Task WeaviateDeleteAsync(string path)
+        private async Task WeaviateDeleteAsync(string path, bool allowMissing = false)
         {
             using var resp = await _http.DeleteAsync($"{_host}{path}");
-            if (!resp.IsSuccessStatusCode)
+            if (!resp.IsSuccessStatusCode && !(allowMissing && resp.StatusCode == System.Net.HttpStatusCode.NotFound))
                 throw new Exception($"Weaviate DELETE {path} → {(int)resp.StatusCode}");
         }
 
@@ -387,7 +391,19 @@ namespace NextGenSoftware.OASIS.API.Providers.WeaviateOASIS
                     var av = (Avatar)loaded.Result; av.DeletedDate = DateTime.UtcNow;
                     await UpsertObjectAsync("OasisAvatar", id.ToString(), new Dictionary<string, object?> { ["username"] = av.Username, ["email"] = av.Email, ["isDeleted"] = true, ["dataJson"] = Ser(av) });
                 }
-                else { await WeaviateDeleteAsync($"/v1/objects/OasisAvatar/{id}"); }
+                else
+                {
+                    if (await GetObjectAsync("OasisAvatar", id.ToString("D")) == null)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"WeaviateOASIS: Avatar '{id}' not found.");
+                        result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
+                        return result;
+                    }
+
+                    // Keep the avatar available for retry until its optional detail is gone.
+                    await WeaviateDeleteAsync($"/v1/objects/OasisAvatarDetail/{id:D}", allowMissing: true);
+                    await WeaviateDeleteAsync($"/v1/objects/OasisAvatar/{id:D}");
+                }
                 result.Result = true; result.IsDeleted = true; result.DeletedCount = 1; result.Message = $"WeaviateOASIS: Avatar '{id}' deleted.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"WeaviateOASIS: {ex.Message}"); }
@@ -553,6 +569,7 @@ namespace NextGenSoftware.OASIS.API.Providers.WeaviateOASIS
                 if (write.IsError)
                 {
                     errors.Add(write.Message);
+                    result.Exception ??= write.Exception;
                     if (!continueOnError) break;
                 }
             }
@@ -679,7 +696,20 @@ namespace NextGenSoftware.OASIS.API.Providers.WeaviateOASIS
 
         // ─── Import / Export ──────────────────────────────────────────────────────
 
-        public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons) { var s = await SaveHolonsAsync(holons); return new OASISResult<bool> { Result = !s.IsError, IsError = s.IsError, Message = s.Message }; }
+        public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
+        {
+            var saved = await SaveHolonsAsync(holons);
+            return new OASISResult<bool>
+            {
+                Result = !saved.IsError && saved.IsSaved,
+                IsError = saved.IsError,
+                IsSaved = saved.IsSaved,
+                SavedCount = saved.SavedCount,
+                ErrorCount = saved.ErrorCount,
+                Message = saved.Message,
+                Exception = saved.Exception
+            };
+        }
         public override OASISResult<bool> Import(IEnumerable<IHolon> holons) => ImportAsync(holons).Result;
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0) => await LoadAllHolonsAsync(version: version);
         public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0) => ExportAllAsync(version).Result;
