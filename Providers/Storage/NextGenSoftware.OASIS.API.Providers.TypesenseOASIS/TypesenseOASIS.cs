@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -13,7 +14,9 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
+using NextGenSoftware.OASIS.API.Core.Serialization;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Providers.TypesenseOASIS
@@ -68,51 +71,57 @@ namespace NextGenSoftware.OASIS.API.Providers.TypesenseOASIS
         private static string Ser(object obj) => JsonSerializer.Serialize(obj, _jsonOpts);
         private StringContent Json(object obj) => new StringContent(Ser(obj), Encoding.UTF8, "application/json");
 
+        private static T? DeserializeDocument<T>(string json) => typeof(T) == typeof(AvatarDetail)
+            ? StoredRecordJson.DeserializeStored<T>(json)
+            : typeof(T) == typeof(Holon) ? (T)(object)StoredRecordJson.DeserializeStoredHolon(json)
+            : JsonSerializer.Deserialize<T>(json, _jsonOpts);
+
         private async Task<T?> GetDocAsync<T>(string collection, string id)
         {
-            var resp = await _http.GetAsync($"{_host}/collections/{collection}/documents/{id}");
-            if (!resp.IsSuccessStatusCode) return default;
+            using var resp = await _http.GetAsync($"{_host}/collections/{collection}/documents/{id}");
+            if (resp.StatusCode == System.Net.HttpStatusCode.NotFound) return default;
+            resp.EnsureSuccessStatusCode();
             var json = await resp.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<T>(json, _jsonOpts);
+            return DeserializeDocument<T>(json);
         }
 
         private async Task<List<T>> SearchAllAsync<T>(string collection)
         {
-            var resp = await _http.GetAsync($"{_host}/collections/{collection}/documents/search?q=*&query_by=id&per_page=250");
-            if (!resp.IsSuccessStatusCode) return new List<T>();
-            var json = await resp.Content.ReadAsStringAsync();
-            using var doc = JsonDocument.Parse(json);
-            if (!doc.RootElement.TryGetProperty("hits", out var hits)) return new List<T>();
-            var list = new List<T>();
-            foreach (var hit in hits.EnumerateArray())
+            using var deadline = new System.Threading.CancellationTokenSource(_http.Timeout);
+            using var response = await _http.GetAsync(
+                $"{_host}/collections/{collection}/documents/export", HttpCompletionOption.ResponseHeadersRead, deadline.Token);
+            response.EnsureSuccessStatusCode();
+            await using var stream = await response.Content.ReadAsStreamAsync(deadline.Token);
+            using var reader = new System.IO.StreamReader(stream);
+            var documents = new List<T>();
+            while (await reader.ReadLineAsync(deadline.Token) is { } line)
             {
-                if (!hit.TryGetProperty("document", out var d)) continue;
-                var item = JsonSerializer.Deserialize<T>(d.GetRawText(), _jsonOpts);
-                if (item != null) list.Add(item);
+                if (string.IsNullOrWhiteSpace(line))
+                    continue;
+                var document = DeserializeDocument<T>(line);
+                if (document is null)
+                    throw new JsonException("Typesense exported a null document.");
+                documents.Add(document);
             }
-            return list;
+
+            return documents;
         }
 
         private async Task<List<T>> SearchByFieldAsync<T>(string collection, string field, string value)
         {
-            var resp = await _http.GetAsync($"{_host}/collections/{collection}/documents/search?q={Uri.EscapeDataString(value)}&query_by={field}&filter_by={field}:={Uri.EscapeDataString(value)}&per_page=1");
-            if (!resp.IsSuccessStatusCode) return new List<T>();
+            using var resp = await _http.GetAsync($"{_host}/collections/{collection}/documents/search?q={Uri.EscapeDataString(value)}&query_by={field}&filter_by={field}:={Uri.EscapeDataString(value)}&per_page=1");
+            resp.EnsureSuccessStatusCode();
             var json = await resp.Content.ReadAsStringAsync();
             using var doc = JsonDocument.Parse(json);
-            if (!doc.RootElement.TryGetProperty("hits", out var hits)) return new List<T>();
+            var hits = doc.RootElement.GetProperty("hits");
             var list = new List<T>();
             foreach (var hit in hits.EnumerateArray())
             {
                 if (!hit.TryGetProperty("document", out var d)) continue;
-                var item = JsonSerializer.Deserialize<T>(d.GetRawText(), _jsonOpts);
+                var item = DeserializeDocument<T>(d.GetRawText());
                 if (item != null) list.Add(item);
             }
             return list;
-        }
-
-        private async Task DeleteDocAsync(string collection, string id)
-        {
-            await _http.DeleteAsync($"{_host}/collections/{collection}/documents/{id}");
         }
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
@@ -141,13 +150,24 @@ namespace NextGenSoftware.OASIS.API.Providers.TypesenseOASIS
             var result = new OASISResult<IAvatar>();
             try
             {
-                if (avatar.Id == Guid.Empty) avatar.Id = Guid.NewGuid();
-                if (avatar.ProviderUniqueStorageKey == null) avatar.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
-                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.TypesenseOASIS] = avatar.Id.ToString();
-                var doc = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(Ser(avatar), _jsonOpts)!;
-                doc["id"] = JsonDocument.Parse($"\"{avatar.Id}\"").RootElement;
-                await UpsertDocAsync(ColAvatars, doc);
-                result.Result = avatar; result.IsError = false; result.Message = $"TypesenseOASIS: Avatar '{avatar.Username}' saved.";
+                ArgumentNullException.ThrowIfNull(avatar);
+                var id = avatar.Id == Guid.Empty ? Guid.NewGuid() : avatar.Id;
+                var keys = avatar.ProviderUniqueStorageKey == null
+                    ? new Dictionary<Core.Enums.ProviderType, string>()
+                    : new Dictionary<Core.Enums.ProviderType, string>(avatar.ProviderUniqueStorageKey);
+                keys[Core.Enums.ProviderType.TypesenseOASIS] = id.ToString("D");
+                var document = JsonSerializer.SerializeToNode(avatar, avatar.GetType(), _jsonOpts)!.AsObject();
+                document["id"] = id;
+                document["providerUniqueStorageKey"] = JsonSerializer.SerializeToNode(keys, _jsonOpts);
+                await UpsertDocAsync(ColAvatars, document);
+
+                avatar.Id = id;
+                avatar.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
+                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.TypesenseOASIS] = id.ToString("D");
+                result.Result = avatar;
+                result.IsSaved = true;
+                result.SavedCount = 1;
+                result.Message = $"TypesenseOASIS: Avatar '{avatar.Username}' saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"TypesenseOASIS: Error saving avatar: {ex.Message}"); }
             return result;
@@ -161,8 +181,8 @@ namespace NextGenSoftware.OASIS.API.Providers.TypesenseOASIS
             try
             {
                 var a = await GetDocAsync<Avatar>(ColAvatars, id.ToString());
-                if (a == null || a.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"TypesenseOASIS: No avatar for ID '{id}'."); return result; }
-                result.Result = a; result.IsError = false; result.Message = "TypesenseOASIS: Avatar loaded.";
+                if (a == null || a.IsDeleted) { result.ErrorCode = OASISResultErrorCodes.RecordNotFound; OASISErrorHandling.HandleError(ref result, $"TypesenseOASIS: No avatar for ID '{id}'."); return result; }
+                result.Result = a; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "TypesenseOASIS: Avatar loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"TypesenseOASIS: {ex.Message}"); }
             return result;
@@ -177,8 +197,8 @@ namespace NextGenSoftware.OASIS.API.Providers.TypesenseOASIS
             {
                 var hits = await SearchByFieldAsync<Avatar>(ColAvatars, "username", username);
                 var a = hits.Count > 0 ? hits[0] : null;
-                if (a == null || a.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"TypesenseOASIS: No avatar for username '{username}'."); return result; }
-                result.Result = a; result.IsError = false; result.Message = "TypesenseOASIS: Avatar loaded.";
+                if (a == null || a.IsDeleted) { result.ErrorCode = OASISResultErrorCodes.RecordNotFound; OASISErrorHandling.HandleError(ref result, $"TypesenseOASIS: No avatar for username '{username}'."); return result; }
+                result.Result = a; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "TypesenseOASIS: Avatar loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"TypesenseOASIS: {ex.Message}"); }
             return result;
@@ -193,8 +213,8 @@ namespace NextGenSoftware.OASIS.API.Providers.TypesenseOASIS
             {
                 var hits = await SearchByFieldAsync<Avatar>(ColAvatars, "email", avatarEmail);
                 var a = hits.Count > 0 ? hits[0] : null;
-                if (a == null || a.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"TypesenseOASIS: No avatar for email '{avatarEmail}'."); return result; }
-                result.Result = a; result.IsError = false; result.Message = "TypesenseOASIS: Avatar loaded.";
+                if (a == null || a.IsDeleted) { result.ErrorCode = OASISResultErrorCodes.RecordNotFound; OASISErrorHandling.HandleError(ref result, $"TypesenseOASIS: No avatar for email '{avatarEmail}'."); return result; }
+                result.Result = a; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "TypesenseOASIS: Avatar loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"TypesenseOASIS: {ex.Message}"); }
             return result;
@@ -217,7 +237,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TypesenseOASIS
             {
                 var all = await SearchAllAsync<Avatar>(ColAvatars);
                 var list = new List<IAvatar>(); foreach (var a in all) { if (!a.IsDeleted) list.Add(a); }
-                result.Result = list; result.IsError = false; result.Message = $"TypesenseOASIS: Loaded {list.Count} avatar(s).";
+                result.Result = list; result.IsLoaded = true; result.LoadedCount = list.Count; result.Message = $"TypesenseOASIS: Loaded {list.Count} avatar(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"TypesenseOASIS: {ex.Message}"); }
             return result;
@@ -230,9 +250,26 @@ namespace NextGenSoftware.OASIS.API.Providers.TypesenseOASIS
             var result = new OASISResult<bool>();
             try
             {
-                if (softDelete) { var l = await LoadAvatarAsync(id); if (!l.IsError && l.Result != null) { var a = (Avatar)l.Result; a.DeletedDate = DateTime.UtcNow; await SaveAvatarAsync(a); } }
-                else { await DeleteDocAsync(ColAvatars, id.ToString()); }
-                result.Result = true; result.IsError = false; result.Message = $"TypesenseOASIS: Avatar '{id}' deleted.";
+                if (softDelete)
+                {
+                    var loaded = await LoadAvatarAsync(id);
+                    if (loaded.IsError || loaded.Result is not Avatar avatar)
+                        throw new InvalidOperationException(loaded.Message, loaded.Exception);
+
+                    avatar.DeletedDate = DateTime.UtcNow;
+                    var saved = await SaveAvatarAsync(avatar);
+                    if (saved.IsError || !saved.IsSaved)
+                        throw new InvalidOperationException(saved.Message, saved.Exception);
+                }
+                else
+                {
+                    await DeleteDocAsync(ColDetails, id.ToString("D"), allowMissing: true);
+                    await DeleteDocAsync(ColAvatars, id.ToString("D"));
+                }
+
+                result.Result = true;
+                result.IsDeleted = true;
+                result.DeletedCount = 1;
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"TypesenseOASIS: {ex.Message}"); }
             return result;
@@ -254,11 +291,16 @@ namespace NextGenSoftware.OASIS.API.Providers.TypesenseOASIS
             var result = new OASISResult<IAvatarDetail>();
             try
             {
-                if (d.Id == Guid.Empty) d.Id = Guid.NewGuid();
-                var doc = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(Ser(d), _jsonOpts)!;
-                doc["id"] = JsonDocument.Parse($"\"{d.Id}\"").RootElement;
-                await UpsertDocAsync(ColDetails, doc);
-                result.Result = d; result.IsError = false; result.Message = "TypesenseOASIS: AvatarDetail saved.";
+                ArgumentNullException.ThrowIfNull(d);
+                var id = d.Id == Guid.Empty ? Guid.NewGuid() : d.Id;
+                var document = JsonSerializer.SerializeToNode(d, d.GetType(), _jsonOpts)!.AsObject();
+                document["id"] = id;
+                await UpsertDocAsync(ColDetails, document);
+                d.Id = id;
+                result.Result = d;
+                result.IsSaved = true;
+                result.SavedCount = 1;
+                result.Message = "TypesenseOASIS: AvatarDetail saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"TypesenseOASIS: {ex.Message}"); }
             return result;
@@ -269,7 +311,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TypesenseOASIS
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
         {
             var result = new OASISResult<IAvatarDetail>();
-            try { var d = await GetDocAsync<AvatarDetail>(ColDetails, id.ToString()); if (d == null) { OASISErrorHandling.HandleError(ref result, $"TypesenseOASIS: No detail for ID '{id}'."); return result; } result.Result = d; result.IsError = false; result.Message = "TypesenseOASIS: AvatarDetail loaded."; }
+            try { var d = await GetDocAsync<AvatarDetail>(ColDetails, id.ToString()); if (d == null) { result.ErrorCode = OASISResultErrorCodes.RecordNotFound; OASISErrorHandling.HandleError(ref result, $"TypesenseOASIS: No detail for ID '{id}'."); return result; } result.Result = d; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "TypesenseOASIS: AvatarDetail loaded."; }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"TypesenseOASIS: {ex.Message}"); }
             return result;
         }
@@ -279,7 +321,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TypesenseOASIS
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string u, int version = 0)
         {
             var result = new OASISResult<IAvatarDetail>();
-            try { var hits = await SearchByFieldAsync<AvatarDetail>(ColDetails, "username", u); var d = hits.Count > 0 ? hits[0] : null; if (d == null) { OASISErrorHandling.HandleError(ref result, $"TypesenseOASIS: No detail for username '{u}'."); return result; } result.Result = d; result.IsError = false; result.Message = "TypesenseOASIS: AvatarDetail loaded."; }
+            try { var hits = await SearchByFieldAsync<AvatarDetail>(ColDetails, "username", u); var d = hits.Count > 0 ? hits[0] : null; if (d == null) { result.ErrorCode = OASISResultErrorCodes.RecordNotFound; OASISErrorHandling.HandleError(ref result, $"TypesenseOASIS: No detail for username '{u}'."); return result; } result.Result = d; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "TypesenseOASIS: AvatarDetail loaded."; }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"TypesenseOASIS: {ex.Message}"); }
             return result;
         }
@@ -289,7 +331,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TypesenseOASIS
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string e, int version = 0)
         {
             var result = new OASISResult<IAvatarDetail>();
-            try { var hits = await SearchByFieldAsync<AvatarDetail>(ColDetails, "email", e); var d = hits.Count > 0 ? hits[0] : null; if (d == null) { OASISErrorHandling.HandleError(ref result, $"TypesenseOASIS: No detail for email '{e}'."); return result; } result.Result = d; result.IsError = false; result.Message = "TypesenseOASIS: AvatarDetail loaded."; }
+            try { var hits = await SearchByFieldAsync<AvatarDetail>(ColDetails, "email", e); var d = hits.Count > 0 ? hits[0] : null; if (d == null) { result.ErrorCode = OASISResultErrorCodes.RecordNotFound; OASISErrorHandling.HandleError(ref result, $"TypesenseOASIS: No detail for email '{e}'."); return result; } result.Result = d; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "TypesenseOASIS: AvatarDetail loaded."; }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"TypesenseOASIS: {ex.Message}"); }
             return result;
         }
@@ -299,7 +341,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TypesenseOASIS
         public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
         {
             var result = new OASISResult<IEnumerable<IAvatarDetail>>();
-            try { var all = await SearchAllAsync<AvatarDetail>(ColDetails); result.Result = new List<IAvatarDetail>(all); result.IsError = false; result.Message = $"TypesenseOASIS: Loaded {all.Count} detail(s)."; }
+            try { var all = await SearchAllAsync<AvatarDetail>(ColDetails); result.Result = new List<IAvatarDetail>(all); result.IsLoaded = true; result.LoadedCount = all.Count; result.Message = $"TypesenseOASIS: Loaded {all.Count} detail(s)."; }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"TypesenseOASIS: {ex.Message}"); }
             return result;
         }
@@ -308,29 +350,74 @@ namespace NextGenSoftware.OASIS.API.Providers.TypesenseOASIS
 
         // ─── Holons ───────────────────────────────────────────────────────────────
 
-        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+        public override Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+            => SaveHolonGraphAsync(holon, saveChildren, recursive, maxChildDepth, 0, continueOnError);
+
+        private async Task<OASISResult<IHolon>> SaveHolonGraphAsync(IHolon holon, bool saveChildren, bool recursive,
+            int maxChildDepth, int currentChildDepth, bool continueOnError)
         {
             var result = new OASISResult<IHolon>();
             try
             {
-                if (IsVersionControlEnabled) throw new NotSupportedException("Typesense historical writes are not implemented.");
-                if (holon == null) throw new ArgumentNullException(nameof(holon));
-                var id = holon.Id == Guid.Empty ? Guid.NewGuid() : holon.Id;
-                var keys = holon.ProviderUniqueStorageKey == null
-                    ? new Dictionary<Core.Enums.ProviderType, string>()
-                    : new Dictionary<Core.Enums.ProviderType, string>(holon.ProviderUniqueStorageKey);
-                keys[Core.Enums.ProviderType.TypesenseOASIS] = id.ToString("D");
-                var payload = JsonSerializer.SerializeToNode(holon, holon.GetType(), _jsonOpts)!.AsObject();
-                payload["id"] = id;
-                payload["providerUniqueStorageKey"] = JsonSerializer.SerializeToNode(keys, _jsonOpts);
-                await UpsertDocAsync(ColHolons, payload);
-                holon.Id = id;
-                holon.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
-                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.TypesenseOASIS] = id.ToString("D");
-                result.Result = holon; result.IsSaved = true; result.SavedCount = 1;
+                if (IsVersionControlEnabled)
+                    throw new NotSupportedException("Typesense historical writes are not implemented.");
+
+                var plan = HolonGraphWritePlan.CreateForSave(new[] { holon }, saveChildren, recursive, maxChildDepth, currentChildDepth);
+                var failed = new HashSet<Guid>();
+                foreach (var node in plan.Nodes)
+                {
+                    if (failed.Contains(node.Snapshot.ParentHolonId))
+                    {
+                        failed.Add(node.Snapshot.Id);
+                        continue;
+                    }
+
+                    try
+                    {
+                        await SavePlannedHolonAsync(node);
+                        if (ReferenceEquals(node.Source, holon))
+                            result.Result = holon;
+                        result.SavedCount++;
+                    }
+                    catch (Exception ex)
+                    {
+                        failed.Add(node.Snapshot.Id);
+                        OASISErrorHandling.HandleError(ref result, $"Typesense did not save holon '{node.Snapshot.Id}'.", ex);
+                        if (!continueOnError)
+                            break;
+                    }
+                }
+
+                result.IsSaved = result.SavedCount == plan.Nodes.Count;
             }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"TypesenseOASIS: Error saving holon: {ex.Message}"); }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"TypesenseOASIS: {ex.Message}", ex);
+            }
             return result;
+        }
+
+        private async Task SavePlannedHolonAsync(PlannedHolonWrite node)
+        {
+            var snapshot = node.Snapshot;
+            var id = snapshot.Id.ToString("D");
+            var keys = snapshot.ProviderUniqueStorageKey ?? new Dictionary<Core.Enums.ProviderType, string>();
+            keys[Core.Enums.ProviderType.TypesenseOASIS] = id;
+            var captured = JsonNode.Parse(node.CapturedIntentJson)!.AsObject();
+            var document = new JsonObject();
+            foreach (var property in captured)
+            {
+                if (property.Key != "$type")
+                    document.Add(JsonNamingPolicy.CamelCase.ConvertName(property.Key), property.Value?.DeepClone());
+            }
+            document["id"] = id;
+            document["parentHolonId"] = snapshot.ParentHolonId;
+            document["providerUniqueStorageKey"] = JsonSerializer.SerializeToNode(keys, _jsonOpts);
+            await UpsertDocAsync(ColHolons, document);
+
+            node.Source.Id = snapshot.Id;
+            node.Source.ParentHolonId = snapshot.ParentHolonId;
+            node.Source.ProviderUniqueStorageKey = keys;
         }
 
         public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) => SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider).Result;
@@ -342,12 +429,13 @@ namespace NextGenSoftware.OASIS.API.Providers.TypesenseOASIS
             var errors = new List<string>();
             foreach (var holon in holons)
             {
-                var write = await SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
+                var write = await SaveHolonGraphAsync(holon, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError);
+                result.SavedCount += write.SavedCount;
                 if (write.IsError) { errors.Add(write.Message); if (!continueOnError) break; }
                 else if (write.IsSaved && write.Result != null) saved.Add(write.Result);
             }
             result.Result = saved; result.IsError = errors.Count > 0; result.ErrorCount = errors.Count;
-            result.IsSaved = saved.Count > 0; result.SavedCount = saved.Count;
+            result.IsSaved = result.SavedCount > 0 && !result.IsError;
             result.Message = string.Join("; ", errors);
             return result;
         }
@@ -360,8 +448,16 @@ namespace NextGenSoftware.OASIS.API.Providers.TypesenseOASIS
             try
             {
                 var h = await GetDocAsync<Holon>(ColHolons, id.ToString());
-                if (h == null || h.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"TypesenseOASIS: No holon for ID '{id}'."); return result; }
-                result.Result = h; result.IsError = false; result.Message = "TypesenseOASIS: Holon loaded.";
+                if (h == null || h.IsDeleted)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"TypesenseOASIS: No holon for ID '{id}'.");
+                    result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
+                    return result;
+                }
+
+                result.Result = h;
+                result.IsLoaded = true;
+                result.LoadedCount = 1;
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"TypesenseOASIS: {ex.Message}"); }
             return result;
@@ -379,7 +475,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TypesenseOASIS
             {
                 var all = await SearchAllAsync<Holon>(ColHolons); var list = new List<IHolon>();
                 foreach (var h in all) { if (h.IsDeleted) continue; if (holonType != HolonType.All && h.HolonType != holonType) continue; list.Add(h); }
-                result.Result = list; result.IsError = false; result.Message = $"TypesenseOASIS: Loaded {list.Count} holon(s).";
+                result.Result = list; result.IsLoaded = true; result.LoadedCount = list.Count; result.Message = $"TypesenseOASIS: Loaded {list.Count} holon(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"TypesenseOASIS: {ex.Message}"); }
             return result;
@@ -394,7 +490,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TypesenseOASIS
             {
                 var all = await SearchAllAsync<Holon>(ColHolons); var list = new List<IHolon>();
                 foreach (var h in all) { if (h.IsDeleted || h.ParentHolonId != id) continue; if (holonType != HolonType.All && h.HolonType != holonType) continue; list.Add(h); }
-                result.Result = list; result.IsError = false; result.Message = $"TypesenseOASIS: Loaded {list.Count} child holon(s).";
+                result.Result = list; result.IsLoaded = true; result.LoadedCount = list.Count; result.Message = $"TypesenseOASIS: Loaded {list.Count} child holon(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"TypesenseOASIS: {ex.Message}"); }
             return result;
@@ -410,9 +506,25 @@ namespace NextGenSoftware.OASIS.API.Providers.TypesenseOASIS
             var result = new OASISResult<bool>();
             try
             {
-                if (softDelete) { var l = await LoadHolonAsync(id); if (!l.IsError && l.Result != null) { var h = (Holon)l.Result; h.DeletedDate = DateTime.UtcNow; await SaveHolonAsync(h); } }
-                else { await DeleteDocAsync(ColHolons, id.ToString()); }
-                result.Result = true; result.IsError = false; result.Message = $"TypesenseOASIS: Holon '{id}' deleted.";
+                if (softDelete)
+                {
+                    var loaded = await LoadHolonAsync(id, loadChildren: false);
+                    if (loaded.IsError || loaded.Result is not Holon holon)
+                        throw new InvalidOperationException(loaded.Message, loaded.Exception);
+
+                    holon.DeletedDate = DateTime.UtcNow;
+                    var saved = await SaveHolonAsync(holon, saveChildren: false);
+                    if (saved.IsError || !saved.IsSaved || saved.SavedCount != 1)
+                        throw new InvalidOperationException(saved.Message, saved.Exception);
+                }
+                else
+                {
+                    await DeleteDocAsync(ColHolons, id.ToString());
+                }
+
+                result.Result = true;
+                result.IsDeleted = true;
+                result.DeletedCount = 1;
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"TypesenseOASIS: {ex.Message}"); }
             return result;
@@ -479,10 +591,15 @@ namespace NextGenSoftware.OASIS.API.Providers.TypesenseOASIS
 
             var deleted = await DeleteHolonSoftAsync(id, true);
             if (deleted.IsError)
-                OASISErrorHandling.HandleError(ref result, deleted.Message);
-            else
-                result.Result = loaded.Result;
+            {
+                OASISErrorHandling.HandleError(ref result, deleted.Message, deleted.Exception);
+                result.ErrorCode = deleted.ErrorCode;
+                return result;
+            }
 
+            result.Result = loaded.Result;
+            result.IsDeleted = deleted.IsDeleted;
+            result.DeletedCount = deleted.DeletedCount;
             return result;
         }
 
@@ -524,6 +641,8 @@ namespace NextGenSoftware.OASIS.API.Providers.TypesenseOASIS
             }
 
             result.Result = matches;
+            result.IsLoaded = true;
+            result.LoadedCount = matches.Count;
             return result;
         }
 
@@ -542,8 +661,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TypesenseOASIS
 
             if (metaKeyValuePairs == null || metaKeyValuePairs.Count == 0)
             {
-                result.Result = new List<IHolon>(all.Result);
-                return result;
+                return all;
             }
 
             var matches = new List<IHolon>();
@@ -566,6 +684,8 @@ namespace NextGenSoftware.OASIS.API.Providers.TypesenseOASIS
             }
 
             result.Result = matches;
+            result.IsLoaded = true;
+            result.LoadedCount = matches.Count;
             return result;
         }
 
@@ -579,7 +699,9 @@ namespace NextGenSoftware.OASIS.API.Providers.TypesenseOASIS
             if (saved.IsError)
                 OASISErrorHandling.HandleError(ref result, saved.Message);
             else
-                result.Result = true;
+                result.Result = saved.IsSaved;
+            result.IsSaved = saved.IsSaved;
+            result.SavedCount = saved.SavedCount;
             return result;
         }
 
@@ -610,6 +732,8 @@ namespace NextGenSoftware.OASIS.API.Providers.TypesenseOASIS
             }
 
             result.Result = owned;
+            result.IsLoaded = true;
+            result.LoadedCount = owned.Count;
             return result;
         }
 

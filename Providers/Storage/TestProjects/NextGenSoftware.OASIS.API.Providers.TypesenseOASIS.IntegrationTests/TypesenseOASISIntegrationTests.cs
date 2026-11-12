@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Providers.TypesenseOASIS;
 
@@ -10,23 +11,50 @@ namespace NextGenSoftware.OASIS.API.Providers.TypesenseOASIS.IntegrationTests
     public class TypesenseOASISIntegrationTests
     {
         private TypesenseOASIS _provider = null!;
-        private static readonly string Host = Environment.GetEnvironmentVariable("TYPESENSE_HOST") ?? "http://localhost:8108";
-        private static readonly string ApiKey = Environment.GetEnvironmentVariable("TYPESENSE_API_KEY") ?? "xyz";
-
         [TestInitialize]
-        public void Setup()
+        public async Task Setup()
         {
-            _provider = new TypesenseOASIS(Host, ApiKey);
-            _provider.ActivateProvider();
+            var host = Environment.GetEnvironmentVariable("TYPESENSE_HOST");
+            var key = Environment.GetEnvironmentVariable("TYPESENSE_API_KEY");
+            if (Environment.GetEnvironmentVariable("OASIS_TYPESENSE_STORAGE_TEST") != "1")
+                Assert.Inconclusive("Enable writes only for a disposable Typesense instance.");
+
+            Assert.IsTrue(Uri.TryCreate(host, UriKind.Absolute, out var endpoint) &&
+                endpoint.IsLoopback && endpoint.Scheme == Uri.UriSchemeHttp &&
+                endpoint.AbsolutePath == "/" && endpoint.UserInfo.Length == 0 &&
+                endpoint.Query.Length == 0 && endpoint.Fragment.Length == 0);
+            Assert.IsFalse(string.IsNullOrWhiteSpace(key));
+
+            _provider = new TypesenseOASIS(host!, key!);
+            var active = await _provider.ActivateProviderAsync();
+            Assert.IsFalse(active.IsError, active.Message);
+            Assert.IsTrue(active.Result);
         }
 
         [TestMethod]
-        public async Task SaveAvatar_ShouldReturnSuccessResult()
+        public async Task AvatarSaveAndHardDeleteRoundTrip()
         {
-            var avatar = new Avatar { Id = Guid.NewGuid(), Username = "typesense-test-user", Email = "typesense@test.com" };
-            var result = await _provider.SaveAvatarAsync(avatar);
-            Assert.IsFalse(result.IsError, result.Message);
-            Assert.IsNotNull(result.Result);
+            var fixture = Guid.NewGuid();
+            var avatar = new Avatar { Username = $"typesense-{fixture:N}", Email = $"{fixture:N}@example.test" };
+            var saved = await _provider.SaveAvatarAsync(avatar);
+            Assert.IsFalse(saved.IsError, saved.Message);
+            var id = avatar.Id;
+            Assert.AreNotEqual(Guid.Empty, id);
+            try
+            {
+                Assert.IsTrue(saved.IsSaved, saved.Message);
+                Assert.AreEqual(1, saved.SavedCount);
+                var loaded = await _provider.LoadAvatarAsync(id);
+                Assert.IsFalse(loaded.IsError, loaded.Message);
+                Assert.AreEqual(avatar.Username, loaded.Result.Username);
+            }
+            finally
+            {
+                var deleted = await _provider.DeleteAvatarAsync(id, softDelete: false);
+                Assert.IsFalse(deleted.IsError, deleted.Message);
+                Assert.IsTrue(deleted.IsDeleted);
+                Assert.AreEqual(1, deleted.DeletedCount);
+            }
         }
 
         [TestMethod]
@@ -37,19 +65,33 @@ namespace NextGenSoftware.OASIS.API.Providers.TypesenseOASIS.IntegrationTests
         }
 
         [TestMethod]
-        public async Task SaveHolon_ShouldReturnSuccessResult()
+        public async Task HolonPointReadAndSoftDeleteRoundTrip()
         {
-            var holon = new Holon { Id = Guid.NewGuid(), Name = "Typesense Test Holon" };
-            var result = await _provider.SaveHolonAsync(holon);
-            Assert.IsFalse(result.IsError, result.Message);
-            Assert.IsNotNull(result.Result);
-        }
+            var holon = new Holon { Id = Guid.NewGuid(), Name = "typesense-native-" + Guid.NewGuid().ToString("N") };
+            var saved = await _provider.SaveHolonAsync(holon, saveChildren: false);
+            Assert.IsTrue(saved.IsSaved, saved.Message);
+            try
+            {
+                var loaded = await _provider.LoadHolonAsync(holon.Id, loadChildren: false);
+                Assert.IsTrue(loaded.IsLoaded, loaded.Message);
+                Assert.AreEqual(1, loaded.LoadedCount);
+                Assert.AreEqual(holon.Name, loaded.Result.Name);
 
-        [TestMethod]
-        public async Task LoadHolon_ShouldReturnHolon()
-        {
-            var result = await _provider.LoadHolonAsync(Guid.NewGuid());
-            Assert.IsNotNull(result);
+                var deleted = await _provider.DeleteHolonSoftAsync(holon.Id);
+                Assert.IsTrue(deleted.IsDeleted, deleted.Message);
+                Assert.AreEqual(1, deleted.DeletedCount);
+                var hidden = await _provider.LoadHolonAsync(holon.Id, loadChildren: false);
+                Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, hidden.ErrorCode);
+            }
+            finally
+            {
+                var removed = await _provider.DeleteHolonSoftAsync(holon.Id, softDelete: false);
+                Assert.IsTrue(removed.IsDeleted, removed.Message);
+                var repeated = await _provider.DeleteHolonSoftAsync(holon.Id, softDelete: false);
+                Assert.IsTrue(repeated.IsError, "A second native hard delete must reject the absent fixture.");
+                Assert.IsFalse(repeated.IsDeleted);
+                Assert.AreEqual(0, repeated.DeletedCount);
+            }
         }
 
         [TestCleanup]
