@@ -4,11 +4,11 @@
     "QdrantOASIS": {
       "suite": "core-storage-v2",
       "backend": "Qdrant 1.16.3 via the shipping payload-storage REST adapter",
-      "runId": 43273329771,
-      "jobIds": [131375129285, 131375128601],
-      "revision": "7c894b46dd006604dce500acc3af84fbc630a05e",
+      "runId": 43275525056,
+      "jobIds": [131382757889, 131382757586],
+      "revision": "7980be803cce90af19b6e4524810538ca3622bb5",
       "passed": {"async": 26, "sync": 26},
-      "cleanup": "Both modes removed exact native tombstones, verified zero points in all three collections, and removed their owned nodes, volumes and results."
+      "cleanup": "Both modes verified payload-only writes, preserved a preexisting nonzero embedding during a payload update, removed exact fixtures, and verified zero points across all three collections before teardown."
     },
     "MeilisearchOASIS": {
       "suite": "core-storage-v2",
@@ -725,7 +725,7 @@
     "Neo4jOASIS.Aura": ["Guarded hosted avatar and holon lifecycle tests cover the Aura driver. The holon test now includes point metadata read-back and exact single-key, all-of and any-of matching. Both lifecycle cases passed through the shipping Aura adapter against disposable Neo4j Community 5.26.0 (GitHub Actions run 43013716620). Hosted Aura access and certificate-verified lifecycle testing remain open in the owner ledger. The separate canonical Neo4j 52/52 result does not cover the Aura driver path."],
     "Neo4jOASIS2": ["The V2 package delegates storage to the canonical Neo4j driver implementation. The identity check passed and the guarded Bolt activation smoke compiled. The [native Neo4j 5.26.0 Bolt activation and deactivation smoke](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43012374982) passed 1/1 at ab144d60f6 on a disposable runner. The [standalone harness](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43013084815) passed avatar and holon saves, point reads, holon search and deletion. Development 07082d65c0 contains the verified V2 package and harness. The inherited lifecycle evidence is separate from V2 package activation."],
     "OracleDBOASIS": ["Local Oracle Free passed the core-storage suite through the Oracle managed SDK. Hosted database preflight and bounded lifecycle verification require the separately approved TCPS target and isolated schema tracked in the owner ledger. OCI Object Storage has its own acceptance row"],
-    "QdrantOASIS": ["The payload lifecycle passed on native Qdrant. The adapter still writes zero vectors. Real vector ingestion and semantic queries, hosted TLS and scoped access, multi-page scroll, graph depth, history and conditional writes remain open."],
+    "QdrantOASIS": ["Native payload writes omit synthetic vectors and preserve the stored embedding observed before an update. Concurrent embedding changes, first-class vector ingestion and semantic queries, hosted TLS and scoped access, multi-page scroll, graph depth, history and conditional writes remain open."],
     "SQLLiteDBOASIS": ["No open gaps within the shared suite. Focused native import acknowledgement and generated IDs passed in sync and async modes on the same SQLite import implementation and test source present in Development 9419d463f4. Eight file-backed child-role cases passed for ordering, root-only membership preservation, replacement admission, publication after acknowledgement and rollback of observations and parent edges. The corresponding ordinary writer and focused test sources match Development 8ab80a5390. Wallet evidence and its key-management boundary are tracked separately. The local shipping WalletManager encryption path passed file-backed SQLite ciphertext inspection and detached decryption after reopen with an ephemeral DNA key (11 November 2026)."],
     "TypesenseOASIS": ["Hosted TLS and scoped access, native conditional writes and history, and graph depth and pagination acceptance remain open. COSMIC TLS and CQL have separate evidence."],
     "WeaviateOASIS": ["Avatar and holon deletion acknowledgement fixes and search error propagation build. The native avatar hard-delete regression builds and is discoverable (da0b970526). It requires OASIS_WEAVIATE_STORAGE_TEST=1 and a disposable loopback WEAVIATE_HOST. Native UUID cursor pagination builds (9ec4f6aeff). The 101-holon LoadAllHolonsReturnsRecordsAcrossCursorPages regression builds and is discoverable. Live execution, versioned history and full lifecycle acceptance remain open."],

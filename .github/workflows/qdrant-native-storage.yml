@@ -25,12 +25,51 @@ jobs:
       run:
         working-directory: OASIS
     steps:
+      - name: Resolve the Development baseline
+        id: baseline
+        shell: bash
+        working-directory: ${{ github.workspace }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          revision="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/Development" --jq .object.sha)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "revision=$revision" >> "$GITHUB_OUTPUT"
+          echo "Qualifying Qdrant on Development $revision"
+
+      - uses: actions/checkout@v7
+        with:
+          path: provider-source
+          persist-credentials: false
+
       - uses: actions/checkout@v7
         with:
           token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          ref: ${{ steps.baseline.outputs.revision }}
           path: OASIS
           submodules: recursive
           persist-credentials: false
+
+      - name: Apply the reviewed Qdrant storage scope
+        shell: bash
+        run: |
+          base=4c3d1016dbcda93cbd537c4c6aaff00a9f408cc0
+          git -C ../provider-source fetch --no-tags --depth=1 origin "$base"
+          tests='Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.QdrantOASIS.IntegrationTests'
+          for path in \
+            'Providers/Storage/NextGenSoftware.OASIS.API.Providers.QdrantOASIS/QdrantOASIS.cs' \
+            "$tests/NextGenSoftware.OASIS.API.Providers.QdrantOASIS.IntegrationTests.csproj" \
+            "$tests/QdrantNativeStorageConformanceTests.cs" \
+            'Providers/Storage/NextGenSoftware.OASIS.API.Providers.QdrantOASIS/README.md' \
+            'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.QdrantOASIS.UnitTests/QdrantNativeBoundaryTests.cs'; do
+            current="$(git ls-tree HEAD -- "$path")"
+            reviewed="$(git -C ../provider-source ls-tree "$base" -- "$path")"
+            incoming="$(git -C ../provider-source ls-tree HEAD -- "$path")"
+            [[ -n "$incoming" && ( "$current" == "$reviewed" || "$current" == "$incoming" ) ]]
+            install -m 644 "../provider-source/$path" "$path"
+            git add -- "$path"
+          done
+          echo "Qualified input tree: $(git write-tree)"
 
       - name: Read the recorded Libraries revision
         id: dependencies
