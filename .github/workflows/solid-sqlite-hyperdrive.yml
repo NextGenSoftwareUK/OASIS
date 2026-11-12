@@ -5,6 +5,7 @@ on:
     branches: [work/hyperdrive-provider-completion]
     paths:
       - '.github/workflows/solid-sqlite-hyperdrive.yml'
+      - 'Providers/Shared/TestSupport/NativePriorityRouting.cs'
       - 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.IntegrationTests/SolidSqliteHyperDriveTests.cs'
   workflow_dispatch:
 
