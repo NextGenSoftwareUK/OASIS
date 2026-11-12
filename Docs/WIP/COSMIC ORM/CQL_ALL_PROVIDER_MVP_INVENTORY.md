@@ -248,7 +248,7 @@ These are not counted as extra concrete provider identities until their role is 
 
 - EdgeSQLiteOASIS: [project](<../../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.EdgeSQLiteOASIS/NextGenSoftware.OASIS.API.Providers.EdgeSQLiteOASIS.csproj>)
 - EOSNewYork.EOSCore: [project](<../../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.EOSIOOASIS/EOSNewYork.EOSCore/EOSNewYork.EOSCore.csproj>)
-- HoloOASIS.Desktop: [project](<../../../Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop.csproj>)
+- HoloOASIS.Desktop: obsolete compatibility wrapper. See canonical HoloOASIS for ongoing acceptance. [Project](<../../../Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop.csproj>)
 - HoloOASIS.Edge: [project](<../../../Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Edge/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Edge.csproj>)
 - HoloOASIS.Unity: [project](<../../../Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity.csproj>)
 - Neo4j.Driver.OASIS: [project](<../../../Providers/Storage/Neo4j.Driver.OASIS/Neo4j.Driver.OASIS.csproj>)

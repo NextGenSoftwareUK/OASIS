@@ -11,8 +11,8 @@
     <Version>2.0.1</Version>
     <Title>OASIS HoloOASIS Desktop Provider</Title>
     <Product>OASIS HoloOASIS Desktop Provider</Product>
-    <Summary>HoloOASIS Desktop Provider — full Holochain OASIS provider variant optimised for native desktop apps, connecting to a locally-running Holochain conductor via HoloNET.</Summary>
-    <Description>HoloOASIS Desktop Provider — full Holochain OASIS provider variant optimised for native desktop apps, connecting to a locally-running Holochain conductor via HoloNET.</Description>
+    <Summary>Obsolete compatibility wrapper. Use canonical HoloOASIS for local conductor connections.</Summary>
+    <Description>Obsolete compatibility wrapper. Use NextGenSoftware.OASIS.API.Providers.HoloOASIS for local Holochain conductor connections.</Description>
     <Authors>David Ellams (NextGen Software Ltd)</Authors>
     <Company>NextGen Software Ltd</Company>
     <Copyright>Copyright © NextGen Software Ltd 2019 - 2026</Copyright>

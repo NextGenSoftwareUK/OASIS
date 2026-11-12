@@ -30,7 +30,7 @@ Audit of original run 38204827438, verified by hosted run [38371434869](https://
 | NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS | 2.0.4 |
 | NextGenSoftware.OASIS.API.Providers.HashgraphOASIS | 2.0.4 |
 | NextGenSoftware.OASIS.API.Providers.HoloOASIS | 2.0.4 |
-| NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop | 2.0.4 |
+| NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop (obsolete in current source) | 2.0.4 |
 | NextGenSoftware.OASIS.API.Providers.IPFSOASIS | 2.0.4 |
 | NextGenSoftware.OASIS.API.Providers.LineaOASIS | 2.0.4 |
 | NextGenSoftware.OASIS.API.Providers.LocalFileOASIS | 2.0.4 |

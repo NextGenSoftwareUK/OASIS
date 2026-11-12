@@ -1,5 +1,8 @@
 {
   "schemaVersion": 1,
+  "obsoleteProviders": {
+    "HoloOASIS.Desktop": "Retained for compatibility. Use canonical HoloOASIS for local conductor connections and ongoing acceptance. [Historical Desktop lifecycle evidence](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43159610649)."
+  },
   "results": [
     {
       "provider": "EthereumOASIS",

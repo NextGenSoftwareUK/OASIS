@@ -97,7 +97,7 @@
 | NextGenSoftware.OASIS.API.Providers.HEREMapsOASIS | [2.0.3](https://www.nuget.org/packages/NextGenSoftware.OASIS.API.Providers.HEREMapsOASIS/2.0.3) |
 | NextGenSoftware.OASIS.API.Providers.HolonymOASIS | [2.0.3](https://www.nuget.org/packages/NextGenSoftware.OASIS.API.Providers.HolonymOASIS/2.0.3) |
 | NextGenSoftware.OASIS.API.Providers.HoloOASIS | [2.0.4](https://www.nuget.org/packages/NextGenSoftware.OASIS.API.Providers.HoloOASIS/2.0.4) |
-| NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop | [2.0.4](https://www.nuget.org/packages/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop/2.0.4) |
+| NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop (obsolete in current source) | [2.0.4](https://www.nuget.org/packages/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop/2.0.4) |
 | NextGenSoftware.OASIS.API.Providers.HoloOASIS.Edge | [1.0.1](https://www.nuget.org/packages/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Edge/1.0.1) |
 | NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity | [2.0.5](https://www.nuget.org/packages/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity/2.0.5) |
 | NextGenSoftware.OASIS.API.Providers.HyperlaneOASIS | [2.0.3](https://www.nuget.org/packages/NextGenSoftware.OASIS.API.Providers.HyperlaneOASIS/2.0.3) |

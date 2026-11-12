@@ -1,5 +1,7 @@
 # Current provider status
 
+12 November Cancun time. HoloOASIS.Desktop is obsolete and retained for compatibility. Desktop-specific acceptance work is closed. Canonical HoloOASIS remains top priority, including local conductor connections. [Canonical native conformance run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43165294724) was queued at inspection.
+
 12 November Cancun time. Canonical HoloOASIS now plans the requested holon graph before native writes and saves each admitted record through the HoloNET repository with its parent ID set. A failed parent suppresses writes for its descendants and the result counts native acknowledgements. Both public save modes share this path. The next real-conductor conformance run selects canonical HoloOASIS directly. The Desktop-specific lifecycle result remains recorded separately.
 
 12 November Cancun time. Canonical HoloOASIS is a top-priority provider. Holo Desktop is its desktop-specific entry point and shares its HoloNET storage implementation. The Desktop lifecycle pass is recorded against the Desktop entry point. [Native run 43163893639](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43163893639) passed all avatar and avatar-detail checks before both modes stopped at graph save acknowledgement. The single-record save path currently sends the parent to the native zome. The shared suite requires separately persisted and acknowledged parent and child records. Direct canonical shared-suite acceptance remains open.

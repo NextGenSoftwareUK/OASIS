@@ -147,6 +147,7 @@ def reviewed_sdk_gap(name,project):
 
 def build():
  registry=json.loads((DEST/'CONFORMANCE_RESULTS.json').read_text(encoding='utf-8-sig'))
+ obsolete=registry.get('obsoleteProviders',{})
  evidence={r['provider']:r for r in registry['results']};rows=[]
  for project in sorted(projects()):
   rel=project.relative_to(ROOT)
@@ -161,7 +162,9 @@ def build():
   if stub:blockers.append(f'{stub} explicit unimplemented throw(s): shipping-path review needed')
   if not sources:blockers.append('No local C# implementation source; linked/generated sources and factory require review')
   e=evidence.get(name)
-  if e:
+  if name in obsolete:
+   status='Obsolete';blockers.append(obsolete[name])
+  elif e:
    report=ROOT/e['report']
    if not report.is_file() or hashlib.sha256(report.read_bytes()).hexdigest()!=e['sha256']:raise ValueError('Missing/changed evidence: '+name)
    execution=e['mode']
@@ -186,6 +189,8 @@ def build():
  header=f'''# Provider breadth-first status matrix
 
 Inventory covers **{len(rows)} shipping provider projects** using the selection rules in `Scripts/Providers/update_provider_matrix.py`.
+
+Obsolete compatibility wrappers remain in the project inventory and are marked in the conformance column.
 Current roles: **{sum("| Non-storage |" in row for row in rows)} non-storage**, **{sum("| Non-storage |" not in row for row in rows)} storage/specialized-storage**. SDK/API source evidence remains unverified for **{sum("| No - unverified |" in row for row in rows)}** providers; **{sum("| No - reviewed missing adapter |" in row for row in rows)}** have hash-bound source reviews proving the current adapter is missing.
 
 Current required storage suite: **{registry.get('currentCoreSuite','core-storage-v1')}**. Earlier-suite totals remain historical and do not establish a current-suite pass.
