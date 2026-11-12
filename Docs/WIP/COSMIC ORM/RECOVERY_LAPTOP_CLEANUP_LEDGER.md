@@ -6456,3 +6456,5 @@ Prepared the one-line HoloOASIS Core tariff candidate with a temporary index and
 12 November Cancun time. Added source only for the hosted conductor. No local conductor, download, build output or Railway change. If the Development fixture is enabled later, record its dedicated /data/COSMIC/HoloOasisCql state and configured HOLONET_CONDUCTOR_FOLDER cache here. Removed scoped temporary index.
 
 12 November Cancun time. Linux launcher qualification uses /data/COSMIC/HoloOasisCql and the hosted runner temp tool cache only in disposable CI. No runtime download or build output on the laptop. Removed scoped index.
+
+12 November Cancun time. Added temporary ci-cosmic-holooasis-web4-279ba0f0a9 for exact image 43184526694. Retain ci-cosmic-holooasis-native-6797462655 as native evidence and the matching Core tag while qualification remains open. Removed local indices. No local build, download or test artifact.
