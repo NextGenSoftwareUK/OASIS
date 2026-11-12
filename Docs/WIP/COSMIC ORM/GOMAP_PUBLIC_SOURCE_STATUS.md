@@ -177,3 +177,5 @@ The shared OSRM demo remains limited to its operator policy. The existing bounde
 12 November UTC: the fast-forward push of 8917f041c4 was rejected because Development advanced concurrently to 922321a8aa9d with HyperDrive shared GOMap routing. Prepared 7233b008a0 on that tip, preserving the five qualified CQL blobs byte for byte and all shared routing changes. [Exact combined run 43129754540](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43129754540) is queued. No Development push succeeded.
 
 12 November UTC: combined 7233b008a0 passed the controlled provenance, WEB4 boundaries, native route/Mongo and cleanup steps in job 130890659949. Shared routing revision 922321a8aa9d is live. No COSMIC Development push was made; the 30-minute window from the shared routing push was still open.
+
+Prepared 8e3f15e42e3693056e4c9c97942dcd9896f916ad on Development 5251dc6df. Its entire source tree matches exact tested 7233b008a0 except for the intervening generic CI matrix workflow change. Held pending the shared 30-minute Development push window.

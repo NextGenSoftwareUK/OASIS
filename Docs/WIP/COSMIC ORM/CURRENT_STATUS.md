@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Development and GOMap resume
+
+WEB4 5251dc6df is live. Authenticated discovery returned 103/106 native and federated ready, including NATS and Waku. Hedera, Nostr and Push Protocol reported unavailable. CouchDB, Supabase and TRON remained absent.
+
 ## Shared routing WEB4 cutover
 
 12 November UTC: Railway 4ff2f27d succeeded at 922321a8aa9d. Authenticated CQL readiness warmed 12 to 65 to 104 of 106, with Waku and NATS ready. Hedera activation timed out awaiting response headers after 15,008 ms, without an HTTP status. Nostr also remained unavailable. CouchDB, Supabase and TRON remained absent. Combined GOMap CQL candidate 7233b008a0 passed CI 43129754540; the dedicated HTTPS origin remains open.
