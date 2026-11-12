@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+12 November Garnet run 43288468689 stopped at the native key-count probe. The disposable runner stopped Garnet and removed its owned runtime, data and report directory. No local runtime or build was created.
+
 12 November Garnet qualification uses one disposable runner directory for the pinned archive, process working data, native logs and compact checkpoints. The exit trap stops the owned process and removes that directory. No local runtime or build was created.
 
 12 November Dragonfly run 43286941356 verified exact cleanup and zero native keys, then stopped its owned process and removed the runtime archive, data, logs and checkpoints. No local build or test output was created.

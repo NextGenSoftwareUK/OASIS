@@ -85,7 +85,8 @@ jobs:
           query() {
             python3 -c 'import socket,sys
           with socket.create_connection(("127.0.0.1", 19692), 3) as client:
-              client.sendall((sys.argv[1] + "\r\n").encode("ascii"))
+              command = sys.argv[1].encode("ascii")
+              client.sendall(b"*1\r\n$" + str(len(command)).encode("ascii") + b"\r\n" + command + b"\r\n")
               with client.makefile("rb") as response:
                   print(response.readline().decode("ascii").strip())' "$1"
           }
