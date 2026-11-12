@@ -6398,3 +6398,5 @@ Track ci-cosmic-urbit-web4-3aef8cd60a through cold-cache CI 43155994072. Candida
 Track ci-cosmic-urbit-web4-412b95a3db for native federation CI 43157661058. Earlier cold-cache CI built assets on its disposable runner and stopped before fixtures. Local framing tests ran with bytecode disabled and retained no files. Temporary Git indices removed. No local runtime, fixture, download or log artifact.
 
 Checked post-cutover catalogue at f9011d511056 with the existing readiness visitor. Renewal wrote four protected files. No queries, local build, downloads or fixture. Temporary documentation index removed.
+
+Native federation CI 43157661058 succeeded with owned Mongo database absence verified after restart. Existing fixture assets and compact CI artifact remain cloud-only. Retain the exact native tag and replacement integration tag through publication. No local build, fixture or downloads. Temporary documentation index removed.
