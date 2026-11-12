@@ -20,12 +20,45 @@ jobs:
       run:
         working-directory: OASIS
     steps:
+      - name: Resolve the Development baseline
+        id: baseline
+        shell: bash
+        working-directory: ${{ github.workspace }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          revision="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/Development" --jq .object.sha)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "revision=$revision" >> "$GITHUB_OUTPUT"
+          echo "Qualifying Firestore on Development $revision"
+
+      - uses: actions/checkout@v7
+        with:
+          path: provider-source
+          persist-credentials: false
+
       - uses: actions/checkout@v7
         with:
           token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          ref: ${{ steps.baseline.outputs.revision }}
           path: OASIS
           submodules: recursive
           persist-credentials: false
+
+      - name: Add the focused Firestore startup fixture
+        shell: bash
+        run: |
+          for path in \
+            'OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader.UnitTests/FirestoreNativeStartupTests.cs' \
+            'Scripts/TestHosts/Invoke-FirestoreBootLoaderActivation.ps1'; do
+            if [[ -e "$path" ]]; then
+              cmp -- "$path" "../provider-source/$path"
+            else
+              install -m 644 "../provider-source/$path" "$path"
+            fi
+            git add -- "$path"
+          done
+          echo "Qualified input tree: $(git write-tree)"
 
       - name: Read the recorded Libraries revision
         id: dependencies

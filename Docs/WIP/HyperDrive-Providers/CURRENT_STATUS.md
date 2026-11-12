@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. The passing Firestore startup check now qualifies against the current Development head and its dependency pins. CI adds only the focused test and runner, rejects file overlap, and records the staged tree. The provider code and the accepted 52-check storage evidence remain as previously recorded. Development qualification is pending.
+
 12 November Cancun time. After the half-hour coordination interval and seven successful baseline deployments, Development advanced to `4838fdd9e694` with the exact Windows-qualified HoloOASIS lifecycle tree. The same provider code passed Linux qualification on the same baseline. The three-file batch preserves the shared CQL fixture mode and dependency pins. Deployment remains open.
 
 12 November Cancun time. [Firestore BootLoader job 131092744265](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43191809618/job/131092744265) passed its focused native startup check with zero skips at `a6b8736aff3b`. The fixture verified the official emulator hash, then the shipping Google Cloud provider activated against its Firestore read probe and deactivated. The job confirmed emulator and directory cleanup. The accepted 52-check storage suite was not repeated. Hosted Google Cloud verification remains open.
