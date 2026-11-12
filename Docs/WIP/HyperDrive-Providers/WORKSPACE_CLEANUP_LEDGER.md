@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+12 November EOSIO routing run 43331151683 confirmed removal of each owned Antelope fixture directory after the native assertions. No local build, download or report was created.
+
 12 November reproduced the expected EOSIO routing tree with a temporary Git index. The index was removed and verified absent. No local builds, downloads, databases or test results were created.
 
 12 November used one temporary Git index to reproduce the HoloOASIS and Solid CI trees and compose candidate a9cb8732db2f. The index was removed and verified absent. No local runtime, builds or test reports were created.
