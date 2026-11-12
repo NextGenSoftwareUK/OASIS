@@ -510,3 +510,5 @@ Urgent disk cleanup follow-up: leased standard project clean succeeded for AWS u
 12 November Cancun time. Solr jobs 131174440047 and 131174440465 passed all shared cases, verified exact native tombstone cleanup and three empty cores, and removed their owned nodes, volumes and checkpoint directories. No local build or download was created.
 
 12 November Cancun time. The temporary Git index used to stage the four-file Solr candidate on the verified Typesense parent was removed and its absence verified. No local builds, images, downloads or test outputs were created.
+
+12 November Cancun time. Meilisearch storage CI uses a disposable hosted runner, a loopback-only node, in-memory fixture storage and one result directory per mode. The exit handler removes the owned node, volumes and results. No local build, runtime or download was created. Cleanup confirmation awaits CI.
