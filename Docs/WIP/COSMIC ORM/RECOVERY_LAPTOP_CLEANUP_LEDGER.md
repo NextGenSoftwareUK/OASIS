@@ -6436,3 +6436,5 @@ Prepared the one-line HoloOASIS Core tariff candidate with a temporary index and
 12 November Cancun time. Combined canonical provider changes and CQL changes using the existing two checkouts. The temporary index for local commit 8ba776e9b317 was removed. No runtime setup, builds, downloads or new branch or tag.
 
 12 November Cancun time. Added temporary ci-cosmic-holooasis-native-b26b223617 for native CI 43178143248. Keep the Core candidate tag and this native tag while qualifying. The hApp artifact was streamed into memory and imported into Git. No local archive or build/test output was retained. Removed the scoped index. C: measured 41,583,632,384 free bytes.
+
+12 November Cancun time. Exact image CI 43178432503 uses the existing native qualification tag and a commit-only registry image name. Requested cancellation of superseded image CI 43174670180. Its temporary source tag ci-cosmic-holooasis-web4-21bca825ab can be removed after the job is terminal. No local output or artifact download created.
