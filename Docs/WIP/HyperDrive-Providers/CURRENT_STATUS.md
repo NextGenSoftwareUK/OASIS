@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. COSMIC traced the WEB4 crash to granting signing credentials before the persisted Holochain cell is running. Its managed restart CI 43329188875 passed on recovery candidate 18f227af493a and exact image 43329206218 remains active. Prepared routing candidate 5f625770c7aa on that recovery commit. Its nine-file routing diff matches the verified batch byte for byte. No Development push while recovery is qualifying. No temporary index, runtime or build outputs were created.
+
 12 November 18:32 Cancun time. Held the Polkadot and Solana Development integration. The remote still points to 716711320680, but the fleet now has six successes and a WEB4 failure. The guard stopped before pushing candidate 1cb79150df51. Recheck WEB4 deployment recovery and the shared parent at the next review.
 
 12 November Cancun time. [HoloOASIS collection CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43328666202) passed both native cases with zero skips. It verified the native baseline plus both routed IDs, then removed and verified absence of the exact owned Holochain records. Hosted outbox and live writes remain open.
