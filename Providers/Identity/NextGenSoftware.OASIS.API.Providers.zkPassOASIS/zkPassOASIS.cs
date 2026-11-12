@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Numerics;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Nethereum.Signer;
 using Nethereum.Util;
@@ -13,8 +14,14 @@ using NextGenSoftware.Utilities;
 namespace NextGenSoftware.OASIS.API.Providers.zkPassOASIS;
 
 public sealed record ZkPassEvmProof(
-    string TaskId, string UserHash, string PublicFieldsHash, string Recipient,
-    string AllocatorAddress, string AllocatorSignature, string ValidatorAddress, string ValidatorSignature);
+    [property: JsonPropertyName("taskId")] string TaskId,
+    [property: JsonPropertyName("uHash")] string UserHash,
+    [property: JsonPropertyName("publicFieldsHash")] string PublicFieldsHash,
+    [property: JsonPropertyName("recipient")] string Recipient,
+    [property: JsonPropertyName("allocatorAddress")] string AllocatorAddress,
+    [property: JsonPropertyName("allocatorSignature")] string AllocatorSignature,
+    [property: JsonPropertyName("validatorAddress")] string ValidatorAddress,
+    [property: JsonPropertyName("validatorSignature")] string ValidatorSignature);
 
 /// <summary>Verifies recipient-bound zkPass TransGate EVM attestations.</summary>
 public sealed class zkPassOASIS : OASISProvider

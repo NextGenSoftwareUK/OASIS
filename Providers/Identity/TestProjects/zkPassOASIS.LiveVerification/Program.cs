@@ -22,7 +22,19 @@ static string TextId(string hex) => Encoding.ASCII.GetString(Convert.FromHexStri
 
 var schema = TextId(Field(1));
 var recipient = Field(3);
-var proof = new ZkPassEvmProof(TextId(Field(0)), Field(2), Field(4), recipient, Allocator, Field(6), Field(5), Field(7));
+var sdkResult = JsonSerializer.SerializeToUtf8Bytes(new
+{
+    taskId = TextId(Field(0)),
+    uHash = Field(2),
+    publicFieldsHash = Field(4),
+    recipient,
+    allocatorAddress = Allocator,
+    allocatorSignature = Field(6),
+    validatorAddress = Field(5),
+    validatorSignature = Field(7)
+});
+var proof = JsonSerializer.Deserialize<ZkPassEvmProof>(sdkResult)
+    ?? throw new InvalidDataException("The TransGate result could not be bound to the proof model.");
 var provider = new zkPassOASIS();
 Require(provider.ActivateProvider().Result, "zkPass activation failed.");
 var accepted = provider.Verify(proof, schema, recipient);
