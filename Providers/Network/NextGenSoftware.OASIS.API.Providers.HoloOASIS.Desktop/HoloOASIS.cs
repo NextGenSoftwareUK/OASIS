@@ -4,6 +4,7 @@ using NextGenSoftware.OASIS.API.DNA;
 namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop
 {
     /// <summary>Desktop HoloOASIS provider backed by the canonical HoloNET client.</summary>
+    [System.Obsolete("Use the canonical NextGenSoftware.OASIS.API.Providers.HoloOASIS.HoloOASIS provider for local conductor connections.")]
     public sealed class HoloOASIS : global::NextGenSoftware.OASIS.API.Providers.HoloOASIS.HoloOASIS
     {
         public HoloOASIS(HoloNETClientAdmin adminClient, HoloNETClientAppAgent appAgentClient,

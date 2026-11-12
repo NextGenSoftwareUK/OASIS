@@ -4,6 +4,8 @@ The OASIS inventory lists **234 shipping provider projects** as of 11 November 2
 
 The public registries list the same 234 projects. [Web4Site registry](https://web4.oasisomniverse.one/providers.html) · [OASIS Web4 registry](https://www.oasisweb4.com/providers)
 
+The project inventory includes the obsolete HoloOASIS.Desktop compatibility wrapper. Ongoing Holochain provider acceptance is tracked under canonical HoloOASIS.
+
 See how the inventory is organized and where to find verification evidence. [OASIS Docs provider overview](https://docs.oasisomniverse.one/providers/overview) · [OASIS Learn provider guide](https://learn.oasisomniverse.one/tutorials/08-providers-production)
 
 The category breakdown below records the 2 October 2026 implementation audit.
@@ -341,7 +343,7 @@ These folders live under `Providers/` but are not counted as providers.
 
 | Folder | Reason |
 |---|---|
-| `Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop` | Packaging variant of HoloOASIS (references the HoloOASIS project); not a separate provider |
+| `Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop` | Obsolete compatibility wrapper. Use canonical HoloOASIS for local conductor connections. |
 | `Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity` | Unity packaging of HoloOASIS, shipped in the HoloEnabled Edge release; not a separate provider |
 | `Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2` | Provider class is commented out; Neo4j is served by `Neo4jOASIS` and `Neo4jOASIS.Aura` |
 | `Storage/NextGenSoftware.OASIS.API.Providers.EdgeSQLiteOASIS` | Edge offline-sync state store library, not a provider |

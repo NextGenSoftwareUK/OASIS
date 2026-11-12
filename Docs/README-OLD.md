@@ -511,7 +511,7 @@ The projects within this repo should be pretty self explanatory from their names
 |NextGenSoftware.OASIS.API.WebAPI| This will expose the OASIS API as a RESTful service over HTTP. In future there will also be a websocket HTTP & websocket JSON RPC 2.0 interface.
 |NextGenSoftware.OASIS.API.WebAP.IntegrationTests|Integration tests for the OASIS REST Web API.
 |[NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core](#holooasis)| This contains the core code for the HoloOASIS Provider, that wraps around the HoloNETClient to talk to Holochain. This implements the [IOASISStorage](#ioasisstorage)interface allowing the OASIS API to read & write the users profile data to Holochain. It also implements the [IOASISNET](#ioasisnet) interface allowing it to share the user's profile/avatar as well as find Holons and players in their local area.
-|[NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop](#holooasis)| This is the desktop implementation of the HoloOASIS Provider and uses the desktop version of the HoloNETClient.
+|[NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop](#holooasis)| Obsolete compatibility wrapper. Use canonical HoloOASIS for local conductor connections.
 |[NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity](#holooasis)| This is the Unity implementation of the HoloOASIS Provider and uses the Unity version of the HoloNETClient.
 |[NextGenSoftware.OASIS.API.Providers.HoloOASIS.TestHarness](#holooasis)| This is the Test Harness of the HoloOASIS Provider.
 |NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS| OASIS Provider for ThreeFold.

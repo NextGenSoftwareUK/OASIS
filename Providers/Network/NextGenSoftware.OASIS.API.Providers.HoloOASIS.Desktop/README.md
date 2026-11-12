@@ -1,5 +1,7 @@
 # NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop
 
+**Obsolete.** Use the canonical [HoloOASIS provider](../NextGenSoftware.OASIS.API.Providers.HoloOASIS/README.md) for local conductor connections. The Desktop adapter is retained for compatibility.
+
 HoloOASIS Desktop Provider — full Holochain OASIS provider variant optimised for native desktop apps, connecting to a locally-running Holochain conductor via HoloNET.
 
 ## Installation
