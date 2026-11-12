@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Live shipping Solana public CQL
+
+12 November Cancun time. Live Development WEB4 deployment `15c2e5cd-4773-4294-9a1e-9263a32699f7` served `061ceca0221e` throughout all four public Solana preset checks. After serial source warm-up, native full/subset returned the exact 3/2 reviewed finalized public accounts and stable IDs. Both federated presets returned the same 3/2 IDs with Solana-only copies for the retained visitor. The deployed registry dispatches to BootLoader's shipping `SolanaOASIS`. No new visitor, private seed, signed transaction or HyperDrive write was used. Ethereum's revised exact image qualification is run `43308673695`.
+
 ## HoloOASIS first in the WEB4 demo queue
 
 Canonical HoloOASIS public CQL is live in Development through the shipping BootLoader provider on revision d74e43b9def4. The managed conductor and all four public presets passed on `e54973c380c9` and after the `1c4d6109d47c` rollout. The original owner also verified private MongoDB federation with 5 full and 4 subset rows, and a separate visitor saw only the public records. Neo4j has both exact private replicas. SQLite delivery remains held behind sequence 543, and browser rendering and live HyperDrive writes remain open. HoloOASIS.Desktop is an obsolete compatibility wrapper.
