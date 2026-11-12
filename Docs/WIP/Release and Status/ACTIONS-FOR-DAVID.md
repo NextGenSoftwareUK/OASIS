@@ -487,6 +487,8 @@ OLAND clarification,1 November2026: David reported Vercel approval completed; pr
 **Action:** (1) approve moving the HoloNET pin in `oasis-dependency-versions.env` to that commit (GPT owns the global release, so this goes through GPT); (2) in the Railway dev service make sure the HoloOASIS section of `OASIS_DNA_JSON` uses the local node with auto-start on; optionally mount a persistent volume for the conductor cache; (3) after dev is verified, approve live. Never paste secrets into chat.
 **Status:** open, 2 November 2026. **Details:** `docs/conductor.md` in the HoloNET repo.
 
+12 November Cancun time: Development now pins HoloNET 9f897b7ace60, which includes 4daa7437 and AutoDownloadConductor. WEB4 Development already has UseLocalNode enabled. The CQL demo still requires engineering verification of the co-located conductor, provisioning the dedicated read grant and synthetic fixtures, and loading the protected read-only settings. This update records Development progress. The later live rollout decision remains open.
+
 ### E6. Decide the offline (Embedded) package matrix for Linux and macOS
 **Context:** HoloNET packages (`packages.json`). Embedded packages carry the conductor inside them for offline use; today they are Windows-only (Holochain 0.7.1 and 0.7.0).
 **Why:** you asked for Embedded packages for every OS and conductor version. Each package holds one OS/CPU and one version, so the count depends on the matrix. Compressed binaries keep each Client package at roughly 25 to 30 MB; the ORM, API and HyperNET variants are thin and depend on the matching Client one.

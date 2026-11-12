@@ -77,9 +77,11 @@ public sealed class CqlHoloOasisConductorTests
             var actor = Guid.NewGuid();
             var access = Assert.Single(container.GetServices<CqlPublicReadCatalogue>()).Authorize(actor, Provider);
             Assert.False(access.IsError, access.ErrorCode);
+            var fixtureId = fixture.Id;
             var query = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(Provider).Result)
-                .WithReadAccess(access.Result).Where(row => row.Id == fixture.Id).Result;
-            var plan = CosmicQueryPlanner.Plan(query, Provider, [new(Provider, reader.QueryCapabilities)]);
+                .WithReadAccess(access.Result).Where(row => row.Id == fixtureId);
+            Assert.False(query.IsError, query.ErrorCode);
+            var plan = CosmicQueryPlanner.Plan(query.Result, Provider, [new(Provider, reader.QueryCapabilities)]);
             Assert.False(plan.IsError, plan.ErrorCode);
             var initial = await reader.ExecuteCosmicQueryAsync(plan.Result);
             Assert.False(initial.IsError, initial.ErrorCode);

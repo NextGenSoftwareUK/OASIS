@@ -6440,3 +6440,5 @@ Prepared the one-line HoloOASIS Core tariff candidate with a temporary index and
 12 November Cancun time. Exact image CI 43178432503 uses the existing native qualification tag and a commit-only registry image name. Requested cancellation of superseded image CI 43174670180. Its temporary source tag ci-cosmic-holooasis-web4-21bca825ab can be removed after the job is terminal. No local output or artifact download created.
 
 12 November Cancun time. Removed the superseded ci-cosmic-holooasis-web4-21bca825ab remote tag after its image run was canceled. The focused Python settings test ran with -B and removed its disposable catalogue directory. No protected settings snapshot, environment or build output created. The scoped temporary index is removed before push.
+
+12 November Cancun time. Read the native failure logs in memory. The corrected native CI candidate preserves the verified hApp already integrated on Development. Keep both candidate tags while the original image and corrected native runs are active. Removed scoped indices. No local build or log file.
