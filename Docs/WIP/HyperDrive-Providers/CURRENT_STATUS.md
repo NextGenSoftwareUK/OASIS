@@ -17,6 +17,8 @@
 
 ## Verification log
 
+12 November Cancun time. The first direct canonical HoloOASIS job [43165294724](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43165294724) reached test execution and was canceled at the 20-minute job limit without a test report. The native runner now ends a hung test after two minutes without a dump and emits the latest per-mode case and completed count from the disposable checkpoints. This will distinguish a stalled operation from runner teardown. Development WEB4 subsequently reported success at `4fdb30c2fae4`.
+
 12 November Cancun time. Canonical HoloOASIS current holon listing, metadata filters and owner-ID export now query the native collection through the activated app-agent connection. The pinned hApp exposes whole-value metadata indexing, so OASIS key/value matching filters the returned native records. Batch save and import now reuse the acknowledged native graph save and propagate failure and partial counts. The previous collection save never added the caller's holons, and import reported success even when its save failed. Combined conductor verification remains open.
 
 12 November Cancun time. The canonical parent-ID collection path now sends the requested GUID as the native zome's scalar input through the activated HoloNET app-agent client. The previous path created a new unbound collection client and sent an anchor and option object instead of the parent ID. The new path maps and counts returned native records and honors the holon type filter. The change is awaiting real-conductor verification.

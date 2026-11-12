@@ -135,7 +135,9 @@ try {
         $env:OASIS_HOLOCHAIN_REPORT_DIR = $ResultsDirectory
         $test = if ($HoloConformance) { 'HoloCoreStorageConformance' } else { 'DesktopAvatarAndHolonCrud' }
         $minimum = if ($HoloConformance) { 2 } else { 1 }
-        & dotnet test $DesktopProject --configuration $Configuration --filter "FullyQualifiedName~$test" --logger 'trx;LogFileName=holo-desktop-native.trx' --results-directory $ResultsDirectory /m:2 /nr:false /p:UseSharedCompilation=false
+        $timeoutOptions = @()
+        if ($HoloConformance) { $timeoutOptions = @('--blame-hang-timeout', '2m', '--blame-hang-dump-type', 'none') }
+        & dotnet test $DesktopProject --configuration $Configuration --filter "FullyQualifiedName~$test" --logger 'trx;LogFileName=holo-desktop-native.trx' --results-directory $ResultsDirectory /m:2 /nr:false /p:UseSharedCompilation=false @timeoutOptions
         if ($LASTEXITCODE -ne 0) { throw "Native Holo Desktop check failed: $test." }
         Assert-CompleteTestReport (Join-Path $ResultsDirectory 'holo-desktop-native.trx') $minimum
     }
