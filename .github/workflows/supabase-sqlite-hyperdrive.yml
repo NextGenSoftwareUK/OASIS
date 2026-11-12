@@ -1,0 +1,20 @@
+name: Supabase and SQLite HyperDrive routing
+
+on:
+  push:
+    branches: [work/hyperdrive-provider-completion]
+    paths:
+      - '.github/workflows/supabase-sqlite-hyperdrive.yml'
+      - 'Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.SupabaseOASIS.IntegrationTests/SupabaseSqliteHyperDriveTests.cs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  routing:
+    uses: ./.github/workflows/supabase-postgrest-native.yml
+    with:
+      scenario: routing
+    secrets:
+      PRIVATE_SUBMODULE_PAT: ${{ secrets.PRIVATE_SUBMODULE_PAT }}

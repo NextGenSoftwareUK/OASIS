@@ -4,7 +4,6 @@ on:
   push:
     branches: [work/hyperdrive-provider-completion]
     paths:
-      - '.github/workflows/supabase-postgrest-native.yml'
       - 'Providers/Cloud/NextGenSoftware.OASIS.API.Providers.SupabaseOASIS/**'
       - 'Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.SupabaseOASIS.IntegrationTests/SupabaseNativeCredentialIsolationTests.cs'
       - 'Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.SupabaseOASIS.IntegrationTests/SupabaseNativeStorageConformanceTests.cs'
@@ -13,8 +12,17 @@ on:
       scenario:
         description: PostgREST verification scenario
         type: choice
-        options: [pagination, storage, credentials]
+        options: [pagination, storage, credentials, routing]
         default: pagination
+
+  workflow_call:
+    inputs:
+      scenario:
+        type: string
+        required: true
+    secrets:
+      PRIVATE_SUBMODULE_PAT:
+        required: true
 
 permissions:
   contents: read
@@ -76,6 +84,22 @@ jobs:
           PGRST_SERVER_HOST: 127.0.0.1
         run: |
           fixture="$(mktemp -d "$RUNNER_TEMP/oasis-postgrest.XXXXXXXX")"
+          first_pid=''
+          second_pid=''
+          cleanup() {
+            local status=$? cleanup_status=0
+            for pid in "$first_pid" "$second_pid"; do
+              if [[ -n "$pid" ]] && kill -0 "$pid" 2>/dev/null; then
+                kill "$pid" || cleanup_status=1
+                wait "$pid" || [[ "$?" == 143 ]] || cleanup_status=1
+              fi
+            done
+            rm -rf -- "$fixture" || cleanup_status=1
+            if [[ "$cleanup_status" -ne 0 || -e "$fixture" ]]; then exit 1; fi
+            echo "Removed the owned PostgREST processes, SQLite files and runner fixture."
+            exit "$status"
+          }
+          trap cleanup EXIT
           archive="$fixture/postgrest.tar.xz"
           asset_url=https://github.com/PostgREST/postgrest/releases/download/v16.5/postgrest-v16.5-linux-static-x86-64.tar.xz
           curl --fail --silent --show-error --location --max-time 90 --output "$archive" "$asset_url"
@@ -126,17 +150,9 @@ jobs:
           export OASIS_SUPABASE_SECOND_POSTGREST=http://127.0.0.1:18092
           export OASIS_SUPABASE_FIRST_JWT="$(issue_token "$first_secret")"
           export OASIS_SUPABASE_SECOND_JWT="$(issue_token "$second_secret")"
-          first_pid=''
-          second_pid=''
-          stop_services() {
-            for pid in "$first_pid" "$second_pid"; do
-              if [[ -n "$pid" ]] && kill -0 "$pid" 2>/dev/null; then
-                kill "$pid"
-                wait "$pid" || [[ "$?" == 143 ]]
-              fi
-            done
-          }
-          trap stop_services EXIT
+          echo "::add-mask::$OASIS_SUPABASE_FIRST_JWT"
+          echo "::add-mask::$OASIS_SUPABASE_SECOND_JWT"
+          export OASIS_SUPABASE_ROUTING_DIRECTORY="$fixture"
           PGRST_SERVER_PORT=18091 PGRST_JWT_SECRET="$first_secret" "$fixture/postgrest" >"$fixture/first.log" 2>&1 &
           first_pid=$!
           PGRST_SERVER_PORT=18092 PGRST_JWT_SECRET="$second_secret" "$fixture/postgrest" >"$fixture/second.log" 2>&1 &
@@ -156,13 +172,29 @@ jobs:
           pwsh -NoProfile -Command '
             ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-SupabaseCredentials -Operation {
               $case = "SharedClientSendsEachCredentialOnlyToItsPostgrestService"
-              if ($env:OASIS_SUPABASE_TEST_SCENARIO -eq "storage") {
+              $properties = @()
+              if ($env:OASIS_SUPABASE_TEST_SCENARIO -eq "routing") {
+                $case = "RoutesAcrossNativeSupabaseAndSqlite"
+                $properties += "/p:SupabaseRoutingTests=true"
+              } elseif ($env:OASIS_SUPABASE_TEST_SCENARIO -eq "storage") {
                 $env:OASIS_SUPABASE_LOCAL_STORAGE_CONFORMANCE = "1"
                 $case = "CoreStorageSuiteAgainstSupabase"
               } elseif ($env:OASIS_SUPABASE_TEST_SCENARIO -eq "pagination") {
                 $env:OASIS_SUPABASE_LOCAL_PAGINATION = "1"
                 $case = "ListingReturnsEveryPreseededIdentityAcrossPages"
               }
-              dotnet test "Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.SupabaseOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.SupabaseOASIS.IntegrationTests.csproj" --filter "FullyQualifiedName~$case" /m:2 /nr:false /p:UseSharedCompilation=false --logger "console;verbosity=normal"
+              dotnet test "Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.SupabaseOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.SupabaseOASIS.IntegrationTests.csproj" --filter "FullyQualifiedName~$case" @properties /m:2 /nr:false /p:UseSharedCompilation=false --logger "console;verbosity=normal" --logger "trx;LogFileName=postgrest.trx" --results-directory $env:OASIS_SUPABASE_ROUTING_DIRECTORY
               if ($LASTEXITCODE -ne 0) { throw "Native PostgREST verification failed." }
+              if ($env:OASIS_SUPABASE_TEST_SCENARIO -eq "routing") {
+                [xml]$report = Get-Content -LiteralPath (Join-Path $env:OASIS_SUPABASE_ROUTING_DIRECTORY "postgrest.trx") -Raw
+                $counters = $report.SelectSingleNode("//*[local-name()=`"Counters`"]")
+                if (-not $counters -or $counters.total -ne "2" -or $counters.passed -ne "2") {
+                  throw "Expected two executed and passing native routing modes."
+                }
+              }
             }'
+
+          if [[ "$OASIS_SUPABASE_TEST_SCENARIO" == routing ]]; then
+            [[ "$("${psql[@]}" -Atc 'SELECT (SELECT count(*) FROM oasis_holons) + (SELECT count(*) FROM oasis_avatars) + (SELECT count(*) FROM oasis_avatar_details)')" == 0 ]]
+            echo "Verified all three PostgreSQL fixture tables empty after both routing modes."
+          fi
