@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Urbit qualification passed and reconciled with Holo Desktop
+
+All 30 boundary cases passed on `27d07f280c` in [CI 43160306525](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43160306525). HyperDrive advanced Development to `bfa0be4be233` with six Holo Desktop paths outside the WEB4 project graph and no Urbit overlap. Local candidate `751e5ca190` preserves all 38 Urbit paths byte for byte. WEB4 deployment `7729252735` is in progress. The next shared push window starts after 05:55:21 UTC, subject to queue and branch checks.
+
 ## WEB4 readiness after Core test alignment
 
 Development WEB4 `f9011d511056` deployed successfully (`7728790300`). Authenticated discovery returned 105/106 native and federated sources ready. Hedera recovered. Nostr remained unavailable. Dapr, Waku and NATS were ready. TRON, Supabase and CouchDB remained unenrolled. Urbit native federation CI is still running on its earlier base.
