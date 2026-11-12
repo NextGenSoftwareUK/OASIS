@@ -522,3 +522,5 @@ Urgent disk cleanup follow-up: leased standard project clean succeeded for AWS u
 12 November Cancun time. Meilisearch jobs 131190218642 and 131190218045 passed all shared cases, verified exact native tombstone cleanup and three empty indexes, and removed their owned nodes, volumes and checkpoint directories. No local build or download was created.
 
 12 November Cancun time. The temporary Git index used to stage the six-file Meilisearch tree on the verified Solr parent was removed and its absence verified.
+
+12 November Cancun time. Meilisearch Development jobs 131368776634 and 131368777014 confirmed exact fixture cleanup and removal of their nodes, volumes and checkpoint directories. Qdrant shared CI provisions a disposable loopback-only node per mode and removes its owned volumes and results on exit. No local build or runtime download was created.

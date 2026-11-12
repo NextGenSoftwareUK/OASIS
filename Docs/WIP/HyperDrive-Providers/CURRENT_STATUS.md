@@ -22,6 +22,10 @@
 
 12 November Cancun time. Development advanced to `ba875a362b71` with the exact four-file Solr qualification tree `966ecc2d2104a8c1441fa84f2fa72375d06fd765`. The remote ref was verified after all seven Typesense deployments had succeeded. The Solr Railway rollout remains open.
 
+12 November Cancun time. Both [Meilisearch Development jobs](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43271453934) passed all 26 cases and exact cleanup on `11f8477bb75102ad691f71bc8b8092d8ce47ac7c`. Candidate `4c3d1016dbcd` contains only the six qualified Meilisearch files. The Solr Development push event was 12:31:42 Cancun time. The next review is after 13:01:42 with seven successful preceding deployments and a fresh parent check.
+
+12 November Cancun time. Added both shared storage modes against a disposable native Qdrant 1.16.3 node. The fixture verifies completed point deletion and independent exact collection counts. Existing COSMIC restart and CQL evidence remains separate. The shipping adapter still uses zero-vector placeholders for payload storage, so semantic vector acceptance remains open regardless of the shared suite result.
+
 12 November Cancun time. Both [Meilisearch jobs in run 43220418790](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43220418790) passed all 26 cases with zero skips on Meilisearch 1.56.0. Native tombstone cleanup left all three indexes empty. Development qualification overlays the six reviewed files with a guard against overlapping edits. The expected tree on Solr Development is `11f8477bb75102ad691f71bc8b8092d8ce47ac7c`. Hosted and broader capabilities remain open.
 
 12 November Cancun time. Both [Meilisearch jobs in run 43219632092](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43219632092) passed nine native checks including every identity and detail lookup. Graph save only acknowledged the root. The adapter now writes each selected graph node, waits for exact native deletion task receipts, checks native collection pages, and reports actual storage counts. The new native run must verify those paths, with multi-page behavior still requiring dedicated evidence.
