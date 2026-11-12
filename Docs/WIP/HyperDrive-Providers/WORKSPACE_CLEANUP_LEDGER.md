@@ -518,3 +518,7 @@ Urgent disk cleanup follow-up: leased standard project clean succeeded for AWS u
 12 November Cancun time. Meilisearch jobs 131184327639 and 131184327983 stopped on username lookup and removed both owned nodes, volumes and result directories. No local build or download was created.
 
 12 November Cancun time. Meilisearch jobs 131187545494 and 131187545555 stopped at graph save and removed their owned nodes, volumes and result directories. No local builds or downloads were created.
+
+12 November Cancun time. Meilisearch jobs 131190218642 and 131190218045 passed all shared cases, verified exact native tombstone cleanup and three empty indexes, and removed their owned nodes, volumes and checkpoint directories. No local build or download was created.
+
+12 November Cancun time. The temporary Git index used to stage the six-file Meilisearch tree on the verified Solr parent was removed and its absence verified.

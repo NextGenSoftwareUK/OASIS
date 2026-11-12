@@ -1,6 +1,15 @@
 {
   "schemaVersion": 1,
   "verifiedNativeCiRuns": {
+    "MeilisearchOASIS": {
+      "suite": "core-storage-v2",
+      "backend": "Meilisearch 1.56.0 via the shipping REST adapter",
+      "runId": 43220418790,
+      "jobIds": [131190218642, 131190218045],
+      "revision": "6afcd03e0706f0b55718398dec5a00b78eb1eb25",
+      "passed": {"async": 26, "sync": 26},
+      "cleanup": "Both modes observed and removed the exact tombstones, verified all three indexes empty, and removed the owned nodes, volumes and checkpoint directories."
+    },
     "SolrOASIS": {
       "suite": "core-storage-v2",
       "backend": "Apache Solr 10.1.0 standalone via the shipping REST adapter",
@@ -682,6 +691,7 @@
     "zkPassOASIS": "Native public EVM attestation (capability-v1 scope)"
   },
   "providerBlockers": {
+    "MeilisearchOASIS": ["Hosted TLS and scoped access, multi-page coverage, graph depth, history and native conditional writes remain open."],
     "SolrOASIS": ["Hosted authentication and TLS, SolrCloud, complete collection pagination, graph depth, version history and conditional writes remain open."],
     "ElasticsearchOASIS": ["Hosted TLS and restricted access, native conditional writes and history, and graph depth and pagination acceptance remain open."],
     "OpenSearchOASIS": ["Focused native REST checks confirmed denied soft and hard deletes, acknowledged tombstones and independent physical absence. Hosted TLS and scoped access, graph depth and pagination, history and native conditional writes remain open."],

@@ -5,12 +5,12 @@
 | Area | Recorded status |
 | --- | --- |
 | Project inventory | 234 projects: 178 storage or specialized storage, including the obsolete Desktop compatibility wrapper, and 56 non-storage. |
-| Shared storage coverage | All 51 matrix entries recorded at 52/52 native core-storage-v2 have reconciled evidence. The registry contains 23 reports verified against their SHA-256 hashes and 28 passes independently checked against completed native CI jobs and their cleanup gates. |
+| Shared storage coverage | All 52 matrix entries recorded at 52/52 native core-storage-v2 have reconciled evidence. The registry contains 23 reports verified against their SHA-256 hashes and 29 passes independently checked against completed native CI jobs and their cleanup gates. |
 | Priority storage providers | The matrix records 52/52 native checks for Neon, Convex, Supabase, Solana, MongoDB, SQLite, Neo4j, SQL Server, Oracle, AWS DynamoDB and S3, IPFS, NEAR, Cosmos chain, Azure Cosmos DB, Google Firestore, Polkadot, Solid, Polygon, Arbitrum, TRON, EOSIO, TON, and Hedera/Hashgraph. Several use isolated native engines, emulators or local networks. See each row for hosted and capability gaps. |
 | ActivityPub and routing | ActivityPub has 5/5 native capability checks. GOMap passed a public OSRM driving route. Authenticated Google Routes, Mapbox and HERE checks remain open. Niantic and WRLD still have reviewed adapter gaps. |
 | Canonical HoloOASIS | Top priority. Both modes passed all 52 native core-storage-v2 checks on the official Windows conductor with the verified identity-delete hApp in [run 43178174352](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43178174352). The verified bundle is packaged on the provider branch. Hosted, multi-agent and broader capability acceptance remain open. |
 | HoloOASIS.Desktop | Obsolete in source, package metadata and repository documentation at `45d6665da989`. The six-file compatibility and documentation batch reached Development at `70d3fbb4a31c`. Published NuGet metadata and live site listings still need the obsolescence update. |
-| Development | `7193e81328d1` integrates the verified Typesense lifecycle on the successful Elasticsearch baseline. The new Railway rollout and live HyperDrive HoloOASIS writes remain open. |
+| Development | `ba875a362b71` integrates the verified Solr lifecycle after seven successful Typesense deployments. The Solr rollout and live HyperDrive HoloOASIS writes remain open. |
 | BootLoader startup | The shipping registration, activation and deactivation path passed against native Polkadot and TRON fixtures and the Microsoft Azure Cosmos DB emulator. [Azure Cosmos DB job 131055311882](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43180594194/job/131055311882) confirmed fixture teardown. |
 | HyperDrive | Global automatic failover, replication and load balancing await provider acceptance. Dragonfly and KeyDB full native runs were queued at the coverage review. |
 
@@ -19,6 +19,10 @@
 ## Verification log
 
 12 November Cancun time. Managed HoloOASIS advanced Development to `e54973c380c9`. Elasticsearch qualification now triggers when its native test project changes and will qualify the existing three-file batch against the new Development parent. The hosted HoloOASIS rollout and the new exact Elasticsearch integration evidence are pending.
+
+12 November Cancun time. Development advanced to `ba875a362b71` with the exact four-file Solr qualification tree `966ecc2d2104a8c1441fa84f2fa72375d06fd765`. The remote ref was verified after all seven Typesense deployments had succeeded. The Solr Railway rollout remains open.
+
+12 November Cancun time. Both [Meilisearch jobs in run 43220418790](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43220418790) passed all 26 cases with zero skips on Meilisearch 1.56.0. Native tombstone cleanup left all three indexes empty. Development qualification overlays the six reviewed files with a guard against overlapping edits. The expected tree on Solr Development is `11f8477bb75102ad691f71bc8b8092d8ce47ac7c`. Hosted and broader capabilities remain open.
 
 12 November Cancun time. Both [Meilisearch jobs in run 43219632092](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43219632092) passed nine native checks including every identity and detail lookup. Graph save only acknowledged the root. The adapter now writes each selected graph node, waits for exact native deletion task receipts, checks native collection pages, and reports actual storage counts. The new native run must verify those paths, with multi-page behavior still requiring dedicated evidence.
 
