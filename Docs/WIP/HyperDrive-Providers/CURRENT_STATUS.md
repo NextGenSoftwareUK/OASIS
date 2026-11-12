@@ -1,6 +1,6 @@
 # Current provider status
 
-12 November Cancun time. [Combined Holo Desktop CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43159610649) passed on Development baseline `f9011d5110565` with provider source `36233bb2162f`. The live Windows conductor test passed 1/1 with zero skips using Development's pinned Core and HoloNET ORM. WEB4 reported success at the baseline. The scoped Development push remains pending the coordination window. Full shared storage conformance remains open.
+12 November Cancun time. [Combined Holo Desktop CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43159610649) passed on Development baseline `f9011d5110565` with provider source `36233bb2162f`. The live Windows conductor test passed 1/1 with zero skips using Development's pinned Core and HoloNET ORM. After the coordination window elapsed and WEB4 reported success at the baseline, Development advanced to `bfa0be4be233` with the six-file Holo Desktop batch. The deployed revision and full shared storage conformance remain open.
 
 12 November Cancun time. Combined Holo Desktop CI 43158581111 stopped before the conductor test because the repository merge base predates identical shared-runner changes already present on both branches. Development retained runner blob `d3d93abfa5ee` at both inspected heads. The workflow now uses the reviewed parent of the Desktop batch for its per-file overlap check, while checking out the resolved Development revision and its dependency pins for the test. The corrected combined run remains open.
 
