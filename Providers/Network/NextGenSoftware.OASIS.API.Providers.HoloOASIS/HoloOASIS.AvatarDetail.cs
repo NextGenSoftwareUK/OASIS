@@ -168,19 +168,27 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                     return result;
                 }
 
-                var holons = new List<IHolon>();
+                // The zome returns linked actions oldest first. Resolve each identity
+                // before applying predicates so a historical value cannot match.
+                var current = new Dictionary<Guid, HcHolon>();
                 foreach (var record in response.Records)
                 {
-                    if (!(record.EntryDataObject is HcHolon entry) || string.IsNullOrWhiteSpace(record.ActionHash))
+                    if (!(record.EntryDataObject is HcHolon entry) || entry.Id == Guid.Empty || string.IsNullOrWhiteSpace(record.ActionHash))
                     {
                         OASISErrorHandling.HandleError(ref result, $"Holochain {function} returned an unmapped record.");
                         return result;
                     }
 
+                    entry.ActionHash = record.ActionHash;
+                    current[entry.Id] = entry;
+                }
+
+                var holons = new List<IHolon>();
+                foreach (var entry in current.Values)
+                {
                     if (type != HolonType.All && entry.HolonType != type)
                         continue;
 
-                    entry.ActionHash = record.ActionHash;
                     var holon = DataHelper.ConvertHcHolonToHolon(entry);
                     if (filter != null && !filter(holon))
                         continue;
