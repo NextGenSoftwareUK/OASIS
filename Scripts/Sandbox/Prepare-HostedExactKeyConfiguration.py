@@ -53,7 +53,14 @@ def candidate(before, provider, review):
             and (encryption.get("Rijndael256EncryptionEnabled") is True or encryption.get("QuantumEncryptionEnabled") is True)
             and (not isinstance(queryable_keys, list) or metadata_key not in queryable_keys)):
         raise ValueError("The encrypted Mongo metadata key must be explicitly queryable.")
-    if any(before.get(key) != value for key, value in review.get("sourceBinding", {}).items()):
+    bindings = review.get("sourceBinding", {})
+    new_source = {}
+    managed_holo = provider == "HoloOASIS" and review.get("managedLocalHoloOasis") is True
+    if managed_holo:
+        if any(key.startswith("CQL_HOLOOASIS_QUERY__") for key in before):
+            raise ValueError("Managed HoloOASIS requires an empty external reader configuration.")
+        new_source = {key: value for key, value in bindings.items() if key not in before}
+    if any((before | new_source).get(key) != value for key, value in bindings.items()):
         raise ValueError("Protected source settings do not match the reviewed teaching catalogue.")
     if provider == "DynamoDBOASIS":
         prefix = "CQL_DYNAMODB_QUERY_"
@@ -64,7 +71,7 @@ def candidate(before, provider, review):
             if not isinstance(value, str) or not 1 <= len(value) <= maximum or any(
                     not 33 <= ord(character) <= 126 for character in value):
                 raise ValueError("Valid protected DynamoDB reader credentials are required.")
-    if provider == "HoloOASIS":
+    if provider == "HoloOASIS" and not managed_holo:
         prefix = "CQL_HOLOOASIS_QUERY__"
         for field, minimum, maximum in (("AppToken", 1, 256), ("CapabilitySecret", 64, 64),
                                         ("SigningKey", 39, 39), ("SigningPrivateKey", 64, 64)):
@@ -105,7 +112,7 @@ def candidate(before, provider, review):
     admission["queryOnlyProviders"].append(provider)
     admission["queryTariffs"].append(dict(free[0], provider=provider))
     grants[provider] = review["publicIds"] if metadata_key is not None else full["request"]["filters"][0]["value"]
-    updates = {ADMISSION: configuration.compact(admission), GRANTS: configuration.compact(grants),
+    updates = {**new_source, ADMISSION: configuration.compact(admission), GRANTS: configuration.compact(grants),
                partition: configuration.compact(presets)}
     if any(len(value.encode()) > 32768 for value in updates.values()):
         raise ValueError("Candidate exceeds the hosted variable byte budget.")

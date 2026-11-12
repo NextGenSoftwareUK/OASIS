@@ -184,6 +184,30 @@ class ExactKeyConfigurationTests(unittest.TestCase):
         for secret in credentials.values():
             self.assertNotIn(secret, presets)
 
+    def test_holooasis_managed_catalogue_generates_admission_without_external_credentials(self):
+        provider = "HoloOASIS"
+        catalogue, (_, first, second, third, _, _) = exact_key_catalogue(provider)
+        with tempfile.TemporaryDirectory() as directory:
+            descriptor = Path(directory) / "catalogue.json"
+            descriptor.write_text(json.dumps(catalogue | {"Mode": "ManagedLocal"}))
+            review = configuration.verifier.reviewed_exact_key_source(provider, descriptor)
+
+        baseline = {
+            "OASIS_DNA_JSON": '{"OASIS":{"Sandbox":{"Enabled":true}}}',
+            configuration.ADMISSION: json.dumps({
+                "ordinaryProviders": ["MongoDBOASIS"], "nativeProviders": [],
+                "queryOnlyProviders": ["IPFSOASIS"],
+                "queryTariffs": [{"provider": "IPFSOASIS", "costUsd": 0}],
+            }),
+        }
+        result = configuration.candidate(baseline, provider, review)
+        self.assertEqual("true", result["CQL_HOLOOASIS_LOCAL_DEMO__Enabled"])
+        self.assertEqual("/data/COSMIC/HoloOasisCql/tools", result["HOLONET_CONDUCTOR_FOLDER"])
+        self.assertEqual([first, second, third], json.loads(result[configuration.GRANTS])[provider])
+        self.assertFalse(any(key.startswith("CQL_HOLOOASIS_QUERY__") for key in result))
+        with self.assertRaisesRegex(ValueError, "empty external reader configuration"):
+            configuration.candidate(baseline | {"CQL_HOLOOASIS_QUERY__Endpoint": "wss://external.example/"}, provider, review)
+
     def test_candidate_preserves_existing_providers_and_refuses_replacement(self):
         self.check_candidate("QdrantOASIS")
 

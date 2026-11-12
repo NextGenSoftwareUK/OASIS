@@ -654,7 +654,9 @@ def reviewed_exact_key_source(provider, path):
             fields.add("StoreId")
             if not re.fullmatch(r"[A-Za-z0-9_-]{1,64}", catalogue["StoreId"]):
                 raise ValueError("Unexpected Fastly KV store ID.")
-        if provider == "HoloOASIS":
+        if provider == "HoloOASIS" and catalogue.get("Mode") == "ManagedLocal":
+            fields.add("Mode")
+        elif provider == "HoloOASIS":
             fields |= {"Endpoint", "InstalledAppId", "DnaHash", "AgentKey"}
             endpoint = catalogue["Endpoint"]
             address = urllib.parse.urlsplit(endpoint)
@@ -891,6 +893,12 @@ def reviewed_exact_key_source(provider, path):
     elif provider == "FastlyOASIS":
         review["sourceBinding"] = {"CQL_FASTLY_QUERY_STORE_ID": catalogue["StoreId"],
                                    "CQL_FASTLY_QUERY_PROBE_ID": ids[0]}
+    elif provider == "HoloOASIS" and catalogue.get("Mode") == "ManagedLocal":
+        review["sourceBinding"] = {
+            "CQL_HOLOOASIS_LOCAL_DEMO__Enabled": "true",
+            "HOLONET_CONDUCTOR_FOLDER": "/data/COSMIC/HoloOasisCql/tools",
+        }
+        review["managedLocalHoloOasis"] = True
     elif provider == "HoloOASIS":
         prefix = "CQL_HOLOOASIS_QUERY__"
         review["sourceBinding"] = {prefix + key: catalogue[key]

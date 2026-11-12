@@ -6460,3 +6460,5 @@ Prepared the one-line HoloOASIS Core tariff candidate with a temporary index and
 12 November Cancun time. Added temporary ci-cosmic-holooasis-web4-279ba0f0a9 for exact image 43184526694. Retain ci-cosmic-holooasis-native-6797462655 as native evidence and the matching Core tag while qualification remains open. Removed local indices. No local build, download or test artifact.
 
 12 November Cancun time. Read Linux compile failure logs in memory. Managed fixture credentials are held in process memory. Dedicated conductor data belongs under /data/COSMIC/HoloOasisCql. No local runtime, build output, temporary log archive or hosted changes. Removed scoped index.
+
+12 November Cancun time. Ran two exact hosted settings tests in memory with -B. Both disposable catalogue directories and the scoped index were removed. No protected Railway snapshot or local build output created.
