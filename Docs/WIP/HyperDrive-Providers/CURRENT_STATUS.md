@@ -552,3 +552,5 @@ Holo Desktop now exposes the canonical admin-only provisioning path. The dedicat
 Holo Desktop native CI now consumes the verified hApp artifact from run 42662935082 and runs only the Desktop lifecycle case against the pinned Windows conductor. The existing release runner owns startup and process teardown. The new run is pending. No artifact was downloaded locally.
 
 Holo Desktop run 43154151480 retrieved the verified hApp successfully, then failed in the conductor/lifecycle step. GitHub exposed only a generic exit code. The workflow now publishes the fixture exception and failed test assertion as annotations for diagnosis. No live pass is claimed.
+
+Holo Desktop diagnostic run 43155153231 found that the conductor tool path was derived from a relative project path before the runner changed directories. The runner now resolves the project path before deriving the verified tool paths. This fixes the startup failure. Native rerun pending.

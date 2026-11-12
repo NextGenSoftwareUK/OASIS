@@ -18,6 +18,7 @@ function Assert-CompleteTestReport([string]$Path, [int]$Minimum) {
 if ($env:GITHUB_ACTIONS -ne 'true' -or -not $IsWindows) {
     throw 'This fixture provisions a Windows hosted-runner conductor only; no local installation is allowed.'
 }
+$Project = (Resolve-Path -LiteralPath $Project).Path
 $resources = Join-Path (Split-Path (Split-Path $Project -Parent) -Parent) 'NextGenSoftware.Holochain.HoloNET.Client/Resources'
 $tools = @{
     'hc-0.7.0.exe' = '643ed26e84a7ae72a454bd78b9427b50883fb1306406ba7b5fa4857c61c6b322'
@@ -44,7 +45,6 @@ if (Test-Path -LiteralPath $fixture) { throw 'Conductor fixture already exists; 
 New-Item -ItemType Directory -Path $fixture | Out-Null
 $fixture = (Resolve-Path -LiteralPath $fixture).Path
 $Happ = (Resolve-Path -LiteralPath $Happ).Path
-$Project = (Resolve-Path -LiteralPath $Project).Path
 if ($DesktopProject) { $DesktopProject = (Resolve-Path -LiteralPath $DesktopProject).Path }
 else {
     $holonetRoot = Split-Path (Split-Path $Project -Parent) -Parent
