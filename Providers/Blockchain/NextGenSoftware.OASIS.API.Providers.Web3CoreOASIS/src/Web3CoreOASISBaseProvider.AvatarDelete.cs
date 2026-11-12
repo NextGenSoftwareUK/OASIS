@@ -111,6 +111,7 @@ public partial class Web3CoreOASISBaseProvider
 
     public override OASISResult<bool> DeActivateProvider()
     {
+        ResetPublicQueryActivation();
         _web3CoreOASIS = null;
         IsProviderActivated = false;
 
