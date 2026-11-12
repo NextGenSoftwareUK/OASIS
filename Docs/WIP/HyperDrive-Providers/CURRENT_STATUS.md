@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. TRON routing CI 43332332675 passed both modes with zero skips on expected tree db6995f8021c171021acd77542fcdfbad3092a70 and removed its disposable TRE fixture. Development advanced to COSMIC WEB4 recovery 18f227af493a. Confirm that rollout before publishing the prepared HyperDrive candidate.
+
 12 November Cancun time. TRON exact Development qualification 43332332675 applies four routing test inputs to shipping Development and uses a disposable TRE node. Independently reproduced expected tree db6995f8021c171021acd77542fcdfbad3092a70 on 716711320680. The retained transaction and its original ledger are outside this fixture.
 
 12 November Cancun time. Prepared EOSIO routing candidate 8265a34f570d on the recovery-based HyperDrive stack. The four qualified inputs match the passing EOSIO source and have no path overlap with the COSMIC stack through 52fb8c366232. This is pending the shared Development review and verification of the eventual parent.
