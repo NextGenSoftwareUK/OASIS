@@ -550,3 +550,5 @@ The checked-in canonical and Android Holo hApp bundles both declare manifest ver
 Holo Desktop now exposes the canonical admin-only provisioning path. The dedicated native test requires only the disposable conductor admin endpoint and uses the packaged hApp to exercise automatic installation, app-agent authorization and storage. The existing explicit two-endpoint path remains available. Build and live verification of the new entry point are pending.
 
 Holo Desktop native CI now consumes the verified hApp artifact from run 42662935082 and runs only the Desktop lifecycle case against the pinned Windows conductor. The existing release runner owns startup and process teardown. The new run is pending. No artifact was downloaded locally.
+
+Holo Desktop run 43154151480 retrieved the verified hApp successfully, then failed in the conductor/lifecycle step. GitHub exposed only a generic exit code. The workflow now publishes the fixture exception and failed test assertion as annotations for diagnosis. No live pass is claimed.
