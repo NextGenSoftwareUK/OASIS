@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. [Dragonfly run 43286531187](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43286531187) verified the official Dragonfly 2.0.2 archive, then the native process rejected the RDB filename under its default snapshot format. The fixture now sets the same explicit RDB format as the verified native CQL runner and writes its logs into the owned directory. No lifecycle cases ran in the failed job.
+
 12 November Cancun time. The original Dragonfly and KeyDB full-native run records still show queued, with zero jobs and no dispatch progress since 11 November. The updated workflows check out the manifest-pinned Holochain client required by the build graph and emit compact lifecycle receipts and final native key counts. They qualify the shared lifecycle, carrying forward the existing native smoke and CQL evidence.
 
 12 November Cancun time. Both [Weaviate pagination jobs](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43285443258) returned all 101 exact holon IDs across the native cursor boundary. Each verified fixture absence and a zero collection count. Candidate `a421cd7a8c5b` reproduces qualified tree `68f073666204717e655457e4d77c780c1ef7dbdc` on Qdrant Development. The sole addition to the already-qualified storage tree is the pagination test. Priority COSMIC HoloOASIS image qualification is still active, so preserve the next Development window for it if release-ready.

@@ -74,8 +74,8 @@ jobs:
           "$fixture/dragonfly-x86_64" --version | grep -F 'v2.0.2'
           mkdir "$fixture/data"
           "$fixture/dragonfly-x86_64" --bind=127.0.0.1 --port=19691 --admin_port=0 --proactor_threads=1 \
-            --dir="$fixture/data" --dbfilename=fixture.rdb --maxmemory=256mb --cache_mode=false \
-            --epoll_file_threads=1 >"$fixture/server.log" 2>&1 &
+            --dir="$fixture/data" --dbfilename=fixture.rdb --df_snapshot_format=false --maxmemory=256mb --cache_mode=false \
+            --epoll_file_threads=1 --version_check=false --logtostderr=true >"$fixture/server.log" 2>&1 &
           server=$!
           query() {
             python3 -c 'import socket,sys
