@@ -452,3 +452,5 @@ Urgent disk cleanup follow-up: leased standard project clean succeeded for AWS u
 12 November Cancun time. The Linux HoloOASIS startup fixture runs on a disposable hosted runner. It puts the downloaded conductor cache and fixture DNA under one owned temporary directory and removes it on exit. No local builds or downloads were created. CI cleanup evidence is pending.
 
 12 November Cancun time. Linux HoloOASIS job 131078300392 verified conductor listener shutdown and removed the owned download cache and fixture directory. All build output stayed on the disposable hosted runner.
+
+12 November Cancun time. Combined Linux HoloOASIS job 131081195718 confirmed listener shutdown and removal of its temporary conductor cache and fixture. The exact-tree comparison used an alternate Git index in a temporary directory that was removed when the comparison completed. No local build outputs or downloads were created.
