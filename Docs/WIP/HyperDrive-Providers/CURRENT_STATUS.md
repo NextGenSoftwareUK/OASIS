@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. ActivityPub run 43315834312 provisioned Mastodon but stopped at compilation because the test lacked the Core request namespace. Added the import and confirmed the fixture teardown from the failed run. Routed native acceptance is pending replacement CI.
+
 12 November Cancun time. [Exact Polkadot CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43314244482) passed both modes on tree c6a02fceb6e94ac048121673d034083157a0ba0b. It matches six-file candidate 090b3b1e7d81 on e0f315259334 and confirms removal of the owned Substrate fixture and MongoDB outbox. All seven e0f315259334 deployments report success. COSMIC also has an Ethereum candidate on this parent. Coordinate the 17:07:34 window before publishing either scope. [ActivityPub routing CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43315834312) and [Hedera routing CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43315101618) are active.
 
 12 November Cancun time. ActivityPub implements IOASISStorageProvider for instance-scoped Mastodon projections. It advertises Social and Network capabilities and rejects private OASIS record saves, GUID lookup and complete collection reads. Added native HyperDrive cases that route the owned private status by explicit instance key in both modes and independently require HTTP 404 after routed deletion. The existing direct search and delete suites carry forward. The suite uses a single configured instance; cross-instance failover and balancing need a common identity contract, and generic storage replication is outside this provider's advertised capabilities. CI is pending.

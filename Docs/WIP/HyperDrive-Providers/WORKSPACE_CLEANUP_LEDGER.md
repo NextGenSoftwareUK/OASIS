@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+12 November ActivityPub run 43315834312 removed its owned Mastodon fixture after compilation stopped. No local build or fixture was created.
+
 12 November exact Polkadot run 43314244482 verified both modes and removed the owned Substrate fixture, MongoDB outbox container and volumes. No local runtime, build, database or report was created.
 
 12 November ActivityPub routing reuses disposable hosted Mastodon provisioning and its owned Compose, volumes, CA, hosts entry and fixture teardown. TRX output is stored in the owned fixture directory. No local dependencies or fixtures were created.
