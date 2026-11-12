@@ -9,13 +9,15 @@
 | Priority storage providers | The matrix records 52/52 native checks for Neon, Convex, Supabase, Solana, MongoDB, SQLite, Neo4j, SQL Server, Oracle, AWS DynamoDB and S3, IPFS, NEAR, Cosmos chain, Azure Cosmos DB, Google Firestore, Polkadot, Solid, Polygon, Arbitrum, TRON, EOSIO, TON, and Hedera/Hashgraph. Several use isolated native engines, emulators or local networks. See each row for hosted and capability gaps. |
 | ActivityPub and routing | ActivityPub has 5/5 native capability checks. GOMap passed a public OSRM driving route. Authenticated Google Routes, Mapbox and HERE checks remain open. Niantic and WRLD still have reviewed adapter gaps. |
 | Canonical HoloOASIS | Top priority. Both modes passed avatar and avatar-detail checks through the Desktop entry point before reaching the graph-save gap. Canonical graph save and the native parent-query change are under verification in runs [43165294724](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43165294724) and [43166769837](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43166769837). Both were active at inspection. |
-| HoloOASIS.Desktop | Obsolete in source, package metadata and repository documentation at `45d6665da989`. Retained for compatibility. Published NuGet metadata and live site listings still need the obsolescence update. |
+| HoloOASIS.Desktop | Obsolete in source, package metadata and repository documentation at `45d6665da989`. The six-file compatibility and documentation batch reached Development at `70d3fbb4a31c`. Published NuGet metadata and live site listings still need the obsolescence update. |
 | Development | All seven APIs reported deployment success at `bfa0be4be233`. Development subsequently advanced to `4fdb30c2fae4`, with WEB4 pending at inspection. |
 | HyperDrive | Global automatic failover, replication and load balancing await provider acceptance. Dragonfly and KeyDB full native runs were queued at the coverage review. |
 
 [Provider matrix](PROVIDER_MATRIX.md) · [Evidence registry](CONFORMANCE_RESULTS.json) · [Cleanup ledger](WORKSPACE_CLEANUP_LEDGER.md)
 
 ## Verification log
+
+12 November Cancun time. Development advanced from `497c16e87695` to `70d3fbb4a31c` with the scoped Desktop obsolescence update after the coordination window elapsed and the previous WEB4 deployment reported success. The compatibility class emitted the intended warning in [run 43172617448](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43172617448). The six files match the reviewed source and preserve Development dependency pins. Deployment of this revision remains open. Canonical HoloOASIS native acceptance remains open.
 
 12 November Cancun time. [Provider run 43174783071](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43174783071) stopped at compilation because the positional GUID string matched the HoloNET request-ID overload as well as the typed payload overload. The call now names the payload and return type explicitly. The build did not reach the conductor. [Native hApp CI](https://github.com/NextGenSoftwareUK/OASIS-Holochain-hApp/actions/runs/43174295696) remained active at inspection.
 
