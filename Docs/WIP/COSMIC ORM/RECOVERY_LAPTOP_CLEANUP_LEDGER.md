@@ -6508,3 +6508,5 @@ Track temporary `ci-cosmic-holooasis-managed-e54973c380` for exact lifecycle and
 12 November Cancun time. Removed and verified absence of the temporary `ci-cosmic-holooasis-managed-e54973c380` tag after the qualified revision reached Development and the successor passed public HoloOASIS checks. The qualified source remains reachable in Development. Kept the original private cohort and protected rollout state for ongoing replica diagnosis. No local build or image pull.
 
 Track temporary tag `ci-cosmic-infura-web4-ee3a6589a6` for exact runs `43218405639` and `43218401802`. The temporary Git index was removed automatically. No local builds, new runtime, image pull or downloaded artifacts.
+
+12 November Cancun time. Hedera recovery used the one temporary Development Wizard session. The API acknowledged refresh-token revocation and cleared its cookie. Removed operator.session.dpapi, operator.auth-response.dpapi and operator-revoke.response.dpapi from the exact recovery directory. Retained compact JSON journals for sign-in, the failed recovery and revocation. No avatar, provider data, downloads or build outputs created.
