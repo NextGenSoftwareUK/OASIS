@@ -591,10 +591,15 @@ namespace NextGenSoftware.OASIS.API.Providers.TypesenseOASIS
 
             var deleted = await DeleteHolonSoftAsync(id, true);
             if (deleted.IsError)
-                OASISErrorHandling.HandleError(ref result, deleted.Message);
-            else
-                result.Result = loaded.Result;
+            {
+                OASISErrorHandling.HandleError(ref result, deleted.Message, deleted.Exception);
+                result.ErrorCode = deleted.ErrorCode;
+                return result;
+            }
 
+            result.Result = loaded.Result;
+            result.IsDeleted = deleted.IsDeleted;
+            result.DeletedCount = deleted.DeletedCount;
             return result;
         }
 
