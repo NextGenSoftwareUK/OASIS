@@ -5,7 +5,7 @@
 | Area | Recorded status |
 | --- | --- |
 | Project inventory | 234 projects: 178 storage or specialized storage, including the obsolete Desktop compatibility wrapper, and 56 non-storage. |
-| Shared storage coverage | All 45 matrix entries recorded at 52/52 native core-storage-v2 now have reconciled evidence. The registry contains 23 corresponding reports verified against their SHA-256 hashes and 22 additional passes independently checked against completed native CI jobs and their cleanup gates. |
+| Shared storage coverage | All 46 matrix entries recorded at 52/52 native core-storage-v2 have reconciled evidence. The registry contains 23 reports verified against their SHA-256 hashes and 23 passes independently checked against completed native CI jobs and their cleanup gates. |
 | Priority storage providers | The matrix records 52/52 native checks for Neon, Convex, Supabase, Solana, MongoDB, SQLite, Neo4j, SQL Server, Oracle, AWS DynamoDB and S3, IPFS, NEAR, Cosmos chain, Azure Cosmos DB, Google Firestore, Polkadot, Solid, Polygon, Arbitrum, TRON, EOSIO, TON, and Hedera/Hashgraph. Several use isolated native engines, emulators or local networks. See each row for hosted and capability gaps. |
 | ActivityPub and routing | ActivityPub has 5/5 native capability checks. GOMap passed a public OSRM driving route. Authenticated Google Routes, Mapbox and HERE checks remain open. Niantic and WRLD still have reviewed adapter gaps. |
 | Canonical HoloOASIS | Top priority. Both modes passed avatar and avatar-detail checks through the Desktop entry point before reaching the graph-save gap. Canonical graph save and the native parent-query change are under verification in runs [43165294724](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43165294724) and [43166769837](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43166769837). Both were active at inspection. |
@@ -16,6 +16,8 @@
 [Provider matrix](PROVIDER_MATRIX.md) · [Evidence registry](CONFORMANCE_RESULTS.json) · [Cleanup ledger](WORKSPACE_CLEANUP_LEDGER.md)
 
 ## Verification log
+
+12 November Cancun time. Compared the checked-in matrix with the source inventory and found Firebase Realtime Database was the only omitted project row. Restored the row and registered its previously verified native 52/52 result and exact cleanup from [run 43105666326](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43105666326). The inventory remains 234 and the recorded native storage pass count rises to 46. No suite was rerun. All seven Development APIs reported success at Desktop obsolescence revision `70d3fbb4a31c`.
 
 12 November Cancun time. The matrix generator now reads the verified native CI entries as well as the hash-bound local reports. It preserves the source revision and links each CI-backed result, so regeneration retains the reconciled passes while keeping older suite evidence historical.
 

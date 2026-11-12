@@ -1,6 +1,15 @@
 {
   "schemaVersion": 1,
   "verifiedNativeCiRuns": {
+    "FirebaseOASIS": {
+      "suite": "core-storage-v2",
+      "backend": "Firebase Realtime Database 4.11.2 emulator via the shipping REST adapter",
+      "runId": 43105666326,
+      "jobId": 130808206027,
+      "revision": "5ebeca1102421c87f6aad2ef104b61a35b60501c",
+      "passed": {"async": 26, "sync": 26},
+      "cleanup": "Both mode reports passed fixture cleanup and the native namespace ended empty."
+    },
     "AvalancheOASIS": {
       "suite": "core-storage-v2",
       "backend": "AvalancheGo 1.14.1 on C-Chain via Nethereum",
