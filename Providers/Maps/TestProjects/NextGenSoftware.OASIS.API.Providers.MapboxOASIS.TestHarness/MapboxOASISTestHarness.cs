@@ -1,170 +1,35 @@
-using NextGenSoftware.OASIS.API.Providers.MapboxOASIS;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Objects;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Contracts.Interfaces;
 
-namespace NextGenSoftware.OASIS.API.Providers.MapboxOASIS.TestHarness
+namespace NextGenSoftware.OASIS.API.Providers.MapboxOASIS.TestHarness;
+
+public static class MapboxOASISTestHarness
 {
-    public class MapboxOASISTestHarness
+    public static async Task<int> Main()
     {
-        private static MapBoxOASIS _provider;
-
-        public static async Task Main(string[] args)
+        if (Environment.GetEnvironmentVariable("OASIS_ROUTING_LIVE_TESTS") != "1" ||
+            string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("OASIS_MAPBOX_ACCESS_TOKEN")))
         {
-            Console.WriteLine("=== MapboxOASIS Test Harness ===");
-            Console.WriteLine("Testing MapboxOASIS integration with OASIS...\n");
-
-            _provider = new MapBoxOASIS();
-
-            try
-            {
-                await TestProviderActivation();
-                await TestProviderInformation();
-                await TestAvatarOperations();
-                await TestHolonOperations();
-                await TestSearchOperations();
-                await TestProviderDeactivation();
-
-                Console.WriteLine("\n=== All Tests Completed Successfully! ===");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"\n=== Test Failed: {ex.Message} ===");
-                Console.WriteLine($"Stack Trace: {ex.StackTrace}");
-            }
-
-            Console.WriteLine("\nPress any key to exit...");
-            Console.ReadKey();
+            Console.Error.WriteLine("Enable OASIS_ROUTING_LIVE_TESTS and configure OASIS_MAPBOX_ACCESS_TOKEN.");
+            return 1;
         }
 
-        private static async Task TestProviderActivation()
+        IOASISRoutingProvider provider = new MapBoxOASIS();
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(45));
+        try
         {
-            Console.WriteLine("--- Testing Provider Activation ---");
-            
-            Console.WriteLine($"Provider Name: {_provider.ProviderName}");
-            Console.WriteLine($"Provider Type: {_provider.ProviderType}");
-            Console.WriteLine($"Provider Category: {_provider.ProviderCategory}");
-            Console.WriteLine($"Is Activated: {_provider.IsProviderActivated}");
-
-            var activationResult = _provider.ActivateProvider();
-            Console.WriteLine($"Activation Result: {(activationResult.IsError ? "Failed" : "Success")}");
-            if (activationResult.IsError)
-                Console.WriteLine($"Error: {activationResult.Message}");
-
-            Console.WriteLine($"Is Activated After Activation: {_provider.IsProviderActivated}");
-            Console.WriteLine();
+            var route = await provider.ComputeRouteAsync(
+                new RoutingCoordinate(52.517037, 13.388860),
+                new RoutingCoordinate(52.529407, 13.397634), RoutingType.Driving, timeout.Token);
+            Console.WriteLine($"Mapbox returned {route.DistanceMeters:F0} metres and {route.Points.Count} points.");
+            return 0;
         }
-
-        private static async Task TestProviderInformation()
+        catch (Exception error)
         {
-            Console.WriteLine("--- Testing Provider Information ---");
-            
-            var version = _provider.GetProviderVersion();
-            Console.WriteLine($"Provider Version: {version}");
-
-            var providerType = _provider.GetProviderType();
-            Console.WriteLine($"Provider Type: {providerType}");
-
-            var category = _provider.GetProviderCategory();
-            Console.WriteLine($"Provider Category: {category}");
-
-            var description = _provider.ProviderDescription;
-            Console.WriteLine($"Provider Description: {description}");
-            Console.WriteLine();
-        }
-
-        private static async Task TestAvatarOperations()
-        {
-            Console.WriteLine("--- Testing Avatar Operations ---");
-            
-            var testAvatar = new Avatar
-            {
-                Id = Guid.NewGuid(),
-                Username = "MapboxOASISTestUser",
-                Email = "mapboxoasistest@example.com",
-                FirstName = "MapboxOASIS",
-                LastName = "Tester",
-                CreatedDate = DateTime.UtcNow
-            };
-
-            Console.WriteLine($"Creating Avatar: {testAvatar.Username} ({testAvatar.Email})");
-            var saveResult = await _provider.SaveAvatarAsync(testAvatar);
-            Console.WriteLine($"Save Avatar Result: {(saveResult.IsError ? "Failed" : "Success")}");
-            if (saveResult.IsError)
-                Console.WriteLine($"Error: {saveResult.Message}");
-
-            Console.WriteLine($"Loading Avatar by ID: {testAvatar.Id}");
-            var loadResult = await _provider.LoadAvatarAsync(testAvatar.Id);
-            Console.WriteLine($"Load Avatar Result: {(loadResult.IsError ? "Failed" : "Success")}");
-            if (loadResult.IsError)
-                Console.WriteLine($"Error: {loadResult.Message}");
-
-            Console.WriteLine();
-        }
-
-        private static async Task TestHolonOperations()
-        {
-            Console.WriteLine("--- Testing Holon Operations ---");
-            
-            var testHolon = new Holon
-            {
-                Id = Guid.NewGuid(),
-                Name = "MapboxOASISTestHolon",
-                Description = "Test Holon for MapboxOASIS integration",
-                CreatedDate = DateTime.UtcNow
-            };
-
-            Console.WriteLine($"Creating Holon: {testHolon.Name}");
-            var saveResult = await _provider.SaveHolonAsync(testHolon);
-            Console.WriteLine($"Save Holon Result: {(saveResult.IsError ? "Failed" : "Success")}");
-            if (saveResult.IsError)
-                Console.WriteLine($"Error: {saveResult.Message}");
-
-            Console.WriteLine($"Loading Holon by ID: {testHolon.Id}");
-            var loadResult = await _provider.LoadHolonAsync(testHolon.Id);
-            Console.WriteLine($"Load Holon Result: {(loadResult.IsError ? "Failed" : "Success")}");
-            if (loadResult.IsError)
-                Console.WriteLine($"Error: {loadResult.Message}");
-
-            Console.WriteLine();
-        }
-
-        private static async Task TestSearchOperations()
-        {
-            Console.WriteLine("--- Testing Search Operations ---");
-            
-            var searchParams = new SearchParams
-            {
-                SearchQuery = "test",
-                SearchType = SearchType.Avatar
-            };
-
-            Console.WriteLine($"Searching Avatars with query: '{searchParams.SearchQuery}'");
-            var avatarSearchResult = await _provider.SearchAvatarsAsync(searchParams);
-            Console.WriteLine($"Avatar Search Result: {(avatarSearchResult.IsError ? "Failed" : "Success")}");
-            if (avatarSearchResult.IsError)
-                Console.WriteLine($"Error: {avatarSearchResult.Message}");
-            else
-                Console.WriteLine($"Found {avatarSearchResult.Result?.NumberOfResults ?? 0} avatars");
-
-            Console.WriteLine();
-        }
-
-        private static async Task TestProviderDeactivation()
-        {
-            Console.WriteLine("--- Testing Provider Deactivation ---");
-            
-            Console.WriteLine($"Is Activated Before Deactivation: {_provider.IsProviderActivated}");
-            
-            var deactivationResult = _provider.DeActivateProvider();
-            Console.WriteLine($"Deactivation Result: {(deactivationResult.IsError ? "Failed" : "Success")}");
-            if (deactivationResult.IsError)
-                Console.WriteLine($"Error: {deactivationResult.Message}");
-
-            Console.WriteLine($"Is Activated After Deactivation: {_provider.IsProviderActivated}");
-            Console.WriteLine();
+            Console.Error.WriteLine($"Mapbox route verification failed ({error.GetType().Name}).");
+            return 1;
         }
     }
 }

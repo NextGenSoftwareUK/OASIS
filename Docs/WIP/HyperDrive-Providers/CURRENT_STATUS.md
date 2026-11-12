@@ -1,5 +1,7 @@
 # Current provider status
 
+Mapbox solution test projects now use the actual map adapter. The unit project checks identity and invalid travel mode. The console harness makes an opt-in real driving request through the shared contract and exits with a failure code if the credential is missing or the request fails. Both replace legacy tests for nonexistent storage operations. Build and authenticated execution remain open.
+
 BootLoader registration CI now builds the current provider registration batch and runs the existing startup error checks in both sync and async paths on a disposable runner. This gate covers build and startup failure propagation. Live activation of the newly registered providers still requires provider-specific fixtures.
 
 2026-11-12 00:42 UTC Development integration. Development advanced to 922321a8aa9 after the prior WEB4 Railway deployment succeeded and the half-hour window elapsed. The four-path batch contains only the routing contract, GOMap adapter and live regression tests. The paths match the verified CI revision ca13ce65144e byte for byte, the Core source trees are identical and the Development dependency pins are preserved. The new WEB4 deployment is pending confirmation. Authenticated Google, Mapbox and HERE remain on the provider branch.
