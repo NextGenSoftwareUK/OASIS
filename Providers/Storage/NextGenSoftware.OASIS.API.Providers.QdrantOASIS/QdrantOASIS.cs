@@ -6,6 +6,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -15,7 +16,9 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
+using NextGenSoftware.OASIS.API.Core.Serialization;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Providers.QdrantOASIS
@@ -29,12 +32,12 @@ namespace NextGenSoftware.OASIS.API.Providers.QdrantOASIS
     /// Each point carries:
     ///   - id: UUID (OASIS object ID)
     ///   - payload: { username, email, is_deleted, data_json, holon_type, parent_holon_id }
-    ///   - vector: zero-vector placeholder (real embeddings can be injected externally)
+    ///   - vector: optional native embedding associated with the point
     ///
     /// Constructor parameters:
     ///   host    — Qdrant host URL (e.g. "http://localhost:6333" or "https://xyz.cloud.qdrant.io:6333")
     ///   apiKey  — optional Qdrant API key (required for Qdrant Cloud)
-    ///   vectorSize — dimension of placeholder vectors (default 128)
+    ///   vectorSize — dimension of the configured native embedding field (default 128)
     /// </summary>
     public partial class QdrantOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
     {
@@ -63,13 +66,16 @@ namespace NextGenSoftware.OASIS.API.Providers.QdrantOASIS
                 _http.DefaultRequestHeaders.Add("api-key", apiKey);
             _http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             ProviderName = "QdrantOASIS";
-            ProviderDescription = "Qdrant vector database provider (REST API — OASIS payload storage with placeholder vectors)";
+            ProviderDescription = "Qdrant vector database provider (REST API — OASIS payload storage)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.QdrantOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
         }
 
         private static string Ser(object o) => JsonSerializer.Serialize(o, _jsonOpts);
-        private static T? Des<T>(string? json) => json == null ? default : JsonSerializer.Deserialize<T>(json, _jsonOpts);
+        private static T? Des<T>(string? json) => json == null ? default
+            : typeof(T) == typeof(AvatarDetail) ? StoredRecordJson.DeserializeStored<T>(json)
+            : typeof(T) == typeof(Holon) ? (T)(object)StoredRecordJson.DeserializeStoredHolon(json)
+            : JsonSerializer.Deserialize<T>(json, _jsonOpts);
 
         // ─── Qdrant REST helpers ──────────────────────────────────────────────────
 
@@ -111,8 +117,6 @@ namespace NextGenSoftware.OASIS.API.Providers.QdrantOASIS
                 throw new Exception($"Qdrant DELETE {path} returned {(int)resp.StatusCode}");
         }
 
-        private float[] ZeroVector() => new float[_vectorSize];
-
         private static bool HasOkStatus(JsonElement response) =>
             response.TryGetProperty("status", out var status) &&
             status.ValueKind == JsonValueKind.String &&
@@ -139,12 +143,45 @@ namespace NextGenSoftware.OASIS.API.Providers.QdrantOASIS
 
         private async Task<ulong> UpsertPointAsync(string collection, string id, Dictionary<string, object?> payload)
         {
-            var response = await QdrantPutAsync($"/collections/{collection}/points?wait=true", new {
-                points = new[] { new { id, vector = ZeroVector(), payload } } });
+            var vector = await ReadPointVectorAsync(collection, id);
+            var response = await QdrantPutAsync($"/collections/{collection}/points?wait=true", new
+            {
+                points = new[] { new { id, vector, payload } }
+            });
             var result = response.GetProperty("result");
             if (result.GetProperty("status").GetString() != "completed")
                 throw new InvalidOperationException("Native point write has not completed.");
             return result.GetProperty("operation_id").GetUInt64();
+        }
+
+        private async Task<object> ReadPointVectorAsync(string collection, string id)
+        {
+            var response = await QdrantPostAsync($"/collections/{collection}/points",
+                new { ids = new[] { id }, with_payload = false, with_vector = true });
+            if (!HasOkStatus(response))
+                throw new InvalidOperationException("Native Qdrant did not acknowledge vector retrieval.");
+            var points = response.GetProperty("result");
+            if (points.GetArrayLength() == 0)
+                return new Dictionary<string, object>();
+            if (points.GetArrayLength() != 1 || points[0].GetProperty("id").GetGuid() != Guid.Parse(id))
+                throw new InvalidOperationException("Native Qdrant returned a different point during vector retrieval.");
+            if (!points[0].TryGetProperty("vector", out var vector) || vector.ValueKind == JsonValueKind.Null)
+                return new Dictionary<string, object>();
+            // Old OASIS payload writes stored an all-zero dense vector. It contains no embedding.
+            if (vector.ValueKind == JsonValueKind.Array && vector.EnumerateArray().All(value => value.GetSingle() == 0))
+                return new Dictionary<string, object>();
+            return vector.Clone();
+        }
+
+        private async Task DeletePointAsync(string collection, Guid id)
+        {
+            var ids = new[] { id.ToString("D") };
+            var deleted = await QdrantPostAsync($"/collections/{collection}/points/delete?wait=true", new { points = ids });
+            if (!HasOkStatus(deleted) || deleted.GetProperty("result").GetProperty("status").GetString() != "completed")
+                throw new InvalidOperationException("Native Qdrant point deletion did not complete.");
+            var verified = await QdrantPostAsync($"/collections/{collection}/points", new { ids, with_payload = false, with_vector = false });
+            if (!HasOkStatus(verified) || verified.GetProperty("result").GetArrayLength() != 0)
+                throw new InvalidOperationException("Native Qdrant did not confirm absence of the requested point.");
         }
 
         private async Task<JsonElement?> GetPointAsync(string collection, string id)
@@ -156,15 +193,37 @@ namespace NextGenSoftware.OASIS.API.Providers.QdrantOASIS
             return null;
         }
 
-        private async Task<List<JsonElement>> ScrollAsync(string collection, Dictionary<string, object?>? filter = null, int limit = 10000)
+        private async Task<List<JsonElement>> ScrollAsync(string collection)
         {
-            var body = new Dictionary<string, object?> { ["limit"] = limit, ["with_payload"] = true, ["with_vector"] = false };
-            if (filter != null) body["filter"] = new { must = filter.Select(kvp => new { key = kvp.Key, match = new { value = kvp.Value } }).ToArray() };
-            var result = await QdrantPostAsync($"/collections/{collection}/points/scroll", body);
+            var body = new Dictionary<string, object?> { ["limit"] = 100, ["with_payload"] = true, ["with_vector"] = false };
             var points = new List<JsonElement>();
-            if (result.TryGetProperty("result", out var r) && r.TryGetProperty("points", out var arr) && arr.ValueKind == JsonValueKind.Array)
-                foreach (var p in arr.EnumerateArray()) points.Add(p.Clone());
-            return points;
+            var offsets = new HashSet<string>(StringComparer.Ordinal);
+
+            while (true)
+            {
+                var response = await QdrantPostAsync($"/collections/{collection}/points/scroll", body);
+                if (!HasOkStatus(response) || !response.TryGetProperty("result", out var result) ||
+                    result.ValueKind != JsonValueKind.Object || !result.TryGetProperty("points", out var page) ||
+                    page.ValueKind != JsonValueKind.Array)
+                    throw new JsonException("Qdrant returned an invalid scroll response.");
+
+                foreach (var point in page.EnumerateArray())
+                    points.Add(point.Clone());
+
+                if (!result.TryGetProperty("next_page_offset", out var offset) || offset.ValueKind == JsonValueKind.Null)
+                    return points;
+
+                var offsetKey = offset.ValueKind switch
+                {
+                    JsonValueKind.String when Guid.TryParse(offset.GetString(), out var id) => id.ToString("D"),
+                    JsonValueKind.Number when offset.TryGetUInt64(out _) => offset.GetRawText(),
+                    _ => throw new JsonException("Qdrant returned an invalid scroll offset.")
+                };
+                if (!offsets.Add(offsetKey))
+                    throw new JsonException("Qdrant returned a repeated scroll offset.");
+
+                body["offset"] = offset.Clone();
+            }
         }
 
         private string? GetPayloadStr(JsonElement point, string key)
@@ -210,17 +269,30 @@ namespace NextGenSoftware.OASIS.API.Providers.QdrantOASIS
             var result = new OASISResult<IAvatar>();
             try
             {
-                if (avatar.Id == Guid.Empty) avatar.Id = Guid.NewGuid();
-                if (avatar.ProviderUniqueStorageKey == null) avatar.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
-                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.QdrantOASIS] = avatar.Id.ToString();
-                await UpsertPointAsync("oasis_avatars", avatar.Id.ToString(), new Dictionary<string, object?>
+                ArgumentNullException.ThrowIfNull(avatar);
+                var id = avatar.Id == Guid.Empty ? Guid.NewGuid() : avatar.Id;
+                var key = id.ToString("D");
+                var keys = avatar.ProviderUniqueStorageKey == null
+                    ? new Dictionary<Core.Enums.ProviderType, string>()
+                    : new Dictionary<Core.Enums.ProviderType, string>(avatar.ProviderUniqueStorageKey);
+                keys[Core.Enums.ProviderType.QdrantOASIS] = key;
+                var document = JsonSerializer.SerializeToNode(avatar, avatar.GetType(), _jsonOpts)!.AsObject();
+                document["id"] = id;
+                document["providerUniqueStorageKey"] = JsonSerializer.SerializeToNode(keys, _jsonOpts);
+                await UpsertPointAsync("oasis_avatars", key, new Dictionary<string, object?>
                 {
                     ["username"] = avatar.Username,
                     ["email"] = avatar.Email,
                     ["is_deleted"] = avatar.IsDeleted,
-                    ["data_json"] = Ser(avatar)
+                    ["data_json"] = document.ToJsonString(_jsonOpts)
                 });
-                result.Result = avatar; result.IsError = false; result.Message = $"QdrantOASIS: Avatar '{avatar.Username}' saved.";
+                avatar.Id = id;
+                avatar.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
+                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.QdrantOASIS] = key;
+                result.Result = avatar;
+                result.IsSaved = true;
+                result.SavedCount = 1;
+                result.Message = $"QdrantOASIS: Avatar '{avatar.Username}' saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"QdrantOASIS: {ex.Message}"); }
             return result;
@@ -236,9 +308,9 @@ namespace NextGenSoftware.OASIS.API.Providers.QdrantOASIS
             try
             {
                 var point = await GetPointAsync("oasis_avatars", id.ToString());
-                if (point == null || GetPayloadBool(point.Value, "is_deleted")) { OASISErrorHandling.HandleError(ref result, $"QdrantOASIS: No avatar for ID '{id}'."); return result; }
+                if (point == null || GetPayloadBool(point.Value, "is_deleted")) { result.ErrorCode = OASISResultErrorCodes.RecordNotFound; OASISErrorHandling.HandleError(ref result, $"QdrantOASIS: No avatar for ID '{id}'."); return result; }
                 var avatar = Des<Avatar>(GetPayloadStr(point.Value, "data_json")); if (avatar == null) { OASISErrorHandling.HandleError(ref result, "QdrantOASIS: Deserialise failed."); return result; }
-                result.Result = avatar; result.IsError = false; result.Message = "QdrantOASIS: Avatar loaded.";
+                result.Result = avatar; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "QdrantOASIS: Avatar loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"QdrantOASIS: {ex.Message}"); }
             return result;
@@ -257,7 +329,7 @@ namespace NextGenSoftware.OASIS.API.Providers.QdrantOASIS
         public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string username, int version = 0)
         {
             var result = new OASISResult<IAvatar>();
-            try { var a = await ScanAvatarsAsync(p => GetPayloadStr(p, "username") == username); if (a == null) { OASISErrorHandling.HandleError(ref result, $"QdrantOASIS: No avatar for username '{username}'."); return result; } result.Result = a; result.IsError = false; result.Message = "QdrantOASIS: Avatar loaded."; }
+            try { var a = await ScanAvatarsAsync(p => GetPayloadStr(p, "username") == username); if (a == null) { OASISErrorHandling.HandleError(ref result, $"QdrantOASIS: No avatar for username '{username}'."); return result; } result.Result = a; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "QdrantOASIS: Avatar loaded."; }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"QdrantOASIS: {ex.Message}"); }
             return result;
         }
@@ -267,7 +339,7 @@ namespace NextGenSoftware.OASIS.API.Providers.QdrantOASIS
         public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string email, int version = 0)
         {
             var result = new OASISResult<IAvatar>();
-            try { var a = await ScanAvatarsAsync(p => GetPayloadStr(p, "email") == email); if (a == null) { OASISErrorHandling.HandleError(ref result, $"QdrantOASIS: No avatar for email '{email}'."); return result; } result.Result = a; result.IsError = false; result.Message = "QdrantOASIS: Avatar loaded."; }
+            try { var a = await ScanAvatarsAsync(p => GetPayloadStr(p, "email") == email); if (a == null) { OASISErrorHandling.HandleError(ref result, $"QdrantOASIS: No avatar for email '{email}'."); return result; } result.Result = a; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "QdrantOASIS: Avatar loaded."; }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"QdrantOASIS: {ex.Message}"); }
             return result;
         }
@@ -283,7 +355,7 @@ namespace NextGenSoftware.OASIS.API.Providers.QdrantOASIS
             {
                 var points = await ScrollAsync("oasis_avatars");
                 var avatars = points.Where(p => !GetPayloadBool(p, "is_deleted")).Select(p => Des<Avatar>(GetPayloadStr(p, "data_json"))).Where(a => a != null).Cast<IAvatar>().ToList();
-                result.Result = avatars; result.IsError = false; result.Message = $"QdrantOASIS: Loaded {avatars.Count} avatar(s).";
+                result.Result = avatars; result.IsLoaded = true; result.LoadedCount = avatars.Count; result.Message = $"QdrantOASIS: Loaded {avatars.Count} avatar(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"QdrantOASIS: {ex.Message}"); }
             return result;
@@ -304,8 +376,15 @@ namespace NextGenSoftware.OASIS.API.Providers.QdrantOASIS
                     var av = (Avatar)loaded.Result; av.DeletedDate = DateTime.UtcNow;
                     await UpsertPointAsync("oasis_avatars", id.ToString(), new Dictionary<string, object?> { ["username"] = av.Username, ["email"] = av.Email, ["is_deleted"] = true, ["data_json"] = Ser(av) });
                 }
-                else { await QdrantPostAsync($"/collections/oasis_avatars/points/delete?wait=true", new { points = new[] { id.ToString() } }); }
-                result.Result = true; result.IsError = false; result.Message = $"QdrantOASIS: Avatar '{id}' deleted.";
+                else
+                {
+                    await DeletePointAsync("oasis_avatar_details", id);
+                    await DeletePointAsync("oasis_avatars", id);
+                }
+                result.Result = true;
+                result.IsDeleted = true;
+                result.DeletedCount = 1;
+                result.Message = $"QdrantOASIS: Avatar '{id}' deleted.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"QdrantOASIS: {ex.Message}"); }
             return result;
@@ -327,9 +406,21 @@ namespace NextGenSoftware.OASIS.API.Providers.QdrantOASIS
             var result = new OASISResult<IAvatarDetail>();
             try
             {
-                if (d.Id == Guid.Empty) d.Id = Guid.NewGuid();
-                await UpsertPointAsync("oasis_avatar_details", d.Id.ToString(), new Dictionary<string, object?> { ["username"] = d.Username, ["email"] = d.Email, ["data_json"] = Ser(d) });
-                result.Result = d; result.IsError = false; result.Message = "QdrantOASIS: AvatarDetail saved.";
+                ArgumentNullException.ThrowIfNull(d);
+                var id = d.Id == Guid.Empty ? Guid.NewGuid() : d.Id;
+                var document = JsonSerializer.SerializeToNode(d, d.GetType(), _jsonOpts)!.AsObject();
+                document["id"] = id;
+                await UpsertPointAsync("oasis_avatar_details", id.ToString("D"), new Dictionary<string, object?>
+                {
+                    ["username"] = d.Username,
+                    ["email"] = d.Email,
+                    ["data_json"] = document.ToJsonString(_jsonOpts)
+                });
+                d.Id = id;
+                result.Result = d;
+                result.IsSaved = true;
+                result.SavedCount = 1;
+                result.Message = "QdrantOASIS: AvatarDetail saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"QdrantOASIS: {ex.Message}"); }
             return result;
@@ -343,9 +434,9 @@ namespace NextGenSoftware.OASIS.API.Providers.QdrantOASIS
             try
             {
                 var point = await GetPointAsync("oasis_avatar_details", id.ToString());
-                if (point == null) { OASISErrorHandling.HandleError(ref result, $"QdrantOASIS: No detail for ID '{id}'."); return result; }
+                if (point == null) { result.ErrorCode = OASISResultErrorCodes.RecordNotFound; OASISErrorHandling.HandleError(ref result, $"QdrantOASIS: No detail for ID '{id}'."); return result; }
                 var d = Des<AvatarDetail>(GetPayloadStr(point.Value, "data_json")); if (d == null) { OASISErrorHandling.HandleError(ref result, "QdrantOASIS: Deserialise failed."); return result; }
-                result.Result = d; result.IsError = false; result.Message = "QdrantOASIS: AvatarDetail loaded.";
+                result.Result = d; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "QdrantOASIS: AvatarDetail loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"QdrantOASIS: {ex.Message}"); }
             return result;
@@ -355,15 +446,15 @@ namespace NextGenSoftware.OASIS.API.Providers.QdrantOASIS
 
         private async Task<AvatarDetail?> ScanDetailsAsync(Func<JsonElement, bool> pred) { var pts = await ScrollAsync("oasis_avatar_details"); var p = pts.FirstOrDefault(pred); return p.ValueKind == JsonValueKind.Undefined ? null : Des<AvatarDetail>(GetPayloadStr(p, "data_json")); }
 
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string u, int version = 0) { var result = new OASISResult<IAvatarDetail>(); try { var d = await ScanDetailsAsync(p => GetPayloadStr(p, "username") == u); if (d == null) { OASISErrorHandling.HandleError(ref result, $"QdrantOASIS: No detail for username '{u}'."); return result; } result.Result = d; result.IsError = false; result.Message = "QdrantOASIS: AvatarDetail loaded."; } catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"QdrantOASIS: {ex.Message}"); } return result; }
+        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string u, int version = 0) { var result = new OASISResult<IAvatarDetail>(); try { var d = await ScanDetailsAsync(p => GetPayloadStr(p, "username") == u); if (d == null) { OASISErrorHandling.HandleError(ref result, $"QdrantOASIS: No detail for username '{u}'."); return result; } result.Result = d; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "QdrantOASIS: AvatarDetail loaded."; } catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"QdrantOASIS: {ex.Message}"); } return result; }
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string u, int version = 0) => LoadAvatarDetailByUsernameAsync(u, version).Result;
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string e, int version = 0) { var result = new OASISResult<IAvatarDetail>(); try { var d = await ScanDetailsAsync(p => GetPayloadStr(p, "email") == e); if (d == null) { OASISErrorHandling.HandleError(ref result, $"QdrantOASIS: No detail for email '{e}'."); return result; } result.Result = d; result.IsError = false; result.Message = "QdrantOASIS: AvatarDetail loaded."; } catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"QdrantOASIS: {ex.Message}"); } return result; }
+        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string e, int version = 0) { var result = new OASISResult<IAvatarDetail>(); try { var d = await ScanDetailsAsync(p => GetPayloadStr(p, "email") == e); if (d == null) { OASISErrorHandling.HandleError(ref result, $"QdrantOASIS: No detail for email '{e}'."); return result; } result.Result = d; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "QdrantOASIS: AvatarDetail loaded."; } catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"QdrantOASIS: {ex.Message}"); } return result; }
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string e, int version = 0) => LoadAvatarDetailByEmailAsync(e, version).Result;
 
         public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
         {
             var result = new OASISResult<IEnumerable<IAvatarDetail>>();
-            try { var pts = await ScrollAsync("oasis_avatar_details"); var details = pts.Select(p => Des<AvatarDetail>(GetPayloadStr(p, "data_json"))).Where(d => d != null).Cast<IAvatarDetail>().ToList(); result.Result = details; result.IsError = false; result.Message = $"QdrantOASIS: Loaded {details.Count} detail(s)."; }
+            try { var pts = await ScrollAsync("oasis_avatar_details"); var details = pts.Select(p => Des<AvatarDetail>(GetPayloadStr(p, "data_json"))).Where(d => d != null).Cast<IAvatarDetail>().ToList(); result.Result = details; result.IsLoaded = true; result.LoadedCount = details.Count; result.Message = $"QdrantOASIS: Loaded {details.Count} detail(s)."; }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"QdrantOASIS: {ex.Message}"); }
             return result;
         }
@@ -372,32 +463,78 @@ namespace NextGenSoftware.OASIS.API.Providers.QdrantOASIS
 
         // ─── Holon saving ─────────────────────────────────────────────────────────
 
-        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+        public override Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+            => SaveHolonGraphAsync(holon, saveChildren, recursive, maxChildDepth, 0, continueOnError);
+
+        private async Task<OASISResult<IHolon>> SaveHolonGraphAsync(IHolon holon, bool saveChildren, bool recursive,
+            int maxChildDepth, int currentChildDepth, bool continueOnError)
         {
             var result = new OASISResult<IHolon>();
             try
             {
-                if (IsVersionControlEnabled) throw new NotSupportedException("Qdrant historical writes are not implemented.");
-                if (holon == null) throw new ArgumentNullException(nameof(holon));
-                var id = holon.Id == Guid.Empty ? Guid.NewGuid() : holon.Id;
-                var keys = holon.ProviderUniqueStorageKey == null
-                    ? new Dictionary<Core.Enums.ProviderType, string>()
-                    : new Dictionary<Core.Enums.ProviderType, string>(holon.ProviderUniqueStorageKey);
-                keys[Core.Enums.ProviderType.QdrantOASIS] = id.ToString("D");
-                var payload = JsonSerializer.SerializeToNode(holon, holon.GetType(), _jsonOpts)!.AsObject();
-                payload["id"] = id;
-                payload["providerUniqueStorageKey"] = JsonSerializer.SerializeToNode(keys, _jsonOpts);
-                var operation = await PersistHolonAsync(id, holon.ParentHolonId, (int)holon.HolonType, holon.IsDeleted, payload.ToJsonString(_jsonOpts));
-                holon.Id = id;
-                holon.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
-                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.QdrantOASIS] = id.ToString("D");
-                result.Result = holon;
-                result.IsSaved = true;
-                result.SavedCount = 1;
-                result.MetaData["Qdrant.OperationId"] = operation.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                if (IsVersionControlEnabled)
+                    throw new NotSupportedException("Qdrant historical writes are not implemented.");
+
+                var plan = HolonGraphWritePlan.CreateForSave(new[] { holon }, saveChildren, recursive, maxChildDepth, currentChildDepth);
+                var failed = new HashSet<Guid>();
+                foreach (var node in plan.Nodes)
+                {
+                    if (failed.Contains(node.Snapshot.ParentHolonId))
+                    {
+                        failed.Add(node.Snapshot.Id);
+                        continue;
+                    }
+
+                    try
+                    {
+                        var operation = await SavePlannedHolonAsync(node);
+                        if (ReferenceEquals(node.Source, holon))
+                        {
+                            result.Result = holon;
+                            result.MetaData["Qdrant.OperationId"] = operation.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                        }
+                        result.SavedCount++;
+                    }
+                    catch (Exception ex)
+                    {
+                        failed.Add(node.Snapshot.Id);
+                        OASISErrorHandling.HandleError(ref result, $"Qdrant did not save holon '{node.Snapshot.Id}'.", ex);
+                        if (!continueOnError)
+                            break;
+                    }
+                }
+
+                result.IsSaved = result.SavedCount == plan.Nodes.Count;
             }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"QdrantOASIS: {ex.Message}"); }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"QdrantOASIS: {ex.Message}", ex);
+            }
             return result;
+        }
+
+        private async Task<ulong> SavePlannedHolonAsync(PlannedHolonWrite node)
+        {
+            var snapshot = node.Snapshot;
+            var id = snapshot.Id.ToString("D");
+            var keys = snapshot.ProviderUniqueStorageKey ?? new Dictionary<Core.Enums.ProviderType, string>();
+            keys[Core.Enums.ProviderType.QdrantOASIS] = id;
+            var captured = JsonNode.Parse(node.CapturedIntentJson)!.AsObject();
+            var document = new JsonObject();
+            foreach (var property in captured)
+            {
+                if (property.Key != "$type")
+                    document.Add(JsonNamingPolicy.CamelCase.ConvertName(property.Key), property.Value?.DeepClone());
+            }
+            document["id"] = id;
+            document["parentHolonId"] = snapshot.ParentHolonId;
+            document["providerUniqueStorageKey"] = JsonSerializer.SerializeToNode(keys, _jsonOpts);
+            var operation = await PersistHolonAsync(snapshot.Id, snapshot.ParentHolonId, (int)snapshot.HolonType, snapshot.IsDeleted, document.ToJsonString(_jsonOpts));
+
+            node.Source.Id = snapshot.Id;
+            node.Source.ParentHolonId = snapshot.ParentHolonId;
+            node.Source.ProviderUniqueStorageKey = keys;
+            return operation;
         }
 
         public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) => SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider).Result;
@@ -409,7 +546,8 @@ namespace NextGenSoftware.OASIS.API.Providers.QdrantOASIS
             var errors = new List<string>();
             foreach (var holon in holons)
             {
-                var write = await SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
+                var write = await SaveHolonGraphAsync(holon, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError);
+                result.SavedCount += write.SavedCount;
                 if (write.IsError)
                 {
                     errors.Add(write.Message);
@@ -420,8 +558,7 @@ namespace NextGenSoftware.OASIS.API.Providers.QdrantOASIS
             result.Result = saved;
             result.IsError = errors.Count > 0;
             result.ErrorCount = errors.Count;
-            result.IsSaved = saved.Count > 0;
-            result.SavedCount = saved.Count;
+            result.IsSaved = result.SavedCount > 0 && !result.IsError;
             result.Message = string.Join("; ", errors);
             return result;
         }
@@ -436,9 +573,9 @@ namespace NextGenSoftware.OASIS.API.Providers.QdrantOASIS
             try
             {
                 var point = await GetPointAsync("oasis_holons", id.ToString());
-                if (point == null || GetPayloadBool(point.Value, "is_deleted")) { OASISErrorHandling.HandleError(ref result, $"QdrantOASIS: No holon for ID '{id}'."); return result; }
+                if (point == null || GetPayloadBool(point.Value, "is_deleted")) { OASISErrorHandling.HandleError(ref result, $"QdrantOASIS: No holon for ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
                 var holon = Des<Holon>(GetPayloadStr(point.Value, "data_json")); if (holon == null) { OASISErrorHandling.HandleError(ref result, "QdrantOASIS: Deserialise failed."); return result; }
-                result.Result = holon; result.IsError = false; result.Message = "QdrantOASIS: Holon loaded.";
+                result.Result = holon; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "QdrantOASIS: Holon loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"QdrantOASIS: {ex.Message}"); }
             return result;
@@ -455,7 +592,7 @@ namespace NextGenSoftware.OASIS.API.Providers.QdrantOASIS
             {
                 var points = await ScrollAsync("oasis_holons");
                 var holons = points.Where(p => !GetPayloadBool(p, "is_deleted") && (type == HolonType.All || GetHolonType(p) == (int)type)).Select(p => Des<Holon>(GetPayloadStr(p, "data_json"))).Where(h => h != null).Cast<IHolon>().ToList();
-                result.Result = holons; result.IsError = false; result.Message = $"QdrantOASIS: Loaded {holons.Count} holon(s).";
+                result.Result = holons; result.IsLoaded = true; result.LoadedCount = holons.Count; result.Message = $"QdrantOASIS: Loaded {holons.Count} holon(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"QdrantOASIS: {ex.Message}"); }
             return result;
@@ -473,7 +610,7 @@ namespace NextGenSoftware.OASIS.API.Providers.QdrantOASIS
                 var idStr = id.ToString();
                 var points = await ScrollAsync("oasis_holons");
                 var holons = points.Where(p => !GetPayloadBool(p, "is_deleted") && GetPayloadStr(p, "parent_holon_id") == idStr && (type == HolonType.All || GetHolonType(p) == (int)type)).Select(p => Des<Holon>(GetPayloadStr(p, "data_json"))).Where(h => h != null).Cast<IHolon>().ToList();
-                result.Result = holons; result.IsError = false; result.Message = $"QdrantOASIS: Loaded {holons.Count} holon(s) for parent '{id}'.";
+                result.Result = holons; result.IsLoaded = true; result.LoadedCount = holons.Count; result.Message = $"QdrantOASIS: Loaded {holons.Count} holon(s) for parent '{id}'.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"QdrantOASIS: {ex.Message}"); }
             return result;
@@ -490,10 +627,10 @@ namespace NextGenSoftware.OASIS.API.Providers.QdrantOASIS
             var result = new OASISResult<IHolon>();
             try
             {
-                var loaded = await LoadHolonAsync(id); if (loaded.IsError || loaded.Result == null) { OASISErrorHandling.HandleError(ref result, $"QdrantOASIS: Holon '{id}' not found."); return result; }
+                var loaded = await LoadHolonAsync(id); if (loaded.IsError) return loaded;
                 var holon = (Holon)loaded.Result; holon.DeletedDate = DateTime.UtcNow;
                 await UpsertPointAsync("oasis_holons", id.ToString(), new Dictionary<string, object?> { ["parent_holon_id"] = holon.ParentHolonId.ToString(), ["holon_type"] = (int)holon.HolonType, ["is_deleted"] = true, ["data_json"] = Ser(holon) });
-                result.Result = holon; result.IsError = false; result.Message = $"QdrantOASIS: Holon '{id}' soft-deleted.";
+                result.Result = holon; result.IsDeleted = true; result.DeletedCount = 1; result.Message = $"QdrantOASIS: Holon '{id}' soft-deleted.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"QdrantOASIS: {ex.Message}"); }
             return result;
@@ -508,7 +645,7 @@ namespace NextGenSoftware.OASIS.API.Providers.QdrantOASIS
         public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             var result = new OASISResult<ISearchResults>();
-            try { string? q = searchParams.SearchGroups?.OfType<SearchTextGroup>().FirstOrDefault()?.SearchQuery?.ToLower(); var all = await LoadAllHolonsAsync(); var holons = all.Result?.ToList() ?? new List<IHolon>(); if (!string.IsNullOrEmpty(q)) holons = holons.Where(h => h.Name?.ToLower().Contains(q) == true || h.Description?.ToLower().Contains(q) == true).ToList(); result.Result = new SearchResults { SearchResultHolons = holons, NumberOfResults = holons.Count }; result.IsError = false; result.Message = $"QdrantOASIS: Found {holons.Count} result(s)."; }
+            try { string? q = searchParams.SearchGroups?.OfType<SearchTextGroup>().FirstOrDefault()?.SearchQuery?.ToLower(); var all = await LoadAllHolonsAsync(loadChildren: loadChildren, recursive: recursive, maxChildDepth: maxChildDepth, continueOnError: continueOnError, version: version); if (all.IsError) throw new InvalidOperationException(all.Message, all.Exception); var holons = all.Result?.ToList() ?? new List<IHolon>(); if (!string.IsNullOrEmpty(q)) holons = holons.Where(h => h.Name?.ToLower().Contains(q) == true || h.Description?.ToLower().Contains(q) == true).ToList(); result.Result = new SearchResults { SearchResultHolons = holons, NumberOfResults = holons.Count }; result.IsError = false; result.Message = $"QdrantOASIS: Found {holons.Count} result(s)."; }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
             return result;
         }
@@ -516,19 +653,19 @@ namespace NextGenSoftware.OASIS.API.Providers.QdrantOASIS
         public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0) => SearchAsync(searchParams, loadChildren, recursive, maxChildDepth, continueOnError, version).Result;
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        { var all = await LoadAllHolonsAsync(type); var holons = all.Result?.Where(h => h.MetaData != null && h.MetaData.TryGetValue(metaKey, out var v) && v?.ToString() == metaValue).ToList() ?? new List<IHolon>(); return new OASISResult<IEnumerable<IHolon>> { Result = holons, IsError = false, Message = $"QdrantOASIS: {holons.Count} holon(s)." }; }
+        { var all = await LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version); if (all.IsError) return all; var holons = all.Result?.Where(h => h.MetaData != null && h.MetaData.TryGetValue(metaKey, out var v) && v?.ToString() == metaValue).ToList() ?? new List<IHolon>(); return new OASISResult<IEnumerable<IHolon>> { Result = holons, IsLoaded = true, LoadedCount = holons.Count, Message = $"QdrantOASIS: {holons.Count} holon(s)." }; }
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadHolonsByMetaDataAsync(metaKey, metaValue, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKvp, MetaKeyValuePairMatchMode mode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        { var all = await LoadAllHolonsAsync(type); bool IsMatch(IHolon h) { if (h.MetaData == null) return false; var checks = metaKvp.Select(kvp => h.MetaData.TryGetValue(kvp.Key, out var v) && v?.ToString() == kvp.Value); return mode == MetaKeyValuePairMatchMode.Any ? checks.Any(c => c) : checks.All(c => c); } var holons = all.Result?.Where(IsMatch).ToList() ?? new List<IHolon>(); return new OASISResult<IEnumerable<IHolon>> { Result = holons, IsError = false, Message = $"QdrantOASIS: {holons.Count} holon(s)." }; }
+        { var all = await LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version); if (all.IsError) return all; bool IsMatch(IHolon h) { if (h.MetaData == null) return false; var checks = metaKvp.Select(kvp => h.MetaData.TryGetValue(kvp.Key, out var v) && v?.ToString() == kvp.Value); return mode == MetaKeyValuePairMatchMode.Any ? checks.Any(c => c) : checks.All(c => c); } var holons = all.Result?.Where(IsMatch).ToList() ?? new List<IHolon>(); return new OASISResult<IEnumerable<IHolon>> { Result = holons, IsLoaded = true, LoadedCount = holons.Count, Message = $"QdrantOASIS: {holons.Count} holon(s)." }; }
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKvp, MetaKeyValuePairMatchMode mode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadHolonsByMetaDataAsync(metaKvp, mode, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
 
         // ─── Import / Export ──────────────────────────────────────────────────────
 
-        public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons) { var s = await SaveHolonsAsync(holons); return new OASISResult<bool> { Result = !s.IsError, IsError = s.IsError, Message = s.Message }; }
+        public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons) { var s = await SaveHolonsAsync(holons); return new OASISResult<bool> { Result = !s.IsError && s.IsSaved, IsError = s.IsError, IsSaved = s.IsSaved, SavedCount = s.SavedCount, Message = s.Message, Exception = s.Exception }; }
         public override OASISResult<bool> Import(IEnumerable<IHolon> holons) => ImportAsync(holons).Result;
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0) => await LoadAllHolonsAsync();
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0) => await LoadAllHolonsAsync(version: version);
         public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0) => ExportAllAsync(version).Result;
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0) { var all = await LoadAllHolonsAsync(); var h = all.Result?.Where(x => x.CreatedByAvatarId == avatarId).ToList() ?? new List<IHolon>(); return new OASISResult<IEnumerable<IHolon>> { Result = h, IsError = false, Message = $"QdrantOASIS: {h.Count} holon(s)." }; }
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0) { var all = await LoadAllHolonsAsync(version: version); if (all.IsError) return all; var h = all.Result?.Where(x => x.CreatedByAvatarId == avatarId).ToList() ?? new List<IHolon>(); return new OASISResult<IEnumerable<IHolon>> { Result = h, IsLoaded = true, LoadedCount = h.Count, Message = $"QdrantOASIS: {h.Count} holon(s)." }; }
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0) => ExportAllDataForAvatarByIdAsync(avatarId, version).Result;
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string u, int version = 0) { var a = await LoadAvatarByUsernameAsync(u); if (a.IsError || a.Result == null) { var r = new OASISResult<IEnumerable<IHolon>>(); OASISErrorHandling.HandleError(ref r, "Not found."); return r; } return await ExportAllDataForAvatarByIdAsync(a.Result.Id, version); }
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string u, int version = 0) => ExportAllDataForAvatarByUsernameAsync(u, version).Result;
