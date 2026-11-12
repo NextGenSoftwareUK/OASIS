@@ -10,12 +10,15 @@
 | ActivityPub and routing | ActivityPub has 5/5 native capability checks. GOMap passed a public OSRM driving route. Authenticated Google Routes, Mapbox and HERE checks remain open. Niantic and WRLD still have reviewed adapter gaps. |
 | Canonical HoloOASIS | Top priority. Both modes passed all 52 native core-storage-v2 checks on the official Windows conductor with the verified identity-delete hApp in [run 43178174352](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43178174352). The verified bundle is packaged on the provider branch. Hosted, multi-agent and broader capability acceptance remain open. |
 | HoloOASIS.Desktop | Obsolete in source, package metadata and repository documentation at `45d6665da989`. The six-file compatibility and documentation batch reached Development at `70d3fbb4a31c`. Published NuGet metadata and live site listings still need the obsolescence update. |
-| Development | All seven APIs reported deployment success at `70d3fbb4a31c`. The verified canonical HoloOASIS batch reached Development at `a2ba2fe32aae`. Its rollout remains open. |
+| Development | All seven APIs reported deployment success at `70d3fbb4a31c`. The verified canonical HoloOASIS batch reached Development at `a2ba2fe32aae`. WEB5, WEB7, WEB8 and WEB10 reported success at that revision. WEB4, WEB6 and WEB9 were pending. |
+| BootLoader startup | The shipping registration, activation and deactivation path passed against native Polkadot and TRON fixtures. [Azure Cosmos DB emulator run 43180594194](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43180594194) entered the activation step and remains in progress. |
 | HyperDrive | Global automatic failover, replication and load balancing await provider acceptance. Dragonfly and KeyDB full native runs were queued at the coverage review. |
 
 [Provider matrix](PROVIDER_MATRIX.md) · [Evidence registry](CONFORMANCE_RESULTS.json) · [Cleanup ledger](WORKSPACE_CLEANUP_LEDGER.md)
 
 ## Verification log
+
+12 November Cancun time. Rechecked the completed [Polkadot startup job](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43138621689/job/130919896184) and [TRON startup job](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43136508779/job/130913034468). Both logs explicitly confirm registration, activation, deactivation and native fixture teardown. The earlier shared-harness entry records the build checkpoint. Azure Cosmos DB is the remaining local startup check from that checkpoint.
 
 12 November Cancun time. Development advanced from `70d3fbb4a31c` to `a2ba2fe32aae` after the half-hour window elapsed and all seven APIs reported success at the baseline. The eleven-file canonical HoloOASIS batch contains the provider and test sources that passed [run 43178174352](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43178174352), the byte-identical tested shipping bundle, its manifest and the workflow that reads it. The batch preserves Development dependency pins. Deployed revision verification remains open.
 
