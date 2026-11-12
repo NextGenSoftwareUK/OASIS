@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. Added a disposable Linux qualification for the current Garnet 2.2.5 shipping adapter. Existing Windows split receipts carry forward. This run checks the uninterrupted native lifecycle in both modes on one fresh Linux fixture, verifies exact cleanup and independently checks zero keys. COSMIC fixture files and settings are separate.
+
 12 November Cancun time. Development advanced to `a421cd7a8c5b` with the four-file qualified Weaviate tree. The [COSMIC status](../COSMIC%20ORM/CURRENT_STATUS.md) released this window while its HoloOASIS image and BootLoader qualifications were active. The remote ref and dependency pins were verified. The [Development push workflow](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43287693479) was created at 14:12:01 Cancun time. The next review is after 14:42:01 with a fresh remote-parent and preceding-rollout check.
 
 12 November Cancun time. [Dragonfly run 43286941356](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43286941356) passed all 52 shared lifecycle checks against checksum-pinned Dragonfly 2.0.2, with exact cleanup and a final independent zero-key check. Hosted TLS and legacy plaintext migration remain open.

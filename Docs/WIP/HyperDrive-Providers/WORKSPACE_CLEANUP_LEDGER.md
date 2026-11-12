@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+12 November Garnet qualification uses one disposable runner directory for the pinned archive, process working data, native logs and compact checkpoints. The exit trap stops the owned process and removes that directory. No local runtime or build was created.
+
 12 November Dragonfly run 43286941356 verified exact cleanup and zero native keys, then stopped its owned process and removed the runtime archive, data, logs and checkpoints. No local build or test output was created.
 
 12 November KeyDB run 43286531112 verified exact cleanup and zero native keys, then removed its container, volumes, digest-pinned image and fixture directory. No local test output was created.
