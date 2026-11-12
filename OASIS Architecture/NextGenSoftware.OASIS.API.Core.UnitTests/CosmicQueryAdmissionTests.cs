@@ -11,6 +11,56 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests;
 
 public class CosmicQueryAdmissionTests
 {
+    [Theory]
+    [InlineData(true, true, true)]
+    [InlineData(true, false, false)]
+    [InlineData(false, true, false)]
+    public async Task ShippingProviderUsesUnsignedTariffOnlyForEnrolledPublicLookup(
+        bool queryOnly, bool publicLookup, bool allowed)
+    {
+        const ProviderType provider = ProviderType.EthereumOASIS;
+        const string metadataKey = "EthereumAccountAddress";
+        var store = new Mock<IUsageOutboxStore>();
+        var adapter = Adapter(provider);
+        adapter.Storage.As<IPreparedNativeStorageProvider>();
+        var capabilities = Capabilities.WithStringMetadataLookup(metadataKey, 42, 8);
+        adapter.Query.SetupGet(value => value.QueryCapabilities).Returns(capabilities);
+        var source = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(provider).Result);
+        var query = publicLookup
+            ? source.Where(row => CosmicQueryMetadata.Value<string>(row, metadataKey) == "0x1").Result
+            : source.Where(row => row.Name == "private").Result;
+        var plan = CosmicQueryPlanner.Plan(query, provider, new[] { new CosmicQueryTarget(provider, capabilities) });
+        Assert.False(plan.IsError, plan.Message);
+
+        var operation = new UsageOutboxOperation
+        {
+            Id = "cql-public-shipping", ExecutionOwner = "test-owner",
+            Policy = new UsageEndpointPolicy { RequiresProviderMeasurement = true, MaximumProviderAttempts = 1 }
+        };
+        var handle = new UsageExecutionHandle(operation, store.Object, new Web4UsageLedgerOptions(),
+            new SubscriptionAuthorizationResult(), Mock.Of<IUsageReservationAuthority>());
+        var admission = new PreparedStorageExecution(handle, "cql-test", new Dictionary<ProviderType, string>(),
+            new[] { provider }, new[] { new StorageQueryTariff(provider, 0, "public-test") },
+            null, false, null, queryOnly ? new[] { provider } : Array.Empty<ProviderType>());
+
+        var result = await admission.RunAsync(() => CosmicQueryExecutor.ExecuteAsync(plan.Result,
+            new[] { adapter.Query.Object }));
+
+        if (allowed)
+        {
+            Assert.False(result.IsError, result.Message);
+            store.Verify(value => value.AppendReceiptAsync(It.IsAny<string>(), It.IsAny<string>(),
+                It.Is<UsageProviderReceipt>(receipt => receipt.Provider == "EthereumOASIS"
+                    && receipt.CostSource == "CQL-service-query-attempt-tariff"), It.IsAny<CancellationToken>()), Times.Once);
+        }
+        else
+        {
+            Assert.Equal(PreparedStorageExecution.RejectedCode, result.ErrorCode);
+            NeverRead(adapter.Query);
+            store.VerifyNoOtherCalls();
+        }
+    }
+
     [Fact]
     public async Task TargetSpecificFederationActorIsCheckedBeforeAnyPhysicalAdmissionOrRead()
     {
