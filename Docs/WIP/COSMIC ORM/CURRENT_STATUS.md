@@ -1,5 +1,27 @@
 # COSMIC ORM / CQL current status
 
+## Coverage snapshot — 12 November 2026 UTC
+
+- **Live Development WEB4:** the last authenticated check on `bfa0be4be233` found **105/106** enrolled sources ready for both native and federated CQL. Hedera, Dapr, Waku and NATS were ready. Nostr was unavailable. The Urbit rollout at `4fdb30c2fa` is in progress.
+- **CQL/COSMIC ORM:** the recorded functional totals are **129 scoped local integrations, 96 hosted HTTP proofs and 28 functional browser proofs**. Full ORM, EF/NHibernate parity and wider provider operations remain open.
+- **SDK/API and native storage:** HyperDrive inventories **234 shipping projects** (178 storage or specialized storage and 56 non-storage). The matrix identifies two missing adapters, Niantic Lightship and WRLD3D. **40 provider rows** record a complete native **52/52** pass on the current shared storage suite. The suite covers the shared storage contract. Provider-wide failover, load balancing, replication and complete interfaces remain open.
+
+| Provider | Accepted scope and next gate |
+| --- | --- |
+| Solana, Ethereum, Polygon, Arbitrum, NEAR | Scoped live HTTP/browser proofs and 52/52 native storage per provider. Hosted writes remain open. |
+| EOS, SOLID, TON | Both public browser presets passed, with a 52/52 native storage record each. Original-owner private paired browser checks remain open. |
+| IPFS, ActivityPub | Scoped live HTTP/browser proofs. IPFS has a recovered 52/52 storage report. ActivityPub passed 5/5 public Mastodon capability checks. |
+| Cosmos Hub, Polkadot | Scoped live HTTP/browser proofs and 52/52 native storage each. Polkadot also passed native BootLoader activation/deactivation. |
+| TRON | Reader deployed, 11 controlled WEB4 checks passed and 52/52 native TronNet storage checks passed. Authenticated CQL qualification and enrollment need the dedicated TronGrid key. |
+| Hedera | Ready in the latest checked catalogue, with native HTTP and bounded public browser evidence and 52/52 native Hiero storage checks. Full public browser and original-owner private paired browser gates remain open. |
+| Supabase | Reader deployed, 52/52 native PostgREST storage and local CQL/MongoDB evidence. Hosted teaching fixture remains open. |
+| LocalFile | Scoped CQL acceptance retained. Ordinary HyperDrive point routing is deferred behind the priority demos. |
+| Urbit | Native WEB4 federation passed five full/four subset rows before and after restart, owner isolation and MongoDB cleanup. Exact published-Core boundary CI passed all 30 cases. Development rollout is in progress and hosted enrollment needs a reviewed HTTPS teaching fixture. |
+| Infura | Five controlled checks passed against published Core. Exact current-pin WEB4 image build is pending. Authenticated Ethereum reads need protected reader access. |
+| GOMap, CouchDB | Reader code deployed. GOMap needs a dedicated HTTPS OSRM origin and CouchDB needs a restricted HTTPS teaching fixture. |
+
+[Provider matrix](../HyperDrive-Providers/PROVIDER_MATRIX.md) · [Sandbox provider roadmap](SANDBOX_PROVIDER_DEMO_ROADMAP.md) · [Owner actions](../Release%20and%20Status/ACTIONS-FOR-DAVID.md).
+
 ## Urbit Development rollout and exact Infura image
 
 Development fast-forwarded to `4fdb30c2fa` with published Core `26e09b26`. The exact Urbit candidate passed all 30 boundary cases in [CI 43165188191](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43165188191). Native Urbit and MongoDB federation evidence is retained. WEB4 deployment `7729887171` was created. Urbit enrollment still needs its reviewed HTTPS fixture. Infura passed all five controlled cases on the same Core pin and exact image [CI 43166337078](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43166337078) is pending.
