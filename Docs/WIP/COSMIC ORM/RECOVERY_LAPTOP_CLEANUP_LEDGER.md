@@ -6434,3 +6434,5 @@ Prepared the one-line HoloOASIS Core tariff candidate with a temporary index and
 12 November Cancun time. Prepared local HoloOASIS reconciliation commit 7b3ba8d0083c without creating a branch, tag or checkout. Removed its temporary index before reporting. Read Railway service names only. No images, environments, downloaded artifacts or local test outputs created.
 
 12 November Cancun time. Combined canonical provider changes and CQL changes using the existing two checkouts. The temporary index for local commit 8ba776e9b317 was removed. No runtime setup, builds, downloads or new branch or tag.
+
+12 November Cancun time. Added temporary ci-cosmic-holooasis-native-b26b223617 for native CI 43178143248. Keep the Core candidate tag and this native tag while qualifying. The hApp artifact was streamed into memory and imported into Git. No local archive or build/test output was retained. Removed the scoped index. C: measured 41,583,632,384 free bytes.
