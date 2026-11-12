@@ -11,6 +11,7 @@ on:
       - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/HoloOasisReadSigner.cs'
       - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/HoloOasisReadSource.cs'
       - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/HoloOasisDevelopmentConductor.cs'
+    tags: ['ci-cosmic-holooasis-managed-*']
 
 permissions:
   contents: read
@@ -54,6 +55,7 @@ jobs:
         shell: pwsh
         env:
           OASIS_CQL_HOLOOASIS_LINUX: '1'
+          OASIS_CQL_HOLOOASIS_MANAGED_NATIVE: ${{ startsWith(github.ref, 'refs/tags/ci-cosmic-holooasis-managed-') && '1' || '0' }}
           HOLONET_CONDUCTOR_FOLDER: ${{ runner.temp }}/oasis-holonet-tools
         run: |
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner holooasis-cql-ci -Operation {

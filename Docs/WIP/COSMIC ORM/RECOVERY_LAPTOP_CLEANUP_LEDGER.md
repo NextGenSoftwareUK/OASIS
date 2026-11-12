@@ -6462,3 +6462,5 @@ Prepared the one-line HoloOASIS Core tariff candidate with a temporary index and
 12 November Cancun time. Read Linux compile failure logs in memory. Managed fixture credentials are held in process memory. Dedicated conductor data belongs under /data/COSMIC/HoloOasisCql. No local runtime, build output, temporary log archive or hosted changes. Removed scoped index.
 
 12 November Cancun time. Ran two exact hosted settings tests in memory with -B. Both disposable catalogue directories and the scoped index were removed. No protected Railway snapshot or local build output created.
+
+12 November Cancun time. The managed Linux fixture and restart test run on a disposable hosted runner. Its generated grant and token are in memory. No local download, native build, state directory or report. Removed both scoped indices.
