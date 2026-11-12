@@ -662,9 +662,6 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             if (Configuration["CQL_POLKADOT_PUBLIC_SOURCE_JSON"] is string polkadotPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
                     NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.PolkadotPublicHeaderMetadataSource.FromJson(polkadotPublicSource)));
-            if (Configuration["CQL_COSMOS_PUBLIC_SOURCE_JSON"] is string cosmosPublicSource)
-                services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
-                    NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.CosmosPublicValidatorMetadataSource.FromJson(cosmosPublicSource)));
             if (Configuration["CQL_AZURE_BLOB_PUBLIC_SOURCE_JSON"] is string azureBlobPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
                     NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS.AzureBlobPublicMetadataSource.FromJson(azureBlobPublicSource)));

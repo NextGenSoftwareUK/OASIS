@@ -26,6 +26,8 @@ public sealed class CosmosPublicValidatorMetadataSource : KeyValueStorageProvide
     ICosmicQueryStorageProvider, ICosmicReadOnlyQueryActivation, IDisposable
 {
     public const string AddressMetadata = "CosmosValidatorAddress";
+    internal static readonly CosmicQueryCapabilities PublicCapabilities =
+        CosmicQueryCapabilities.ForStringMetadataKeyLookup(AddressMetadata, 52, 8);
     private readonly ValidatorsBackend validators;
     private bool disposed;
 
@@ -40,15 +42,21 @@ public sealed class CosmosPublicValidatorMetadataSource : KeyValueStorageProvide
         ProviderDescription = "Read-only height-pinned public Cosmos Hub validators";
         ProviderType = new EnumValue<PType>(PType.CosmosBlockChainOASIS);
         ProviderCategory = new EnumValue<Core.Enums.ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
-        QueryCapabilities = CosmicQueryCapabilities.ForStringMetadataKeyLookup(AddressMetadata, 52, 8);
     }
 
     public PType QueryProviderType => PType.CosmosBlockChainOASIS;
-    public CosmicQueryCapabilities QueryCapabilities { get; }
+    public CosmicQueryCapabilities QueryCapabilities => PublicCapabilities;
 
     /// <summary>Separate host query-profile configuration, never the existing
     /// signed Cosmos storage settings. Reject unknown fields rather than ignore keys.</summary>
     public static CosmosPublicValidatorMetadataSource FromJson(string json)
+    {
+        var client = new HttpClient(NativeConnectionGuard.CreateGuardedHttpHandler()) { Timeout = TimeSpan.FromSeconds(15) };
+        try { return new CosmosPublicValidatorMetadataSource(CreateValidators(json, client, ownsClient: true)); }
+        catch { client.Dispose(); throw; }
+    }
+
+    internal static ValidatorsBackend CreateValidators(string json, HttpClient client, bool ownsClient = false)
     {
         if (json == null || Encoding.UTF8.GetByteCount(json) > 8192)
             throw new ArgumentException("Bounded explicit Cosmos public source required.");
@@ -63,14 +71,9 @@ public sealed class CosmosPublicValidatorMetadataSource : KeyValueStorageProvide
             root.GetProperty("sourceOwner").ValueKind != JsonValueKind.String || root.GetProperty("addresses").ValueKind != JsonValueKind.Array ||
             root.GetProperty("addresses").GetArrayLength() is < 1 or > 8)
             throw new ArgumentException("Exact anonymous Cosmos source schema required; signer/billing fields forbidden.");
-        var client = new HttpClient(NativeConnectionGuard.CreateGuardedHttpHandler()) { Timeout = TimeSpan.FromSeconds(15) };
-        try
-        {
-            return new CosmosPublicValidatorMetadataSource(client, new Uri(root.GetProperty("restUrl").GetString(), UriKind.Absolute),
-                root.GetProperty("chainId").GetString(), root.GetProperty("addresses").EnumerateArray().Select(value => value.GetString()),
-                root.GetProperty("sourceOwner").GetGuid(), true);
-        }
-        catch { client.Dispose(); throw; }
+        return new ValidatorsBackend(client, new Uri(root.GetProperty("restUrl").GetString(), UriKind.Absolute),
+            root.GetProperty("chainId").GetString(), root.GetProperty("addresses").EnumerateArray().Select(value => value.GetString()),
+            root.GetProperty("sourceOwner").GetGuid(), ownsClient);
     }
 
     public async Task<OASISResult<bool>> ActivateQuerySourceAsync(CancellationToken cancellationToken)
@@ -91,34 +94,38 @@ public sealed class CosmosPublicValidatorMetadataSource : KeyValueStorageProvide
         }
     }
 
-    public async Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicQueryAsync<T>(CosmicQueryPlan<T> plan,
+    public Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicQueryAsync<T>(CosmicQueryPlan<T> plan,
         int maximumResults = 100, CancellationToken cancellationToken = default) where T : IHolon
+        => ExecutePublicQueryAsync(validators, !disposed && IsProviderActivated, plan, maximumResults, cancellationToken);
+
+    internal static async Task<OASISResult<IReadOnlyList<IHolon>>> ExecutePublicQueryAsync<T>(
+        ValidatorsBackend validators, bool activated, CosmicQueryPlan<T> plan, int maximumResults,
+        CancellationToken cancellationToken) where T : IHolon
     {
         try
         {
-            ObjectDisposedException.ThrowIf(disposed, this);
-            if (plan == null || plan.Targets.Count != 1 || plan.Targets[0].Provider != QueryProviderType)
+            if (plan == null || plan.Targets.Count != 1 || plan.Targets[0].Provider != PType.CosmosBlockChainOASIS)
                 return Failure("CQL_PLAN_TARGET_UNAVAILABLE", "One explicitly admitted public Cosmos source is required.");
             if (maximumResults is < 1 or > 10000) return Failure("CQL_QUERY_LIMIT", "A bounded result budget is required.");
-            var admitted = QueryCapabilities.AdmitPlan(plan);
+            var admitted = PublicCapabilities.AdmitPlan(plan);
             if (admitted.IsError) return Failure(admitted.ErrorCode, admitted.Message);
             IReadOnlyList<string> keys;
-            if (QueryCapabilities.StringKeySetLookup.IsKeySetQuery(plan.Query))
+            if (PublicCapabilities.StringKeySetLookup.IsKeySetQuery(plan.Query))
             {
-                var selected = QueryCapabilities.StringKeySetLookup.SelectKeys(plan.Query);
+                var selected = PublicCapabilities.StringKeySetLookup.SelectKeys(plan.Query);
                 if (selected.IsError) return Failure(selected.ErrorCode, selected.Message);
                 keys = selected.Result;
             }
             else
             {
-                var selected = QueryCapabilities.StringPointLookup.SelectKey(plan.Query);
+                var selected = PublicCapabilities.StringPointLookup.SelectKey(plan.Query);
                 if (selected.IsError) return Failure(selected.ErrorCode, selected.Message);
                 keys = new[] { selected.Result };
             }
             if (keys.Any(key => !validators.Addresses.Contains(key, StringComparer.Ordinal)))
                 return Failure("CQL_INVALID_SOURCE_KEY", "Select addresses from the configured validator catalogue.");
             cancellationToken.ThrowIfCancellationRequested();
-            if (!IsProviderActivated) return Failure("CQL_PROVIDER_INACTIVE", "Activate the configured public source first.");
+            if (!activated) return Failure("CQL_PROVIDER_INACTIVE", "Activate the configured public source first.");
             var native = await validators.ReadAsync(keys, cancellationToken);
             var rows = native.Where(row => plan.Query.ReadAccess == null || plan.Query.ReadAccess.CanRead(row))
                 .Skip(plan.Query.Offset).Take(plan.Query.Limit ?? native.Count).ToArray();
@@ -197,7 +204,7 @@ public sealed class CosmosPublicValidatorMetadataSource : KeyValueStorageProvide
             foreach (var entry in value.EnumerateArray()) Unique(entry);
     }
 
-    private sealed class ValidatorsBackend : IKeyValueBackend, IDisposable
+    internal sealed class ValidatorsBackend : IKeyValueBackend, IDisposable
     {
         private readonly HttpClient client;
         private readonly Uri rest;
