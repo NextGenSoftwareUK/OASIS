@@ -20,6 +20,8 @@
 
 12 November Cancun time. Managed HoloOASIS advanced Development to `e54973c380c9`. Elasticsearch qualification now triggers when its native test project changes and will qualify the existing three-file batch against the new Development parent. The hosted HoloOASIS rollout and the new exact Elasticsearch integration evidence are pending.
 
+12 November Cancun time. Both modes of [Typesense run 43209982452](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43209982452) passed activation, avatar save and all three avatar lookups, and detail save. Both stopped at detail point read. The adapter now uses the canonical OASIS detail decoder on point, search and export reads while preserving the native document shape. Physical deletion requires a matching Typesense document ID in the receipt and removes the same-ID detail before removing an avatar. The next shared run will verify those changes.
+
 12 November Cancun time. [Typesense shared run 43209337183](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43209337183) stopped in both modes before the first shared case because the guard checked the Elasticsearch directory prefix. The guard now checks the actual Typesense prefix. Typesense avatar and detail single reads now report one loaded record, and detail writes publish the generated identity and saved count after native acknowledgement. The full suite must still verify those paths.
 
 12 November Cancun time. [Typesense run 43208737570](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43208737570) passed both focused lifecycle checks on Typesense 30.2 with zero skips. The independent collection checks confirmed zero documents in all three collections. The full shared suite remains open.

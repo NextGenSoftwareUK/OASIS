@@ -13,6 +13,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
+using NextGenSoftware.OASIS.API.Core.Serialization;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 
@@ -68,13 +69,17 @@ namespace NextGenSoftware.OASIS.API.Providers.TypesenseOASIS
         private static string Ser(object obj) => JsonSerializer.Serialize(obj, _jsonOpts);
         private StringContent Json(object obj) => new StringContent(Ser(obj), Encoding.UTF8, "application/json");
 
+        private static T? DeserializeDocument<T>(string json) => typeof(T) == typeof(AvatarDetail)
+            ? StoredRecordJson.DeserializeStored<T>(json)
+            : JsonSerializer.Deserialize<T>(json, _jsonOpts);
+
         private async Task<T?> GetDocAsync<T>(string collection, string id)
         {
             using var resp = await _http.GetAsync($"{_host}/collections/{collection}/documents/{id}");
             if (resp.StatusCode == System.Net.HttpStatusCode.NotFound) return default;
             resp.EnsureSuccessStatusCode();
             var json = await resp.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<T>(json, _jsonOpts);
+            return DeserializeDocument<T>(json);
         }
 
         private async Task<List<T>> SearchAllAsync<T>(string collection)
@@ -90,7 +95,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TypesenseOASIS
             {
                 if (string.IsNullOrWhiteSpace(line))
                     continue;
-                var document = JsonSerializer.Deserialize<T>(line, _jsonOpts);
+                var document = DeserializeDocument<T>(line);
                 if (document is null)
                     throw new JsonException("Typesense exported a null document.");
                 documents.Add(document);
@@ -110,16 +115,10 @@ namespace NextGenSoftware.OASIS.API.Providers.TypesenseOASIS
             foreach (var hit in hits.EnumerateArray())
             {
                 if (!hit.TryGetProperty("document", out var d)) continue;
-                var item = JsonSerializer.Deserialize<T>(d.GetRawText(), _jsonOpts);
+                var item = DeserializeDocument<T>(d.GetRawText());
                 if (item != null) list.Add(item);
             }
             return list;
-        }
-
-        private async Task DeleteDocAsync(string collection, string id)
-        {
-            using var response = await _http.DeleteAsync($"{_host}/collections/{collection}/documents/{id}");
-            response.EnsureSuccessStatusCode();
         }
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
@@ -261,7 +260,8 @@ namespace NextGenSoftware.OASIS.API.Providers.TypesenseOASIS
                 }
                 else
                 {
-                    await DeleteDocAsync(ColAvatars, id.ToString());
+                    await DeleteDocAsync(ColDetails, id.ToString("D"), allowMissing: true);
+                    await DeleteDocAsync(ColAvatars, id.ToString("D"));
                 }
 
                 result.Result = true;

@@ -492,3 +492,5 @@ Urgent disk cleanup follow-up: leased standard project clean succeeded for AWS u
 12 November Cancun time. Typesense job 131150478927 confirmed zero documents in all three native collections and removed its node, volumes and result directory. Elasticsearch jobs 131149546100 and 131149546680 each confirmed exact fixture cleanup and removed their nodes, volumes and result directories. No local build, test artifacts or downloads were created.
 
 12 November Cancun time. Typesense shared jobs 131152585292 and 131152585627 removed their owned native nodes, volumes and result directories after the directory-prefix guard failed. No local outputs were created.
+
+12 November Cancun time. Typesense jobs 131154815622 and 131154815801 stopped at detail point read and did not reach shared fixture cleanup. Both runner exit handlers removed their owned nodes, volumes and result directories. No local builds or downloads were created.
