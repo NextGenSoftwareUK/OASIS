@@ -1,6 +1,17 @@
 {
   "schemaVersion": 1,
   "verifiedNativeCiRuns": {
+    "HoloOASIS": {
+      "suite": "core-storage-v2",
+      "backend": "Official Holochain Windows conductor 0.7.1 via HoloNET",
+      "runId": 43178174352,
+      "jobId": 131047391565,
+      "revision": "f68ecc608b0591413fab6a4f644bf99a929c0419",
+      "passed": {"async": 26, "sync": 26},
+      "cleanup": "Both tests asserted fixture cleanup. The Windows conductor runner completed successfully with zero skips.",
+      "backendSourceRevision": "a9fbde84b4f33ebe7ac8d8a08ce73ce16ceab608",
+      "backendArtifactSha256": "EB6E48A7448C074C64635189F664C5842A86006F569074A05D42EF27FF0EB988"
+    },
     "FirebaseOASIS": {
       "suite": "core-storage-v2",
       "backend": "Firebase Realtime Database 4.11.2 emulator via the shipping REST adapter",

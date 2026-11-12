@@ -5,10 +5,10 @@
 | Area | Recorded status |
 | --- | --- |
 | Project inventory | 234 projects: 178 storage or specialized storage, including the obsolete Desktop compatibility wrapper, and 56 non-storage. |
-| Shared storage coverage | All 46 matrix entries recorded at 52/52 native core-storage-v2 have reconciled evidence. The registry contains 23 reports verified against their SHA-256 hashes and 23 passes independently checked against completed native CI jobs and their cleanup gates. |
+| Shared storage coverage | All 47 matrix entries recorded at 52/52 native core-storage-v2 have reconciled evidence. The registry contains 23 reports verified against their SHA-256 hashes and 24 passes independently checked against completed native CI jobs and their cleanup gates. |
 | Priority storage providers | The matrix records 52/52 native checks for Neon, Convex, Supabase, Solana, MongoDB, SQLite, Neo4j, SQL Server, Oracle, AWS DynamoDB and S3, IPFS, NEAR, Cosmos chain, Azure Cosmos DB, Google Firestore, Polkadot, Solid, Polygon, Arbitrum, TRON, EOSIO, TON, and Hedera/Hashgraph. Several use isolated native engines, emulators or local networks. See each row for hosted and capability gaps. |
 | ActivityPub and routing | ActivityPub has 5/5 native capability checks. GOMap passed a public OSRM driving route. Authenticated Google Routes, Mapbox and HERE checks remain open. Niantic and WRLD still have reviewed adapter gaps. |
-| Canonical HoloOASIS | Top priority. Both modes passed avatar and avatar-detail checks through the Desktop entry point before reaching the graph-save gap. Canonical graph save and the native parent-query change are under verification in runs [43165294724](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43165294724) and [43166769837](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43166769837). Both were active at inspection. |
+| Canonical HoloOASIS | Top priority. Both modes passed all 52 native core-storage-v2 checks on the official Windows conductor with the verified identity-delete hApp in [run 43178174352](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43178174352). The verified bundle is packaged on the provider branch. Hosted, multi-agent and broader capability acceptance remain open. |
 | HoloOASIS.Desktop | Obsolete in source, package metadata and repository documentation at `45d6665da989`. The six-file compatibility and documentation batch reached Development at `70d3fbb4a31c`. Published NuGet metadata and live site listings still need the obsolescence update. |
 | Development | All seven APIs reported deployment success at `bfa0be4be233`. Development subsequently advanced to `4fdb30c2fae4`, with WEB4 pending at inspection. |
 | HyperDrive | Global automatic failover, replication and load balancing await provider acceptance. Dragonfly and KeyDB full native runs were queued at the coverage review. |
@@ -16,6 +16,8 @@
 [Provider matrix](PROVIDER_MATRIX.md) · [Evidence registry](CONFORMANCE_RESULTS.json) · [Cleanup ledger](WORKSPACE_CLEANUP_LEDGER.md)
 
 ## Verification log
+
+12 November Cancun time. [Canonical HoloOASIS run 43178174352](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43178174352) passed both 26-check modes, including deletion of updated holons and avatar-detail absence, with zero skips. It tested provider revision `f68ecc608b05` on Development baseline `70d3fbb4a31c`, with hApp artifact 13925305621 from revision `a9fbde84b4f3`. The shipping bundle at `ce1b06227bce` is byte-identical to the artifact. The provider matrix and evidence registry now record 47 native shared-suite passes. Development integration of the canonical changes remains pending.
 
 12 November Cancun time. Packaged the exact hApp from producer artifact 13925305621 into the shipping HoloOASIS project after verifying its archive and bundle SHA-256 and the source revision. The shipping manifest records the 20-path Git source digest, bundle digest, and producer identity. The provider workflow now consumes the checked-in bundle, so future runs are independent of artifact expiry. [Combined native run 43178174352](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43178174352) retrieved the same producer artifact and was running against the conductor at inspection.
 
