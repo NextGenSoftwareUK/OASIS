@@ -4,11 +4,18 @@ on:
   push:
     branches: [work/hyperdrive-provider-completion]
     paths:
-      - '.github/workflows/hedera-native-storage.yml'
       - 'Scripts/TestHosts/Deploy-HederaLocalStorage.mjs'
       - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS/HederaStorageConfiguration.cs'
       - 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.IntegrationTests/HederaLocalStorageConformanceTests.cs'
   workflow_dispatch:
+  workflow_call:
+    inputs:
+      routing:
+        type: boolean
+        default: false
+    secrets:
+      PRIVATE_SUBMODULE_PAT:
+        required: true
 
 permissions:
   contents: read
@@ -98,11 +105,26 @@ jobs:
           (umask 022; cd "$fixture" && FIRING_UP_RETRY_ATTEMPTS=1200 npm exec --yes --package=@hashgraph/hedera-local@2.40.2 -- hedera start --host=127.0.0.1 --accounts=1)
           export OASIS_HEDERA_LOCAL_FIXTURE="$fixture" OASIS_HEDERA_SDK_BRIDGE="$sdk/bridge.mjs"
           export OASIS_HEDERA_LOCAL_MODE="${{ matrix.mode }}"
+          export OASIS_HEDERA_ROUTING="${{ inputs.routing && '1' || '0' }}"
           export OASIS_HEDERA_LOCAL_SIGNING_KEY=302e020100300506032b65700422042091132178e72057a1d7528025956fe39b0b847f200ab59b2fdd367017f3087137
           export OASIS_HEDERA_LOCAL_ENCRYPTION_KEY="$(openssl rand -base64 32)"
           node Scripts/TestHosts/Deploy-HederaLocalStorage.mjs "$fixture"
           export OASIS_HEDERA_LOCAL_CONTRACT_ID="$(jq -er '.contractId' "$fixture/deployment.json")"
           [[ "$OASIS_HEDERA_LOCAL_CONTRACT_ID" =~ ^0\.0\.[1-9][0-9]*$ ]]
+          if [[ "$OASIS_HEDERA_ROUTING" == 1 ]]; then
+            pwsh -NoProfile -Command '
+              ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-HederaRouting -Operation {
+                $project = "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.IntegrationTests"
+                dotnet test $project --filter "FullyQualifiedName~RoutesAcrossNativeHederaAndSqlite" /p:HederaRoutingTests=true /m:2 /nr:false /p:UseSharedCompilation=false --results-directory $env:OASIS_HEDERA_LOCAL_FIXTURE --logger "trx;LogFileName=routing.trx"
+                if ($LASTEXITCODE -ne 0) { throw "Native Hedera routing verification failed." }
+                [xml]$report = Get-Content -LiteralPath (Join-Path $env:OASIS_HEDERA_LOCAL_FIXTURE "routing.trx")
+                if ($report.TestRun.ResultSummary.Counters.passed -ne "1" -or $report.TestRun.ResultSummary.Counters.total -ne "1") {
+                  throw "The native Hedera routing case must execute and pass."
+                }
+              }'
+            echo "Verified native Hedera routing and empty contract in $OASIS_HEDERA_LOCAL_MODE mode."
+            exit 0
+          fi
           pwsh -NoProfile -Command '
             ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-HederaStorage -Operation {
               dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.IntegrationTests.csproj" --filter "FullyQualifiedName~CoreStorageSuiteAgainstHieroConsensus" /m:2 /nr:false /p:UseSharedCompilation=false --logger "console;verbosity=normal"

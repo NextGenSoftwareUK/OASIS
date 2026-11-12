@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. Added Hedera and SQLite routing on the existing disposable local Hiero consensus fixture. Both modes use the shipping configured SDK adapter, require exact readback after replication, verify failover in both directions and even RoundRobin, and check an empty contract independently through the native backend. Earlier direct storage evidence carries forward. Funded testnet and hosted CQL remain open. Native routing CI is pending.
+
 12 November Cancun time. [TON native routing](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43313724670) passed both modes with zero skips. The pinned local TVM contract verified bidirectional replication and read failover, evenly distributed RoundRobin and zero native keys after cleanup. CI removed its compilation, locked dependencies, ledgers, SQLite files and test output. Public TON and Development verification remain open. [Exact Polkadot CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43314244482) is qualifying candidate 090b3b1e7d81 with tree c6a02fceb6e94ac048121673d034083157a0ba0b on e0f315259334.
 
 12 November Cancun time. Polkadot exact Development qualification overlays only the three shipping adapter files, two routing test files and the shared assertion helper. The Core pin differs between the provider branch and Development, so the earlier native pass cannot qualify that deployment input. The job uses the resolved Development pin and reports the exact tree. The next Development review remains after 17:07:34 Cancun time.
