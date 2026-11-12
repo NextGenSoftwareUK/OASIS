@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## WEB4 readiness after Core test alignment
+
+Development WEB4 `f9011d511056` deployed successfully (`7728790300`). Authenticated discovery returned 105/106 native and federated sources ready. Hedera recovered. Nostr remained unavailable. Dapr, Waku and NATS were ready. TRON, Supabase and CouchDB remained unenrolled. Urbit native federation CI is still running on its earlier base.
+
 ## Urbit candidate reconciled with Development
 
 Development moved to `f9011d511056` with three Core unit-test updates while native Urbit CI was running. Local candidate `27d07f280c` preserves that revision and all 38 Urbit paths byte for byte. [Native federation CI 43157661058](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43157661058) is still executing on its earlier base. WEB4 deployment `7728790300` is in progress. Release and hosted enrollment remain open.
