@@ -121,6 +121,7 @@ internal sealed class HoloOasisDevelopmentConductor
         HoloNETClientAppAgent app = null;
         try
         {
+            await _admin.WaitForPersistedCellAsync(appId, cancellationToken);
             var installed = await _admin.InstallEnableSignAttachAndConnectToHappAsync(appId, bundle, "oasis",
                 CapGrantAccessType.Assigned, uninstallhAppIfAlreadyInstalled: false, log: false);
             app = installed?.HoloNETClientAppAgent as HoloNETClientAppAgent;
@@ -223,6 +224,41 @@ internal sealed class HoloOasisDevelopmentConductor
 
     private sealed class TeachingAdmin(HoloNETDNA dna) : HoloNETClientAdmin(dna)
     {
+        public async Task WaitForPersistedCellAsync(string appId, CancellationToken cancellationToken)
+        {
+            using var readiness = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            readiness.CancelAfter(TimeSpan.FromSeconds(dna.SecondsToWaitForHolochainConductorToStart));
+            var apps = await ListAppsAsync(AppStatusFilter.All).WaitAsync(readiness.Token);
+            if (apps.IsError)
+                throw new InvalidOperationException($"The conductor could not list installed apps. {apps.Message}");
+            var app = apps.Apps.SingleOrDefault(candidate => candidate.installed_app_id == appId);
+            // Holochain opens the admin listener before starting previously enabled cells.
+            // EnableApp is a no-op for an already enabled app, so wait for its exact live cell.
+            if (app?.AppStatus != AppInfoStatusEnum.Running)
+                return;
+            var expectedCell = app.CellId;
+            if (expectedCell is not { Length: 2 })
+                throw new InvalidOperationException("The enabled HoloOASIS teaching app has no provisioned cell.");
+
+            try
+            {
+                using var poll = new PeriodicTimer(TimeSpan.FromMilliseconds(250));
+                do
+                {
+                    var running = await ListCellIdsAsync().WaitAsync(readiness.Token);
+                    if (running.IsError)
+                        throw new InvalidOperationException($"The conductor could not list running cells. {running.Message}");
+                    if (running.CellIds.Any(cell => cell.Length == 2 &&
+                        cell[0].SequenceEqual(expectedCell[0]) && cell[1].SequenceEqual(expectedCell[1])))
+                        return;
+                } while (await poll.WaitForNextTickAsync(readiness.Token));
+            }
+            catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+            {
+                throw new TimeoutException("The existing HoloOASIS teaching cell did not start within the conductor readiness budget.");
+            }
+        }
+
         public async Task<SigningCredentials> GrantReaderAsync(byte[] dnaHash, byte[] agentKey)
         {
             var key = $"{ConvertHoloHashToString(agentKey)}:{ConvertHoloHashToString(dnaHash)}";
