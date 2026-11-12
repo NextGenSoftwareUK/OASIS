@@ -470,3 +470,5 @@ Urgent disk cleanup follow-up: leased standard project clean succeeded for AWS u
 12 November Cancun time. OpenSearch run 43200638291 removed both owned native nodes, their volumes and fixture directories after the holon point-read failure. No local artifacts were created.
 
 12 November Cancun time. OpenSearch jobs 131125585727 and 131125585989 independently confirmed exact tombstone cleanup, empty native indices, and removal of both owned nodes, volumes and fixture directories. No local build outputs or downloads were created.
+
+12 November Cancun time. OpenSearch Development jobs 131129447327 and 131129447820 each confirmed removal of the owned node, volumes and fixture directory. The temporary index used to reproduce the CI tree was removed. No local builds or downloads were created.

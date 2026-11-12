@@ -10,13 +10,15 @@
 | ActivityPub and routing | ActivityPub has 5/5 native capability checks. GOMap passed a public OSRM driving route. Authenticated Google Routes, Mapbox and HERE checks remain open. Niantic and WRLD still have reviewed adapter gaps. |
 | Canonical HoloOASIS | Top priority. Both modes passed all 52 native core-storage-v2 checks on the official Windows conductor with the verified identity-delete hApp in [run 43178174352](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43178174352). The verified bundle is packaged on the provider branch. Hosted, multi-agent and broader capability acceptance remain open. |
 | HoloOASIS.Desktop | Obsolete in source, package metadata and repository documentation at `45d6665da989`. The six-file compatibility and documentation batch reached Development at `70d3fbb4a31c`. Published NuGet metadata and live site listings still need the obsolescence update. |
-| Development | All seven APIs reported Railway deployment success at `4838fdd9e694`. `ca83daf40a3c` integrates verified Firestore startup tests and HoloOASIS same-instance reactivation. Its Railway rollout and live HoloOASIS storage remain open. |
+| Development | All seven APIs reported Railway deployment success at `ca83daf40a3c`. `52ace6727b58` integrates the verified OpenSearch storage lifecycle. Its Railway rollout and live HoloOASIS storage remain open. |
 | BootLoader startup | The shipping registration, activation and deactivation path passed against native Polkadot and TRON fixtures and the Microsoft Azure Cosmos DB emulator. [Azure Cosmos DB job 131055311882](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43180594194/job/131055311882) confirmed fixture teardown. |
 | HyperDrive | Global automatic failover, replication and load balancing await provider acceptance. Dragonfly and KeyDB full native runs were queued at the coverage review. |
 
 [Provider matrix](PROVIDER_MATRIX.md) · [Evidence registry](CONFORMANCE_RESULTS.json) · [Cleanup ledger](WORKSPACE_CLEANUP_LEDGER.md)
 
 ## Verification log
+
+12 November Cancun time. [OpenSearch Development run 43202562656](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43202562656) passed 26/26 in both modes on the same exact tree `812e34bfb139b9c0ed18688a74f028dba157f221` with confirmed fixture cleanup. After the half-hour interval and seven successful baseline deployments, Development advanced to `52ace6727b58` with that four-file tree. The dependency pins and COSMIC/CQL files were preserved. Deployment remains open.
 
 12 November Cancun time. [OpenSearch run 43201436539](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43201436539) passed 26/26 in both modes at `cf73d4a955bf`, with zero skips. Both modes verified exact tombstone cleanup, empty native indices and disposable node teardown. The provider matrix records 48 native shared-storage passes. The OpenSearch workflow now qualifies the four reviewed files with current Development dependencies and logs the exact staged tree. Hosted TLS, graph depth and pagination, history and conditional writes remain open.
 
