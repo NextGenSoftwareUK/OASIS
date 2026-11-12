@@ -6,11 +6,14 @@ on:
     paths:
       - 'Scripts/TestHosts/Build-ReusablePolkadotRecords.sh'
       - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS/**'
-      - 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.IntegrationTests/**'
+      - 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.IntegrationTests/PolkadotPublicStorageNativeTests.cs'
   workflow_dispatch:
   workflow_call:
     inputs:
       activation_only:
+        type: boolean
+        default: false
+      routing:
         type: boolean
         default: false
     secrets:
@@ -108,6 +111,7 @@ jobs:
         shell: bash
         env:
           POLKADOT_ACTIVATION_ONLY: ${{ inputs.activation_only || false }}
+          POLKADOT_ROUTING: ${{ inputs.routing || false }}
         run: |
           umask 077
           fixture="$(mktemp -d "$RUNNER_TEMP/oasis-polkadot-chain.XXXXXXXX")"
@@ -173,6 +177,22 @@ jobs:
             export OASIS_POLKADOT_STORAGE_ENCRYPTION_KEY="$(openssl rand -base64 32)"
             echo "::add-mask::$OASIS_POLKADOT_STORAGE_ENCRYPTION_KEY"
             pwsh -NoProfile -File Scripts/TestHosts/Invoke-PolkadotBootLoaderActivation.ps1
+            exit 0
+          fi
+          if [[ "$POLKADOT_ROUTING" == true ]]; then
+            export OASIS_POLKADOT_CI_FIXTURE="$fixture"
+            export OASIS_POLKADOT_STORAGE_ENCRYPTION_KEY="$(openssl rand -base64 32)"
+            echo "::add-mask::$OASIS_POLKADOT_STORAGE_ENCRYPTION_KEY"
+            pwsh -NoProfile -Command '
+              ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-PolkadotRouting -Operation {
+                $project = "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.IntegrationTests"
+                dotnet test $project --filter "FullyQualifiedName~PolkadotSqliteHyperDriveTests" /p:PolkadotDirectProviderOnly=true /p:PolkadotRoutingTests=true /m:2 /nr:false /p:UseSharedCompilation=false --results-directory $env:OASIS_POLKADOT_CI_FIXTURE --logger "trx;LogFileName=routing.trx" --logger "console;verbosity=normal"
+                if ($LASTEXITCODE -ne 0) { throw "Native Polkadot routing verification failed." }
+                [xml]$report = Get-Content -LiteralPath (Join-Path $env:OASIS_POLKADOT_CI_FIXTURE "routing.trx")
+                if ($report.TestRun.ResultSummary.Counters.passed -ne "2" -or $report.TestRun.ResultSummary.Counters.total -ne "2") {
+                  throw "Both native Polkadot routing cases must execute and pass."
+                }
+              }'
             exit 0
           fi
           pwsh -NoProfile -Command '

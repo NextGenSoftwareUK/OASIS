@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+12 November exact NEAR run 43305473223 confirmed an empty contract and removed its owned sandbox and reports. Polkadot routing uses disposable CI and removes its chain process, data and SQLite fixture. The workflow runner owns all contract build outputs. No local downloads, build, runtime or test artifacts were created.
+
 12 November exact Azure run 43304718141 confirmed removal of its owned Cosmos emulator, volumes, SQLite files and runner test output. No local build or runtime was created.
 
 12 November NEAR routing run 43304053446 independently confirmed an empty native contract and removed its sandbox and reports. The temporary Git index used to reproduce the five-file Oracle and Azure Development candidate was removed and confirmed absent. No local runtime, database, build or test output was created.
