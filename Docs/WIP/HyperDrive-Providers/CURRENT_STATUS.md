@@ -10,13 +10,17 @@
 | ActivityPub and routing | ActivityPub has 5/5 native capability checks. GOMap passed a public OSRM driving route. Authenticated Google Routes, Mapbox and HERE checks remain open. Niantic and WRLD still have reviewed adapter gaps. |
 | Canonical HoloOASIS | Top priority. Both modes passed all 52 native core-storage-v2 checks on the official Windows conductor with the verified identity-delete hApp in [run 43178174352](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43178174352). The verified bundle is packaged on the provider branch. Hosted, multi-agent and broader capability acceptance remain open. |
 | HoloOASIS.Desktop | Obsolete in source, package metadata and repository documentation at `45d6665da989`. The six-file compatibility and documentation batch reached Development at `70d3fbb4a31c`. Published NuGet metadata and live site listings still need the obsolescence update. |
-| Development | All seven APIs reported Railway deployment success at `279ba0f0a99a`, which adds the native-qualified CQL integration. The verified HoloOASIS lifecycle batch advanced Development to `4838fdd9e694`. Railway deployment and live WEB4 provider verification remain open. |
+| Development | All seven APIs reported Railway deployment success at `4838fdd9e694` with the verified HoloOASIS lifecycle batch. WEB4 health returned HTTP 200. Live HoloOASIS activation and storage verification remain open. The Firestore startup candidate awaits the next integration window. |
 | BootLoader startup | The shipping registration, activation and deactivation path passed against native Polkadot and TRON fixtures and the Microsoft Azure Cosmos DB emulator. [Azure Cosmos DB job 131055311882](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43180594194/job/131055311882) confirmed fixture teardown. |
 | HyperDrive | Global automatic failover, replication and load balancing await provider acceptance. Dragonfly and KeyDB full native runs were queued at the coverage review. |
 
 [Provider matrix](PROVIDER_MATRIX.md) · [Evidence registry](CONFORMANCE_RESULTS.json) · [Cleanup ledger](WORKSPACE_CLEANUP_LEDGER.md)
 
 ## Verification log
+
+12 November Cancun time. [Firestore job 131099234527](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43193729592/job/131099234527) passed one native startup check with zero skips and verified cleanup on Development `4838fdd9e694`. Candidate `13711062c58a` reproduces the exact two-file CI tree `4d5287b2f0299d1012da589e08c4e0cf138c596d`. All seven Railway deployments succeeded on the baseline. WEB4 deployment `beee483d-ff42-4aff-9708-2612b0700cb8` returned healthy; filtered logs showed a HoloOASIS boot mention without conductor activation evidence. No hosted storage request was sent.
+
+12 November Cancun time. Reconciled Blockscout's previously recorded native .NET address reads and Development WEB4 public full/subset browser results with the provider matrix. The evidence applies to the dedicated query-only CQL source. The legacy adapter, private paired browser flow and intermittent hosted startup remain open. The COSMIC fixture and recorded requests were preserved without replay.
 
 12 November Cancun time. The passing Firestore startup check now qualifies against the current Development head and its dependency pins. CI adds only the focused test and runner, rejects file overlap, and records the staged tree. The provider code and the accepted 52-check storage evidence remain as previously recorded. Development qualification is pending.
 

@@ -634,11 +634,13 @@
   ],
   "splitNativeLifecycle": ["SQLServerDBOASIS"],
   "supplementaryConformance": {
+    "BlockscoutOASIS": "Native public explorer address reads (capability-v1 scope)",
     "DragonflyOASIS": "4/4 (native smoke)",
     "KeyDBOASIS": "4/4 (native smoke)",
     "zkPassOASIS": "Native public EVM attestation (capability-v1 scope)"
   },
   "providerBlockers": {
+    "BlockscoutOASIS": ["The shipping query-only address source passed a guarded native .NET qualification against Ethereum Blockscout and the public full/subset browser presets returned three and two rows on Development WEB4. The dedicated CQL source evidence covers public address reads. The legacy adapter and private paired browser flow remain open. See the [COSMIC native qualification](<../COSMIC ORM/BLOCKSCOUT_PUBLIC_SOURCE_STATUS.md>)."],
     "zkPassOASIS": ["The shipping verifier passed a genuine public Sepolia TransGate attestation and three rejection controls in [run 43143033093](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43143033093). New proof issuance and application integration remain open."],
     "MapboxOASIS": ["Directions v5 implements shared driving, walking and cycling requests with GeoJSON geometry. Authenticated capability verification remains open. The existing Directions service also requires a configured access token."],
     "HoloOASIS": ["The canonical adapter passed both modes with exact fixture cleanup and zero skips in [run 43178174352](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43178174352) using the verified identity-delete hApp. Hosted, multi-agent and broader capability acceptance remain open."],
