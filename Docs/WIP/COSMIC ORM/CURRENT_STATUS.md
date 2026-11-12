@@ -17,7 +17,7 @@ Canonical HoloOASIS is first in the WEB4 demo queue. The read-only CQL adapter i
 | IPFS, ActivityPub | Scoped live HTTP/browser proofs. IPFS has a recovered 52/52 storage report. ActivityPub passed 5/5 public Mastodon capability checks. |
 | Cosmos Hub, Polkadot | Scoped live HTTP/browser proofs and 52/52 native storage each. Polkadot also passed native BootLoader activation/deactivation. |
 | TRON | Reader deployed, 11 controlled WEB4 checks passed and 52/52 native TronNet storage checks passed. Authenticated CQL qualification and enrollment need the dedicated TronGrid key. |
-| Hedera | Ready in the latest checked catalogue, with native HTTP and bounded public browser evidence and 52/52 native Hiero storage checks. Full public browser and original-owner private paired browser gates remain open. |
+| Hedera | Both public browser presets rendered 3/2 on Development `fbc0e08e`. Native HTTP and 52/52 native Hiero storage evidence are retained. The original-owner private paired browser check remains open. |
 | Supabase | Reader deployed, 52/52 native PostgREST storage and local CQL/MongoDB evidence. Hosted teaching fixture remains open. |
 | LocalFile | Scoped CQL acceptance retained. Ordinary HyperDrive point routing is deferred behind the priority demos. |
 | Urbit | Native WEB4 federation passed five full/four subset rows before and after restart, owner isolation and MongoDB cleanup. Exact published-Core boundary CI passed all 30 cases. Development rollout is in progress and hosted enrollment needs a reviewed HTTPS teaching fixture. |
