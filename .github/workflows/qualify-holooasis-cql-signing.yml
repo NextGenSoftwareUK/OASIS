@@ -52,7 +52,7 @@ jobs:
             if ($LASTEXITCODE) { throw 'HoloOASIS CQL signing qualification failed' }
             [xml]$report = Get-Content TestResults/HoloOasisCql/signing.trx
             $counts = $report.TestRun.ResultSummary.Counters
-            if ($counts.passed -ne '5' -or $counts.total -ne '5' -or $counts.executed -ne '5') {
-              throw 'All five HoloOASIS signing cases must execute and pass'
+            if ($counts.passed -ne '7' -or $counts.total -ne '7' -or $counts.executed -ne '7') {
+              throw 'All seven HoloOASIS signing and visibility cases must execute and pass'
             }
           }

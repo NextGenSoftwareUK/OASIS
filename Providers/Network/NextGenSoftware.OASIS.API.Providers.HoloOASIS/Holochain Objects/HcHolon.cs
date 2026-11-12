@@ -58,6 +58,9 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
         [HolochainRustFieldName("is_active")]
         public bool IsActive { get; set; }
 
+        [HolochainRustFieldName("is_public")]
+        public bool IsPublic { get; set; }
+
         [HolochainRustFieldName("created_provider_type")]
         public EnumValue<ProviderType> CreatedProviderType { get; set; }
 

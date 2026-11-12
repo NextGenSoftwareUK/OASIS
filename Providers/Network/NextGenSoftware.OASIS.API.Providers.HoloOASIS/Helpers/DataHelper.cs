@@ -550,6 +550,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
             hcHolon.CreatedProviderType = holon.CreatedProviderType;
             //hcHolon.CustomKey = holon.CustomKey;
             hcHolon.IsActive = holon.IsActive;
+            hcHolon.IsPublic = holon.IsPublic;
             hcHolon.MetaData = holon.MetaData;
             hcHolon.ParentHolonId = holon.ParentHolonId;
             hcHolon.PreviousVersionId = holon.PreviousVersionId;
@@ -603,6 +604,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
                 CreatedProviderType = hcHolon.CreatedProviderType,
                 CustomKey = hcHolon.CustomKey,
                 IsActive = hcHolon.IsActive,
+                IsPublic = hcHolon.IsPublic,
                 MetaData = hcHolon.MetaData,
                 ParentHolonId = hcHolon.ParentHolonId,
                 PreviousVersionId = hcHolon.PreviousVersionId,
@@ -642,6 +644,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
             Holon holon = new Holon
             {
                 Id = new Guid(keyValuePair["id"]),
+                IsPublic = keyValuePair.TryGetValue("is_public", out var visibility) &&
+                    bool.TryParse(visibility, out var isPublic) && isPublic,
                 HolonType = (HolonType)Enum.Parse(typeof(HolonType), keyValuePair["holon_type"]),
                 // Name property is read-only in AvatarDetail, will be computed from FirstName, LastName, Title
                 Description = keyValuePair["description"],
@@ -712,6 +716,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
                 created_provider_type = holon.CreatedProviderType,
                 //custom_key = holon.CustomKey,
                 is_active = holon.IsActive,
+                is_public = holon.IsPublic,
                 meta_data = holon.MetaData,
                 parent_holon_id = holon.ParentHolonId,
                 previous_version_id = holon.PreviousVersionId,

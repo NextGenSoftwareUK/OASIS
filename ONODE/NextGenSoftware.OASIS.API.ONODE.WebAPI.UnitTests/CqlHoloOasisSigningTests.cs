@@ -2,7 +2,10 @@ using System.Security.Cryptography;
 using Chaos.NaCl;
 using NextGenSoftware.Holochain.HoloNET.Client;
 using NextGenSoftware.Holochain.HoloNET.Client.Data.Admin.Requests.Objects;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
+using NextGenSoftware.OASIS.API.Providers.HoloOASIS;
+using NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests;
 
@@ -10,6 +13,17 @@ public sealed class CqlHoloOasisSigningTests
 {
     private const string Zome = "oasis";
     private const string ReadFunction = "get_holon_by_id";
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void CanonicalHolonMappingPreservesVisibility(bool isPublic)
+    {
+        var original = new Holon { Id = Guid.NewGuid(), IsPublic = isPublic };
+        var native = DataHelper.ConvertHolonToHoloOASISHolon(original, new HcHolon());
+        Assert.Equal(isPublic, native.IsPublic);
+        Assert.Equal(isPublic, DataHelper.ConvertHcHolonToHolon(native).IsPublic);
+    }
 
     [Theory]
     [InlineData("function")]

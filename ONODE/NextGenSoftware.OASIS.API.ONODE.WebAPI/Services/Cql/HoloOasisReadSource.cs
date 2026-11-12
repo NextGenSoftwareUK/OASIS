@@ -42,7 +42,7 @@ internal sealed class HoloOasisReadSource : CanonicalHoloOasis, ICosmicQueryStor
         _query = new(QueryProviderType, ReadHolonAsync, 1, admittedIds);
     }
 
-    public ProviderType QueryProviderType => Core.Enums.ProviderType.HoloOASIS;
+    public ProviderType QueryProviderType => global::NextGenSoftware.OASIS.API.Core.Enums.ProviderType.HoloOASIS;
     public CosmicQueryCapabilities QueryCapabilities => BoundedIdentityCqlCompiler.Capabilities;
 
     public override Task<OASISResult<bool>> ActivateProviderAsync() => ActivateQuerySourceAsync(default);
