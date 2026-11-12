@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. [Solid exact Development qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43328962741) uses the accepted private Pod fixture on the shipping Development checkout with three reviewed test inputs. It leaves the shipping Solid provider and the separate COSMIC test sources at their Development revisions. [HoloOASIS baseline qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43328666202) is running. Both use disposable CI resources and no local environment.
+
 12 November Cancun time. HoloOASIS run 43327487394 returned a decoded collection containing both routed IDs and an additional ID. The fixture now records the native collection before routing and requires the exact baseline plus both new replica IDs afterwards. This checks the collection without assuming the reusable conductor starts with an empty catalogue. Native acceptance remains pending.
 
 12 November Cancun time. Polkadot and Solana both passed both native routing modes on Ethereum Development 716711320680. Polkadot qualified expected tree f9363d2bd46479cc0a0befe99b053c0434f5411e in run 43325457200. Solana qualified expected tree be588b32617c0a14fe74904a4f10ffa97f02762f in run 43325461947. The combined candidate is 1cb79150df51. The prior push workflows began at 18:01:47 Cancun time, so review the next Development batch after 18:31:47 and verify the current remote and full Railway fleet. HoloOASIS native collection correction run 43327487394 is independent.
