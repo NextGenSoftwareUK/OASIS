@@ -20,9 +20,13 @@
 
 12 November Cancun time. Managed HoloOASIS advanced Development to `e54973c380c9`. Elasticsearch qualification now triggers when its native test project changes and will qualify the existing three-file batch against the new Development parent. The hosted HoloOASIS rollout and the new exact Elasticsearch integration evidence are pending.
 
+12 November Cancun time. The read-only SQLite outbox investigation confirmed the held version-2 mutation actor equals its modifier and differs from its creator, which the deployed owner-only replica policy rejects. The original writer authority and exact SQLite predecessor require proof before any reviewed reconciliation. No replica queue or owner policy was changed.
+
 12 November Cancun time. COSMIC native reads found that the original two HoloOASIS snapshots are present in Neo4j, while SQLite outbox sequences 682 and 684 are Pending behind sequence 543 in ReconciliationRequired. The shipping owner policy denies an empty actor or a selected graph whose committed owner differs from its actor. The frozen actor/selected-owner predicate for sequence 543 still requires read-only confirmation before any queue repair. See the [COSMIC status](../COSMIC%20ORM/CURRENT_STATUS.md).
 
 12 November Cancun time. Both [Typesense Development jobs](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43213620274) passed all 26 cases and cleanup on exact tree `d231f61c749168b0483bf135f20c71a4802807e6` over `1c4d6109d47c`. The five-file batch awaits the next Development window and the preceding deployment.
+
+12 November Cancun time. Prepared Solr qualification with a four-file overlay and overlap guard. The pre-change Solr provider and test files matched the verified Typesense candidate. The combined local Solr tree is `966ecc2d2104a8c1441fa84f2fa72375d06fd765` on parent `7193e81328d1`. The CI workflow resolves the published Development parent and must verify the exact combined tree before integration.
 
 12 November Cancun time. Both modes of [Solr run 43215753297](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43215753297) passed all 26 shared storage cases with zero skips on Solr 10.1.0 standalone. Exact tombstones were removed and all three native cores were empty. Hosted and broader capability acceptance and Development qualification remain open.
 
