@@ -167,3 +167,5 @@ The shared OSRM demo remains limited to its operator policy. The existing bounde
 11 November UTC: confirmed Development 6047aff6c50 remains the parent of d96350193 and its exact diff remains four GOMap paths. Dispatched [run 43122161010](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43122161010) on d96350193 for the controlled and native WEB4 qualification. No Development push.
 
 11 November UTC: GOMap d96350193 on Development 6047aff6c50 passed exact CI 43122161010. Job 130865064412 passed all 12 controlled checks, one real route and MongoDB WEB4 HTTP case, and container/anonymous-volume cleanup. Railway still had WEB4 work outstanding, and dedicated HTTPS OSRM enrollment remains open. No Development push.
+
+12 November UTC: HyperDrive advanced Development to cead58e3e43 with Firebase RTDB and Optimism tests, CI and evidence. Reconciled the four GOMap paths on this tip in 208108d25fe8d577881dfa8b89efdf22b8d0ca6a, with all four blobs byte-identical to d96350193. Railway queued the HyperDrive revision at 00:12 UTC, so held the GOMap candidate. Dedicated HTTPS origin remains open.
