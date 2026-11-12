@@ -6360,3 +6360,5 @@ Used the existing live container Node runtime for one public Push Protocol reach
 GOMap Development rollout 1ce06f9f queued. Retain the exact CI tag through cutover verification. Temporary documentation index removed. No local build, image or download.
 
 Fetched the current Core Development refs and prepared scoped TRON candidates with temporary Git indices. Temporary indices removed. No local build, worktree, fixture or tool installation.
+
+Track temporary ci-cosmic-tron-core-d7692071 and ci-cosmic-tron-web4-79c18e0944 for run 43137643642. Keep the earlier passing refs until the new run qualifies the replacement. No local builds, reports or downloads. Temporary documentation index removed.
