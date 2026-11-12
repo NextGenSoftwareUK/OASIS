@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+12 November priority HyperDrive verification ran 28 local routing-verifier checks with Python bytecode output disabled. No build, runtime, download, environment, test report or hosted fixture was created. Existing protected COSMIC routing evidence was left in place.
+
 12 November InfluxDB run 43290452035 stopped at the avatar-save contract. Both disposable jobs removed their owned containers, volumes and fixture directories. No local build output, runtime or download was created.
 
 12 November Garnet run 43289726927 verified exact cleanup and zero keys on each disposable node before removing the owned archive, runtime, data and reports. InfluxDB lifecycle qualification uses separate disposable containers and runner-owned checkpoints. No local runtime, download or build output was created.
