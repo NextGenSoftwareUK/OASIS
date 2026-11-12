@@ -260,13 +260,13 @@ jobs:
               -e ES_JAVA_OPTS=-Xms512m\ -Xmx512m
           - name: Solr
             project: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SolrOASIS.IntegrationTests
-            filter: FullyQualifiedName!~CqlNativeTests&FullyQualifiedName!~LinuxMongoDemoEnvironmentTests
+            filter: FullyQualifiedName!~CqlNativeTests&FullyQualifiedName!~LinuxMongoDemoEnvironmentTests&FullyQualifiedName!~SolrOASISIntegrationTests
             image: solr:9
             ports: 8983:8983
             wait: 8983
           - name: Meilisearch
             project: Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS.IntegrationTests
-            filter: FullyQualifiedName!~CqlNativeTests&FullyQualifiedName!~LinuxMongoDemoEnvironmentTests
+            filter: FullyQualifiedName!~CqlNativeTests&FullyQualifiedName!~LinuxMongoDemoEnvironmentTests&FullyQualifiedName!~MeilisearchOASISIntegrationTests
             image: getmeili/meilisearch:v1.7
             ports: 7700:7700
             wait: 7700
