@@ -65,3 +65,5 @@ Combined candidate d4b9bf1ba8 adds only the existing TRON WEB4 workflow to 8a487
 Core Development advanced to 0098430d. Prepared local Core d7692071 and WEB4 79c18e0944 on the current tips, retaining both the merged Core admissions and the GOMap registration. The new combined candidate needs exact CI. Authenticated native verification still requires the existing dedicated reader key.
 
 Exact combined WEB4 79c18e0944 and Core d7692071 are running the controlled boundary checks in [CI 43137643642](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43137643642). Authenticated native HTTP remains disabled pending dedicated TronGrid access.
+
+Exact WEB4 79c18e0944 and Core d7692071 passed all 11 controlled boundary tests in CI 43137643642. Authenticated native HTTP was disabled. At review, WEB4 and Core Development still matched the candidate parents. The shared Development push window remained open after the GOMap rollout; no release push.
