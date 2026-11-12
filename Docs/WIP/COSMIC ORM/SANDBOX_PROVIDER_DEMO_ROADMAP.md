@@ -9,6 +9,15 @@ observations and counts are historical. Use [current status](CURRENT_STATUS.md)
 for current evidence and the [LocalFile rollout](LOCALFILE_CQL_MVP.md) for the
 first live Development gate.
 
+## Current priority demo evidence
+
+- Solana, Ethereum, Polygon, Arbitrum, NEAR, IPFS, ActivityPub, Cosmos Hub and Polkadot retain scoped live HTTP and browser acceptance. Preserve those cohorts.
+- EOS, SOLID and TON passed both public browser presets. The original-owner private MongoDB paired browser presets remain open. Hedera recovered catalogue readiness on WEB4 `f9011d511056`; its bounded public browser subset and native HTTP evidence are retained. The full public browser preset and original-owner private browser cases remain open.
+- TRON CQL is deployed on Development and still requires the dedicated TronGrid key for authenticated qualification and enrollment. Supabase remains a top-priority hosted demo with the deployed reader and an outstanding restricted teaching fixture. GOMap and CouchDB have deployed reader code with their reviewed HTTPS fixtures outstanding.
+- LocalFile CQL acceptance is retained. The ordinary HyperDrive point-routing check is deferred behind the priority demos.
+
+[Current deployment and readiness](CURRENT_STATUS.md) · [Owner actions](../Release%20and%20Status/ACTIONS-FOR-DAVID.md).
+
 ## Observed integration points
 
 - Frontend: `C:/Source/Web4Site/web4-sandbox.html` (separate repository).
