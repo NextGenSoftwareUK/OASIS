@@ -21,10 +21,10 @@ public partial class Web3CoreOASISBaseProvider : ICosmicQueryStorageProvider
 
     // The chain identity is part of the authenticated private-record context.
     // An unconfigured facade cannot advertise a query it can never decrypt.
-    public CosmicQueryCapabilities QueryCapabilities => _expectedChainId.HasValue && _expectedChainId.Value > 0
+    public virtual CosmicQueryCapabilities QueryCapabilities => _expectedChainId.HasValue && _expectedChainId.Value > 0
         ? BoundedIdentityCqlCompiler.Capabilities : MissingChainQueryCapabilities;
 
-    public async Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicQueryAsync<T>(
+    public virtual async Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicQueryAsync<T>(
         CosmicQueryPlan<T> plan, int maximumResults = 100,
         CancellationToken cancellationToken = default) where T : IHolon
     {

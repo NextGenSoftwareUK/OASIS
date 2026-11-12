@@ -96,8 +96,12 @@ public sealed class CqlEthereumMongoNativeTests
             file.Flush(true);
         }
 
-        using var ethereum = EthereumSource.FromJson(configJson);
+        var ethereum = new NextGenSoftware.OASIS.API.Providers.EthereumOASIS.EthereumOASIS_Web3Core(
+            "http://127.0.0.1:1", new string('1', 64), allowed[0], 31337);
+        ethereum.ConfigurePublicAccountQuery(configJson);
         Assert.False((await ethereum.ActivateQuerySourceAsync(default)).IsError);
+        Assert.True(ethereum.IsQuerySourceActivated);
+        Assert.False(ethereum.IsProviderActivated);
         var nativeQuery = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(ProviderType.EthereumOASIS).Result)
             .WithReadAccess(CosmicQueryReadAccess.OwnerOrPublic(actor).Result)
             .Where(row => allowed.Contains(CosmicQueryMetadata.Value<string>(row, EthereumSource.AddressMetadata)));

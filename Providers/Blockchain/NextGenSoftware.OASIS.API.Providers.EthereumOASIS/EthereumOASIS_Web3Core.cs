@@ -8,7 +8,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS;
 
 /// <summary>Ethereum V2 facade over the single Nethereum storage implementation.
 /// Requires the compatible existing Web3Core contract; never retries a legacy ABI or deploys one.</summary>
-public sealed class EthereumOASIS_Web3Core : Web3CoreOASISBaseProvider
+public sealed partial class EthereumOASIS_Web3Core : Web3CoreOASISBaseProvider
 {
     public EthereumOASIS_Web3Core(string hostUri,string chainPrivateKey,string contractAddress,BigInteger expectedChainId)
         : base(hostUri,chainPrivateKey,contractAddress,expectedChainId)
