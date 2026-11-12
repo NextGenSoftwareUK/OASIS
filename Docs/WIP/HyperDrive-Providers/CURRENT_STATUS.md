@@ -5,12 +5,12 @@
 | Area | Recorded status |
 | --- | --- |
 | Project inventory | 234 projects: 178 storage or specialized storage, including the obsolete Desktop compatibility wrapper, and 56 non-storage. |
-| Shared storage coverage | All 52 matrix entries recorded at 52/52 native core-storage-v2 have reconciled evidence. The registry contains 23 reports verified against their SHA-256 hashes and 29 passes independently checked against completed native CI jobs and their cleanup gates. |
+| Shared storage coverage | All 53 matrix entries recorded at 52/52 native core-storage-v2 have reconciled evidence. The registry contains 23 reports verified against their SHA-256 hashes and 30 passes independently checked against completed native CI jobs and their cleanup gates. |
 | Priority storage providers | The matrix records 52/52 native checks for Neon, Convex, Supabase, Solana, MongoDB, SQLite, Neo4j, SQL Server, Oracle, AWS DynamoDB and S3, IPFS, NEAR, Cosmos chain, Azure Cosmos DB, Google Firestore, Polkadot, Solid, Polygon, Arbitrum, TRON, EOSIO, TON, and Hedera/Hashgraph. Several use isolated native engines, emulators or local networks. See each row for hosted and capability gaps. |
 | ActivityPub and routing | ActivityPub has 5/5 native capability checks. GOMap passed a public OSRM driving route. Authenticated Google Routes, Mapbox and HERE checks remain open. Niantic and WRLD still have reviewed adapter gaps. |
 | Canonical HoloOASIS | Top priority. Both modes passed all 52 native core-storage-v2 checks on the official Windows conductor with the verified identity-delete hApp in [run 43178174352](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43178174352). The verified bundle is packaged on the provider branch. Hosted, multi-agent and broader capability acceptance remain open. |
 | HoloOASIS.Desktop | Obsolete in source, package metadata and repository documentation at `45d6665da989`. The six-file compatibility and documentation batch reached Development at `70d3fbb4a31c`. Published NuGet metadata and live site listings still need the obsolescence update. |
-| Development | `ba875a362b71` integrates the verified Solr lifecycle after seven successful Typesense deployments. The Solr rollout and live HyperDrive HoloOASIS writes remain open. |
+| Development | `ba875a362b71` integrates the verified Solr lifecycle after seven successful Typesense deployments. All seven Solr Railway deployments succeeded. Live HyperDrive HoloOASIS writes remain open. |
 | BootLoader startup | The shipping registration, activation and deactivation path passed against native Polkadot and TRON fixtures and the Microsoft Azure Cosmos DB emulator. [Azure Cosmos DB job 131055311882](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43180594194/job/131055311882) confirmed fixture teardown. |
 | HyperDrive | Global automatic failover, replication and load balancing await provider acceptance. Dragonfly and KeyDB full native runs were queued at the coverage review. |
 
@@ -23,6 +23,8 @@
 12 November Cancun time. Development advanced to `ba875a362b71` with the exact four-file Solr qualification tree `966ecc2d2104a8c1441fa84f2fa72375d06fd765`. The remote ref was verified after all seven Typesense deployments had succeeded. The Solr Railway rollout remains open.
 
 12 November Cancun time. Both [Meilisearch Development jobs](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43271453934) passed all 26 cases and exact cleanup on `11f8477bb75102ad691f71bc8b8092d8ce47ac7c`. Candidate `4c3d1016dbcd` contains only the six qualified Meilisearch files. The Solr Development push event was 12:31:42 Cancun time. The next review is after 13:01:42 with seven successful preceding deployments and a fresh parent check.
+
+12 November Cancun time. Both [Qdrant jobs in run 43273329771](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43273329771) passed all 26 cases with zero skips, exact tombstone cleanup and zero points in all three collections. This verifies the payload lifecycle at `7c894b46dd00`. Zero-vector replacement, real semantic vector operations, hosted acceptance and Development qualification remain open.
 
 12 November Cancun time. Both [Qdrant jobs in run 43272737402](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43272737402) passed nine native checks through all avatar-detail reads, then stopped at graph save because the adapter wrote only the root. Qdrant now writes each selected graph node and publishes its identity after the completed native operation. Hard avatar deletion validates completion and verifies absence of the same-ID detail and avatar points. Native verification remains open.
 

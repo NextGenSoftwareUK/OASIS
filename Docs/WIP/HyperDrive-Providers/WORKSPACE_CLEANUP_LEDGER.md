@@ -528,3 +528,5 @@ Urgent disk cleanup follow-up: leased standard project clean succeeded for AWS u
 12 November Cancun time. Qdrant jobs 131371368602 and 131371369033 stopped at avatar save and removed their owned nodes, volumes and result directories. No local build or download was created.
 
 12 November Cancun time. Qdrant jobs 131373148567 and 131373149036 stopped at graph save and removed their owned nodes, volumes and result directories. No local build or download was created.
+
+12 November Cancun time. Qdrant jobs 131375128601 and 131375129285 passed all shared cases, removed exact native tombstones and independently counted zero points across all three collections. Both removed their owned nodes, volumes and result directories. No local build or download was created.
