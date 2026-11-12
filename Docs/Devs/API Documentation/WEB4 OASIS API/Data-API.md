@@ -700,6 +700,76 @@ Authorization: Bearer YOUR_TOKEN
 }
 ```
 
+## Holon Audit Trail
+
+A readable history of a holon, built from the versions OASIS already keeps every time it is saved. Any app gets the same detailed trail (PIPER uses it for its "audit record of authority"), so apps do not need to rebuild it themselves.
+
+### Get Holon Audit Trail
+
+`GET /api/data/holon-audit-trail/{id}?fromVersion=0&toVersion=0&limit=50&offset=0`
+
+`POST /api/data/holon-audit-trail/{id}` (same result; optional body below)
+
+```json
+{
+  "fieldLabels": { "goals": "Therapy goals" },
+  "skipKeys": ["lastSeen", "updatedAt"],
+  "fromVersion": 0,
+  "toVersion": 0,
+  "limit": 50,
+  "offset": 0
+}
+```
+
+Response (newest entry first):
+
+```json
+{
+  "result": {
+    "result": {
+      "holonId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+      "latestVersion": 3,
+      "total": 3,
+      "limit": 50,
+      "offset": 0,
+      "entries": [
+        {
+          "version": 3,
+          "timestamp": "2026-11-12T10:15:00Z",
+          "avatarId": "22222222-2222-2222-2222-222222222222",
+          "avatarName": "bob",
+          "action": "updated",
+          "changes": [
+            { "field": "Therapy goals", "oldValue": null, "newValue": "added 1 (Wh blends [g3])" },
+            { "field": "name", "oldValue": "Student", "newValue": "Student B" }
+          ]
+        }
+      ]
+    }
+  }
+}
+```
+
+- **action** is `created`, `updated`, `deleted` or `restored`.
+- **changes** cover the core holon fields (name, description, parent, type, custom type, active, public) and every metadata key. Long values are clipped to about 200 characters. A metadata value that is a JSON list of objects with an `id` is summarised as added / removed / changed records instead of raw JSON.
+- **avatarName** is the avatar's username, or blank when it cannot be read.
+- `skipKeys` (case-insensitive) leaves bookkeeping metadata out; `fieldLabels` renames fields for display.
+- Paging: `limit` (default 50, max 200) and `offset` apply to the newest-first list; `fromVersion` and `toVersion` limit the version range.
+
+**Permissions.** Only callers who may read the holon get its trail (creator, public, or shared with them; Wizards can read any). For everyone else the endpoint returns 403, and the trail only contains the fields that caller is allowed to read, so other avatars' data is never leaked.
+
+**Implementation.** The diff lives in Core (`HolonAuditTrail`, with unit tests) and the controller only loads the versions and applies the read permission.
+
+### How tamper-evident is the version history?
+
+Answer taken from the code (Mongo provider, the default store; other providers differ):
+
+- **Versions are assigned by the server.** Every save increments `Version` (HolonManager) and records `ModifiedByAvatarId` and `ModifiedDate`. There is no endpoint to edit or delete a single old version.
+- **History is append-only inside the record.** The Mongo provider archives the previous revision on every save (`OasisHolonRevisionArchive`). A save that would move the version backwards or change the holon's identity is rejected, and each archived snapshot keeps a SHA-256 checksum that is verified on every read. A corrupted or edited archive entry makes the load fail rather than silently show altered history.
+- **Soft delete keeps everything.** It sets the deleted fields, adds a new version and keeps all earlier versions (and it can be restored; the trail shows `deleted` then `restored`).
+- **Permanent delete removes the whole holon including its history.** `DELETE /api/data/delete-holon/{id}/false` can be called by the holon's creator or a Wizard. History is not preserved after a permanent delete, so an app that needs a lasting record should soft delete only.
+- **Limits.** The checksums are not chained or signed, so someone with direct database access (or a Wizard using the provider layer) could rewrite a snapshot and its checksum. The trail is tamper-resistant against API users but not cryptographically tamper-proof. Where that matters, anchor periodic hashes on a blockchain provider.
+
 ## Data Security
 
 ### Get Data Security
