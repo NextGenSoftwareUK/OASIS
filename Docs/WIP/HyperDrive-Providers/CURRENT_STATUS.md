@@ -10,13 +10,15 @@
 | ActivityPub and routing | ActivityPub has 5/5 native capability checks. GOMap passed a public OSRM driving route. Authenticated Google Routes, Mapbox and HERE checks remain open. Niantic and WRLD still have reviewed adapter gaps. |
 | Canonical HoloOASIS | Top priority. Both modes passed all 52 native core-storage-v2 checks on the official Windows conductor with the verified identity-delete hApp in [run 43178174352](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43178174352). The verified bundle is packaged on the provider branch. Hosted, multi-agent and broader capability acceptance remain open. |
 | HoloOASIS.Desktop | Obsolete in source, package metadata and repository documentation at `45d6665da989`. The six-file compatibility and documentation batch reached Development at `70d3fbb4a31c`. Published NuGet metadata and live site listings still need the obsolescence update. |
-| Development | `061ceca0221e` carries COSMIC Solana CQL and the earlier verified priority routing tests. Solana rollout and live HoloOASIS HyperDrive writes remain open. |
+| Development | `e0f315259334` integrates the verified Oracle, Azure Cosmos DB and NEAR routing fixtures on top of live COSMIC Solana CQL. The new rollout and live HoloOASIS HyperDrive writes remain open. |
 | BootLoader startup | The shipping registration, activation and deactivation path passed against native Polkadot and TRON fixtures and the Microsoft Azure Cosmos DB emulator. [Azure Cosmos DB job 131055311882](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43180594194/job/131055311882) confirmed fixture teardown. |
 | HyperDrive | Priority-provider failover, replication and load balancing verification is active. Whole-inventory acceptance remains open. |
 
 [Provider matrix](PROVIDER_MATRIX.md) · [Evidence registry](CONFORMANCE_RESULTS.json) · [Cleanup ledger](WORKSPACE_CLEANUP_LEDGER.md)
 
 ## Verification log
+
+12 November Cancun time. Development fast-forwarded from 061ceca0221e to e0f315259334 after all seven Solana deployments passed and COSMIC released the window. Only eight qualified Oracle, Azure and NEAR test or fixture paths were included. The exact Oracle and Azure source matched their CI and a temporary index reproduced the exact NEAR CI tree before verifying matching files. Railway manifest validation passed and the remote ref was independently confirmed. [Development CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43312103636) started at 16:37:34 Cancun time. All seven new Railway contexts were pending. Review the next window after 17:07:34. [EOSIO routing CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43311490312) is running.
 
 12 November Cancun time. [Native TRON routing CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43310611132) passed sync and async with zero skips. It verified both replication directions, both read outage directions, even RoundRobin and empty native contracts after cleanup. The runner removed its container and ledger. The retained unresolved transaction was outside this fixture. COSMIC has explicitly released the 16:34:28 Development window to the verified Oracle, Azure and NEAR batch, with Solana's live CQL acceptance complete.
 
