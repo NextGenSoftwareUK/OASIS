@@ -63,6 +63,18 @@ def candidate(before, provider, review):
             if not isinstance(value, str) or not 1 <= len(value) <= maximum or any(
                     not 33 <= ord(character) <= 126 for character in value):
                 raise ValueError("Valid protected DynamoDB reader credentials are required.")
+    if provider == "HoloOASIS":
+        prefix = "CQL_HOLOOASIS_QUERY__"
+        for field, minimum, maximum in (("AppToken", 1, 256), ("CapabilitySecret", 64, 64),
+                                        ("SigningKey", 39, 39), ("SigningPrivateKey", 64, 64)):
+            value = before.get(prefix + field)
+            try:
+                valid = (isinstance(value, str) and len(value) <= 344
+                         and minimum <= len(base64.b64decode(value, validate=True)) <= maximum)
+            except ValueError:
+                valid = False
+            if not valid:
+                raise ValueError(f"HoloOASIS requires the protected {field} for its read-only grant.")
     if provider in REQUIRED_SOURCE_TOKENS:
         token = before.get(REQUIRED_SOURCE_TOKENS[provider])
         maximum_length = {"TRONOASIS": 256, "DenoDeployOASIS": 8192, "TursoOASIS": 8192, "SafeOASIS": 4096, "TemporalOASIS": 4096}.get(provider, 1024)

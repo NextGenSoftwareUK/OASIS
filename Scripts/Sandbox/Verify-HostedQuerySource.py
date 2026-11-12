@@ -15,6 +15,7 @@ import os
 import re
 import subprocess
 import urllib.error
+import urllib.parse
 import urllib.request
 import uuid
 
@@ -24,6 +25,7 @@ ROOT = Path(__file__).resolve().parents[2]
 BASE = "https://dev.api.web4.oasisomniverse.one/api/"
 BROWSER_ORIGIN = "https://web4.oasisomniverse.one"
 REVIEWED_EXACT_KEY_PROVIDERS = (
+    "HoloOASIS",
     "MeilisearchOASIS", "SolrOASIS", "ElasticsearchOASIS", "OpenSearchOASIS",
     "ArcadeDBOASIS", "SurrealDBOASIS", "QdrantOASIS", "RedisOASIS", "ValKeyOASIS",
     "DynamoDBOASIS", "TypesenseOASIS", "MinIOOASIS", "PocketBaseOASIS", "SupabaseOASIS", "FirebaseOASIS",
@@ -652,6 +654,20 @@ def reviewed_exact_key_source(provider, path):
             fields.add("StoreId")
             if not re.fullmatch(r"[A-Za-z0-9_-]{1,64}", catalogue["StoreId"]):
                 raise ValueError("Unexpected Fastly KV store ID.")
+        if provider == "HoloOASIS":
+            fields |= {"Endpoint", "InstalledAppId", "DnaHash", "AgentKey"}
+            endpoint = catalogue["Endpoint"]
+            address = urllib.parse.urlsplit(endpoint)
+            if (not 1 <= len(endpoint) <= 512 or any(ord(character) < 33 for character in endpoint)
+                    or not address.hostname or address.username is not None or "?" in endpoint or "#" in endpoint
+                    or not (address.scheme == "wss"
+                            or address.scheme == "ws" and address.hostname in ("127.0.0.1", "::1", "localhost"))
+                    or address.port == 0
+                    or not re.fullmatch(r"[A-Za-z0-9._-]{1,128}", catalogue["InstalledAppId"])):
+                raise ValueError("Invalid HoloOASIS teaching app endpoint or ID.")
+            for field in ("DnaHash", "AgentKey"):
+                if len(base64.b64decode(catalogue[field], validate=True)) != 39:
+                    raise ValueError("HoloOASIS requires a reviewed native cell identity.")
         if provider == "DaprOASIS":
             fields |= {"Store", "GrpcEndpoint"}
             port = re.fullmatch(r"http://127\.0\.0\.1:([1-9][0-9]{0,4})/", catalogue["GrpcEndpoint"])
@@ -875,6 +891,11 @@ def reviewed_exact_key_source(provider, path):
     elif provider == "FastlyOASIS":
         review["sourceBinding"] = {"CQL_FASTLY_QUERY_STORE_ID": catalogue["StoreId"],
                                    "CQL_FASTLY_QUERY_PROBE_ID": ids[0]}
+    elif provider == "HoloOASIS":
+        prefix = "CQL_HOLOOASIS_QUERY__"
+        review["sourceBinding"] = {prefix + key: catalogue[key]
+                                   for key in ("Endpoint", "InstalledAppId", "DnaHash", "AgentKey")}
+        review["sourceBinding"].update({prefix + "Zome": "oasis", prefix + "ProbeId": ids[0]})
     elif provider == "DaprOASIS":
         review["sourceBinding"] = {"CQL_DAPR_QUERY_STORE": catalogue["Store"],
                                    "CQL_DAPR_QUERY_GRPC_ENDPOINT": catalogue["GrpcEndpoint"],

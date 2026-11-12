@@ -142,6 +142,47 @@ def exact_key_catalogue(provider):
 
 
 class ExactKeyConfigurationTests(unittest.TestCase):
+    def test_holooasis_binds_reviewed_cell_and_keeps_signing_credentials_protected(self):
+        provider = "HoloOASIS"
+        prefix = "CQL_HOLOOASIS_QUERY__"
+        catalogue, (_, first, second, third, _, _) = exact_key_catalogue(provider)
+        catalogue.update({
+            "Endpoint": "wss://conductor.example.test/app", "InstalledAppId": "oasis-demo",
+            "DnaHash": base64.b64encode(b"d" * 39).decode(),
+            "AgentKey": base64.b64encode(b"a" * 39).decode(),
+        })
+        with tempfile.TemporaryDirectory() as directory:
+            descriptor = Path(directory) / "catalogue.json"
+            descriptor.write_text(json.dumps(catalogue | {"Endpoint": "ws://conductor.example.test/app"}))
+            with self.assertRaisesRegex(RuntimeError, "reviewed teaching catalogue"):
+                configuration.verifier.reviewed_exact_key_source(provider, descriptor)
+            descriptor.write_text(json.dumps(catalogue))
+            review = configuration.verifier.reviewed_exact_key_source(provider, descriptor)
+
+        credentials = {prefix + key: base64.b64encode(key.encode()[:1] * length).decode()
+                       for key, length in (("AppToken", 32), ("CapabilitySecret", 64),
+                                           ("SigningKey", 39), ("SigningPrivateKey", 64))}
+        baseline = {
+            "OASIS_DNA_JSON": '{"OASIS":{"Sandbox":{"Enabled":true}}}',
+            configuration.ADMISSION: json.dumps({
+                "ordinaryProviders": ["MongoDBOASIS"], "nativeProviders": [],
+                "queryOnlyProviders": ["IPFSOASIS"],
+                "queryTariffs": [{"provider": "IPFSOASIS", "costUsd": 0}],
+            }),
+        } | review["sourceBinding"] | credentials
+        self.assertEqual(first, review["sourceBinding"][prefix + "ProbeId"])
+        with self.assertRaisesRegex(ValueError, "do not match"):
+            configuration.candidate(baseline | {prefix + "AgentKey": catalogue["DnaHash"]}, provider, review)
+        with self.assertRaisesRegex(ValueError, "protected SigningPrivateKey"):
+            configuration.candidate(baseline | {prefix + "SigningPrivateKey": "invalid"}, provider, review)
+        result = configuration.candidate(baseline, provider, review)
+        self.assertEqual([first, second, third], json.loads(result[configuration.GRANTS])[provider])
+        self.assertEqual(credentials, {key: result[key] for key in credentials})
+        presets = result["CQL_HOSTED_QUERY_EXAMPLES__" + provider]
+        self.assertEqual(4, len(json.loads(presets)))
+        for secret in credentials.values():
+            self.assertNotIn(secret, presets)
+
     def test_candidate_preserves_existing_providers_and_refuses_replacement(self):
         self.check_candidate("QdrantOASIS")
 
