@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. [HoloOASIS BootLoader run 43184458138](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43184458138) stopped before conductor execution because the runner overlap check used an older common revision. The runner blob on Development `4fef831e0be6` matches the provider branch parent immediately before the startup change. The startup runner and harness now use that reviewed baseline. Other files retain their existing overlap checks. A corrected native result remains open.
+
 12 November Cancun time. Development already pins HoloNET client `9f897b7ace60b6bdb5fda37e54ca932682122dd4`, which contains the conductor auto-download change and enables auto-start and auto-download by default. Canonical HoloOASIS passes the configured admin URI into that SDK configuration. The checked-in DNA enables local mode. The owner list marks the pin action resolved. Hosted Linux startup and effective Railway configuration still need runtime evidence. [Windows BootLoader run 43184458138](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43184458138) is in progress.
 
 12 November Cancun time. Added a dedicated canonical HoloOASIS BootLoader run on the official 0.7.1 conductor and verified shipping hApp. It checks activation and deactivation from fixture DNA through the application harness on the Development baseline. CI startup evidence remains open. The earlier 52-check native storage result is reused. Hosted Linux conductor and multi-agent acceptance remain open.

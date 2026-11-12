@@ -69,13 +69,13 @@ jobs:
           path: OASIS
           submodules: recursive
           persist-credentials: false
-      - name: Apply the scoped Desktop changes
+      - name: Apply the scoped HoloOASIS changes
         shell: pwsh
         run: |
           $PSNativeCommandUseErrorActionPreference = $true
           # Development integration of the verified Desktop lifecycle.
           $scopeBase = 'bfa0be4be2339117809eeba784c46a7c4940f100'
-          $harnessBase = '4fef831e0be670475bcaba71e6b46cf99c22c447'
+          $startupBase = '4fef831e0be670475bcaba71e6b46cf99c22c447'
           $source = '../provider-source'
           $paths = @(
             'Scripts/test_holonet_live_release.ps1'
@@ -92,9 +92,10 @@ jobs:
             'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests/HoloOASISIntegrationTests.cs'
             'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests.csproj'
           )
-          git -C $source fetch --no-tags --depth=1 --filter=blob:none origin $scopeBase $harnessBase
+          git -C $source fetch --no-tags --depth=1 --filter=blob:none origin $scopeBase $startupBase
           foreach ($path in $paths) {
-            $base = if ($path -like '*/NextGenSoftware.OASIS.OASISBootLoader.TestHarness/Program.cs') { $harnessBase } else { $scopeBase }
+            $base = if ($path -eq 'Scripts/test_holonet_live_release.ps1' -or
+              $path -like '*/NextGenSoftware.OASIS.OASISBootLoader.TestHarness/Program.cs') { $startupBase } else { $scopeBase }
             $before = git -C $source ls-tree $base -- $path
             $after = git -C $source ls-tree HEAD -- $path
             $current = git ls-tree HEAD -- $path
