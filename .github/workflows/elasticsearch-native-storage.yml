@@ -7,6 +7,7 @@ on:
       - '.github/workflows/elasticsearch-native-storage.yml'
       - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS/ElasticsearchOASIS.cs'
       - 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS.IntegrationTests/ElasticsearchNativeStorageConformanceTests.cs'
+      - 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS.IntegrationTests.csproj'
   workflow_dispatch:
 
 permissions:
