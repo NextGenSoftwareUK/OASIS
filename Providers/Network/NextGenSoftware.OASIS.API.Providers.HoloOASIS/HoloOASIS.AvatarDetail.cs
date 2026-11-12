@@ -173,9 +173,13 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                 var current = new Dictionary<Guid, (HcHolon Entry, IRecord Record)>();
                 foreach (var record in response.Records)
                 {
-                    if (!(record.EntryDataObject is HcHolon entry) || entry.Id == Guid.Empty || string.IsNullOrWhiteSpace(record.ActionHash))
+                    var entry = (object)record.EntryDataObject as HcHolon;
+                    if (entry == null || entry.Id == Guid.Empty || string.IsNullOrWhiteSpace(record.ActionHash))
                     {
-                        OASISErrorHandling.HandleError(ref result, $"Holochain {function} returned an unmapped record.");
+                        OASISErrorHandling.HandleError(ref result,
+                            $"Holochain {function} returned an invalid record. " +
+                            $"Holon mapped: {entry != null}, identity present: {entry != null && entry.Id != Guid.Empty}, " +
+                            $"action hash present: {!string.IsNullOrWhiteSpace(record.ActionHash)}, entry bytes present: {record.Bytes?.Length > 0}.");
                         return result;
                     }
 

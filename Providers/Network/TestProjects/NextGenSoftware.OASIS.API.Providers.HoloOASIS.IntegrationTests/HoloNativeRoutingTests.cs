@@ -46,6 +46,11 @@ public sealed class HoloNativeRoutingTests
             var fixtures = records.Result.OrderBy(record => record.Name, StringComparer.Ordinal).ToArray();
             var expected = new[] { $"priority routing {holo.ProviderType.Value}", $"priority routing {sqlite.ProviderType.Value}" };
             Assert.Equal(expected.Order(StringComparer.Ordinal), fixtures.Select(record => record.Name));
+            var collection = sync
+                ? holo.LoadAllHolons(HolonType.All, loadChildren: false)
+                : await holo.LoadAllHolonsAsync(HolonType.All, loadChildren: false);
+            Assert.False(collection.IsError, collection.Message);
+            Assert.Equal(fixtures.Select(record => record.Id).Order(), collection.Result.Select(record => record.Id).Order());
             foreach (var record in fixtures)
             {
                 var removed = await holo.DeleteHolonAsync(record.Id);
