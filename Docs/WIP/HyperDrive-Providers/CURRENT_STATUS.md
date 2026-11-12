@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. Azure Cosmos DB registration was verified on the provider branch, whose Core, ONODE Core and HoloNET ORM pins differ from Development. The follow-up CI run applies only the reviewed Azure registration patch and fixture runner to the resolved Development head, retains that head's dependency pins and logs the exact staged tree. The scoped patch applies cleanly to Development a2ba2fe32aae. Combined startup verification remains open. The shared storage suite is outside this run.
+
 12 November Cancun time. [Azure Cosmos DB emulator job 131055311882](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43180594194/job/131055311882) passed at provider branch revision `49fe2fe8324e`. The log confirms the shipping harness built, registered, activated and deactivated AzureCosmosDBOASIS through BootLoader, then removed the owned emulator fixture and container. The 52-check shared storage result retains its existing evidence. Development integration of the Azure startup changes remains open. Hosted Azure remains deferred.
 
 12 November Cancun time. Rechecked the completed [Polkadot startup job](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43138621689/job/130919896184) and [TRON startup job](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43136508779/job/130913034468). Both logs explicitly confirm registration, activation, deactivation and native fixture teardown. The earlier shared-harness entry records the build checkpoint. Azure Cosmos DB is the remaining local startup check from that checkpoint.
