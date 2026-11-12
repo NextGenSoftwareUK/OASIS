@@ -8,6 +8,9 @@ import { fileURLToPath } from "node:url";
 import { Worker } from "near-workspaces";
 
 assert.equal(process.env.OASIS_NEAR_FRESH_MANAGED_LIFECYCLE, "1");
+const routing = process.env.OASIS_NEAR_FRESH_ROUTING === "1";
+const suite = routing ? "NearSqliteHyperDriveTests" : "NearSharedLifecycleTests";
+const expectedTests = routing ? 2 : 3;
 const reportRoot = process.env.OASIS_NEAR_FRESH_REPORT_ROOT;
 assert.ok(reportRoot);
 const port = 18830;
@@ -34,14 +37,14 @@ try {
     ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-NearStorage -Operation {
       $directory = "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests"
       $project = "$directory/NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests.csproj"
-      dotnet build $project /p:NearDirectProviderOnly=true /m:2 /nr:false /p:UseSharedCompilation=false
+      dotnet build $project /p:NearDirectProviderOnly=true /p:NearRoutingTests=${routing} /m:2 /nr:false /p:UseSharedCompilation=false
       if ($LASTEXITCODE -ne 0) { throw "Native NEAR integration build failed." }
       npm ci --prefix "$directory/bin/Debug/net10.0/NearSdkBridge" --no-audit --no-fund
       if ($LASTEXITCODE -ne 0) { throw "Locked NEAR SDK installation failed." }
-      dotnet test $project --no-build --filter "FullyQualifiedName~NearSharedLifecycleTests" /p:NearDirectProviderOnly=true /m:2 /nr:false /p:UseSharedCompilation=false --results-directory $env:OASIS_NEAR_LIFECYCLE_REPORT_ROOT --logger "trx;LogFileName=near-native.trx" --logger "console;verbosity=normal"
+      dotnet test $project --no-build --filter "FullyQualifiedName~${suite}" /p:NearDirectProviderOnly=true /p:NearRoutingTests=${routing} /m:2 /nr:false /p:UseSharedCompilation=false --results-directory $env:OASIS_NEAR_LIFECYCLE_REPORT_ROOT --logger "trx;LogFileName=near-native.trx" --logger "console;verbosity=normal"
       if ($LASTEXITCODE -ne 0) { throw "Native NEAR storage verification failed." }
       [xml]$trx = Get-Content -LiteralPath (Join-Path $env:OASIS_NEAR_LIFECYCLE_REPORT_ROOT 'near-native.trx')
-      if ($trx.TestRun.ResultSummary.Counters.passed -ne '3') { throw 'All three NEAR native cases must pass.' }
+      if ($trx.TestRun.ResultSummary.Counters.passed -ne '${expectedTests}' -or $trx.TestRun.ResultSummary.Counters.total -ne '${expectedTests}') { throw 'All selected NEAR native cases must pass.' }
     }
   `;
   const child = spawn("pwsh", ["-NoProfile", "-Command", script], {
@@ -61,14 +64,15 @@ try {
   });
   const [code, signal] = await once(child, "exit");
   assert.equal(code, 0, "Managed NEAR tests failed: " + (signal ?? code));
-  for (const mode of ["async", "sync"]) {
+  for (const mode of routing ? [] : ["async", "sync"]) {
     const report = JSON.parse(await readFile(join(reportRoot, mode, "report.json"), "utf8"));
     assert.equal(report.Succeeded, true);
     assert.equal(report.FixtureCleanupComplete, true);
     assert.equal(report.Passed.length, 26);
   }
   assert.deepEqual(await contract.view("entries", {}), []);
-  console.log("Both NEAR storage modes and the managed avatar history regression passed with an empty native contract.");
+  console.log(routing ? "Both NEAR routing modes passed with an empty native contract."
+    : "Both NEAR storage modes and the managed avatar history regression passed with an empty native contract.");
 } finally {
   await worker.tearDown();
 }
