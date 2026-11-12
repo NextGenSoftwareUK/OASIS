@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November 18:03 Cancun time. COSMIC published the verified Ethereum admission correction at Development 716711320680c29d1f5670a57d0e0b85f79ca742. It changes the shipping Core pin, so prior routing results remain accepted for their original revision and two focused runs qualify the new pin. [Polkadot](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43325457200) and [Solana](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43325461947) are queued. The nine-file combined candidate 1cb79150df5196cbef3845628a2105b1735e1c17 uses tree 8c57b483f2eebe61d28e6495fd1f8efc24634663, retains the COSMIC changes, and leaves dependency pins unchanged. Check both run trees and the fleet before the next shared integration review.
+
 12 November 17:59 Cancun time. The COSMIC Ethereum correction image run 43321247912 passed before the Development window. HyperDrive is leaving the window available for that verified correction to avoid a concurrent push. Solana run 43320905435 and Polkadot run 43320904876 both passed on their respective scopes from the audit-trail parent. Reconcile the combined routing batch against the remote Development head after COSMIC publication and check both scoped trees before integration.
 
 12 November Cancun time. [Canonical HoloOASIS rerun](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43323308845) passed both modes with zero skips on tree 71f446c0d44a4ed1ea5d0aa59b74cfde9f24549d. It verified bidirectional SQLite replication and read failover, even RoundRobin and exact native deletion. Collection mapping and the hosted SQLite outbox barrier remain open.
