@@ -16,7 +16,7 @@
 | IPFS | Archived offline Kubo and SQLite routing, selection, failover and replication. | Current hosted and durable recovery evidence. |
 | NEAR | Direct native storage lifecycle. | Identify or execute an eligible routed cohort with native receipts. |
 | Cosmos blockchain | Archived retained chain matrix passed replication in both directions, all eight balancing strategies and actual stopped-node failover. | Hosted and current retained-ledger acceptance. |
-| Azure | Archived Azure Storage and SQLite routing and emulator selection/failover. | [Cosmos DB emulator and SQLite routing](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43302316499) is active. Hosted Azure remains open. |
+| Azure | Archived Azure Storage and SQLite routing and emulator selection/failover. | [Cosmos DB emulator and SQLite routing](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43302316499) stopped before execution because the integration project included unrelated CQL registration sources without their provider references. The routing build now explicitly includes its two test sources and uses the shipping Core and provider references. Fresh CI and hosted Azure remain open. |
 | Google Cloud | Archived Firestore SDK, SQLite and LocalFile replication, failover and selection. | Hosted Firestore and separately scoped GCS and BigQuery capabilities. |
 | Polkadot | Native storage lifecycle and separate public contract evidence. | Verify routed operation classes and eligible destination stores. |
 | ActivityPub | Native capability checks and live public reads. | Determine which social operations support same-capability failover and selection. Shared storage replication does not apply to the social-only contract. |
