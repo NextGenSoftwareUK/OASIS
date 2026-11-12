@@ -17,6 +17,8 @@
 
 ## Verification log
 
+12 November Cancun time. [Native run 43171424613](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43171424613) passed 10 checks per mode and then failed the holon-ID read. The pinned HoloNET ORM serializes dictionaries as JSON strings inside the native record. The new reader originally treated that value as a native map. It now decodes the stored JSON string as well as an object-valued native field, with untrusted MessagePack settings. Real-conductor verification of the corrected codec remains open.
+
 12 November Cancun time. The HoloNET repository now reports one deleted action only when the zome returns a native record with an action hash. A missing response now enters the error handler. GUID-based avatar deletes also carry the acknowledgement and count through the public result. This covers action-level acknowledgement. Record-wide deletion across linked revisions and avatar-detail cleanup remain open.
 
 12 November Cancun time. [Canonical run 43170248569](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43170248569) passed 14 checks in each mode, including graph save and parent lookup, then failed metadata selection. The pinned HoloNET SDK flattens MessagePack fields into strings for reflection, which cannot hydrate a metadata dictionary. Canonical HoloOASIS now decodes holon metadata from the original native record bytes for point and collection reads. This preserves the latest-action selection and leaves native delete semantics open. The next conductor result is pending.

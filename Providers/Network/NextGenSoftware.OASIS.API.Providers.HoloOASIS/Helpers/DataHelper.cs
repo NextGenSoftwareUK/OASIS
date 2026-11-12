@@ -23,10 +23,17 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
         internal static void MapNativeHolonMetadata(IRecord record, IHcHolon holon)
         {
             // The HoloNET scalar mapper cannot preserve MessagePack maps.
-            using var entry = JsonDocument.Parse(MessagePack.MessagePackSerializer.ConvertToJson(record.Bytes));
-            holon.MetaData = entry.RootElement.TryGetProperty("meta_data", out var metadata)
-                ? JsonSerializer.Deserialize<Dictionary<string, object>>(metadata.GetRawText())
-                : null;
+            var options = MessagePack.MessagePackSerializerOptions.Standard.WithSecurity(MessagePack.MessagePackSecurity.UntrustedData);
+            using var entry = JsonDocument.Parse(MessagePack.MessagePackSerializer.ConvertToJson(record.Bytes, options));
+            if (!entry.RootElement.TryGetProperty("meta_data", out var metadata) || metadata.ValueKind == JsonValueKind.Null)
+            {
+                holon.MetaData = null;
+                return;
+            }
+
+            // HoloNET ORM encodes dictionaries as JSON strings in its zome payload.
+            var json = metadata.ValueKind == JsonValueKind.String ? metadata.GetString() : metadata.GetRawText();
+            holon.MetaData = JsonSerializer.Deserialize<Dictionary<string, object>>(json);
         }
 
         public static IHcAvatar ConvertAvatarToHoloOASISAvatar(IAvatar avatar, IHcAvatar hcAvatar)
