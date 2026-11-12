@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. [Polkadot qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43320904876) passed both modes on audit-trail Development 41f685efd3ef. The six-file candidate c7cddf103ef5 reproduces tested tree 0df723626b6c2d7859f3735e729d1d087396f94d. The combined candidate b37daf68dd8c also includes three Solana test paths pending their own qualification. [Solana CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43320905435) and [canonical HoloOASIS CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43321617748) remain active. Recheck the shared rollout and COSMIC Ethereum correction at the 17:59:35 review.
+
 12 November Cancun time. Reconciled the retained Cosmos blockchain routing matrix. The four native cases cover both primary directions and both entry points, including 14 actual stopped-node failovers and 40 durable native receipts verified after MongoDB reload. The existing TRX hash and exact scope are linked from the priority routing ledger. Hosted routing remains open, and COSMIC owns the separate validator query migration. No native run was repeated or local artifact created.
 
 12 November Cancun time. Reconciled retained Polygon and Arbitrum native routing receipts, including direct replica reads, provider attribution and real endpoint outage. Polygon separately exercised prepared MongoDB outbox originals and verified the router withheld a second dispatch after a native acknowledgement was lost. The retained tests used owned local EVM contracts. Hosted L2, reverse outage and the current COSMIC migrations remain separate open verification. No duplicate native runs or local artifacts were created.
