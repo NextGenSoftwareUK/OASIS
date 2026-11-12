@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+12 November Solid run 43309386161 independently confirmed exact record absence after provider deletion and verified removal of its owned server, Pod, SQLite files and test results. No local fixture or output was created.
+
 12 November prepared Polkadot routing adds a disposable hosted MongoDB outbox with per-case databases and removes its container and volumes during fixture teardown. No local runtime, build or result was created.
 
 12 November Polkadot routing run 43307162656 verified removal of the owned Substrate fixture after both cases rejected the unowned write. No local build, runtime or report was created.

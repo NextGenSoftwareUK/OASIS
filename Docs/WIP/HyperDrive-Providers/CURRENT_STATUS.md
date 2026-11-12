@@ -18,6 +18,10 @@
 
 ## Verification log
 
+12 November Cancun time. [Native Solid routing CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43309386161) passed two cases with zero skips. Both modes verified exact replicas and read failover in each direction, an even RoundRobin split, and HTTP 404 after removing both owned records. The runner confirmed removal of the owned server, Pod, SQLite files and test output. Exact Development and hosted verification remain open.
+
+12 November Cancun time. All seven Solana Development API deployments on 061ceca0221e report successful. The shared integration window remains after 16:34:28 Cancun time. The existing Oracle, Azure and NEAR routing candidate applies only eight test or fixture paths. TRON evidence review found the retained original still unresolved and independently confirmed that the newer disposable TRE run covers direct storage only. Use that disposable fixture for new routed write verification and preserve the retained ledger and original.
+
 12 November Cancun time. Wired Polkadot into HyperDrive's prepared storage interface. Each native record mutation verifies the signed original against its configured network, owner, contract, action and key before usage outbox persistence. Sponsored writes requiring verified total fee ceilings retain the existing rejection. The routing fixture now uses a real disposable MongoDB usage outbox and checks persisted native originals plus empty contract after cleanup. Qualification is pending.
 
 12 November Cancun time. [Polkadot replacement CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43307162656) reached native storage in both modes and rejected the initial write because record writes require an admitted durable preparation owner. The adapter exposes its low-level preparation scope but does not implement IPreparedNativeStorageProvider, which the router uses for admitted storage. The native ownership guard correctly prevented a submission. The runner removed the owned Substrate fixture. Investigate the missing shipping integration before counting routed Polkadot replication.
