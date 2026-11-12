@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. Reconciled prior Firestore and IPFS native routing receipts into the priority ledger. Firestore passed 49/49 and Kubo passed 13/13, each with native stores, sync and async, verified bidirectional replication, RoundRobin and a closed endpoint. Existing evidence carries forward. The open gaps are hosted routing, durable recovery and separate Google service capabilities. No repeat native run or local environment was created. COSMIC may use the 17:59:35 window for its Ethereum correction if exact image and regression checks finish first.
+
 12 November Cancun time. Added isolated canonical HoloOASIS and SQLite HyperDrive routing against the official conductor and verified shipping hApp. The routing workflow overlays test inputs only. It checks both replica and read outage directions, RoundRobin, and native record cleanup. Prior direct storage evidence carries forward. The hosted SQLite outbox barrier and existing private HoloOASIS cohorts remain under COSMIC coordination. Native routing is pending.
 
 12 November Cancun time. Development advanced to holon audit-trail revision 41f685efd3ef, including a new Core pin. The nine Polkadot and Solana routing paths do not overlap the audit-trail changes. Both focused workflows now qualify against the new parent. The previous runs retain their Ethereum-baseline scope. [Development CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43320386097) records the push at 17:29:35 Cancun time. Review the next window after 17:59:35 and confirm the fleet before integrating.
