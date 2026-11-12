@@ -6,6 +6,7 @@ on:
     paths:
       - '.github/workflows/oasis-provider-registration.yml'
       - 'OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/**'
+      - 'OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader.TestHarness/**'
       - 'OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader.UnitTests/ProviderRegistrationFailureTests.cs'
   workflow_dispatch:
 
@@ -58,4 +59,7 @@ jobs:
             $project = 'OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader.UnitTests/NextGenSoftware.OASIS.OASISBootLoader.UnitTests.csproj'
             dotnet test $project --filter 'FullyQualifiedName~ProviderRegistrationFailureTests' /m:2 /nr:false /p:UseSharedCompilation=false --logger 'console;verbosity=normal'
             if ($LASTEXITCODE -ne 0) { throw 'BootLoader registration verification failed.' }
+            $harness = 'OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader.TestHarness/NextGenSoftware.OASIS.OASISBootLoader.TestHarness.csproj'
+            dotnet build $harness /m:2 /nr:false /p:UseSharedCompilation=false
+            if ($LASTEXITCODE -ne 0) { throw 'BootLoader activation harness build failed.' }
           }
