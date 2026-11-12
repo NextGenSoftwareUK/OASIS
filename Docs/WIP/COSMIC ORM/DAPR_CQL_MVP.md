@@ -591,3 +591,5 @@ After the successful Development WEB4 cutover to 2e2635057bb4, authenticated API
 ### Browser evidence reconciliation
 
 The shared COSMIC status recorded that the 10 November live browser run passed both public native presets and both public Mongo-paired presets with 3/2 rows after refreshing stale preset controls. This closes the public browser gate. The 12 November warmup observation came before catalogue readiness and executed no queries. The original-owner private Mongo-paired browser presets remain open. Preserve the accepted public browser and private HTTP cohorts.
+
+Web4Site feature branch df6fd4c updates only the Dapr card wording to reflect the accepted public presets and remaining original-owner private verification. All 122 tests passed on the exact revision with zero skips. The Vercel Preview Comments check succeeded. The public site has not been promoted.

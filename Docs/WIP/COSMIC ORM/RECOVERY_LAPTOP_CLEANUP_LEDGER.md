@@ -6378,3 +6378,5 @@ Dapr browser check used one temporary in-app tab and one Development throwaway d
 Post-cutover catalogue verification reused the retained readiness visitor and created four protected renewal files. No local build, downloads or query data. Temporary documentation index removed.
 
 TRON CQL reached Development at WEB4 2441de16f2 and Core d7692071. Keep the matching CI tags through cutover verification, then remove both. No local build, image, fixture or download. Temporary documentation index removed.
+
+Web4Site exact Dapr card verification used existing Node and a temporary directory containing only the tracked site inputs and six test files from df6fd4c. All 122 tests passed. The temporary directory was removed and no reports, packages or new environment were retained.
