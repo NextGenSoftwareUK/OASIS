@@ -128,8 +128,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
                 if (conductor != null)
                 {
                     await conductor.StartAsync(default);
-                    var readerSettings = await conductor.ProvisionReaderAsync(configuration, default);
-                    builder.ConfigureAppConfiguration((_, app) => app.AddInMemoryCollection(readerSettings));
+                    var sourceSettings = await conductor.ProvisionAsync(configuration, default);
+                    builder.ConfigureAppConfiguration((_, app) => app.AddInMemoryCollection(sourceSettings));
                 }
                 await builder.Build().RunAsync();
             }

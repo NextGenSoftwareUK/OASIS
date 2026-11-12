@@ -10,6 +10,7 @@ using NextGenSoftware.Holochain.HoloNET.Client;
 using NextGenSoftware.Holochain.HoloNET.Client.Data.Admin.Requests.Objects;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.Common;
 using CanonicalHoloOasis = NextGenSoftware.OASIS.API.Providers.HoloOASIS.HoloOASIS;
 using IoFile = System.IO.File;
@@ -40,6 +41,9 @@ internal sealed class HoloOasisDevelopmentConductor
 
     private TeachingAdmin _admin;
     private FileStream _stateLease;
+    private readonly bool _useBootLoader;
+
+    private HoloOasisDevelopmentConductor(bool useBootLoader) => _useBootLoader = useBootLoader;
 
     public static HoloOasisDevelopmentConductor CreateIfEnabled(IConfiguration configuration)
     {
@@ -53,7 +57,10 @@ internal sealed class HoloOasisDevelopmentConductor
             serviceId != Web4ServiceId)
             throw new InvalidOperationException("The local HoloOASIS teaching conductor is only enabled on Linux WEB4 Development.");
 
-        return new HoloOasisDevelopmentConductor();
+        var useBootLoader = configuration.GetValue<bool>("CQL_HOLOOASIS_LOCAL_DEMO:UseBootLoader");
+        if (useBootLoader)
+            ValidateBootLoaderConfiguration(configuration);
+        return new HoloOasisDevelopmentConductor(useBootLoader);
     }
 
     public async Task StartAsync(CancellationToken cancellationToken)
@@ -94,7 +101,7 @@ internal sealed class HoloOasisDevelopmentConductor
         }
     }
 
-    public async Task<IReadOnlyDictionary<string, string>> ProvisionReaderAsync(
+    public async Task<IReadOnlyDictionary<string, string>> ProvisionAsync(
         IConfiguration configuration, CancellationToken cancellationToken)
     {
         if (configuration.GetSection("CQL_HOLOOASIS_QUERY").Exists())
@@ -146,6 +153,9 @@ internal sealed class HoloOasisDevelopmentConductor
             var endpoint = app.EndPoint;
             if (!endpoint.IsLoopback || endpoint.Scheme != "ws")
                 throw new InvalidOperationException("The local HoloOASIS teaching app interface must use loopback.");
+            if (_useBootLoader)
+                return new Dictionary<string, string>();
+
             var dna = app.ConvertHoloHashToBytes(app.HoloNETDNA.DnaHash);
             var agent = app.ConvertHoloHashToBytes(app.HoloNETDNA.AgentPubKey);
             var credentials = await _admin.GrantReaderAsync(dna, agent);
@@ -172,6 +182,28 @@ internal sealed class HoloOasisDevelopmentConductor
         {
             if (app != null)
                 await app.DisconnectAsync();
+        }
+    }
+
+    private static void ValidateBootLoaderConfiguration(IConfiguration configuration)
+    {
+        var json = configuration["OASIS_DNA_JSON"];
+        if (string.IsNullOrWhiteSpace(json))
+            throw new InvalidOperationException("Managed HoloOASIS BootLoader mode requires WEB4 DNA configuration.");
+
+        HoloOASISProviderSettings settings;
+        try
+        {
+            settings = Newtonsoft.Json.JsonConvert.DeserializeObject<OASISDNA>(json)?.OASIS?.StorageProviders?.HoloOASIS;
+        }
+        catch (Newtonsoft.Json.JsonException)
+        {
+            throw new InvalidOperationException("The WEB4 DNA configuration could not be parsed.");
+        }
+        if (settings?.LocalNodeURI != AdminEndpoint || !settings.UseLocalNode || settings.UseHoloNetwork ||
+            !settings.HoloNETORMUseReflection)
+        {
+            throw new InvalidOperationException("Managed HoloOASIS BootLoader mode requires the managed admin URI, local conductor mode and the reviewed ORM mapping.");
         }
     }
 

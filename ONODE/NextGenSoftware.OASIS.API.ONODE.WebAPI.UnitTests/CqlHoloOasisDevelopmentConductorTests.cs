@@ -48,6 +48,19 @@ public sealed class CqlHoloOasisDevelopmentConductorTests
         Assert.Throws<InvalidOperationException>(() => HoloOasisDevelopmentConductor.CreateIfEnabled(configuration));
         configuration["RAILWAY_SERVICE_ID"] = "5123199a-43c4-4439-9921-e10e2aec7841";
 
+        configuration["CQL_HOLOOASIS_LOCAL_DEMO:UseBootLoader"] = "true";
+        Assert.Throws<InvalidOperationException>(() => HoloOasisDevelopmentConductor.CreateIfEnabled(configuration));
+        configuration["OASIS_DNA_JSON"] = """
+            {"OASIS":{"StorageProviders":{"HoloOASIS":{
+              "LocalNodeURI":"ws://127.0.0.1:65464",
+              "UseLocalNode":true,
+              "UseHoloNetwork":false,
+              "HoloNETORMUseReflection":true
+            }}}}
+            """;
+        Assert.NotNull(HoloOasisDevelopmentConductor.CreateIfEnabled(configuration));
+        configuration["CQL_HOLOOASIS_LOCAL_DEMO:UseBootLoader"] = "false";
+
         var hosted = Assert.IsType<HoloOasisDevelopmentConductor>(
             HoloOasisDevelopmentConductor.CreateIfEnabled(configuration));
         var managed = Environment.GetEnvironmentVariable("OASIS_CQL_HOLOOASIS_MANAGED_NATIVE") == "1";
@@ -105,7 +118,7 @@ public sealed class CqlHoloOasisDevelopmentConductorTests
     private static async Task<(string Dna, string Agent)> VerifyManagedReaderAsync(HoloOasisDevelopmentConductor hosted,
         IConfiguration configuration, Guid[] ids)
     {
-        var generated = await hosted.ProvisionReaderAsync(configuration, default);
+        var generated = await hosted.ProvisionAsync(configuration, default);
         var settings = new ConfigurationBuilder().AddConfiguration(configuration)
             .AddInMemoryCollection(generated).Build();
         var services = new ServiceCollection();
