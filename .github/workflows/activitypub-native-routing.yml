@@ -1,0 +1,25 @@
+name: ActivityPub native HyperDrive routing
+
+on:
+  push:
+    branches: [work/hyperdrive-provider-completion]
+    paths:
+      - '.github/workflows/activitypub-native-routing.yml'
+      - '.github/workflows/activitypub-native-search.yml'
+      - 'Providers/Network/NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS/**'
+      - 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS.IntegrationTests/NativeMastodonOwnedStatusTests.cs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  routing:
+    uses: ./.github/workflows/activitypub-native-search.yml
+    with:
+      routing: true
+    secrets:
+      PRIVATE_SUBMODULE_PAT: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+
+
+

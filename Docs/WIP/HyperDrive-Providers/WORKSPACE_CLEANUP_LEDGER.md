@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+12 November ActivityPub routing reuses disposable hosted Mastodon provisioning and its owned Compose, volumes, CA, hosts entry and fixture teardown. TRX output is stored in the owned fixture directory. No local dependencies or fixtures were created.
+
 12 November Hedera routing uses existing disposable hosted Hiero provisioning. Each job owns its SDK dependencies, contract, npm cache, ledger, SQLite files and reports and verifies fixture teardown. No local artifacts were created.
 
 12 November TON run 43313724670 confirmed both native ledgers had zero keys after cleanup and removed its owned CI directory, including dependencies, generated contract, TVM ledgers, SQLite files and reports. The temporary Git index for exact Polkadot candidate 090b3b1e7d81 was removed and confirmed absent. No local runtime or build was created.

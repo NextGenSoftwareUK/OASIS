@@ -4,11 +4,16 @@ on:
   push:
     branches: [work/hyperdrive-provider-completion]
     paths:
-      - '.github/workflows/activitypub-native-search.yml'
-      - 'Scripts/TestHosts/Run-ActivityPubNativeSearch.sh'
       - 'Providers/Network/NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS/**'
-      - 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS.IntegrationTests/**'
   workflow_dispatch:
+  workflow_call:
+    inputs:
+      routing:
+        type: boolean
+        default: false
+    secrets:
+      PRIVATE_SUBMODULE_PAT:
+        required: true
 
 permissions:
   contents: read
@@ -47,5 +52,7 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      - name: Exercise authenticated paged search against Mastodon
+      - name: Exercise the selected native Mastodon cases
+        env:
+          OASIS_ACTIVITYPUB_ROUTING: ${{ inputs.routing && '1' || '0' }}
         run: bash Scripts/TestHosts/Run-ActivityPubNativeSearch.sh
