@@ -7,6 +7,7 @@ on:
       - '.github/workflows/typesense-native-storage.yml'
       - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.TypesenseOASIS/**'
       - 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.TypesenseOASIS.IntegrationTests/TypesenseNativeStorageConformanceTests.cs'
+      - 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.TypesenseOASIS.IntegrationTests/TypesenseOASISIntegrationTests.cs'
       - 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.TypesenseOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.TypesenseOASIS.IntegrationTests.csproj'
   workflow_dispatch:
 
@@ -25,12 +26,51 @@ jobs:
       run:
         working-directory: OASIS
     steps:
+      - name: Resolve the Development baseline
+        id: baseline
+        shell: bash
+        working-directory: ${{ github.workspace }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          revision="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/Development" --jq .object.sha)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "revision=$revision" >> "$GITHUB_OUTPUT"
+          echo "Qualifying Typesense on Development $revision"
+
+      - uses: actions/checkout@v7
+        with:
+          path: provider-source
+          persist-credentials: false
+
       - uses: actions/checkout@v7
         with:
           token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          ref: ${{ steps.baseline.outputs.revision }}
           path: OASIS
           submodules: recursive
           persist-credentials: false
+
+      - name: Apply the reviewed Typesense storage scope
+        shell: bash
+        run: |
+          base=1c4d6109d47c3801663f7d35c7a628a27e44dec5
+          git -C ../provider-source fetch --no-tags --depth=1 origin "$base"
+          tests='Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.TypesenseOASIS.IntegrationTests'
+          for path in \
+            'Providers/Storage/NextGenSoftware.OASIS.API.Providers.TypesenseOASIS/TypesenseOASIS.cs' \
+            'Providers/Storage/NextGenSoftware.OASIS.API.Providers.TypesenseOASIS/TypesenseOASIS.Native.cs' \
+            "$tests/NextGenSoftware.OASIS.API.Providers.TypesenseOASIS.IntegrationTests.csproj" \
+            "$tests/TypesenseNativeStorageConformanceTests.cs" \
+            "$tests/TypesenseOASISIntegrationTests.cs"; do
+            current="$(git ls-tree HEAD -- "$path")"
+            reviewed="$(git -C ../provider-source ls-tree "$base" -- "$path")"
+            incoming="$(git -C ../provider-source ls-tree HEAD -- "$path")"
+            [[ -n "$incoming" && ( "$current" == "$reviewed" || "$current" == "$incoming" ) ]]
+            install -m 644 "../provider-source/$path" "$path"
+            git add -- "$path"
+          done
+          echo "Qualified input tree: $(git write-tree)"
 
       - name: Read the recorded Libraries revision
         id: dependencies

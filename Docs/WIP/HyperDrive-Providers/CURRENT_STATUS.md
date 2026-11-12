@@ -10,7 +10,7 @@
 | ActivityPub and routing | ActivityPub has 5/5 native capability checks. GOMap passed a public OSRM driving route. Authenticated Google Routes, Mapbox and HERE checks remain open. Niantic and WRLD still have reviewed adapter gaps. |
 | Canonical HoloOASIS | Top priority. Both modes passed all 52 native core-storage-v2 checks on the official Windows conductor with the verified identity-delete hApp in [run 43178174352](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43178174352). The verified bundle is packaged on the provider branch. Hosted, multi-agent and broader capability acceptance remain open. |
 | HoloOASIS.Desktop | Obsolete in source, package metadata and repository documentation at `45d6665da989`. The six-file compatibility and documentation batch reached Development at `70d3fbb4a31c`. Published NuGet metadata and live site listings still need the obsolescence update. |
-| Development | All seven APIs reported Railway deployment success at `ca83daf40a3c`. `52ace6727b58` integrates the verified OpenSearch storage lifecycle. All seven Railway deployments succeeded at `52ace6727b58`. Live HoloOASIS storage remains open. |
+| Development | `1c4d6109d47c` integrates the verified Elasticsearch lifecycle and preserves the public HoloOASIS CQL deployment changes. The Elasticsearch Railway rollout is pending. Live HyperDrive HoloOASIS writes remain open. |
 | BootLoader startup | The shipping registration, activation and deactivation path passed against native Polkadot and TRON fixtures and the Microsoft Azure Cosmos DB emulator. [Azure Cosmos DB job 131055311882](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43180594194/job/131055311882) confirmed fixture teardown. |
 | HyperDrive | Global automatic failover, replication and load balancing await provider acceptance. Dragonfly and KeyDB full native runs were queued at the coverage review. |
 
@@ -19,6 +19,8 @@
 ## Verification log
 
 12 November Cancun time. Managed HoloOASIS advanced Development to `e54973c380c9`. Elasticsearch qualification now triggers when its native test project changes and will qualify the existing three-file batch against the new Development parent. The hosted HoloOASIS rollout and the new exact Elasticsearch integration evidence are pending.
+
+12 November Cancun time. Typesense Development qualification overlays the five reviewed storage files and records the exact tree. The pre-change Typesense provider and test trees matched Development byte for byte, including the existing COSMIC CQL code. The CI guard rejects overlapping edits in the five reviewed files.
 
 12 November Cancun time. Development advanced to `1c4d6109d47c` with the exact verified three-file Elasticsearch tree `b97bba2543fa9d82cc6c06b1c8d5a92e9b559778`. The push followed the half-hour interval, seven successful baseline API deployments, and the managed HoloOASIS public acceptance check. The remote ref was verified. The new Railway rollout remains open.
 
