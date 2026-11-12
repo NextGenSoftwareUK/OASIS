@@ -17,7 +17,7 @@ on:
   workflow_dispatch:
     inputs:
       evm_shipping:
-        description: Verify shipping Ethereum and Polygon CQL admission
+        description: Verify shipping Ethereum, Polygon, Arbitrum and NEAR CQL admission
         required: false
         type: boolean
         default: false
@@ -110,17 +110,17 @@ jobs:
           finally {
             Remove-Item -LiteralPath $fixture.FullName -ErrorAction Stop
           }
-      - name: Verify shipping EVM CQL admission
+      - name: Verify shipping EVM and NEAR CQL admission
         if: inputs.evm_shipping == true
         working-directory: OASIS
         shell: pwsh
         run: |
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cql-evm-shipping-ci -Operation {
-            dotnet test ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests --no-build --no-restore /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CqlEthereumHostedAdmissionTests|FullyQualifiedName~CqlPolygonHostedAdmissionTests' --results-directory TestResults/CqlPublicReadCatalogueCurrent --logger 'trx;LogFileName=evm-shipping.trx'
+            dotnet test ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests --no-build --no-restore /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CqlEthereumHostedAdmissionTests|FullyQualifiedName~CqlPolygonHostedAdmissionTests|FullyQualifiedName~CqlArbitrumHostedAdmissionTests|FullyQualifiedName~CqlNearHostedAdmissionTests' --results-directory TestResults/CqlPublicReadCatalogueCurrent --logger 'trx;LogFileName=evm-shipping.trx'
             if ($LASTEXITCODE) { throw 'Shipping EVM admission failed' }
             [xml]$report = Get-Content TestResults/CqlPublicReadCatalogueCurrent/evm-shipping.trx
-            if ($report.TestRun.ResultSummary.Counters.passed -ne '4' -or $report.TestRun.ResultSummary.Counters.total -ne '4') {
-              throw 'All four EVM catalogue and preset admission cases must pass'
+            if ($report.TestRun.ResultSummary.Counters.passed -ne '8' -or $report.TestRun.ResultSummary.Counters.total -ne '8') {
+              throw 'All eight EVM and NEAR catalogue and preset admission cases must pass'
             }
           }
       - name: Verify Moralis activation and unsupported NFT burns
