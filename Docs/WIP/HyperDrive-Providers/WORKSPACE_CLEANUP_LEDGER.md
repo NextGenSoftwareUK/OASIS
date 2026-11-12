@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+12 November TON routing provisions its locked Node dependencies, generated contract bindings, local TVM ledgers, SQLite files and test output under one disposable CI directory. Its teardown requires that directory absent. No local downloads, build or test data were created.
+
 12 November EOSIO routing run 43311490312 independently verified all three tables empty on both native nodes and removed both Antelope fixture directories. No local build, downloads or test results were generated.
 
 12 November Development integration e0f315259334 reused the existing candidate. The temporary Git index used to reproduce exact NEAR CI tree 5d0b813a3829 was removed and verified absent. No local build, image, database or test result was created.

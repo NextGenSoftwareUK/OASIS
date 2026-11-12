@@ -1,0 +1,98 @@
+name: TON and SQLite HyperDrive routing
+
+on:
+  push:
+    branches: [work/hyperdrive-provider-completion]
+    paths:
+      - '.github/workflows/ton-sqlite-hyperdrive.yml'
+      - 'Scripts/TestHosts/compile-cosmic-ton.cjs'
+      - 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.TONOASIS.IntegrationTests/TonSqliteHyperDriveTests.cs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lifecycle:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: OASIS
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          path: OASIS
+          submodules: recursive
+          persist-credentials: false
+
+      - name: Read the recorded Libraries revision
+        id: dependencies
+        shell: bash
+        run: |
+          revision="$(sed -n 's/^LIBRARIES_COMMIT=//p' Docker/oasis-dependency-versions.env)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "libraries=$revision" >> "$GITHUB_OUTPUT"
+          revision="$(sed -n 's/^HOLOCHAIN_COMMIT=//p' Docker/oasis-dependency-versions.env)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "holochain=$revision" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependencies.outputs.libraries }}
+          path: NextGenSoftware-Libraries
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+
+      - uses: actions/checkout@v7
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          ref: ${{ steps.dependencies.outputs.holochain }}
+          path: holochain-client-csharp
+          persist-credentials: false
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.22.1'
+
+      - name: Verify routing against native local TVM and SQLite
+        shell: bash
+        run: |
+          umask 077
+          fixture="$(mktemp -d "$RUNNER_TEMP/oasis-ton-routing.XXXXXXXX")"
+          cleanup() {
+            local status=$?
+            rm -rf -- "$fixture" || exit 1
+            if [[ -e "$fixture" ]]; then exit 1; fi
+            echo "Removed the owned TON compilation, TVM ledgers, SQLite files and test output."
+            exit "$status"
+          }
+          trap cleanup EXIT
+          source="$PWD/Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.TONOASIS/SdkBridge"
+          sdk="$fixture/sdk"
+          mkdir "$sdk"
+          cp "$source"/{package.json,package-lock.json,native-worker.cjs,sandbox-store.cjs} "$sdk/"
+          npm ci --prefix "$sdk" --no-audit --no-fund
+          export NODE_PATH="$sdk/node_modules"
+          node Scripts/TestHosts/compile-cosmic-ton.cjs "$fixture/compiled"
+          export OASIS_TON_CODE_HASH="$(node -e 'const{Cell}=require("@ton/core");const fs=require("node:fs");console.log(Cell.fromBoc(fs.readFileSync(process.argv[1]))[0].hash().toString("hex"))' "$fixture/compiled/TonHolonStore_TonHolonStore.code.boc")"
+          [[ "$OASIS_TON_CODE_HASH" == 16bb222acfe6e01c5fc05f5eef6c2fe114c53b2b4bda50b28db6009e644cd741 ]]
+          export OASIS_TON_ROUTING_DIRECTORY="$fixture"
+          export OASIS_TON_NODE="$(command -v node)"
+          export OASIS_TON_WORKER="$sdk/native-worker.cjs"
+          pwsh -NoProfile -Command '
+            ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-TonRouting -Operation {
+              $project = "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.TONOASIS.IntegrationTests"
+              dotnet test $project --filter "FullyQualifiedName~TonSqliteHyperDriveTests" /p:TonRoutingTests=true /m:2 /nr:false /p:UseSharedCompilation=false --results-directory $env:OASIS_TON_ROUTING_DIRECTORY --logger "trx;LogFileName=routing.trx"
+              if ($LASTEXITCODE -ne 0) { throw "Native TON routing verification failed." }
+              [xml]$report = Get-Content -LiteralPath (Join-Path $env:OASIS_TON_ROUTING_DIRECTORY "routing.trx")
+              if ($report.TestRun.ResultSummary.Counters.passed -ne "2" -or $report.TestRun.ResultSummary.Counters.total -ne "2") {
+                throw "Both native TON routing cases must execute and pass."
+              }
+            }'
