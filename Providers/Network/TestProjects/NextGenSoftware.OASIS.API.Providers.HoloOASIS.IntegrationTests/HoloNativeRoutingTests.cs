@@ -39,6 +39,11 @@ public sealed class HoloNativeRoutingTests
             Assert.True(!active.IsError && active.Result, active.Message);
             active = await sqlite.ActivateProviderAsync();
             Assert.True(!active.IsError && active.Result, active.Message);
+            var baseline = sync
+                ? holo.LoadAllHolons(HolonType.All, loadChildren: false)
+                : await holo.LoadAllHolonsAsync(HolonType.All, loadChildren: false);
+            Assert.False(baseline.IsError, baseline.Message);
+            var baselineIds = baseline.Result.Select(record => record.Id).ToHashSet();
             await NativePriorityRouting.VerifyAsync(holo, sqlite, unavailable, unavailableSqlite, sync);
             Assert.False(File.Exists(missing));
             var records = await sqlite.LoadAllHolonsAsync(HolonType.All, loadChildren: false);
@@ -50,7 +55,8 @@ public sealed class HoloNativeRoutingTests
                 ? holo.LoadAllHolons(HolonType.All, loadChildren: false)
                 : await holo.LoadAllHolonsAsync(HolonType.All, loadChildren: false);
             Assert.False(collection.IsError, collection.Message);
-            Assert.Equal(fixtures.Select(record => record.Id).Order(), collection.Result.Select(record => record.Id).Order());
+            Assert.Equal(baselineIds.Concat(fixtures.Select(record => record.Id)).Order(),
+                collection.Result.Select(record => record.Id).Order());
             foreach (var record in fixtures)
             {
                 var removed = await holo.DeleteHolonAsync(record.Id);
