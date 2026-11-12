@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. Added a dedicated canonical HoloOASIS BootLoader run on the official 0.7.1 conductor and verified shipping hApp. It checks activation and deactivation from fixture DNA through the application harness on the Development baseline. CI startup evidence remains open. The earlier 52-check native storage result is reused. Hosted Linux conductor and multi-agent acceptance remain open.
+
 12 November Cancun time. [Combined Azure Cosmos DB job 131061911150](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43182580397/job/131061911150) passed startup and emulator teardown on Development a2ba2fe32aae. After the half-hour coordination interval and seven successful baseline deployments, Development advanced to `4fef831e0be6`. Its two-file tree exactly matches CI tree `59a5ae966bb41abd1790f8f4b2cef6526f86bdde`, with the same deployment dependency pins. Hosted Azure remains deferred.
 
 12 November Cancun time. Azure Cosmos DB registration was verified on the provider branch, whose Core, ONODE Core and HoloNET ORM pins differ from Development. The follow-up CI run applies only the reviewed Azure registration patch and fixture runner to the resolved Development head, retains that head's dependency pins and logs the exact staged tree. The scoped patch applies cleanly to Development a2ba2fe32aae. Combined startup verification remains open. The shared storage suite is outside this run.
