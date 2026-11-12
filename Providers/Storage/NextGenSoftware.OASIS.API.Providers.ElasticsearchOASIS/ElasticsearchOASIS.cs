@@ -19,6 +19,7 @@ using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.API.Core.Serialization;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS
@@ -73,6 +74,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS
         private static string Ser(object o) => JsonSerializer.Serialize(o, _jsonOpts);
         private static T? Des<T>(string? json) => json == null ? default
             : typeof(T) == typeof(AvatarDetail) ? StoredRecordJson.DeserializeStored<T>(json)
+            : typeof(T) == typeof(Holon) ? (T)(object)StoredRecordJson.DeserializeStoredHolon(json)
             : JsonSerializer.Deserialize<T>(json, _jsonOpts);
 
         // ─── REST helpers ─────────────────────────────────────────────────────────
@@ -105,12 +107,29 @@ namespace NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS
             if (!resp.IsSuccessStatusCode) throw new Exception($"ES PUT {path} → {(int)resp.StatusCode}: {raw}");
         }
 
-        private async Task EsDeleteAsync(string path)
+        private async Task DeleteDocumentAsync(string index, string id, bool allowMissing = false)
         {
-            var resp = await _http.DeleteAsync($"{_host}{path}");
-            if (!resp.IsSuccessStatusCode && resp.StatusCode != HttpStatusCode.NotFound)
-                throw new Exception($"ES DELETE {path} → {(int)resp.StatusCode}");
+            using var response = await _http.DeleteAsync($"{_host}/{index}/_doc/{id}?refresh=wait_for");
+            if (!allowMissing || response.StatusCode != HttpStatusCode.NotFound)
+                response.EnsureSuccessStatusCode();
+            using var receipt = await ReadNativeResponseAsync(response, 64 * 1024, default);
+            var ack = receipt.RootElement;
+            if (MatchesDocument(ack, index, id))
+            {
+                var outcome = ack.GetProperty("result").GetString();
+                if (allowMissing && response.StatusCode == HttpStatusCode.NotFound && outcome == "not_found")
+                    return;
+                if (response.IsSuccessStatusCode && outcome == "deleted" &&
+                    ack.GetProperty("_shards").GetProperty("failed").GetInt32() == 0 &&
+                    ack.GetProperty("_shards").GetProperty("successful").GetInt32() > 0)
+                    return;
+            }
+            throw new System.IO.InvalidDataException("Elasticsearch did not acknowledge the requested document deletion.");
         }
+
+        private static bool MatchesDocument(JsonElement record, string index, string id)
+            => record.TryGetProperty("_index", out var actualIndex) && actualIndex.GetString() == index &&
+               record.TryGetProperty("_id", out var actualId) && actualId.GetString() == id;
 
         private async Task UpsertDocAsync(string index, string id, Dictionary<string, object?> doc)
         {
@@ -122,7 +141,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS
             response.EnsureSuccessStatusCode();
             using var acknowledgement = await ReadNativeResponseAsync(response, 64 * 1024, default);
             var ack = acknowledgement.RootElement;
-            if (ack.GetProperty("_index").GetString() != index || ack.GetProperty("_id").GetString() != id ||
+            if (!MatchesDocument(ack, index, id) ||
                 ack.GetProperty("_version").GetInt64() < 1 || ack.GetProperty("_seq_no").GetInt64() < 0 ||
                 ack.GetProperty("_primary_term").GetInt64() < 1 ||
                 ack.GetProperty("result").GetString() is not ("created" or "updated") ||
@@ -134,9 +153,10 @@ namespace NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS
         private async Task<JsonElement?> GetDocAsync(string index, string id)
         {
             var result = await EsGetAsync($"/{index}/_doc/{id}");
-            if (result.TryGetProperty("found", out var f) && f.GetBoolean())
-                return result;
-            return null;
+            if (!MatchesDocument(result, index, id) || !result.TryGetProperty("found", out var found) ||
+                found.ValueKind is not (JsonValueKind.True or JsonValueKind.False))
+                throw new System.IO.InvalidDataException("Elasticsearch did not acknowledge the requested document read.");
+            return found.GetBoolean() ? result : null;
         }
 
         private string? GetSourceStr(JsonElement doc, string key)
@@ -240,7 +260,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS
             try
             {
                 var doc = await GetDocAsync("oasis-avatars", id.ToString());
-                if (doc == null || GetSourceBool(doc.Value, "isDeleted")) { OASISErrorHandling.HandleError(ref result, $"ElasticsearchOASIS: No avatar for ID '{id}'."); return result; }
+                if (doc == null || GetSourceBool(doc.Value, "isDeleted")) { OASISErrorHandling.HandleError(ref result, $"ElasticsearchOASIS: No avatar for ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
                 var avatar = Des<Avatar>(GetSourceStr(doc.Value, "dataJson")); if (avatar == null) { OASISErrorHandling.HandleError(ref result, "ElasticsearchOASIS: Deserialise failed."); return result; }
                 result.Result = avatar; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "ElasticsearchOASIS: Avatar loaded.";
             }
@@ -252,9 +272,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS
 
         private async Task<Avatar?> SearchAvatarAsync(string field, string value)
         {
-            var hits = await SearchAsync("oasis-avatars", new { bool_term = (object?)null });
-            // Use term query for keyword fields
-            hits = await SearchAsync("oasis-avatars", new { term = new Dictionary<string, object> { [field] = value } });
+            var hits = await SearchAsync("oasis-avatars", new { term = new Dictionary<string, object> { [field] = value } });
             var hit = hits.FirstOrDefault(h => !GetSourceBool(h, "isDeleted"));
             if (hit.ValueKind == JsonValueKind.Undefined) return null;
             return Des<Avatar>(GetSourceStr(hit, "dataJson"));
@@ -310,8 +328,14 @@ namespace NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS
                     var av = (Avatar)loaded.Result; av.DeletedDate = DateTime.UtcNow;
                     await UpsertDocAsync("oasis-avatars", id.ToString(), new Dictionary<string, object?> { ["username"] = av.Username, ["email"] = av.Email, ["isDeleted"] = true, ["dataJson"] = Ser(av) });
                 }
-                else { await EsDeleteAsync($"/oasis-avatars/_doc/{id}"); }
-                result.Result = true; result.IsError = false; result.Message = $"ElasticsearchOASIS: Avatar '{id}' deleted.";
+                else
+                {
+                    var key = id.ToString("D");
+                    await DeleteDocumentAsync("oasis-avatar-details", key, allowMissing: true);
+                    await DeleteDocumentAsync("oasis-avatars", key);
+                }
+                result.Result = true; result.IsDeleted = true; result.DeletedCount = 1;
+                result.Message = $"ElasticsearchOASIS: Avatar '{id}' deleted.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ElasticsearchOASIS: {ex.Message}"); }
             return result;
@@ -357,7 +381,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS
             try
             {
                 var doc = await GetDocAsync("oasis-avatar-details", id.ToString());
-                if (doc == null) { OASISErrorHandling.HandleError(ref result, $"ElasticsearchOASIS: No detail for ID '{id}'."); return result; }
+                if (doc == null) { OASISErrorHandling.HandleError(ref result, $"ElasticsearchOASIS: No detail for ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
                 var d = Des<AvatarDetail>(GetSourceStr(doc.Value, "dataJson")); if (d == null) { OASISErrorHandling.HandleError(ref result, "ElasticsearchOASIS: Deserialise failed."); return result; }
                 result.Result = d; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "ElasticsearchOASIS: AvatarDetail loaded.";
             }
@@ -391,36 +415,71 @@ namespace NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS
 
         // ─── Holon saving ─────────────────────────────────────────────────────────
 
-        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+        public override Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+            => SaveGraphAsync(holon, saveChildren, recursive, maxChildDepth, 0, continueOnError);
+
+        private async Task<OASISResult<IHolon>> SaveGraphAsync(IHolon holon, bool saveChildren, bool recursive,
+            int maxChildDepth, int currentChildDepth, bool continueOnError)
         {
             var result = new OASISResult<IHolon>();
             try
             {
-                if (holon == null) throw new ArgumentNullException(nameof(holon));
-                var id = holon.Id == Guid.Empty ? Guid.NewGuid() : holon.Id;
-                var key = id.ToString("D");
-                var keys = holon.ProviderUniqueStorageKey == null
-                    ? new Dictionary<Core.Enums.ProviderType, string>()
-                    : new Dictionary<Core.Enums.ProviderType, string>(holon.ProviderUniqueStorageKey);
-                keys[Core.Enums.ProviderType.ElasticsearchOASIS] = key;
-                var payload = JsonSerializer.SerializeToNode(holon, holon.GetType(), _jsonOpts)!.AsObject();
-                payload["id"] = id;
-                payload["providerUniqueStorageKey"] = JsonSerializer.SerializeToNode(keys, _jsonOpts);
-                await UpsertDocAsync("oasis-holons", key, new Dictionary<string, object?>
+                var plan = HolonGraphWritePlan.CreateForSave(new[] { holon }, saveChildren, recursive, maxChildDepth, currentChildDepth);
+                var failed = new HashSet<Guid>();
+                foreach (var node in plan.Nodes)
                 {
-                    ["parentHolonId"] = holon.ParentHolonId.ToString(), ["holonType"] = (int)holon.HolonType,
-                    ["isDeleted"] = holon.IsDeleted, ["dataJson"] = payload.ToJsonString(_jsonOpts)
-                });
-                // Storage acknowledgement publishes keys; HolonManager owns tracking acceptance.
-                holon.Id = id;
-                holon.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
-                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.ElasticsearchOASIS] = key;
-                result.Result = holon;
-                result.IsSaved = true;
-                result.SavedCount = 1;
+                    var snapshot = node.Snapshot;
+                    if (failed.Contains(snapshot.ParentHolonId))
+                    {
+                        failed.Add(snapshot.Id);
+                        continue;
+                    }
+
+                    try
+                    {
+                        await SavePlannedHolonAsync(node);
+                        if (ReferenceEquals(node.Source, holon))
+                            result.Result = holon;
+                        result.SavedCount++;
+                    }
+                    catch (Exception ex)
+                    {
+                        failed.Add(snapshot.Id);
+                        OASISErrorHandling.HandleError(ref result, $"Elasticsearch did not save holon '{snapshot.Id}'.", ex);
+                        if (!continueOnError)
+                            break;
+                    }
+                }
+                result.IsSaved = result.SavedCount == plan.Nodes.Count;
             }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ElasticsearchOASIS: {ex.Message}"); }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"ElasticsearchOASIS: {ex.Message}", ex);
+            }
             return result;
+        }
+
+        private async Task SavePlannedHolonAsync(PlannedHolonWrite node)
+        {
+            var snapshot = node.Snapshot;
+            var key = snapshot.Id.ToString("D");
+            var keys = snapshot.ProviderUniqueStorageKey ?? new Dictionary<Core.Enums.ProviderType, string>();
+            keys[Core.Enums.ProviderType.ElasticsearchOASIS] = key;
+            var payload = JsonNode.Parse(node.CapturedIntentJson)!.AsObject();
+            payload.Remove("$type");
+            payload["Id"] = snapshot.Id;
+            payload["ParentHolonId"] = snapshot.ParentHolonId;
+            payload["ProviderUniqueStorageKey"] = JsonSerializer.SerializeToNode(keys);
+            await UpsertDocAsync("oasis-holons", key, new Dictionary<string, object?>
+            {
+                ["parentHolonId"] = snapshot.ParentHolonId.ToString("D"),
+                ["holonType"] = (int)snapshot.HolonType,
+                ["isDeleted"] = snapshot.IsDeleted,
+                ["dataJson"] = payload.ToJsonString()
+            });
+            node.Source.Id = snapshot.Id;
+            node.Source.ParentHolonId = snapshot.ParentHolonId;
+            node.Source.ProviderUniqueStorageKey = keys;
         }
 
         public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) => SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider).Result;
@@ -431,7 +490,8 @@ namespace NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS
             var saved = new List<IHolon>(); var errors = new List<string>();
             foreach (var h in holons)
             {
-                var write = await SaveHolonAsync(h, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
+                var write = await SaveGraphAsync(h, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError);
+                result.SavedCount += write.SavedCount;
                 if (write.IsError)
                 {
                     errors.Add(write.Message);
@@ -443,7 +503,6 @@ namespace NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS
             result.IsError = errors.Count > 0;
             result.ErrorCount = errors.Count;
             result.IsSaved = saved.Count > 0;
-            result.SavedCount = saved.Count;
             result.Message = string.Join("; ", errors);
             return result;
         }
@@ -458,7 +517,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS
             try
             {
                 var doc = await GetDocAsync("oasis-holons", id.ToString());
-                if (doc == null || GetSourceBool(doc.Value, "isDeleted")) { OASISErrorHandling.HandleError(ref result, $"ElasticsearchOASIS: No holon for ID '{id}'."); return result; }
+                if (doc == null || GetSourceBool(doc.Value, "isDeleted")) { OASISErrorHandling.HandleError(ref result, $"ElasticsearchOASIS: No holon for ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
                 var holon = Des<Holon>(GetSourceStr(doc.Value, "dataJson")); if (holon == null) { OASISErrorHandling.HandleError(ref result, "ElasticsearchOASIS: Deserialise failed."); return result; }
                 result.Result = holon; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "ElasticsearchOASIS: Holon loaded.";
             }
@@ -478,7 +537,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS
                 var query = type == HolonType.All ? (object)new { match_all = new { } } : new { term = new Dictionary<string, object> { ["holonType"] = (int)type } };
                 var hits = await SearchAsync("oasis-holons", query);
                 var holons = hits.Where(h => !GetSourceBool(h, "isDeleted")).Select(h => Des<Holon>(GetSourceStr(h, "dataJson"))).Where(h => h != null).Cast<IHolon>().ToList();
-                result.Result = holons; result.IsError = false; result.Message = $"ElasticsearchOASIS: Loaded {holons.Count} holon(s).";
+                result.Result = holons; result.IsLoaded = true; result.LoadedCount = holons.Count; result.Message = $"ElasticsearchOASIS: Loaded {holons.Count} holon(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ElasticsearchOASIS: {ex.Message}"); }
             return result;
@@ -496,7 +555,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS
                 if (type != HolonType.All) mustFilters.Add(new { term = new Dictionary<string, object> { ["holonType"] = (int)type } });
                 var hits = await SearchAsync("oasis-holons", new { @bool = new { must = mustFilters } });
                 var holons = hits.Where(h => !GetSourceBool(h, "isDeleted")).Select(h => Des<Holon>(GetSourceStr(h, "dataJson"))).Where(h => h != null).Cast<IHolon>().ToList();
-                result.Result = holons; result.IsError = false; result.Message = $"ElasticsearchOASIS: Loaded {holons.Count} holon(s) for parent '{id}'.";
+                result.Result = holons; result.IsLoaded = true; result.LoadedCount = holons.Count; result.Message = $"ElasticsearchOASIS: Loaded {holons.Count} holon(s) for parent '{id}'.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ElasticsearchOASIS: {ex.Message}"); }
             return result;
@@ -516,7 +575,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS
                 var loaded = await LoadHolonAsync(id); if (loaded.IsError || loaded.Result == null) { OASISErrorHandling.HandleError(ref result, $"ElasticsearchOASIS: Holon '{id}' not found."); return result; }
                 var holon = (Holon)loaded.Result; holon.DeletedDate = DateTime.UtcNow;
                 await UpsertDocAsync("oasis-holons", id.ToString(), new Dictionary<string, object?> { ["parentHolonId"] = holon.ParentHolonId.ToString(), ["holonType"] = (int)holon.HolonType, ["isDeleted"] = true, ["dataJson"] = Ser(holon) });
-                result.Result = holon; result.IsError = false; result.Message = $"ElasticsearchOASIS: Holon '{id}' soft-deleted.";
+                result.Result = holon; result.IsDeleted = true; result.DeletedCount = 1; result.Message = $"ElasticsearchOASIS: Holon '{id}' soft-deleted.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ElasticsearchOASIS: {ex.Message}"); }
             return result;
@@ -545,20 +604,39 @@ namespace NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS
 
         public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0) => SearchAsync(searchParams, loadChildren, recursive, maxChildDepth, continueOnError, version).Result;
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        { var all = await LoadAllHolonsAsync(type); var holons = all.Result?.Where(h => h.MetaData != null && h.MetaData.TryGetValue(metaKey, out var v) && v?.ToString() == metaValue).ToList() ?? new List<IHolon>(); return new OASISResult<IEnumerable<IHolon>> { Result = holons, IsError = false, Message = $"ElasticsearchOASIS: {holons.Count} holon(s)." }; }
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+            => FilterHolonsAsync(type, version,
+                h => h.MetaData != null && h.MetaData.TryGetValue(metaKey, out var value) && value?.ToString() == metaValue);
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadHolonsByMetaDataAsync(metaKey, metaValue, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKvp, MetaKeyValuePairMatchMode mode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        { var all = await LoadAllHolonsAsync(type); bool IsMatch(IHolon h) { if (h.MetaData == null) return false; var checks = metaKvp.Select(kvp => h.MetaData.TryGetValue(kvp.Key, out var v) && v?.ToString() == kvp.Value); return mode == MetaKeyValuePairMatchMode.Any ? checks.Any(c => c) : checks.All(c => c); } var holons = all.Result?.Where(IsMatch).ToList() ?? new List<IHolon>(); return new OASISResult<IEnumerable<IHolon>> { Result = holons, IsError = false, Message = $"ElasticsearchOASIS: {holons.Count} holon(s)." }; }
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKvp, MetaKeyValuePairMatchMode mode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+            => FilterHolonsAsync(type, version, h =>
+            {
+                if (metaKvp == null || metaKvp.Count == 0)
+                    return true;
+                if (h.MetaData == null)
+                    return false;
+                var checks = metaKvp.Select(pair => h.MetaData.TryGetValue(pair.Key, out var value) && value?.ToString() == pair.Value);
+                return mode == MetaKeyValuePairMatchMode.Any ? checks.Any(match => match) : checks.All(match => match);
+            });
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKvp, MetaKeyValuePairMatchMode mode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadHolonsByMetaDataAsync(metaKvp, mode, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
 
         // ─── Import / Export ──────────────────────────────────────────────────────
 
-        public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons) { var s = await SaveHolonsAsync(holons); return new OASISResult<bool> { Result = !s.IsError, IsError = s.IsError, Message = s.Message }; }
+        public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons) { var s = await SaveHolonsAsync(holons); return new OASISResult<bool> { Result = !s.IsError && s.IsSaved, IsError = s.IsError, IsSaved = s.IsSaved, SavedCount = s.SavedCount, Message = s.Message, Exception = s.Exception }; }
         public override OASISResult<bool> Import(IEnumerable<IHolon> holons) => ImportAsync(holons).Result;
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0) => await LoadAllHolonsAsync();
         public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0) => ExportAllAsync(version).Result;
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0) { var all = await LoadAllHolonsAsync(); var h = all.Result?.Where(x => x.CreatedByAvatarId == avatarId).ToList() ?? new List<IHolon>(); return new OASISResult<IEnumerable<IHolon>> { Result = h, IsError = false, Message = $"ElasticsearchOASIS: {h.Count} holon(s)." }; }
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
+            => FilterHolonsAsync(HolonType.All, version, h => h.CreatedByAvatarId == avatarId);
+
+        private async Task<OASISResult<IEnumerable<IHolon>>> FilterHolonsAsync(HolonType type, int version, Func<IHolon, bool> predicate)
+        {
+            var all = await LoadAllHolonsAsync(type, loadChildren: false, version: version);
+            if (all.IsError)
+                return all;
+            var records = all.Result.Where(predicate).ToList();
+            return new OASISResult<IEnumerable<IHolon>>(records) { IsLoaded = true, LoadedCount = records.Count };
+        }
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0) => ExportAllDataForAvatarByIdAsync(avatarId, version).Result;
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string u, int version = 0) { var a = await LoadAvatarByUsernameAsync(u); if (a.IsError || a.Result == null) { var r = new OASISResult<IEnumerable<IHolon>>(); OASISErrorHandling.HandleError(ref r, "Not found."); return r; } return await ExportAllDataForAvatarByIdAsync(a.Result.Id, version); }
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string u, int version = 0) => ExportAllDataForAvatarByUsernameAsync(u, version).Result;

@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. [Elasticsearch run 43204069260](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43204069260) passed activation, avatar save and point read in both modes, then stopped at username lookup. The adapter sent an invalid `bool_term` query before issuing the actual lookup. Username and email now issue only the native keyword query. The same candidate adds graph writes through the shared planner, exact hard avatar/detail delete acknowledgements, and native result counts for import, metadata selection and owner export. The next native suite is pending.
+
 12 November Cancun time. Elasticsearch now validates native document write identities and shard acknowledgements through a shared REST path, waits for search visibility, publishes avatar identities only after acknowledgement, and uses the canonical avatar-detail codec. Added both shared storage modes on disposable digest-pinned Elasticsearch 9.5.5 nodes, with exact tombstone cleanup and native index counts. Existing COSMIC HTTPS/CQL fixtures are outside this run. CI and full storage acceptance remain open.
 
 12 November Cancun time. [OpenSearch Development run 43202562656](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43202562656) passed 26/26 in both modes on the same exact tree `812e34bfb139b9c0ed18688a74f028dba157f221` with confirmed fixture cleanup. After the half-hour interval and seven successful baseline deployments, Development advanced to `52ace6727b58` with that four-file tree. The dependency pins and COSMIC/CQL files were preserved. Deployment remains open.
