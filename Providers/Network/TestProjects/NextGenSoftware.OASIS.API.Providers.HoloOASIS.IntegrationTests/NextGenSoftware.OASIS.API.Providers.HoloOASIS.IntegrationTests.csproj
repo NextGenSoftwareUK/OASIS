@@ -27,4 +27,10 @@
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop\NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="HoloNativeRoutingTests.cs" Condition="'$(HoloRoutingTests)' != 'true'" />
+    <Compile Include="../../../Shared/TestSupport/NativePriorityRouting.cs" Link="TestSupport/NativePriorityRouting.cs" Condition="'$(HoloRoutingTests)' == 'true'" />
+    <PackageReference Include="MSTest.TestFramework" Version="3.1.1" Condition="'$(HoloRoutingTests)' == 'true'" />
+    <ProjectReference Include="../../../Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.csproj" Condition="'$(HoloRoutingTests)' == 'true'" />
+  </ItemGroup>
 </Project>

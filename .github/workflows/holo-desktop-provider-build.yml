@@ -4,8 +4,6 @@ on:
   push:
     branches: [work/hyperdrive-provider-completion]
     paths:
-      - '.github/workflows/holo-desktop-provider-build.yml'
-      - 'Scripts/test_holonet_live_release.ps1'
       - 'OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader.TestHarness/Program.cs'
       - 'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/Repositories/GenericRepository.cs'
       - 'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/Helpers/DataHelper.cs'
@@ -14,7 +12,6 @@ on:
       - 'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/Holochain Objects/HcHolon.cs'
       - 'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/OASIS_hAPP/**'
       - 'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop/**'
-      - 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests/**'
   workflow_dispatch:
     inputs:
       verification:
@@ -25,6 +22,17 @@ on:
       development_revision:
         description: Development commit to qualify (defaults to the current Development head)
         type: string
+
+  workflow_call:
+    inputs:
+      verification:
+        type: string
+        required: true
+      development_revision:
+        type: string
+    secrets:
+      PRIVATE_SUBMODULE_PAT:
+        required: true
 
 permissions:
   contents: read
@@ -70,6 +78,8 @@ jobs:
           submodules: recursive
           persist-credentials: false
       - name: Apply the scoped HoloOASIS changes
+        env:
+          HOLO_VERIFICATION: ${{ inputs.verification }}
         shell: pwsh
         run: |
           $PSNativeCommandUseErrorActionPreference = $true
@@ -92,9 +102,19 @@ jobs:
             'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests/HoloOASISIntegrationTests.cs'
             'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests.csproj'
           )
+          $routingBase = '41f685efd3ef66f7b4226edc4e6fca0991c3876d'
+          if ($env:HOLO_VERIFICATION -eq 'routing') {
+            $paths = @(
+              'Scripts/test_holonet_live_release.ps1'
+              'Providers/Shared/TestSupport/NativePriorityRouting.cs'
+              'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests/HoloNativeRoutingTests.cs'
+              'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests.csproj'
+            )
+            git -C $source fetch --no-tags --depth=1 --filter=blob:none origin $routingBase
+          }
           git -C $source fetch --no-tags --depth=1 --filter=blob:none origin $startupBase $storageBase
           foreach ($path in $paths) {
-            $base = if ($path -eq 'Scripts/test_holonet_live_release.ps1' -or
+            $base = if ($env:HOLO_VERIFICATION -eq 'routing') { $routingBase } elseif ($path -eq 'Scripts/test_holonet_live_release.ps1' -or
               $path -like '*/NextGenSoftware.OASIS.OASISBootLoader.TestHarness/Program.cs' -or
               $path -like '*/NextGenSoftware.OASIS.API.Providers.HoloOASIS/HoloOASIS.ActivateDeactivateLoad.cs') { $startupBase } else { $storageBase }
             $before = git -C $source ls-tree $base -- $path
@@ -153,7 +173,10 @@ jobs:
           $project = 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests.csproj'
           try {
             ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-HoloOASIS -Operation {
-              if ($env:HOLO_VERIFICATION -eq 'storage') {
+              if ($env:HOLO_VERIFICATION -eq 'routing') {
+                ./Scripts/test_holonet_live_release.ps1 -Project $client -Happ $happ -ResultsDirectory $artifact -DesktopProject $project -HoloRouting
+              }
+              elseif ($env:HOLO_VERIFICATION -eq 'storage') {
                 ./Scripts/test_holonet_live_release.ps1 -Project $client -Happ $happ -ResultsDirectory $artifact -DesktopProject $project -HoloConformance
               }
               else {

@@ -7,14 +7,15 @@ param(
     [string]$DesktopProject,
     [string]$BootLoaderProject,
     [switch]$HoloConformance,
+    [switch]$HoloRouting,
     [string]$CqlProject
 )
 $ErrorActionPreference = 'Stop'
-if (($BootLoaderProject -and ($DesktopProject -or $HoloConformance -or $CqlProject)) -or
+if (($BootLoaderProject -and ($DesktopProject -or $HoloConformance -or $HoloRouting -or $CqlProject)) -or
     ($DesktopProject -and $CqlProject)) {
     throw 'Select one provider verification path.'
 }
-if ($HoloConformance -and -not $DesktopProject) {
+if (($HoloConformance -or $HoloRouting) -and -not $DesktopProject) {
     throw 'HoloOASIS conformance requires the integration test project.'
 }
 function Assert-CompleteTestReport([string]$Path, [int]$Minimum) {
@@ -191,10 +192,11 @@ try {
     elseif ($DesktopProject) {
         $env:OASIS_HOLOCHAIN_ADMIN_URI = $env:HOLONET_LIVE_ADMIN_URI
         $env:OASIS_HOLOCHAIN_REPORT_DIR = $ResultsDirectory
-        $test = if ($HoloConformance) { 'HoloCoreStorageConformance' } else { 'DesktopAvatarAndHolonCrud' }
-        $minimum = if ($HoloConformance) { 2 } else { 1 }
+        $test = if ($HoloRouting) { 'HoloNativeRoutingTests' } elseif ($HoloConformance) { 'HoloCoreStorageConformance' } else { 'DesktopAvatarAndHolonCrud' }
+        $minimum = if ($HoloConformance -or $HoloRouting) { 2 } else { 1 }
         $timeoutOptions = @()
         if ($HoloConformance) { $timeoutOptions = @('--blame-hang-timeout', '2m', '--blame-hang-dump-type', 'none') }
+        if ($HoloRouting) { $timeoutOptions += "/p:HoloRoutingTests=true" }
         & dotnet test $DesktopProject --configuration $Configuration --filter "FullyQualifiedName~$test" --logger 'trx;LogFileName=holo-desktop-native.trx' --results-directory $ResultsDirectory /m:2 /nr:false /p:UseSharedCompilation=false @timeoutOptions
         if ($LASTEXITCODE -ne 0) { throw "Native Holo Desktop check failed: $test." }
         Assert-CompleteTestReport (Join-Path $ResultsDirectory 'holo-desktop-native.trx') $minimum

@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+12 November canonical HoloOASIS routing uses a disposable hosted conductor and SQLite files under the runner results directory. The temporary index for combined audit-trail Development candidate b37daf68dd8c was removed and verified absent. No local build, runtime or reports were created.
+
 12 November combined Polkadot and Solana candidate 0902c4afc256 used one temporary Git index. The index was removed and verified absent. No local build, runtime or test data was created.
 
 12 November Solana run 43318892483 verified no active fixture holons in finalized history after tombstones and removed the owned Agave directory, including runtime, ledger, signer, SQLite and reports. No local artifacts were created.

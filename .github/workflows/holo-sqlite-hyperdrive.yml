@@ -1,0 +1,21 @@
+name: Canonical HoloOASIS and SQLite HyperDrive routing
+
+on:
+  push:
+    branches: [work/hyperdrive-provider-completion]
+    paths:
+      - '.github/workflows/holo-sqlite-hyperdrive.yml'
+      - 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests/HoloNativeRoutingTests.cs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  routing:
+    uses: ./.github/workflows/holo-desktop-provider-build.yml
+    with:
+      verification: routing
+    secrets:
+      PRIVATE_SUBMODULE_PAT: ${{ secrets.PRIVATE_SUBMODULE_PAT }}

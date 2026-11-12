@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. Added isolated canonical HoloOASIS and SQLite HyperDrive routing against the official conductor and verified shipping hApp. The routing workflow overlays test inputs only. It checks both replica and read outage directions, RoundRobin, and native record cleanup. Prior direct storage evidence carries forward. The hosted SQLite outbox barrier and existing private HoloOASIS cohorts remain under COSMIC coordination. Native routing is pending.
+
 12 November Cancun time. Development advanced to holon audit-trail revision 41f685efd3ef, including a new Core pin. The nine Polkadot and Solana routing paths do not overlap the audit-trail changes. Both focused workflows now qualify against the new parent. The previous runs retain their Ethereum-baseline scope. [Development CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43320386097) records the push at 17:29:35 Cancun time. Review the next window after 17:59:35 and confirm the fleet before integrating.
 
 12 November Cancun time. Prepared combined candidate 0902c4afc256 on Ethereum Development 20ffcc68decb. Its nine paths are the six qualified Polkadot paths plus three Solana test paths, with identical shared helper bytes. The combined tree is 99f6c1bf751f206bf0b8f5dc9de8377fe6ffbe4d. [Solana qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43319960167) must pass on its independently reproduced tree 6f0bd8fa2f103200fa443dc9326a7ea6fb320500 before the combined candidate is eligible. The Polkadot-only candidate remains qualified if the Solana gate has not passed at the shared review.
