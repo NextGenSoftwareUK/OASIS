@@ -1,5 +1,7 @@
 # Current provider status
 
+Routing run 43131088291 returned exit code 1 with no stage-specific error annotation, and job log access returned HTTP 403. The Mapbox harness project still tried to copy a missing Development DNA file despite running directly against the Mapbox service. That stale content dependency was removed. The routing workflow now emits a named error annotation for each failed command. Exact rerun pending.
+
 BootLoader run 43130238989 failed to compile HoloNET ORM, Cardano and Hedera because its checkout omitted the pinned HoloNET Client and Chaos.NaCl sibling. The workflow now uses the same manifest-pinned source checkout as the verified BNB BootLoader job. Routing CI now runs the corrected Mapbox unit project and builds the live harness. [BootLoader CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43131088367) and [routing CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43131088291) are queued at 85f1d49190d6.
 
 Mapbox solution test projects now use the actual map adapter. The unit project checks identity and invalid travel mode. The console harness makes an opt-in real driving request through the shared contract and exits with a failure code if the credential is missing or the request fails. Both replace legacy tests for nonexistent storage operations. Build and authenticated execution remain open.
