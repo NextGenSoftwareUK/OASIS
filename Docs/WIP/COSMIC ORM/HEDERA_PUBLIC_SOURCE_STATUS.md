@@ -143,3 +143,5 @@ WEB4 diagnostic regression gate complete: CI 42938257820/job 130253566184 succee
 11 November UTC: after the AvalancheGo WEB4 rollout restored Cosmos and Hedera readiness, the authenticated visitor ran both native public HTTP presets for each provider. Both returned three full and two filtered rows, with exact preset selections and strict subset containment. Prior private cohorts were preserved.
 
 12 November UTC: live Development 922321a8aa9d reports Hedera unavailable after activation timed out awaiting response headers (15,008 ms, no HTTP status). The rollout did not change Hedera reader or CQL files. Existing owner recovery action applies; no recovery, settings change or query replay was performed.
+
+Development WEB4 5251dc6df still reports Hedera unavailable in CQL discovery. A single read of the existing public 0.0.2 mirror account returned HTTP 200 with response headers in 184 ms from the live WEB4 container. The local Windows probe also returned 200. This establishes reachability at observation time. The protected operator session is still required to rerun WEB4 activation.

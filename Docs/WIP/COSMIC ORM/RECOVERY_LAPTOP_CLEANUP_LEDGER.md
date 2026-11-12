@@ -6352,3 +6352,5 @@ Track temporary ci-cosmic-tron-core-a7fa20bf and ci-cosmic-tron-web4-d4b9bf1ba8 
 12 November UTC: checked exact Hedera activation evidence and existence of the protected Wizard session directory without reading credentials or starting recovery. Temporary documentation index removed. No new local files, builds or downloads.
 
 Resumed with a read-only live catalogue check. Four protected renewal files retained with the existing visitor. Temporary Git indices removed. No local build, downloads or new environment.
+
+Read bounded Railway startup logs in memory and made one public Hedera read from the live container with its existing Node runtime. Curl was unavailable in the container; nothing was installed. No report, local build, new session, fixture or download retained. Temporary documentation index removed.

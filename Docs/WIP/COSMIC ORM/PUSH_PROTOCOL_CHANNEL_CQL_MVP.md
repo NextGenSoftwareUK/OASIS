@@ -115,3 +115,5 @@ matched the exact Git blob at SHA-256
 Interactive browser acceptance remains open.
 
 11 November UTC: the live Development WEB4 CQL Playground rendered three PushProtocolOASIS public teaching rows and two filtered rows from the native provider. The existing demo visitor was reused. Private paired browser verification remains open.
+
+Development WEB4 5251dc6df discovery reports PushProtocolOASIS unavailable. Deployment 20c690dc logged cancellation during activation at 15,001 ms, with stage unclassified and no HTTP status. The exact failure stage and current native reachability remain open. No source recovery or private preparation was attempted.
