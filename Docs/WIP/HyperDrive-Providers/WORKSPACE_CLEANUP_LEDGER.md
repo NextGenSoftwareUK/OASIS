@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+12 November exact Oracle routing run 43301442901 removed its owned Oracle container, volumes, SQLite files and test output. The temporary Git index used to reproduce the tested tree was removed and confirmed absent. No local build or runtime was created.
+
 12 November Azure Cosmos DB routing uses a disposable CI emulator. Each mode creates an exact named database, verifies absence after deletion and uses a runner-owned SQLite file. The runner removes the emulator, volumes and test directory. No local runtime, build, database or report was created.
 
 12 November Oracle routing run 43300382334 passed both modes, confirmed zero native holon rows and removed the owned Oracle container, volumes, SQLite files and test output. The Development push used the existing scoped Git commit and generated no local fixtures.

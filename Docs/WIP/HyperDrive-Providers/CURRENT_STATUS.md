@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. [Exact Oracle qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43301442901) passed both modes against Development tree `cbf46bf6d73fdcc3bede94744e8556ab97924b5b`. Candidate `5832a12a77d8` reproduces the two tested paths on `df02d6f43bfe`. [Azure Cosmos DB routing CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43302316499) is active. The next Development review remains after 16:01:41 Cancun time.
+
 12 November Cancun time. Added priority routing verification for Azure Cosmos DB and SQLite using the existing digest-pinned Microsoft emulator. The shared test checks both replica and read-outage directions, verifies actual RoundRobin attribution and independently confirms removal of the owned Cosmos database. Existing Azure Storage and Firestore receipts remain scoped to their providers. Hosted Azure remains deferred.
 
 12 November Cancun time. Development advanced to `df02d6f43bfe` with six verified SQL Server, Supabase and S3 routing test paths after all seven preceding deployments and managed HoloOASIS live public CQL acceptance. The remote ref and dependency manifest were verified. The [Development workflow](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43301182316) was created at 15:31:41 Cancun time. The next review is after 16:01:41. [Oracle routing run 43300382334](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43300382334) passed both native modes with bidirectional replication, both outage directions and an even RoundRobin split. Exact Development qualification uses two scoped test paths. Hosted Oracle remains deferred.
