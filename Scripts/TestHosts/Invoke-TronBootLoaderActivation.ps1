@@ -69,4 +69,3 @@ if ($LASTEXITCODE -ne 0) { throw 'Could not restrict fixture DNA permissions.' }
     dotnet run --no-build --no-restore --project $project -- $dnaPath $provider
     if ($LASTEXITCODE -ne 0) { throw 'Native TRON BootLoader activation failed.' }
 }
-
