@@ -62,7 +62,7 @@ jobs:
         if: inputs.routing
         shell: bash
         run: |
-          base=e0f31525933400f200c6736a54bf579447619256
+          base=20ffcc68decbf2c2baca055e1d2842c38cf4a678
           git -C ../provider-source fetch --no-tags --depth=1 origin "$base"
           provider='Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS'
           tests='Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.IntegrationTests'

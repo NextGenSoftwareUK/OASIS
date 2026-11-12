@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. Development advanced to COSMIC Ethereum 20ffcc68decb. The six Polkadot paths do not overlap. Ethereum advances the Core pin, so the exact Polkadot workflow now qualifies against the new Development baseline. ActivityPub's second build exposed object-typed metadata in the xUnit assertion. The fixed assertion verifies the HTML field's native string type. Native rerun pending.
+
 12 November Cancun time. Hedera async routing passed. Sync reached the consensus outage and the SDK's internal timeout carried an OperationCanceledException, so HyperDrive treated it as caller cancellation and did not fail over to SQLite. The adapter now types its unmetered SDK read deadline and advertises that exact transport failure to HyperDrive. Caller cancellation, prepared query evidence and mutation reconciliation retain their existing behavior. Replacement native CI is pending. COSMIC's exact Ethereum image passed, so COSMIC owns the 17:07:34 window. Rebuild the verified Polkadot scope once its Development parent advances.
 
 12 November Cancun time. ActivityPub run 43315834312 provisioned Mastodon but stopped at compilation because the test lacked the Core request namespace. Added the import and confirmed the fixture teardown from the failed run. Routed native acceptance is pending replacement CI.
