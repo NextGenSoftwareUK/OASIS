@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+12 November Garnet run 43288930206 removed its owned runtime, data and checkpoint directory after the async write-contract failure. The next run gives each mode an independent disposable fixture. No local build output was generated.
+
 12 November Garnet run 43288468689 stopped at the native key-count probe. The disposable runner stopped Garnet and removed its owned runtime, data and report directory. No local runtime or build was created.
 
 12 November Garnet qualification uses one disposable runner directory for the pinned archive, process working data, native logs and compact checkpoints. The exit trap stops the owned process and removes that directory. No local runtime or build was created.

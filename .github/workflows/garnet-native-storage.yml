@@ -14,6 +14,10 @@ permissions:
 
 jobs:
   storage:
+    strategy:
+      fail-fast: false
+      matrix:
+        mode: [Async, Sync]
     runs-on: ubuntu-latest
     timeout-minutes: 20
     defaults:
@@ -51,8 +55,10 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
-      - name: Run both storage modes through the shipping Garnet adapter
+      - name: Run the shipping Garnet storage adapter
         shell: bash
+        env:
+          OASIS_GARNET_MODE: ${{ matrix.mode }}
         run: |
           fixture="$(mktemp -d "$RUNNER_TEMP/oasis-garnet.XXXXXXXX")"
           server=""
@@ -80,15 +86,16 @@ jobs:
           "$fixture/net10.0/GarnetServer" --version | grep -F '2.2.5'
           mkdir "$fixture/data"
           (cd "$fixture/data"; exec "$fixture/net10.0/GarnetServer" --bind 127.0.0.1 --port 19692 \
-            --memory 128m --checkpointdir "$fixture/data/checkpoints") >"$fixture/server.log" 2>&1 &
+            --memory 128m --lua --lua-transaction-mode --checkpointdir "$fixture/data/checkpoints") >"$fixture/server.log" 2>&1 &
           server=$!
           query() {
             python3 -c 'import socket,sys
           with socket.create_connection(("127.0.0.1", 19692), 3) as client:
-              command = sys.argv[1].encode("ascii")
-              client.sendall(b"*1\r\n$" + str(len(command)).encode("ascii") + b"\r\n" + command + b"\r\n")
+              args = [arg.encode("ascii") for arg in sys.argv[1:]]
+              prefix = f"*{len(args)}\r\n".encode("ascii")
+              client.sendall(prefix + b"".join(f"${len(arg)}\r\n".encode("ascii") + arg + b"\r\n" for arg in args))
               with client.makefile("rb") as response:
-                  print(response.readline().decode("ascii").strip())' "$1"
+                  print(response.readline().decode("ascii").strip())' "$@"
           }
           for attempt in {1..30}; do
             kill -0 "$server"
@@ -96,18 +103,17 @@ jobs:
             [[ "$attempt" != 30 ]]
             sleep 1
           done
+          [[ "$(query EVAL "return 1" 0)" == ':1' ]]
           [[ "$(query DBSIZE)" == ':0' ]]
           export OASIS_GARNET_LIFECYCLE_REPORT_ROOT="$fixture/reports"
           export GARNET_CONN=127.0.0.1:19692,abortConnect=true,connectRetry=0
           export OASIS_GARNET_STORAGE_ENCRYPTION_KEY="$(openssl rand -base64 32)"
           pwsh -NoProfile -Command '
             ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-GarnetStorage -Operation {
-              dotnet test "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.GarnetOASIS.IntegrationTests" --filter "FullyQualifiedName~SharedStorageLifecycle" /m:2 /nr:false /p:UseSharedCompilation=false --logger "console;verbosity=normal"
+              dotnet test "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.GarnetOASIS.IntegrationTests" --filter "FullyQualifiedName~SharedStorageLifecycle$env:OASIS_GARNET_MODE" /m:2 /nr:false /p:UseSharedCompilation=false --logger "console;verbosity=normal"
               if ($LASTEXITCODE -ne 0) { throw "Garnet native storage verification failed." }
             }'
-          for mode in async sync; do
-            checkpoint="$fixture/reports/$mode/report.json"
-            jq -e '.Succeeded and .FixtureCleanupComplete and (.Passed | length == 26)' "$checkpoint" >/dev/null
-          done
+          checkpoint="$fixture/reports/${OASIS_GARNET_MODE,,}/report.json"
+          jq -e '.Succeeded and .FixtureCleanupComplete and (.Passed | length == 26)' "$checkpoint" >/dev/null
           [[ "$(query DBSIZE)" == ':0' ]]
           echo "Verified zero native keys after exact fixture cleanup."

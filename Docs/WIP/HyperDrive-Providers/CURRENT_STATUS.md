@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. [Garnet run 43288930206](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43288930206) passed 11 async checks and stopped on the first conditional holon update. The sync case stopped at empty-database admission because the first failure retained its records. The shipping adapter uses Lua for atomic conditional mutation. The disposable server now enables Lua transaction mode, verifies EVAL before dispatch and isolates each mode in its own job. Native verification of this configuration remains open.
+
 12 November Cancun time. [Garnet run 43288468689](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43288468689) verified the official 2.2.5 archive and started the loopback server. The independent native count probe sent an inline command Garnet rejected. Both readiness and native key-count commands now use RESP array framing. No lifecycle checks ran in the initial job.
 
 12 November Cancun time. Added a disposable Linux qualification for the current Garnet 2.2.5 shipping adapter. Existing Windows split receipts carry forward. This run checks the uninterrupted native lifecycle in both modes on one fresh Linux fixture, verifies exact cleanup and independently checks zero keys. COSMIC fixture files and settings are separate.

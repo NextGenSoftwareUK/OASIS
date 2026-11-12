@@ -61,3 +61,5 @@ Configure `OASIS_GARNET_STORAGE_ENCRYPTION_KEY` as canonical Base64 for a separa
 Enable Lua scripting and Lua transaction mode on the Garnet instance used by this provider. The shared Redis transport uses conditional Lua mutations for record updates and deletes. On Garnet 2.2.5 the verified launch flags are `--lua --lua-transaction-mode`. Set the bind address and port separately for your deployment.
 
 The focused native child cleanup test passed in both calling modes with that configuration. It confirmed removal of the encrypted relationship key, absence of the deleted child, and continued access to the parent. The same test stopped at the default deletion call when Lua was disabled.
+
+Garnet storage updates and conditional deletes use the shared Redis transport's atomic Lua operations. Enable `--lua` and `--lua-transaction-mode` on the Garnet server used for storage. [Garnet configuration](https://microsoft.github.io/garnet/docs/getting-started/configuration).

@@ -13,10 +13,13 @@ namespace NextGenSoftware.OASIS.API.Providers.GarnetOASIS.IntegrationTests;
 [TestClass, DoNotParallelize]
 public class GarnetOASISIntegrationTests
 {
-    [DataTestMethod]
-    [DataRow(false)]
-    [DataRow(true)]
-    public async Task SharedStorageLifecycle(bool synchronous)
+    [TestMethod]
+    public Task SharedStorageLifecycleAsync() => RunSharedStorageLifecycleAsync(synchronous: false);
+
+    [TestMethod]
+    public Task SharedStorageLifecycleSync() => RunSharedStorageLifecycleAsync(synchronous: true);
+
+    private async Task RunSharedStorageLifecycleAsync(bool synchronous)
     {
         var root = Environment.GetEnvironmentVariable("OASIS_GARNET_LIFECYCLE_REPORT_ROOT");
         if (string.IsNullOrWhiteSpace(root))
