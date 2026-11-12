@@ -6406,3 +6406,5 @@ Removed four superseded Urbit CI tags ending 33977c56be, 98fae8117c, 2784481190 
 Web4Site EOS/TON card test run used existing Node and temporary exact tracked inputs. All 122 tests passed; the directory and temporary index were removed. No dependencies, logs, packages or runtime retained.
 
 Inspected only Infura setting names through existing Railway authentication. Prepared a one-line Core candidate with a temporary Git index and removed it. No local build, credentials retained, runtime or download.
+
+Track CI tags ci-cosmic-infura-core-9e4ee4a0 and ci-cosmic-infura-web4-3c5559c601 for 43163893924. The Holo Desktop cutover read reused the retained visitor and wrote four protected renewal files. Temporary Git indices removed. No local build, image or download.

@@ -92,3 +92,5 @@ the registered reader to verify three finalized accounts and a two-account
 subset, with the exact preset IDs. The native case awaits authorized access.
 
 12 November UTC. Checked the three scoped Infura CQL settings by name only. Neither the recovery laptop nor WEB4 Development has any of them. The existing protected access action remains open. Prepared local Core candidate 9e4ee4a0 on the verified Urbit Core candidate 7ea7639c. It adds only the explicit Infura read tariff and preserves Urbit and TRON. WEB4 reconciliation and exact qualification remain open. No hosted request, tag or Development push.
+
+12 November UTC. Candidate 3c5559c601 carries the existing Ethereum reader, its protected configuration, the explicit Core read tariff and the reviewed retirement behavior for the discontinued Infura IPFS transport. It preserves the Urbit candidate and uses matching Core gitlink and Railway manifest pin 9e4ee4a0. [Controlled CI 43163893924](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43163893924) is queued. No authenticated Infura request or Development push.

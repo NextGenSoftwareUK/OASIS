@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Holo Desktop cutover and Infura qualification
+
+WEB4 `bfa0be4be233` deployed successfully (`7729252735`). The retained authenticated visitor confirmed 105/106 native and federated sources ready. Nostr remained unavailable. Urbit is still the next scoped Development candidate. Infura candidate `3c5559c601` builds on that Urbit candidate with Core `9e4ee4a0`; [controlled CI 43163893924](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43163893924) was queued.
+
 ## Urbit qualification passed and reconciled with Holo Desktop
 
 All 30 boundary cases passed on `27d07f280c` in [CI 43160306525](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43160306525). HyperDrive advanced Development to `bfa0be4be233` with six Holo Desktop paths outside the WEB4 project graph and no Urbit overlap. Local candidate `751e5ca190` preserves all 38 Urbit paths byte for byte. WEB4 deployment `7729252735` is in progress. The next shared push window starts after 05:55:21 UTC, subject to queue and branch checks.
