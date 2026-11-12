@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Urbit candidate reconciled with Development
+
+Development moved to `f9011d511056` with three Core unit-test updates while native Urbit CI was running. Local candidate `27d07f280c` preserves that revision and all 38 Urbit paths byte for byte. [Native federation CI 43157661058](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43157661058) is still executing on its earlier base. WEB4 deployment `7728790300` is in progress. Release and hosted enrollment remain open.
+
 ## Urbit WEB4 qualification
 
 Candidate `33977c56be` carries the existing owner-bound Urbit contact-book reader onto Development `37996465f605` with Core `7ea7639c`. [Exact CI 43151137417](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43151137417) is running the 30 hosted boundary cases. Urbit remains unenrolled while the reviewed HTTPS fixture is open.
