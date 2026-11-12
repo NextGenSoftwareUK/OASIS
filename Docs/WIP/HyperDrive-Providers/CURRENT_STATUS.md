@@ -17,6 +17,8 @@
 
 ## Verification log
 
+12 November Cancun time. [Provider run 43174783071](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43174783071) stopped at compilation because the positional GUID string matched the HoloNET request-ID overload as well as the typed payload overload. The call now names the payload and return type explicitly. The build did not reach the conductor. [Native hApp CI](https://github.com/NextGenSoftwareUK/OASIS-Holochain-hApp/actions/runs/43174295696) remained active at inspection.
+
 12 November Cancun time. Reconciled EOSIO, NEAR, Hedera/Hashgraph and SQL Server native 52/52 coverage against the exact completed CI jobs and their per-mode assertion and cleanup gates. Run, job, revision and backend identities are in the registry. No provider tests were rerun.
 
 12 November Cancun time. [Canonical run 43173783746](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43173783746) passed 18 checks in both modes, including owner export. Both acknowledged the first holon delete and then failed independent absence because the ORM converted native null into a generic error. Current GUID reads now use the HoloNET response directly and report record-not-found only on an acknowledged null result. GUID deletes now use native identity entry points. The hApp dependency candidate `f5723eab3d3d` is on its isolated provider branch and deletes all linked actions for an ID, including avatar details when deleting an avatar. [Native hApp CI](https://github.com/NextGenSoftwareUK/OASIS-Holochain-hApp/actions/runs/43174295696) is active. Combined provider verification will require the resulting verified bundle.

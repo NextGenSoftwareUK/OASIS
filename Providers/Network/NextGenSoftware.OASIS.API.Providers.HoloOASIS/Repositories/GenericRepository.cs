@@ -115,7 +115,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Repositories
             IHoloNETAuditEntryBase entry, OASISResult<T> result) where T : IHolonBase
         {
             var response = await HoloNETClientAppAgent.CallZomeFunctionAsync(entry.ZomeName,
-                entry.ZomeLoadEntryFunction, id, entry.GetType());
+                entry.ZomeLoadEntryFunction, paramsObject: (object)id,
+                entryDataObjectTypeReturnedFromZome: entry.GetType());
             if (response == null || response.IsError)
                 return HandleLoadResponse(response, type, "id", id, entry, result, "LoadCurrentByIdAsync");
 

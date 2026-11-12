@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+12 November provider run 43174783071 stopped at compilation on its disposable Windows runner. No local build output, download, or report was created.
+
 12 November canonical HoloOASIS run 43173783746 reached 18 checks in both modes on a disposable Windows runner. The hApp dependency candidate used a temporary Git index and one temporary source file, both removed. The hApp build and conductor tests run on disposable hosted CI. No local build or test downloads were created.
 
 12 November canonical HoloOASIS run 43172617448 reached 17 checks in both modes before owner export failed. It used the disposable Windows runner and no local build output, download or report.
