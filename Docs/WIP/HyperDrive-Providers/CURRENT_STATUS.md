@@ -1,6 +1,6 @@
 # Current provider status
 
-11 November Cancun time. Development advanced from 2441de16f296 to 37996465f605 with the scoped Polkadot activation and zkPass verifier batch after the prior WEB4 deployment succeeded and the half-hour window elapsed. Native Polkadot CI 43138621689 and genuine zkPass JSON CI 43145993162 passed on the provider branch. The scoped provider changes were compared against those revisions. The combined revision preserves Development pins and COSMIC enrollment. Its deployment and combined runtime remain pending.
+11 November Cancun time. Development advanced from 2441de16f296 to 37996465f605 with the scoped Polkadot activation and zkPass verifier batch after the prior WEB4 deployment succeeded and the half-hour window elapsed. Native Polkadot CI 43138621689 and genuine zkPass JSON CI 43145993162 passed on the provider branch. The scoped provider changes were compared against those revisions. The combined revision preserves Development pins and COSMIC enrollment. Railway confirmed WEB4 deployment success at 37996465f605. Combined provider runtime verification remains open.
 
 11 November Cancun time. Development advanced from 8e3f15e42e36 to 2e2635057bb4 with the TRON registration guard, activation harness and native fixture CI verified in run 43136508779. The prior WEB4 deployment succeeded and the half-hour window elapsed. Development dependency pins and COSMIC enrollment were preserved. Railway confirmed the WEB4 deployment succeeded at 2e2635057bb4. Polkadot registration remains on the task branch pending reconciliation of shared-file conflicts.
 
@@ -543,4 +543,6 @@ Holo Desktop now exposes a shipping provider class backed by the canonical HoloN
 
 Holo Desktop has a dedicated real-conductor avatar and holon lifecycle test using the canonical integration suite. The fixture supplies dedicated admin and app-agent endpoints. Disposable CI builds the Desktop package and test. Live execution remains open.
 
-Holo Desktop build run 43150864332 failed at workflow parsing before any job started. Removed a truncated registration step that was accidentally copied into the generated workflow. The corrected build and native execution remain open.
+Holo Desktop build run 43150864332 failed at workflow parsing before any job started. Removed a truncated registration step that was accidentally copied into the generated workflow. [The corrected build](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43151724196) passed. Native execution remains open.
+
+The checked-in canonical and Android Holo hApp bundles both declare manifest version 0. The release validation expects a source-matched generated hApp and pins the Windows conductor to 0.7.1. The manifest inspection was in memory and created no artifacts. A matching generated bundle is required for the new desktop lifecycle run.
