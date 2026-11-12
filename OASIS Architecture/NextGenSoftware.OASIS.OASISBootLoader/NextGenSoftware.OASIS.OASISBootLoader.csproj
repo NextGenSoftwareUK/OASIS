@@ -77,6 +77,7 @@
     <ProjectReference Include="..\..\Providers\Cloud\NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS\NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.csproj" />
     <ProjectReference Include="..\..\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS\NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.csproj" />
     <ProjectReference Include="..\..\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.EOSIOOASIS\NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.csproj" />
+    <ProjectReference Include="..\..\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.TONOASIS\NextGenSoftware.OASIS.API.Providers.TONOASIS.csproj" />
     <ProjectReference Include="..\..\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.EthereumOASIS\NextGenSoftware.OASIS.API.Providers.EthereumOASIS.csproj" />
     <ProjectReference Include="..\..\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.HashgraphOASIS\NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.csproj" />
     <ProjectReference Include="..\..\Providers\Network\NextGenSoftware.OASIS.API.Providers.HoloOASIS\NextGenSoftware.OASIS.API.Providers.HoloOASIS.csproj" />

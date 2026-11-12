@@ -22,6 +22,7 @@ using PolkadotProvider = NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.Polka
 using PolygonProvider = NextGenSoftware.OASIS.API.Providers.PolygonOASIS.PolygonOASIS;
 using SolanaProvider = NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.SolanaOASIS;
 
+using TonProvider = NextGenSoftware.OASIS.API.Providers.TONOASIS.TONOASIS;
 using TronProvider = NextGenSoftware.OASIS.API.Providers.TRONOASIS.TRONOASIS;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
@@ -82,6 +83,7 @@ public sealed class CqlHostedSourceRegistry : ICqlHostedSourceRegistry
     private readonly string cosmosPublicValidatorConfiguration;
     private readonly string polkadotPublicHeaderConfiguration;
     private readonly string hederaPublicAccountConfiguration;
+    private readonly string tonPublicHeaderConfiguration;
 
     private readonly ILogger<CqlHostedSourceRegistry> logger;
     private readonly TronPublicCqlConfiguration tronPublicConfiguration;
@@ -107,6 +109,7 @@ public sealed class CqlHostedSourceRegistry : ICqlHostedSourceRegistry
         cosmosPublicValidatorConfiguration = configuration?["CQL_COSMOS_PUBLIC_SOURCE_JSON"];
         polkadotPublicHeaderConfiguration = configuration?["CQL_POLKADOT_PUBLIC_SOURCE_JSON"];
         hederaPublicAccountConfiguration = configuration?["CQL_HEDERA_PUBLIC_SOURCE_JSON"];
+        tonPublicHeaderConfiguration = configuration?["CQL_TON_PUBLIC_SOURCE_JSON"];
     }
 
     public IOASISStorageProvider Find(ProviderType provider)
@@ -125,6 +128,8 @@ public sealed class CqlHostedSourceRegistry : ICqlHostedSourceRegistry
             if (registration == null || registration.IsError || registration.Result == null)
                 throw new InvalidOperationException("CQL_SOURCE_REGISTRATION_FAILED");
             storage = registration.Result;
+            if (storage is TonProvider ton && tonPublicHeaderConfiguration != null)
+                ton.ConfigurePublicHeaderQuery(tonPublicHeaderConfiguration);
             if (storage is HederaProvider hedera && hederaPublicAccountConfiguration != null)
                 hedera.ConfigurePublicAccountQuery(hederaPublicAccountConfiguration);
             if (storage is TronProvider tron)

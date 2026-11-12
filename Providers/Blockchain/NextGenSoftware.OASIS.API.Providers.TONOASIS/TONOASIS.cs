@@ -7,13 +7,18 @@ namespace NextGenSoftware.OASIS.API.Providers.TONOASIS;
 /// TON integration built on top of TON EVM, allowing us to reuse the standard Web3Core
 /// contract flow (avatars/holons/NFTs) without introducing a new runtime.
 /// </summary>
-public sealed class TONOASIS : Web3CoreOASISBaseProvider,
+public sealed partial class TONOASIS : Web3CoreOASISBaseProvider,
     IOASISDBStorageProvider,
     IOASISNETProvider,
     IOASISSuperStar,
     IOASISBlockchainStorageProvider,
     IOASISNFTProvider
 {
+    public TONOASIS() : this(string.Empty, string.Empty, string.Empty)
+    {
+        ProviderDescription = "Native TON masterchain public reader";
+    }
+
     public TONOASIS(string hostUri, string chainPrivateKey, string contractAddress)
         : base(hostUri, chainPrivateKey, contractAddress)
     {
