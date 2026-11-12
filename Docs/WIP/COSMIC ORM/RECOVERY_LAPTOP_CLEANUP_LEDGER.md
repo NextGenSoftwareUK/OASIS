@@ -6402,3 +6402,5 @@ Checked post-cutover catalogue at f9011d511056 with the existing readiness visit
 Native federation CI 43157661058 succeeded with owned Mongo database absence verified after restart. Existing fixture assets and compact CI artifact remain cloud-only. Retain the exact native tag and replacement integration tag through publication. No local build, fixture or downloads. Temporary documentation index removed.
 
 Removed four superseded Urbit CI tags ending 33977c56be, 98fae8117c, 2784481190 and 3aef8cd60a. Retain the successful native federation tag ending 412b95a3db, the current-base qualification tag ending 27d07f280c and Core tag ending 7ea7639c through release verification. No local build, fixture or download. Temporary documentation index removed.
+
+Web4Site EOS/TON card test run used existing Node and temporary exact tracked inputs. All 122 tests passed; the directory and temporary index were removed. No dependencies, logs, packages or runtime retained.
