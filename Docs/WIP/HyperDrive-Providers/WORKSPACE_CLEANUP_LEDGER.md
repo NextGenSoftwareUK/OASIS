@@ -466,3 +466,5 @@ Urgent disk cleanup follow-up: leased standard project clean succeeded for AWS u
 12 November Cancun time. The OpenSearch document fixture runs on a disposable GitHub runner with a loopback-only node. The exit handler removes the owned container, volumes and test directory. No local image, build, or test output was created. CI cleanup evidence is pending.
 
 12 November Cancun time. OpenSearch shared run 43199861002 confirmed both owned nodes, volumes and temporary fixture directories were removed after the avatar-detail read failure. The focused document job 131117468115 also completed on a disposable runner. No local builds or downloads were created.
+
+12 November Cancun time. OpenSearch run 43200638291 removed both owned native nodes, their volumes and fixture directories after the holon point-read failure. No local artifacts were created.

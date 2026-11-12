@@ -44,8 +44,18 @@ namespace NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS
         {
             WriteIndented = false,
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+            Converters = { new EmbeddedHolonConverter() }
         };
+
+        private sealed class EmbeddedHolonConverter : JsonConverter<IHolon>
+        {
+            public override IHolon? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+                => JsonSerializer.Deserialize<Holon>(ref reader, options);
+
+            public override void Write(Utf8JsonWriter writer, IHolon value, JsonSerializerOptions options)
+                => JsonSerializer.Serialize(writer, value, value.GetType(), options);
+        }
 
         private const string IdxAvatars = "oasis_avatars";
         private const string IdxDetails = "oasis_avatar_details";
@@ -142,9 +152,16 @@ namespace NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS
                 throw new System.IO.InvalidDataException("Native write did not acknowledge the staged identity/revision.");
         }
 
-        private async Task DeleteDocAsync(string index, string id)
+        private async Task DeleteDocAsync(string index, string id, bool allowMissing = false)
         {
             using var response = await _http.DeleteAsync($"{_baseUrl}/{index}/_doc/{id}?refresh=wait_for");
+            if (allowMissing && response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                using var missing = await ReadNativeResponseAsync(response, 64 * 1024, default);
+                var acknowledgement = missing.RootElement;
+                if (MatchesDocument(acknowledgement, index, id) && acknowledgement.GetProperty("result").GetString() == "not_found")
+                    return;
+            }
             await RequireWriteAcknowledgementAsync(response, index, id, "deleted");
         }
 
@@ -327,7 +344,12 @@ namespace NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS
             try
             {
                 if (softDelete) { await TombstoneDocAsync(IdxAvatars, id.ToString()); }
-                else { await DeleteDocAsync(IdxAvatars, id.ToString()); }
+                else
+                {
+                    var key = id.ToString("D");
+                    await DeleteDocAsync(IdxDetails, key, allowMissing: true);
+                    await DeleteDocAsync(IdxAvatars, key);
+                }
                 result.Result = true; result.IsDeleted = true; result.DeletedCount = 1; result.Message = $"OpenSearchOASIS: Avatar '{id}' deleted.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"OpenSearchOASIS: {ex.Message}"); }
@@ -502,6 +524,8 @@ namespace NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS
             {
                 var h = await GetDocAsync<Holon>(IdxHolons, id.ToString());
                 if (h == null || h.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"OpenSearchOASIS: No holon for ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
+                if (!loadChildren)
+                    h.Children = new List<IHolon>();
                 result.Result = h; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "OpenSearchOASIS: Holon loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"OpenSearchOASIS: {ex.Message}"); }

@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. [OpenSearch run 43200638291](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43200638291) passed ten checks in each mode, including all avatar-detail lookups and acknowledged graph save. Both modes then stopped on the holon point read. The adapter now decodes existing embedded `IHolon` values into concrete holons and honors flat point reads. Hard avatar deletion also requires a native acknowledgement for the same-ID detail, or an exact native missing-detail response, before removing the avatar. The updated shared suite remains open.
+
 12 November Cancun time. [OpenSearch shared run 43199861002](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43199861002) passed six checks in each mode and stopped at avatar-detail point read. Both disposable nodes were removed. The adapter now uses the canonical avatar-detail codec for point and search reads, keeps the existing OpenSearch field names, and uses the shared graph planner to persist parent and child records with native acknowledgements. Metadata, import and owner export now return their acknowledged counts. The updated native suite remains open.
 
 12 November Cancun time. [OpenSearch document job 131117468115](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43199080480/job/131117468115) passed the focused soft and hard delete check. The shared storage fixture now runs the two 26-check modes against separate disposable OpenSearch nodes and verifies exact tombstone cleanup and empty native indices on success. The adapter stages avatar, avatar-detail and holon identity until write acknowledgement, marks native reads and deletes with their counts, and waits for search visibility after writes. Shared suite execution remains open.
