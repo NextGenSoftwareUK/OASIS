@@ -546,3 +546,5 @@ Holo Desktop has a dedicated real-conductor avatar and holon lifecycle test usin
 Holo Desktop build run 43150864332 failed at workflow parsing before any job started. Removed a truncated registration step that was accidentally copied into the generated workflow. [The corrected build](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43151724196) passed. Native execution remains open.
 
 The checked-in canonical and Android Holo hApp bundles both declare manifest version 0. The release validation expects a source-matched generated hApp and pins the Windows conductor to 0.7.1. The manifest inspection was in memory and created no artifacts. A matching generated bundle is required for the new desktop lifecycle run.
+
+Holo Desktop now exposes the canonical admin-only provisioning path. The dedicated native test requires only the disposable conductor admin endpoint and uses the packaged hApp to exercise automatic installation, app-agent authorization and storage. The existing explicit two-endpoint path remains available. Build and live verification of the new entry point are pending.

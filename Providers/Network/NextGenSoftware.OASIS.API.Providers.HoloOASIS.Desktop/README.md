@@ -24,7 +24,7 @@ Project references and conditional dependency versions are recorded in the sourc
 
 ## Integration and configuration
 
-Construct the desktop HoloOASIS provider with the running conductor admin and app-agent WebSocket URLs, or supply the existing HoloNET admin and app-agent clients. Activate it before sending storage operations. It uses the canonical HoloOASIS storage implementation and enables local conductor access by default. Enable Holo network access explicitly when the application is configured to use it.
+Construct the desktop HoloOASIS provider with the conductor admin WebSocket URL to let the canonical provider install the packaged hApp and open its app-agent connection. You can also supply both endpoint URLs or existing HoloNET clients for a provisioned conductor. Activate it before sending storage operations. It uses the canonical HoloOASIS storage implementation and enables local conductor access by default. Enable Holo network access explicitly when the application is configured to use it.
 
 Provider adapters require their respective service configuration and credentials. Runtime libraries require the host application's lifecycle and persistent paths where applicable. Supply only the settings actually required by the owning component; do not copy production DNA into a client or public release.
 

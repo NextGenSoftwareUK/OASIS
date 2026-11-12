@@ -19,9 +19,7 @@ public class HoloOASISIntegrationTests
     {
         string adminUri = Environment.GetEnvironmentVariable("OASIS_HOLOCHAIN_ADMIN_URI")
             ?? throw new InvalidOperationException("Configure the dedicated conductor admin endpoint.");
-        string appUri = Environment.GetEnvironmentVariable("OASIS_HOLOCHAIN_APP_URI")
-            ?? throw new InvalidOperationException("Configure the dedicated conductor app-agent endpoint.");
-        var provider = new global::NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop.HoloOASIS(adminUri, appUri);
+        var provider = new global::NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop.HoloOASIS(adminUri);
         try
         {
             await VerifyCrudAsync(provider);

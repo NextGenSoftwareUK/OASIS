@@ -12,6 +12,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop
             : base(adminClient, appAgentClient, oasisDNA, holoNetworkUri, useLocalNode,
                 useHoloNetwork, useHoloNETORMReflection) { }
 
+        public HoloOASIS(string conductorAdminUri,
+            OASISDNA oasisDNA = null, string holoNetworkUri = "https://holo.host",
+            bool useLocalNode = true, bool useHoloNetwork = false, bool useHoloNETORMReflection = true)
+            : base(conductorAdminUri, oasisDNA, holoNetworkUri, useLocalNode,
+                useHoloNetwork, useHoloNETORMReflection) { }
+
         public HoloOASIS(string conductorAdminUri, string conductorAppUri,
             OASISDNA oasisDNA = null, string holoNetworkUri = "https://holo.host",
             bool useLocalNode = true, bool useHoloNetwork = false, bool useHoloNETORMReflection = true)
