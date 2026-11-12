@@ -462,3 +462,5 @@ Urgent disk cleanup follow-up: leased standard project clean succeeded for AWS u
 12 November Cancun time. Combined Firestore job 131099234527 verified emulator and fixture removal. The Firestore exact-tree comparison removed its temporary Git index. Blockscout evidence reconciliation and WEB4 log inspection created no local result files or runtime downloads.
 
 12 November Cancun time. HoloOASIS Linux job 131108586243 confirmed listener shutdown and removed the owned conductor cache and fixture directory. Windows job 131108586275 completed its conductor process teardown on the disposable runner. The combined integration tree used one temporary Git index that was removed on completion. No local test environments or builds were created.
+
+12 November Cancun time. The OpenSearch document fixture runs on a disposable GitHub runner with a loopback-only node. The exit handler removes the owned container, volumes and test directory. No local image, build, or test output was created. CI cleanup evidence is pending.

@@ -89,13 +89,29 @@ namespace NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS
 
         private async Task<T?> GetDocAsync<T>(string index, string id)
         {
-            var resp = await _http.GetAsync($"{_baseUrl}/{index}/_doc/{id}");
-            if (!resp.IsSuccessStatusCode) return default;
-            var json = await resp.Content.ReadAsStringAsync();
-            using var doc = JsonDocument.Parse(json);
-            if (!doc.RootElement.TryGetProperty("_source", out var src)) return default;
-            return JsonSerializer.Deserialize<T>(src.GetRawText(), _jsonOpts);
+            using var response = await _http.GetAsync($"{_baseUrl}/{index}/_doc/{id}", HttpCompletionOption.ResponseHeadersRead);
+            if (response.StatusCode != System.Net.HttpStatusCode.NotFound)
+                response.EnsureSuccessStatusCode();
+
+            using var stream = await response.Content.ReadAsStreamAsync();
+            using var document = await JsonDocument.ParseAsync(stream);
+            var record = document.RootElement;
+            if (response.StatusCode == System.Net.HttpStatusCode.NotFound &&
+                record.TryGetProperty("found", out var found) && found.ValueKind == JsonValueKind.False &&
+                MatchesDocument(record, index, id))
+                return default;
+
+            response.EnsureSuccessStatusCode();
+            if (!MatchesDocument(record, index, id) || !record.GetProperty("found").GetBoolean() ||
+                record.GetProperty("_source").ValueKind != JsonValueKind.Object)
+                throw new System.IO.InvalidDataException("Native read did not acknowledge the requested document.");
+
+            return record.GetProperty("_source").Deserialize<T>(_jsonOpts);
         }
+
+        private static bool MatchesDocument(JsonElement record, string index, string id)
+            => record.TryGetProperty("_index", out var actualIndex) && actualIndex.GetString() == index &&
+               record.TryGetProperty("_id", out var actualId) && actualId.GetString() == id;
 
         private async Task UpsertDocAsync(string index, string id, object obj)
         {
@@ -104,7 +120,7 @@ namespace NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS
             response.EnsureSuccessStatusCode();
             using var acknowledgement = await ReadNativeResponseAsync(response, 64 * 1024, default);
             var ack = acknowledgement.RootElement;
-            if (ack.GetProperty("_index").GetString() != index || ack.GetProperty("_id").GetString() != id ||
+            if (!MatchesDocument(ack, index, id) ||
                 ack.GetProperty("_version").GetInt64() < 1 || ack.GetProperty("_seq_no").GetInt64() < 0 ||
                 ack.GetProperty("_primary_term").GetInt64() < 1 || ack.GetProperty("result").GetString() is not ("created" or "updated") ||
                 ack.GetProperty("_shards").GetProperty("failed").GetInt32() != 0 ||
@@ -114,7 +130,14 @@ namespace NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS
 
         private async Task DeleteDocAsync(string index, string id)
         {
-            await _http.DeleteAsync($"{_baseUrl}/{index}/_doc/{id}");
+            using var response = await _http.DeleteAsync($"{_baseUrl}/{index}/_doc/{id}");
+            response.EnsureSuccessStatusCode();
+            using var acknowledgement = await ReadNativeResponseAsync(response, 64 * 1024, default);
+            var ack = acknowledgement.RootElement;
+            if (!MatchesDocument(ack, index, id) || ack.GetProperty("result").GetString() != "deleted" ||
+                ack.GetProperty("_shards").GetProperty("failed").GetInt32() != 0 ||
+                ack.GetProperty("_shards").GetProperty("successful").GetInt32() < 1)
+                throw new System.IO.InvalidDataException("Native delete did not acknowledge the requested document.");
         }
 
         private async Task<List<T>> SearchByTermAsync<T>(string index, string field, string value)
