@@ -116,11 +116,11 @@ jobs:
         shell: pwsh
         run: |
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cql-evm-shipping-ci -Operation {
-            dotnet test ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests --no-build --no-restore /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CqlEthereumHostedAdmissionTests|FullyQualifiedName~CqlPolygonHostedAdmissionTests|FullyQualifiedName~CqlArbitrumHostedAdmissionTests|FullyQualifiedName~CqlNearHostedAdmissionTests|FullyQualifiedName~CqlEosioHostedAdmissionTests|FullyQualifiedName~CqlCosmosHostedAdmissionTests|FullyQualifiedName~CqlPolkadotHostedAdmissionTests|FullyQualifiedName~CqlHederaHostedAdmissionTests' --results-directory TestResults/CqlPublicReadCatalogueCurrent --logger 'trx;LogFileName=evm-shipping.trx'
+            dotnet test ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests --no-build --no-restore /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CqlEthereumHostedAdmissionTests|FullyQualifiedName~CqlPolygonHostedAdmissionTests|FullyQualifiedName~CqlArbitrumHostedAdmissionTests|FullyQualifiedName~CqlNearHostedAdmissionTests|FullyQualifiedName~CqlEosioHostedAdmissionTests|FullyQualifiedName~CqlCosmosHostedAdmissionTests|FullyQualifiedName~CqlPolkadotHostedAdmissionTests|FullyQualifiedName~CqlHederaHostedAdmissionTests|FullyQualifiedName~CqlTonHostedAdmissionTests' --results-directory TestResults/CqlPublicReadCatalogueCurrent --logger 'trx;LogFileName=evm-shipping.trx'
             if ($LASTEXITCODE) { throw 'Shipping EVM admission failed' }
             [xml]$report = Get-Content TestResults/CqlPublicReadCatalogueCurrent/evm-shipping.trx
-            if ($report.TestRun.ResultSummary.Counters.passed -ne '16' -or $report.TestRun.ResultSummary.Counters.total -ne '16') {
-              throw 'All sixteen shipping provider catalogue and preset admission cases must pass'
+            if ($report.TestRun.ResultSummary.Counters.passed -ne '30' -or $report.TestRun.ResultSummary.Counters.total -ne '30') {
+              throw 'All thirty shipping provider catalogue and preset admission cases must pass'
             }
           }
       - name: Verify Moralis activation and unsupported NFT burns
