@@ -1745,3 +1745,7 @@ Exact Supabase WEB4 image build 43062441681 is running.
 ## EOS and TON demo card corrections
 
 Web4Site feature revision `6b3d928` corrects the EOS and TON cards to reflect their already verified public browser presets and their still-open original-owner private paired presets. All 122 tests passed on the exact revised source. The public site has not been promoted.
+
+## Canonical HoloOASIS CQL admission work
+
+The shared `BoundedIdentityCqlCompiler` and `CqlPublicReadCatalogue` cover exact GUID selection and an explicit server grant for synthetic public holons. Canonical HoloOASIS reads an exact GUID through the HoloNET repository. The initial WEB4 source should use the service-provisioned app-agent path. The conductor admin activation path can install or enable the hApp and is outside the query-only lifecycle. HyperDrive owns the canonical provider changes. Local Core candidate `08444708` on `26e09b26` adds only the HoloOASIS read tariff. The WEB4 adapter, actual conductor fixture and hosted acceptance remain open.
