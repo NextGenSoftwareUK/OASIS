@@ -11,6 +11,7 @@ using NextGenSoftware.OASIS.API.Core.Services.Subscriptions;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
+using EthereumProvider = NextGenSoftware.OASIS.API.Providers.EthereumOASIS.EthereumOASIS_Web3Core;
 using HoloOasisProvider = NextGenSoftware.OASIS.API.Providers.HoloOASIS.HoloOASIS;
 using SolanaProvider = NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.SolanaOASIS;
 
@@ -57,6 +58,7 @@ public sealed class CqlHostedSourceRegistry : ICqlHostedSourceRegistry
     private readonly IReadOnlyDictionary<ProviderType, CqlReadSourceProfile> profiles;
     private readonly CqlPublicReadCatalogue holoOasisCatalogue;
     private readonly string solanaPublicAccountConfiguration;
+    private readonly string ethereumPublicAccountConfiguration;
 
     private readonly ILogger<CqlHostedSourceRegistry> logger;
 
@@ -71,6 +73,7 @@ public sealed class CqlHostedSourceRegistry : ICqlHostedSourceRegistry
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         holoOasisCatalogue = publicCatalogues?.SingleOrDefault(catalogue => catalogue.Provider == ProviderType.HoloOASIS);
         solanaPublicAccountConfiguration = configuration?["CQL_SOLANA_PUBLIC_SOURCE_JSON"];
+        ethereumPublicAccountConfiguration = configuration?["CQL_ETHEREUM_PUBLIC_SOURCE_JSON"];
     }
 
     public IOASISStorageProvider Find(ProviderType provider)
@@ -99,6 +102,8 @@ public sealed class CqlHostedSourceRegistry : ICqlHostedSourceRegistry
             {
                 solana.ConfigurePublicAccountQuery(solanaPublicAccountConfiguration);
             }
+            if (storage is EthereumProvider ethereum && ethereumPublicAccountConfiguration != null)
+                ethereum.ConfigurePublicAccountQuery(ethereumPublicAccountConfiguration);
         }
         if (storage.ProviderType?.Value != provider || storage is not ICosmicQueryStorageProvider adapter
             || adapter.QueryProviderType != provider || adapter.QueryCapabilities == null

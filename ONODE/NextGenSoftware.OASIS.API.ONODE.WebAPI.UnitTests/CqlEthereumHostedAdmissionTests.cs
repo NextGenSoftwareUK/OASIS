@@ -33,10 +33,11 @@ public class CqlEthereumHostedAdmissionTests
     }
 
     [Fact]
-    public async Task PublicAccountPresetsPlanNativeThreeTwoAndMongoPairsWithoutWallets()
+    public async Task ShippingEthereumProviderPlansPublicThreeTwoAndMongoPairs()
     {
         var keys = Enumerable.Range(1, 3).Select(value => "0x" + value.ToString("x40")).ToArray();
-        using var source = EthereumPublicAccountMetadataSource.FromJson(JsonSerializer.Serialize(new {
+        var source = new EthereumOASIS_Web3Core("http://127.0.0.1:1", new string('1', 64), keys[0], 31337);
+        source.ConfigurePublicAccountQuery(JsonSerializer.Serialize(new {
             schema=1,rpcUrl="https://rpc.example.invalid/",chainId="0x1",addresses=keys,sourceOwner=Guid.NewGuid()}));
         var rows = new List<object>();
         foreach (var count in new[] { 3, 2 })
