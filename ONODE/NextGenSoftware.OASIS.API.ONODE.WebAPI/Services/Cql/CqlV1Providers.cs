@@ -14,6 +14,7 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using ArbitrumProvider = NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.ArbitrumOASIS_Web3Core;
 using EthereumProvider = NextGenSoftware.OASIS.API.Providers.EthereumOASIS.EthereumOASIS_Web3Core;
 using HoloOasisProvider = NextGenSoftware.OASIS.API.Providers.HoloOASIS.HoloOASIS;
+using NearProvider = NextGenSoftware.OASIS.API.Providers.NEAROASIS.NEAROASIS;
 using PolygonProvider = NextGenSoftware.OASIS.API.Providers.PolygonOASIS.PolygonOASIS;
 using SolanaProvider = NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.SolanaOASIS;
 
@@ -65,6 +66,7 @@ public sealed class CqlHostedSourceRegistry : ICqlHostedSourceRegistry
     private readonly string ethereumPublicAccountConfiguration;
     private readonly string polygonPublicAccountConfiguration;
     private readonly string arbitrumPublicAccountConfiguration;
+    private readonly string nearPublicAccountConfiguration;
 
     private readonly ILogger<CqlHostedSourceRegistry> logger;
 
@@ -82,6 +84,7 @@ public sealed class CqlHostedSourceRegistry : ICqlHostedSourceRegistry
         ethereumPublicAccountConfiguration = configuration?["CQL_ETHEREUM_PUBLIC_SOURCE_JSON"];
         polygonPublicAccountConfiguration = configuration?["CQL_POLYGON_PUBLIC_SOURCE_JSON"];
         arbitrumPublicAccountConfiguration = configuration?["CQL_ARBITRUM_PUBLIC_SOURCE_JSON"];
+        nearPublicAccountConfiguration = configuration?["CQL_NEAR_PUBLIC_SOURCE_JSON"];
     }
 
     public IOASISStorageProvider Find(ProviderType provider)
@@ -116,6 +119,8 @@ public sealed class CqlHostedSourceRegistry : ICqlHostedSourceRegistry
                 polygon.ConfigurePublicAccountQuery(polygonPublicAccountConfiguration);
             if (storage is ArbitrumProvider arbitrum && arbitrumPublicAccountConfiguration != null)
                 arbitrum.ConfigurePublicAccountQuery(arbitrumPublicAccountConfiguration);
+            if (storage is NearProvider near && nearPublicAccountConfiguration != null)
+                near.ConfigurePublicAccountQuery(nearPublicAccountConfiguration);
         }
         if (storage.ProviderType?.Value != provider || storage is not ICosmicQueryStorageProvider adapter
             || adapter.QueryProviderType != provider || adapter.QueryCapabilities == null
