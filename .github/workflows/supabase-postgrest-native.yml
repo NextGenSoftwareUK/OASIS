@@ -47,12 +47,49 @@ jobs:
       run:
         working-directory: OASIS
     steps:
+      - name: Resolve the Development baseline for routing
+        if: inputs.scenario == 'routing'
+        id: routing_baseline
+        shell: bash
+        working-directory: ${{ github.workspace }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          revision="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/Development" --jq .object.sha)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "revision=$revision" >> "$GITHUB_OUTPUT"
+          echo "Qualifying Supabase routing on Development $revision"
+
+      - uses: actions/checkout@v7
+        if: inputs.scenario == 'routing'
+        with:
+          path: provider-source
+          persist-credentials: false
+
       - uses: actions/checkout@v7
         with:
           token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          ref: ${{ steps.routing_baseline.outputs.revision || github.sha }}
           path: OASIS
           submodules: recursive
           persist-credentials: false
+
+      - name: Apply the reviewed Supabase routing scope
+        if: inputs.scenario == 'routing'
+        shell: bash
+        run: |
+          base=d74e43b9def4a3d57dd4a56da86a5e50904a8514
+          git -C ../provider-source fetch --no-tags --depth=1 origin "$base"
+          tests='Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.SupabaseOASIS.IntegrationTests'
+          for path in "$tests/NextGenSoftware.OASIS.API.Providers.SupabaseOASIS.IntegrationTests.csproj" "$tests/SupabaseSqliteHyperDriveTests.cs"; do
+            current="$(git ls-tree HEAD -- "$path")"
+            reviewed="$(git -C ../provider-source ls-tree "$base" -- "$path")"
+            incoming="$(git -C ../provider-source ls-tree HEAD -- "$path")"
+            [[ -n "$incoming" && ( "$current" == "$reviewed" || "$current" == "$incoming" ) ]]
+            install -m 644 "../provider-source/$path" "$path"
+            git add -- "$path"
+          done
+          echo "Qualified input tree: $(git write-tree)"
 
       - name: Read the recorded Libraries revision
         id: dependencies

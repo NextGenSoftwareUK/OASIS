@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+12 November Supabase routing run 43297095312 verified exact row removal and independently confirmed all three PostgreSQL tables empty. The runner removed its PostgREST processes, archive, logs, SQLite files and test results. No local build or fixture was created.
+
 12 November Supabase routing run 43296247756 stopped at compilation. The runner confirmed removal of its owned PostgREST processes and fixture directory. No local build output or runtime was created.
 
 12 November rebuilt the scoped SQL routing integration candidate on managed HoloOASIS Development using one temporary Git index. The index was removed and independently confirmed absent. No local worktree, build, test output or fixture was created.

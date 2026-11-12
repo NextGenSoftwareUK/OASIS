@@ -5,6 +5,7 @@ on:
     branches: [work/hyperdrive-provider-completion]
     paths:
       - '.github/workflows/supabase-sqlite-hyperdrive.yml'
+      - '.github/workflows/supabase-postgrest-native.yml'
       - 'Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.SupabaseOASIS.IntegrationTests/SupabaseSqliteHyperDriveTests.cs'
   workflow_dispatch:
 
