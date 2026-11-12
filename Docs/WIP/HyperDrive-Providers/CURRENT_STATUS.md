@@ -5,7 +5,7 @@
 | Area | Recorded status |
 | --- | --- |
 | Project inventory | 234 projects: 178 storage or specialized storage, including the obsolete Desktop compatibility wrapper, and 56 non-storage. |
-| Shared storage coverage | The matrix records 45 projects at 52/52 native core-storage-v2. The evidence registry contains 23 corresponding reports, all verified against their recorded SHA-256 hashes. The other 22 matrix entries still need reconciliation with the registry. |
+| Shared storage coverage | The matrix records 45 projects at 52/52 native core-storage-v2. The registry contains 23 corresponding reports verified against their SHA-256 hashes and four additional passes independently reconciled against completed CI job logs. The remaining 18 matrix entries need reconciliation. |
 | Priority storage providers | The matrix records 52/52 native checks for Neon, Convex, Supabase, Solana, MongoDB, SQLite, Neo4j, SQL Server, Oracle, AWS DynamoDB and S3, IPFS, NEAR, Cosmos chain, Azure Cosmos DB, Google Firestore, Polkadot, Solid, Polygon, Arbitrum, TRON, EOSIO, TON, and Hedera/Hashgraph. Several use isolated native engines, emulators or local networks. See each row for hosted and capability gaps. |
 | ActivityPub and routing | ActivityPub has 5/5 native capability checks. GOMap passed a public OSRM driving route. Authenticated Google Routes, Mapbox and HERE checks remain open. Niantic and WRLD still have reviewed adapter gaps. |
 | Canonical HoloOASIS | Top priority. Both modes passed avatar and avatar-detail checks through the Desktop entry point before reaching the graph-save gap. Canonical graph save and the native parent-query change are under verification in runs [43165294724](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43165294724) and [43166769837](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43166769837). Both were active at inspection. |
@@ -16,6 +16,8 @@
 [Provider matrix](PROVIDER_MATRIX.md) · [Evidence registry](CONFORMANCE_RESULTS.json) · [Cleanup ledger](WORKSPACE_CLEANUP_LEDGER.md)
 
 ## Verification log
+
+12 November Cancun time. Reconciled existing 52/52 evidence for Solana, Cosmos chain, Polkadot and TRON against the exact successful native CI jobs. Each logged 26 checks in both modes and its cleanup gate. The registry records run, job, revision and backend. Original local checkpoint reports remain preserved. No provider tests were rerun for this reconciliation.
 
 12 November Cancun time. [Native run 43171424613](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43171424613) passed 10 checks per mode and then failed the holon-ID read. The pinned HoloNET ORM serializes dictionaries as JSON strings inside the native record. The new reader originally treated that value as a native map. It now decodes the stored JSON string as well as an object-valued native field, with untrusted MessagePack settings. Real-conductor verification of the corrected codec remains open.
 

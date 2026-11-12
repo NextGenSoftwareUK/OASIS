@@ -1,5 +1,55 @@
 {
   "schemaVersion": 1,
+  "verifiedNativeCiRuns": {
+    "SOLANAOASIS": {
+      "suite": "core-storage-v2",
+      "backend": "Agave 4.3.0 via Solnet",
+      "runId": 43027809655,
+      "jobId": 130546850845,
+      "revision": "fd673c0e449a2d60be9a39b87314da54aab0c366",
+      "passed": {
+        "async": 26,
+        "sync": 26
+      },
+      "cleanup": "Both mode reports passed the logical cleanup gate."
+    },
+    "CosmosBlockChainOASIS": {
+      "suite": "core-storage-v2",
+      "backend": "wasmd via CosmJS",
+      "runId": 43028889300,
+      "jobId": 130550484963,
+      "revision": "7d943c897afd9cabd5f0e2a46c3c4ffebede80fb",
+      "passed": {
+        "async": 26,
+        "sync": 26
+      },
+      "cleanup": "Both mode reports passed the logical cleanup gate."
+    },
+    "PolkadotOASIS": {
+      "suite": "core-storage-v2",
+      "backend": "Parity contracts node v0.42.0",
+      "runId": 43041109458,
+      "jobId": 130592819170,
+      "revision": "95202988415d8e59c35b0e5ad34430509b420b8f",
+      "passed": {
+        "async": 26,
+        "sync": 26
+      },
+      "cleanup": "Both modes verified finalized original receipts and empty native storage."
+    },
+    "TRONOASIS": {
+      "suite": "core-storage-v2",
+      "backend": "TRON Runtime Environment via gRPC",
+      "runId": 43035175165,
+      "jobId": 130571986332,
+      "revision": "8731518501ca026fb5d7cd6fd97f11d5e61c0355",
+      "passed": {
+        "async": 26,
+        "sync": 26
+      },
+      "cleanup": "Both modes verified empty native contract storage."
+    }
+  },
   "obsoleteProviders": {
     "HoloOASIS.Desktop": "Retained for compatibility. Use canonical HoloOASIS for local conductor connections and ongoing acceptance. [Historical Desktop lifecycle evidence](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43159610649)."
   },
