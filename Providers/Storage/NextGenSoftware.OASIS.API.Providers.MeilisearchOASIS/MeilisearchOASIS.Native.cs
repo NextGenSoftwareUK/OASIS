@@ -37,14 +37,16 @@ public partial class MeilisearchOASIS
     // One submission, followed only by observations of that exact native task.
     // A deadline/transport failure after submission has an unknown write outcome;
     // the task ID is retained in the exception and must never trigger resubmission.
-    private async Task SubmitTaskAsync(HttpMethod method, string path, object payload,
-        string index, string type, bool documentWrite = false)
+    private async Task SubmitTaskAsync(HttpMethod method, string path, object? payload,
+        string index, string type, Action<JsonElement>? validateDetails = null)
     {
         long? taskId = null;
         using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(15));
         try
         {
-            using var request = new HttpRequestMessage(method, _host + path) { Content = Json(payload) };
+            using var request = new HttpRequestMessage(method, _host + path);
+            if (payload != null)
+                request.Content = Json(payload);
             using var response = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, deadline.Token);
             if (response.StatusCode != HttpStatusCode.Accepted)
                 throw new InvalidDataException("Native operation did not return an accepted task.");
@@ -71,13 +73,7 @@ public partial class MeilisearchOASIS
                 {
                     if (task.GetProperty("error").ValueKind != JsonValueKind.Null)
                         throw new InvalidDataException("Native task reported an error with success.");
-                    if (documentWrite)
-                    {
-                        var details = task.GetProperty("details");
-                        if (details.GetProperty("receivedDocuments").GetInt32() != 1 ||
-                            details.GetProperty("indexedDocuments").GetInt32() != 1)
-                            throw new InvalidDataException("Native task did not index the submitted document.");
-                    }
+                    validateDetails?.Invoke(task.GetProperty("details"));
                     return;
                 }
                 if (status != "enqueued" && status != "processing")
@@ -198,5 +194,19 @@ public partial class MeilisearchOASIS
     private Task UpsertDocAsync(string index, object document)
         // POST replaces the full document; PUT would retain fields removed by the caller.
         => SubmitTaskAsync(HttpMethod.Post, $"/indexes/{index}/documents", new[] { document },
-            index, "documentAdditionOrUpdate", documentWrite: true);
+            index, "documentAdditionOrUpdate", details =>
+            {
+                if (details.GetProperty("receivedDocuments").GetInt32() != 1 ||
+                    details.GetProperty("indexedDocuments").GetInt32() != 1)
+                    throw new InvalidDataException("Native task did not index the submitted document.");
+            });
+
+    private Task DeleteDocAsync(string index, string id, bool allowMissing = false)
+        => SubmitTaskAsync(HttpMethod.Delete, $"/indexes/{index}/documents/{id}", null,
+            index, "documentDeletion", details =>
+            {
+                var count = details.GetProperty("deletedDocuments").GetInt32();
+                if (details.GetProperty("providedIds").GetInt32() != 1 || (count != 1 && !(allowMissing && count == 0)))
+                    throw new InvalidDataException("Native task did not confirm the requested document deletion.");
+            });
 }

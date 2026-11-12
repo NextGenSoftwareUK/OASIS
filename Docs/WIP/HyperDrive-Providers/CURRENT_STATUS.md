@@ -20,6 +20,8 @@
 
 12 November Cancun time. Managed HoloOASIS advanced Development to `e54973c380c9`. Elasticsearch qualification now triggers when its native test project changes and will qualify the existing three-file batch against the new Development parent. The hosted HoloOASIS rollout and the new exact Elasticsearch integration evidence are pending.
 
+12 November Cancun time. Both [Meilisearch jobs in run 43219632092](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43219632092) passed nine native checks including every identity and detail lookup. Graph save only acknowledged the root. The adapter now writes each selected graph node, waits for exact native deletion task receipts, checks native collection pages, and reports actual storage counts. The new native run must verify those paths, with multi-page behavior still requiring dedicated evidence.
+
 12 November Cancun time. Both [Meilisearch jobs in run 43218675700](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43218675700) passed activation, avatar save and point read, then stopped on username lookup. Meilisearch now admits the required username and email filter settings, preserves existing entries, waits for the exact native settings task, and uses one equality selector for avatar and detail reads. Detail saves now publish their result and count after acknowledgement. The updated native suite remains open.
 
 12 November Cancun time. Added disposable native Meilisearch 1.56.0 shared storage CI in both modes, separate from the COSMIC retained fixture. The adapter stages avatar identity until the native task succeeds, reports acknowledged avatar results, and distinguishes exact document absence from other point-read failures. The native run will locate remaining storage contract gaps.
