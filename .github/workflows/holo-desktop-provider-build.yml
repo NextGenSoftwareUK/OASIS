@@ -61,9 +61,8 @@ jobs:
         shell: pwsh
         run: |
           $PSNativeCommandUseErrorActionPreference = $true
-          # Parent of the first Desktop adapter change. The shared runner already
-          # included equivalent changes on both branches after their merge base.
-          $scopeBase = '06ab3c0561c18a587bbda19efd5d580ba8f91813'
+          # Development integration of the verified Desktop lifecycle.
+          $scopeBase = 'bfa0be4be2339117809eeba784c46a7c4940f100'
           $source = '../provider-source'
           $paths = @(
             'Scripts/test_holonet_live_release.ps1'
@@ -133,7 +132,7 @@ jobs:
           $project = 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests.csproj'
           try {
             ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-HoloDesktop -Operation {
-              ./Scripts/test_holonet_live_release.ps1 -Project $client -Happ $happ -ResultsDirectory $artifact -DesktopProject $project
+              ./Scripts/test_holonet_live_release.ps1 -Project $client -Happ $happ -ResultsDirectory $artifact -DesktopProject $project -DesktopConformance
             }
           }
           catch {

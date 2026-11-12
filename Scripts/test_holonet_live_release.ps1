@@ -4,9 +4,13 @@ param(
     [Parameter(Mandatory)][string]$Happ,
     [Parameter(Mandatory)][string]$ResultsDirectory,
     [string]$Configuration = 'Release',
-    [string]$DesktopProject
+    [string]$DesktopProject,
+    [switch]$DesktopConformance
 )
 $ErrorActionPreference = 'Stop'
+if ($DesktopConformance -and -not $DesktopProject) {
+    throw 'Desktop conformance requires a Desktop test project.'
+}
 function Assert-CompleteTestReport([string]$Path, [int]$Minimum) {
     [xml]$report = Get-Content -LiteralPath $Path -Raw
     $counters = $report.SelectSingleNode('//*[local-name()="Counters"]')
@@ -56,7 +60,7 @@ else {
 }
 $ResultsDirectory = (Resolve-Path -LiteralPath $ResultsDirectory).Path
 $saved = @{}
-$names = @('OASIS_HOLOCHAIN_ADMIN_URI', 'HOLONET_LIVE_ADMIN_URI', 'HOLONET_LIVE_HAPP_PATH', 'HOLONET_LIVE_CLONE_HAPP_PATH', 'HOLONET_LIVE_MEMPROOFS_HAPP_PATH', 'HOLONET_LIVE_HC_BIN', 'HOLONET_GENERATE_HAPP_TO', 'HOLONET_GENERATE_HAPP_VERSION', 'HOLONET_LIVE_GENERATED_HAPP_DIR', 'HOLONET_LIVE_GENERATED_SRC_DIR')
+$names = @('OASIS_HOLOCHAIN_ADMIN_URI', 'OASIS_HOLOCHAIN_REPORT_DIR', 'HOLONET_LIVE_ADMIN_URI', 'HOLONET_LIVE_HAPP_PATH', 'HOLONET_LIVE_CLONE_HAPP_PATH', 'HOLONET_LIVE_MEMPROOFS_HAPP_PATH', 'HOLONET_LIVE_HC_BIN', 'HOLONET_GENERATE_HAPP_TO', 'HOLONET_GENERATE_HAPP_VERSION', 'HOLONET_LIVE_GENERATED_HAPP_DIR', 'HOLONET_LIVE_GENERATED_SRC_DIR')
 foreach ($name in $names) { $saved[$name] = [Environment]::GetEnvironmentVariable($name) }
 $process = $null
 Push-Location $fixture
@@ -128,9 +132,12 @@ try {
     $env:HOLONET_LIVE_HC_BIN = $hc
     if ($DesktopProject) {
         $env:OASIS_HOLOCHAIN_ADMIN_URI = $env:HOLONET_LIVE_ADMIN_URI
-        & dotnet test $DesktopProject --configuration $Configuration --filter 'FullyQualifiedName~DesktopAvatarAndHolonCrud' --logger 'trx;LogFileName=holo-desktop-native.trx' --results-directory $ResultsDirectory /m:2 /nr:false /p:UseSharedCompilation=false
-        if ($LASTEXITCODE -ne 0) { throw 'Native Holo Desktop lifecycle failed.' }
-        Assert-CompleteTestReport (Join-Path $ResultsDirectory 'holo-desktop-native.trx') 1
+        $env:OASIS_HOLOCHAIN_REPORT_DIR = $ResultsDirectory
+        $test = if ($DesktopConformance) { 'DesktopCoreStorageConformance' } else { 'DesktopAvatarAndHolonCrud' }
+        $minimum = if ($DesktopConformance) { 2 } else { 1 }
+        & dotnet test $DesktopProject --configuration $Configuration --filter "FullyQualifiedName~$test" --logger 'trx;LogFileName=holo-desktop-native.trx' --results-directory $ResultsDirectory /m:2 /nr:false /p:UseSharedCompilation=false
+        if ($LASTEXITCODE -ne 0) { throw "Native Holo Desktop check failed: $test." }
+        Assert-CompleteTestReport (Join-Path $ResultsDirectory 'holo-desktop-native.trx') $minimum
     }
     else {
         # Complementary partitions: auto-start owns its conductors and must run only after this one exits.

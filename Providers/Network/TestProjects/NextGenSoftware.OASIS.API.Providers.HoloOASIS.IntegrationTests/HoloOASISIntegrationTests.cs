@@ -1,11 +1,38 @@
+using System.Text.Json;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.Providers.TestSupport;
 using Xunit;
 
 namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests;
 
 public class HoloOASISIntegrationTests
 {
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task DesktopCoreStorageConformance_PersistsOnOfficialHolochainConductor(bool sync)
+    {
+        var adminUri = Environment.GetEnvironmentVariable("OASIS_HOLOCHAIN_ADMIN_URI")
+            ?? throw new InvalidOperationException("Configure the dedicated conductor admin endpoint.");
+        var results = Environment.GetEnvironmentVariable("OASIS_HOLOCHAIN_REPORT_DIR")
+            ?? throw new InvalidOperationException("Configure the disposable conductor report directory.");
+        var reportPath = Path.Combine(results, sync ? "holo-desktop-sync.json" : "holo-desktop-async.json");
+        Assert.False(File.Exists(reportPath), "Use a fresh report directory for each conductor run.");
+
+        async Task Checkpoint(CoreStorageConformance.Report report)
+        {
+            await File.WriteAllTextAsync(reportPath + ".next", JsonSerializer.Serialize(report));
+            File.Move(reportPath + ".next", reportPath, overwrite: true);
+        }
+
+        var provider = new global::NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop.HoloOASIS(adminUri);
+        var report = await CoreStorageConformance.RunAsync(provider, "HoloOASIS.Desktop", "native", sync, Checkpoint);
+        Assert.True(report.Succeeded, $"{report.CurrentCase}: {report.FailureType} [{report.FailureContract}]");
+        Assert.Equal(CoreStorageConformance.ChecksPerMode, report.Passed.Count);
+        Assert.True(report.FixtureCleanupComplete);
+    }
+
     [Fact]
     public async Task AvatarAndHolonCrud_PersistOnOfficialHolochainConductor()
     {
