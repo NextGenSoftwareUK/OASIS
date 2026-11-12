@@ -193,3 +193,5 @@ are dated observations, not the current status. Git archive blob SHA256 (LF):
 12 November UTC. Local candidate 27d07f280c reconciles the 38 Urbit paths with Development f9011d511056 without changing any Urbit blob. Development changed three non-overlapping Core test files. The prior candidate remains in native federation CI. No new tag, local build, or Development push.
 
 12 November UTC. Native federation CI 43157661058 succeeded on 412b95a3db/Core 7ea7639c. The test asserted five full and four subset rows before and after the native restart, source and projection hash stability, denial before either source read, exclusion of unrelated copies, and owned Mongo database removal. Candidate 27d07f280c preserves all 38 Urbit paths byte for byte on the newer WEB4 Development base f9011d511056. Hosted HTTPS enrollment and production identity/billing remain separate gates.
+
+12 November UTC. Exact current-base boundary CI 43160306525 is running on 27d07f280c. HyperDrive's separate Holo Desktop batch is also verified and waiting for the shared window. Recheck current Development and Railway before publishing Urbit. Hosted enrollment remains open.
