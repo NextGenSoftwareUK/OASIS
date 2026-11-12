@@ -18,6 +18,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 
 internal sealed class HoloOasisDevelopmentConductor
 {
+    private static readonly Guid DevelopmentEnvironmentId = new("a31011a2-d047-4057-b5e8-57d52ebcfefe");
+    private static readonly Guid Web4ServiceId = new("5123199a-43c4-4439-9921-e10e2aec7841");
+
     private const string StateDirectory = "/data/COSMIC/HoloOasisCql";
     private const string AdminEndpoint = "ws://127.0.0.1:65464";
     private const string ConductorConfiguration = """
@@ -44,7 +47,10 @@ internal sealed class HoloOasisDevelopmentConductor
             return null;
 
         if (!OperatingSystem.IsLinux() ||
-            !string.Equals(configuration["RAILWAY_ENVIRONMENT_NAME"], "Development", StringComparison.OrdinalIgnoreCase))
+            !Guid.TryParse(configuration["RAILWAY_ENVIRONMENT_ID"], out var environmentId) ||
+            environmentId != DevelopmentEnvironmentId ||
+            !Guid.TryParse(configuration["RAILWAY_SERVICE_ID"], out var serviceId) ||
+            serviceId != Web4ServiceId)
             throw new InvalidOperationException("The local HoloOASIS teaching conductor is only enabled on Linux WEB4 Development.");
 
         return new HoloOasisDevelopmentConductor();

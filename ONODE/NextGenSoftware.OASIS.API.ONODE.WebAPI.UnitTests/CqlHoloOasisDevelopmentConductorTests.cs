@@ -34,11 +34,20 @@ public sealed class CqlHoloOasisDevelopmentConductorTests
         var ids = Enumerable.Range(0, 3).Select(_ => Guid.NewGuid()).ToArray();
         var configuration = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
         {
-            ["RAILWAY_ENVIRONMENT_NAME"] = "Development",
+            ["RAILWAY_ENVIRONMENT_NAME"] = "dev",
+            ["RAILWAY_ENVIRONMENT_ID"] = "a31011a2-d047-4057-b5e8-57d52ebcfefe",
+            ["RAILWAY_SERVICE_ID"] = "5123199a-43c4-4439-9921-e10e2aec7841",
             ["CQL_HOLOOASIS_LOCAL_DEMO:Enabled"] = "true",
             [CqlPublicReadCatalogue.ConfigurationKey] = JsonSerializer.Serialize(
                 new Dictionary<string, Guid[]> { [nameof(ProviderType.HoloOASIS)] = ids })
         }).Build();
+        configuration["RAILWAY_ENVIRONMENT_ID"] = Guid.Empty.ToString();
+        Assert.Throws<InvalidOperationException>(() => HoloOasisDevelopmentConductor.CreateIfEnabled(configuration));
+        configuration["RAILWAY_ENVIRONMENT_ID"] = "a31011a2-d047-4057-b5e8-57d52ebcfefe";
+        configuration["RAILWAY_SERVICE_ID"] = Guid.Empty.ToString();
+        Assert.Throws<InvalidOperationException>(() => HoloOasisDevelopmentConductor.CreateIfEnabled(configuration));
+        configuration["RAILWAY_SERVICE_ID"] = "5123199a-43c4-4439-9921-e10e2aec7841";
+
         var hosted = Assert.IsType<HoloOasisDevelopmentConductor>(
             HoloOasisDevelopmentConductor.CreateIfEnabled(configuration));
         var managed = Environment.GetEnvironmentVariable("OASIS_CQL_HOLOOASIS_MANAGED_NATIVE") == "1";
