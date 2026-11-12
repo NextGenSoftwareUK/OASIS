@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Sockets;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.Holochain.HoloNET.Client;
 using NextGenSoftware.OASIS.Providers.TestSupport;
 using Xunit;
 using SqliteProvider = NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.SQLLiteDBOASIS;
@@ -29,8 +30,8 @@ public sealed class HoloNativeRoutingTests
         closed.Bind(new IPEndPoint(IPAddress.Loopback, 0));
         var port = ((IPEndPoint)closed.LocalEndPoint!).Port;
         var unavailableAdmin = new UriBuilder(admin) { Host = "127.0.0.1", Port = port }.Uri;
-        var holo = new HoloOASIS(admin.AbsoluteUri, useHoloNetwork: false);
-        var unavailable = new HoloOASIS(unavailableAdmin.AbsoluteUri, useHoloNetwork: false);
+        var holo = OpenProvider(admin);
+        var unavailable = OpenProvider(unavailableAdmin);
 
         try
         {
@@ -40,7 +41,7 @@ public sealed class HoloNativeRoutingTests
             Assert.True(!active.IsError && active.Result, active.Message);
             await NativePriorityRouting.VerifyAsync(holo, sqlite, unavailable, unavailableSqlite, sync);
             Assert.False(File.Exists(missing));
-            var records = await holo.LoadAllHolonsAsync(HolonType.All, loadChildren: false);
+            var records = await sqlite.LoadAllHolonsAsync(HolonType.All, loadChildren: false);
             Assert.False(records.IsError, records.Message);
             var fixtures = records.Result.OrderBy(record => record.Name, StringComparer.Ordinal).ToArray();
             var expected = new[] { $"priority routing {holo.ProviderType.Value}", $"priority routing {sqlite.ProviderType.Value}" };
@@ -49,10 +50,10 @@ public sealed class HoloNativeRoutingTests
             {
                 var removed = await holo.DeleteHolonAsync(record.Id);
                 Assert.True(!removed.IsError && removed.IsDeleted, removed.Message);
+                var absent = await holo.LoadHolonAsync(record.Id, loadChildren: false);
+                Assert.Null(absent.Result);
+                Assert.Equal(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound, absent.ErrorCode);
             }
-            var remaining = await holo.LoadAllHolonsAsync(HolonType.All, loadChildren: false);
-            Assert.False(remaining.IsError, remaining.Message);
-            Assert.Empty(remaining.Result);
         }
         finally
         {
@@ -62,6 +63,13 @@ public sealed class HoloNativeRoutingTests
         }
     }
 
+    private static HoloOASIS OpenProvider(Uri endpoint)
+        => new(new HoloNETClientAdmin(new HoloNETDNA
+        {
+            HolochainConductorAdminURI = endpoint.AbsoluteUri,
+            AutoStartHolochainConductor = false,
+            AutoShutdownHolochainConductor = false
+        }), null!, useHoloNetwork: false);
     private static string Required(string name)
         => Environment.GetEnvironmentVariable(name) is { Length: > 0 } value
             ? value : throw new InvalidOperationException($"Missing fixture setting {name}.");
