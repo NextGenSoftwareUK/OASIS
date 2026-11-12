@@ -534,3 +534,5 @@ Urgent disk cleanup follow-up: leased standard project clean succeeded for AWS u
 12 November Cancun time. Qdrant vector checks use the existing disposable hosted fixture. The native test removes its exact embedded point before checking collection counts. The runner removes the node, volumes and results on exit. No local build or download was created.
 
 12 November Cancun time. Qdrant jobs 131382757586 and 131382757889 verified empty collections after removing the exact embedded fixture and all shared test records. Both removed their owned nodes, volumes and result directories. No local build or download was created.
+
+12 November Cancun time. Qdrant Development jobs 131388484188 and 131388484827 confirmed exact fixture cleanup and removed their owned nodes, volumes and results. The local temporary Git index used to reproduce their exact tree was removed and its absence verified. No local builds or downloads were created.
