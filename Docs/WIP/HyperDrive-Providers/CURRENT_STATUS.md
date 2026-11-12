@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. [Exact Azure qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43304718141) passed both modes with zero skips and confirmed runner teardown. Its tree 42e53ef7902c08170710ae39d650cadf793ee924 matches the five-file Oracle and Azure candidate de9bba540fff on df02d6f43bfe. All seven current Development commit statuses are successful. COSMIC's exact Solana image build and publication steps succeeded and its job was completing post steps. Give the next shared window to the Solana release if it is ready, then reconstruct the non-overlapping routing batch on the actual parent. NEAR now has a separate Development routing qualification that leaves the existing direct suite outside that run.
+
 12 November Cancun time. Azure exact Development qualification applies only the two already-qualified Oracle test paths and three Azure routing test paths to the resolved shared parent. It runs only the Azure cases. Oracle receipts carry forward. Candidate de9bba540fff has tree 42e53ef7902c08170710ae39d650cadf793ee924. The test gate records the exact resulting Git tree for integration and rejects overlapping file changes.
 
 12 November Cancun time. [Exact Oracle qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43301442901) passed both modes against Development tree `cbf46bf6d73fdcc3bede94744e8556ab97924b5b`. Candidate `5832a12a77d8` reproduces the two tested paths on `df02d6f43bfe`. The next Development review remains after 16:01:41 Cancun time.
