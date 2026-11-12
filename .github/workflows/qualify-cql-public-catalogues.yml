@@ -16,6 +16,11 @@ on:
       - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlV1Providers.cs'
   workflow_dispatch:
     inputs:
+      evm_shipping:
+        description: Verify shipping Ethereum and Polygon CQL admission
+        required: false
+        type: boolean
+        default: false
       ref:
         description: Exact reviewed source commit
         required: true
@@ -105,6 +110,19 @@ jobs:
           finally {
             Remove-Item -LiteralPath $fixture.FullName -ErrorAction Stop
           }
+      - name: Verify shipping EVM CQL admission
+        if: inputs.evm_shipping == true
+        working-directory: OASIS
+        shell: pwsh
+        run: |
+          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cql-evm-shipping-ci -Operation {
+            dotnet test ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests --no-build --no-restore /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CqlEthereumHostedAdmissionTests|FullyQualifiedName~CqlPolygonHostedAdmissionTests' --results-directory TestResults/CqlPublicReadCatalogueCurrent --logger 'trx;LogFileName=evm-shipping.trx'
+            if ($LASTEXITCODE) { throw 'Shipping EVM admission failed' }
+            [xml]$report = Get-Content TestResults/CqlPublicReadCatalogueCurrent/evm-shipping.trx
+            if ($report.TestRun.ResultSummary.Counters.passed -ne '4' -or $report.TestRun.ResultSummary.Counters.total -ne '4') {
+              throw 'All four EVM catalogue and preset admission cases must pass'
+            }
+          }
       - name: Verify Moralis activation and unsupported NFT burns
         working-directory: OASIS
         shell: pwsh
@@ -123,6 +141,7 @@ jobs:
           name: cql-public-catalogue-regression
           path: |
             OASIS/TestResults/CqlPublicReadCatalogueCurrent/catalogue.trx
+            OASIS/TestResults/CqlPublicReadCatalogueCurrent/evm-shipping.trx
             OASIS/TestResults/MoralisBurnCapabilityCurrent/capability.trx
           if-no-files-found: error
           retention-days: 30
