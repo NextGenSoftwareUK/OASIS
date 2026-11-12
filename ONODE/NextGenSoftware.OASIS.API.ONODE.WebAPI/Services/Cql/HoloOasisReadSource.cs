@@ -11,9 +11,8 @@ using CanonicalHoloOasis = NextGenSoftware.OASIS.API.Providers.HoloOASIS.HoloOAS
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 
-internal sealed class HoloOasisReadSource : CanonicalHoloOasis, ICosmicReadOnlyQueryActivation, IDisposable
+internal sealed class HoloOasisReadSource : CanonicalHoloOasis, IDisposable
 {
-    private readonly Guid _probeId;
     private readonly HoloNETClientAppAgent _client;
     private readonly Uri _endpoint;
     private readonly string _appId;
@@ -24,21 +23,16 @@ internal sealed class HoloOasisReadSource : CanonicalHoloOasis, ICosmicReadOnlyQ
     {
         ArgumentNullException.ThrowIfNull(client);
         ArgumentNullException.ThrowIfNull(signer);
-        ArgumentNullException.ThrowIfNull(admittedIds);
-        if (probeId == Guid.Empty || !admittedIds.Contains(probeId))
-            throw new ArgumentException("The HoloOASIS probe must belong to the reviewed catalogue.", nameof(probeId));
-
         client.ZomeCallSigner = signer;
         _client = client;
         _endpoint = endpoint;
         _appId = appId;
-        _probeId = probeId;
-        ConfigurePublicQuery(admittedIds);
+        ConfigurePublicQuery(probeId, admittedIds);
     }
 
     public override Task<OASISResult<bool>> ActivateProviderAsync() => ActivateQuerySourceAsync(default);
 
-    public async Task<OASISResult<bool>> ActivateQuerySourceAsync(CancellationToken cancellationToken)
+    public override async Task<OASISResult<bool>> ActivateQuerySourceAsync(CancellationToken cancellationToken)
     {
         InvalidatePublicQueryProbe();
         cancellationToken.ThrowIfCancellationRequested();
@@ -61,7 +55,7 @@ internal sealed class HoloOasisReadSource : CanonicalHoloOasis, ICosmicReadOnlyQ
                 return connection;
         }
 
-        return await VerifyPublicQueryProbeAsync(_probeId, cancellationToken);
+        return await VerifyPublicQueryProbeAsync(cancellationToken);
     }
 
     public void Dispose()
