@@ -514,3 +514,5 @@ Urgent disk cleanup follow-up: leased standard project clean succeeded for AWS u
 12 November Cancun time. Meilisearch storage CI uses a disposable hosted runner, a loopback-only node, in-memory fixture storage and one result directory per mode. The exit handler removes the owned node, volumes and results. No local build, runtime or download was created. Cleanup confirmation awaits CI.
 
 12 November Cancun time. Solr Development jobs 131181925695 and 131181926118 verified exact fixture cleanup and removed their owned nodes, volumes and result directories. No local builds or downloads were created.
+
+12 November Cancun time. Meilisearch jobs 131184327639 and 131184327983 stopped on username lookup and removed both owned nodes, volumes and result directories. No local build or download was created.

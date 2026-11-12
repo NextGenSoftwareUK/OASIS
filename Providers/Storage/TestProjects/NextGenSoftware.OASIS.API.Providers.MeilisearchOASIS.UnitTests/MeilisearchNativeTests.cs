@@ -98,6 +98,8 @@ public class MeilisearchNativeTests
                 return Json(new { taskUid=0,indexUid=uid,type="indexCreation",status="enqueued" },HttpStatusCode.Accepted);
             }
             if(path == "/tasks/0") return Json(new { uid=0,indexUid=created.Last(),type="indexCreation",status=mode=="failed"?"failed":"succeeded",error=(object?)null });
+            if (path.EndsWith("/settings/filterable-attributes", StringComparison.Ordinal))
+                return Json(new[] { "username", "email" });
             var index=path.Split('/').Last();
             if(mode=="http") return Json(new {},HttpStatusCode.Unauthorized);
             if(mode is "create" or "failed" && !created.Contains(index)) return Json(new {code="index_not_found"},HttpStatusCode.NotFound);

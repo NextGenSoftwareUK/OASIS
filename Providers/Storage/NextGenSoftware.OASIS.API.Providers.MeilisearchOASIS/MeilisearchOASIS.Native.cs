@@ -1,11 +1,17 @@
 using System;
 using System.IO;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Serialization;
+using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS;
 
@@ -121,6 +127,72 @@ public partial class MeilisearchOASIS
     {
         if (schema.GetProperty("uid").GetString() != index || schema.GetProperty("primaryKey").GetString() != "id")
             throw new InvalidDataException("Existing Meilisearch index does not match the storage contract.");
+    }
+
+    private async Task EnsureIdentityFiltersAsync(string index)
+    {
+        var path = $"/indexes/{index}/settings/filterable-attributes";
+        using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+        using var response = await _http.GetAsync(_host + path, HttpCompletionOption.ResponseHeadersRead, deadline.Token);
+        response.EnsureSuccessStatusCode();
+        using var settings = await ReadNativeResponseAsync(response, 65536, deadline.Token);
+        var existing = new List<JsonElement>();
+        var attributes = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var item in settings.RootElement.EnumerateArray())
+        {
+            existing.Add(item.Clone());
+            if (item.ValueKind == JsonValueKind.String)
+                attributes.Add(item.GetString()!);
+        }
+        var required = new List<object>();
+        foreach (var field in new[] { "username", "email" })
+        {
+            if (!attributes.Contains(field))
+                required.Add(field);
+        }
+        if (required.Count == 0)
+            return;
+        foreach (var item in existing)
+            required.Add(item);
+        await SubmitTaskAsync(HttpMethod.Put, path, required, index, "settingsUpdate");
+    }
+
+    private async Task<OASISResult<TContract>> LoadByIdentityAsync<TContract, TRecord>(string index, string field, string value)
+        where TContract : class, IHolonBase
+        where TRecord : TContract
+    {
+        var result = new OASISResult<TContract>();
+        try
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(value);
+            var escaped = value.Replace("\\", "\\\\", StringComparison.Ordinal).Replace("\"", "\\\"", StringComparison.Ordinal);
+            var filter = Uri.EscapeDataString($"{field} = \"{escaped}\"");
+            using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+            using var response = await _http.GetAsync($"{_host}/indexes/{index}/search?filter={filter}&limit=2",
+                HttpCompletionOption.ResponseHeadersRead, deadline.Token);
+            response.EnsureSuccessStatusCode();
+            using var body = await ReadNativeResponseAsync(response, 4 * 1024 * 1024, deadline.Token);
+            var hits = body.RootElement.GetProperty("hits");
+            if (hits.GetArrayLength() > 1)
+                throw new InvalidDataException("Native identity lookup matched multiple documents.");
+            TContract? record = hits.GetArrayLength() == 0 ? null : typeof(TRecord) == typeof(AvatarDetail)
+                ? StoredRecordJson.DeserializeStored<TRecord>(hits[0].GetRawText())
+                : JsonSerializer.Deserialize<TRecord>(hits[0].GetRawText(), _jsonOpts);
+            if (record == null || record.IsDeleted)
+            {
+                OASISErrorHandling.HandleError(ref result, $"MeilisearchOASIS: No live record for {field}.");
+                result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
+                return result;
+            }
+            result.Result = record;
+            result.IsLoaded = true;
+            result.LoadedCount = 1;
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"MeilisearchOASIS: {ex.Message}", ex);
+        }
+        return result;
     }
 
     private Task UpsertDocAsync(string index, object document)

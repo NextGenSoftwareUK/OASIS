@@ -114,6 +114,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS
                 await EnsureIndexAsync(IdxAvatars);
                 await EnsureIndexAsync(IdxDetails);
                 await EnsureIndexAsync(IdxHolons);
+                await EnsureIdentityFiltersAsync(IdxAvatars);
+                await EnsureIdentityFiltersAsync(IdxDetails);
                 IsProviderActivated = true; result.Result = true; result.IsError = false; result.Message = "MeilisearchOASIS activated.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"MeilisearchOASIS: Error activating — {ex.Message}"); }
@@ -171,43 +173,13 @@ namespace NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS
 
         public override OASISResult<IAvatar> LoadAvatar(Guid id, int version = 0) => LoadAvatarAsync(id, version).Result;
 
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string username, int version = 0)
-        {
-            var result = new OASISResult<IAvatar>();
-            try
-            {
-                var resp = await _http.GetAsync($"{_host}/indexes/{IdxAvatars}/search?q={Uri.EscapeDataString(username)}&filter=username%20%3D%20%22{Uri.EscapeDataString(username)}%22&limit=1");
-                if (!resp.IsSuccessStatusCode) { OASISErrorHandling.HandleError(ref result, $"MeilisearchOASIS: Search failed."); return result; }
-                var json = await resp.Content.ReadAsStringAsync();
-                using var doc = JsonDocument.Parse(json);
-                if (!doc.RootElement.TryGetProperty("hits", out var hits) || hits.GetArrayLength() == 0) { OASISErrorHandling.HandleError(ref result, $"MeilisearchOASIS: No avatar for username '{username}'."); return result; }
-                var a = JsonSerializer.Deserialize<Avatar>(hits[0].GetRawText(), _jsonOpts);
-                if (a == null || a.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"MeilisearchOASIS: No avatar for username '{username}'."); return result; }
-                result.Result = a; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "MeilisearchOASIS: Avatar loaded.";
-            }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"MeilisearchOASIS: {ex.Message}"); }
-            return result;
-        }
+        public override Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string username, int version = 0)
+            => LoadByIdentityAsync<IAvatar, Avatar>(IdxAvatars, "username", username);
 
         public override OASISResult<IAvatar> LoadAvatarByUsername(string username, int version = 0) => LoadAvatarByUsernameAsync(username, version).Result;
 
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0)
-        {
-            var result = new OASISResult<IAvatar>();
-            try
-            {
-                var resp = await _http.GetAsync($"{_host}/indexes/{IdxAvatars}/search?q={Uri.EscapeDataString(avatarEmail)}&filter=email%20%3D%20%22{Uri.EscapeDataString(avatarEmail)}%22&limit=1");
-                if (!resp.IsSuccessStatusCode) { OASISErrorHandling.HandleError(ref result, $"MeilisearchOASIS: Search failed."); return result; }
-                var json = await resp.Content.ReadAsStringAsync();
-                using var doc = JsonDocument.Parse(json);
-                if (!doc.RootElement.TryGetProperty("hits", out var hits) || hits.GetArrayLength() == 0) { OASISErrorHandling.HandleError(ref result, $"MeilisearchOASIS: No avatar for email '{avatarEmail}'."); return result; }
-                var a = JsonSerializer.Deserialize<Avatar>(hits[0].GetRawText(), _jsonOpts);
-                if (a == null || a.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"MeilisearchOASIS: No avatar for email '{avatarEmail}'."); return result; }
-                result.Result = a; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "MeilisearchOASIS: Avatar loaded.";
-            }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"MeilisearchOASIS: {ex.Message}"); }
-            return result;
-        }
+        public override Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0)
+            => LoadByIdentityAsync<IAvatar, Avatar>(IdxAvatars, "email", avatarEmail);
 
         public override OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail, int version = 0) => LoadAvatarByEmailAsync(avatarEmail, version).Result;
 
@@ -272,11 +244,16 @@ namespace NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS
             var result = new OASISResult<IAvatarDetail>();
             try
             {
-                if (d.Id == Guid.Empty) d.Id = Guid.NewGuid();
-                var doc = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(Ser(d), _jsonOpts)!;
-                doc["id"] = JsonDocument.Parse($"\"{d.Id}\"").RootElement;
-                await UpsertDocAsync(IdxDetails, doc);
-                result.Result = d; result.IsError = false; result.Message = "MeilisearchOASIS: AvatarDetail saved.";
+                ArgumentNullException.ThrowIfNull(d);
+                var id = d.Id == Guid.Empty ? Guid.NewGuid() : d.Id;
+                var document = JsonSerializer.SerializeToNode(d, d.GetType(), _jsonOpts)!.AsObject();
+                document["id"] = id;
+                await UpsertDocAsync(IdxDetails, document);
+                d.Id = id;
+                result.Result = d;
+                result.IsSaved = true;
+                result.SavedCount = 1;
+                result.Message = "MeilisearchOASIS: AvatarDetail saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"MeilisearchOASIS: {ex.Message}"); }
             return result;
@@ -287,15 +264,19 @@ namespace NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
         {
             var result = new OASISResult<IAvatarDetail>();
-            try { var d = await GetDocAsync<AvatarDetail>(IdxDetails, id.ToString()); if (d == null) { OASISErrorHandling.HandleError(ref result, $"MeilisearchOASIS: No detail for ID '{id}'."); return result; } result.Result = d; result.IsError = false; result.Message = "MeilisearchOASIS: AvatarDetail loaded."; }
+            try { var d = await GetDocAsync<AvatarDetail>(IdxDetails, id.ToString()); if (d == null) { OASISErrorHandling.HandleError(ref result, $"MeilisearchOASIS: No detail for ID '{id}'."); return result; } result.Result = d; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "MeilisearchOASIS: AvatarDetail loaded."; }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"MeilisearchOASIS: {ex.Message}"); }
             return result;
         }
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0) => LoadAvatarDetailAsync(id, version).Result;
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string u, int version = 0) { var result = new OASISResult<IAvatarDetail>(); try { var resp = await _http.GetAsync($"{_host}/indexes/{IdxDetails}/search?q={Uri.EscapeDataString(u)}&filter=username%20%3D%20%22{Uri.EscapeDataString(u)}%22&limit=1"); var json = await resp.Content.ReadAsStringAsync(); using var doc = JsonDocument.Parse(json); if (!doc.RootElement.TryGetProperty("hits", out var hits) || hits.GetArrayLength() == 0) { OASISErrorHandling.HandleError(ref result, $"MeilisearchOASIS: No detail for username '{u}'."); return result; } var d = JsonSerializer.Deserialize<AvatarDetail>(hits[0].GetRawText(), _jsonOpts); if (d == null) { OASISErrorHandling.HandleError(ref result, $"MeilisearchOASIS: No detail for username '{u}'."); return result; } result.Result = d; result.IsError = false; result.Message = "MeilisearchOASIS: AvatarDetail loaded."; } catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"MeilisearchOASIS: {ex.Message}"); } return result; }
+        public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string u, int version = 0)
+            => LoadByIdentityAsync<IAvatarDetail, AvatarDetail>(IdxDetails, "username", u);
+
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string u, int version = 0) => LoadAvatarDetailByUsernameAsync(u, version).Result;
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string e, int version = 0) { var result = new OASISResult<IAvatarDetail>(); try { var resp = await _http.GetAsync($"{_host}/indexes/{IdxDetails}/search?q={Uri.EscapeDataString(e)}&filter=email%20%3D%20%22{Uri.EscapeDataString(e)}%22&limit=1"); var json = await resp.Content.ReadAsStringAsync(); using var doc = JsonDocument.Parse(json); if (!doc.RootElement.TryGetProperty("hits", out var hits) || hits.GetArrayLength() == 0) { OASISErrorHandling.HandleError(ref result, $"MeilisearchOASIS: No detail for email '{e}'."); return result; } var d = JsonSerializer.Deserialize<AvatarDetail>(hits[0].GetRawText(), _jsonOpts); if (d == null) { OASISErrorHandling.HandleError(ref result, $"MeilisearchOASIS: No detail for email '{e}'."); return result; } result.Result = d; result.IsError = false; result.Message = "MeilisearchOASIS: AvatarDetail loaded."; } catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"MeilisearchOASIS: {ex.Message}"); } return result; }
+        public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string e, int version = 0)
+            => LoadByIdentityAsync<IAvatarDetail, AvatarDetail>(IdxDetails, "email", e);
+
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string e, int version = 0) => LoadAvatarDetailByEmailAsync(e, version).Result;
 
         public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
