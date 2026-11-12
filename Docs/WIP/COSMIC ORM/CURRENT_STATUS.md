@@ -2,13 +2,13 @@
 
 ## HoloOASIS first in the WEB4 demo queue
 
-Canonical HoloOASIS is first in the WEB4 demo queue. The read-only CQL adapter is deployed in Development at `279ba0f0a99a`, with discovery gated on fixture enrollment. The managed local conductor passed Linux lifecycle qualification, including native fixture reads and record persistence after restart. Verified revision `e54973c380c9` is live on top of HyperDrive's separately qualified lifecycle fix. Live Development public discovery and all four native and public-only federated presets passed. Browser rendering, owner-private MongoDB copies and live HyperDrive writes remain open. HoloOASIS.Desktop is an obsolete compatibility wrapper.
+Canonical HoloOASIS public CQL is live in Development. The managed conductor and all four public presets passed on `e54973c380c9` and after the `1c4d6109d47c` rollout. The original owner also verified private MongoDB federation with 5 full and 4 subset rows, and a separate visitor saw only the public records. Neo4j has both exact private replicas. SQLite delivery remains held behind sequence 543, and browser rendering and live HyperDrive writes remain open. HoloOASIS.Desktop is an obsolete compatibility wrapper.
 
 ## Coverage snapshot — 12 November 2026 UTC
 
 - **Live Development WEB4:** the last authenticated check on `bfa0be4be233` found **105/106** enrolled sources ready for both native and federated CQL. Hedera, Dapr, Waku and NATS were ready. Nostr was unavailable. The Urbit rollout at `4fdb30c2fa` is in progress.
 - **CQL/COSMIC ORM:** the recorded functional totals are **129 scoped local integrations, 96 hosted HTTP proofs and 28 functional browser proofs**. Full ORM, EF/NHibernate parity and wider provider operations remain open.
-- **SDK/API and native storage:** HyperDrive inventories **234 shipping projects** (178 storage or specialized storage and 56 non-storage). The matrix identifies two missing adapters, Niantic Lightship and WRLD3D. **47 provider rows** record reconciled native **52/52** passes on the current shared storage suite. The suite covers the shared storage contract. Provider-wide failover, load balancing, replication and complete interfaces remain open.
+- **SDK/API and native storage:** HyperDrive inventories **234 shipping projects** (178 storage or specialized storage and 56 non-storage). The matrix identifies two missing adapters, Niantic Lightship and WRLD3D. **51 provider rows** record reconciled native **52/52** passes on the current shared storage suite. The suite covers the shared storage contract. Provider-wide failover, load balancing, replication and complete interfaces remain open.
 
 | Provider | Accepted scope and next gate |
 | --- | --- |
@@ -21,7 +21,7 @@ Canonical HoloOASIS is first in the WEB4 demo queue. The read-only CQL adapter i
 | Supabase | Reader deployed, 52/52 native PostgREST storage and local CQL/MongoDB evidence. Hosted teaching fixture remains open. |
 | LocalFile | Scoped CQL acceptance retained. Ordinary HyperDrive point routing is deferred behind the priority demos. |
 | Urbit | Native WEB4 federation passed five full/four subset rows before and after restart, owner isolation and MongoDB cleanup. Exact published-Core boundary CI passed all 30 cases. Development rollout is in progress and hosted enrollment needs a reviewed HTTPS teaching fixture. |
-| Infura | Five controlled checks passed against published Core. Exact current-pin WEB4 image build is pending. Authenticated Ethereum reads need protected reader access. |
+| Infura | Controlled CI passed on `ee3a6589a6e3`. Its exact WEB4 image is building. Authenticated Ethereum reads and hosted enrollment need protected reader access. |
 | GOMap, CouchDB | Reader code deployed. GOMap needs a dedicated HTTPS OSRM origin and CouchDB needs a restricted HTTPS teaching fixture. |
 
 [Provider matrix](../HyperDrive-Providers/PROVIDER_MATRIX.md) · [Sandbox provider roadmap](SANDBOX_PROVIDER_DEMO_ROADMAP.md) · [Owner actions](../Release%20and%20Status/ACTIONS-FOR-DAVID.md).
