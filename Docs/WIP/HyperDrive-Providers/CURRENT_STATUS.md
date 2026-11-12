@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. [Native TRON routing CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43310611132) passed sync and async with zero skips. It verified both replication directions, both read outage directions, even RoundRobin and empty native contracts after cleanup. The runner removed its container and ledger. The retained unresolved transaction was outside this fixture. COSMIC has explicitly released the 16:34:28 Development window to the verified Oracle, Azure and NEAR batch, with Solana's live CQL acceptance complete.
+
 12 November Cancun time. Added EOSIO and SQLite routing verification on disposable official Antelope Spring. It uses the existing shipping contract fixture in separate sync and async jobs, verifies exact replication in both directions, both read failovers and even RoundRobin, then requires all three native tables empty through cleos. The accepted direct storage suite carries forward. Routing CI is pending.
 
 12 November Cancun time. [Prepared Polkadot routing CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43309232675) passed both modes with no skips. Native Substrate and SQLite verified bidirectional replication, bidirectional read failover and even RoundRobin. A fresh MongoDB client reloaded unique signed originals for routed writes and cleanup, and the contract ended empty. CI removed the chain fixture and outbox container and volumes. Added a separate TRON routing mode on the existing disposable TRE fixture. It uses shipping TronNet gRPC storage, verifies both routing directions and native cleanup, and leaves the retained ledger untouched. TRON CI and Development qualification remain open.
