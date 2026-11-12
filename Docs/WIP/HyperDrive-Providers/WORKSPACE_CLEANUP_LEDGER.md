@@ -502,3 +502,5 @@ Urgent disk cleanup follow-up: leased standard project clean succeeded for AWS u
 12 November Cancun time. Typesense jobs 131161304954 and 131161305371 completed all shared cases and verified exact tombstone cleanup and empty native collections. Both removed their owned nodes, volumes and checkpoint directories. No local build or download was created.
 
 12 November Cancun time. Typesense Development jobs 131167194815 and 131167195255 confirmed exact fixture cleanup and removal of their nodes, volumes and result directories. The local temporary Git index used for the candidate tree was removed and its absence verified. New Solr jobs use disposable nodes and delete owned volumes and result directories on exit. No local build or runtime download was created.
+
+12 November Cancun time. Solr jobs 131169998115 and 131169998561 removed both owned nodes, volumes and result directories after the node-mode guard failed. No local builds or downloads were created.

@@ -90,12 +90,6 @@ namespace NextGenSoftware.OASIS.API.Providers.SolrOASIS
             return DecodeDocument<T>(row);
         }
 
-        private async Task DeleteDocAsync(string collection, string id)
-        {
-            var body = new { delete = new { id } };
-            await _http.PostAsync($"{_baseUrl}/solr/{collection}/update?commit=true", Json(body));
-        }
-
         private async Task<List<T>> SearchAsync<T>(string collection, string query, int rows = 1)
         {
             using var deadline = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(15));
@@ -234,9 +228,25 @@ namespace NextGenSoftware.OASIS.API.Providers.SolrOASIS
             var result = new OASISResult<bool>();
             try
             {
-                if (softDelete) { var load = await LoadAvatarAsync(id); if (!load.IsError && load.Result != null) { var a = (Avatar)load.Result; a.DeletedDate = DateTime.UtcNow; await SaveAvatarAsync(a); } }
-                else { await DeleteDocAsync(ColAvatars, id.ToString()); }
-                result.Result = true; result.IsError = false; result.Message = $"SolrOASIS: Avatar '{id}' deleted.";
+                if (softDelete)
+                {
+                    var loaded = await LoadAvatarAsync(id);
+                    if (loaded.IsError || loaded.Result is not Avatar avatar)
+                        throw new InvalidOperationException(loaded.Message, loaded.Exception);
+                    avatar.DeletedDate = DateTime.UtcNow;
+                    var saved = await SaveAvatarAsync(avatar);
+                    if (saved.IsError || !saved.IsSaved || saved.SavedCount != 1)
+                        throw new InvalidOperationException(saved.Message, saved.Exception);
+                }
+                else
+                {
+                    await DeleteDocAsync(ColDetails, id.ToString("D"), requireExisting: false);
+                    await DeleteDocAsync(ColAvatars, id.ToString("D"));
+                }
+                result.Result = true;
+                result.IsDeleted = true;
+                result.DeletedCount = 1;
+                result.Message = $"SolrOASIS: Avatar '{id}' deleted.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SolrOASIS: {ex.Message}"); }
             return result;
@@ -392,7 +402,35 @@ namespace NextGenSoftware.OASIS.API.Providers.SolrOASIS
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string pk, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadHolonsForParentAsync(pk, holonType, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
 
         public async Task<OASISResult<bool>> DeleteHolonSoftAsync(Guid id, bool softDelete = true)
-        { var result = new OASISResult<bool>(); try { if (softDelete) { var load = await LoadHolonAsync(id); if (!load.IsError && load.Result != null) { var h = (Holon)load.Result; h.DeletedDate = DateTime.UtcNow; await SaveHolonAsync(h); } } else { await DeleteDocAsync(ColHolons, id.ToString()); } result.Result = true; result.IsError = false; result.Message = $"SolrOASIS: Holon '{id}' deleted."; } catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SolrOASIS: {ex.Message}"); } return result; }
+        {
+            var result = new OASISResult<bool>();
+            try
+            {
+                if (softDelete)
+                {
+                    var loaded = await LoadHolonAsync(id, loadChildren: false);
+                    if (loaded.IsError || loaded.Result is not Holon holon)
+                        throw new InvalidOperationException(loaded.Message, loaded.Exception);
+                    holon.DeletedDate = DateTime.UtcNow;
+                    var saved = await SaveHolonAsync(holon, saveChildren: false);
+                    if (saved.IsError || !saved.IsSaved || saved.SavedCount != 1)
+                        throw new InvalidOperationException(saved.Message, saved.Exception);
+                }
+                else
+                {
+                    await DeleteDocAsync(ColHolons, id.ToString("D"));
+                }
+                result.Result = true;
+                result.IsDeleted = true;
+                result.DeletedCount = 1;
+                result.Message = $"SolrOASIS: Holon '{id}' deleted.";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"SolrOASIS: {ex.Message}", ex);
+            }
+            return result;
+        }
         public OASISResult<bool> DeleteHolonSoft(Guid id, bool softDelete = true) => DeleteHolonSoftAsync(id, softDelete).Result;
         public async Task<OASISResult<bool>> DeleteHolonSoftAsync(string pk, bool softDelete = true) { if (Guid.TryParse(pk, out Guid id)) return await DeleteHolonSoftAsync(id, softDelete); var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, $"SolrOASIS: Invalid GUID '{pk}'."); return r; }
         public OASISResult<bool> DeleteHolonSoft(string pk, bool softDelete = true) => DeleteHolonSoftAsync(pk, softDelete).Result;
@@ -455,7 +493,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SolrOASIS
             if (deleted.IsError)
                 OASISErrorHandling.HandleError(ref result, deleted.Message);
             else
+            {
                 result.Result = loaded.Result;
+                result.IsDeleted = deleted.IsDeleted;
+                result.DeletedCount = deleted.DeletedCount;
+            }
 
             return result;
         }

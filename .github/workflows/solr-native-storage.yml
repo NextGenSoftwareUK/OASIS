@@ -91,9 +91,9 @@ jobs:
           trap cleanup EXIT
           origin=http://127.0.0.1:18984
           image=docker.io/library/solr@sha256:0586be344eeb1eb5682e0bd1260001e004219ed3bd788d6e0d3620502c057f1c
-          container="$(docker run --detach --publish 127.0.0.1:18984:8983 --env SOLR_HEAP=512m "$image" solr-foreground)"
+          container="$(docker run --detach --publish 127.0.0.1:18984:8983 --env SOLR_HEAP=512m "$image" solr-foreground --user-managed)"
           curl --fail --silent --show-error --retry 35 --retry-delay 2 --retry-all-errors --max-time 5 \
-            "$origin/solr/admin/info/system?wt=json" | jq -e '.mode == "std" and .lucene["solr-spec-version"] == "10.1.0"'
+            "$origin/solr/admin/info/system?wt=json" | jq -e '{mode, version: .lucene["solr-spec-version"]} | if .mode == "std" and .version == "10.1.0" then . else error(tostring) end'
           cat > "$fixture/solrconfig.xml" <<'SOLR_CONFIG'
           <config>
             <luceneMatchVersion>LATEST</luceneMatchVersion>
