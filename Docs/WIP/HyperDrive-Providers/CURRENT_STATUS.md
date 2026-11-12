@@ -10,13 +10,15 @@
 | ActivityPub and routing | ActivityPub has 5/5 native capability checks. GOMap passed a public OSRM driving route. Authenticated Google Routes, Mapbox and HERE checks remain open. Niantic and WRLD still have reviewed adapter gaps. |
 | Canonical HoloOASIS | Top priority. Both modes passed all 52 native core-storage-v2 checks on the official Windows conductor with the verified identity-delete hApp in [run 43178174352](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43178174352). The verified bundle is packaged on the provider branch. Hosted, multi-agent and broader capability acceptance remain open. |
 | HoloOASIS.Desktop | Obsolete in source, package metadata and repository documentation at `45d6665da989`. The six-file compatibility and documentation batch reached Development at `70d3fbb4a31c`. Published NuGet metadata and live site listings still need the obsolescence update. |
-| Development | All seven APIs reported Railway deployment success at `4fef831e0be6`, which includes the verified canonical HoloOASIS storage and Azure Cosmos DB startup batches. `279ba0f0a99a` added the CQL integration and is rolling out. Linux HoloOASIS lifecycle CI passed on that baseline. Integration and live WEB4 provider verification remain open. |
+| Development | All seven APIs reported Railway deployment success at `279ba0f0a99a`, which adds the native-qualified CQL integration. Linux and Windows HoloOASIS lifecycle CI passed on that baseline. The provider lifecycle batch awaits its integration window. Live WEB4 provider verification remains open. |
 | BootLoader startup | The shipping registration, activation and deactivation path passed against native Polkadot and TRON fixtures and the Microsoft Azure Cosmos DB emulator. [Azure Cosmos DB job 131055311882](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43180594194/job/131055311882) confirmed fixture teardown. |
 | HyperDrive | Global automatic failover, replication and load balancing await provider acceptance. Dragonfly and KeyDB full native runs were queued at the coverage review. |
 
 [Provider matrix](PROVIDER_MATRIX.md) · [Evidence registry](CONFORMANCE_RESULTS.json) · [Cleanup ledger](WORKSPACE_CLEANUP_LEDGER.md)
 
 ## Verification log
+
+12 November Cancun time. [Windows HoloOASIS job 131082774416](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43188854418/job/131082774416) passed startup, shutdown and reopening the original app agent using provider revision `6562479a883b` and Development `279ba0f0a99a`. The job logged staged tree `f72da522bb94af2b2d9a61f97af51e20e9a6ed55`. Railway reported all seven APIs successful on the same Development baseline. The Development push workflows for `279ba0f0a99a` were created at 04:01:58 Cancun time. The next integration review is after 04:31:58.
 
 12 November Cancun time. [Linux HoloOASIS job 131081195718](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43188383572/job/131081195718) passed on Development `279ba0f0a99a`. The job logged tree `b448a586edf07f4ea593d6af48199d0bb59c61f1`, confirmed BootLoader activation and deactivation, reopened the original installed agent, and verified conductor and fixture cleanup. The matching three-file integration batch awaits the Development coordination window and prior rollout. Windows and live WEB4 provider verification remain open.
 
