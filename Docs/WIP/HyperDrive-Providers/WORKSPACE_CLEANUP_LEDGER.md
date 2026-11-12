@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+12 November exact Supabase routing run 43297794966 removed its owned PostgREST runtime, SQLite files and reports after verifying zero PostgreSQL rows. The temporary Git index used to reproduce the two qualified scopes was removed and independently confirmed absent. The AWS S3 routing job uses a separate disposable S3-compatible container and runner directory. No local build or download was created.
+
 12 November Supabase routing run 43297095312 verified exact row removal and independently confirmed all three PostgreSQL tables empty. The runner removed its PostgREST processes, archive, logs, SQLite files and test results. No local build or fixture was created.
 
 12 November Supabase routing run 43296247756 stopped at compilation. The runner confirmed removal of its owned PostgREST processes and fixture directory. No local build output or runtime was created.

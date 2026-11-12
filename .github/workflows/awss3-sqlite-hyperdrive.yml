@@ -1,0 +1,102 @@
+name: AWS S3 adapter and SQLite HyperDrive routing
+
+on:
+  push:
+    branches: [work/hyperdrive-provider-completion]
+    paths:
+      - '.github/workflows/awss3-sqlite-hyperdrive.yml'
+      - 'Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.AWSOASIS.UnitTests/AwsS3SqliteHyperDriveTests.cs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lifecycle:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: OASIS
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          path: OASIS
+          submodules: recursive
+          persist-credentials: false
+
+      - name: Read the recorded Libraries revision
+        id: dependencies
+        shell: bash
+        run: |
+          revision="$(sed -n 's/^LIBRARIES_COMMIT=//p' Docker/oasis-dependency-versions.env)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "libraries=$revision" >> "$GITHUB_OUTPUT"
+          revision="$(sed -n 's/^HOLOCHAIN_COMMIT=//p' Docker/oasis-dependency-versions.env)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "holochain=$revision" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependencies.outputs.libraries }}
+          path: NextGenSoftware-Libraries
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+
+      - uses: actions/checkout@v7
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          ref: ${{ steps.dependencies.outputs.holochain }}
+          path: holochain-client-csharp
+          persist-credentials: false
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Verify routing against a real S3-compatible service and SQLite
+        shell: bash
+        run: |
+          umask 077
+          fixture="$(mktemp -d "$RUNNER_TEMP/oasis-priority-s3.XXXXXXXX")"
+          container=""
+          cleanup() {
+            local status=$? cleanup_status=0
+            if [[ -n "$container" ]]; then
+              docker rm --force --volumes "$container" >/dev/null || cleanup_status=1
+              if docker inspect "$container" >/dev/null 2>&1; then cleanup_status=1; fi
+            fi
+            rm -rf -- "$fixture" || cleanup_status=1
+            if [[ "$cleanup_status" -ne 0 || -e "$fixture" ]]; then exit 1; fi
+            echo "Removed the owned S3-compatible container, volumes, SQLite databases and test output."
+            exit "$status"
+          }
+          trap cleanup EXIT
+          export MINIO_ROOT_USER="oasis$(openssl rand -hex 8)"
+          export MINIO_ROOT_PASSWORD="$(openssl rand -hex 24)"
+          echo "::add-mask::$MINIO_ROOT_USER"
+          echo "::add-mask::$MINIO_ROOT_PASSWORD"
+          image=ghcr.io/coollabsio/minio:RELEASE.2025-04-22T22-12-26Z
+          container="$(docker run --detach --publish 127.0.0.1:19000:9000 \
+            -e MINIO_ROOT_USER -e MINIO_ROOT_PASSWORD "$image" server /data)"
+          docker image inspect --format '{{json .RepoDigests}}' "$image"
+          curl --fail --silent --show-error --retry 25 --retry-all-errors --max-time 3 \
+            'http://127.0.0.1:19000/minio/health/ready'
+          AWS_ACCESS_KEY_ID="$MINIO_ROOT_USER" AWS_SECRET_ACCESS_KEY="$MINIO_ROOT_PASSWORD" AWS_DEFAULT_REGION=us-east-1 \
+            aws --endpoint-url http://127.0.0.1:19000 s3api create-bucket --bucket oasis-routing
+          export OASIS_S3_ROUTING_DIRECTORY="$fixture"
+          export OASIS_S3_ROUTING_ACCESS="$MINIO_ROOT_USER"
+          export OASIS_S3_ROUTING_SECRET="$MINIO_ROOT_PASSWORD"
+          pwsh -NoProfile -Command '
+            ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-PriorityS3Routing -Operation {
+              $project = "Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.AWSOASIS.UnitTests"
+              dotnet test $project --filter "FullyQualifiedName~AwsS3SqliteHyperDriveTests" --logger "trx;LogFileName=routing.trx" --results-directory $env:OASIS_S3_ROUTING_DIRECTORY /p:AwsS3RoutingTests=true /m:2 /nr:false /p:UseSharedCompilation=false
+              if ($LASTEXITCODE -ne 0) { throw "Native S3 and SQLite routing checks failed." }
+              [xml]$report = Get-Content -LiteralPath (Join-Path $env:OASIS_S3_ROUTING_DIRECTORY "routing.trx") -Raw
+              $counters = $report.SelectSingleNode("//*[local-name()=`"Counters`"]")
+              if (-not $counters -or $counters.total -ne "2" -or $counters.passed -ne "2") {
+                throw "Expected two executed and passing S3 and SQLite routing cases."
+              }
+            }'
