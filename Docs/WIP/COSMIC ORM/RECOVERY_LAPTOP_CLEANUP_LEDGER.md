@@ -6392,3 +6392,5 @@ Track ci-cosmic-urbit-web4-33977c56be and ci-cosmic-urbit-core-7ea7639c through 
 Track ci-cosmic-urbit-web4-98fae8117c for native federation run 43153031802. Retain the passing boundary tag and Core tag until this replacement is qualified. All temporary Git indices were removed. Existing native caches remain CI-only. No local build, fixture or downloads.
 
 Track ci-cosmic-urbit-web4-2784481190 for corrected native federation CI 43154020812. Failed candidate ci-cosmic-urbit-web4-98fae8117c started no native fixture. Keep existing evidence refs until the rerun qualifies the replacement. Compiler errors inspected in memory; no downloaded logs, local build or fixture. Temporary Git indices removed.
+
+Track ci-cosmic-urbit-web4-3aef8cd60a through cold-cache CI 43155994072. Candidate 2784481190 compiled both test hosts but started no fixture because the cache was missing. Runtime assets remain CI-only. Temporary Git indices removed. No local build, downloaded logs, fixture or environment.
