@@ -89,7 +89,15 @@ jobs:
             if (-not $account.authorization) { throw "Solid did not authorize the new fixture account." }
             Write-Output "::add-mask::$($account.authorization)"
             $json.Authorization = "CSS-Account-Token $($account.authorization)"
-            $controls = (Invoke-RestMethod $accountIndex -Headers $json).controls.account
+            $controls = (Invoke-RestMethod $accountIndex -Headers $json).controls
+            $passwordRoute = $controls.password.create
+            if (-not $passwordRoute -or -not $passwordRoute.StartsWith("$origin/.account/account/", [StringComparison]::Ordinal)) {
+              throw "Unexpected password registration route."
+            }
+            $password = [Convert]::ToBase64String([Security.Cryptography.RandomNumberGenerator]::GetBytes(32))
+            Write-Output "::add-mask::$password"
+            $null = Invoke-RestMethod $passwordRoute -Method Post -Headers $json -ContentType application/json -Body (@{email="oasis-routing@example.invalid";password=$password} | ConvertTo-Json)
+            $controls = $controls.account
             foreach ($route in @($controls.pod,$controls.clientCredentials)) {
               if (-not $route -or -not $route.StartsWith("$origin/.account/account/", [StringComparison]::Ordinal)) {
                 throw "Unexpected account provisioning route."
