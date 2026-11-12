@@ -22,6 +22,8 @@
 
 12 November Cancun time. Both [Typesense Development jobs](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43213620274) passed all 26 cases and cleanup on exact tree `d231f61c749168b0483bf135f20c71a4802807e6` over `1c4d6109d47c`. The five-file batch awaits the next Development window and the preceding deployment.
 
+12 November Cancun time. Both [Solr jobs in run 43215165048](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43215165048) verified Solr 10.1.0 standalone mode and passed nine native cases through all avatar-detail lookups. Graph save acknowledged only the root. The adapter now uses the shared graph plan, writes each selected node with its native receipt, and returns actual point, collection, import, and owner-export counts. The next native run verifies those paths.
+
 12 November Cancun time. Both [Solr jobs in run 43214449942](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43214449942) stopped at the node-mode guard before running storage tests. The fixture now explicitly requests Solr 10 user-managed mode and reports the observed mode and version. The adapter also validates native hard-delete IDs and versions, requires acknowledged soft writes, and forwards deletion counts to callers. The next native run will verify these changes.
 
 12 November Cancun time. Added native Apache Solr 10.1.0 shared storage CI in both modes using explicitly provisioned canonical standalone cores. Avatar and detail writes publish identity and save count after the native receipt. Their point and selector reads acknowledge one loaded record, and detail reads use the canonical decoder. Native execution remains open. The existing COSMIC Solr CQL evidence is separate.

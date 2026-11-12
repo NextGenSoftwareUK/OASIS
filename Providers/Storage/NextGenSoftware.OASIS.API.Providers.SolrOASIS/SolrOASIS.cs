@@ -5,6 +5,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -15,6 +16,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Providers.SolrOASIS
@@ -165,7 +167,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SolrOASIS
             try
             {
                 var a = await GetDocAsync<Avatar>(ColAvatars, id.ToString());
-                if (a == null || a.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"SolrOASIS: No avatar for ID '{id}'."); return result; }
+                if (a == null || a.IsDeleted) { result.ErrorCode = OASISResultErrorCodes.RecordNotFound; OASISErrorHandling.HandleError(ref result, $"SolrOASIS: No avatar for ID '{id}'."); return result; }
                 result.Result = a; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "SolrOASIS: Avatar loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SolrOASIS: {ex.Message}"); }
@@ -181,7 +183,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SolrOASIS
             {
                 var hits = await SearchAsync<Avatar>(ColAvatars, $"username:\"{username}\"", 1);
                 var a = hits.Count > 0 ? hits[0] : null;
-                if (a == null || a.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"SolrOASIS: No avatar for username '{username}'."); return result; }
+                if (a == null || a.IsDeleted) { result.ErrorCode = OASISResultErrorCodes.RecordNotFound; OASISErrorHandling.HandleError(ref result, $"SolrOASIS: No avatar for username '{username}'."); return result; }
                 result.Result = a; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "SolrOASIS: Avatar loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SolrOASIS: {ex.Message}"); }
@@ -197,7 +199,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SolrOASIS
             {
                 var hits = await SearchAsync<Avatar>(ColAvatars, $"email:\"{avatarEmail}\"", 1);
                 var a = hits.Count > 0 ? hits[0] : null;
-                if (a == null || a.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"SolrOASIS: No avatar for email '{avatarEmail}'."); return result; }
+                if (a == null || a.IsDeleted) { result.ErrorCode = OASISResultErrorCodes.RecordNotFound; OASISErrorHandling.HandleError(ref result, $"SolrOASIS: No avatar for email '{avatarEmail}'."); return result; }
                 result.Result = a; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "SolrOASIS: Avatar loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SolrOASIS: {ex.Message}"); }
@@ -215,7 +217,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SolrOASIS
             {
                 var all = await SearchAsync<Avatar>(ColAvatars, "*:*", 1000);
                 var list = new List<IAvatar>(); foreach (var a in all) { if (!a.IsDeleted) list.Add(a); }
-                result.Result = list; result.IsError = false; result.Message = $"SolrOASIS: Loaded {list.Count} avatar(s).";
+                result.Result = list; result.IsLoaded = true; result.LoadedCount = list.Count; result.Message = $"SolrOASIS: Loaded {list.Count} avatar(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SolrOASIS: {ex.Message}"); }
             return result;
@@ -292,7 +294,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SolrOASIS
             try
             {
                 var d = await GetDocAsync<AvatarDetail>(ColDetails, id.ToString());
-                if (d == null) { OASISErrorHandling.HandleError(ref result, $"SolrOASIS: No detail for ID '{id}'."); return result; }
+                if (d == null) { result.ErrorCode = OASISResultErrorCodes.RecordNotFound; OASISErrorHandling.HandleError(ref result, $"SolrOASIS: No detail for ID '{id}'."); return result; }
                 result.Result = d; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "SolrOASIS: AvatarDetail loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SolrOASIS: {ex.Message}"); }
@@ -300,15 +302,15 @@ namespace NextGenSoftware.OASIS.API.Providers.SolrOASIS
         }
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0) => LoadAvatarDetailAsync(id, version).Result;
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string u, int version = 0) { var result = new OASISResult<IAvatarDetail>(); try { var hits = await SearchAsync<AvatarDetail>(ColDetails, $"username:\"{u}\"", 1); var d = hits.Count > 0 ? hits[0] : null; if (d == null) { OASISErrorHandling.HandleError(ref result, $"SolrOASIS: No detail for username '{u}'."); return result; } result.Result = d; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "SolrOASIS: AvatarDetail loaded."; } catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SolrOASIS: {ex.Message}"); } return result; }
+        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string u, int version = 0) { var result = new OASISResult<IAvatarDetail>(); try { var hits = await SearchAsync<AvatarDetail>(ColDetails, $"username:\"{u}\"", 1); var d = hits.Count > 0 ? hits[0] : null; if (d == null) { result.ErrorCode = OASISResultErrorCodes.RecordNotFound; OASISErrorHandling.HandleError(ref result, $"SolrOASIS: No detail for username '{u}'."); return result; } result.Result = d; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "SolrOASIS: AvatarDetail loaded."; } catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SolrOASIS: {ex.Message}"); } return result; }
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string u, int version = 0) => LoadAvatarDetailByUsernameAsync(u, version).Result;
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string e, int version = 0) { var result = new OASISResult<IAvatarDetail>(); try { var hits = await SearchAsync<AvatarDetail>(ColDetails, $"email:\"{e}\"", 1); var d = hits.Count > 0 ? hits[0] : null; if (d == null) { OASISErrorHandling.HandleError(ref result, $"SolrOASIS: No detail for email '{e}'."); return result; } result.Result = d; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "SolrOASIS: AvatarDetail loaded."; } catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SolrOASIS: {ex.Message}"); } return result; }
+        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string e, int version = 0) { var result = new OASISResult<IAvatarDetail>(); try { var hits = await SearchAsync<AvatarDetail>(ColDetails, $"email:\"{e}\"", 1); var d = hits.Count > 0 ? hits[0] : null; if (d == null) { result.ErrorCode = OASISResultErrorCodes.RecordNotFound; OASISErrorHandling.HandleError(ref result, $"SolrOASIS: No detail for email '{e}'."); return result; } result.Result = d; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "SolrOASIS: AvatarDetail loaded."; } catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SolrOASIS: {ex.Message}"); } return result; }
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string e, int version = 0) => LoadAvatarDetailByEmailAsync(e, version).Result;
 
         public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
         {
             var result = new OASISResult<IEnumerable<IAvatarDetail>>();
-            try { var all = await SearchAsync<AvatarDetail>(ColDetails, "*:*", 1000); result.Result = new List<IAvatarDetail>(all); result.IsError = false; result.Message = $"SolrOASIS: Loaded {all.Count} detail(s)."; }
+            try { var all = await SearchAsync<AvatarDetail>(ColDetails, "*:*", 1000); result.Result = new List<IAvatarDetail>(all); result.IsLoaded = true; result.LoadedCount = all.Count; result.Message = $"SolrOASIS: Loaded {all.Count} detail(s)."; }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SolrOASIS: {ex.Message}"); }
             return result;
         }
@@ -317,29 +319,74 @@ namespace NextGenSoftware.OASIS.API.Providers.SolrOASIS
 
         // ─── Holons ───────────────────────────────────────────────────────────────
 
-        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+        public override Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+            => SaveHolonGraphAsync(holon, saveChildren, recursive, maxChildDepth, 0, continueOnError);
+
+        private async Task<OASISResult<IHolon>> SaveHolonGraphAsync(IHolon holon, bool saveChildren, bool recursive,
+            int maxChildDepth, int currentChildDepth, bool continueOnError)
         {
             var result = new OASISResult<IHolon>();
             try
             {
-                if (IsVersionControlEnabled) throw new NotSupportedException("Solr historical writes are not implemented.");
-                if (holon == null) throw new ArgumentNullException(nameof(holon));
-                var id = holon.Id == Guid.Empty ? Guid.NewGuid() : holon.Id;
-                var keys = holon.ProviderUniqueStorageKey == null
-                    ? new Dictionary<Core.Enums.ProviderType, string>()
-                    : new Dictionary<Core.Enums.ProviderType, string>(holon.ProviderUniqueStorageKey);
-                keys[Core.Enums.ProviderType.SolrOASIS] = id.ToString("D");
-                var payload = JsonSerializer.SerializeToNode(holon, holon.GetType(), _jsonOpts)!.AsObject();
-                payload["id"] = id;
-                payload["providerUniqueStorageKey"] = JsonSerializer.SerializeToNode(keys, _jsonOpts);
-                await UpsertDocAsync(ColHolons, ToSolrDoc(payload, id.ToString("D")));
-                holon.Id = id;
-                holon.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
-                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.SolrOASIS] = id.ToString("D");
-                result.Result = holon; result.IsSaved = true; result.SavedCount = 1;
+                if (IsVersionControlEnabled)
+                    throw new NotSupportedException("Solr historical writes are not implemented.");
+
+                var plan = HolonGraphWritePlan.CreateForSave(new[] { holon }, saveChildren, recursive, maxChildDepth, currentChildDepth);
+                var failed = new HashSet<Guid>();
+                foreach (var node in plan.Nodes)
+                {
+                    if (failed.Contains(node.Snapshot.ParentHolonId))
+                    {
+                        failed.Add(node.Snapshot.Id);
+                        continue;
+                    }
+
+                    try
+                    {
+                        await SavePlannedHolonAsync(node);
+                        if (ReferenceEquals(node.Source, holon))
+                            result.Result = holon;
+                        result.SavedCount++;
+                    }
+                    catch (Exception ex)
+                    {
+                        failed.Add(node.Snapshot.Id);
+                        OASISErrorHandling.HandleError(ref result, $"Solr did not save holon '{node.Snapshot.Id}'.", ex);
+                        if (!continueOnError)
+                            break;
+                    }
+                }
+
+                result.IsSaved = result.SavedCount == plan.Nodes.Count;
             }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SolrOASIS: Error saving holon: {ex.Message}"); }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"SolrOASIS: {ex.Message}", ex);
+            }
             return result;
+        }
+
+        private async Task SavePlannedHolonAsync(PlannedHolonWrite node)
+        {
+            var snapshot = node.Snapshot;
+            var id = snapshot.Id.ToString("D");
+            var keys = snapshot.ProviderUniqueStorageKey ?? new Dictionary<Core.Enums.ProviderType, string>();
+            keys[Core.Enums.ProviderType.SolrOASIS] = id;
+            var captured = JsonNode.Parse(node.CapturedIntentJson)!.AsObject();
+            var document = new JsonObject();
+            foreach (var property in captured)
+            {
+                if (property.Key != "$type")
+                    document.Add(JsonNamingPolicy.CamelCase.ConvertName(property.Key), property.Value?.DeepClone());
+            }
+            document["id"] = id;
+            document["parentHolonId"] = snapshot.ParentHolonId;
+            document["providerUniqueStorageKey"] = JsonSerializer.SerializeToNode(keys, _jsonOpts);
+            await UpsertDocAsync(ColHolons, ToSolrDoc(document, id));
+
+            node.Source.Id = snapshot.Id;
+            node.Source.ParentHolonId = snapshot.ParentHolonId;
+            node.Source.ProviderUniqueStorageKey = keys;
         }
 
         public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) => SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider).Result;
@@ -351,12 +398,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SolrOASIS
             var errors = new List<string>();
             foreach (var holon in holons)
             {
-                var write = await SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
+                var write = await SaveHolonGraphAsync(holon, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError);
+                result.SavedCount += write.SavedCount;
                 if (write.IsError) { errors.Add(write.Message); if (!continueOnError) break; }
                 else if (write.IsSaved && write.Result != null) saved.Add(write.Result);
             }
             result.Result = saved; result.IsError = errors.Count > 0; result.ErrorCount = errors.Count;
-            result.IsSaved = saved.Count > 0; result.SavedCount = saved.Count;
+            result.IsSaved = result.SavedCount > 0 && !result.IsError;
             result.Message = string.Join("; ", errors);
             return result;
         }
@@ -369,8 +417,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SolrOASIS
             try
             {
                 var h = await GetDocAsync<Holon>(ColHolons, id.ToString());
-                if (h == null || h.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"SolrOASIS: No holon for ID '{id}'."); return result; }
-                result.Result = h; result.IsError = false; result.Message = "SolrOASIS: Holon loaded.";
+                if (h == null || h.IsDeleted) { result.ErrorCode = OASISResultErrorCodes.RecordNotFound; OASISErrorHandling.HandleError(ref result, $"SolrOASIS: No holon for ID '{id}'."); return result; }
+                result.Result = h; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "SolrOASIS: Holon loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SolrOASIS: {ex.Message}"); }
             return result;
@@ -387,7 +435,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SolrOASIS
             {
                 var all = await SearchAsync<Holon>(ColHolons, "*:*", 1000);
                 var list = new List<IHolon>(); foreach (var h in all) { if (h.IsDeleted) continue; if (holonType != HolonType.All && h.HolonType != holonType) continue; list.Add(h); }
-                result.Result = list; result.IsError = false; result.Message = $"SolrOASIS: Loaded {list.Count} holon(s).";
+                result.Result = list; result.IsLoaded = true; result.LoadedCount = list.Count; result.Message = $"SolrOASIS: Loaded {list.Count} holon(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SolrOASIS: {ex.Message}"); }
             return result;
@@ -396,7 +444,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SolrOASIS
         public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadAllHolonsAsync(holonType, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        { var result = new OASISResult<IEnumerable<IHolon>>(); try { var all = await SearchAsync<Holon>(ColHolons, "*:*", 1000); var list = new List<IHolon>(); foreach (var h in all) { if (h.IsDeleted || h.ParentHolonId != id) continue; if (holonType != HolonType.All && h.HolonType != holonType) continue; list.Add(h); } result.Result = list; result.IsError = false; result.Message = $"SolrOASIS: Loaded {list.Count} child holon(s)."; } catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SolrOASIS: {ex.Message}"); } return result; }
+        { var result = new OASISResult<IEnumerable<IHolon>>(); try { var all = await SearchAsync<Holon>(ColHolons, "*:*", 1000); var list = new List<IHolon>(); foreach (var h in all) { if (h.IsDeleted || h.ParentHolonId != id) continue; if (holonType != HolonType.All && h.HolonType != holonType) continue; list.Add(h); } result.Result = list; result.IsLoaded = true; result.LoadedCount = list.Count; result.Message = $"SolrOASIS: Loaded {list.Count} child holon(s)."; } catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SolrOASIS: {ex.Message}"); } return result; }
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadHolonsForParentAsync(id, holonType, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string pk, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) { if (Guid.TryParse(pk, out Guid id)) return await LoadHolonsForParentAsync(id, holonType, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version); var r = new OASISResult<IEnumerable<IHolon>>(); OASISErrorHandling.HandleError(ref r, $"SolrOASIS: Invalid GUID '{pk}'."); return r; }
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string pk, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadHolonsForParentAsync(pk, holonType, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
@@ -540,6 +588,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SolrOASIS
             }
 
             result.Result = matches;
+            result.IsLoaded = true;
+            result.LoadedCount = matches.Count;
             return result;
         }
 
@@ -558,8 +608,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SolrOASIS
 
             if (metaKeyValuePairs == null || metaKeyValuePairs.Count == 0)
             {
-                result.Result = new List<IHolon>(all.Result);
-                return result;
+                return all;
             }
 
             var matches = new List<IHolon>();
@@ -582,6 +631,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SolrOASIS
             }
 
             result.Result = matches;
+            result.IsLoaded = true;
+            result.LoadedCount = matches.Count;
             return result;
         }
 
@@ -595,7 +646,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SolrOASIS
             if (saved.IsError)
                 OASISErrorHandling.HandleError(ref result, saved.Message);
             else
-                result.Result = true;
+                result.Result = saved.IsSaved;
+            result.IsSaved = saved.IsSaved;
+            result.SavedCount = saved.SavedCount;
             return result;
         }
 
@@ -626,6 +679,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SolrOASIS
             }
 
             result.Result = owned;
+            result.IsLoaded = true;
+            result.LoadedCount = owned.Count;
             return result;
         }
 

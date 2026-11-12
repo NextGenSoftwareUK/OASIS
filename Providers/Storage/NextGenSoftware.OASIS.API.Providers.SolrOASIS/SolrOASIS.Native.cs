@@ -96,6 +96,7 @@ public partial class SolrOASIS
             throw new InvalidDataException("Native ID differs from canonical stored payload.");
         return typeof(T) == typeof(AvatarDetail)
             ? StoredRecordJson.DeserializeStored<T>(json)
+            : typeof(T) == typeof(Holon) ? (T)(object)StoredRecordJson.DeserializeStoredHolon(json)
             : JsonSerializer.Deserialize<T>(json, _jsonOpts);
     }
 
