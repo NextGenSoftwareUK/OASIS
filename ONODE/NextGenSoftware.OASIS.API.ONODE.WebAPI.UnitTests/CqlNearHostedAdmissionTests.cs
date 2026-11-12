@@ -33,10 +33,11 @@ public class CqlNearHostedAdmissionTests
     }
 
     [Fact]
-    public async Task PublicAccountPresetsPlanNativeThreeTwoAndMongoPairsWithoutWallets()
+    public async Task ShippingNearProviderPlansPublicThreeTwoAndMongoPairs()
     {
         var keys = new[] { "near", "wrap.near", "aurora" };
-        using var source = NearPublicAccountMetadataSource.FromJson(JsonSerializer.Serialize(new {
+        var source = new NEAROASIS();
+        source.ConfigurePublicAccountQuery(JsonSerializer.Serialize(new {
             schema=1,rpcUrl="https://rpc.example.invalid/",networkId="mainnet",accounts=keys,sourceOwner=Guid.NewGuid()}));
         var rows = new List<object>();
         foreach (var count in new[] { 3, 2 })
