@@ -12,11 +12,15 @@
 | HoloOASIS.Desktop | Obsolete in source, package metadata and repository documentation at `45d6665da989`. The six-file compatibility and documentation batch reached Development at `70d3fbb4a31c`. Published NuGet metadata and live site listings still need the obsolescence update. |
 | Development | `c82faa749a36` integrates the verified Qdrant storage and embedding lifecycle after seven successful Meilisearch deployments. All seven Qdrant Railway deployments succeeded. Live HyperDrive HoloOASIS writes remain open. |
 | BootLoader startup | The shipping registration, activation and deactivation path passed against native Polkadot and TRON fixtures and the Microsoft Azure Cosmos DB emulator. [Azure Cosmos DB job 131055311882](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43180594194/job/131055311882) confirmed fixture teardown. |
-| HyperDrive | Global automatic failover, replication and load balancing await provider acceptance. Dragonfly and KeyDB full native runs were queued at the coverage review. |
+| HyperDrive | Global automatic failover, replication and load balancing await provider acceptance. The original Dragonfly and KeyDB native lifecycle runs still report queued with zero jobs. Existing smoke and CQL results remain recorded. |
 
 [Provider matrix](PROVIDER_MATRIX.md) · [Evidence registry](CONFORMANCE_RESULTS.json) · [Cleanup ledger](WORKSPACE_CLEANUP_LEDGER.md)
 
 ## Verification log
+
+12 November Cancun time. The original Dragonfly and KeyDB full-native run records still show queued, with zero jobs and no dispatch progress since 11 November. The updated workflows check out the manifest-pinned Holochain client required by the build graph and emit compact lifecycle receipts and final native key counts. They qualify the shared lifecycle, carrying forward the existing native smoke and CQL evidence.
+
+12 November Cancun time. Both [Weaviate pagination jobs](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43285443258) returned all 101 exact holon IDs across the native cursor boundary. Each verified fixture absence and a zero collection count. Candidate `a421cd7a8c5b` reproduces qualified tree `68f073666204717e655457e4d77c780c1ef7dbdc` on Qdrant Development. The sole addition to the already-qualified storage tree is the pagination test. Priority COSMIC HoloOASIS image qualification is still active, so preserve the next Development window for it if release-ready.
 
 12 November Cancun time. Added a focused Weaviate pagination workflow against the pinned native node. Each read mode must return all 101 exact holon IDs across the 100-row cursor boundary, then confirm native absence for every ID and a zero collection count. This run exercises the outstanding multi-page behavior independently of the accepted shared lifecycle. The COSMIC HoloOASIS candidate is undergoing exact image qualification and retains the next integration window if release-ready.
 

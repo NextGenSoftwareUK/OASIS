@@ -26,18 +26,27 @@ jobs:
           path: OASIS
           submodules: recursive
           persist-credentials: false
-      - name: Read the recorded Libraries revision
+      - name: Read the recorded Libraries and Holochain revisions
         id: dependencies
         run: |
           revision="$(sed -n 's/^LIBRARIES_COMMIT=//p' Docker/oasis-dependency-versions.env)"
           [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
           echo "libraries=$revision" >> "$GITHUB_OUTPUT"
+          revision="$(sed -n 's/^HOLOCHAIN_COMMIT=//p' Docker/oasis-dependency-versions.env)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "holochain=$revision" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@v7
         with:
           repository: NextGenSoftwareUK/NextGenSoftware-Libraries
           ref: ${{ steps.dependencies.outputs.libraries }}
           path: NextGenSoftware-Libraries
           token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - uses: actions/checkout@v7
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          ref: ${{ steps.dependencies.outputs.holochain }}
+          path: holochain-client-csharp
           persist-credentials: false
       - uses: actions/setup-dotnet@v4
         with:
@@ -83,6 +92,9 @@ jobs:
               if ($LASTEXITCODE -ne 0) { throw "KeyDB native storage verification failed." }
             }'
           for mode in async sync; do
-            jq -e '.Succeeded and .FixtureCleanupComplete and (.Passed | length == 26)' "$fixture/reports/$mode/report.json" >/dev/null
+            checkpoint="$fixture/reports/$mode/report.json"
+            jq -c --arg mode "$mode" '{mode:$mode,case:.CurrentCase,checks:(.Passed | length),cleanup:.FixtureCleanupComplete,contract:.FailureContract}' "$checkpoint"
+            jq -e '.Succeeded and .FixtureCleanupComplete and (.Passed | length == 26)' "$checkpoint" >/dev/null
           done
           [[ "$(docker exec "$container" keydb-cli --raw dbsize)" == 0 ]]
+          echo "Verified zero native keys after exact fixture cleanup."
