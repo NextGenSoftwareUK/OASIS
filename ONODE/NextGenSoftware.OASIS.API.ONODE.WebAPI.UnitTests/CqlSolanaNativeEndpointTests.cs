@@ -7,11 +7,13 @@ using Moq;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Objects.NativeData;
 using NextGenSoftware.OASIS.API.Core.Services.Subscriptions;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS;
+using Solnet.Wallet;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests;
 
@@ -26,29 +28,35 @@ public sealed class SolanaPublicEndpointFactAttribute : FactAttribute
 
 public class CqlSolanaNativeEndpointTests
 {
-    private sealed class Sources(CqlV1Providers resolver, OASISDNA dna, ProviderManager registry) : ICqlV1Providers
+    private sealed class Sources(SolanaOASIS source, OASISDNA dna, ProviderManager registry) : ICqlV1Providers
     {
-        public IOASISStorageProvider Resolve(ProviderType? requested) => resolver.Resolve(requested);
+        public IOASISStorageProvider Resolve(ProviderType? requested) =>
+            requested == ProviderType.SolanaOASIS && source.IsProviderActivated
+                ? source : throw new InvalidOperationException("The fixture admits only the activated Solana provider.");
         public HolonManager CreateManager(IOASISStorageProvider provider) => CqlV1Providers.CreateQueryManager(dna, registry);
     }
 
     [SolanaPublicEndpointFact]
-    public async Task ShippingEndpointDispatchesThreeTwoPublicAccountsAndRecordsEachReadWithoutWalletRegistration()
+    public async Task ShippingEndpointDispatchesThreeTwoPublicAccountsThroughTheSolanaProvider()
     {
         var path = Environment.GetEnvironmentVariable("OASIS_SOLANA_PUBLIC_SOURCE")
             ?? throw new InvalidOperationException("Retained public source configuration required.");
         var json = await System.IO.File.ReadAllTextAsync(path);
         using var configuration = JsonDocument.Parse(json);
         var keys = configuration.RootElement.GetProperty("addresses").EnumerateArray().Select(row => row.GetString()!).ToArray();
-        using var source = SolanaPublicAccountMetadataSource.FromJson(json);
-        using var profile = new CqlReadSourceProfile(source);
-        var profiles = new CqlHostedSourceRegistry(new[] { profile });
+        var sourceOwner = configuration.RootElement.GetProperty("sourceOwner").GetGuid();
+        var sourceName = "solana-public-accounts:" + configuration.RootElement.GetProperty("genesisHash").GetString();
+        var wallet = new Account();
+        var source = new SolanaOASIS(configuration.RootElement.GetProperty("rpcUrl").GetString()!,
+            wallet.PrivateKey.Key, wallet.PublicKey.Key);
+        source.ConfigurePublicAccountQuery(json);
         using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(40));
-        await profiles.ActivateReadSourceAsync(ProviderType.SolanaOASIS, deadline.Token);
+        var activated = await source.ActivateQuerySourceAsync(deadline.Token);
+        Assert.True(activated.Result && !activated.IsError, activated.ErrorCode);
         var dna = new OASISDNA { OASIS = new NextGenSoftware.OASIS.API.DNA.OASIS { HyperDriveMode = HyperDriveModes.V2 } };
         var registry = new ProviderManager(null, dna) {
             IsAutoFailOverEnabled = false, IsAutoReplicationEnabled = false, IsAutoLoadBalanceEnabled = false };
-        var providers = new Sources(new CqlV1Providers(profiles), dna, registry);
+        var providers = new Sources(source, dna, registry);
         using var services = new ServiceCollection().BuildServiceProvider();
         var actor = Guid.NewGuid();
         var receipts = new List<UsageProviderReceipt>();
@@ -84,9 +92,17 @@ public class CqlSolanaNativeEndpointTests
             var action = await admission.RunAsync(() => CqlV1Endpoint.ExecuteAsync(http, request, providers));
             var response = Assert.IsType<FileContentResult>(action);
             using var body = JsonDocument.Parse(response.FileContents);
-            Assert.Equal(count, body.RootElement.GetProperty("result").GetProperty("rows").GetArrayLength());
+            var rows = body.RootElement.GetProperty("result").GetProperty("rows").EnumerateArray().ToArray();
+            var expectedIds = keys.Take(count)
+                .Select(key => NativeRecordHolonMapper.StableHolonId(sourceOwner, ProviderType.SolanaOASIS, sourceName, key))
+                .Order();
+            Assert.Equal(expectedIds, rows.Select(row => row.GetProperty("id").GetGuid()).Order());
+            Assert.Equal(keys.Take(count).Order(), rows.Select(row => row.GetProperty("metadata")
+                .GetProperty(SolanaPublicAccountMetadataSource.AddressMetadata).GetString()).Order());
             Assert.Empty(registry.GetAllRegisteredProviders());
         }
         Assert.Equal(2, receipts.Count);
+        var deactivated = await source.DeActivateProviderAsync();
+        Assert.True(deactivated.Result && !deactivated.IsError);
     }
 }
