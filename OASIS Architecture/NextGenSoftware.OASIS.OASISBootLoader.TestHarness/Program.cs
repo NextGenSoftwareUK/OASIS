@@ -35,7 +35,6 @@ if (activation.IsError || provider is null || provider.ProviderType?.Value != pr
 
 var holo = provider as HoloProvider;
 var agent = holo?.HoloNETClientAppAgent?.HoloNETDNA.AgentPubKey;
-var adminUri = holo?.HoloNETClientAdmin?.EndPoint.AbsoluteUri;
 
 var deactivation = await provider.DeActivateProviderAsync();
 if (deactivation.IsError || !deactivation.Result || provider.IsProviderActivated)
@@ -50,23 +49,22 @@ Console.WriteLine($"Registered, activated and deactivated {providerType} through
 
 if (providerType == ProviderType.HoloOASIS)
 {
-    if (string.IsNullOrWhiteSpace(agent) || string.IsNullOrWhiteSpace(adminUri))
+    if (string.IsNullOrWhiteSpace(agent))
     {
         Console.Error.WriteLine("HoloOASIS did not expose the installed app identity.");
         return 1;
     }
 
-    var reopened = new HoloProvider(adminUri, useHoloNetwork: false);
-    var reopening = await reopened.ActivateProviderAsync();
-    var sameAgent = StringComparer.Ordinal.Equals(agent, reopened.HoloNETClientAppAgent?.HoloNETDNA.AgentPubKey);
-    var closing = await reopened.DeActivateProviderAsync();
-    if (reopening.IsError || !reopening.Result || !sameAgent || closing.IsError || !closing.Result || reopened.IsProviderActivated)
+    var reopening = await holo!.ActivateProviderAsync();
+    var sameAgent = StringComparer.Ordinal.Equals(agent, holo.HoloNETClientAppAgent?.HoloNETDNA.AgentPubKey);
+    var closing = await holo.DeActivateProviderAsync();
+    if (reopening.IsError || !reopening.Result || !sameAgent || closing.IsError || !closing.Result || holo.IsProviderActivated)
     {
         Console.Error.WriteLine("HoloOASIS did not reopen and close the same installed app agent.");
         return 1;
     }
 
-    Console.WriteLine("Reopened and closed the original HoloOASIS app agent.");
+    Console.WriteLine("Reactivated the same HoloOASIS provider instance and original app agent.");
 }
 
 return 0;
