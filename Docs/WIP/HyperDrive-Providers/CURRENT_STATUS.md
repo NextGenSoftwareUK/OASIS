@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. EOSIO routing CI 43331151683 is running against shipping Development. Independently computed expected tree 3f9fbdd1e8ef560bfd7f53009092fd2bedcb6b7b from Development 716711320680 and the four Antelope routing test inputs. COSMIC is qualifying its EOSIO CQL changes separately and the exact WEB4 recovery image remains active.
+
 12 November Cancun time. Prepared HoloOASIS collection and Solid routing candidate a9cb8732db2f on routing candidate 5f625770c7aa. Independently reproduced HoloOASIS CI tree f4edfcadaaaa0991158ee0f001686f74f1fc3314 and Solid CI tree 64c18e61b9b5cac6fe7f79cb4c7b0ff3a66a4389, checked each incoming blob against the recovery-based parent and confirmed both jobs used the same routing helper. This remains a candidate for a later shared review.
 
 12 November Cancun time. COSMIC traced the WEB4 crash to granting signing credentials before the persisted Holochain cell is running. Its managed restart CI 43329188875 passed on recovery candidate 18f227af493a and exact image 43329206218 remains active. Prepared routing candidate 5f625770c7aa on that recovery commit. Its nine-file routing diff matches the verified batch byte for byte. No Development push while recovery is qualifying. No temporary index, runtime or build outputs were created.
