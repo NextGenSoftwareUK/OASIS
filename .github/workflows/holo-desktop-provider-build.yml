@@ -11,6 +11,7 @@ on:
       - 'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/HoloOASIS.AvatarDetail.cs'
       - 'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/HoloOASIS.ActivateDeactivateLoad.cs'
       - 'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/Holochain Objects/HcHolon.cs'
+      - 'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/OASIS_hAPP/**'
       - 'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop/**'
       - 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests/**'
   workflow_dispatch:
@@ -76,6 +77,8 @@ jobs:
             'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/HoloOASIS.AvatarDetail.cs'
             'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/HoloOASIS.ActivateDeactivateLoad.cs'
             'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/Holochain Objects/HcHolon.cs'
+            'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/OASIS_hAPP/oasis.happ'
+            'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/OASIS_hAPP/build-manifest.json'
             'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop/HoloOASIS.cs'
             'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop/README.md'
             'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests/HoloOASISIntegrationTests.cs'
@@ -120,25 +123,18 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
-      - name: Retrieve verified hApp from the pinned producer run
-        uses: actions/download-artifact@v7
-        with:
-          name: verified-holooasis-happ
-          repository: NextGenSoftwareUK/OASIS-Holochain-hApp
-          run-id: 43176148764
-          github-token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
-          path: ${{ runner.temp }}/oasis-holo-desktop-happ
       - name: Run canonical HoloOASIS storage against the pinned conductor
         shell: pwsh
         run: |
-          $artifact = Join-Path $env:RUNNER_TEMP 'oasis-holo-desktop-happ'
-          $happ = Join-Path $artifact 'oasis.happ'
-          $manifest = Get-Content -LiteralPath (Join-Path $artifact 'build-manifest.json') -Raw | ConvertFrom-Json
+          $artifact = Join-Path $env:RUNNER_TEMP 'oasis-holo-native-results'
+          New-Item -ItemType Directory -Path $artifact | Out-Null
+          $bundle = 'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/OASIS_hAPP'
+          $happ = Join-Path $bundle 'oasis.happ'
+          $manifest = Get-Content -LiteralPath (Join-Path $bundle 'build-manifest.json') -Raw | ConvertFrom-Json
           if ($manifest.sourceCommit -cne 'a9fbde84b4f33ebe7ac8d8a08ce73ce16ceab608' -or
               (Get-FileHash -LiteralPath $happ -Algorithm SHA256).Hash -ine $manifest.artifactSha256) {
             throw 'The verified producer bundle failed provenance checks.'
           }
-          Copy-Item -LiteralPath $happ -Destination 'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/OASIS_hAPP/oasis.happ' -Force
           $client = '../holochain-client-csharp/NextGenSoftware.Holochain.HoloNET.Client.Tests/NextGenSoftware.Holochain.HoloNET.Client.Tests.csproj'
           $project = 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests.csproj'
           try {
