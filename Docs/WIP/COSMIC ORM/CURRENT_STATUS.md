@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Urbit WEB4 qualification
+
+Candidate `33977c56be` carries the existing owner-bound Urbit contact-book reader onto Development `37996465f605` with Core `7ea7639c`. [Exact CI 43151137417](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43151137417) is running the 30 hosted boundary cases. Urbit remains unenrolled while the reviewed HTTPS fixture is open.
+
 ## Live TRON CQL code cutover
 
 WEB4 deployment `7727035008` succeeded at Development `2441de16f2` with Core `d7692071`. Two authenticated catalogue reads returned 104/106 sources ready for native and federated queries. Dapr, Waku and NATS were ready. Hedera and Nostr remained unavailable. TRON, CouchDB and Supabase remained unenrolled. TRON still requires authenticated native qualification with the dedicated TronGrid key.

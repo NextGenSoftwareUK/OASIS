@@ -6386,3 +6386,5 @@ Removed both temporary CI tags ci-cosmic-tron-web4-2441de16f2 and ci-cosmic-tron
 Used the existing Railway sign-in and public GraphQL endpoint to confirm the exact WEB4 deployment and read filtered startup diagnostics in memory. No CLI reinstall, logs file, native query, fixture or new environment. Temporary documentation index removed.
 
 Track temporary Core tag ci-cosmic-urbit-core-7ea7639c for the pending Urbit WEB4 candidate. It is based on published Core d7692071 and adds only the Urbit query tariff. Temporary Git indices removed. No local builds, runtimes, fixtures or downloads.
+
+Track ci-cosmic-urbit-web4-33977c56be and ci-cosmic-urbit-core-7ea7639c through CI 43151137417. Temporary candidate and documentation Git indices removed. No local build, fixture, downloads or test artifacts.

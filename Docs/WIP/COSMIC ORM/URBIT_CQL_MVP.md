@@ -179,3 +179,5 @@ are dated observations, not the current status. Git archive blob SHA256 (LF):
 [One owner-action list](../Release%20and%20Status/ACTIONS-FOR-DAVID.md).
 
 12 November UTC. Prepared Core candidate 7ea7639c on current Core Development d7692071. Its only change is the explicit Urbit read tariff; it preserves the shipped TRON admission. Published a temporary qualification tag. WEB4 integration and exact combined CI remain open, as do the reviewed HTTPS fixture and hosted query acceptance. Prior native MVC and MongoDB federation receipts retain their original scope.
+
+12 November UTC. Reconciled the owner-bound reader on WEB4 Development 37996465f605, preserving the verified Polkadot and zkPass work. Candidate 33977c56be changes 11 scoped paths and pins Core 7ea7639c in both the gitlink and manifest. Existing source and hosted test files were carried forward. Exact [WEB4 boundary CI 43151137417](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43151137417) is in progress. The native receipts remain scoped to their original revision. No live enrollment or Development push.
