@@ -1,0 +1,115 @@
+name: Solid and SQLite HyperDrive routing
+
+on:
+  push:
+    branches: [work/hyperdrive-provider-completion]
+    paths:
+      - '.github/workflows/solid-sqlite-hyperdrive.yml'
+      - 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.IntegrationTests/SolidSqliteHyperDriveTests.cs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lifecycle:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: OASIS
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          path: OASIS
+          submodules: recursive
+          persist-credentials: false
+
+      - name: Read the recorded Libraries revision
+        id: dependencies
+        shell: bash
+        run: |
+          revision="$(sed -n 's/^LIBRARIES_COMMIT=//p' Docker/oasis-dependency-versions.env)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "libraries=$revision" >> "$GITHUB_OUTPUT"
+          revision="$(sed -n 's/^HOLOCHAIN_COMMIT=//p' Docker/oasis-dependency-versions.env)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "holochain=$revision" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependencies.outputs.libraries }}
+          path: NextGenSoftware-Libraries
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+
+      - uses: actions/checkout@v7
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          ref: ${{ steps.dependencies.outputs.holochain }}
+          path: holochain-client-csharp
+          persist-credentials: false
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Verify routing against a private Solid Pod and SQLite
+        shell: bash
+        run: |
+          umask 077
+          fixture="$(mktemp -d "$RUNNER_TEMP/oasis-solid-routing.XXXXXXXX")"
+          container=""
+          cleanup() {
+            local status=$? cleanup_status=0
+            if [[ -n "$container" ]]; then
+              docker rm --force --volumes "$container" >/dev/null || cleanup_status=1
+              if docker inspect "$container" >/dev/null 2>&1; then cleanup_status=1; fi
+            fi
+            rm -rf -- "$fixture" || cleanup_status=1
+            if [[ "$cleanup_status" -ne 0 || -e "$fixture" ]]; then exit 1; fi
+            echo "Removed the owned Solid server, Pod, SQLite files and test output."
+            exit "$status"
+          }
+          trap cleanup EXIT
+          image=docker.io/solidproject/community-server@sha256:125727897fde6e2225239a0748bf47d8fa559cac065d5694dc10f6428799e9f2
+          container="$(docker run --detach --publish 127.0.0.1:13000:13000 "$image"             -c config/file.json -b http://localhost:13000/ -p 13000 -f /data)"
+          curl --fail --silent --show-error --retry 30 --retry-delay 2 --retry-all-errors --max-time 5             -H 'Accept: application/json' http://localhost:13000/.account/ >/dev/null
+          export OASIS_SOLID_ROUTING_DIRECTORY="$fixture"
+          pwsh -NoProfile -Command '
+            $ErrorActionPreference = "Stop"
+            $origin = "http://localhost:13000"
+            $accountIndex = "$origin/.account/"
+            $json = @{Accept="application/json"}
+            $discovery = Invoke-RestMethod $accountIndex -Headers $json
+            if ($discovery.controls.account.create -ne "$origin/.account/account/") { throw "Unexpected account creation route." }
+            $account = Invoke-RestMethod $discovery.controls.account.create -Method Post -Headers $json -ContentType application/json -Body "{}"
+            if (-not $account.authorization) { throw "Solid did not authorize the new fixture account." }
+            Write-Output "::add-mask::$($account.authorization)"
+            $json.Authorization = "CSS-Account-Token $($account.authorization)"
+            $controls = (Invoke-RestMethod $accountIndex -Headers $json).controls.account
+            foreach ($route in @($controls.pod,$controls.clientCredentials)) {
+              if (-not $route -or -not $route.StartsWith("$origin/.account/account/", [StringComparison]::Ordinal)) {
+                throw "Unexpected account provisioning route."
+              }
+            }
+            $pod = Invoke-RestMethod $controls.pod -Method Post -Headers $json -ContentType application/json -Body (@{name="oasis-routing"} | ConvertTo-Json)
+            if (-not $pod.webId -or -not $pod.webId.StartsWith("$origin/oasis-routing/", [StringComparison]::Ordinal)) { throw "Unexpected fixture WebID." }
+            $client = Invoke-RestMethod $controls.clientCredentials -Method Post -Headers $json -ContentType application/json -Body (@{name="oasis-routing";webId=$pod.webId} | ConvertTo-Json)
+            if (-not $client.id -or -not $client.secret) { throw "Solid did not issue fixture credentials." }
+            $env:OASIS_SOLID_ROUTING_CLIENT_ID = $client.id
+            $env:OASIS_SOLID_ROUTING_CLIENT_SECRET = $client.secret
+            $env:OASIS_SOLID_ROUTING_STORAGE_KEY = [Convert]::ToBase64String([Security.Cryptography.RandomNumberGenerator]::GetBytes(32))
+            Write-Output "::add-mask::$($client.secret)"
+            Write-Output "::add-mask::$env:OASIS_SOLID_ROUTING_STORAGE_KEY"
+            ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-PrioritySolidRouting -Operation {
+              $project = "Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.IntegrationTests"
+              dotnet test $project --filter "FullyQualifiedName~SolidSqliteHyperDriveTests" /p:SolidDirectProviderOnly=true /p:SolidRoutingTests=true /m:2 /nr:false /p:UseSharedCompilation=false --logger "trx;LogFileName=routing.trx" --results-directory $env:OASIS_SOLID_ROUTING_DIRECTORY
+              if ($LASTEXITCODE -ne 0) { throw "Native Solid routing verification failed." }
+              [xml]$report = Get-Content -LiteralPath (Join-Path $env:OASIS_SOLID_ROUTING_DIRECTORY "routing.trx")
+              if ($report.TestRun.ResultSummary.Counters.passed -ne "2" -or $report.TestRun.ResultSummary.Counters.total -ne "2") {
+                throw "Both native Solid routing cases must execute and pass."
+              }
+            }'

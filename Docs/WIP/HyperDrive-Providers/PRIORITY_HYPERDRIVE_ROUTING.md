@@ -20,7 +20,7 @@
 | Google Cloud | Archived Firestore SDK, SQLite and LocalFile replication, failover and selection. | Hosted Firestore and separately scoped GCS and BigQuery capabilities. |
 | Polkadot | Native storage lifecycle and separate public contract evidence. | Native Polkadot and SQLite routing is ready for CI. Hosted routing and broader operation classes remain open. |
 | ActivityPub | Native capability checks and live public reads. | Determine which social operations support same-capability failover and selection. Shared storage replication does not apply to the social-only contract. |
-| Solid | Native Pod storage lifecycle. | Verify eligible routed Pod operations, identity and federation separately. |
+| Solid | Native Pod storage lifecycle. | Private Pod and SQLite routing CI is pending. Hosted routing, identity and federation remain separate verification scopes. |
 | Polygon | Archived real local-chain encrypted storage and NFT scenarios. | Reconcile routed operation evidence and verify missing pairings. |
 | Arbitrum | Archived local-chain storage and V2 policy scenarios. | Reconcile exact route and native mutation receipts per operation before crediting all three behaviours. |
 | TRON | Archived native RoundRobin and failover evidence. | Reconcile the retained mutation before counting a replica and qualify hosted routing separately. |

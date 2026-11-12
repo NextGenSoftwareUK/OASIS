@@ -55,4 +55,10 @@
     <ProjectReference Include="../../../Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.csproj" />
     <Compile Include="../../../../Examples/CosmicCqlDemo/NativeKeySetWalkthrough.cs" Link="Demo/NativeKeySetWalkthrough.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="SolidSqliteHyperDriveTests.cs" Condition="'$(SolidRoutingTests)' != 'true'" />
+    <Compile Include="../../../Shared/TestSupport/NativePriorityRouting.cs" Link="TestSupport/NativePriorityRouting.cs" Condition="'$(SolidRoutingTests)' == 'true'" />
+    <PackageReference Include="MSTest.TestFramework" Version="3.1.1" Condition="'$(SolidRoutingTests)' == 'true'" />
+    <ProjectReference Include="../../../Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.csproj" Condition="'$(SolidRoutingTests)' == 'true'" />
+  </ItemGroup>
 </Project>
