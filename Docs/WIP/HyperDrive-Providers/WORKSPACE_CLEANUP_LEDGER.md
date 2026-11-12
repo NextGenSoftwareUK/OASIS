@@ -450,3 +450,5 @@ Urgent disk cleanup follow-up: leased standard project clean succeeded for AWS u
 12 November Cancun time. Combined Azure startup job 131061911150 confirmed removal of its emulator container, volumes and fixture directory. The exact-tree comparison used one disposable alternate Git index, removed on completion. Matrix regeneration and comparison created no runtime, dependency cache or test output.
 
 12 November Cancun time. The Linux HoloOASIS startup fixture runs on a disposable hosted runner. It puts the downloaded conductor cache and fixture DNA under one owned temporary directory and removes it on exit. No local builds or downloads were created. CI cleanup evidence is pending.
+
+12 November Cancun time. Linux HoloOASIS job 131078300392 verified conductor listener shutdown and removed the owned download cache and fixture directory. All build output stayed on the disposable hosted runner.

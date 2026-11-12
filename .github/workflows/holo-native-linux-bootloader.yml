@@ -57,8 +57,11 @@ jobs:
             incoming="$(git -C ../provider-source rev-parse "HEAD:$path")"
             [[ "$expected" == "$reviewed" || "$expected" == "$incoming" ]]
             cp -- "../provider-source/$path" "$path"
+            git add -- "$path"
           done
           install -m 644 ../provider-source/Scripts/TestHosts/Invoke-HoloLinuxBootLoaderActivation.ps1 Scripts/TestHosts/
+          git add -- Scripts/TestHosts/Invoke-HoloLinuxBootLoaderActivation.ps1
+          echo "Qualified input tree: $(git write-tree)"
 
       - name: Read the recorded Libraries revision
         id: dependencies
