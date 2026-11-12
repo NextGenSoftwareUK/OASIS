@@ -8,6 +8,34 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests;
 public class CosmicQueryPlanningTests
 {
     [Fact]
+    public void CanonicalAndMetadataLookupsAdmitIndependentQueryShapes()
+    {
+        const string addressKey = "EthereumAccountAddress";
+        const string address = "0x0000000000000000000000000000000000000001";
+        var canonical = new CosmicQueryCapabilities(CosmicQueryFeatures.Paging,
+            new CosmicQueryFieldCapability("Id", typeof(Guid), CosmicQueryComparisonOperator.Equal));
+        var combined = canonical.WithStringMetadataLookup(addressKey, 42, 8);
+        var id = Guid.NewGuid();
+        var byId = CosmicQuery<Holon>.Create().Where(h => h.Id == id).Result;
+        var byAddress = CosmicQuery<Holon>.Create()
+            .Where(h => CosmicQueryMetadata.Value<string>(h, addressKey) == address).Result;
+        var addresses = new[] { address };
+        var byAddressSet = CosmicQuery<Holon>.Create()
+            .Where(h => addresses.Contains(CosmicQueryMetadata.Value<string>(h, addressKey))).Result;
+        var mixed = CosmicQuery<Holon>.Create()
+            .Where(h => h.Id == id && CosmicQueryMetadata.Value<string>(h, addressKey) == address).Result;
+
+        Assert.False(combined.UsesStringMetadataLookup(byId));
+        Assert.False(combined.Admit(byId).IsError);
+        Assert.True(combined.UsesStringMetadataLookup(byAddress));
+        Assert.False(combined.Admit(byAddress).IsError);
+        Assert.False(combined.Admit(byAddressSet).IsError);
+        Assert.True(combined.Admit(mixed).IsError);
+        Assert.True(combined.WithMetadataRoots(Array.Empty<string>()).Admit(byAddress).IsError);
+        Assert.True(canonical.Admit(byAddress).IsError);
+    }
+
+    [Fact]
     public void MetadataPresenceAndNullCapabilitiesDoNotGrantScalarMetadataTranslation()
     {
         var exists = CosmicQuery<Holon>.Create().Where(h => CosmicQueryMetadata.Exists(h, "x")).Result;
