@@ -148,6 +148,7 @@ def reviewed_sdk_gap(name,project):
 def build():
  registry=json.loads((DEST/'CONFORMANCE_RESULTS.json').read_text(encoding='utf-8-sig'))
  obsolete=registry.get('obsoleteProviders',{})
+ ci_evidence=registry.get('verifiedNativeCiRuns',{})
  evidence={r['provider']:r for r in registry['results']};rows=[]
  for project in sorted(projects()):
   rel=project.relative_to(ROOT)
@@ -162,8 +163,20 @@ def build():
   if stub:blockers.append(f'{stub} explicit unimplemented throw(s): shipping-path review needed')
   if not sources:blockers.append('No local C# implementation source; linked/generated sources and factory require review')
   e=evidence.get(name)
+  ci=ci_evidence.get(name)
   if name in obsolete:
    status='Obsolete';blockers.append(obsolete[name])
+  elif ci:
+   jobs=ci.get('jobIds') or [ci.get('jobId')]
+   if (role in {'Non-storage','Runtime state store'} or ci['suite']!='core-storage-v2' or ci['passed']!={'async':26,'sync':26}
+       or not re.fullmatch(r'[0-9a-f]{40}',ci['revision'])
+       or any(type(identity) is not int or identity<=0 for identity in [ci['runId'],*jobs])):
+    raise ValueError('Invalid verified native CI evidence: '+name)
+   run=ci['runId']
+   status=f"52/52 (native CI; {ci['suite']})"
+   if ci['suite']!=registry.get('currentCoreSuite','core-storage-v1'):
+    status='Historical '+status
+   blockers.append(f"{ci['backend']}, revision `{ci['revision']}`. [Verified CI run {run}](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/{run}). {ci['cleanup']}")
   elif e:
    report=ROOT/e['report']
    if not report.is_file() or hashlib.sha256(report.read_bytes()).hexdigest()!=e['sha256']:raise ValueError('Missing/changed evidence: '+name)
@@ -199,7 +212,7 @@ One row per provider project; tests/harness/demo and provider-template projects 
 
 **SDK Yes means detected client construction/use, service HTTP calls, or a declared Node SDK imported by bridge source; it is not live acceptance, an installed runtime, or full implementation. No distinguishes unverified evidence from reviewed missing adapters.** Negative reviews apply only while every reviewed source hash and the complete source-file set still match; changed or added sources revert to unverified. Referenced provider namespaces actually used by source are followed; unused project references do not earn SDK credit; package presence alone does not earn Yes. Non-storage products use capability-v1 identity/activation/read-only service checks, not storage CRUD. Persistent search/vector databases remain storage; chain indexers/maps/AI/wallet/auth services are Non-storage. Existing provider-specific test totals are NOT shared conformance passes.
 
-`CONFORMANCE_RESULTS.json` holds hash-bound reports with suite/version and controlled/native mode. Until every applicable provider passes, global HyperDrive failover/load-balancing/replication is deferred; depth work follows afterward. No100% certification from this inventory. Initial v1 harness control: both sync/async model runs passed all52 contract checks; LocalFile native runs stopped at avatar-save acknowledgement (2/52), retained below. SQL90 unit passes include family-identity controls and are not shared native conformance.
+`CONFORMANCE_RESULTS.json` holds hash-bound reports and verified native CI runs with their exact source revisions. Global HyperDrive failover, load balancing and replication await provider acceptance.
 
 Family order: EVM, SQL (Oracle priority), Document (AWS priority), key-value/object (AWS S3 priority), IPFS, non-EVM, remaining families. Time-box approximately one working day per family, record blockers then move on. No Polkadot/NEAR/SQLite depth work in this pass.
 

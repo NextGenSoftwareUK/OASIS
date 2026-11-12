@@ -17,6 +17,8 @@
 
 ## Verification log
 
+12 November Cancun time. The matrix generator now reads the verified native CI entries as well as the hash-bound local reports. It preserves the source revision and links each CI-backed result, so regeneration retains the reconciled passes while keeping older suite evidence historical.
+
 12 November Cancun time. Reconciled the remaining 14 matrix entries marked 52/52 native against completed CI, including the original Neon and Supabase fixture runs. For those two providers, inspected the exact source revisions for both mode tests, the 26-check assertions and cleanup gates. The registry now accounts for all 45 matrix passes. No native provider tests were rerun for this audit. This covers the recorded storage suite and fixture boundaries. Hosted and capability-specific acceptance remains open where listed.
 
 12 November Cancun time. [Canonical provider run 43175584012](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43175584012) compiled the typed GUID lookup and passed 19 checks in each mode, including the first holon deletion and independent absence. Both modes then failed on the updated holon: deleting its latest action exposed an older live revision. The hApp producer's first build compiled the zome but its conductor test payload needed the required Rust `Debug` trait. The corrected dependency revision `a9fbde84b4f3` is on the isolated hApp branch. [Corrected producer run 43176148764](https://github.com/NextGenSoftwareUK/OASIS-Holochain-hApp/actions/runs/43176148764) will qualify and package the revised delete semantics before combined provider verification.

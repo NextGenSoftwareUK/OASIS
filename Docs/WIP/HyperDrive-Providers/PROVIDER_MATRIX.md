@@ -7,6 +7,8 @@ Current roles: **56 non-storage**, **178 storage/specialized-storage**. All proj
 
 Current required storage suite: **core-storage-v2**. Earlier-suite totals remain historical and do not establish a current-suite pass.
 
+The [evidence registry](CONFORMANCE_RESULTS.json) accounts for all 45 recorded native storage passes with 23 hash-bound reports and 22 verified CI runs. These passes cover the shared suite on the recorded backend and revision.
+
 One row per provider project; tests/harness/demo and provider-template projects excluded. Alternate implementations remain separate rows. Non-storage providers require capability review rather than disappearing.
 
 **SDK Yes means detected client construction/use, service HTTP calls, or a declared Node SDK imported by bridge source; it is not live acceptance, an installed runtime, or full implementation. No distinguishes unverified evidence from reviewed missing adapters.** Negative reviews apply only while every reviewed source hash and the complete source-file set still match; changed or added sources revert to unverified. Referenced provider namespaces actually used by source are followed; unused project references do not earn SDK credit; package presence alone does not earn Yes. Non-storage products use capability-v1 identity/activation/read-only service checks, not storage CRUD. Persistent search/vector databases remain storage; chain indexers/maps/AI/wallet/auth services are Non-storage. Existing provider-specific test totals are NOT shared conformance passes.
