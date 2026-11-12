@@ -179,8 +179,8 @@ namespace NextGenSoftware.OASIS.API.Providers.TypesenseOASIS
             try
             {
                 var a = await GetDocAsync<Avatar>(ColAvatars, id.ToString());
-                if (a == null || a.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"TypesenseOASIS: No avatar for ID '{id}'."); return result; }
-                result.Result = a; result.IsError = false; result.Message = "TypesenseOASIS: Avatar loaded.";
+                if (a == null || a.IsDeleted) { result.ErrorCode = OASISResultErrorCodes.RecordNotFound; OASISErrorHandling.HandleError(ref result, $"TypesenseOASIS: No avatar for ID '{id}'."); return result; }
+                result.Result = a; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "TypesenseOASIS: Avatar loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"TypesenseOASIS: {ex.Message}"); }
             return result;
@@ -195,8 +195,8 @@ namespace NextGenSoftware.OASIS.API.Providers.TypesenseOASIS
             {
                 var hits = await SearchByFieldAsync<Avatar>(ColAvatars, "username", username);
                 var a = hits.Count > 0 ? hits[0] : null;
-                if (a == null || a.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"TypesenseOASIS: No avatar for username '{username}'."); return result; }
-                result.Result = a; result.IsError = false; result.Message = "TypesenseOASIS: Avatar loaded.";
+                if (a == null || a.IsDeleted) { result.ErrorCode = OASISResultErrorCodes.RecordNotFound; OASISErrorHandling.HandleError(ref result, $"TypesenseOASIS: No avatar for username '{username}'."); return result; }
+                result.Result = a; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "TypesenseOASIS: Avatar loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"TypesenseOASIS: {ex.Message}"); }
             return result;
@@ -211,8 +211,8 @@ namespace NextGenSoftware.OASIS.API.Providers.TypesenseOASIS
             {
                 var hits = await SearchByFieldAsync<Avatar>(ColAvatars, "email", avatarEmail);
                 var a = hits.Count > 0 ? hits[0] : null;
-                if (a == null || a.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"TypesenseOASIS: No avatar for email '{avatarEmail}'."); return result; }
-                result.Result = a; result.IsError = false; result.Message = "TypesenseOASIS: Avatar loaded.";
+                if (a == null || a.IsDeleted) { result.ErrorCode = OASISResultErrorCodes.RecordNotFound; OASISErrorHandling.HandleError(ref result, $"TypesenseOASIS: No avatar for email '{avatarEmail}'."); return result; }
+                result.Result = a; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "TypesenseOASIS: Avatar loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"TypesenseOASIS: {ex.Message}"); }
             return result;
@@ -288,11 +288,16 @@ namespace NextGenSoftware.OASIS.API.Providers.TypesenseOASIS
             var result = new OASISResult<IAvatarDetail>();
             try
             {
-                if (d.Id == Guid.Empty) d.Id = Guid.NewGuid();
-                var doc = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(Ser(d), _jsonOpts)!;
-                doc["id"] = JsonDocument.Parse($"\"{d.Id}\"").RootElement;
-                await UpsertDocAsync(ColDetails, doc);
-                result.Result = d; result.IsError = false; result.Message = "TypesenseOASIS: AvatarDetail saved.";
+                ArgumentNullException.ThrowIfNull(d);
+                var id = d.Id == Guid.Empty ? Guid.NewGuid() : d.Id;
+                var document = JsonSerializer.SerializeToNode(d, d.GetType(), _jsonOpts)!.AsObject();
+                document["id"] = id;
+                await UpsertDocAsync(ColDetails, document);
+                d.Id = id;
+                result.Result = d;
+                result.IsSaved = true;
+                result.SavedCount = 1;
+                result.Message = "TypesenseOASIS: AvatarDetail saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"TypesenseOASIS: {ex.Message}"); }
             return result;
@@ -303,7 +308,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TypesenseOASIS
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
         {
             var result = new OASISResult<IAvatarDetail>();
-            try { var d = await GetDocAsync<AvatarDetail>(ColDetails, id.ToString()); if (d == null) { OASISErrorHandling.HandleError(ref result, $"TypesenseOASIS: No detail for ID '{id}'."); return result; } result.Result = d; result.IsError = false; result.Message = "TypesenseOASIS: AvatarDetail loaded."; }
+            try { var d = await GetDocAsync<AvatarDetail>(ColDetails, id.ToString()); if (d == null) { result.ErrorCode = OASISResultErrorCodes.RecordNotFound; OASISErrorHandling.HandleError(ref result, $"TypesenseOASIS: No detail for ID '{id}'."); return result; } result.Result = d; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "TypesenseOASIS: AvatarDetail loaded."; }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"TypesenseOASIS: {ex.Message}"); }
             return result;
         }
@@ -313,7 +318,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TypesenseOASIS
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string u, int version = 0)
         {
             var result = new OASISResult<IAvatarDetail>();
-            try { var hits = await SearchByFieldAsync<AvatarDetail>(ColDetails, "username", u); var d = hits.Count > 0 ? hits[0] : null; if (d == null) { OASISErrorHandling.HandleError(ref result, $"TypesenseOASIS: No detail for username '{u}'."); return result; } result.Result = d; result.IsError = false; result.Message = "TypesenseOASIS: AvatarDetail loaded."; }
+            try { var hits = await SearchByFieldAsync<AvatarDetail>(ColDetails, "username", u); var d = hits.Count > 0 ? hits[0] : null; if (d == null) { result.ErrorCode = OASISResultErrorCodes.RecordNotFound; OASISErrorHandling.HandleError(ref result, $"TypesenseOASIS: No detail for username '{u}'."); return result; } result.Result = d; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "TypesenseOASIS: AvatarDetail loaded."; }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"TypesenseOASIS: {ex.Message}"); }
             return result;
         }
@@ -323,7 +328,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TypesenseOASIS
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string e, int version = 0)
         {
             var result = new OASISResult<IAvatarDetail>();
-            try { var hits = await SearchByFieldAsync<AvatarDetail>(ColDetails, "email", e); var d = hits.Count > 0 ? hits[0] : null; if (d == null) { OASISErrorHandling.HandleError(ref result, $"TypesenseOASIS: No detail for email '{e}'."); return result; } result.Result = d; result.IsError = false; result.Message = "TypesenseOASIS: AvatarDetail loaded."; }
+            try { var hits = await SearchByFieldAsync<AvatarDetail>(ColDetails, "email", e); var d = hits.Count > 0 ? hits[0] : null; if (d == null) { result.ErrorCode = OASISResultErrorCodes.RecordNotFound; OASISErrorHandling.HandleError(ref result, $"TypesenseOASIS: No detail for email '{e}'."); return result; } result.Result = d; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "TypesenseOASIS: AvatarDetail loaded."; }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"TypesenseOASIS: {ex.Message}"); }
             return result;
         }

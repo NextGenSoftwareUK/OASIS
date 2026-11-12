@@ -20,6 +20,8 @@
 
 12 November Cancun time. Managed HoloOASIS advanced Development to `e54973c380c9`. Elasticsearch qualification now triggers when its native test project changes and will qualify the existing three-file batch against the new Development parent. The hosted HoloOASIS rollout and the new exact Elasticsearch integration evidence are pending.
 
+12 November Cancun time. [Typesense shared run 43209337183](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43209337183) stopped in both modes before the first shared case because the guard checked the Elasticsearch directory prefix. The guard now checks the actual Typesense prefix. Typesense avatar and detail single reads now report one loaded record, and detail writes publish the generated identity and saved count after native acknowledgement. The full suite must still verify those paths.
+
 12 November Cancun time. [Typesense run 43208737570](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43208737570) passed both focused lifecycle checks on Typesense 30.2 with zero skips. The independent collection checks confirmed zero documents in all three collections. The full shared suite remains open.
 
 12 November Cancun time. Both [Elasticsearch jobs in run 43208461578](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43208461578) passed 26/26 and cleanup on the exact `b97bba2543fa9d82cc6c06b1c8d5a92e9b559778` tree. The Development push event for the parent was 06:19:43 Cancun time. The next eligible review is after 06:49:43 with a successful WEB4 rollout and the remote parent rechecked.

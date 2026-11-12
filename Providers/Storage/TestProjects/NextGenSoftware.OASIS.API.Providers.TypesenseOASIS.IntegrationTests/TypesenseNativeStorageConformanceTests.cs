@@ -20,7 +20,7 @@ public sealed class TypesenseNativeStorageConformanceTests
         Assert.AreEqual("owned-ci-18108", Environment.GetEnvironmentVariable("OASIS_TYPESENSE_SHARED_FIXTURE"));
         directory = Path.GetFullPath(directory!);
         Assert.AreEqual(Path.GetFullPath(Environment.GetEnvironmentVariable("RUNNER_TEMP")!), Path.GetDirectoryName(directory));
-        StringAssert.StartsWith(Path.GetFileName(directory), "oasis-elasticsearch.");
+        StringAssert.StartsWith(Path.GetFileName(directory), "oasis-typesense.");
         var mode = Environment.GetEnvironmentVariable("OASIS_TYPESENSE_MODE");
         Assert.IsTrue(mode is "sync" or "async");
         const string origin = "http://127.0.0.1:18108";
