@@ -6,7 +6,9 @@ on:
     paths:
       - '.github/workflows/qualify-holooasis-cql-signing.yml'
       - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/CqlHoloOasisSigningTests.cs'
+      - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/CqlHoloOasisConductorTests.cs'
       - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/HoloOasisReadSigner.cs'
+      - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/HoloOasisReadSource.cs'
 
 permissions:
   contents: read
