@@ -6356,3 +6356,5 @@ Resumed with a read-only live catalogue check. Four protected renewal files reta
 Read bounded Railway startup logs in memory and made one public Hedera read from the live container with its existing Node runtime. Curl was unavailable in the container; nothing was installed. No report, local build, new session, fixture or download retained. Temporary documentation index removed.
 
 Used the existing live container Node runtime for one public Push Protocol reachability probe. No local report, build, download or new environment. Temporary documentation index removed.
+
+GOMap Development rollout 1ce06f9f queued. Retain the exact CI tag through cutover verification. Temporary documentation index removed. No local build, image or download.

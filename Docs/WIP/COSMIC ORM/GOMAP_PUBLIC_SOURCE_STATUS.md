@@ -179,3 +179,5 @@ The shared OSRM demo remains limited to its operator policy. The existing bounde
 12 November UTC: combined 7233b008a0 passed the controlled provenance, WEB4 boundaries, native route/Mongo and cleanup steps in job 130890659949. Shared routing revision 922321a8aa9d is live. No COSMIC Development push was made; the 30-minute window from the shared routing push was still open.
 
 Prepared 8e3f15e42e3693056e4c9c97942dcd9896f916ad on Development 5251dc6df. Its entire source tree matches exact tested 7233b008a0 except for the intervening generic CI matrix workflow change. Held pending the shared 30-minute Development push window.
+
+Published Development 8e3f15e42e after the shared 30-minute push window elapsed and the WEB4 queue cleared. This revision differs from CI-qualified 7233b008a0 only in the unrelated generic CI matrix workflow. Railway deployment 1ce06f9f is queued. Hosted GOMap requires the dedicated HTTPS origin.
