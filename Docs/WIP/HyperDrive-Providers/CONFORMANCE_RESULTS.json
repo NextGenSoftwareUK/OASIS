@@ -1,6 +1,177 @@
 {
   "schemaVersion": 1,
   "verifiedNativeCiRuns": {
+    "AvalancheOASIS": {
+      "suite": "core-storage-v2",
+      "backend": "AvalancheGo 1.14.1 on C-Chain via Nethereum",
+      "runId": 43080136029,
+      "jobId": 130730226076,
+      "revision": "fb90b97f8fb8a1b1d072f4aed2f0048c7c3f0de4",
+      "passed": {
+        "async": 26,
+        "sync": 26
+      },
+      "cleanup": "Both independent contracts passed the shared fixture cleanup gate."
+    },
+    "BNBChainOASIS": {
+      "suite": "core-storage-v2",
+      "backend": "BSC 1.7.8 on private Parlia via Nethereum",
+      "runId": 43084066216,
+      "jobId": 130743752056,
+      "revision": "bde9eb8a0c21a7a6e8244aa02b14fb3c7c5ca381",
+      "passed": {
+        "async": 26,
+        "sync": 26
+      },
+      "cleanup": "Both independent contracts passed the shared fixture cleanup gate."
+    },
+    "SuiOASIS": {
+      "suite": "core-storage-v2",
+      "backend": "Sui 1.81.1",
+      "runId": 43058209983,
+      "jobId": 130653271787,
+      "revision": "cd11889809855c6769d5f90e35aefae30a64a63c",
+      "passed": {
+        "async": 26,
+        "sync": 26
+      },
+      "cleanup": "Both modes passed cleanup and independently empty native contract keys."
+    },
+    "NeonOASIS": {
+      "suite": "core-storage-v2",
+      "backend": "Official Neon PostgreSQL 16 compute via Npgsql",
+      "runId": 43022056613,
+      "jobId": 130527402749,
+      "revision": "2bc73c144853ea1f4a9f38f8d9101e6ac8f0d3c6",
+      "passed": {
+        "async": 26,
+        "sync": 26
+      },
+      "cleanup": "The exact two tests asserted per-mode checks, fixture cleanup and empty native tables."
+    },
+    "SupabaseOASIS": {
+      "suite": "core-storage-v2",
+      "backend": "PostgREST 16.5 and PostgreSQL 16.6",
+      "runId": 43015778894,
+      "jobId": 130506351774,
+      "revision": "daae2ff8a2a8646a53d2b46d521cab030989d30e",
+      "passed": {
+        "async": 26,
+        "sync": 26
+      },
+      "cleanup": "The exact two tests asserted per-mode checks and exact fixture cleanup."
+    },
+    "CassandraOASIS": {
+      "suite": "core-storage-v2",
+      "backend": "Cassandra 4.1.12 via DataStax",
+      "runId": 43066716817,
+      "jobId": 130683512995,
+      "revision": "ad046dcec115a6dcbc6623445b3602f3db912e15",
+      "passed": {
+        "async": 26,
+        "sync": 26
+      },
+      "cleanup": "Both mode jobs verified exact native cleanup."
+    },
+    "CockroachDBOASIS": {
+      "suite": "core-storage-v2",
+      "backend": "CockroachDB 26.2.9 via Npgsql",
+      "runId": 43060207358,
+      "jobId": 130660383552,
+      "revision": "8c630a82ae355fd598e5cfcfe2c1d33204f8d8bc",
+      "passed": {
+        "async": 26,
+        "sync": 26
+      },
+      "cleanup": "Both mode jobs verified exact native cleanup."
+    },
+    "MemcachedOASIS": {
+      "suite": "core-storage-v2",
+      "backend": "Memcached 1.6.40 via EnyimMemcachedCore",
+      "runId": 43075704036,
+      "jobId": 130714832796,
+      "revision": "8ba3eb3adb956d4faa9062841fbbadac9afb5e98",
+      "passed": {
+        "async": 26,
+        "sync": 26
+      },
+      "cleanup": "Both mode jobs verified exact native cleanup."
+    },
+    "MilvusOASIS": {
+      "suite": "core-storage-v2",
+      "backend": "Milvus 2.6.26 via REST v2",
+      "runId": 43078055694,
+      "jobIds": [
+        130723033537,
+        130723034027
+      ],
+      "revision": "652853ec7f556ac838ebc0663f02c820ffe08d9f",
+      "passed": {
+        "async": 26,
+        "sync": 26
+      },
+      "cleanup": "Both mode jobs required fixture cleanup and empty native collections."
+    },
+    "PlanetScaleOASIS": {
+      "suite": "core-storage-v2",
+      "backend": "MySQL 8.4.13 via MySqlConnector",
+      "runId": 43064133424,
+      "jobId": 130674375282,
+      "revision": "69e965847a45b60c6d252443510cdcc9798e02d2",
+      "passed": {
+        "async": 26,
+        "sync": 26
+      },
+      "cleanup": "Both modes verified exact native cleanup on MySQL."
+    },
+    "RavenDBOASIS": {
+      "suite": "core-storage-v2",
+      "backend": "RavenDB 7.2.7 via RavenDB.Client",
+      "runId": 43071621377,
+      "jobId": 130700751284,
+      "revision": "0e7f9d396edea92b97c0b42b8fec2303f0bc2c99",
+      "passed": {
+        "async": 26,
+        "sync": 26
+      },
+      "cleanup": "Both modes verified exact native cleanup."
+    },
+    "ScyllaDBOASIS": {
+      "suite": "core-storage-v2",
+      "backend": "ScyllaDB 2026.3.4 via DataStax",
+      "runId": 43069185380,
+      "jobId": 130692146154,
+      "revision": "3dfbf4908bdcf9fb9b7a05596e7faf5d4edd2e6e",
+      "passed": {
+        "async": 26,
+        "sync": 26
+      },
+      "cleanup": "Both modes verified exact native cleanup."
+    },
+    "TimescaleDBOASIS": {
+      "suite": "core-storage-v2",
+      "backend": "TimescaleDB 2.31.0 via Npgsql",
+      "runId": 43061942830,
+      "jobId": 130666553155,
+      "revision": "49b6c88a17d22b2f62de2a3b94b9be77cc231e1f",
+      "passed": {
+        "async": 26,
+        "sync": 26
+      },
+      "cleanup": "Both modes verified exact native cleanup."
+    },
+    "ValKeyOASIS": {
+      "suite": "core-storage-v2",
+      "backend": "Valkey 9.0.4 via StackExchange.Redis",
+      "runId": 43091045329,
+      "jobId": 130767871247,
+      "revision": "23082ea9295214685894d9e9aef82868ff01f62b",
+      "passed": {
+        "async": 26,
+        "sync": 26
+      },
+      "cleanup": "Both mode reports passed fixture cleanup and the native database ended empty."
+    },
     "EOSIOOASIS": {
       "suite": "core-storage-v2",
       "backend": "Antelope Spring 1.2.2",
