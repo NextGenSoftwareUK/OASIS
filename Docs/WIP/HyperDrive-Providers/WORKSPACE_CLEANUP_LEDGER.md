@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+12 November Holo Desktop runs 43158581111 and 43159610649 used disposable hosted Windows runners. The first stopped before fixture startup. The second passed the real conductor lifecycle and its teardown. No local test downloads, build outputs or reports were created.
+
 11 November Firebase run 43105666326 verified exact cleanup of the concurrent-delete fixture and both lifecycle modes. Native RTDB was empty before teardown. The owned emulator, fixture and reports were removed. No local artifacts were created.
 
 11 November Firebase run 43104762300 verified an empty native RTDB namespace after both storage modes and removed the owned emulator, fixture and reports. No local artifacts were created.
