@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Live WEB4 and TRON CI
+
+Development WEB4 6047aff6c50 is live. Discovery warmed from 45/106 to 105/106 native and federated sources. Waku and NATS are ready, Nostr is unavailable, and CouchDB, Supabase and TRON remain absent. Exact TRON controlled qualification 43125723177 is queued.
+
 ## Live SQLite dependency rollout
 
 Railway WEB4 0daef3fa succeeded at 0cf0a6b32ce. Authenticated discovery returned 105/106 ready for native and federated CQL. NATS and Waku were ready; Nostr was unavailable. Supabase, TRON and CouchDB remained absent.
