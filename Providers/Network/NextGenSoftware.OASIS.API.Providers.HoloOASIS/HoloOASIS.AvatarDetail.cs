@@ -293,26 +293,77 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
         public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
-            return await _genericRepository.SaveAsync(HcObjectTypeEnum.Holon, holon, new Dictionary<string, string>()
+            var result = new OASISResult<IHolon>();
+            if (holon == null || maxChildDepth < 0)
             {
-                ["saveChildren"] = saveChildren.ToString(),
-                ["recursive"] = recursive.ToString(),
-                ["maxChildDepth"] = maxChildDepth.ToString(),
-                ["continueOnError"] = continueOnError.ToString(),
-                ["saveChildrenOnProvider"] = saveChildrenOnProvider.ToString()
-            });
+                OASISErrorHandling.HandleError(ref result, "A holon and a non-negative child depth are required.");
+                return result;
+            }
+
+            var graph = new List<(IHolon Record, IHolon Parent, int Depth)> { (holon, null, 0) };
+            var ids = new HashSet<Guid>();
+            for (int index = 0; index < graph.Count; index++)
+            {
+                var (record, _, depth) = graph[index];
+                if (record == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "A Holochain storage graph contains a null child.");
+                    return result;
+                }
+
+                if (record.Id == Guid.Empty)
+                    record.Id = Guid.NewGuid();
+                if (!ids.Add(record.Id))
+                {
+                    OASISErrorHandling.HandleError(ref result, $"A Holochain storage graph repeats holon {record.Id}.");
+                    return result;
+                }
+
+                if (saveChildren && (recursive || depth == 0) && (maxChildDepth == 0 || depth < maxChildDepth) && record.Children != null)
+                {
+                    foreach (var child in record.Children)
+                        graph.Add((child, record, depth + 1));
+                }
+            }
+
+            foreach (var (record, parent, _) in graph)
+            {
+                if (parent != null)
+                    record.ParentHolonId = parent.Id;
+            }
+
+            var failed = new HashSet<Guid>();
+            foreach (var (record, parent, _) in graph)
+            {
+                if (parent != null && failed.Contains(parent.Id))
+                {
+                    failed.Add(record.Id);
+                    continue;
+                }
+
+                var saved = await _genericRepository.SaveAsync(HcObjectTypeEnum.Holon, record);
+                if (saved.IsError)
+                {
+                    failed.Add(record.Id);
+                    OASISErrorHandling.HandleError(ref result, saved.Message);
+                    if (!continueOnError)
+                        break;
+                    continue;
+                }
+
+                if (parent == null)
+                    result.Result = saved.Result;
+                result.SavedCount += saved.SavedCount;
+            }
+
+            result.IsSaved = result.SavedCount == graph.Count;
+            return result;
         }
 
         public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
-            return _genericRepository.Save(HcObjectTypeEnum.Holon, holon, new Dictionary<string, string>()
-            {
-                ["saveChildren"] = saveChildren.ToString(),
-                ["recursive"] = recursive.ToString(),
-                ["maxChildDepth"] = maxChildDepth.ToString(),
-                ["continueOnError"] = continueOnError.ToString(),
-                ["saveChildrenOnProvider"] = saveChildrenOnProvider.ToString()
-            });
+            return Task.Run(() => SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider))
+                .GetAwaiter().GetResult();
         }
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)

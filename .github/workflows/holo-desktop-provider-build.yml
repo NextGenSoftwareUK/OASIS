@@ -8,6 +8,7 @@ on:
       - 'Scripts/test_holonet_live_release.ps1'
       - 'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/Repositories/GenericRepository.cs'
       - 'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/Helpers/DataHelper.cs'
+      - 'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/HoloOASIS.AvatarDetail.cs'
       - 'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop/**'
       - 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests/**'
   workflow_dispatch:
@@ -70,6 +71,7 @@ jobs:
             'Scripts/test_holonet_live_release.ps1'
             'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/Repositories/GenericRepository.cs'
             'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/Helpers/DataHelper.cs'
+            'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/HoloOASIS.AvatarDetail.cs'
             'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop/HoloOASIS.cs'
             'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop/README.md'
             'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests/HoloOASISIntegrationTests.cs'
@@ -136,7 +138,7 @@ jobs:
           $project = 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests.csproj'
           try {
             ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-HoloDesktop -Operation {
-              ./Scripts/test_holonet_live_release.ps1 -Project $client -Happ $happ -ResultsDirectory $artifact -DesktopProject $project -DesktopConformance
+              ./Scripts/test_holonet_live_release.ps1 -Project $client -Happ $happ -ResultsDirectory $artifact -DesktopProject $project -HoloConformance
             }
           }
           catch {

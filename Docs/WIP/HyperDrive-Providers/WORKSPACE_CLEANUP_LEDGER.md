@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+12 November Holo Desktop conformance run 43163893639 exercised both modes on disposable Windows CI. Both passed avatar and avatar-detail checks and stopped at graph save. No local build output, download, or report was created.
+
 12 November Holo Desktop conformance run 43162859637 ran both modes on the disposable Windows conductor. It stopped at synchronous avatar ID and asynchronous avatar-detail ID lookups. No local build output, download, or report was created.
 
 12 November Holo Desktop conformance run 43161883055 stopped at avatar save acknowledgement in both modes. It used the disposable Windows runner and conductor fixture. No local build output, download, or report was created.

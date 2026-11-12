@@ -5,11 +5,11 @@ param(
     [Parameter(Mandatory)][string]$ResultsDirectory,
     [string]$Configuration = 'Release',
     [string]$DesktopProject,
-    [switch]$DesktopConformance
+    [switch]$HoloConformance
 )
 $ErrorActionPreference = 'Stop'
-if ($DesktopConformance -and -not $DesktopProject) {
-    throw 'Desktop conformance requires a Desktop test project.'
+if ($HoloConformance -and -not $DesktopProject) {
+    throw 'HoloOASIS conformance requires the integration test project.'
 }
 function Assert-CompleteTestReport([string]$Path, [int]$Minimum) {
     [xml]$report = Get-Content -LiteralPath $Path -Raw
@@ -133,8 +133,8 @@ try {
     if ($DesktopProject) {
         $env:OASIS_HOLOCHAIN_ADMIN_URI = $env:HOLONET_LIVE_ADMIN_URI
         $env:OASIS_HOLOCHAIN_REPORT_DIR = $ResultsDirectory
-        $test = if ($DesktopConformance) { 'DesktopCoreStorageConformance' } else { 'DesktopAvatarAndHolonCrud' }
-        $minimum = if ($DesktopConformance) { 2 } else { 1 }
+        $test = if ($HoloConformance) { 'HoloCoreStorageConformance' } else { 'DesktopAvatarAndHolonCrud' }
+        $minimum = if ($HoloConformance) { 2 } else { 1 }
         & dotnet test $DesktopProject --configuration $Configuration --filter "FullyQualifiedName~$test" --logger 'trx;LogFileName=holo-desktop-native.trx' --results-directory $ResultsDirectory /m:2 /nr:false /p:UseSharedCompilation=false
         if ($LASTEXITCODE -ne 0) { throw "Native Holo Desktop check failed: $test." }
         Assert-CompleteTestReport (Join-Path $ResultsDirectory 'holo-desktop-native.trx') $minimum
