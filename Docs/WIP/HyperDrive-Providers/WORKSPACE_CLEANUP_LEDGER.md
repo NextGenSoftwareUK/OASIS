@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+12 November SQL Server and SQLite routing run 43292934230 passed both modes and confirmed removal of the owned containers, volumes, SQLite files and result directories. No local build, runtime or fixture was created.
+
 12 November SQL Server and SQLite routing uses one disposable CI SQL Server container and one runner-owned SQLite file per mode. The trap removes the container, volumes, SQLite database and result directory. No local builds, runtime downloads or fixture files were created.
 
 12 November priority HyperDrive verification ran 28 local routing-verifier checks with Python bytecode output disabled. No build, runtime, download, environment, test report or hosted fixture was created. Existing protected COSMIC routing evidence was left in place.

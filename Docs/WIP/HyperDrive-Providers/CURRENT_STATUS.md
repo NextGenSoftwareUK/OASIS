@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. Both [SQL Server and SQLite routing jobs](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43292934230) passed without skips on branch revision `b617452926f9`. The shipping V2 router replicated exact records in both primary directions, delivered three of six RoundRobin reads from each provider and recovered through SQLite only when failover was enabled. Both jobs verified disposal of the SQL Server container, volumes, SQLite database and results. Exact Development qualification, reverse outage and hosted routing remain open.
+
 12 November Cancun time. At the 14:42:01 integration review all seven Weaviate deployments were green and Development still pointed to `a421cd7a8c5b`. The priority COSMIC HoloOASIS exact image and managed native jobs were still active. SQL Server and SQLite routing jobs were also active. No Development push was made. The [priority routing evidence ledger](PRIORITY_HYPERDRIVE_ROUTING.md) records prior real-backend scopes and remaining verification for every named priority.
 
 12 November Cancun time. Added an isolated HyperDrive V2 native routing case for priority SQL Server and SQLite. It exercises replication in both directions through the shipping router, verifies the record directly on both stores, checks six RoundRobin responses and tests read failover from an unavailable SQL Server endpoint to SQLite with failover disabled and enabled. The case runs separately for sync and async entry points. Existing MongoDB, SQLite and Neo4j hosted receipts carry forward. No COSMIC provider code or shared fixture was changed.
