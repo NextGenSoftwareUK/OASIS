@@ -140,26 +140,63 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            return await _holonRepository.LoadHolonsAsync("holons", "holons_anchor", ZOME_LOAD_HOLONS_FOR_PARENT_BY_ID_FUNCTION, version, new Dictionary<string, string>()
-            {
-                ["loadChildren"] = loadChildren.ToString(),
-                ["recursive"] = recursive.ToString(),
-                ["maxChildDepth"] = maxChildDepth.ToString(),
-                ["continueOnError"] = continueOnError.ToString(),
-                ["loadChildrenFromProvider"] = loadChildrenFromProvider.ToString()
-            });
+            return await LoadNativeHolonCollectionAsync(ZOME_LOAD_HOLONS_FOR_PARENT_BY_ID_FUNCTION, id.ToString("D"), type, loadChildren, version);
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            return _holonRepository.LoadHolons("holons", "holons_anchor", ZOME_LOAD_HOLONS_FOR_PARENT_BY_ID_FUNCTION, version, new Dictionary<string, string>()
+            return Task.Run(() => LoadHolonsForParentAsync(id, type, loadChildren, recursive, maxChildDepth,
+                curentChildDepth, continueOnError, loadChildrenFromProvider, version)).GetAwaiter().GetResult();
+        }
+
+        private async Task<OASISResult<IEnumerable<IHolon>>> LoadNativeHolonCollectionAsync(
+            string function, object payload, HolonType type, bool loadChildren, int version)
+        {
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            if (version != 0)
             {
-                ["loadChildren"] = loadChildren.ToString(),
-                ["recursive"] = recursive.ToString(),
-                ["maxChildDepth"] = maxChildDepth.ToString(),
-                ["continueOnError"] = continueOnError.ToString(),
-                ["loadChildrenFromProvider"] = loadChildrenFromProvider.ToString()
-            });
+                OASISErrorHandling.HandleError(ref result, "This Holochain collection query supports current records.");
+                return result;
+            }
+
+            try
+            {
+                var response = await HoloNETClientAppAgent.CallZomeFunctionAsync("oasis", function, payload, typeof(HcHolon));
+                if (response == null || response.IsError || response.Records == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, response?.Message ?? $"No records response from Holochain {function}.");
+                    return result;
+                }
+
+                var holons = new List<IHolon>();
+                foreach (var record in response.Records)
+                {
+                    if (!(record.EntryDataObject is HcHolon entry) || string.IsNullOrWhiteSpace(record.ActionHash))
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Holochain {function} returned an unmapped record.");
+                        return result;
+                    }
+
+                    if (type != HolonType.All && entry.HolonType != type)
+                        continue;
+
+                    entry.ActionHash = record.ActionHash;
+                    var holon = DataHelper.ConvertHcHolonToHolon(entry);
+                    if (!loadChildren)
+                        holon.Children = new List<IHolon>();
+                    holons.Add(holon);
+                }
+
+                result.Result = holons;
+                result.IsLoaded = true;
+                result.LoadedCount = holons.Count;
+            }
+            catch (Exception error)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Holochain {function} collection read failed.", error);
+            }
+
+            return result;
         }
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
