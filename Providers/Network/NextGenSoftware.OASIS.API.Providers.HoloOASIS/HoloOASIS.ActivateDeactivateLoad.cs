@@ -102,7 +102,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                                 OASIS_HAPP_ID,
                                 OASIS_HAPP_PATH,
                                 OASIS_HAPP_ROLE_NAME,
-                                CapGrantAccessType.Transferable);
+                                CapGrantAccessType.Transferable,
+                                uninstallhAppIfAlreadyInstalled: false);
 
                             if (installedAppResult != null && installedAppResult.IsSuccess && !installedAppResult.IsError)
                             {
@@ -159,20 +160,21 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
             try
             {
-                if (HoloNETClientAdmin != null && !HoloNETClientAdmin.IsDisconnecting)
-                {
-                    holoNETClientAdminResult = await HoloNETClientAdmin.DisconnectAsync();
-
-                    if (!(holoNETClientAdminResult != null && !holoNETClientAdminResult.IsError && holoNETClientAdminResult.IsDisconnected))
-                        OASISErrorHandling.HandleError(ref result, $"Error Occured In HoloOASIS Provider in DeActivateProviderAsync calling HoloNETClientAdmin.DisconnectAsync() method. Reason: {holoNETClientAdminResult.Message}");
-                }
-
+                // The admin connection owns the conductor. Close the app socket before it shuts down the process.
                 if (HoloNETClientAppAgent != null && !HoloNETClientAppAgent.IsDisconnecting)
                 {
                     holoNETClientAppAgent = await HoloNETClientAppAgent.DisconnectAsync();
 
                     if (!(holoNETClientAppAgent != null && !holoNETClientAppAgent.IsError && holoNETClientAppAgent.IsDisconnected))
-                        OASISErrorHandling.HandleError(ref result, $"Error Occured In HoloOASIS Provider in DeActivateProviderAsync calling HoloNETClientAdmin.DisconnectAsync() method. Reason: {holoNETClientAppAgent.Message}");
+                        OASISErrorHandling.HandleError(ref result, $"HoloOASIS app connection did not disconnect. {holoNETClientAppAgent?.Message}");
+                }
+
+                if (HoloNETClientAdmin != null && !HoloNETClientAdmin.IsDisconnecting)
+                {
+                    holoNETClientAdminResult = await HoloNETClientAdmin.DisconnectAsync();
+
+                    if (!(holoNETClientAdminResult != null && !holoNETClientAdminResult.IsError && holoNETClientAdminResult.IsDisconnected))
+                        OASISErrorHandling.HandleError(ref result, $"HoloOASIS admin connection did not disconnect. {holoNETClientAdminResult?.Message}");
                 }
 
                 if (HoloNETClientAdmin != null)

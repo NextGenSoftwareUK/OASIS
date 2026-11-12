@@ -5,11 +5,15 @@ param(
     [Parameter(Mandatory)][string]$ResultsDirectory,
     [string]$Configuration = 'Release',
     [string]$DesktopProject,
+    [string]$BootLoaderProject,
     [switch]$HoloConformance,
     [string]$CqlProject
 )
 $ErrorActionPreference = 'Stop'
-if ($DesktopProject -and $CqlProject) { throw 'Select one native qualification project.' }
+if (($BootLoaderProject -and ($DesktopProject -or $HoloConformance -or $CqlProject)) -or
+    ($DesktopProject -and $CqlProject)) {
+    throw 'Select one provider verification path.'
+}
 if ($HoloConformance -and -not $DesktopProject) {
     throw 'HoloOASIS conformance requires the integration test project.'
 }
@@ -53,6 +57,7 @@ $fixture = (Resolve-Path -LiteralPath $fixture).Path
 $Happ = (Resolve-Path -LiteralPath $Happ).Path
 if ($CqlProject) { $CqlProject = (Resolve-Path -LiteralPath $CqlProject).Path }
 elseif ($DesktopProject) { $DesktopProject = (Resolve-Path -LiteralPath $DesktopProject).Path }
+elseif ($BootLoaderProject) { $BootLoaderProject = (Resolve-Path -LiteralPath $BootLoaderProject).Path }
 else {
     $holonetRoot = Split-Path (Split-Path $Project -Parent) -Parent
     $legacy = Join-Path $holonetRoot 'NextGenSoftware.Holochain.HoloNET.Client.Tests/Fixtures/legacy-oasis.happ'
@@ -68,7 +73,7 @@ foreach ($name in $names) { $saved[$name] = [Environment]::GetEnvironmentVariabl
 $process = $null
 Push-Location $fixture
 try {
-    if (-not $DesktopProject -and -not $CqlProject) {
+    if (-not ($DesktopProject -or $BootLoaderProject -or $CqlProject)) {
         $generated = Join-Path (Split-Path $PSScriptRoot -Parent) 'artifacts/holonet-generated-fixture/package'
         $identity = Get-Content (Join-Path $generated 'manifest.json') -Raw | ConvertFrom-Json
         $clientCommit = (& git -C (Split-Path (Split-Path $Project -Parent) -Parent) rev-parse HEAD).Trim()
@@ -133,7 +138,51 @@ try {
     $env:HOLONET_LIVE_ADMIN_URI = 'ws://127.0.0.1:65464'
     $env:HOLONET_LIVE_HAPP_PATH = $Happ
     $env:HOLONET_LIVE_HC_BIN = $hc
-    if ($CqlProject) {
+    if ($BootLoaderProject) {
+        $provider = 'HoloOASIS'
+        $storage = @{
+            OASISProviderBootType = 'Warm'
+            HoloOASIS = @{
+                LocalNodeURI = $env:HOLONET_LIVE_ADMIN_URI
+                UseLocalNode = $true
+                UseHoloNetwork = $false
+                HoloNETORMUseReflection = $false
+            }
+        }
+        foreach ($list in @(
+            'AutoFailOverProviders', 'AutoFailOverLocalProviders', 'AutoReplicationProviders',
+            'AutoLoadBalanceProviders', 'AutoFailOverProvidersForAvatarLogin',
+            'AutoFailOverProvidersForCheckIfEmailAlreadyInUse', 'AutoFailOverProvidersForCheckIfUsernameAlreadyInUse',
+            'AutoFailOverProvidersForCheckIfOASISSystemAccountExists'
+        )) {
+            $storage[$list] = $provider
+        }
+        $dna = @{ OASIS = @{
+            HyperDriveMode = 'OASISHyperDrive2'
+            Logging = @{ LoggingFramework = 'Default'; LogToConsole = $false; LogToFile = $false }
+            ErrorHandling = @{ LogAllErrors = $false; LogAllWarnings = $false }
+            Security = @{ SecretKey = [Convert]::ToHexString([Security.Cryptography.RandomNumberGenerator]::GetBytes(32)) }
+            StorageProviders = $storage
+            OASISHyperDriveConfig = @{
+                EnabledProviders = @($provider)
+                AutoFailoverProviders = @($provider)
+                AutoReplicationProviders = @($provider)
+                LoadBalancingProviders = @($provider)
+            }
+        } }
+        $dnaPath = Join-Path $fixture 'bootloader-dna.json'
+        try {
+            $dna | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $dnaPath
+            dotnet build $BootLoaderProject --configuration $Configuration /m:2 /nr:false /p:UseSharedCompilation=false
+            if ($LASTEXITCODE -ne 0) { throw 'HoloOASIS BootLoader harness build failed.' }
+            dotnet run --no-build --no-restore --configuration $Configuration --project $BootLoaderProject -- $dnaPath $provider
+            if ($LASTEXITCODE -ne 0) { throw 'Native HoloOASIS BootLoader activation failed.' }
+        }
+        finally {
+            if (Test-Path -LiteralPath $dnaPath) { Remove-Item -LiteralPath $dnaPath }
+        }
+    }
+    elseif ($CqlProject) {
         $env:OASIS_CQL_HOLOOASIS_NATIVE = '1'
         & dotnet test $CqlProject --configuration $Configuration --filter 'FullyQualifiedName~CqlHoloOasisConductorTests' --logger 'trx;LogFileName=holo-cql-native.trx' --results-directory $ResultsDirectory /m:2 /nr:false /p:UseSharedCompilation=false --blame-hang-timeout 2m --blame-hang-dump-type none
         if ($LASTEXITCODE -ne 0) { throw 'Native HoloOASIS CQL lifecycle failed.' }
@@ -190,7 +239,7 @@ finally {
     Pop-Location
 }
 
-if ($DesktopProject -or $CqlProject) { return }
+if ($DesktopProject -or $BootLoaderProject -or $CqlProject) { return }
 
 # The upstream lifecycle tests intentionally kill conductor processes. Keep them
 # isolated from the shared-conductor suite, but require their own release report.
