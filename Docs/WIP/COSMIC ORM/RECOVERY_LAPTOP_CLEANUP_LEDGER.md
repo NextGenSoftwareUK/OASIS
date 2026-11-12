@@ -6388,3 +6388,5 @@ Used the existing Railway sign-in and public GraphQL endpoint to confirm the exa
 Track temporary Core tag ci-cosmic-urbit-core-7ea7639c for the pending Urbit WEB4 candidate. It is based on published Core d7692071 and adds only the Urbit query tariff. Temporary Git indices removed. No local builds, runtimes, fixtures or downloads.
 
 Track ci-cosmic-urbit-web4-33977c56be and ci-cosmic-urbit-core-7ea7639c through CI 43151137417. Temporary candidate and documentation Git indices removed. No local build, fixture, downloads or test artifacts.
+
+Track ci-cosmic-urbit-web4-98fae8117c for native federation run 43153031802. Retain the passing boundary tag and Core tag until this replacement is qualified. All temporary Git indices were removed. Existing native caches remain CI-only. No local build, fixture or downloads.
