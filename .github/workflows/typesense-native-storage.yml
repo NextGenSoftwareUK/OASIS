@@ -6,7 +6,8 @@ on:
     paths:
       - '.github/workflows/typesense-native-storage.yml'
       - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.TypesenseOASIS/**'
-      - 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.TypesenseOASIS.IntegrationTests/TypesenseOASISIntegrationTests.cs'
+      - 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.TypesenseOASIS.IntegrationTests/TypesenseNativeStorageConformanceTests.cs'
+      - 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.TypesenseOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.TypesenseOASIS.IntegrationTests.csproj'
   workflow_dispatch:
 
 permissions:
@@ -14,6 +15,10 @@ permissions:
 
 jobs:
   lifecycle:
+    strategy:
+      fail-fast: false
+      matrix:
+        mode: [sync, async]
     runs-on: ubuntu-22.04
     timeout-minutes: 30
     defaults:
@@ -57,8 +62,10 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      - name: Verify avatar and holon lifecycle against Typesense
+      - name: Verify shared storage against Typesense
         shell: bash
+        env:
+          OASIS_TYPESENSE_MODE: ${{ matrix.mode }}
         run: |
           umask 077
           fixture="$(mktemp -d "$RUNNER_TEMP/oasis-typesense.XXXXXXXX")"
@@ -68,6 +75,11 @@ jobs:
             if [[ -n "$container" ]]; then
               docker rm --force --volumes "$container" || cleanup_status=1
             fi
+            for checkpoint in "$fixture"/storage-*.json; do
+              if [[ -f "$checkpoint" ]]; then
+                jq -c '{case:.CurrentCase,checks:(.Passed | length),cleanup:.FixtureCleanupComplete,contract:.FailureContract}' "$checkpoint" || cleanup_status=1
+              fi
+            done
             rm -rf -- "$fixture" || cleanup_status=1
             if [[ "$cleanup_status" -ne 0 || -e "$fixture" ]]; then
               echo "Failed to remove the owned Typesense resources." >&2
@@ -85,22 +97,17 @@ jobs:
             --env TYPESENSE_API_KEY "$image" --data-dir=/data)"
           curl --fail --silent --show-error --retry 35 --retry-delay 2 --retry-all-errors --max-time 5 \
             "$TYPESENSE_HOST/health" | jq -e '.ok == true'
-          export OASIS_TYPESENSE_STORAGE_TEST=1
+          export OASIS_TYPESENSE_SHARED_FIXTURE=owned-ci-18108
           export OASIS_TYPESENSE_REPORT_DIRECTORY="$fixture"
           pwsh -NoProfile -Command '
             ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-TypesenseNativeStorage -Operation {
               $project = "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.TypesenseOASIS.IntegrationTests"
-              $filter = "FullyQualifiedName~TypesenseOASISIntegrationTests.AvatarSaveAndHardDeleteRoundTrip|FullyQualifiedName~TypesenseOASISIntegrationTests.HolonPointReadAndSoftDeleteRoundTrip"
+              $filter = "FullyQualifiedName~TypesenseNativeStorageConformanceTests"
               dotnet test $project --filter $filter --logger "trx;LogFileName=typesense.trx" --results-directory $env:OASIS_TYPESENSE_REPORT_DIRECTORY /m:2 /nr:false /p:UseSharedCompilation=false
               if ($LASTEXITCODE -ne 0) { throw "Typesense native lifecycle checks failed." }
               [xml]$report = Get-Content -LiteralPath (Join-Path $env:OASIS_TYPESENSE_REPORT_DIRECTORY "typesense.trx") -Raw
               $counters = $report.SelectSingleNode("//*[local-name()=`"Counters`"]")
-              if (-not $counters -or $counters.total -ne "2" -or $counters.passed -ne "2") {
-                throw "Expected two executed and passing Typesense native tests."
+              if (-not $counters -or $counters.total -ne "1" -or $counters.passed -ne "1") {
+                throw "Expected one executed and passing Typesense native shared test."
               }
             }'
-          for collection in oasis_avatars oasis_avatar_details oasis_holons; do
-            curl --fail --silent --show-error --max-time 5 --header "X-TYPESENSE-API-KEY: $TYPESENSE_API_KEY" \
-              "$TYPESENSE_HOST/collections/$collection" | jq -e --arg collection "$collection" '.name == $collection and .num_documents == 0'
-          done
-          echo "All three native Typesense collections contain zero documents."
