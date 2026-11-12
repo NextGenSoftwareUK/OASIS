@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+12 November Solana run 43318892483 verified no active fixture holons in finalized history after tombstones and removed the owned Agave directory, including runtime, ledger, signer, SQLite and reports. No local artifacts were created.
+
 12 November Hedera run 43317460293 verified both native contracts empty and removed owned Hiero fixtures and SDK dependencies. Polkadot exact run 43317854283 removed the owned Binaryen and Substrate fixtures and MongoDB outbox container and volumes. No local build, runtime or report was created.
 
 12 November ActivityPub routing run 43317653578 independently confirmed native HTTP 404 and removed the owned Mastodon fixture. Solana routing uses the disposable Agave CI directory for its validator, ledger, signer, SQLite and reports. The existing teardown removes the directory after stopping the validator. No local runtime, build or fixture was created.
