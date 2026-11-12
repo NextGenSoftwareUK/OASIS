@@ -34,13 +34,16 @@ namespace NextGenSoftware.OASIS.API.Providers.TypesenseOASIS.IntegrationTests
         [TestMethod]
         public async Task AvatarSaveAndHardDeleteRoundTrip()
         {
-            var id = Guid.NewGuid();
-            var avatar = new Avatar { Id = id, Username = $"typesense-{id:N}", Email = $"{id:N}@example.test" };
+            var fixture = Guid.NewGuid();
+            var avatar = new Avatar { Username = $"typesense-{fixture:N}", Email = $"{fixture:N}@example.test" };
             var saved = await _provider.SaveAvatarAsync(avatar);
             Assert.IsFalse(saved.IsError, saved.Message);
-            Assert.IsTrue(saved.IsSaved);
+            var id = avatar.Id;
+            Assert.AreNotEqual(Guid.Empty, id);
             try
             {
+                Assert.IsTrue(saved.IsSaved, saved.Message);
+                Assert.AreEqual(1, saved.SavedCount);
                 var loaded = await _provider.LoadAvatarAsync(id);
                 Assert.IsFalse(loaded.IsError, loaded.Message);
                 Assert.AreEqual(avatar.Username, loaded.Result.Username);

@@ -20,6 +20,8 @@
 
 12 November Cancun time. Managed HoloOASIS advanced Development to `e54973c380c9`. Elasticsearch qualification now triggers when its native test project changes and will qualify the existing three-file batch against the new Development parent. The hosted HoloOASIS rollout and the new exact Elasticsearch integration evidence are pending.
 
+12 November Cancun time. [Typesense run 43207952514](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43207952514) passed the native holon lifecycle. The avatar write reached native acknowledgement but the adapter omitted the saved flag and count. The adapter now stages avatar identity and storage keys until acknowledgement and publishes the save result and count together. The updated native fixture checks generated identity and the acknowledged count. Full native qualification remains open.
+
 12 November Cancun time. Added disposable Typesense 30.2 CI for the existing avatar and holon storage lifecycle checks. The runner requires both tests to execute and pass, then independently checks that all three native collections contain zero documents. This qualification is separate from the COSMIC CQL fixture. Shared storage and hosted acceptance remain open.
 
 12 November Cancun time. Reproduced the exact three-file Elasticsearch CI tree `a3621e1f666e523f7f632a927f14e11fa1856593` on Development `52ace6727b58`. The [COSMIC coordination status](../COSMIC%20ORM/CURRENT_STATUS.md) reserves the next eligible Development integration for managed HoloOASIS. Recheck the Development parent after that release and qualify Elasticsearch against the new parent if it changed.

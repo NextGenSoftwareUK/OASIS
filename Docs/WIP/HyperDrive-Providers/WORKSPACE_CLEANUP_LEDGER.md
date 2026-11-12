@@ -484,3 +484,5 @@ Urgent disk cleanup follow-up: leased standard project clean succeeded for AWS u
 12 November Cancun time. The temporary Git index used to reproduce the exact Elasticsearch Development qualification tree was removed and its absence verified. No runtime, build or test files were created.
 
 12 November Cancun time. Typesense storage CI uses a disposable hosted runner with a loopback-only node, temporary in-memory data and one result directory. Its exit handler removes the owned node, volumes and result directory. No local image, build or test output was created. CI cleanup evidence is pending.
+
+12 November Cancun time. Typesense job 131147811207 confirmed removal of the owned native node, volumes and result directory after the avatar acknowledgement assertion failed. No local test artifacts were created.

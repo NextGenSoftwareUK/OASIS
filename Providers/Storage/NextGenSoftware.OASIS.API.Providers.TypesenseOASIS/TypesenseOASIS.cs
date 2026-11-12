@@ -148,13 +148,24 @@ namespace NextGenSoftware.OASIS.API.Providers.TypesenseOASIS
             var result = new OASISResult<IAvatar>();
             try
             {
-                if (avatar.Id == Guid.Empty) avatar.Id = Guid.NewGuid();
-                if (avatar.ProviderUniqueStorageKey == null) avatar.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
-                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.TypesenseOASIS] = avatar.Id.ToString();
-                var doc = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(Ser(avatar), _jsonOpts)!;
-                doc["id"] = JsonDocument.Parse($"\"{avatar.Id}\"").RootElement;
-                await UpsertDocAsync(ColAvatars, doc);
-                result.Result = avatar; result.IsError = false; result.Message = $"TypesenseOASIS: Avatar '{avatar.Username}' saved.";
+                ArgumentNullException.ThrowIfNull(avatar);
+                var id = avatar.Id == Guid.Empty ? Guid.NewGuid() : avatar.Id;
+                var keys = avatar.ProviderUniqueStorageKey == null
+                    ? new Dictionary<Core.Enums.ProviderType, string>()
+                    : new Dictionary<Core.Enums.ProviderType, string>(avatar.ProviderUniqueStorageKey);
+                keys[Core.Enums.ProviderType.TypesenseOASIS] = id.ToString("D");
+                var document = JsonSerializer.SerializeToNode(avatar, avatar.GetType(), _jsonOpts)!.AsObject();
+                document["id"] = id;
+                document["providerUniqueStorageKey"] = JsonSerializer.SerializeToNode(keys, _jsonOpts);
+                await UpsertDocAsync(ColAvatars, document);
+
+                avatar.Id = id;
+                avatar.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
+                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.TypesenseOASIS] = id.ToString("D");
+                result.Result = avatar;
+                result.IsSaved = true;
+                result.SavedCount = 1;
+                result.Message = $"TypesenseOASIS: Avatar '{avatar.Username}' saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"TypesenseOASIS: Error saving avatar: {ex.Message}"); }
             return result;
