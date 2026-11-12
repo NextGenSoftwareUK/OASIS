@@ -6374,3 +6374,5 @@ Track temporary ci-cosmic-tron-web4-2441de16f2 for exact combined CI 43141168568
 Removed superseded ci-cosmic-tron-web4-79c18e0944 after replacement CI 43141168568 passed. Retain ci-cosmic-tron-web4-2441de16f2 and ci-cosmic-tron-core-d7692071 through publication or supersession. The recovery Railway CLI directory is now absent; GitHub deployment status was used without reinstalling it. C: measured 20.81 GiB free. No local build, fixture, install or artifact download. Temporary documentation index removed.
 
 Dapr browser check used one temporary in-app tab and one Development throwaway demo avatar. No private records were prepared and no file, screenshot, local database, build, download or environment was created. Browser control timed out after the second refresh; the temporary tab was not marked for retention.
+
+Post-cutover catalogue verification reused the retained readiness visitor and created four protected renewal files. No local build, downloads or query data. Temporary documentation index removed.
