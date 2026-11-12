@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Urbit and Infura reconciled with published Core
+
+Core Development advanced to `26e09b26` with the Urbit and Infura tariffs already included. The release guard stopped before pushing. WEB4 candidate `4fdb30c2fa` preserves the Urbit source on `bfa0be4be233`; `2420a01cb9` adds the verified Infura source after it. Only the Core gitlink and manifest differ from the prior candidates. [Urbit CI 43165188191](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43165188191) and [Infura CI 43165191767](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43165191767) are running. The prior-pin Infura image run `43164391151` cannot establish exact current-pin image acceptance.
+
 ## Holo Desktop cutover and Infura qualification
 
 WEB4 `bfa0be4be233` deployed successfully (`7729252735`). The retained authenticated visitor confirmed 105/106 native and federated sources ready. Nostr remained unavailable. Urbit is still the next scoped Development candidate. Infura candidate `3c5559c601` builds on that Urbit candidate with Core `9e4ee4a0`; [controlled CI 43163893924](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43163893924) was queued.
