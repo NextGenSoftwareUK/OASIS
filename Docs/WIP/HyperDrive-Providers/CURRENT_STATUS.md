@@ -10,7 +10,7 @@
 | ActivityPub and routing | ActivityPub has 5/5 native capability checks. GOMap passed a public OSRM driving route. Authenticated Google Routes, Mapbox and HERE checks remain open. Niantic and WRLD still have reviewed adapter gaps. |
 | Canonical HoloOASIS | Top priority. Both modes passed all 52 native core-storage-v2 checks on the official Windows conductor with the verified identity-delete hApp in [run 43178174352](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43178174352). The verified bundle is packaged on the provider branch. Hosted, multi-agent and broader capability acceptance remain open. |
 | HoloOASIS.Desktop | Obsolete in source, package metadata and repository documentation at `45d6665da989`. The six-file compatibility and documentation batch reached Development at `70d3fbb4a31c`. Published NuGet metadata and live site listings still need the obsolescence update. |
-| Development | `1c4d6109d47c` integrates the verified Elasticsearch lifecycle and preserves the public HoloOASIS CQL deployment changes. All seven Elasticsearch Railway deployments succeeded. Live HyperDrive HoloOASIS writes remain open. |
+| Development | `7193e81328d1` integrates the verified Typesense lifecycle on the successful Elasticsearch baseline. The new Railway rollout and live HyperDrive HoloOASIS writes remain open. |
 | BootLoader startup | The shipping registration, activation and deactivation path passed against native Polkadot and TRON fixtures and the Microsoft Azure Cosmos DB emulator. [Azure Cosmos DB job 131055311882](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43180594194/job/131055311882) confirmed fixture teardown. |
 | HyperDrive | Global automatic failover, replication and load balancing await provider acceptance. Dragonfly and KeyDB full native runs were queued at the coverage review. |
 
@@ -19,6 +19,8 @@
 ## Verification log
 
 12 November Cancun time. Managed HoloOASIS advanced Development to `e54973c380c9`. Elasticsearch qualification now triggers when its native test project changes and will qualify the existing three-file batch against the new Development parent. The hosted HoloOASIS rollout and the new exact Elasticsearch integration evidence are pending.
+
+12 November Cancun time. Development advanced to `7193e81328d1` with the exact five-file Typesense tree `d231f61c749168b0483bf135f20c71a4802807e6` after the half-hour interval and seven successful Elasticsearch deployments. The remote ref was verified. The Typesense Railway rollout remains open. Solr qualification can now use the new parent.
 
 12 November Cancun time. The read-only SQLite outbox investigation confirmed the held version-2 mutation actor equals its modifier and differs from its creator, which the deployed owner-only replica policy rejects. The original writer authority and exact SQLite predecessor require proof before any reviewed reconciliation. No replica queue or owner policy was changed.
 
