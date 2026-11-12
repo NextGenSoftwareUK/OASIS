@@ -79,7 +79,7 @@ public partial class HoloOASIS : ICosmicQueryStorageProvider, ICosmicReadOnlyQue
             result.ErrorCode == OASISResultErrorCodes.RecordNotFound)
             return null;
         if (result.IsError)
-            throw new IOException("The canonical HoloOASIS holon read failed.");
+            throw new IOException("The canonical HoloOASIS holon read failed.", result.Exception);
 
         return result.Result == null ? null : StoredRecordJson.Serialize<IHolon>(result.Result);
     }

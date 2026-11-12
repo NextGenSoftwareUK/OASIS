@@ -175,7 +175,12 @@ public sealed class CqlHoloOasisConductorTests
                     AutoFailOverProvidersForCheckIfEmailAlreadyInUse = provider,
                     AutoFailOverProvidersForCheckIfUsernameAlreadyInUse = provider,
                     AutoFailOverProvidersForCheckIfOASISSystemAccountExists = provider,
-                    HoloOASIS = new() { LocalNodeURI = endpoint.AbsoluteUri, UseLocalNode = true }
+                    HoloOASIS = new()
+                    {
+                        LocalNodeURI = endpoint.AbsoluteUri,
+                        UseLocalNode = true,
+                        HoloNETORMUseReflection = true
+                    }
                 },
                 OASISHyperDriveConfig = new OASISHyperDriveConfig
                 {
