@@ -20,6 +20,10 @@
 
 12 November Cancun time. Managed HoloOASIS advanced Development to `e54973c380c9`. Elasticsearch qualification now triggers when its native test project changes and will qualify the existing three-file batch against the new Development parent. The hosted HoloOASIS rollout and the new exact Elasticsearch integration evidence are pending.
 
+12 November Cancun time. Both [Typesense Development jobs](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43213620274) passed all 26 cases and cleanup on exact tree `d231f61c749168b0483bf135f20c71a4802807e6` over `1c4d6109d47c`. The five-file batch awaits the next Development window and the preceding deployment.
+
+12 November Cancun time. Added native Apache Solr 10.1.0 shared storage CI in both modes using explicitly provisioned canonical standalone cores. Avatar and detail writes publish identity and save count after the native receipt. Their point and selector reads acknowledge one loaded record, and detail reads use the canonical decoder. Native execution remains open. The existing COSMIC Solr CQL evidence is separate.
+
 12 November Cancun time. Typesense Development qualification overlays the five reviewed storage files and records the exact tree. The pre-change Typesense provider and test trees matched Development byte for byte, including the existing COSMIC CQL code. The CI guard rejects overlapping edits in the five reviewed files.
 
 12 November Cancun time. Development advanced to `1c4d6109d47c` with the exact verified three-file Elasticsearch tree `b97bba2543fa9d82cc6c06b1c8d5a92e9b559778`. The push followed the half-hour interval, seven successful baseline API deployments, and the managed HoloOASIS public acceptance check. The remote ref was verified. The new Railway rollout remains open.

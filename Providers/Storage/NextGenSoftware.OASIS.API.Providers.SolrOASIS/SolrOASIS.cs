@@ -140,11 +140,24 @@ namespace NextGenSoftware.OASIS.API.Providers.SolrOASIS
             var result = new OASISResult<IAvatar>();
             try
             {
-                if (avatar.Id == Guid.Empty) avatar.Id = Guid.NewGuid();
-                if (avatar.ProviderUniqueStorageKey == null) avatar.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
-                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.SolrOASIS] = avatar.Id.ToString();
-                await UpsertDocAsync(ColAvatars, ToSolrDoc(avatar, avatar.Id.ToString()));
-                result.Result = avatar; result.IsError = false; result.Message = $"SolrOASIS: Avatar '{avatar.Username}' saved.";
+                ArgumentNullException.ThrowIfNull(avatar);
+                var id = avatar.Id == Guid.Empty ? Guid.NewGuid() : avatar.Id;
+                var key = id.ToString("D");
+                var keys = avatar.ProviderUniqueStorageKey == null
+                    ? new Dictionary<Core.Enums.ProviderType, string>()
+                    : new Dictionary<Core.Enums.ProviderType, string>(avatar.ProviderUniqueStorageKey);
+                keys[Core.Enums.ProviderType.SolrOASIS] = key;
+                var payload = JsonSerializer.SerializeToNode(avatar, avatar.GetType(), _jsonOpts)!.AsObject();
+                payload["id"] = key;
+                payload["providerUniqueStorageKey"] = JsonSerializer.SerializeToNode(keys, _jsonOpts);
+                await UpsertDocAsync(ColAvatars, ToSolrDoc(payload, key));
+                avatar.Id = id;
+                avatar.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
+                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.SolrOASIS] = key;
+                result.Result = avatar;
+                result.IsSaved = true;
+                result.SavedCount = 1;
+                result.Message = $"SolrOASIS: Avatar '{avatar.Username}' saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SolrOASIS: Error saving avatar: {ex.Message}"); }
             return result;
@@ -159,7 +172,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SolrOASIS
             {
                 var a = await GetDocAsync<Avatar>(ColAvatars, id.ToString());
                 if (a == null || a.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"SolrOASIS: No avatar for ID '{id}'."); return result; }
-                result.Result = a; result.IsError = false; result.Message = "SolrOASIS: Avatar loaded.";
+                result.Result = a; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "SolrOASIS: Avatar loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SolrOASIS: {ex.Message}"); }
             return result;
@@ -175,7 +188,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SolrOASIS
                 var hits = await SearchAsync<Avatar>(ColAvatars, $"username:\"{username}\"", 1);
                 var a = hits.Count > 0 ? hits[0] : null;
                 if (a == null || a.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"SolrOASIS: No avatar for username '{username}'."); return result; }
-                result.Result = a; result.IsError = false; result.Message = "SolrOASIS: Avatar loaded.";
+                result.Result = a; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "SolrOASIS: Avatar loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SolrOASIS: {ex.Message}"); }
             return result;
@@ -191,7 +204,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SolrOASIS
                 var hits = await SearchAsync<Avatar>(ColAvatars, $"email:\"{avatarEmail}\"", 1);
                 var a = hits.Count > 0 ? hits[0] : null;
                 if (a == null || a.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"SolrOASIS: No avatar for email '{avatarEmail}'."); return result; }
-                result.Result = a; result.IsError = false; result.Message = "SolrOASIS: Avatar loaded.";
+                result.Result = a; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "SolrOASIS: Avatar loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SolrOASIS: {ex.Message}"); }
             return result;
@@ -245,9 +258,17 @@ namespace NextGenSoftware.OASIS.API.Providers.SolrOASIS
             var result = new OASISResult<IAvatarDetail>();
             try
             {
-                if (d.Id == Guid.Empty) d.Id = Guid.NewGuid();
-                await UpsertDocAsync(ColDetails, ToSolrDoc(d, d.Id.ToString()));
-                result.Result = d; result.IsError = false; result.Message = "SolrOASIS: AvatarDetail saved.";
+                ArgumentNullException.ThrowIfNull(d);
+                var id = d.Id == Guid.Empty ? Guid.NewGuid() : d.Id;
+                var key = id.ToString("D");
+                var payload = JsonSerializer.SerializeToNode(d, d.GetType(), _jsonOpts)!.AsObject();
+                payload["id"] = key;
+                await UpsertDocAsync(ColDetails, ToSolrDoc(payload, key));
+                d.Id = id;
+                result.Result = d;
+                result.IsSaved = true;
+                result.SavedCount = 1;
+                result.Message = "SolrOASIS: AvatarDetail saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SolrOASIS: {ex.Message}"); }
             return result;
@@ -262,16 +283,16 @@ namespace NextGenSoftware.OASIS.API.Providers.SolrOASIS
             {
                 var d = await GetDocAsync<AvatarDetail>(ColDetails, id.ToString());
                 if (d == null) { OASISErrorHandling.HandleError(ref result, $"SolrOASIS: No detail for ID '{id}'."); return result; }
-                result.Result = d; result.IsError = false; result.Message = "SolrOASIS: AvatarDetail loaded.";
+                result.Result = d; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "SolrOASIS: AvatarDetail loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SolrOASIS: {ex.Message}"); }
             return result;
         }
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0) => LoadAvatarDetailAsync(id, version).Result;
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string u, int version = 0) { var result = new OASISResult<IAvatarDetail>(); try { var hits = await SearchAsync<AvatarDetail>(ColDetails, $"username:\"{u}\"", 1); var d = hits.Count > 0 ? hits[0] : null; if (d == null) { OASISErrorHandling.HandleError(ref result, $"SolrOASIS: No detail for username '{u}'."); return result; } result.Result = d; result.IsError = false; result.Message = "SolrOASIS: AvatarDetail loaded."; } catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SolrOASIS: {ex.Message}"); } return result; }
+        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string u, int version = 0) { var result = new OASISResult<IAvatarDetail>(); try { var hits = await SearchAsync<AvatarDetail>(ColDetails, $"username:\"{u}\"", 1); var d = hits.Count > 0 ? hits[0] : null; if (d == null) { OASISErrorHandling.HandleError(ref result, $"SolrOASIS: No detail for username '{u}'."); return result; } result.Result = d; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "SolrOASIS: AvatarDetail loaded."; } catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SolrOASIS: {ex.Message}"); } return result; }
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string u, int version = 0) => LoadAvatarDetailByUsernameAsync(u, version).Result;
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string e, int version = 0) { var result = new OASISResult<IAvatarDetail>(); try { var hits = await SearchAsync<AvatarDetail>(ColDetails, $"email:\"{e}\"", 1); var d = hits.Count > 0 ? hits[0] : null; if (d == null) { OASISErrorHandling.HandleError(ref result, $"SolrOASIS: No detail for email '{e}'."); return result; } result.Result = d; result.IsError = false; result.Message = "SolrOASIS: AvatarDetail loaded."; } catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SolrOASIS: {ex.Message}"); } return result; }
+        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string e, int version = 0) { var result = new OASISResult<IAvatarDetail>(); try { var hits = await SearchAsync<AvatarDetail>(ColDetails, $"email:\"{e}\"", 1); var d = hits.Count > 0 ? hits[0] : null; if (d == null) { OASISErrorHandling.HandleError(ref result, $"SolrOASIS: No detail for email '{e}'."); return result; } result.Result = d; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "SolrOASIS: AvatarDetail loaded."; } catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"SolrOASIS: {ex.Message}"); } return result; }
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string e, int version = 0) => LoadAvatarDetailByEmailAsync(e, version).Result;
 
         public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)

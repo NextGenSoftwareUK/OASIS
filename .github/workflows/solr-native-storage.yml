@@ -1,0 +1,151 @@
+name: Solr native storage lifecycle
+
+on:
+  push:
+    branches: [work/hyperdrive-provider-completion]
+    paths:
+      - '.github/workflows/solr-native-storage.yml'
+      - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.SolrOASIS/**'
+      - 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SolrOASIS.IntegrationTests/SolrNativeStorageConformanceTests.cs'
+      - 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SolrOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.SolrOASIS.IntegrationTests.csproj'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lifecycle:
+    strategy:
+      fail-fast: false
+      matrix:
+        mode: [sync, async]
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: OASIS
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          path: OASIS
+          submodules: recursive
+          persist-credentials: false
+
+      - name: Read the recorded Libraries revision
+        id: dependencies
+        shell: bash
+        run: |
+          revision="$(sed -n 's/^LIBRARIES_COMMIT=//p' Docker/oasis-dependency-versions.env)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "libraries=$revision" >> "$GITHUB_OUTPUT"
+          revision="$(sed -n 's/^HOLOCHAIN_COMMIT=//p' Docker/oasis-dependency-versions.env)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "holochain=$revision" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependencies.outputs.libraries }}
+          path: NextGenSoftware-Libraries
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+
+      - uses: actions/checkout@v7
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          ref: ${{ steps.dependencies.outputs.holochain }}
+          path: holochain-client-csharp
+          persist-credentials: false
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Verify shared storage against Solr
+        shell: bash
+        env:
+          OASIS_SOLR_MODE: ${{ matrix.mode }}
+        run: |
+          umask 077
+          fixture="$(mktemp -d "$RUNNER_TEMP/oasis-solr.XXXXXXXX")"
+          container=""
+          cleanup() {
+            local status=$? cleanup_status=0
+            if [[ -n "$container" ]]; then
+              docker rm --force --volumes "$container" || cleanup_status=1
+            fi
+            for checkpoint in "$fixture"/storage-*.json; do
+              if [[ -f "$checkpoint" ]]; then
+                jq -c '{case:.CurrentCase,checks:(.Passed | length),cleanup:.FixtureCleanupComplete,contract:.FailureContract}' "$checkpoint" || cleanup_status=1
+              fi
+            done
+            rm -rf -- "$fixture" || cleanup_status=1
+            if [[ "$cleanup_status" -ne 0 || -e "$fixture" ]]; then
+              echo "Failed to remove the owned Solr resources." >&2
+              exit 1
+            fi
+            echo "Removed the owned Solr node, volumes and fixture."
+            exit "$status"
+          }
+          trap cleanup EXIT
+          origin=http://127.0.0.1:18984
+          image=docker.io/library/solr@sha256:0586be344eeb1eb5682e0bd1260001e004219ed3bd788d6e0d3620502c057f1c
+          container="$(docker run --detach --publish 127.0.0.1:18984:8983 --env SOLR_HEAP=512m "$image" solr-foreground)"
+          curl --fail --silent --show-error --retry 35 --retry-delay 2 --retry-all-errors --max-time 5 \
+            "$origin/solr/admin/info/system?wt=json" | jq -e '.mode == "std" and .lucene["solr-spec-version"] == "10.1.0"'
+          cat > "$fixture/solrconfig.xml" <<'SOLR_CONFIG'
+          <config>
+            <luceneMatchVersion>LATEST</luceneMatchVersion>
+            <directoryFactory name="DirectoryFactory" class="solr.NRTCachingDirectoryFactory"/>
+            <schemaFactory class="ClassicIndexSchemaFactory"/>
+            <updateHandler class="solr.DirectUpdateHandler2"><updateLog/></updateHandler>
+            <requestHandler name="/select" class="solr.SearchHandler"><lst name="defaults"><str name="df">id</str></lst></requestHandler>
+            <requestHandler name="/query" class="solr.SearchHandler"><lst name="defaults"><str name="df">id</str></lst></requestHandler>
+            <requestHandler name="/get" class="solr.SearchHandler"><lst name="defaults"><str name="omitHeader">false</str></lst><arr name="components"><str>get</str></arr></requestHandler>
+            <searchComponent name="get" class="solr.RealTimeGetComponent"/>
+          </config>
+          SOLR_CONFIG
+          cat > "$fixture/managed-schema.xml" <<'SOLR_SCHEMA'
+          <schema name="oasis-native-storage" version="1.7">
+            <uniqueKey>id</uniqueKey>
+            <fieldType name="string" class="solr.StrField"/>
+            <fieldType name="pint" class="solr.IntPointField"/>
+            <fieldType name="plong" class="solr.LongPointField"/>
+            <fieldType name="boolean" class="solr.BoolField"/>
+            <field name="id" type="string" indexed="true" stored="true" docValues="false" multiValued="false"/>
+            <field name="name" type="string" indexed="true" stored="true" docValues="false" multiValued="false"/>
+            <field name="username" type="string" indexed="true" stored="true" docValues="false" multiValued="false"/>
+            <field name="email" type="string" indexed="true" stored="true" docValues="false" multiValued="false"/>
+            <field name="parentHolonId" type="string" indexed="true" stored="true" docValues="false" multiValued="false"/>
+            <field name="data_json" type="string" indexed="false" stored="true" docValues="false" multiValued="false"/>
+            <field name="holonType" type="pint" indexed="true" stored="true" docValues="false" multiValued="false"/>
+            <field name="isDeleted" type="boolean" indexed="true" stored="true" docValues="false" multiValued="false"/>
+            <field name="_version_" type="plong" indexed="false" stored="false" docValues="true" multiValued="false"/>
+          </schema>
+          SOLR_SCHEMA
+          for core in oasis_avatars oasis_avatar_details oasis_holons; do
+            docker exec "$container" mkdir -p "/var/solr/data/$core"
+            docker exec "$container" cp -r /opt/solr/server/solr/configsets/_default/conf "/var/solr/data/$core/conf"
+            for config in solrconfig.xml managed-schema.xml; do
+              docker exec -i "$container" sh -c 'cat > "$1"' sh "/var/solr/data/$core/conf/$config" < "$fixture/$config"
+            done
+            curl --fail-with-body --silent --show-error --max-time 25 --get "$origin/solr/admin/cores" \
+              --data-urlencode action=CREATE --data-urlencode "name=$core" --data-urlencode "instanceDir=$core" \
+              --data-urlencode config=solrconfig.xml --data-urlencode schema=managed-schema.xml --data-urlencode wt=json \
+              | jq -e '.responseHeader.status == 0'
+          done
+          export OASIS_SOLR_SHARED_FIXTURE=owned-ci-18984
+          export OASIS_SOLR_REPORT_DIRECTORY="$fixture"
+          pwsh -NoProfile -Command '
+            ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-SolrNativeStorage -Operation {
+              $project = "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SolrOASIS.IntegrationTests"
+              $filter = "FullyQualifiedName~SolrNativeStorageConformanceTests"
+              dotnet test $project --filter $filter --logger "trx;LogFileName=solr.trx" --results-directory $env:OASIS_SOLR_REPORT_DIRECTORY /m:2 /nr:false /p:UseSharedCompilation=false
+              if ($LASTEXITCODE -ne 0) { throw "Solr native lifecycle checks failed." }
+              [xml]$report = Get-Content -LiteralPath (Join-Path $env:OASIS_SOLR_REPORT_DIRECTORY "solr.trx") -Raw
+              $counters = $report.SelectSingleNode("//*[local-name()=`"Counters`"]")
+              if (-not $counters -or $counters.total -ne "1" -or $counters.passed -ne "1") {
+                throw "Expected one executed and passing Solr native shared test."
+              }
+            }'

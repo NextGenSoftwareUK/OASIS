@@ -6,6 +6,8 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Serialization;
 
 namespace NextGenSoftware.OASIS.API.Providers.SolrOASIS;
 
@@ -92,7 +94,9 @@ public partial class SolrOASIS
         using var payload = JsonDocument.Parse(json);
         if (payload.RootElement.GetProperty("id").GetString() != id)
             throw new InvalidDataException("Native ID differs from canonical stored payload.");
-        return JsonSerializer.Deserialize<T>(json,_jsonOpts);
+        return typeof(T) == typeof(AvatarDetail)
+            ? StoredRecordJson.DeserializeStored<T>(json)
+            : JsonSerializer.Deserialize<T>(json, _jsonOpts);
     }
 
     private async Task UpsertDocAsync(string collection, object value)
