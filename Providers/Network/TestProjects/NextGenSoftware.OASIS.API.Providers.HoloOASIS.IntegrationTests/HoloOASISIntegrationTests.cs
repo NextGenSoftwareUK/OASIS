@@ -11,7 +11,34 @@ public class HoloOASISIntegrationTests
     {
         string adminUri = Environment.GetEnvironmentVariable("OASIS_HOLOCHAIN_ADMIN_URI")
             ?? throw new InvalidOperationException("Set OASIS_HOLOCHAIN_ADMIN_URI to run the official conductor test.");
-        var provider = new HoloOASIS(adminUri, useHoloNetwork: false);
+        await VerifyCrudAsync(new HoloOASIS(adminUri, useHoloNetwork: false));
+    }
+
+    [Fact]
+    public async Task DesktopAvatarAndHolonCrud_PersistOnOfficialHolochainConductor()
+    {
+        string adminUri = Environment.GetEnvironmentVariable("OASIS_HOLOCHAIN_ADMIN_URI")
+            ?? throw new InvalidOperationException("Configure the dedicated conductor admin endpoint.");
+        string appUri = Environment.GetEnvironmentVariable("OASIS_HOLOCHAIN_APP_URI")
+            ?? throw new InvalidOperationException("Configure the dedicated conductor app-agent endpoint.");
+        var provider = new global::NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop.HoloOASIS(adminUri, appUri);
+        try
+        {
+            await VerifyCrudAsync(provider);
+        }
+        finally
+        {
+            if (provider.IsProviderActivated)
+            {
+                var result = await provider.DeActivateProviderAsync();
+                Assert.False(result.IsError, result.Message);
+                Assert.True(result.Result);
+            }
+        }
+    }
+
+    private static async Task VerifyCrudAsync(HoloOASIS provider)
+    {
         var activation = await provider.ActivateProviderAsync();
         Assert.False(activation.IsError, activation.Message);
         Assert.True(activation.Result);

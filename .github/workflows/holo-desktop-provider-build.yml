@@ -1,0 +1,66 @@
+name: Holo Desktop provider build
+
+on:
+  push:
+    branches: [work/hyperdrive-provider-completion]
+    paths:
+      - '.github/workflows/holo-desktop-provider-build.yml'
+      - 'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop/**'
+      - 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: OASIS
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          path: OASIS
+          submodules: recursive
+          persist-credentials: false
+      - name: Read the recorded Libraries revision
+        id: dependencies
+        run: |
+          revision="$(sed -n 's/^LIBRARIES_COMMIT=//p' Docker/oasis-dependency-versions.env)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "libraries=$revision" >> "$GITHUB_OUTPUT"
+          revision="$(sed -n 's/^HOLOCHAIN_COMMIT=//p' Docker/oasis-dependency-versions.env)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "holochain=$revision" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependencies.outputs.libraries }}
+          path: NextGenSoftware-Libraries
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - uses: actions/checkout@v7
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          ref: ${{ steps.dependencies.outputs.holochain }}
+          path: holochain-client-csharp
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Build BootLoader and verify registration failures
+        shell: pwsh
+        run: |
+          ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-ProviderRegistration -Operation {
+            $project = 'OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader.UnitTests/NextGenSoftware.OASIS.OASISBootLoader.UnitTests.csproj'
+            dotnet test $project --filter 'FullyQualifiedName~ProviderRegistrationFailureTests' /m:2 /n      - name: Compile Desktop and native conductor integration tests
+        shell: pwsh
+        run: |
+          ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-HoloDesktop -Operation {
+            $project = 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests.csproj'
+            dotnet build $project /m:2 /nr:false /p:UseSharedCompilation=false
+            if ($LASTEXITCODE -ne 0) { throw 'Holo Desktop conductor integration build failed.' }
+          }
