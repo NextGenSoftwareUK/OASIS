@@ -6476,3 +6476,5 @@ Prepared the one-line HoloOASIS Core tariff candidate with a temporary index and
 12 November Cancun time. Track temporary ci-cosmic-holooasis-managed-925f36416e for exact managed Linux and image CI. Retain the four acknowledged/protected normal visitor files in LocalState/COSMIC/HoloOasisHostedCqlVisitor through the hosted checks, then retire that directory when no longer needed. No local runtime, build outputs or artifact downloads. Removed the candidate and documentation indices.
 
 12 November Cancun time. Confirmed WEB4 reader deployment and removed the now-redundant temporary refs ci-cosmic-holooasis-web4-279ba0f0a9 and Core ci-cosmic-holooasis-core-08444708c2. Both commits remain reachable from Development. Reused the existing four protected visitor files without creating new ones. Removed scoped documentation index. No local build or download.
+
+12 November Cancun time. Reconciled Infura using a scoped temporary index, which was removed. Checked protected settings presence without retaining or printing values. No new tags, builds, downloads or environments.
