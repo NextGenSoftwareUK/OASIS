@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+12 November Qdrant run 43278798362 completed both disposable runner jobs with exact fixture removal and three independently empty collections. The temporary index used to reproduce the candidate tree was removed. No local fixture, download, build output or raw test report was created.
+
 12 November canonical HoloOASIS Development integration used one temporary Git index, removed after creating the exact scoped commit. No local build, dependency download or fixture was created.
 
 12 November combined canonical HoloOASIS run 43178174352 passed both mode cleanup gates and completed successfully on its disposable Windows runner. No local build output, fixture or raw test report was created.

@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. [Qdrant run 43278798362](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43278798362) passed 26 checks in each mode and exact fixture cleanup. Both modes verified explicit native embedding attachment, zero-vector rejection, preservation on payload update, ranked search and tombstone exclusion. The six-file Development candidate `c82faa749a36` reproduces qualified tree `79d0b965dd635a5d3f1e4145996f41bfbee58d5a` on `4c3d1016dbcd`. Hosted acceptance and concurrent updates remain open. Next Development review after 13:35:05 Cancun time.
+
 12 November Cancun time. Managed HoloOASIS advanced Development to `e54973c380c9`. Elasticsearch qualification now triggers when its native test project changes and will qualify the existing three-file batch against the new Development parent. The hosted HoloOASIS rollout and the new exact Elasticsearch integration evidence are pending.
 
 12 November Cancun time. Development advanced to `ba875a362b71` with the exact four-file Solr qualification tree `966ecc2d2104a8c1441fa84f2fa72375d06fd765`. The remote ref was verified after all seven Typesense deployments had succeeded. The Solr Railway rollout remains open.
