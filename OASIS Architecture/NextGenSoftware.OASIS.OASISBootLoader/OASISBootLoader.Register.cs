@@ -428,27 +428,35 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
                         case ProviderType.TRONOASIS:
                         {
-                             var tronProvider = new TRONOASIS(
-                                 OASISDNA.OASIS.StorageProviders.TRONOASIS.RpcEndpoint ?? "https://api.trongrid.io",
-                                 OASISDNA.OASIS.StorageProviders.TRONOASIS.Network ?? "mainnet",
-                                 OASISDNA.OASIS.StorageProviders.TRONOASIS.ChainId ?? "728126428",
-                                 fullNodeGrpcEndpoint: OASISDNA.OASIS.StorageProviders.TRONOASIS.FullNodeGrpcEndpoint,
-                                 solidityNodeGrpcEndpoint: OASISDNA.OASIS.StorageProviders.TRONOASIS.SolidityNodeGrpcEndpoint,
-                                 genesisBlockId: OASISDNA.OASIS.StorageProviders.TRONOASIS.GenesisBlockId,
-                                 signingKeyEnvironmentVariable: OASISDNA.OASIS.StorageProviders.TRONOASIS.SigningKeyEnvironmentVariable,
-                                 apiKeyEnvironmentVariable: OASISDNA.OASIS.StorageProviders.TRONOASIS.ApiKeyEnvironmentVariable,
-                                 escrowContractAddress: OASISDNA.OASIS.StorageProviders.TRONOASIS.EscrowContractAddress,
-                                 contractAddress: OASISDNA.OASIS.StorageProviders.TRONOASIS.ContractAddress,
-                                 bridgePoolWalletAddress: OASISDNA.OASIS.StorageProviders.TRONOASIS.BridgePoolWalletAddress,
-                                 storageContractAddress: OASISDNA.OASIS.StorageProviders.TRONOASIS.StorageContractAddress,
-                                 storageOwnerAddress: OASISDNA.OASIS.StorageProviders.TRONOASIS.StorageOwnerAddress,
-                                 storageSigningKeyEnvironmentVariable: OASISDNA.OASIS.StorageProviders.TRONOASIS.StorageSigningKeyEnvironmentVariable,
-                                 storageEncryptionKeyEnvironmentVariable: OASISDNA.OASIS.StorageProviders.TRONOASIS.StorageEncryptionKeyEnvironmentVariable,
-                                 contractFeeLimitSun: OASISDNA.OASIS.StorageProviders.TRONOASIS.ContractFeeLimitSun,
-                                 idBoundEscrow: TronEscrowConfiguration.Create(OASISDNA.OASIS.StorageProviders.TRONOASIS.IdBoundTokenEscrow));
-                                tronProvider.OnStorageProviderError += TRONOASIS_StorageProviderError;
-                                result.Result = tronProvider;
-                                break;
+                            var settings = OASISDNA.OASIS.StorageProviders.TRONOASIS
+                                ?? throw new InvalidOperationException("TRON storage settings are required.");
+                            var rpcEndpoint = settings.RpcEndpoint ?? "https://api.trongrid.io";
+                            if (overrideConnectionString != null &&
+                                !string.Equals(overrideConnectionString, rpcEndpoint, StringComparison.Ordinal))
+                                throw new ArgumentException("TRON registration requires the configured RPC endpoint and its matching gRPC settings.",
+                                    nameof(overrideConnectionString));
+
+                            var tronProvider = new TRONOASIS(
+                                 rpcEndpoint,
+                                 settings.Network ?? "mainnet",
+                                 settings.ChainId ?? "728126428",
+                                 fullNodeGrpcEndpoint: settings.FullNodeGrpcEndpoint,
+                                 solidityNodeGrpcEndpoint: settings.SolidityNodeGrpcEndpoint,
+                                 genesisBlockId: settings.GenesisBlockId,
+                                 signingKeyEnvironmentVariable: settings.SigningKeyEnvironmentVariable,
+                                 apiKeyEnvironmentVariable: settings.ApiKeyEnvironmentVariable,
+                                 escrowContractAddress: settings.EscrowContractAddress,
+                                 contractAddress: settings.ContractAddress,
+                                 bridgePoolWalletAddress: settings.BridgePoolWalletAddress,
+                                 storageContractAddress: settings.StorageContractAddress,
+                                 storageOwnerAddress: settings.StorageOwnerAddress,
+                                 storageSigningKeyEnvironmentVariable: settings.StorageSigningKeyEnvironmentVariable,
+                                 storageEncryptionKeyEnvironmentVariable: settings.StorageEncryptionKeyEnvironmentVariable,
+                                 contractFeeLimitSun: settings.ContractFeeLimitSun,
+                                 idBoundEscrow: TronEscrowConfiguration.Create(settings.IdBoundTokenEscrow));
+                            tronProvider.OnStorageProviderError += TRONOASIS_StorageProviderError;
+                            result.Result = tronProvider;
+                            break;
                         }
 
                         case ProviderType.HashgraphOASIS:
