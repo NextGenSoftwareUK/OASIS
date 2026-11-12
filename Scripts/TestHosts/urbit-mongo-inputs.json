@@ -1,0 +1,7 @@
+{
+  "schemaVersion": 1,
+  "image": "mongo:8.0.15@sha256:f4d54619262ae3bc6a0a8efbebcef970b87b8ad70697479a75ce308a6f400158",
+  "linuxAmd64Manifest": "sha256:8332f93f6cb881db35f58caaea2e986e6044f97a3cf2629515875361b3ae359c",
+  "port": 27029,
+  "replicaSet": "oasisUrbitRs"
+}
