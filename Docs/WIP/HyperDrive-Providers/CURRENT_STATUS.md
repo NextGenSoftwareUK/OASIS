@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. Prepared EOSIO routing candidate 8265a34f570d on the recovery-based HyperDrive stack. The four qualified inputs match the passing EOSIO source and have no path overlap with the COSMIC stack through 52fb8c366232. This is pending the shared Development review and verification of the eventual parent.
+
 12 November Cancun time. EOSIO exact Development routing CI 43331151683 passed sync and async on independently reproduced tree 3f9fbdd1e8ef560bfd7f53009092fd2bedcb6b7b. Both jobs verified bidirectional replication and read failover, even RoundRobin and empty Antelope fixture tables. Development integration still awaits WEB4 recovery and EOSIO CQL coordination.
 
 12 November Cancun time. EOSIO routing CI 43331151683 is running against shipping Development. Independently computed expected tree 3f9fbdd1e8ef560bfd7f53009092fd2bedcb6b7b from Development 716711320680 and the four Antelope routing test inputs. COSMIC is qualifying its EOSIO CQL changes separately and the exact WEB4 recovery image remains active.

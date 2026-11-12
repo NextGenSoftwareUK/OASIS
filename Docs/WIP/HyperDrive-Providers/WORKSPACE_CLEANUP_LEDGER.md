@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+12 November composed EOSIO candidate 8265a34f570d using one temporary Git index. Removed it and confirmed absence. No local builds, downloads or reports were created.
+
 12 November EOSIO routing run 43331151683 confirmed removal of each owned Antelope fixture directory after the native assertions. No local build, download or report was created.
 
 12 November reproduced the expected EOSIO routing tree with a temporary Git index. The index was removed and verified absent. No local builds, downloads, databases or test results were created.
