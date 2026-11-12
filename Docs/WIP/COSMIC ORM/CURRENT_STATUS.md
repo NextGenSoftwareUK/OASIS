@@ -2,13 +2,13 @@
 
 ## HoloOASIS first in the WEB4 demo queue
 
-Canonical HoloOASIS is now the first priority. HyperDrive owns native conductor graph-save and parent-query work in runs 43165294724 and 43166769837. COSMIC owns the separate WEB4 query admission, bounded fixture and sandbox checks. The canonical provider already exposes native GUID point reads through the HoloNET repository. It does not yet expose the CQL adapter required by WEB4 discovery. The initial demo should qualify exact owner-authorized GUID reads against a real conductor, then pair them with private MongoDB copies and verify the browser. Desktop remains a compatibility wrapper.
+Canonical HoloOASIS is first in the WEB4 demo queue. The read-only CQL adapter is deployed in Development at `279ba0f0a99a`, with discovery gated on fixture enrollment. The managed local conductor passed Linux lifecycle qualification, including native fixture reads and record persistence after restart. The combined candidate `e0a5b749749b` is in CI on top of HyperDrive's separately qualified lifecycle fix. Live public discovery and query presets, browser verification and the original-owner private MongoDB paired checks are open. HoloOASIS.Desktop is an obsolete compatibility wrapper.
 
 ## Coverage snapshot — 12 November 2026 UTC
 
 - **Live Development WEB4:** the last authenticated check on `bfa0be4be233` found **105/106** enrolled sources ready for both native and federated CQL. Hedera, Dapr, Waku and NATS were ready. Nostr was unavailable. The Urbit rollout at `4fdb30c2fa` is in progress.
 - **CQL/COSMIC ORM:** the recorded functional totals are **129 scoped local integrations, 96 hosted HTTP proofs and 28 functional browser proofs**. Full ORM, EF/NHibernate parity and wider provider operations remain open.
-- **SDK/API and native storage:** HyperDrive inventories **234 shipping projects** (178 storage or specialized storage and 56 non-storage). The matrix identifies two missing adapters, Niantic Lightship and WRLD3D. **40 provider rows** record a complete native **52/52** pass on the current shared storage suite. The suite covers the shared storage contract. Provider-wide failover, load balancing, replication and complete interfaces remain open.
+- **SDK/API and native storage:** HyperDrive inventories **234 shipping projects** (178 storage or specialized storage and 56 non-storage). The matrix identifies two missing adapters, Niantic Lightship and WRLD3D. **47 provider rows** record reconciled native **52/52** passes on the current shared storage suite. The suite covers the shared storage contract. Provider-wide failover, load balancing, replication and complete interfaces remain open.
 
 | Provider | Accepted scope and next gate |
 | --- | --- |
