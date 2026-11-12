@@ -6366,3 +6366,5 @@ Track temporary ci-cosmic-tron-core-d7692071 and ci-cosmic-tron-web4-79c18e0944 
 Removed ci-cosmic-gomap-7233b008a0 after the qualified GOMap code reached live Development. Warmup checks used the retained visitor and wrote four protected renewal files; follow-up wrote none. Temporary documentation index removed. No local build or download.
 
 Removed superseded ci-cosmic-tron-web4-d4b9bf1ba8 and ci-cosmic-tron-core-a7fa20bf after replacement CI 43137643642 succeeded. Retain the replacement tags until publication or supersession. Temporary documentation index removed. No local build or artifact download.
+
+12 November UTC disk cleanup. Cleared regenerable NuGet HTTP, npm and pip download caches. NuGet alone returned 3.58 GiB. Free space measured 19.27 GiB after cleanup, up from 12.09 GiB, with other disk activity contributing to the change. Shell policy blocked removal of the Visual Studio installer staging folders. No local build or downloads.
