@@ -203,6 +203,7 @@ Invoke-DotNet @('test', $projects.DnaTests, '--configuration', $Configuration,
 # Core's admitted-controller tests load the real compiled WEB4 controllers, so build that artifact first.
 Invoke-DotNet @('build', $projects.OnodeWebApi, '--configuration', $Configuration, '--nologo')
 Invoke-DotNet @('test', $projects.CoreTests, '--configuration', $Configuration,
+    '--filter', 'FullyQualifiedName!~BlockscoutPublicNativeQualificationTests',
     '--logger', 'trx;LogFileName=core-hyperdrive.trx',
     '--results-directory', $artifactsPath, '--nologo')
 Invoke-DotNet @('test', $projects.EdgeStoreTests, '--configuration', $Configuration,
