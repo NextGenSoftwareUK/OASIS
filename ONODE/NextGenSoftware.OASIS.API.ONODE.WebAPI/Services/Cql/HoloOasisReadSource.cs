@@ -85,6 +85,9 @@ internal sealed class HoloOasisReadSource : CanonicalHoloOasis, ICosmicQueryStor
         cancellationToken.ThrowIfCancellationRequested();
         var result = await base.LoadHolonAsync(id, loadChildren: false, recursive: false);
         cancellationToken.ThrowIfCancellationRequested();
+        if (result.Result == null && result.Exception == null &&
+            result.ErrorCode == OASISResultErrorCodes.RecordNotFound)
+            return null;
         if (result.IsError)
             throw new IOException("The canonical HoloOASIS holon read failed.");
 
