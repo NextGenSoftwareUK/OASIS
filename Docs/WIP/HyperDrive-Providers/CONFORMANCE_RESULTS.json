@@ -1,6 +1,15 @@
 {
   "schemaVersion": 1,
   "verifiedNativeCiRuns": {
+    "ElasticsearchOASIS": {
+      "suite": "core-storage-v2",
+      "backend": "Elasticsearch 9.5.5 via the shipping REST adapter on Development 52ace6727b58",
+      "runId": 43205856648,
+      "jobIds": [131140744580, 131140744258],
+      "revision": "be026bbd7040a5c5110552d02b0573a9c3af5d79",
+      "passed": {"async": 26, "sync": 26},
+      "cleanup": "Both modes verified exact fixture deletion and zero documents across the three indices on tree a3621e1f666e523f7f632a927f14e11fa1856593. Both nodes, volumes and fixture directories were removed."
+    },
     "OpenSearchOASIS": {
       "suite": "core-storage-v2",
       "backend": "OpenSearch 3.9.0 via the shipping REST adapter",
@@ -655,6 +664,7 @@
     "zkPassOASIS": "Native public EVM attestation (capability-v1 scope)"
   },
   "providerBlockers": {
+    "ElasticsearchOASIS": ["Hosted TLS and restricted access, native conditional writes and history, and graph depth and pagination acceptance remain open."],
     "OpenSearchOASIS": ["Focused native REST checks confirmed denied soft and hard deletes, acknowledged tombstones and independent physical absence. Hosted TLS and scoped access, graph depth and pagination, history and native conditional writes remain open."],
     "BlockscoutOASIS": ["The shipping query-only address source passed a guarded native .NET qualification against Ethereum Blockscout and the public full/subset browser presets returned three and two rows on Development WEB4. The dedicated CQL source evidence covers public address reads. The legacy adapter and private paired browser flow remain open. See the [COSMIC native qualification](<../COSMIC ORM/BLOCKSCOUT_PUBLIC_SOURCE_STATUS.md>)."],
     "zkPassOASIS": ["The shipping verifier passed a genuine public Sepolia TransGate attestation and three rejection controls in [run 43143033093](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43143033093). New proof issuance and application integration remain open."],

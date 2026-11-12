@@ -5,18 +5,22 @@
 | Area | Recorded status |
 | --- | --- |
 | Project inventory | 234 projects: 178 storage or specialized storage, including the obsolete Desktop compatibility wrapper, and 56 non-storage. |
-| Shared storage coverage | All 48 matrix entries recorded at 52/52 native core-storage-v2 have reconciled evidence. The registry contains 23 reports verified against their SHA-256 hashes and 25 passes independently checked against completed native CI jobs and their cleanup gates. |
+| Shared storage coverage | All 49 matrix entries recorded at 52/52 native core-storage-v2 have reconciled evidence. The registry contains 23 reports verified against their SHA-256 hashes and 26 passes independently checked against completed native CI jobs and their cleanup gates. |
 | Priority storage providers | The matrix records 52/52 native checks for Neon, Convex, Supabase, Solana, MongoDB, SQLite, Neo4j, SQL Server, Oracle, AWS DynamoDB and S3, IPFS, NEAR, Cosmos chain, Azure Cosmos DB, Google Firestore, Polkadot, Solid, Polygon, Arbitrum, TRON, EOSIO, TON, and Hedera/Hashgraph. Several use isolated native engines, emulators or local networks. See each row for hosted and capability gaps. |
 | ActivityPub and routing | ActivityPub has 5/5 native capability checks. GOMap passed a public OSRM driving route. Authenticated Google Routes, Mapbox and HERE checks remain open. Niantic and WRLD still have reviewed adapter gaps. |
 | Canonical HoloOASIS | Top priority. Both modes passed all 52 native core-storage-v2 checks on the official Windows conductor with the verified identity-delete hApp in [run 43178174352](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43178174352). The verified bundle is packaged on the provider branch. Hosted, multi-agent and broader capability acceptance remain open. |
 | HoloOASIS.Desktop | Obsolete in source, package metadata and repository documentation at `45d6665da989`. The six-file compatibility and documentation batch reached Development at `70d3fbb4a31c`. Published NuGet metadata and live site listings still need the obsolescence update. |
-| Development | All seven APIs reported Railway deployment success at `ca83daf40a3c`. `52ace6727b58` integrates the verified OpenSearch storage lifecycle. Its Railway rollout and live HoloOASIS storage remain open. |
+| Development | All seven APIs reported Railway deployment success at `ca83daf40a3c`. `52ace6727b58` integrates the verified OpenSearch storage lifecycle. All seven Railway deployments succeeded at `52ace6727b58`. Live HoloOASIS storage remains open. |
 | BootLoader startup | The shipping registration, activation and deactivation path passed against native Polkadot and TRON fixtures and the Microsoft Azure Cosmos DB emulator. [Azure Cosmos DB job 131055311882](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43180594194/job/131055311882) confirmed fixture teardown. |
 | HyperDrive | Global automatic failover, replication and load balancing await provider acceptance. Dragonfly and KeyDB full native runs were queued at the coverage review. |
 
 [Provider matrix](PROVIDER_MATRIX.md) · [Evidence registry](CONFORMANCE_RESULTS.json) · [Cleanup ledger](WORKSPACE_CLEANUP_LEDGER.md)
 
 ## Verification log
+
+12 November Cancun time. The provider branch now includes the zkPass live verifier and the Immutable zkEVM, Ronin, Google Maps and HERE integration tests in the full solution. The repository solution coverage check passed for all 929 projects in this worktree. Development has a separate Urbit Contacts host enrollment gap; that project is absent from this branch.
+
+12 November Cancun time. [Elasticsearch run 43205856648](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43205856648) passed all 26 checks per mode, with zero skips, successful exact fixture cleanup and zero documents in all three native indices. Both jobs qualified tree `a3621e1f666e523f7f632a927f14e11fa1856593` on Development `52ace6727b58` and removed their nodes, volumes and fixture directories. Hosted and broader capability acceptance remain open.
 
 12 November Cancun time. Both modes of [Elasticsearch run 43204695702](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43204695702) completed all 26 shared cases and reported successful fixture cleanup. The independent zero-document check received HTTP 404 because it queried `oasis-avatar_details`. The fixture now queries the shipping `oasis-avatar-details` index. The corrected run qualifies the scoped files against current Development and logs the exact input tree. Elasticsearch shared storage acceptance remains open pending the independent count check.
 
