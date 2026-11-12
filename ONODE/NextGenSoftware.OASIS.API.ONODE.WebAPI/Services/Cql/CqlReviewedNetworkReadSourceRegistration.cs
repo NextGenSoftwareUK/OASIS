@@ -81,8 +81,7 @@ public static class CqlReviewedNetworkReadSourceRegistration
         {
             if (!sandboxEnabled || string.IsNullOrWhiteSpace(tron) || string.IsNullOrWhiteSpace(tronKey))
                 throw new InvalidOperationException("TRON public header queries require sandbox mode, an explicit catalogue and a separate dedicated reader key.");
-            services.AddSingleton<CqlReadSourceProfile>(_ => new CqlReadSourceProfile(
-                TronPublicHeaderMetadataSource.FromAuthenticatedJson(tron, tronKey)));
+            services.AddSingleton(new TronPublicCqlConfiguration(tron, tronKey));
         }
 
         var waku = configuration["CQL_WAKU_STORE_QUERY_SOURCE_JSON"];

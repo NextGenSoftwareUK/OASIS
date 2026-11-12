@@ -21,7 +21,14 @@ using PolkadotProvider = NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.Polka
 using PolygonProvider = NextGenSoftware.OASIS.API.Providers.PolygonOASIS.PolygonOASIS;
 using SolanaProvider = NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.SolanaOASIS;
 
+using TronProvider = NextGenSoftware.OASIS.API.Providers.TRONOASIS.TRONOASIS;
+
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
+
+public sealed class TronPublicCqlConfiguration(string catalogue, string readerKey)
+{
+    internal void Configure(TronProvider provider) => provider.ConfigurePublicHeaderQuery(catalogue, readerKey);
+}
 
 /// <summary>Read the existing host registry. Missing/inactive providers do not trigger activation or failover.</summary>
 public sealed class CqlV1Providers : ICqlV1Providers
@@ -75,16 +82,19 @@ public sealed class CqlHostedSourceRegistry : ICqlHostedSourceRegistry
     private readonly string polkadotPublicHeaderConfiguration;
 
     private readonly ILogger<CqlHostedSourceRegistry> logger;
+    private readonly TronPublicCqlConfiguration tronPublicConfiguration;
 
     public CqlHostedSourceRegistry(IEnumerable<CqlReadSourceProfile> profiles = null)
         : this(profiles, NullLogger<CqlHostedSourceRegistry>.Instance) { }
 
     public CqlHostedSourceRegistry(IEnumerable<CqlReadSourceProfile> profiles, ILogger<CqlHostedSourceRegistry> logger,
-        IEnumerable<CqlPublicReadCatalogue> publicCatalogues = null, IConfiguration configuration = null)
+        IEnumerable<CqlPublicReadCatalogue> publicCatalogues = null, IConfiguration configuration = null,
+        TronPublicCqlConfiguration tronPublicConfiguration = null)
     {
         this.profiles = (profiles ?? Array.Empty<CqlReadSourceProfile>())
             .ToDictionary(profile => profile.Storage.ProviderType.Value);
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        this.tronPublicConfiguration = tronPublicConfiguration;
         holoOasisCatalogue = publicCatalogues?.SingleOrDefault(catalogue => catalogue.Provider == ProviderType.HoloOASIS);
         solanaPublicAccountConfiguration = configuration?["CQL_SOLANA_PUBLIC_SOURCE_JSON"];
         ethereumPublicAccountConfiguration = configuration?["CQL_ETHEREUM_PUBLIC_SOURCE_JSON"];
@@ -112,6 +122,8 @@ public sealed class CqlHostedSourceRegistry : ICqlHostedSourceRegistry
             if (registration == null || registration.IsError || registration.Result == null)
                 throw new InvalidOperationException("CQL_SOURCE_REGISTRATION_FAILED");
             storage = registration.Result;
+            if (storage is TronProvider tron)
+                tronPublicConfiguration?.Configure(tron);
             if (storage is HoloOasisProvider holoOasis && holoOasis.QueryCapabilities == null
                 && holoOasisCatalogue?.CopyRecordIds() is { Length: > 0 } recordIds)
             {
