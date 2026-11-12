@@ -94,7 +94,7 @@ public class NativeMastodonOwnedStatusTests
         Assert.False(loaded.IsError, loaded.Message);
         Assert.NotNull(loaded.Result);
         Assert.Equal(id, loaded.Result.ProviderUniqueStorageKey[ProviderType.ActivityPubOASIS]);
-        Assert.Contains(sourceText, loaded.Result.MetaData["MastodonContentHtml"], StringComparison.Ordinal);
+        Assert.Contains(sourceText, Assert.IsType<string>(loaded.Result.MetaData["MastodonContentHtml"]), StringComparison.Ordinal);
         using var route = JsonDocument.Parse(loaded.MetaData["hyperDriveRoute"]);
         Assert.Equal("ActivityPubOASIS", route.RootElement.GetProperty("ServingProvider").GetString());
 
