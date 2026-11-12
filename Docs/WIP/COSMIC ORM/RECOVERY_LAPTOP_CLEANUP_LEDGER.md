@@ -6536,3 +6536,5 @@ Track temporary tag `ci-cosmic-infura-web4-ee3a6589a6` for exact runs `432184056
 12 November Cancun time. `dotnet clean` completed for the two owned .NET 10 test projects under the shared lease with project-reference builds disabled. Core.UnitTests `bin` fell from 56.11 MiB to 0 and `obj` from 7.18 to 0.94 MiB. WEB4.UnitTests `bin` is 0 and `obj` retains 6.29 MiB of restore metadata. Free disk was 32.69 GiB. Prior policy-rejected Solana output removal remains pending.
 
 12 November Cancun time. Scoped .NET clean completed under the shared build lease and reclaimed 906.67 MiB from Solana UnitTests. The test project retains 0.11 MiB in bin and 6.29 MiB in obj. Free disk was 31.92 GiB at measurement. This resolves the earlier bulk Solana output cleanup entry.
+
+12 November Cancun time. Scoped .NET clean after the 22-case Core admission run cleared all test binaries and retained 0.94 MiB of restore metadata. Free disk was 29.31 GiB. Exact image builds ran remotely.
