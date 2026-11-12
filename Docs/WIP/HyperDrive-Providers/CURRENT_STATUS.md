@@ -5,7 +5,7 @@
 | Area | Recorded status |
 | --- | --- |
 | Project inventory | 234 projects: 178 storage or specialized storage, including the obsolete Desktop compatibility wrapper, and 56 non-storage. |
-| Shared storage coverage | The matrix records 45 projects at 52/52 native core-storage-v2. The registry contains 23 corresponding reports verified against their SHA-256 hashes and four additional passes independently reconciled against completed CI job logs. The remaining 18 matrix entries need reconciliation. |
+| Shared storage coverage | The matrix records 45 projects at 52/52 native core-storage-v2. The registry contains 23 corresponding reports verified against their SHA-256 hashes and eight additional passes independently reconciled against completed CI job logs. The remaining 14 matrix entries need reconciliation. |
 | Priority storage providers | The matrix records 52/52 native checks for Neon, Convex, Supabase, Solana, MongoDB, SQLite, Neo4j, SQL Server, Oracle, AWS DynamoDB and S3, IPFS, NEAR, Cosmos chain, Azure Cosmos DB, Google Firestore, Polkadot, Solid, Polygon, Arbitrum, TRON, EOSIO, TON, and Hedera/Hashgraph. Several use isolated native engines, emulators or local networks. See each row for hosted and capability gaps. |
 | ActivityPub and routing | ActivityPub has 5/5 native capability checks. GOMap passed a public OSRM driving route. Authenticated Google Routes, Mapbox and HERE checks remain open. Niantic and WRLD still have reviewed adapter gaps. |
 | Canonical HoloOASIS | Top priority. Both modes passed avatar and avatar-detail checks through the Desktop entry point before reaching the graph-save gap. Canonical graph save and the native parent-query change are under verification in runs [43165294724](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43165294724) and [43166769837](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43166769837). Both were active at inspection. |
@@ -16,6 +16,8 @@
 [Provider matrix](PROVIDER_MATRIX.md) · [Evidence registry](CONFORMANCE_RESULTS.json) · [Cleanup ledger](WORKSPACE_CLEANUP_LEDGER.md)
 
 ## Verification log
+
+12 November Cancun time. Reconciled EOSIO, NEAR, Hedera/Hashgraph and SQL Server native 52/52 coverage against the exact completed CI jobs and their per-mode assertion and cleanup gates. Run, job, revision and backend identities are in the registry. No provider tests were rerun.
 
 12 November Cancun time. [Canonical run 43173783746](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43173783746) passed 18 checks in both modes, including owner export. Both acknowledged the first holon delete and then failed independent absence because the ORM converted native null into a generic error. Current GUID reads now use the HoloNET response directly and report record-not-found only on an acknowledged null result. GUID deletes now use native identity entry points. The hApp dependency candidate `f5723eab3d3d` is on its isolated provider branch and deletes all linked actions for an ID, including avatar details when deleting an avatar. [Native hApp CI](https://github.com/NextGenSoftwareUK/OASIS-Holochain-hApp/actions/runs/43174295696) is active. Combined provider verification will require the resulting verified bundle.
 
