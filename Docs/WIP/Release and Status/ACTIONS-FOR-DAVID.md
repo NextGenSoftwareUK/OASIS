@@ -434,7 +434,7 @@ revoke/regenerate the block-explorer API key at the provider. Optionally purge h
 
 ### E3. HoloNET sandbox runs on the dev WEB4 API (decided 1 November 2026) - needs HoloOASIS working in dev
 **Context:** sandbox.holonet.oasisomniverse.one should work like the web4 and web6 sandboxes: a Vercel page in front of https://dev.api.web4.oasisomniverse.one (throwaway avatar per visitor, `OASIS.Sandbox.Enabled`). The separate HoloNET sandbox service is no longer needed in production.
-**Why:** the WEB4 API image (`Docker/Dockerfile.web4`) has no Holochain conductor, so the HoloOASIS provider (`ws://localhost:8888`) has nothing to connect to in dev or live. See E5.
+**Why:** WEB4 relies on HoloNET to obtain and start the local conductor. The Linux startup and sandbox flow need runtime verification on the deployed service. See E5.
 **Action:** none for this entry beyond E5. **Status:** decided 1 November 2026; the DNS record for the sandbox host is still in E1.
 
 ### E4. Create a new NuGet API key for HoloNET 4.6.0 (the old one has expired)
@@ -495,9 +495,9 @@ OLAND clarification,1 November2026: David reported Vercel approval completed; pr
 
 ### E5. HoloOASIS in the WEB4 API: use HoloNET's auto-downloaded conductor (dev first, then live)
 **Context:** WEB4 API on Railway (`Docker/Dockerfile.web4`, `Docker/entrypoint.onode.sh`, `Docker/oasis-dependency-versions.env`); HoloNET `main` (commit 4daa7437 or later).
-**Why:** HoloNET now downloads and starts the official Holochain conductor itself on Linux (`HoloNETDNA.AutoDownloadConductor`, proven on Ubuntu, macOS and Windows runners), so the image needs no Holochain binary. The WEB4 image builds HoloNET from a pinned commit, which predates this.
-**Action:** (1) approve moving the HoloNET pin in `oasis-dependency-versions.env` to that commit (GPT owns the global release, so this goes through GPT); (2) in the Railway dev service make sure the HoloOASIS section of `OASIS_DNA_JSON` uses the local node with auto-start on; optionally mount a persistent volume for the conductor cache; (3) after dev is verified, approve live. Never paste secrets into chat.
-**Status:** open, 2 November 2026. **Details:** `docs/conductor.md` in the HoloNET repo.
+**Why:** HoloNET can download and start the official Holochain conductor on Linux. The WEB4 image relies on that SDK path.
+**Action:** After engineering verifies Development WEB4 and records the result, review the live rollout. If deployed settings need adjustment, confirm local conductor mode in the existing Railway configuration.
+**Status:** 12 November 2026. The pin action is resolved. Development uses HoloNET client revision `9f897b7ace60b6bdb5fda37e54ca932682122dd4`, which contains `4daa7437` and enables conductor auto-start and auto-download by default. The checked-in OASIS DNA enables local mode. Engineering is verifying startup on Linux and the effective Development WEB4 configuration and sandbox storage. The dev-first decision still applies. **Details:** `docs/conductor.md` in the HoloNET repo.
 
 ### E6. Decide the offline (Embedded) package matrix for Linux and macOS
 **Context:** HoloNET packages (`packages.json`). Embedded packages carry the conductor inside them for offline use; today they are Windows-only (Holochain 0.7.1 and 0.7.0).

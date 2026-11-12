@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. Development already pins HoloNET client `9f897b7ace60b6bdb5fda37e54ca932682122dd4`, which contains the conductor auto-download change and enables auto-start and auto-download by default. Canonical HoloOASIS passes the configured admin URI into that SDK configuration. The checked-in DNA enables local mode. The owner list marks the pin action resolved. Hosted Linux startup and effective Railway configuration still need runtime evidence. [Windows BootLoader run 43184458138](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43184458138) is in progress.
+
 12 November Cancun time. Added a dedicated canonical HoloOASIS BootLoader run on the official 0.7.1 conductor and verified shipping hApp. It checks activation and deactivation from fixture DNA through the application harness on the Development baseline. CI startup evidence remains open. The earlier 52-check native storage result is reused. Hosted Linux conductor and multi-agent acceptance remain open.
 
 12 November Cancun time. [Combined Azure Cosmos DB job 131061911150](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43182580397/job/131061911150) passed startup and emulator teardown on Development a2ba2fe32aae. After the half-hour coordination interval and seven successful baseline deployments, Development advanced to `4fef831e0be6`. Its two-file tree exactly matches CI tree `59a5ae966bb41abd1790f8f4b2cef6526f86bdde`, with the same deployment dependency pins. Hosted Azure remains deferred.
