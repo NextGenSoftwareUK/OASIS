@@ -948,3 +948,9 @@ Power recovery verified on 11 November UTC: battery 21% and charging (Win32_Batt
 ### Hosted ArangoDB and QuestDB teaching fixtures (11 November 2026)
 
 **Status** Awaiting identification of existing approved HTTPS teaching fixtures for Development WEB4. For ArangoDB, identify the HTTPS origin for the dedicated `oasis/holons` dataset, the reviewed record IDs, and the protected location of its restricted read-only credentials. For QuestDB, identify the HTTPS query origin and the reviewed table, `SYMBOL` column and key set. Keep credentials in private configuration. These inputs let engineering verify the exact full and subset results before admitting either source to the live demo. Local and CI evidence is already recorded. [ArangoDB qualification](../COSMIC%20ORM/ARANGODB_CQL_MVP.md) · [QuestDB qualification](../COSMIC%20ORM/QUESTDB_PUBLIC_SOURCE_STATUS.md)
+
+## Urbit Development teaching fixture — 12 November 2026 UTC
+
+- Status: awaiting an existing approved fixture. Native Urbit and MongoDB federation passed before and after restart, including owner isolation and cleanup. WEB4 Development has none of the six Urbit reader settings and no service named for Urbit. The recovery laptop also has none of the six settings. Only names were inspected.
+- Owner action: identify an existing HTTPS Urbit ship suitable for a private teaching contact book and the protected location of its reader session, or state whether to defer hosted enrollment. Use synthetic contacts only. The reader requires the HTTPS origin, ship, restricted session, designated owner, stable connection ID and reviewed page IDs. Keep credentials out of chat and Git.
+- Engineering next step: qualify only the reviewed pages and owner, stage the six scoped Development settings, and verify native and MongoDB paired presets and cross-owner denial. [Urbit scope and qualification](../COSMIC%20ORM/URBIT_CQL_MVP.md).
