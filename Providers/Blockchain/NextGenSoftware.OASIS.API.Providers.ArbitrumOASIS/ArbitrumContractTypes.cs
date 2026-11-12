@@ -381,4 +381,8 @@ public sealed class ArbitrumOASIS_Web3Core : Web3CoreOASISBaseProvider,
         ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));
         ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
     }
+
+    public void ConfigurePublicAccountQuery(string json)
+        => ConfigurePublicAccountQuery(ArbitrumPublicAccountMetadataSource.AddressMetadata,
+            client => ArbitrumPublicAccountMetadataSource.CreateQuery(json, client));
 }
