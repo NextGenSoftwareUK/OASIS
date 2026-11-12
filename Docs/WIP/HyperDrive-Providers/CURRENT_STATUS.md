@@ -528,3 +528,5 @@ Polkadot BootLoader has an activation-only CI scenario using the existing dispos
 zkPass candidate replaces the copied storage/swap facade with recipient-bound TransGate EVM signature verification using Nethereum. The caller supplies the expected schema and recipient. Build and real TransGate acceptance remain open.
 
 zkPass CI now checks a genuine public TransGate attestation from the official tutorial contract on Sepolia. It fetches the historical transaction at runtime, verifies the shipping provider and checks rejection of altered schema, recipient and signed user hash. No proof payload is retained in the repository. The run result is pending.
+
+[zkPass build](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43142769007) passed. [Public-attestation CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43143033093) is running. The provider README now documents server-owned schema and recipient inputs and the application-level replay policy.
