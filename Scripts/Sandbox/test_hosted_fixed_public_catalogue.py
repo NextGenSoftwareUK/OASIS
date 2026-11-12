@@ -57,6 +57,23 @@ class FixedPublicCatalogueTests(unittest.TestCase):
         kwargs["before_mutation"]()
         self.assertEqual([call(self.config, release_ref="reviewed-release")] * 2, self.guard.call_args_list)
 
+    def test_managed_holooasis_uses_the_exact_deployment_guard_and_five_settings(self):
+        binding = {"CQL_HOLOOASIS_LOCAL_DEMO__Enabled": "true",
+                   "HOLONET_CONDUCTOR_FOLDER": "/data/COSMIC/HoloOasisCql/tools"}
+        presets = "CQL_HOSTED_QUERY_EXAMPLES__HoloOASIS"
+        after = self.before | binding | {"admission": "scoped", "grants": "reviewed", presets: "four"}
+        self.config.protected_read.side_effect = [self.before, after] * 2
+        self.verifier.reviewed_exact_key_source.return_value = {"sourceBinding": binding}
+        with self.assertRaisesRegex(RuntimeError, "reviewed managed local conductor"):
+            publish(self.preparation, self.guard, ("HoloOASIS",), "holo-managed",
+                    "reviewed-release", self.deployment, apply=True)
+        self.config.apply_values.assert_not_called()
+        self.verifier.reviewed_exact_key_source.return_value["managedLocalHoloOasis"] = True
+        self.preparation["candidate"].return_value = after
+        self.assertEqual(5, publish(self.preparation, self.guard, ("HoloOASIS",), "holo-managed",
+                                    "reviewed-release", self.deployment, apply=True))
+        self.assertEqual((*binding, "admission", "grants", presets), self.config.apply_values.call_args.args[1])
+
     def test_batch_composes_shared_settings_before_any_write(self):
         second = "ReclaimProtocolOASIS"
         extra_binding = {"second-owner": "reviewed"}

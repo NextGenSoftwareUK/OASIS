@@ -6470,3 +6470,5 @@ Prepared the one-line HoloOASIS Core tariff candidate with a temporary index and
 12 November Cancun time. The Linux launcher suite used disposable hosted state and tool cache. No local download, environment or build output. The scoped shutdown-fix index is removed before push.
 
 12 November Cancun time. HoloOASIS release commit 279ba0f0a99a and Core 08444708c2a4 are reachable from Development. Their temporary exact image and Core tags can be retired after deployment verification. Retain original native evidence tag 6797462655 and the managed CI tag while their evidence is needed. No local builds, downloads or artifact outputs.
+
+12 November Cancun time. Ran six focused publisher tests with -B using mocked protected snapshots and live guards. No Railway mutation, protected snapshot, local test result or runtime download. Removed scoped index.

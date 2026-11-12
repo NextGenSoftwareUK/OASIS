@@ -11,8 +11,9 @@ from uuid import UUID
 def publish(preparation, guard, providers, prefix, release_ref, deployment_id, *, apply):
     config = preparation["configuration"]
     verifier = preparation["verifier"]
+    allowed = set(verifier.REVIEWED_PUBLIC_CATALOGUE_PROVIDERS) | {"HoloOASIS"}
     if (not providers or len(providers) != len(set(providers))
-            or any(provider not in verifier.REVIEWED_PUBLIC_CATALOGUE_PROVIDERS for provider in providers)):
+            or any(provider not in allowed for provider in providers)):
         raise ValueError("Only reviewed public catalogues are supported")
     if not re.fullmatch(r"[a-z][a-z0-9-]{0,63}", prefix):
         raise ValueError("A canonical configuration snapshot prefix is required")
@@ -28,7 +29,13 @@ def publish(preparation, guard, providers, prefix, release_ref, deployment_id, *
         descriptor = f"{prefix}-descriptor.json" if len(providers) == 1 else f"{prefix}-{provider}-descriptor.json"
         review = verifier.reviewed_exact_key_source(provider, config.STATE / descriptor)
         source_binding = review["sourceBinding"]
-        if len(source_binding) != 1 or any(key in expected for key in source_binding):
+        if provider == "HoloOASIS":
+            if (review.get("managedLocalHoloOasis") is not True or set(source_binding) != {
+                    "CQL_HOLOOASIS_LOCAL_DEMO__Enabled", "HOLONET_CONDUCTOR_FOLDER"}):
+                raise RuntimeError("The HoloOASIS publisher requires the reviewed managed local conductor.")
+        elif len(source_binding) != 1:
+            raise RuntimeError("The public catalogue must identify one reviewed source setting.")
+        if any(key in expected for key in source_binding):
             raise RuntimeError("Existing catalogue enrollment requires reconciliation")
         expected = preparation["candidate"](expected | source_binding, provider, review)
         source_keys.extend(source_binding)
