@@ -79,7 +79,7 @@ public sealed class ElasticsearchNativeStorageConformanceTests
         Assert.IsTrue(report.Succeeded, $"{report.CurrentCase}: {report.FailureType} {report.FailureContract}; {report.Passed.Count} checks passed.");
         Assert.IsTrue(report.FixtureCleanupComplete);
         Assert.AreEqual(CoreStorageConformance.ChecksPerMode, report.Passed.Count);
-        foreach (var index in new[] { "oasis-holons", "oasis-avatars", "oasis-avatar_details" })
+        foreach (var index in new[] { "oasis-holons", "oasis-avatars", "oasis-avatar-details" })
         {
             using var count = JsonDocument.Parse(await client.GetStringAsync($"/{index}/_count"));
             Assert.AreEqual(0L, count.RootElement.GetProperty("count").GetInt64(), $"Native index {index} must be empty.");

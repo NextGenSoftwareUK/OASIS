@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. Both modes of [Elasticsearch run 43204695702](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43204695702) completed all 26 shared cases and reported successful fixture cleanup. The independent zero-document check received HTTP 404 because it queried `oasis-avatar_details`. The fixture now queries the shipping `oasis-avatar-details` index. The corrected run qualifies the scoped files against current Development and logs the exact input tree. Elasticsearch shared storage acceptance remains open pending the independent count check.
+
 12 November Cancun time. [Elasticsearch run 43204069260](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43204069260) passed activation, avatar save and point read in both modes, then stopped at username lookup. The adapter sent an invalid `bool_term` query before issuing the actual lookup. Username and email now issue only the native keyword query. The same candidate adds graph writes through the shared planner, exact hard avatar/detail delete acknowledgements, and native result counts for import, metadata selection and owner export. The next native suite is pending.
 
 12 November Cancun time. Elasticsearch now validates native document write identities and shard acknowledgements through a shared REST path, waits for search visibility, publishes avatar identities only after acknowledgement, and uses the canonical avatar-detail codec. Added both shared storage modes on disposable digest-pinned Elasticsearch 9.5.5 nodes, with exact tombstone cleanup and native index counts. Existing COSMIC HTTPS/CQL fixtures are outside this run. CI and full storage acceptance remain open.

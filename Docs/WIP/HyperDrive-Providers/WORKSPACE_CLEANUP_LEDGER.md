@@ -476,3 +476,5 @@ Urgent disk cleanup follow-up: leased standard project clean succeeded for AWS u
 12 November Cancun time. Elasticsearch shared storage CI uses one loopback-only native node and one temporary checkpoint directory per hosted runner. Its exit handler removes the owned node, volumes and directory. No local image, build output or test files were created. CI cleanup confirmation is pending.
 
 12 November Cancun time. Elasticsearch run 43204069260 removed its two owned nodes, volumes and fixture directories after the username lookup failure. No local outputs or downloads were created.
+
+12 November Cancun time. Elasticsearch jobs 131136774362 and 131136774429 reported fixture cleanup and removed both owned nodes, volumes and checkpoint directories after the final index-name check failed. No local builds, downloads or test outputs were created.
