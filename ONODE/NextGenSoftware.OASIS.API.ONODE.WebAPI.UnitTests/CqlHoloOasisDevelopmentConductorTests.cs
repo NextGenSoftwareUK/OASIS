@@ -102,7 +102,7 @@ public sealed class CqlHoloOasisDevelopmentConductorTests
         var services = new ServiceCollection();
         CqlPublicReadCatalogue.Enroll(services, settings);
         CqlHoloOasisReadSourceRegistration.AddHoloOasisReadSource(services, settings);
-        using var provider = services.BuildServiceProvider();
+        var provider = services.BuildServiceProvider();
         var reader = Assert.IsType<HoloOasisReadSource>(
             Assert.Single(provider.GetServices<CqlReadSourceProfile>()).Storage);
         try
@@ -125,7 +125,8 @@ public sealed class CqlHoloOasisDevelopmentConductorTests
         }
         finally
         {
-            await reader.DeActivateProviderAsync();
+            provider.Dispose();
+            Assert.False(reader.IsProviderActivated);
         }
     }
 }
