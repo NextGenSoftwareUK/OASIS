@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. [AWS S3 adapter routing run 43298684631](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43298684631) passed both V2 modes against real MinIO and SQLite. Both replication directions, both outage directions and even RoundRobin reads passed. Direct SDK listing verified an empty bucket. Exact Development qualification uses the same verified image digest and the two scoped test paths. Hosted AWS IAM and routing remain open.
+
 12 November Cancun time. [Exact Supabase and SQLite qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43297794966) passed both routing modes on tree `cbd832b14856f4d3c29122de2774add6689d060d` and verified three empty PostgreSQL tables. Combined candidate `649dcebf5998` contains only the two verified Supabase and two verified SQL Server test paths on managed HoloOASIS Development. The next integration review is after 15:28:38 Cancun time and requires a fresh rollout and parent check. Added a separate AWS S3 adapter and SQLite routing qualification using the existing S3-compatible CI service. Hosted AWS acceptance remains open.
 
 12 November Cancun time. [Supabase routing run 43297095312](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43297095312) passed both modes against PostgREST 16.5, PostgreSQL and SQLite. The shipping router replicated both directions, split RoundRobin evenly and failed over from either unavailable provider only when enabled. Exact native cleanup and all three empty PostgreSQL tables were verified. A two-file overlay now qualifies the routing test against current Development and its dependency pins. Hosted Supabase remains open.
