@@ -24,6 +24,8 @@
 
 12 November Cancun time. Both [Meilisearch Development jobs](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43271453934) passed all 26 cases and exact cleanup on `11f8477bb75102ad691f71bc8b8092d8ce47ac7c`. Candidate `4c3d1016dbcd` contains only the six qualified Meilisearch files. The Solr Development push event was 12:31:42 Cancun time. The next review is after 13:01:42 with seven successful preceding deployments and a fresh parent check.
 
+12 November Cancun time. Qdrant payload writes now submit no synthetic vector for unembedded records and retain the existing nonzero native vector observed before an upsert. The new native test checks vector absence on ordinary records and exact embedding preservation on a payload update. Concurrent external vector changes and first-class semantic operations remain open. Native evidence is pending.
+
 12 November Cancun time. Both [Qdrant jobs in run 43273329771](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43273329771) passed all 26 cases with zero skips, exact tombstone cleanup and zero points in all three collections. This verifies the payload lifecycle at `7c894b46dd00`. Zero-vector replacement, real semantic vector operations, hosted acceptance and Development qualification remain open.
 
 12 November Cancun time. Both [Qdrant jobs in run 43272737402](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43272737402) passed nine native checks through all avatar-detail reads, then stopped at graph save because the adapter wrote only the root. Qdrant now writes each selected graph node and publishes its identity after the completed native operation. Hard avatar deletion validates completion and verifies absence of the same-ID detail and avatar points. Native verification remains open.

@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.Providers.TestSupport;
 
@@ -44,6 +45,13 @@ public sealed class QdrantNativeStorageConformanceTests
             using var record = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
             var point = record.RootElement.GetProperty("result");
             Assert.AreEqual(id, point.GetProperty("id").GetGuid());
+            using var vectors = await client.PostAsJsonAsync("/collections/oasis_holons/points",
+                new { ids = new[] { id.ToString("D") }, with_payload = false, with_vector = true });
+            vectors.EnsureSuccessStatusCode();
+            using var vectorResult = JsonDocument.Parse(await vectors.Content.ReadAsStringAsync());
+            var nativePoint = vectorResult.RootElement.GetProperty("result")[0];
+            Assert.IsTrue(!nativePoint.TryGetProperty("vector", out var vector) || vector.ValueKind == JsonValueKind.Null ||
+                vector.ValueKind == JsonValueKind.Object && !vector.EnumerateObject().Any(), "Payload-only storage must not synthesize a vector.");
             var payload = point.GetProperty("payload");
             Assert.IsTrue(payload.GetProperty("is_deleted").GetBoolean());
             using var stored = JsonDocument.Parse(payload.GetProperty("data_json").GetString()!);
@@ -78,6 +86,38 @@ public sealed class QdrantNativeStorageConformanceTests
         Assert.IsTrue(report.Succeeded, $"{report.CurrentCase}: {report.FailureType} {report.FailureContract}; {report.Passed.Count} checks passed.");
         Assert.IsTrue(report.FixtureCleanupComplete);
         Assert.AreEqual(CoreStorageConformance.ChecksPerMode, report.Passed.Count);
+        var embeddedId = Guid.NewGuid();
+        var embedding = new float[128];
+        embedding[0] = 1;
+        var embedded = new Holon { Id = embeddedId, Name = "Qdrant embedding preservation fixture" };
+        using (var seeded = await client.PutAsJsonAsync("/collections/oasis_holons/points?wait=true",
+            new { points = new[] { new { id = embeddedId.ToString("D"), vector = embedding } } }))
+        {
+            seeded.EnsureSuccessStatusCode();
+            using var receipt = JsonDocument.Parse(await seeded.Content.ReadAsStringAsync());
+            Assert.AreEqual("completed", receipt.RootElement.GetProperty("result").GetProperty("status").GetString());
+        }
+        var saved = mode == "sync" ? provider.SaveHolon(embedded, saveChildren: false)
+            : await provider.SaveHolonAsync(embedded, saveChildren: false);
+        Assert.IsTrue(saved.IsSaved, saved.Message);
+        using (var retrieval = await client.PostAsJsonAsync("/collections/oasis_holons/points",
+            new { ids = new[] { embeddedId.ToString("D") }, with_payload = true, with_vector = true }))
+        {
+            retrieval.EnsureSuccessStatusCode();
+            using var retrieved = JsonDocument.Parse(await retrieval.Content.ReadAsStringAsync());
+            var point = retrieved.RootElement.GetProperty("result")[0];
+            CollectionAssert.AreEqual(embedding, point.GetProperty("vector").EnumerateArray().Select(value => value.GetSingle()).ToArray());
+            using var payload = JsonDocument.Parse(point.GetProperty("payload").GetProperty("data_json").GetString()!);
+            Assert.AreEqual(embedded.Name, payload.RootElement.GetProperty("name").GetString());
+        }
+        using (var removed = await client.PostAsJsonAsync("/collections/oasis_holons/points/delete?wait=true",
+            new { points = new[] { embeddedId.ToString("D") } }))
+        {
+            removed.EnsureSuccessStatusCode();
+            using var receipt = JsonDocument.Parse(await removed.Content.ReadAsStringAsync());
+            Assert.AreEqual("completed", receipt.RootElement.GetProperty("result").GetProperty("status").GetString());
+        }
+
         foreach (var collection in new[] { "oasis_holons", "oasis_avatars", "oasis_avatar_details" })
         {
             using var response = await client.PostAsJsonAsync($"/collections/{collection}/points/count", new { exact = true });

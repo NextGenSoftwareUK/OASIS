@@ -32,12 +32,12 @@ namespace NextGenSoftware.OASIS.API.Providers.QdrantOASIS
     /// Each point carries:
     ///   - id: UUID (OASIS object ID)
     ///   - payload: { username, email, is_deleted, data_json, holon_type, parent_holon_id }
-    ///   - vector: zero-vector placeholder (real embeddings can be injected externally)
+    ///   - vector: optional native embedding associated with the point
     ///
     /// Constructor parameters:
     ///   host    — Qdrant host URL (e.g. "http://localhost:6333" or "https://xyz.cloud.qdrant.io:6333")
     ///   apiKey  — optional Qdrant API key (required for Qdrant Cloud)
-    ///   vectorSize — dimension of placeholder vectors (default 128)
+    ///   vectorSize — dimension of the configured native embedding field (default 128)
     /// </summary>
     public partial class QdrantOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
     {
@@ -66,7 +66,7 @@ namespace NextGenSoftware.OASIS.API.Providers.QdrantOASIS
                 _http.DefaultRequestHeaders.Add("api-key", apiKey);
             _http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             ProviderName = "QdrantOASIS";
-            ProviderDescription = "Qdrant vector database provider (REST API — OASIS payload storage with placeholder vectors)";
+            ProviderDescription = "Qdrant vector database provider (REST API — OASIS payload storage)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.QdrantOASIS);
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
         }
@@ -117,8 +117,6 @@ namespace NextGenSoftware.OASIS.API.Providers.QdrantOASIS
                 throw new Exception($"Qdrant DELETE {path} returned {(int)resp.StatusCode}");
         }
 
-        private float[] ZeroVector() => new float[_vectorSize];
-
         private static bool HasOkStatus(JsonElement response) =>
             response.TryGetProperty("status", out var status) &&
             status.ValueKind == JsonValueKind.String &&
@@ -145,12 +143,34 @@ namespace NextGenSoftware.OASIS.API.Providers.QdrantOASIS
 
         private async Task<ulong> UpsertPointAsync(string collection, string id, Dictionary<string, object?> payload)
         {
-            var response = await QdrantPutAsync($"/collections/{collection}/points?wait=true", new {
-                points = new[] { new { id, vector = ZeroVector(), payload } } });
+            var vector = await ReadPointVectorAsync(collection, id);
+            var response = await QdrantPutAsync($"/collections/{collection}/points?wait=true", new
+            {
+                points = new[] { new { id, vector, payload } }
+            });
             var result = response.GetProperty("result");
             if (result.GetProperty("status").GetString() != "completed")
                 throw new InvalidOperationException("Native point write has not completed.");
             return result.GetProperty("operation_id").GetUInt64();
+        }
+
+        private async Task<object> ReadPointVectorAsync(string collection, string id)
+        {
+            var response = await QdrantPostAsync($"/collections/{collection}/points",
+                new { ids = new[] { id }, with_payload = false, with_vector = true });
+            if (!HasOkStatus(response))
+                throw new InvalidOperationException("Native Qdrant did not acknowledge vector retrieval.");
+            var points = response.GetProperty("result");
+            if (points.GetArrayLength() == 0)
+                return new Dictionary<string, object>();
+            if (points.GetArrayLength() != 1 || points[0].GetProperty("id").GetGuid() != Guid.Parse(id))
+                throw new InvalidOperationException("Native Qdrant returned a different point during vector retrieval.");
+            if (!points[0].TryGetProperty("vector", out var vector) || vector.ValueKind == JsonValueKind.Null)
+                return new Dictionary<string, object>();
+            // Old OASIS payload writes stored an all-zero dense vector. It contains no embedding.
+            if (vector.ValueKind == JsonValueKind.Array && vector.EnumerateArray().All(value => value.GetSingle() == 0))
+                return new Dictionary<string, object>();
+            return vector.Clone();
         }
 
         private async Task DeletePointAsync(string collection, Guid id)
