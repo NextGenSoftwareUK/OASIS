@@ -5,7 +5,7 @@
 | Area | Recorded status |
 | --- | --- |
 | Project inventory | 234 projects: 178 storage or specialized storage, including the obsolete Desktop compatibility wrapper, and 56 non-storage. |
-| Shared storage coverage | All 49 matrix entries recorded at 52/52 native core-storage-v2 have reconciled evidence. The registry contains 23 reports verified against their SHA-256 hashes and 26 passes independently checked against completed native CI jobs and their cleanup gates. |
+| Shared storage coverage | All 50 matrix entries recorded at 52/52 native core-storage-v2 have reconciled evidence. The registry contains 23 reports verified against their SHA-256 hashes and 27 passes independently checked against completed native CI jobs and their cleanup gates. |
 | Priority storage providers | The matrix records 52/52 native checks for Neon, Convex, Supabase, Solana, MongoDB, SQLite, Neo4j, SQL Server, Oracle, AWS DynamoDB and S3, IPFS, NEAR, Cosmos chain, Azure Cosmos DB, Google Firestore, Polkadot, Solid, Polygon, Arbitrum, TRON, EOSIO, TON, and Hedera/Hashgraph. Several use isolated native engines, emulators or local networks. See each row for hosted and capability gaps. |
 | ActivityPub and routing | ActivityPub has 5/5 native capability checks. GOMap passed a public OSRM driving route. Authenticated Google Routes, Mapbox and HERE checks remain open. Niantic and WRLD still have reviewed adapter gaps. |
 | Canonical HoloOASIS | Top priority. Both modes passed all 52 native core-storage-v2 checks on the official Windows conductor with the verified identity-delete hApp in [run 43178174352](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43178174352). The verified bundle is packaged on the provider branch. Hosted, multi-agent and broader capability acceptance remain open. |
@@ -19,6 +19,12 @@
 ## Verification log
 
 12 November Cancun time. Managed HoloOASIS advanced Development to `e54973c380c9`. Elasticsearch qualification now triggers when its native test project changes and will qualify the existing three-file batch against the new Development parent. The hosted HoloOASIS rollout and the new exact Elasticsearch integration evidence are pending.
+
+12 November Cancun time. Development advanced to `1c4d6109d47c` with the exact verified three-file Elasticsearch tree `b97bba2543fa9d82cc6c06b1c8d5a92e9b559778`. The push followed the half-hour interval, seven successful baseline API deployments, and the managed HoloOASIS public acceptance check. The remote ref was verified. The new Railway rollout remains open.
+
+12 November Cancun time. COSMIC recorded public HoloOASIS CQL acceptance on exact live WEB4 revision `e54973c380c9`, deployment `d256a5d9-d14c-4d41-ac27-b08e92b1a0ea`. It verified the official conductor and the four native and public-only paired presets. Live HyperDrive writes and owner-private and browser acceptance remain open. This clears the managed enrollment coordination hold.
+
+12 November Cancun time. Both modes of [Typesense run 43211884130](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43211884130) passed all 26 shared storage cases with zero skips. The native tests verified exact tombstone cleanup and zero documents in all three collections. Hosted TLS and access, history, conditional writes, graph depth and pagination remain open. Development qualification remains open.
 
 12 November Cancun time. Both modes of [Typesense run 43211224705](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43211224705) passed 18 native cases through owner export. The first holon delete stopped because the public storage result discarded the native deletion flag and count. The public method now forwards the deletion receipt. The next shared run must verify all deletion and cleanup cases.
 

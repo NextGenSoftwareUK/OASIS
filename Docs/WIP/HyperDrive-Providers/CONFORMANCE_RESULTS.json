@@ -1,6 +1,15 @@
 {
   "schemaVersion": 1,
   "verifiedNativeCiRuns": {
+    "TypesenseOASIS": {
+      "suite": "core-storage-v2",
+      "backend": "Typesense 30.2 via the shipping REST adapter",
+      "runId": 43211884130,
+      "jobIds": [131161305371, 131161304954],
+      "revision": "a091979e1676ab00a3793d3a9a37879039b55983",
+      "passed": {"async": 26, "sync": 26},
+      "cleanup": "Both native modes observed and removed the exact holon tombstones, verified all three collections empty, and removed their disposable nodes, volumes and checkpoint directories."
+    },
     "ElasticsearchOASIS": {
       "suite": "core-storage-v2",
       "backend": "Elasticsearch 9.5.5 via the shipping REST adapter on Development 52ace6727b58",
@@ -689,7 +698,7 @@
     "OracleDBOASIS": ["Local Oracle Free passed the core-storage suite through the Oracle managed SDK. Hosted database preflight and bounded lifecycle verification require the separately approved TCPS target and isolated schema tracked in the owner ledger. OCI Object Storage has its own acceptance row"],
     "QdrantOASIS": ["Native lifecycle test builds and is discoverable (affaef3709), and native scroll pagination builds (2b3c32e11a). Live verification requires a disposable loopback Qdrant instance. Shared-suite acceptance pending"],
     "SQLLiteDBOASIS": ["No open gaps within the shared suite. Focused native import acknowledgement and generated IDs passed in sync and async modes on the same SQLite import implementation and test source present in Development 9419d463f4. Eight file-backed child-role cases passed for ordering, root-only membership preservation, replacement admission, publication after acknowledgement and rollback of observations and parent edges. The corresponding ordinary writer and focused test sources match Development 8ab80a5390. Wallet evidence and its key-management boundary are tracked separately. The local shipping WalletManager encryption path passed file-backed SQLite ciphertext inspection and detached decryption after reopen with an ephemeral DNA key (11 November 2026)."],
-    "TypesenseOASIS": ["Point read acknowledgement and soft-delete fixes built. The focused point-read and delete fixture builds through df0e57a45c and requires a dedicated loopback Typesense instance. No Typesense server, container engine, or WSL distribution was found on this Windows host. The full collection export and HTTP failure handling also build and await native execution. The COSMIC TLS fixture is separate. Versioned history and the full native lifecycle remain open."],
+    "TypesenseOASIS": ["Hosted TLS and scoped access, native conditional writes and history, and graph depth and pagination acceptance remain open. COSMIC TLS and CQL have separate evidence."],
     "WeaviateOASIS": ["Avatar and holon deletion acknowledgement fixes and search error propagation build. The native avatar hard-delete regression builds and is discoverable (da0b970526). It requires OASIS_WEAVIATE_STORAGE_TEST=1 and a disposable loopback WEAVIATE_HOST. Native UUID cursor pagination builds (9ec4f6aeff). The 101-holon LoadAllHolonsReturnsRecordsAcrossCursorPages regression builds and is discoverable. Live execution, versioned history and full lifecycle acceptance remain open."],
     "AzureStorageOASIS": ["The registered native report verifies both shared storage modes and exact fixture cleanup. Hosted Azure account and IAM acceptance require independent evidence."],
     "OracleObjectStorageOASIS": ["Guarded OCI transport and encrypted record acceptance are prepared. Hosted verification remains deferred by the owner. Oracle Database native storage results cover a separate provider."],
