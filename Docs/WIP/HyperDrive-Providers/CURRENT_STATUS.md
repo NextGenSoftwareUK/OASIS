@@ -526,3 +526,5 @@ TRON native CI now hands the independently emptied disposable TRE contract to th
 Polkadot BootLoader has an activation-only CI scenario using the existing disposable native provisioning and finalized deployment identity. It reuses the prior 52 storage cases as evidence. [Polkadot activation CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43138621689) passed at 1c1dc4d7b244. It registered, activated and deactivated the shipping provider against the finalized disposable contract and passed fixture teardown. Hosted verification remains open.
 
 zkPass candidate replaces the copied storage/swap facade with recipient-bound TransGate EVM signature verification using Nethereum. The caller supplies the expected schema and recipient. Build and real TransGate acceptance remain open.
+
+zkPass CI now checks a genuine public TransGate attestation from the official tutorial contract on Sepolia. It fetches the historical transaction at runtime, verifies the shipping provider and checks rejection of altered schema, recipient and signed user hash. No proof payload is retained in the repository. The run result is pending.

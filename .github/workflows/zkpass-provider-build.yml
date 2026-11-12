@@ -5,6 +5,7 @@ on:
     branches: [work/hyperdrive-provider-completion]
     paths:
       - '.github/workflows/zkpass-provider-build.yml'
+      - 'Providers/Identity/TestProjects/zkPassOASIS.LiveVerification/**'
       - 'Providers/Identity/NextGenSoftware.OASIS.API.Providers.zkPassOASIS/**'
   workflow_dispatch:
 
@@ -41,11 +42,13 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
-      - name: Build the shipping zkPass provider
+      - name: Verify the shipping zkPass provider against a public attestation
         shell: pwsh
         run: |
           ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-zkPass -Operation {
-            $project = 'Providers/Identity/NextGenSoftware.OASIS.API.Providers.zkPassOASIS/NextGenSoftware.OASIS.API.Providers.zkPassOASIS.csproj'
+            $project = 'Providers/Identity/TestProjects/zkPassOASIS.LiveVerification/zkPassOASIS.LiveVerification.csproj'
             dotnet build $project /m:2 /nr:false /p:UseSharedCompilation=false
             if ($LASTEXITCODE -ne 0) { throw 'zkPass provider build failed.' }
+            dotnet run --project $project --no-build --no-restore
+            if ($LASTEXITCODE -ne 0) { throw 'zkPass public attestation verification failed.' }
           }
