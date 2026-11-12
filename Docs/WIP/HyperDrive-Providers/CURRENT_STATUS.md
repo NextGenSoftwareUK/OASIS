@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. Both [exact SQL routing jobs](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43294229772) passed without skips on Weaviate Development tree `2454a0843050fe8949cc44fb3dac3050a11cfeb5`. In each mode replication and outage failover passed both directions and RoundRobin split six reads evenly. The missing SQLite path remained absent. Candidate `1a48e93b1520` reproduces the two-file qualified tree on `a421cd7a8c5b`. The priority COSMIC managed HoloOASIS native and exact image jobs are now both green. Keep the shared parent available for that release and refresh the SQL candidate if Development moves.
+
 12 November Cancun time. Extended the priority SQL routing fixture to cover SQLite unavailable with SQL Server serving the exact replica. It uses a read-write-only connection to an absent owned SQLite path, requires failover-disabled rejection and verifies the path remains absent. Both modes now qualify the two scoped test files on the current Development tree. Existing branch routing results carry forward; the added direction and exact Development qualification are pending.
 
 12 November Cancun time. Both [SQL Server and SQLite routing jobs](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43292934230) passed without skips on branch revision `b617452926f9`. The shipping V2 router replicated exact records in both primary directions, delivered three of six RoundRobin reads from each provider and recovered through SQLite only when failover was enabled. Both jobs verified disposal of the SQL Server container, volumes, SQLite database and results. Exact Development qualification, reverse outage and hosted routing remain open.

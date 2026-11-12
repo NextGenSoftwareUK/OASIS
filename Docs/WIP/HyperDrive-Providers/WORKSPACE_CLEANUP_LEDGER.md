@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+12 November exact SQL routing run 43294229772 removed both owned SQL Server containers, volumes, SQLite databases and test outputs. The local temporary Git index used to reproduce the exact tree was removed and independently confirmed absent. No local build or runtime was created.
+
 12 November reverse SQL routing qualification reuses the disposable CI SQL Server and SQLite layout. The deliberately absent SQLite path must stay absent. No local fixture, build or report was created.
 
 12 November SQL Server and SQLite routing run 43292934230 passed both modes and confirmed removal of the owned containers, volumes, SQLite files and result directories. No local build, runtime or fixture was created.
