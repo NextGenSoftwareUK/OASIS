@@ -273,6 +273,94 @@ function Find-GeneratedOutput([string]$root) {
     }
 }
 
+# Brute-force removal of downloaded runtimes/envs under <repo>/LocalState/*: every large
+# subfolder of each environment folder goes; small evidence files/folders stay.
+function Remove-BulkRuntimes([string]$repository) {
+    foreach ($relative in $cleanupTargets.LocalStateRoots) {
+        $stateRoot = Join-Path $repository $relative
+        if (!(Test-Path -LiteralPath $stateRoot)) { continue }
+        $limit = [long]$cleanupTargets.LocalStateKeepSubfolderMB * 1MB
+        foreach ($environment in Get-ChildItem -LiteralPath $stateRoot -Directory -Force) {
+            if ($environment.Attributes -band [IO.FileAttributes]::ReparsePoint) { continue }
+            foreach ($sub in Get-ChildItem -LiteralPath $environment.FullName -Directory -Force) {
+                if ($sub.Attributes -band [IO.FileAttributes]::ReparsePoint) { continue }
+                $size = (Get-ChildItem -LiteralPath $sub.FullName -Recurse -Force -File -ErrorAction SilentlyContinue | Measure-Object Length -Sum).Sum
+                if ($size -gt $limit -or $sub.Name -in $cleanupTargets.LocalStateDisposableNames) {
+                    Remove-OASISPathSafely $sub.FullName $repository
+                }
+            }
+            # Disposable names nested deeper (e.g. node_modules inside a source folder).
+            foreach ($nested in Get-ChildItem -LiteralPath $environment.FullName -Directory -Recurse -Force -ErrorAction SilentlyContinue | Where-Object { $_.Name -in $cleanupTargets.LocalStateDisposableNames -and !($_.Attributes -band [IO.FileAttributes]::ReparsePoint) }) {
+                if (Test-Path -LiteralPath $nested.FullName) { Remove-OASISPathSafely $nested.FullName $repository }
+            }
+        }
+    }
+}
+
+# Stale git temp packs left by interrupted fetch/repack; skipped while the repo is busy.
+function Remove-GitGarbage([string]$repository) {
+    $packDir = Join-Path $repository '.git\objects\pack'
+    if (!(Test-Path -LiteralPath $packDir)) { return }
+    if (Test-CleanupProcess '^git$') { Log "git is running; temp packs in $packDir left alone."; return }
+    foreach ($file in Get-ChildItem -LiteralPath $packDir -File -Filter 'tmp_pack_*' | Where-Object LastWriteTimeUtc -lt [DateTime]::UtcNow.AddHours(-12)) {
+        if ($DryRun) { Log "DRY RUN: $($file.FullName) [$($file.Length) bytes]"; continue }
+        try { [IO.File]::SetAttributes($file.FullName, 'Normal'); [IO.File]::Delete($file.FullName); $script:cleanupRemovedBytes += $file.Length; Log "Removed stale git temp pack: $($file.FullName)" }
+        catch { $script:cleanupFailureCount++; Write-Warning "Temp pack in use: $($file.FullName)" }
+    }
+}
+
+function Remove-AbsoluteDisposables {
+    foreach ($entry in $cleanupTargets.AbsoluteDisposable) {
+        $path = [Environment]::ExpandEnvironmentVariables($entry.Replace('%LOCALAPPDATA%', $env:LOCALAPPDATA))
+        Remove-Safely ([IO.Path]::GetFullPath($path)) 'Regenerable download/extraction cache; original tool recreates it'
+    }
+    if (Test-CleanupProcess '^(dotnet|testhost.*|MSBuild|VBCSCompiler|node)$') {
+        Log 'Build/node processes running; idle-only caches (NuGet packages) skipped.'
+    } else {
+        foreach ($entry in $cleanupTargets.AbsoluteDisposableWhenIdle) {
+            Remove-Safely ([IO.Path]::GetFullPath([Environment]::ExpandEnvironmentVariables($entry))) 'Restorable package cache; dotnet restore recreates it'
+        }
+    }
+    foreach ($tempRoot in @($env:TEMP, (Join-Path $env:LOCALAPPDATA 'Temp')) | Sort-Object -Unique) {
+        if (!(Test-Path -LiteralPath $tempRoot)) { continue }
+        if ($cleanupTargets.TempSweepFolders) {
+            foreach ($folder in Get-ChildItem -LiteralPath $tempRoot -Directory -Force -ErrorAction SilentlyContinue | Where-Object { $_.Name -notin $cleanupTargets.TempKeepNames -and $_.LastWriteTimeUtc -lt $cleanupCutoff -and !($_.Attributes -band [IO.FileAttributes]::ReparsePoint) }) {
+                Remove-Safely $folder.FullName 'Temp folder older than the minimum age; recreated by whichever tool needs it'
+            }
+        }
+        foreach ($pattern in $cleanupTargets.TempScratchPatterns) {
+            foreach ($item in Get-ChildItem -LiteralPath $tempRoot -Force -Filter $pattern -ErrorAction SilentlyContinue | Where-Object { $_.PSIsContainer -and $_.LastWriteTimeUtc -lt $cleanupCutoff }) {
+                Remove-Safely $item.FullName 'Old Temp scratch folder matching a reviewed pattern'
+            }
+        }
+    }
+}
+
+# Dynamic: read the agents' own cleanup ledgers and remove what they reported they could not.
+# A ledger line counts when it mentions blocked/rejected/refused/remain(s)/left together with a
+# path under the ledger's repository (TestResults/..., node_modules, bin/obj, LocalState/...).
+# Only paths that still exist, sit inside the repository and pass the normal preservation and
+# secret checks are removed. Paths are never taken from outside the repository.
+function Remove-LedgerReportedLeftovers {
+    foreach ($entry in $cleanupTargets.AgentLedgers) {
+        $ledger = Convert-CleanupPath $entry.Ledger; $repository = Convert-CleanupPath $entry.Repository
+        if (!(Test-Path -LiteralPath $ledger) -or !(Test-Path -LiteralPath $repository)) { continue }
+        $pathPattern = '(?<![\w/])((?:[\w.-]+/)*(?:node_modules|TestResults/[\w.-]+(?:/[\w.-]+)*|LocalState/[\w.-]+(?:/[\w.-]+)*|bin/(?:Debug|Release)|obj/(?:Debug|Release)))'
+        $found = @{}
+        foreach ($line in Get-Content -LiteralPath $ledger -Encoding UTF8 | Where-Object { $_ -match '(?i)blocked|reject|refus|remain|left in place|could not (remove|delete)' }) {
+            foreach ($m in [regex]::Matches($line, $pathPattern)) { $found[$m.Groups[1].Value.Trim('/')] = $true }
+        }
+        foreach ($relative in $found.Keys) {
+            if ($relative -match '\.\.') { continue }
+            $target = Join-Path $repository $relative
+            if (!(Test-Path -LiteralPath $target)) { continue }
+            if (Get-CleanupPreservationReason $target) { Log "LEDGER ITEM PRESERVED: $target"; continue }
+            Log "Ledger-reported leftover: $target"
+            Remove-OASISPathSafely $target $repository
+        }
+    }
+}
+
 function Remove-GeneratedOutputs {
     # Build and test outputs are always regenerable: removed even while builds/tests run.
     # Files a running process holds open are left and reported by Remove-Safely.
@@ -312,6 +400,23 @@ function Remove-GeneratedOutputs {
                     $reason = Get-CleanupPreservationReason $output
                     if ($reason) { Log "PRESERVE: $output -- $reason"; continue }
                     Remove-OASISPathSafely $output $repository
+                }
+                Remove-BulkRuntimes $repository
+                foreach ($leftover in $cleanupTargets.AgentLeftovers) {
+                    $leftoverPath = Join-Path $repository $leftover
+                    if ((Test-Path -LiteralPath $leftoverPath) -and !(Get-CleanupPreservationReason $leftoverPath)) { Remove-OASISPathSafely $leftoverPath $repository }
+                }
+                if ($repository -ne $repoRoot) {
+                    # Other worktrees: same test outputs, minus the preserved relative paths.
+                    foreach ($relative in $cleanupTargets.TestOutputs) {
+                        $testRoot = Join-Path $repository $relative
+                        if (!(Test-Path -LiteralPath $testRoot)) { continue }
+                        foreach ($child in Get-ChildItem -LiteralPath $testRoot -Force) {
+                            $rel = $child.FullName.Substring($repository.Length).TrimStart('\','/').Replace('\','/')
+                            if (@($cleanupTargets.Preserve | Where-Object { $rel -eq $_ -or $_.StartsWith("$rel/") -or $rel.StartsWith("$_/") }).Count) { Log "PRESERVE: $($child.FullName)"; continue }
+                            Remove-OASISPathSafely $child.FullName $repository
+                        }
+                    }
                 }
             }
             foreach ($output in $BuildRoot) {
@@ -393,6 +498,9 @@ function Clear-WslCaches {
         Write-CleanupLedger "PLANNED WSL ${WslDistribution} cache cleanup: pip cache, conda package cache, apt cache, journal above 100M; environments and runtimes retained."
         foreach ($command in $wslUserCacheCommands) { [void](Invoke-WslCommand $command) }
         foreach ($command in $wslRootCacheCommands) { [void](Invoke-WslCommand $command -AsRoot) }
+        if ($cleanupTargets.PruneWslContainers) {
+            [void](Invoke-WslCommand 'if command -v podman >/dev/null; then podman system prune -a -f; fi' -AsRoot)
+        }
         Write-CleanupLedger "REMOVED WSL ${WslDistribution} regenerable caches."
         Log "WSL ${WslDistribution} caches cleared. Compact the virtual disk to return the space to Windows."
     } catch {
@@ -439,13 +547,41 @@ Write-Host ""
 Log "Cleaning temp folders..."
 
 @($env:TEMP, (Join-Path $env:LOCALAPPDATA 'Temp')) | Sort-Object -Unique | ForEach-Object { Remove-InstallerStaging $_ }
-Log 'Runtime downloads, clipboard attachments, SQLite temporary files and WSL swap disks are preserved; Temp is not emptied wholesale.'
+# Aggressive wipe: everything in Temp is disposable (runtime downloads, clipboard attachments,
+# SQLite temporary files, WSL swap disks, *.tmp/*.wav). Only the live Claude session folder is kept.
+# Items held open by a running process are left and counted, never forced.
+$tempKeep = @('claude')
+$tempKeepPatterns = @('codex-artifact-session-*', 'codex-session*', 'codex-chat*')  # Codex chat history/sessions are kept (its real history lives in ~/.codex, never touched here)
+foreach ($tempRoot in @($env:TEMP, (Join-Path $env:LOCALAPPDATA 'Temp')) | Sort-Object -Unique) {
+    if (!(Test-Path -LiteralPath $tempRoot)) { continue }
+    foreach ($item in Get-ChildItem -LiteralPath $tempRoot -Force -ErrorAction SilentlyContinue | Where-Object { $n = $_.Name; $n -notin $tempKeep -and !(@($tempKeepPatterns | Where-Object { $n -like $_ }).Count) -and !($_.Attributes -band [IO.FileAttributes]::ReparsePoint) }) {
+        if ($item.PSIsContainer) { Remove-Safely $item.FullName 'Temp is disposable; recreated by whichever tool needs it'; continue }
+        if ($DryRun) { Log "DRY RUN: $($item.FullName) [$($item.Length) bytes] -- Temp file"; continue }
+        try { [IO.File]::SetAttributes($item.FullName, 'Normal'); [IO.File]::Delete($item.FullName); $script:cleanupRemovedBytes += $item.Length }
+        catch { $script:cleanupFailureCount++; Write-Warning "Temp file in use: $($item.FullName)" }
+    }
+}
+Log 'Temp wiped (live Claude session folder kept).'
+# Old Claude Code session scratchpads/task output (Temp\claude\<project>\<session>): sessions untouched for
+# MinimumAgeDays are removed; recent/live sessions are kept.
+foreach ($tempRoot in @($env:TEMP, (Join-Path $env:LOCALAPPDATA 'Temp')) | Sort-Object -Unique) {
+    $claudeRoot = Join-Path $tempRoot 'claude'
+    if (!(Test-Path -LiteralPath $claudeRoot)) { continue }
+    foreach ($project in Get-ChildItem -LiteralPath $claudeRoot -Directory -Force -ErrorAction SilentlyContinue) {
+        foreach ($sess in Get-ChildItem -LiteralPath $project.FullName -Directory -Force -ErrorAction SilentlyContinue | Where-Object { $_.LastWriteTimeUtc -lt $cleanupCutoff -and !($_.Attributes -band [IO.FileAttributes]::ReparsePoint) }) {
+            Remove-Safely $sess.FullName 'Old agent session scratchpad/task output'
+        }
+    }
+}
 
 # =========================================================
 # OASIS GENERATED BUILD / RELEASE OUTPUTS
 # =========================================================
 
+Remove-LedgerReportedLeftovers
 Remove-GeneratedOutputs
+Remove-AbsoluteDisposables
+foreach ($repository in @($repoRoot) + @($cleanupTargets.AdditionalBuildRepositories | ForEach-Object { Convert-CleanupPath $_ })) { Remove-GitGarbage $repository }
 Remove-MergedWorktrees
 
 # =========================================================
@@ -685,7 +821,16 @@ if ($ClearDownloads) {
         if (!$full.StartsWith($downloadRoot,[StringComparison]::OrdinalIgnoreCase) -or !(Test-Path -LiteralPath $full -PathType Leaf)) { throw 'Choose exact reviewed disposable files inside Downloads.' }
         Remove-Safely $full 'Explicitly selected obsolete download; source/runtime must already be retained elsewhere'
     }
-    if (!$DownloadFile) { Log 'Specify -DownloadFile with exact obsolete installers/archives; no blanket Downloads deletion.' }
+    if (!$DownloadFile) {
+        # Downloads are disposable: wipe everything (installers, archives, extracted folders).
+        $downloadsDir = Join-Path $env:USERPROFILE 'Downloads'
+        foreach ($entry in Get-ChildItem -LiteralPath $downloadsDir -Force -ErrorAction SilentlyContinue | Where-Object { !($_.Attributes -band [IO.FileAttributes]::ReparsePoint) }) {
+            if ($entry.PSIsContainer) { Remove-Safely $entry.FullName 'Downloads are disposable'; continue }
+            if ($DryRun) { Log "DRY RUN: $($entry.FullName) [$($entry.Length) bytes] -- download"; continue }
+            try { [IO.File]::SetAttributes($entry.FullName, 'Normal'); [IO.File]::Delete($entry.FullName); $script:cleanupRemovedBytes += $entry.Length }
+            catch { $script:cleanupFailureCount++; Write-Warning "Download in use: $($entry.FullName)" }
+        }
+    }
 }
 
 # =========================================================
@@ -752,6 +897,18 @@ Write-Host ""
 
 $after = Get-DriveStats
 
+# Preserved test EVIDENCE (anything under TestResults) is kept only while small: files over
+# EvidenceKeepFileMB inside a preserved TestResults folder are removed (regenerable by rerunning).
+# Secret backups under artifacts/ are never trimmed.
+$evidenceLimit = [long]$cleanupTargets.EvidenceKeepFileMB * 1MB
+foreach ($protected in $cleanupPreserve) {
+    if (!(Test-Path -LiteralPath $protected) -or $protected -notmatch '[\\/]TestResults([\\/]|$)') { continue }
+    foreach ($big in Get-ChildItem -LiteralPath $protected -Recurse -Force -File -ErrorAction SilentlyContinue | Where-Object { $_.Length -gt $evidenceLimit -and !(Test-CleanupSecretFileName $_.Name) }) {
+        if ($DryRun) { Log "DRY RUN: oversized evidence $($big.FullName) [$($big.Length) bytes]"; continue }
+        try { [IO.File]::SetAttributes($big.FullName, 'Normal'); [IO.File]::Delete($big.FullName); $script:cleanupRemovedBytes += $big.Length; Write-CleanupLedger "REMOVED oversized evidence $($big.FullName); bytes=$($big.Length)." }
+        catch { $script:cleanupFailureCount++; Write-Warning "Evidence file in use: $($big.FullName)" }
+    }
+}
 # Preserved folders must stay small; warn when one outgrows its limit.
 $preservedLimitBytes = [long]$cleanupTargets.PreservedSizeLimitMB * 1MB
 foreach ($protected in $cleanupPreserve) {
