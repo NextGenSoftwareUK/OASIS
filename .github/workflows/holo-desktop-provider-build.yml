@@ -44,9 +44,7 @@ jobs:
             if ($ancestry.status -notin @('ahead', 'identical')) { throw 'Requested revision is outside Development history.' }
           }
           else { $revision = $development }
-          $comparison = Invoke-RestMethod -Headers $headers -Uri "$repository/compare/$revision...$env:GITHUB_SHA"
           "development=$revision" >> $env:GITHUB_OUTPUT
-          "common=$($comparison.merge_base_commit.sha)" >> $env:GITHUB_OUTPUT
           Write-Output "Qualifying provider revision $env:GITHUB_SHA against Development $revision"
       - uses: actions/checkout@v7
         with:
@@ -61,11 +59,11 @@ jobs:
           persist-credentials: false
       - name: Apply the scoped Desktop changes
         shell: pwsh
-        env:
-          COMMON_REVISION: ${{ steps.baseline.outputs.common }}
         run: |
           $PSNativeCommandUseErrorActionPreference = $true
-          if ($env:COMMON_REVISION -cnotmatch '^[a-f0-9]{40}$') { throw 'Missing common source revision.' }
+          # Parent of the first Desktop adapter change. The shared runner already
+          # included equivalent changes on both branches after their merge base.
+          $scopeBase = '06ab3c0561c18a587bbda19efd5d580ba8f91813'
           $source = '../provider-source'
           $paths = @(
             'Scripts/test_holonet_live_release.ps1'
@@ -74,9 +72,9 @@ jobs:
             'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests/HoloOASISIntegrationTests.cs'
             'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests.csproj'
           )
-          git -C $source fetch --no-tags --depth=1 --filter=blob:none origin $env:COMMON_REVISION
+          git -C $source fetch --no-tags --depth=1 --filter=blob:none origin $scopeBase
           foreach ($path in $paths) {
-            $before = git -C $source ls-tree $env:COMMON_REVISION -- $path
+            $before = git -C $source ls-tree $scopeBase -- $path
             $after = git -C $source ls-tree HEAD -- $path
             $current = git ls-tree HEAD -- $path
             if ($current -ceq $after) { continue }
