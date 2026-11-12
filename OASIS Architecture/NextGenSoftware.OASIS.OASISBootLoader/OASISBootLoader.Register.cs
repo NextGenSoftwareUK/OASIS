@@ -352,22 +352,28 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                             result.Result = CloudProviderFactory.CreateAzureStorage(OASISDNA.OASIS.StorageProviders.AzureStorageOASIS,overrideConnectionString);
                             break;
                         case ProviderType.AzureCosmosDBOASIS:
-                            {
-                                AzureCosmosDBOASIS azureCosmosDBOASIS = new AzureCosmosDBOASIS(
-                                    new Uri(OASISDNA.OASIS.StorageProviders.AzureCosmosDBOASIS.ServiceEndpoint),
-                                    OASISDNA.OASIS.StorageProviders.AzureCosmosDBOASIS.AuthKey,
-                                    OASISDNA.OASIS.StorageProviders.AzureCosmosDBOASIS.DBName,
-                                    ListHelper.ConvertToList(OASISDNA.OASIS.StorageProviders.AzureCosmosDBOASIS.CollectionNames))
-                                {
-                                    IsVersionControlEnabled = OASISDNA.OASIS.StorageProviders.AzureCosmosDBOASIS.IsVersionControlEnabled,
-                                    NativeImportDatabaseName = OASISDNA.OASIS.StorageProviders.AzureCosmosDBOASIS.NativeImportDatabaseName,
-                                    NativeImportContainers = OASISDNA.OASIS.StorageProviders.AzureCosmosDBOASIS.NativeImportContainers
-                                };
+                        {
+                            var settings = OASISDNA.OASIS.StorageProviders.AzureCosmosDBOASIS
+                                ?? throw new InvalidOperationException("Azure Cosmos DB storage settings are required.");
+                            if (overrideConnectionString != null &&
+                                !string.Equals(overrideConnectionString, settings.ServiceEndpoint, StringComparison.Ordinal))
+                                throw new ArgumentException("Azure Cosmos DB registration requires the configured service endpoint.",
+                                    nameof(overrideConnectionString));
 
-                                azureCosmosDBOASIS.OnStorageProviderError += AzureCosmosDBOASIS_StorageProviderError;
-                                result.Result = azureCosmosDBOASIS;
-                            }
+                            var provider = new AzureCosmosDBOASIS(
+                                new Uri(settings.ServiceEndpoint),
+                                settings.AuthKey,
+                                settings.DBName,
+                                ListHelper.ConvertToList(settings.CollectionNames))
+                            {
+                                IsVersionControlEnabled = settings.IsVersionControlEnabled,
+                                NativeImportDatabaseName = settings.NativeImportDatabaseName,
+                                NativeImportContainers = settings.NativeImportContainers
+                            };
+                            provider.OnStorageProviderError += AzureCosmosDBOASIS_StorageProviderError;
+                            result.Result = provider;
                             break;
+                        }
 
                         //case ProviderType.CardanoOASIS:
                         //    {
