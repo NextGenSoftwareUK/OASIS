@@ -289,4 +289,5 @@
 <ItemGroup><ProjectReference Include="../../Providers/Identity/NextGenSoftware.OASIS.API.Providers.PolygonIDOASIS/NextGenSoftware.OASIS.API.Providers.PolygonIDOASIS.csproj" /></ItemGroup>
 <ItemGroup><ProjectReference Include="../../Providers/Other/NextGenSoftware.OASIS.API.Providers.SEEDSOASIS/NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.csproj" /></ItemGroup>
 <ItemGroup><ProjectReference Include="../../Providers/Other/NextGenSoftware.OASIS.API.Providers.IntelOpenVINOOASIS/NextGenSoftware.OASIS.API.Providers.IntelOpenVINOOASIS.csproj" /></ItemGroup>
+<ItemGroup><ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.TRONOASIS/NextGenSoftware.OASIS.API.Providers.TRONOASIS.csproj" /></ItemGroup>
 </Project>

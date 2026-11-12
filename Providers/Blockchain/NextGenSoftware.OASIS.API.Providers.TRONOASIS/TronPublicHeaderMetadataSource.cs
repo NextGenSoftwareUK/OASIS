@@ -50,7 +50,16 @@ public sealed class TronPublicHeaderMetadataSource : KeyValueStorageProviderBase
 
     /// <summary>Separate host query-profile configuration, never the existing
     /// signed Tron storage settings. Reject unknown fields rather than ignore keys.</summary>
-    public static TronPublicHeaderMetadataSource FromJson(string json)
+    public static TronPublicHeaderMetadataSource FromJson(string json) => CreateFromJson(json, null);
+
+    public static TronPublicHeaderMetadataSource FromAuthenticatedJson(string json, string readerKey)
+    {
+        if (readerKey is not { Length: > 0 and <= 256 } || readerKey.Any(c => c <= ' ' || c > '~' || c == ','))
+            throw new ArgumentException("A dedicated TronGrid reader key is required.", nameof(readerKey));
+        return CreateFromJson(json, readerKey);
+    }
+
+    private static TronPublicHeaderMetadataSource CreateFromJson(string json, string readerKey)
     {
         if (json == null || Encoding.UTF8.GetByteCount(json) > 8192)
             throw new ArgumentException("Bounded explicit Tron public source required.");
@@ -64,11 +73,15 @@ public sealed class TronPublicHeaderMetadataSource : KeyValueStorageProviderBase
             root.GetProperty("consistency").GetString() != "SolidityNodeSolidified" ||
             root.GetProperty("blockHeights").ValueKind != JsonValueKind.Array ||
             root.GetProperty("blockHeights").GetArrayLength() is < 1 or > 8)
-            throw new ArgumentException("Exact anonymous solidified TRON header configuration required; history/signing fields forbidden.");
+            throw new ArgumentException("Exact solidified TRON header configuration required; credential fields are forbidden.");
         var blockHeights = root.GetProperty("blockHeights").EnumerateArray().Select(row => row.GetString()).ToArray();
-        var client = new HttpClient(NativeConnectionGuard.CreateGuardedHttpHandler()) { Timeout = TimeSpan.FromSeconds(15) };
+        var transport = (SocketsHttpHandler)NativeConnectionGuard.CreateGuardedHttpHandler();
+        transport.UseProxy = false;
+        transport.UseCookies = false;
+        var client = new HttpClient(transport);
         try
         {
+            if (readerKey != null) client.DefaultRequestHeaders.Add("TRON-PRO-API-KEY", readerKey);
             return new TronPublicHeaderMetadataSource(client,
                 new Uri(root.GetProperty("rpcUrl").GetString(), UriKind.Absolute),
                 blockHeights, root.GetProperty("sourceOwner").GetGuid(), true);
@@ -89,7 +102,7 @@ public sealed class TronPublicHeaderMetadataSource : KeyValueStorageProviderBase
         catch (Exception error)
         {
             IsProviderActivated = false;
-            return new() { IsError = true, ErrorCount = 1, ErrorCode = error is OperationCanceledException
+            return new() { IsError = true, ErrorCount = 1, ErrorCode = error is OperationCanceledException && cancellationToken.IsCancellationRequested
                 ? "CQL_QUERY_CANCELLED" : "CQL_SOURCE_UNAVAILABLE", Message = "Public Tron header source activation failed.", Exception = error };
         }
     }
@@ -129,7 +142,8 @@ public sealed class TronPublicHeaderMetadataSource : KeyValueStorageProviderBase
             cancellationToken.ThrowIfCancellationRequested();
             return new(Array.AsReadOnly(rows)) { IsLoaded = true, LoadedCount = rows.Length };
         }
-        catch (OperationCanceledException error) { return Failure("CQL_QUERY_CANCELLED", "Tron query cancelled; no partial rows.", error); }
+        catch (OperationCanceledException error) when (cancellationToken.IsCancellationRequested)
+        { return Failure("CQL_QUERY_CANCELLED", "Tron query cancelled; no partial rows.", error); }
         catch (Exception error) { return Failure("CQL_QUERY_FAILED", "Public TRON header query failed; no partial rows.", error); }
     }
 
@@ -197,7 +211,7 @@ public sealed class TronPublicHeaderMetadataSource : KeyValueStorageProviderBase
             if (endpoint == null || !endpoint.IsAbsoluteUri || endpoint.AbsoluteUri != PublicEndpoint)
                 throw new ArgumentException("Explicit official TRON Mainnet SolidityNode endpoint required.");
             if (client.DefaultRequestHeaders.Authorization != null || owner == Guid.Empty)
-                throw new ArgumentException("Anonymous source and nonempty projection owner required.");
+                throw new ArgumentException("A nonempty projection owner and a source without bearer credentials are required.");
             var catalogue = blockHeights?.Take(9).Select(ValidateAddress).ToArray() ?? throw new ArgumentNullException(nameof(blockHeights));
             if (catalogue.Length is < 1 or > 8 || catalogue.Distinct(StringComparer.Ordinal).Count() != catalogue.Length)
                 throw new ArgumentException("One to eight unique native block heights required.");
@@ -213,13 +227,15 @@ public sealed class TronPublicHeaderMetadataSource : KeyValueStorageProviderBase
         private async Task<JsonElement> SendNativeAsync(Uri uri, object payload, CancellationToken token)
         {
             // POST submits a header-only read, never a transaction or mutation.
+            using var deadline = CancellationTokenSource.CreateLinkedTokenSource(token);
+            deadline.CancelAfter(TimeSpan.FromSeconds(15));
             using var request = new HttpRequestMessage(HttpMethod.Post, uri) {
                 Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json") };
-            using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, token);
+            using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, deadline.Token);
             response.EnsureSuccessStatusCode();
-            await using var stream = await response.Content.ReadAsStreamAsync(token);
+            await using var stream = await response.Content.ReadAsStreamAsync(deadline.Token);
             using var body = new MemoryStream(); var buffer = new byte[8192]; int count;
-            while ((count = await stream.ReadAsync(buffer.AsMemory(), token)) != 0)
+            while ((count = await stream.ReadAsync(buffer.AsMemory(), deadline.Token)) != 0)
             {
                 if (body.Length + count > 65536) throw new InvalidDataException("Native header response exceeds64KiB.");
                 body.Write(buffer, 0, count);
@@ -229,7 +245,7 @@ public sealed class TronPublicHeaderMetadataSource : KeyValueStorageProviderBase
             var root = document.RootElement;
             if (root.ValueKind != JsonValueKind.Object || root.TryGetProperty("Error", out _) || root.TryGetProperty("transactions", out _))
                 throw new InvalidDataException("Complete header-only native result required.");
-            token.ThrowIfCancellationRequested();
+            deadline.Token.ThrowIfCancellationRequested();
             return root.Clone();
         }
 
