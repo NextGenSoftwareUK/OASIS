@@ -24,7 +24,7 @@
 | Polygon | Archived real local-chain encrypted storage and NFT scenarios. | Reconcile routed operation evidence and verify missing pairings. |
 | Arbitrum | Archived local-chain storage and V2 policy scenarios. | Reconcile exact route and native mutation receipts per operation before crediting all three behaviours. |
 | TRON | Archived native RoundRobin and closed-transport read failover. Separate [disposable TRE CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43035175165) verified direct storage and native cleanup. | The retained original is still unresolved and cannot support replication acceptance. [Fresh TRE routing](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43310611132) passed both replication and read failover directions and even RoundRobin with SQLite in both modes. Preserve the retained transaction and ledger. Hosted routing remains separate. |
-| EOSIO | Native Antelope storage lifecycle and public Vaulta balance reads. | Native Antelope and SQLite routing CI is pending, including independent table cleanup. |
+| EOSIO | Native Antelope storage lifecycle and public Vaulta balance reads. | [Official Antelope and SQLite routing](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43311490312) passed both replica and read-outage directions and even RoundRobin in both modes. Native tables were independently empty. Development and hosted routing remain open. |
 | TON | Native local TVM storage lifecycle. | Verify eligible routed storage and public transport separately. |
 | Hedera / Hashgraph | Native Hiero storage lifecycle and archived non-funded checks. | Funded testnet and hosted CQL fixture gaps remain open. Verify eligible routed storage with native confirmation. |
 
