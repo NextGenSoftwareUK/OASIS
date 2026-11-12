@@ -15,6 +15,7 @@ using ArbitrumProvider = NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.Arbit
 using CosmosProvider = NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.CosmosBlockChainOASIS;
 using EosioProvider = NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.EOSIOOASIS;
 using EthereumProvider = NextGenSoftware.OASIS.API.Providers.EthereumOASIS.EthereumOASIS_Web3Core;
+using HederaProvider = NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.HashgraphOASIS;
 using HoloOasisProvider = NextGenSoftware.OASIS.API.Providers.HoloOASIS.HoloOASIS;
 using NearProvider = NextGenSoftware.OASIS.API.Providers.NEAROASIS.NEAROASIS;
 using PolkadotProvider = NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.PolkadotOASIS;
@@ -80,6 +81,7 @@ public sealed class CqlHostedSourceRegistry : ICqlHostedSourceRegistry
     private readonly string eosioPublicAccountConfiguration;
     private readonly string cosmosPublicValidatorConfiguration;
     private readonly string polkadotPublicHeaderConfiguration;
+    private readonly string hederaPublicAccountConfiguration;
 
     private readonly ILogger<CqlHostedSourceRegistry> logger;
     private readonly TronPublicCqlConfiguration tronPublicConfiguration;
@@ -104,6 +106,7 @@ public sealed class CqlHostedSourceRegistry : ICqlHostedSourceRegistry
         eosioPublicAccountConfiguration = configuration?["CQL_EOSIO_PUBLIC_SOURCE_JSON"];
         cosmosPublicValidatorConfiguration = configuration?["CQL_COSMOS_PUBLIC_SOURCE_JSON"];
         polkadotPublicHeaderConfiguration = configuration?["CQL_POLKADOT_PUBLIC_SOURCE_JSON"];
+        hederaPublicAccountConfiguration = configuration?["CQL_HEDERA_PUBLIC_SOURCE_JSON"];
     }
 
     public IOASISStorageProvider Find(ProviderType provider)
@@ -122,6 +125,8 @@ public sealed class CqlHostedSourceRegistry : ICqlHostedSourceRegistry
             if (registration == null || registration.IsError || registration.Result == null)
                 throw new InvalidOperationException("CQL_SOURCE_REGISTRATION_FAILED");
             storage = registration.Result;
+            if (storage is HederaProvider hedera && hederaPublicAccountConfiguration != null)
+                hedera.ConfigurePublicAccountQuery(hederaPublicAccountConfiguration);
             if (storage is TronProvider tron)
                 tronPublicConfiguration?.Configure(tron);
             if (storage is HoloOasisProvider holoOasis && holoOasis.QueryCapabilities == null
