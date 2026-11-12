@@ -29,6 +29,8 @@ public sealed class EosioPublicAccountMetadataSource : KeyValueStorageProviderBa
 {
     public const string MainnetChainId = "aca376f206b8fc25a6ed44dbdc66547c36c6c33e3a119ffbeaef943642f0e906";
     public const string AddressMetadata = "EOSIOAccountName";
+    internal static readonly CosmicQueryCapabilities PublicCapabilities =
+        CosmicQueryCapabilities.ForStringMetadataKeyLookup(AddressMetadata, 13, 8);
     private readonly AccountsBackend accounts;
     private bool disposed;
 
@@ -43,15 +45,21 @@ public sealed class EosioPublicAccountMetadataSource : KeyValueStorageProviderBa
         ProviderDescription = "Read-only public EOSIO account metadata; latest state per response";
         ProviderType = new EnumValue<PType>(PType.EOSIOOASIS);
         ProviderCategory = new EnumValue<Core.Enums.ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
-        QueryCapabilities = CosmicQueryCapabilities.ForStringMetadataKeyLookup(AddressMetadata, 13, 8);
     }
 
     public PType QueryProviderType => PType.EOSIOOASIS;
-    public CosmicQueryCapabilities QueryCapabilities { get; }
+    public CosmicQueryCapabilities QueryCapabilities => PublicCapabilities;
 
     /// <summary>Separate host query-profile configuration, never the existing
     /// signed EOSIO storage settings. Reject unknown fields rather than ignore keys.</summary>
     public static EosioPublicAccountMetadataSource FromJson(string json)
+    {
+        var client = new HttpClient(NativeConnectionGuard.CreateGuardedHttpHandler()) { Timeout = TimeSpan.FromSeconds(15) };
+        try { return new EosioPublicAccountMetadataSource(CreateAccounts(json, client, ownsClient: true)); }
+        catch { client.Dispose(); throw; }
+    }
+
+    internal static AccountsBackend CreateAccounts(string json, HttpClient client, bool ownsClient = false)
     {
         if (json == null || Encoding.UTF8.GetByteCount(json) > 8192)
             throw new ArgumentException("Bounded explicit EOSIO public source required.");
@@ -66,14 +74,9 @@ public sealed class EosioPublicAccountMetadataSource : KeyValueStorageProviderBa
             root.GetProperty("sourceOwner").ValueKind != JsonValueKind.String || root.GetProperty("accounts").ValueKind != JsonValueKind.Array ||
             root.GetProperty("accounts").GetArrayLength() is < 1 or > 8)
             throw new ArgumentException("Exact anonymous EOSIO source schema required; signer/billing fields forbidden.");
-        var client = new HttpClient(NativeConnectionGuard.CreateGuardedHttpHandler()) { Timeout = TimeSpan.FromSeconds(15) };
-        try
-        {
-            return new EosioPublicAccountMetadataSource(client, new Uri(root.GetProperty("apiUrl").GetString(), UriKind.Absolute),
-                root.GetProperty("chainId").GetString(), root.GetProperty("accounts").EnumerateArray().Select(value => value.GetString()),
-                root.GetProperty("sourceOwner").GetGuid(), true);
-        }
-        catch { client.Dispose(); throw; }
+        return new AccountsBackend(client, new Uri(root.GetProperty("apiUrl").GetString(), UriKind.Absolute),
+            root.GetProperty("chainId").GetString(), root.GetProperty("accounts").EnumerateArray().Select(value => value.GetString()),
+            root.GetProperty("sourceOwner").GetGuid(), ownsClient);
     }
 
     public async Task<OASISResult<bool>> ActivateQuerySourceAsync(CancellationToken cancellationToken)
@@ -94,34 +97,39 @@ public sealed class EosioPublicAccountMetadataSource : KeyValueStorageProviderBa
         }
     }
 
-    public async Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicQueryAsync<T>(CosmicQueryPlan<T> plan,
+    public Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicQueryAsync<T>(CosmicQueryPlan<T> plan,
         int maximumResults = 100, CancellationToken cancellationToken = default) where T : IHolon
+        => ExecutePublicQueryAsync(accounts, !disposed && IsProviderActivated, plan, maximumResults, cancellationToken);
+
+    internal static async Task<OASISResult<IReadOnlyList<IHolon>>> ExecutePublicQueryAsync<T>(
+        AccountsBackend accounts, bool activated, CosmicQueryPlan<T> plan, int maximumResults,
+        CancellationToken cancellationToken) where T : IHolon
     {
         try
         {
-            ObjectDisposedException.ThrowIf(disposed, this);
-            if (plan == null || plan.Targets.Count != 1 || plan.Targets[0].Provider != QueryProviderType)
+            if (plan == null || plan.Targets.Count != 1 || plan.Targets[0].Provider != PType.EOSIOOASIS)
                 return Failure("CQL_PLAN_TARGET_UNAVAILABLE", "One explicitly admitted public EOSIO source is required.");
             if (maximumResults is < 1 or > 10000) return Failure("CQL_QUERY_LIMIT", "A bounded result budget is required.");
-            var admitted = QueryCapabilities.AdmitPlan(plan);
+            var admitted = PublicCapabilities.AdmitPlan(plan);
             if (admitted.IsError) return Failure(admitted.ErrorCode, admitted.Message);
             IReadOnlyList<string> keys;
-            if (QueryCapabilities.StringKeySetLookup.IsKeySetQuery(plan.Query))
+            if (PublicCapabilities.StringKeySetLookup.IsKeySetQuery(plan.Query))
             {
-                var selected = QueryCapabilities.StringKeySetLookup.SelectKeys(plan.Query);
+                var selected = PublicCapabilities.StringKeySetLookup.SelectKeys(plan.Query);
                 if (selected.IsError) return Failure(selected.ErrorCode, selected.Message);
                 keys = selected.Result;
             }
             else
             {
-                var selected = QueryCapabilities.StringPointLookup.SelectKey(plan.Query);
+                var selected = PublicCapabilities.StringPointLookup.SelectKey(plan.Query);
                 if (selected.IsError) return Failure(selected.ErrorCode, selected.Message);
                 keys = new[] { selected.Result };
             }
+            if (accounts == null) return Failure("CQL_CAPABILITY_UNSUPPORTED", "Configure the reviewed EOSIO account catalogue first.");
             if (keys.Any(key => !accounts.Addresses.Contains(key, StringComparer.Ordinal)))
                 return Failure("CQL_INVALID_SOURCE_KEY", "Select addresses from the configured account catalogue.");
             cancellationToken.ThrowIfCancellationRequested();
-            if (!IsProviderActivated) return Failure("CQL_PROVIDER_INACTIVE", "Activate the configured public source first.");
+            if (!activated) return Failure("CQL_PROVIDER_INACTIVE", "Activate the configured public source first.");
             var native = await accounts.ReadAsync(keys, cancellationToken);
             var rows = native.Where(row => plan.Query.ReadAccess == null || plan.Query.ReadAccess.CanRead(row))
                 .Skip(plan.Query.Offset).Take(plan.Query.Limit ?? native.Count).ToArray();
@@ -176,7 +184,7 @@ public sealed class EosioPublicAccountMetadataSource : KeyValueStorageProviderBa
         return value.GetRawText();
     }
 
-    private sealed class AccountsBackend : IKeyValueBackend, IDisposable
+    internal sealed class AccountsBackend : IKeyValueBackend, IDisposable
     {
         private readonly HttpClient client;
         private readonly Uri api;
