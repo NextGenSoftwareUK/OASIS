@@ -362,21 +362,14 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             OASISResult<bool> result = new OASISResult<bool>();
             try
             {
-                OASISResult<IAvatar> avatar = await LoadAvatarAsync(id);
-                if (avatar.IsError || avatar.Result?.ProviderUniqueStorageKey == null ||
-                    !avatar.Result.ProviderUniqueStorageKey.TryGetValue(NextGenSoftware.OASIS.API.Core.Enums.ProviderType.HoloOASIS, out string actionHash) ||
-                    string.IsNullOrWhiteSpace(actionHash))
-                {
-                    OASISErrorHandling.HandleError(ref result, avatar.Message ?? $"Avatar {id} was not found on Holochain.");
-                    return result;
-                }
-
-                OASISResult<IHolon> response = await _genericRepository.DeleteAsync(HcObjectTypeEnum.Avatar, "actionHash", actionHash, ZOME_DELETE_AVATAR_FUNCTION);
+                OASISResult<IHolon> response = await _genericRepository.DeleteAsync(
+                    HcObjectTypeEnum.Avatar, "id", id.ToString("D"), ZOME_DELETE_AVATAR_BY_ID_FUNCTION);
 
                 if (response != null && !response.IsError && response.IsDeleted)
                 {
                     result.Result = true;
-                    result.IsError = false;
+                    result.IsDeleted = true;
+                    result.DeletedCount = response.DeletedCount;
                     result.Message = "Avatar deleted successfully from Holochain";
                 }
                 else
@@ -404,7 +397,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                 if (response != null && !response.IsError && response.IsDeleted)
                 {
                     result.Result = true;
-                    result.IsError = false;
+                    result.IsDeleted = true;
+                    result.DeletedCount = response.DeletedCount;
                     result.Message = "Avatar deleted successfully from Holochain";
                 }
                 else
