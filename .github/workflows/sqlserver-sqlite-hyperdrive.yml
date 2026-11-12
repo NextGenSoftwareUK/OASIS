@@ -1,0 +1,111 @@
+name: SQL Server and SQLite HyperDrive routing
+
+on:
+  push:
+    branches: [work/hyperdrive-provider-completion]
+    paths:
+      - '.github/workflows/sqlserver-sqlite-hyperdrive.yml'
+      - 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests/SqlServerSqliteHyperDriveTests.cs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lifecycle:
+    strategy:
+      fail-fast: false
+      matrix:
+        mode: [sync, async]
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: OASIS
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          path: OASIS
+          submodules: recursive
+          persist-credentials: false
+
+      - name: Read the recorded Libraries revision
+        id: dependencies
+        shell: bash
+        run: |
+          revision="$(sed -n 's/^LIBRARIES_COMMIT=//p' Docker/oasis-dependency-versions.env)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "libraries=$revision" >> "$GITHUB_OUTPUT"
+          revision="$(sed -n 's/^HOLOCHAIN_COMMIT=//p' Docker/oasis-dependency-versions.env)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "holochain=$revision" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependencies.outputs.libraries }}
+          path: NextGenSoftware-Libraries
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+
+      - uses: actions/checkout@v7
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          ref: ${{ steps.dependencies.outputs.holochain }}
+          path: holochain-client-csharp
+          persist-credentials: false
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Verify native replication, balancing and failover
+        shell: bash
+        env:
+          OASIS_PRIORITY_SQL_MODE: ${{ matrix.mode }}
+        run: |
+          umask 077
+          fixture="$(mktemp -d "$RUNNER_TEMP/oasis-priority-sql.XXXXXXXX")"
+          container=""
+          cleanup() {
+            local status=$? cleanup_status=0
+            if [[ -n "$container" ]]; then
+              docker rm --force --volumes "$container" >/dev/null || cleanup_status=1
+              if docker inspect "$container" >/dev/null 2>&1; then cleanup_status=1; fi
+            fi
+            rm -rf -- "$fixture" || cleanup_status=1
+            if [[ "$cleanup_status" -ne 0 || -e "$fixture" ]]; then exit 1; fi
+            echo "Removed the owned SQL Server container, volumes, SQLite database and test output."
+            exit "$status"
+          }
+          trap cleanup EXIT
+          password="Aa9!$(openssl rand -hex 24)"
+          echo "::add-mask::$password"
+          export MSSQL_SA_PASSWORD="$password"
+          image=mcr.microsoft.com/mssql/server@sha256:46e454273ee7f971f804cfc367b2f0aeaafd258f65b77d34ac6acca85fcb8bc9
+          container="$(docker run --detach --publish 127.0.0.1:11433:1433 \
+            --env ACCEPT_EULA=Y --env MSSQL_PID=Developer --env MSSQL_SA_PASSWORD "$image")"
+          sql() {
+            SQLCMDPASSWORD="$password" docker exec -i --env SQLCMDPASSWORD "$container" \
+              /opt/mssql-tools18/bin/sqlcmd -C -b -S localhost -U sa -l 3 "$@"
+          }
+          for attempt in {1..45}; do
+            if sql -Q "SET NOCOUNT ON; SELECT SERVERPROPERTY('ProductVersion');" >/dev/null 2>&1; then break; fi
+            [[ "$attempt" != 45 ]]
+            sleep 2
+          done
+          sql -Q "SET NOCOUNT ON; SELECT CONVERT(varchar(32), SERVERPROPERTY('ProductVersion')); CREATE DATABASE oasis_priority_routing;"
+          export OASIS_PRIORITY_SQL_DIRECTORY="$fixture"
+          export OASIS_PRIORITY_SQL_CONNECTION="Server=127.0.0.1,11433;Database=oasis_priority_routing;User ID=sa;Password=$password;Encrypt=True;TrustServerCertificate=True;Pooling=False"
+          pwsh -NoProfile -Command '
+            ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-PrioritySqlHyperDrive -Operation {
+              $project = "OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests"
+              dotnet test $project --filter "FullyQualifiedName~SqlServerSqliteHyperDriveTests" --logger "trx;LogFileName=routing.trx" --results-directory $env:OASIS_PRIORITY_SQL_DIRECTORY /p:PrioritySqlRoutingTests=true /m:2 /nr:false /p:UseSharedCompilation=false
+              if ($LASTEXITCODE -ne 0) { throw "Native HyperDrive routing checks failed." }
+              [xml]$report = Get-Content -LiteralPath (Join-Path $env:OASIS_PRIORITY_SQL_DIRECTORY "routing.trx") -Raw
+              $counters = $report.SelectSingleNode("//*[local-name()=`"Counters`"]")
+              if (-not $counters -or $counters.total -ne "1" -or $counters.passed -ne "1") {
+                throw "Expected one executed and passing SQL Server and SQLite routing case."
+              }
+            }'
