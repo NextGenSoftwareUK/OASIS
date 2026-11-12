@@ -10,6 +10,7 @@ using NextGenSoftware.OASIS.API.Core.Services.Subscriptions;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
+using HoloOasisProvider = NextGenSoftware.OASIS.API.Providers.HoloOASIS.HoloOASIS;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 
@@ -52,17 +53,20 @@ public sealed class CqlV1Providers : ICqlV1Providers
 public sealed class CqlHostedSourceRegistry : ICqlHostedSourceRegistry
 {
     private readonly IReadOnlyDictionary<ProviderType, CqlReadSourceProfile> profiles;
+    private readonly CqlPublicReadCatalogue holoOasisCatalogue;
 
     private readonly ILogger<CqlHostedSourceRegistry> logger;
 
     public CqlHostedSourceRegistry(IEnumerable<CqlReadSourceProfile> profiles = null)
         : this(profiles, NullLogger<CqlHostedSourceRegistry>.Instance) { }
 
-    public CqlHostedSourceRegistry(IEnumerable<CqlReadSourceProfile> profiles, ILogger<CqlHostedSourceRegistry> logger)
+    public CqlHostedSourceRegistry(IEnumerable<CqlReadSourceProfile> profiles, ILogger<CqlHostedSourceRegistry> logger,
+        IEnumerable<CqlPublicReadCatalogue> publicCatalogues = null)
     {
         this.profiles = (profiles ?? Array.Empty<CqlReadSourceProfile>())
             .ToDictionary(profile => profile.Storage.ProviderType.Value);
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        holoOasisCatalogue = publicCatalogues?.SingleOrDefault(catalogue => catalogue.Provider == ProviderType.HoloOASIS);
     }
 
     public IOASISStorageProvider Find(ProviderType provider)
@@ -81,6 +85,11 @@ public sealed class CqlHostedSourceRegistry : ICqlHostedSourceRegistry
             if (registration == null || registration.IsError || registration.Result == null)
                 throw new InvalidOperationException("CQL_SOURCE_REGISTRATION_FAILED");
             storage = registration.Result;
+            if (storage is HoloOasisProvider holoOasis && holoOasis.QueryCapabilities == null
+                && holoOasisCatalogue?.CopyRecordIds() is { Length: > 0 } recordIds)
+            {
+                holoOasis.ConfigurePublicQuery(recordIds[0], recordIds.ToHashSet());
+            }
         }
         if (storage.ProviderType?.Value != provider || storage is not ICosmicQueryStorageProvider adapter
             || adapter.QueryProviderType != provider || adapter.QueryCapabilities == null
