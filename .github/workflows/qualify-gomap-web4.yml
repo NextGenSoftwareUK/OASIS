@@ -56,12 +56,14 @@ jobs:
         shell: pwsh
         run: |
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner gomap-web4-ci -Operation {
+            dotnet test Providers/Maps/TestProjects/NextGenSoftware.OASIS.API.Providers.GOMapOASIS.UnitTests /m:2 /nr:false /p:UseSharedCompilation=false --filter FullyQualifiedName~FullAndSubsetRetainNativePayloadIdentityAndAttribution
+            if ($LASTEXITCODE) { throw 'GOMap origin provenance qualification failed' }
             dotnet test ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CqlGOMapRouteHostedConfigurationTests' --results-directory TestResults/GOMapWeb4Current --logger 'trx;LogFileName=boundary.trx'
             if ($LASTEXITCODE) { throw 'GOMapRoute WEB4 boundary qualification failed' }
             [xml]$report = Get-Content TestResults/GOMapWeb4Current/boundary.trx
             $counts = $report.TestRun.ResultSummary.Counters
-            if ($counts.passed -ne '8' -or $counts.total -ne '8' -or $counts.executed -ne '8') {
-              throw 'All eight boundary cases must execute and pass without skips'
+            if ($counts.passed -ne '12' -or $counts.total -ne '12' -or $counts.executed -ne '12') {
+              throw 'All twelve boundary cases must execute and pass without skips'
             }
           }
       - name: Start owned isolated MongoDB replica
