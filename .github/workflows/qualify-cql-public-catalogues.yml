@@ -20,6 +20,11 @@ on:
         description: Exact reviewed source commit
         required: true
         type: string
+      solana_native:
+        description: Verify the shipping Solana provider against the reviewed public mainnet catalogue
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -68,6 +73,37 @@ jobs:
             if ($report.TestRun.ResultSummary.Counters.passed -ne '14' -or $report.TestRun.ResultSummary.Counters.total -ne '14') {
               throw 'All 14 catalogue, admission, diagnostic and replication barrier cases must pass'
             }
+          }
+      - name: Verify shipping Solana CQL on public mainnet
+        if: inputs.solana_native
+        working-directory: OASIS
+        shell: pwsh
+        run: |
+          $fixture = New-TemporaryFile
+          try {
+            @{
+              schema = 1
+              rpcUrl = 'https://api.mainnet-beta.solana.com'
+              genesisHash = '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdpKuc147dw2N9d'
+              sourceOwner = [Guid]::NewGuid().ToString('D')
+              addresses = @(
+                'SysvarC1ock11111111111111111111111111111111',
+                'SysvarRent111111111111111111111111111111111',
+                'SysvarEpochSchedu1e111111111111111111111111'
+              )
+            } | ConvertTo-Json -Compress | Set-Content -LiteralPath $fixture.FullName
+            $env:OASIS_SOLANA_PUBLIC_ENDPOINT_NATIVE = '1'
+            $env:OASIS_SOLANA_PUBLIC_SOURCE = $fixture.FullName
+            dotnet test ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests --no-build --no-restore /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CqlSolanaNativeEndpointTests' --results-directory TestResults/CqlPublicReadCatalogueCurrent --logger 'trx;LogFileName=solana-native.trx'
+            if ($LASTEXITCODE) { throw 'The shipping Solana public endpoint test failed.' }
+            [xml]$report = Get-Content TestResults/CqlPublicReadCatalogueCurrent/solana-native.trx
+            $counts = $report.TestRun.ResultSummary.Counters
+            if ($counts.passed -ne '1' -or $counts.executed -ne '1' -or $counts.total -ne '1') {
+              throw 'The shipping Solana public endpoint test must execute and pass.'
+            }
+          }
+          finally {
+            Remove-Item -LiteralPath $fixture.FullName -ErrorAction Stop
           }
       - name: Verify Moralis activation and unsupported NFT burns
         working-directory: OASIS
