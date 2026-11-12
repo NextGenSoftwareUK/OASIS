@@ -87,12 +87,24 @@ public sealed class CqlHoloOasisConductorTests
             Assert.False(initial.IsError, initial.ErrorCode);
             Assert.Equal(fixture.Id, Assert.Single(initial.Result).Id);
 
+            writer.ConfigurePublicQuery(fixture.Id, new HashSet<Guid> { fixture.Id });
+            var canonicalProbe = await writer.ActivateQuerySourceAsync(default);
+            Assert.True(canonicalProbe.Result && !canonicalProbe.IsError, canonicalProbe.ErrorCode);
+            var canonicalPlan = CosmicQueryPlanner.Plan(query.Result, Provider, [new(Provider, writer.QueryCapabilities)]);
+            Assert.False(canonicalPlan.IsError, canonicalPlan.ErrorCode);
+            var canonicalInitial = await writer.ExecuteCosmicQueryAsync(canonicalPlan.Result);
+            Assert.False(canonicalInitial.IsError, canonicalInitial.ErrorCode);
+            Assert.Equal(fixture.Id, Assert.Single(canonicalInitial.Result).Id);
+
             fixture.IsPublic = false;
             fixture.Name = "Private revision";
             Assert.False((await writer.SaveHolonAsync(fixture, saveChildren: false)).IsError);
             var privateRevision = await reader.ExecuteCosmicQueryAsync(plan.Result);
             Assert.True(privateRevision.IsError);
             Assert.Null(privateRevision.Result);
+            var canonicalPrivate = await writer.ExecuteCosmicQueryAsync(canonicalPlan.Result);
+            Assert.True(canonicalPrivate.IsError);
+            Assert.Null(canonicalPrivate.Result);
 
             fixture.IsPublic = true;
             fixture.Name = "Republished revision";
@@ -105,6 +117,9 @@ public sealed class CqlHoloOasisConductorTests
             var deleted = await reader.ExecuteCosmicQueryAsync(plan.Result);
             Assert.False(deleted.IsError, deleted.ErrorCode);
             Assert.Empty(deleted.Result);
+            var canonicalDeleted = await writer.ExecuteCosmicQueryAsync(canonicalPlan.Result);
+            Assert.False(canonicalDeleted.IsError, canonicalDeleted.ErrorCode);
+            Assert.Empty(canonicalDeleted.Result);
         }
         finally
         {
