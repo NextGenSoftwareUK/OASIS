@@ -542,3 +542,5 @@ The documented WRLD v1 route example, with no credential sent, and the indoor AP
 Holo Desktop now exposes a shipping provider class backed by the canonical HoloNET storage adapter, using supplied clients or explicit admin and app-agent endpoints. Local conductor access is the default. Build and genuine desktop lifecycle verification are pending, as is canonical HoloOASIS shared conformance.
 
 Holo Desktop has a dedicated real-conductor avatar and holon lifecycle test using the canonical integration suite. The fixture supplies dedicated admin and app-agent endpoints. Disposable CI builds the Desktop package and test. Live execution remains open.
+
+Holo Desktop build run 43150864332 failed at workflow parsing before any job started. Removed a truncated registration step that was accidentally copied into the generated workflow. The corrected build and native execution remain open.

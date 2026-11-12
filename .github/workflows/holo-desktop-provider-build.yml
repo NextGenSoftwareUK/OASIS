@@ -51,12 +51,7 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
-      - name: Build BootLoader and verify registration failures
-        shell: pwsh
-        run: |
-          ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-ProviderRegistration -Operation {
-            $project = 'OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader.UnitTests/NextGenSoftware.OASIS.OASISBootLoader.UnitTests.csproj'
-            dotnet test $project --filter 'FullyQualifiedName~ProviderRegistrationFailureTests' /m:2 /n      - name: Compile Desktop and native conductor integration tests
+      - name: Compile Desktop and native conductor integration tests
         shell: pwsh
         run: |
           ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-HoloDesktop -Operation {
