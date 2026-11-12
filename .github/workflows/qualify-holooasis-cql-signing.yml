@@ -1,0 +1,69 @@
+name: Qualify HoloOASIS CQL signing
+
+on:
+  push:
+    branches: [work/cosmic-cql-ton-public]
+    paths:
+      - '.github/workflows/qualify-holooasis-cql-signing.yml'
+      - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/CqlHoloOasisSigningTests.cs'
+      - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/CqlHoloOasisConductorTests.cs'
+      - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/CqlHoloOasisDevelopmentConductorTests.cs'
+      - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/HoloOasisReadSigner.cs'
+      - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/HoloOasisReadSource.cs'
+      - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/HoloOasisDevelopmentConductor.cs'
+    tags: ['ci-cosmic-holooasis-managed-*']
+
+permissions:
+  contents: read
+
+jobs:
+  signing:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          path: OASIS
+          submodules: true
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - name: Resolve dependency pins
+        id: dependency
+        working-directory: OASIS
+        run: |
+          python3 -B Scripts/validate_railway_dependency_manifest.py --require-gitlinks
+          grep -E '^(LIBRARIES_COMMIT|HOLOCHAIN_COMMIT)=[0-9a-f]{40}$' Docker/oasis-dependency-versions.env >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependency.outputs.LIBRARIES_COMMIT }}
+          path: NextGenSoftware-Libraries
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          ref: ${{ steps.dependency.outputs.HOLOCHAIN_COMMIT }}
+          path: holochain-client-csharp
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+      - name: Prepare the disposable Linux conductor state root
+        run: sudo install -d -o "$(id -u)" -g "$(id -g)" /data/COSMIC/HoloOasisCql
+      - name: Verify signing, visibility and Linux conductor startup
+        working-directory: OASIS
+        shell: pwsh
+        env:
+          OASIS_CQL_HOLOOASIS_LINUX: '1'
+          OASIS_CQL_HOLOOASIS_MANAGED_NATIVE: ${{ startsWith(github.ref, 'refs/tags/ci-cosmic-holooasis-managed-') && '1' || '0' }}
+          HOLONET_CONDUCTOR_FOLDER: ${{ runner.temp }}/oasis-holonet-tools
+        run: |
+          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner holooasis-cql-ci -Operation {
+            dotnet test ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CqlHoloOasisSigningTests|FullyQualifiedName~CqlHoloOasisDevelopmentConductorTests' --results-directory TestResults/HoloOasisCql --logger 'trx;LogFileName=signing.trx'
+            if ($LASTEXITCODE) { throw 'HoloOASIS CQL signing or conductor qualification failed' }
+            [xml]$report = Get-Content TestResults/HoloOasisCql/signing.trx
+            $counts = $report.TestRun.ResultSummary.Counters
+            if ($counts.passed -ne '9' -or $counts.total -ne '9' -or $counts.executed -ne '9') {
+              throw 'All nine HoloOASIS signing, visibility and startup cases must execute and pass'
+            }
+          }

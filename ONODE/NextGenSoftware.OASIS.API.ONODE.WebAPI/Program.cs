@@ -1,5 +1,6 @@
 using System;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using NextGenSoftware.OASIS.API.Core.Events;
 using NextGenSoftware.OASIS.API.Core.Managers;
@@ -110,18 +111,27 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
 
         }
 
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             // Explicit shell-only repair command. It never starts the HTTP host or
             // grants repair through a public API route.
             if (args.Length > 0 && args[0] == "--cosmic-repair-baseline")
             {
-                Environment.ExitCode = Services.HyperDrive.ReplicaBaselineRepairCommand.RunAsync(args).GetAwaiter().GetResult();
+                Environment.ExitCode = await Services.HyperDrive.ReplicaBaselineRepairCommand.RunAsync(args);
                 return;
             }
+            var configuration = new ConfigurationBuilder().AddEnvironmentVariables().Build();
+            var conductor = Services.Cql.HoloOasisDevelopmentConductor.CreateIfEnabled(configuration);
             try
             {
-                CreateHostBuilder(args).Build().Run();
+                var builder = CreateHostBuilder(args);
+                if (conductor != null)
+                {
+                    await conductor.StartAsync(default);
+                    var readerSettings = await conductor.ProvisionReaderAsync(configuration, default);
+                    builder.ConfigureAppConfiguration((_, app) => app.AddInMemoryCollection(readerSettings));
+                }
+                await builder.Build().RunAsync();
             }
             catch (System.IO.IOException ex) when (ex.Message?.Contains("address already in use", StringComparison.OrdinalIgnoreCase) == true
                 || ex.InnerException?.Message?.Contains("address already in use", StringComparison.OrdinalIgnoreCase) == true)
@@ -132,6 +142,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
                 Console.Error.WriteLine("  2. Or use another port:        ASPNETCORE_URLS=http://localhost:7778 dotnet run");
                 Console.Error.WriteLine();
                 throw;
+            }
+            finally
+            {
+                if (conductor != null)
+                    await conductor.StopAsync();
             }
         }
 

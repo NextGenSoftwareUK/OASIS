@@ -15,7 +15,7 @@ using CanonicalHoloOasis = NextGenSoftware.OASIS.API.Providers.HoloOASIS.HoloOAS
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 
-internal sealed class HoloOasisReadSource : CanonicalHoloOasis, ICosmicQueryStorageProvider, ICosmicReadOnlyQueryActivation
+internal sealed class HoloOasisReadSource : CanonicalHoloOasis, ICosmicQueryStorageProvider, ICosmicReadOnlyQueryActivation, IDisposable
 {
     private readonly Guid _probeId;
     private readonly BoundedPublicKeyValueQuery _query;
@@ -79,6 +79,17 @@ internal sealed class HoloOasisReadSource : CanonicalHoloOasis, ICosmicQueryStor
         int maximumResults = 100, CancellationToken cancellationToken = default) where T : IHolon =>
         _query.ExecuteAsync(plan, maximumResults, _probeVerified && IsProviderActivated &&
             _client.State == WebSocketState.Open, versioned: false, cancellationToken);
+
+    public void Dispose()
+    {
+        _probeVerified = false;
+        if (_client.State != WebSocketState.Open && !IsProviderActivated)
+            return;
+
+        var result = DeActivateProviderAsync().GetAwaiter().GetResult();
+        if (result.IsError)
+            throw new IOException("The HoloOASIS CQL app connection could not be closed.");
+    }
 
     private async Task<string> ReadHolonAsync(Guid id, CancellationToken cancellationToken)
     {
