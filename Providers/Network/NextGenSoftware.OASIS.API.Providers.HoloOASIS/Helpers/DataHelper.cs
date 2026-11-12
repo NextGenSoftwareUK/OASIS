@@ -8,6 +8,7 @@ using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.Holochain.HoloNET.Client;
+using NextGenSoftware.Holochain.HoloNET.Client.Interfaces;
 using NextGenSoftware.Holochain.HoloNET.ORM.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Objects.Avatar;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Avatar;
@@ -18,6 +19,15 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
     {
         private static Guid ParseGuidOrEmpty(string value) => Guid.TryParse(value, out Guid parsed) ? parsed : Guid.Empty;
         public static bool UseReflection { get; set; }
+
+        internal static void MapNativeHolonMetadata(IRecord record, IHcHolon holon)
+        {
+            // The HoloNET scalar mapper cannot preserve MessagePack maps.
+            using var entry = JsonDocument.Parse(MessagePack.MessagePackSerializer.ConvertToJson(record.Bytes));
+            holon.MetaData = entry.RootElement.TryGetProperty("meta_data", out var metadata)
+                ? JsonSerializer.Deserialize<Dictionary<string, object>>(metadata.GetRawText())
+                : null;
+        }
 
         public static IHcAvatar ConvertAvatarToHoloOASISAvatar(IAvatar avatar, IHcAvatar hcAvatar)
         {
@@ -782,6 +792,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
                         break;
 
                     case HcObjectTypeEnum.Holon:
+                        MapNativeHolonMetadata(response.Records[0], (IHcHolon)hcObject);
                         result.Result = (T)ConvertHcHolonToHolon((IHcHolon)hcObject);
                         break;
                 }

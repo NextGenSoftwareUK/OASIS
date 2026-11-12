@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+12 November canonical HoloOASIS run 43170248569 reported 14 checks per mode before metadata selection failed. Superseded run 43166769837 reached the 20-minute hosted limit. Both used disposable hosted Windows runners. No local build output, download, or report was created.
+
 12 November canonical HoloOASIS run 43165294724 was canceled at the hosted job limit after test execution started. Explicit fixture teardown could not be confirmed before cancellation. The runner was disposable. No local test download, output or report was created. Future runs cap a hung test without collecting a process dump.
 
 12 November Holo Desktop conformance run 43163893639 exercised both modes on disposable Windows CI. Both passed avatar and avatar-detail checks and stopped at graph save. No local build output, download, or report was created.

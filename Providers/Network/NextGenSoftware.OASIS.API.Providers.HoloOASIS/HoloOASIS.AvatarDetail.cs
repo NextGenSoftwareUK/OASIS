@@ -170,7 +170,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
                 // The zome returns linked actions oldest first. Resolve each identity
                 // before applying predicates so a historical value cannot match.
-                var current = new Dictionary<Guid, HcHolon>();
+                var current = new Dictionary<Guid, (HcHolon Entry, IRecord Record)>();
                 foreach (var record in response.Records)
                 {
                     if (!(record.EntryDataObject is HcHolon entry) || entry.Id == Guid.Empty || string.IsNullOrWhiteSpace(record.ActionHash))
@@ -180,15 +180,16 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                     }
 
                     entry.ActionHash = record.ActionHash;
-                    current[entry.Id] = entry;
+                    current[entry.Id] = (entry, record);
                 }
 
                 var holons = new List<IHolon>();
-                foreach (var entry in current.Values)
+                foreach (var (entry, record) in current.Values)
                 {
                     if (type != HolonType.All && entry.HolonType != type)
                         continue;
 
+                    DataHelper.MapNativeHolonMetadata(record, entry);
                     var holon = DataHelper.ConvertHcHolonToHolon(entry);
                     if (filter != null && !filter(holon))
                         continue;
