@@ -1,6 +1,15 @@
 {
   "schemaVersion": 1,
   "verifiedNativeCiRuns": {
+    "SolrOASIS": {
+      "suite": "core-storage-v2",
+      "backend": "Apache Solr 10.1.0 standalone via the shipping REST adapter",
+      "runId": 43215753297,
+      "jobIds": [131174440465, 131174440047],
+      "revision": "441c7771abd4b44aa2ca698107386bc4e4fcb126",
+      "passed": {"async": 26, "sync": 26},
+      "cleanup": "Both modes observed and removed exact native holon tombstones, verified all three Solr cores empty, and removed their disposable nodes, volumes and checkpoint directories."
+    },
     "TypesenseOASIS": {
       "suite": "core-storage-v2",
       "backend": "Typesense 30.2 via the shipping REST adapter",
@@ -673,6 +682,7 @@
     "zkPassOASIS": "Native public EVM attestation (capability-v1 scope)"
   },
   "providerBlockers": {
+    "SolrOASIS": ["Hosted authentication and TLS, SolrCloud, complete collection pagination, graph depth, version history and conditional writes remain open."],
     "ElasticsearchOASIS": ["Hosted TLS and restricted access, native conditional writes and history, and graph depth and pagination acceptance remain open."],
     "OpenSearchOASIS": ["Focused native REST checks confirmed denied soft and hard deletes, acknowledged tombstones and independent physical absence. Hosted TLS and scoped access, graph depth and pagination, history and native conditional writes remain open."],
     "BlockscoutOASIS": ["The shipping query-only address source passed a guarded native .NET qualification against Ethereum Blockscout and the public full/subset browser presets returned three and two rows on Development WEB4. The dedicated CQL source evidence covers public address reads. The legacy adapter and private paired browser flow remain open. See the [COSMIC native qualification](<../COSMIC ORM/BLOCKSCOUT_PUBLIC_SOURCE_STATUS.md>)."],

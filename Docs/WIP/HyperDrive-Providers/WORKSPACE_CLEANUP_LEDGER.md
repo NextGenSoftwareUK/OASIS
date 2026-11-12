@@ -506,3 +506,5 @@ Urgent disk cleanup follow-up: leased standard project clean succeeded for AWS u
 12 November Cancun time. Solr jobs 131169998115 and 131169998561 removed both owned nodes, volumes and result directories after the node-mode guard failed. No local builds or downloads were created.
 
 12 November Cancun time. Solr jobs 131172439777 and 131172440215 verified standalone startup and stopped at graph save. Both removed their owned native nodes, volumes and result directories. No local build or download was created.
+
+12 November Cancun time. Solr jobs 131174440047 and 131174440465 passed all shared cases, verified exact native tombstone cleanup and three empty cores, and removed their owned nodes, volumes and checkpoint directories. No local build or download was created.

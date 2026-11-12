@@ -5,12 +5,12 @@
 | Area | Recorded status |
 | --- | --- |
 | Project inventory | 234 projects: 178 storage or specialized storage, including the obsolete Desktop compatibility wrapper, and 56 non-storage. |
-| Shared storage coverage | All 50 matrix entries recorded at 52/52 native core-storage-v2 have reconciled evidence. The registry contains 23 reports verified against their SHA-256 hashes and 27 passes independently checked against completed native CI jobs and their cleanup gates. |
+| Shared storage coverage | All 51 matrix entries recorded at 52/52 native core-storage-v2 have reconciled evidence. The registry contains 23 reports verified against their SHA-256 hashes and 28 passes independently checked against completed native CI jobs and their cleanup gates. |
 | Priority storage providers | The matrix records 52/52 native checks for Neon, Convex, Supabase, Solana, MongoDB, SQLite, Neo4j, SQL Server, Oracle, AWS DynamoDB and S3, IPFS, NEAR, Cosmos chain, Azure Cosmos DB, Google Firestore, Polkadot, Solid, Polygon, Arbitrum, TRON, EOSIO, TON, and Hedera/Hashgraph. Several use isolated native engines, emulators or local networks. See each row for hosted and capability gaps. |
 | ActivityPub and routing | ActivityPub has 5/5 native capability checks. GOMap passed a public OSRM driving route. Authenticated Google Routes, Mapbox and HERE checks remain open. Niantic and WRLD still have reviewed adapter gaps. |
 | Canonical HoloOASIS | Top priority. Both modes passed all 52 native core-storage-v2 checks on the official Windows conductor with the verified identity-delete hApp in [run 43178174352](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43178174352). The verified bundle is packaged on the provider branch. Hosted, multi-agent and broader capability acceptance remain open. |
 | HoloOASIS.Desktop | Obsolete in source, package metadata and repository documentation at `45d6665da989`. The six-file compatibility and documentation batch reached Development at `70d3fbb4a31c`. Published NuGet metadata and live site listings still need the obsolescence update. |
-| Development | `1c4d6109d47c` integrates the verified Elasticsearch lifecycle and preserves the public HoloOASIS CQL deployment changes. The Elasticsearch Railway rollout is pending. Live HyperDrive HoloOASIS writes remain open. |
+| Development | `1c4d6109d47c` integrates the verified Elasticsearch lifecycle and preserves the public HoloOASIS CQL deployment changes. All seven Elasticsearch Railway deployments succeeded. Live HyperDrive HoloOASIS writes remain open. |
 | BootLoader startup | The shipping registration, activation and deactivation path passed against native Polkadot and TRON fixtures and the Microsoft Azure Cosmos DB emulator. [Azure Cosmos DB job 131055311882](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43180594194/job/131055311882) confirmed fixture teardown. |
 | HyperDrive | Global automatic failover, replication and load balancing await provider acceptance. Dragonfly and KeyDB full native runs were queued at the coverage review. |
 
@@ -20,7 +20,11 @@
 
 12 November Cancun time. Managed HoloOASIS advanced Development to `e54973c380c9`. Elasticsearch qualification now triggers when its native test project changes and will qualify the existing three-file batch against the new Development parent. The hosted HoloOASIS rollout and the new exact Elasticsearch integration evidence are pending.
 
+12 November Cancun time. COSMIC native reads found that the original two HoloOASIS snapshots are present in Neo4j, while SQLite outbox sequences 682 and 684 are Pending behind sequence 543 in ReconciliationRequired. The shipping owner policy denies an empty actor or a selected graph whose committed owner differs from its actor. The frozen actor/selected-owner predicate for sequence 543 still requires read-only confirmation before any queue repair. See the [COSMIC status](../COSMIC%20ORM/CURRENT_STATUS.md).
+
 12 November Cancun time. Both [Typesense Development jobs](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43213620274) passed all 26 cases and cleanup on exact tree `d231f61c749168b0483bf135f20c71a4802807e6` over `1c4d6109d47c`. The five-file batch awaits the next Development window and the preceding deployment.
+
+12 November Cancun time. Both modes of [Solr run 43215753297](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43215753297) passed all 26 shared storage cases with zero skips on Solr 10.1.0 standalone. Exact tombstones were removed and all three native cores were empty. Hosted and broader capability acceptance and Development qualification remain open.
 
 12 November Cancun time. Both [Solr jobs in run 43215165048](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43215165048) verified Solr 10.1.0 standalone mode and passed nine native cases through all avatar-detail lookups. Graph save acknowledged only the root. The adapter now uses the shared graph plan, writes each selected node with its native receipt, and returns actual point, collection, import, and owner-export counts. The next native run verifies those paths.
 
