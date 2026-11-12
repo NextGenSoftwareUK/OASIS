@@ -117,3 +117,5 @@ Interactive browser acceptance remains open.
 11 November UTC: the live Development WEB4 CQL Playground rendered three PushProtocolOASIS public teaching rows and two filtered rows from the native provider. The existing demo visitor was reused. Private paired browser verification remains open.
 
 Development WEB4 5251dc6df discovery reports PushProtocolOASIS unavailable. Deployment 20c690dc logged cancellation during activation at 15,001 ms, with stage unclassified and no HTTP status. The exact failure stage and current native reachability remain open. No source recovery or private preparation was attempted.
+
+A single read of the configured public Push channel returned HTTP 200 with headers in 491 ms from the live 5251dc6df WEB4 container. This establishes reachability at probe time. The startup cancellation still left the CQL reader unavailable; operator activation and native preset acceptance on this revision remain open.
