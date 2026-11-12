@@ -10,13 +10,17 @@
 | ActivityPub and routing | ActivityPub has 5/5 native capability checks. GOMap passed a public OSRM driving route. Authenticated Google Routes, Mapbox and HERE checks remain open. Niantic and WRLD still have reviewed adapter gaps. |
 | Canonical HoloOASIS | Top priority. Both modes passed all 52 native core-storage-v2 checks on the official Windows conductor with the verified identity-delete hApp in [run 43178174352](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43178174352). The verified bundle is packaged on the provider branch. Hosted, multi-agent and broader capability acceptance remain open. |
 | HoloOASIS.Desktop | Obsolete in source, package metadata and repository documentation at `45d6665da989`. The six-file compatibility and documentation batch reached Development at `70d3fbb4a31c`. Published NuGet metadata and live site listings still need the obsolescence update. |
-| Development | `4c3d1016dbcd` integrates the verified Meilisearch lifecycle after seven successful Solr deployments. The new Railway rollout and live HyperDrive HoloOASIS writes remain open. |
+| Development | `c82faa749a36` integrates the verified Qdrant storage and embedding lifecycle after seven successful Meilisearch deployments. The Qdrant Railway rollout and live HyperDrive HoloOASIS writes remain open. |
 | BootLoader startup | The shipping registration, activation and deactivation path passed against native Polkadot and TRON fixtures and the Microsoft Azure Cosmos DB emulator. [Azure Cosmos DB job 131055311882](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43180594194/job/131055311882) confirmed fixture teardown. |
 | HyperDrive | Global automatic failover, replication and load balancing await provider acceptance. Dragonfly and KeyDB full native runs were queued at the coverage review. |
 
 [Provider matrix](PROVIDER_MATRIX.md) · [Evidence registry](CONFORMANCE_RESULTS.json) · [Cleanup ledger](WORKSPACE_CLEANUP_LEDGER.md)
 
 ## Verification log
+
+12 November Cancun time. Development advanced to `c82faa749a36` with the exact six-file Qdrant qualification tree after the half-hour window and seven successful preceding API deployments. The remote ref and Railway dependency pins were verified. The [Development push workflow](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43281841746) was created at 13:37:53 Cancun time. Use 14:07:53 as the earliest next integration review and verify the Qdrant rollout and current remote parent then.
+
+12 November Cancun time. Both [Weaviate jobs](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43281493425) reached native avatar storage on the pinned Weaviate node. The shared suite stopped at save acknowledgement because the public result omitted the saved flag and count. Avatar and detail writes now publish their generated identity and result only after native acknowledgement. The next run must verify this change and the remaining lifecycle.
 
 12 November Cancun time. Added shared native storage verification for Weaviate 1.39.8 on an empty, disposable CI node. Both shipping entry-point modes require 26 checks, native tombstone observation, exact deletion and independent empty collection counts. The existing COSMIC gRPC CQL path remains separate. Shared storage execution and hosted acceptance are open.
 

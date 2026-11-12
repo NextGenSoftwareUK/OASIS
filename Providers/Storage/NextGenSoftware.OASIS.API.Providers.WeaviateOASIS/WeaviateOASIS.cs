@@ -277,14 +277,29 @@ namespace NextGenSoftware.OASIS.API.Providers.WeaviateOASIS
             var result = new OASISResult<IAvatar>();
             try
             {
-                if (avatar.Id == Guid.Empty) avatar.Id = Guid.NewGuid();
-                if (avatar.ProviderUniqueStorageKey == null) avatar.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
-                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.WeaviateOASIS] = avatar.Id.ToString();
-                await UpsertObjectAsync("OasisAvatar", avatar.Id.ToString(), new Dictionary<string, object?>
+                ArgumentNullException.ThrowIfNull(avatar);
+                var id = avatar.Id == Guid.Empty ? Guid.NewGuid() : avatar.Id;
+                var keys = avatar.ProviderUniqueStorageKey == null
+                    ? new Dictionary<Core.Enums.ProviderType, string>()
+                    : new Dictionary<Core.Enums.ProviderType, string>(avatar.ProviderUniqueStorageKey);
+                keys[Core.Enums.ProviderType.WeaviateOASIS] = id.ToString("D");
+                var payload = JsonSerializer.SerializeToNode(avatar, avatar.GetType(), _jsonOpts)!.AsObject();
+                payload["id"] = id;
+                payload["providerUniqueStorageKey"] = JsonSerializer.SerializeToNode(keys, _jsonOpts);
+                await UpsertObjectAsync("OasisAvatar", id.ToString("D"), new Dictionary<string, object?>
                 {
-                    ["username"] = avatar.Username, ["email"] = avatar.Email, ["isDeleted"] = avatar.IsDeleted, ["dataJson"] = Ser(avatar)
+                    ["username"] = avatar.Username,
+                    ["email"] = avatar.Email,
+                    ["isDeleted"] = avatar.IsDeleted,
+                    ["dataJson"] = payload.ToJsonString(_jsonOpts)
                 });
-                result.Result = avatar; result.IsError = false; result.Message = $"WeaviateOASIS: Avatar '{avatar.Username}' saved.";
+                avatar.Id = id;
+                avatar.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
+                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.WeaviateOASIS] = id.ToString("D");
+                result.Result = avatar;
+                result.IsSaved = true;
+                result.SavedCount = 1;
+                result.Message = $"WeaviateOASIS: Avatar '{avatar.Username}' saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"WeaviateOASIS: {ex.Message}"); }
             return result;
@@ -393,9 +408,21 @@ namespace NextGenSoftware.OASIS.API.Providers.WeaviateOASIS
             var result = new OASISResult<IAvatarDetail>();
             try
             {
-                if (d.Id == Guid.Empty) d.Id = Guid.NewGuid();
-                await UpsertObjectAsync("OasisAvatarDetail", d.Id.ToString(), new Dictionary<string, object?> { ["username"] = d.Username, ["email"] = d.Email, ["dataJson"] = Ser(d) });
-                result.Result = d; result.IsError = false; result.Message = "WeaviateOASIS: AvatarDetail saved.";
+                ArgumentNullException.ThrowIfNull(d);
+                var id = d.Id == Guid.Empty ? Guid.NewGuid() : d.Id;
+                var payload = JsonSerializer.SerializeToNode(d, d.GetType(), _jsonOpts)!.AsObject();
+                payload["id"] = id;
+                await UpsertObjectAsync("OasisAvatarDetail", id.ToString("D"), new Dictionary<string, object?>
+                {
+                    ["username"] = d.Username,
+                    ["email"] = d.Email,
+                    ["dataJson"] = payload.ToJsonString(_jsonOpts)
+                });
+                d.Id = id;
+                result.Result = d;
+                result.IsSaved = true;
+                result.SavedCount = 1;
+                result.Message = "WeaviateOASIS: AvatarDetail saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"WeaviateOASIS: {ex.Message}"); }
             return result;

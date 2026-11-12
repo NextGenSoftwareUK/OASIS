@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+12 November Weaviate run 43281493425 stopped at the avatar-save result contract in both disposable jobs. The runners removed their nodes, volumes and checkpoint directories. Qdrant Development integration used the existing qualified Git commit and created no local test output or fixture.
+
 12 November Weaviate shared storage CI uses a disposable loopback container and one runner-owned checkpoint directory per mode. Its exit trap removes the node, volumes and test results. No local build, fixture or download was created.
 
 12 November Qdrant run 43278798362 completed both disposable runner jobs with exact fixture removal and three independently empty collections. The temporary index used to reproduce the candidate tree was removed. No local fixture, download, build output or raw test report was created.
