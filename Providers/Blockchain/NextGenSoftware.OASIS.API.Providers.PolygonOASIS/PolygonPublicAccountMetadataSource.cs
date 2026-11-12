@@ -20,4 +20,8 @@ public sealed class PolygonPublicAccountMetadataSource : EvmPublicAccountMetadat
     public static PolygonPublicAccountMetadataSource FromJson(string json)
         => CreateFromJson(json, (client, rpc, chain, addresses, owner, ownsClient) =>
             new PolygonPublicAccountMetadataSource(client, rpc, chain, addresses, owner, ownsClient));
+
+    internal static IPublicAccountQuery CreateQuery(string json, HttpClient sharedClient)
+        => CreateFromJson(json, (client, rpc, chain, addresses, owner, ownsClient) =>
+            new AccountsBackend(client, rpc, chain, addresses, owner, ownsClient, Mainnet), sharedClient);
 }
