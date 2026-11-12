@@ -4,9 +4,14 @@ using Microsoft.Extensions.DependencyInjection;
 using NextGenSoftware.Holochain.HoloNET.Client;
 using NextGenSoftware.Holochain.HoloNET.Client.Data.Admin.Requests.Objects;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Configuration;
 using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Queries;
+using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
+using Microsoft.Extensions.Logging.Abstractions;
+using BootLoader = NextGenSoftware.OASIS.OASISBootLoader.OASISBootLoader;
 using CanonicalHoloOasis = NextGenSoftware.OASIS.API.Providers.HoloOASIS.HoloOASIS;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests;
@@ -36,6 +41,7 @@ public sealed class CqlHoloOasisConductorTests
         var admin = new FixtureAdmin(adminEndpoint!);
         var writer = new CanonicalHoloOasis(admin, null, useHoloNetwork: false);
         HoloOasisReadSource? reader = null;
+        CanonicalHoloOasis? bootProvider = null;
         try
         {
             var writerActivation = await writer.ActivateProviderAsync();
@@ -88,12 +94,18 @@ public sealed class CqlHoloOasisConductorTests
             Assert.False(initial.IsError, initial.ErrorCode);
             Assert.Equal(fixture.Id, Assert.Single(initial.Result).Id);
 
-            writer.ConfigurePublicQuery(fixture.Id, new HashSet<Guid> { fixture.Id });
-            var canonicalProbe = await writer.ActivateQuerySourceAsync(default);
-            Assert.True(canonicalProbe.Result && !canonicalProbe.IsError, canonicalProbe.ErrorCode);
-            var canonicalPlan = CosmicQueryPlanner.Plan(query.Result, Provider, [new(Provider, writer.QueryCapabilities)]);
+            var boot = await BootLoader.BootOASISForAdmittedStorageAsync(CreateFixtureDna(endpoint!));
+            Assert.True(boot.Result && !boot.IsError, boot.Message);
+            bootProvider = Assert.IsType<CanonicalHoloOasis>(ProviderManager.Instance.GetStorageProvider(Provider));
+            Assert.False(bootProvider.IsProviderActivated);
+            var registry = new CqlHostedSourceRegistry([], NullLogger<CqlHostedSourceRegistry>.Instance,
+                container.GetServices<CqlPublicReadCatalogue>());
+            await registry.ActivateReadSourceAsync(Provider, default);
+            Assert.Same(bootProvider, registry.Find(Provider));
+            Assert.Equal(writerApp.HoloNETDNA.AgentPubKey, bootProvider.HoloNETClientAppAgent.HoloNETDNA.AgentPubKey);
+            var canonicalPlan = CosmicQueryPlanner.Plan(query.Result, Provider, [new(Provider, bootProvider.QueryCapabilities)]);
             Assert.False(canonicalPlan.IsError, canonicalPlan.ErrorCode);
-            var canonicalInitial = await writer.ExecuteCosmicQueryAsync(canonicalPlan.Result);
+            var canonicalInitial = await bootProvider.ExecuteCosmicQueryAsync(canonicalPlan.Result);
             Assert.False(canonicalInitial.IsError, canonicalInitial.ErrorCode);
             Assert.Equal(fixture.Id, Assert.Single(canonicalInitial.Result).Id);
 
@@ -103,7 +115,7 @@ public sealed class CqlHoloOasisConductorTests
             var privateRevision = await reader.ExecuteCosmicQueryAsync(plan.Result);
             Assert.True(privateRevision.IsError);
             Assert.Null(privateRevision.Result);
-            var canonicalPrivate = await writer.ExecuteCosmicQueryAsync(canonicalPlan.Result);
+            var canonicalPrivate = await bootProvider.ExecuteCosmicQueryAsync(canonicalPlan.Result);
             Assert.True(canonicalPrivate.IsError);
             Assert.Null(canonicalPrivate.Result);
 
@@ -118,16 +130,61 @@ public sealed class CqlHoloOasisConductorTests
             var deleted = await reader.ExecuteCosmicQueryAsync(plan.Result);
             Assert.False(deleted.IsError, deleted.ErrorCode);
             Assert.Empty(deleted.Result);
-            var canonicalDeleted = await writer.ExecuteCosmicQueryAsync(canonicalPlan.Result);
+            var canonicalDeleted = await bootProvider.ExecuteCosmicQueryAsync(canonicalPlan.Result);
             Assert.False(canonicalDeleted.IsError, canonicalDeleted.ErrorCode);
             Assert.Empty(canonicalDeleted.Result);
         }
         finally
         {
-            if (reader != null)
-                await reader.DeActivateProviderAsync();
-            await writer.DeActivateProviderAsync();
+            try
+            {
+                if (bootProvider?.IsProviderActivated == true)
+                {
+                    var closed = await bootProvider.DeActivateProviderAsync();
+                    Assert.True(closed.Result && !closed.IsError, closed.Message);
+                }
+            }
+            finally
+            {
+                if (reader != null)
+                    await reader.DeActivateProviderAsync();
+                await writer.DeActivateProviderAsync();
+            }
         }
+    }
+
+    private static OASISDNA CreateFixtureDna(Uri endpoint)
+    {
+        var provider = Provider.ToString();
+        return new()
+        {
+            OASIS = new()
+            {
+                HyperDriveMode = HyperDriveModes.V2,
+                Logging = new() { LoggingFramework = "Default" },
+                ErrorHandling = new(),
+                Security = new() { SecretKey = Convert.ToHexString(System.Security.Cryptography.RandomNumberGenerator.GetBytes(32)) },
+                StorageProviders = new()
+                {
+                    OASISProviderBootType = "Warm",
+                    AutoFailOverProviders = provider,
+                    AutoFailOverLocalProviders = provider,
+                    AutoReplicationProviders = provider,
+                    AutoLoadBalanceProviders = provider,
+                    AutoFailOverProvidersForAvatarLogin = provider,
+                    AutoFailOverProvidersForCheckIfEmailAlreadyInUse = provider,
+                    AutoFailOverProvidersForCheckIfUsernameAlreadyInUse = provider,
+                    AutoFailOverProvidersForCheckIfOASISSystemAccountExists = provider,
+                    HoloOASIS = new() { LocalNodeURI = endpoint.AbsoluteUri, UseLocalNode = true }
+                },
+                OASISHyperDriveConfig = new OASISHyperDriveConfig
+                {
+                    AutoFailoverEnabled = false, AutoReplicationEnabled = false, AutoLoadBalancingEnabled = false,
+                    EnabledProviders = [provider], AutoFailoverProviders = [provider],
+                    AutoReplicationProviders = [provider], LoadBalancingProviders = [provider]
+                }
+            }
+        };
     }
 
     private sealed class FixtureAdmin(string endpoint) : HoloNETClientAdmin(new HoloNETDNA
