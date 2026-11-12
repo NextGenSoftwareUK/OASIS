@@ -4,12 +4,18 @@ on:
   push:
     branches: [work/hyperdrive-provider-completion]
     paths:
-      - 'Scripts/TestHosts/near-local/run-fresh-managed-lifecycle.mjs'
       - 'Scripts/TestHosts/near-local/contract/**'
-      - '.github/workflows/near-native-storage.yml'
       - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.NEAROASIS/**'
-      - 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests/**'
+      - 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests/NearSharedLifecycleTests.cs'
   workflow_dispatch:
+  workflow_call:
+    inputs:
+      routing:
+        type: boolean
+        default: false
+    secrets:
+      PRIVATE_SUBMODULE_PAT:
+        required: true
 
 permissions:
   contents: read
@@ -63,6 +69,7 @@ jobs:
         working-directory: OASIS/Scripts/TestHosts/near-local
         env:
           OASIS_NEAR_FRESH_MANAGED_LIFECYCLE: '1'
+          OASIS_NEAR_FRESH_ROUTING: ${{ inputs.routing && '1' || '0' }}
         run: |
           fixture="$(mktemp -d "$RUNNER_TEMP/oasis-near.XXXXXXXX")"
           cleanup() {

@@ -1,0 +1,21 @@
+name: NEAR and SQLite HyperDrive routing
+
+on:
+  push:
+    branches: [work/hyperdrive-provider-completion]
+    paths:
+      - '.github/workflows/near-sqlite-hyperdrive.yml'
+      - 'Scripts/TestHosts/near-local/run-fresh-managed-lifecycle.mjs'
+      - 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests/NearSqliteHyperDriveTests.cs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  routing:
+    uses: ./.github/workflows/near-native-storage.yml
+    with:
+      routing: true
+    secrets:
+      PRIVATE_SUBMODULE_PAT: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
