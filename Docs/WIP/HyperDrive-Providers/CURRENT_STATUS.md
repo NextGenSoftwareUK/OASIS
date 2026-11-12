@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. Added disposable Typesense 30.2 CI for the existing avatar and holon storage lifecycle checks. The runner requires both tests to execute and pass, then independently checks that all three native collections contain zero documents. This qualification is separate from the COSMIC CQL fixture. Shared storage and hosted acceptance remain open.
+
 12 November Cancun time. Reproduced the exact three-file Elasticsearch CI tree `a3621e1f666e523f7f632a927f14e11fa1856593` on Development `52ace6727b58`. The [COSMIC coordination status](../COSMIC%20ORM/CURRENT_STATUS.md) reserves the next eligible Development integration for managed HoloOASIS. Recheck the Development parent after that release and qualify Elasticsearch against the new parent if it changed.
 
 12 November Cancun time. The provider branch now includes the zkPass live verifier and the Immutable zkEVM, Ronin, Google Maps and HERE integration tests in the full solution. The repository solution coverage check passed for all 929 projects in this worktree. Development has a separate Urbit Contacts host enrollment gap; that project is absent from this branch.
