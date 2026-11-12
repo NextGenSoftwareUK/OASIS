@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core;
@@ -20,34 +18,34 @@ using NextGenSoftware.Utilities;
 namespace NextGenSoftware.OASIS.API.Providers.InfuraOASIS
 {
     /// <summary>
-    /// OASIS provider for Infura — Ethereum JSON-RPC + IPFS gateway.
-    /// Wallet addresses → Avatars. IPFS-pinned holons → Holons.
-    /// SaveHolonAsync pins JSON to IPFS; LoadHolonAsync(CID) retrieves it.
+    /// Infura Ethereum JSON-RPC provider. Its former IPFS storage service is retired.
     /// </summary>
     public class InfuraOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider
     {
         private readonly HttpClient _rpcClient;
-        private readonly HttpClient _ipfsClient;
         private bool _isActivated;
 
+        // projectSecret remains in the constructor signature for existing IPFS callers.
+        // Retired IPFS credentials are not used by the Ethereum RPC path.
         public InfuraOASIS(string projectId = "", string projectSecret = "")
         {
             var rpcBase = string.IsNullOrEmpty(projectId) ? "https://mainnet.infura.io/v3/demo" : $"https://mainnet.infura.io/v3/{projectId}";
             _rpcClient = new HttpClient { BaseAddress = new Uri(rpcBase) };
             _rpcClient.DefaultRequestHeaders.Add("Accept", "application/json");
-            _ipfsClient = new HttpClient { BaseAddress = new Uri("https://ipfs.infura.io:5001") };
-            if (!string.IsNullOrEmpty(projectId) && !string.IsNullOrEmpty(projectSecret))
-            {
-                var auth = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{projectId}:{projectSecret}"));
-                _ipfsClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", auth);
-            }
             ProviderName = "InfuraOASIS";
-            ProviderDescription = "Infura Ethereum RPC and IPFS Gateway Provider";
+            ProviderDescription = "Infura Ethereum RPC Provider (Infura IPFS retired)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.InfuraOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Network);
             ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
-            ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
         }
+
+        private static OASISResult<T> RetiredIpfs<T>() => new()
+        {
+            IsError = true,
+            ErrorCount = 1,
+            ErrorCode = "INFURA_IPFS_RETIRED",
+            Message = "Infura IPFS ended on 15 August 2026. Use a retained copy and explicitly select a supported IPFS provider."
+        };
 
         private async Task<JsonElement?> JsonRpcAsync(string method, object[] @params)
         {
@@ -93,126 +91,53 @@ namespace NextGenSoftware.OASIS.API.Providers.InfuraOASIS
         }
         public override OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0) => LoadAvatarByProviderKeyAsync(providerKey, version).Result;
 
-        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
-        {
-            var result = new OASISResult<IHolon>();
-            try
-            {
-                var json = System.Text.Json.JsonSerializer.Serialize(new { id = holon.Id, name = holon.Name, description = holon.Description, holonType = holon.HolonType.ToString(), metaData = holon.MetaData });
-                using var content = new MultipartFormDataContent();
-                content.Add(new StringContent(json), "file", "holon.json");
-                var response = await _ipfsClient.PostAsync("/api/v0/add", content);
-                if (response.IsSuccessStatusCode)
-                {
-                    var body = await response.Content.ReadFromJsonAsync<JsonElement>();
-                    var cid = body.TryGetProperty("Hash", out var h) ? h.GetString() : body.TryGetProperty("hash", out var h2) ? h2.GetString() : "";
-                    holon.MetaData["infura_ipfs_cid"] = cid;
-                    result.Result = holon;
-                    result.Message = $"InfuraOASIS: Holon pinned to IPFS. CID: {cid}";
-                }
-                else OASISErrorHandling.HandleError(ref result, $"InfuraOASIS: IPFS add failed ({response.StatusCode}). Ensure project credentials are set.");
-            }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
-            return result;
-        }
+        public override Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+            => Task.FromResult(RetiredIpfs<IHolon>());
         public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
             => SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider).Result;
-        public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
-        { var r = new OASISResult<IEnumerable<IHolon>>(); OASISErrorHandling.HandleError(ref r, "InfuraOASIS: Use SaveHolonAsync per holon."); return await Task.FromResult(r); }
+        public override Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+            => Task.FromResult(RetiredIpfs<IEnumerable<IHolon>>());
         public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
             => SaveHolonsAsync(holons, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, saveChildrenOnProvider).Result;
 
-        public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            var result = new OASISResult<IHolon>();
-            try
-            {
-                var response = await _ipfsClient.PostAsync($"/api/v0/cat?arg={providerKey}", null);
-                if (response.IsSuccessStatusCode)
-                {
-                    var json = await response.Content.ReadAsStringAsync();
-                    var doc = JsonDocument.Parse(json);
-                    var holon = new Holon();
-                    holon.Name = doc.RootElement.TryGetProperty("name", out var n) ? n.GetString() : "";
-                    holon.Description = doc.RootElement.TryGetProperty("description", out var d) ? d.GetString() : "";
-                    holon.MetaData["infura_ipfs_cid"] = providerKey;
-                    result.Result = holon;
-                }
-                else OASISErrorHandling.HandleError(ref result, $"InfuraOASIS: IPFS cat failed ({response.StatusCode}) for CID '{providerKey}'.");
-            }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
-            return result;
-        }
+        public override Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+            => Task.FromResult(RetiredIpfs<IHolon>());
         public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
             => LoadHolonAsync(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>(); var holons = new List<IHolon>();
-            try
-            {
-                var response = await _ipfsClient.PostAsync($"/api/v0/ls?arg={providerKey}", null);
-                if (response.IsSuccessStatusCode)
-                {
-                    var body = await response.Content.ReadFromJsonAsync<JsonElement>();
-                    if (body.TryGetProperty("Objects", out var objects))
-                        foreach (var obj in objects.EnumerateArray())
-                            if (obj.TryGetProperty("Links", out var links))
-                                foreach (var link in links.EnumerateArray())
-                                {
-                                    var holon = new Holon();
-                                    holon.Name = link.TryGetProperty("Name", out var n) ? n.GetString() : "";
-                                    holon.MetaData["infura_ipfs_cid"] = link.TryGetProperty("Hash", out var h) ? h.GetString() : "";
-                                    holons.Add(holon);
-                                }
-                    result.Result = holons;
-                }
-                else OASISErrorHandling.HandleError(ref result, $"InfuraOASIS: IPFS ls failed ({response.StatusCode}).");
-            }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
-            return result;
-        }
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+            => Task.FromResult(RetiredIpfs<IEnumerable<IHolon>>());
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
             => LoadHolonsForParentAsync(providerKey, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
 
-        public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        { var r = new OASISResult<IHolon>(); OASISErrorHandling.HandleError(ref r, "InfuraOASIS: Use LoadHolonAsync(ipfsCID)."); return await Task.FromResult(r); }
+        public override Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+            => Task.FromResult(RetiredIpfs<IHolon>());
         public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
             => LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        { var r = new OASISResult<IEnumerable<IHolon>>(); OASISErrorHandling.HandleError(ref r, "InfuraOASIS: Use LoadHolonsForParentAsync(ipfsDirectoryCID)."); return await Task.FromResult(r); }
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+            => Task.FromResult(RetiredIpfs<IEnumerable<IHolon>>());
         public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
             => LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        { var r = new OASISResult<IEnumerable<IHolon>>(); OASISErrorHandling.HandleError(ref r, "InfuraOASIS: Use LoadHolonsForParentAsync(string ipfsDirectoryCID)."); return await Task.FromResult(r); }
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+            => Task.FromResult(RetiredIpfs<IEnumerable<IHolon>>());
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
             => LoadHolonsForParentAsync(id, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        { var r = new OASISResult<IEnumerable<IHolon>>(); OASISErrorHandling.HandleError(ref r, "InfuraOASIS: MetaData search not supported."); return await Task.FromResult(r); }
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+            => Task.FromResult(RetiredIpfs<IEnumerable<IHolon>>());
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
             => LoadHolonsByMetaDataAsync(metaKey, metaValue, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        { var r = new OASISResult<IEnumerable<IHolon>>(); OASISErrorHandling.HandleError(ref r, "InfuraOASIS: MetaData search not supported."); return await Task.FromResult(r); }
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+            => Task.FromResult(RetiredIpfs<IEnumerable<IHolon>>());
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
             => LoadHolonsByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
-        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
-        { var r = new OASISResult<IHolon>(); OASISErrorHandling.HandleError(ref r, "InfuraOASIS: Use DeleteHolonAsync(ipfsCID) to unpin."); return await Task.FromResult(r); }
+        public override Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
+            => Task.FromResult(RetiredIpfs<IHolon>());
         public override OASISResult<IHolon> DeleteHolon(Guid id) => DeleteHolonAsync(id).Result;
-        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
-        {
-            var result = new OASISResult<IHolon>();
-            try
-            {
-                var response = await _ipfsClient.PostAsync($"/api/v0/pin/rm?arg={providerKey}", null);
-                if (response.IsSuccessStatusCode) { result.Result = new Holon(); result.Message = $"InfuraOASIS: CID {providerKey} unpinned."; }
-                else OASISErrorHandling.HandleError(ref result, $"InfuraOASIS: Unpin failed ({response.StatusCode}).");
-            }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
-            return result;
-        }
+        public override Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
+            => Task.FromResult(RetiredIpfs<IHolon>());
         public override OASISResult<IHolon> DeleteHolon(string providerKey) => DeleteHolonAsync(providerKey).Result;
-        public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
-        { var r = new OASISResult<ISearchResults>(); OASISErrorHandling.HandleError(ref r, "InfuraOASIS: Use LoadHolonAsync(CID) or LoadHolonsForParentAsync(directoryCID)."); return await Task.FromResult(r); }
+        public override Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+            => Task.FromResult(RetiredIpfs<ISearchResults>());
         public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
             => SearchAsync(searchParams, loadChildren, recursive, maxChildDepth, continueOnError, version).Result;
         public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0)
@@ -257,8 +182,8 @@ namespace NextGenSoftware.OASIS.API.Providers.InfuraOASIS
         public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
         { var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, "InfuraOASIS: Not supported."); return await Task.FromResult(r); }
         public override OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true) => DeleteAvatarByUsernameAsync(avatarUsername, softDelete).Result;
-        public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
-        { var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, "InfuraOASIS: Import not supported."); return await Task.FromResult(r); }
+        public override Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
+            => Task.FromResult(RetiredIpfs<bool>());
         public override OASISResult<bool> Import(IEnumerable<IHolon> holons) => ImportAsync(holons).Result;
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
         { var r = new OASISResult<IEnumerable<IHolon>>(); OASISErrorHandling.HandleError(ref r, "InfuraOASIS: Export not supported."); return await Task.FromResult(r); }
