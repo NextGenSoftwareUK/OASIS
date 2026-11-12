@@ -1,0 +1,109 @@
+name: Elasticsearch native storage
+
+on:
+  push:
+    branches: [work/hyperdrive-provider-completion]
+    paths:
+      - '.github/workflows/elasticsearch-native-storage.yml'
+      - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS/ElasticsearchOASIS.cs'
+      - 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS.IntegrationTests/ElasticsearchNativeStorageConformanceTests.cs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  activation:
+    strategy:
+      fail-fast: false
+      matrix:
+        mode: [async, sync]
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: OASIS
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          path: OASIS
+          submodules: recursive
+          persist-credentials: false
+
+      - name: Read the recorded Libraries revision
+        id: dependencies
+        shell: bash
+        run: |
+          revision="$(sed -n 's/^LIBRARIES_COMMIT=//p' Docker/oasis-dependency-versions.env)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "libraries=$revision" >> "$GITHUB_OUTPUT"
+          revision="$(sed -n 's/^HOLOCHAIN_COMMIT=//p' Docker/oasis-dependency-versions.env)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "holochain=$revision" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependencies.outputs.libraries }}
+          path: NextGenSoftware-Libraries
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+
+      - uses: actions/checkout@v7
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          ref: ${{ steps.dependencies.outputs.holochain }}
+          path: holochain-client-csharp
+          persist-credentials: false
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Verify the shipping REST adapter against Elasticsearch
+        shell: bash
+        env:
+          OASIS_ELASTICSEARCH_MODE: ${{ matrix.mode }}
+        run: |
+          umask 077
+          fixture="$(mktemp -d "$RUNNER_TEMP/oasis-elasticsearch.XXXXXXXX")"
+          container=""
+          cleanup() {
+            local status=$?
+            if [[ -n "$container" ]]; then
+              if [[ "$status" -ne 0 ]]; then docker logs --tail 40 "$container" || true; fi
+              docker rm --force --volumes "$container"
+            fi
+            for checkpoint in "$fixture"/storage-*.json; do
+              if [[ -f "$checkpoint" ]]; then
+                jq -c '{case:.CurrentCase,checks:(.Passed | length),cleanup:.FixtureCleanupComplete,contract:.FailureContract}' "$checkpoint"
+              fi
+            done
+            rm -rf -- "$fixture"
+            test ! -e "$fixture"
+            echo "Removed the owned Elasticsearch node, volumes and fixture."
+          }
+          trap cleanup EXIT
+          if [[ "$(sysctl -n vm.max_map_count)" -lt 262144 ]]; then
+            sudo sysctl -w vm.max_map_count=262144
+          fi
+          image=docker.elastic.co/elasticsearch/elasticsearch@sha256:c40a1fb2bc6976821e5625d2329992a1e9c29df576e5955fdcba02421abf0d3c
+          container="$(docker run --detach --publish 127.0.0.1:19211:9200 \
+            --env discovery.type=single-node --env xpack.security.enabled=false \
+            --env 'ES_JAVA_OPTS=-Xms512m -Xmx512m' "$image")"
+          curl --fail --silent --show-error --retry 35 --retry-delay 2 --retry-all-errors --max-time 8 \
+            'http://127.0.0.1:19211/_cluster/health?wait_for_status=yellow&timeout=5s' | jq -e '.timed_out == false'
+          export OASIS_ELASTICSEARCH_DOCUMENT_FIXTURE=owned-ci-19211
+          export OASIS_ELASTICSEARCH_REPORT_DIRECTORY="$fixture"
+          pwsh -NoProfile -Command '
+            ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-ElasticsearchNativeDocument -Operation {
+              $project = "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS.IntegrationTests"
+              dotnet test $project --filter "FullyQualifiedName~ElasticsearchNativeStorageConformanceTests" --logger "trx;LogFileName=elasticsearch.trx" --results-directory $env:OASIS_ELASTICSEARCH_REPORT_DIRECTORY /m:2 /nr:false /p:UseSharedCompilation=false
+              if ($LASTEXITCODE -ne 0) { throw "Elasticsearch native document check failed." }
+              [xml]$report = Get-Content -LiteralPath (Join-Path $env:OASIS_ELASTICSEARCH_REPORT_DIRECTORY "elasticsearch.trx") -Raw
+              $counters = $report.SelectSingleNode("//*[local-name()=`"Counters`"]")
+              if (-not $counters -or $counters.total -ne "1" -or $counters.passed -ne "1") {
+                throw "Expected one executed and passing Elasticsearch native test."
+              }
+            }'

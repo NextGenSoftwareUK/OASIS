@@ -7,6 +7,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -16,6 +17,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
+using NextGenSoftware.OASIS.API.Core.Serialization;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 
@@ -69,7 +71,9 @@ namespace NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS
         }
 
         private static string Ser(object o) => JsonSerializer.Serialize(o, _jsonOpts);
-        private static T? Des<T>(string? json) => json == null ? default : JsonSerializer.Deserialize<T>(json, _jsonOpts);
+        private static T? Des<T>(string? json) => json == null ? default
+            : typeof(T) == typeof(AvatarDetail) ? StoredRecordJson.DeserializeStored<T>(json)
+            : JsonSerializer.Deserialize<T>(json, _jsonOpts);
 
         // ─── REST helpers ─────────────────────────────────────────────────────────
 
@@ -109,7 +113,23 @@ namespace NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS
         }
 
         private async Task UpsertDocAsync(string index, string id, Dictionary<string, object?> doc)
-            => await EsPutAsync($"/{index}/_doc/{id}", doc);
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Put, $"{_host}/{index}/_doc/{id}?refresh=wait_for")
+            {
+                Content = new StringContent(Ser(doc), Encoding.UTF8, "application/json")
+            };
+            using var response = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+            response.EnsureSuccessStatusCode();
+            using var acknowledgement = await ReadNativeResponseAsync(response, 64 * 1024, default);
+            var ack = acknowledgement.RootElement;
+            if (ack.GetProperty("_index").GetString() != index || ack.GetProperty("_id").GetString() != id ||
+                ack.GetProperty("_version").GetInt64() < 1 || ack.GetProperty("_seq_no").GetInt64() < 0 ||
+                ack.GetProperty("_primary_term").GetInt64() < 1 ||
+                ack.GetProperty("result").GetString() is not ("created" or "updated") ||
+                ack.GetProperty("_shards").GetProperty("failed").GetInt32() != 0 ||
+                ack.GetProperty("_shards").GetProperty("successful").GetInt32() < 1)
+                throw new System.IO.InvalidDataException("Native write did not acknowledge the staged identity/revision.");
+        }
 
         private async Task<JsonElement?> GetDocAsync(string index, string id)
         {
@@ -185,13 +205,25 @@ namespace NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS
             var result = new OASISResult<IAvatar>();
             try
             {
-                if (avatar.Id == Guid.Empty) avatar.Id = Guid.NewGuid();
-                if (avatar.ProviderUniqueStorageKey == null) avatar.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
-                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.ElasticsearchOASIS] = avatar.Id.ToString();
-                await UpsertDocAsync("oasis-avatars", avatar.Id.ToString(), new Dictionary<string, object?>
+                var id = avatar.Id == Guid.Empty ? Guid.NewGuid() : avatar.Id;
+                var key = id.ToString("D");
+                var keys = avatar.ProviderUniqueStorageKey == null
+                    ? new Dictionary<Core.Enums.ProviderType, string>()
+                    : new Dictionary<Core.Enums.ProviderType, string>(avatar.ProviderUniqueStorageKey);
+                keys[Core.Enums.ProviderType.ElasticsearchOASIS] = key;
+                var payload = JsonSerializer.SerializeToNode(avatar, avatar.GetType(), _jsonOpts)!.AsObject();
+                payload["id"] = id;
+                payload["providerUniqueStorageKey"] = JsonSerializer.SerializeToNode(keys, _jsonOpts);
+                await UpsertDocAsync("oasis-avatars", key, new Dictionary<string, object?>
                 {
-                    ["username"] = avatar.Username, ["email"] = avatar.Email, ["isDeleted"] = avatar.IsDeleted, ["dataJson"] = Ser(avatar)
+                    ["username"] = avatar.Username, ["email"] = avatar.Email,
+                    ["isDeleted"] = avatar.IsDeleted, ["dataJson"] = payload.ToJsonString(_jsonOpts)
                 });
+                avatar.Id = id;
+                avatar.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
+                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.ElasticsearchOASIS] = key;
+                result.IsSaved = true;
+                result.SavedCount = 1;
                 result.Result = avatar; result.IsError = false; result.Message = $"ElasticsearchOASIS: Avatar '{avatar.Username}' saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ElasticsearchOASIS: {ex.Message}"); }
@@ -210,7 +242,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS
                 var doc = await GetDocAsync("oasis-avatars", id.ToString());
                 if (doc == null || GetSourceBool(doc.Value, "isDeleted")) { OASISErrorHandling.HandleError(ref result, $"ElasticsearchOASIS: No avatar for ID '{id}'."); return result; }
                 var avatar = Des<Avatar>(GetSourceStr(doc.Value, "dataJson")); if (avatar == null) { OASISErrorHandling.HandleError(ref result, "ElasticsearchOASIS: Deserialise failed."); return result; }
-                result.Result = avatar; result.IsError = false; result.Message = "ElasticsearchOASIS: Avatar loaded.";
+                result.Result = avatar; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "ElasticsearchOASIS: Avatar loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ElasticsearchOASIS: {ex.Message}"); }
             return result;
@@ -231,7 +263,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS
         public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string username, int version = 0)
         {
             var result = new OASISResult<IAvatar>();
-            try { var a = await SearchAvatarAsync("username", username); if (a == null) { OASISErrorHandling.HandleError(ref result, $"ElasticsearchOASIS: No avatar for username '{username}'."); return result; } result.Result = a; result.IsError = false; result.Message = "ElasticsearchOASIS: Avatar loaded."; }
+            try { var a = await SearchAvatarAsync("username", username); if (a == null) { OASISErrorHandling.HandleError(ref result, $"ElasticsearchOASIS: No avatar for username '{username}'."); return result; } result.Result = a; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "ElasticsearchOASIS: Avatar loaded."; }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ElasticsearchOASIS: {ex.Message}"); }
             return result;
         }
@@ -241,7 +273,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS
         public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string email, int version = 0)
         {
             var result = new OASISResult<IAvatar>();
-            try { var a = await SearchAvatarAsync("email", email); if (a == null) { OASISErrorHandling.HandleError(ref result, $"ElasticsearchOASIS: No avatar for email '{email}'."); return result; } result.Result = a; result.IsError = false; result.Message = "ElasticsearchOASIS: Avatar loaded."; }
+            try { var a = await SearchAvatarAsync("email", email); if (a == null) { OASISErrorHandling.HandleError(ref result, $"ElasticsearchOASIS: No avatar for email '{email}'."); return result; } result.Result = a; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "ElasticsearchOASIS: Avatar loaded."; }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ElasticsearchOASIS: {ex.Message}"); }
             return result;
         }
@@ -301,8 +333,16 @@ namespace NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS
             var result = new OASISResult<IAvatarDetail>();
             try
             {
-                if (d.Id == Guid.Empty) d.Id = Guid.NewGuid();
-                await UpsertDocAsync("oasis-avatar-details", d.Id.ToString(), new Dictionary<string, object?> { ["username"] = d.Username, ["email"] = d.Email, ["dataJson"] = Ser(d) });
+                var id = d.Id == Guid.Empty ? Guid.NewGuid() : d.Id;
+                var payload = JsonNode.Parse(StoredRecordJson.Serialize(d))!.AsObject();
+                payload["Id"] = id;
+                await UpsertDocAsync("oasis-avatar-details", id.ToString("D"), new Dictionary<string, object?>
+                {
+                    ["username"] = d.Username, ["email"] = d.Email, ["dataJson"] = payload.ToJsonString()
+                });
+                d.Id = id;
+                result.IsSaved = true;
+                result.SavedCount = 1;
                 result.Result = d; result.IsError = false; result.Message = "ElasticsearchOASIS: AvatarDetail saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ElasticsearchOASIS: {ex.Message}"); }
@@ -319,7 +359,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS
                 var doc = await GetDocAsync("oasis-avatar-details", id.ToString());
                 if (doc == null) { OASISErrorHandling.HandleError(ref result, $"ElasticsearchOASIS: No detail for ID '{id}'."); return result; }
                 var d = Des<AvatarDetail>(GetSourceStr(doc.Value, "dataJson")); if (d == null) { OASISErrorHandling.HandleError(ref result, "ElasticsearchOASIS: Deserialise failed."); return result; }
-                result.Result = d; result.IsError = false; result.Message = "ElasticsearchOASIS: AvatarDetail loaded.";
+                result.Result = d; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "ElasticsearchOASIS: AvatarDetail loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ElasticsearchOASIS: {ex.Message}"); }
             return result;
@@ -334,9 +374,9 @@ namespace NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS
             return hit.ValueKind == JsonValueKind.Undefined ? null : Des<AvatarDetail>(GetSourceStr(hit, "dataJson"));
         }
 
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string u, int version = 0) { var result = new OASISResult<IAvatarDetail>(); try { var d = await SearchDetailAsync("username", u); if (d == null) { OASISErrorHandling.HandleError(ref result, $"ElasticsearchOASIS: No detail for username '{u}'."); return result; } result.Result = d; result.IsError = false; result.Message = "ElasticsearchOASIS: AvatarDetail loaded."; } catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ElasticsearchOASIS: {ex.Message}"); } return result; }
+        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string u, int version = 0) { var result = new OASISResult<IAvatarDetail>(); try { var d = await SearchDetailAsync("username", u); if (d == null) { OASISErrorHandling.HandleError(ref result, $"ElasticsearchOASIS: No detail for username '{u}'."); return result; } result.Result = d; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "ElasticsearchOASIS: AvatarDetail loaded."; } catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ElasticsearchOASIS: {ex.Message}"); } return result; }
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string u, int version = 0) => LoadAvatarDetailByUsernameAsync(u, version).Result;
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string e, int version = 0) { var result = new OASISResult<IAvatarDetail>(); try { var d = await SearchDetailAsync("email", e); if (d == null) { OASISErrorHandling.HandleError(ref result, $"ElasticsearchOASIS: No detail for email '{e}'."); return result; } result.Result = d; result.IsError = false; result.Message = "ElasticsearchOASIS: AvatarDetail loaded."; } catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ElasticsearchOASIS: {ex.Message}"); } return result; }
+        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string e, int version = 0) { var result = new OASISResult<IAvatarDetail>(); try { var d = await SearchDetailAsync("email", e); if (d == null) { OASISErrorHandling.HandleError(ref result, $"ElasticsearchOASIS: No detail for email '{e}'."); return result; } result.Result = d; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "ElasticsearchOASIS: AvatarDetail loaded."; } catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ElasticsearchOASIS: {ex.Message}"); } return result; }
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string e, int version = 0) => LoadAvatarDetailByEmailAsync(e, version).Result;
 
         public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
@@ -366,24 +406,11 @@ namespace NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS
                 var payload = JsonSerializer.SerializeToNode(holon, holon.GetType(), _jsonOpts)!.AsObject();
                 payload["id"] = id;
                 payload["providerUniqueStorageKey"] = JsonSerializer.SerializeToNode(keys, _jsonOpts);
-                using var request = new HttpRequestMessage(HttpMethod.Put, $"{_host}/oasis-holons/_doc/{key}")
+                await UpsertDocAsync("oasis-holons", key, new Dictionary<string, object?>
                 {
-                    Content = new StringContent(Ser(new Dictionary<string, object?> {
-                        ["parentHolonId"] = holon.ParentHolonId.ToString(), ["holonType"] = (int)holon.HolonType,
-                        ["isDeleted"] = holon.IsDeleted, ["dataJson"] = payload.ToJsonString(_jsonOpts)
-                    }), Encoding.UTF8, "application/json")
-                };
-                using var response = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
-                response.EnsureSuccessStatusCode();
-                using var acknowledgement = await ReadNativeResponseAsync(response, 64 * 1024, default);
-                var ack = acknowledgement.RootElement;
-                if (ack.GetProperty("_index").GetString() != "oasis-holons" || ack.GetProperty("_id").GetString() != key ||
-                    ack.GetProperty("_version").GetInt64() < 1 || ack.GetProperty("_seq_no").GetInt64() < 0 ||
-                    ack.GetProperty("_primary_term").GetInt64() < 1 ||
-                    ack.GetProperty("result").GetString() is not ("created" or "updated") ||
-                    ack.GetProperty("_shards").GetProperty("failed").GetInt32() != 0 ||
-                    ack.GetProperty("_shards").GetProperty("successful").GetInt32() < 1)
-                    throw new System.IO.InvalidDataException("Native write did not acknowledge the staged identity/revision.");
+                    ["parentHolonId"] = holon.ParentHolonId.ToString(), ["holonType"] = (int)holon.HolonType,
+                    ["isDeleted"] = holon.IsDeleted, ["dataJson"] = payload.ToJsonString(_jsonOpts)
+                });
                 // Storage acknowledgement publishes keys; HolonManager owns tracking acceptance.
                 holon.Id = id;
                 holon.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
@@ -433,7 +460,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS
                 var doc = await GetDocAsync("oasis-holons", id.ToString());
                 if (doc == null || GetSourceBool(doc.Value, "isDeleted")) { OASISErrorHandling.HandleError(ref result, $"ElasticsearchOASIS: No holon for ID '{id}'."); return result; }
                 var holon = Des<Holon>(GetSourceStr(doc.Value, "dataJson")); if (holon == null) { OASISErrorHandling.HandleError(ref result, "ElasticsearchOASIS: Deserialise failed."); return result; }
-                result.Result = holon; result.IsError = false; result.Message = "ElasticsearchOASIS: Holon loaded.";
+                result.Result = holon; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "ElasticsearchOASIS: Holon loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ElasticsearchOASIS: {ex.Message}"); }
             return result;

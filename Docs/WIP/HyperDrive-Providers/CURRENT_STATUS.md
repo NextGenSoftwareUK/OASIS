@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. Elasticsearch now validates native document write identities and shard acknowledgements through a shared REST path, waits for search visibility, publishes avatar identities only after acknowledgement, and uses the canonical avatar-detail codec. Added both shared storage modes on disposable digest-pinned Elasticsearch 9.5.5 nodes, with exact tombstone cleanup and native index counts. Existing COSMIC HTTPS/CQL fixtures are outside this run. CI and full storage acceptance remain open.
+
 12 November Cancun time. [OpenSearch Development run 43202562656](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43202562656) passed 26/26 in both modes on the same exact tree `812e34bfb139b9c0ed18688a74f028dba157f221` with confirmed fixture cleanup. After the half-hour interval and seven successful baseline deployments, Development advanced to `52ace6727b58` with that four-file tree. The dependency pins and COSMIC/CQL files were preserved. Deployment remains open.
 
 12 November Cancun time. [OpenSearch run 43201436539](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43201436539) passed 26/26 in both modes at `cf73d4a955bf`, with zero skips. Both modes verified exact tombstone cleanup, empty native indices and disposable node teardown. The provider matrix records 48 native shared-storage passes. The OpenSearch workflow now qualifies the four reviewed files with current Development dependencies and logs the exact staged tree. Hosted TLS, graph depth and pagination, history and conditional writes remain open.
