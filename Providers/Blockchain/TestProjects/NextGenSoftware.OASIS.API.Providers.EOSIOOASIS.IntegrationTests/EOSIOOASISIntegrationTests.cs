@@ -10,7 +10,7 @@ using NextGenSoftware.OASIS.Providers.TestSupport;
 namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.IntegrationTests
 {
     [TestClass]
-    public class EOSIOOASISIntegrationTests
+    public partial class EOSIOOASISIntegrationTests
     {
         private EOSIOOASIS _provider = null!;
 

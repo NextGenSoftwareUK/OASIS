@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. Added EOSIO and SQLite routing verification on disposable official Antelope Spring. It uses the existing shipping contract fixture in separate sync and async jobs, verifies exact replication in both directions, both read failovers and even RoundRobin, then requires all three native tables empty through cleos. The accepted direct storage suite carries forward. Routing CI is pending.
+
 12 November Cancun time. [Prepared Polkadot routing CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43309232675) passed both modes with no skips. Native Substrate and SQLite verified bidirectional replication, bidirectional read failover and even RoundRobin. A fresh MongoDB client reloaded unique signed originals for routed writes and cleanup, and the contract ended empty. CI removed the chain fixture and outbox container and volumes. Added a separate TRON routing mode on the existing disposable TRE fixture. It uses shipping TronNet gRPC storage, verifies both routing directions and native cleanup, and leaves the retained ledger untouched. TRON CI and Development qualification remain open.
 
 12 November Cancun time. [Native Solid routing CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43309386161) passed two cases with zero skips. Both modes verified exact replicas and read failover in each direction, an even RoundRobin split, and HTTP 404 after removing both owned records. The runner confirmed removal of the owned server, Pod, SQLite files and test output. Exact Development and hosted verification remain open.

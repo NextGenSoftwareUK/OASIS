@@ -20,4 +20,9 @@
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.EOSIOOASIS\NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="EOSIOOASISIntegrationTests.Routing.cs" Condition="'$(AntelopeRoutingTests)' != 'true'" />
+    <Compile Include="../../../Shared/TestSupport/NativePriorityRouting.cs" Link="TestSupport/NativePriorityRouting.cs" Condition="'$(AntelopeRoutingTests)' == 'true'" />
+    <ProjectReference Include="../../../Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.csproj" Condition="'$(AntelopeRoutingTests)' == 'true'" />
+  </ItemGroup>
 </Project>

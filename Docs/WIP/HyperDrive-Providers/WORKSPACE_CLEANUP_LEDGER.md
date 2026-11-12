@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+12 November EOSIO routing uses disposable hosted Antelope Spring fixtures with the existing node, wallet, download and directory teardown. No local build, runtime or report was created.
+
 12 November prepared Polkadot run 43309232675 verified an empty native contract and removal of the Substrate fixture and MongoDB outbox container and volumes. TRON routing reuses disposable hosted TRE provisioning and the existing fixture cleanup. No local runtime, build, database or report was created.
 
 12 November Solid run 43309386161 independently confirmed exact record absence after provider deletion and verified removal of its owned server, Pod, SQLite files and test results. No local fixture or output was created.
