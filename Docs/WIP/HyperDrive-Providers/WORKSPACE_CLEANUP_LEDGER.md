@@ -412,3 +412,5 @@ Urgent disk cleanup follow-up: leased standard project clean succeeded for AWS u
 11 November Cancun time. Polkadot activation-only CI 43138621689 passed, including teardown of the owned Substrate process and fixture directory containing the generated DNA. The job uses a disposable runner. No Windows build output was created.
 
 11 November Cancun time. C: had 20372594688 bytes free after the cleanup audit. The largest reviewed disposable HyperDrive items were the inactive Garnet tool install (562.9 MiB), WEB4 node_modules (109.7 MiB), isolated EVM npm cache (95.6 MiB), and generated NEAR build dependencies and WEB4 output. The full provider results directory was preserved because it also contains native evidence. Automatic approval review rejected the scoped recursive cleanup command as blocked by policy before it ran. No files were removed by this audit.
+
+11 November Cancun time. Holo Desktop native CI 43156037841 passed the selected real-conductor lifecycle test and process teardown. The hApp, conductor fixture and test output lived on the disposable Windows runner. No local download or build artifacts were created.
