@@ -61,3 +61,5 @@ Recovery cleanup removed the three pinned Debug assemblies from the verifier pat
 Combined candidate d4b9bf1ba8 adds only the existing TRON WEB4 workflow to 8a487ceb3e. [Run 43125723177](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43125723177) is queued for the controlled boundary checks with authenticated native HTTP disabled. The Core and WEB4 refs are temporary CI tags.
 
 12 November UTC: exact reconciled WEB4 d4b9bf1ba8 and Core a7fa20bf passed all 11 controlled admission checks in CI 43125723177, with zero skipped in the controlled suite. Authenticated native HTTP was disabled; no native fixture was started. Keep the two candidate tags until the scoped commits have a durable published home or are superseded. Live enrollment still requires a dedicated reader key.
+
+Core Development advanced to 0098430d. Prepared local Core d7692071 and WEB4 79c18e0944 on the current tips, retaining both the merged Core admissions and the GOMap registration. The new combined candidate needs exact CI. Authenticated native verification still requires the existing dedicated reader key.
