@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. [Exact AWS S3 adapter qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43299430529) passed both modes on tree `f6220cfdaa3c346346e289f53856078f5ca48e0c`. Candidate `df02d6f43bfe` combines the six non-overlapping SQL Server, Supabase and AWS S3 test paths on `d74e43b9def4`. All seven predecessor deployments are green. Recheck the exact managed HoloOASIS settings cutover with COSMIC after 15:28:38 before integration. Added an Oracle Free and SQLite routing job using a digest-pinned Linux Oracle Database Free image and exact native cleanup. Hosted Oracle stays deferred.
+
 12 November Cancun time. [AWS S3 adapter routing run 43298684631](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43298684631) passed both V2 modes against real MinIO and SQLite. Both replication directions, both outage directions and even RoundRobin reads passed. Direct SDK listing verified an empty bucket. Exact Development qualification uses the same verified image digest and the two scoped test paths. Hosted AWS IAM and routing remain open.
 
 12 November Cancun time. [Exact Supabase and SQLite qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43297794966) passed both routing modes on tree `cbd832b14856f4d3c29122de2774add6689d060d` and verified three empty PostgreSQL tables. Combined candidate `649dcebf5998` contains only the two verified Supabase and two verified SQL Server test paths on managed HoloOASIS Development. The next integration review is after 15:28:38 Cancun time and requires a fresh rollout and parent check. Added a separate AWS S3 adapter and SQLite routing qualification using the existing S3-compatible CI service. Hosted AWS acceptance remains open.

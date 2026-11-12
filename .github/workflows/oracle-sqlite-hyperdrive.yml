@@ -1,0 +1,102 @@
+name: Oracle and SQLite HyperDrive routing
+
+on:
+  push:
+    branches: [work/hyperdrive-provider-completion]
+    paths:
+      - '.github/workflows/oracle-sqlite-hyperdrive.yml'
+      - 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests/OracleSqliteHyperDriveTests.cs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lifecycle:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: OASIS
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          path: OASIS
+          submodules: recursive
+          persist-credentials: false
+
+      - name: Read the recorded Libraries revision
+        id: dependencies
+        shell: bash
+        run: |
+          revision="$(sed -n 's/^LIBRARIES_COMMIT=//p' Docker/oasis-dependency-versions.env)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "libraries=$revision" >> "$GITHUB_OUTPUT"
+          revision="$(sed -n 's/^HOLOCHAIN_COMMIT=//p' Docker/oasis-dependency-versions.env)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "holochain=$revision" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependencies.outputs.libraries }}
+          path: NextGenSoftware-Libraries
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+
+      - uses: actions/checkout@v7
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          ref: ${{ steps.dependencies.outputs.holochain }}
+          path: holochain-client-csharp
+          persist-credentials: false
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Verify Oracle Free and SQLite routing
+        shell: bash
+        run: |
+          umask 077
+          fixture="$(mktemp -d "$RUNNER_TEMP/oasis-priority-oracle.XXXXXXXX")"
+          container=""
+          cleanup() {
+            local status=$? cleanup_status=0
+            if [[ -n "$container" ]]; then
+              docker rm --force --volumes "$container" >/dev/null || cleanup_status=1
+              if docker inspect "$container" >/dev/null 2>&1; then cleanup_status=1; fi
+            fi
+            rm -rf -- "$fixture" || cleanup_status=1
+            if [[ "$cleanup_status" -ne 0 || -e "$fixture" ]]; then exit 1; fi
+            echo "Removed the owned Oracle container, volumes, SQLite databases and test output."
+            exit "$status"
+          }
+          trap cleanup EXIT
+          export ORACLE_PASSWORD="Aa9$(openssl rand -hex 10)"
+          export APP_USER_PASSWORD="Bb9$(openssl rand -hex 10)"
+          echo "::add-mask::$ORACLE_PASSWORD"
+          echo "::add-mask::$APP_USER_PASSWORD"
+          image=docker.io/gvenzl/oracle-free@sha256:d86d09794ae138a8951e97d7ee010778dcd43088e8d0f83a51002abab8c6d7fd
+          container="$(docker run --detach --publish 127.0.0.1:11521:1521 \
+            -e ORACLE_PASSWORD -e APP_USER=OASIS_ROUTING -e APP_USER_PASSWORD "$image")"
+          for attempt in {1..60}; do
+            [[ "$(docker inspect --format '{{.State.Running}}' "$container")" == true ]]
+            if docker exec "$container" healthcheck.sh >/dev/null 2>&1; then break; fi
+            if [[ "$attempt" == 60 ]]; then docker logs --tail 20 "$container"; exit 1; fi
+            sleep 3
+          done
+          export OASIS_ORACLE_ROUTING_DIRECTORY="$fixture"
+          export OASIS_ORACLE_ROUTING_CONNECTION="Data Source=127.0.0.1:11521/FREEPDB1;User Id=OASIS_ROUTING;Password=$APP_USER_PASSWORD;Pooling=False"
+          pwsh -NoProfile -Command '
+            ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-PriorityOracleRouting -Operation {
+              $project = "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests"
+              dotnet test $project --filter "FullyQualifiedName~OracleSqliteHyperDriveTests" --logger "trx;LogFileName=routing.trx" --results-directory $env:OASIS_ORACLE_ROUTING_DIRECTORY /p:OracleRoutingTests=true /m:2 /nr:false /p:UseSharedCompilation=false
+              if ($LASTEXITCODE -ne 0) { throw "Native Oracle and SQLite routing checks failed." }
+              [xml]$report = Get-Content -LiteralPath (Join-Path $env:OASIS_ORACLE_ROUTING_DIRECTORY "routing.trx") -Raw
+              $counters = $report.SelectSingleNode("//*[local-name()=`"Counters`"]")
+              if (-not $counters -or $counters.total -ne "2" -or $counters.passed -ne "2") {
+                throw "Expected two executed and passing Oracle and SQLite routing cases."
+              }
+            }'
