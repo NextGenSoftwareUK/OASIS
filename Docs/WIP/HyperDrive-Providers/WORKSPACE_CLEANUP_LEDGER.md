@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+12 November NEAR routing run 43304053446 independently confirmed an empty native contract and removed its sandbox and reports. The temporary Git index used to reproduce the five-file Oracle and Azure Development candidate was removed and confirmed absent. No local runtime, database, build or test output was created.
+
 12 November Azure routing run 43303548491 verified exact Cosmos database deletion and removal of the owned emulator, volumes, SQLite files and runner reports. The NEAR routing job reuses a disposable hosted sandbox with teardown and zero-entry checks. Local checks only evaluated MSBuild inputs and parsed the Node script. No local build, runtime, database or report was created.
 
 12 November exact Oracle routing run 43301442901 removed its owned Oracle container, volumes, SQLite files and test output. The temporary Git index used to reproduce the tested tree was removed and confirmed absent. No local build or runtime was created.
