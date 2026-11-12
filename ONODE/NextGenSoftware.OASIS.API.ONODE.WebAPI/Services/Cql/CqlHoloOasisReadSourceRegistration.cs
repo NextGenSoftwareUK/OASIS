@@ -29,7 +29,7 @@ internal static class CqlHoloOasisReadSourceRegistration
         var zome = settings["Zome"];
         var dnaHash = ReadBytes(settings, "DnaHash", 39);
         var agentKey = ReadBytes(settings, "AgentKey", 39);
-        var token = ReadBytes(settings, "AppToken", 32);
+        var token = ReadAppToken(settings["AppToken"]);
         var credentials = new SigningCredentials
         {
             CapSecret = ReadBytes(settings, "CapabilitySecret", 64),
@@ -63,5 +63,13 @@ internal static class CqlHoloOasisReadSourceRegistration
         if (Convert.TryFromBase64String(configuration[name] ?? string.Empty, decoded, out var count) && count == length)
             return decoded.ToArray();
         throw new InvalidOperationException($"HoloOASIS CQL setting {name} must be a base64 value of the required length.");
+    }
+
+    private static byte[] ReadAppToken(string value)
+    {
+        Span<byte> decoded = stackalloc byte[256];
+        if (value is { Length: <= 344 } && Convert.TryFromBase64String(value, decoded, out var count) && count > 0)
+            return decoded[..count].ToArray();
+        throw new InvalidOperationException("HoloOASIS CQL requires a nonempty base64 app authentication token.");
     }
 }
