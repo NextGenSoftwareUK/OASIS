@@ -13,6 +13,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using EthereumProvider = NextGenSoftware.OASIS.API.Providers.EthereumOASIS.EthereumOASIS_Web3Core;
 using HoloOasisProvider = NextGenSoftware.OASIS.API.Providers.HoloOASIS.HoloOASIS;
+using PolygonProvider = NextGenSoftware.OASIS.API.Providers.PolygonOASIS.PolygonOASIS;
 using SolanaProvider = NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.SolanaOASIS;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
@@ -61,6 +62,7 @@ public sealed class CqlHostedSourceRegistry : ICqlHostedSourceRegistry
     private readonly CqlPublicReadCatalogue holoOasisCatalogue;
     private readonly string solanaPublicAccountConfiguration;
     private readonly string ethereumPublicAccountConfiguration;
+    private readonly string polygonPublicAccountConfiguration;
 
     private readonly ILogger<CqlHostedSourceRegistry> logger;
 
@@ -76,6 +78,7 @@ public sealed class CqlHostedSourceRegistry : ICqlHostedSourceRegistry
         holoOasisCatalogue = publicCatalogues?.SingleOrDefault(catalogue => catalogue.Provider == ProviderType.HoloOASIS);
         solanaPublicAccountConfiguration = configuration?["CQL_SOLANA_PUBLIC_SOURCE_JSON"];
         ethereumPublicAccountConfiguration = configuration?["CQL_ETHEREUM_PUBLIC_SOURCE_JSON"];
+        polygonPublicAccountConfiguration = configuration?["CQL_POLYGON_PUBLIC_SOURCE_JSON"];
     }
 
     public IOASISStorageProvider Find(ProviderType provider)
@@ -106,6 +109,8 @@ public sealed class CqlHostedSourceRegistry : ICqlHostedSourceRegistry
             }
             if (storage is EthereumProvider ethereum && ethereumPublicAccountConfiguration != null)
                 ethereum.ConfigurePublicAccountQuery(ethereumPublicAccountConfiguration);
+            if (storage is PolygonProvider polygon && polygonPublicAccountConfiguration != null)
+                polygon.ConfigurePublicAccountQuery(polygonPublicAccountConfiguration);
         }
         if (storage.ProviderType?.Value != provider || storage is not ICosmicQueryStorageProvider adapter
             || adapter.QueryProviderType != provider || adapter.QueryCapabilities == null
