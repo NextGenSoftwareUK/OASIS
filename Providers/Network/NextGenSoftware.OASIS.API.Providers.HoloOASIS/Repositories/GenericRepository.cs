@@ -167,8 +167,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Repositories
                     response = await hcObject.SaveAsync(customDataKeyValuePairs);
                 }
 
-                if (response != null)
-                    result = HandleSaveResponse(response, hcObjectType, holon, hcObject, result, "SaveAsync");
+                result = HandleSaveResponse(response, hcObjectType, holon, hcObject, result, "SaveAsync");
             }
             catch (Exception ex)
             {
@@ -244,8 +243,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Repositories
                     response = hcObject.Save(customDataKeyValuePairs);
                 }
 
-                if (response != null)
-                    result = HandleSaveResponse(response, hcObjectType, holon, hcObject, result, "Save");
+                result = HandleSaveResponse(response, hcObjectType, holon, hcObject, result, "Save");
             }
             catch (Exception ex)
             {
@@ -339,7 +337,14 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Repositories
             if (response != null)
             {
                 if (!response.IsError)
+                {
                     result = DataHelper.ConvertHCResponseToOASISResult(response, hcObjectType, hcObject, result);
+                    if (result.Result != null)
+                    {
+                        result.IsLoaded = true;
+                        result.LoadedCount = 1;
+                    }
+                }
                 else
                     OASISErrorHandling.HandleError(ref result, $"Error loading {hcObjectType} with {fieldName} {fieldValue} in the {methodName} method in the GenericRepository in the HoloOASIS Provider. Reason: {response.Message}");
             }
@@ -355,13 +360,19 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Repositories
             {
                 if (!response.IsError)
                 {
+                    if (string.IsNullOrWhiteSpace(hcObject.ActionHash))
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Holochain did not return an action hash for {hcObjectType} {holon.Id} in {methodName}.");
+                        return result;
+                    }
+
                     if (holon.ProviderUniqueStorageKey == null)
                         holon.ProviderUniqueStorageKey = new Dictionary<ProviderType, string>();
 
-                    if (!string.IsNullOrWhiteSpace(hcObject.ActionHash))
-                        holon.ProviderUniqueStorageKey[ProviderType.HoloOASIS] = hcObject.ActionHash;
-
+                    holon.ProviderUniqueStorageKey[ProviderType.HoloOASIS] = hcObject.ActionHash;
                     result.Result = (T)holon;
+                    result.IsSaved = true;
+                    result.SavedCount = 1;
                 }
                 else
                     OASISErrorHandling.HandleError(ref result, $"Error saving {hcObjectType} with id {holon.Id} and name {holon.Name} in the {methodName} method in the GenericRepository in the HoloOASIS Provider. Reason: {response.Message}");
