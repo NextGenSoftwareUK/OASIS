@@ -6,7 +6,7 @@ Recovered from the original COSMIC branch. Verification and registration counts 
 
 | Provider | Verified scope | Remaining gate |
 | --- | --- | --- |
-| HoloOASIS | The managed conductor served three full and two filtered rows through both native and public-only federation presets. The private MongoDB pair returned five full and four filtered rows, and a separate visitor saw zero private copies. | Browser rendering, SQLite replica delivery and live HyperDrive writes. |
+| HoloOASIS | The shipping BootLoader provider served three full and two filtered rows through both native and public-only federation presets on live Development. The private MongoDB pair returned five full and four filtered rows, and a separate visitor saw zero private copies. | Browser rendering, SQLite replica delivery and live HyperDrive writes. |
 | EOSIO | Both public browser presets rendered three and two rows. Native storage passed 52/52. | Original-owner private paired browser flow. |
 | SOLID | Both public browser presets passed. Native storage passed 52/52. | Original-owner private paired browser flow. |
 | TON | Both public browser presets passed. Native storage passed 52/52. | Original-owner private paired browser flow. |
