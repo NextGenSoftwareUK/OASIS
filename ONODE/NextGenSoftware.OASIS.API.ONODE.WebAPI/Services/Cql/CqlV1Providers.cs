@@ -1,4 +1,5 @@
 using System;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using System.Collections.Generic;
@@ -11,6 +12,7 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using HoloOasisProvider = NextGenSoftware.OASIS.API.Providers.HoloOASIS.HoloOASIS;
+using SolanaProvider = NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.SolanaOASIS;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 
@@ -54,6 +56,7 @@ public sealed class CqlHostedSourceRegistry : ICqlHostedSourceRegistry
 {
     private readonly IReadOnlyDictionary<ProviderType, CqlReadSourceProfile> profiles;
     private readonly CqlPublicReadCatalogue holoOasisCatalogue;
+    private readonly string solanaPublicAccountConfiguration;
 
     private readonly ILogger<CqlHostedSourceRegistry> logger;
 
@@ -61,12 +64,13 @@ public sealed class CqlHostedSourceRegistry : ICqlHostedSourceRegistry
         : this(profiles, NullLogger<CqlHostedSourceRegistry>.Instance) { }
 
     public CqlHostedSourceRegistry(IEnumerable<CqlReadSourceProfile> profiles, ILogger<CqlHostedSourceRegistry> logger,
-        IEnumerable<CqlPublicReadCatalogue> publicCatalogues = null)
+        IEnumerable<CqlPublicReadCatalogue> publicCatalogues = null, IConfiguration configuration = null)
     {
         this.profiles = (profiles ?? Array.Empty<CqlReadSourceProfile>())
             .ToDictionary(profile => profile.Storage.ProviderType.Value);
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         holoOasisCatalogue = publicCatalogues?.SingleOrDefault(catalogue => catalogue.Provider == ProviderType.HoloOASIS);
+        solanaPublicAccountConfiguration = configuration?["CQL_SOLANA_PUBLIC_SOURCE_JSON"];
     }
 
     public IOASISStorageProvider Find(ProviderType provider)
@@ -89,6 +93,11 @@ public sealed class CqlHostedSourceRegistry : ICqlHostedSourceRegistry
                 && holoOasisCatalogue?.CopyRecordIds() is { Length: > 0 } recordIds)
             {
                 holoOasis.ConfigurePublicQuery(recordIds[0], recordIds.ToHashSet());
+            }
+            if (storage is SolanaProvider solana && solana.QueryCapabilities == null &&
+                solanaPublicAccountConfiguration != null)
+            {
+                solana.ConfigurePublicAccountQuery(solanaPublicAccountConfiguration);
             }
         }
         if (storage.ProviderType?.Value != provider || storage is not ICosmicQueryStorageProvider adapter

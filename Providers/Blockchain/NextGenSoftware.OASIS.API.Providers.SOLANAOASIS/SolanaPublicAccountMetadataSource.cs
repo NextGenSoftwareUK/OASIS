@@ -44,12 +44,16 @@ public sealed class SolanaPublicAccountMetadataSource : KeyValueStorageProviderB
     }
 
     public PType QueryProviderType => PType.SolanaOASIS;
-    public CosmicQueryCapabilities QueryCapabilities { get; } =
+    internal static CosmicQueryCapabilities PublicAccountCapabilities { get; } =
         CosmicQueryCapabilities.ForStringMetadataKeyLookup(AddressMetadata, 44, 8);
+    public CosmicQueryCapabilities QueryCapabilities => PublicAccountCapabilities;
 
     /// <summary>Separate host query-profile configuration, never the existing
     /// signed Solana storage settings. Reject unknown fields rather than ignore keys.</summary>
-    public static SolanaPublicAccountMetadataSource FromJson(string json)
+    public static SolanaPublicAccountMetadataSource FromJson(string json) =>
+        new(CreateAccounts(json, null));
+
+    internal static AccountsBackend CreateAccounts(string json, HttpClient sharedClient)
     {
         if (json == null || json.Length > 16384) throw new ArgumentException("Bounded explicit Solana query source required.");
         using var document = JsonDocument.Parse(json);
@@ -60,15 +64,16 @@ public sealed class SolanaPublicAccountMetadataSource : KeyValueStorageProviderB
             root.EnumerateObject().Any(property => !fields.Contains(property.Name, StringComparer.Ordinal)) ||
             root.GetProperty("schema").GetInt32() != 1 || root.GetProperty("addresses").GetArrayLength() > 8)
             throw new ArgumentException("An explicit public account source schema is required; no signer settings are accepted.");
-        var client = new HttpClient(NativeConnectionGuard.CreateGuardedHttpHandler()) { Timeout = TimeSpan.FromSeconds(15) };
+        var client = sharedClient ??
+            new HttpClient(NativeConnectionGuard.CreateGuardedHttpHandler()) { Timeout = TimeSpan.FromSeconds(15) };
         try
         {
             return new(client, new Uri(root.GetProperty("rpcUrl").GetString(), UriKind.Absolute),
                 root.GetProperty("genesisHash").GetString(),
                 root.GetProperty("addresses").EnumerateArray().Select(value => value.GetString()).ToArray(),
-                root.GetProperty("sourceOwner").GetGuid(), ownsClient: true);
+                root.GetProperty("sourceOwner").GetGuid(), ownsClient: sharedClient == null);
         }
-        catch { client.Dispose(); throw; }
+        catch { if (sharedClient == null) client.Dispose(); throw; }
     }
 
     public override Task<OASISResult<bool>> ActivateProviderAsync() => ActivateQuerySourceAsync(default);
@@ -91,34 +96,40 @@ public sealed class SolanaPublicAccountMetadataSource : KeyValueStorageProviderB
         }
     }
 
-    public async Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicQueryAsync<T>(CosmicQueryPlan<T> plan,
-        int maximumResults = 100, CancellationToken cancellationToken = default) where T : IHolon
+    public Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicQueryAsync<T>(CosmicQueryPlan<T> plan,
+        int maximumResults = 100, CancellationToken cancellationToken = default) where T : IHolon =>
+        ExecutePublicAccountQueryAsync(accounts, IsProviderActivated && !disposed, plan, maximumResults, cancellationToken);
+
+    internal static async Task<OASISResult<IReadOnlyList<IHolon>>> ExecutePublicAccountQueryAsync<T>(
+        AccountsBackend accounts, bool active, CosmicQueryPlan<T> plan, int maximumResults,
+        CancellationToken cancellationToken) where T : IHolon
     {
         try
         {
-            ObjectDisposedException.ThrowIf(disposed, this);
-            if (plan == null || plan.Targets.Count != 1 || plan.Targets[0].Provider != QueryProviderType)
+            if (plan == null || plan.Targets.Count != 1 || plan.Targets[0].Provider != PType.SolanaOASIS)
                 return Failure("CQL_PLAN_TARGET_UNAVAILABLE", "One explicitly admitted public Solana source is required.");
             if (maximumResults is < 1 or > 10000) return Failure("CQL_QUERY_LIMIT", "A bounded result budget is required.");
-            var admitted = QueryCapabilities.AdmitPlan(plan);
+            if (accounts == null) return Failure("CQL_CAPABILITY_UNSUPPORTED", "Configure the reviewed Solana public account catalogue first.");
+            var capabilities = PublicAccountCapabilities;
+            var admitted = capabilities.AdmitPlan(plan);
             if (admitted.IsError) return Failure(admitted.ErrorCode, admitted.Message);
             IReadOnlyList<string> keys;
-            if (QueryCapabilities.StringKeySetLookup.IsKeySetQuery(plan.Query))
+            if (capabilities.StringKeySetLookup.IsKeySetQuery(plan.Query))
             {
-                var selected = QueryCapabilities.StringKeySetLookup.SelectKeys(plan.Query);
+                var selected = capabilities.StringKeySetLookup.SelectKeys(plan.Query);
                 if (selected.IsError) return Failure(selected.ErrorCode, selected.Message);
                 keys = selected.Result;
             }
             else
             {
-                var selected = QueryCapabilities.StringPointLookup.SelectKey(plan.Query);
+                var selected = capabilities.StringPointLookup.SelectKey(plan.Query);
                 if (selected.IsError) return Failure(selected.ErrorCode, selected.Message);
                 keys = new[] { selected.Result };
             }
             if (keys.Any(key => !accounts.Addresses.Contains(key, StringComparer.Ordinal)))
                 return Failure("CQL_INVALID_SOURCE_KEY", "Select addresses from the configured public catalogue.");
             cancellationToken.ThrowIfCancellationRequested();
-            if (!IsProviderActivated) return Failure("CQL_PROVIDER_INACTIVE", "Activate the configured public source first.");
+            if (!active) return Failure("CQL_PROVIDER_INACTIVE", "Activate the configured public source first.");
             var native = await accounts.ReadAsync(keys, cancellationToken);
             var rows = native.Where(row => plan.Query.ReadAccess == null || plan.Query.ReadAccess.CanRead(row))
                 .Skip(plan.Query.Offset).Take(plan.Query.Limit ?? native.Count).ToArray();
@@ -162,7 +173,7 @@ public sealed class SolanaPublicAccountMetadataSource : KeyValueStorageProviderB
             foreach (var entry in value.EnumerateArray()) Unique(entry);
     }
 
-    private sealed class AccountsBackend : IKeyValueBackend, IDisposable
+    internal sealed class AccountsBackend : IKeyValueBackend, IDisposable
     {
         private readonly HttpClient client;
         private readonly Uri rpc;
