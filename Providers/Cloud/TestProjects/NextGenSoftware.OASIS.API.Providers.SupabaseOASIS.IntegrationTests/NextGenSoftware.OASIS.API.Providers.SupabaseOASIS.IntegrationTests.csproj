@@ -24,6 +24,8 @@
     <ProjectReference Include="..\..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="../../../Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.csproj" Condition="'$(SupabaseRoutingTests)' == 'true'" />
+    <Compile Remove="SupabaseSqliteHyperDriveTests.cs" Condition="'$(SupabaseRoutingTests)' != 'true'" />
     <Compile Include="../../../Shared/TestSupport/CoreStorageConformance.cs" Link="TestSupport/CoreStorageConformance.cs" />
   </ItemGroup>
 </Project>

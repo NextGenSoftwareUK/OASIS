@@ -15,6 +15,8 @@
     <ProjectReference Include="../../../Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.csproj" />
     <Compile Remove="AwsStorageConformanceTests.cs" />
     <Compile Remove="S3CompatibleStorageConformanceTests.cs" />
+    <Compile Remove="AwsS3SqliteHyperDriveTests.cs" Condition="'$(AwsS3RoutingTests)' != 'true'" />
+    <ProjectReference Include="../../../Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.csproj" Condition="'$(AwsS3RoutingTests)' == 'true'" />
     <Compile Include="S3CompatibleStorageConformanceTests.cs" Condition="'$(IncludeCoreStorageConformance)' == 'true'" />
     <Compile Include="../../../Shared/TestSupport/AtomicConformanceCheckpoint.cs" Link="TestSupport/AtomicConformanceCheckpoint.cs" Condition="'$(IncludeCoreStorageConformance)' == 'true'" />
     <Compile Include="AwsStorageConformanceTests.cs" Condition="'$(IncludeCoreStorageConformance)' == 'true'" />
