@@ -352,6 +352,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
         public void Dispose()
         {
+            ResetPublicQueryActivation();
             try
             {
                 // Dispose of EOSIO client and repositories

@@ -127,6 +127,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
         public override async Task<OASISResult<bool>> DeActivateProviderAsync()
         {
+            ResetPublicQueryActivation();
             _eosClient?.Dispose();
             _eosClient = null;
             _holonRepository = null;
@@ -146,6 +147,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
         public override OASISResult<bool> DeActivateProvider()
         {
+            ResetPublicQueryActivation();
             _eosClient?.Dispose();
             _eosClient = null;
             _holonRepository = null;
