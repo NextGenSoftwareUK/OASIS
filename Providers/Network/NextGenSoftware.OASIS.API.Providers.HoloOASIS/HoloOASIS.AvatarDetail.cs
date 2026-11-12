@@ -439,13 +439,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
         public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
         {
-            OASISResult<IHolon> holon = await LoadHolonAsync(id);
-            if (holon.IsError || holon.Result?.ProviderUniqueStorageKey == null ||
-                !holon.Result.ProviderUniqueStorageKey.TryGetValue(NextGenSoftware.OASIS.API.Core.Enums.ProviderType.HoloOASIS, out string actionHash) ||
-                string.IsNullOrWhiteSpace(actionHash))
-                return holon;
-
-            return await _genericRepository.DeleteAsync(HcObjectTypeEnum.Holon, "actionHash", actionHash, ZOME_DELETE_HOLON_FUNCTION);
+            return await _genericRepository.DeleteAsync(HcObjectTypeEnum.Holon, "id", id.ToString("D"), ZOME_DELETE_HOLON_BY_ID_FUNCTION);
         }
 
         public override OASISResult<IHolon> DeleteHolon(Guid id)
