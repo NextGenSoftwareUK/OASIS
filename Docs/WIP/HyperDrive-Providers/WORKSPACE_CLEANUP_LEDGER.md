@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+12 November canonical HoloOASIS Development integration used one temporary Git index, removed after creating the exact scoped commit. No local build, dependency download or fixture was created.
+
 12 November combined canonical HoloOASIS run 43178174352 passed both mode cleanup gates and completed successfully on its disposable Windows runner. No local build output, fixture or raw test report was created.
 
 12 November verified hApp artifact 13925305621 in memory. Only the 1,015,314-byte shipping bundle and its manifest were written to tracked paths. No ZIP, extracted temporary file, local report or build directory was retained.
