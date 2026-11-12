@@ -6,6 +6,7 @@ on:
     paths:
       - '.github/workflows/holo-native-linux-bootloader.yml'
       - 'Scripts/TestHosts/Invoke-HoloLinuxBootLoaderActivation.ps1'
+      - 'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/HoloOASIS.ActivateDeactivateLoad.cs'
   workflow_dispatch:
 
 permissions:
@@ -44,16 +45,19 @@ jobs:
           submodules: recursive
           persist-credentials: false
 
-      - name: Admit HoloOASIS to the unchanged startup harness
+      - name: Apply the reviewed HoloOASIS lifecycle and harness changes
         shell: bash
         run: |
-          path='OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader.TestHarness/Program.cs'
-          expected="$(git hash-object "$path")"
           git -C ../provider-source fetch --no-tags --depth=1 origin 4fef831e0be670475bcaba71e6b46cf99c22c447
-          reviewed="$(git -C ../provider-source rev-parse "4fef831e0be670475bcaba71e6b46cf99c22c447:$path")"
-          incoming="$(git -C ../provider-source rev-parse "HEAD:$path")"
-          [[ "$expected" == "$reviewed" || "$expected" == "$incoming" ]]
-          cp -- "../provider-source/$path" "$path"
+          for path in \
+            'OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader.TestHarness/Program.cs' \
+            'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/HoloOASIS.ActivateDeactivateLoad.cs'; do
+            expected="$(git hash-object "$path")"
+            reviewed="$(git -C ../provider-source rev-parse "4fef831e0be670475bcaba71e6b46cf99c22c447:$path")"
+            incoming="$(git -C ../provider-source rev-parse "HEAD:$path")"
+            [[ "$expected" == "$reviewed" || "$expected" == "$incoming" ]]
+            cp -- "../provider-source/$path" "$path"
+          done
           install -m 644 ../provider-source/Scripts/TestHosts/Invoke-HoloLinuxBootLoaderActivation.ps1 Scripts/TestHosts/
 
       - name: Read the recorded Libraries revision

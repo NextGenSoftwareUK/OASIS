@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. [Linux HoloOASIS job 131072482346](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43185791290/job/131072482346) reached the downloaded conductor, installed the shipping hApp, and connected the authenticated app socket. Deactivation failed after the admin connection shut down the conductor before the app socket disconnected. Canonical HoloOASIS now closes the app socket first. The Linux fixture confirmed directory cleanup. [Windows job 131070904621](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43185313802/job/131070904621) installed and enabled the hApp and stopped while waiting for the capability grant. Both focused startup results remain open.
+
 12 November Cancun time. All seven Railway APIs reported deployment success at Azure Cosmos DB revision `4fef831e0be6`. Added a separate Linux HoloOASIS startup job that builds on the resolved Development pins, starts with an empty SDK cache and no conductor listener, and exercises download, activation and deactivation through BootLoader. The job checks the downloaded conductor version and listener shutdown. CI execution and deployed WEB4 HoloOASIS verification remain open.
 
 12 November Cancun time. [HoloOASIS BootLoader run 43184458138](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43184458138) stopped before conductor execution because the runner overlap check used an older common revision. The runner blob on Development `4fef831e0be6` matches the provider branch parent immediately before the startup change. The startup runner and harness now use that reviewed baseline. Other files retain their existing overlap checks. A corrected native result remains open.

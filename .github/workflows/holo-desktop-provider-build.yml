@@ -95,6 +95,7 @@ jobs:
           git -C $source fetch --no-tags --depth=1 --filter=blob:none origin $scopeBase $startupBase
           foreach ($path in $paths) {
             $base = if ($path -eq 'Scripts/test_holonet_live_release.ps1' -or
+              $path -like '*/NextGenSoftware.OASIS.API.Providers.HoloOASIS/HoloOASIS.ActivateDeactivateLoad.cs' -or
               $path -like '*/NextGenSoftware.OASIS.OASISBootLoader.TestHarness/Program.cs') { $startupBase } else { $scopeBase }
             $before = git -C $source ls-tree $base -- $path
             $after = git -C $source ls-tree HEAD -- $path
