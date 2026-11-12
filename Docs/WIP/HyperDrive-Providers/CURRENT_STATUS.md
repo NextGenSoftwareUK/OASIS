@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. Before the 17:59:35 Development review, all seven audit-trail API deployments reported success and the remote still pointed to 41f685efd3ef. Verified combined candidate b37daf68dd8c against the six Polkadot CI blobs and independently reproduced exact Solana CI tree cfc3e85974ba148cf32a7208a8790cde9edd2ce5 from the candidate. The COSMIC Ethereum correction image and HoloOASIS replacement were active at inspection. No Development push was made before the shared review.
+
 12 November Cancun time. [Solana exact audit-trail qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43320905435) passed both modes on 41f685efd3ef, tested tree cfc3e85974ba148cf32a7208a8790cde9edd2ce5, with Agave teardown verified. The combined Polkadot and Solana candidate b37daf68dd8c preserves both independently verified scopes and the identical shared helper. [Canonical HoloOASIS replacement](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43323308845) is queued. Check the fresh Development ref, fleet and COSMIC correction before the 17:59:35 Cancun review.
 
 12 November Cancun time. Canonical HoloOASIS routing run 43321617748 reached the real conductor. Async SQLite-to-Holo read failover hit a 60-second zome deadline after probing the closed Holo endpoint. Sync passed routing assertions and then found an unmapped Holochain collection record during cleanup. The disposable fixture now explicitly keeps conductor ownership in the runner and checks exact replicated IDs through native point reads after deletion. The collection mapping issue remains open separately. Replacement routing CI is pending.
