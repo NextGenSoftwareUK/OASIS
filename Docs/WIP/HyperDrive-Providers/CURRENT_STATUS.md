@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. Audited IPFS durable HyperDrive admission on recovery Development 18f227af493a. The native Kubo routing pass carries forward. Shipping IPFS exposes neither a bound committed replica receiver nor a bound atomic source outbox. The current writer locks native upload and publishes one encrypted catalogue root. Durable recovery needs a single publication boundary for graph, lineage and receipt, plus stable storage identity validated before receipt replay. Ordinary SaveHolon would create a separate user revision and cannot implement that receiver contract. No local runtime or test fixture was created.
+
 12 November Cancun time. Prepared TRON candidate b53b3c603d6d on the recovery-based routing stack. Its four qualified inputs match run 43332332675 and do not overlap the COSMIC stack through 52fb8c366232. The recovered Development revision 18f227af493a was still rolling out across all seven services at inspection.
 
 12 November Cancun time. TRON routing CI 43332332675 passed both modes with zero skips on expected tree db6995f8021c171021acd77542fcdfbad3092a70 and removed its disposable TRE fixture. Development advanced to COSMIC WEB4 recovery 18f227af493a. Confirm that rollout before publishing the prepared HyperDrive candidate.
