@@ -10,13 +10,15 @@
 | ActivityPub and routing | ActivityPub has 5/5 native capability checks. GOMap passed a public OSRM driving route. Authenticated Google Routes, Mapbox and HERE checks remain open. Niantic and WRLD still have reviewed adapter gaps. |
 | Canonical HoloOASIS | Top priority. Both modes passed all 52 native core-storage-v2 checks on the official Windows conductor with the verified identity-delete hApp in [run 43178174352](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43178174352). The verified bundle is packaged on the provider branch. Hosted, multi-agent and broader capability acceptance remain open. |
 | HoloOASIS.Desktop | Obsolete in source, package metadata and repository documentation at `45d6665da989`. The six-file compatibility and documentation batch reached Development at `70d3fbb4a31c`. Published NuGet metadata and live site listings still need the obsolescence update. |
-| Development | `df02d6f43bfe` integrates verified priority routing tests after the managed HoloOASIS rollout and public CQL acceptance. The new rollout and live HoloOASIS HyperDrive writes remain open. |
+| Development | `061ceca0221e` carries COSMIC Solana CQL and the earlier verified priority routing tests. Solana rollout and live HoloOASIS HyperDrive writes remain open. |
 | BootLoader startup | The shipping registration, activation and deactivation path passed against native Polkadot and TRON fixtures and the Microsoft Azure Cosmos DB emulator. [Azure Cosmos DB job 131055311882](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43180594194/job/131055311882) confirmed fixture teardown. |
 | HyperDrive | Priority-provider failover, replication and load balancing verification is active. Whole-inventory acceptance remains open. |
 
 [Provider matrix](PROVIDER_MATRIX.md) · [Evidence registry](CONFORMANCE_RESULTS.json) · [Cleanup ledger](WORKSPACE_CLEANUP_LEDGER.md)
 
 ## Verification log
+
+12 November Cancun time. COSMIC used the shared 16:01:41 window for Solana. Remote Development now points to 061ceca0221e. Candidate e0f315259334 on that parent combines the eight previously qualified Oracle, Azure and NEAR paths with no overlaps. Its tree is 6a244953c5ce52ece79096b5b2f52a3d48de97de. The six Solana changes are confined to WEB4 and the Solana provider. Check the preceding rollout and the latest deployment timestamp before integrating. [Polkadot routing run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43306250198) provisioned the native contract but stopped at test compilation. The test now uses the shipping Polkadot hard-delete method and still independently verifies an empty contract. A replacement run is pending.
 
 12 November Cancun time. [Exact NEAR qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43305473223) passed both routing modes on df02d6f43bfe with input tree 5d0b813a3829a6c028333e2ae2508d43afb695aa. The native contract was empty and sandbox teardown passed. The next integration must preserve the actual Development parent. Added a Polkadot and SQLite routing suite using the existing genesis-pinned Substrate node and shipping records contract. The new job checks bidirectional replication and read failover, RoundRobin and native contract emptiness in both modes. Existing storage checks carry forward. Routing execution is pending.
 

@@ -63,8 +63,8 @@ public sealed class PolkadotSqliteHyperDriveTests
                 fixtures.Select(record => record.Name).ToArray());
             foreach (var record in fixtures)
             {
-                var removed = await polkadot.DeleteHolonByIdAsync(record.Id, softDelete: false);
-                Assert.IsTrue(!removed.IsError && removed.Result && removed.IsDeleted && removed.DeletedCount == 1,
+                var removed = await polkadot.DeleteHolonAsync(record.Id);
+                Assert.IsTrue(!removed.IsError && removed.IsDeleted && removed.Result?.Id == record.Id,
                     removed.Message);
             }
             Assert.AreEqual(0, (await native.ListKeysAsync("")).Count);
