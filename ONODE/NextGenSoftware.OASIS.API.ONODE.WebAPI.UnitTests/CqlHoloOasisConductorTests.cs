@@ -39,7 +39,8 @@ public sealed class CqlHoloOasisConductorTests
         try
         {
             var writerActivation = await writer.ActivateProviderAsync();
-            Assert.True(writerActivation.Result && !writerActivation.IsError, writerActivation.ErrorCode);
+            Assert.True(writerActivation.Result && !writerActivation.IsError,
+                $"Canonical HoloOASIS activation failed. {writerActivation.ErrorCode} {writerActivation.Message}");
             var fixture = new Holon { Id = Guid.NewGuid(), Name = "Public CQL fixture", IsPublic = true };
             var saved = await writer.SaveHolonAsync(fixture, saveChildren: false);
             Assert.True(!saved.IsError && saved.Result != null, saved.ErrorCode);
