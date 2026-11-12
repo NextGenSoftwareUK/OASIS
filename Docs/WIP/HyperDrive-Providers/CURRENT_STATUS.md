@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. Hedera async routing passed. Sync reached the consensus outage and the SDK's internal timeout carried an OperationCanceledException, so HyperDrive treated it as caller cancellation and did not fail over to SQLite. The adapter now types its unmetered SDK read deadline and advertises that exact transport failure to HyperDrive. Caller cancellation, prepared query evidence and mutation reconciliation retain their existing behavior. Replacement native CI is pending. COSMIC's exact Ethereum image passed, so COSMIC owns the 17:07:34 window. Rebuild the verified Polkadot scope once its Development parent advances.
+
 12 November Cancun time. ActivityPub run 43315834312 provisioned Mastodon but stopped at compilation because the test lacked the Core request namespace. Added the import and confirmed the fixture teardown from the failed run. Routed native acceptance is pending replacement CI.
 
 12 November Cancun time. [Exact Polkadot CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43314244482) passed both modes on tree c6a02fceb6e94ac048121673d034083157a0ba0b. It matches six-file candidate 090b3b1e7d81 on e0f315259334 and confirms removal of the owned Substrate fixture and MongoDB outbox. All seven e0f315259334 deployments report success. COSMIC also has an Ethereum candidate on this parent. Coordinate the 17:07:34 window before publishing either scope. [ActivityPub routing CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43315834312) and [Hedera routing CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43315101618) are active.

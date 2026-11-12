@@ -5,6 +5,7 @@ on:
     branches: [work/hyperdrive-provider-completion]
     paths:
       - '.github/workflows/hedera-sqlite-hyperdrive.yml'
+      - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS/HederaSdkClient.cs'
       - '.github/workflows/hedera-native-storage.yml'
       - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS/**'
       - 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.IntegrationTests/HederaSqliteHyperDriveTests.cs'
