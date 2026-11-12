@@ -1,7 +1,7 @@
 # Provider breadth-first status matrix
 
 Inventory covers **234 shipping provider projects** using the selection rules in `Scripts/Providers/update_provider_matrix.py`.
-Current roles: **56 non-storage**, **178 storage/specialized-storage**. All projects have SDK/API source evidence or a hash-bound source review. **3** reviews identify a missing adapter.
+Current roles: **56 non-storage**, **178 storage/specialized-storage**. All projects have SDK/API source evidence or a hash-bound source review. **2** reviews identify a missing adapter.
 
 Current required storage suite: **core-storage-v2**. Earlier-suite totals remain historical and do not establish a current-suite pass.
 
@@ -142,7 +142,7 @@ $152/52 (native RTDB; core-storage-v2) | Official RTDB 4.11.2 passed both shippi
 | [GitcoinPassportOASIS](../../../Providers/Network/NextGenSoftware.OASIS.API.Providers.GitcoinPassportOASIS/NextGenSoftware.OASIS.API.Providers.GitcoinPassportOASIS.csproj) | Non-storage | Yes - HTTP API client | Not run (capability-v1) | Capability identity/activation/read-only probe pending; storage suite N/A |
 | [GoldskyOASIS](../../../Providers/Network/NextGenSoftware.OASIS.API.Providers.GoldskyOASIS/NextGenSoftware.OASIS.API.Providers.GoldskyOASIS.csproj) | Non-storage | Yes - HTTP API client | Not run (capability-v1) | Capability identity/activation/read-only probe pending; storage suite N/A |
 | [HoloOASIS](../../../Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/NextGenSoftware.OASIS.API.Providers.HoloOASIS.csproj) | Distributed application storage | Yes - HTTP API client, HoloNET client | Not run | Shared-suite adapter/run pending |
-| [HoloOASIS.Desktop](../../../Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop.csproj) | Distributed application storage | No - reviewed missing adapter | Not run | Shared-suite adapter/run pending; Source-reviewed project has no active native SDK/API adapter; implementation required |
+| [HoloOASIS.Desktop](../../../Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop.csproj) | Distributed application storage | Yes - canonical HoloNET client | Not run | Desktop now delegates to the canonical HoloOASIS provider, with local conductor access enabled by default. Package build and native lifecycle verification remain open. |
 | [HoloOASIS.Edge](../../../Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Edge/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Edge.csproj) | Distributed application storage | Yes - HoloNET client | Not run | Shared-suite adapter/run pending |
 | [HoloOASIS.Unity](../../../Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity.csproj) | Distributed application storage | Yes - HTTP API client, HoloNET client | Not run | Shared-suite adapter/run pending |
 | [InfuraOASIS](../../../Providers/Network/NextGenSoftware.OASIS.API.Providers.InfuraOASIS/NextGenSoftware.OASIS.API.Providers.InfuraOASIS.csproj) | Non-storage | Yes - HTTP API client | Not run (capability-v1) | Capability identity/activation/read-only probe pending; storage suite N/A |

@@ -538,3 +538,5 @@ The zkPass proof model now binds the exact TransGate JSON field names, including
 Niantic Lightship map acceptance is blocked by the vendor shutdown of the Unity Maps SDK and endpoints. The existing facade still contains fabricated success paths. It stays in the shipping inventory with this gap. The current Niantic Spatial SDK offers different AR capabilities. [Vendor sunset notice](https://www.nianticspatial.com/en/products/maps-sdk-notice)
 
 The documented WRLD v1 route example, with no credential sent, and the indoor API origin both returned HTTP 301 to the vendor homepage. The published interface is indoor routing and expects a vendor API key. This is endpoint availability evidence only. The legacy map facade still lacks a native adapter. [Vendor routing documentation](https://github.com/wrld3d/wrld-routing-api)
+
+Holo Desktop now exposes a shipping provider class backed by the canonical HoloNET storage adapter, using supplied clients or explicit admin and app-agent endpoints. Local conductor access is the default. Build and genuine desktop lifecycle verification are pending, as is canonical HoloOASIS shared conformance.
