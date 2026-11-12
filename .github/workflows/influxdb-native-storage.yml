@@ -1,0 +1,116 @@
+name: InfluxDB native storage lifecycle
+
+on:
+  push:
+    branches: [work/hyperdrive-provider-completion]
+    paths:
+      - '.github/workflows/influxdb-native-storage.yml'
+      - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.InfluxDBOASIS/**'
+      - 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.InfluxDBOASIS.IntegrationTests/InfluxDBNativeStorageConformanceTests.cs'
+      - 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.InfluxDBOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.InfluxDBOASIS.IntegrationTests.csproj'
+  workflow_dispatch:
+permissions:
+  contents: read
+
+jobs:
+  lifecycle:
+    strategy:
+      fail-fast: false
+      matrix:
+        mode: [sync, async]
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: OASIS
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          path: OASIS
+          submodules: recursive
+          persist-credentials: false
+
+      - name: Read the recorded Libraries revision
+        id: dependencies
+        shell: bash
+        run: |
+          revision="$(sed -n 's/^LIBRARIES_COMMIT=//p' Docker/oasis-dependency-versions.env)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "libraries=$revision" >> "$GITHUB_OUTPUT"
+          revision="$(sed -n 's/^HOLOCHAIN_COMMIT=//p' Docker/oasis-dependency-versions.env)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "holochain=$revision" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependencies.outputs.libraries }}
+          path: NextGenSoftware-Libraries
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+
+      - uses: actions/checkout@v7
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          ref: ${{ steps.dependencies.outputs.holochain }}
+          path: holochain-client-csharp
+          persist-credentials: false
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Verify shared storage against InfluxDB
+        shell: bash
+        env:
+          OASIS_INFLUXDB_MODE: ${{ matrix.mode }}
+        run: |
+          umask 077
+          fixture="$(mktemp -d "$RUNNER_TEMP/oasis-influxdb.XXXXXXXX")"
+          container=""
+          cleanup() {
+            local status=$? cleanup_status=0
+            if [[ -n "$container" ]]; then
+              docker rm --force --volumes "$container" || cleanup_status=1
+            fi
+            for checkpoint in "$fixture"/storage-*.json; do
+              if [[ -f "$checkpoint" ]]; then
+                jq -c '{case:.CurrentCase,checks:(.Passed | length),cleanup:.FixtureCleanupComplete,contract:.FailureContract}' "$checkpoint" || cleanup_status=1
+              fi
+            done
+            rm -rf -- "$fixture" || cleanup_status=1
+            if [[ "$cleanup_status" -ne 0 || -e "$fixture" ]]; then
+              echo "Failed to remove the owned InfluxDB resources." >&2
+              exit 1
+            fi
+            echo "Removed the owned InfluxDB node, volumes and fixture."
+            exit "$status"
+          }
+          trap cleanup EXIT
+          image=docker.io/library/influxdb@sha256:7ee90806d2b078a1d70a8ce3f454698997d992427f369ce7f2df11689de80644
+          export OASIS_INFLUXDB_NATIVE_TOKEN="$(openssl rand -hex 32)"
+          echo "::add-mask::$OASIS_INFLUXDB_NATIVE_TOKEN"
+          export DOCKER_INFLUXDB_INIT_ADMIN_TOKEN="$OASIS_INFLUXDB_NATIVE_TOKEN"
+          export DOCKER_INFLUXDB_INIT_PASSWORD="$(openssl rand -hex 24)"
+          container="$(docker run --detach --publish 127.0.0.1:18086:8086 \
+            -e DOCKER_INFLUXDB_INIT_MODE=setup -e DOCKER_INFLUXDB_INIT_USERNAME=oasis-fixture \
+            -e DOCKER_INFLUXDB_INIT_PASSWORD -e DOCKER_INFLUXDB_INIT_ADMIN_TOKEN \
+            -e DOCKER_INFLUXDB_INIT_ORG=oasis-native -e DOCKER_INFLUXDB_INIT_BUCKET=oasis-native "$image")"
+          curl --fail --silent --show-error --retry 35 --retry-delay 2 --retry-all-errors --max-time 5 \
+            'http://127.0.0.1:18086/health' | jq -e '.status == "pass" and (.version | ltrimstr("v")) == "2.7.12"'
+          curl --fail --silent --show-error 'http://127.0.0.1:18086/api/v2/setup' | jq -e '.allowed == false'
+          export OASIS_INFLUXDB_SHARED_FIXTURE=owned-ci-18086
+          export OASIS_INFLUXDB_REPORT_DIRECTORY="$fixture"
+          pwsh -NoProfile -Command '
+            ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-InfluxDBNativeStorage -Operation {
+              $project = "Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.InfluxDBOASIS.IntegrationTests"
+              $filter = "FullyQualifiedName~InfluxDBNativeStorageConformanceTests"
+              dotnet test $project --filter $filter --logger "trx;LogFileName=influxdb.trx" --results-directory $env:OASIS_INFLUXDB_REPORT_DIRECTORY /m:2 /nr:false /p:UseSharedCompilation=false
+              if ($LASTEXITCODE -ne 0) { throw "InfluxDB native lifecycle checks failed." }
+              [xml]$report = Get-Content -LiteralPath (Join-Path $env:OASIS_INFLUXDB_REPORT_DIRECTORY "influxdb.trx") -Raw
+              $counters = $report.SelectSingleNode("//*[local-name()=`"Counters`"]")
+              if (-not $counters -or $counters.total -ne "1" -or $counters.passed -ne "1") {
+                throw "Expected one executed and passing InfluxDB native test."
+              }
+            }'
