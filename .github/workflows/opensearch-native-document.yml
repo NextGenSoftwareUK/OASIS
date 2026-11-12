@@ -31,12 +31,50 @@ jobs:
       run:
         working-directory: OASIS
     steps:
+      - name: Resolve the Development baseline
+        id: baseline
+        shell: bash
+        working-directory: ${{ github.workspace }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          revision="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/Development" --jq .object.sha)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "revision=$revision" >> "$GITHUB_OUTPUT"
+          echo "Qualifying OpenSearch on Development $revision"
+
+      - uses: actions/checkout@v7
+        with:
+          path: provider-source
+          persist-credentials: false
+
       - uses: actions/checkout@v7
         with:
           token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          ref: ${{ steps.baseline.outputs.revision }}
           path: OASIS
           submodules: recursive
           persist-credentials: false
+
+      - name: Apply the reviewed OpenSearch storage scope
+        shell: bash
+        run: |
+          base=ca83daf40a3c4590195b4ccfd378f214d4252912
+          git -C ../provider-source fetch --no-tags --depth=1 origin "$base"
+          tests='Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS.IntegrationTests'
+          for path in \
+            'Providers/Storage/NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS/OpenSearchOASIS.cs' \
+            "$tests/NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS.IntegrationTests.csproj" \
+            "$tests/OpenSearchNativeDocumentLifecycleTests.cs" \
+            "$tests/OpenSearchNativeStorageConformanceTests.cs"; do
+            current="$(git ls-tree HEAD -- "$path")"
+            reviewed="$(git -C ../provider-source ls-tree "$base" -- "$path")"
+            incoming="$(git -C ../provider-source ls-tree HEAD -- "$path")"
+            [[ -n "$incoming" && ( "$current" == "$reviewed" || "$current" == "$incoming" ) ]]
+            install -m 644 "../provider-source/$path" "$path"
+            git add -- "$path"
+          done
+          echo "Qualified input tree: $(git write-tree)"
 
       - name: Read the recorded Libraries revision
         id: dependencies

@@ -1,6 +1,21 @@
 {
   "schemaVersion": 1,
   "verifiedNativeCiRuns": {
+    "OpenSearchOASIS": {
+      "suite": "core-storage-v2",
+      "backend": "OpenSearch 3.9.0 via the shipping REST adapter",
+      "runId": 43201436539,
+      "jobIds": [
+        131125585727,
+        131125585989
+      ],
+      "revision": "cf73d4a955bf255940bf438ea924ef4594dba199",
+      "passed": {
+        "async": 26,
+        "sync": 26
+      },
+      "cleanup": "Both native modes verified exact tombstone cleanup and all three indices empty. The disposable nodes and volumes were removed."
+    },
     "HoloOASIS": {
       "suite": "core-storage-v2",
       "backend": "Official Holochain Windows conductor 0.7.1 via HoloNET",
@@ -640,6 +655,7 @@
     "zkPassOASIS": "Native public EVM attestation (capability-v1 scope)"
   },
   "providerBlockers": {
+    "OpenSearchOASIS": ["Focused native REST checks confirmed denied soft and hard deletes, acknowledged tombstones and independent physical absence. Hosted TLS and scoped access, graph depth and pagination, history and native conditional writes remain open."],
     "BlockscoutOASIS": ["The shipping query-only address source passed a guarded native .NET qualification against Ethereum Blockscout and the public full/subset browser presets returned three and two rows on Development WEB4. The dedicated CQL source evidence covers public address reads. The legacy adapter and private paired browser flow remain open. See the [COSMIC native qualification](<../COSMIC ORM/BLOCKSCOUT_PUBLIC_SOURCE_STATUS.md>)."],
     "zkPassOASIS": ["The shipping verifier passed a genuine public Sepolia TransGate attestation and three rejection controls in [run 43143033093](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43143033093). New proof issuance and application integration remain open."],
     "MapboxOASIS": ["Directions v5 implements shared driving, walking and cycling requests with GeoJSON geometry. Authenticated capability verification remains open. The existing Directions service also requires a configured access token."],

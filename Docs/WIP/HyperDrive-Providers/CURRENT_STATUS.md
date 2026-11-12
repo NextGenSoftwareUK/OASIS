@@ -5,7 +5,7 @@
 | Area | Recorded status |
 | --- | --- |
 | Project inventory | 234 projects: 178 storage or specialized storage, including the obsolete Desktop compatibility wrapper, and 56 non-storage. |
-| Shared storage coverage | All 47 matrix entries recorded at 52/52 native core-storage-v2 have reconciled evidence. The registry contains 23 reports verified against their SHA-256 hashes and 24 passes independently checked against completed native CI jobs and their cleanup gates. |
+| Shared storage coverage | All 48 matrix entries recorded at 52/52 native core-storage-v2 have reconciled evidence. The registry contains 23 reports verified against their SHA-256 hashes and 25 passes independently checked against completed native CI jobs and their cleanup gates. |
 | Priority storage providers | The matrix records 52/52 native checks for Neon, Convex, Supabase, Solana, MongoDB, SQLite, Neo4j, SQL Server, Oracle, AWS DynamoDB and S3, IPFS, NEAR, Cosmos chain, Azure Cosmos DB, Google Firestore, Polkadot, Solid, Polygon, Arbitrum, TRON, EOSIO, TON, and Hedera/Hashgraph. Several use isolated native engines, emulators or local networks. See each row for hosted and capability gaps. |
 | ActivityPub and routing | ActivityPub has 5/5 native capability checks. GOMap passed a public OSRM driving route. Authenticated Google Routes, Mapbox and HERE checks remain open. Niantic and WRLD still have reviewed adapter gaps. |
 | Canonical HoloOASIS | Top priority. Both modes passed all 52 native core-storage-v2 checks on the official Windows conductor with the verified identity-delete hApp in [run 43178174352](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43178174352). The verified bundle is packaged on the provider branch. Hosted, multi-agent and broader capability acceptance remain open. |
@@ -17,6 +17,8 @@
 [Provider matrix](PROVIDER_MATRIX.md) · [Evidence registry](CONFORMANCE_RESULTS.json) · [Cleanup ledger](WORKSPACE_CLEANUP_LEDGER.md)
 
 ## Verification log
+
+12 November Cancun time. [OpenSearch run 43201436539](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43201436539) passed 26/26 in both modes at `cf73d4a955bf`, with zero skips. Both modes verified exact tombstone cleanup, empty native indices and disposable node teardown. The provider matrix records 48 native shared-storage passes. The OpenSearch workflow now qualifies the four reviewed files with current Development dependencies and logs the exact staged tree. Hosted TLS, graph depth and pagination, history and conditional writes remain open.
 
 12 November Cancun time. [OpenSearch run 43200638291](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43200638291) passed ten checks in each mode, including all avatar-detail lookups and acknowledged graph save. Both modes then stopped on the holon point read. The adapter now decodes existing embedded `IHolon` values into concrete holons and honors flat point reads. Hard avatar deletion also requires a native acknowledgement for the same-ID detail, or an exact native missing-detail response, before removing the avatar. The updated shared suite remains open.
 
