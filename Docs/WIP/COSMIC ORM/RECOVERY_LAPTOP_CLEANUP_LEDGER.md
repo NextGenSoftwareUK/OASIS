@@ -6534,3 +6534,5 @@ Track temporary tag `ci-cosmic-infura-web4-ee3a6589a6` for exact runs `432184056
 12 November Cancun time. Ethereum planning tests created Core.UnitTests `bin` (56.11 MiB) and `obj` (7.18 MiB). Keep them listed until the shared lease is free after WEB4 admission testing. Free disk observed at 33.90 GiB. The exact Ethereum image builds on GitHub; no image download or additional local runtime was required.
 
 12 November Cancun time. `dotnet clean` completed for the two owned .NET 10 test projects under the shared lease with project-reference builds disabled. Core.UnitTests `bin` fell from 56.11 MiB to 0 and `obj` from 7.18 to 0.94 MiB. WEB4.UnitTests `bin` is 0 and `obj` retains 6.29 MiB of restore metadata. Free disk was 32.69 GiB. Prior policy-rejected Solana output removal remains pending.
+
+12 November Cancun time. Scoped .NET clean completed under the shared build lease and reclaimed 906.67 MiB from Solana UnitTests. The test project retains 0.11 MiB in bin and 6.29 MiB in obj. Free disk was 31.92 GiB at measurement. This resolves the earlier bulk Solana output cleanup entry.
