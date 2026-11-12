@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+12 November hApp producer run 43176148764 built and tested on a disposable runner. The verified bundle is retained in GitHub Actions for seven days for combined provider verification. No local download, report or build output was created.
+
 12 November provider run 43175584012 and hApp producer 43174295696 used disposable hosted runners. The provider stopped after 19 checks per mode; the hApp producer stopped compiling its test payload. The hApp follow-up and scoped Development integration used temporary Git indexes, and the hApp change used one temporary source file. All were removed. No local build outputs or downloads were created.
 
 12 November provider run 43174783071 stopped at compilation on its disposable Windows runner. No local build output, download, or report was created.

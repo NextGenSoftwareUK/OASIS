@@ -124,8 +124,9 @@ jobs:
         uses: actions/download-artifact@v7
         with:
           name: verified-holooasis-happ
-          run-id: 42662935082
-          github-token: ${{ github.token }}
+          repository: NextGenSoftwareUK/OASIS-Holochain-hApp
+          run-id: 43176148764
+          github-token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
           path: ${{ runner.temp }}/oasis-holo-desktop-happ
       - name: Run canonical HoloOASIS storage against the pinned conductor
         shell: pwsh
@@ -133,7 +134,7 @@ jobs:
           $artifact = Join-Path $env:RUNNER_TEMP 'oasis-holo-desktop-happ'
           $happ = Join-Path $artifact 'oasis.happ'
           $manifest = Get-Content -LiteralPath (Join-Path $artifact 'build-manifest.json') -Raw | ConvertFrom-Json
-          if ($manifest.sourceCommit -notmatch '^[a-f0-9]{40}$' -or
+          if ($manifest.sourceCommit -cne 'a9fbde84b4f33ebe7ac8d8a08ce73ce16ceab608' -or
               (Get-FileHash -LiteralPath $happ -Algorithm SHA256).Hash -ine $manifest.artifactSha256) {
             throw 'The verified producer bundle failed provenance checks.'
           }

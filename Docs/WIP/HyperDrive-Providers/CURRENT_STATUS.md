@@ -17,6 +17,8 @@
 
 ## Verification log
 
+12 November Cancun time. [hApp producer run 43176148764](https://github.com/NextGenSoftwareUK/OASIS-Holochain-hApp/actions/runs/43176148764) passed two integrity tests and all three native conductor tests at `a9fbde84b4f3`. The new identity-delete test verified prior holon and avatar revisions were absent, avatar details were removed, and an unrelated avatar remained. Artifact 13925305621 was published. The provider workflow now pins that producer run and rejects a bundle whose source revision or SHA-256 differs from the manifest check. Combined provider conformance remains open.
+
 12 November Cancun time. Compared the checked-in matrix with the source inventory and found Firebase Realtime Database was the only omitted project row. Restored the row and registered its previously verified native 52/52 result and exact cleanup from [run 43105666326](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43105666326). The inventory remains 234 and the recorded native storage pass count rises to 46. No suite was rerun. All seven Development APIs reported success at Desktop obsolescence revision `70d3fbb4a31c`.
 
 12 November Cancun time. The matrix generator now reads the verified native CI entries as well as the hash-bound local reports. It preserves the source revision and links each CI-backed result, so regeneration retains the reconciled passes while keeping older suite evidence historical.
