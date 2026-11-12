@@ -5,10 +5,16 @@ on:
     branches: [work/hyperdrive-provider-completion]
     paths:
       - 'Providers/Shared/Contracts/OASISKeyValueStore.sol'
-      - '.github/workflows/tron-native-storage.yml'
       - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.TRONOASIS/**'
-      - 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.TRONOASIS.IntegrationTests/**'
   workflow_dispatch:
+  workflow_call:
+    inputs:
+      routing:
+        type: boolean
+        default: false
+    secrets:
+      PRIVATE_SUBMODULE_PAT:
+        required: true
 
 permissions:
   contents: read
@@ -64,6 +70,8 @@ jobs:
 
       - name: Deploy and exercise shipping storage on native TRON TRE
         shell: bash
+        env:
+          TRON_ROUTING: ${{ inputs.routing || false }}
         run: |
           umask 077
           fixture="$(mktemp -d "$RUNNER_TEMP/oasis-tron.XXXXXXXX")"
@@ -145,6 +153,20 @@ jobs:
           export OASIS_TRON_STORAGE_PRIVATE_KEY="$(printf '%064x' 1)"
           export OASIS_TRON_STORAGE_ENCRYPTION_KEY="$(openssl rand -base64 32)"
           echo "::add-mask::$OASIS_TRON_STORAGE_ENCRYPTION_KEY"
+          if [[ "$TRON_ROUTING" == true ]]; then
+            export OASIS_TRON_FRESH_ROUTING=1
+            pwsh -NoProfile -Command '
+              ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-TronRouting -Operation {
+                $project = "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.TRONOASIS.IntegrationTests"
+                dotnet test $project --filter "FullyQualifiedName~TronNativeStorageLifecycleTests.SharedStorageLifecycle" /p:TronDirectProviderOnly=true /p:TronRoutingTests=true /m:2 /nr:false /p:UseSharedCompilation=false --results-directory $env:OASIS_TRON_CI_FIXTURE --logger "trx;LogFileName=routing.trx"
+                if ($LASTEXITCODE -ne 0) { throw "Native TRON routing verification failed." }
+                [xml]$report = Get-Content -LiteralPath (Join-Path $env:OASIS_TRON_CI_FIXTURE "routing.trx")
+                if ($report.TestRun.ResultSummary.Counters.passed -ne "2" -or $report.TestRun.ResultSummary.Counters.total -ne "2") {
+                  throw "Both native TRON routing cases must execute and pass."
+                }
+              }'
+            exit 0
+          fi
           pwsh -NoProfile -Command '
             ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-TronStorage -Operation {
               dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.TRONOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.TRONOASIS.IntegrationTests.csproj" --filter "FullyQualifiedName~TronNativeStorageLifecycleTests.SharedStorageLifecycle" /p:TronDirectProviderOnly=true /m:2 /nr:false /p:UseSharedCompilation=false --logger "console;verbosity=normal"

@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. [Prepared Polkadot routing CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43309232675) passed both modes with no skips. Native Substrate and SQLite verified bidirectional replication, bidirectional read failover and even RoundRobin. A fresh MongoDB client reloaded unique signed originals for routed writes and cleanup, and the contract ended empty. CI removed the chain fixture and outbox container and volumes. Added a separate TRON routing mode on the existing disposable TRE fixture. It uses shipping TronNet gRPC storage, verifies both routing directions and native cleanup, and leaves the retained ledger untouched. TRON CI and Development qualification remain open.
+
 12 November Cancun time. [Native Solid routing CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43309386161) passed two cases with zero skips. Both modes verified exact replicas and read failover in each direction, an even RoundRobin split, and HTTP 404 after removing both owned records. The runner confirmed removal of the owned server, Pod, SQLite files and test output. Exact Development and hosted verification remain open.
 
 12 November Cancun time. All seven Solana Development API deployments on 061ceca0221e report successful. The shared integration window remains after 16:34:28 Cancun time. The existing Oracle, Azure and NEAR routing candidate applies only eight test or fixture paths. TRON evidence review found the retained original still unresolved and independently confirmed that the newer disposable TRE run covers direct storage only. Use that disposable fixture for new routed write verification and preserve the retained ledger and original.
