@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+12 November Weaviate shared storage CI uses a disposable loopback container and one runner-owned checkpoint directory per mode. Its exit trap removes the node, volumes and test results. No local build, fixture or download was created.
+
 12 November Qdrant run 43278798362 completed both disposable runner jobs with exact fixture removal and three independently empty collections. The temporary index used to reproduce the candidate tree was removed. No local fixture, download, build output or raw test report was created.
 
 12 November canonical HoloOASIS Development integration used one temporary Git index, removed after creating the exact scoped commit. No local build, dependency download or fixture was created.

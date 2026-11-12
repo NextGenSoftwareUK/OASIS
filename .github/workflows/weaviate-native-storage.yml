@@ -1,0 +1,112 @@
+name: Weaviate native storage lifecycle
+
+on:
+  push:
+    branches: [work/hyperdrive-provider-completion]
+    paths:
+      - '.github/workflows/weaviate-native-storage.yml'
+      - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.WeaviateOASIS/**'
+      - 'Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.WeaviateOASIS.IntegrationTests/WeaviateNativeStorageConformanceTests.cs'
+      - 'Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.WeaviateOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.WeaviateOASIS.IntegrationTests.csproj'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lifecycle:
+    strategy:
+      fail-fast: false
+      matrix:
+        mode: [sync, async]
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: OASIS
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          path: OASIS
+          submodules: recursive
+          persist-credentials: false
+
+      - name: Read the recorded Libraries revision
+        id: dependencies
+        shell: bash
+        run: |
+          revision="$(sed -n 's/^LIBRARIES_COMMIT=//p' Docker/oasis-dependency-versions.env)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "libraries=$revision" >> "$GITHUB_OUTPUT"
+          revision="$(sed -n 's/^HOLOCHAIN_COMMIT=//p' Docker/oasis-dependency-versions.env)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "holochain=$revision" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependencies.outputs.libraries }}
+          path: NextGenSoftware-Libraries
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+
+      - uses: actions/checkout@v7
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          ref: ${{ steps.dependencies.outputs.holochain }}
+          path: holochain-client-csharp
+          persist-credentials: false
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Verify shared storage against Weaviate
+        shell: bash
+        env:
+          OASIS_WEAVIATE_MODE: ${{ matrix.mode }}
+        run: |
+          umask 077
+          fixture="$(mktemp -d "$RUNNER_TEMP/oasis-weaviate.XXXXXXXX")"
+          container=""
+          cleanup() {
+            local status=$? cleanup_status=0
+            if [[ -n "$container" ]]; then
+              docker rm --force --volumes "$container" || cleanup_status=1
+            fi
+            for checkpoint in "$fixture"/storage-*.json; do
+              if [[ -f "$checkpoint" ]]; then
+                jq -c '{case:.CurrentCase,checks:(.Passed | length),cleanup:.FixtureCleanupComplete,contract:.FailureContract}' "$checkpoint" || cleanup_status=1
+              fi
+            done
+            rm -rf -- "$fixture" || cleanup_status=1
+            if [[ "$cleanup_status" -ne 0 || -e "$fixture" ]]; then
+              echo "Failed to remove the owned Weaviate resources." >&2
+              exit 1
+            fi
+            echo "Removed the owned Weaviate node, volumes and fixture."
+            exit "$status"
+          }
+          trap cleanup EXIT
+          image=docker.io/semitechnologies/weaviate@sha256:7f435fea6cb3d1b7b053079dbd7e2e69535e3962f74c6f46d3f930478c3de42d
+          container="$(docker run --detach --publish 127.0.0.1:18080:8080 \
+            -e AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED=true \
+            -e API_BASED_MODULES_DISABLED=true -e DEFAULT_VECTORIZER_MODULE=none \
+            -e PERSISTENCE_DATA_PATH=/var/lib/weaviate -e CLUSTER_HOSTNAME=oasis-native "$image")"
+          curl --fail --silent --show-error --retry 35 --retry-delay 2 --retry-all-errors --max-time 5 \
+            'http://127.0.0.1:18080/v1/.well-known/ready'
+          export OASIS_WEAVIATE_SHARED_FIXTURE=owned-ci-18080
+          export OASIS_WEAVIATE_REPORT_DIRECTORY="$fixture"
+          pwsh -NoProfile -Command '
+            ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-WeaviateNativeStorage -Operation {
+              $project = "Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.WeaviateOASIS.IntegrationTests"
+              $filter = "FullyQualifiedName~WeaviateNativeStorageConformanceTests"
+              dotnet test $project --filter $filter --logger "trx;LogFileName=weaviate.trx" --results-directory $env:OASIS_WEAVIATE_REPORT_DIRECTORY /m:2 /nr:false /p:UseSharedCompilation=false
+              if ($LASTEXITCODE -ne 0) { throw "Weaviate native lifecycle checks failed." }
+              [xml]$report = Get-Content -LiteralPath (Join-Path $env:OASIS_WEAVIATE_REPORT_DIRECTORY "weaviate.trx") -Raw
+              $counters = $report.SelectSingleNode("//*[local-name()=`"Counters`"]")
+              if (-not $counters -or $counters.total -ne "1" -or $counters.passed -ne "1") {
+                throw "Expected one executed and passing Weaviate native shared test."
+              }
+            }'

@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. Added shared native storage verification for Weaviate 1.39.8 on an empty, disposable CI node. Both shipping entry-point modes require 26 checks, native tombstone observation, exact deletion and independent empty collection counts. The existing COSMIC gRPC CQL path remains separate. Shared storage execution and hosted acceptance are open.
+
 12 November Cancun time. [Qdrant run 43278798362](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43278798362) passed 26 checks in each mode and exact fixture cleanup. Both modes verified explicit native embedding attachment, zero-vector rejection, preservation on payload update, ranked search and tombstone exclusion. The six-file Development candidate `c82faa749a36` reproduces qualified tree `79d0b965dd635a5d3f1e4145996f41bfbee58d5a` on `4c3d1016dbcd`. Hosted acceptance and concurrent updates remain open. Next Development review after 13:35:05 Cancun time.
 
 12 November Cancun time. Managed HoloOASIS advanced Development to `e54973c380c9`. Elasticsearch qualification now triggers when its native test project changes and will qualify the existing three-file batch against the new Development parent. The hosted HoloOASIS rollout and the new exact Elasticsearch integration evidence are pending.
