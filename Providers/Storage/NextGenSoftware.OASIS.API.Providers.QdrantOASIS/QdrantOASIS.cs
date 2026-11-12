@@ -6,6 +6,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -17,6 +18,7 @@ using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.API.Core.Serialization;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Providers.QdrantOASIS
@@ -72,6 +74,7 @@ namespace NextGenSoftware.OASIS.API.Providers.QdrantOASIS
         private static string Ser(object o) => JsonSerializer.Serialize(o, _jsonOpts);
         private static T? Des<T>(string? json) => json == null ? default
             : typeof(T) == typeof(AvatarDetail) ? StoredRecordJson.DeserializeStored<T>(json)
+            : typeof(T) == typeof(Holon) ? (T)(object)StoredRecordJson.DeserializeStoredHolon(json)
             : JsonSerializer.Deserialize<T>(json, _jsonOpts);
 
         // ─── Qdrant REST helpers ──────────────────────────────────────────────────
@@ -148,6 +151,17 @@ namespace NextGenSoftware.OASIS.API.Providers.QdrantOASIS
             if (result.GetProperty("status").GetString() != "completed")
                 throw new InvalidOperationException("Native point write has not completed.");
             return result.GetProperty("operation_id").GetUInt64();
+        }
+
+        private async Task DeletePointAsync(string collection, Guid id)
+        {
+            var ids = new[] { id.ToString("D") };
+            var deleted = await QdrantPostAsync($"/collections/{collection}/points/delete?wait=true", new { points = ids });
+            if (!HasOkStatus(deleted) || deleted.GetProperty("result").GetProperty("status").GetString() != "completed")
+                throw new InvalidOperationException("Native Qdrant point deletion did not complete.");
+            var verified = await QdrantPostAsync($"/collections/{collection}/points", new { ids, with_payload = false, with_vector = false });
+            if (!HasOkStatus(verified) || verified.GetProperty("result").GetArrayLength() != 0)
+                throw new InvalidOperationException("Native Qdrant did not confirm absence of the requested point.");
         }
 
         private async Task<JsonElement?> GetPointAsync(string collection, string id)
@@ -274,7 +288,7 @@ namespace NextGenSoftware.OASIS.API.Providers.QdrantOASIS
             try
             {
                 var point = await GetPointAsync("oasis_avatars", id.ToString());
-                if (point == null || GetPayloadBool(point.Value, "is_deleted")) { OASISErrorHandling.HandleError(ref result, $"QdrantOASIS: No avatar for ID '{id}'."); return result; }
+                if (point == null || GetPayloadBool(point.Value, "is_deleted")) { result.ErrorCode = OASISResultErrorCodes.RecordNotFound; OASISErrorHandling.HandleError(ref result, $"QdrantOASIS: No avatar for ID '{id}'."); return result; }
                 var avatar = Des<Avatar>(GetPayloadStr(point.Value, "data_json")); if (avatar == null) { OASISErrorHandling.HandleError(ref result, "QdrantOASIS: Deserialise failed."); return result; }
                 result.Result = avatar; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "QdrantOASIS: Avatar loaded.";
             }
@@ -342,8 +356,15 @@ namespace NextGenSoftware.OASIS.API.Providers.QdrantOASIS
                     var av = (Avatar)loaded.Result; av.DeletedDate = DateTime.UtcNow;
                     await UpsertPointAsync("oasis_avatars", id.ToString(), new Dictionary<string, object?> { ["username"] = av.Username, ["email"] = av.Email, ["is_deleted"] = true, ["data_json"] = Ser(av) });
                 }
-                else { await QdrantPostAsync($"/collections/oasis_avatars/points/delete?wait=true", new { points = new[] { id.ToString() } }); }
-                result.Result = true; result.IsError = false; result.Message = $"QdrantOASIS: Avatar '{id}' deleted.";
+                else
+                {
+                    await DeletePointAsync("oasis_avatar_details", id);
+                    await DeletePointAsync("oasis_avatars", id);
+                }
+                result.Result = true;
+                result.IsDeleted = true;
+                result.DeletedCount = 1;
+                result.Message = $"QdrantOASIS: Avatar '{id}' deleted.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"QdrantOASIS: {ex.Message}"); }
             return result;
@@ -393,7 +414,7 @@ namespace NextGenSoftware.OASIS.API.Providers.QdrantOASIS
             try
             {
                 var point = await GetPointAsync("oasis_avatar_details", id.ToString());
-                if (point == null) { OASISErrorHandling.HandleError(ref result, $"QdrantOASIS: No detail for ID '{id}'."); return result; }
+                if (point == null) { result.ErrorCode = OASISResultErrorCodes.RecordNotFound; OASISErrorHandling.HandleError(ref result, $"QdrantOASIS: No detail for ID '{id}'."); return result; }
                 var d = Des<AvatarDetail>(GetPayloadStr(point.Value, "data_json")); if (d == null) { OASISErrorHandling.HandleError(ref result, "QdrantOASIS: Deserialise failed."); return result; }
                 result.Result = d; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "QdrantOASIS: AvatarDetail loaded.";
             }
@@ -422,32 +443,78 @@ namespace NextGenSoftware.OASIS.API.Providers.QdrantOASIS
 
         // ─── Holon saving ─────────────────────────────────────────────────────────
 
-        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+        public override Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+            => SaveHolonGraphAsync(holon, saveChildren, recursive, maxChildDepth, 0, continueOnError);
+
+        private async Task<OASISResult<IHolon>> SaveHolonGraphAsync(IHolon holon, bool saveChildren, bool recursive,
+            int maxChildDepth, int currentChildDepth, bool continueOnError)
         {
             var result = new OASISResult<IHolon>();
             try
             {
-                if (IsVersionControlEnabled) throw new NotSupportedException("Qdrant historical writes are not implemented.");
-                if (holon == null) throw new ArgumentNullException(nameof(holon));
-                var id = holon.Id == Guid.Empty ? Guid.NewGuid() : holon.Id;
-                var keys = holon.ProviderUniqueStorageKey == null
-                    ? new Dictionary<Core.Enums.ProviderType, string>()
-                    : new Dictionary<Core.Enums.ProviderType, string>(holon.ProviderUniqueStorageKey);
-                keys[Core.Enums.ProviderType.QdrantOASIS] = id.ToString("D");
-                var payload = JsonSerializer.SerializeToNode(holon, holon.GetType(), _jsonOpts)!.AsObject();
-                payload["id"] = id;
-                payload["providerUniqueStorageKey"] = JsonSerializer.SerializeToNode(keys, _jsonOpts);
-                var operation = await PersistHolonAsync(id, holon.ParentHolonId, (int)holon.HolonType, holon.IsDeleted, payload.ToJsonString(_jsonOpts));
-                holon.Id = id;
-                holon.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
-                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.QdrantOASIS] = id.ToString("D");
-                result.Result = holon;
-                result.IsSaved = true;
-                result.SavedCount = 1;
-                result.MetaData["Qdrant.OperationId"] = operation.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                if (IsVersionControlEnabled)
+                    throw new NotSupportedException("Qdrant historical writes are not implemented.");
+
+                var plan = HolonGraphWritePlan.CreateForSave(new[] { holon }, saveChildren, recursive, maxChildDepth, currentChildDepth);
+                var failed = new HashSet<Guid>();
+                foreach (var node in plan.Nodes)
+                {
+                    if (failed.Contains(node.Snapshot.ParentHolonId))
+                    {
+                        failed.Add(node.Snapshot.Id);
+                        continue;
+                    }
+
+                    try
+                    {
+                        var operation = await SavePlannedHolonAsync(node);
+                        if (ReferenceEquals(node.Source, holon))
+                        {
+                            result.Result = holon;
+                            result.MetaData["Qdrant.OperationId"] = operation.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                        }
+                        result.SavedCount++;
+                    }
+                    catch (Exception ex)
+                    {
+                        failed.Add(node.Snapshot.Id);
+                        OASISErrorHandling.HandleError(ref result, $"Qdrant did not save holon '{node.Snapshot.Id}'.", ex);
+                        if (!continueOnError)
+                            break;
+                    }
+                }
+
+                result.IsSaved = result.SavedCount == plan.Nodes.Count;
             }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"QdrantOASIS: {ex.Message}"); }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"QdrantOASIS: {ex.Message}", ex);
+            }
             return result;
+        }
+
+        private async Task<ulong> SavePlannedHolonAsync(PlannedHolonWrite node)
+        {
+            var snapshot = node.Snapshot;
+            var id = snapshot.Id.ToString("D");
+            var keys = snapshot.ProviderUniqueStorageKey ?? new Dictionary<Core.Enums.ProviderType, string>();
+            keys[Core.Enums.ProviderType.QdrantOASIS] = id;
+            var captured = JsonNode.Parse(node.CapturedIntentJson)!.AsObject();
+            var document = new JsonObject();
+            foreach (var property in captured)
+            {
+                if (property.Key != "$type")
+                    document.Add(JsonNamingPolicy.CamelCase.ConvertName(property.Key), property.Value?.DeepClone());
+            }
+            document["id"] = id;
+            document["parentHolonId"] = snapshot.ParentHolonId;
+            document["providerUniqueStorageKey"] = JsonSerializer.SerializeToNode(keys, _jsonOpts);
+            var operation = await PersistHolonAsync(snapshot.Id, snapshot.ParentHolonId, (int)snapshot.HolonType, snapshot.IsDeleted, document.ToJsonString(_jsonOpts));
+
+            node.Source.Id = snapshot.Id;
+            node.Source.ParentHolonId = snapshot.ParentHolonId;
+            node.Source.ProviderUniqueStorageKey = keys;
+            return operation;
         }
 
         public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) => SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider).Result;
@@ -459,7 +526,8 @@ namespace NextGenSoftware.OASIS.API.Providers.QdrantOASIS
             var errors = new List<string>();
             foreach (var holon in holons)
             {
-                var write = await SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
+                var write = await SaveHolonGraphAsync(holon, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError);
+                result.SavedCount += write.SavedCount;
                 if (write.IsError)
                 {
                     errors.Add(write.Message);
@@ -470,8 +538,7 @@ namespace NextGenSoftware.OASIS.API.Providers.QdrantOASIS
             result.Result = saved;
             result.IsError = errors.Count > 0;
             result.ErrorCount = errors.Count;
-            result.IsSaved = saved.Count > 0;
-            result.SavedCount = saved.Count;
+            result.IsSaved = result.SavedCount > 0 && !result.IsError;
             result.Message = string.Join("; ", errors);
             return result;
         }
@@ -574,7 +641,7 @@ namespace NextGenSoftware.OASIS.API.Providers.QdrantOASIS
 
         // ─── Import / Export ──────────────────────────────────────────────────────
 
-        public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons) { var s = await SaveHolonsAsync(holons); return new OASISResult<bool> { Result = !s.IsError, IsError = s.IsError, Message = s.Message }; }
+        public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons) { var s = await SaveHolonsAsync(holons); return new OASISResult<bool> { Result = !s.IsError && s.IsSaved, IsError = s.IsError, IsSaved = s.IsSaved, SavedCount = s.SavedCount, Message = s.Message, Exception = s.Exception }; }
         public override OASISResult<bool> Import(IEnumerable<IHolon> holons) => ImportAsync(holons).Result;
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0) => await LoadAllHolonsAsync(version: version);
         public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0) => ExportAllAsync(version).Result;
