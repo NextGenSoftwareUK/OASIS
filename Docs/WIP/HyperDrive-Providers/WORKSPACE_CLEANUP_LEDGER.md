@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+12 November focused Weaviate pagination uses the existing disposable CI fixture. The test deletes only its attempted UUIDs, verifies native absence and requires the collection count to return to zero before node teardown. No local downloads, builds or fixture files were created.
+
 12 November exact Weaviate Development run 43284284598 confirmed both jobs independently removed their exact fixtures, native nodes, volumes and checkpoint directories. Candidate commit creation generated no local test files.
 
 12 November Weaviate candidate tree reconstruction used one temporary Git index. The index was removed and its absence verified. No worktree, local build output or test environment was created.

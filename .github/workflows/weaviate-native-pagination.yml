@@ -1,0 +1,20 @@
+name: Weaviate native pagination
+
+on:
+  push:
+    branches: [work/hyperdrive-provider-completion]
+    paths:
+      - '.github/workflows/weaviate-native-pagination.yml'
+      - 'Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.WeaviateOASIS.IntegrationTests/WeaviateNativePaginationTests.cs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  pagination:
+    uses: ./.github/workflows/weaviate-native-storage.yml
+    with:
+      pagination: true
+    secrets:
+      PRIVATE_SUBMODULE_PAT: ${{ secrets.PRIVATE_SUBMODULE_PAT }}

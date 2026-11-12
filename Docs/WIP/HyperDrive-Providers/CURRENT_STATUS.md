@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. Added a focused Weaviate pagination workflow against the pinned native node. Each read mode must return all 101 exact holon IDs across the 100-row cursor boundary, then confirm native absence for every ID and a zero collection count. This run exercises the outstanding multi-page behavior independently of the accepted shared lifecycle. The COSMIC HoloOASIS candidate is undergoing exact image qualification and retains the next integration window if release-ready.
+
 12 November Cancun time. Both [exact Weaviate Development jobs](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43284284598) passed 26/26 with no skips, empty native collections and verified teardown on tree `886f054f98cb057620d3086ee5ee4e9b3dd9149d`. Candidate `28aeb68f79fd` reproduces the tree on Qdrant Development. If COSMIC advances first, refresh the candidate against the new parent.
 
 12 November Cancun time. Coordination for the 14:07:53 Development window. The priority COSMIC HoloOASIS candidate `4a071c9ec906` is based on current Qdrant Development, and its [exact native conductor job](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43282212891) succeeded. All seven Qdrant deployments are green. Leave the next window available for the COSMIC candidate if it is release-ready. Requalify Weaviate against the new parent after that integration.

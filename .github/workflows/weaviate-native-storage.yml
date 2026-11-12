@@ -4,11 +4,18 @@ on:
   push:
     branches: [work/hyperdrive-provider-completion]
     paths:
-      - '.github/workflows/weaviate-native-storage.yml'
       - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.WeaviateOASIS/**'
       - 'Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.WeaviateOASIS.IntegrationTests/WeaviateNativeStorageConformanceTests.cs'
       - 'Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.WeaviateOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.WeaviateOASIS.IntegrationTests.csproj'
   workflow_dispatch:
+  workflow_call:
+    inputs:
+      pagination:
+        type: boolean
+        default: false
+    secrets:
+      PRIVATE_SUBMODULE_PAT:
+        required: true
 
 permissions:
   contents: read
@@ -67,6 +74,14 @@ jobs:
             install -m 644 "../provider-source/$path" "$path"
             git add -- "$path"
           done
+          if [[ "${{ inputs.pagination }}" == "true" ]]; then
+            path="$tests/WeaviateNativePaginationTests.cs"
+            current="$(git ls-tree HEAD -- "$path")"
+            incoming="$(git -C ../provider-source ls-tree HEAD -- "$path")"
+            [[ -n "$incoming" && ( -z "$current" || "$current" == "$incoming" ) ]]
+            install -m 644 "../provider-source/$path" "$path"
+            git add -- "$path"
+          fi
           echo "Qualified input tree: $(git write-tree)"
 
       - name: Read the recorded Libraries revision
@@ -103,6 +118,7 @@ jobs:
         shell: bash
         env:
           OASIS_WEAVIATE_MODE: ${{ matrix.mode }}
+          OASIS_WEAVIATE_TEST_CLASS: ${{ inputs.pagination && 'WeaviateNativePaginationTests' || 'WeaviateNativeStorageConformanceTests' }}
         run: |
           umask 077
           fixture="$(mktemp -d "$RUNNER_TEMP/oasis-weaviate.XXXXXXXX")"
@@ -138,12 +154,12 @@ jobs:
           pwsh -NoProfile -Command '
             ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-WeaviateNativeStorage -Operation {
               $project = "Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.WeaviateOASIS.IntegrationTests"
-              $filter = "FullyQualifiedName~WeaviateNativeStorageConformanceTests"
+              $filter = "FullyQualifiedName~$env:OASIS_WEAVIATE_TEST_CLASS"
               dotnet test $project --filter $filter --logger "trx;LogFileName=weaviate.trx" --results-directory $env:OASIS_WEAVIATE_REPORT_DIRECTORY /m:2 /nr:false /p:UseSharedCompilation=false
               if ($LASTEXITCODE -ne 0) { throw "Weaviate native lifecycle checks failed." }
               [xml]$report = Get-Content -LiteralPath (Join-Path $env:OASIS_WEAVIATE_REPORT_DIRECTORY "weaviate.trx") -Raw
               $counters = $report.SelectSingleNode("//*[local-name()=`"Counters`"]")
               if (-not $counters -or $counters.total -ne "1" -or $counters.passed -ne "1") {
-                throw "Expected one executed and passing Weaviate native shared test."
+                throw "Expected one executed and passing Weaviate native test."
               }
             }'
