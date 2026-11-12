@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+12 November Azure Cosmos DB routing uses a disposable CI emulator. Each mode creates an exact named database, verifies absence after deletion and uses a runner-owned SQLite file. The runner removes the emulator, volumes and test directory. No local runtime, build, database or report was created.
+
 12 November Oracle routing run 43300382334 passed both modes, confirmed zero native holon rows and removed the owned Oracle container, volumes, SQLite files and test output. The Development push used the existing scoped Git commit and generated no local fixtures.
 
 12 November exact S3 routing run 43299430529 removed the owned container, volumes, SQLite databases and test output. The temporary Git index used for the six-file candidate was removed and independently confirmed absent. Oracle routing uses a disposable CI database and runner directory. Only public registry metadata was read locally; no image, build or runtime was downloaded.

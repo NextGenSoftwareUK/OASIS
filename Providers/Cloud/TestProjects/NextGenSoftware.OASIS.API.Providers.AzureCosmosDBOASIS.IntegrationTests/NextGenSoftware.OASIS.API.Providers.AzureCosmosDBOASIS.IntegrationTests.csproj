@@ -44,4 +44,9 @@
     <ProjectReference Include="..\..\..\Storage\NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS\NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="AzureCosmosSqliteHyperDriveTests.cs" Condition="'$(AzureCosmosRoutingTests)' != 'true'" />
+    <Compile Include="../../../Shared/TestSupport/NativePriorityRouting.cs" Link="TestSupport/NativePriorityRouting.cs" Condition="'$(AzureCosmosRoutingTests)' == 'true'" />
+    <ProjectReference Include="../../../Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.csproj" Condition="'$(AzureCosmosRoutingTests)' == 'true'" />
+  </ItemGroup>
 </Project>
