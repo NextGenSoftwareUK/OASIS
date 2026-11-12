@@ -98,29 +98,42 @@ public sealed class SqlServerSqliteHyperDriveTests
             connection.DataSource = $"127.0.0.1,{((IPEndPoint)unavailableEndpoint.LocalEndPoint!).Port}";
             connection.ConnectTimeout = 1;
             connection.ConnectRetryCount = 0;
-            var unavailable = new SQLServerDBOASIS(connection.ConnectionString);
-            var failover = new ProviderManager(null, dna) { IsAutoFailOverEnabled = false };
-            failover.RegisterProvider(unavailable);
-            failover.RegisterProvider(sqlite);
-            Assert.False(failover.SetAndReplaceAutoFailOverListForProviders(candidates).IsError);
-            var failoverRouter = new OASISHyperDrive(failover);
-            StorageOperationRequest ReadSql() => new() { Operation = "LoadHolon", HolonId = selected.Id,
-                LoadChildren = false, PreferredProvider = ProviderType.SQLServerDBOASIS };
-            var rejected = sync ? failoverRouter.RouteRequest<IHolon>(ReadSql()) : await failoverRouter.RouteRequestAsync<IHolon>(ReadSql());
-            Assert.True(rejected.IsError, rejected.Message);
-            failover.IsAutoFailOverEnabled = true;
-            var recovered = sync ? failoverRouter.RouteRequest<IHolon>(ReadSql()) : await failoverRouter.RouteRequestAsync<IHolon>(ReadSql());
-            Assert.False(recovered.IsError, recovered.Message);
-            AssertRecord(selected, recovered.Result);
-            using var recoveryRoute = JsonDocument.Parse(recovered.MetaData["hyperDriveRoute"]);
-            Assert.Equal(nameof(ProviderType.SQLServerDBOASIS), recoveryRoute.RootElement.GetProperty("RequestedProvider").GetString());
-            Assert.Equal(nameof(ProviderType.SQLLiteDBOASIS), recoveryRoute.RootElement.GetProperty("ServingProvider").GetString());
+            var unavailableSql = new SQLServerDBOASIS(connection.ConnectionString);
+            await VerifyFailoverAsync(dna, candidates, selected, sync, unavailableSql, sqlite);
+
+            var unavailablePath = Path.Combine(fixture, "missing.db");
+            using var unavailableSqlite = new SQLLiteDBOASIS($"Data Source={unavailablePath};Mode=ReadWrite;Pooling=False;Default Timeout=1");
+            await VerifyFailoverAsync(dna, candidates, selected, sync, unavailableSqlite, sql);
+            Assert.False(File.Exists(unavailablePath));
         }
         finally
         {
             await sql.DeActivateProviderAsync();
             await sqlite.DeActivateProviderAsync();
         }
+    }
+
+    private static async Task VerifyFailoverAsync(OASISDNA dna, EnumValue<ProviderType>[] candidates,
+        Holon expected, bool sync, IOASISStorageProvider unavailable, IOASISStorageProvider replica)
+    {
+        var failover = new ProviderManager(null, dna) { IsAutoFailOverEnabled = false };
+        failover.RegisterProvider(unavailable);
+        failover.RegisterProvider(replica);
+        Assert.False(failover.SetAndReplaceAutoFailOverListForProviders(candidates).IsError);
+        var router = new OASISHyperDrive(failover);
+        var source = unavailable.ProviderType.Value;
+        StorageOperationRequest ReadSource() => new() { Operation = "LoadHolon", HolonId = expected.Id,
+            LoadChildren = false, PreferredProvider = source };
+
+        var rejected = sync ? router.RouteRequest<IHolon>(ReadSource()) : await router.RouteRequestAsync<IHolon>(ReadSource());
+        Assert.True(rejected.IsError, rejected.Message);
+        failover.IsAutoFailOverEnabled = true;
+        var recovered = sync ? router.RouteRequest<IHolon>(ReadSource()) : await router.RouteRequestAsync<IHolon>(ReadSource());
+        Assert.False(recovered.IsError, recovered.Message);
+        AssertRecord(expected, recovered.Result);
+        using var route = JsonDocument.Parse(recovered.MetaData["hyperDriveRoute"]);
+        Assert.Equal(source.ToString(), route.RootElement.GetProperty("RequestedProvider").GetString());
+        Assert.Equal(replica.ProviderType.Value.ToString(), route.RootElement.GetProperty("ServingProvider").GetString());
     }
 
     private static void AssertRecord(Holon expected, IHolon? actual)
