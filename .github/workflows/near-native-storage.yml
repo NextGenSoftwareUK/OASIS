@@ -28,12 +28,52 @@ jobs:
       run:
         working-directory: OASIS
     steps:
+      - name: Resolve the Development baseline
+        if: inputs.routing
+        id: baseline
+        shell: bash
+        working-directory: ${{ github.workspace }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          revision="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/Development" --jq .object.sha)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "revision=$revision" >> "$GITHUB_OUTPUT"
+          echo "Qualifying priority NEAR routing on Development $revision"
+
+      - uses: actions/checkout@v7
+        if: inputs.routing
+        with:
+          path: provider-source
+          persist-credentials: false
+
       - uses: actions/checkout@v7
         with:
           token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          ref: ${{ steps.baseline.outputs.revision || github.sha }}
           path: OASIS
           submodules: recursive
           persist-credentials: false
+
+      - name: Apply the reviewed priority NEAR routing scope
+        if: inputs.routing
+        shell: bash
+        run: |
+          base=df02d6f43bfe282017cb236366c15940391a864c
+          git -C ../provider-source fetch --no-tags --depth=1 origin "$base"
+          near='Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests'
+          for path in "$near/NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests.csproj" \
+            "$near/NearSqliteHyperDriveTests.cs" \
+            'Scripts/TestHosts/near-local/run-fresh-managed-lifecycle.mjs' \
+            'Providers/Shared/TestSupport/NativePriorityRouting.cs'; do
+            current="$(git ls-tree HEAD -- "$path")"
+            reviewed="$(git -C ../provider-source ls-tree "$base" -- "$path")"
+            incoming="$(git -C ../provider-source ls-tree HEAD -- "$path")"
+            [[ -n "$incoming" && ( "$current" == "$reviewed" || "$current" == "$incoming" ) ]]
+            install -m 644 "../provider-source/$path" "$path"
+            git add -- "$path"
+          done
+          echo "Qualified input tree: $(git write-tree)"
 
       - name: Read the recorded Libraries revision
         id: dependencies
