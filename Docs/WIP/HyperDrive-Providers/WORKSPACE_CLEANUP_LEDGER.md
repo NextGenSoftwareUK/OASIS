@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+12 November Polkadot routing run 43307162656 verified removal of the owned Substrate fixture after both cases rejected the unowned write. No local build, runtime or report was created.
+
 12 November Solid routing CI uses one disposable hosted server and Pod with runner-owned volumes and SQLite files. Its teardown checks container and fixture absence. No local image, runtime, credential, build or report was created.
 
 12 November Polkadot routing run 43306250198 confirmed removal of its owned Substrate fixture after the compile failure. The temporary Git index for the eight-path Development candidate was removed and verified absent. No local build, runtime or report was created.
