@@ -17,6 +17,8 @@
 
 ## Verification log
 
+12 November Cancun time. Canonical HoloOASIS current holon listing, metadata filters and owner-ID export now query the native collection through the activated app-agent connection. The pinned hApp exposes whole-value metadata indexing, so OASIS key/value matching filters the returned native records. Batch save and import now reuse the acknowledged native graph save and propagate failure and partial counts. The previous collection save never added the caller's holons, and import reported success even when its save failed. Combined conductor verification remains open.
+
 12 November Cancun time. The canonical parent-ID collection path now sends the requested GUID as the native zome's scalar input through the activated HoloNET app-agent client. The previous path created a new unbound collection client and sent an anchor and option object instead of the parent ID. The new path maps and counts returned native records and honors the holon type filter. The change is awaiting real-conductor verification.
 
 12 November Cancun time. HoloOASIS.Desktop is obsolete and retained for compatibility. Desktop-specific acceptance work is closed. Canonical HoloOASIS remains top priority, including local conductor connections. [Canonical native conformance run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43165294724) was queued at inspection.
