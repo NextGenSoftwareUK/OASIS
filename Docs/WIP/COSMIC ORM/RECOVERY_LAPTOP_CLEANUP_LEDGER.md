@@ -6362,3 +6362,5 @@ GOMap Development rollout 1ce06f9f queued. Retain the exact CI tag through cutov
 Fetched the current Core Development refs and prepared scoped TRON candidates with temporary Git indices. Temporary indices removed. No local build, worktree, fixture or tool installation.
 
 Track temporary ci-cosmic-tron-core-d7692071 and ci-cosmic-tron-web4-79c18e0944 for run 43137643642. Keep the earlier passing refs until the new run qualifies the replacement. No local builds, reports or downloads. Temporary documentation index removed.
+
+Removed ci-cosmic-gomap-7233b008a0 after the qualified GOMap code reached live Development. Warmup checks used the retained visitor and wrote four protected renewal files; follow-up wrote none. Temporary documentation index removed. No local build or download.

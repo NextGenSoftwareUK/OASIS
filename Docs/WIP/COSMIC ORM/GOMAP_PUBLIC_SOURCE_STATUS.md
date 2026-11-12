@@ -181,3 +181,5 @@ The shared OSRM demo remains limited to its operator policy. The existing bounde
 Prepared 8e3f15e42e3693056e4c9c97942dcd9896f916ad on Development 5251dc6df. Its entire source tree matches exact tested 7233b008a0 except for the intervening generic CI matrix workflow change. Held pending the shared 30-minute Development push window.
 
 Published Development 8e3f15e42e after the shared 30-minute push window elapsed and the WEB4 queue cleared. This revision differs from CI-qualified 7233b008a0 only in the unrelated generic CI matrix workflow. Railway deployment 1ce06f9f is queued. Hosted GOMap requires the dedicated HTTPS origin.
+
+Railway deployment 1ce06f9f succeeded at 8e3f15e42e. Existing sources warmed to 105/106. The configured-origin code is live; GOMap enrollment and authenticated browser checks await a dedicated HTTPS OSRM origin.

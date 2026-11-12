@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Live GOMap code rollout
+
+Railway 1ce06f9f succeeded at 8e3f15e42e. WEB4 discovery warmed from 78/106 to 105/106 native and federated ready. Nostr and Push Protocol recovered readiness; Hedera remained unavailable. NATS and Waku are ready. CouchDB, Supabase and TRON remain absent. GOMap code is deployed and its dedicated HTTPS origin is still needed for enrollment.
+
 ## GOMap Development rollout
 
 Development fast-forwarded to 8e3f15e42e with the five scoped GOMap CQL files. Railway queued WEB4 1ce06f9f. Previous live revision 5251dc6df remains the readiness baseline. Verify the cutover before recording hosted deployment. The dedicated HTTPS OSRM endpoint is still required for source enrollment.
