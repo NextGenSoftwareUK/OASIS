@@ -6348,3 +6348,5 @@ Track temporary ci-cosmic-tron-core-a7fa20bf and ci-cosmic-tron-web4-d4b9bf1ba8 
 12 November UTC: removed ci-cosmic-gomap-8917f041c4 after verifying its five CQL file blobs match retained ci-cosmic-gomap-7233b008a0. Combined run 43129754540 remains active. Windows reported 20.66 GiB free. No local output, build or download. Temporary documentation index removed.
 
 12 November UTC: verified 922321a8aa9d warmup with the retained visitor. Retained four protected renewal files; follow-ups wrote none. Combined GOMap CI cleanup passed; its tag remains the published candidate ref. Temporary documentation index removed. No local build or download.
+
+12 November UTC: checked exact Hedera activation evidence and existence of the protected Wizard session directory without reading credentials or starting recovery. Temporary documentation index removed. No new local files, builds or downloads.

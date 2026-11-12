@@ -141,3 +141,5 @@ WEB4 diagnostic regression gate complete: CI 42938257820/job 130253566184 succee
 11 November UTC: Railway deployed WEB4 cadf5bf85b (c08e176d). Authenticated discovery warmed from 18/106 to 68/106 to 104/106 ready for native and federated CQL. Hedera timed out awaiting headers after 15,007 ms; Nostr received WebSocket HTTP 503 after 129 ms. Supabase, TRON and CouchDB remain absent. Prior functional receipts retain their scope.
 
 11 November UTC: after the AvalancheGo WEB4 rollout restored Cosmos and Hedera readiness, the authenticated visitor ran both native public HTTP presets for each provider. Both returned three full and two filtered rows, with exact preset selections and strict subset containment. Prior private cohorts were preserved.
+
+12 November UTC: live Development 922321a8aa9d reports Hedera unavailable after activation timed out awaiting response headers (15,008 ms, no HTTP status). The rollout did not change Hedera reader or CQL files. Existing owner recovery action applies; no recovery, settings change or query replay was performed.
