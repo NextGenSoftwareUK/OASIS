@@ -6,8 +6,8 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleMapsOASIS.IntegrationTests;
 [TestClass]
 public sealed class GoogleRoutesLiveTests
 {
-    [TestMethod]
-    public async Task OfficialRoutesReturnsDrivingDistanceAndGeometry()
+    [DataTestMethod, DataRow(RoutingType.Driving), DataRow(RoutingType.Walking), DataRow(RoutingType.Cycling)]
+    public async Task OfficialRoutesReturnsDistanceAndGeometry(RoutingType travelMode)
     {
         if (Environment.GetEnvironmentVariable("OASIS_GOOGLE_ROUTES_LIVE_TEST") != "1")
             Assert.Inconclusive("Explicitly enable the authenticated Google Routes request.");
@@ -19,7 +19,7 @@ public sealed class GoogleRoutesLiveTests
         IOASISRoutingProvider provider = new GoogleMapsOASIS();
         var route = await provider.ComputeRouteAsync(
             new RoutingCoordinate(37.419734, -122.0827784),
-            new RoutingCoordinate(37.417670, -122.079595), RoutingType.Driving, timeout.Token);
+            new RoutingCoordinate(37.417670, -122.079595), travelMode, timeout.Token);
 
         Assert.IsTrue(route.DistanceMeters > 0);
         Assert.IsTrue(route.Points.Count >= 2);
