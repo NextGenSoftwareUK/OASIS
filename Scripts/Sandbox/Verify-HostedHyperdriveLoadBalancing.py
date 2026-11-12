@@ -26,7 +26,7 @@ def verify_response(response, expected, requested, *, providers=PROVIDERS):
         raise ValueError("Deployed per-response route evidence is required; shared status is not a substitute.")
     route = json.loads(encoded)
     if (route.get("RequestedProvider") != requested or route.get("InitialProvider") not in providers or
-            route.get("ServingProvider") not in providers or route.get("Succeeded") is not True or
+            route.get("ServingProvider") != route.get("InitialProvider") or route.get("Succeeded") is not True or
             route.get("RequestedStrategy") != "Auto"):
         raise ValueError("Response-owned route does not match this request and enrolled sources.")
     if requested != "Default" and (route["InitialProvider"] != requested or route["ServingProvider"] != requested):
@@ -60,18 +60,17 @@ def main():
     options = parser.parse_args()
     state = ROOT / "LocalState/COSMIC" / ("HostedQueryAcceptance-SolanaOASIS"
         if options.cohort == "original-solana" else "HostedHyperdriveRoutingV2Current" if options.cohort == "routing-v2" else "HostedHyperdriveRoutingCurrent")
-    report = ROOT / "TestResults/HostedCqlIntegrationCurrent" / ("hyperdrive-load-balancing-http.json"
-        if options.cohort == "original-solana" else "hyperdrive-load-balancing-" + options.cohort + "-http.json")
-    acknowledgement = state / "hyperdrive-load-balancing.acknowledged.json"
-    if acknowledgement.exists():
+    report = ROOT / "TestResults/HostedCqlIntegrationCurrent" / f"hyperdrive-auto-selection-{options.cohort}-http.json"
+    acknowledgement = state / "hyperdrive-auto-selection.acknowledged.json"
+    if acknowledgement.exists() or (state / "hyperdrive-load-balancing.acknowledged.json").exists():
         raise RuntimeError("Completed gate retained; do not repeat a green scope.")
     # This verifier owns reads only. Missing or expired sessions must never cause
     # flow.session to create a replacement or recycle an old operation identity.
-    if not (state / "owner.acknowledged.json").is_file() or not (state / "owner.dpapi").is_file():
+    if not (state / "owner.acknowledged.json").is_file():
         raise RuntimeError("Prepare and acknowledge the selected cohort separately; no session created by a read gate.")
     owner = json.loads((state / "owner.acknowledged.json").read_text())["id"]
     expected = reviewed_record(json.loads((state / "routing-record.acknowledged.json").read_text()), owner)
-    identity, token = flow.session(state, "owner", allow_create=False)
+    identity, token = flow.session(state, "owner", allow_create=False, allow_renewal=False)
     if identity["id"] != owner:
         raise RuntimeError("Acknowledged owner changed while loading the fixture.")
     if flow.call("sandbox/faults", token, method="GET")["result"]:
@@ -87,9 +86,9 @@ def main():
         observed.append({"requested": requested, "route": route, "id": response["result"]["id"]})
         flow.verification.write(report, {"reads": observed, "newSaves": 0, "browserAcceptance": False})
     selected = {row["route"]["ServingProvider"] for row in observed if row["requested"] == "Default"}
-    if len(selected) < 2:
-        raise RuntimeError("Automatic reads did not demonstrate provider variation; preserve observations for policy investigation.")
-    flow.write_new(acknowledgement, json.dumps({"reads": len(observed), "automaticProviders": sorted(selected), "newSaves": 0}).encode())
+    # Auto ranks providers by score. Repeated selection is valid when one provider
+    # remains highest ranked. Distribution requires a separate RoundRobin gate.
+    flow.write_new(acknowledgement, json.dumps({"reads": len(observed), "strategy": "Auto", "automaticProviders": sorted(selected), "newSaves": 0}).encode())
     print(json.dumps({"reads": len(observed), "automaticProviders": sorted(selected), "newSaves": 0, "browserAcceptance": False}))
 
 

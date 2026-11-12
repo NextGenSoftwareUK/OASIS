@@ -12,11 +12,13 @@
 | HoloOASIS.Desktop | Obsolete in source, package metadata and repository documentation at `45d6665da989`. The six-file compatibility and documentation batch reached Development at `70d3fbb4a31c`. Published NuGet metadata and live site listings still need the obsolescence update. |
 | Development | `a421cd7a8c5b` integrates the verified Weaviate native lifecycle and cursor pagination after seven successful Qdrant deployments. The Weaviate rollout and live HyperDrive HoloOASIS writes remain open. |
 | BootLoader startup | The shipping registration, activation and deactivation path passed against native Polkadot and TRON fixtures and the Microsoft Azure Cosmos DB emulator. [Azure Cosmos DB job 131055311882](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43180594194/job/131055311882) confirmed fixture teardown. |
-| HyperDrive | Global automatic failover, replication and load balancing await provider acceptance. KeyDB and Dragonfly each passed all 52 native lifecycle checks. |
+| HyperDrive | Priority-provider failover, replication and load balancing verification is active. Whole-inventory acceptance remains open. |
 
 [Provider matrix](PROVIDER_MATRIX.md) · [Evidence registry](CONFORMANCE_RESULTS.json) · [Cleanup ledger](WORKSPACE_CLEANUP_LEDGER.md)
 
 ## Verification log
+
+12 November Cancun time. Priority HyperDrive verification starts with existing [hosted routing evidence](../COSMIC%20ORM/HOSTED_SANDBOX_INTEGRATION_PLAN.md) for MongoDB, SQLite and Neo4j. The earlier WEB4 cohort verified three exact replicas and directional read failover for all three. Individual candidate selection passed for each provider. Auto repeatedly chose Neo4j, which is consistent with the shipping score-based strategy. The verifier now rejects a changed serving provider when failover is disabled and records Auto selection separately from RoundRobin distribution. Historical receipts are retained. This worktree lacks the original protected cohort, and no hosted fixture, fault or setting was changed. The live HoloOASIS SQLite queue remains under the existing COSMIC coordination.
 
 12 November Cancun time. Both [InfluxDB jobs](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43290452035) activated the shipping provider against InfluxDB 2.7.12 and stopped at the avatar-save acknowledgement contract. Avatar and detail writes now publish caller identities and counts after native acknowledgement. Point reads report their loaded count and details and holons use the shared stored-record decoder. The follow-up must verify these paths and the remaining lifecycle.
 
