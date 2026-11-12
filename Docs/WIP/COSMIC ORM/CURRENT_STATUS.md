@@ -2,7 +2,7 @@
 
 ## TRON CQL integration after HyperDrive activation
 
-Development advanced to `2e2635057bb4` with HyperDrive's separately verified TRON BootLoader and native fixture work. Railway `2e4e4095` was building. The CQL candidate `2441de16f2` preserves the eight previously qualified CQL files and exact Core pin. The new [combined CI run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43141168568) validated dependency pins and was running the controlled WEB4 checks. The previous live revision `8e3f15e42e` remains the 105/106 readiness baseline. Authenticated TRON qualification and enrolment require the dedicated TronGrid key.
+Development advanced to `2e2635057bb4` with HyperDrive's separately verified TRON BootLoader and native fixture work. Railway `2e4e4095` was building. The CQL candidate `2441de16f2` preserves the eight previously qualified CQL files and exact Core pin. The new [combined CI run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43141168568) validated dependency pins and passed all 11 controlled WEB4 checks. The previous live revision `8e3f15e42e` remains the 105/106 readiness baseline. Authenticated TRON qualification and enrolment require the dedicated TronGrid key.
 
 ## Live GOMap code rollout
 
