@@ -24,4 +24,8 @@ public sealed class PolygonOASIS : Web3CoreOASISBaseProvider, IOASISDBStoragePro
         this.ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));
         this.ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
     }
+
+    public void ConfigurePublicAccountQuery(string json)
+        => ConfigurePublicAccountQuery(PolygonPublicAccountMetadataSource.AddressMetadata,
+            client => PolygonPublicAccountMetadataSource.CreateQuery(json, client));
 }

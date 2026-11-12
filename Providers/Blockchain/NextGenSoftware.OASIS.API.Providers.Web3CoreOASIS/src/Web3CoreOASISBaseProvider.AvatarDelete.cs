@@ -51,8 +51,6 @@ namespace NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS;
 
 public partial class Web3CoreOASISBaseProvider
 {
-    protected virtual bool UseLegacyGasPricing => false;
-
     public override async Task<OASISResult<bool>> ActivateProviderAsync()
     {
         OASISResult<bool> result = new();
@@ -72,8 +70,7 @@ public partial class Web3CoreOASISBaseProvider
             if (string.IsNullOrWhiteSpace(contractCode) || contractCode == "0x" || contractCode == "0x0")
                 throw new InvalidOperationException($"No contract bytecode was found at configured address '{_contractAddress}'.");
 
-            _web3CoreOASIS = new(_chainPrivateKey, _hostURI, _contractAddress, Web3CoreOASISBaseProviderHelper.Abi,
-                _expectedChainId, UseLegacyGasPricing);
+            _web3CoreOASIS = new(_chainPrivateKey, _hostURI, _contractAddress, Web3CoreOASISBaseProviderHelper.Abi,_expectedChainId);
             IsProviderActivated = true;
             result.Result = true;
         }
@@ -111,6 +108,7 @@ public partial class Web3CoreOASISBaseProvider
 
     public override OASISResult<bool> DeActivateProvider()
     {
+        ResetPublicQueryActivation();
         _web3CoreOASIS = null;
         IsProviderActivated = false;
 
