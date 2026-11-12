@@ -9,6 +9,10 @@ on:
       - 'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop/**'
       - 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests/**'
   workflow_dispatch:
+    inputs:
+      development_revision:
+        description: Development commit to qualify (defaults to the current Development head)
+        type: string
 
 permissions:
   contents: read
@@ -22,12 +26,67 @@ jobs:
       run:
         working-directory: OASIS
     steps:
+      - name: Resolve the Development baseline
+        id: baseline
+        shell: pwsh
+        working-directory: ${{ github.workspace }}
+        env:
+          REQUESTED_REVISION: ${{ inputs.development_revision }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $headers = @{ Authorization = "Bearer $env:GH_TOKEN" }
+          $repository = "$env:GITHUB_API_URL/repos/$env:GITHUB_REPOSITORY"
+          $development = (Invoke-RestMethod -Headers $headers -Uri "$repository/git/ref/heads/Development").object.sha
+          $revision = $env:REQUESTED_REVISION
+          if ($revision) {
+            if ($revision -cnotmatch '^[a-f0-9]{40}$') { throw 'Expected a full Development commit SHA.' }
+            $ancestry = Invoke-RestMethod -Headers $headers -Uri "$repository/compare/$revision...$development"
+            if ($ancestry.status -notin @('ahead', 'identical')) { throw 'Requested revision is outside Development history.' }
+          }
+          else { $revision = $development }
+          $comparison = Invoke-RestMethod -Headers $headers -Uri "$repository/compare/$revision...$env:GITHUB_SHA"
+          "development=$revision" >> $env:GITHUB_OUTPUT
+          "common=$($comparison.merge_base_commit.sha)" >> $env:GITHUB_OUTPUT
+          Write-Output "Qualifying provider revision $env:GITHUB_SHA against Development $revision"
+      - uses: actions/checkout@v7
+        with:
+          path: provider-source
+          persist-credentials: false
       - uses: actions/checkout@v7
         with:
           token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          ref: ${{ steps.baseline.outputs.development }}
           path: OASIS
           submodules: recursive
           persist-credentials: false
+      - name: Apply the scoped Desktop changes
+        shell: pwsh
+        env:
+          COMMON_REVISION: ${{ steps.baseline.outputs.common }}
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+          if ($env:COMMON_REVISION -cnotmatch '^[a-f0-9]{40}$') { throw 'Missing common source revision.' }
+          $source = '../provider-source'
+          $paths = @(
+            'Scripts/test_holonet_live_release.ps1'
+            'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop/HoloOASIS.cs'
+            'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Desktop/README.md'
+            'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests/HoloOASISIntegrationTests.cs'
+            'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests.csproj'
+          )
+          git -C $source fetch --no-tags --depth=1 --filter=blob:none origin $env:COMMON_REVISION
+          foreach ($path in $paths) {
+            $before = git -C $source ls-tree $env:COMMON_REVISION -- $path
+            $after = git -C $source ls-tree HEAD -- $path
+            $current = git ls-tree HEAD -- $path
+            if ($current -ceq $after) { continue }
+            if ($current -cne $before) { throw "Development has an overlapping change in $path." }
+            if (-not $after) { throw "Provider source is missing $path." }
+            Copy-Item -LiteralPath (Join-Path $source $path) -Destination $path -Force
+            git add -- $path
+            $staged = git ls-files --stage -- $path
+            if (($after -split '\s+')[2] -cne ($staged -split '\s+')[1]) { throw "Staged content differs from provider source in $path." }
+          }
       - name: Read the recorded Libraries revision
         id: dependencies
         shell: bash
