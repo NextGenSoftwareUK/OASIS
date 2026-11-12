@@ -1,0 +1,62 @@
+name: Qualify HoloOASIS CQL on a native conductor
+
+on:
+  push:
+    tags: ['ci-cosmic-holooasis-native-*']
+
+permissions:
+  contents: read
+
+jobs:
+  conductor:
+    runs-on: windows-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          path: OASIS
+          submodules: true
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - name: Resolve and validate exact pins
+        id: dependency
+        working-directory: OASIS
+        shell: bash
+        run: |
+          python -B Scripts/validate_railway_dependency_manifest.py --require-gitlinks
+          grep -E '^(LIBRARIES_COMMIT|HOLOCHAIN_COMMIT)=[0-9a-f]{40}$' Docker/oasis-dependency-versions.env >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependency.outputs.LIBRARIES_COMMIT }}
+          path: NextGenSoftware-Libraries
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          ref: ${{ steps.dependency.outputs.HOLOCHAIN_COMMIT }}
+          path: holochain-client-csharp
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+      - name: Verify the shipped hApp and run the WEB4 CQL lifecycle
+        working-directory: OASIS
+        shell: pwsh
+        run: |
+          $package = 'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/OASIS_hAPP'
+          $manifest = Get-Content -LiteralPath "$package/build-manifest.json" -Raw | ConvertFrom-Json
+          $happ = "$package/oasis.happ"
+          if ($manifest.schemaVersion -ne 1 -or $manifest.sourceCommit -cnotmatch '^[a-f0-9]{40}$' -or
+              (Get-FileHash -LiteralPath $happ -Algorithm SHA256).Hash -ine $manifest.artifactSha256) {
+            throw 'The candidate hApp does not match its checked-in build manifest.'
+          }
+          Write-Output "Candidate $env:GITHUB_SHA, hApp source $($manifest.sourceCommit), hApp SHA-256 $($manifest.artifactSha256)"
+          $results = Join-Path $env:RUNNER_TEMP 'oasis-holo-cql'
+          New-Item -ItemType Directory -Path $results | Out-Null
+          $client = '../holochain-client-csharp/NextGenSoftware.Holochain.HoloNET.Client.Tests/NextGenSoftware.Holochain.HoloNET.Client.Tests.csproj'
+          $web4 = 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.csproj'
+          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-HoloOasisCql -Operation {
+            & Scripts/test_holonet_live_release.ps1 -Project $client -Happ $happ -ResultsDirectory $results -CqlProject $web4
+          }
