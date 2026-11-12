@@ -59,7 +59,7 @@ public abstract class EvmPublicAccountMetadataSource : KeyValueStorageProviderBa
         ProviderDescription = $"Read-only {accounts.Commitment} public {network.Name} balances; no wallet or transaction-body download";
         ProviderType = new EnumValue<PType>(network.Provider);
         ProviderCategory = new EnumValue<Core.Enums.ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
-        QueryCapabilities = CosmicQueryCapabilities.ForStringMetadataKeyLookup(network.AddressMetadata, 42, 8);
+        QueryCapabilities = accounts.Capabilities;
     }
 
     public PType QueryProviderType => accounts.Identity.Provider;
@@ -68,6 +68,10 @@ public abstract class EvmPublicAccountMetadataSource : KeyValueStorageProviderBa
     /// <summary>Separate host query-profile configuration, never the existing
     /// signed EVM storage settings. Reject unknown fields rather than ignore keys.</summary>
     protected static T CreateFromJson<T>(string json, Func<HttpClient, Uri, string, IEnumerable<string>, Guid, bool, T> create)
+        => CreateFromJson(json, create, null);
+
+    protected static T CreateFromJson<T>(string json, Func<HttpClient, Uri, string, IEnumerable<string>, Guid, bool, T> create,
+        HttpClient sharedClient)
     {
         if (json == null || Encoding.UTF8.GetByteCount(json) > 8192)
             throw new ArgumentException("Bounded explicit EVM public source required.");
@@ -82,14 +86,14 @@ public abstract class EvmPublicAccountMetadataSource : KeyValueStorageProviderBa
             root.GetProperty("sourceOwner").ValueKind != JsonValueKind.String || root.GetProperty("addresses").ValueKind != JsonValueKind.Array ||
             root.GetProperty("addresses").GetArrayLength() is < 1 or > 8)
             throw new ArgumentException("Exact anonymous EVM source schema required; signer/billing fields forbidden.");
-        var client = new HttpClient(NativeConnectionGuard.CreateGuardedHttpHandler()) { Timeout = TimeSpan.FromSeconds(15) };
+        var client = sharedClient ?? new HttpClient(NativeConnectionGuard.CreateGuardedHttpHandler()) { Timeout = TimeSpan.FromSeconds(15) };
         try
         {
             return create(client, new Uri(root.GetProperty("rpcUrl").GetString(), UriKind.Absolute),
                 root.GetProperty("chainId").GetString(), root.GetProperty("addresses").EnumerateArray().Select(value => value.GetString()),
-                root.GetProperty("sourceOwner").GetGuid(), true);
+                root.GetProperty("sourceOwner").GetGuid(), sharedClient == null);
         }
-        catch { client.Dispose(); throw; }
+        catch { if (sharedClient == null) client.Dispose(); throw; }
     }
 
     public async Task<OASISResult<bool>> ActivateQuerySourceAsync(CancellationToken cancellationToken)
@@ -110,34 +114,38 @@ public abstract class EvmPublicAccountMetadataSource : KeyValueStorageProviderBa
         }
     }
 
-    public async Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicQueryAsync<T>(CosmicQueryPlan<T> plan,
+    public Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicQueryAsync<T>(CosmicQueryPlan<T> plan,
         int maximumResults = 100, CancellationToken cancellationToken = default) where T : IHolon
+        => accounts.QueryAsync(plan, maximumResults, !disposed && IsProviderActivated, cancellationToken);
+
+    private static async Task<OASISResult<IReadOnlyList<IHolon>>> QueryAsync<T>(AccountsBackend accounts,
+        CosmicQueryPlan<T> plan, int maximumResults, bool activated, CancellationToken cancellationToken) where T : IHolon
     {
         try
         {
-            ObjectDisposedException.ThrowIf(disposed, this);
-            if (plan == null || plan.Targets.Count != 1 || plan.Targets[0].Provider != QueryProviderType)
+            if (plan == null || plan.Targets.Count != 1 || plan.Targets[0].Provider != accounts.Identity.Provider)
                 return Failure("CQL_PLAN_TARGET_UNAVAILABLE", "One explicitly admitted public EVM source is required.");
             if (maximumResults is < 1 or > 10000) return Failure("CQL_QUERY_LIMIT", "A bounded result budget is required.");
-            var admitted = QueryCapabilities.AdmitPlan(plan);
+            var capabilities = accounts.Capabilities;
+            var admitted = capabilities.AdmitPlan(plan);
             if (admitted.IsError) return Failure(admitted.ErrorCode, admitted.Message);
             IReadOnlyList<string> keys;
-            if (QueryCapabilities.StringKeySetLookup.IsKeySetQuery(plan.Query))
+            if (capabilities.StringKeySetLookup.IsKeySetQuery(plan.Query))
             {
-                var selected = QueryCapabilities.StringKeySetLookup.SelectKeys(plan.Query);
+                var selected = capabilities.StringKeySetLookup.SelectKeys(plan.Query);
                 if (selected.IsError) return Failure(selected.ErrorCode, selected.Message);
                 keys = selected.Result;
             }
             else
             {
-                var selected = QueryCapabilities.StringPointLookup.SelectKey(plan.Query);
+                var selected = capabilities.StringPointLookup.SelectKey(plan.Query);
                 if (selected.IsError) return Failure(selected.ErrorCode, selected.Message);
                 keys = new[] { selected.Result };
             }
             if (keys.Any(key => !accounts.Addresses.Contains(key, StringComparer.Ordinal)))
                 return Failure("CQL_INVALID_SOURCE_KEY", "Select addresses from the configured public catalogue.");
             cancellationToken.ThrowIfCancellationRequested();
-            if (!IsProviderActivated) return Failure("CQL_PROVIDER_INACTIVE", "Activate the configured public source first.");
+            if (!activated) return Failure("CQL_PROVIDER_INACTIVE", "Activate the configured public source first.");
             var native = await accounts.ReadAsync(keys, cancellationToken);
             var rows = native.Where(row => plan.Query.ReadAccess == null || plan.Query.ReadAccess.CanRead(row))
                 .Skip(plan.Query.Offset).Take(plan.Query.Limit ?? native.Count).ToArray();
@@ -200,7 +208,14 @@ public abstract class EvmPublicAccountMetadataSource : KeyValueStorageProviderBa
             foreach (var entry in value.EnumerateArray()) Unique(entry);
     }
 
-    private sealed class AccountsBackend : IKeyValueBackend, IDisposable
+    public interface IPublicAccountQuery
+    {
+        Task VerifyAsync(CancellationToken cancellationToken);
+        Task<OASISResult<IReadOnlyList<IHolon>>> QueryAsync<T>(CosmicQueryPlan<T> plan, int maximumResults,
+            bool activated, CancellationToken cancellationToken) where T : IHolon;
+    }
+
+    protected sealed class AccountsBackend : IKeyValueBackend, IPublicAccountQuery, IDisposable
     {
         private readonly HttpClient client;
         private readonly Uri rpc;
@@ -210,6 +225,11 @@ public abstract class EvmPublicAccountMetadataSource : KeyValueStorageProviderBa
         private readonly Dictionary<string, string> records;
         public IReadOnlyList<string> Addresses { get; }
         public Network Identity { get; }
+        public CosmicQueryCapabilities Capabilities { get; }
+
+        public Task<OASISResult<IReadOnlyList<IHolon>>> QueryAsync<T>(CosmicQueryPlan<T> plan, int maximumResults,
+            bool activated, CancellationToken cancellationToken) where T : IHolon
+            => EvmPublicAccountMetadataSource.QueryAsync(this, plan, maximumResults, activated, cancellationToken);
         public string Commitment => Identity.ReadPolicy switch {
             ReadBlockPolicy.Finalized => "finalized",
             ReadBlockPolicy.LatestCanonicalAtRead => "latest-canonical-at-read",
@@ -220,6 +240,7 @@ public abstract class EvmPublicAccountMetadataSource : KeyValueStorageProviderBa
         public AccountsBackend(HttpClient client, Uri rpc, string chainId, IEnumerable<string> addresses, Guid owner, bool ownsClient, Network network)
         {
             Identity = network;
+            Capabilities = CosmicQueryCapabilities.ForStringMetadataKeyLookup(network.AddressMetadata, 42, 8);
             ArgumentNullException.ThrowIfNull(client);
             if (rpc == null || rpc.Scheme != Uri.UriSchemeHttps || !string.IsNullOrEmpty(rpc.UserInfo) ||
                 !string.IsNullOrEmpty(rpc.Query) || !string.IsNullOrEmpty(rpc.Fragment) || rpc.AbsolutePath != network.RpcPath ||

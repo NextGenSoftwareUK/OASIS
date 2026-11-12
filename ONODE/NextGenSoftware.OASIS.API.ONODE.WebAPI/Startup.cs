@@ -677,9 +677,6 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             if (Configuration["CQL_POLYGON_PUBLIC_SOURCE_JSON"] is string polygonPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
                     NextGenSoftware.OASIS.API.Providers.PolygonOASIS.PolygonPublicAccountMetadataSource.FromJson(polygonPublicSource)));
-            if (Configuration["CQL_ETHEREUM_PUBLIC_SOURCE_JSON"] is string ethereumPublicSource)
-                services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
-                    NextGenSoftware.OASIS.API.Providers.EthereumOASIS.EthereumPublicAccountMetadataSource.FromJson(ethereumPublicSource)));
             if (Configuration["CQL_AZURE_BLOB_PUBLIC_SOURCE_JSON"] is string azureBlobPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
                     NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS.AzureBlobPublicMetadataSource.FromJson(azureBlobPublicSource)));

@@ -11,6 +11,7 @@ using NextGenSoftware.OASIS.API.Core.Services.Subscriptions;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
+using EthereumProvider = NextGenSoftware.OASIS.API.Providers.EthereumOASIS.EthereumOASIS_Web3Core;
 using HoloOasisProvider = NextGenSoftware.OASIS.API.Providers.HoloOASIS.HoloOASIS;
 using SolanaProvider = NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.SolanaOASIS;
 
@@ -28,7 +29,9 @@ public sealed class CqlV1Providers : ICqlV1Providers
         var provider = requested.HasValue
             ? sources == null ? registry.GetStorageProvider(requested.Value) : sources.Find(requested.Value)
             : registry.CurrentStorageProvider;
-        if (provider == null || !provider.IsProviderActivated) throw new InvalidOperationException("Provider unavailable.");
+        if (provider == null || !provider.IsProviderActivated
+            && (provider is not ICosmicReadOnlyQueryActivation readSource || !readSource.IsQuerySourceActivated))
+            throw new InvalidOperationException("Provider unavailable.");
         return provider;
     }
 
@@ -57,6 +60,7 @@ public sealed class CqlHostedSourceRegistry : ICqlHostedSourceRegistry
     private readonly IReadOnlyDictionary<ProviderType, CqlReadSourceProfile> profiles;
     private readonly CqlPublicReadCatalogue holoOasisCatalogue;
     private readonly string solanaPublicAccountConfiguration;
+    private readonly string ethereumPublicAccountConfiguration;
 
     private readonly ILogger<CqlHostedSourceRegistry> logger;
 
@@ -71,6 +75,7 @@ public sealed class CqlHostedSourceRegistry : ICqlHostedSourceRegistry
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         holoOasisCatalogue = publicCatalogues?.SingleOrDefault(catalogue => catalogue.Provider == ProviderType.HoloOASIS);
         solanaPublicAccountConfiguration = configuration?["CQL_SOLANA_PUBLIC_SOURCE_JSON"];
+        ethereumPublicAccountConfiguration = configuration?["CQL_ETHEREUM_PUBLIC_SOURCE_JSON"];
     }
 
     public IOASISStorageProvider Find(ProviderType provider)
@@ -99,6 +104,8 @@ public sealed class CqlHostedSourceRegistry : ICqlHostedSourceRegistry
             {
                 solana.ConfigurePublicAccountQuery(solanaPublicAccountConfiguration);
             }
+            if (storage is EthereumProvider ethereum && ethereumPublicAccountConfiguration != null)
+                ethereum.ConfigurePublicAccountQuery(ethereumPublicAccountConfiguration);
         }
         if (storage.ProviderType?.Value != provider || storage is not ICosmicQueryStorageProvider adapter
             || adapter.QueryProviderType != provider || adapter.QueryCapabilities == null
@@ -117,7 +124,7 @@ public sealed class CqlHostedSourceRegistry : ICqlHostedSourceRegistry
             deadline.Token.ThrowIfCancellationRequested();
             var activation = await activationProvider.ActivateQuerySourceAsync(deadline.Token);
             cancellationToken.ThrowIfCancellationRequested();
-            if (activation != null && !activation.IsError && activation.Result && storage.IsProviderActivated)
+            if (activation != null && !activation.IsError && activation.Result && activationProvider.IsQuerySourceActivated)
                 return;
             var failure = new InvalidOperationException("CQL_SOURCE_ACTIVATION_FAILED", activation?.Exception);
             int? status = policy.RetryStatus(activation?.Exception, attempt);

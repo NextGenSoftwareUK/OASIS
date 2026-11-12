@@ -193,7 +193,9 @@ public sealed class CqlHostedSources : BackgroundService
             || queryOnly.Contains(type) && !verified.ContainsKey(type)) return null;
         var storage = registry.Find(type);
         var adapter = storage as ICosmicQueryStorageProvider;
-        return storage?.IsProviderActivated == true && storage.ProviderType?.Value == type
+        var active = queryOnly.Contains(type) && storage is ICosmicReadOnlyQueryActivation readSource
+            ? readSource.IsQuerySourceActivated : storage?.IsProviderActivated == true;
+        return active && storage.ProviderType?.Value == type
             && adapter?.QueryProviderType == type && adapter.QueryCapabilities != null
             && CqlV1Compiler.SupportedReadProfile(type) ? adapter : null;
     }
