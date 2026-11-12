@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+12 November rebuilt the scoped SQL routing integration candidate on managed HoloOASIS Development using one temporary Git index. The index was removed and independently confirmed absent. No local worktree, build, test output or fixture was created.
+
 12 November Supabase routing qualification uses the existing disposable PostgREST CI runner. The exit trap owns both PostgREST processes and the single directory containing its archive, SQLite files and test reports. No local database, runtime or build output was created.
 
 12 November exact SQL routing run 43294229772 removed both owned SQL Server containers, volumes, SQLite databases and test outputs. The local temporary Git index used to reproduce the exact tree was removed and independently confirmed absent. No local build or runtime was created.

@@ -10,13 +10,15 @@
 | ActivityPub and routing | ActivityPub has 5/5 native capability checks. GOMap passed a public OSRM driving route. Authenticated Google Routes, Mapbox and HERE checks remain open. Niantic and WRLD still have reviewed adapter gaps. |
 | Canonical HoloOASIS | Top priority. Both modes passed all 52 native core-storage-v2 checks on the official Windows conductor with the verified identity-delete hApp in [run 43178174352](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43178174352). The verified bundle is packaged on the provider branch. Hosted, multi-agent and broader capability acceptance remain open. |
 | HoloOASIS.Desktop | Obsolete in source, package metadata and repository documentation at `45d6665da989`. The six-file compatibility and documentation batch reached Development at `70d3fbb4a31c`. Published NuGet metadata and live site listings still need the obsolescence update. |
-| Development | `a421cd7a8c5b` integrates the verified Weaviate native lifecycle and cursor pagination after seven successful Qdrant deployments. The Weaviate rollout and live HyperDrive HoloOASIS writes remain open. |
+| Development | `d74e43b9def4` contains COSMIC managed HoloOASIS after seven successful Weaviate deployments. The managed rollout and live HyperDrive HoloOASIS writes remain open. |
 | BootLoader startup | The shipping registration, activation and deactivation path passed against native Polkadot and TRON fixtures and the Microsoft Azure Cosmos DB emulator. [Azure Cosmos DB job 131055311882](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43180594194/job/131055311882) confirmed fixture teardown. |
 | HyperDrive | Priority-provider failover, replication and load balancing verification is active. Whole-inventory acceptance remains open. |
 
 [Provider matrix](PROVIDER_MATRIX.md) · [Evidence registry](CONFORMANCE_RESULTS.json) · [Cleanup ledger](WORKSPACE_CLEANUP_LEDGER.md)
 
 ## Verification log
+
+12 November Cancun time. Development advanced to COSMIC managed HoloOASIS `d74e43b9def4`. The [Development push workflow](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43295617572) was created at 14:58:38 Cancun time. The next integration review is after 15:28:38. Candidate `f48b59f8aca1` carries the exact two SQL routing test blobs from the qualified Weaviate tree onto the HoloOASIS parent. The eight intervening changes are limited to the HoloOASIS provider and WEB4 CQL integration. SQL provider and test inputs, Core gitlinks and the dependency manifest match. Existing native evidence carries forward. Supabase and SQLite [routing CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43296247756) is active.
 
 12 November Cancun time. Added Supabase and SQLite V2 routing qualification against the existing pinned PostgREST and PostgreSQL runner. Both modes check direct replica reads, RoundRobin attribution and outage failover in both directions. Each mode deletes its exact PostgreSQL fixture IDs. The runner independently requires all three tables empty. The hosted Supabase project and COSMIC reader fixture remain separately tracked.
 
