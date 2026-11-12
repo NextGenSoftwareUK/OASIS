@@ -1,0 +1,98 @@
+name: Google Firestore emulator BootLoader
+
+on:
+  push:
+    branches: [work/hyperdrive-provider-completion]
+    paths:
+      - '.github/workflows/firestore-native-bootloader.yml'
+      - 'Scripts/TestHosts/Invoke-FirestoreBootLoaderActivation.ps1'
+      - 'OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader.UnitTests/FirestoreNativeStartupTests.cs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  activation:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: OASIS
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          path: OASIS
+          submodules: recursive
+          persist-credentials: false
+
+      - name: Read the recorded Libraries revision
+        id: dependencies
+        shell: bash
+        run: |
+          revision="$(sed -n 's/^LIBRARIES_COMMIT=//p' Docker/oasis-dependency-versions.env)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "libraries=$revision" >> "$GITHUB_OUTPUT"
+          revision="$(sed -n 's/^HOLOCHAIN_COMMIT=//p' Docker/oasis-dependency-versions.env)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "holochain=$revision" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependencies.outputs.libraries }}
+          path: NextGenSoftware-Libraries
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+
+      - uses: actions/checkout@v7
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          ref: ${{ steps.dependencies.outputs.holochain }}
+          path: holochain-client-csharp
+          persist-credentials: false
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Verify Firestore startup through BootLoader
+        shell: bash
+        run: |
+          umask 077
+          fixture="$(mktemp -d "$RUNNER_TEMP/oasis-firestore.XXXXXXXX")"
+          emulator_pid=""
+          cleanup() {
+            local status=$?
+            if [[ -n "$emulator_pid" ]]; then
+              if kill -0 "$emulator_pid" 2>/dev/null; then kill "$emulator_pid"; fi
+              wait "$emulator_pid" || true
+            fi
+            if [[ "$status" -ne 0 && -f "$fixture/emulator.log" ]]; then tail -n 40 "$fixture/emulator.log"; fi
+            rm -rf -- "$fixture"
+            test ! -e "$fixture"
+            echo "Removed the owned Firestore emulator and fixture."
+          }
+          trap cleanup EXIT
+          export FIRESTORE_EMULATOR_HOST=127.0.0.1:18180
+          export OASIS_FIRESTORE_CI_FIXTURE="$fixture"
+          if ss -H -ltn 'sport = :18180' | grep -q .; then
+            echo "The dedicated Firestore fixture port is already occupied."
+            exit 1
+          fi
+          curl -fsSL 'https://storage.googleapis.com/firebase-preview-drop/emulator/cloud-firestore-emulator-v1.22.0.jar' -o "$fixture/firestore.jar"
+          (cd "$fixture"; echo '9b6498b7f62714d67f48f59b3818883cd682dbcd46b9f59511de81c97bb5166c  firestore.jar' | sha256sum -c)
+          (
+            cd "$fixture"
+            exec java -Xms64m -Xmx256m -XX:ActiveProcessorCount=2 -jar firestore.jar --host 127.0.0.1 --port 18180 --webchannel_port 18181 --websocket_port 18182 --project_id demo-oasis-firestore-startup --single_project_mode --single_project_mode_error
+          ) > "$fixture/emulator.log" 2>&1 &
+          emulator_pid=$!
+          curl --fail --silent --show-error --retry 25 --retry-delay 2 --retry-all-errors --max-time 5 "http://$FIRESTORE_EMULATOR_HOST/"
+          kill -0 "$emulator_pid"
+          pwsh -NoProfile -File Scripts/TestHosts/Invoke-FirestoreBootLoaderActivation.ps1

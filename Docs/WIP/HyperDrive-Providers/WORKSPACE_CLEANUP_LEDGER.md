@@ -454,3 +454,5 @@ Urgent disk cleanup follow-up: leased standard project clean succeeded for AWS u
 12 November Cancun time. Linux HoloOASIS job 131078300392 verified conductor listener shutdown and removed the owned download cache and fixture directory. All build output stayed on the disposable hosted runner.
 
 12 November Cancun time. Combined Linux HoloOASIS job 131081195718 confirmed listener shutdown and removal of its temporary conductor cache and fixture. The exact-tree comparison used an alternate Git index in a temporary directory that was removed when the comparison completed. No local build outputs or downloads were created.
+
+12 November Cancun time. The Firestore startup check uses a disposable hosted runner. It confines the downloaded emulator JAR, logs, fixture DNA and TRX to one owned temporary directory. Its exit handler stops the owned Java process and removes the directory. No local build or download was performed. CI cleanup confirmation is pending.
