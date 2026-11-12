@@ -4,10 +4,16 @@ on:
   push:
     branches: [work/hyperdrive-provider-completion]
     paths:
-      - '.github/workflows/solana-native-storage.yml'
       - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.SOLANAOASIS/**'
-      - 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.IntegrationTests/**'
   workflow_dispatch:
+  workflow_call:
+    inputs:
+      routing:
+        type: boolean
+        default: false
+    secrets:
+      PRIVATE_SUBMODULE_PAT:
+        required: true
 
 permissions:
   contents: read
@@ -102,6 +108,20 @@ jobs:
           export OASIS_SOLANA_FRESH_CONFORMANCE=1
           export OASIS_SOLANA_STORAGE_ENCRYPTION_KEY="$(openssl rand -base64 32)"
           echo "::add-mask::$OASIS_SOLANA_STORAGE_ENCRYPTION_KEY"
+          if [[ "${{ inputs.routing && '1' || '0' }}" == 1 ]]; then
+            export OASIS_SOLANA_ROUTING_DIRECTORY="$fixture"
+            pwsh -NoProfile -Command '
+              ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-SolanaRouting -Operation {
+                $project = "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.IntegrationTests"
+                dotnet test $project --filter "FullyQualifiedName~RoutesAcrossNativeSolanaAndSqlite" /p:SolanaDirectProviderOnly=true /p:SolanaRoutingTests=true /m:2 /nr:false /p:UseSharedCompilation=false --results-directory $env:OASIS_SOLANA_ROUTING_DIRECTORY --logger "trx;LogFileName=routing.trx"
+                if ($LASTEXITCODE -ne 0) { throw "Native Solana routing verification failed." }
+                [xml]$report = Get-Content -LiteralPath (Join-Path $env:OASIS_SOLANA_ROUTING_DIRECTORY "routing.trx")
+                if ($report.TestRun.ResultSummary.Counters.passed -ne "2" -or $report.TestRun.ResultSummary.Counters.total -ne "2") {
+                  throw "Both native Solana routing cases must execute and pass."
+                }
+              }'
+            exit 0
+          fi
           pwsh -NoProfile -Command '
             ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-SolanaStorage -Operation {
               dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.IntegrationTests.csproj" --filter "TestCategory=SolanaCoreStorageConformance" /p:SolanaDirectProviderOnly=true /m:2 /nr:false /p:UseSharedCompilation=false --logger "console;verbosity=normal"

@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+12 November ActivityPub routing run 43317653578 independently confirmed native HTTP 404 and removed the owned Mastodon fixture. Solana routing uses the disposable Agave CI directory for its validator, ledger, signer, SQLite and reports. The existing teardown removes the directory after stopping the validator. No local runtime, build or fixture was created.
+
 12 November Polkadot candidate f5451202d247 used one temporary Git index, removed and verified absent. No local build, runtime or reports were created.
 
 12 November ActivityPub run 43315834312 removed its owned Mastodon fixture after compilation stopped. No local build or fixture was created.

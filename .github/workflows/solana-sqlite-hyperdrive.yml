@@ -1,0 +1,25 @@
+name: Solana and SQLite HyperDrive routing
+
+on:
+  push:
+    branches: [work/hyperdrive-provider-completion]
+    paths:
+      - '.github/workflows/solana-sqlite-hyperdrive.yml'
+      - '.github/workflows/solana-native-storage.yml'
+      - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.SOLANAOASIS/**'
+      - 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.IntegrationTests/SolanaCoreStorageConformanceTests.Routing.cs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  routing:
+    uses: ./.github/workflows/solana-native-storage.yml
+    with:
+      routing: true
+    secrets:
+      PRIVATE_SUBMODULE_PAT: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+
+
+
