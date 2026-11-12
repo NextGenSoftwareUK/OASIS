@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "runtimeTag": "vere-v4.6",
+  "runtimeArchiveUrl": "https://github.com/urbit/vere/releases/download/vere-v4.6/linux-x86_64.tgz",
+  "runtimeArchiveBytes": 9729797,
+  "runtimeArchiveSha256": "f332e96d66cb767f847fbf15e04b4f953fd078e610b449fbbc26629ea312a3ae",
+  "kernelRepository": "https://github.com/urbit/urbit.git",
+  "kernelCommit": "5a187fededc4582a34fcd6055c67bb63e0917b94",
+  "kernelRelease": "408k-2",
+  "pillPath": "bin/solid.pill",
+  "pillBytes": 9282268,
+  "pillSha256": "b6e385508c5432fd84b1daf7f110b82c08973e43ab0da283e4580e23c3a7fb33",
+  "containerImage": "node:24.19.0-bookworm-slim@sha256:a9f5f7c91a432850b2a8a7797adf5eadb6c733ceed61167806cee7ea7fbc29df"
+}

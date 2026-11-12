@@ -1,0 +1,144 @@
+name: Compile real Urbit native HTTP reader host
+
+on:
+  workflow_dispatch:
+    inputs:
+      scope:
+        type: choice
+        options: [compile, native-http, transport, native-web4, native-federation, mongo-transport]
+        default: compile
+        description: Compile only or qualify real native HTTP page reads and restart
+
+permissions:
+  contents: read
+
+concurrency:
+  group: urbit-http-host-build
+  cancel-in-progress: false
+
+jobs:
+  native:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          path: OASIS
+          submodules: true
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - name: Validate exact dependency pins
+        id: dependency
+        working-directory: OASIS
+        run: |
+          python3 -B Scripts/validate_railway_dependency_manifest.py --require-gitlinks
+          grep -E '^(LIBRARIES_COMMIT|HOLOCHAIN_COMMIT)=[0-9a-f]{40}$' Docker/oasis-dependency-versions.env >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependency.outputs.LIBRARIES_COMMIT }}
+          path: NextGenSoftware-Libraries
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          ref: ${{ steps.dependency.outputs.HOLOCHAIN_COMMIT }}
+          path: holochain-client-csharp
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+      - name: Verify owned namespace boundary controls
+        working-directory: OASIS
+        run: python3 -B -m unittest discover -s Scripts/TestHosts -p test_owned_urbit_http_namespace.py
+      - name: Verify Urbit connection framing
+        working-directory: OASIS
+        run: python3 -B Scripts/TestHosts/test_urbit_conn.py
+      - name: Compile native HTTP host with exact pinned provider dependencies
+        env:
+          URBIT_QUALIFICATION_SCOPE: ${{ inputs.scope }}
+        working-directory: OASIS
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner urbit-http-host-ci -Operation {
+            dotnet build Scripts/TestHosts/UrbitContactsHttpHost/UrbitContactsHttpHost.csproj -c Release /m:2 /nr:false /p:UseSharedCompilation=false
+            if ($LASTEXITCODE) { throw 'Urbit HTTP host compilation failed' }
+            if ($env:URBIT_QUALIFICATION_SCOPE -in @('native-web4', 'native-federation')) {
+              dotnet build 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests/NextGenSoftware.OASIS.API.Core.UnitTests.csproj' -c Release /m:2 /nr:false /p:UseSharedCompilation=false
+              if ($LASTEXITCODE) { throw 'Urbit native WEB4 test host compilation failed' }
+            }
+            $output = 'TestResults/UrbitHttpHostBuildCurrent'
+            New-Item -ItemType Directory -Path $output -Force | Out-Null
+            $assembly = 'Scripts/TestHosts/UrbitContactsHttpHost/bin/Release/net10.0/UrbitContactsHttpHost.dll'
+            @{ source = $env:GITHUB_SHA; buildQualified = $true; assemblySha256 = (Get-FileHash -LiteralPath $assembly -Algorithm SHA256).Hash.ToLowerInvariant(); nativeHttpClientQualified = $false; cqlQualified = $false; liveDeployment = $false } | ConvertTo-Json | Set-Content "$output/qualification.json"
+          }
+      - name: Diagnose isolated Docker HTTP publication without a native ship
+        if: inputs.scope == 'transport'
+        working-directory: OASIS
+        run: python3 -B Scripts/TestHosts/qualify_urbit_http_transport.py
+      - name: Verify owned internal Mongo topology without a native ship
+        if: inputs.scope == 'mongo-transport'
+        working-directory: OASIS
+        run: python3 -B Scripts/TestHosts/qualify_urbit_mongo_transport.py
+      - uses: actions/cache@v4
+        id: runtime-assets
+        if: inputs.scope == 'native-http' || inputs.scope == 'native-web4' || inputs.scope == 'native-federation'
+        with:
+          path: OASIS/LocalState/COSMIC/CloudUrbitRuntimeAssets/v4.6-408k-2
+          key: urbit-linux-complete-${{ hashFiles('OASIS/Scripts/TestHosts/urbit-runtime-inputs.json') }}
+      - name: Prepare pinned runtime assets
+        if: (inputs.scope == 'native-http' || inputs.scope == 'native-web4' || inputs.scope == 'native-federation') && steps.runtime-assets.outputs.cache-hit != 'true'
+        working-directory: OASIS
+        run: python3 -B Scripts/TestHosts/qualify_urbit_runtime.py --assets-only
+      - uses: actions/cache@v4
+        id: contacts-assets
+        if: inputs.scope == 'native-http' || inputs.scope == 'native-web4' || inputs.scope == 'native-federation'
+        with:
+          path: OASIS/LocalState/COSMIC/CloudUrbitContactsDesk
+          key: urbit-contacts-desk-${{ hashFiles('OASIS/Scripts/TestHosts/urbit-contacts-inputs.json', 'OASIS/Scripts/TestHosts/qualify_urbit_desk.py') }}
+      - name: Prepare pinned contacts assets
+        if: (inputs.scope == 'native-http' || inputs.scope == 'native-web4' || inputs.scope == 'native-federation') && steps.contacts-assets.outputs.cache-hit != 'true'
+        working-directory: OASIS
+        run: python3 -B Scripts/TestHosts/qualify_urbit_desk.py
+      - uses: actions/cache@v4
+        id: kernel-assets
+        if: inputs.scope == 'native-http' || inputs.scope == 'native-web4' || inputs.scope == 'native-federation'
+        with:
+          path: OASIS/LocalState/COSMIC/CloudUrbitKernel408
+          key: urbit-kernel408-${{ hashFiles('OASIS/Scripts/TestHosts/urbit-runtime-inputs.json', 'OASIS/Scripts/TestHosts/qualify_urbit_kernel.py', 'OASIS/Scripts/TestHosts/qualify_urbit_desk.py') }}
+      - name: Prepare pinned kernel assets
+        if: (inputs.scope == 'native-http' || inputs.scope == 'native-web4' || inputs.scope == 'native-federation') && steps.kernel-assets.outputs.cache-hit != 'true'
+        working-directory: OASIS
+        run: python3 -B Scripts/TestHosts/qualify_urbit_kernel.py
+      - name: Real private native HTTP pages and preserved restart
+        if: inputs.scope == 'native-http'
+        working-directory: OASIS
+        env:
+          URBIT_CLOUD_CACHE_ROOT: ${{ github.workspace }}/OASIS/LocalState/COSMIC
+        run: python3 -B Scripts/TestHosts/qualify_urbit_contacts_http.py
+      - name: Real native book through admitted WEB4 MVC and preserved restart
+        if: inputs.scope == 'native-web4'
+        working-directory: OASIS
+        env:
+          URBIT_CLOUD_CACHE_ROOT: ${{ github.workspace }}/OASIS/LocalState/COSMIC
+        run: python3 -B Scripts/TestHosts/qualify_urbit_web4_native.py
+      - name: Real Urbit and owned Mongo federation through WEB4 MVC and restart
+        if: inputs.scope == 'native-federation'
+        working-directory: OASIS
+        env:
+          URBIT_CLOUD_CACHE_ROOT: ${{ github.workspace }}/OASIS/LocalState/COSMIC
+        run: python3 -B Scripts/TestHosts/qualify_urbit_federation_native.py
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        if: always()
+        with:
+          name: urbit-http-host-build
+          path: |
+            OASIS/TestResults/UrbitHttpHostBuildCurrent/*.json
+            OASIS/TestResults/UrbitHttpTransportCurrent/*.json
+            OASIS/TestResults/UrbitMongoTransportCurrent/*.json
+            OASIS/TestResults/UrbitContactsInstallCurrent/*.json
+            OASIS/TestResults/UrbitContactsInstallCurrent/*.txt
+            OASIS/TestResults/UrbitContactsInstallCurrent/*.log
+            OASIS/TestResults/UrbitContactsInstallCurrent/**/*.trx
+          retention-days: 7

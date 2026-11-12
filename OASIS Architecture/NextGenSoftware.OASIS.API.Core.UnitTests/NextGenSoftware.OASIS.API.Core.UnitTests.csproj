@@ -81,4 +81,10 @@
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/Data/BaseHolonRequest.cs" Link="Production/BaseHolonRequest.cs" />
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Models/OASISRequest.cs" Link="Production/OASISRequest.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../Providers/Other/NextGenSoftware.OASIS.API.Providers.UrbitOASIS/NextGenSoftware.OASIS.API.Providers.UrbitOASIS.csproj" />
+    <ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.csproj" />
+    <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlUrbitReadSourceRegistration.cs" Link="Production/CqlUrbitReadSourceRegistration.cs" />
+    <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Cql/CqlReadSourceProfile.cs" Link="Production/CqlReadSourceProfile.cs" />
+  </ItemGroup>
 </Project>
