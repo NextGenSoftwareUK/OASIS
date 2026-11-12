@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November 18:08 Cancun time. Independently reproduced the expected Polkadot tree f9363d2bd46479cc0a0befe99b053c0434f5411e and Solana tree be588b32617c0a14fe74904a4f10ffa97f02762f from combined candidate 1cb79150df51 and Ethereum parent 716711320680. Compare these to the two native qualification logs before integration. The preceding Railway fleet had four successful and three pending deployments during this check.
+
 12 November Cancun time. Added a native collection assertion to the HoloOASIS and SQLite fixture. It compares the exact replicated IDs returned by the sync and async Holochain collection entry points and preserves native point-read cleanup. The provider now reports which record-mapping invariant failed without logging record contents. The existing point-read routing pass still stands. The collection check is pending native CI.
 
 12 November 18:03 Cancun time. COSMIC published the verified Ethereum admission correction at Development 716711320680c29d1f5670a57d0e0b85f79ca742. It changes the shipping Core pin, so prior routing results remain accepted for their original revision and two focused runs qualify the new pin. [Polkadot](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43325457200) and [Solana](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43325461947) are queued. The nine-file combined candidate 1cb79150df5196cbef3845628a2105b1735e1c17 uses tree 8c57b483f2eebe61d28e6495fd1f8efc24634663, retains the COSMIC changes, and leaves dependency pins unchanged. Check both run trees and the fleet before the next shared integration review.
