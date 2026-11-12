@@ -6384,3 +6384,5 @@ Web4Site exact Dapr card verification used existing Node and a temporary directo
 Removed both temporary CI tags ci-cosmic-tron-web4-2441de16f2 and ci-cosmic-tron-core-d7692071 after successful cutover. The first catalogue read reused the retained visitor and wrote four protected renewal files; the follow-up wrote none. No local build, install, fixture or download. Temporary documentation index removed.
 
 Used the existing Railway sign-in and public GraphQL endpoint to confirm the exact WEB4 deployment and read filtered startup diagnostics in memory. No CLI reinstall, logs file, native query, fixture or new environment. Temporary documentation index removed.
+
+Track temporary Core tag ci-cosmic-urbit-core-7ea7639c for the pending Urbit WEB4 candidate. It is based on published Core d7692071 and adds only the Urbit query tariff. Temporary Git indices removed. No local builds, runtimes, fixtures or downloads.
