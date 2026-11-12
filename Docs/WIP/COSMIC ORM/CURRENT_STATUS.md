@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## HyperDrive Development cutover
+
+12 November UTC: Railway deployment e8115075 succeeded at cead58e3e43. Authenticated WEB4 discovery warmed from 51/106 to 105/106 native and federated CQL sources ready. NATS and Waku recovered; Nostr remained unavailable. CouchDB, Supabase and TRON remained absent. The corrected GOMap and TRON controlled candidates are in CI.
+
 ## Live WEB4 and TRON CI
 
 Development WEB4 6047aff6c50 is live. Discovery warmed from 45/106 to 105/106 native and federated sources. Waku and NATS are ready, Nostr is unavailable, and CouchDB, Supabase and TRON remain absent. Exact TRON controlled qualification 43125723177 is queued.
