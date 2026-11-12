@@ -60,3 +60,6 @@ Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity/
 # Scratch deployment probe and a standalone usage example: not part of any shipped solution.
 Docs/WIP/Mongo-Test-Traffic/deployment-check/
 Examples/CosmicCqlDemo/
+# Manual live-verification harness: needs a real zkPass app id, secret and a
+# live network, so it is run by hand and is not part of any solution build.
+Providers/Identity/TestProjects/zkPassOASIS.LiveVerification/
