@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. [HoloOASIS collection CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43328666202) passed both native cases with zero skips. It verified the native baseline plus both routed IDs, then removed and verified absence of the exact owned Holochain records. Hosted outbox and live writes remain open.
+
 12 November Cancun time. [Solid exact Development CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43328962741) passed both native routing cases with zero skips on Development 716711320680, tested tree 64c18e61b9b5cac6fe7f79cb4c7b0ff3a66a4389. Cleanup removed the private Pod server, SQLite data and results. The prepared Polkadot and Solana integration remains a separate batch.
 
 12 November Cancun time. [Solid exact Development qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43328962741) uses the accepted private Pod fixture on the shipping Development checkout with three reviewed test inputs. It leaves the shipping Solid provider and the separate COSMIC test sources at their Development revisions. [HoloOASIS baseline qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43328666202) is running. Both use disposable CI resources and no local environment.
