@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Live TRON CQL code cutover
+
+WEB4 deployment `7727035008` succeeded at Development `2441de16f2` with Core `d7692071`. Two authenticated catalogue reads returned 104/106 sources ready for native and federated queries. Dapr, Waku and NATS were ready. Hedera and Nostr remained unavailable. TRON, CouchDB and Supabase remained unenrolled. TRON still requires authenticated native qualification with the dedicated TronGrid key.
+
 ## TRON CQL Development rollout
 
 WEB4 Development advanced to `2441de16f2` with Core `d7692071` after the prior WEB4 deployment succeeded and the shared window elapsed. These are the exact revisions that passed all 11 controlled checks in [CI 43141168568](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43141168568). GitHub deployment `7727035008` was created. Live readiness and cutover remain to be verified. TRON reader enrollment remains disabled pending authenticated qualification.
