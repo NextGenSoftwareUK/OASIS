@@ -58,6 +58,7 @@ jobs:
           tests='Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.QdrantOASIS.IntegrationTests'
           for path in \
             'Providers/Storage/NextGenSoftware.OASIS.API.Providers.QdrantOASIS/QdrantOASIS.cs' \
+            'Providers/Storage/NextGenSoftware.OASIS.API.Providers.QdrantOASIS/QdrantOASIS.Embeddings.cs' \
             "$tests/NextGenSoftware.OASIS.API.Providers.QdrantOASIS.IntegrationTests.csproj" \
             "$tests/QdrantNativeStorageConformanceTests.cs" \
             'Providers/Storage/NextGenSoftware.OASIS.API.Providers.QdrantOASIS/README.md' \

@@ -28,7 +28,7 @@ Use this package for the responsibility described above, alongside its owning OA
 
 Provider adapters require their respective service configuration and credentials. Runtime libraries require the host application's lifecycle and persistent paths where applicable. Supply only the settings actually required by the owning component; do not copy production DNA into a client or public release.
 
-Payload writes omit vectors for unembedded records and preserve the stored embedding observed before an update. This adapter exposes payload storage and text search. Coordinate external embedding updates with OASIS payload writes until an atomic update contract is available.
+Payload writes omit vectors for unembedded records and preserve the stored embedding observed before an update. Use `SetHolonEmbeddingAsync` to attach a finite nonzero embedding of the configured dimension. `SearchHolonsByEmbeddingAsync` returns live holons and their native cosine similarity scores. The caller supplies the embedding. Coordinate external embedding updates with OASIS payload writes until an atomic update contract is available.
 
 ## Errors and security
 

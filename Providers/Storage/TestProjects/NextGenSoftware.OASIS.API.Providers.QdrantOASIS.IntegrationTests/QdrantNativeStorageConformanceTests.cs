@@ -90,16 +90,26 @@ public sealed class QdrantNativeStorageConformanceTests
         var embedding = new float[128];
         embedding[0] = 1;
         var embedded = new Holon { Id = embeddedId, Name = "Qdrant embedding preservation fixture" };
-        using (var seeded = await client.PutAsJsonAsync("/collections/oasis_holons/points?wait=true",
-            new { points = new[] { new { id = embeddedId.ToString("D"), vector = embedding } } }))
-        {
-            seeded.EnsureSuccessStatusCode();
-            using var receipt = JsonDocument.Parse(await seeded.Content.ReadAsStringAsync());
-            Assert.AreEqual("completed", receipt.RootElement.GetProperty("result").GetProperty("status").GetString());
-        }
+        var initial = mode == "sync" ? provider.SaveHolon(embedded, saveChildren: false)
+            : await provider.SaveHolonAsync(embedded, saveChildren: false);
+        Assert.IsTrue(initial.IsSaved, initial.Message);
+        var invalid = await provider.SetHolonEmbeddingAsync(embeddedId, new float[128]);
+        Assert.IsTrue(invalid.IsError);
+        Assert.IsFalse(invalid.IsSaved);
+        var indexed = await provider.SetHolonEmbeddingAsync(embeddedId, embedding);
+        Assert.IsTrue(indexed.IsSaved, indexed.Message);
+        Assert.AreEqual(1, indexed.SavedCount);
+
+        embedded.Name = "Qdrant embedding preserved after payload update";
         var saved = mode == "sync" ? provider.SaveHolon(embedded, saveChildren: false)
             : await provider.SaveHolonAsync(embedded, saveChildren: false);
         Assert.IsTrue(saved.IsSaved, saved.Message);
+        var nearest = await provider.SearchHolonsByEmbeddingAsync(embedding, limit: 2);
+        Assert.IsTrue(nearest.IsLoaded, nearest.Message);
+        Assert.AreEqual(1, nearest.LoadedCount);
+        Assert.AreEqual(embeddedId, nearest.Result[0].Holon.Id);
+        Assert.AreEqual(embedded.Name, nearest.Result[0].Holon.Name);
+        Assert.AreEqual(1d, nearest.Result[0].Score, 0.000001d);
         using (var retrieval = await client.PostAsJsonAsync("/collections/oasis_holons/points",
             new { ids = new[] { embeddedId.ToString("D") }, with_payload = true, with_vector = true }))
         {
@@ -110,6 +120,11 @@ public sealed class QdrantNativeStorageConformanceTests
             using var payload = JsonDocument.Parse(point.GetProperty("payload").GetProperty("data_json").GetString()!);
             Assert.AreEqual(embedded.Name, payload.RootElement.GetProperty("name").GetString());
         }
+        var tombstone = mode == "sync" ? provider.DeleteHolon(embeddedId) : await provider.DeleteHolonAsync(embeddedId);
+        Assert.IsTrue(tombstone.IsDeleted, tombstone.Message);
+        var hidden = await provider.SearchHolonsByEmbeddingAsync(embedding);
+        Assert.IsTrue(hidden.IsLoaded, hidden.Message);
+        Assert.AreEqual(0, hidden.LoadedCount);
         using (var removed = await client.PostAsJsonAsync("/collections/oasis_holons/points/delete?wait=true",
             new { points = new[] { embeddedId.ToString("D") } }))
         {
