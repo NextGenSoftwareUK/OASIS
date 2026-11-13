@@ -391,6 +391,23 @@ public sealed class IPFSRestartTests
         Assert.False(pending.IsError, pending.Message);
         Assert.Equal(HolonDeliveryState.Pending, pending.Result.State);
         Assert.Equal(write.OperationId, pending.Result.OperationId);
+        var claimed = await store.Result.ClaimNextAsync(route.TargetId, "interrupted-worker", TimeSpan.FromSeconds(15));
+        Assert.False(claimed.IsError, claimed.Message);
+        Assert.NotNull(claimed.Result);
+        var secondStore = provider.GetBoundHolonReplicationOutbox(source);
+        Assert.False(secondStore.IsError, secondStore.Message);
+        var competing = await secondStore.Result.ClaimNextAsync(route.TargetId, "competing-worker", TimeSpan.FromMinutes(1));
+        Assert.False(competing.IsError, competing.Message);
+        Assert.Null(competing.Result);
+        var wrongOwner = new HolonDeliveryClaim(claimed.Result.Sequence, claimed.Result.OperationId, route.TargetId,
+            "competing-worker", claimed.Result.LeaseToken, claimed.Result.PayloadJson, claimed.Result.AttemptCount,
+            claimed.Result.LeaseUntilUtc);
+        var invalidCompletion = await secondStore.Result.FinishAsync(wrongOwner, HolonDeliveryOutcome.Completed);
+        Assert.False(invalidCompletion.IsError, invalidCompletion.Message);
+        Assert.False(invalidCompletion.Result);
+        var remainingLease = claimed.Result.LeaseUntilUtc - DateTime.UtcNow;
+        if (remainingLease > TimeSpan.Zero)
+            await Task.Delay(remainingLease + TimeSpan.FromMilliseconds(100));
         var target = new CommittedHolonReplicaTarget(route.TargetId, sqlite, captured.Result.Authority, route.SourceId,
             source.Authority, policy, "ipfs-outbound-fixture", Guid.NewGuid(), policy.BindingIdentity, captured.Result);
         var worker = new HolonOutboxDispatcher(store.Result, new[] { target }, "ipfs-outbound-fixture");
@@ -403,6 +420,7 @@ public sealed class IPFSRestartTests
         var completed = await store.Result.InspectAsync(pending.Result.Sequence);
         Assert.False(completed.IsError, completed.Message);
         Assert.Equal(HolonDeliveryState.Completed, completed.Result.State);
+        Assert.Equal(2, completed.Result.AttemptCount);
         var pointer = await File.ReadAllTextAsync(dnaPath);
         var replay = await provider.ExecuteReplicatingHolonWriteAsync(request, enrollment);
         Assert.True(replay.IsSaved && !replay.IsError, replay.Message);
