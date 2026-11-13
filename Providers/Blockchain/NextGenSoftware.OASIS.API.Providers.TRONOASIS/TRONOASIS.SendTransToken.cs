@@ -304,11 +304,11 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
         private async Task<T> ExecuteNativeRuntimeAsync<T>(Func<TronNativeTransferClient, Task<T>> operation,
             CancellationToken token = default)
         {
-            await _runtimeLifecycle.WaitAsync(token);
+            await _runtimeLifecycle.WaitAsync(token).ConfigureAwait(false);
             try
             {
                 EnsureNativeRuntime();
-                return await operation(_nativeTransfers);
+                return await operation(_nativeTransfers).ConfigureAwait(false);
             }
             finally { _runtimeLifecycle.Release(); }
         }

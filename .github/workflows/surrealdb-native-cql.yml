@@ -1,0 +1,51 @@
+name: SurrealDB native CQL restart and federation
+
+on:
+  workflow_dispatch:
+  workflow_call:
+    secrets:
+      PRIVATE_SUBMODULE_PAT:
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  restart:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          path: OASIS
+          submodules: recursive
+          persist-credentials: false
+
+      - name: Read the recorded Libraries revision
+        id: libraries
+        run: |
+          revision="$(sed -n 's/^LIBRARIES_COMMIT=//p' OASIS/Docker/oasis-dependency-versions.env)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "revision=$revision" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.libraries.outputs.revision }}
+          path: NextGenSoftware-Libraries
+          persist-credentials: false
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Verify native SurrealKV CQL across restart
+        working-directory: OASIS
+        shell: bash
+        run: |
+          results="$RUNNER_TEMP/surrealdb-cql"
+          trap 'for log in "$results"/*.log; do if [[ -f "$log" ]]; then tail -n 60 "$log"; fi; done' ERR
+          mkdir -p -m 700 /var/tmp/oasis-runtimes
+          python3 -B Scripts/TestHosts/Install-CosmicSurrealDbRuntime.py
+          python3 -B Scripts/TestHosts/run-cosmic-surrealdb-linux.py --ci-results "$results" --federated

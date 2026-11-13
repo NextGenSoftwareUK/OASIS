@@ -16,9 +16,10 @@ public sealed class LocalUsageReservationAuthority : IUsageReservationAuthority
     private readonly ISubscriptionUsageRepository _repository;
     private readonly IHttpContextAccessor _context;
     private readonly Func<Guid,CancellationToken,Task<int>> _karma;
+    private readonly IAppAccountRepository _apps;
     public LocalUsageReservationAuthority(ISubscriptionService subscriptions,ISubscriptionUsageRepository repository,
-        IHttpContextAccessor context,Func<Guid,CancellationToken,Task<int>> authoritativeKarma)
-    { _subscriptions=subscriptions; _repository=repository; _context=context; _karma=authoritativeKarma; }
+        IHttpContextAccessor context,Func<Guid,CancellationToken,Task<int>> authoritativeKarma,IAppAccountRepository apps=null)
+    { _subscriptions=subscriptions; _repository=repository; _context=context; _karma=authoritativeKarma; _apps=apps; }
     public async Task<SubscriptionAuthorizationResult> AuthorizeUsageAsync(string bearerToken,UsageAuthorizationRequest request,CancellationToken token=default)
     {
         token.ThrowIfCancellationRequested();
@@ -29,7 +30,16 @@ public sealed class LocalUsageReservationAuthority : IUsageReservationAuthority
         if(context?.User.Identity?.IsAuthenticated!=true||!Guid.TryParseExact(claim,"D",out var avatarId)
             ||(context.Items.TryGetValue("Avatar",out var value)&&value is IAvatar avatar&&avatar.Id!=avatarId))
             throw new UnauthorizedAccessException("Local WEB4 admission requires the authenticated canonical avatar identity.");
-        return await _subscriptions.AuthorizeUsageAsync(avatarId.ToString("D"),await _karma(avatarId,token),request,token);
+        // Optional app credentials: the app's plan applies if it beats the avatar's own. Absent headers change nothing.
+        AppAccountRecord app=null;
+        var headers=context.Request.Headers;
+        if(headers.ContainsKey(AppAccountRules.AppIdHeader)||headers.ContainsKey(AppAccountRules.AppKeyHeader))
+        {
+            if(_apps==null)throw new UnauthorizedAccessException("App credentials are not supported by this deployment.");
+            app=await _apps.VerifyAppCredentialAsync(headers[AppAccountRules.AppIdHeader].ToString(),headers[AppAccountRules.AppKeyHeader].ToString(),token)
+                ??throw new UnauthorizedAccessException("The app credential is invalid or the app account is disabled.");
+        }
+        return await _subscriptions.AuthorizeUsageAsync(avatarId.ToString("D"),await _karma(avatarId,token),request,app,token);
     }
     public Task<UsageStartResult> StartUsageAsync(UsageStartRequest request,CancellationToken token=default)
     { token.ThrowIfCancellationRequested(); ArgumentNullException.ThrowIfNull(request); RequireLocal(request.ConsumingService); return _repository.StartAsync(request,token); }
@@ -46,7 +56,7 @@ public static class LocalUsageAuthorityRegistration
         ArgumentNullException.ThrowIfNull(services); ArgumentNullException.ThrowIfNull(authoritativeKarma);
         services.AddSingleton<IUsageReservationAuthority>(provider=>new LocalUsageReservationAuthority(
             provider.GetRequiredService<ISubscriptionService>(),provider.GetRequiredService<ISubscriptionUsageRepository>(),
-            provider.GetRequiredService<IHttpContextAccessor>(),authoritativeKarma));
+            provider.GetRequiredService<IHttpContextAccessor>(),authoritativeKarma,provider.GetService<IAppAccountRepository>()));
         return services;
     }
 }

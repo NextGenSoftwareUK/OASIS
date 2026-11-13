@@ -7,7 +7,7 @@ using SharedRedis=NextGenSoftware.OASIS.API.Providers.RedisOASIS.RedisOASIS;
 namespace NextGenSoftware.OASIS.API.Providers.ValKeyOASIS;
 
 /// <summary>Thin Redis-protocol transport facade. Native product conformance is a separate gate.</summary>
-public class ValKeyOASIS : SharedRedis
+public partial class ValKeyOASIS : SharedRedis
 {
     public new const string StorageKeyEnvironmentVariable="OASIS_VALKEY_STORAGE_ENCRYPTION_KEY";
     private const string Prefix="oasis/valkey/";

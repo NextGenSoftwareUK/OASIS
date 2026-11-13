@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
+using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.Common;
@@ -19,6 +20,18 @@ public partial class IPFSOASIS
             email=record is IAvatar profile?profile.Email:record is IAvatarDetail identity?identity.Email:null};
         if(!selector(canonical))throw new InvalidDataException("IPFS index selector differs from the canonical current record.");
     }
+    private async Task<KeyValuePair<string, HolonResume>> ReadIndexEntryAsync(string kind, Func<HolonResume, bool> predicate)
+    {
+        var gate = CatalogueGate;
+        await gate.WaitAsync().ConfigureAwait(false);
+        try
+        {
+            await LoadCatalogueAsync().ConfigureAwait(false);
+            return FindIndexEntry(kind, predicate);
+        }
+        finally { gate.Release(); }
+    }
+
     private KeyValuePair<string,HolonResume> FindIndexEntry(string kind,Func<HolonResume,bool> predicate,bool allowMissing=false)
     {
         var matches=_idLookup.Where(entry=>entry.Value?.RecordKind==kind && predicate(entry.Value)).Take(2).ToList();

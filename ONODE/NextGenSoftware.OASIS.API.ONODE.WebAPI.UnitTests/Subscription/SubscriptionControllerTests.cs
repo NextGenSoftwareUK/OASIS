@@ -330,7 +330,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.Subscription
         }
 
         [Fact]
-        public async Task GetUsage_FreePlanLimit_Is1000()
+        public async Task GetUsage_FreePlanLimit_Is30000()
         {
             var userId = Guid.NewGuid();
             SetAuthenticatedUser(userId);
@@ -342,7 +342,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.Subscription
                 .ReturnsAsync(new SubscriptionRecord { UserId = userId.ToString(), PlanId = "free", Status = "active" });
 
             var result = await _ctrl.GetUsage() as OkObjectResult;
-            System.Text.Json.JsonSerializer.Serialize(result!.Value).Should().Contain("1000");
+            System.Text.Json.JsonSerializer.Serialize(result!.Value).Should().Contain("30000");
         }
 
         // ── Webhook — no Stripe secret configured ────────────────────────────

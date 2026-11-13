@@ -21,7 +21,7 @@ namespace NextGenSoftware.OASIS.API.DNA
         public static string LastResolvedOASISDnaPhysicalPath { get; private set; }
 
         /// <summary>When install path (e.g. /usr/local/bin/DNA/) is read-only, resolve to user config path so load/save succeed.</summary>
-        private static string ResolveEffectiveOASISDNAPath(string requestedPath)
+        public static string ResolveEffectiveOASISDNAPath(string requestedPath)
         {
             if (string.IsNullOrWhiteSpace(requestedPath)) return requestedPath;
             string appRoot = AppPathHelper.ResolveAppRootDirectory();

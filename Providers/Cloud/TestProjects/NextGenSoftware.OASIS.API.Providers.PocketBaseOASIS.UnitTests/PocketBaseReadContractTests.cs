@@ -21,7 +21,12 @@ public class PocketBaseReadContractTests
         }
     }
     private static string Page(int page, int total, string id)
-        => JsonSerializer.Serialize(new { page, perPage = 1, totalItems = total, totalPages = total, items = new[] { new { id, data_json = "{}" } } });
+        => JsonSerializer.Serialize(new { page, perPage = 1, totalItems = total, totalPages = total,
+            items = new[] { new { id, oasis_id = GuidFor(id).ToString("D"), is_deleted = false,
+                data_json = JsonSerializer.Serialize(new { id = GuidFor(id), name = "Read contract fixture" }) } } });
+
+    private static Guid GuidFor(string id)
+        => new(System.Security.Cryptography.SHA256.HashData(Encoding.UTF8.GetBytes(id)).AsSpan(0, 16));
 
     [DataTestMethod]
     [DataRow(401, false), DataRow(403, false), DataRow(429, false), DataRow(500, false)]

@@ -1,17 +1,29 @@
 # COSMIC ORM implementation roadmap
 
-[Current status](CURRENT_STATUS.md) is the recovery entry point. Full goal remains active and incomplete.
+## Virtual and hybrid native imports after the WEB4 demo
 
-| Order | Work | Acceptance |
-|---|---|---|
-| 1 | Preserve verified baseline on MongoDB/SQLite/Neo4j | Exact deployed source, acknowledged writes, verified destination copies, CQL rows/scalars/federation and tenant isolation |
-| 2 | Close late replica enrollment and fenced reconciliation gaps (X10a/X10b) | Explicit authorization/baseline proof; no independent target overwrite, lineage relaxation, skipped queue entry or blind write replay |
-| 3 | Continue content-query demo breadth and Mongo-paired presets | ActivityPub/IPFS leaf3/2and Mongo pairing5/4verified live; next hosted Oracle/IPFS/SOLID/Solana/AWS and remaining providers per CURRENT_STATUS; Azure pending/free-only |
-| 4 | Reconcile remaining ORM graph/parameter, tracking/save ownership, conditional concurrency, rollback/history/delta requirements | Exact native per-provider tests and full-scope audit; prior focused proofs do not imply completion |
-| 5 | Resume deferred LINQ/EF/NHibernate parity and broader providers | Red checklist cells only; deep entity-selected terminals, unrestricted POCO mapping and migrations tooling remain deferred |
+The live breadth-first WEB4 CQL and HyperDrive demo remains the priority.
+Track [Virtual Holons import proposal](OASIS_Virtual_Holons_Import_Proposal.docx) as a post-demo design. Audit the existing provider Import and
+ImportAll paths and CQL source profiles, then prove one collection-level
+virtual mapping end to end. Follow with mixed-source federation, explicit
+owned snapshot saves, and opt-in hybrid caching. Validate each provider's
+capabilities before extending the feature to it.
 
-Three-database baseline35/35and ActivityPub preparation/federation/replication/isolation are verified live within their declared scopes. Broader hosted providers and the full ORM roadmap remain incomplete. No overall completion percentage is inferred from these examples.
-Only HyperDrive V2 receives implementation changes; legacy gaps are documentation-only.
+Updated 2 November 2026. Full programme remains incomplete. [CURRENT_STATUS](CURRENT_STATUS.md) owns release state and the exact next action.
 
-[Strict feature checklist](CQL_PARITY_CHECKLIST.md) owns acceptance.
-[Full original roadmap/history](Archive/COSMIC_ORM_IMPLEMENTATION_ROADMAP_history_2026-10-27.md) preserves earlier requirements.
+1. Complete breadth-first live provider demos: **96 locally integrated query types,
+   60 scoped hosted HTTP proofs, 5 browser proofs/55 open**. ClickHouse's original
+   hosted audit and card/static assets pass. ThreeFold code is published; its exact
+   code job succeeded and original settings were applied once. Activation a737028a
+   succeeded and original hosted acceptance/audit/card/static files pass. Next recover
+   published launcher runtime/configuration gaps. Preserve accepted cohorts; no green hardening.
+   CURRENT_STATUS owns exact release state and commands.
+2. Continue explicit filtered source queries and Mongo federation for remaining red providers. Azure Cosmos, Oracle and PostgreSQL hosting are deferred. Public source reads do not establish native writes or full ORM support.
+3. Finish scoped HyperDrive V2 operational acceptance: authorized late-replica baseline/reconciliation, retained obligations and uncertain-commit recovery. Preserve existing six-direction native proofs; broader hosted/operator/transport/scale acceptance remains open.
+4. Reconcile original ORM requirements against provider-specific evidence: change tracking, save-state ownership, atomic cross-client conditional writes, child load/save/query parameters and depth, rollback, version/history, per-save deltas, migration and placement.
+5. Define and implement primary-authority cutover with authority epochs and in-flight ownership; replica baseline delivery alone is not authority migration.
+6. Resume deferred EF/NHibernate parity, unrestricted POCO mapping and migration tooling only after demo priorities. Work red checklist rows; freeze green rows/cursors absent a reproduced bug.
+
+Only HyperDrive V2 receives implementation changes; document legacy gaps without fixing legacy code. Preserve root-cause-only policy and explicit capability errors. No overall completion percentage follows from focused demos.
+
+[Acceptance checklist](CQL_PARITY_CHECKLIST.md) · [Detailed backlog](AFTER_DEMO_BACKLOG.md) · [Original requirements/history](Archive/COSMIC_ORM_IMPLEMENTATION_ROADMAP_history_2026-10-27.md) · [Prior milestone history](Archive/COSMIC_ORM_IMPLEMENTATION_ROADMAP_before_hosted_reconciliation_2026-11-02.md).

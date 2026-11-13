@@ -21,6 +21,9 @@
     <PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="../../Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.csproj" />
+  </ItemGroup>
+  <ItemGroup>
     <None Include="..\..\..\Logos\OASIS.jpg" Link="OASIS.jpg">
       <PackagePath>\</PackagePath>
       <Pack>True</Pack>

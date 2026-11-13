@@ -1,56 +1,113 @@
-# COSMIC ORM / CQL — current status
+# COSMIC ORM / CQL current status
 
-Updated 31 October 2026. Programme incomplete; priority is actual hosted sandbox breadth.
+Updated 4 November 2026. Goal active and incomplete.
+Priority: breadth-first usable demos; deep selected-stage LINQ stays paused.
+Work only red scopes or reproduced bugs. Legacy issues documentation-only.
 
-## Exact next step
+## Verified scope
 
-1. Release the verified SOLID batch, observe final-image Node24/CSS compatibility and complete public browser acceptance. Six protected configuration values have been applied/independently acknowledged with skip-deploys; four SOLID presets prepared. Full WEB4 build passes; C# multi-record walkthrough compiles/executes3/2 through manager/planner/adapter over actual exported encrypted envelopes (controlled transport). Native CSS7.1.8 startup/N3/WAC/same-data restart passed separately on cached Node18; final hosted image verification remains. Existing service memory580MB/8,192MB and volume137MB/5,000MB have observed headroom. Prior shared deployment0196bd82-cf5a-4bf6-8c06-68c264a20db9 succeeded at20a981f8d; preserve those concurrent CI/solution changes. Five hosted providers remain verified; need visitor3/2, Mongo5/4, isolation/replicas and local source links. Disposable native probe31,405B retained after rejected cleanup. Azure remains pending/free-only; Oracle/AWS config absent in checked locations.
-2. For each provider: explicitly enroll actual native read capabilities, expose ready filtered multi-record examples plus one Mongo-paired preset, verify the normal public sandbox visitor flow and isolation. Keep local demo links alongside hosted choices. Do not advertise an unavailable source as working.
-3. Keep deep LINQ/POCO/migrations tooling paused; work only red checklist scopes, freeze greens/cursors unless a reproducible bug is found. HyperDrive implementation is V2 only; legacy is document-only.
+- **96 local query types/profiles:**3 canonical, 57 public/source, 36 other local;
+  includes 31 recovered historical demos. Not 96 fully implemented providers.
+- **60 scoped hosted HTTP proofs; 5 browser proofs / 55 browser gates open.**
+- MongoDB/SQLite/Neo4j strict parity **50/82 each**; investor subset green.
+- Published launcher audit:37 links / 37 present / **0 missing**; 3 audit tests pass.
+- Public ThreeFold/ClickHouse/Zcash cohorts are accepted and frozen.
 
-## Working copies and release ownership
+## Current batch / exact next step
 
-- Work/build/test only **C:/Source/OASIS-cosmic**, parent **work/cosmic-cql-hosted-release**; Core **work/cosmic-cql-sandbox-integration**. Never mutate/build C:/Source/OASIS.
-- Parent **Development 913b9d0bf2ed6b1e835dc41604b2478ea6792387**, Core **Development249a223a2f169dd72dfc850fbf6a3dac345642f7** pushed/remote-verified; pins/gitlinks match. ONODE Core6b5d9d00c6ec6e2ed4e9d04015032a0394973f06 preserved.
-- Railway WEB4 deployment **64bbc646-5d06-412a-a5bd-eb62ca9ae737 SUCCESS**, exact parent913b9d0bf. Existing dev service/volume, no new paid infrastructure.
-- Frontend **C:/Source/Web4Site**, task work/cosmic-cql; public main 2b46dedfcfc41695ba36d232a1ff098e4ae711bc / Production 7456696386 success. Both published scripts byte-match tested source.
-- Broader local-provider source is preserved/pushed on parent **work/cosmic-cql-sandbox-integration237403a75**; scoped release does not include that accumulated540-file delta. Unknown root logs preserved.
-- Named staging only; no add-A, force-push or extra worktree. Batch verified Development pushes once/twice daily. Current milestone is deployed; subsequent doc-only task commits need no immediate redeployment.
+Live demo rehearsal, 4 November: Development health200; authenticated discovery
+59/60 ready (Nostr unavailable). ActivityPub and IPFS native examples pass3/2.
+Published sandbox client IPFS+Mongo passes5/4; two private saves, reuse0 new saves,
+SQLite/Neo4j replicas2/2. HTTP/client proof, browser rerun open. Report SHA256
+679D2FA2F738B1388BC51B8F77059ED700D73D31BFA81C1B6F6F0D277C56AA19
+at TestResults/HostedDemoRehearsal/ipfs-http-flow.json. Separate rehearsal session;
+prior cohorts preserved. A second visitor saw3 public rows and0 of the private
+Mongo snapshots by exact ID. Isolation summary SHA256
+64AEEB6D8B1427DD178A9F95F698185998C78D38D8319653DB96DA6AB1904F90.
+LocalFile canonical sandbox-mode fix passes 16 native profile, 13 WEB4 and
+5 publisher tests. Retained source parser check awaits the original bundle.
+Restore the four files listed by publisher preflight, verify hashes and parser
+admission, prepare the five settings, then qualify the exact Development
+deployment before applying and rehearsing native, Mongo and replica reads.
 
-## What is actually verified live
+Source-recovery fix published Development b718f2879;Core5415961/settings unchanged.
+Exact job33c9ef7d-b8b3-4403-9109-32ce47c4d7a8 SUCCESS;healthy/four-provider-ready.
+Live anonymous401/demo-user403 pass;59/60ready,Nostr unavailable;operator gate open.
+Journal LocalState/COSMIC/HostedSourceRecoveryReleaseCurrent.
+Prior d167dff13 healthy/four-provider-ready;59/60ready,Nostr activation HTTP503.
+Previous fifth release5507b0aa0 passed health/four-provider discovery/federation.
+Published launcher file audit is green;runtime/configuration gates remain.
 
-- **Five hosted query providers: MongoDB, SQLite, Neo4j, ActivityPub, IPFS.** Local-only catalogue entries are not hosted coverage. Azure remains pending: free-only, no existing subscription; do not re-ask signup/payment.
-- Original three-provider baseline35/35:3 acknowledged saves,9 exact copies,5 query forms per provider,6 physical federated copies and3 isolation checks. Retained SQLite lineage barrier was explicitly repaired with fenced/acknowledged application; no queue reset or blind replay.
-- ActivityPub native public leaf queries return3 posts and2-post subset in HTTP/browser. Membership request-capture defect was reproduced/fixed/deployed; original failed evidence preserved. Response envelope is result.rows, not result array.
-- **New live visitor preparation:** sandbox-60b2bb72 saved2 private Mongo snapshots using Core-native owner IDs and normal create-only writes. Repeat setup0 saved / 2 existing. No edited/foreign records overwritten; uncertain outcomes remain journalled without automatic retry.
-- **Federation:** AP3+Mongo2=5 actual rows; AP2+Mongo2=4 subset. Independent sandbox-46616f4f sees3 public AP rows only; exact foreign Mongo IDs return0.
-- **Replication:** those2 new writes also appear on SQLite and Neo4j with matching ID/name/description/version/owner/private flag/metadata. No manual repair or source replay in this gate. This does not certify the full failover/load-balance/fault-injection/late-enrollment matrix.
-- Server operation ID is now visible in the browser. Local developer links remain. No source AP posting or native write occurred.
+## V2 owned EVM proof and discovered Mongo bug
 
-- **IPFS live:** normal visitor sandbox-6998fcb9 reads native3/2; prepares2private Mongo snapshots; paired5/4; repeat0saved/2existing. Independent sandbox-869466e8 sees only3public IPFS rows and0foreign Mongo IDs. Both new snapshots also match SQLite/Neo4j replicas. Source IDs/CIDs match original ACK. Hosted isolated offline Kubo, bounded CID membership; no general-search/public-network/full-provider-parity claim.
-- Source peer/config/ACK before-state is recorded; post-correction SSH port22timed out, so physical peer persistence was not independently re-observed. Browser/native access is verified.
+Shipping Arbitrum V2 facade + canonical SDK/ABI/decryption + published manager/
+LINQ walkthrough pass native3/2 over retained encrypted records. Original seed
+unchanged;zero chain writes requested. Owned node exited0.
 
-## Current contracts and verification
+New native Mongo-paired queries 5/4 passed;original overall run FAILED during
+cleanup because Mongo absent-root returned RecordNotFound but IsError=false.
+Common read boundary fixed. Separate native reconciliation 1/1 passes sync+async
+absence for both IDs;exact original temporary fixture removed, no query replay.
+Original failed TRX and reconciliation proof preserved, never relabelled green.
+[EVM proof/limits](EVM_V2_CQL_RECOVERY_GAP.md). Hosted owned-EVM gate remains open.
 
-- Query-only enrollment fences writes before provider/outbox I/O. Read-only activation, tariff capture, visibility and real native capability planning own discovery/execution. Missing dependencies disable only affected examples.
-- Version1 discovery remains leaf-only; version2 includes fixed Rows/Federation operations. Explicit provider scope, bounded8 targets / 800 input rows / 8 attempts; captured server ceiling rejects over-budget fan-out before I/O. New protocol/unordered profiles have no continuation contract.
-- Preparation uses server-derived NativeRecordHolonMapper identities, private snapshots, normal create-only CAS and per-operation origin-local intent/ACK. No duplicated client hash or automatic replay. Controls enabled only on sandbox configuration.
-- IPFS shipping ABI corrected with pinned upstream source SDK and explicit executable/test composition. Full API build,28shipping API/schema controls,27provider/codec controls and1retained native case pass;10runtime controls also pass. Source/API/test/package DLL bytes match; private SDK/license embedded without old/unpublished SDK package dependencies. Failed shipping reproduction retained. These are scoped controls, not full ORM parity.
-- Latest changed-scope controls **86 API + 383 Core + 39 Node = 508 passed**, zero skipped. Earlier federation32 controls and full transitive API build also pass. These counts are not full ORM parity or universal-provider proof.
-- Live raw evidence: **TestResults/HostedCqlIntegrationCurrent/browser-federation-acceptance.json**, browser-activitypub-mongo-{five,four}.json, browser-activitypub-mongo-four.png, isolation/replica reports. Counts/hashes and prior failures: [integration plan](HOSTED_SANDBOX_INTEGRATION_PLAN.md).
+Next source/demos:remaining runtime/configuration gates;preserve current public
+adapters, use actual V2 factories and compatible retained contracts. Do not
+restore legacy Ethereum demos as V2 proof. No new environment needed.
 
-## Durable state and resources
+NEAR(8),Cosmos blockchain(7),Polkadot(7),Sui(7),Aptos(10) recovery checks/builds pass;public profiles kept,
+original native environment untouched. Published code;not hosted native acceptance.
 
-- **LocalState/COSMIC/HostedSourceRolloutCurrent** holds DPAPI-protected original/candidate variables, configuration intents/ACK, deployment observation and browser acceptance ACK. Four AP examples applied; only example configuration changed in this batch. Never print secrets or replay an uncertain mutation.
-- **LocalState/COSMIC/HostedIpfsSourceCurrent** retains one new synthetic public 3-record cohort, original-key encrypted catalogue/DNA/intent/ACK and 4 CAR exports (3,788B; total state 13,571B) on the reused IPFSCurrent node. Both corrected runs stopped the owned daemon; no listeners 18547–18549. Host runtime/repo are deployed on the existing volume; native owned folder26,189B and image binary124,384,728B last measured before SDK correction. Guide/runner: Docs/Devs/IPFS_CQL_HOST_CONFIGURATION.md and Scripts/TestHosts/Prepare-HostedIpfsSource.ps1.
-- Sample avatars/2 private records / 4 replicas remain subject to normal sandbox expiry/cleanup, not claimed removed. Owned browser tabs closed; tokens lived only in page memory. Original baseline fixtures/repair journals preserved separately.
-- Existing Railway project712f50f6-3b7b-46d4-b229-44b49922f16b, WEB4 service5123199a-43c4-4439-9921-e10e2aec7841. No new paid service or local runtime. Rebuilt pinned upstream SDK source download89,333B; restores used existing cache. Hosted native runtime/volume state is inventoried.
-- Cleanup already removed15,310,104,295B disposable output. Latest C free recorded in [resource ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md); preserve shared runtimes/caches/credentials/native originals.
+TON review found EVM private-query admission without required chain identity.
+Regression reproduced;shared V2 fix17controlled cases pass, no native replay.
+Explicit TonLocalTvmStorageSource recovered;4controls/builds/syntax pass.
+Native local TVM1/1passes encrypted reopen/query3/2/0 and budgets/ownership.
+Owned disposable fixture removed;original source untouched. Legacy unchanged.
+Oracle local paired/content launcher/consumer restored;build+AST checks pass.
+Protocol wrapper/keyset closure restored;3consumer builds+AST checks pass.
+TRON declared-source7controls/builds/syntax pass;old uncertain outcome untouched.
+Configured V2 Ethereum/Polygon/Arbitrum reader+Mongo/HTTP consumer restored;
+7factory/configuration controls pass. Needs explicit compatible existing source.
+Source recovery live;27controlled/API/schema cases pass;secure sign-in helper ready.
+See CQL_SOURCE_RECOVERY.md. Website commands remain to correct.
+Ethereum V2 artifact/ABI/cache+6deploymentcontrols pass;native operation review-blocked.
+LocalFile sandbox-setting mismatch fixed and verified on the recovery laptop.
+The replacement teaching dataset passed SDK export and WEB4 bootstrap parsing. The publisher verified both source hashes. Railway sign-in is required before hosted preparation.
+Independent breadth work: [Hyperlane](HYPERLANE_PUBLIC_SOURCE_STATUS.md) now
+passes native 3/2, four preset plans and local WEB4 HTTP federation/privacy. The task branch and Core pin are published. Hosted preparation and visitor acceptance remain open.
+Automatic review rejected the combined website-edit/consumer-build operation;
+it did not execute. Website commands remain open. A separate reproduced page
+bug is fixed/tested below;no new native/browser proof or denied-operation retry.
+Independent sixth-batch shipping API/provider build and GraphQL schema guard
+pass1/1,no skips. Original hash/counts:LocalState/COSMIC/LauncherRecoveryCurrent/
+sixth-batch-shipping-schema-evidence.json. Consumer now compiles;3page regressions pass.
 
-## Key commands and recovery
+## Constraints / wider unfinished work
 
-- Build via Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1; /m:2 /nr:false /p:UseSharedCompilation=false. Reuse SDK/assets/cache, no unnecessary restores.
-- Validate committed pins: python Scripts/validate_railway_dependency_manifest.py --require-gitlinks.
-- Frontend: node --test cql-playground.test.cjs cql-demo-preparation.test.cjs sandbox-api.test.cjs.
-- Logs/TRX only worktree TestResults; durable state only LocalState. Current public demo: https://web4.oasisomniverse.one/web4-sandbox.html.
-- Full scope: [strict parity checklist](CQL_PARITY_CHECKLIST.md), [roadmap](CQL_COMPLETION_ROADMAP.md), [implementation](COSMIC_ORM_IMPLEMENTATION_ROADMAP.md). No overall completion percentage is inferred from focused demos.
+- Hosted Azure Cosmos/Oracle/PostgreSQL deferred by David;no account/spend re-asks.
+- Browser/OS control closed;HTTP/static matching is not interaction proof.
+- Preserve denied/failed public-source outcomes and original accepted cohorts.
+- ORM children/depth/history/deltas,cutover/migration/placement and wider hosted/
+  operator/transport/scale HyperDrive acceptance remain open;no uptime guarantee.
+- Native browser snapshots do not yet copy arbitrary complete source payloads.
+
+Recovery laptop checkout C:/Source/OASIS2; task branch work/cosmic-cql-ton-public. The original checkout was C:/Source/OASIS-cosmic.
+Use one build lease;/m:2 /nr:false /p:UseSharedCompilation=false.
+Raw logs TestResults/;original identities/proof LocalState/COSMIC/;named-file commits.
+No production/master promotion;preserve unknown root logs and shared/denied cleanup.
+Use the [recovery laptop cleanup ledger](RECOVERY_LAPTOP_CLEANUP_LEDGER.md) for this machine. The [original ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md) records the other laptop.
+
+## Entry points / commands
+
+[Full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) | [Manual](CQL_MANUAL.md) |
+[Architecture](CQL_ARCHITECTURE.md) | [Parity](CQL_PARITY_CHECKLIST.md) |
+[Launcher gaps](LOCAL_LAUNCHER_INTEGRATION_GAP.md) | [Backlog](AFTER_DEMO_BACKLOG.md) |
+[David actions](../Release%20and%20Status/ACTIONS-FOR-DAVID.md)
+
+```powershell
+python Scripts/validate_railway_dependency_manifest.py --require-gitlinks
+python -B Scripts/Sandbox/Audit-LocalDemoLaunchers.py --html C:/Source/Web4Site/web4-sandbox.html --output TestResults/LauncherRecoveryCurrent/local-launcher-audit.json
+```
+
+Audit now exits0:37files present, not native execution. Never rerun
+accepted native standalone3/2 or paired queries just to rebuild evidence.

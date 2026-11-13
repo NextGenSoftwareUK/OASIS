@@ -15,7 +15,7 @@ public partial class PolkadotOASIS
 {
     private async Task<double> ReadNativeBalanceAsync(string address)
     {
-        var result = await InvokePolkadotSdkAsync(new { operation = "balance", endpoint = _rpcEndpoint, genesisHash = ReportedGenesisHash, address });
+        var result = await InvokePolkadotSdkAsync(new { operation = "balance", endpoint = _rpcEndpoint, genesisHash = ReportedGenesisHash, address }).ConfigureAwait(false);
         return ParseNativeBalance(result);
     }
 
@@ -56,18 +56,18 @@ public partial class PolkadotOASIS
         var stderr = process.StandardError.ReadToEndAsync();
         try
         {
-            await process.StandardInput.WriteAsync(input.AsMemory(), deadline.Token);
+            await process.StandardInput.WriteAsync(input.AsMemory(), deadline.Token).ConfigureAwait(false);
             process.StandardInput.Close();
-            await process.WaitForExitAsync(deadline.Token);
-            var output = await stdout;
-            _ = await stderr; // Drain diagnostics without exposing SDK request/credential material.
+            await process.WaitForExitAsync(deadline.Token).ConfigureAwait(false);
+            var output = await stdout.ConfigureAwait(false);
+            _ = await stderr.ConfigureAwait(false); // Drain diagnostics without exposing SDK request/credential material.
             using var envelope = JsonDocument.Parse(output);
             if (process.ExitCode != 0 || !envelope.RootElement.GetProperty("ok").GetBoolean()) {
                 if(serving!=null){
                     // Join the owner, not a racy Task-status snapshot. Only our cancellation of an
                     // unused channel may yield to the SDK error; owner cancellation/failure survives.
                     deadline.Cancel();
-                    try {await serving;}
+                    try {await serving.ConfigureAwait(false);}
                     catch(OperationCanceledException cancelled) when(cancelled.CancellationToken==deadline.Token&&!cancellationToken.IsCancellationRequested) { }
                     finally {servingObserved=true;}
                 }
@@ -77,7 +77,7 @@ public partial class PolkadotOASIS
             }
             var result=envelope.RootElement.GetProperty("result");
             if(serving!=null){
-                await serving;servingObserved=true;
+                await serving.ConfigureAwait(false);servingObserved=true;
                 if(preparationServer.PreparedTransactionId==null
                     ||result.GetProperty("transactionHash").GetString()!=preparationServer.PreparedTransactionId
                     ||!result.GetProperty("persisted").GetBoolean()||result.GetProperty("submitted").GetBoolean()!=submitsOriginal)
@@ -100,12 +100,12 @@ public partial class PolkadotOASIS
         {
             deadline.Cancel();
             if (!process.HasExited) process.Kill(entireProcessTree: true);
-            await process.WaitForExitAsync();
+            await process.WaitForExitAsync().ConfigureAwait(false);
             // The primary failure remains authoritative; observe readers after the owned process exits.
-            try { await Task.WhenAll(stdout, stderr); }
+            try { await Task.WhenAll(stdout, stderr).ConfigureAwait(false); }
             catch(Exception error) when(error is IOException or DecoderFallbackException) { }
             if(serving!=null){
-                try {await serving;}
+                try {await serving.ConfigureAwait(false);}
                 catch(OperationCanceledException) when(deadline.IsCancellationRequested) { }
                 catch(Exception) when(servingObserved) { }
             }

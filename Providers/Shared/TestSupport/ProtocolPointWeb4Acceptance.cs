@@ -52,6 +52,41 @@ internal static class ProtocolPointWeb4Acceptance
         }
     }
 
+    internal static async Task VerifyKeySetTeachingHostAsync(
+        IOASISStorageProvider provider,HolonManager manager,Guid actor,IReadOnlyDictionary<string,Guid> records)
+    {
+        await using var app=CosmicCqlDemo.ProtocolPointApiHost.BuildKeySet(
+            manager,(ICosmicQueryStorageProvider)provider,actor,records,"http://127.0.0.1:0");
+        await app.StartAsync();
+        try
+        {
+            var address=app.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!.Addresses.Single();
+            using var client=new HttpClient{BaseAddress=new Uri(address),Timeout=TimeSpan.FromSeconds(30)};
+            Assert.Contains("CQL multi-record native demo",await client.GetStringAsync("/"));
+            using var invalid=await client.PostAsJsonAsync("/api/cql/keyset",new{nativeKeys=new[]{"unowned"}});
+            Assert.Equal(HttpStatusCode.BadRequest,invalid.StatusCode);
+            var keys=records.Keys.ToArray();
+            using var forged=await client.PostAsJsonAsync("/api/cql/keyset",new{nativeKeys=keys,actorId=Guid.NewGuid()});
+            Assert.Equal(HttpStatusCode.BadRequest,forged.StatusCode);
+            foreach(var selected in new[]{keys,keys.Take(2).ToArray()})
+            {
+                using var reply=await client.PostAsJsonAsync("/api/cql/keyset",new{nativeKeys=selected});
+                var text=await reply.Content.ReadAsStringAsync();Assert.True(reply.IsSuccessStatusCode,text);
+                using var json=JsonDocument.Parse(text);
+                Assert.Equal(selected.Length,json.RootElement.GetProperty("count").GetInt32());
+                Assert.Equal(selected.Select(key=>records[key]),json.RootElement.GetProperty("rows").EnumerateArray().Select(row=>row.GetProperty("id").GetGuid()));
+            }
+        }
+        finally{await app.StopAsync();}
+
+        if(Environment.GetEnvironmentVariable("OASIS_CQL_POINT_SERVE")=="1")
+        {
+            await using var interactive=CosmicCqlDemo.ProtocolPointApiHost.BuildKeySet(manager,(ICosmicQueryStorageProvider)provider,actor,records);
+            Console.WriteLine("Multi-record demo: http://127.0.0.1:5088/ ; POST /demo/shutdown to stop and clean fixtures.");
+            await interactive.RunAsync();
+        }
+    }
+
     private sealed class Providers(IOASISStorageProvider provider,HolonManager manager,ProviderType authority) : ICqlV1Providers
     {
         public int Lookups;

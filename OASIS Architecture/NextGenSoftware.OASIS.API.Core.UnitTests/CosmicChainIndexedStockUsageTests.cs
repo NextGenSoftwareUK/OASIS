@@ -65,12 +65,11 @@ public partial class CosmicChainIndexedExecutionTests
                 .Returns((string id,string owner,string outcome,CancellationToken ct)=>{
                     var op=Operations[id];Assert.True(op.ObservedOutcome==null||op.ObservedOutcome==outcome);op.ObservedOutcome=outcome;return Task.FromResult(op);
                 });
-            Store.Setup(s=>s.EnqueueAsync(It.IsAny<string>(),It.IsAny<string>(),It.IsAny<UsageSettlementRequest>(),It.IsAny<long>(),It.IsAny<CancellationToken>()))
-                .Returns((string id,string owner,UsageSettlementRequest settlement,long revision,CancellationToken ct)=>{
-                    var op=Operations[id];Assert.Equal(op.EvidenceRevision,revision);op.Settlement=settlement;op.State="pending";return Task.CompletedTask;
+            Store.Setup(s=>s.EnqueueAndClaimAsync(It.IsAny<string>(),It.IsAny<string>(),It.IsAny<UsageSettlementRequest>(),It.IsAny<long>(),It.IsAny<string>(),It.IsAny<DateTime>(),It.IsAny<TimeSpan>(),It.IsAny<CancellationToken>()))
+                .Returns((string id,string owner,UsageSettlementRequest settlement,long revision,string worker,DateTime now,TimeSpan lease,CancellationToken ct)=>{
+                    var op=Operations[id];Assert.Equal(op.EvidenceRevision,revision);op.Settlement=settlement;op.State="pending";
+                    op.WorkerOwner=worker;op.LeaseUntilUtc=now.Add(lease);op.Attempts++;return Task.FromResult(op);
                 });
-            Store.Setup(s=>s.ClaimOperationAsync(It.IsAny<string>(),It.IsAny<string>(),It.IsAny<DateTime>(),It.IsAny<TimeSpan>(),It.IsAny<CancellationToken>()))
-                .Returns((string id,string worker,DateTime now,TimeSpan lease,CancellationToken ct)=>Task.FromResult(Operations[id]));
             Store.Setup(s=>s.AcknowledgeAsync(It.IsAny<string>(),It.IsAny<string>(),It.IsAny<DateTime>(),It.IsAny<CancellationToken>()))
                 .Returns((string id,string worker,DateTime now,CancellationToken ct)=>{Operations[id].State="settled";return Task.CompletedTask;});
             Store.Setup(s=>s.MarkIndeterminateAsync(It.IsAny<string>(),It.IsAny<string>(),It.IsAny<string>(),It.IsAny<CancellationToken>()))

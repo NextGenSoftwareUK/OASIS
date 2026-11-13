@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <PackageId>NextGenSoftware.OASIS.API.Providers.SignProtocolOASIS</PackageId>
+    <Company>NextGen Software Ltd</Company>
+    <Product>WEB4 OASIS API Sign Protocol OASIS Provider</Product>
+    <Title>WEB4 OASIS API Sign Protocol OASIS Provider</Title>
+    <Description>Sign Protocol - Multi-chain attestation protocol for verifiable credentials. Part of the OASIS HOT-Swappable Provider Architecture. https://oasisomniverse.one</Description>
+    <PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
+    <PackageIcon>OASIS.jpg</PackageIcon>
+    <Authors>David Ellams (NextGen Software Ltd)</Authors>
+    <PackageTags>OASIS API; WEB4; Provider; Sign Protocol</PackageTags>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
+    <Copyright>Copyright © NextGen Software Ltd 2019 - 2026</Copyright>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+    <Version>2.0.1</Version>
+    <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\..\Logos\OASIS.jpg" Pack="true" PackagePath="\"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" Condition="Exists('..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj')" />
+    <PackageReference Include="NextGenSoftware.OASIS.API.Core" Version="2.0.0" Condition="!Exists('..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj')" />
+    <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.Common\NextGenSoftware.OASIS.Common.csproj" />
+    <ProjectReference Include="..\..\Shared\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="README.md">
+      <PackagePath>\</PackagePath>
+      <Pack>True</Pack>
+    </None>
+  </ItemGroup>
+
+</Project>

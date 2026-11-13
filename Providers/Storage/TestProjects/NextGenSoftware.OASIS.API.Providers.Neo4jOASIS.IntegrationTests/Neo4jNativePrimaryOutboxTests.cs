@@ -13,8 +13,8 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests;
 public partial class Neo4jNativeAvatarTests
 {
     [DataTestMethod]
-    [DataRow(false)] [DataRow(true)]
-    public async Task NativeCosmicPrimaryOutboxSharesGraphReceiptAndSequenceTransaction(bool synchronous)
+    [DataRow(false,false)] [DataRow(true,false)] [DataRow(false,true)] [DataRow(true,true)]
+    public async Task NativeCosmicPrimaryOutboxSharesGraphReceiptAndSequenceTransaction(bool synchronous,bool bindSource)
     {
         const string uri="bolt://127.0.0.1:17687";
         Assert.AreEqual(uri,Environment.GetEnvironmentVariable("OASIS_OWNED_NEO4J_URI"));
@@ -42,6 +42,12 @@ public partial class Neo4jNativeAvatarTests
             await(await inspection.RunAsync("CREATE (:CosmicHolonOutbox {OperationId:$op,TargetId:$target,Sequence:-1,OwnedFixture:true})",
                 new{op=operation.ToString("D"),target=targetB})).ConsumeAsync();
             var before=await(await inspection.RunAsync("OPTIONAL MATCH (s:CosmicHolonOutboxSequence {Name:'primary-holon-outbox-v1'}) RETURN s.Value AS value")).SingleAsync();
+            if(bindSource)
+            {
+                var captured=await provider.CaptureStorageIdentityAsync();Assert.IsFalse(captured.IsError,captured.Message+captured.Exception);
+                enrollment=new HolonReplicationEnrollment(enrollment.SourceId,enrollment.TargetIds,captured.Result);
+                await CosmicNativeAcceptance.CosmicPrimarySourceBindingProbe.RejectWrongAsync(enrollment,Write);
+            }
             var failed=await Write(enrollment);Assert.IsTrue(failed.IsError,failed.Message);
             Assert.AreEqual(0L,await Count("MATCH (h:Holon) WHERE h.Id IN $ids RETURN count(h) AS count",new{ids=new[]{root.Id.ToString(),child.Id.ToString()}}));
             Assert.AreEqual(0L,await Count("MATCH (r:CosmicWriteReceipt {OperationId:$op}) RETURN count(r) AS count",new{op=operation.ToString("D")}));
@@ -51,6 +57,8 @@ public partial class Neo4jNativeAvatarTests
             Assert.AreEqual(0,root.Version);Assert.AreEqual(0,child.Version);
             await(await inspection.RunAsync("MATCH (o:CosmicHolonOutbox {OperationId:$op,OwnedFixture:true}) DELETE o",new{op=operation.ToString("D")})).ConsumeAsync();
             var saved=await Write(enrollment);Assert.IsFalse(saved.IsError,saved.Message+saved.Exception);
+            if(bindSource)await CosmicNativeAcceptance.CosmicPrimarySourceBindingProbe.VerifyCommittedAsync(provider,request,enrollment,Write);
+            await CosmicNativeAcceptance.CosmicOutboxInventoryProbe.VerifyAsync(provider.GetHolonReplicationOutbox().Result,enrollment.TargetIds,operation,sharedStore:true);
             var rows=await(await inspection.RunAsync("MATCH (o:CosmicHolonOutbox {OperationId:$op}) RETURN o ORDER BY o.Sequence",new{op=operation.ToString("D")})).ToListAsync();
             Assert.AreEqual(2,rows.Count);var first=rows[0]["o"].As<INode>();var second=rows[1]["o"].As<INode>();
             Assert.AreEqual(first["Sequence"].As<long>()+1,second["Sequence"].As<long>());
@@ -71,7 +79,7 @@ public partial class Neo4jNativeAvatarTests
             Assert.IsNull((await sourceReader.ReadObligationAsync(long.MaxValue)).Result);
             await provider.DeActivateProviderAsync();provider=new Provider(uri,"neo4j","oasis-local-test-only");
             Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
-            var replay=await Write(new HolonReplicationEnrollment(source,new[]{targetA,targetB}));
+            var replay=await Write(new HolonReplicationEnrollment(source,new[]{targetA,targetB},enrollment.SourceStorageIdentity));
             Assert.IsFalse(replay.IsError,replay.Message+replay.Exception);
             Assert.AreEqual(saved.Result.Single().VersionId,replay.Result.Single().VersionId);
             Assert.AreEqual(2L,await Count("MATCH (o:CosmicHolonOutbox {OperationId:$op}) RETURN count(o) AS count",new{op=operation.ToString("D")}));
@@ -79,6 +87,7 @@ public partial class Neo4jNativeAvatarTests
             Assert.AreEqual(second["Sequence"].As<long>(),replayCounter["value"].As<long>(),"Receipt replay must not allocate another sequence range.");
             var changed=await Write(new HolonReplicationEnrollment(source,new[]{targetA}));Assert.AreEqual("COSMIC_OPERATION_ID_REUSED",changed.ErrorCode);
             var plain=await provider.ExecuteConditionalHolonWriteAsync(request);Assert.AreEqual("COSMIC_OPERATION_ID_REUSED",plain.ErrorCode);
+            if(bindSource)await CosmicNativeAcceptance.CosmicOutboxSourceBindingProbe.VerifyAsync(provider,enrollment.SourceStorageIdentity,targetA,operation);
             complete=true;
         }
         finally

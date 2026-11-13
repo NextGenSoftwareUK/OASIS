@@ -1,0 +1,111 @@
+name: Qualify TRON header WEB4 read integration
+
+on:
+  push:
+    branches: [work/cosmic-cql-ton-public]
+    paths:
+      - '.github/workflows/qualify-tron-header-web4.yml'
+      - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/CqlTronHeaderHostedConfigurationTests.cs'
+      - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/CqlTronHeaderHttpTests.cs'
+  workflow_dispatch:
+    inputs:
+      authenticated_native_http:
+        description: Verify real TRON headers and owned Mongo copies through WEB4 HTTP
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  web4:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          path: OASIS
+          submodules: true
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - name: Validate exact dependency pins
+        id: dependency
+        working-directory: OASIS
+        run: |
+          python3 -B Scripts/validate_railway_dependency_manifest.py --require-gitlinks
+          grep -E '^(LIBRARIES_COMMIT|HOLOCHAIN_COMMIT)=[0-9a-f]{40}$' Docker/oasis-dependency-versions.env >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependency.outputs.LIBRARIES_COMMIT }}
+          path: NextGenSoftware-Libraries
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          ref: ${{ steps.dependency.outputs.HOLOCHAIN_COMMIT }}
+          path: holochain-client-csharp
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+      - name: Verify controlled WEB4 read integration
+        working-directory: OASIS
+        shell: pwsh
+        run: |
+          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner tron-header-web4-ci -Operation {
+            dotnet test ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CqlTronHeaderHostedConfigurationTests' --results-directory TestResults/TronHeaderWeb4Current --logger 'trx;LogFileName=boundary.trx'
+            if ($LASTEXITCODE) { throw 'TRON header WEB4 boundary qualification failed' }
+            [xml]$report = Get-Content TestResults/TronHeaderWeb4Current/boundary.trx
+            $counts = $report.TestRun.ResultSummary.Counters
+            if ($counts.passed -ne '11' -or $counts.total -ne '11' -or $counts.executed -ne '11') {
+              throw 'All eleven boundary cases must execute and pass without skips'
+            }
+          }
+      - name: Require dedicated reader access before any native work
+        if: github.event_name == 'workflow_dispatch' && inputs.authenticated_native_http
+        shell: pwsh
+        env:
+          COSMIC_TRON_PUBLIC_READER_KEY: ${{ secrets.COSMIC_TRON_PUBLIC_READER_KEY }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:COSMIC_TRON_PUBLIC_READER_KEY)) { throw 'Dedicated reader access required; no native request made.' }
+      - name: Start isolated owned Mongo replica
+        if: github.event_name == 'workflow_dispatch' && inputs.authenticated_native_http
+        working-directory: OASIS
+        run: python3 -B Scripts/TestHosts/gomap_web4_mongo.py --profile tron --operation start
+      - name: Verify authenticated native headers and Mongo through WEB4 HTTP
+        if: github.event_name == 'workflow_dispatch' && inputs.authenticated_native_http
+        working-directory: OASIS
+        shell: pwsh
+        env:
+          COSMIC_TRON_PUBLIC_READER_KEY: ${{ secrets.COSMIC_TRON_PUBLIC_READER_KEY }}
+          COSMIC_TRON_HEADER_NATIVE_HTTP: owned-loopback
+          COSMIC_REVIEWED_PUBLIC_MONGO_NATIVE: owned-local-27029
+        run: |
+          dotnet test ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests --no-build --no-restore /m:2 /nr:false /p:UseSharedCompilation=false --filter FullyQualifiedName~AuthenticatedTronHeadersAndPrivateMongoCopiesOverHttp --results-directory TestResults/TronHeaderWeb4Current --logger 'trx;LogFileName=native-http.trx'
+          if ($LASTEXITCODE) { throw 'Native TRON HTTP qualification failed; preserve outcome and never automatically retry.' }
+          [xml]$report = Get-Content TestResults/TronHeaderWeb4Current/native-http.trx
+          $counts = $report.TestRun.ResultSummary.Counters
+          if ($counts.passed -ne '1' -or $counts.total -ne '1' -or $counts.executed -ne '1') { throw 'One real native HTTP case must execute and pass without skips.' }
+      - name: Retain compact controlled reports
+        uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: tron-header-web4-controlled
+          path: |
+            OASIS/TestResults/TronHeaderWeb4Current/*.trx
+            OASIS/LocalState/COSMIC/ReviewedPublicMongoHttpQualification/TRONOASIS/*.json
+          if-no-files-found: error
+          retention-days: 30
+      - name: Remove only owned native fixture container and anonymous volumes
+        if: always() && github.event_name == 'workflow_dispatch' && inputs.authenticated_native_http
+        working-directory: OASIS
+        run: python3 -B Scripts/TestHosts/gomap_web4_mongo.py --profile tron --operation stop
+      - name: Retain owned cleanup report
+        if: always() && github.event_name == 'workflow_dispatch' && inputs.authenticated_native_http
+        uses: actions/upload-artifact@v7
+        with:
+          name: tron-header-web4-cleanup
+          path: OASIS/TestResults/TronHeaderWeb4Current/mongo-*.json
+          if-no-files-found: error
+          retention-days: 30

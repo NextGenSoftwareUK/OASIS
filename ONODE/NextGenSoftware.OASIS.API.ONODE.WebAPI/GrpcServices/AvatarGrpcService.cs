@@ -32,7 +32,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GrpcServices
                     request.Username,
                     avatarType,
                     OASISType.OASISAPIgRPC,
-                    suppressVerificationEmail: request.SuppressVerificationEmail);
+                    suppressVerificationEmail: Services.ProgrammaticVerificationPolicy.ShouldSuppress(
+                        request.SuppressVerificationEmail, false, request.Email,
+                        bool.TryParse(Environment.GetEnvironmentVariable("OASIS_ALLOW_PROGRAMMATIC_VERIFICATION"), out var allowed) && allowed));
 
                 return result.IsError
                     ? new AvatarResponse { IsError = true, Message = result.Message }

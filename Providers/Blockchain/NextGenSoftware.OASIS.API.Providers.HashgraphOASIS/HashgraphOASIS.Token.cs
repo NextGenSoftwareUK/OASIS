@@ -291,7 +291,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             try
             {
                 ArgumentNullException.ThrowIfNull(request);
-                result.Result = (double)((await ReadMirrorBalanceTinybarsAsync(request.WalletAddress, default)) / 100000000m);
+                result.Result = (double)((await ReadMirrorBalanceTinybarsAsync(request.WalletAddress, default).ConfigureAwait(false)) / 100000000m);
                 result.Message = "Native HBAR balance read from the supported Hedera mirror API.";
             }
             catch (Exception ex)
@@ -303,7 +303,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
 
         public OASISResult<double> GetBalance(IGetWeb3WalletBalanceRequest request)
         {
-            return GetBalanceAsync(request).Result;
+            return GetBalanceAsync(request).GetAwaiter().GetResult();
         }
 
         public async Task<OASISResult<decimal>> GetAccountBalanceAsync(string accountId, CancellationToken token = default)
@@ -311,7 +311,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             var result = new OASISResult<decimal>();
             try
             {
-                result.Result = (await ReadMirrorBalanceTinybarsAsync(accountId, token)) / 100000000m;
+                result.Result = (await ReadMirrorBalanceTinybarsAsync(accountId, token).ConfigureAwait(false)) / 100000000m;
                 result.Message = "Exact native HBAR balance read from the supported Hedera mirror API.";
             }
             catch (Exception ex) { OASISErrorHandling.HandleError(ref result, "Hedera mirror balance failed: " + ex.Message, ex); }
@@ -325,9 +325,9 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                 throw new ArgumentException("A nonzero numeric Hedera account ID is required for mirror balance.");
             using var timeout = CancellationTokenSource.CreateLinkedTokenSource(token);
             timeout.CancelAfter(TimeSpan.FromSeconds(20));
-            using var response = await _httpClient.GetAsync("accounts/" + accountId, timeout.Token);
+            using var response = await _httpClient.GetAsync("accounts/" + accountId, timeout.Token).ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
-            using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync(timeout.Token));
+            using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync(timeout.Token).ConfigureAwait(false));
             var account = document.RootElement;
             if (account.GetProperty("account").GetString() != accountId || account.GetProperty("deleted").GetBoolean()
                 || !account.GetProperty("balance").GetProperty("balance").TryGetInt64(out var balance) || balance < 0)

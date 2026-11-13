@@ -75,6 +75,96 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             catch (UsageProtocolException ex) { return StatusCode(ex.StatusCode, new OASISResult<bool> { IsError = true, Message = ex.Message }); }
         }
 
+        /// <summary>Administrator-only: put an avatar on a plan without Stripe (e.g. Enterprise for an internal/partner app). Audited.</summary>
+        [HttpPost("plan-grant")]
+        public async Task<IActionResult> GrantPlan([FromBody] GrantPlanRequest request)
+        {
+            try
+            {
+                string actor = SubscriptionServiceIdentity.RequireAdministrator(HttpContext, _configuration);
+                if (request == null) throw new ArgumentException("A request body is required.");
+                var record = await _repository.GrantPlanAsync(request.UserId, request.PlanId, actor, request.Reason, request.ExpiresAtUtc, HttpContext.RequestAborted);
+                return Ok(new OASISResult<SubscriptionRecord> { Result = record, Message = $"Avatar {record.UserId} is now on the {record.PlanId} plan until {record.CurrentPeriodEnd:u}." });
+            }
+            catch (UnauthorizedAccessException ex) { return StatusCode(403, new OASISResult<bool> { IsError = true, Message = ex.Message }); }
+            catch (ArgumentException ex) { return BadRequest(new OASISResult<bool> { IsError = true, Message = ex.Message }); }
+            catch (SubscriptionUsageConflictException ex) { return StatusCode(409, new OASISResult<bool> { IsError = true, Message = ex.Message }); }
+        }
+
+        /// <summary>Administrator-only: the apps (e.g. PIPER) that hold a plan of their own. Keys are never returned here.</summary>
+        [HttpGet("app-accounts")]
+        public Task<IActionResult> AppAccounts() => Execute(() => _repository.ListAppAccountsAsync(HttpContext.RequestAborted));
+
+        /// <summary>Creates an app account. The API key is in the response exactly once; store it as a secret.</summary>
+        [HttpPost("app-accounts")]
+        public Task<IActionResult> CreateAppAccount([FromBody] AppAccountRequest request) =>
+            AppAccountCall(async actor =>
+            {
+                var (account, key) = await _repository.CreateAppAccountAsync(request?.AppId, request?.Name, request?.PlanId, actor, request?.Reason, request?.PooledQuota ?? false, request?.PerUserPlanId, HttpContext.RequestAborted);
+                return new AppAccountWithKey { Account = account, ApiKey = key };
+            });
+
+        [HttpPost("app-accounts/{appId}/rotate-key")]
+        public Task<IActionResult> RotateAppAccountKey(string appId, [FromBody] AppAccountRequest request) =>
+            AppAccountCall(async actor =>
+            {
+                var (account, key) = await _repository.RotateAppAccountKeyAsync(appId, actor, request?.Reason, HttpContext.RequestAborted);
+                return new AppAccountWithKey { Account = account, ApiKey = key };
+            });
+
+        /// <summary>Pool usage for a pooled app: this month and today against the plan limits.</summary>
+        [HttpGet("app-accounts/{appId}/usage")]
+        public Task<IActionResult> AppPoolUsage(string appId) =>
+            AppAccountCall(_ => _repository.GetAppPoolUsageAsync(appId, HttpContext.RequestAborted));
+
+        /// <summary>The avatars using the most of a pooled app's quota this month, busiest first.</summary>
+        [HttpGet("app-accounts/{appId}/top-users")]
+        public Task<IActionResult> AppTopUsers(string appId, [FromQuery] int limit = 10) =>
+            AppAccountCall(_ => _repository.GetAppTopUsersAsync(appId, limit, HttpContext.RequestAborted));
+
+        /// <summary>Change an app's plan and/or disable or re-enable it (a disabled app's credentials stop working at once).</summary>
+        [HttpPost("app-accounts/{appId}")]
+        public Task<IActionResult> UpdateAppAccount(string appId, [FromBody] AppAccountRequest request) =>
+            AppAccountCall(actor => _repository.UpdateAppAccountAsync(appId, request?.PlanId, request?.Status, actor, request?.Reason, request?.PooledQuota, request?.PerUserPlanId, HttpContext.RequestAborted));
+
+        private async Task<IActionResult> AppAccountCall<T>(Func<string, Task<T>> call)
+        {
+            try
+            {
+                string actor = SubscriptionServiceIdentity.RequireAdministrator(HttpContext, _configuration);
+                return Ok(new OASISResult<T> { Result = await call(actor) });
+            }
+            catch (UnauthorizedAccessException ex) { return StatusCode(403, new OASISResult<bool> { IsError = true, Message = ex.Message }); }
+            catch (ArgumentException ex) { return BadRequest(new OASISResult<bool> { IsError = true, Message = ex.Message }); }
+            catch (KeyNotFoundException ex) { return NotFound(new OASISResult<bool> { IsError = true, Message = ex.Message }); }
+            catch (SubscriptionUsageConflictException ex) { return StatusCode(409, new OASISResult<bool> { IsError = true, Message = ex.Message }); }
+        }
+
+        public sealed class AppAccountRequest
+        {
+            public string AppId { get; set; }
+            public string Name { get; set; }
+            public string PlanId { get; set; }
+            public string Status { get; set; }
+            public string Reason { get; set; }
+            public bool? PooledQuota { get; set; }
+            public string PerUserPlanId { get; set; }
+        }
+
+        public sealed class AppAccountWithKey
+        {
+            public AppAccountRecord Account { get; set; }
+            public string ApiKey { get; set; }
+        }
+
+        public sealed class GrantPlanRequest
+        {
+            public string UserId { get; set; }
+            public string PlanId { get; set; }
+            public string Reason { get; set; }
+            public DateTime? ExpiresAtUtc { get; set; }
+        }
+
         private MongoUsageOutboxStore Outbox(string service)
         {
             if (service is not ("WEB5" or "WEB6" or "WEB7" or "WEB8" or "WEB9" or "WEB10"))

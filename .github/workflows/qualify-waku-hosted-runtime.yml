@@ -1,0 +1,65 @@
+name: Qualify retained Waku hosted runtime
+
+on:
+  push:
+    branches: [work/cosmic-cql-ton-public]
+    paths:
+      - '.github/workflows/qualify-waku-hosted-runtime.yml'
+      - 'Docker/host-sandbox-waku.cjs'
+      - 'Scripts/Sandbox/test_hosted_waku_runtime.cjs'
+      - 'Scripts/TestHosts/Verify-WakuHostedRuntime.cjs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  retained-source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          submodules: false
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24.19.0
+      - name: Check hosted runtime controls
+        run: node --test Scripts/Sandbox/test_hosted_waku_runtime.cjs
+      - name: Restore the original qualified source
+        uses: actions/download-artifact@v7
+        with:
+          name: waku-store-qualified-source
+          run-id: 42320285565
+          github-token: ${{ github.token }}
+          path: TestResults/WakuHostedRuntime/Original
+      - name: Verify retained native restore and restart
+        shell: bash
+        run: |
+          set -euo pipefail
+          work=$(mktemp -d "$RUNNER_TEMP/oasis-waku-hosted.XXXXXXXX")
+          [[ "$work" == "$RUNNER_TEMP"/oasis-waku-hosted.* ]]
+          trap 'rm -rf -- "$work"' EXIT
+          curl --fail --silent --show-error --location --max-time 90 \
+            https://github.com/logos-messaging/logos-delivery/releases/download/v0.39.2/waku-v0.39.2-amd64-linux.tar.gz \
+            --output "$work/waku.tar.gz"
+          printf '%s  %s\n' 063d4386623e3dcfa6e59908dd57bbc2a420f26875ea50f7adb3c5b348ba9b87 "$work/waku.tar.gz" | sha256sum --check
+          tar -xzf "$work/waku.tar.gz" -C "$work"
+          printf '%s  %s\n' 0bd3c388c5662d3f73a6239555013d4526dd801e8746b58e38c4921f55ec9880 \
+            TestResults/WakuHostedRuntime/Original/store-qualified.sqlite3 | sha256sum --check
+          mkdir TestResults/WakuHostedRuntime/Owned
+          node Scripts/TestHosts/Verify-WakuHostedRuntime.cjs "$work/build/logosdeliverynode" \
+            TestResults/WakuHostedRuntime/Original TestResults/WakuHostedRuntime/Owned
+      - name: Retain compact qualification and native logs
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: waku-hosted-runtime-qualification
+          path: |
+            TestResults/WakuHostedRuntime/Owned/*.json
+            TestResults/WakuHostedRuntime/Owned/*.log
+            TestResults/WakuHostedRuntime/Original/
+          if-no-files-found: warn
+          retention-days: 90

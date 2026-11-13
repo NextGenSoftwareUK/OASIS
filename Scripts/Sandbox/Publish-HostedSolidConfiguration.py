@@ -16,9 +16,10 @@ import sys
 ROOT = Path(__file__).resolve().parents[2]
 STATE = ROOT / "LocalState/COSMIC/HostedSourceRolloutCurrent"
 SOURCE = ROOT / "LocalState/COSMIC/HostedSolidSourceCurrent"
-CLI = (Path.home() / "AppData/Local/Microsoft/WinGet/Packages/"
+DEFAULT_CLI = (Path.home() / "AppData/Local/Microsoft/WinGet/Packages/"
        "OpenJS.NodeJS.LTS_Microsoft.Winget.Source_8wekyb3d8bbwe/"
        "node-v24.19.0-win-x64/node_modules/@railway/cli/bin/railway.exe")
+CLI = Path(os.environ.get("OASIS_RAILWAY_CLI", str(DEFAULT_CLI)))
 COMMON = ["-p", "712f50f6-3b7b-46d4-b229-44b49922f16b", "-e", "dev",
           "-s", "5123199a-43c4-4439-9921-e10e2aec7841"]
 KEYS = ["OASIS_DNA_JSON", "PREPARED_STORAGE_ADMISSION_JSON", "CQL_HOSTED_QUERY_EXAMPLES_JSON",
@@ -134,12 +135,13 @@ def prepare():
     print("Protected SOLID candidate prepared: six values, four public presets; no service mutation.")
 
 
-def apply():
-    before = protected_read("solid-before-variables.dpapi")
-    after = protected_read("solid-candidate-variables.dpapi")
+def apply_values(prefix, keys):
+    """One mutation/observation owner shared by explicit hosted source publishers."""
+    before = protected_read(prefix + "-before-variables.dpapi")
+    after = protected_read(prefix + "-candidate-variables.dpapi")
     expected = copy.deepcopy(before)
-    for name in KEYS:
-        intent = STATE / ("solid-" + name + ".intent.json")
+    for name in keys:
+        intent = STATE / (prefix + "-" + name + ".intent.json")
         if intent.exists():
             raise RuntimeError("Existing mutation intent; reconcile instead of replaying.")
         if variables() != expected:
@@ -153,9 +155,13 @@ def apply():
         expected[name] = after[name]
         if variables() != expected:
             raise RuntimeError("Observed configuration differs; do not resubmit.")
-        write_new(STATE / ("solid-" + name + ".acknowledged.json"),
+        write_new(STATE / (prefix + "-" + name + ".acknowledged.json"),
                   compact({"key": name, "sha256": digest, "verified": True, "deploymentTriggered": False}).encode())
-    print("Six values observed exactly; no deployment triggered.")
+    print(str(len(keys)) + " values observed exactly; no deployment triggered.")
+
+
+def apply():
+    apply_values("solid", KEYS)
 
 
 if __name__ == "__main__":

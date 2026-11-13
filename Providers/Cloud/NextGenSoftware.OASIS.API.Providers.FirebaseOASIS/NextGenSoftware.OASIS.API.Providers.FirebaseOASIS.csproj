@@ -29,6 +29,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="../../Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.csproj" />
     <None Include="..\..\..\Logos\OASIS.jpg" Link="OASIS.jpg">
       <PackagePath>\</PackagePath>
       <Pack>True</Pack>
@@ -42,5 +43,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="NextGenSoftware.OASIS.API.Providers.FirebaseOASIS.IntegrationTests" />
+    <InternalsVisibleTo Include="NextGenSoftware.OASIS.API.Providers.FirebaseOASIS.UnitTests" />
   </ItemGroup>
 </Project>

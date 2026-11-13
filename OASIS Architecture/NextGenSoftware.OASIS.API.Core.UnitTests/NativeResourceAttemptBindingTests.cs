@@ -32,16 +32,16 @@ public sealed class NativeResourceAttemptBindingTests
                 return Task.FromResult(cursor.Object);
             });
         MongoDB.Bson.BsonDocument persisted=null!;
-        collection.Setup(value=>value.UpdateOneAsync(It.IsAny<FilterDefinition<UsageOutboxOperation>>(),
-            It.IsAny<UpdateDefinition<UsageOutboxOperation>>(),It.IsAny<UpdateOptions>(),It.IsAny<CancellationToken>()))
-            .Returns((FilterDefinition<UsageOutboxOperation> filter,UpdateDefinition<UsageOutboxOperation> update,UpdateOptions options,CancellationToken token)=>{
+        collection.Setup(value=>value.FindOneAndUpdateAsync(It.IsAny<FilterDefinition<UsageOutboxOperation>>(),
+            It.IsAny<UpdateDefinition<UsageOutboxOperation>>(),It.IsAny<FindOneAndUpdateOptions<UsageOutboxOperation,UsageOutboxOperation>>(),It.IsAny<CancellationToken>()))
+            .Returns((FilterDefinition<UsageOutboxOperation> filter,UpdateDefinition<UsageOutboxOperation> update,FindOneAndUpdateOptions<UsageOutboxOperation,UsageOutboxOperation> options,CancellationToken token)=>{
                 // The driver may serialize after validation yields to its asynchronous transport.
                 if(mutation=="receipt")receipt.ProviderRequestId="caller-replacement";
                 else if(mutation=="outer-list")settlement.ProviderReceipts.Clear();
                 else receipt.NativeResourceUsage.Clear();
                 persisted=update.Render(new RenderArgs<UsageOutboxOperation>(
                     BsonSerializer.SerializerRegistry.GetSerializer<UsageOutboxOperation>(),BsonSerializer.SerializerRegistry)).AsBsonDocument;
-                return Task.FromResult<UpdateResult>(new UpdateResult.Acknowledged(1,1,null));
+                return Task.FromResult(operation);
             });
         var store=(MongoUsageOutboxStore)RuntimeHelpers.GetUninitializedObject(typeof(MongoUsageOutboxStore));
         typeof(MongoUsageOutboxStore).GetField("_operations",BindingFlags.Instance|BindingFlags.NonPublic)!.SetValue(store,collection.Object);
@@ -93,6 +93,9 @@ public sealed class NativeResourceAttemptBindingTests
         collection.Setup(value=>value.UpdateOneAsync(It.IsAny<FilterDefinition<UsageOutboxOperation>>(),
             It.IsAny<UpdateDefinition<UsageOutboxOperation>>(),It.IsAny<UpdateOptions>(),It.IsAny<CancellationToken>()))
             .Callback(()=>writes++).ReturnsAsync(new UpdateResult.Acknowledged(1,1,null));
+        collection.Setup(value=>value.FindOneAndUpdateAsync(It.IsAny<FilterDefinition<UsageOutboxOperation>>(),
+            It.IsAny<UpdateDefinition<UsageOutboxOperation>>(),It.IsAny<FindOneAndUpdateOptions<UsageOutboxOperation,UsageOutboxOperation>>(),It.IsAny<CancellationToken>()))
+            .Callback(()=>writes++).ReturnsAsync(operation);
         // Isolate the shipping store boundary from network/constructor effects.
         // This is our own repository field, never an SDK private API.
         var store=(MongoUsageOutboxStore)RuntimeHelpers.GetUninitializedObject(typeof(MongoUsageOutboxStore));

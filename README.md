@@ -32,7 +32,7 @@ The OASIS (Open Advanced Secure Interoperable Scalable-System) is a revolutionar
 
 ## 🌐 Supported Providers
 
-OASIS supports 222 providers across multiple categories, providing universal compatibility and seamless integration:
+The [OASIS provider inventory](Docs/WIP/HyperDrive-Providers/PROVIDER_MATRIX.md) tracks 234 shipping provider projects across multiple categories. Capabilities and live verification vary by provider.
 
 ### **Blockchain Providers**
 - **Bitcoin** - Original cryptocurrency blockchain
@@ -330,6 +330,10 @@ cd OASIS
 # Contributors: enable the repository's git hooks once per clone
 # (a pre-push check that Railway's dependency pins match the submodule pointers)
 git config core.hooksPath .githooks
+
+# Fetch the Core source (git submodules). Core is NOT a NuGet package; without this,
+# restore fails with NU1605/NU1202 errors that look like a package problem.
+git submodule update --init "OASIS Architecture/NextGenSoftware.OASIS.API.Core" "ONODE/NextGenSoftware.OASIS.API.ONODE.Core" "HoloNET-ORM"
 
 # Start the development environment
 ./Start-Development.bat
@@ -997,7 +1001,7 @@ Sophisticated tokenomics with:
 - Cost optimization algorithms
 
 ### 🌐 Universal Connectivity
-- 222 supported providers
+- [234 shipping provider projects](Docs/WIP/HyperDrive-Providers/PROVIDER_MATRIX.md) in the OASIS inventory
 - Web2 and Web3 integration
 - Cross-platform compatibility
 - Protocol translation
@@ -1159,7 +1163,7 @@ OASIS represents the culmination of years of research, development, and vision. 
 
 ### Evolution Highlights
 - **From Concept to Reality**: What started as a vision for universal connectivity has become a working system
-- **Technology Integration**: Successfully integrated 222 Web2 and Web3 providers
+- **Technology Integration**: [234 Web2 and Web3 provider projects](Docs/WIP/HyperDrive-Providers/PROVIDER_MATRIX.md) in the OASIS inventory
 - **Community Growth**: Built a global community of developers, users, and contributors
 - **Innovation Leadership**: Pioneered auto-failover technology and universal data aggregation
 

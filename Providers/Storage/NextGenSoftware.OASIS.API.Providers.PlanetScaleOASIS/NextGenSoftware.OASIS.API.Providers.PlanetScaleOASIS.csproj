@@ -34,6 +34,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="MySqlConnector" Version="2.6.2" />
+    <ProjectReference Include="..\..\Shared\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.csproj" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" Condition="Exists('..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj')" />

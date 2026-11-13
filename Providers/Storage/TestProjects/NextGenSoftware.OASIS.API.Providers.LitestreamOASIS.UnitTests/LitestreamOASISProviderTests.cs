@@ -41,9 +41,9 @@ namespace NextGenSoftware.OASIS.API.Providers.LitestreamOASIS.UnitTests
         }
 
         [TestMethod]
-        public void GetProviderVersion_ShouldReturnValidVersion()
+        public void ProviderCategory_ShouldIdentifyStorage()
         {
-            Assert.IsFalse(string.IsNullOrWhiteSpace(_provider.GetProviderVersion()));
+            Assert.AreEqual(ProviderCategory.StorageLocalAndNetwork, _provider.ProviderCategory.Value);
         }
 
         [TestCleanup]

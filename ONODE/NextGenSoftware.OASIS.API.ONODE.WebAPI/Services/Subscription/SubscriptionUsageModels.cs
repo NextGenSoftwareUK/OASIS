@@ -28,6 +28,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
     [BsonIgnoreExtraElements]
     public class SubscriptionUsageEvent
     {
+        /// <summary>Set when the request carried valid app credentials (see AppAccountRecord). Usage is still recorded against UserId.</summary>
+        public string AppId { get; set; }
+        public string AppPlanId { get; set; }
+        /// <summary>Set only when the app's shared pool applies; every later movement (settle, expire, correct) is mirrored to the pool.</summary>
+        public string PooledAppId { get; set; }
+        public string PooledAppPlanId { get; set; }
         public string OperationId { get; set; }
         public string UserId { get; set; }
         public string ConsumingService { get; set; }

@@ -15,7 +15,8 @@ namespace NextGenSoftware.OASIS.API.Providers.ArangoDBOASIS.IntegrationTests
         [TestInitialize]
         public void Setup()
         {
-            _provider = new ArangoDBOASIS(connStr);
+            var password = Environment.GetEnvironmentVariable("ARANGODB_PASSWORD") ?? string.Empty;
+            _provider = new ArangoDBOASIS(connStr, password: password);
             _provider.ActivateProvider();
         }
 

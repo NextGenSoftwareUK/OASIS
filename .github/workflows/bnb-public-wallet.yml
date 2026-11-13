@@ -1,0 +1,20 @@
+name: BNB Smart Chain public wallet
+
+on:
+  push:
+    branches: [work/hyperdrive-provider-completion]
+    paths:
+      - '.github/workflows/bnb-public-wallet.yml'
+      - 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.BNBChainOASIS.IntegrationTests/BnbPublicWalletBalanceTests.cs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  public-wallet:
+    uses: ./.github/workflows/bnb-native-storage.yml
+    with:
+      public_wallet_only: true
+    secrets:
+      PRIVATE_SUBMODULE_PAT: ${{ secrets.PRIVATE_SUBMODULE_PAT }}

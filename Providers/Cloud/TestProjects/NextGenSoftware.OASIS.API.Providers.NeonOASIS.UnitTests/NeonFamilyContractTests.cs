@@ -32,9 +32,12 @@ public class NeonFamilyContractTests
     [DataRow("ep-demo.us-east-2.aws.neon.tech", true, "ep-demo-pooler.us-east-2.aws.neon.tech")]
     [DataRow("ep-demo-pooler.us-east-2.aws.neon.tech", true, "ep-demo-pooler.us-east-2.aws.neon.tech")]
     [DataRow("ep-demo.us-east-2.aws.neon.tech", false, "ep-demo.us-east-2.aws.neon.tech")]
+    [DataRow("ep-demo.us-east-2.aws.neon.tech:5544", true, "ep-demo-pooler.us-east-2.aws.neon.tech:5544")]
+    [DataRow("ep-demo-pooler.us-east-2.aws.neon.tech:5544", false, "ep-demo-pooler.us-east-2.aws.neon.tech:5544")]
+    [DataRow("proxy.example.test:5432,ep-demo.us-east-2.aws.neon.tech:5544", true, "proxy.example.test:5432,ep-demo.us-east-2.aws.neon.tech:5544")]
     public void NeonPoolerUsesHostnameAndVerifiedTls(string host, bool pooler, string expected)
     {
-        var config = Config(new NeonOASIS($"Host={host};Port=5432;Database=synthetic;Username=synthetic", pooler));
+        var config = Config(new NeonOASIS($"Host={host};Port=5432;Database=synthetic;Username=synthetic;SslMode=Disable", pooler));
         Assert.AreEqual(expected, config.Host);
         Assert.AreEqual(5432, config.Port);
         Assert.AreEqual(SslMode.VerifyFull, config.SslMode);

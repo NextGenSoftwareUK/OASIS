@@ -16,10 +16,14 @@ namespace NextGenSoftware.OASIS.API.Providers.NATSJetStreamOASIS
     /// <summary>
     /// Stores OASIS avatars and holons in a NATS JetStream key-value bucket (NATS.Net client).
     /// </summary>
-    public class NATSJetStreamOASIS : KeyValueStorageProviderBase, IOASISDBStorageProvider
+    public partial class NATSJetStreamOASIS : KeyValueStorageProviderBase, IOASISDBStorageProvider
     {
         public NATSJetStreamOASIS(string natsUrl = "nats://localhost:4222", string bucket = "oasis")
-            : base(new NatsKvBackend(natsUrl, bucket))
+            : this(natsUrl, bucket, readOnly: false) { }
+
+        protected NATSJetStreamOASIS(string natsUrl, string bucket, bool readOnly, NatsAuthOpts? auth = null,
+            NatsTlsOpts? tls = null)
+            : base(new NatsKvBackend(natsUrl, bucket, readOnly, auth, tls))
         {
             ProviderName = "NATSJetStreamOASIS";
             ProviderDescription = "NATS JetStream provider: OASIS avatars and holons in a JetStream key-value bucket.";
@@ -39,16 +43,22 @@ namespace NextGenSoftware.OASIS.API.Providers.NATSJetStreamOASIS
     {
         private readonly string _url;
         private readonly string _bucket;
+        private readonly bool _readOnly;
+        private readonly NatsAuthOpts _auth;
+        private readonly NatsTlsOpts _tls;
         private readonly SemaphoreSlim _connectLock = new(1, 1);
         private NatsConnection _connection;
         private INatsKVStore _store;
 
-        public NatsKvBackend(string url, string bucket)
+        public NatsKvBackend(string url, string bucket, bool readOnly, NatsAuthOpts? auth = null, NatsTlsOpts? tls = null)
         {
             if (string.IsNullOrWhiteSpace(url)) throw new ArgumentException("A NATS server URL is required.", nameof(url));
             if (string.IsNullOrWhiteSpace(bucket)) throw new ArgumentException("A key-value bucket name is required.", nameof(bucket));
             _url = url;
             _bucket = bucket;
+            _readOnly = readOnly;
+            _auth = auth ?? new NatsAuthOpts();
+            _tls = tls ?? NatsTlsOpts.Default;
         }
 
         private async Task<INatsKVStore> StoreAsync(CancellationToken ct)
@@ -58,10 +68,23 @@ namespace NextGenSoftware.OASIS.API.Providers.NATSJetStreamOASIS
             try
             {
                 if (_store != null) return _store;
-                _connection = new NatsConnection(new NatsOpts { Url = _url });
-                await _connection.ConnectAsync();
-                _store = await _connection.CreateKeyValueStoreContext().CreateOrUpdateStoreAsync(new NatsKVConfig(_bucket), ct);
-                return _store;
+                var connection = new NatsConnection(new NatsOpts { Url = _url, AuthOpts = _auth, TlsOpts = _tls });
+                try
+                {
+                    await connection.ConnectAsync();
+                    ct.ThrowIfCancellationRequested();
+                    var context = connection.CreateKeyValueStoreContext();
+                    var store = _readOnly ? await context.GetStoreAsync(_bucket, ct)
+                        : await context.CreateOrUpdateStoreAsync(new NatsKVConfig(_bucket), ct);
+                    _connection = connection;
+                    _store = store;
+                    return store;
+                }
+                catch
+                {
+                    await connection.DisposeAsync();
+                    throw;
+                }
             }
             finally { _connectLock.Release(); }
         }
@@ -79,10 +102,16 @@ namespace NextGenSoftware.OASIS.API.Providers.NATSJetStreamOASIS
         }
 
         public async Task PutAsync(string key, string value, CancellationToken cancellationToken = default)
-            => await (await StoreAsync(cancellationToken)).PutAsync(key, value, cancellationToken: cancellationToken);
+            {
+            if (_readOnly) throw new NotSupportedException("The enrolled NATS bucket is read-only.");
+            await (await StoreAsync(cancellationToken)).PutAsync(key, value, cancellationToken: cancellationToken);
+        }
 
         public async Task DeleteAsync(string key, CancellationToken cancellationToken = default)
-            => await (await StoreAsync(cancellationToken)).PurgeAsync(key, cancellationToken: cancellationToken);
+            {
+            if (_readOnly) throw new NotSupportedException("The enrolled NATS bucket is read-only.");
+            await (await StoreAsync(cancellationToken)).PurgeAsync(key, cancellationToken: cancellationToken);
+        }
 
         public async Task<IReadOnlyList<string>> ListKeysAsync(string prefix, CancellationToken cancellationToken = default)
         {

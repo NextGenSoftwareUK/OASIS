@@ -949,7 +949,7 @@ If you're using a vector database (Pinecone, Weaviate, pgvector) or a hosted kno
 |-----------|------------------|----------------------|
 | Duplicate content | Stored N times per document | Stored once, linked N times via semantic dedup |
 | Retrieval unit | Raw embedding comparison | Hierarchical — query hits the right level, not every chunk |
-| Storage backend | Locked to one vendor | 222 providers via COSMIC ORM; switch without data migration |
+| Storage backend | Locked to one vendor | Eligible storage adapters via COSMIC ORM. The [OASIS inventory](../../../WIP/HyperDrive-Providers/PROVIDER_MATRIX.md) tracks 234 projects across all capabilities. |
 | Retention control | Manual TTL / lifecycle rules | Built-in per-holon TTL (`SessionOnly`, `Persistent`, `Expiring`) |
 | Session notes | Manual indexing | Auto-holonised, semantic search included |
 | Portability | Vendor lock-in | Open, portable, self-hostable |
@@ -988,8 +988,8 @@ httpx.post(
 
 `https://api.web6.oasisomniverse.one`
 
-- Free ($0): 1,000 requests/month, 20 calls/day
-- Bronze ($9), Silver ($29), Gold ($99): 10,000 / 100,000 / 1,000,000 requests/month with higher daily call, token and budget limits
+- Free ($0): 30,000 requests/month, 1,000 calls/day
+- Bronze ($9), Silver ($29), Gold ($99): 300,000 / 3,000,000 / 30,000,000 requests/month with higher daily call, token and budget limits
 - Enterprise (custom): unlimited, SLA, dedicated support
 - Plans are enforced by WEB4 — see [Quotas & Tiers](WEB6_Quotas_and_Tiers.md)
 - No infrastructure to manage; your data governed by OASIS membrane rules

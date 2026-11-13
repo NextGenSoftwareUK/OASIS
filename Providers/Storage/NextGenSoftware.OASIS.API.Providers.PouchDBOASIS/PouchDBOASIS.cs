@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -37,7 +38,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PouchDBOASIS
     ///   username  — optional basic-auth username
     ///   password  — optional basic-auth password
     /// </summary>
-    public class PouchDBOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
+    public partial class PouchDBOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
     {
         /// <summary>
         /// When true this provider stores a new record per save and links to the previous
@@ -59,9 +60,21 @@ namespace NextGenSoftware.OASIS.API.Providers.PouchDBOASIS
         private const string DbHolons = "oasis_holons";
 
         public PouchDBOASIS(string serverUrl, string? username = null, string? password = null)
+            : this(serverUrl, username, password, new HttpClient(new HttpClientHandler { AllowAutoRedirect = false })) { }
+
+        public PouchDBOASIS(string serverUrl, string? username, string? password, HttpClient httpClient)
         {
-            _base = serverUrl.TrimEnd('/');
-            _http = new HttpClient();
+            if (!Uri.TryCreate(serverUrl, UriKind.Absolute, out var endpoint) ||
+                (endpoint.Scheme != "https" && !(endpoint.Scheme == "http" && endpoint.IsLoopback)) ||
+                !string.IsNullOrEmpty(endpoint.UserInfo) || !string.IsNullOrEmpty(endpoint.Query) || !string.IsNullOrEmpty(endpoint.Fragment))
+                throw new ArgumentException("An explicit HTTPS or HTTP loopback origin is required.", nameof(serverUrl));
+            if ((username == null) != (password == null) || username != null &&
+                (username.Length == 0 || username.Contains(':') || username.Any(char.IsControl) || password!.Any(char.IsControl)))
+                throw new ArgumentException("Explicit paired Basic credentials must contain no control characters.");
+            _base = endpoint.AbsoluteUri.TrimEnd('/');
+            _http = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+            if (_http.DefaultRequestHeaders.Authorization != null)
+                throw new ArgumentException("Use a dedicated PouchDB HTTP client.", nameof(httpClient));
             if (!string.IsNullOrEmpty(username) && password != null)
             {
                 var creds = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{username}:{password}"));

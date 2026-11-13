@@ -94,10 +94,13 @@ class ProviderMatrixTests(unittest.TestCase):
         self.assertIn('capability-v1',text)
 
     def test_negative_sdk_review_requires_unchanged_complete_source(self):
-        for name,group in [('PolygonIDOASIS','Identity'),('zkPassOASIS','Identity'),('HoloOASIS.Desktop','Network'),('Neo4jOASIS2','Storage')]:
+        for name,group in [('zkPassOASIS','Identity'),('HoloOASIS.Desktop','Network'),('Neo4jOASIS2','Storage')]:
             project=m.ROOT/'Providers'/group/('NextGenSoftware.OASIS.API.Providers.'+name)/('NextGenSoftware.OASIS.API.Providers.'+name+'.csproj')
             self.assertIsNotNone(m.reviewed_sdk_gap(name,project))
             self.assertEqual([],m.sdk_evidence(project))
+        polygon=m.ROOT/'Providers/Identity/NextGenSoftware.OASIS.API.Providers.PolygonIDOASIS/NextGenSoftware.OASIS.API.Providers.PolygonIDOASIS.csproj'
+        self.assertIsNone(m.reviewed_sdk_gap('PolygonIDOASIS',polygon))
+        self.assertIn('HTTP API client',m.sdk_evidence(polygon))
         project=m.ROOT/'Providers/Maps/NextGenSoftware.OASIS.API.Providers.GoogleMapsOASIS/NextGenSoftware.OASIS.API.Providers.GoogleMapsOASIS.csproj'
         self.assertIsNotNone(m.reviewed_sdk_gap('GoogleMapsOASIS',project))
         with patch.object(m,'source_files',return_value=iter([])):

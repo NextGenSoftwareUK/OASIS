@@ -1,0 +1,50 @@
+name: NEAR native avatar cleanup
+
+on:
+  push:
+    branches: [work/hyperdrive-provider-completion]
+    paths:
+      - '.github/workflows/near-native-avatar-cleanup.yml'
+      - 'Scripts/TestHosts/near-local/verify-avatar-cleanup-native.mjs'
+      - 'Scripts/TestHosts/near-local/contract/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: Scripts/TestHosts/near-local
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.22.1'
+
+      - name: Build the locked NEAR storage contract
+        run: |
+          npm ci --no-audit --no-fund
+          npm run build:contract
+          sha256sum build/oasis_storage.wasm
+
+      - name: Verify avatar cleanup against the real NEAR sandbox
+        env:
+          OASIS_NEAR_FRESH_AVATAR_CLEANUP: '1'
+        run: |
+          fixture="$(mktemp -d "$RUNNER_TEMP/oasis-near.XXXXXXXX")"
+          cleanup() {
+            if [[ "$fixture" == "$RUNNER_TEMP"/oasis-near.* && -d "$fixture" ]]; then
+              rm -rf -- "$fixture"
+              test ! -e "$fixture"
+            fi
+          }
+          trap cleanup EXIT
+          TMPDIR="$fixture" node verify-avatar-cleanup-native.mjs
+          echo "Stopped the owned NEAR sandbox."

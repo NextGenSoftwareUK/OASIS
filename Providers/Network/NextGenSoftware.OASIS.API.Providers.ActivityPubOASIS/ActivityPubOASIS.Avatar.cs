@@ -42,9 +42,9 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
                 }
 
                 // This adapter uses Mastodon REST, not universal ActivityPub C2S.
-                using var testResponse = await _httpClient.GetAsync("/api/v2/instance", HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+                using var testResponse = await _httpClient.GetAsync("/api/v2/instance", HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
                 testResponse.EnsureSuccessStatusCode();
-                using var document=await ReadCqlStatusDocumentAsync(testResponse,cancellationToken);
+                using var document=await ReadCqlStatusDocumentAsync(testResponse,cancellationToken).ConfigureAwait(false);
                 var server=document.RootElement;
                 if(server.ValueKind!=JsonValueKind.Object)
                     throw new System.IO.InvalidDataException("Expected a Mastodon v2 instance object.");

@@ -1,0 +1,68 @@
+[
+  {
+    "content": "{\"id\":\"p1793595998138229\",\"n\":\"محمد\",\"t\":\"\",\"ts\":1793595998138,\"ty\":\"p\"}",
+    "created_at": 1793595998,
+    "id": "919bebed5ec73504f67cc516a58bf5ae6285d63323f086becd0c3ac6f5f80602",
+    "kind": 1,
+    "pubkey": "5f6c463ed171f8713e0f68074ce5276b1e3e366fad2962bfb94be3b36ae53bf4",
+    "sig": "51339bf32bf49873a7ad34ba42b02442a58dfa6b06774bb68321e98c3bfb6fecc528d76d7ce4511ee07a555a6c3cc4c98ec78bab2308ee86720d97fe86ac7f45",
+    "tags": [
+      [
+        "t",
+        "payamresan-general"
+      ],
+      [
+        "d",
+        "presence"
+      ]
+    ]
+  },
+  {
+    "content": "{\"v\":1,\"online\":true,\"ts\":1793595998}",
+    "created_at": 1793595998,
+    "id": "27a99026c487b5d756157901ca41b2d093d3a2d63a27112fe5a874c4c9f123e3",
+    "kind": 1,
+    "pubkey": "77dad091662523c6d4c7921180277e767ec31420cbde72b27438101b43593d68",
+    "sig": "17b51e9434fba6b4cb4eb61f932653a9ac456590f2a53d277946b1a2ae41e49b27cb4de762a1f01e5080f7fc9ffd6c9d565d1780daf517698712c180ee145420",
+    "tags": [
+      [
+        "t",
+        "nexora-webchat-v1"
+      ],
+      [
+        "presence",
+        "1"
+      ]
+    ]
+  },
+  {
+    "content": "{\"anchored_at\":\"2026-11-02T05:06:38.461Z\",\"evidence_byte_length\":310,\"evidence_sha256\":\"sha256:0d22ea51dbac05ea3dde490a93fd1a9d44a9743daed333c27cc5173b630e4836\",\"evidence_url\":\"https://zambo.dev/api/evidence/0d22ea51dbac05ea3dde490a93fd1a9d44a9743daed333c27cc5173b630e4836\",\"output_sha256\":\"sha256:8ab9405f1a3f9833a74e17dbb0f2cbd51fc1c2d944ac1227185e6309a0e57ace\",\"receipt_uuid\":\"cb091a0f-6132-4c47-b49e-4aa421d64515\",\"schema_version\":\"zambo-receipt-anchor/1\"}",
+    "created_at": 1793595998,
+    "id": "0708143a224525037e712987c963567fecd6027b6d496cb1c16dc47ff5b8ec13",
+    "kind": 1,
+    "pubkey": "e13475107d30c918ec664adf2ab1141024a22fb35190f82c9e933704fa49af41",
+    "sig": "3e204b364c65e26b77fcdfbdda5a9e6375f209677d4ba92f08667a289394f25657724eef8a878e3ce9b138212aabad7b7d23fd4ca0517b4b3be375a9487c8042",
+    "tags": [
+      [
+        "t",
+        "zambo-receipt"
+      ],
+      [
+        "receipt_uuid",
+        "cb091a0f-6132-4c47-b49e-4aa421d64515"
+      ],
+      [
+        "sha256",
+        "sha256:8ab9405f1a3f9833a74e17dbb0f2cbd51fc1c2d944ac1227185e6309a0e57ace"
+      ],
+      [
+        "schema_version",
+        "zambo-receipt-anchor/1"
+      ],
+      [
+        "evidence_sha256",
+        "sha256:0d22ea51dbac05ea3dde490a93fd1a9d44a9743daed333c27cc5173b630e4836"
+      ]
+    ]
+  }
+]

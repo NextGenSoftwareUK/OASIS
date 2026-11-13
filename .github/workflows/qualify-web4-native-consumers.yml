@@ -1,0 +1,46 @@
+name: Qualify pinned WEB4 native runtime consumers
+
+on:
+  push:
+    branches: [work/cosmic-cql-ton-public, work/cosmic-teaching-release-candidate]
+    paths:
+      - '.github/workflows/qualify-web4-native-consumers.yml'
+      - 'Docker/Dockerfile.web4'
+      - 'Scripts/TestHosts/verify_web4_native_consumer.py'
+      - 'Scripts/TestHosts/test_web4_asset_download_policy.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  consumer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        role: [waku, nats]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Verify final image graph and bounded producer policy
+        run: python3 -B Scripts/TestHosts/test_web4_asset_download_policy.py
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Pull exact artifact and verify isolated native version and cleanup
+        env:
+          ROLE: ${{ matrix.role }}
+        run: python3 -B Scripts/TestHosts/verify_web4_native_consumer.py --role "$ROLE"
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: web4-native-consumer-${{ matrix.role }}
+          path: TestResults/Web4NativeConsumers/${{ matrix.role }}/
+          if-no-files-found: warn
+          retention-days: 30

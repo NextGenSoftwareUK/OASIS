@@ -10,9 +10,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS.IntegrationTests
     /// Exercises the real CRUD surface against a live backend.
     ///
     /// Connection details come from SURREALDBOASIS_&lt;PARAM&gt; environment variables. When the
-    /// backend is not reachable the provider fails to activate and every test is
-    /// inconclusive rather than failed - so an unconfigured machine reports "skipped"
-    /// instead of red.
+    /// endpoint is absent, the tests are inconclusive. An explicitly configured
+    /// fixture must activate successfully.
     /// </summary>
     [TestClass]
     public class SurrealDBOASISIntegrationTests
@@ -24,8 +23,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS.IntegrationTests
         public void Setup()
         {
             _provider = SurrealDBOASISTestFactory.Create();
-            try { _live = !_provider.ActivateProvider().IsError && _provider.IsProviderActivated; }
-            catch { _live = false; }
+            if (string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("SURREALDBOASIS_ENDPOINT")))
+                return;
+
+            var activation = _provider.ActivateProvider();
+            Assert.IsFalse(activation.IsError, activation.Exception?.ToString() ?? activation.Message);
+            Assert.IsTrue(_provider.IsProviderActivated, "The configured SurrealDB fixture did not activate.");
+            _live = true;
         }
 
         private void RequireLive()
@@ -33,6 +37,47 @@ namespace NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS.IntegrationTests
             if (!_live)
                 Assert.Inconclusive(
                     "No live SurrealDBOASIS backend configured - set the SURREALDBOASIS_* environment variables to run this.");
+        }
+
+        [TestMethod]
+        public async Task AvatarDetail_RoundTripsByGuid()
+        {
+            RequireLive();
+
+            var detail = new AvatarDetail { Id = Guid.NewGuid(), Karma = 29 };
+            var saved = await _provider.SaveAvatarDetailAsync(detail);
+            Assert.IsFalse(saved.IsError, saved.Message);
+
+            var loaded = await _provider.LoadAvatarDetailAsync(detail.Id);
+            Assert.IsFalse(loaded.IsError, loaded.Message);
+            Assert.IsNotNull(loaded.Result);
+            Assert.AreEqual(detail.Id, loaded.Result.Id);
+            Assert.AreEqual(detail.Karma, loaded.Result.Karma);
+        }
+
+        [TestMethod]
+        public async Task HardDeletedAvatar_IsAbsentByGuidAndUsername()
+        {
+            RequireLive();
+
+            var id = Guid.NewGuid();
+            var avatar = new Avatar { Id = id, Username = $"oasis-it-{id:N}", Email = $"{id:N}@test.local" };
+            var saved = await _provider.SaveAvatarAsync(avatar);
+            Assert.IsFalse(saved.IsError, saved.Message);
+            var before = await _provider.LoadAvatarAsync(id);
+            Assert.IsFalse(before.IsError, before.Message);
+            Assert.AreEqual(id, before.Result?.Id);
+
+            var deleted = await _provider.DeleteAvatarAsync(id, softDelete: false);
+            Assert.IsFalse(deleted.IsError, deleted.Message);
+            Assert.IsTrue(deleted.Result);
+
+            var byId = await _provider.LoadAvatarAsync(id);
+            Assert.IsNull(byId.Exception);
+            Assert.IsNull(byId.Result);
+            var byUsername = await _provider.LoadAvatarByUsernameAsync(avatar.Username);
+            Assert.IsNull(byUsername.Exception);
+            Assert.IsNull(byUsername.Result);
         }
 
         [TestMethod]

@@ -49,6 +49,16 @@ namespace NextGenSoftware.OASIS.API.Providers.deBridgeOASIS
             ProviderCapabilities.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
         }
 
+        internal void ConfigureBoundedPublicReads()
+        {
+            _http.MaxResponseContentBufferSize = 256 * 1024;
+            _http.Timeout = TimeSpan.FromSeconds(15);
+            _http.DefaultRequestHeaders.Accept.ParseAdd("application/json");
+            _http.DefaultRequestHeaders.UserAgent.ParseAdd("OASIS-DeBridgeRead/1.0");
+        }
+
+        internal void DisposePublicReadClient() => _http.Dispose();
+
         public static string ChainName(string debridgeChainId) => debridgeChainId != null && ChainNames.TryGetValue(debridgeChainId, out var n) ? n : debridgeChainId == null ? null : $"debridge-chain-{debridgeChainId}";
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()

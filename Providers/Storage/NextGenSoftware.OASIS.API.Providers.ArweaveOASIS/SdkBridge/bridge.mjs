@@ -1,4 +1,5 @@
 import Arweave from "arweave";
+import { queryTransactionIds } from "./query.mjs";
 
 const chunks = [];
 for await (const chunk of process.stdin) chunks.push(chunk);
@@ -49,13 +50,15 @@ try {
       write({ ok: true, dataBase64: Buffer.from(data).toString("base64") });
       break;
     }
+    case "queryOwned": {
+      if (!input.wallet) throw new Error("Configured wallet required for owner-pinned query.");
+      const owner = await arweave.wallets.jwkToAddress(input.wallet);
+      const ids = await queryTransactionIds(arweave.api, input.tags ?? {}, owner);
+      write({ ok: true, ids });
+      break;
+    }
     case "query": {
-      const tagEntries = Object.entries(input.tags ?? {}).map(([name, value]) => ({ name, values: [value] }));
-      const response = await arweave.api.post("graphql", {
-        query: `query($tags: [TagFilter!]) { transactions(tags: $tags, first: 100) { edges { node { id } } } }`,
-        variables: { tags: tagEntries }
-      });
-      const ids = response.data?.data?.transactions?.edges?.map(edge => edge.node.id) ?? [];
+      const ids = await queryTransactionIds(arweave.api, input.tags ?? {});
       write({ ok: true, ids });
       break;
     }

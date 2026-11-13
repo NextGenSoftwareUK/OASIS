@@ -16,6 +16,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
         public string StripeCustomerId { get; set; }
         public string StripeSubscriptionId { get; set; }
         public string PlanId { get; set; }
+        /// <summary>Set only when an administrator granted the plan without Stripe (see GrantPlanAsync).</summary>
+        public string AdminGrantedBy { get; set; }
+        public string AdminGrantReason { get; set; }
         public string Status { get; set; } // active, cancelled, past_due, trialing, free
         public bool PayAsYouGoEnabled { get; set; }
         public string PaidOverageTermsVersion { get; set; }

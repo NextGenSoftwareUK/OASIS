@@ -15,7 +15,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
-    public class OLandController : OASISControllerBase
+    public partial class OLandController : OASISControllerBase
     {
         OLandManager _OLandManager = null;
 
@@ -46,11 +46,23 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [Authorize]
         [HttpPost]
         [Route("purchase-oland")]
-        public async Task<OASISResult<PurchaseOlandResponse>> PurchaseOland(PurchaseOlandRequest request)
+        public async Task<OASISResult<PurchaseOlandResponse>> PurchaseOland(PurchaseOlandRequest request,
+            [FromServices] Services.OLand.OLandCommerceService commerce)
         {
-            if (request.AvatarId != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
-                return new OASISResult<PurchaseOlandResponse>() { IsError = true, Message = "Unauthorized. You can only purchase OLand for your own avatar." };
-            return await OLandManager.PurchaseOlandAsync(request);
+            if (string.IsNullOrWhiteSpace(request?.CheckoutOrderId))
+                return new OASISResult<PurchaseOlandResponse> { IsError = true, ErrorCode = "OLAND_VERIFIED_ORDER_REQUIRED",
+                    Message = "Create an OLAND quote and complete verified payment before requesting NFT delivery." };
+            try
+            {
+                var order = await commerce.Fulfil(AvatarId, request.CheckoutOrderId, HttpContext.RequestAborted);
+                return new OASISResult<PurchaseOlandResponse> { Result = new PurchaseOlandResponse
+                {
+                    OLandPurchaseId = Guid.Parse(order.Id), TransactionHash = order.MintTransactionId,
+                    OlandIds = new List<Guid>()
+                }, IsWarning = order.MintState != "minted", Message = order.MintMessage };
+            }
+            catch (Services.OLand.OLandCommerceException ex)
+            { return new OASISResult<PurchaseOlandResponse> { IsError = true, ErrorCode = ex.Code, Message = ex.Message }; }
         }
 
         [Authorize]

@@ -1,0 +1,66 @@
+name: Qualify NATS owned source boundary
+
+on:
+  push:
+    branches: [work/cosmic-cql-ton-public]
+    paths:
+      - '.github/workflows/qualify-nats-owned-boundary.yml'
+      - 'Providers/Network/NextGenSoftware.OASIS.API.Providers.NATSJetStreamOASIS/**'
+      - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/CqlNatsHostedAdmissionTests.cs'
+      - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Startup.cs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  boundary:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          path: OASIS
+          submodules: true
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - name: Read pinned dependencies
+        id: dependency
+        working-directory: OASIS
+        run: |
+          python3 -B Scripts/validate_railway_dependency_manifest.py --require-gitlinks
+          grep -E '^(LIBRARIES_COMMIT|HOLOCHAIN_COMMIT)=[0-9a-f]{40}$' Docker/oasis-dependency-versions.env >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependency.outputs.LIBRARIES_COMMIT }}
+          path: NextGenSoftware-Libraries
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          ref: ${{ steps.dependency.outputs.HOLOCHAIN_COMMIT }}
+          path: holochain-client-csharp
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+      - name: Verify exact source modes and four-preset admission
+        working-directory: OASIS
+        shell: pwsh
+        run: |
+          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner nats-owned-boundary-ci -Operation {
+            dotnet test ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CqlNatsHostedAdmissionTests' --results-directory TestResults/NatsOwnedBoundaryCurrent --logger 'trx;LogFileName=boundary.trx'
+            if ($LASTEXITCODE) { throw 'NATS source boundary qualification failed' }
+            [xml]$report = Get-Content TestResults/NatsOwnedBoundaryCurrent/boundary.trx
+            if ($report.TestRun.ResultSummary.Counters.passed -ne '14' -or $report.TestRun.ResultSummary.Counters.total -ne '14') {
+              throw 'All fourteen NATS boundary/admission cases must pass without skips'
+            }
+          }
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: nats-owned-source-boundary
+          path: OASIS/TestResults/NatsOwnedBoundaryCurrent/boundary.trx
+          if-no-files-found: error
+          retention-days: 30

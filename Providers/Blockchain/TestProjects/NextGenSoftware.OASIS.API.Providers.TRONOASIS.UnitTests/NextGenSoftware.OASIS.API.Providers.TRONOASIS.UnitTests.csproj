@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -29,4 +29,5 @@
   </ItemGroup>
 
   <ItemGroup><Compile Include="../../../Shared/TestSupport/NativeCodeGenesisContract.cs" Link="Shared/NativeCodeGenesisContract.cs" /></ItemGroup>
+  <ItemGroup><Compile Include="../../../../Examples/CosmicCqlDemo/NativeKeySetWalkthrough.cs" Link="Demo/NativeKeySetWalkthrough.cs" /></ItemGroup>
 </Project>

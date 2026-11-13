@@ -3,6 +3,8 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using NextGenSoftware.OASIS.Providers.TestSupport;
 using System.Security.Cryptography;
+using System.Text;
+using Solnet.Wallet.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.IntegrationTests;
 
@@ -67,18 +69,39 @@ public class SolanaCoreStorageConformanceTests
         var root = new DirectoryInfo(AppContext.BaseDirectory);
         while (root != null && !Directory.Exists(Path.Combine(root.FullName, "Scripts", "TestHosts"))) root = root.Parent;
         Assert.IsNotNull(root);
-        var work = Path.Combine(root.FullName, "TestResults", "ProviderConformanceCurrent", "SOLANAOASIS", sync ? "sync" : "async");
+        var fresh = Environment.GetEnvironmentVariable("OASIS_SOLANA_FRESH_CONFORMANCE") == "1";
+        var work = Path.Combine(root.FullName, "TestResults", fresh ? "SolanaFreshConformance" : "ProviderConformanceCurrent",
+            "SOLANAOASIS", sync ? "sync" : "async");
         Directory.CreateDirectory(work);
+        using var lease = new FileStream(Path.Combine(Path.GetDirectoryName(work)!, "environment.lock"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
         var reportPath = Path.Combine(work, "report.json");
         Assert.IsFalse(File.Exists(reportPath) || File.Exists(reportPath + ".next"), "Preserve prior fixture/report before another submission.");
-        using var lease = new FileStream(Path.Combine(work, "environment.lock"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+
+        var otherReportPath = Path.Combine(Path.GetDirectoryName(work)!, sync ? "async" : "sync", "report.json");
+        Assert.IsFalse(File.Exists(otherReportPath + ".next"), "Reconcile the other mode's interrupted checkpoint first.");
+        if (File.Exists(otherReportPath))
+        {
+            await using var prior = File.OpenRead(otherReportPath);
+            var priorReport = await JsonSerializer.DeserializeAsync<CoreStorageConformance.Report>(prior);
+            Assert.IsTrue(priorReport?.FixtureCleanupComplete == true,
+                "Reconcile the other mode's fixture before submitting to Solana.");
+        }
         async Task Checkpoint(CoreStorageConformance.Report report)
         {
             await using (var file = new FileStream(reportPath + ".next", FileMode.CreateNew, FileAccess.Write, FileShare.None))
             { await JsonSerializer.SerializeAsync(file, report); file.Flush(true); }
             File.Move(reportPath + ".next", reportPath, overwrite: true);
         }
-        SolanaOASIS provider;
+        var provider = fresh ? await OpenFreshValidator() : OpenRetainedValidator(root);
+        if (provider == null)
+            return;
+        var result = await CoreStorageConformance.RunAsync(provider, "SOLANAOASIS", "native", sync, Checkpoint);
+        Assert.IsTrue(result.Succeeded, $"{result.CurrentCase}: {result.FailureType} ({result.FailureContract})");
+        Assert.AreEqual(CoreStorageConformance.ChecksPerMode, result.Passed.Count);
+    }
+
+    private static SolanaOASIS? OpenRetainedValidator(DirectoryInfo root)
+    {
         try
         {
             var nativeWork = Environment.GetEnvironmentVariable("OASIS_SOLANA_NATIVE_EVIDENCE");
@@ -93,16 +116,47 @@ public class SolanaCoreStorageConformanceTests
             CryptographicOperations.ZeroMemory(key);
             string Required(string variable) => Environment.GetEnvironmentVariable(variable) is string value && !string.IsNullOrWhiteSpace(value)
                 ? value : throw new InvalidOperationException("Existing protected test wallet required.");
-            provider = new SolanaOASIS(endpoint, Required("SOLANA_PRIVATE_KEY"), Required("SOLANA_PUBLIC_KEY"));
+            return new SolanaOASIS(endpoint, Required("SOLANA_PRIVATE_KEY"), Required("SOLANA_PUBLIC_KEY"));
         }
         catch (Exception failure)
         {
-            await Checkpoint(new CoreStorageConformance.Report { Provider = "SOLANAOASIS", Mode = "native", Synchronous = sync,
-                CurrentCase = "configuration", FailureType = failure.GetType().FullName! });
-            Assert.Fail("Retained Solana configuration blocked; no native operation dispatched.");
-            return;
+            Assert.Inconclusive($"Retained Solana configuration blocked ({failure.GetType().Name}); no native operation dispatched.");
+            return null;
         }
-        var result = await CoreStorageConformance.RunAsync(provider, "SOLANAOASIS", "native", sync, Checkpoint);
-        Assert.IsTrue(result.Succeeded, result.CurrentCase + ": " + result.FailureType);
+    }
+
+    private static async Task<SolanaOASIS> OpenFreshValidator()
+    {
+        const string endpoint = "http://127.0.0.1:18899";
+        Assert.AreEqual(endpoint, Environment.GetEnvironmentVariable("SOLANA_RPC_URL"));
+        var genesis = Environment.GetEnvironmentVariable("OASIS_SOLANA_FRESH_GENESIS");
+        Assert.IsFalse(string.IsNullOrWhiteSpace(genesis), "The runner must supply the fresh ledger genesis.");
+        using var http = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false }) { Timeout = TimeSpan.FromSeconds(5) };
+        using var request = new StringContent(
+            "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"getGenesisHash\"}", Encoding.UTF8, "application/json");
+        using var response = await http.PostAsync(endpoint, request);
+        response.EnsureSuccessStatusCode();
+        using var identity = JsonDocument.Parse(await response.Content.ReadAsStreamAsync());
+        Assert.AreEqual(genesis, identity.RootElement.GetProperty("result").GetString(), "Fresh ledger identity differs.");
+
+        var key = PersistedPrivateKeyValueBackend.ResolveEnvironmentKey("OASIS_SOLANA_STORAGE_ENCRYPTION_KEY");
+        CryptographicOperations.ZeroMemory(key);
+        var keypairPath = Environment.GetEnvironmentVariable("OASIS_SOLANA_FRESH_KEYPAIR");
+        Assert.IsFalse(string.IsNullOrWhiteSpace(keypairPath), "The runner must supply the disposable signer.");
+        await using var file = File.OpenRead(keypairPath!);
+        var keypair = await JsonSerializer.DeserializeAsync<int[]>(file);
+        Assert.IsNotNull(keypair);
+        Assert.AreEqual(64, keypair.Length);
+        var secret = Array.ConvertAll(keypair, value => checked((byte)value));
+        try
+        {
+            return new SolanaOASIS(endpoint, Encoders.Base58.EncodeData(secret),
+                Encoders.Base58.EncodeData(secret[32..]));
+        }
+        finally
+        {
+            Array.Clear(keypair);
+            CryptographicOperations.ZeroMemory(secret);
+        }
     }
 }

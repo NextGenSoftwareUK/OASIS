@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "@libp2p/gossipsub": "15.0.16",
+    "@libp2p/identify": "4.1.18",
+    "@orbitdb/core": "4.0.0",
+    "blockstore-level": "3.0.2",
+    "helia": "6.0.22",
+    "libp2p": "3.5.1"
+  }
+}

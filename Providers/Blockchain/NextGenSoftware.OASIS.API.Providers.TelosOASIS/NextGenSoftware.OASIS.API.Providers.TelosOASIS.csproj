@@ -54,4 +54,7 @@
     <None Include="README.md" Pack="true" PackagePath="\"/>
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="../NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.csproj" />
+  </ItemGroup>
 </Project>

@@ -1,0 +1,98 @@
+name: Qualify exact WEB4 native release assets
+
+on:
+  push:
+    branches: [work/cosmic-cql-ton-public, work/cosmic-teaching-release-candidate]
+    paths:
+      - '.github/workflows/qualify-web4-runtime-assets.yml'
+      - 'Docker/Dockerfile.web4'
+      - 'Scripts/TestHosts/test_web4_asset_download_policy.py'
+  workflow_dispatch:
+    inputs:
+      publish_runtime_images:
+        description: Publish verified native-only stages to the existing WEB4 image package
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  policy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Verify actual download arguments and mandatory checksum gate
+        run: python3 -B Scripts/TestHosts/test_web4_asset_download_policy.py
+  runtime:
+    needs: policy
+    permissions:
+      contents: read
+      packages: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        stage: [provider_waku, provider_nats]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Build actual pinned release stage and run native version check
+        env:
+          STAGE: ${{ matrix.stage }}
+        run: |
+          set -euo pipefail
+          case "$STAGE" in provider_waku|provider_nats) ;; *) exit 1 ;; esac
+          mkdir -p TestResults/Web4RuntimeAssets
+          docker build --progress=plain --file Docker/Dockerfile.web4 --target "$STAGE" \
+            --label "org.opencontainers.image.source=https://github.com/${GITHUB_REPOSITORY}" \
+            --label "org.opencontainers.image.revision=${GITHUB_SHA}" \
+            --label "one.oasis.native-runtime=${STAGE}" \
+            --tag "oasis-runtime-${STAGE}:${GITHUB_SHA}" . \
+            2>&1 | tee "TestResults/Web4RuntimeAssets/${STAGE}.log"
+          printf '{"source":"%s","stage":"%s","buildAndPinnedVersionPass":true,"liveDeployment":false}\n' \
+            "$GITHUB_SHA" "$STAGE" > "TestResults/Web4RuntimeAssets/${STAGE}.json"
+      - name: Authenticate existing WEB4 image package for explicit artifact publication
+        if: ${{ github.event_name == 'push' || inputs.publish_runtime_images }}
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish the verified native-only image and retain its exact digest
+        if: ${{ github.event_name == 'push' || inputs.publish_runtime_images }}
+        env:
+          STAGE: ${{ matrix.stage }}
+          REPOSITORY_OWNER: ${{ github.repository_owner }}
+        run: |
+          set -euo pipefail
+          case "$STAGE" in provider_waku|provider_nats) ;; *) exit 1 ;; esac
+          target="ghcr.io/${REPOSITORY_OWNER,,}/oasis-web4:${GITHUB_SHA}-native-${STAGE#provider_}"
+          docker tag "oasis-runtime-${STAGE}:${GITHUB_SHA}" "$target"
+          docker push "$target"
+          python3 -B - "$target" "$STAGE" <<'PY'
+          import json,os,re,subprocess,sys
+          from pathlib import Path
+          tag,stage=sys.argv[1:]
+          image=json.loads(subprocess.check_output(['docker','image','inspect',tag]))[0]
+          repository=tag.rsplit(':',1)[0]
+          refs=[value for value in image['RepoDigests'] if value.startswith(repository+'@sha256:')]
+          assert len(refs)==1 and re.fullmatch(re.escape(repository)+r'@sha256:[a-f0-9]{64}',refs[0])
+          labels=image['Config']['Labels'];assert labels['org.opencontainers.image.revision']==os.environ['GITHUB_SHA'] and labels['one.oasis.native-runtime']==stage
+          proof={'source':os.environ['GITHUB_SHA'],'stage':stage,'tag':tag,'pinnedImage':refs[0],'nativeOnly':True,'webApiQualified':False,'liveDeployment':False}
+          Path('TestResults/Web4RuntimeAssets/'+stage+'-published.json').write_text(json.dumps(proof,indent=2))
+          print(json.dumps(proof))
+          PY
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: web4-release-asset-${{ matrix.stage }}
+          path: TestResults/Web4RuntimeAssets/
+          if-no-files-found: error
+          retention-days: 30

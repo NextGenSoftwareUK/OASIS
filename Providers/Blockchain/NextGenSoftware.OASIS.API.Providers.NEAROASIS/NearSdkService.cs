@@ -44,8 +44,8 @@ internal sealed partial class NearSdkService
         using var _ = await InvokeAsync("probe");
     }
 
-    public async Task<string> GetAsync(string key)
-        => (await ReadSnapshotAsync(key)).Plaintext;
+    public async Task<string> GetAsync(string key, CancellationToken cancellationToken = default)
+        => (await ReadSnapshotAsync(key, cancellationToken)).Plaintext;
 
     internal sealed class StoredSnapshot
     {
@@ -59,11 +59,11 @@ internal sealed partial class NearSdkService
 
     // Preserve the SAME observed encrypted bytes for conditional writes and the decoded record for staging.
     // Re-encrypting the old plaintext would produce a different nonce and cannot be used as a CAS condition.
-    public async Task<StoredSnapshot> ReadSnapshotAsync(string key)
+    public async Task<StoredSnapshot> ReadSnapshotAsync(string key, CancellationToken cancellationToken = default)
     {
         using var codec=OpenStorageCodec();
         var context=StorageContext(key);
-        using var response = await InvokeAsync("get", new { key });
+        using var response = await InvokeAsync("get", new { key }, cancellationToken);
         if(response.RootElement.ValueKind==JsonValueKind.Null)return new StoredSnapshot(this,key,null,null);
         if(response.RootElement.ValueKind!=JsonValueKind.String)throw new InvalidDataException("Native NEAR record must be ciphertext or absent.");
         var ciphertext=response.RootElement.GetString();
@@ -151,6 +151,14 @@ internal sealed partial class NearSdkService
         return await CallAsync("delete_record",new { key }).ConfigureAwait(false);
     }
 
+    public async Task DeleteAvatarRecordsAsync(Guid id)
+    {
+        if (id == Guid.Empty) throw new ArgumentException("A nonempty avatar ID is required.", nameof(id));
+        using var codec = OpenStorageCodec();
+        EnsureWritable();
+        await CallAsync("delete_avatar_records", new { id = id.ToString("D") }).ConfigureAwait(false);
+    }
+
     private static EncryptedRecordCodec OpenStorageCodec()
     {
         var key=PersistedPrivateKeyValueBackend.ResolveEnvironmentKey("OASIS_NEAR_STORAGE_ENCRYPTION_KEY");
@@ -196,9 +204,10 @@ internal sealed partial class NearSdkService
         return new NearKeyPair(row.GetProperty("publicKey").GetString(),row.GetProperty("privateKey").GetString(),row.GetProperty("implicitAccountId").GetString());
     }
 
-    public async Task<string> GetBalanceYoctoAsync(string accountId)
+    public async Task<string> GetBalanceYoctoAsync(string accountId, CancellationToken cancellationToken = default)
     {
-        using var response = await InvokeAsync("balance", new { targetAccountId = accountId });
+        ArgumentException.ThrowIfNullOrWhiteSpace(accountId);
+        using var response = await InvokeAsync("balance", new { targetAccountId = accountId }, cancellationToken).ConfigureAwait(false);
         return response.RootElement.GetProperty("amount").GetString();
     }
 
@@ -443,6 +452,8 @@ internal sealed partial class NearSdkService
         using var deadline=CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         if(preparationServer!=null||operation is "prepareNativeAction" or "verifyNativePreparation" or "recoverNativePreparation" or "preparedNativeOutcome")
             deadline.CancelAfter(TimeSpan.FromSeconds(45));
+        else if (operation == "balance")
+            deadline.CancelAfter(TimeSpan.FromSeconds(20));
         using var process = Process.Start(startInfo) ?? throw new InvalidOperationException("Failed to start the official NEAR SDK bridge.");
         var serving=preparationServer?.ServeAsync(deadline.Token);
         var servingObserved=false;
@@ -450,10 +461,10 @@ internal sealed partial class NearSdkService
         var stderrTask = process.StandardError.ReadToEndAsync();
         try
         {
-            await process.StandardInput.WriteAsync(JsonSerializer.Serialize(request).AsMemory(),deadline.Token);
+            await process.StandardInput.WriteAsync(JsonSerializer.Serialize(request).AsMemory(),deadline.Token).ConfigureAwait(false);
             process.StandardInput.Close();
-            await process.WaitForExitAsync(deadline.Token);
-            var stdout=await stdoutTask;var stderr=await stderrTask;
+            await process.WaitForExitAsync(deadline.Token).ConfigureAwait(false);
+            var stdout=await stdoutTask.ConfigureAwait(false);var stderr=await stderrTask.ConfigureAwait(false);
             if(string.IsNullOrWhiteSpace(stdout))throw new InvalidOperationException($"NEAR SDK bridge returned no response (exit {process.ExitCode}): {stderr}");
             using var envelope=JsonDocument.Parse(stdout);
             if(process.ExitCode!=0||!envelope.RootElement.TryGetProperty("ok",out var ok)||!ok.GetBoolean())
@@ -494,8 +505,8 @@ internal sealed partial class NearSdkService
         {
             deadline.Cancel();
             if(!process.HasExited)process.Kill(entireProcessTree:true);
-            await process.WaitForExitAsync();
-            try{await Task.WhenAll(stdoutTask,stderrTask);}catch(Exception error) when(error is IOException or DecoderFallbackException){}
+            await process.WaitForExitAsync().ConfigureAwait(false);
+            try{await Task.WhenAll(stdoutTask,stderrTask).ConfigureAwait(false);}catch(Exception error) when(error is IOException or DecoderFallbackException){}
             if(serving!=null){
                 try{await serving;}
                 catch(OperationCanceledException) when(deadline.IsCancellationRequested){}

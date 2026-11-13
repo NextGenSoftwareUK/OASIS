@@ -30,5 +30,5 @@
         'artifacts/release-promotion/package-verification'
     )
     # Other registered checkouts whose bin/obj and TestResults are also reclaimed.
-    AdditionalBuildRepositories = @('C:/Source/OASIS-cosmic')
+    AdditionalBuildRepositories = @('C:/Source/OASIS-cosmic', 'C:/Source/OASIS2-hyperdrive')
 }

@@ -1,5 +1,14 @@
 # Hosted sandbox integration — active priority
 
+## Current verified milestone — 1 November 2026
+
+**35 providers have scoped hosted HTTP evidence; 5 have browser evidence and 30 browser gates remain open.** Radix native3/2 and Mongo5/4 pass; the original cohort resumed after the atomic settlement fix with zero new saves/two reused copies, foreign-private0/public3 and matching SQLite/Neo4j replicas2/2. Source writes and browser interaction are not inferred.
+
+Latest hosted acceptance: parent `74aaa9b4daeadfad00ce9c667d78bb957f219ea8`, Core `8b79301b275536c04e7a971dc88d61735ebde96f`, correction job `f4c02dbd-7e7d-4482-9e2c-1ee28f5e1cc6` SUCCESS. Initial Radix app0b41c4b9/settings15f047fd succeeded at1f39016fa. Original owner was renewed through the normal refresh endpoint after scoped owned-fixture credential recovery; automatic sandbox/browser session renewal remains open. Website main0228db6adca82f3c457e30aa836b117d9690577d now serves the Radix card and pinned setup/C# links byte-identically (150955bytes, SHA25654588e7bd9c0368714d9b57b6f4f370c772d93b648665ada00d6a3dc8dbfca42). This proves publication, not browser interaction.
+
+There are **37 implemented query types**: 3 canonical adapters, 32 bounded public/source profiles and 2 local Azure/Oracle implementations. Actual deployed query-tariff catalogue has **35 entries**, confirmed from live configuration (the two local cloud implementations are excluded). Radix50native tests, actual CLI3/2, API/local HTTP and hosted continuation pass; atomic settlement fix has6native/125related/4shipping checks. Azure/Oracle hosting remains deferred. TRON429 stays red; Starknet native API headers3/2qualified, CQL not implemented. Full ORM/EF parity/HyperDrive certification remains incomplete.
+
+
 31 October2026. User clarified that all demonstrated providers must run through
 the hosted sandbox, like MongoDB/SQLite/Neo4j. Local launchers are development
 evidence, not completion of hosted demo coverage. Pause additional local catalogue
@@ -520,3 +529,439 @@ Waited for the already-running shared deployment0196bd82-cf5a-4bf6-8c06-68c264a2
 at20a981f8d to reach SUCCESS before preparing the next deployment batch. That
 concurrent commit adds solution IpfsCore entries and updates route manifest;
 preserve it when integrating. Public SOLID/browser verification still pending.
+## 31 October — release published, existing Railway queue under observation
+
+SOLID batchd41d4ec8383ca27b9d079cb1d17178b1b80ee1f9 is merged/pushed to
+Development and task branch, independently remote-observed. Release intent/ACK
+retained under HostedSourceRolloutCurrent. Subsequent shared CI-only9962c4e46
+preserves that commit (merge-base verified); it changes only the operation-contract
+check script. Do not undo or redeploy around concurrent CI changes.
+
+Specific queued jobs, re-observed after a bounded45second wait:
+73a8848d-04e7-464d-b371-3d3702c2d91a atd41d4ec83 and
+2fcd7075-ae8c-44ac-81cf-c0558429746d at9962c4e46. Both QUEUED, neither terminal;
+no cancellation/restart/resubmission sent. Previous live0196bd82-cf5a-4bf6-8c06-68c264a20db9
+succeeded at20a981f8d. These are live deployment handles, not an inferred blocker.
+Next action is poll these same jobs and inspect final-image results before browser
+acceptance. Evidence solid-release-deployments.json in fixed TestResults folder.
+
+Frontend main/task1f7335121fbb1340439165d699e31962aff1119c pushed and Production
+7458236043 observed success. CQL tab now links directly to released SOLID C# and
+HTTP/host examples and general CQL README. Corrected a reproducible local-doc gap:
+Run-ReusableProtocolMongoTests.ps1 is absent from scoped Development but exists at
+preserved237403a75b6983e013141cf7ba44bf66858abafd. Local launcher text links that
+exact source revision and distinguishes required local services from the ready
+hosted playground; it no longer instructs users to run the missing scoped script.
+
+Public https://web4.oasisomniverse.one/web4-sandbox.html contains all three links
+and exactly matches its committed Git blob SHA256
+920bd14e23406cbac5e1a7af8c5d17ffab28caa1e80a4a1ae5ca23872982deb6.
+Initial comparison with Windows worktree bytes differed due checkout line endings;
+comparison with the actual committed blob passed. Frontend39controls pass/no skips;
+TestResults/CqlCurrent/solid-links-public-proof.json and solid-links-client-tests.log
+in C:/Source/Web4Site. SOLID is not counted as verified hosted coverage yet.
+## 31 October — SOLID deployed; approved public AWS source implemented
+
+Railway2fcd7075-ae8c-44ac-81cf-c0558429746d reached SUCCESS at9962c4e46,
+which preserves the scoped SOLID batch.73a8848d-04e7-464d-b371-3d3702c2d91a was
+removed/superseded, not failed/restarted. Native runtime and API started, but the
+actual SOLID HTTP/browser query/federation/isolation gates remain outstanding.
+Browser tool cua_repl failed Transport closed. Existing @oai/sky was reused;
+Edge launched at its verified existing path, returned window327700/New tab.
+State capture then stopped Computer Use because it could not confidently identify
+the current URL. No navigation/session/data mutation occurred. No bypass attempted;
+Edge window remains for user navigation. User asked to open the sandbox URL while
+independent API/source checks continue. Do not infer a successful browser test.
+
+User explicitly selected a public S3 dataset for the AWS demo, distinct from owned
+AWS persistence. Selected3NOAA GOES-16 objects from a bounded native ListObjectsV2
+preflight; anonymous HEAD200each, no object-body downloads. Source documentation:
+https://registry.opendata.aws/noaa-goes/. Retained keys/region/bucket/stable source
+owner at LocalState/COSMIC/HostedAwsS3PublicSourceCurrent/source.json. Public
+preflight report TestResults/HostedCqlIntegrationCurrent/aws-s3-public-preflight.json.
+
+Implemented separate AwsS3PublicMetadataSource over the existing shared storage
+boundary, with Core-native mapping and official AWSSDK.S3 3.7.502. Explicit DNA
+PublicObjectMetadataOnly selects this anonymous read-only source; the existing
+private encrypted S3 provider remains its own mode. No fake storage key, default
+credential inference, object body GET, native bucket scan during queries, automatic
+retry, account creation or new service. Activation HEADs one configured object;
+point/membership selects at most8known keys of128characters, validates all selected
+metadata before paging, handles cancellation/404, and denies unknown keys before
+I/O. Backend mutations explicitly reject; host admission must remain query-only.
+The profile is included in the CQL HTTP compiler only, not admitted by configuration.
+
+Verification:11controlled SDK tests pass/no skips; native anonymous SDK test1passes,
+reading3objects and2subset through actual adapter/planner and live AWS (not emulator).
+Full transitive API build0errors/existing2,040warnings, no restore; shipping public
+S3 preset/dependency test plus GraphQL shipping schema2pass/no skips. Four presets
+compile against actual adapter capabilities; missing Mongo disables only paired
+examples. Raw evidence under TestResults/HostedCqlIntegrationCurrent:
+aws-s3-public-controls.trx SHA2568A70985B86C093A8C9FF20578FAE315A1A00C9507FE842450F466B7A38ACEEBC;
+aws-s3-public-native.trx SHA256B0ADF714AD4533AA3B2D8E71ABC47C074E784402A5C093EBC988EFC51C06BB72;
+aws-s3-public-shipping.trx SHA256F35DF5C0FCEEFD6E0E2C446AC65DFEA8D5618AD8F3735E386E1DA6336D3E7BD2.
+Native AWS is not yet configured/deployed to the sandbox; no increase in hosted count.
+
+OracleCql.cs/OracleCqlCompiler.cs/OracleCqlTests.cs were restored unchanged from
+preserved237403a75b6983e013141cf7ba44bf66858abafd into the scoped task branch.
+Producer/consumer builds pass;13compiler/authority/binding/unsupported-shape tests
+pass/no skips. Evidence oracle-scoped-cql.trx SHA256
+C5445FDDE7F06EB0139F22FDB963CA3D9DB62609CE5F8551404523255FF6A4C5.
+No Oracle connection/schema/data/process operation ran. This adapter requires a
+complete server-authorized Oracle catalogue; read-only host activation, host access
+policy and real hosted connectivity remain pending. Do not enroll it prematurely.
+## 31 October — SOLID API proof, verifier correction and demo-budget root cause
+
+Normal visitor sandbox-2ab66e15 /97668a7f-0189-4cf4-a21f-aba6c8a5d0ce
+read SOLID3native rows and2subset through deployed HTTP/discovery. Proof
+TestResults/HostedCqlIntegrationCurrent/SOLIDOASIS-native-http.json. This raises
+native hosted HTTP breadth to6; browser-verified breadth remains5. User opened
+Edge, but fresh native window inventory exposed no Edge/browser target; no unrelated
+window was controlled. Browser acceptance still outstanding, not inferred from HTTP.
+
+A new generic HTTP verifier executes the published frontend preparation module.
+Its first caller missed the standard data-endpoint result wrapper, causing an
+incomplete-ACK assertion after a real save. The web app already unwraps correctly;
+fixed only the verifier caller by reusing exported CqlPlayground.unwrap. No product
+save fallback, provider patch, manual native write or replay was introduced.
+
+Original request5b69c436-34f2-42f6-8be8-dd37529a2199 has no retained raw ACK;
+record39e5961a-d295-8ee0-b3a1-22378b4f555b independently observed private/V1,
+owner97668a7f..., matching exact source name/description and mapping metadata.
+Archived identifiers-only client intent and materialized-state reconciliation under
+HostedQueryAcceptance-SOLIDOASIS. This explicitly does not assert the missing
+operation acknowledgement. Original operation never resubmitted; subsequent setup
+observed that record and created only the missing second snapshot.
+Second requestfe8ce7f4-6310-4d7c-83ac-188141a55969 ACKed record
+ac4d653b-7af1-838a-b8e2-408c3c8ddeab/V1/private/owner97668a7f...,
+server operation41b50624-c8b4-5bed-d73b-77ae4d382dd1. Thin ACK persisted before
+client intent removal. Full flow then stopped on HTTP429 during repeated reads;
+no save retry. Raw intermediate federation results were not persisted by the first
+verifier version, so no complete federation/replica acceptance is claimed from it.
+
+Authoritative usage/current confirmed20dailyCalls/20limit/0remaining, planfree,
+monthlySpend0. JWT expiry12:48:44Z separately confirmed; old cohort is preserved,
+not automatically reauthenticated/replaced. Generic verifier now records progress,
+uses durable identifiers-only save intents, retains thin ACKs, rejects expired
+sessions and supports only an explicit fixed-client replacement test cohort.
+Replication observation is bounded3reads/target within5seconds; no repeated writes.
+
+User approved200daily calls exclusively for temporary demo avatars. Implemented
+SandboxSubscriptionRules as the single owner of existing issued-free classification
+(reused by issuance/cleanup) plus active lifetime eligibility. Authoritative Mongo
+reservation and usage summary resolve the same200-call policy; normal plans remain
+unchanged. Monthly request/token/money caps, subscription lifetime, usage counters,
+pay-as-you-go and captured prior operations are untouched. No quota reset or tier
+upgrade. Admission captures one time for expiry and policy evaluation. Summary/
+authorization use injected TimeProvider; defaults remain system time.
+
+Final API build0errors;63targeted allowance/lifecycle/ordinary-policy/S3/schema tests
+pass/no skips. Evidence sandbox-allowance.trx SHA256
+1FE44A8D58B26EB7AC5ADA07AEA60DC3B2895C1B31B7823D6FA3E6922F0D4C3E.
+Shared operator mutation owner3in-memory tests prove observed success, unknown
+outcome replay refusal and concurrent-change preservation; log SHA256
+383A12FBA9B5B327054A24CE7E5739569C4F0B6621FACD981F2D6A4271063B3C.
+S3 publisher reuses that owner, not a parallel environment update implementation.
+
+Public S3 candidate review proved only3values changed; other DNA/routing, admission
+and provider examples preserved. Anonymous metadata mode/3objects/four presets;
+query tariff0USD/catalogue sandbox-demo-free-v2. Applied all3with skip-deploys and
+independent full-map observations/ACKs. No source account, bucket, native object,
+signing credential or new paid service created. Await one combined code release
+before testing new demo allowance and AWS live. Concurrent Development073edc99f
+CI/docs/AGENTS release-snapshot updates must be preserved; no master promotion planned.
+
+## 31 October: S3 startup admission regression
+
+Railway833256b2-5008-47b7-9662-c4d60452e2e7 atd300e8254 reported SUCCESS, but runtime exited before API startup: StorageQueryTariff.Capture omitted AWSS3 and allowed at most7tariffs. Actual SOLID fixed-client session POST returned502; only owner.intent.json exists, no bearer/ACK. Preserve unknown creation intent; never replay. API readiness must be observed separately from platform deployment status.
+
+Core bf098a4fbaf8ec577459af1a53fa16bdc59c45ad explicitly adds S3, raises supported catalogue bound to8 and samples9to detect overflow. Permission, uniqueness, price/version checks retained; no generic provider enrollment or writable routes. Shipping test builds full8-provider PricedStorageAdmissionFactory and verifies absent permission/overflow/negative-price rejection. Full API and test consumer builds pass;30tests/no skips cover admission, discovery, demo allowance and GraphQL shipping schema. TestResults/HostedCqlIntegrationCurrent/s3-admission.trx SHA2566F8618D8B3E8102FDC14F121908CFF13ABAEBF43E1D0C4348AF54DAE3D9EC9EB. Core branch/Development pushes independently verified with ls-remote. Next parent pin rollout, then explicitly planned post-startup-fix SOLID cohort; original fixed-client and expired cohorts remain preserved.
+
+
+## 31 October: SOLID and public S3 hosted HTTP acceptance passed
+
+Development b3644ed3173e63769e130a6325d57b7ed5def31a / Core bf098a4, deployment5df7cbfd-c47f-4031-9c1e-9273d86e2a5c SUCCESS. Image sha256:b9b436b322bcb775701ade836d38951cb86d835bcde3fe2962978c3f0f00ceed. Unauthenticated discovery401 plus actual authenticated sources establish API readiness beyond platform status. Both sources: native3/2, preparation2saved, federation5/4, repeat0saved/2existing, exact SQLite/Neo4j2replicas each, independent visitor3public/0foreign-private IDs. Published client preparation/unwrap modules used over real HTTP; browserAcceptance=false. No browser UI proof inferred. No source object/Pod writes occurred. Both usage summaries show14daily calls/200limit/186remaining,0tokens/50klimit,0spend/$1cap. Normal Free20 remains unit-tested, not a new live ordinary-account claim.
+
+- `TestResults/HostedCqlIntegrationCurrent/SOLIDOASIS-post-startup-fix-native-http.json` SHA256 `c9ea78606fd40f770d79e581da132d30babe692ef3aa0b220377ebc908ace80b`.
+- `TestResults/HostedCqlIntegrationCurrent/SOLIDOASIS-post-startup-fix-client-http-flow.json` SHA256 `c42fe7cad8ba88294f701c2d74df0c5a3c25c1f0e71f7d79f467239f788d5835`.
+- `TestResults/HostedCqlIntegrationCurrent/SOLIDOASIS-post-startup-fix-isolation-http.json` SHA256 `4dafb6ffe99ff4f768c7427caf5bebb129720f41a05b2909470c02ea72a3425a`.
+- `TestResults/HostedCqlIntegrationCurrent/SOLIDOASIS-post-startup-fix-usage-http.json` SHA256 `ae40c9830a733599cdf1a7fe4150a351e09f1cb09e8806ceaa7e8d3ad2ef4600`.
+- `TestResults/HostedCqlIntegrationCurrent/AWSS3OASIS-fixed-client-native-http.json` SHA256 `ba6d9c05d7b7d9fab985471a24d1c936bed7ab709ef9dfdc30fc4599a814a02a`.
+- `TestResults/HostedCqlIntegrationCurrent/AWSS3OASIS-fixed-client-client-http-flow.json` SHA256 `d869d807892d505bb758bd27dc01d6aaf747f5a8e4d3296efdf1df0e62282eb8`.
+- `TestResults/HostedCqlIntegrationCurrent/AWSS3OASIS-fixed-client-isolation-http.json` SHA256 `6bcb2e03e5e694308d9c4357e78b8e68f97962a94facdf121a6acb8c4e19f8f1`.
+- `TestResults/HostedCqlIntegrationCurrent/AWSS3OASIS-fixed-client-usage-http.json` SHA256 `093d0448b31a0a93655340d5efefc6027716414badcd700d500d7f318e2afb2f`.
+
+Next browser SOLID/S3 acceptance when control surface is available, then Oracle native hosted activation/access catalogue and Solana view; Azure explicitly pending/free-only. Deep parity remains paused. Old unknown502 SOLID fixed-client intent preserved, no replay.
+
+
+## 31 October: Oracle read-only activation contract
+
+Oracle now implements ICosmicReadOnlyQueryActivation separately from explicit storage schema setup. It reuses existing canonical schema validation (read-only USER_* queries), propagates cancellation to SDK open/read operations, never calls provisioning and clears stale activation on error/cancellation. No host enrollment or record authorization change. Provider/unit/integration builds use existing assets/no restore and pass.15controls (13Oracle CQL +2activation) pass; retained native source activation passes1test, provisioning override observed0calls, before/after schema identities/DDL times and4original record hashes identical. Oracle original container e8861e296e101147681c4e2f0a3115e870cafffbce5f92848eb75d8cf25d0982 observed exited after runner-owned start/stop.
+
+Evidence: TestResults/HostedCqlIntegrationCurrent/oracle-query-activation-controls.trx SHA2567BFAE76807A4066658C15B887822BB86FF4DAEFD571AD8B4F92121E9AA37AF43; oracle-query-activation-native.trx SHA2565F4FE9E3DB8D12048CC0D416A7C02BADB9D42F59E3E2B87BC8A74430E42A6654. Reusable source runner Scripts/TestHosts/Test-OracleQueryActivation.ps1; no new database/user/records/schema objects. Next actual server-authorized Oracle read policy/query integration and hosted connection; no public readiness claim.
+
+
+## 31 October: Oracle provider-scoped authorization and discovery
+
+Task-only Core e681b8d5c37beda31f33b599bc8e2cc7f86e046a explicitly admits Oracle read tariffs as the ninth host catalogue entry (request fan-out limits unchanged). Root host adds Oracle row profile and unordered query capture; complete immutable host-public catalogues are registered as provider-keyed ICqlReadAccessPolicy. Global application policy retains precedence; errors/null factories/rejections never fall through to another grant. Unenrolled providers retain owner/public, resolved once per request. Federation keeps Oracle catalogue and Mongo actor visibility separate. Host configuration is an explicit full-record grant to every authenticated caller, not inference from request IDs or native public flags.
+
+Discovery uses the same captured public catalogue instance to plan native and paired presets; missing authority keeps unsupported Oracle examples unavailable. No fake-actor callback to arbitrary application authorizers and no extra native reads during planning. Full API/Core consumer/API consumer builds pass without restore;401endpoint/policy controls and21shipping API/discovery/native-compiler controls pass/no skips. Raw oracle-read-catalogue-core.trx SHA25652CF5414C0F2EF33FB85FE85BBBABD15E53647F686756C8220157C23342390A1; oracle-read-catalogue-api.trx SHA256DCAAA48D94F87FDB8EF07FEC720D4F69485506691A12F5AF2E28D02E35808264, both under TestResults/HostedCqlIntegrationCurrent. These are planning/authorization/SQL compiler controls, not new native hosted execution proof.
+
+Next concrete gap: cql-demo-preparation.js accepts metadata-key membership; Oracle uses native Id membership. Add explicit ID-family preparation using Core owner-mapped snapshot IDs and compose source/native plus mapped IDs for paired selection; preserve existing protocol family behavior and per-avatar visibility. Then prove actual native Oracle HTTP leaf3/2, preparation2, paired5/4, reuse/isolation/replicas. Existing source4rows/schema must remain unchanged. No new cloud database/credentials/routing/host variable mutation. OCI executable, C:/Users/david/.oci/config, C:/Users/david/.oracle and Oracle/OCI environment variable names were absent in inspected local state; asks paths only for an existing hosted configuration, while independent demo integration continues. Guide Docs/Devs/ORACLE_CQL_HOST_CONFIGURATION.md describes explicit grant and limits.
+
+
+## 31 October: Native Oracle/Mongo HTTP read gate and ID compositor
+
+One explicit native case passes/no skips against retained Oracle11521 and Mongo27029. Shipping CqlV1Endpoint capture/planning/execution over loopback HTTP returns Oracle3/2 and paired5/4; second actor gets0private Mongo copies and3configured Oracle grant rows; fourth Oracle record outside catalogue returns0. Two private Core-mapped records were seeded via V2 HolonManager conditional SDK saves (create-only, stable journalled operation IDs), version1/owner checked.9physical read receipts observed in controlled in-memory usage admission. This is not production signup/billing, native JS REST preparation, replication or browser proof. Original4Oracle records/modified timestamps unchanged: source hash68A2F56066F2683CB7FD060AFEC927167B0FE24D9CBF30598C56C876CC3DCF04.
+
+Owned fixture cosmic_cql_oracle_host_id_demo removed only after successful queries, HTTP stop, exact marker/2holon checks and observed DBabsence. Persistent intent/2save ACKs/cleanedACK retained under LocalState/COSMIC/OracleHostedIdHttpCurrent (870B). Original native sources/credentials untouched. Both owned started services stopped. Native report TestResults/HostedCqlIntegrationCurrent/oracle-mongo-id-native.trx SHA256A06D660D4871C673CC46760F0A4AE80806F03139B7202D7AE21F09FC550CC68C; compact native summary SHA2564A71431B3D9213A71193D35A9EA621B6F760A4F84C297BE59C0BD63CE60991FE. Final test consumer build passes without restore.
+
+Frontend7c0f71e shares composeIdPair between preparation and verifier; publishes actor-specific ID union only after acknowledged/verified copies.45client controls pass;2memory-only verifier controls exercise actual client modules, full/subset IDs, zero-repeat writes, replica comparisons and unchanged protocol request order. They are controls, not native provider certification. oracle-id-verifier-controls.log SHA256755AA9E6B72687C50361E4815110FFCBCA603F708B93F4280DAC8195A2493611. All raw evidence stays in worktree TestResults. Browser tab retry still Transport closed, no new user action requested.
+
+Hosted Oracle/Azure remain explicitly deferred by David; see central ACTIONS-FOR-DAVID Part E. Continue available public demo breadth, with Solana source feasibility next and original chain history preserved. Full ORM/HyperDrive fault matrix/EF parity remains incomplete.
+
+
+## Hosted avatar-scoped read failover — 31 October 2026
+
+Shipping Development498e3fd7f/Core759b49a, Railway4dbe69d0 SUCCESS. Reused acknowledged Solana-demo snapshots and existing owner/foreign sessions; no new accounts/saves/settings changes. Runner: `Scripts/Sandbox/Verify-HostedHyperdriveFailover.py`.
+
+All3cases (MongoDB/SQLite/Neo4j) passed: exact native replica baseline, avatar-only30second fault, failover-OFF `HYPERDRIVE_PROVIDER_OFFLINE`, failover-ON correct ID/name/version/owner, two independently observed refusal increments, unaffected foreign fault scope and zero foreign private rows. Every fault was restored in finally and absence independently read back. Durable fault/session journals remain under `LocalState/COSMIC/HostedQueryAcceptance-SolanaOASIS`; rerunning a completed or uncertain gate is forbidden. Public/browser rendering and full routing behavior are not inferred from these HTTP checks.
+
+Regenerable report `TestResults/HostedCqlIntegrationCurrent/hyperdrive-failover-http.json`, SHA256 `8EA18987E76DFFF2B36DD6A05AB4D1E6033090B9FB80288F69441AD07204EB53`. X10 remains red: automatic load balancing, write faults and late-enrollment/reconciliation need their own acceptance. Existing successful query/replication scopes stay frozen absent a reproduced bug.
+
+
+## Per-request routing evidence — next release batch
+
+A live default-provider read with auto-load-balancing ON succeeded, but its result had empty route metadata. Shared `hyperdrive/status.lastProviderSelection` cannot prove that read's provider under concurrent visitors. The owner usage projection did not contain a corresponding load receipt either. This is an observability gap; it does not establish a selection-policy failure.
+
+Core task `6bbd015c5b35f6b401d289676576ccd781984ab9` now attaches `metaData.hyperDriveRoute` JSON using operation-local values: `RequestedProvider`, `InitialProvider`, `ServingProvider`, `RequestedStrategy`, `Succeeded`. Failed/missing results do not claim a serving provider. Sync and async paths use the same metadata owner. No algorithm, candidate list, signing permission or canonical provider ownership changes.
+
+552 HyperDrive routing/selection regression cases pass, including four new cases: sync/async explicit vs automatic reads, failed result ownership, and a held overlapping read that retains Mongo's identity after another operation changes shared selection to SQLite. Regenerable `TestResults/HostedCqlIntegrationCurrent/hyperdrive-route-regressions.trx`, SHA256 `38A8A4573CA0391019AD6E48221DCB02E3EFBCB63179B7C86FD7BA726056B9E9`.
+
+Frontend task `ded5ab0` renders only the load response's `hyperDriveRoute` and existing `hyperDriveFailoverDiagnostic`; it no longer fetches shared status to label that request.47client tests pass, including response/missing-evidence controls. This batch is pushed on task branches, not yet deployed. Live automatic-balancing/provider-choice acceptance remains red until the response-owned facts are available on the host. No additional Railway deployment was triggered in this step.
+
+
+## Load-balancing verifier and partial write-fault gate
+
+`Scripts/Sandbox/Verify-HostedHyperdriveLoadBalancing.py` now requires each response's captured route, verifies three explicit reads plus six automatic reads of the acknowledged snapshot, rejects unenrolled/foreign/missing/shared evidence, and records observed provider variation. It makes no saves/faults/settings changes. Live execution waits for the next response-evidence release; it has not passed on the current deployed version.
+
+`Scripts/Sandbox/Verify-HostedHyperdriveWriteFault.py` journals unique negative-test IDs/operation keys before one create-only save per faulted authority with failover/load-balancing/replication ON. It restores owned faults in finally; uncertain sends never retry. Safe acknowledged rejections can be explicitly reviewed/resumed, not automatically replayed. Four pure verifier controls pass (including rejection subcases and exactly one transport send with the original operation key).
+
+The first live Mongo case returned503 `COSMIC_WRITE_OWNERSHIP_LOOKUP_FAILED`, IsError=true/IsSaved=false/nullresult. This is the mandatory ownership read failing before conditional write routing, not a conditional-commit proof. Its fault restoration is acknowledged. The original test expected the later offline routing code; that expectation was corrected to distinguish both legitimate stages. The retained save was not resent. The owner session then expired (verified JWT expiry plus401), preventing remaining SQLite/Neo cases and all-store absence reconciliation. No storage absence, alternate-store non-commit or uncertain-commit recovery acceptance is claimed. All these scopes remain red.
+
+Original cohort intents/responses/restoration remain under `LocalState/COSMIC/HostedQueryAcceptance-SolanaOASIS`. Partial report `TestResults/HostedCqlIntegrationCurrent/hyperdrive-write-fault-http.json`, SHA256 `9A2CDA778FF3A175828519F9461C0DE8A66F7A873FED740DF9E50BED9221C1EA`. Further testing needs an explicitly journalled fresh negative-test cohort and appropriate native reconciliation of the original IDs; do not replace the original session or replay its save. This is agent-owned test work, not a new action for David.
+
+
+## Offline write-authority preflight — distinct negative cohort
+
+Explicit `--cohort negative-v1` uses fixed `LocalState/COSMIC/HostedHyperdriveWriteFaultCurrent`, separate from the expired Solana cohort. One new journalled temporary owner, three new IDs/operation keys; original expired intents were neither replaced nor replayed.
+
+All three live authorities (Mongo/SQLite/Neo4j) returned `COSMIC_WRITE_OWNERSHIP_LOOKUP_FAILED`, IsError=true/IsSaved=false/nullresult while their avatar-only fault was active, despite failover/load-balancing/replication ON. All faults were restored and independently read back. Before/after queries over all three IDs on all three databases returned zero owner-visible rows. This proves the early ownership rejection path and no observed cross-database creation; it does not exercise post-preflight conditional dispatch, ambiguous commit recovery, durable outbox reconciliation or write-authority migration. X10 remains red for those scopes.
+
+Runner: `Scripts/Sandbox/Verify-HostedHyperdriveWriteFault.py --cohort negative-v1`. Successful cohort acknowledgement prevents replay. Four pure verifier tests pass. Completed durable cohort17files/2,444B; account expires normally, no successful holon save observed. Original expired-cohort absence reconciliation remains separate/unverified.
+
+Regenerable final report `TestResults/HostedCqlIntegrationCurrent/hyperdrive-write-fault-negative-v1-http.json`, SHA256 `7B89363EC44A91ACBE1B57F909230EEA4D8661BBBEFCE6D34520F17D22121E4C`. Final absence/restoration summary is backed by the retained native-run acknowledgement (the initial report writer recorded per-case outcomes; its final summary was enriched from that acknowledgement without repeating requests).
+
+
+## Recovery evidence reconciliation — 31 October 2026
+
+Read preserved repair commands and source inspection, not native services. Sequence6command acknowledged success; reviewed sequence8command acknowledged success. Follow-up2026-10-30T21:32:05.5938103Z shows6selected obligations Completed, all error codes null, SQLite held headnull and mutationCommands0. Its explicit scope is source/outbox only, not destination contents/query acceptance. Those distinctions are now reflected in REPLICA_BASELINE_AND_RECOVERY and X10a/X10b. The prior text incorrectly described these exact repairs as still pending; repeating them would be wrong. Current automatic cutover, general operator/API authorization/isolation, larger-store admission and broader source/target routes remain unverified.
+
+Hashes: `hosted-repair-command.log` c0a5cc31358e009154ef51281cfe11788897fe36ce34048b9855e46131912ec7; `hosted-repair-8-reviewed-command.log`9211fe9a24c19dd43454b11e91c2fa5369d28bf51f0439820baa576ffb0b0c5b; `hosted-repair-after-8.log`4679f2115b557eddc3a64ed96a4f67bb2b9eeb13bb95ffeca78082534d698662, all under worktree TestResults/Web4SandboxCqlCurrent. No repair call, replay, source write or retest of a green scope occurred during this evidence audit.
+
+## Read-only routing cohort ownership — 31 October 2026
+
+The pending load-balancing verifier no longer uses disposable TestResults as its durable expected-record source. Each selected cohort requires owner.acknowledged.json, owner.dpapi and routing-record.acknowledged.json together under LocalState/COSMIC. The latter has schema1, sourceEvidenceSha256 and expected (id/name/version/createdByAvatarId); canonical nonempty IDs, actual integer version and exact acknowledged owner are required before HTTP. It is an expectation, not a substitute for native replica reads or server authentication.
+
+Original Solana expected record was retained once from its existing successful proof SHA256429991c47b4bc0ee56f7a84828cc31d5fd52b445f368c2374267efe53f62f779, checking the original owner. Durable file310B. Actual default-gate invocation refuses the expired session before HTTP; no account/save/request replacement. No green source query was repeated.
+
+A future explicitly planned fresh cohort uses LocalState/COSMIC/HostedHyperdriveRoutingCurrent, with its own ordinary create-only operation intent/ACK, exact independent replica baseline and owner-bound record evidence. Only then run `python Scripts/Sandbox/Verify-HostedHyperdriveLoadBalancing.py --cohort routing-v1` after response-owned backend metadata is deployed. This read-only command cannot provision sessions/fixtures. Never copy old record IDs into a new owner cohort. Original cohort and partial outcomes stay preserved.
+
+Seven controlled routing/session tests and eight existing hosted-demo controls pass. The new tests exercise missing acknowledgement and expired bearer refusal without requests/writes, and foreign-owner/malformed evidence rejection. These are verifier controls; live balancing remains unverified.
+
+## Distinct routing-v1 fixture setup — 31 October 2026
+
+Implemented `python Scripts/Sandbox/Prepare-HostedHyperdriveRouting.py`, to run only after publishing response-owned routing facts. It is not run live yet. Fixed durable state: LocalState/COSMIC/HostedHyperdriveRoutingCurrent. Creates at most one acknowledged temporary owner and one private version1Mongo record using an exclusive flushed original intent, create-only expected revision, pinned Mongo authority, failover/balancingOFF and replicationON. The same operation ID is in body and request header. An uncertain response or incomplete/foreign/public save acknowledgement leaves the original intent and stops; no retry/new ID. An existing save intent without its original owner acknowledgement prevents replacement session creation.
+
+The durable save ACK binds owner, operation and complete intent hash. After acknowledgement, only exact explicit no-failover/no-balancing reads inspect all three native providers, matching ID/name/version/owner/description/private flag. A missing replica stops setup without deleting data or resaving; rerunning the same setup resumes reads only. There is no polling loop or hidden delay/retry. After all three match, a durable baseline ACK is flushed, then routing-record.acknowledged.json binds its exact SHA256 and expected record. A completed fixture refuses setup repetition. Existing expired cohort sessions still refuse replacement.
+
+Eight controlled setup cases pass, including interrupted replica-check resume with exactly one save total, uncertain save refusal, intent/owner change, incomplete ACK and private-replica mismatches. Seven existing routing controls also pass. These are offline protocol checks, not actual new hosted records, replication or balancing acceptance. One initial resume test lacked the owner ACK that the real session writes; its fixture was corrected and the full suite rerun successfully. All temporary test directories were automatically removed and absence checked.
+
+## Consolidated release preflight — 31 October 2026
+
+Fetched root origin/Development0e688ac9c2db452dd866a119fb84ecb7ce971fd9 and Core Development759b49a; root merge dfa4c6936 preserves the incoming prepared-storage receipt-ID assertions and CI WEB4 artifact build prerequisite. No conflict, manual reset, competing checkout or Development push. Core task6bbd015c5b35f6b401d289676576ccd781984ab9 remains published/ls-remote verified, with matching root gitlink/manifest. Scope versus Development is43files: tested routing metadata, strict reviewed shell recovery/source completions and their native/control evidence, guides/demo/verifiers/docs. The separate540-file provider backlog stays excluded.
+
+Reused Debug outputs and no-restore bounded builds under one lease: shipping WEB4 and Core unit test projects build successfully.1009selected HyperDrive/admission contracts pass, zero failures/skips, including actual WEB4 controller-artifact loading and the merged operation-bound receipt-ID assertions. TestResults/HostedCqlIntegrationCurrent/release-hyperdrive-admission.trx SHA256DA95B0D0181315ED03A16FF819787E6674E7D81CBF1C7EDF8E31C382802A53DF. No extra Release output or native environment allocated. These are integration contracts, not fresh hosted/native query proof.
+
+Static provider-I/O manifest:900public manager methods/729classified; route manifest:730controller actions/621classified; V2 inventory47paired operations. All3scripts pass. Static coverage is not runtime provider/option acceptance. Committed manifest/seven Dockerfiles/gitlinks validate.
+
+Read-only Railway CLI observation: latest WEB4dev deployment68fb8cc4-c603-4d16-a97a-0e5a30e364c2, parent0e688ac9c, SUCCESS. Original full eight-provider HTTP proofs remain from4dbe69d0/498e3fd7f; no green scopes or expired sessions were replayed. Pending batch must advance Core Development and verify ls-remote before the matching parent Development/pin batch. Fetch again immediately before publishing, preserve newer contributors and normal once/twice-daily cadence; no force push or extra small Railway deployment. Then observe the one resulting image, prepare the new routing cohort and run response-owned live balancing. Browser transport remains closed; do not restart Windows control after David's Escape stop.
+
+
+## Seven-source prepared configuration review — 31 October 2026
+
+Browser IAB getTab revalidated: Transportclosed. Windows control remains stopped after Escape; do not restart or interfere with games. No new David action requested. His central list still records pending extra-publication timing and deferred Azure/Oracle hosting. Latest read-only Railway observation:68fb8cc4-c603-4d16-a97a-0e5a30e364c2 SUCCESS at0e688ac9c2db452dd866a119fb84ecb7ce971fd9; no new profiles/routing release inferred. Earlier498e3fd7f deployment is now REMOVED; its acceptance is historical, not a fresh live result.
+
+Added a public-only export of the prepared seven-source candidate: no DNA, admission, tokens or credentials. New shipping `CqlPreparedPublicBatchTests` instantiates actual read adapters without activation and plans all28actual publisher presets against their real capabilities and static Mongo capabilities.1test passed/0skips, seven sources/four presets each, including14Mongo federations. No native calls, provider writes or deployment. Three pure export controls check omission of private settings and rejection of credential-bearing source fields/URLs. One test compile ambiguity with MVC File was fixed by qualifying System.IO.File.
+
+The checked review export was regenerated byte-for-byte by the committed helper. Reproduce using `python Scripts/Sandbox/Review-PreparedPublicBatch.py`, set `COSMIC_CQL_PUBLIC_REVIEW` to the generated worktree TestResults/HostedCqlIntegrationCurrent/seven-source-public-review.json, and run the existing API UnitTests filtered to CqlPreparedPublicBatchTests under one provider build lease with bounded build flags. Clear that environment variable afterward. It reuses the preserved protected candidate and never observes/modifies hosted variables.
+
+This closes the actual staged-preset planning gate only. Matching code/config/frontend publication, hosted source availability, private visitor preparation/reuse/isolation, exact replica checks and browser acceptance remain open. Never apply this candidate to frozen6bb or relabel offline planning as a live query.
+
+- `TestResults/HostedCqlIntegrationCurrent/release-recheck.json`: 443 B; SHA256 `58229c060c3a4cd689f2b9f1e0d0bc9c07631ffa4cbfefea855bce6a394f02d7`.
+
+- `TestResults/HostedCqlIntegrationCurrent/seven-source-public-review.json`: 27764 B; SHA256 `ed04d6c40ea1f0b12e77162c132fcf3dcf8f39d8f0d1f829f4db462dc6aa5e04`.
+
+- `TestResults/HostedCqlIntegrationCurrent/seven-source-public-review.trx`: 3377 B; SHA256 `d21868d61f96bf5b57b8dd2225c9bef24238075a864e35c501170fa3c4fe739f`.
+
+- `TestResults/HostedCqlIntegrationCurrent/public-review-export-controls.log`: 106 B; SHA256 `383a12fba9b5b327054a24ce7e5739569c4f0b6621facd981f2d6a4271063b3c`.
+
+### Ten-source read-only hosted reconciliation — 31 October 2026
+Reconcile-TenSourceHostedConfiguration.py observed current variables once and compared them in memory against the preserved ten-source before snapshot. Exact match;0changed keys,12planned settings (10source configs plus shared admission/examples). No values printed/persisted in plaintext, no mutation/deployment. Pure drift-control1test passes. Evidence: TestResults/HostedCqlIntegrationCurrent/ten-source-host-reconciliation.json and ten-source-reconciliation-controls.log. Offline40preset proof remains separate from hosted acceptance. Extra daily Development-publication decision remains pending in David list; no repeat ask or inferred permission. Matching rollout must include current Core3d5be79/application public profiles, not frozen6bb.
+
+### Three-source client preparation readiness
+New Base/Avalanche/BNB client tests pass3/0skips on website taskb6c6854. Each uses actual recipe/prepare modules: native3key preset retained, bounded2key read, server-derived IDs,2Mongo-only private saves/provenance and repeated preparation0new/2existing. Earlier green client scopes not rerun. Hosted Verify-HostedQuerySource.py now accepts these3profiles through the existing journalled flow. CLI help validated without creating sessions or sending requests. Do not run until matching hosted sources are ready. Evidence: TestResults/HostedCqlIntegrationCurrent/three-source-client-preparation.log. Browser retry still Transport closed; Windows control not restarted. Rendered SOLID/S3/Solana acceptance remains open.
+
+### Ten-source application entry point
+`python Scripts/Sandbox/Prepare-TenSourcePublicBatch.py apply-reviewed` is prepared, NOT EXECUTED. Use only after publication timing and matching application/Core release are verified; frozen6bb is incompatible. It validates exactly12changed settings with no deleted/unexpected/existing-source settings, writes10source configurations before shared admission/examples, and delegates all mutation intents/concurrent checks/observed ACKs to existing apply_values. Every set uses skip-deploys; no automatic retries/resume after uncertain outcomes. Failure requires original-intent reconciliation.2scope controls pass; evidence TestResults/HostedCqlIntegrationCurrent/ten-source-application-controls.log. Before application rerun read-only host reconciliation. No settings/deployment changed in preparation.
+
+### Optional Optimism extension — 31 October 2026
+`Prepare-TenSourcePublicBatch.py with-optimism` prepares separate eleven-source-public-{before,candidate}-variables.dpapi67,094/95,094B. Original ten-source protected files preserved. Public-only44preset export plus focused actual4Optimism presets generated from that candidate. Shipping planner1test/0skips proves the new4presets with real inactiveOptimism/nativeMongo capabilities; earlier40presets not rerun.3application controls pass, including explicit optional scope. No hostread/apply/deployment. The explicit apply-reviewed-with-optimism command uses exact13settings and the existing journalled publisher; only run after current-host reconciliation and permitted matching application/Coreccc3edb release, never frozen6bb. Ten-source commands remain available for the earlier scope. Evidence TestResults/HostedCqlIntegrationCurrent/{optimism-prepared-review.trx,eleven-source-application-controls.log,eleven-source-public-review.json}.
+
+### Optional Linea/Scroll extension
+`Prepare-TenSourcePublicBatch.py with-linea-scroll` composes all13public profiles into a separate candidate; optional Optimism required. Before/candidate protected files67,094/99,990B. Existing10/11protected candidates preserved. Exactly15settings admitted by explicit apply-reviewed-with-linea-scroll; shared journalled write owner unchanged, no application run.4scope controls pass. Initial preparation correctly refused copied Linea/Scroll endpoint URLs in builders/tests before protected output; fixed both to retained native-proven rpc.linea.build/rpc.scroll.io, corrected6configuration controls pass. Repreparation succeeded using actual retained catalogues. Actual8newpresets pass shippingplanner with realinactiveadapters/nativeMongocapabilities (1test/0skips); no freshhostread/configmutation/deployment.
+
+### Optional zkSync/Abstract extension — fifteen sources
+`Prepare-TenSourcePublicBatch.py with-zksync-abstract` creates separate fifteen-source-public-{before,candidate}-variables.dpapi67,094/104,934B; earlier10/11/13candidates preserved. Public-only60preset export and focused actual8newpresets generated from samecandidate. Shipping planner1test/0skips passes with realinactivezkSync/Abstract/nativeMongocapabilities; prior52presets not rerun.5scope controls pass, exact17settings through explicit apply-reviewed-with-zksync-abstract, journalledpublisher/noautodeploy unchanged. `Reconcile-TenSourceHostedConfiguration.py --scope fifteen` freshhostread exactmatchesoriginalsnapshot,0drift/17plannedsettings; nomutation/deployment. Matchingapplication/Corefb43eaa release and pendingdailypublicationtiming must be resolved before applying; frozen6bb incompatible. Evidence: TestResults/HostedCqlIntegrationCurrent/{zksync-abstract-prepared-review.trx,fifteen-source-application-controls.log,fifteen-source-host-reconciliation.json,fifteen-source-public-review.json}.
+
+## Approved consolidated publication — 31 October 2026
+David explicitly approved “Publish one consolidated batch now”. Scope is frozen correctness/routing parent79fe887e3/Core6bbd015, excluding newer publicprofiles. Refetched Development parent0e688ac9c/Core759b49a; both ancestors of release branches,no conflict/drift. Original1009passed/0skips report SHA256DA95B0D0181315ED03A16FF819787E6674E7D81CBF1C7EDF8E31C382802A53DF verified.3static inventories and parentpins pass. Publish CoreDevelopment first/ls-remote, then one parentDevelopment push; observe resultingRailwaydeployment before newrouting-v1setup. No master/newhostspend/sourceconfigurationapplication authorized by this batch. Newer tasksource preserved on work/cosmic-cql-google-public.
+
+PublishedDevelopment57174def3/Core6bbd015remoteverified; samejob e107f7e5-fb8b-4cce-854b-46ebad7c8600QUEUED Waiting for build slot. TaskbranchmergedDevelopment preservingdocchronologies; routing-v1stateabsent, waitterminalsuccess.
+
+### Optional Monad extension — sixteen-source candidate
+`Prepare-TenSourcePublicBatch.py with-monad` prepares separate sixteen-source-public-{before,candidate}-variables.dpapi67,094/107,366B; earliercandidatespreserved. Public64presetexport/focused4actualMonadpresets generated. Shippingplanner1test/0skips passesnew4presets withrealinactiveMonad/nativeMongocapabilities; earlier60notrerun.6scopecontrolspass; exact18settings requireexplicit apply-reviewed-with-monad throughsamejournalledpublisher,notexecuted. Readonlyreconciliationtool supports --scope sixteen forfuturepreapplycheck. Matchingapplication/Core6d26291 required, neverapprovedrouting-only6bbimage. Existingapprovedjob e107f7e5 stillBUILDING exact57174def3; noextradevpush/configmutation. Raw HostedCqlIntegrationCurrent/{monad-prepared-review.trx,sixteen-source-application-controls.log,sixteen-source-public-review.json}.
+
+Approveddeployment e107f7e5 reachedSUCCESS exact57174def3. Routing-v1setupcompleted:1owner/1acknowledgedprivateversion1Mongo record, exact3nativecopiesverified. Readgatepassed3explicitproviders thenfailed Default routeevidence:RequestedProvider=MongoDBOASIS,notDefault. Diagnosticreadonlysameoriginalrecordconfirms; noresave/newowner. Rootinspection:DataController ordinary non-admittedV2acquisitionusesprovider-bound legacyconstruction,bypassingDefaultbalancing. Fix/controllerregressionwork next onscopedreleasebranch; noadditionalDevelopmentpushyet. Raw routing-v1-{setup,balancing}.log,hyperdrive-load-balancing-routing-v1-http.json,routing-v1-default-diagnostic.json.
+
+Publication result:CoreDevelopment6bbd015c5b35f6b401d289676576ccd781984ab9 and parentDevelopment57174def3ec008b360f8a9ecad585340d066b800 fast-forwardpushed/ls-remoteverified. ExactlyoneparentDevelopmentpush. Railway e107f7e5-fb8b-4cce-854b-46ebad7c8600 created2026-10-31T22:48:38.542Z, exactparent57174def3, observedQUEUED. Track samejob to terminal; no redeploy/restart on observationtimeout. Current priorlive68fb8cc4 remainsSUCCESS; newrouting-v1state doesnotexist, no session/save yet. Sanitizedevidence TestResults/HostedCqlIntegrationCurrent/approved-release-{deployments,current}.json.
+
+Sameapprovedjob reobservedQUEUED with Railway queuedReason="Waiting for build slot". This is a confirmed externaldeploymentwait, not terminalfailure or permissionblock. Continueobserving e107f7e5-fb8b-4cce-854b-46ebad7c8600; do not redeploy/cancelothers or create routingfixture against priorimage. Sanitizedreason added to approved-release-current.json. No localservices/newresources or hostsettings changed.
+
+## Live default-routing root cause and scoped fix — 31 October 2026
+ApprovedRailway e107f7e5SUCCESS exactDevelopment57174def3/Core6bbd015. Newrouting-v1fixture has1journalledtemporaryowner/1acknowledgedprivateversion1Mongo write and3exactnativecopies.3explicitproviderreads returncorrectroutefacts; firstDefaultONreadreturns RequestedProviderMongoDBOASIS andMongo, so gatecorrectlyfails. Readonlysameoriginalrecorddiagnosticconfirms. No fixture/session/save replacement.
+
+Rootcause:DataController only used its unboundV2factory insidePreparedStorageExecution admission. Ordinaryreads reachedBootLoaderdefault activation and constructedprovider-boundHolonManager; ResolveProviderType(Default) thenbecameMongo beforeHyperDrive. Fixextends existinglazyacquisitionhelper with explicitordinaryV2opt-in forDataController; allothercallers retainadmission-onlydefault, admittedinvalidDNAgateway remainsstrict, factoryerrorspropagate. Legacyacquisition behavior unchanged. NoCoreproduction/publicAPI/providerconfigchange.
+
+Actualparameterlesscontroller regression provesDefault selects soleenrolledSQLite whileMongo isnodeDefault; explicitMongo stillwins.2newcases pass;13helperguardtests and61controller/HTTPtests pass0skips (includes2newcases). Initial2fixturefailureswere loggingconfiguration beforeacquisition; correctedfixtureusesexistingLogSwitchingProviders=false, failedTRX/logretained. Evidence TestResults/HostedCqlIntegrationCurrent/routing-acquisition{,-guards,-http}.trx and routing-acquisition-initial-fixture-failure.{trx,log}. Followuppublicationrequiresanotherdailycadenceexception; approvedfirstbatchalreadyused. NoextraDevelopmentpushyet. Aftermatchingfixdeployment, rerunreadonlygateonsameacknowledgedcohort; noresave.
+
+
+### Seventeen-source prepared review — 31 October 2026
+
+The optional seventeen-source candidate contains 68 presets and 19 application settings. The four actual Sei presets pass the shipping planner using shipping source/Mongo capabilities: 1 passed, 0 failed, 0 skipped. Application-scope controls: 7 passed. Earlier candidates are preserved. No hosted variables were applied, and no deployment or hosted acceptance is inferred. Evidence: `TestResults/HostedCqlIntegrationCurrent/sei-prepared-review.trx`; regenerate with the focused `ActualSeiCandidatePlansFourPresetsWithShippingCapabilities` test and retained public review.
+TRX SHA-256: `6dd472c7a76f2c8ec3f01d00bc09519a3662816ba584e7e4fe1693d858f7e9db`.
+
+
+### Live failover acceptance gap — 31 October 2026
+The unfinished failover verifier previously accepted correct record content without proving that another provider served it. It now requires response-owned route metadata: requested/initial provider equals the faulted source, serving provider is a different enrolled replica, Auto strategy and success. Five controls pass, including all six directed routes and rejection of missing, same-provider, foreign-route, error and changed-record evidence. Command: `python -m unittest Scripts/Sandbox/test_hyperdrive_failover.py`. No new hosted failover pass, fault, account, save or session is claimed; original cohort is preserved.
+
+
+### Routing-v1 live failover attempt — 31 October 2026
+Added explicit routing-v1 selection, durable fixture reuse and independent-visitor setup to the unfinished gate. Eight controls pass, including expiry preventing visitor creation and retained journals preventing replay. Live execution stopped because the original routing owner session expired; no faults or saves were sent and no gate journal was created. One independent temporary foreign visitor had already been acknowledged during explicit setup; retained under the same state directory, not deleted/recreated. Setup now validates the owner before allocating a visitor. Original routing cohort remains preserved; a separately planned post-deployment cohort is needed. No failover pass claimed.
+
+
+### Complete seventeen-source planner acceptance — 31 October 2026
+The actual retained public-only candidate (17 profiles,68 presets,66,092 bytes) passes the shipping planner as one batch using real source descriptors and Mongo capabilities. All source instances remain inactive. Result:1passed,0failed,0skipped. Test: `ActualSeventeenSourceCandidatePlansAllSixtyEightPresetsWithShippingCapabilities`; explicit `COSMIC_CQL_PUBLIC_REVIEW` selects the retained public review. No native I/O, account, save, host mutation or deployment. TRX: `TestResults/HostedCqlIntegrationCurrent/seventeen-prepared-review.trx`, SHA256 `adff4b0c51d06e490ccb299f02c700eb99c157cc2c2296ab7af605d2ebe9a8cf`. Review SHA256 `6378320a11b99a255a136e274a255045440f04fd27cc04100243e4602510d3e3`. Hosted acceptance remains red.
+
+
+### Enforced matching-release publication guard — 31 October 2026
+Found a release-path gap: the multi-source apply command enforced exact variable scope and concurrency, but the documented matching deployed application prerequisite was manual only. Apply now requires `COSMIC_CQL_EXPECTED_DEPLOYMENT_COMMIT` as a full reviewed SHA, verifies the checked-out release equals it, and verifies the latest observed WEB4 dev deployment is SUCCESS at that SHA before invoking the sole journalled configuration mutation owner. Missing/mismatched/building/failed observations stop before writes; no fallback. Eleven application/guard controls pass, including proof the mutation owner is never invoked when the guard fails. This does not authorize a release or apply any variable. Existing protected candidates unchanged.
+
+### Approved Default-routing correction publication — 1 November 2026
+David explicitly approved: Publish correction now. Scope: production correction51de129d3 plus its existing13guard/61HTTP tests and documentation; no new public-provider expansion or Core pin change. Fetched Development494f988bc is an ancestor of the scoped release450614de6. Original74passing/zero-skipped TRX revalidated and Railway manifest/gitlinks pass. Core Development6bbd015 independently verified remotely. No production/master promotion, settings change or hosting spend.
+
+
+### Explicit post-correction routing cohort - 1 November 2026
+Deployment d8876691-5ce2-4495-9e3d-dedfb1732de0 remains QUEUED at051ac6af7. Explicit routing-v2 uses HostedHyperdriveRoutingV2Current and preserves expired routing-v1. No account/save/fault sent.23protocol checks pass. After exact job SUCCESS: prepare routing-v2 once, run balancing reads, explicitly prepare its independent visitor, run failover. Unknown writes/fault journals stop replay; preserve original intent and restore owned faults.
+
+
+### Deployed routing correction and live failover - 1 November 2026
+Exact Railway jobd8876691-5ce2-4495-9e3d-dedfb1732de0 SUCCESS at051ac6af7841f95d4babb1a3e061feee06b4a6c6/Core6bbd015. Routing-v2record0f952286-685f-485c-96bf-d55f4e33c1d6 created once; all three replicas match. Three explicit and six Default reads return exact record; Default is preserved and selects Neo4j rather than binding Mongo. Existing balancing verifier remains red because all six choose Neo4j; inspect configured/deterministic policy before changing acceptance, no false variation pass. Live failover passed Mongo->SQLite, SQLite->Mongo, Neo4j->Mongo. Each fault produces the offline error with failover off, succeeds via a different enrolled serving provider with failover on, records2refusals, isolates foreign private rows (0), and restores the fault in finally. No gate saves. Browser acceptance not inferred. Failover report SHA256 79919b7712c2867b44b2db6a2fcda0d7ad3187ba85d967d3822631f3d625bc6d. Durable intents/ACKs remain LocalState/COSMIC/HostedHyperdriveRoutingV2Current; no repeat of completed gate.
+
+
+### Auto policy and request-scoped candidate routing - 1 November 2026
+Read-only hosted configuration confirms DefaultStrategy Auto. Shipping SelectAutoProvider chooses maximum weighted score, with latency tie-break; repeated selection does not violate a rotation contract. Preserve the earlier nine-read report and unacknowledged variation gate; do not claim fairness or score optimality. A distinct live read-only gate passed3Default requests, each with one explicit autoLoadBalanceProviders candidate (Mongo,SQLite,Neo4j). Each response-owned InitialProvider/ServingProvider equals its sole eligible source and exact record/owner/version/content is retained. No settings changes, faults or saves. Two controlled tests cover all3eligible sources, wrong-serving rejection and unenrolled rejection. Evidence TestResults/HostedCqlIntegrationCurrent/hyperdrive-candidate-routing-v2-http.json, SHA256 a72cf17587b02103beac6f6b8fe825f69f0315146b295aa71407f0c2f01b74c6. Durable completion ACK prevents replay.
+
+
+### Seventeen-profile consolidated release preflight - 1 November 2026
+Preparing the second normal daily Development batch after verified routing correction. Parent candidate includes17public-read profiles; Core diff from deployed6bbd015 is only the explicit27provider unsigned-read tariff catalogue (current56c869ff8de0a520da8c09ba8ebc6f85bbd40ea4). No shared routing API change. Integration regression:970Core HyperDrive/tariff contracts and101API hosted-admission/controller contracts pass,0failures/0skips;53provider configuration controls pass. Route manifest730actions and manager manifest900methods pass; dependency pins/gitlinks pass. Actual68preset shipping-planner proof retained separately. Existing native profile/cohort evidence is reused; no green native scopes rerun. New public settings remain unapplied until matching deployed revision succeeds. No new cloud hosting, credentials or production/master promotion.
+TestResults/HostedCqlIntegrationCurrent/expansion-release-core.trx SHA256 d580e3403eacc9b99b6671ba9e34cdbfca4336fc51eed4cb678c57635ae052a9
+TestResults/HostedCqlIntegrationCurrent/expansion-release-api.trx SHA256 d8a98bfec58a032bc7151dcbbe8c21082aff3a9bbb934c608f1bae4e61ccf3a8
+
+1 November 2026: public web4-sandbox.html byte-for-byte equals git36933fb:web4-sandbox.html,137753bytes,SHA2560e70753d85674d2a49cb97d2acffd20a627d4e757a0386a86c9d79c0305011bc. Compared committed blob, not Windows checkout CRLF. Sei/Monad links present. Reused Python/network in memory; no download retained or new runtime. API expansionfddf3159 remains BUILDING; source settings untouched.
+
+
+### Polkadot publish root cause - 1 November 2026
+Expansion jobfddf3159 terminalFAILED: strict Docker bridge verification found missing PolkadotSdkBridge/psp22-escrow-api.mjs. Source import closure identifies seven omitted production modules: psp22-escrow-api, psp22-escrow-mutation, psp22-escrow-outcome, psp22-escrow-read, psp22-token-precision, ink-scale-result and oasis-psp22-escrow-codec. Added explicit output/publish entries at the owning csproj; no runtime copy workaround or weaker verifier. Existing source validator now recognizes MSBuild Update as well as Include (needed by Cosmos). All five source bridge closures pass (4/8/7/3/31 modules); two regression tests pass. Actual bounded MSBuild GetCopyToPublishDirectoryItems succeeds and contains all seven source/target/policy entries. No full duplicate publish directory/runtime/install allocated. Raw evidence TestResults/HostedCqlIntegrationCurrent/polkadot-publish-items.json SHA256 11782506cbbd603ff8865c1bf21fea3637358b0acd2b5aa3a9e8bfefd7decf73. Temporary fixtures auto-removed. Native/provider behavior unchanged. Existing routing release051ac6af7 remains live. No17source variable applied. Third daily Development publication requires recorded timing exception; correction is committed on task branch first.
+
+
+### Early SDK publication gate - 1 November 2026
+Added one all-five-bridge source validator entry point and wired it into a lightweight PR/Development/master contract workflow plus the manual WEB4 image workflow before Docker setup/build. It checks production copy policies and transitive local imports without downloading packages/private submodules or building an image. Local exact CI commands pass: five bridge closures (4/8/7/3/31 modules) and two regression tests. Hosted CI has not run for this task-only commit yet. Strict Docker verification remains authoritative for installed SDKs/actual output; source validation does not substitute for it. No deployment or settings change; the existing extra-publication question remains pending.
+
+
+### Provider-partitioned preset configuration - 1 November2026
+Actual CLI rejection confirmed shared catalogue value40443 exceeds32768characters.18source/admission values match candidate exactly; shared examples match original before; no unrelated drift. One explicit reviewed idempotent configuration continuation retained its protected outcome and definite rejection; original intent preserved. Implemented strict provider configuration composition, not a query fallback or scope reduction.17APItests pass0skips including actual68preset shipping planner through FromConfiguration;3Python candidate controls pass. Prepared immutable seventeen-source-example-partitions candidate:17variables,max2399characters,existing shared examples untouched. No partition mutation/deployment yet. TRX TestResults/HostedCqlIntegrationCurrent/provider-example-partitions.trx SHA256 7dcf2a3cf1ef115fa1e8952308372845e8a21db330b601ce905ec506a60f825a.
+
+
+### Preset partitions applied; settings rollout - 1 November2026
+Exact4e0d58f08 deployment8444dbca SUCCESS. Guarded partition publisher applied17variables with17observed ACKs; full remote settings equal protected candidate. Original18source/admission settings retained; shared example JSON unchanged, all68new presets preserved. One intended same-artifact settings rollout aff4bf53-41eb-4e03-9811-dc4f809c3e50 BUILDING at4e0d58f08, original rollout intent/protected CLI outcome retained. No new account, native source save or public-chain write. Next hosted17provider cohorts: LocalState/COSMIC/HostedQueryAcceptance-<Provider>, at most2temporary visitor identities and2private Mongo snapshots each, original protected bearers/save intents/ACKs retained. Raw reports TestResults/HostedCqlIntegrationCurrent/<Provider>-*.json/log; no evidence in Docs. Reuse installed Node/Python/CLI, no new runtime/environment/service. Source/public mapping owners unchanged.
+
+
+### Seventeen-source hosted acceptance complete - 1 November2026
+Exact settings rollout aff4bf53 SUCCESS at4e0d58f08/Core56c869f and desired settings rechecked. All17newprofiles pass normal-visitor native3/2, two private Mongo creates, paired5/4, repeat0new/2existing, foreign-private0 and exact2rows on each replica store.34private snapshots total. Completion summaries/hashes durable per cohort; raw reports remain TestResults. Fresh report HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md contains individual hashes. Earlier8proofs plus17new gives25scoped hosted HTTP providers; browser proof remains5. No owned source/chain write, full ORM, score optimality or universal uptime certification. No green native reruns.
+
+
+### Berachain next-profile preflight - 1 November2026
+Read-only mainnet qualification passes at https://rpc.berachain.com, chain0x138de, pinned genesisd57819422128da1c44339fc7956662378c17e2213e669b427ac91cd11dfcfb38. Primary references: https://github.com/berachain/morpho-blue-deployment/blob/main/.env.example and https://github.com/berachain/beacon-kit.19source controls/nativeC# tests, actualCLI3/2, API2,Core1,tariff regression22,local HTTP/Mongo1,prepared4preset planner1,configuration3 and client1 pass. No old green native profile rerun. Core08c4977215f55006e6c7b00de62c9a70c1968d9b pushed; parentgitlink/manifest updated together. Source/admission/provider-example3setting candidate prepared, not applied; canonicalDNA byte-identical. New profile is not yet a26thhosted proof. Earlier build-prerequisite failures retained, no native write replay.
+TestResults/EvmBreadthReadinessCurrent/berachain-cql.trx passed=19 SHA256 a9f8e39565f666439672fdb4e9f809b05a67b3c67be6b4e700ffd213e976601d
+TestResults/EvmBreadthReadinessCurrent/berachain-admission.trx passed=2 SHA256 4232e4c5e822fd0c77e1bed9dcb16e4dd537632d62f3b429c0a54c5838bf66c8
+TestResults/EvmBreadthReadinessCurrent/berachain-tariff.trx passed=1 SHA256 3dc2417290958acfdbb23f2b6541b9a342d209122a236ac1958ded4d8505a31b
+TestResults/EvmBreadthReadinessCurrent/berachain-tariff-integration.trx passed=22 SHA256 9a01e320cf56deda718a8fd6bbd2a6d0220616a092e5494d64eef3cb2fba9ef9
+TestResults/EvmBreadthReadinessCurrent/berachain-prepared-review.trx passed=1 SHA256 ab5e36d0a01a4812b261eae9938e49d1bcd223247bde584b40596028737c8292
+TestResults/BerachainPublicSourceCandidateCurrent/berachain-mongo-http.trx passed=1 SHA256 5a8d858656992c145b8e0ba85d05e44d9d443ef0a97e418b4a842f53d78351fa
+
+Berachain hosted completion: exact c6fb86d9 SUCCESS at1b2626499/Core08c4977. Native3/2, Mongo2, paired5/4, repeat0writes, foreign-private0, replicas2/2. `C:/Source/OASIS-cosmic/LocalState/COSMIC/HostedQueryAcceptance-BerachainOASIS`: 3081logicalbytes, created1November by hosted gate; durable protected2visitor identities,2remote private Mongo snapshots and save/completion ACKs; no local service/port. Preserve original identity/receipts through reviewed normal demo expiry; never replay after raw evidence cleanup. Raw3reports and run log under TestResults/HostedCqlIntegrationCurrent are regenerable evidence, no raw docs. No source/chain write or installation.
+
+Bitcoin API milestone1November: explicit lazy read profile, independent tariff, actual four-preset planner and local HTTP3/2+Mongo5/4/isolation pass. Protected candidate prepared only; hosted/browser open. [Proof and exact rollout next step](BITCOIN_PUBLIC_SOURCE_STATUS.md). No signed-chain writes or hosted certification inferred.
+
+Bitcoin hosted completion1November: exact f71e482c SUCCESS at19ebbfe2c/Core7317ba1. Normal visitors pass native3/2, paired5/4, repeat0new, foreign-private0 and SQLite/Neo4j replicas2/2. Totals27HTTP/5browser/22browseropen; no Bitcoin source writes. Earlier Bitcoin pending notes superseded. [Proof/hashes](HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md#additional-bitcoin-acceptance).
+
+XRPL API milestone1November: explicit read-only profile/admission, four exact shipping-planned presets and local HTTP3/2+Mongo5/4/private0 pass. Protected candidate prepared only; hosting/browser remain open, live27unchanged. [Proof and rollout next](XRPL_PUBLIC_SOURCE_STATUS.md).
+
+XRPL hosted completion1November: free Ripple endpoint correction74bdf044 SUCCESS/c6e7f14ba/Coree032d0a, native3/2, paired5/4, repeat0new, private0 and replicas2/2. Prior402/expired-empty cohort preserved; explicit post-fix cohort has original ACKs. Counts28HTTP/5browser/23browseropen; no source writes. [Proof/hashes](HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md#additional-xrpl-acceptance).
+
+Stellar API milestone1November: independent read-only admission, exact four-preset shipping planner and local HTTP3/2+Mongo5/4/private0 pass; protected3setting candidate prepared only. Hosting/browser remain open; live28unchanged. [Proof/next rollout](STELLAR_PUBLIC_SOURCE_STATUS.md#api--local-http-complete).
+
+1 November rollout update: exact application6f4d9a65 SUCCESS at637a6d49f. All three protected Stellar settings observed exactly; one journalled settings deployment3eda0ea7-5238-4a7d-bd91-f47ba2f8102d submitted. Hosted acceptance and website publication remain pending; no new hosted-provider count yet.
+
+Stellar hosted completion (1 November): application637a6d49f/Core2dd3c37, exact settings deployment3eda0ea7 SUCCESS. Native3/2, private Mongo2, federation5/4, repeat0new/2existing, foreign-private0/public3, replicas2/2 pass. Counts29hosted HTTP,5browser,24browser-open;31deployed query-tariff types. Read-only hash-pinned public headers, no Stellar writes or consensus/signature verification. [Evidence](HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md#additional-stellar-acceptance).
+
+Algorand native CQL milestone (1 November):21controlled +1real HolonManager3/2 pass, actual commented CLI3/2 passes. Explicit current-account catalogue, SHA512/256 address checksums, exact UInt64 strings and per-row rounds; no historical/shared snapshot or source writes.32implemented query types/31deployed tariff/29hosted HTTP. API/hosting remain open. [Guide](../../Devs/ALGORAND_PUBLIC_ACCOUNT_CQL_GUIDE.md), [proof/next gates](ALGORAND_PUBLIC_SOURCE_STATUS.md).
+
+Algorand API/local HTTP milestone (1 November):3API/prepared+1Core+1native HTTP tests pass;3publisher+1client controls pass. Native3/2, pairedMongo5/4, foreign-private0 verified locally. Original marker-verified fixture removed and ACKs retained. Protected3setting candidate prepared only; hosted/browser pending. [Proof](ALGORAND_PUBLIC_SOURCE_STATUS.md#api-and-local-http-complete).
+
+Aptos native milestone1November:25controlled+1real HolonManager3/2 pass/no skips, actual commentedCLI3/2 passes. Explicit Mainnet account catalogue and one requested ledger version per source query; exact sequence strings, no state/consensus proof or cross-provider snapshot.33implemented query types;29hosted HTTP unchanged. API/hosting remain open. [Guide](../../Devs/APTOS_PUBLIC_ACCOUNT_CQL_GUIDE.md), [proof](APTOS_PUBLIC_SOURCE_STATUS.md#native-cql-milestone).
+
+Aptos API/local HTTP milestone1November:2API+1Core+1native HTTP pass/no skips,3pure publisher+1client controls pass. Native3/2, Mongo federation5/4 and foreign-private0 locally verified; marker-owned fixture removed/ACKs retained. Coree845c62/task-only. Protected candidate/export planner and hosting wait for current Algorand rollout. [Proof](APTOS_PUBLIC_SOURCE_STATUS.md#api-and-local-http-milestone).
+
+Aptos prepared-host milestone1November: protected3setting candidate prepared against the exact applied Algorand settings; actual4preset shipping planner1test passes/no skips. Separate deployed Node4GET reachability/version probe passes, not hosted CQL. Candidate remains unapplied, no visitor cohort. Complete Algorand settings/acceptance before next application batch. [Proof](APTOS_PUBLIC_SOURCE_STATUS.md#protected-candidate-ready).
+
+Algorand hosted completion1November:7a9ca308e/Corec17db5f, exact settingsf3ee7f37 SUCCESS. Native3/2, paired5/4, repeat0new/2existing, foreign-private0/public3, replicas2/2 pass. Current-account/per-response-round semantics, exact quantities; no source writes/historical/shared snapshot. Counts30hosted HTTP/5browser/25open,32deployed query-tariff types. [Proof/hashes](HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md#additional-algorand-acceptance).
+
+Hedera/Hashgraph native milestone1November:21controlled+1real shared HolonManager3/2 tests pass/no skips; actual commentedCLI3/2 passes. LatestIndexed account catalogue, exact tinybars/native timestamps and strict official Mainnet endpoint; no SDK payment, source writes, freshness/shared snapshot or consensus proof.34implemented query types/30hosted HTTP; API/hosting remain open. [Guide](../../Devs/HEDERA_PUBLIC_ACCOUNT_CQL_GUIDE.md), [proof](HEDERA_PUBLIC_SOURCE_STATUS.md#native-cql-milestone).
+
+Hedera API/local HTTP milestone1November:2API+1Core+1native HTTP+1actual4preset shipping planner pass/no skips;3publisher+1client controls pass. Native3/2, Mongo federation5/4 and private0 locally verified; owned fixture removed/ACKs retained. Protected3setting candidate prepared only, Core89b5ffa/task-only. Hosted/cloud query/browser gates remain open. [Proof](HEDERA_PUBLIC_SOURCE_STATUS.md#api-and-local-http-complete).
+
+Aptos hosted completion1November:1cfb893c8/Coree845c62, exact settings1c100994 SUCCESS. Native3/2, paired5/4, repeat0new/2existing, foreign-private0/public3, replicas2/2 pass. Per-native-query ledger version and exact strings; no cross-provider historical snapshot, state/consensus proof or source writes. Counts31hosted HTTP/5browser/26open;33deployed query-tariff types. [Proof/hashes](HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md#additional-aptos-acceptance).
+
+Radix hosted milestone: original cohort completed at74aaa9b4d/Core8b79301 after settlement correction; no duplicate saves. [Scope, failure history and hashes](RADIX_PUBLIC_SOURCE_STATUS.md#hosted-acceptance-complete). Browser renewal/interaction remain separate. Earlier deployed-tariff headlines incorrectly included local Azure/Oracle: actual live catalogue35, implemented types37.

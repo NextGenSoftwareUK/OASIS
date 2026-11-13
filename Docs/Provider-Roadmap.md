@@ -1,10 +1,10 @@
 # OASIS Provider Inventory & Roadmap
 
-_Last updated: 2026-10-02 — 222 working providers. See [Provider-Summary.md](Provider-Summary.md) for the authoritative full list derived from the filesystem._
+The [current inventory](WIP/HyperDrive-Providers/PROVIDER_MATRIX.md) lists 234 shipping provider projects. The tables below record the October 2026 roadmap.
 
 ---
 
-## Current Provider Inventory
+## October 2026 Provider Inventory
 
 ### Blockchain / L1 / L2
 

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -45,7 +45,9 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
             });
         }
 
-        public async Task Create(AvatarDetailDto entity)
+        public Task Create(AvatarDetailDto entity) => WriteDetailAsync(entity, "adddetail");
+
+        private async Task WriteDetailAsync(AvatarDetailDto entity, string action)
         {
             if (entity == null)
                 throw new ArgumentNullException(nameof(entity));
@@ -65,7 +67,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
                                 permission = "active"
                             }
                         },
-                        name = "adddetail",
+                        name = action,
                         data = new
                         {
                             entityId = entity.EntityId,
@@ -76,13 +78,17 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
                 }
             });
 
+            if (string.IsNullOrWhiteSpace(pushTransactionResult))
+                throw new InvalidOperationException("EOSIO avatar detail write returned no transaction ID.");
+
             LoggingManager.Log(
                 "Avatar detail request was sent. " +
-                $"Received transaction hash response: {pushTransactionResult}. " +
-                $"Request sent: {JsonConvert.SerializeObject(entity)}", LogType.Info);
+                $"Received transaction hash response: {pushTransactionResult}.", LogType.Info);
         }
 
-        public async Task<AvatarDetailDto> Read(Guid id)
+        public Task<AvatarDetailDto> Read(Guid id) => ReadOwnedRowAsync(id, includeDeleted: false);
+
+        internal async Task<AvatarDetailDto> ReadOwnedRowAsync(Guid id, bool includeDeleted)
         {
             if (id == null)
                 throw new ArgumentNullException(nameof(id));
@@ -92,42 +98,71 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
             {
                 Code = _eosAccountName,
                 Scope = _eosAccountName,
-                Table = _avatarDetailTable
+                Table = _avatarDetailTable,
+                LowerBound = unchecked((uint)avatarDetailId).ToString(System.Globalization.CultureInfo.InvariantCulture),
+                Limit = 1
             });
             return avatarDetailTableRows.Rows.FirstOrDefault(avatarDetailDto =>
-                avatarDetailDto.EntityId == avatarDetailId);
+                (includeDeleted || avatarDetailDto.IsDeleted != true) &&
+                avatarDetailDto.EntityId == avatarDetailId &&
+                Guid.TryParse(avatarDetailDto.AvatarId, out var owner) && owner == id);
         }
 
         public async Task<ImmutableArray<AvatarDetailDto>> ReadAll()
         {
-            var avatarDetailTableRows = await _eosClient.GetTableRows<AvatarDetailDto>(new GetTableRowsRequestDto
+            var request = new GetTableRowsRequestDto
             {
                 Code = _eosAccountName,
                 Scope = _eosAccountName,
                 Table = _avatarDetailTable
-            });
-            return avatarDetailTableRows.Rows.ToImmutableArray();
+            };
+            var rows = ImmutableArray.CreateBuilder<AvatarDetailDto>();
+            var cursors = new HashSet<string>(StringComparer.Ordinal);
+            while (true)
+            {
+                var page = await _eosClient.GetTableRows<AvatarDetailDto>(request).ConfigureAwait(false);
+                if (page?.Rows == null || !page.More.HasValue)
+                    throw new InvalidOperationException("EOSIO did not return a complete avatar detail table page.");
+
+                rows.AddRange(page.Rows.Where(row => row.IsDeleted != true));
+                if (!page.More.Value)
+                    return rows.ToImmutable();
+                if (string.IsNullOrWhiteSpace(page.NextKey) || !cursors.Add(page.NextKey))
+                    throw new InvalidOperationException("EOSIO returned an invalid avatar detail table continuation.");
+                request.LowerBound = page.NextKey;
+            }
         }
 
-        // Update method not supported for avatar detail entity
-        public async Task Update(AvatarDetailDto entity, Guid id)
-        {
-            // Avatar detail is read-only on EOSIO - return without error
-            await Task.CompletedTask;
-        }
+        public Task Update(AvatarDetailDto entity, Guid id)
+            => WriteDetailAsync(entity, "setdetail");
 
-        // Soft delete method not supported by avatar detail entity
-        public async Task DeleteSoft(Guid id)
-        {
-            // Avatar detail is read-only on EOSIO - return without error
-            await Task.CompletedTask;
-        }
+        public Task DeleteSoft(Guid id) => DeleteDetailAsync(id, "softdetail");
 
-        // Hard delete method not supported by avatar detail entity
-        public async Task DeleteHard(Guid id)
+        public Task DeleteHard(Guid id) => DeleteDetailAsync(id, "harddetail");
+
+        private async Task DeleteDetailAsync(Guid id, string action)
         {
-            // Avatar detail is read-only on EOSIO - return without error
-            await Task.CompletedTask;
+            if (id == Guid.Empty)
+                throw new ArgumentException("A nonempty avatar ID is required.", nameof(id));
+
+            var transactionId = await _eos.CreateTransaction(new Transaction
+            {
+                actions = new List<Action>
+                {
+                    new()
+                    {
+                        account = _eosAccountName,
+                        authorization = new List<PermissionLevel>
+                        {
+                            new() { actor = _eosAccountName, permission = "active" }
+                        },
+                        name = action,
+                        data = new { entityId = HashUtility.GetNumericHash(id), holonId = id.ToString() }
+                    }
+                }
+            }).ConfigureAwait(false);
+            if (string.IsNullOrWhiteSpace(transactionId))
+                throw new InvalidOperationException("EOSIO avatar detail deletion returned no transaction ID.");
         }
 
         public void Dispose()

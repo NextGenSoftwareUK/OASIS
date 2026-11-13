@@ -37,6 +37,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="BouncyCastle.Cryptography" Version="2.7.0" Aliases="BouncyCastleCryptography" />
     <None Include="..\..\..\Logos\OASIS.jpg" Link="OASIS.jpg">
       <PackagePath>\</PackagePath>
       <Pack>True</Pack>
@@ -47,7 +48,6 @@
     <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" Condition="Exists('..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj')" />
     <PackageReference Include="NextGenSoftware.OASIS.API.Core" Version="2.0.0" Condition="!Exists('..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj')" />
     <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.Common\NextGenSoftware.OASIS.Common.csproj" />
-    <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.OASISBootLoader\NextGenSoftware.OASIS.OASISBootLoader.csproj" />
     <ProjectReference Include="..\..\Shared\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.csproj" />
   </ItemGroup>
 
@@ -80,6 +80,13 @@
     <None Include="SdkBridge\original-submission.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\original-submission.mjs" />
     <None Include="SdkBridge\original-outcome.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\original-outcome.mjs" />
     <None Include="..\..\Shared\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage\prepared-submission.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\prepared-submission.mjs" />
+    <None Include="SdkBridge\psp22-escrow-api.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\psp22-escrow-api.mjs" />
+    <None Include="SdkBridge\psp22-escrow-mutation.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\psp22-escrow-mutation.mjs" />
+    <None Include="SdkBridge\psp22-escrow-outcome.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\psp22-escrow-outcome.mjs" />
+    <None Include="SdkBridge\psp22-escrow-read.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\psp22-escrow-read.mjs" />
+    <None Include="SdkBridge\psp22-token-precision.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\psp22-token-precision.mjs" />
+    <None Include="SdkBridge\ink-scale-result.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\ink-scale-result.mjs" />
+    <None Include="SdkBridge\oasis-psp22-escrow-codec.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\oasis-psp22-escrow-codec.mjs" />
     <None Include="SdkBridge\package.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\package.json" />
     <None Include="SdkBridge\package-lock.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\package-lock.json" />
   </ItemGroup>

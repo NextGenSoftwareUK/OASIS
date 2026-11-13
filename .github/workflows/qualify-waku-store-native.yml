@@ -1,0 +1,120 @@
+name: Qualify native Waku Store
+
+on:
+  push:
+    branches: [work/cosmic-cql-ton-public]
+    paths:
+      - '.github/workflows/qualify-waku-store-native.yml'
+      - 'Scripts/TestHosts/Verify-WakuStoreFixture.py'
+      - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/CqlReviewedPublicMongoHttpTests.cs'
+      - 'Providers/Network/NextGenSoftware.OASIS.API.Providers.WakuOASIS/**'
+      - 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.WakuOASIS.UnitTests/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  store:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          path: OASIS
+          submodules: true
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - name: Read reviewed dependency pins
+        id: dependency
+        working-directory: OASIS
+        run: |
+          python3 -B Scripts/validate_railway_dependency_manifest.py --require-gitlinks
+          grep -E '^(LIBRARIES_COMMIT|HOLOCHAIN_COMMIT)=[0-9a-f]{40}$' Docker/oasis-dependency-versions.env >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependency.outputs.LIBRARIES_COMMIT }}
+          path: NextGenSoftware-Libraries
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          ref: ${{ steps.dependency.outputs.HOLOCHAIN_COMMIT }}
+          path: holochain-client-csharp
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+      - name: Start isolated MongoDB replica
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --detach --name waku-cql-mongo --publish 127.0.0.1:27029:27029 mongo:8.0.15 --port 27029 --replSet oasisRecoveryRs --bind_ip_all
+          ready() { docker exec waku-cql-mongo mongosh --port 27029 --quiet --eval "$1" >/dev/null 2>&1; }
+          for attempt in {1..45}; do
+            if ready 'db.adminCommand({ping:1})'; then break; fi
+            sleep 1
+          done
+          ready 'rs.initiate({_id:"oasisRecoveryRs",members:[{_id:0,host:"127.0.0.1:27029"}]})'
+          for attempt in {1..45}; do
+            if ready 'if (!db.hello().isWritablePrimary) quit(1)'; then exit 0; fi
+            sleep 1
+          done
+          exit 1
+      - name: Verify isolated Store and WEB4 MongoDB federation
+        working-directory: OASIS
+        shell: bash
+        env:
+          COSMIC_REVIEWED_PUBLIC_MONGO_NATIVE: owned-local-27029
+        run: |
+          set -euo pipefail
+          work=$(mktemp -d "$RUNNER_TEMP/oasis-waku.XXXXXXXX")
+          [[ "$work" == "$RUNNER_TEMP"/oasis-waku.* ]]
+          trap 'rm -rf -- "$work"' EXIT
+          url='https://github.com/logos-messaging/logos-delivery/releases/download/v0.39.2/waku-v0.39.2-amd64-linux.tar.gz'
+          digest='063d4386623e3dcfa6e59908dd57bbc2a420f26875ea50f7adb3c5b348ba9b87'
+          curl --fail --silent --show-error --location --max-time 90 --output "$work/waku.tar.gz" "$url"
+          printf '%s  %s\n' "$digest" "$work/waku.tar.gz" | sha256sum --check
+          tar -xzf "$work/waku.tar.gz" -C "$work"
+          rm -- "$work/waku.tar.gz"
+          binary="$work/build/logosdeliverynode"
+          [[ -x "$binary" ]]
+          pwsh -NoProfile -Command '
+            & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner waku-web4-ci -Operation {
+              dotnet build ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests /m:2 /nr:false /p:UseSharedCompilation=false
+              if ($LASTEXITCODE) { exit $LASTEXITCODE }
+            }'
+          python3 -B Scripts/TestHosts/Verify-WakuStoreFixture.py --seal-archive "$binary" "$work" pwsh -NoProfile -Command '
+            $ErrorActionPreference = "Stop"
+            & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner waku-store-native-ci -Operation {
+              $test = "NextGenSoftware.OASIS.API.Providers.WakuOASIS.UnitTests"
+              $report = "TestResults/WakuStoreNative"
+              dotnet test "Providers/Network/TestProjects/$test/$test.csproj" /m:2 /nr:false /p:UseSharedCompilation=false --filter "FullyQualifiedName~WakuStoreCqlTests" --results-directory $report --logger "trx;LogFileName=native.trx"
+              if ($LASTEXITCODE) { throw "Waku Store CQL qualification failed" }
+              [xml]$trx = Get-Content "$report/native.trx"
+              if ($trx.TestRun.ResultSummary.Counters.passed -ne "5" -or $trx.TestRun.ResultSummary.Counters.total -ne "5") {
+                throw "All five focused Waku Store CQL checks must pass"
+              }
+              dotnet test ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests --no-build --filter "FullyQualifiedName~WakuStoreNativeHttp" --results-directory $report --logger "trx;LogFileName=web4.trx" /m:2 /nr:false /p:UseSharedCompilation=false
+              if ($LASTEXITCODE) { throw "Waku WEB4 MongoDB qualification failed" }
+              [xml]$http = Get-Content "$report/web4.trx"
+              if ($http.TestRun.ResultSummary.Counters.passed -ne "1" -or $http.TestRun.ResultSummary.Counters.total -ne "1") {
+                throw "The real Waku/MongoDB HTTP test must pass"
+              }
+              Get-FileHash "$report/native.trx", "$report/web4.trx" -Algorithm SHA256 | ForEach-Object { Write-Output ("{0} {1}" -f $_.Hash, $_.Path) }
+            }'
+          export_dir="$PWD/TestResults/WakuStoreNative/QualifiedSource"
+          mkdir "$export_dir"
+          install -m 600 "$work/store-qualified.sqlite3" "$work/archive-qualified.json" "$export_dir/"
+          python3 -B -c 'import json,sys; r=json.load(open(sys.argv[1], encoding="utf-8")); print(f"Qualified archive: {r['"'"'bytes'"'"']} bytes, SHA-256 {r['"'"'sha256'"'"']}")' "$export_dir/archive-qualified.json"
+      - name: Retain only the verified synthetic teaching source
+        uses: actions/upload-artifact@v7
+        with:
+          name: waku-store-qualified-source
+          path: OASIS/TestResults/WakuStoreNative/QualifiedSource/
+          if-no-files-found: error
+          retention-days: 3
+      - name: Remove owned MongoDB replica
+        if: always()
+        run: docker rm --force --volumes waku-cql-mongo || ! docker container inspect waku-cql-mongo >/dev/null 2>&1

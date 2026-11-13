@@ -76,10 +76,10 @@ Buckets are `{avatar}:month:yyyy-MM` and `{avatar}:day:yyyy-MM-dd`. Late settlem
 
 | Plan | Monthly requests | Daily calls before karma | Daily tokens | Monthly budget USD |
 |---|---:|---:|---:|---:|
-| Free | 1,000 | 20 | 50,000 | 1 |
-| Bronze | 10,000 | 100 | 250,000 | 10 |
-| Silver | 100,000 | 500 | 1,000,000 | 50 |
-| Gold | 1,000,000 | 2,000 | 5,000,000 | 250 |
+| Free | 30,000 | 1,000 | 50,000 | 1 |
+| Bronze | 300,000 | 10,000 | 250,000 | 10 |
+| Silver | 3,000,000 | 100,000 | 1,000,000 | 50 |
+| Gold | 30,000,000 | 1,000,000 | 5,000,000 | 250 |
 | Enterprise | Unlimited | Unlimited | Unlimited | Unlimited |
 
 Karma daily-call multipliers: 1 below 500; 1.5 at 500; 2 at 1,000; 3 at 5,000; 5 at 20,000; 10 at 100,000. WEB4 resolves authoritative karma. Zero means unlimited daily calls/tokens/budget; monthly requests use -1. Pay-as-you-go does not authorize an unspecified unbounded budget override.

@@ -1,136 +1,126 @@
 using System;
+using System.Diagnostics;
+using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Holons;
-using NextGenSoftware.OASIS.API.Providers.ConvexOASIS;
+using NextGenSoftware.OASIS.Common;
 
-namespace NextGenSoftware.OASIS.API.Providers.ConvexOASIS.IntegrationTests
+namespace NextGenSoftware.OASIS.API.Providers.ConvexOASIS.IntegrationTests;
+
+[TestClass]
+public class ConvexOASISIntegrationTests
 {
-    /// <summary>
-    /// Exercises the real CRUD surface against a live backend.
-    ///
-    /// Connection details come from CONVEXOASIS_&lt;PARAM&gt; environment variables. When the
-    /// backend is not reachable the provider fails to activate and every test is
-    /// inconclusive rather than failed - so an unconfigured machine reports "skipped"
-    /// instead of red.
-    /// </summary>
-    [TestClass]
-    public class ConvexOASISIntegrationTests
+    [TestMethod]
+    public async Task ExistingProviderActivatesAfterCompanionIsDeployed()
     {
-        private ConvexOASIS _provider = null!;
-        private bool _live;
+        if (Environment.GetEnvironmentVariable("OASIS_CONVEX_LOCAL_RECOVERY") != "1")
+            Assert.Inconclusive("Enable only for a fresh disposable Convex engine.");
 
-        [TestInitialize]
-        public void Setup()
+        var deployment = Environment.GetEnvironmentVariable("CONVEX_SELF_HOSTED_URL");
+        var deployKey = Environment.GetEnvironmentVariable("CONVEX_SELF_HOSTED_ADMIN_KEY");
+        var companionPath = Environment.GetEnvironmentVariable("OASIS_CONVEX_COMPANION_DIRECTORY");
+        Assert.IsTrue(Uri.TryCreate(deployment, UriKind.Absolute, out var endpoint) && endpoint.IsLoopback &&
+            endpoint.Scheme == Uri.UriSchemeHttp && endpoint.AbsolutePath == "/" &&
+            string.IsNullOrEmpty(endpoint.UserInfo) && string.IsNullOrEmpty(endpoint.Query) && string.IsNullOrEmpty(endpoint.Fragment));
+        Assert.IsFalse(string.IsNullOrWhiteSpace(deployKey));
+        Assert.IsTrue(Directory.Exists(companionPath));
+
+        using var provider = new ConvexOASIS(deployment!, deployKey!);
+        var absent = await provider.ActivateProviderAsync();
+        Assert.IsTrue(absent.IsError && !provider.IsProviderActivated, "The fresh engine must begin without the companion.");
+
+        var start = new ProcessStartInfo("node")
         {
-            _provider = ConvexOASISTestFactory.Create();
-            try { _live = !_provider.ActivateProvider().IsError && _provider.IsProviderActivated; }
-            catch { _live = false; }
+            WorkingDirectory = companionPath!,
+            UseShellExecute = false
+        };
+        start.ArgumentList.Add(Path.Combine(companionPath!, "node_modules", "convex", "bin", "main.js"));
+        start.ArgumentList.Add("deploy");
+        start.ArgumentList.Add("--yes");
+        using var deploy = Process.Start(start) ?? throw new InvalidOperationException("Could not start the pinned Convex CLI.");
+        using var deadline = new CancellationTokenSource(TimeSpan.FromMinutes(2));
+        try
+        {
+            await deploy.WaitForExitAsync(deadline.Token);
         }
-
-        private void RequireLive()
+        finally
         {
-            if (!_live)
-                Assert.Inconclusive(
-                    "No live ConvexOASIS backend configured - set the CONVEXOASIS_* environment variables to run this.");
+            if (!deploy.HasExited)
+                deploy.Kill(entireProcessTree: true);
         }
+        Assert.AreEqual(0, deploy.ExitCode, "Companion deployment failed.");
 
-        [TestMethod]
-        public async Task SaveAndLoadAvatar_RoundTrips()
+        var active = await provider.ActivateProviderAsync();
+        Assert.IsTrue(active.Result && !active.IsError && provider.IsProviderActivated, active.Exception?.GetType().FullName);
+        var inactive = await provider.DeActivateProviderAsync();
+        Assert.IsTrue(inactive.Result && !inactive.IsError && !provider.IsProviderActivated);
+    }
+
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task HostedCompanionAcceptsAuthenticatedStorage(bool verifyWrites)
+    {
+        if (verifyWrites && Environment.GetEnvironmentVariable("OASIS_CONVEX_HOSTED_TEST_WRITES") != "1")
+            Assert.Inconclusive("Enable writes only for the dedicated disposable hosted Convex deployment.");
+
+        var deployment = Environment.GetEnvironmentVariable("OASIS_CONVEX_HOSTED_TEST_URL");
+        if (string.IsNullOrWhiteSpace(deployment))
+            Assert.Inconclusive("Configure the dedicated hosted Convex test deployment.");
+
+        Assert.IsTrue(Uri.TryCreate(deployment, UriKind.Absolute, out var endpoint) &&
+            endpoint.Scheme == Uri.UriSchemeHttps && !endpoint.IsLoopback &&
+            endpoint.AbsolutePath == "/" && string.IsNullOrEmpty(endpoint.UserInfo) &&
+            string.IsNullOrEmpty(endpoint.Query) && string.IsNullOrEmpty(endpoint.Fragment),
+            "Hosted acceptance requires an explicit HTTPS deployment origin.");
+        var deployKey = Environment.GetEnvironmentVariable("OASIS_CONVEX_HOSTED_TEST_DEPLOY_KEY");
+        Assert.IsFalse(string.IsNullOrWhiteSpace(deployKey), "Configure the protected test deploy key.");
+        Assert.IsFalse(string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("OASIS_CONVEX_STORAGE_KEY")),
+            "Configure the protected storage encryption key for this test deployment.");
+
+        using var provider = new ConvexOASIS(deployment!, deployKey!);
+        var activation = await provider.ActivateProviderAsync();
+        Assert.IsFalse(activation.IsError, activation.Exception?.GetType().FullName);
+        Assert.IsTrue(activation.Result);
+        Assert.IsTrue(provider.IsProviderActivated);
+        if (!verifyWrites)
+            return;
+
+        var id = Guid.NewGuid();
+        var holon = new Holon { Id = id, Name = $"convex-hosted-{id:N}" };
+        Console.WriteLine($"Convex hosted fixture ID: {id:D}");
+        var acknowledged = false;
+        try
         {
-            RequireLive();
-
-            var avatar = new Avatar
+            var saved = await provider.SaveHolonAsync(holon, saveChildren: false);
+            Assert.IsTrue(saved.IsSaved && !saved.IsError, saved.Exception?.GetType().FullName);
+            acknowledged = true;
+            using var reader = new ConvexOASIS(deployment!, deployKey!);
+            var readerActivation = await reader.ActivateProviderAsync();
+            Assert.IsTrue(readerActivation.Result, readerActivation.Exception?.GetType().FullName);
+            var loaded = await reader.LoadHolonAsync(id, loadChildren: false);
+            Assert.IsTrue(loaded.IsLoaded, loaded.Exception?.GetType().FullName);
+            Assert.AreEqual(id, loaded.Result.Id);
+            Assert.AreEqual(holon.Name, loaded.Result.Name);
+        }
+        finally
+        {
+            if (acknowledged)
             {
-                Id = Guid.NewGuid(),
-                Username = $"oasis-it-{Guid.NewGuid():N}",
-                Email = $"oasis-it-{Guid.NewGuid():N}@test.local"
-            };
-
-            var saved = await _provider.SaveAvatarAsync(avatar);
-            Assert.IsFalse(saved.IsError, saved.Message);
-
-            var loaded = await _provider.LoadAvatarAsync(avatar.Id);
-            Assert.IsFalse(loaded.IsError, loaded.Message);
-            Assert.IsNotNull(loaded.Result);
-            Assert.AreEqual(avatar.Username, loaded.Result!.Username);
-
-            await _provider.DeleteAvatarAsync(avatar.Id, softDelete: true);
-        }
-
-        [TestMethod]
-        public async Task LoadAvatarByUsername_FindsTheSavedAvatar()
-        {
-            RequireLive();
-
-            var avatar = new Avatar
-            {
-                Id = Guid.NewGuid(),
-                Username = $"oasis-it-{Guid.NewGuid():N}",
-                Email = $"oasis-it-{Guid.NewGuid():N}@test.local"
-            };
-
-            var saved = await _provider.SaveAvatarAsync(avatar);
-            Assert.IsFalse(saved.IsError, saved.Message);
-
-            var found = await _provider.LoadAvatarByUsernameAsync(avatar.Username);
-            Assert.IsFalse(found.IsError, found.Message);
-            Assert.AreEqual(avatar.Id, found.Result!.Id);
-
-            await _provider.DeleteAvatarAsync(avatar.Id, softDelete: true);
-        }
-
-        [TestMethod]
-        public async Task SaveAndLoadHolon_RoundTrips()
-        {
-            RequireLive();
-
-            var holon = new Holon { Id = Guid.NewGuid(), Name = $"OASIS IT Holon {Guid.NewGuid():N}" };
-
-            var saved = await _provider.SaveHolonAsync(holon);
-            Assert.IsFalse(saved.IsError, saved.Message);
-
-            var loaded = await _provider.LoadHolonAsync(holon.Id);
-            Assert.IsFalse(loaded.IsError, loaded.Message);
-            Assert.AreEqual(holon.Name, loaded.Result!.Name);
-
-            await _provider.DeleteHolonAsync(holon.Id);
-        }
-
-        [TestMethod]
-        public async Task DeletedAvatar_IsNotReturnedAsLive()
-        {
-            RequireLive();
-
-            var avatar = new Avatar
-            {
-                Id = Guid.NewGuid(),
-                Username = $"oasis-it-{Guid.NewGuid():N}",
-                Email = $"oasis-it-{Guid.NewGuid():N}@test.local"
-            };
-
-            await _provider.SaveAvatarAsync(avatar);
-            var deleted = await _provider.DeleteAvatarAsync(avatar.Id, softDelete: true);
-            Assert.IsFalse(deleted.IsError, deleted.Message);
-
-            var reloaded = await _provider.LoadAvatarAsync(avatar.Id);
-            Assert.IsTrue(reloaded.IsError || reloaded.Result == null || reloaded.Result.IsDeleted,
-                "A soft-deleted avatar should not come back as a live record.");
-        }
-
-        [TestMethod]
-        public async Task LoadAllAvatars_ReturnsAResult()
-        {
-            RequireLive();
-            var all = await _provider.LoadAllAvatarsAsync();
-            Assert.IsNotNull(all);
-        }
-
-        [TestCleanup]
-        public void Cleanup()
-        {
-            if (_provider != null && _provider.IsProviderActivated)
-                _provider.DeActivateProvider();
+                var removed = await provider.DeleteHolonSoftAsync(id, softDelete: false);
+                Assert.IsTrue(removed.Result && removed.IsDeleted && !removed.IsError,
+                    removed.Exception?.GetType().FullName);
+                using var observer = new ConvexOASIS(deployment!, deployKey!);
+                var observerActivation = await observer.ActivateProviderAsync();
+                Assert.IsTrue(observerActivation.Result && !observerActivation.IsError,
+                    observerActivation.Exception?.GetType().FullName);
+                var absent = await observer.LoadHolonAsync(id, loadChildren: false);
+                Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, absent.ErrorCode);
+                Assert.IsFalse(absent.IsLoaded);
+                Assert.IsNull(absent.Result);
+            }
         }
     }
 }

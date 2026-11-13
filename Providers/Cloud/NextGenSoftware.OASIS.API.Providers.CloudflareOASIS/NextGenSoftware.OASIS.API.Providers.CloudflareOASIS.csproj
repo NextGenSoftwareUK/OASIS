@@ -8,19 +8,19 @@
     <Company>NextGen World Ltd</Company>
     <Product>WEB4 OASIS API Cloudflare OASIS Provider</Product>
     <Title>WEB4 OASIS API Cloudflare OASIS Provider</Title>
-    <Summary>Cloudflare Workers KV OASIS Provider — edge-native key-value storage for OASIS holons and avatars. https://oasisomniverse.one</Summary>
-    <Description>Connects the OASIS to Cloudflare Workers KV via the Cloudflare REST API. Stores OASIS holons and avatars as JSON values in a KV namespace. No Cloudflare SDK required — uses System.Net.Http. Part of the OASIS HOT-Swappable Provider Architecture. Ecosystem: https://oasisomniverse.one</Description>
+    <Summary>Cloudflare Workers KV OASIS Provider â€” edge-native key-value storage for OASIS holons and avatars. https://oasisomniverse.one</Summary>
+    <Description>Connects the OASIS to Cloudflare Workers KV via the Cloudflare REST API. Stores OASIS holons and avatars as JSON values in a KV namespace. No Cloudflare SDK required â€” uses System.Net.Http. Part of the OASIS HOT-Swappable Provider Architecture. Ecosystem: https://oasisomniverse.one</Description>
     <PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
     <PackageIcon>OASIS.jpg</PackageIcon>
     <Authors>David Ellams (NextGen World Ltd)</Authors>
     <PackageTags>OASIS API; Cloudflare; KV; Edge; Cloud; WEB4; Provider</PackageTags>
     <PackageReleaseNotes>- Initial release of Cloudflare KV OASIS provider.
-- Uses Cloudflare REST API — no Cloudflare SDK dependency.
+- Uses Cloudflare REST API â€” no Cloudflare SDK dependency.
 - Stores avatars under key oasis_avatars:{id} and holons under oasis_holons:{id}.
 - Supports API token and API key + email authentication.</PackageReleaseNotes>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
-    <Copyright>Copyright © NextGen World Ltd 2019 - 2026</Copyright>
+    <Copyright>Copyright Â© NextGen World Ltd 2019 - 2026</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
     <Version>2.0.0</Version>
@@ -39,6 +39,10 @@
     <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" Condition="Exists('..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj')" />
     <PackageReference Include="NextGenSoftware.OASIS.API.Core" Version="2.0.0" Condition="!Exists('..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj')" />
     <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.Common\NextGenSoftware.OASIS.Common.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.csproj" />
+    <InternalsVisibleTo Include="NextGenSoftware.OASIS.API.Providers.CloudflareOASIS.UnitTests" />
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md" Pack="true" PackagePath="/" />

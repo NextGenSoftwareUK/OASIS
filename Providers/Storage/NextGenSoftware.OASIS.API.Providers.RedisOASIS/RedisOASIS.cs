@@ -12,7 +12,7 @@ namespace NextGenSoftware.OASIS.API.Providers.RedisOASIS;
 
 /// <summary>Thin Redis transport over shared canonical storage/history/graphs/queries and private-record policy.
 /// An existing persisted32-byte key is required; no key generation, legacy fallback or automatic migration.</summary>
-public class RedisOASIS : KeyValueStorageProviderBase, IDisposable
+public partial class RedisOASIS : KeyValueStorageProviderBase, IDisposable
 {
     public const string StorageKeyEnvironmentVariable="OASIS_REDIS_STORAGE_ENCRYPTION_KEY";
     private const string DefaultPrefix="oasis/redis/";

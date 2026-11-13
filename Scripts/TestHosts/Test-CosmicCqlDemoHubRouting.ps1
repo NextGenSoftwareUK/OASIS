@@ -3,7 +3,7 @@ $ErrorActionPreference='Stop'
 $root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $hub=Join-Path $PSScriptRoot 'Run-CosmicCqlDemoHub.ps1'
 function Listeners {
-    @(Get-NetTCPConnection -State Listen -LocalPort 5087,5088,5089,8081,27029,17687 -ErrorAction SilentlyContinue |
+    @(Get-NetTCPConnection -State Listen -LocalPort 5087,5088,5089,5090,5091,5092,5096,5097,5098,5099,5100,5101,5102,5103,5104,5105,5106,5108,5110,5111,18679,9000,9123,10000,3030,24567,19944,19945,26657,18084,18085,18086,18547,18002,8081,11521,27029,17687 -ErrorAction SilentlyContinue |
         Select-Object LocalPort,OwningProcess | Sort-Object LocalPort,OwningProcess) | ConvertTo-Json -Compress
 }
 $before=Listeners
@@ -34,10 +34,138 @@ foreach($provider in @('SQLite','Databases','CosmosDB')){
     try{& $hub -Provider $provider -ArchiveCompletedDemo -ShowPlan}catch{$denied=$true}
     if(!$denied){throw 'Database fixture lifecycle must not accept protocol archive options.'}
 }
+foreach($protocol in @('ActivityPub','IPFS','SOLID')){
+foreach($bounded in @($false,$true)){
+    $multi=& $hub -Provider $protocol -MultiRecord -VerifyOnly:$bounded -ShowPlan
+    if($multi.Scope -notmatch 'Three ' -or $multi.Url -ne 'http://127.0.0.1:5088/'){
+        throw 'Multi-record discovery scope mismatch.'
+    }
+}
+}
+$unsupported=$false
+try{& $hub -Provider SQLite -MultiRecord -ShowPlan}catch{$unsupported=$true}
+if(!$unsupported){throw 'Unenrolled collection launcher must be rejected.'}
+$pairedContracts=@(
+    @{Provider='Oracle';Runner='Run-ReusableOracleMongoTests.ps1';Port=5090},
+    @{Provider='AWS';Runner='Run-CosmicAwsCqlNative.ps1';Port=5096},
+    @{Provider='Ethereum';Runner='Run-CosmicEthereumCqlNative.ps1';Port=5097},
+    @{Provider='Polygon';Runner='Run-CosmicEthereumCqlNative.ps1';Port=5098},
+    @{Provider='Arbitrum';Runner='Run-CosmicEthereumCqlNative.ps1';Port=5099},
+    @{Provider='Google';Runner='Run-CosmicFirestoreCqlNative.ps1';Port=5100},
+    @{Provider='CosmosChain';Runner='Run-CosmicCosmosCqlNative.ps1';Port=5101},
+    @{Provider='Polkadot';Runner='Run-CosmicPolkadotCqlNative.ps1';Port=5102},
+    @{Provider='NEAR';Runner='Run-CosmicNearCqlNative.ps1';Port=5103},
+    @{Provider='Base';Runner='Run-CosmicEthereumCqlNative.ps1';Port=5104},
+    @{Provider='Avalanche';Runner='Run-CosmicEthereumCqlNative.ps1';Port=5105},
+    @{Provider='Optimism';Runner='Run-CosmicEthereumCqlNative.ps1';Port=5125},
+    @{Provider='Rootstock';Runner='Run-CosmicEthereumCqlNative.ps1';Port=5126},
+    @{Provider='BNBChain';Runner='Run-CosmicEthereumCqlNative.ps1';Port=5127},
+    @{Provider='Fantom';Runner='Run-CosmicEthereumCqlNative.ps1';Port=5128},
+    @{Provider='Linea';Runner='Run-CosmicEthereumCqlNative.ps1';Port=5129},
+    @{Provider='Scroll';Runner='Run-CosmicEthereumCqlNative.ps1';Port=5130},
+    @{Provider='Monad';Runner='Run-CosmicEthereumCqlNative.ps1';Port=5131},
+    @{Provider='AzureBlob';Runner='Run-CosmicAzureBlobCqlNative.ps1';Port=5106},
+    @{Provider='LocalFile';Runner='Run-CosmicLocalFileCqlNative.ps1';Port=5108},
+    @{Provider='Sui';Runner='Run-CosmicSuiCqlNative.ps1';Port=5110},
+    @{Provider='Redis';Runner='Run-CosmicRedisCqlNative.ps1';Port=5111},
+    @{Provider='PostgreSQL';Runner='Run-CosmicPostgreSqlCqlNative.ps1';Port=5112},
+    @{Provider='SQLServer';Runner='Run-CosmicSqlServerCqlNative.ps1';Port=5113},
+    @{Provider='DuckDB';Runner='Run-CosmicDuckDbCqlNative.ps1';Port=5114},
+    @{Provider='Upstash';Runner='Run-CosmicUpstashCqlNative.ps1';Port=5115},
+    @{Provider='Litestream';Runner='Run-CosmicLitestreamLinuxDemo.ps1';Port=5116},
+    @{Provider='Memcached';Runner='Run-CosmicMemcachedLinuxDemo.ps1';Port=5117},
+    @{Provider='Valkey';Runner='Run-CosmicValKeyLinuxDemo.ps1';Port=5118},
+    @{Provider='KeyDB';Runner='Run-CosmicKeyDbLinuxDemo.ps1';Port=5119},
+    @{Provider='Dragonfly';Runner='Run-CosmicDragonflyLinuxDemo.ps1';Port=5120},
+    @{Provider='Garnet';Runner='Run-CosmicGarnetLinuxDemo.ps1';Port=5121},
+    @{Provider='PocketBase';Runner='Run-CosmicPocketBaseLinuxDemo.ps1';Port=5122},
+    @{Provider='Supabase';Runner='Run-CosmicSupabaseLinuxDemo.ps1';Port=5123},
+    @{Provider='CouchDB';Runner='Run-CosmicCouchDbLinuxDemo.ps1';Port=5132},
+    @{Provider='SurrealDB';Runner='Run-CosmicSurrealDbLinuxDemo.ps1';Port=5133},
+    @{Provider='ArangoDB';Runner='Run-CosmicArangoDbLinuxDemo.ps1';Port=5134},
+    @{Provider='RavenDB';Runner='Run-CosmicRavenDbLinuxDemo.ps1';Port=5135},
+    @{Provider='CockroachDB';Runner='Run-CosmicCockroachDbLinuxDemo.ps1';Port=5136},
+    @{Provider='TimescaleDB';Runner='Run-CosmicTimescaleDbLinuxDemo.ps1';Port=5137},
+    @{Provider='Cassandra';Runner='Run-CosmicCassandraLinuxDemo.ps1';Port=5138},
+    @{Provider='Elasticsearch';Runner='Run-CosmicElasticsearchLinuxDemo.ps1';Port=5140},
+    @{Provider='OpenSearch';Runner='Run-CosmicOpenSearchLinuxDemo.ps1';Port=5141},
+    @{Provider='Couchbase';Runner='Run-CosmicCouchbaseLinuxDemo.ps1';Port=5142},
+    @{Provider='ClickHouse';Runner='Run-CosmicClickHouseLinuxDemo.ps1';Port=5143},
+    @{Provider='InfluxDB';Runner='Run-CosmicInfluxDbLinuxDemo.ps1';Port=5144},
+    @{Provider='Qdrant';Runner='Run-CosmicQdrantLinuxDemo.ps1';Port=5145},
+    @{Provider='Weaviate';Runner='Run-CosmicWeaviateLinuxDemo.ps1';Port=5146},
+    @{Provider='Meilisearch';Runner='Run-CosmicMeilisearchLinuxDemo.ps1';Port=5147},
+    @{Provider='Typesense';Runner='Run-CosmicTypesenseLinuxDemo.ps1';Port=5148},
+    @{Provider='Solr';Runner='Run-CosmicSolrLinuxDemo.ps1';Port=5149},
+    @{Provider='Chroma';Runner='Run-CosmicChromaLinuxDemo.ps1';Port=5150},
+    @{Provider='Chroma';Runner='Run-CosmicChromaLinuxDemo.ps1';Port=5150},
+    @{Provider='ScyllaDB';Runner='Run-CosmicScyllaDbLinuxDemo.ps1';Port=5139},
+    @{Provider='Firebase';Runner='Run-CosmicFirebaseCqlNative.ps1';Port=5124},
+    @{Provider='CosmosDB';Runner='Run-ReusableCosmosCqlDemo.ps1';Port=5092},
+    @{Provider='SolanaMetadata';Runner='Run-ReusableSolanaMongoTests.ps1';Port=5091},
+    @{Provider='IPFS';Runner='Run-ReusableProtocolMongoTests.ps1';Port=5088},
+    @{Provider='SOLID';Runner='Run-ReusableProtocolMongoTests.ps1';Port=5088},
+    @{Provider='ActivityPub';Runner='Run-ReusableProtocolMongoTests.ps1';Port=5088}
+)
+$paired=foreach($contract in $pairedContracts){
+    foreach($bounded in @($false,$true)){
+        $plan=& $hub -Provider $contract.Provider -Federated -VerifyOnly:$bounded -ShowPlan
+        if(!$plan.Federated -or $plan.Runner -ne (Join-Path $PSScriptRoot $contract.Runner) -or
+            $plan.Url -ne ('http://127.0.0.1:'+$contract.Port+'/') -or $plan.Scope -notmatch 'Mongo'){
+            throw ('Paired discovery contract mismatch: '+$contract.Provider)
+        }
+        $expectedMode=if($bounded){'bounded verification'}else{'interactive until explicit shutdown'}
+        if($plan.Mode -ne $expectedMode){throw 'Paired lifecycle mode changed.'}
+        $plan
+    }
+}
+$pairedRejections=0
+foreach($provider in @('SQLite','Databases','Solana')){
+    $denied=$false
+    try{& $hub -Provider $provider -Federated -ShowPlan}catch{$denied=$true}
+    if(!$denied){throw 'Unenrolled paired profile must reject before service start.'}
+    $pairedRejections++
+}
+$denied=$false
+try{& $hub -Provider Oracle -ShowPlan}catch{$denied=$true}
+if(!$denied){throw 'Oracle requires explicit paired scope.'}
+$pairedRejections++
+$denied=$false
+try{& $hub -Provider AWS -ShowPlan}catch{$denied=$true}
+if(!$denied){throw 'AWS requires explicit paired scope.'}
+$pairedRejections++
+$denied=$false
+try{& $hub -Provider Ethereum -ShowPlan}catch{$denied=$true}
+if(!$denied){throw 'Ethereum requires explicit paired scope.'}
+$pairedRejections++
+$denied=$false
+try{& $hub -Provider Polygon -ShowPlan}catch{$denied=$true}
+if(!$denied){throw 'Polygon requires explicit paired scope.'}
+$pairedRejections++
+$denied=$false
+try{& $hub -Provider Arbitrum -ShowPlan}catch{$denied=$true}
+if(!$denied){throw 'Arbitrum requires explicit paired scope.'}
+$pairedRejections++
+$denied=$false
+try{& $hub -Provider Google -ShowPlan}catch{$denied=$true}
+if(!$denied){throw 'Google requires explicit paired scope.'}
+$pairedRejections++
+$denied=$false
+try{& $hub -Provider CosmosChain -ShowPlan}catch{$denied=$true}
+if(!$denied){throw 'CosmosChain requires explicit paired scope.'}
+$pairedRejections++
+$oracleArchive=& $hub -Provider Oracle -Federated -ArchiveCompletedDemo -ShowPlan
+foreach ($arguments in @(@{Provider='Polkadot'},@{Provider='Polkadot';Federated=$true;ArchiveCompletedDemo=$true},@{Provider='NEAR'},@{Provider='NEAR';Federated=$true;ArchiveCompletedDemo=$true},@{Provider='Base'},@{Provider='Base';Federated=$true;ArchiveCompletedDemo=$true},@{Provider='Avalanche'},@{Provider='Avalanche';Federated=$true;ArchiveCompletedDemo=$true},@{Provider='Optimism'},@{Provider='Optimism';Federated=$true;ArchiveCompletedDemo=$true},@{Provider='Rootstock'},@{Provider='Rootstock';Federated=$true;ArchiveCompletedDemo=$true},@{Provider='BNBChain'},@{Provider='BNBChain';Federated=$true;ArchiveCompletedDemo=$true},@{Provider='Monad'},@{Provider='Monad';Federated=$true;ArchiveCompletedDemo=$true},@{Provider='Scroll'},@{Provider='Scroll';Federated=$true;ArchiveCompletedDemo=$true},@{Provider='Linea'},@{Provider='Linea';Federated=$true;ArchiveCompletedDemo=$true},@{Provider='Fantom'},@{Provider='Fantom';Federated=$true;ArchiveCompletedDemo=$true},@{Provider='AzureBlob'},@{Provider='AzureBlob';Federated=$true;ArchiveCompletedDemo=$true},@{Provider='LocalFile'},@{Provider='LocalFile';Federated=$true;ArchiveCompletedDemo=$true},@{Provider='Sui'},@{Provider='Sui';Federated=$true;ArchiveCompletedDemo=$true},@{Provider='Redis'},@{Provider='Redis';Federated=$true;ArchiveCompletedDemo=$true},@{Provider='PostgreSQL'},@{Provider='PostgreSQL';Federated=$true;ArchiveCompletedDemo=$true},@{Provider='SQLServer'},@{Provider='SQLServer';Federated=$true;ArchiveCompletedDemo=$true},@{Provider='DuckDB'},@{Provider='DuckDB';Federated=$true;ArchiveCompletedDemo=$true},@{Provider='Upstash'},@{Provider='Upstash';Federated=$true;ArchiveCompletedDemo=$true},@{Provider='Litestream'},@{Provider='Litestream';Federated=$true;ArchiveCompletedDemo=$true},@{Provider='Memcached'},@{Provider='Memcached';Federated=$true;ArchiveCompletedDemo=$true},@{Provider='Valkey'},@{Provider='Valkey';Federated=$true;ArchiveCompletedDemo=$true},@{Provider='KeyDB'},@{Provider='KeyDB';Federated=$true;ArchiveCompletedDemo=$true},@{Provider='Dragonfly'},@{Provider='Dragonfly';Federated=$true;ArchiveCompletedDemo=$true},@{Provider='Garnet'},@{Provider='Garnet';Federated=$true;ArchiveCompletedDemo=$true},@{Provider='PocketBase'},@{Provider='PocketBase';Federated=$true;ArchiveCompletedDemo=$true},@{Provider='ScyllaDB'},@{Provider='ScyllaDB';Federated=$true;ArchiveCompletedDemo=$true},@{Provider='Weaviate'},@{Provider='Weaviate';Federated=$true;ArchiveCompletedDemo=$true},@{Provider='Meilisearch'},@{Provider='Meilisearch';Federated=$true;ArchiveCompletedDemo=$true},@{Provider='Typesense'},@{Provider='Typesense';Federated=$true;ArchiveCompletedDemo=$true},@{Provider='Solr'},@{Provider='Solr';Federated=$true;ArchiveCompletedDemo=$true},@{Provider='Qdrant'},@{Provider='Qdrant';Federated=$true;ArchiveCompletedDemo=$true},@{Provider='InfluxDB'},@{Provider='InfluxDB';Federated=$true;ArchiveCompletedDemo=$true},@{Provider='ClickHouse'},@{Provider='ClickHouse';Federated=$true;ArchiveCompletedDemo=$true},@{Provider='Couchbase'},@{Provider='Couchbase';Federated=$true;ArchiveCompletedDemo=$true},@{Provider='OpenSearch'},@{Provider='OpenSearch';Federated=$true;ArchiveCompletedDemo=$true},@{Provider='Elasticsearch'},@{Provider='Elasticsearch';Federated=$true;ArchiveCompletedDemo=$true},@{Provider='Cassandra'},@{Provider='Cassandra';Federated=$true;ArchiveCompletedDemo=$true},@{Provider='TimescaleDB'},@{Provider='TimescaleDB';Federated=$true;ArchiveCompletedDemo=$true},@{Provider='CockroachDB'},@{Provider='CockroachDB';Federated=$true;ArchiveCompletedDemo=$true},@{Provider='RavenDB'},@{Provider='RavenDB';Federated=$true;ArchiveCompletedDemo=$true},@{Provider='ArangoDB'},@{Provider='ArangoDB';Federated=$true;ArchiveCompletedDemo=$true},@{Provider='SurrealDB'},@{Provider='SurrealDB';Federated=$true;ArchiveCompletedDemo=$true},@{Provider='CouchDB'},@{Provider='CouchDB';Federated=$true;ArchiveCompletedDemo=$true},@{Provider='Supabase'},@{Provider='Supabase';Federated=$true;ArchiveCompletedDemo=$true},@{Provider='Firebase'},@{Provider='Firebase';Federated=$true;ArchiveCompletedDemo=$true})) {
+    $denied=$false
+    try { & $hub @arguments -ShowPlan } catch { $denied=$true }
+    if (!$denied) { throw 'Polkadot requires explicit paired scope and preserved source state.' }
+    $pairedRejections++
+}
+if(!$oracleArchive.Federated){throw 'Archive option must not lose explicit paired scope.'}
 $after=Listeners
 if($before -cne $after){throw 'Plan-only discovery changed native/demo listeners.'}
 $work=Join-Path $root 'TestResults/ProtocolCqlCurrent'
 New-Item -ItemType Directory -Path $work -Force | Out-Null
-@{profiles=$contracts.Count;plans=@($verified);archiveRejections=3;listenersUnchanged=$true} |
+@{profiles=$contracts.Count;plans=@($verified);pairedProfiles=$pairedContracts.Count;pairedPlans=@($paired);pairedRejections=$pairedRejections;archiveRejections=3;listenersUnchanged=$true} |
     ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $work 'database-hub-routing.json') -Encoding utf8
-Write-Output 'PASS: eight profiles, both lifecycle plans, three archive rejections; listeners unchanged.'
+Write-Output "PASS:$($contracts.Count) single profiles/$(@($verified).Count) plans,$($pairedContracts.Count) paired profiles/$(@($paired).Count) plans,$pairedRejections paired rejections,3 archive rejections; listeners unchanged."

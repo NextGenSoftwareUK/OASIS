@@ -1,3 +1,5 @@
+using System;
+using System.Numerics;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -27,8 +29,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AbstractOASIS
             string hostUri = "https://api.mainnet.abs.xyz",
             string chainPrivateKey = "",
             string contractAddress = "")
-            : base(hostUri, chainPrivateKey, contractAddress)
+            : this(hostUri, chainPrivateKey, contractAddress, new BigInteger(2741)) { }
+
+        public AbstractOASIS(string hostUri, string chainPrivateKey, string contractAddress, BigInteger chainId)
+            : base(hostUri, chainPrivateKey, contractAddress, chainId)
         {
+            if (chainId <= 0) throw new ArgumentOutOfRangeException(nameof(chainId));
             ProviderName = "AbstractOASIS";
             ProviderDescription = "Abstract EVM L2 Provider — Consumer Gaming & NFT Chain (Ethereum-settled, ZK-proven)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.AbstractOASIS);

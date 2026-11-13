@@ -70,7 +70,9 @@ internal sealed class ConfiguredHederaStorageBackend : IKeyValueBackend, IDispos
                 configuration.SigningKeyType, configuration.SigningKeyResolver, configuration.GasLimit,
                 configuration.MaxFeeTinybars, copiedNodes,invocation,scopeToken);
             var key = configuration.EncryptionKeyResolver?.Invoke();
-            try { return new PrivateKeyValueBackend(inner, key); }
+            // Compress before encryption to reduce the signed contract call payload.
+            // The shared codec also reads existing uncompressed envelopes.
+            try { return new PrivateKeyValueBackend(inner, key, compress: true); }
             finally { if (key != null) CryptographicOperations.ZeroMemory(key); }
         };
         _backend=new Lazy<PrivateKeyValueBackend>(()=>_createBackend(null,default));

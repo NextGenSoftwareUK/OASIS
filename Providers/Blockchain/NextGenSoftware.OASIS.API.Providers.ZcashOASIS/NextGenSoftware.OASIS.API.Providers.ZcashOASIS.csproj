@@ -57,5 +57,8 @@
   <ItemGroup>
     <InternalsVisibleTo Include="NextGenSoftware.OASIS.API.Providers.ZcashOASIS.UnitTests" />
   </ItemGroup>
+    <ItemGroup>
+      <ProjectReference Include="../../Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.csproj" />
+    </ItemGroup>
 </Project>
 

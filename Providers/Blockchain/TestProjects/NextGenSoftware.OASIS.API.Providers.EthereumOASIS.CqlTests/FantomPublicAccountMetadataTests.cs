@@ -1,0 +1,153 @@
+using System.Net;
+using System.Text;
+using System.Text.Json;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Queries;
+using Source = NextGenSoftware.OASIS.API.Providers.FantomOASIS.FantomPublicAccountMetadataSource;
+
+namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS.CqlTests;
+
+[TestClass]
+public sealed class FantomPublicAccountMetadataTests
+{
+    private const string Genesis = "0x0000000000000000c20dbfb2ec18ae20037c716f3ba2d9e1da768a9deca17cb4";
+    private static readonly string Block = "0x" + new string('a', 64);
+    private static readonly string[] Keys = Enumerable.Range(1, 3).Select(value => "0x" + value.ToString("x40")).ToArray();
+
+    private sealed class Rpc : HttpMessageHandler
+    {
+        public string Fault = "";
+        public readonly List<string> Methods = new();
+        public Action? Cancel;
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token)
+        {
+            Assert.AreEqual(HttpMethod.Post, request.Method);
+            using var json = JsonDocument.Parse(await request.Content!.ReadAsStringAsync(token));
+            var root = json.RootElement;
+            var method = root.GetProperty("method").GetString()!;
+            Methods.Add(method);
+            var parameters = root.GetProperty("params");
+            object result;
+            switch (method)
+            {
+                case "eth_chainId": result = Fault == "chain" ? "0x2" : "0xfa"; break;
+                case "eth_getBlockByNumber":
+                    Assert.IsFalse(parameters[1].GetBoolean());
+                    var tag = parameters[0].GetString();
+                    Assert.IsTrue(tag is "0x0" or "latest" or "0x20000000000001");
+                    result = new { hash = tag == "0x0" ? Fault == "genesis" ? Block : Genesis : Fault == "reorg" && tag == "0x20000000000001" ? "0x" + new string('b', 64) : Block,
+                        number = tag == "0x0" ? "0x0" : Fault == "recheck-number" && tag == "0x20000000000001" ? "0x2" : Fault == "block" ? "0x00" : "0x20000000000001" };
+                    break;
+                case "eth_getBalance":
+                    Assert.AreEqual(Block, parameters[1].GetProperty("blockHash").GetString());
+                    Assert.IsTrue(parameters[1].GetProperty("requireCanonical").GetBoolean());
+                    var address = parameters[0].GetString()!;
+                    Assert.IsTrue(Keys.Contains(address));
+                    if (Fault == "cancel") { Cancel!(); token.ThrowIfCancellationRequested(); }
+                    if (Fault == "rpc") return Json(new { jsonrpc="2.0", id=1, error=new { code=-32000, message="not canonical" } });
+                    if (Fault == "oversize") return new(HttpStatusCode.OK) { Content=new StringContent(new string(' ',262145)) };
+                    if (Fault == "duplicate") return new(HttpStatusCode.OK) { Content=new StringContent("{\"jsonrpc\":\"2.0\",\"id\":1,\"id\":1,\"result\":\"0x0\"}") };
+                    result = Fault == "last" && address == Keys[2] ? "0x" + new string('f',65) : "0x" + new string('f',64);
+                    break;
+                default: throw new AssertFailedException("No signing, contract execution, scans or source writes allowed.");
+            }
+            return Json(new { jsonrpc="2.0", id=Fault=="id"?2:1, result });
+        }
+        private static HttpResponseMessage Json(object value) => new(HttpStatusCode.OK) {
+            Content=new StringContent(JsonSerializer.Serialize(value),Encoding.UTF8,"application/json") };
+    }
+
+    [DataTestMethod]
+    [DataRow("normal")] [DataRow("point")] [DataRow("window")] [DataRow("budget")]
+    [DataRow("chain")] [DataRow("genesis")] [DataRow("block")] [DataRow("last")]
+    [DataRow("empty-window-error")] [DataRow("rpc")] [DataRow("oversize")] [DataRow("duplicate")]
+    [DataRow("id")] [DataRow("inactive")] [DataRow("unknown")] [DataRow("cancel")] [DataRow("pre-cancel")] [DataRow("reorg")] [DataRow("recheck-number")]
+    public async Task SelectionIsNativeHashBoundedPreciseAndNeverPartial(string scenario)
+    {
+        var rpc=new Rpc(); using var client=new HttpClient(rpc);
+        using var source=new Source(client,new Uri("https://rpc.example.invalid/"),"0xfa",Keys,Guid.NewGuid());
+        if(scenario!="inactive") Assert.IsFalse((await source.ActivateQuerySourceAsync(default)).IsError);
+        rpc.Methods.Clear(); rpc.Fault=scenario=="empty-window-error"?"last":scenario;
+        var selected=scenario=="unknown"?new[]{"0x"+new string('9',40)}:Keys;
+        var query=CosmicQuery<Holon>.Create(CosmicQueryScope.Named(ProviderType.FantomOASIS).Result)
+            .WithReadAccess(CosmicQueryReadAccess.OwnerOrPublic(Guid.NewGuid()).Result)
+            .Where(row=>selected.Contains(CosmicQueryMetadata.Value<string>(row,Source.AddressMetadata))).Result;
+        var point=Keys[0];
+        if(scenario=="point") query=CosmicQuery<Holon>.Create(CosmicQueryScope.Named(ProviderType.FantomOASIS).Result)
+            .Where(row=>CosmicQueryMetadata.Value<string>(row,Source.AddressMetadata)==point).Result;
+        if(scenario=="window") query=query.Skip(1).Result.Take(1).Result;
+        if(scenario=="empty-window-error") query=query.Take(0).Result;
+        var plan=CosmicQueryPlanner.Plan(query,ProviderType.FantomOASIS,
+            new[]{new CosmicQueryTarget(ProviderType.FantomOASIS,source.QueryCapabilities)});
+        Assert.IsFalse(plan.IsError,plan.Message);
+        using var cancellation=new CancellationTokenSource(); rpc.Cancel=cancellation.Cancel;
+        if(scenario=="pre-cancel") cancellation.Cancel();
+        var response=await source.ExecuteCosmicQueryAsync(plan.Result,scenario=="budget"?2:100,cancellation.Token);
+        if(scenario is "normal" or "point" or "window")
+        {
+            Assert.IsFalse(response.IsError,response.Exception?.ToString());
+            Assert.AreEqual(scenario=="normal"?3:1,response.Result.Count);
+            foreach(var row in response.Result)
+            {
+                Assert.IsTrue(row.IsPublic);
+                Assert.AreEqual(Block,row.MetaData["FantomBlockHash"]);
+                Assert.AreEqual("latest-canonical-at-read",row.MetaData["FantomCommitment"]);
+                Assert.AreEqual("9007199254740993",row.MetaData["FantomBlockNumber"]);
+                Assert.AreEqual("115792089237316195423570985008687907853269984665640564039457584007913129639935",row.MetaData["FantomBalanceWei"]);
+            }
+            if(scenario=="window") Assert.AreEqual(Keys[1],response.Result[0].MetaData[Source.AddressMetadata]);
+        }
+        else
+        {
+            Assert.IsTrue(response.IsError); Assert.IsNull(response.Result); Assert.IsFalse(response.IsLoaded);
+            Assert.AreEqual(scenario switch {"inactive"=>"CQL_PROVIDER_INACTIVE","unknown"=>"CQL_INVALID_SOURCE_KEY",
+                "budget"=>"CQL_QUERY_LIMIT","cancel" or "pre-cancel"=>"CQL_QUERY_CANCELLED",_=>"CQL_QUERY_FAILED"},response.ErrorCode);
+        }
+        if(scenario is "inactive" or "unknown" or "pre-cancel") Assert.AreEqual(0,rpc.Methods.Count);
+        if(scenario=="chain") Assert.AreEqual(1,rpc.Methods.Count);
+        if(scenario=="normal") Assert.AreEqual(7,rpc.Methods.Count);
+    }
+
+    [TestMethod]
+    public async Task ContentScansAndWritesAreNotAdmittedAndConfigAcceptsNoCredentials()
+    {
+        var rpc=new Rpc(); using var client=new HttpClient(rpc);
+        using var source=new Source(client,new Uri("https://rpc.example.invalid/"),"0xfa",Keys,Guid.NewGuid());
+        var query=CosmicQuery<Holon>.Create(CosmicQueryScope.Named(ProviderType.FantomOASIS).Result).Where(row=>row.Name.Contains("coffee")).Result;
+        Assert.IsTrue(CosmicQueryPlanner.Plan(query,ProviderType.FantomOASIS,
+            new[]{new CosmicQueryTarget(ProviderType.FantomOASIS,source.QueryCapabilities)}).IsError);
+        Assert.IsTrue((await source.SaveHolonAsync(new Holon{Id=Guid.NewGuid()},saveChildren:false)).IsError);
+        Assert.AreEqual(0,rpc.Methods.Count);
+        foreach(var endpoint in new[]{"https://user:secret@rpc.example.invalid/","https://rpc.example.invalid/?apiKey=bad","https://rpc.example.invalid/key-path","http://rpc.example.invalid/"})
+            Assert.ThrowsException<ArgumentException>(()=>new Source(client,new Uri(endpoint),"0xfa",Keys,Guid.NewGuid()));
+        Assert.ThrowsException<ArgumentException>(()=>Source.FromJson(JsonSerializer.Serialize(new {schema=1,rpcUrl="https://rpc.example.invalid/",chainId="0xfa",addresses=Keys,sourceOwner=Guid.NewGuid(),privateKey="forbidden-test"})));
+        Assert.ThrowsException<ArgumentException>(()=>new Source(client,new Uri("https://rpc.example.invalid/"),"0x2",Keys,Guid.NewGuid()));
+    }
+
+    [TestMethod]
+    public void SharedDescriptorPreservesTheConstructorUsedByExistingCompiledPlugins()
+    {
+        var descriptor = typeof(NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.EvmPublicAccountMetadataSource)
+            .GetNestedType("Network", System.Reflection.BindingFlags.NonPublic)!;
+        var original = descriptor.GetConstructors().Single(constructor => constructor.GetParameters().Length == 7);
+        Assert.AreEqual("BlockHashes", original.GetParameters()[6].Name);
+        Assert.IsTrue(original.GetParameters()[6].IsOptional);
+        Assert.IsNotNull(descriptor.GetProperty("ReadPolicy"));
+    }
+
+    [TestMethod,TestCategory("FantomPublicAccountsNative")]
+    public async Task ActualCanonicalAtReadOperaBalancesReturnThreeAndTwoViaCql()
+    {
+        var path=Environment.GetEnvironmentVariable("OASIS_FANTOM_PUBLIC_SOURCE")??throw new InvalidOperationException("Retained explicit source required.");
+        using var output = new StringWriter();
+        using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(45));
+        var result = await CosmicCqlDemo.FantomPublicWalkthrough.RunAsync(path,output,deadline.Token);
+        Assert.AreEqual((3,2),result);
+        StringAssert.Contains(output.ToString(),"Native balance (base units):");
+        StringAssert.Contains(output.ToString(),"Read-only Fantom demo complete:");
+        StringAssert.Contains(output.ToString(),"Read commitment: latest-canonical-at-read");
+        Assert.IsFalse(output.ToString().Contains("Finalized block:", StringComparison.OrdinalIgnoreCase));
+    }
+}

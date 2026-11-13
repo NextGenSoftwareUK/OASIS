@@ -1,0 +1,112 @@
+# Explicit read-only protocol qualification; never CQL/hosted acceptance.
+[CmdletBinding()]
+param(
+    [Parameter(Mandatory)][ValidateSet('Base','Avalanche','BNBChain','Optimism','Rootstock','Linea','Scroll','ZkSync','Abstract','Monad','Sei','Berachain')][string]$Network,
+    [uri]$MonadPublicEndpoint,
+    [ValidateRange(1,20)][int]$Rounds = 1,
+    [switch]$NoReport
+)
+$ErrorActionPreference='Stop'
+$root=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
+$results=Join-Path $root 'TestResults/EvmBreadthReadinessCurrent'
+$descriptor=switch($Network){
+    'Berachain' { @{endpoint='https://rpc.berachain.com/';chainId='0x138de'} }
+    'Monad' { @{endpoint='https://rpc.monad.xyz/';chainId='0x8f';genesisHash='0x0c47353304f22b1c15706367d739b850cda80b5c87bbc335014fef3d88deaac9'} }
+    'Sei' { @{endpoint='https://evm-rpc.sei-apis.com/';chainId='0x531';nativeMixedCaseHashes=$true} }
+    'ZkSync' { @{endpoint='https://mainnet.era.zksync.io/';chainId='0x144'} }
+    'Abstract' { @{endpoint='https://api.mainnet.abs.xyz/';chainId='0xab5'} }
+    'Linea' { @{endpoint='https://rpc.linea.build/';chainId='0xe708'} }
+    'Scroll' { @{endpoint='https://rpc.scroll.io/';chainId='0x82750'} }
+    'Rootstock' { @{endpoint='https://public-node.rsk.co/';chainId='0x1e'} }
+    'Optimism' { @{endpoint='https://mainnet.optimism.io/';chainId='0xa'} }
+    'Base' { @{endpoint='https://mainnet.base.org/';chainId='0x2105'} }
+    'Avalanche' { @{endpoint='https://api.avax.network/ext/bc/C/rpc';chainId='0xa86a'} }
+    'BNBChain' { @{endpoint='https://bsc-dataseed.bnbchain.org/';chainId='0x38'} }
+}
+if ($MonadPublicEndpoint) {
+    if ($Network -ne 'Monad' -or !$MonadPublicEndpoint.IsAbsoluteUri -or
+        $MonadPublicEndpoint.Scheme -ne 'https' -or $MonadPublicEndpoint.UserInfo -or
+        $MonadPublicEndpoint.Query -or $MonadPublicEndpoint.Fragment) {
+        throw 'Specify an anonymous HTTPS Monad endpoint.'
+    }
+    $descriptor.endpoint = $MonadPublicEndpoint.AbsoluteUri
+}
+$client=[Net.Http.HttpClient]::new()
+$client.Timeout=[TimeSpan]::FromSeconds(15)
+$observations=[Collections.Generic.List[object]]::new()
+function Invoke-ReadRpc([string]$method,[object[]]$parameters){
+    $requestId=$observations.Count+1
+    $payload=@{jsonrpc='2.0';id=$requestId;method=$method;params=$parameters}|ConvertTo-Json -Compress -Depth 12
+    $request=[Net.Http.HttpRequestMessage]::new([Net.Http.HttpMethod]::Post,$descriptor.endpoint)
+    $request.Content=[Net.Http.StringContent]::new($payload,[Text.Encoding]::UTF8,'application/json')
+    try{
+        $response=$client.SendAsync($request,[Net.Http.HttpCompletionOption]::ResponseHeadersRead).GetAwaiter().GetResult()
+        try{
+            $response.EnsureSuccessStatusCode()|Out-Null
+            $response.Content.LoadIntoBufferAsync(262144).GetAwaiter().GetResult()|Out-Null
+            $bytes=$response.Content.ReadAsByteArrayAsync().GetAwaiter().GetResult()
+            if($bytes.Length -gt 262144){throw 'Response exceeds256KiB.'}
+            $observations.Add(@{method=$method;bytes=$bytes.Length;sha256=[Convert]::ToHexString([Security.Cryptography.SHA256]::HashData($bytes))})
+            $value=[Text.Encoding]::UTF8.GetString($bytes)|ConvertFrom-Json -Depth 16
+            if($value.jsonrpc -cne '2.0' -or $value.id -ne $requestId -or $null -ne $value.error -or $null -eq $value.result){
+                if($null -ne $value.error){throw ('RPC error code '+$value.error.code+': '+$value.error.message)}
+                throw 'RPC identity/result differs.'
+            }
+            return $value.result
+        }finally{$response.Dispose()}
+    }finally{$request.Dispose()}
+}
+$report=@{network=$Network;endpoint=$descriptor.endpoint;chainId=$descriptor.chainId;requests=$observations;
+    utc=[DateTime]::UtcNow.ToString('O');cqlAcceptance=$false;hostedAcceptance=$false;writes=0}
+try{
+    if((Invoke-ReadRpc 'eth_chainId' @()) -cne $descriptor.chainId){throw 'Chain identity differs.'}
+    $genesis=Invoke-ReadRpc 'eth_getBlockByNumber' @('0x0',$false)
+    if($descriptor.nativeMixedCaseHashes){
+        $report.nativeGenesisHash=$genesis.hash
+        if($genesis.hash -cnotmatch '^0x[0-9a-fA-F]{64}$'){throw 'Sei native genesis must contain exactly32hexbytes.'}
+        $genesis.hash=$genesis.hash.ToLowerInvariant()
+    }
+    if($genesis.hash -cnotmatch '^0x[0-9a-f]{64}$' -or $genesis.number -cne '0x0'){throw 'Canonical genesis identity required.'}
+    $report.genesisHash=$genesis.hash
+    if ($descriptor.genesisHash -and $genesis.hash -cne $descriptor.genesisHash) { throw 'Pinned genesis differs.' }
+    if($Network -eq 'BNBChain' -and $genesis.hash -cne '0x0d21840abff46b96c84b2ac9e10e4f5cdaeb5693cb665db62a2f3b02d2d57b5b'){throw 'BSC canonical genesis differs.'}
+    $selections=@()
+    for ($round = 1; $round -le $Rounds; $round++) {
+        $header=Invoke-ReadRpc 'eth_getBlockByNumber' @('finalized',$false)
+        if($descriptor.nativeMixedCaseHashes){
+            $report.nativeBlockHash=$header.hash
+            if($header.hash -cnotmatch '^0x[0-9a-fA-F]{64}$'){throw 'Sei native finalized hash must contain exactly32hexbytes.'}
+            $header.hash=$header.hash.ToLowerInvariant()
+        }
+        if($header.hash -cnotmatch '^0x[0-9a-f]{64}$' -or $header.number -cnotmatch '^0x(?:0|[1-9a-f][0-9a-f]{0,63})$'){throw 'Canonical finalized header required.'}
+        $report.blockHash=$header.hash
+        $report.blockNumber=$header.number
+        foreach($count in @(3,2)){
+            $rows=@()
+            foreach($index in 1..$count){
+                $address='0x'+$index.ToString('x40')
+                $balance=Invoke-ReadRpc 'eth_getBalance' @($address,@{blockHash=$header.hash;requireCanonical=$true})
+                if($balance -cnotmatch '^0x(?:0|[1-9a-f][0-9a-f]{0,63})$'){throw 'Canonical UInt256 balance required.'}
+                $quantity=[Numerics.BigInteger]::Parse('0'+$balance.Substring(2),[Globalization.NumberStyles]::AllowHexSpecifier)
+                $rows+=@{address=$address;nativeBaseUnits=$quantity.ToString([Globalization.CultureInfo]::InvariantCulture)}
+            }
+            $confirmed=Invoke-ReadRpc 'eth_getBlockByNumber' @($header.number,$false)
+            $confirmedHash=$confirmed.hash
+            if($descriptor.nativeMixedCaseHashes -and $confirmedHash -cmatch '^0x[0-9a-fA-F]{64}$'){
+                $confirmedHash=$confirmedHash.ToLowerInvariant()
+            }
+            if($confirmedHash -cne $header.hash -or $confirmed.number -cne $header.number){
+                throw 'Selected canonical block changed during the native read.'
+            }
+            $selections+=@{count=$count;rows=$rows;blockHash=$header.hash;blockNumber=$header.number}
+        }
+    }
+    $report.selections=$selections;$report.passed=$true
+}catch{$report.passed=$false;$report.error=$_.Exception.Message}
+finally{$client.Dispose()}
+if (!$NoReport) {
+    New-Item -ItemType Directory -Force -Path $results | Out-Null
+    $report|ConvertTo-Json -Depth 16|Set-Content (Join-Path $results ($Network+'.json')) -Encoding utf8
+}
+[pscustomobject]@{Network=$Network;Passed=$report.passed;Genesis=$report.genesisHash;Error=$report.error;Writes=0}
+if(!$report.passed){throw 'Protocol qualification failed; no fallback or state downgrade.'}

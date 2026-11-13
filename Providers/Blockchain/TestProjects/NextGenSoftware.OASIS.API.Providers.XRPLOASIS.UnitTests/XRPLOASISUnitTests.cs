@@ -19,7 +19,7 @@ namespace NextGenSoftware.OASIS.API.Providers.XRPLOASIS.UnitTests
         [TestMethod]
         public void ProviderType_ShouldBeXRPLOASIS()
         {
-            Assert.AreEqual(ProviderType.XRPLOASIS, _provider.ProviderType);
+            Assert.AreEqual(ProviderType.XRPLOASIS, _provider.ProviderType.Value);
         }
 
         [TestMethod]
@@ -61,11 +61,9 @@ namespace NextGenSoftware.OASIS.API.Providers.XRPLOASIS.UnitTests
         }
 
         [TestMethod]
-        public void GetProviderVersion_ShouldReturnValidVersion()
+        public void ProviderCategory_ShouldBeStorageAndNetwork()
         {
-            var version = _provider.GetProviderVersion();
-            Assert.IsNotNull(version);
-            Assert.IsFalse(string.IsNullOrEmpty(version));
+            Assert.AreEqual(ProviderCategory.StorageAndNetwork, _provider.ProviderCategory.Value);
         }
 
         [TestCleanup]

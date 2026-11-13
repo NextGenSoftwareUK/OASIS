@@ -1,3 +1,5 @@
+using System;
+using System.Numerics;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -27,8 +29,12 @@ namespace NextGenSoftware.OASIS.API.Providers.zkSyncOASIS
             string hostUri = "https://mainnet.era.zksync.io",
             string chainPrivateKey = "",
             string contractAddress = "")
-            : base(hostUri, chainPrivateKey, contractAddress)
+            : this(hostUri, chainPrivateKey, contractAddress, new BigInteger(324)) { }
+
+        public zkSyncOASIS(string hostUri, string chainPrivateKey, string contractAddress, BigInteger chainId)
+            : base(hostUri, chainPrivateKey, contractAddress, chainId)
         {
+            if (chainId <= 0) throw new ArgumentOutOfRangeException(nameof(chainId));
             ProviderName = "zkSyncOASIS";
             ProviderDescription = "zkSync Era EVM L2 Provider — ZK Rollup with Native Account Abstraction";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.ZkSyncOASIS);

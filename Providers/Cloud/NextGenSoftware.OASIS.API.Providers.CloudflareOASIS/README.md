@@ -1,6 +1,6 @@
 # NextGenSoftware.OASIS.API.Providers.CloudflareOASIS
 
-Connects the OASIS to Cloudflare Workers KV via the Cloudflare REST API. Stores OASIS holons and avatars as JSON values in a KV namespace. No Cloudflare SDK required — uses System.Net.Http. Part of the OASIS HOT-Swappable Provider Architecture. Ecosystem: https://oasisomniverse.one
+Connects the OASIS to Cloudflare Workers KV via the Cloudflare REST API. Stores OASIS records through shared encrypted record/history/query policy in a KV namespace. No Cloudflare SDK required — uses System.Net.Http. Part of the OASIS HOT-Swappable Provider Architecture. Ecosystem: https://oasisomniverse.one
 
 ## Installation
 
@@ -27,6 +27,16 @@ Project references and conditional dependency versions are recorded in the sourc
 Use this package for the responsibility described above, alongside its owning OASIS runtime/provider integration. Inspect the source project's public APIs and owning component documentation for construction and configuration; this package installation command does not start an API server, authenticate an avatar or provision an external service.
 
 Provider adapters require their respective service configuration and credentials. Runtime libraries require the host application's lifecycle and persistent paths where applicable. Supply only the settings actually required by the owning component; do not copy production DNA into a client or public release.
+
+## Storage configuration and guarantees
+
+The existing constructor takes `accountId`, `namespaceId`, and a scoped KV read/write `apiToken`. Supply `OASIS_CLOUDFLARE_STORAGE_KEY` as canonical Base64 for a separately persisted32-byte key, or use the explicit key-resolver/HttpClient constructor. Missing keys fail before transport; keys are never generated or migrated by the provider. Injected clients remain caller-owned by default and must disable redirects and automatic mutation retries.
+
+Legacy plaintext avatar/detail/holon/index prefixes are refused before private-layout access. Stop legacy writers and review migration separately. Default holon deletion is soft; history, metadata queries and record codecs use the shared storage implementation.
+
+Workers KV is eventually consistent, has a same-key write rate limit, and supplies no atomic compare-and-swap or multi-key transaction. Reads can be stale, including negative lookups. Do not use this adapter as proof of globally current identity/credential authority, concurrent uniqueness or snapshot queries. The adapter preserves these native limitations; no local cache or retry loop pretends to provide immediate visibility.
+
+The REST transport validates explicit acknowledgements, follows continuation cursors through empty pages, and throws on failed pages instead of returning partial success. Unknown mutation outcomes require reconciliation before replay. Controlled conformance is not native hosted acceptance; the opt-in native binding deliberately preserves actual visibility and rate-limit failures.
 
 ## Errors and security
 

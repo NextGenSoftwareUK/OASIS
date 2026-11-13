@@ -371,6 +371,43 @@ Authorization: Bearer YOUR_TOKEN
 **Parameters:**
 - `avatarId` (string): Avatar UUID
 
+### Registering without a verification email (development test accounts only)
+
+`POST /api/avatar/register` accepts `"suppressVerificationEmail": true`. It is honoured only in these cases; everywhere else it is silently ignored, so the verification email is sent and no token is returned:
+
+- A **Wizard** caller: always honoured (unchanged).
+- Any other caller, only when **all three** hold:
+  1. the operator switched it on with `OASIS_ALLOW_PROGRAMMATIC_VERIFICATION=true` (or `OASIS:AllowProgrammaticVerification=true`);
+  2. the server is **positively identified as a development server**: `OASIS_ENVIRONMENT` is `development` or `dev`, or `ASPNETCORE_ENVIRONMENT` is `Development`, or Railway's `RAILWAY_ENVIRONMENT_NAME` is `development` or `dev`. `OASIS_ENVIRONMENT` or `RAILWAY_ENVIRONMENT_NAME` set to `production`, `prod` or `live` always wins and means live. With no such signal the server counts as live (fail closed);
+  3. the registering email's domain ends in **`.invalid`** (the reserved TLD that can never receive mail), for example `staff1@piper.invalid`. Look-alikes such as `a@b.invalid.com`, `a.invalid@b.com` and address lists are refused.
+
+The gRPC `Register` call follows the same rule (it has no Wizard exception). Server-internal sandbox registrations are unaffected.
+
+**What you get back.** When the email is suppressed (or the server cannot send one), the register response `result` carries `verificationToken`; when an email is sent, the token is never returned. Complete verification with `GET /api/avatar/verify-email?token=...` (or `POST /api/avatar/verify-email` with `{ "token": "..." }`); the avatar can then authenticate as normal.
+
+**Worked example: creating many test accounts (PIPER does this).** PIPER creates test staff accounts for each role so its admin screens can be tested without mailboxes. On the dev server:
+
+```http
+POST /api/avatar/register
+Content-Type: application/json
+
+{
+  "username": "piper_test_slp_01",
+  "email": "slp01@piper.invalid",
+  "password": "a-long-test-password",
+  "firstName": "Test", "lastName": "Clinician", "title": "Ms",
+  "suppressVerificationEmail": true
+}
+```
+
+The response `result.verificationToken` is the token. Then:
+
+```http
+GET /api/avatar/verify-email?token=THE_TOKEN
+```
+
+Repeat with `slp02@piper.invalid`, `slp03@piper.invalid`, and so on. Use a domain you control under `.invalid` (for example `yourapp.invalid`); it is reserved, so it can never receive real mail. On a live server, or with a normal address, the same request still creates the avatar but sends the real verification email and returns no token.
+
 ## Avatar Operations
 
 ### Customize Avatar

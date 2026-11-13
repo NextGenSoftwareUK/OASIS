@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using NextGenSoftware.ErrorHandling;
 using NextGenSoftware.Logging;
@@ -48,6 +48,7 @@ namespace NextGenSoftware.OASIS.API.DNA
         public ArbitrumOASISProviderSettings ArbitrumOASIS { get; set; }
         public RootstockOASISProviderSettings RootstockOASIS { get; set; }
         public PolygonOASISProviderSettings PolygonOASIS { get; set; }
+        public ProviderSettingsBase SQLServerDBOASIS { get; set; }
         public SQLLiteDBOASISSettings SQLLiteDBOASIS { get; set; }
         public OracleDBOASISSettings OracleDBOASIS { get; set; }
         public OracleObjectStorageOASISSettings OracleObjectStorageOASIS { get; set; }
@@ -239,6 +240,7 @@ namespace NextGenSoftware.OASIS.API.DNA
 
     public class RootstockOASISProviderSettings : ProviderSettingsBase
     {
+        public long ChainId { get; set; } = 30;
         public string ChainPrivateKey { get; set; }
         public string ContractAddress { get; set; }
         public string Abi { get; set; }
@@ -270,6 +272,7 @@ namespace NextGenSoftware.OASIS.API.DNA
     public class LocalFileOASISSettings
     {
         public string FilePath { get; set; }
+        public string StorageDirectory { get; set; }
     }
 
     public class AzureOASISProviderSettings

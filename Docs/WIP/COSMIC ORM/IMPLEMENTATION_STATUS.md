@@ -1,20 +1,27 @@
 # COSMIC ORM implementation status
 
-[Current status](CURRENT_STATUS.md) is the recovery entry point; [checklist](CQL_PARITY_CHECKLIST.md) owns acceptance.
+Updated 2 November 2026. Full programme remains incomplete.
+[CURRENT_STATUS](CURRENT_STATUS.md) owns the exact next action and release state.
 
-- Full ORM/CQL programme remains incomplete. Work only on red cells; green scopes/cursors stay frozen absent a reproducible bug.
-- Original twelve investor-demo rows are green on SQLite/MongoDB/Neo4j. Q01a-e/Q23/Q23e/Q49a remain green within their declared scopes.
-- Active Q01f remains red on all3. Entity stages, entity cardinality/elements/reversal/default overloads and final entity-stage Select are native-verified on all3.
-- New combined entity-selected owner retains both sequences and independently re-admits actual capabilities. SQLite, MongoDB and Neo4j enroll native selected Where/order/ThenBy/Skip/Take/Reverse after entity stages; standard deferred sync/async LINQ and per-read closures are verified.
-- Verification:2173 CQL shared tests and221 full SQLite provider tests pass; both Core target frameworks build. Native fixtures are process-owned in-memory SQLite, not retained user databases.
-- Mongo verification:220 CQL/compiler/admission tests and23 live projection cases (14 earlier +9 combined), exact fixture cleanup and service teardown pass.
-- Neo verification:151 CQL controls and23 native cases; companion SQLite runs the same23 cases. Canonical input proof and selected proof are streamed by one statement/read owner; fixture cleanup and container teardown pass.
-- Current priority: actual hosted demo breadth after the verified three-store baseline and ActivityPub5/4Mongo pairing. Deep entity-selected LINQ parity is paused; its remaining graph/reselection/terminal matrix stays red.
-- Hosted breadth across all approved providers remains ahead of large parity-only rows (POCO without IHolon/migrations tooling). Cosmos native/local browser verified; ActivityPub multi-record/Mongo queries are live. IPFS is hosted/browser-verified: native3/2, Mongo5/4, private preparation/reuse/isolation and matching SQLite/Neo4j replicas. SOLID remains local-only; protocol key-set support is not general-query parity.
-- Solana schema3 selected-metadata SDK/HTTP and exact values verified; original ledger recovery remains blocked by missing historical root/chunk with no known backup. Do not reset/replay it.
-- Hosted baseline35/35 verifies saves,9copies, queries/federation/isolation on Mongo/SQLite/Neo4j. Earlier SQLite lineage barrier was explicitly repaired without queue reset/replay. ActivityPub rows3/2and Mongo federation5/4are browser-verified; private preparation repeats0writes and foreign IDs return0. Its2new saves have matching SQLite/Neo4j replicas. Full late-enrollment/reconciliation scopes remain red (X10a/X10b).
-- Production hosted auth/durable settlement/scaling and broad cross-provider snapshots remain open; HyperDrive implementation work is V2 only, legacy gaps documented.
-- Source work only in C:/Source/OASIS-cosmic, scoped task work/cosmic-cql-hosted-release; broader work/cosmic-cql-sandbox-integration is preserved/pushed. Development913b9d0bf/Core249a223deployed; frontend main2b46ded live. Latest controls508pass/no skips. Integration remains batched once/twice daily.
-- Resources/evidence paths/hashes and safe lifecycle steps: [single ledger](ENVIRONMENT_AND_CLEANUP_LEDGER.md). Raw output stays in worktree TestResults.
+| Scope | Verified | Still open |
+|---|---|---|
+| Provider breadth | 96 integrated query profiles:3canonical,57public/source,36other local | 60 historical hosted HTTP proofs;currently59available,Nostr startup HTTP503;not full ORM support |
+| Read-source recovery | Development b718f2879/job33c9ef7d SUCCESS;27controlled tests;live anonymous401/demo-user403;healthy/four-provider-ready | 59/60currentlyready,Nostr unavailable;successful Wizard recovery pending existing session;[contract](CQL_SOURCE_RECOVERY.md) |
+| ClickHouse | Native 3/2, Mongo 5/4, repeat reuse, privacy, two exact SQLite/Neo4j replicas each and independent hosted audit pass; card/static assets d3dfe48 verified | Browser interaction, owned database writes and broader parity |
+| ThreeFold | 33 adapter controls, shared regression, actual manager/LINQ/CLI 3/2; API 3, tariff 1, local HTTP/Mongo 3/2+5/4/privacy; four presets and rollout/audit controls pass | Code c00da49c1/Core5415961 published; code job 5d9b665b SUCCESS, three settings acknowledged once/DNA unchanged. Activation a737028a-40d9-489d-a087-53d2f6f955a6 SUCCESS; hosted 3/2+Mongo5/4/reuse/privacy/replicas and independent audit pass; card/static files2170b67 pass; browser pending |
+| Browser | 5 provider proofs | 55 open; HTTP/static-byte matching is not interaction proof; browser control remains closed |
+| MongoDB/SQLite/Neo4j parity | 50/82 checklist rows each; original investor-demo subset green | Only red rows or reproduced bugs may be changed; deep selected-stage LINQ, POCO mapping and migrations tooling paused |
+| HyperDrive V2 | Scoped three-store routing/failover, native recovery directions/interleavings and ACK-loss/disconnect evidence retained | Wider hosted/operator/transport/scale acceptance and primary-authority cutover |
+| Full ORM | Focused tracking, save ownership, conditional writes, graph/history/delta proofs exist | Requirement-by-requirement audit, children/depth, migration/placement and native payload preservation remain incomplete |
 
-[Previous checkpoint](Archive/IMPLEMENTATION_STATUS_before_entity_selected_sqlite_2026-10-28.md) preserves history without establishing broader completeness.
+Hosted Azure Cosmos, Oracle and PostgreSQL are deferred by David; no paid setup
+or account re-asks. Tableland's original version GET returned 302 without JSON.
+Preserve other denied/failed source outcomes in their reports; no implicit bypass.
+Implementation changes are V2 only; legacy gaps are documented, not repaired.
+
+Preserve all accepted source identities, intent/ACK journals and original cohorts.
+Do not replay green native fixtures or resave acknowledged copies.
+
+[Full provider report](PROVIDER_CQL_AND_SANDBOX_STATUS.md) ·
+[Strict parity](CQL_PARITY_CHECKLIST.md) · [Backlog](AFTER_DEMO_BACKLOG.md) ·
+[Earlier status](Archive/IMPLEMENTATION_STATUS_before_hosted_reconciliation_2026-11-02.md).

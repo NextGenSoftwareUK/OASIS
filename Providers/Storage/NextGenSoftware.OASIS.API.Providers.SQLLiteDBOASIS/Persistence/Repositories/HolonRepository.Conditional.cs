@@ -32,12 +32,17 @@ public partial class HolonRepository
         =>ExecuteAtomicHolonWrite(request,null,CancellationToken.None);
 
     private OASISResult<IEnumerable<IHolon>> ExecuteAtomicHolonWrite(ConditionalHolonWriteRequest request,
-        CommittedHolonReplicaRequest replicaRequest,CancellationToken token,HolonReplicationEnrollment enrollment=null,bool initialReplicaBaseline=false)
+        CommittedHolonReplicaRequest replicaRequest,CancellationToken token,HolonReplicationEnrollment enrollment=null,bool initialReplicaBaseline=false, CosmicStorageIdentity expectedStorage=null)
     {
         var embedded=request?.Write.ReplicationEnrollment;
-        if(enrollment!=null && embedded!=null && (enrollment.SourceId!=embedded.SourceId || !enrollment.TargetIds.SequenceEqual(embedded.TargetIds)))
+        if(enrollment!=null && embedded!=null && (enrollment.SourceId!=embedded.SourceId || !enrollment.TargetIds.SequenceEqual(embedded.TargetIds)
+            || enrollment.SourceStorageIdentity?.BindingFingerprint!=embedded.SourceStorageIdentity?.BindingFingerprint
+            || enrollment.NativeRoutes.Count!=embedded.NativeRoutes.Count))
             return ConditionalError("COSMIC_REPLICATION_ENROLLMENT_MISMATCH","The explicit and embedded replication enrollments differ.");
         enrollment??=embedded;
+        var sourceBinding=enrollment?.SourceStorageIdentity;
+        var bindingCodePrefix=sourceBinding==null ? "COSMIC_REPLICA_STORAGE_BINDING":"COSMIC_SOURCE_STORAGE_BINDING";
+        expectedStorage??=sourceBinding;
         PreparedGraph graph=null;SqliteTransaction native=null;
         Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction enlisted=null;
         var commitEntered=false;var opened=false;var rollbackFailed=false;var knownAcknowledgement=false;var admissionComplete=false;
@@ -65,8 +70,10 @@ public partial class HolonRepository
                 if(result?.IsError==true && !uncertain)result.Exception=failure;
                 else result=ConditionalError(uncertain ? "COSMIC_WRITE_RECONCILIATION_REQUIRED"
                     : failure is NextGenSoftware.OASIS.API.Core.Helpers.StorageLifecycleConflictException ? NextGenSoftware.OASIS.API.Core.Helpers.StorageLifecycleConflictException.ErrorCode
+                    : failure is HolonDestinationRebindRequiredException ? HolonDestinationRebindRequiredException.Code
                     : failure is SqliteConditionalReceiptInvalidException ? "COSMIC_RECEIPT_INVALID"
                     : failure is SqliteReplicaConflictException ? "COSMIC_REPLICA_LINEAGE_CONFLICT"
+                    : failure is SqliteMigrationFenceException fence ? fence.Code
                     : failure is OperationCanceledException ? replicaRequest!=null ? "COSMIC_REPLICA_WRITE_CANCELLED":"COSMIC_CONDITIONAL_WRITE_CANCELLED"
                     : replicaRequest!=null && !admissionComplete && failure is ArgumentException ? "COSMIC_REPLICA_WRITE_INVALID"
                     : replicaRequest!=null ? "COSMIC_REPLICA_WRITE_FAILED":"COSMIC_CONDITIONAL_WRITE_FAILED",
@@ -112,7 +119,23 @@ public partial class HolonRepository
             var connection = (SqliteConnection)_dbContext.Database.GetDbConnection();
             // IMMEDIATE acquires the native writer reservation BEFORE reading revisions.
             native = connection.BeginTransaction(deferred: false);
+            // Binding admission precedes even exact-receipt replay. The same
+            // IMMEDIATE transaction pins the native store until commit/rollback.
+            if (expectedStorage != null)
+            {
+                CosmicStorageIdentity actual;
+                try { actual = SqliteStorageIdentity.Read(connection, native); }
+                catch (Exception cause) when (cause is System.IO.InvalidDataException || cause is SqliteException)
+                {
+                    return ConditionalError(bindingCodePrefix+"_INVALID",
+                        "The receiver identity is missing or invalid; no identity was initialized and no replica applied.", cause);
+                }
+                if (actual.BindingFingerprint != expectedStorage.BindingFingerprint)
+                    return ConditionalError(bindingCodePrefix+"_MISMATCH",
+                        "The native receiver does not match the enrolled storage identity.");
+            }
             enlisted = _dbContext.Database.UseTransaction(native);
+            SqliteHolonMigrationFence.AssertUnfenced(connection, native, ids.Select(Guid.Parse));
             token.ThrowIfCancellationRequested();
             using (var receipt = connection.CreateCommand())
             {
@@ -142,6 +165,7 @@ public partial class HolonRepository
                     knownAcknowledgement=true;return result;
                 }
             }
+            SqliteDestinationBindings.Approve(connection,native,enrollment,operationId);
             var persisted = _dbContext.Holons.AsNoTracking().Where(row => ids.Contains(row.Id)).ToDictionary(row => row.Id);
             var conflicts = (conditions ?? new Dictionary<string,HolonWriteCondition>()).Select(pair => {
                 persisted.TryGetValue(pair.Key, out var actual);

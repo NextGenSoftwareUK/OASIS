@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "appId": "cosmic-dapr-teaching",
+  "store": "cosmic-teaching",
+  "ports": {
+    "http": 54861,
+    "grpc": 54862,
+    "internalGrpc": 54863,
+    "redis": 54864
+  },
+  "linuxStorageArguments": ["--device-type", "RandomAccess"],
+  "garnetArguments": [
+    "--memory",
+    "64m",
+    "--page",
+    "4k",
+    "--lua",
+    "--aof",
+    "--aof-commit-freq",
+    "0",
+    "--aof-commit-wait",
+    "--aof-memory",
+    "16m",
+    "--aof-page-size",
+    "8k",
+    "--aof-segment-size",
+    "1m"
+  ]
+}

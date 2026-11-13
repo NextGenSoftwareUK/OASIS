@@ -43,36 +43,15 @@ namespace NextGenSoftware.OASIS.API.Providers.MoralisOASIS
             return BurnNFTAsync(request).Result;
         }
 
-        public async Task<OASISResult<IWeb3NFTTransactionResponse>> BurnNFTAsync(IBurnWeb3NFTRequest request)
+        public Task<OASISResult<IWeb3NFTTransactionResponse>> BurnNFTAsync(IBurnWeb3NFTRequest request)
         {
-            try
+            return Task.FromResult(new OASISResult<IWeb3NFTTransactionResponse>(null)
             {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        var result = new OASISResult<IWeb3NFTTransactionResponse>(null);
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Moralis provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                // Moralis Web3 Data API is read-only - it doesn't support burning NFTs
-                // For burning NFTs, you need to use a blockchain SDK (like Nethereum for EVM chains)
-                // or interact directly with the blockchain
-                // Moralis can be used to query NFT data after the transaction
-                return new OASISResult<IWeb3NFTTransactionResponse>(null) 
-                { 
-                    Message = "Moralis Web3 Data API is read-only. Use blockchain SDK (e.g., Nethereum) to burn NFTs, then query results via Moralis." 
-                };
-            }
-            catch (Exception ex)
-            {
-                var result = new OASISResult<IWeb3NFTTransactionResponse>(null);
-                OASISErrorHandling.HandleError(ref result, $"Error burning NFT: {ex.Message}", ex);
-                return result;
-            }
+                IsError = true,
+                ErrorCount = 1,
+                ErrorCode = "MORALIS_NFT_BURN_UNSUPPORTED",
+                Message = "Moralis Web3 Data API does not execute NFT burns."
+            });
         }
 
         public OASISResult<IWeb3NFT> LoadOnChainNFTData(string nftTokenAddress)

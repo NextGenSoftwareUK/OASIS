@@ -19,7 +19,7 @@ public class ActivityPubStatusDeleteTests
             Assert.Equal("Bearer",request.Headers.Authorization!.Scheme);Assert.Equal("synthetic-token",request.Headers.Authorization.Parameter);
             if(Lost)throw LostCause;
             return Task.FromResult(new HttpResponseMessage((HttpStatusCode)Status){Content=new StringContent(
-                "{\"id\":\""+(WrongId?"124":"123")+"\",\"uri\":\"https://mastodon.invalid/users/owner/statuses/123\",\"content\":\"<p>owned</p>\",\"created_at\":\"2026-01-01T00:00:00Z\",\"account\":{\"id\":\"42\",\"acct\":\"owner\"}}")});
+                "{\"id\":\""+(WrongId?"124":"123")+"\",\"uri\":\"https://mastodon.invalid/users/owner/statuses/123\",\"text\":\"owned\",\"created_at\":\"2026-01-01T00:00:00Z\",\"account\":{\"id\":\"42\",\"acct\":\"owner\"}}")});
         }
     }
     [Theory][InlineData(false)][InlineData(true)]

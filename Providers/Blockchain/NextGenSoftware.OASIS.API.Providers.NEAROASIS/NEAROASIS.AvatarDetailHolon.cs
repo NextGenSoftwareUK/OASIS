@@ -107,9 +107,12 @@ public partial class NEAROASIS
         if (softDelete)
         {
             var deleted = await DeleteHolonRecordAsync(id);
-            return new OASISResult<bool>(!deleted.IsError && deleted.Result != null)
+            return new OASISResult<bool>(!deleted.IsError && deleted.IsDeleted)
             {
                 IsError = deleted.IsError,
+                ErrorCode = deleted.ErrorCode,
+                IsDeleted = deleted.IsDeleted,
+                DeletedCount = deleted.DeletedCount,
                 Message = deleted.Message,
                 Exception = deleted.Exception
             };
@@ -122,6 +125,8 @@ public partial class NEAROASIS
             await DeleteStoredVersionsAsync($"holon:{id:D}");
             await _sdk.DeleteAsync($"holon:{id:D}");
             result.Result = true;
+            result.IsDeleted = true;
+            result.DeletedCount = 1;
             result.Message = "Holon removed from NEAR contract storage.";
         }
         catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error deleting holon from NEAR: {ex.Message}", ex); }
@@ -177,6 +182,7 @@ public partial class NEAROASIS
                     curentChildDepth, loadChildrenFromProvider,
                     item => OasisJson.Deserialize<Holon>(OasisJson.Serialize(item)));
                 all.Result = all.Result.Select(project).ToList();
+                all.LoadedCount = all.Result.Count();
             }
             catch (Exception ex) { OASISErrorHandling.HandleError(ref all, $"Error projecting NEAR holon graph: {ex.Message}", ex); }
         }

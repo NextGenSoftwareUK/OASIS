@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -157,69 +157,17 @@ public sealed partial class BaseOASIS_Legacy
     /// </summary>
     private IEnumerable<IHolon> ParseBaseToHolons(JsonElement jsonElement)
     {
-        try
-        {
-            var holons = new List<IHolon>();
+        var rows = jsonElement;
+        if (jsonElement.ValueKind == JsonValueKind.Object &&
+            jsonElement.TryGetProperty("result", out var result) &&
+            result.ValueKind == JsonValueKind.Object &&
+            result.TryGetProperty("rows", out var nestedRows))
+            rows = nestedRows;
 
-            if (jsonElement.TryGetProperty("result", out var result) &&
-                result.TryGetProperty("rows", out var rows) &&
-                rows.ValueKind == JsonValueKind.Array)
-            {
-                foreach (var row in rows.EnumerateArray())
-                {
-                    var holon = ParseBaseToHolon(row);
-                    if (holon != null)
-                        holons.Add(holon);
-                }
-            }
-            else if (jsonElement.ValueKind == JsonValueKind.Array)
-            {
-                foreach (var element in jsonElement.EnumerateArray())
-                {
-                    var holon = ParseBaseToHolon(element);
-                    if (holon != null)
-                        holons.Add(holon);
-                }
-            }
+        if (rows.ValueKind != JsonValueKind.Array)
+            throw new InvalidDataException("Base collection response must contain an array of records.");
 
-            return holons;
-        }
-        catch (Exception)
-        {
-            return new List<IHolon>();
-        }
-    }
-
-    /// <summary>
-    /// Parse Base blockchain response to Holon object
-    /// </summary>
-    private IHolon ParseBaseToHolon(JsonElement baseData)
-    {
-        try
-        {
-            var holon = new Holon();
-
-            if (baseData.TryGetProperty("id", out var id))
-                holon.Id = Guid.TryParse(id.GetString(), out var guid) ? guid : Guid.NewGuid();
-
-            if (baseData.TryGetProperty("name", out var name))
-                holon.Name = name.GetString();
-
-            if (baseData.TryGetProperty("description", out var description))
-                holon.Description = description.GetString();
-
-            if (baseData.TryGetProperty("holon_type", out var holonType) || baseData.TryGetProperty("holonType", out holonType))
-            {
-                if (Enum.TryParse<HolonType>(holonType.GetString(), out var type))
-                    holon.HolonType = type;
-            }
-
-            return holon;
-        }
-        catch (Exception)
-        {
-            return new Holon();
-        }
+        return rows.EnumerateArray().Select(BaseOASISHelpers.ParseBaseToHolon).ToList();
     }
 
     /// <summary>

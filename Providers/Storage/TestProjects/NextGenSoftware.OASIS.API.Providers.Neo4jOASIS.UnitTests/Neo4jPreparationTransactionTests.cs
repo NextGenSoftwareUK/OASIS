@@ -31,7 +31,14 @@ public class Neo4jPreparationTransactionTests
                     var query=(string)args![0]!;var parameters=args[1]!;
                     object value;
                     string key;
-                    if(query.StartsWith("MERGE",StringComparison.Ordinal))
+                    if(query.Contains("CosmicMigrationRecordGate",StringComparison.Ordinal))
+                    {
+                        var admission=Neo4jConditionalReceiptCleanupTests.AdmissionRecord(query);
+                        var admissionCursor=DispatchProxy.Create<IResultCursor,Neo4jConditionalReceiptCleanupTests.CursorProbe>();
+                        ((Neo4jConditionalReceiptCleanupTests.CursorProbe)admissionCursor).Record=admission;
+                        return Task.FromResult(admissionCursor);
+                    }
+                    else if(query.StartsWith("MERGE",StringComparison.Ordinal))
                     {
                         if(Fresh)Stored["__cosmicPreparationClaim"]=parameters.GetType().GetProperty("claim")!.GetValue(parameters)!;
                         var node=DispatchProxy.Create<Neo4j.Driver.INode,Neo4jNativeIdentityTests.NodeProbe>();
@@ -75,7 +82,7 @@ public class Neo4jPreparationTransactionTests
         var result=synchronous?provider.ExecuteConditionalHolonWrite(request):await provider.ExecuteConditionalHolonWriteAsync(request);
         Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsSaved);
         Assert.AreEqual(foreignActor?"COSMIC_OPERATION_ID_REUSED":"COSMIC_RECEIPT_INVALID",result.ErrorCode);
-        Assert.AreEqual(1,probe.Queries);Assert.AreEqual(0,probe.Commits);Assert.AreEqual(1,probe.Rollbacks);
+        Assert.AreEqual(3,probe.Queries);Assert.AreEqual(0,probe.Commits);Assert.AreEqual(1,probe.Rollbacks);
         Assert.AreEqual(0,root.Version);Assert.IsNull(CosmicConcurrency.GetProviderRevisionId(root,ProviderType.Neo4jOASIS));
         Assert.IsFalse((await provider.DeActivateProviderAsync()).IsError);
     }

@@ -15,11 +15,32 @@ public partial class HolonRepository
 {
     public Task<OASISResult<ConditionalHolonWriteOutcome>> ReadConditionalHolonWriteOutcomeAsync(
         ConditionalHolonWriteRequest original, CancellationToken cancellationToken = default)
+        => ReadOutcomeAsync(original, null, false, cancellationToken);
+
+    public Task<OASISResult<ConditionalHolonWriteOutcome>> ReadBoundConditionalHolonWriteOutcomeAsync(
+        ConditionalHolonWriteRequest original, CosmicStorageIdentity expectedSource,
+        CancellationToken cancellationToken = default)
+        => ReadOutcomeAsync(original, expectedSource, true, cancellationToken);
+
+    public Task<OASISResult<ConditionalHolonWriteOutcome>> ReadConditionalHolonReceiptEvidenceAsync(
+        ConditionalHolonReceiptEvidenceRequest request, CancellationToken cancellationToken = default)
+        => ReadOutcomeAsync(request?.Original, request?.ExpectedSource, true, cancellationToken, request);
+
+    private Task<OASISResult<ConditionalHolonWriteOutcome>> ReadOutcomeAsync(
+        ConditionalHolonWriteRequest original, CosmicStorageIdentity expectedSource, bool requireBinding,
+        CancellationToken cancellationToken, ConditionalHolonReceiptEvidenceRequest evidenceRequest = null)
     {
         var result = new OASISResult<ConditionalHolonWriteOutcome>();
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
+            if (requireBinding && expectedSource == null)
+                throw new ArgumentNullException(nameof(expectedSource));
+            var enrolledSource = original?.Write.ReplicationEnrollment?.SourceStorageIdentity;
+            if (expectedSource != null && (expectedSource.Authority != Core.Enums.ProviderType.SQLLiteDBOASIS
+                || enrolledSource != null && enrolledSource.BindingFingerprint != expectedSource.BindingFingerprint))
+                throw new InvalidDataException("The requested source does not match the original operation binding.");
+            expectedSource ??= enrolledSource;
             var plan = original?.Write.ReplicationEnrollment == null
                 ? ConditionalHolonPlan.Create(original, Core.Enums.ProviderType.SQLLiteDBOASIS)
                 : ConditionalHolonPlan.CreateReplicating(original, Core.Enums.ProviderType.SQLLiteDBOASIS, original.Write.ReplicationEnrollment);
@@ -37,23 +58,29 @@ public partial class HolonRepository
             settings.Pooling = false;
             using var connection = new SqliteConnection(settings.ToString());
             connection.Open();
+            using var bindingTransaction=expectedSource==null ? null:connection.BeginTransaction(deferred:true);
+            if(expectedSource!=null && SqliteStorageIdentity.Read(connection,bindingTransaction).BindingFingerprint!=expectedSource.BindingFingerprint)
+                throw new InvalidDataException("The native source does not match the original operation binding.");
             using var command = connection.CreateCommand();
+            command.Transaction=bindingTransaction;
             command.CommandText = "SELECT RequestHash, ResultJson FROM CosmicWriteReceipt WHERE OperationId = $id LIMIT 2";
             command.Parameters.AddWithValue("$id", plan.OperationId.ToString("D"));
             using var reader = command.ExecuteReader();
             HolonCommittedDelta delta = null;
+            ConditionalHolonReceiptEvidence evidence = null;
             var state = ConditionalHolonReceiptState.Absent;
             if (reader.Read())
             {
                 if (reader.IsDBNull(0) || reader.GetString(0) != fingerprint || reader.IsDBNull(1))
                     throw new InvalidDataException("Receipt is not bound to the original conditional intent.");
-                _ = ReadConditionalReceipt(reader.GetString(1), original, graph, fingerprint, out delta);
+                var verifiedRoots = ReadConditionalReceipt(reader.GetString(1), original, graph, fingerprint, out delta);
+                if (evidenceRequest != null) evidence = ConditionalHolonReceiptEvidenceProjection.Create(evidenceRequest, verifiedRoots);
                 if (reader.Read()) throw new InvalidDataException("Conditional receipt identity is not unique.");
                 state = ConditionalHolonReceiptState.Committed;
             }
             cancellationToken.ThrowIfCancellationRequested();
             result.Result = new ConditionalHolonWriteOutcome(plan.OperationId, plan.ActorId, plan.Authority,
-                plan.Operation, state, delta?.SummaryJson);
+                plan.Operation, state, delta?.SummaryJson, evidence);
             result.IsLoaded = true;
         }
         catch (Exception cause)

@@ -31,6 +31,7 @@ namespace NextGenSoftware.OASIS.API.DNA
         public OASISHyperDriveConfig OASISHyperDriveConfig { get; set; }
         public NativeImportSettings NativeImport { get; set; } = new NativeImportSettings();
         public SandboxSettings Sandbox { get; set; } = new SandboxSettings();
+        public OLandCommerceSettings OLand { get; set; } = new OLandCommerceSettings();
         public CqlSettings Cql { get; set; } = new CqlSettings();
         public Web6Settings Web6 { get; set; } = new Web6Settings();
         

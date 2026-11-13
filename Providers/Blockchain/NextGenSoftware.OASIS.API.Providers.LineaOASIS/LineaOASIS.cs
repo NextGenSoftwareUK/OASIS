@@ -1,3 +1,5 @@
+using System;
+using System.Numerics;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -28,8 +30,12 @@ namespace NextGenSoftware.OASIS.API.Providers.LineaOASIS
             string hostUri = "https://rpc.linea.build",
             string chainPrivateKey = "",
             string contractAddress = "")
-            : base(hostUri, chainPrivateKey, contractAddress)
+            : this(hostUri, chainPrivateKey, contractAddress, new BigInteger(59144)) { }
+
+        public LineaOASIS(string hostUri, string chainPrivateKey, string contractAddress, BigInteger chainId)
+            : base(hostUri, chainPrivateKey, contractAddress, chainId)
         {
+            if (chainId <= 0) throw new ArgumentOutOfRangeException(nameof(chainId));
             ProviderName = "LineaOASIS";
             ProviderDescription = "Linea zkEVM L2 Provider — ConsenSys / MetaMask-Integrated ZK Rollup";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.LineaOASIS);

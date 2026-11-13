@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <PackageId>NextGenSoftware.OASIS.API.Providers.ImmutableZkEVMOASIS</PackageId>
+    <Company>NextGen Software Ltd</Company>
+    <Product>WEB4 OASIS API Immutable zkEVM OASIS Provider</Product>
+    <Title>WEB4 OASIS API Immutable zkEVM OASIS Provider</Title>
+    <Description>Immutable zkEVM - EVM-compatible gaming L2 (Chain ID 13371) with native NFT support. Part of the OASIS HOT-Swappable Provider Architecture. https://oasisomniverse.one</Description>
+    <PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
+    <PackageIcon>OASIS.jpg</PackageIcon>
+    <Authors>David Ellams (NextGen Software Ltd)</Authors>
+    <PackageTags>OASIS API; WEB4; Provider; Immutable zkEVM</PackageTags>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
+    <Copyright>Copyright © NextGen Software Ltd 2019 - 2026</Copyright>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+    <Version>2.0.1</Version>
+    <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\..\Logos\OASIS.jpg" Pack="true" PackagePath="\"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" Condition="Exists('..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj')" />
+    <PackageReference Include="NextGenSoftware.OASIS.API.Core" Version="2.0.0" Condition="!Exists('..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj')" />
+    <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.Common\NextGenSoftware.OASIS.Common.csproj" />
+    <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS\NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="README.md">
+      <PackagePath>\</PackagePath>
+      <Pack>True</Pack>
+    </None>
+  </ItemGroup>
+
+</Project>

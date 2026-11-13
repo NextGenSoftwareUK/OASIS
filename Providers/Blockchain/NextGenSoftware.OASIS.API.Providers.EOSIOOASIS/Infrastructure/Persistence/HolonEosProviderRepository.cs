@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -80,8 +80,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
 
             LoggingManager.Log(
                 "Holon creating request was sent. " +
-                $"Received transaction hash response: {pushTransactionResult}. " +
-                $"Request sent: {JsonConvert.SerializeObject(entity)}", LogType.Info);
+                $"Received transaction hash response: {pushTransactionResult}.", LogType.Info);
         }
 
         public async Task Update(HolonDto entity, Guid id)
@@ -117,34 +116,80 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
 
             LoggingManager.Log(
                 "Holon updating request was sent. " +
-                $"Received transaction hash response: {pushTransactionResult}. " +
-                $"Request sent: {JsonConvert.SerializeObject(entity)}", LogType.Info);
+                $"Received transaction hash response: {pushTransactionResult}.", LogType.Info);
         }
 
         public async Task<HolonDto> Read(Guid id)
         {
-            if (id == null)
-                throw new ArgumentNullException(nameof(id));
+            if (id == Guid.Empty)
+                throw new ArgumentException("A nonempty holon ID is required.", nameof(id));
 
-            var holonId = HashUtility.GetNumericHash(id);
-            var holonTableRows = await _eosClient.GetTableRows<HolonDto>(new GetTableRowsRequestDto
+            var request = new GetTableRowsRequestDto { Code = _eosAccountName, Scope = _eosAccountName, Table = _holonTable };
+            var cursors = new HashSet<string>(StringComparer.Ordinal);
+            while (true)
             {
-                Code = _eosAccountName,
-                Scope = _eosAccountName,
-                Table = _holonTable
-            });
-            return holonTableRows.Rows.FirstOrDefault(avatarDetailDto => avatarDetailDto.EntityId == holonId);
+                var page = await _eosClient.GetTableRows<HolonDto>(request).ConfigureAwait(false);
+                if (page?.Rows == null || !page.More.HasValue)
+                    throw new InvalidOperationException("EOSIO did not return a complete holon table page.");
+
+                var match = page.Rows.FirstOrDefault(row => Guid.TryParse(row.HolonId, out var rowId) && rowId == id);
+                if (match != null)
+                    return match;
+                if (!page.More.Value)
+                    return null;
+                if (string.IsNullOrWhiteSpace(page.NextKey) || !cursors.Add(page.NextKey))
+                    throw new InvalidOperationException("EOSIO returned an invalid holon table continuation.");
+                request.LowerBound = page.NextKey;
+            }
+        }
+
+        public async Task SaveBatchAsync(IReadOnlyList<HolonDto> rows)
+        {
+            var actions = new List<Action>(rows.Count);
+            foreach (var row in rows)
+            {
+                var existing = await Read(Guid.Parse(row.HolonId)).ConfigureAwait(false);
+                if (existing != null && (existing.IsDeleted || existing.EntityId != row.EntityId))
+                    throw new InvalidOperationException("The existing Antelope holon row is deleted or has a conflicting native identity.");
+
+                object data = existing == null
+                    ? new { entityId = row.EntityId, holonId = row.HolonId, info = row.Info }
+                    : new { entityId = row.EntityId, info = row.Info };
+                actions.Add(new Action
+                {
+                    account = _eosAccountName,
+                    authorization = new List<PermissionLevel>
+                    {
+                        new() { actor = _eosAccountName, permission = "active" }
+                    },
+                    name = existing == null ? "addholon" : "setholon",
+                    data = data
+                });
+            }
+
+            var transactionId = await _eos.CreateTransaction(new Transaction { actions = actions }).ConfigureAwait(false);
+            if (string.IsNullOrWhiteSpace(transactionId))
+                throw new InvalidOperationException("Antelope did not acknowledge the holon transaction.");
         }
 
         public async Task<ImmutableArray<HolonDto>> ReadAll()
         {
-            var holonTableRows = await _eosClient.GetTableRows<HolonDto>(new GetTableRowsRequestDto
+            var request = new GetTableRowsRequestDto { Code = _eosAccountName, Scope = _eosAccountName, Table = _holonTable };
+            var rows = ImmutableArray.CreateBuilder<HolonDto>();
+            var cursors = new HashSet<string>(StringComparer.Ordinal);
+            while (true)
             {
-                Code = _eosAccountName,
-                Scope = _eosAccountName,
-                Table = _holonTable
-            });
-            return holonTableRows.Rows.ToImmutableArray();
+                var page = await _eosClient.GetTableRows<HolonDto>(request).ConfigureAwait(false);
+                if (page?.Rows == null || !page.More.HasValue)
+                    throw new InvalidOperationException("EOSIO did not return a complete holon table page.");
+
+                rows.AddRange(page.Rows);
+                if (!page.More.Value)
+                    return rows.ToImmutable();
+                if (string.IsNullOrWhiteSpace(page.NextKey) || !cursors.Add(page.NextKey))
+                    throw new InvalidOperationException("EOSIO returned an invalid holon table continuation.");
+                request.LowerBound = page.NextKey;
+            }
         }
 
         public async Task<ImmutableArray<HolonDto>> ReadAllByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All)
@@ -272,10 +317,13 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
 
         public async Task DeleteHard(Guid id)
         {
-            if (id == null)
-                throw new ArgumentNullException(nameof(id));
+            if (id == Guid.Empty)
+                throw new ArgumentException("A nonempty holon ID is required.", nameof(id));
 
-            var holonEntityId = HashUtility.GetNumericHash(id);
+            var existing = await Read(id).ConfigureAwait(false);
+            if (existing == null)
+                throw new KeyNotFoundException("The EOSIO holon does not exist.");
+            var holonEntityId = existing.EntityId;
             var pushTransactionResult = await _eos.CreateTransaction(new Transaction
             {
                 actions = new List<Action>
@@ -298,7 +346,21 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Infrastructure.Persiste
                         }
                     }
                 }
-            });
+            }).ConfigureAwait(false);
+
+            if (string.IsNullOrWhiteSpace(pushTransactionResult))
+                throw new InvalidOperationException("EOSIO did not acknowledge the holon deletion transaction.");
+            HolonDto remaining;
+            try
+            {
+                remaining = await Read(id).ConfigureAwait(false);
+            }
+            catch (Exception error)
+            {
+                throw new InvalidOperationException($"EOSIO holon deletion {pushTransactionResult} was submitted but readback failed.", error);
+            }
+            if (remaining != null)
+                throw new InvalidOperationException($"EOSIO holon deletion {pushTransactionResult} has not been confirmed by table readback.");
 
             LoggingManager.Log(
                 "Holon hard-deleting request was sent. " +

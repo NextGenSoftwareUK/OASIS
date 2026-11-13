@@ -1,0 +1,131 @@
+name: OpenSearch native CQL restart and federation
+
+on:
+  workflow_dispatch:
+  workflow_call:
+    secrets:
+      PRIVATE_SUBMODULE_PAT:
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  restart:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          path: OASIS
+          submodules: recursive
+          persist-credentials: false
+
+      - name: Read the recorded Libraries revision
+        id: libraries
+        run: |
+          revision="$(sed -n 's/^LIBRARIES_COMMIT=//p' OASIS/Docker/oasis-dependency-versions.env)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "revision=$revision" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.libraries.outputs.revision }}
+          path: NextGenSoftware-Libraries
+          persist-credentials: false
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Provision and verify the isolated OpenSearch source
+        working-directory: OASIS
+        shell: bash
+        run: |
+          state=/var/tmp/oasis-opensearch-cql
+          name=oasis-opensearch-cql
+          image=docker.io/opensearchproject/opensearch@sha256:5c20af6b5cb472a74ba99f663bee3dd03afbeced14b3897b220a87fc75278445
+          test ! -e "$state"
+          sudo apt-get update -qq
+          sudo apt-get install -y podman python3-bcrypt python3-yaml
+          sudo sysctl -w vm.max_map_count=262144
+          sudo podman pull "$image"
+          mongo=
+          cleanup() {
+            local failed=0
+            if [[ -n "$mongo" ]]; then
+              docker rm -f -v "$mongo" >/dev/null || failed=1
+            fi
+            if sudo podman container exists "$name"; then
+              test "$(sudo podman inspect --format '{{index .Config.Labels "oasis.task"}}' "$name")" = cosmic-cql
+              sudo podman rm -f -v "$name" >/dev/null || failed=1
+            fi
+            return "$failed"
+          }
+          if sudo podman container exists "$name"; then exit 1; fi
+          trap cleanup EXIT
+          sudo /usr/bin/python3 Scripts/TestHosts/Create-CosmicOpenSearchEnvironment.py --owner "$(id -un)"
+          export OASIS_OPENSEARCH_CQL_STATE="$state"
+          export SSL_CERT_FILE="$state/ca.pem"
+          password="$(jq -er .password "$state/credentials.json")"
+          echo "::add-mask::$password"
+          project=Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS.IntegrationTests
+          for phase in first restart; do
+            sudo podman start "$name" >/dev/null
+            for attempt in {1..60}; do
+              test "$(sudo podman inspect --format '{{.State.Running}}' "$name")" = true
+              if curl --fail --silent --max-time 5 --cacert "$SSL_CERT_FILE" --user "oasis_test:$password" \
+                'https://localhost:19201/_cluster/health?wait_for_status=yellow&timeout=2s' |
+                jq -e '(.timed_out == false) and (.status == "yellow" or .status == "green")'; then break; fi
+              test "$attempt" -lt 60
+              sleep 1
+            done
+            dotnet test "$project" --filter 'FullyQualifiedName~OpenSearchCqlNativeTests' \
+              --results-directory "$RUNNER_TEMP" --logger "trx;LogFileName=opensearch-$phase.trx" \
+              /m:2 /nr:false /p:UseSharedCompilation=false
+            python3 - "$RUNNER_TEMP/opensearch-$phase.trx" <<'PY'
+          import sys
+          import xml.etree.ElementTree as ET
+          counters = ET.parse(sys.argv[1]).find(".//{*}Counters").attrib
+          if counters["total"] != "1" or counters["passed"] != "1":
+              raise SystemExit("Expected one passing OpenSearch test")
+          PY
+            test -f "$state/source-snapshot.json"
+            test ! -e "$state/demo-seed.pending.json"
+            if [[ "$phase" == restart ]]; then
+              mongo_state=/var/tmp/oasis-cosmic-mongo
+              mkdir -m 700 "$mongo_state"
+              mongo="$(docker create --publish 127.0.0.1:27039:27039 mongo:8.0.15 --port 27039 --replSet cosmicLinuxDemoRs --bind_ip_all)"
+              docker start "$mongo" >/dev/null
+              for attempt in {1..30}; do
+                test "$(docker inspect --format '{{.State.Running}}' "$mongo")" = true
+                if docker exec "$mongo" mongosh --quiet --port 27039 --eval 'quit(db.adminCommand({ping:1}).ok === 1 ? 0 : 1)'; then
+                  break
+                fi
+                test "$attempt" -lt 30
+                sleep 1
+              done
+              jq -n --arg id "$mongo" '{containerId:$id,port:27039,replica:"cosmicLinuxDemoRs"}' > "$mongo_state/store.json"
+              export OASIS_COSMIC_LINUX_MONGO_STATE="$mongo_state"
+              export OASIS_MONGO_REPLICA_SET_CONNECTION='mongodb://127.0.0.1:27039/?replicaSet=cosmicLinuxDemoRs&serverSelectionTimeoutMS=3000'
+              for test_class in LinuxMongoDemoEnvironmentTests OpenSearchMongoCqlNativeTests OpenSearchCqlNativeTests; do
+                dotnet test "$project" \
+                  --no-build --filter "FullyQualifiedName~$test_class" --results-directory "$state" \
+                  --logger "trx;LogFileName=$test_class.trx" /m:2 /nr:false /p:UseSharedCompilation=false
+                python3 - "$state/$test_class.trx" <<'PY'
+          import sys
+          import xml.etree.ElementTree as ET
+          counters = ET.parse(sys.argv[1]).find(".//{*}Counters").attrib
+          if counters["total"] != "1" or counters["passed"] != "1":
+              raise SystemExit("Expected one passing fixture test")
+          PY
+              done
+              test -f "$mongo_state/replica-init.json"
+              test ! -e "$mongo_state/replica-init.pending.json"
+              test ! -e "$state/mongo.pending.json"
+            fi
+            sudo podman stop --time 60 "$name" >/dev/null
+            sudo podman inspect "$name" | jq -e '.[0].State | (.Running == false and .OOMKilled == false and .ExitCode == 143)'
+          done

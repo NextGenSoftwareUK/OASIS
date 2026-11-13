@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 
 namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.GetTableRows
 {
@@ -28,7 +28,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.Entities.DTOs.GetTableR
         [JsonProperty("lower_bound", NullValueHandling=NullValueHandling.Ignore)]
         public string? LowerBound { get; set; }
 
-        [JsonProperty("upper_bound, NullValueHandling=NullValueHandling.Ignore")]
+        [JsonProperty("upper_bound", NullValueHandling=NullValueHandling.Ignore)]
         public string? UpperBound { get; set; }
 
         [JsonProperty("limit", NullValueHandling=NullValueHandling.Ignore)]

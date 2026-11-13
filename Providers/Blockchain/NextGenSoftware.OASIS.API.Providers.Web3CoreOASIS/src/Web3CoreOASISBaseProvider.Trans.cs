@@ -438,15 +438,8 @@ public partial class Web3CoreOASISBaseProvider
     }
 
     public Task<OASISResult<double>> GetBalanceAsync(IGetWeb3WalletBalanceRequest request)
-        =>NextGenSoftware.OASIS.Providers.Shared.Evm.EvmWalletBalance.ReadAsync(request,async ()=>
-        {
-            if (!IsProviderActivated || _web3Client == null)
-            {
-                var activation=await ActivateProviderAsync();
-                if(activation.IsError) return new OASISResult<Web3>{IsError=true,Message=activation.Message,Exception=activation.Exception,ErrorCode=activation.ErrorCode};
-            }
-            return new OASISResult<Web3>{Result=_web3Client};
-        });
+        => NextGenSoftware.OASIS.Providers.Shared.Evm.EvmWalletBalance.ReadAsync(request,
+            () => Task.FromResult(new OASISResult<Web3> { Result = _walletBalanceClient.Value }), _expectedChainId);
 
     public OASISResult<IList<IWalletTransaction>> GetTransactions(IGetWeb3TransactionsRequest request)
     {

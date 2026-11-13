@@ -40,7 +40,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
                 if(serviceEndpoint.IsLoopback)
                     options.HttpClientFactory=()=>new HttpClient(new HttpClientHandler {ServerCertificateCustomValidationCallback=HttpClientHandler.DangerousAcceptAnyServerCertificateValidator});
                 var client=new CosmosClient(serviceEndpoint.ToString(),authKey,options);
-                dbClientFactory=new CosmosDbClientFactory(client,databaseName,collectionNames,()=>IsVersionControlEnabled);
+                dbClientFactory=new CosmosDbClientFactory(client,databaseName,collectionNames,()=>IsVersionControlEnabled,resourceInitializationMode);
                 var setup=await dbClientFactory.EnsureDbSetupAsync();
                 if(setup.IsError || !setup.Result)
                 {

@@ -86,4 +86,39 @@ public class HederaMirrorBalanceTests
         Assert.AreEqual(decimal.Truncate(balance.Result*100000000m),balance.Result*100000000m);
         StringAssert.Contains(balance.Message,"mirror");
     }
+
+    [TestMethod]
+    public void SynchronousWalletBalanceReadsLiveMirrorWithoutCallerContext()
+    {
+        if (Environment.GetEnvironmentVariable("OASIS_HEDERA_PUBLIC_WALLET_READ") != "1")
+            Assert.Inconclusive("Explicitly enable the public Hedera wallet read.");
+
+        var provider = new HashgraphOASIS(rpcEndpoint: "https://testnet.mirrornode.hedera.com/api/v1", network: "testnet");
+        var priorContext = SynchronizationContext.Current;
+        var callerContext = new TrackingContext();
+        try
+        {
+            SynchronizationContext.SetSynchronizationContext(callerContext);
+            var balance = provider.GetBalance(new GetWeb3WalletBalanceRequest { WalletAddress = "0.0.3" });
+            Assert.IsFalse(balance.IsError, balance.Message);
+            Assert.IsTrue(balance.Result > 0);
+            Assert.AreEqual(0, callerContext.PostCount);
+            Assert.IsFalse(provider.IsProviderActivated);
+        }
+        finally
+        {
+            SynchronizationContext.SetSynchronizationContext(priorContext);
+        }
+    }
+
+    private sealed class TrackingContext : SynchronizationContext
+    {
+        public int PostCount { get; private set; }
+
+        public override void Post(SendOrPostCallback callback, object? state)
+        {
+            PostCount++;
+            base.Post(callback, state);
+        }
+    }
 }

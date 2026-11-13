@@ -1,0 +1,59 @@
+name: Valkey native CQL restart and federation
+on:
+  workflow_dispatch:
+  workflow_call:
+    secrets:
+      PRIVATE_SUBMODULE_PAT:
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  restart:
+    runs-on: ubuntu-26.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          path: OASIS
+          submodules: recursive
+          persist-credentials: false
+
+      - name: Read the recorded Libraries revision
+        id: libraries
+        run: |
+          revision="$(sed -n 's/^LIBRARIES_COMMIT=//p' OASIS/Docker/oasis-dependency-versions.env)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "revision=$revision" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.libraries.outputs.revision }}
+          path: NextGenSoftware-Libraries
+          persist-credentials: false
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Verify pinned Valkey restart and federation
+        working-directory: OASIS
+        shell: bash
+        run: |
+          results="$RUNNER_TEMP/valkey-cql"
+          trap 'for log in "$results"/*.log; do if [[ -f "$log" ]]; then tail -n 60 "$log"; fi; done' ERR
+          mkdir -p -m 700 /var/tmp/oasis-runtimes
+          runtime=/var/tmp/oasis-runtimes/valkey-9.0.4
+          mkdir -m 700 "$runtime"
+          image='docker.io/valkey/valkey@sha256:bdf93f670fdb026eba9e2cf852c3fa8062f92e850fa181626c3b056e83ef04cf'
+          container="$(docker create "$image")"
+          trap 'docker rm -v "$container" >/dev/null' EXIT
+          docker cp "$container:/usr/local/bin/valkey-server" "$runtime/valkey-server"
+          "$runtime/valkey-server" --version | grep -F 'Valkey server v=9.0.4 '
+          sha256sum "$runtime/valkey-server" | cut -d ' ' -f 1 > "$runtime/ci-server.sha256"
+          docker rm -v "$container"
+          trap - EXIT
+          python3 -B Scripts/TestHosts/run-cosmic-valkey-linux.py --ci-results "$results" --federated

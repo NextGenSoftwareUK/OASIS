@@ -201,3 +201,33 @@ index designs and the remaining common-demo/production acceptance gates.
 IPFS/SOLID point teachinghost is now native-tested withreadableHTML/API and explicitserve/shutdown lifecycle. See [interactive launch guide](CQL_INTERACTIVE_POINT_DEMO.md). This is scoped syntheticpointdemo; combinedeightprovider/commonquerydemo and productionauthbilling remainopen.
 
 Unified demo launcher now selects SQLite coffee or IPFS/SOLID/ActivityPub point hosts. ActivityPub nativeinteractivegate1pass against existingpublicstatus, no posting/authentication. See [commands/evidence/limits](CQL_INTERACTIVE_POINT_DEMO.md). Fourproviders inlauncher doesnotcertify full8provider/commonquerydemo orfullparity.
+
+##30October scoped follow-up
+
+IPFS multi-CID +Mongo profile is now native-verified on the scoped branch (23shared/17IPFS controls +one real Kubo scenario, selected3/2 and federated5/4). Existing point/native storage green scopes were not rerun wholesale. SOLID and ActivityPub preserved key-set implementations still require scoped port/current native proof before updated catalogue enrollment. Use CURRENT_STATUS as the recovery entry.
+
+
+## SOLID bounded multi-record demo verified (30 October)
+
+31 controlled tests and one real retained SOLID Pod + Mongo scenario passed, zero failures/skips. Three selected SOLID records and two Mongo records yielded five federated copies; unselected Mongo records were excluded. SDK and teaching HTTP acceptance share the bounded key-set contract. This is explicit resource-key membership, not arbitrary Pod scans or general text predicates. The opt-in factory flag defaults to false.
+
+All three owned SOLID records were conditionally deleted and absence verified; completion journal is LocalState/COSMIC/SolidCurrent/cql-keyset-complete.json. The owned Mongo fixture was removed, no pending journal remains, and ports13000/27029 are closed. Retained identity, Pod volume and reusable Mongo data remain protected for reuse. No installs, downloads or restores.
+
+Evidence (regenerable under worktree TestResults):
+- SolidCurrent/solid-keyset-controls.trx:31 passed; SHA25602C82B1D2E4F69B3A14DACC65AF67235D49ECD8D19682C9CA9A4CEC2331F11A4.
+- SolidCurrent/solid-cql-keyset-native.trx:1 passed; SHA256B135523E8719F2CE0B2924D09B9B896AD272AAE3AAD9B106BB285DD381890F58.
+- DemoBreadthCurrent/native-mongo-SOLIDOASIS-federation.json:5 total/3 SOLID/2 Mongo; exactCleanupVerified=true.
+
+Next: ActivityPub multi-record acceptance, then catalogue enrollment. Hosted SOLID and unrestricted content queries remain unproved.
+
+
+## ActivityPub bounded multi-record demo verified (30 October)
+
+10 key-set controls and one live mastodon.social + Mongo scenario passed, no failures/skips. CQL metadata membership selects three existing public status IDs using one native batch request, validates the entire response and preserves canonical provenance; the teaching HTTP path also passes. Federation returns five copies (three public statuses +two owned Mongo rows), excluding an unselected Mongo row. No account/token/posting, no arbitrary timeline scan and no general text-query claim. Key-set support is explicitly opt-in.
+
+Owned Mongo fixture cleanup verified, pending journal absent, ports27029/5088 closed. Public statuses remain unchanged. TestResults/DemoBreadthCurrent/native-mongo-ActivityPubOASIS-federation.json records counts and exactCleanupVerified=true.
+
+- TestResults/DemoBreadthCurrent/activitypub-keyset-controls.trx:10 passed; SHA256FD8AEC12309DEA070B0DBC64E4FD095C6A37FB495A56E717CB32370E08A080AD.
+- TestResults/DemoBreadthCurrent/native-mongo-mastodon.trx:1 passed; SHA256D5E7C338DF6A01FE3FB60B5D28E05ED9B6A82F2C55B05CB772995CE81E0FA1A6.
+
+Reproduce: pwsh Scripts/TestHosts/Run-ReusableProtocolMongoTests.ps1 -Provider ActivityPub -ArchiveCompletedDemo. Next: accurate catalogue enrollment of all three verified protocol profiles; full parity remains deferred.

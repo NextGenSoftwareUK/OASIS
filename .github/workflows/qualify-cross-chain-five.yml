@@ -1,0 +1,67 @@
+name: Qualify six additional public readers on the exact release candidate
+
+on:
+  push:
+    branches: [work/cosmic-teaching-release-candidate]
+    paths:
+      - '.github/workflows/qualify-cross-chain-five.yml'
+      - 'Providers/Blockchain/**'
+      - 'Providers/AI/NextGenSoftware.OASIS.API.Providers.RitualOASIS/**'
+      - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/**'
+      - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/Cql*HostedAdmissionTests.cs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  boundary:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          path: OASIS
+          submodules: true
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - name: Read pinned dependencies
+        id: dependency
+        working-directory: OASIS
+        run: |
+          python3 -B Scripts/validate_railway_dependency_manifest.py --require-gitlinks
+          grep -E '^(LIBRARIES_COMMIT|HOLOCHAIN_COMMIT)=[0-9a-f]{40}$' Docker/oasis-dependency-versions.env >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependency.outputs.LIBRARIES_COMMIT }}
+          path: NextGenSoftware-Libraries
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          ref: ${{ steps.dependency.outputs.HOLOCHAIN_COMMIT }}
+          path: holochain-client-csharp
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+      - name: Verify exact source modes and four-preset admission
+        working-directory: OASIS
+        shell: pwsh
+        run: |
+          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner six-public-readers-candidate-ci -Operation {
+            dotnet test ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CqlLayerZeroHostedAdmissionTests|FullyQualifiedName~CqlStargateHostedAdmissionTests|FullyQualifiedName~CqlDeBridgeHostedAdmissionTests|FullyQualifiedName~CqlSynapseHostedAdmissionTests|FullyQualifiedName~CqlConnextHostedAdmissionTests|FullyQualifiedName~CqlMidenHostedAdmissionTests|FullyQualifiedName~CqlEspressoHostedAdmissionTests|FullyQualifiedName~CqlEigenLayerHostedAdmissionTests|FullyQualifiedName~CqlFhenixHostedAdmissionTests|FullyQualifiedName~CqlAxelarHostedAdmissionTests|FullyQualifiedName~CqlRitualHostedAdmissionTests|FullyQualifiedName~CqlNatsHostedAdmissionTests' --results-directory TestResults/SixPublicReadersCandidateCurrent --logger 'trx;LogFileName=boundary.trx'
+            if ($LASTEXITCODE) { throw 'Six-reader candidate admission failed' }
+            [xml]$report = Get-Content TestResults/SixPublicReadersCandidateCurrent/boundary.trx
+            if ($report.TestRun.ResultSummary.Counters.passed -ne '25' -or $report.TestRun.ResultSummary.Counters.total -ne '25') {
+              throw 'All twenty-five candidate admission cases must pass without skips'
+            }
+          }
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: six-public-readers-candidate-admission
+          path: OASIS/TestResults/SixPublicReadersCandidateCurrent/boundary.trx
+          if-no-files-found: error
+          retention-days: 30

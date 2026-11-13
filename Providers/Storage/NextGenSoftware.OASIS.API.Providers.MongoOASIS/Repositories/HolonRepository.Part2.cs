@@ -194,43 +194,12 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 
             try
             {
-                //TODO: Need to finish later! ;-)
-                //var collection = _dbContext.MongoDB.GetCollection<Holon>("Holon");
-
-                //if (holonType == HolonType.All)
-                //{
-                //    var query = from doc in collection.AsQueryable<Holon>()
-                //                where doc.MetaData.ContainsKey(metaKey) && doc.MetaData[metaKey] != null && doc.MetaData[metaKey].ToString() == metaValue
-                //                select doc;
-
-                //    result.Result = query.ToList();
-                //}
-                //else
-                //{
-                //    var query = from doc in collection.AsQueryable<Holon>()
-                //                where doc.MetaData.ContainsKey(metaKey) && doc.MetaData[metaKey] != null && doc.MetaData[metaKey].ToString() == metaValue
-                //                where doc.HolonType == holonType
-                //                select doc;
-
-                //    result.Result = query.ToList();
-                //}
-
-
-
-                //TODO: Need to write a query to load by meta data so is more efficent! :)
-                //result.Result = await _dbContext.Holon.FindAsync(BuildFilterForGetHolonsForParentByMetaData(metaKey, metaValue, holonType)).Result.ToListAsync();
-
                 FilterDefinition<Holon> filter = Builders<Holon>.Filter.And(
                     BuildHolonTypeFilter(holonType),
                     version == 0 ? Builders<Holon>.Filter.Empty : Builders<Holon>.Filter.Eq(x => x.Version, version),
                     BuildMetaDataMultiFilter(metaKeyValuePairs, metaKeyValuePairMatchMode));
 
-                result.Result = await _dbContext.Holon.FindAsync(filter).Result.ToListAsync();
-
-                //if (holonType != HolonType.All)
-                //    result.Result = matchedHolons.Where(x => x.HolonType == holonType).ToList();
-                //else
-                //    result.Result = matchedHolons;
+                result.Result = await _dbContext.Holon.Find(filter).ToListAsync().ConfigureAwait(false);
             }
             catch (Exception ex)
             {

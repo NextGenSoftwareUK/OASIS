@@ -24,12 +24,15 @@ public static class CqlHostedDemoIdentities
 
     public static CqlDemoIdentityResult Create(CqlDemoIdentityRequest request, Guid actor)
     {
+        var provider = CqlV1Compiler.RequestedProvider(request?.Provider, true)
+            ?? throw new ArgumentException("A concrete configured-source profile is required.");
+        // Azure dataset blob names can exceed 128 characters. Match the source's
+        // declared bound without expanding other providers' identity contracts.
+        var maximumKeyLength = provider == ProviderType.AzureStorageOASIS ? 512 : provider == ProviderType.MatrixOASIS ? 255 : 128;
         if (actor == Guid.Empty || request?.Keys == null || request.Keys.Length is < 1 or > 2
-            || request.Keys.Any(key => string.IsNullOrEmpty(key) || key.Length > 128 || key.Any(c => c < 33 || c > 126))
+            || request.Keys.Any(key => string.IsNullOrEmpty(key) || key.Length > maximumKeyLength || key.Any(c => c < 33 || c > 126))
             || request.Keys.Distinct(StringComparer.Ordinal).Count() != request.Keys.Length)
             throw new ArgumentException("One or two bounded unique native keys and an authenticated owner are required.");
-        var provider = CqlV1Compiler.RequestedProvider(request.Provider, true)
-            ?? throw new ArgumentException("A concrete configured-source profile is required.");
         return new(actor, provider.ToString(), Array.AsReadOnly(request.Keys.Select(key => new CqlDemoMappedIdentity(
             NativeRecordHolonMapper.StableHolonId(actor, provider, SourceName, key), key,
             new System.Collections.ObjectModel.ReadOnlyDictionary<string, string>(new Dictionary<string, string>
@@ -50,8 +53,34 @@ public sealed class CqlHostedQueryExamples
     private static readonly Guid ExampleActor = Guid.Parse("00000000-0000-0000-0000-000000000001");
     private readonly Dictionary<ProviderType, IReadOnlyList<CqlHostedQueryExample>> examples = new();
 
+    // Partition large catalogues by provider so each deployment variable remains
+    // bounded. The existing shared catalogue and named sections compose strictly:
+    // conflicting ownership is an error, never an override or fallback.
+    public const string ProviderConfigurationSection = "CQL_HOSTED_QUERY_EXAMPLES";
+
     public static CqlHostedQueryExamples FromConfiguration(IConfiguration configuration)
-        => FromJson(configuration[ConfigurationKey]);
+    {
+        ArgumentNullException.ThrowIfNull(configuration);
+        var shared = configuration[ConfigurationKey];
+        var result = FromJson(shared);
+        var children = configuration.GetSection(ProviderConfigurationSection).GetChildren().Take(129).ToArray();
+        if (children.Length > 128)
+            throw new ArgumentException("A bounded provider example catalogue is required.");
+        long total = shared?.Length ?? 0;
+        foreach (var child in children)
+        {
+            if (child.Value == null || child.GetChildren().Any())
+                throw new ArgumentException("Each provider example section must contain one JSON request array.");
+            total += child.Key.Length + child.Value.Length;
+            if (total > 262144)
+                throw new ArgumentException("Combined CQL example configuration exceeds its work budget.");
+            var partition = FromJson("{" + JsonSerializer.Serialize(child.Key) + ":" + child.Value + "}");
+            foreach (var pair in partition.examples)
+                if (!result.examples.TryAdd(pair.Key, pair.Value))
+                    throw new ArgumentException("A provider's CQL examples must have exactly one configuration owner.");
+        }
+        return result;
+    }
 
     public static CqlHostedQueryExamples FromJson(string json)
     {
@@ -105,9 +134,18 @@ public sealed class CqlHostedQueryExamples
     }
 
     public IReadOnlyList<CqlHostedQueryExample> For(ProviderType type, CosmicQueryCapabilities capabilities,
-        Func<ProviderType, CosmicQueryCapabilities> resolveCapabilities = null)
+        Func<ProviderType, CosmicQueryCapabilities> resolveCapabilities = null,
+        Func<ProviderType, Guid, CosmicQueryReadAccess> resolveReadAccess = null)
     {
         if (!examples.TryGetValue(type, out var rows)) return Array.Empty<CqlHostedQueryExample>();
+        CosmicQueryReadAccess Access(ProviderType target)
+        {
+            var access = resolveReadAccess == null ? CosmicQueryReadAccess.OwnerOrPublic(ExampleActor).Result
+                : resolveReadAccess(target, ExampleActor);
+            if (access == null || access.ActorId != ExampleActor || access.Authority.HasValue && access.Authority != target)
+                throw new ArgumentException("Example access must bind the same actor and target authority.");
+            return access;
+        }
         var selected = new List<CqlHostedQueryExample>();
         foreach (var example in rows)
         {
@@ -127,12 +165,12 @@ public sealed class CqlHostedQueryExamples
                 var planned = CosmicFederationPlanner.Plan(source, FederationOptions(request), targets[0],
                     actual.Select(target => new CosmicQueryTarget(target.Provider, target.Capabilities)).ToArray(),
                     targets.Select(target => new CosmicFederationReadPolicy(target,
-                        CosmicQueryReadAccess.OwnerOrPublic(ExampleActor).Result)).ToArray());
+                        Access(target))).ToArray());
                 selected.Add(planned.IsError ? example with { Available = false, ErrorCode = "CQL_DEMO_EXAMPLE_UNSUPPORTED" } : example);
                 continue;
             }
             var query = CqlV1Compiler.Compile(example.Request.Deserialize<CqlV1Request>(Json),
-                ExampleActor, type);
+                ExampleActor, type, Access(type));
             var plan = CosmicQueryPlanner.Plan(query, type, new[] { new CosmicQueryTarget(type, capabilities) });
             if (plan.IsError) throw new ArgumentException("CQL_DEMO_EXAMPLE_UNSUPPORTED");
             selected.Add(example);

@@ -10,6 +10,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 {
     public class MongoDbContext
     {
+        internal const string HolonCollectionName = "Holon";
         // MongoClient must be a singleton — creating multiple instances causes connection pool exhaustion
         private static readonly Dictionary<string, MongoClient> _clients = new();
         private static readonly object _lock = new();
@@ -37,7 +38,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
        // public IMongoCollection<AvatarThumbnail> AvatarThumbnail => MongoDB.GetCollection<AvatarThumbnail>("Avatar");
         public IMongoCollection<Avatar> Avatar => MongoDB.GetCollection<Avatar>("Avatar");
         //public IMongoCollection<IHolon> Holon => MongoDB.GetCollection<IHolon>("Holon");
-        public IMongoCollection<Holon> Holon => MongoDB.GetCollection<Holon>("Holon");
+        public IMongoCollection<Holon> Holon => MongoDB.GetCollection<Holon>(HolonCollectionName);
         public IMongoCollection<SearchData> SearchData => MongoDB.GetCollection<SearchData>("SearchData");
     }
 }

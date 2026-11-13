@@ -1,4 +1,4 @@
-﻿using NextGenSoftware.OASIS.API.Core;
+using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
@@ -111,7 +111,7 @@ public partial class Web3CoreOASISBaseProvider
             source.ProviderUniqueStorageKey ??= new Dictionary<ProviderType,string>();
             source.ProviderUniqueStorageKey[ProviderType.Value]=snapshot.Id.ToString();source.IsNewHolon=false;
             source.Version=committed.Record.Version;source.VersionId=committed.Record.VersionId;source.PreviousVersionId=committed.Record.PreviousVersionId;
-            result.Result=source;result.IsSaved=true;
+            result.Result=source;result.IsSaved=true;result.SavedCount=1;
         }
         catch(Exception cause)
         {
@@ -175,7 +175,7 @@ public partial class Web3CoreOASISBaseProvider
                 node.Source.Version=committed.Version;node.Source.VersionId=committed.VersionId;node.Source.PreviousVersionId=committed.PreviousVersionId;
                 if(node.Source is Holon source)source.ChildRoleManifestJson=committed.ChildRoleManifestJson;
             }
-            result.Result=plan.Roots;result.IsSaved=true;
+            result.Result=plan.Roots;result.IsSaved=true;result.SavedCount=acknowledged.Count;
         }
         catch(Exception cause)
         {

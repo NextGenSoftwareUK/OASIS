@@ -1,9 +1,129 @@
 # COSMIC CQL demo
 
+**Live milestone, 1 November 2026:** 34 providers have scoped hosted HTTP proof, including MultiversX/Elrond;5 have browser proof and29browser gates remain open. Native3/2, Mongo5/4, preparation/reuse/isolation and matching SQLite/Neo4j replicas are verified for the26added profiles. [Exact evidence and limits](../../Docs/WIP/COSMIC%20ORM/HOSTED_PUBLIC_SOURCE_ACCEPTANCE_2026-11-01.md). Console commands perform native reads and do not rerun hosted/browser checks.
+
+
 Start with the [live sandbox](https://web4.oasisomniverse.one/web4-sandbox.html)
 for configured hosted providers; it needs no local SDK or database. See
 [CURRENT_STATUS](../../Docs/WIP/COSMIC%20ORM/CURRENT_STATUS.md) for verified live
 coverage. Local launchers below are separate from hosted availability.
+
+## Public MultiversX / Elrond accounts — native C# demo
+
+[Setup and query guide](../../Docs/Devs/ELROND_PUBLIC_ACCOUNT_CQL_GUIDE.md) includes complete public JSON and precision/consistency limits. [ElrondPublicWalkthrough.cs](ElrondPublicWalkthrough.cs) uses the shared HolonManager/LINQ path to return three accounts, then a filtered two-account subset.
+
+```powershell
+dotnet run `
+    --project Examples/CosmicCqlDemo/CosmicCqlDemo.csproj `
+    --no-build `
+    --no-restore `
+    -- --elrond-public LocalState/COSMIC/HostedElrondPublicSourceCurrent/source.json
+```
+
+Native tests, actual CLI, API admission and local HTTP/Mongo federation pass. Hosted HTTP native3/2+Mongo5/4/reuse/isolation/replicas also pass; browser interaction remains open. Balances stay exact strings; nonce is restricted to the API's safe JSON-number range. No wallet, funding, chain transaction or local database is needed.
+
+## Public Sui objects — C# and hosted HTTP demo
+
+The [Sui guide](../../Docs/Devs/SUI_PUBLIC_OBJECT_CQL_GUIDE.md) contains a complete fresh-checkout JSON configuration and explains checkpoint semantics. Reuse the retained source configuration when present.
+
+```powershell
+dotnet run `
+    --project Examples/CosmicCqlDemo/CosmicCqlDemo.csproj `
+    --no-build `
+    --no-restore `
+    -- --sui-public LocalState/COSMIC/HostedSuiPublicSourceCurrent/source.json
+```
+
+[SuiPublicWalkthrough.cs](SuiPublicWalkthrough.cs) uses the shared HolonManager/LINQ query path for three objects and a two-object subset. Versions stay exact decimal strings; each native query selects one checkpoint. No wallet, chain transaction or local Mongo write is needed.
+
+In the sandbox CQL tab, select SuiOASIS for native presets or Mongo-paired presets. Hosted HTTP checks pass; browser interaction remains an open gate. Mongo copies capture name/description/native-key observations, not full native object/state snapshots.
+
+## Public Solana account metadata
+
+The [Solana CQL guide](../../Docs/Devs/SOLANA_PUBLIC_ACCOUNT_CQL_GUIDE.md) shows
+the shared LINQ walkthrough, native address membership and Mongo-paired presets.
+The exact [C# sample](NativeKeySetWalkthrough.cs) is native-tested against three
+mainnet accounts and a two-account subset, without wallets or writes. Hosted
+deployment/browser acceptance is tracked separately in CURRENT_STATUS.
+
+## Public Arbitrum balances — runnable C# demo
+
+[The Arbitrum guide](../../Docs/Devs/ARBITRUM_PUBLIC_METADATA_CQL_GUIDE.md) covers
+the official finalized-state RPC, native3/2and local HTTP/Mongo5/4pairing. After
+a leased bounded build, run from the existing checkout:
+
+```powershell
+dotnet run --project Examples/CosmicCqlDemo/CosmicCqlDemo.csproj `
+    --no-build --no-restore -- `
+    --arbitrum-public LocalState/COSMIC/HostedArbitrumPublicSourceCurrent/source.json
+```
+
+[ArbitrumPublicWalkthrough.cs](ArbitrumPublicWalkthrough.cs) reads through the
+shared HolonManager/LINQ sample and prints exact native balances/block hashes.
+No wallet, funding, transaction or Mongo fixture. Hosted HTTP enrollment is verified; browser interaction remains open; RPC-reported finality is not independent rollup-settlement verification.
+
+## Public Polygon balances — runnable C# demo
+
+[The Polygon guide](../../Docs/Devs/POLYGON_PUBLIC_METADATA_CQL_GUIDE.md) covers
+native3/2address filters and local HTTP/Mongo5/4pairing. After building the project
+with the normal provider lease and bounded workers, run:
+
+```powershell
+dotnet run --project Examples/CosmicCqlDemo/CosmicCqlDemo.csproj `
+    --no-build --no-restore -- `
+    --polygon-public LocalState/COSMIC/HostedPolygonPublicSourceCurrent/source.json
+```
+
+[PolygonPublicWalkthrough.cs](PolygonPublicWalkthrough.cs) uses the common
+HolonManager/LINQ sample, prints exact native balances and finalized block hashes,
+and performs no wallet/transaction/Mongo writes. Hosted enrollment/browser proof
+remain pending; the retained signed-record local chain demo is separate.
+
+## Public Ethereum balances — runnable C# demo
+
+[The Ethereum guide](../../Docs/Devs/ETHEREUM_PUBLIC_METADATA_CQL_GUIDE.md) covers
+native3/2address filters, HTTP/Mongo5/4pairing and exact finalized-block provenance.
+After a leased bounded build of this project, run:
+
+```powershell
+dotnet run --project Examples/CosmicCqlDemo/CosmicCqlDemo.csproj `
+    --no-build --no-restore -- `
+    --ethereum-public LocalState/COSMIC/HostedEthereumPublicSourceCurrent/source.json
+```
+
+[EthereumPublicWalkthrough.cs](EthereumPublicWalkthrough.cs) is a commented
+HolonManager/LINQ example. It reads public balances without wallets, funding,
+transactions or Mongo writes. Hosted HTTP enrollment is verified; browser interaction remains open;
+local HTTP pairing and the console example are verified separately.
+
+## Public Google Cloud metadata — runnable C# demo
+
+Reuse the existing three-key public catalogue; no Google account or database is
+needed. After building this project with the normal provider lease and bounded
+workers, run from the checkout root:
+
+```powershell
+dotnet run --project Examples/CosmicCqlDemo/CosmicCqlDemo.csproj `
+    --no-build --no-restore -- `
+    --google-public LocalState/COSMIC/HostedGcsPublicSourceCurrent/source.json
+```
+
+[GooglePublicWalkthrough.cs](GooglePublicWalkthrough.cs) runs the shared
+[HolonManager/LINQ membership example](NativeKeySetWalkthrough.cs) against three
+public Google objects and a two-key subset. It reads metadata only and creates
+no Google or Mongo records. The bounded command exits when complete.
+
+The [Google guide](../../Docs/Devs/GOOGLE_PUBLIC_METADATA_CQL_GUIDE.md) includes
+configuration, HTTP and Mongo federation examples. Hosted Google enrollment and
+browser acceptance remain pending; the Firestore emulator launcher is separate.
+
+## Public AWS S3 metadata and Mongo snapshots
+
+The [public S3 guide](../../Docs/Devs/AWS_S3_PUBLIC_CQL_GUIDE.md) covers the live
+three-object and two-object presets, Mongo pairing, HTTP requests and executable
+C# native SDK example. This reads public object metadata; encrypted owned S3
+storage is a separate profile. Hosted HTTP acceptance is recorded in CURRENT_STATUS;
+browser rendering remains a separate gate.
 
 ## SOLID multi-record selection in C# and HTTP
 
@@ -710,3 +830,178 @@ writes are needed. Production identity/billing and full parity remain open.
 MongoDB/SQLite/Neo4j walkthrough on5088/demo. Native launch currently stops at
 retained-fixture preflight; it does not reset data. See
 [required ownership audit](../../Docs/WIP/COSMIC%20ORM/CQL_DATABASE_DEMO_HUB.md).
+
+### Cosmos Hub — native and hosted HTTP federation verified
+
+`--cosmos-public <existing-source.json>` reads three configured validators, then filters to two through the shared HolonManager/LINQ path. [CosmosPublicWalkthrough.cs](CosmosPublicWalkthrough.cs) has spaced examples and comments. The17controlled tests, native published walkthrough and CLI pass against explicitly selected KJNodes. Earlier CryptoCrew502 remains documented. Hosted HTTP federation is verified; browser interaction remains open. See [readiness and exact command](../../Docs/WIP/COSMIC%20ORM/COSMOS_PUBLIC_SOURCE_READINESS.md). No wallet, funding or source writes.
+
+### Polkadot public header demo
+
+`--polkadot-public <existing-source.json>` reads three configured headers, then filters to two using HolonManager/LINQ. [PolkadotPublicWalkthrough.cs](PolkadotPublicWalkthrough.cs) explains the steps with spacing and comments. The native published walkthrough and actual CLI passed; no transactions or Mongo records are written by this console command. Header content hashes are verified locally, while canonical/finality claims remain RPC-reported. [Source guide and HTTP scope](../../Docs/Devs/POLKADOT_PUBLIC_METADATA_CQL_GUIDE.md); hosted HTTP/Mongo acceptance now passes; browser acceptance remains open.
+
+### NEAR public account demo
+
+`--near-public <existing-source.json>` queries three configured public accounts, then a two-account subset through HolonManager/LINQ. [NearPublicWalkthrough.cs](NearPublicWalkthrough.cs) explains the steps with spacing and comments. Balances stay exact strings in yoctoNEAR and every account selection uses one reported final block. No transactions or Mongo records are written. The command has a deadline of 60 seconds based on the earlier slow endpoint run of 34 seconds; the retained catalogue now selects FastNear and its native test completes in about one second. [Source guide and remaining HTTP/hosted work](../../Docs/Devs/NEAR_PUBLIC_METADATA_CQL_GUIDE.md).
+
+### Base, Avalanche and BNB Chain public balance demos
+
+Use `--base-public`, `--avalanche-public` or `--bnb-public` with the corresponding retained source file. Each spaced/commented walkthrough selects three public addresses and a two-address subset through the shared HolonManager/LINQ helper. All three published native walkthroughs and actual CLI commands passed3/2. No transactions or Mongo records are written. Exact commands, query keys, currency units and finality limits are in the [combined guide](../../Docs/Devs/EVM_PUBLIC_BALANCE_CQL_GUIDE.md). HTTP/Mongo acceptance now passes locally and hosted; browser acceptance remains open.
+
+### Optimism public balance walkthrough
+
+`dotnet run --project Examples/CosmicCqlDemo/CosmicCqlDemo.csproj --no-build --no-restore -- --optimism-public LocalState/COSMIC/HostedOptimismPublicSourceCurrent/source.json`
+
+Uses the spaced/commented OptimismPublicWalkthrough, shared HolonManager/LINQ path and retained source catalogue. Native3/2 and actualCLI pass; HTTP/Mongo and hosted acceptance pass; browser interaction remains open. Exact wei strings and RPC-reported finalized block hashes; no wallet/transaction/database creation.
+
+### Linea and Scroll public balances
+
+Use `--linea-public LocalState/COSMIC/HostedLineaPublicSourceCurrent/source.json` or `--scroll-public LocalState/COSMIC/HostedScrollPublicSourceCurrent/source.json` with the same console command above. Spaced/commented walkthroughs use HolonManager/LINQ, exact wei strings and RPC-reported finalized block hashes. Native3/2 and actualCLI pass; HTTP/Mongo and hosted acceptance pass; browser interaction remains open. No wallet, transaction or database creation.
+
+### zkSync and Abstract public balances
+
+Use `--zksync-public LocalState/COSMIC/HostedZkSyncPublicSourceCurrent/source.json` or `--abstract-public LocalState/COSMIC/HostedAbstractPublicSourceCurrent/source.json` with the existing console. Spaced/commented C# walkthroughs use HolonManager/LINQ and return3/2records; actualCLI/native proofs pass. Local and hosted HTTP/Mongo acceptance now passes; browser acceptance remains open. Stablecatalogue owners, exactwei strings, RPC-reported finalizedhash; no wallet, transaction or DBcreation.
+
+### Monad public balances
+
+Use `--monad-public LocalState/COSMIC/HostedMonadPublicSourceCurrent/source.json` with the existing console. Spaced/commented MonadPublicWalkthrough uses HolonManager/LINQ and returns3/2records; native/actualCLIpass. Local and hosted HTTP/Mongo acceptance now passes; browser acceptance remains open. Exactnativebaseunits and RPC-reportedfinalizedhashes;no wallet/transaction/databasecreation.
+
+### Sei public balances
+
+Use `--sei-public LocalState/COSMIC/HostedSeiPublicSourceCurrent/source.json` with the existing console. Spaced/commented SeiPublicWalkthrough uses HolonManager/LINQ; native/C#/actualCLI3/2pass. The fixedSeinativecodec normalizes32byte mixedcaseblockhashes; otherEVMprofileskeepcanonicalwirevalidation. Exactnativebaseunits,RPC-reportedfinalizedhashes; no wallet/transaction/databasecreation. HTTP/Mongo/hosted acceptance passes; browser interaction remains open.
+
+## Radix public resource demo
+
+Use `--radix-public <existing-source.json>` for three Mainnet resource definitions and a two-address CQL filter. [Setup and consistency](../../Docs/Devs/RADIX_PUBLIC_RESOURCE_CQL_GUIDE.md). Native console verified; hosted enrollment pending.
+
+
+## Public Azure Blob properties: runnable C# demo
+
+The real public Azure dataset needs no account or subscription. Follow the linked
+guide once to create a reusable catalogue; queries return three object-property records or a two-record subset.
+No Parquet contents or source objects are downloaded or written.
+
+```powershell
+dotnet Examples/CosmicCqlDemo/bin/Debug/net10.0/CosmicCqlDemo.dll `
+    --azure-blob-public `
+    LocalState/COSMIC/AzureBlobDemo/source.json
+```
+
+[AzureBlobPublicWalkthrough.cs](AzureBlobPublicWalkthrough.cs) uses shared manager/LINQ
+planning and execution. The [guide](../../Docs/Devs/AZURE_PUBLIC_BLOB_CQL_GUIDE.md)
+explains configuration, HTTP and Mongo federation. Hosted sandbox publication is
+tracked separately; this is not hosted Cosmos DB acceptance.
+
+
+## Fantom Opera: explicit canonical-at-read balances
+
+Follow the [Fantom setup guide](../../Docs/Devs/FANTOM_PUBLIC_ACCOUNT_CQL_GUIDE.md)
+once, then reuse the catalogue and built console:
+
+```powershell
+dotnet ./Examples/CosmicCqlDemo/bin/Debug/net10.0/CosmicCqlDemo.dll `
+    --fantom-public LocalState/COSMIC/FantomDemo/source.json
+```
+
+[FantomPublicWalkthrough.cs](FantomPublicWalkthrough.cs) runs the shared manager/LINQ
+selection over three addresses, then two. It prints exact balances and explicitly
+labels the canonical-at-read block. It performs no native writes. HTTP/Mongo,
+hosted sandbox and browser qualification remain separate, pending gates.
+
+
+## Filecoin FEVM: public balances through native genesis identity
+
+Follow the [Filecoin setup guide](../../Docs/Devs/FILECOIN_PUBLIC_ACCOUNT_CQL_GUIDE.md)
+once, build, and retain the same public catalogue between runs.
+
+```powershell
+dotnet ./Examples/CosmicCqlDemo/bin/Debug/net10.0/CosmicCqlDemo.dll `
+    --filecoin-public LocalState/COSMIC/FilecoinDemo/source.json
+```
+
+[FilecoinPublicWalkthrough.cs](FilecoinPublicWalkthrough.cs) uses HolonManager and
+LINQ/CQL to return three configured addresses and a two-address subset. No wallet,
+funding, node or source write. Balances print as exact attoFIL strings. Native
+genesis-CID identity and RPC-v1 finalized hash-bound reads are explicit; this does
+not independently verify consensus/F3 finality. Actual console3/2 passes.
+Local and hosted HTTP/Mongo5/4, visitor privacy0/3, repeat reuse and SQLite/Neo4j replicas pass; browser interaction remains open. The generic Mongo demo records copy identity/name/description, not all native metadata.
+
+
+## Telos EVM: public finalized balances
+
+Follow the [Telos setup guide](../../Docs/Devs/TELOS_PUBLIC_ACCOUNT_CQL_GUIDE.md)
+once, then retain the same public address catalogue.
+
+```powershell
+dotnet ./Examples/CosmicCqlDemo/bin/Debug/net10.0/CosmicCqlDemo.dll `
+    --telos-public LocalState/COSMIC/TelosDemo/source.json
+```
+
+[TelosPublicWalkthrough.cs](TelosPublicWalkthrough.cs) uses the shared manager/LINQ
+path for three addresses and a two-address subset. Native C# and actualCLI3/2 pass.
+Balances remain exact native base-unit strings; finality is RPC-reported.
+No account, wallet, funding, node or source write. Local HTTP/Mongo5/4/privacy0/3
+passes; hosted reuse/privacy/replicas also pass. Browser interaction remains open. This EVM profile is separate from native Antelope accounts/storage.
+
+
+### EOSIO / Vaulta native account demo
+
+Use `--eosio-public LocalState/COSMIC/HostedEosioPublicSourceCurrent/source.json` with the existing three-account catalogue. [Commented walkthrough](EosioPublicWalkthrough.cs) and [guide](../../Docs/Devs/EOSIO_PUBLIC_ACCOUNT_CQL_GUIDE.md) show three-account then two-account LINQ queries through HolonManager. Native reads only: API/Mongo/hosted gates remain separate.
+
+
+### ChainLink public feed demo
+
+Use `--chainlink-public LocalState/COSMIC/HostedChainLinkPublicSourceCurrent/source.json` with the retained three-feed catalogue. [Commented walkthrough](ChainLinkPublicWalkthrough.cs), [setup/C# guide](../../Docs/Devs/CHAINLINK_PUBLIC_FEED_CQL_GUIDE.md). Shared HolonManager/LINQ returns3feeds then2; exact raw answers/scales/round IDs are printed. Anonymous reads only, no wallet/funding/source transaction/Mongo save. API/hosted acceptance remains separate; RPC-reported finality does not guarantee current prices.
+
+
+### BlueSky public profile demo
+
+Use `--bluesky-public LocalState/COSMIC/HostedBlueSkyPublicSourceCurrent/source.json` with the retained three-DID catalogue. [Commented walkthrough](BlueSkyPublicWalkthrough.cs), [setup/C# guide](../../Docs/Devs/BLUESKY_PUBLIC_PROFILE_CQL_GUIDE.md). Shared HolonManager/LINQ returns3profiles then2, printing public names/handles. Anonymous AppView observations only: no login/PDS session/source mutation/Mongo save or image fetch. API/hosted/browser acceptance remains separate.
+
+
+## Nostr signed public event demo
+
+Use `--nostr-public LocalState/COSMIC/HostedNostrPublicSourceCurrent/source.json` with the built console. The commented NostrPublicWalkthrough.cs selects three retained kind1event IDs, then two, through shared HolonManager/LINQ. Event hashes/signatures are verified; no relay publication/account/private Mongo save. See ../../Docs/Devs/NOSTR_PUBLIC_EVENT_CQL_GUIDE.md for setup, query examples and trust/retention limits. NativeCLI3/2 passes; API/Mongo/hosted gates pending.
+
+
+Nostr hosted functional update (2 November 2026): native3/2, Mongo5/4, repeat0new/2existing, privacy0/3 and SQLLite/Neo4j replicas2/2 pass with original two saves preserved. Live card includes pinned C#/HTTP setup links;99client tests/public bytes verified. Earlier intermittent native-query error cause remains unresolved; no reliability or browser-interaction certification. See ../../Docs/WIP/COSMIC ORM/NOSTR_PUBLIC_SOURCE_STATUS.md.
+
+
+## Matrix public room aliases (local C#)
+
+The spaced/commented `MatrixPublicWalkthrough.cs` uses HolonManager/deferred LINQ for three configured aliases, then a two-alias membership predicate. Run the existing built demo with `--matrix-public LocalState/COSMIC/HostedMatrixPublicSourceCurrent/source.json`. Reuse the retained source owner/configuration. No login, room join, source write or Mongo copy is performed. [Setup and limits](../../Docs/Devs/MATRIX_PUBLIC_ROOM_CQL_GUIDE.md). Local source30tests and actual3/2 console pass; HTTP/Mongo/hosted/browser gates remain separate and pending.
+
+
+## Stacks public principal state (local C#)
+
+`StacksPublicWalkthrough.cs` uses the shared HolonManager/deferred LINQ for three configured principals, then a two-key membership selection. Run the existing built demo with `--stacks-public LocalState/COSMIC/HostedStacksPublicSourceCurrent/source.json`. Retain the same source owner/configuration. Each selection uses one derived explicit node tip; separate queries can see different tips. No signing, transaction, source write or Mongo copy occurs. [Setup, C# and trust/precision limits](../../Docs/Devs/STACKS_PUBLIC_PRINCIPAL_CQL_GUIDE.md).43source tests and actual3/2 console pass; HTTP/Mongo/host/browser gates remain separate and pending.
+
+Wormhole: `--wormhole-public <retained-source.json>` runs the commented `WormholePublicWalkthrough.cs` over three configured message tuples and their pinned VAA body fingerprints, then filters to two. See [configuration and scope](../../Docs/Devs/WORMHOLE_PUBLIC_OPERATION_CQL_GUIDE.md). Local CLI and hosted HTTP/Mongo/reuse/privacy/replicas verified; sandbox card published. Browser interaction separate. No cross-chain dispatch/signature trust claim.
+
+Chainflip: `--chainflip-public <retained-source.json>` runs the commented `ChainflipPublicWalkthrough.cs` over three historical swaps and filters to two. Exact amounts and absent external deposits remain distinct. [Setup/scope](../../Docs/Devs/CHAINFLIP_PUBLIC_SWAP_CQL_GUIDE.md). Local C#/CLI and hosted HTTP/Mongo/reuse/privacy/replicas verified; sandbox card published. Browser interaction separate. No quote/swap/deposit-address creation.
+
+
+Celestia: `--celestia-public <retained-source.json>` runs the spaced/commented `CelestiaPublicWalkthrough.cs` over three original mainnet heights and filters to two through HolonManager/deferred LINQ. Pins node-reported block IDs; no blob writes, independent consensus or DA sampling. [Setup/query/metadata guide](../../Docs/Devs/CELESTIA_PUBLIC_HEADER_CQL_GUIDE.md). Source36controls and actual CLI3/2 pass; Hosted HTTP/Mongo/reuse/privacy/exact replicas verified; card/public bytes6a863c7 verified; browser interaction remains separate.
+
+
+Blockscout: `--blockscout-public <retained-source.json>` runs the spaced/commented `BlockscoutPublicWalkthrough.cs` through HolonManager/deferred LINQ over three original public explorer addresses, then filters to two. Exact nullable native-coin balances/update blocks; no private/watchlist fields/native writes. [Setup/query/metadata guide](../../Docs/Devs/BLOCKSCOUT_PUBLIC_ADDRESS_CQL_GUIDE.md). Source42controls/actual CLI3/2 pass in one original read-only completion; initial15s native timeout retained, reliability unproven. Hosted HTTP3/2+Mongo5/4/reuse/privacy/exact replicas verified; card/public bytes2983b1c verified; browser remains separate.
+
+
+ENS public-name demo: `--ens-public <retained-source.json>` resolves three configured names, then filters to two through HolonManager/deferred LINQ. See [guide](../../Docs/Devs/ENS_PUBLIC_NAME_CQL_GUIDE.md) and [acceptance status](../../Docs/WIP/COSMIC%20ORM/ENS_PUBLIC_SOURCE_STATUS.md). Direct ASCII catalogue only; HTTP/live gates separate.
+
+
+Eclipse account demo: `--eclipse-public <retained-source.json>` reads three configured mainnet accounts, then filters to two through HolonManager/deferred LINQ. [Guide](../../Docs/Devs/ECLIPSE_PUBLIC_ACCOUNT_CQL_GUIDE.md), [actual acceptance](../../Docs/WIP/COSMIC%20ORM/ECLIPSE_PUBLIC_SOURCE_STATUS.md). Genesis pin, exact ETH units with9decimals, metadata-only reads and process-wide rate admission; HTTP/live gates separate.
+
+### Akash public provider metadata (C#)
+
+The [Akash walkthrough](AkashPublicWalkthrough.cs) reads the retained three-provider
+sample and filters it to two through HolonManager/deferred LINQ. See the
+[guide](../../Docs/Devs/AKASH_PUBLIC_PROVIDER_CQL_GUIDE.md) for configuration,
+query shape, limits and the difference between indexed metadata and provisioning.
+Use `--akash-public LocalState/COSMIC/HostedAkashPublicSourceCurrent/source.json`
+after building this project. Native acceptance gates are immutable; do not replay
+setup/qualification to obtain green evidence. HTTP/Mongo/hosted gates are separate.
+
+
+### Owned EVM V2 C# walkthrough
+
+`EvmV2OwnedWalkthrough.cs` accepts an already activated V2 facade and trusted existing IDs. It demonstrates HolonManager/LINQ full and two-ID queries, plus the Mongo federation preset. It deploys/seeds nothing. Controlled SDK tests prove full3/subset2; live-chain/Mongo acceptance and CLI launcher remain pending. Usage: `../../Docs/WIP/COSMIC ORM/EVM_V2_CQL_RECOVERY_GAP.md`.

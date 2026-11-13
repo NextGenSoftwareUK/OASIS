@@ -5,11 +5,451 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 
+// ThreeFold reads the retained public node catalogue without provisioning compute.
+if (args.Length == 2 && args[0] == "--threefold-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(120));
+    await ThreeFoldPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
+// ClickHouse queries public country summaries with fixed, parameterized SQL.
+if (args.Length == 2 && args[0] == "--clickhouse-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(120));
+    await ClickHousePublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
+// Zcash queries the explicit height/hash catalogue; no wallet or shielded data.
+if (args.Length == 2 && args[0] == "--zcash-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(120));
+    await ZcashPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
+// Bittensor reads the retained Finney header catalogue; no AI inference or signing.
+if (args.Length == 2 && args[0] == "--bittensor-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(120));
+    await BittensorPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
+// Akash reads an acknowledged provider sample; it never provisions compute.
+if (args.Length == 2 && args[0] == "--akash-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(90));
+    await AkashPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
+// Eclipse reads a retained account catalogue without wallets or transactions.
+if (args.Length == 2 && args[0] == "--eclipse-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(90));
+    await EclipsePublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
+// ENS resolves a retained three-name catalogue through the Universal Resolver.
+if (args.Length == 2 && args[0] == "--ens-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(135));
+    await EnsPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
+// Blockscout reads an explicit public explorer catalogue without API keys.
+if (args.Length == 2 && args[0] == "--blockscout-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(90));
+    await BlockscoutPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
+// Celestia uses retained mainnet heights and pinned reported header IDs.
+if (args.Length == 2 && args[0] == "--celestia-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(90));
+    await CelestiaPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
+// Chainflip reads only configured historical swaps; no quote or swap dispatch.
+if (args.Length == 2 && args[0] == "--chainflip-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(90));
+    await ChainflipPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
+// Wormhole reads configured message tuples bound to original VAA bodies.
+// It never signs or dispatches cross-chain messages.
+if (args.Length == 2 && args[0] == "--wormhole-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(90));
+    await WormholePublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
+// Stacks principal observations use one explicit node tip per selection.
+// This never creates wallets, signs transactions or touches Gaia storage.
+if (args.Length == 2 && args[0] == "--stacks-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(90));
+    await StacksPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
+// Matrix resolves only the configured public aliases; no login or room join.
+if (args.Length == 2 && args[0] == "--matrix-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(90));
+    await MatrixPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
+// Nostr uses one retained catalogue of immutable, signed public event IDs.
+// No relay publication, login, discovery scan or alternate endpoint is used.
+if (args.Length == 2 && args[0] == "--nostr-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(90));
+    await NostrPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
+// Anonymous BlueSky profiles use captured DIDs from one retained catalogue.
+// No PDS session, app password or source mutation is needed.
+if (args.Length == 2 && args[0] == "--bluesky-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(60));
+    await BlueSkyPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
+// ChainLink feed reads are anonymous and use one retained public catalogue.
+// The demo queries proxy contracts; it does not sign or submit transactions.
+if (args.Length == 2 && args[0] == "--chainlink-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(90));
+    await ChainLinkPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
+// Native EOSIO/Vaulta accounts use the retained public source catalogue.
+// This read-only walkthrough does not require a wallet or create test accounts.
+if (args.Length == 2 && args[0] == "--eosio-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(90));
+    await EosioPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
+// Public Telos EVM balances use one retained address catalogue.
+// This read profile creates no wallet, node or source transaction.
+if (args.Length == 2 && args[0] == "--telos-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(45));
+    await TelosPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
+// Explicit public FEVM balance profile. Reuse one retained catalogue;
+// no wallet, chain transaction or source fixture is created by the demo.
+if (args.Length == 2 && args[0] == "--filecoin-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(45));
+    await FilecoinPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
+// Explicit read-only Base source; reuse its retained stable catalogue.
+// Explicit anonymous Optimism read profile; no wallet or fixture creation.
+if (args.Length == 2 && args[0] == "--linea-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(45));
+    await LineaPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
+if (args.Length == 2 && args[0] == "--scroll-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(45));
+    await ScrollPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
+if (args.Length == 2 && args[0] == "--zksync-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(45));
+    await ZkSyncPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
+if (args.Length == 2 && args[0] == "--abstract-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(45));
+    await AbstractPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
+if (args.Length == 2 && args[0] == "--sei-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(45));
+    await SeiPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
+// Query explicit TON descriptors through shared HolonManager/LINQ.
+// No wallet or source write; preserve the reusable catalogue and owner.
+if (args.Length == 2 && args[0] == "--ton-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(45));
+    await TonPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
+// Read explicit historical Arweave keys through shared HolonManager/LINQ.
+// This anonymous profile never signs transactions or scans the chain.
+if (args.Length == 2 && args[0] == "--arweave-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(45));
+    await ArweavePublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
+// Read historical Cardano headers through the shared manager and LINQ planner.
+// No wallet or source transaction is involved; reuse your stable catalogue.
+if (args.Length == 2 && args[0] == "--cardano-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(45));
+    await CardanoPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
+// Query explicitly selected accepted Starknet headers through shared manager/LINQ.
+// This anonymous read profile cannot become a wallet or replication authority.
+if (args.Length == 2 && args[0] == "--starknet-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(45));
+    await StarknetPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
+// Query public Radix resources with one acknowledged ledger state per query.
+// No wallet, transaction signing or write-provider enrollment is involved.
+if (args.Length == 2 && args[0] == "--radix-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(120));
+    await RadixPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
+// Select explicitly enrolled public MultiversX accounts through native filters.
+// The existing signed Elrond wallet provider is not invoked by this read profile.
+if (args.Length == 2 && args[0] == "--elrond-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(120));
+    await ElrondPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
+// Query public Sui objects under one GraphQL checkpoint per source query.
+// The existing signed-storage gRPC bridge remains separate and is not invoked.
+if (args.Length == 2 && args[0] == "--sui-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(120));
+    await SuiPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
+// Read bounded Hedera Mainnet mirror account observations through CQL.
+// Native timestamps are retained; no SDK payment or transaction is submitted.
+if (args.Length == 2 && args[0] == "--hedera-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(120));
+    await HederaPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
+// Read public Aptos accounts at one explicit version per source query.
+// No key, transaction or account creation is required.
+if (args.Length == 2 && args[0] == "--aptos-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(120));
+    await AptosPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
+// Query current public Algorand accounts through HolonManager and LINQ.
+// Each row carries its own observed round; this is not a historical snapshot.
+if (args.Length == 2 && args[0] == "--algorand-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(120));
+    await AlgorandPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
+// Read the retained Stellar ledger catalogue through the shared manager/LINQ API.
+// The source verifies complete native XDR; this demo does not sign transactions.
+if (args.Length == 2 && args[0] == "--stellar-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(120));
+    await StellarPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
+// Query the retained public XRPL ledger hashes through HolonManager and LINQ.
+// This read-only example needs no wallet and submits no transaction.
+if (args.Length == 2 && args[0] == "--xrpl-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(120));
+    await XrplPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
+// Read a small explicit Bitcoin header catalogue through the shared CQL manager.
+// This read profile never signs or broadcasts a Bitcoin transaction.
+if (args.Length == 2 && args[0] == "--bitcoin-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(120));
+    await BitcoinPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
+if (args.Length == 2 && args[0] == "--berachain-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(45));
+    await BerachainPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
+if (args.Length == 2 && args[0] == "--monad-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(45));
+    await MonadPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
+if (args.Length == 2 && args[0] == "--optimism-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(45));
+    await OptimismPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
+if (args.Length == 2 && args[0] == "--base-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(45));
+    await BasePublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
+// Explicit read-only Avalanche source; reuse its retained stable catalogue.
+if (args.Length == 2 && args[0] == "--avalanche-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(45));
+    await AvalanchePublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
+// Explicit read-only BNBChain source; reuse its retained stable catalogue.
+if (args.Length == 2 && args[0] == "--bnb-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(45));
+    await BnbPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
+// NEAR uses an explicitly configured source and a bounded demo lifetime.
+// No retry or source substitution occurs if that endpoint is unavailable.
+if (args.Length == 2 && args[0] == "--near-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(60));
+    await NearPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
+// Polkadot reads only the retained hash catalogue and verifies header contents.
+// Keep this read-only path ahead of the SQLite database fixture setup.
+if (args.Length == 2 && args[0] == "--polkadot-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(45));
+    await PolkadotPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
+// Cosmos reads configured validators at an explicitly pinned state height.
+// Native3/2 is verified; hosted/federation acceptance is tracked in WIP.
+if (args.Length == 2 && args[0] == "--cosmos-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(45));
+    await CosmosPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
+// Arbitrum uses the official finalized-state RPC with its fixed /rpc path.
+// The bounded console walkthrough needs no wallet, funding or local chain.
+if (args.Length == 2 && args[0] == "--arbitrum-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(45));
+    await ArbitrumPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
+// Polygon uses its fixed mainnet descriptor, not the local signed-storage demo.
+// This console command reads the existing catalogue and creates no fixture.
+if (args.Length == 2 && args[0] == "--polygon-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(45));
+    await PolygonPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
+// The Ethereum read profile is separate from wallet/transaction storage.
+// Reuse an existing public catalogue, query once, and exit without local fixtures.
+if (args.Length == 2 && args[0] == "--ethereum-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(45));
+    await EthereumPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
+// The public Google console path performs no database setup or writes.
+// Keep its bounded network lifetime independent of the SQLite fixture below.
+if (args.Length == 2 && args[0] == "--google-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(45));
+    await GooglePublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
+// Query Azure's real public object properties without downloading dataset bodies.
+// This source is independent of the pending hosted Cosmos DB demonstration.
+if (args.Length == 2 && args[0] == "--azure-blob-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+    await AzureBlobPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
+// Fantom Opera uses an explicit canonical-at-read profile, not finalized state.
+// Reuse the stable public catalogue; no wallet or source writes are involved.
+if (args.Length == 2 && args[0] == "--fantom-public")
+{
+    using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(45));
+    await FantomPublicWalkthrough.RunAsync(args[1], Console.Out, deadline.Token);
+    return 0;
+}
+
 // HOST SETUP - console mode runs once; --serve also opens the local Swagger API.
 var serve = args.Length == 1 && args[0] == "--serve";
-if (args.Length != 0 && !serve)
+var nativeImport = args.Length == 1 && args[0] is "--native-import" or "--native-import-mongo";
+if (args.Length != 0 && !serve && !nativeImport)
 {
-    Console.Error.WriteLine("Use no arguments for console mode, or --serve for the loopback Swagger demo.");
+    Console.Error.WriteLine("Use no arguments, --serve, --fantom-public <existing-source.json>, --azure-blob-public <existing-source.json>, --cardano-public <existing-source.json>, --starknet-public <existing-source.json>, --radix-public <existing-source.json>, --google-public <existing-source.json>, --ethereum-public <existing-source.json>, --polygon-public <existing-source.json>, --arbitrum-public <existing-source.json>, --cosmos-public <existing-source.json>, --polkadot-public <existing-source.json>, --near-public <existing-source.json>, or --base-public / --avalanche-public / --bnb-public <existing-source.json>.");
     return 2;
 }
 
@@ -22,6 +462,23 @@ if (root == null)
 {
     Console.Error.WriteLine("Run this sample from its existing OASIS checkout.");
     return 2;
+}
+
+if (nativeImport)
+{
+    try
+    {
+        if (args[0] == "--native-import-mongo")
+            await NativeImportMongoDemo.RunAsync(root.FullName, Console.Out);
+        else
+            await NativeImportCqlDemo.RunAsync(root.FullName, Console.Out);
+        return 0;
+    }
+    catch (Exception error)
+    {
+        Console.Error.WriteLine("Native import demo failed; preserve the fixture journal. " + error.Message);
+        return 1;
+    }
 }
 
 // FIXTURE OWNERSHIP - a fixed synthetic database is protected by an exclusive lock.

@@ -58,9 +58,28 @@
     <Compile Remove="Helpers\OASISSettings.cs" />
   
     <None Include="..\..\Logos\OASIS.jpg" Pack="true" PackagePath="\" />
+    <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.RoninOASIS/NextGenSoftware.OASIS.API.Providers.RoninOASIS.csproj" />
+    <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.ImmutableZkEVMOASIS/NextGenSoftware.OASIS.API.Providers.ImmutableZkEVMOASIS.csproj" />
+    <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.FlowOASIS/NextGenSoftware.OASIS.API.Providers.FlowOASIS.csproj" />
+    <ProjectReference Include="../../Providers/Network/NextGenSoftware.OASIS.API.Providers.EASOASIS/NextGenSoftware.OASIS.API.Providers.EASOASIS.csproj" />
+    <ProjectReference Include="../../Providers/Network/NextGenSoftware.OASIS.API.Providers.SignProtocolOASIS/NextGenSoftware.OASIS.API.Providers.SignProtocolOASIS.csproj" />
+    <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.csproj" />
+    <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.XRPLOASIS/NextGenSoftware.OASIS.API.Providers.XRPLOASIS.csproj" />
+    <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.csproj" />
+    <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.AptosOASIS/NextGenSoftware.OASIS.API.Providers.AptosOASIS.csproj" />
+    <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.AlgorandOASIS/NextGenSoftware.OASIS.API.Providers.AlgorandOASIS.csproj" />
+    <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.StellarOASIS/NextGenSoftware.OASIS.API.Providers.StellarOASIS.csproj" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS/NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.csproj" />
+    <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.LineaOASIS/NextGenSoftware.OASIS.API.Providers.LineaOASIS.csproj" />
+    <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.MonadOASIS/NextGenSoftware.OASIS.API.Providers.MonadOASIS.csproj" />
+    <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.SeiOASIS/NextGenSoftware.OASIS.API.Providers.SeiOASIS.csproj" />
+    <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.BerachainOASIS/NextGenSoftware.OASIS.API.Providers.BerachainOASIS.csproj" />
+    <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.ZkSyncOASIS/NextGenSoftware.OASIS.API.Providers.ZkSyncOASIS.csproj" />
+    <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.AbstractOASIS/NextGenSoftware.OASIS.API.Providers.AbstractOASIS.csproj" />
+    <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.ScrollOASIS/NextGenSoftware.OASIS.API.Providers.ScrollOASIS.csproj" />
     <None Remove="OASISSQLLiteDB.db" />
   </ItemGroup>
 
@@ -138,4 +157,137 @@
     <Protobuf Include="Protos\subscription.proto" GrpcServices="Server" />
   </ItemGroup>
 
+  <ItemGroup><ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.RadixOASIS/NextGenSoftware.OASIS.API.Providers.RadixOASIS.csproj" /></ItemGroup>
+  <ItemGroup><ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.StarknetOASIS/NextGenSoftware.OASIS.API.Providers.StarknetOASIS.csproj" /></ItemGroup>
+  <ItemGroup><ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.CardanoOASIS/NextGenSoftware.OASIS.API.Providers.CardanoOASIS.csproj" /></ItemGroup>
+  <ItemGroup><ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.ArweaveOASIS/NextGenSoftware.OASIS.API.Providers.ArweaveOASIS.csproj" /></ItemGroup>
+  <ItemGroup><ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.TONOASIS/NextGenSoftware.OASIS.API.Providers.TONOASIS.csproj" /></ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.FilecoinOASIS/NextGenSoftware.OASIS.API.Providers.FilecoinOASIS.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../Providers/Social/NextGenSoftware.OASIS.API.Providers.BlueSkyOASIS/NextGenSoftware.OASIS.API.Providers.BlueSkyOASIS.csproj" />
+    <ProjectReference Include="../../Providers/Social/NextGenSoftware.OASIS.API.Providers.NostrOASIS/NextGenSoftware.OASIS.API.Providers.NostrOASIS.csproj" />
+    <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS/NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS.csproj" />
+    <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.EOSIOOASIS/NextGenSoftware.OASIS.API.Providers.EOSIOOASIS.csproj" />
+    <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.TelosOASIS/NextGenSoftware.OASIS.API.Providers.TelosOASIS.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../Providers/Social/NextGenSoftware.OASIS.API.Providers.MatrixOASIS/NextGenSoftware.OASIS.API.Providers.MatrixOASIS.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.BlockStackOASIS/NextGenSoftware.OASIS.API.Providers.BlockStackOASIS.csproj" />
+    <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.WormholeOASIS/NextGenSoftware.OASIS.API.Providers.WormholeOASIS.csproj" />
+    <ProjectReference Include="../../Providers/Network/NextGenSoftware.OASIS.API.Providers.AkashOASIS/NextGenSoftware.OASIS.API.Providers.AkashOASIS.csproj" />
+    <ProjectReference Include="../../Providers/Network/NextGenSoftware.OASIS.API.Providers.EclipseOASIS/NextGenSoftware.OASIS.API.Providers.EclipseOASIS.csproj" />
+    <ProjectReference Include="../../Providers/Network/NextGenSoftware.OASIS.API.Providers.ENSOASIS/NextGenSoftware.OASIS.API.Providers.ENSOASIS.csproj" />
+    <ProjectReference Include="../../Providers/Network/NextGenSoftware.OASIS.API.Providers.BlockscoutOASIS/NextGenSoftware.OASIS.API.Providers.BlockscoutOASIS.csproj" />
+    <ProjectReference Include="../../Providers/Network/NextGenSoftware.OASIS.API.Providers.CelestiaOASIS/NextGenSoftware.OASIS.API.Providers.CelestiaOASIS.csproj" />
+    <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.ChainflipOASIS/NextGenSoftware.OASIS.API.Providers.ChainflipOASIS.csproj" />
+    <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.HyperlaneOASIS/NextGenSoftware.OASIS.API.Providers.HyperlaneOASIS.csproj" />
+    <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.LayerZeroV2OASIS/NextGenSoftware.OASIS.API.Providers.LayerZeroV2OASIS.csproj" />
+    <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.StargateOASIS/NextGenSoftware.OASIS.API.Providers.StargateOASIS.csproj" />
+    <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.deBridgeOASIS/NextGenSoftware.OASIS.API.Providers.deBridgeOASIS.csproj" />
+    <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.SynapseOASIS/NextGenSoftware.OASIS.API.Providers.SynapseOASIS.csproj" />
+    <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.ConnextOASIS/NextGenSoftware.OASIS.API.Providers.ConnextOASIS.csproj" />
+    <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.MidenOASIS/NextGenSoftware.OASIS.API.Providers.MidenOASIS.csproj" />
+    <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.EspressoSystemsOASIS/NextGenSoftware.OASIS.API.Providers.EspressoSystemsOASIS.csproj" />
+    <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.EigenLayerOASIS/NextGenSoftware.OASIS.API.Providers.EigenLayerOASIS.csproj" />
+    <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.FhenixOASIS/NextGenSoftware.OASIS.API.Providers.FhenixOASIS.csproj" />
+    <ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.AxelarOASIS/NextGenSoftware.OASIS.API.Providers.AxelarOASIS.csproj" />
+    <ProjectReference Include="../../Providers/AI/NextGenSoftware.OASIS.API.Providers.RitualOASIS/NextGenSoftware.OASIS.API.Providers.RitualOASIS.csproj" />
+  </ItemGroup>
+  <ItemGroup><ProjectReference Include="../../Providers/AI/NextGenSoftware.OASIS.API.Providers.BittensorOASIS/NextGenSoftware.OASIS.API.Providers.BittensorOASIS.csproj" /></ItemGroup>
+<ItemGroup><ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.ZcashOASIS/NextGenSoftware.OASIS.API.Providers.ZcashOASIS.csproj" /></ItemGroup>
+<ItemGroup><ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.QuestDBOASIS/NextGenSoftware.OASIS.API.Providers.QuestDBOASIS.csproj" /></ItemGroup>
+<ItemGroup><ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLServerDBOASIS/NextGenSoftware.OASIS.API.Providers.SQLServerDBOASIS.csproj" /></ItemGroup>
+<ItemGroup><ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.DuckDBOASIS/NextGenSoftware.OASIS.API.Providers.DuckDBOASIS.csproj" /></ItemGroup>
+<ItemGroup><ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.CouchDBOASIS/NextGenSoftware.OASIS.API.Providers.CouchDBOASIS.csproj" /></ItemGroup>
+<ItemGroup><ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.ChromaOASIS/NextGenSoftware.OASIS.API.Providers.ChromaOASIS.csproj" /></ItemGroup>
+<ItemGroup><ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.PouchDBOASIS/NextGenSoftware.OASIS.API.Providers.PouchDBOASIS.csproj" /></ItemGroup>
+<ItemGroup><ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS/NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS.csproj" /></ItemGroup>
+<ItemGroup><ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.TypesenseOASIS/NextGenSoftware.OASIS.API.Providers.TypesenseOASIS.csproj" /></ItemGroup>
+<ItemGroup><ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.SolrOASIS/NextGenSoftware.OASIS.API.Providers.SolrOASIS.csproj" /></ItemGroup>
+<ItemGroup>
+  <ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS/NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS.csproj" />
+  <ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS/NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS.csproj" />
+  <ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.ArcadeDBOASIS/NextGenSoftware.OASIS.API.Providers.ArcadeDBOASIS.csproj" />
+  <ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS/NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS.csproj" />
+  <ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.QdrantOASIS/NextGenSoftware.OASIS.API.Providers.QdrantOASIS.csproj" />
+  <ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.RedisOASIS/NextGenSoftware.OASIS.API.Providers.RedisOASIS.csproj" />
+  <ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.ValKeyOASIS/NextGenSoftware.OASIS.API.Providers.ValKeyOASIS.csproj" />
+  <ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.GarnetOASIS/NextGenSoftware.OASIS.API.Providers.GarnetOASIS.csproj" />
+  <ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.KeyDBOASIS/NextGenSoftware.OASIS.API.Providers.KeyDBOASIS.csproj" />
+  <ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.DragonflyOASIS/NextGenSoftware.OASIS.API.Providers.DragonflyOASIS.csproj" />
+  <ProjectReference Include="../../Providers/Cloud/NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS/NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.csproj" />
+  <ProjectReference Include="../../Providers/Cloud/NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS/NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS.csproj" />
+  <ProjectReference Include="../../Providers/Cloud/NextGenSoftware.OASIS.API.Providers.SupabaseOASIS/NextGenSoftware.OASIS.API.Providers.SupabaseOASIS.csproj" />
+  <ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.PlanetScaleOASIS/NextGenSoftware.OASIS.API.Providers.PlanetScaleOASIS.csproj" />
+  <ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.WeaviateOASIS/NextGenSoftware.OASIS.API.Providers.WeaviateOASIS.csproj" />
+  <ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.TigrisOASIS/NextGenSoftware.OASIS.API.Providers.TigrisOASIS.csproj" />
+  <ProjectReference Include="../../Providers/Cloud/NextGenSoftware.OASIS.API.Providers.UpstashOASIS/NextGenSoftware.OASIS.API.Providers.UpstashOASIS.csproj" />
+  <ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.InfluxDBOASIS/NextGenSoftware.OASIS.API.Providers.InfluxDBOASIS.csproj" />
+  <ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.CouchbaseOASIS/NextGenSoftware.OASIS.API.Providers.CouchbaseOASIS.csproj" />
+  <ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.ArangoDBOASIS/NextGenSoftware.OASIS.API.Providers.ArangoDBOASIS.csproj" />
+  <ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.CockroachDBOASIS/NextGenSoftware.OASIS.API.Providers.CockroachDBOASIS.csproj" />
+  <ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.TimescaleDBOASIS/NextGenSoftware.OASIS.API.Providers.TimescaleDBOASIS.csproj" />
+  <ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.CassandraOASIS/NextGenSoftware.OASIS.API.Providers.CassandraOASIS.csproj" />
+  <ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.RavenDBOASIS/NextGenSoftware.OASIS.API.Providers.RavenDBOASIS.csproj" />
+  <ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.ScyllaDBOASIS/NextGenSoftware.OASIS.API.Providers.ScyllaDBOASIS.csproj" />
+  <ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.LitestreamOASIS/NextGenSoftware.OASIS.API.Providers.LitestreamOASIS.csproj" />
+  <ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.PineconeOASIS/NextGenSoftware.OASIS.API.Providers.PineconeOASIS.csproj" />
+  <ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.LanceDBOASIS/NextGenSoftware.OASIS.API.Providers.LanceDBOASIS.csproj" />
+  <ProjectReference Include="../../Providers/Cloud/NextGenSoftware.OASIS.API.Providers.NeonOASIS/NextGenSoftware.OASIS.API.Providers.NeonOASIS.csproj" />
+  <ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.NileOASIS/NextGenSoftware.OASIS.API.Providers.NileOASIS.csproj" />
+  <ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.NetlifyBlobsOASIS/NextGenSoftware.OASIS.API.Providers.NetlifyBlobsOASIS.csproj" />
+  <ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.FastlyOASIS/NextGenSoftware.OASIS.API.Providers.FastlyOASIS.csproj" />
+  <ProjectReference Include="../../Providers/Other/NextGenSoftware.OASIS.API.Providers.DaprOASIS/NextGenSoftware.OASIS.API.Providers.DaprOASIS.csproj" />
+  <ProjectReference Include="../../Providers/Cloud/NextGenSoftware.OASIS.API.Providers.CloudflareOASIS/NextGenSoftware.OASIS.API.Providers.CloudflareOASIS.csproj" />
+  <ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.VercelKVOASIS/NextGenSoftware.OASIS.API.Providers.VercelKVOASIS.csproj" />
+  <ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.DenoDeployOASIS/NextGenSoftware.OASIS.API.Providers.DenoDeployOASIS.csproj" />
+  <ProjectReference Include="../../Providers/Cloud/NextGenSoftware.OASIS.API.Providers.AppwriteOASIS/NextGenSoftware.OASIS.API.Providers.AppwriteOASIS.csproj" />
+  <ProjectReference Include="../../Providers/Cloud/NextGenSoftware.OASIS.API.Providers.ConvexOASIS/NextGenSoftware.OASIS.API.Providers.ConvexOASIS.csproj" />
+  <ProjectReference Include="../../Providers/Cloud/NextGenSoftware.OASIS.API.Providers.TursoOASIS/NextGenSoftware.OASIS.API.Providers.TursoOASIS.csproj" />
+  <ProjectReference Include="../../Providers/Other/NextGenSoftware.OASIS.API.Providers.TemporalOASIS/NextGenSoftware.OASIS.API.Providers.TemporalOASIS.csproj" />
+  <ProjectReference Include="../../Providers/Network/NextGenSoftware.OASIS.API.Providers.TenderlyOASIS/NextGenSoftware.OASIS.API.Providers.TenderlyOASIS.csproj" />
+  <ProjectReference Include="../../Providers/Network/NextGenSoftware.OASIS.API.Providers.QuickNodeOASIS/NextGenSoftware.OASIS.API.Providers.QuickNodeOASIS.csproj" />
+  <ProjectReference Include="../../Providers/Social/NextGenSoftware.OASIS.API.Providers.DiscordOASIS/NextGenSoftware.OASIS.API.Providers.DiscordOASIS.csproj" />
+  <ProjectReference Include="../../Providers/Network/NextGenSoftware.OASIS.API.Providers.LivepeerOASIS/NextGenSoftware.OASIS.API.Providers.LivepeerOASIS.csproj" />
+  <ProjectReference Include="../../Providers/Network/NextGenSoftware.OASIS.API.Providers.PinataOASIS/NextGenSoftware.OASIS.API.Providers.PinataOASIS.csproj" />
+  <ProjectReference Include="../../Providers/Network/NextGenSoftware.OASIS.API.Providers.PushProtocolOASIS/NextGenSoftware.OASIS.API.Providers.PushProtocolOASIS.csproj" />
+  <ProjectReference Include="../../Providers/Network/NextGenSoftware.OASIS.API.Providers.LayerZeroOASIS/NextGenSoftware.OASIS.API.Providers.LayerZeroOASIS.csproj" />
+  <ProjectReference Include="../../Providers/Network/NextGenSoftware.OASIS.API.Providers.ReclaimProtocolOASIS/NextGenSoftware.OASIS.API.Providers.ReclaimProtocolOASIS.csproj" />
+  <ProjectReference Include="../../Providers/Social/NextGenSoftware.OASIS.API.Providers.WorldIDOASIS/NextGenSoftware.OASIS.API.Providers.WorldIDOASIS.csproj" />
+  <ProjectReference Include="../../Providers/Network/NextGenSoftware.OASIS.API.Providers.WakuOASIS/NextGenSoftware.OASIS.API.Providers.WakuOASIS.csproj" />
+  <ProjectReference Include="../../Providers/Maps/NextGenSoftware.OASIS.API.Providers.DecentralandOASIS/NextGenSoftware.OASIS.API.Providers.DecentralandOASIS.csproj" />
+  <ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.PinotOASIS/NextGenSoftware.OASIS.API.Providers.PinotOASIS.csproj" />
+  <ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.DruidOASIS/NextGenSoftware.OASIS.API.Providers.DruidOASIS.csproj" />
+  <ProjectReference Include="../../Providers/Network/NextGenSoftware.OASIS.API.Providers.SafeOASIS/NextGenSoftware.OASIS.API.Providers.SafeOASIS.csproj" />
+  <ProjectReference Include="../../Providers/Identity/NextGenSoftware.OASIS.API.Providers.ENSOffchainOASIS/NextGenSoftware.OASIS.API.Providers.ENSOffchainOASIS.csproj" />
+  <ProjectReference Include="../../Providers/Other/NextGenSoftware.OASIS.API.Providers.OrbitDBOASIS/NextGenSoftware.OASIS.API.Providers.OrbitDBOASIS.csproj" />
+  <ProjectReference Include="../../Providers/Other/NextGenSoftware.OASIS.API.Providers.GUNOASIS/NextGenSoftware.OASIS.API.Providers.GUNOASIS.csproj" />
+  <ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.MilvusOASIS/NextGenSoftware.OASIS.API.Providers.MilvusOASIS.csproj" />
+  <ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.CloudinaryOASIS/NextGenSoftware.OASIS.API.Providers.CloudinaryOASIS.csproj" />
+  <ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.PgVectorOASIS/NextGenSoftware.OASIS.API.Providers.PgVectorOASIS.csproj" />
+  <ProjectReference Include="../../Providers/Identity/NextGenSoftware.OASIS.API.Providers.ProofOfHumanityOASIS/NextGenSoftware.OASIS.API.Providers.ProofOfHumanityOASIS.csproj" />
+  <ProjectReference Include="../../Providers/Cloud/NextGenSoftware.OASIS.API.Providers.OracleObjectStorageOASIS/NextGenSoftware.OASIS.API.Providers.OracleObjectStorageOASIS.csproj" />
+  <ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.AlgoliaOASIS/NextGenSoftware.OASIS.API.Providers.AlgoliaOASIS.csproj" />
+  <ProjectReference Include="../../Providers/Cloud/NextGenSoftware.OASIS.API.Providers.FirebaseOASIS/NextGenSoftware.OASIS.API.Providers.FirebaseOASIS.csproj" />
+</ItemGroup>
+<ItemGroup><ProjectReference Include="../../Providers/Storage/NextGenSoftware.OASIS.API.Providers.ClickHouseOASIS/NextGenSoftware.OASIS.API.Providers.ClickHouseOASIS.csproj" /></ItemGroup>
+<ItemGroup><ProjectReference Include="../../Providers/Network/NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS/NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS.csproj" /></ItemGroup>
+<ItemGroup><ProjectReference Include="../../Providers/Cloud/NextGenSoftware.OASIS.API.Providers.CloudflareD1OASIS/NextGenSoftware.OASIS.API.Providers.CloudflareD1OASIS.csproj" /></ItemGroup>
+<ItemGroup><ProjectReference Include="../../Providers/Network/NextGenSoftware.OASIS.API.Providers.NATSJetStreamOASIS/NextGenSoftware.OASIS.API.Providers.NATSJetStreamOASIS.csproj" /></ItemGroup>
+<ItemGroup><ProjectReference Include="../../Providers/Social/NextGenSoftware.OASIS.API.Providers.TheGraphOASIS/NextGenSoftware.OASIS.API.Providers.TheGraphOASIS.csproj" /></ItemGroup>
+<ItemGroup><ProjectReference Include="../../Providers/Network/NextGenSoftware.OASIS.API.Providers.SubqueryOASIS/NextGenSoftware.OASIS.API.Providers.SubqueryOASIS.csproj" /></ItemGroup>
+<ItemGroup><ProjectReference Include="../../Providers/Identity/NextGenSoftware.OASIS.API.Providers.SelfProtocolOASIS/NextGenSoftware.OASIS.API.Providers.SelfProtocolOASIS.csproj" /></ItemGroup>
+<ItemGroup><ProjectReference Include="../../Providers/Identity/NextGenSoftware.OASIS.API.Providers.HolonymOASIS/NextGenSoftware.OASIS.API.Providers.HolonymOASIS.csproj" /></ItemGroup>
+<ItemGroup><ProjectReference Include="../../Providers/Network/NextGenSoftware.OASIS.API.Providers.CivicOASIS/NextGenSoftware.OASIS.API.Providers.CivicOASIS.csproj" /></ItemGroup>
+<ItemGroup><ProjectReference Include="../../Providers/Maps/NextGenSoftware.OASIS.API.Providers.MapLibreOASIS/NextGenSoftware.OASIS.API.Providers.MapLibreOASIS.csproj" /></ItemGroup>
+<ItemGroup><ProjectReference Include="../../Providers/Maps/NextGenSoftware.OASIS.API.Providers.GOMapOASIS/NextGenSoftware.OASIS.API.Providers.GOMapOASIS.csproj" /></ItemGroup>
+<ItemGroup><ProjectReference Include="../../Providers/Maps/NextGenSoftware.OASIS.API.Providers.TheSandboxOASIS/NextGenSoftware.OASIS.API.Providers.TheSandboxOASIS.csproj" /></ItemGroup>
+<ItemGroup><ProjectReference Include="../../Providers/Identity/NextGenSoftware.OASIS.API.Providers.PolygonIDOASIS/NextGenSoftware.OASIS.API.Providers.PolygonIDOASIS.csproj" /></ItemGroup>
+<ItemGroup><ProjectReference Include="../../Providers/Other/NextGenSoftware.OASIS.API.Providers.SEEDSOASIS/NextGenSoftware.OASIS.API.Providers.SEEDSOASIS.csproj" /></ItemGroup>
+<ItemGroup><ProjectReference Include="../../Providers/Other/NextGenSoftware.OASIS.API.Providers.IntelOpenVINOOASIS/NextGenSoftware.OASIS.API.Providers.IntelOpenVINOOASIS.csproj" /></ItemGroup>
+<ItemGroup><ProjectReference Include="../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.TRONOASIS/NextGenSoftware.OASIS.API.Providers.TRONOASIS.csproj" /></ItemGroup>
 </Project>

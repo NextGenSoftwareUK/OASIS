@@ -142,7 +142,7 @@ async function supervise({ launch = spawn, ready, services, signals = process, s
     for (const owned of children) if (!owned.finished) owned.process.kill('SIGKILL');
     // Do not leave an unobserved child after escalation.
     let terminalTimer;
-    try { await Promise.race([all, new Promise((_, reject) => { terminalTimer = setTimeout(() => reject(Error('Owned IPFS/API process remains unconfirmed after stop.')), stopMilliseconds); })]); }
+    try { await Promise.race([all, new Promise((_, reject) => { terminalTimer = setTimeout(() => reject(Error('Owned native/API process remains unconfirmed after stop.')), stopMilliseconds); })]); }
     finally { clearTimeout(terminalTimer); }
   }
 }
@@ -168,12 +168,21 @@ function assertSandbox(text) {
   let dna;
   try { dna = JSON.parse(text); }
   catch { throw Error('Sandbox DNA could not be parsed.'); }
-  if (dna?.OASIS?.Sandbox?.Enabled !== true) throw Error('Owned IPFS demo runtime requires OASIS.Sandbox.Enabled.');
+  if (dna?.OASIS?.Sandbox?.Enabled !== true) throw Error('Owned native sandbox runtime requires OASIS.Sandbox.Enabled.');
 }
 
 async function main() {
   assertSandbox(process.env.OASIS_DNA_JSON);
   const services = [];
+  if (process.env.OASIS_SANDBOX_OPENVINO === 'true')
+    services.push(await require('./host-sandbox-openvino.cjs').serviceConfiguration(process.env,
+      require('./openvino-model-server-pins.json')));
+  if (process.env.OASIS_SANDBOX_NATS === 'true')
+    services.push(await require('./host-sandbox-nats.cjs').serviceConfiguration(process.env));
+  if (process.env.OASIS_SANDBOX_DAPR === 'true')
+    services.push(...await require('./host-sandbox-dapr.cjs').serviceConfigurations(process.env));
+  if (process.env.OASIS_SANDBOX_DUCKDB === 'true')
+    await require('./host-sandbox-duckdb.cjs').prepareEnvironment(process.env);
   if (process.env.OASIS_SANDBOX_IPFS === 'true') {
     const bundle = captureBundle(process.env.OASIS_SANDBOX_IPFS_BOOTSTRAP_JSON);
     const native = await bootstrap({ bundle, directory: '/data/COSMIC/SandboxIPFS', binary: '/usr/local/bin/ipfs' });
@@ -187,7 +196,23 @@ async function main() {
     const native = await solid.prepare({ bundle, directory: '/data/COSMIC/SandboxSOLID' });
     services.push({ ...native, check: signal => solid.verify(native, signal, Parser) });
   }
-  if (!services.length) throw Error('No native sandbox source was explicitly enabled.');
+  if (process.env.OASIS_SANDBOX_POUCHDB === 'true') {
+    const pouch = require('./host-sandbox-pouchdb.cjs');
+    services.push(pouch.serviceConfiguration(process.env));
+  }
+  if (process.env.OASIS_SANDBOX_WAKU === 'true') {
+    const waku = require('./host-sandbox-waku.cjs');
+    services.push(await waku.serviceConfiguration(process.env));
+  }
+  if (process.env.OASIS_SANDBOX_ORBITDB === 'true' || process.env.OASIS_SANDBOX_GUN === 'true') {
+    const teaching = require('./host-sandbox-teaching.cjs');
+    if (process.env.OASIS_SANDBOX_ORBITDB === 'true')
+      services.push(await teaching.serviceConfiguration(process.env, 'OrbitDBOASIS'));
+    if (process.env.OASIS_SANDBOX_GUN === 'true')
+      services.push(await teaching.serviceConfiguration(process.env, 'GUNOASIS'));
+  }
+  if (!services.length && process.env.OASIS_SANDBOX_DUCKDB !== 'true')
+    throw Error('No native sandbox source was explicitly enabled.');
   return supervise({ services });
 }
 

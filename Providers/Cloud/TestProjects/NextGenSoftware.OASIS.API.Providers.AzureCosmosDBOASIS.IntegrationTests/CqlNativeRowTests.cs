@@ -324,6 +324,10 @@ public class CqlNativeRowTests
 
             await CqlNativeHttpAcceptance.VerifyAsync(provider, manager, actor, seeds[2].Id, seeds[2].Name);
 
+            if (Environment.GetEnvironmentVariable("OASIS_COSMOS_MONGO_ROOT") is string federationRoot)
+                await CqlNativeCloudMongoAcceptance.VerifyAsync(federationRoot, manager, provider,
+                    seeds.Take(3).Select(row => row.Id).ToArray(), actor);
+
             // Delete only these original identities, with independently observed ETags.
             foreach (var seed in seeds)
             {

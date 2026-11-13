@@ -1,0 +1,11 @@
+{
+  "name": "cosmic-owned-pouchdb-teaching-runtime",
+  "private": true,
+  "version": "1.0.0",
+  "dependencies": {
+    "pouchdb": "9.0.0",
+    "express-pouchdb": "4.2.0",
+    "express": "4.21.2",
+    "pouchdb-all-dbs": "1.1.1"
+  }
+}

@@ -37,7 +37,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS
     ///   password  — HTTP Basic auth password (optional)
     ///   apiKey    — Elasticsearch API key (optional; takes priority over Basic auth)
     /// </summary>
-    public class ElasticsearchOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
+    public partial class ElasticsearchOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
     {
         private readonly string _host;
         private readonly HttpClient _http;
@@ -50,9 +50,13 @@ namespace NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS
         };
 
         public ElasticsearchOASIS(string host, string? username = null, string? password = null, string? apiKey = null)
+            : this(new HttpClient(), host, username, password, apiKey) { }
+
+        /// <summary>Use a dedicated caller-owned client, including its TLS trust/transport policy.</summary>
+        public ElasticsearchOASIS(HttpClient client, string host, string? username = null, string? password = null, string? apiKey = null)
         {
             _host = host.TrimEnd('/');
-            _http = new HttpClient();
+            _http = client ?? throw new ArgumentNullException(nameof(client));
             if (!string.IsNullOrEmpty(apiKey))
                 _http.DefaultRequestHeaders.Add("Authorization", $"ApiKey {apiKey}");
             else if (!string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(password))
@@ -150,6 +154,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
         {
             var result = new OASISResult<bool>();
+            IsProviderActivated = false;
             try
             {
                 var strKw = new { type = "keyword" };
@@ -159,14 +164,18 @@ namespace NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS
                 await EnsureIndexAsync("oasis-avatars", new { username = strKw, email = strKw, isDeleted = boolProp, dataJson = new { type = "text", index = false } });
                 await EnsureIndexAsync("oasis-avatar-details", new { username = strKw, email = strKw, dataJson = new { type = "text", index = false } });
                 await EnsureIndexAsync("oasis-holons", new { parentHolonId = strKw, holonType = intProp, isDeleted = boolProp, dataJson = new { type = "text", index = false } });
-                result.Result = true; result.IsError = false; result.Message = "ElasticsearchOASIS activated — indices ready.";
+                IsProviderActivated = true; result.Result = true; result.IsError = false; result.Message = "ElasticsearchOASIS activated — indices ready.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ElasticsearchOASIS: {ex.Message}"); }
             return result;
         }
 
         public override OASISResult<bool> ActivateProvider() => ActivateProviderAsync().Result;
-        public override async Task<OASISResult<bool>> DeActivateProviderAsync() => await Task.FromResult(new OASISResult<bool> { Result = true, IsError = false, Message = "ElasticsearchOASIS deactivated." });
+        public override async Task<OASISResult<bool>> DeActivateProviderAsync()
+        {
+            IsProviderActivated = false;
+            return await Task.FromResult(new OASISResult<bool> { Result = true, Message = "ElasticsearchOASIS deactivated." });
+        }
         public override OASISResult<bool> DeActivateProvider() => DeActivateProviderAsync().Result;
 
         // ─── Avatar saving ────────────────────────────────────────────────────────
@@ -347,15 +356,41 @@ namespace NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS
             var result = new OASISResult<IHolon>();
             try
             {
-                if (holon.Id == Guid.Empty) holon.Id = Guid.NewGuid();
-                if (holon.ProviderUniqueStorageKey == null) holon.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
-                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.ElasticsearchOASIS] = holon.Id.ToString();
-                await UpsertDocAsync("oasis-holons", holon.Id.ToString(), new Dictionary<string, object?>
+                if (holon == null) throw new ArgumentNullException(nameof(holon));
+                var id = holon.Id == Guid.Empty ? Guid.NewGuid() : holon.Id;
+                var key = id.ToString("D");
+                var keys = holon.ProviderUniqueStorageKey == null
+                    ? new Dictionary<Core.Enums.ProviderType, string>()
+                    : new Dictionary<Core.Enums.ProviderType, string>(holon.ProviderUniqueStorageKey);
+                keys[Core.Enums.ProviderType.ElasticsearchOASIS] = key;
+                var payload = JsonSerializer.SerializeToNode(holon, holon.GetType(), _jsonOpts)!.AsObject();
+                payload["id"] = id;
+                payload["providerUniqueStorageKey"] = JsonSerializer.SerializeToNode(keys, _jsonOpts);
+                using var request = new HttpRequestMessage(HttpMethod.Put, $"{_host}/oasis-holons/_doc/{key}")
                 {
-                    ["parentHolonId"] = holon.ParentHolonId.ToString(), ["holonType"] = (int)holon.HolonType,
-                    ["isDeleted"] = holon.IsDeleted, ["dataJson"] = Ser(holon)
-                });
-                result.Result = holon; result.IsError = false; result.Message = $"ElasticsearchOASIS: Holon '{holon.Name}' saved.";
+                    Content = new StringContent(Ser(new Dictionary<string, object?> {
+                        ["parentHolonId"] = holon.ParentHolonId.ToString(), ["holonType"] = (int)holon.HolonType,
+                        ["isDeleted"] = holon.IsDeleted, ["dataJson"] = payload.ToJsonString(_jsonOpts)
+                    }), Encoding.UTF8, "application/json")
+                };
+                using var response = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+                response.EnsureSuccessStatusCode();
+                using var acknowledgement = await ReadNativeResponseAsync(response, 64 * 1024, default);
+                var ack = acknowledgement.RootElement;
+                if (ack.GetProperty("_index").GetString() != "oasis-holons" || ack.GetProperty("_id").GetString() != key ||
+                    ack.GetProperty("_version").GetInt64() < 1 || ack.GetProperty("_seq_no").GetInt64() < 0 ||
+                    ack.GetProperty("_primary_term").GetInt64() < 1 ||
+                    ack.GetProperty("result").GetString() is not ("created" or "updated") ||
+                    ack.GetProperty("_shards").GetProperty("failed").GetInt32() != 0 ||
+                    ack.GetProperty("_shards").GetProperty("successful").GetInt32() < 1)
+                    throw new System.IO.InvalidDataException("Native write did not acknowledge the staged identity/revision.");
+                // Storage acknowledgement publishes keys; HolonManager owns tracking acceptance.
+                holon.Id = id;
+                holon.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
+                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.ElasticsearchOASIS] = key;
+                result.Result = holon;
+                result.IsSaved = true;
+                result.SavedCount = 1;
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ElasticsearchOASIS: {ex.Message}"); }
             return result;
@@ -367,8 +402,22 @@ namespace NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
             var saved = new List<IHolon>(); var errors = new List<string>();
-            foreach (var h in holons) { var r = await SaveHolonAsync(h, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider); if (r.IsError) errors.Add(r.Message ?? ""); else if (r.Result != null) saved.Add(r.Result); }
-            result.Result = saved; result.IsError = errors.Count > 0; result.Message = errors.Count > 0 ? string.Join("; ", errors) : $"ElasticsearchOASIS: {saved.Count} holon(s) saved.";
+            foreach (var h in holons)
+            {
+                var write = await SaveHolonAsync(h, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
+                if (write.IsError)
+                {
+                    errors.Add(write.Message);
+                    if (!continueOnError) break;
+                }
+                else if (write.IsSaved && write.Result != null) saved.Add(write.Result);
+            }
+            result.Result = saved;
+            result.IsError = errors.Count > 0;
+            result.ErrorCount = errors.Count;
+            result.IsSaved = saved.Count > 0;
+            result.SavedCount = saved.Count;
+            result.Message = string.Join("; ", errors);
             return result;
         }
 

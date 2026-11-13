@@ -1,3 +1,5 @@
+using System;
+using System.Numerics;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -8,7 +10,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MonadOASIS
 {
     /// <summary>
     /// OASIS provider for Monad — a high-performance EVM-compatible L1.
-    /// Chain ID:   41454 (mainnet)
+    /// Chain ID:   143 (mainnet)
     /// RPC:        https://rpc.monad.xyz
     /// Explorer:   https://monadexplorer.com
     /// Native token: MON
@@ -28,8 +30,12 @@ namespace NextGenSoftware.OASIS.API.Providers.MonadOASIS
             string hostUri = "https://rpc.monad.xyz",
             string chainPrivateKey = "",
             string contractAddress = "")
-            : base(hostUri, chainPrivateKey, contractAddress)
+            : this(hostUri, chainPrivateKey, contractAddress, new BigInteger(143)) { }
+
+        public MonadOASIS(string hostUri, string chainPrivateKey, string contractAddress, BigInteger chainId)
+            : base(hostUri, chainPrivateKey, contractAddress, chainId)
         {
+            if (chainId <= 0) throw new ArgumentOutOfRangeException(nameof(chainId));
             ProviderName = "MonadOASIS";
             ProviderDescription = "Monad EVM L1 Provider — 10,000+ TPS Parallel EVM Execution";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.MonadOASIS);

@@ -15,7 +15,9 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
+using NextGenSoftware.OASIS.API.Core.Serialization;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Providers.MemcachedOASIS
@@ -30,7 +32,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MemcachedOASIS
     ///   avatars:index — JSON array of GUID strings
     ///   holons:index  — JSON array of GUID strings
     /// </summary>
-    public class MemcachedOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
+    public partial class MemcachedOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
     {
         /// <summary>
         /// When true this provider stores a new record per save and links to the previous
@@ -70,15 +72,25 @@ namespace NextGenSoftware.OASIS.API.Providers.MemcachedOASIS
             var result = new OASISResult<bool>();
             try
             {
+                IsProviderActivated = false;
+                _client?.Dispose();
+                _client = null;
                 var config = new MemcachedClientConfiguration(Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance, new MemcachedClientOptions
                 {
                     Servers = new List<Server> { new Server { Address = _host, Port = _port } }
                 });
                 _client = new MemcachedClient(Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance, config);
+                await GetStoredJsonAsync($"oasis:activation:{Guid.NewGuid():N}");
                 IsProviderActivated = true;
                 result.Result = true; result.IsError = false; result.Message = "MemcachedOASIS activated.";
             }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"MemcachedOASIS: Error activating — {ex.Message}"); }
+            catch (Exception ex)
+            {
+                _client?.Dispose();
+                _client = null;
+                result.Exception = ex;
+                OASISErrorHandling.HandleError(ref result, $"MemcachedOASIS: Error activating — {ex.Message}");
+            }
             return await Task.FromResult(result);
         }
 
@@ -87,24 +99,48 @@ namespace NextGenSoftware.OASIS.API.Providers.MemcachedOASIS
         public override async Task<OASISResult<bool>> DeActivateProviderAsync()
         {
             _client?.Dispose();
+            _client = null;
             IsProviderActivated = false;
             return await Task.FromResult(new OASISResult<bool> { Result = true, IsError = false, Message = "MemcachedOASIS deactivated." });
         }
 
         public override OASISResult<bool> DeActivateProvider() => DeActivateProviderAsync().Result;
 
-        private async Task<T?> GetAsync<T>(string key) where T : class
+        private async Task<string?> GetStoredJsonAsync(string key)
         {
-            var val = await _client.GetValueAsync<string>(SafeKey(key));
-            return val == null ? null : Des<T>(val);
+            var result = await _client.GetAsync<string>(SafeKey(key));
+            if (!result.Success)
+            {
+                // Native binary protocol status 1 means KEY_ENOENT. Connection,
+                // timeout and server errors must not masquerade as an absent key.
+                if (result.StatusCode == 1 && result.Exception == null) return null;
+                throw new System.IO.IOException("Memcached read failed: " + result.Message, result.Exception);
+            }
+            return result.Value ?? throw new System.IO.InvalidDataException("Successful Memcached string read omitted its value.");
         }
 
-        private async Task SetAsync(string key, object value) => await _client.SetAsync(SafeKey(key), Ser(value), 0);
-        private async Task DeleteAsync(string key) => await _client.RemoveAsync(SafeKey(key));
+        private async Task<T?> GetAsync<T>(string key) where T : class
+        {
+            var value = await GetStoredJsonAsync(key);
+            return value == null ? null : Des<T>(value);
+        }
+
+        private Task SetAsync(string key, object value) => SetStoredJsonAsync(key, Ser(value));
+
+        private async Task SetStoredJsonAsync(string key, string json)
+        {
+            if (!await _client.SetAsync(SafeKey(key), json, 0))
+                throw new System.IO.IOException("Memcached did not acknowledge the cache write.");
+        }
+        private async Task DeleteAsync(string key)
+        {
+            if (!await _client.RemoveAsync(SafeKey(key)))
+                throw new System.IO.IOException("Memcached did not acknowledge the cache deletion.");
+        }
 
         private async Task<List<string>> GetIndexAsync(string indexKey)
         {
-            var raw = await _client.GetValueAsync<string>(SafeKey(indexKey));
+            var raw = await GetStoredJsonAsync(indexKey);
             return raw == null ? new List<string>() : JsonSerializer.Deserialize<List<string>>(raw) ?? new List<string>();
         }
 
@@ -134,7 +170,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MemcachedOASIS
                 if (!string.IsNullOrEmpty(avatar.Username)) await SetAsync($"avatar-by-username:{avatar.Username.ToLowerInvariant()}", avatar.Id.ToString());
                 if (!string.IsNullOrEmpty(avatar.Email)) await SetAsync($"avatar-by-email:{avatar.Email.ToLowerInvariant()}", avatar.Id.ToString());
                 await AddToIndexAsync("avatars:index", avatar.Id.ToString());
-                result.Result = avatar; result.IsError = false; result.Message = $"MemcachedOASIS: Avatar '{avatar.Username}' saved.";
+                result.Result = avatar; result.IsError = false; result.IsSaved = true; result.SavedCount = 1; result.Message = $"MemcachedOASIS: Avatar '{avatar.Username}' saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"MemcachedOASIS: Error saving avatar: {ex.Message}"); }
             return result;
@@ -148,8 +184,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MemcachedOASIS
             try
             {
                 var a = await GetAsync<Avatar>($"avatar:{id}");
-                if (a == null || a.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"MemcachedOASIS: No avatar for ID '{id}'."); return result; }
-                result.Result = a; result.IsError = false; result.Message = "MemcachedOASIS: Avatar loaded.";
+                if (a == null || a.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"MemcachedOASIS: No avatar for ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
+                result.Result = a; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "MemcachedOASIS: Avatar loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"MemcachedOASIS: {ex.Message}"); }
             return result;
@@ -162,7 +198,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MemcachedOASIS
             var result = new OASISResult<IAvatar>();
             try
             {
-                var idStr = await _client.GetValueAsync<string>(SafeKey($"avatar-by-username:{username.ToLowerInvariant()}"));
+                var idStr = await GetAsync<string>($"avatar-by-username:{username.ToLowerInvariant()}");
                 if (idStr == null || !Guid.TryParse(idStr, out Guid id)) { OASISErrorHandling.HandleError(ref result, $"MemcachedOASIS: No avatar for username '{username}'."); return result; }
                 return await LoadAvatarAsync(id, version);
             }
@@ -177,7 +213,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MemcachedOASIS
             var result = new OASISResult<IAvatar>();
             try
             {
-                var idStr = await _client.GetValueAsync<string>(SafeKey($"avatar-by-email:{avatarEmail.ToLowerInvariant()}"));
+                var idStr = await GetAsync<string>($"avatar-by-email:{avatarEmail.ToLowerInvariant()}");
                 if (idStr == null || !Guid.TryParse(idStr, out Guid id)) { OASISErrorHandling.HandleError(ref result, $"MemcachedOASIS: No avatar for email '{avatarEmail}'."); return result; }
                 return await LoadAvatarAsync(id, version);
             }
@@ -196,8 +232,17 @@ namespace NextGenSoftware.OASIS.API.Providers.MemcachedOASIS
             {
                 var ids = await GetIndexAsync("avatars:index");
                 var list = new List<IAvatar>();
-                foreach (var idStr in ids) { if (!Guid.TryParse(idStr, out Guid id)) continue; var r = await LoadAvatarAsync(id, version); if (!r.IsError && r.Result != null) list.Add(r.Result); }
-                result.Result = list; result.IsError = false; result.Message = $"MemcachedOASIS: Loaded {list.Count} avatar(s).";
+                foreach (var idText in ids)
+                {
+                    if (!Guid.TryParse(idText, out var id))
+                        throw new System.IO.InvalidDataException("Memcached index contains an invalid record ID.");
+                    var row = await LoadAvatarAsync(id, version);
+                    if (row.ErrorCode == OASISResultErrorCodes.RecordNotFound) continue;
+                    if (row.IsError || row.Result == null)
+                        throw new System.IO.IOException(row.Message, row.Exception);
+                    list.Add(row.Result);
+                }
+                result.Result = list; result.IsError = false; result.IsLoaded = true; result.LoadedCount = list.Count; result.Message = $"MemcachedOASIS: Loaded {list.Count} avatar(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"MemcachedOASIS: {ex.Message}"); }
             return result;
@@ -210,9 +255,30 @@ namespace NextGenSoftware.OASIS.API.Providers.MemcachedOASIS
             var result = new OASISResult<bool>();
             try
             {
-                if (softDelete) { var load = await LoadAvatarAsync(id); if (!load.IsError && load.Result != null) { var a = (Avatar)load.Result; a.DeletedDate = DateTime.UtcNow; await SaveAvatarAsync(a); } }
-                else { await DeleteAsync($"avatar:{id}"); await RemoveFromIndexAsync("avatars:index", id.ToString()); }
-                result.Result = true; result.IsError = false; result.Message = $"MemcachedOASIS: Avatar '{id}' deleted.";
+                var key = $"avatar:{id}";
+                var avatar = await GetAsync<Avatar>(key);
+                if (avatar == null || (softDelete && avatar.IsDeleted))
+                {
+                    result.IsError = true;
+                    result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
+                    result.Message = $"MemcachedOASIS: No avatar to delete for ID '{id}'.";
+                    return result;
+                }
+                if (softDelete)
+                {
+                    avatar.DeletedDate = DateTime.UtcNow;
+                    await SetAsync(key, avatar);
+                }
+                else
+                {
+                    var detailKey = $"avatar-detail:{id}";
+                    if (await GetStoredJsonAsync(detailKey) != null) await DeleteAsync(detailKey);
+                    await DeleteAsync(key);
+                    await RemoveFromIndexAsync("avatars:index", id.ToString("D"));
+                }
+                result.Result = true;
+                result.IsDeleted = true;
+                result.DeletedCount = 1;
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"MemcachedOASIS: {ex.Message}"); }
             return result;
@@ -235,10 +301,10 @@ namespace NextGenSoftware.OASIS.API.Providers.MemcachedOASIS
             try
             {
                 if (d.Id == Guid.Empty) d.Id = Guid.NewGuid();
-                await SetAsync($"avatar-detail:{d.Id}", d);
+                await SetStoredJsonAsync($"avatar-detail:{d.Id}", StoredRecordJson.Serialize(d));
                 if (!string.IsNullOrEmpty(d.Username)) await SetAsync($"detail-by-username:{d.Username.ToLowerInvariant()}", d.Id.ToString());
                 if (!string.IsNullOrEmpty(d.Email)) await SetAsync($"detail-by-email:{d.Email.ToLowerInvariant()}", d.Id.ToString());
-                result.Result = d; result.IsError = false; result.Message = "MemcachedOASIS: AvatarDetail saved.";
+                result.Result = d; result.IsError = false; result.IsSaved = true; result.SavedCount = 1; result.Message = "MemcachedOASIS: AvatarDetail saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"MemcachedOASIS: {ex.Message}"); }
             return result;
@@ -251,18 +317,19 @@ namespace NextGenSoftware.OASIS.API.Providers.MemcachedOASIS
             var result = new OASISResult<IAvatarDetail>();
             try
             {
-                var d = await GetAsync<AvatarDetail>($"avatar-detail:{id}");
-                if (d == null) { OASISErrorHandling.HandleError(ref result, $"MemcachedOASIS: No detail for ID '{id}'."); return result; }
-                result.Result = d; result.IsError = false; result.Message = "MemcachedOASIS: AvatarDetail loaded.";
+                var json = await GetStoredJsonAsync($"avatar-detail:{id}");
+                var d = json == null ? null : StoredRecordJson.DeserializeStored<AvatarDetail>(json);
+                if (d == null) { OASISErrorHandling.HandleError(ref result, $"MemcachedOASIS: No detail for ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
+                result.Result = d; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "MemcachedOASIS: AvatarDetail loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"MemcachedOASIS: {ex.Message}"); }
             return result;
         }
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0) => LoadAvatarDetailAsync(id, version).Result;
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string u, int version = 0) { var result = new OASISResult<IAvatarDetail>(); try { var idStr = await _client.GetValueAsync<string>(SafeKey($"detail-by-username:{u.ToLowerInvariant()}")); if (idStr == null || !Guid.TryParse(idStr, out Guid id)) { OASISErrorHandling.HandleError(ref result, $"MemcachedOASIS: No detail for username '{u}'."); return result; } return await LoadAvatarDetailAsync(id, version); } catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"MemcachedOASIS: {ex.Message}"); } return result; }
+        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string u, int version = 0) { var result = new OASISResult<IAvatarDetail>(); try { var idStr = await GetAsync<string>($"detail-by-username:{u.ToLowerInvariant()}"); if (idStr == null || !Guid.TryParse(idStr, out Guid id)) { OASISErrorHandling.HandleError(ref result, $"MemcachedOASIS: No detail for username '{u}'."); return result; } return await LoadAvatarDetailAsync(id, version); } catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"MemcachedOASIS: {ex.Message}"); } return result; }
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string u, int version = 0) => LoadAvatarDetailByUsernameAsync(u, version).Result;
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string e, int version = 0) { var result = new OASISResult<IAvatarDetail>(); try { var idStr = await _client.GetValueAsync<string>(SafeKey($"detail-by-email:{e.ToLowerInvariant()}")); if (idStr == null || !Guid.TryParse(idStr, out Guid id)) { OASISErrorHandling.HandleError(ref result, $"MemcachedOASIS: No detail for email '{e}'."); return result; } return await LoadAvatarDetailAsync(id, version); } catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"MemcachedOASIS: {ex.Message}"); } return result; }
+        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string e, int version = 0) { var result = new OASISResult<IAvatarDetail>(); try { var idStr = await GetAsync<string>($"detail-by-email:{e.ToLowerInvariant()}"); if (idStr == null || !Guid.TryParse(idStr, out Guid id)) { OASISErrorHandling.HandleError(ref result, $"MemcachedOASIS: No detail for email '{e}'."); return result; } return await LoadAvatarDetailAsync(id, version); } catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"MemcachedOASIS: {ex.Message}"); } return result; }
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string e, int version = 0) => LoadAvatarDetailByEmailAsync(e, version).Result;
 
         public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
@@ -273,7 +340,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MemcachedOASIS
                 var avatarResult = await LoadAllAvatarsAsync(version);
                 var list = new List<IAvatarDetail>();
                 if (!avatarResult.IsError && avatarResult.Result != null) foreach (var a in avatarResult.Result) { var dr = await LoadAvatarDetailAsync(a.Id, version); if (!dr.IsError && dr.Result != null) list.Add(dr.Result); }
-                result.Result = list; result.IsError = false; result.Message = $"MemcachedOASIS: Loaded {list.Count} detail(s).";
+                result.Result = list; result.IsError = false; result.IsLoaded = true; result.LoadedCount = list.Count; result.Message = $"MemcachedOASIS: Loaded {list.Count} detail(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"MemcachedOASIS: {ex.Message}"); }
             return result;
@@ -283,24 +350,80 @@ namespace NextGenSoftware.OASIS.API.Providers.MemcachedOASIS
 
         // ─── Holons ───────────────────────────────────────────────────────────────
 
-        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+        public override Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+            => SaveHolonGraphAsync(holon, saveChildren, recursive, maxChildDepth, 0, continueOnError);
+
+        private async Task<OASISResult<IHolon>> SaveHolonGraphAsync(IHolon holon, bool saveChildren, bool recursive, int maxChildDepth, int currentChildDepth, bool continueOnError)
         {
             var result = new OASISResult<IHolon>();
             try
             {
-                if (holon.Id == Guid.Empty) holon.Id = Guid.NewGuid();
-                await SetAsync($"holon:{holon.Id}", holon);
-                await AddToIndexAsync("holons:index", holon.Id.ToString());
-                result.Result = holon; result.IsError = false; result.Message = $"MemcachedOASIS: Holon '{holon.Name}' saved.";
+                var plan = HolonGraphWritePlan.CreateForSave(new[] { holon }, saveChildren, recursive, maxChildDepth, currentChildDepth);
+                foreach (var node in plan.Nodes)
+                {
+                    try
+                    {
+                        var snapshot = node.Snapshot;
+                        var keys = snapshot.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
+                        keys[Core.Enums.ProviderType.MemcachedOASIS] = snapshot.Id.ToString("D");
+                        await SetAsync($"holon:{snapshot.Id}", snapshot);
+                        await AddToIndexAsync("holons:index", snapshot.Id.ToString("D"));
+
+                        node.Source.Id = snapshot.Id;
+                        node.Source.ParentHolonId = snapshot.ParentHolonId;
+                        node.Source.ProviderUniqueStorageKey = keys;
+                        result.SavedCount++;
+                        if (ReferenceEquals(node.Source, holon)) result.Result = holon;
+                    }
+                    catch (Exception error)
+                    {
+                        result.Exception ??= error;
+                        result.ErrorCount++;
+                        if (!continueOnError) break;
+                    }
+                }
+                result.IsSaved = result.SavedCount > 0;
+                if (result.ErrorCount > 0)
+                    OASISErrorHandling.HandleError(ref result, "Memcached did not acknowledge every graph record and its index.", result.Exception, incrementErrorCount: false);
             }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"MemcachedOASIS: Error saving holon: {ex.Message}"); }
+            catch (Exception error)
+            {
+                OASISErrorHandling.HandleError(ref result, error.Message, error);
+            }
             return result;
         }
 
         public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) => SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider).Result;
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
-        { var result = new OASISResult<IEnumerable<IHolon>>(); var saved = new List<IHolon>(); foreach (var h in holons) { var r = await SaveHolonAsync(h, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider); if (!r.IsError && r.Result != null) saved.Add(r.Result); } result.Result = saved; result.IsError = false; result.Message = $"MemcachedOASIS: Saved {saved.Count} holons."; return result; }
+        {
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            var saved = new List<IHolon>();
+            var errors = new List<string>();
+            foreach (var holon in holons)
+            {
+                var write = await SaveHolonGraphAsync(holon, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError);
+                result.SavedCount += write.SavedCount;
+                if (write.IsError)
+                {
+                    errors.Add(write.Message);
+                    if (write.Result != null) saved.Add(write.Result);
+                    result.Exception ??= write.Exception;
+                    if (!continueOnError) break;
+                }
+                else if (write.IsSaved && write.Result != null)
+                {
+                    saved.Add(write.Result);
+                }
+            }
+            result.Result = saved;
+            result.IsSaved = result.SavedCount > 0;
+            result.IsError = errors.Count > 0;
+            result.ErrorCount = errors.Count;
+            result.Message = result.IsError ? string.Join("; ", errors) : $"MemcachedOASIS: Saved {result.SavedCount} holons.";
+            return result;
+        }
+
         public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) => SaveHolonsAsync(holons, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, saveChildrenOnProvider).Result;
 
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
@@ -309,8 +432,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MemcachedOASIS
             try
             {
                 var h = await GetAsync<Holon>($"holon:{id}");
-                if (h == null || h.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"MemcachedOASIS: No holon for ID '{id}'."); return result; }
-                result.Result = h; result.IsError = false; result.Message = "MemcachedOASIS: Holon loaded.";
+                if (h == null || h.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"MemcachedOASIS: No holon for ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
+                result.Result = h; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "MemcachedOASIS: Holon loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"MemcachedOASIS: {ex.Message}"); }
             return result;
@@ -327,8 +450,18 @@ namespace NextGenSoftware.OASIS.API.Providers.MemcachedOASIS
             {
                 var ids = await GetIndexAsync("holons:index");
                 var list = new List<IHolon>();
-                foreach (var idStr in ids) { if (!Guid.TryParse(idStr, out Guid id)) continue; var r = await LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version); if (r.IsError || r.Result == null || r.Result.IsDeleted) continue; if (holonType != HolonType.All && r.Result.HolonType != holonType) continue; list.Add(r.Result); }
-                result.Result = list; result.IsError = false; result.Message = $"MemcachedOASIS: Loaded {list.Count} holon(s).";
+                foreach (var idText in ids)
+                {
+                    if (!Guid.TryParse(idText, out var id))
+                        throw new System.IO.InvalidDataException("Memcached index contains an invalid record ID.");
+                    var row = await LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version);
+                    if (row.ErrorCode == OASISResultErrorCodes.RecordNotFound) continue;
+                    if (row.IsError || row.Result == null)
+                        throw new System.IO.IOException(row.Message, row.Exception);
+                    if (holonType != HolonType.All && row.Result.HolonType != holonType) continue;
+                    list.Add(row.Result);
+                }
+                result.Result = list; result.IsError = false; result.IsLoaded = true; result.LoadedCount = list.Count; result.Message = $"MemcachedOASIS: Loaded {list.Count} holon(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"MemcachedOASIS: {ex.Message}"); }
             return result;
@@ -337,13 +470,61 @@ namespace NextGenSoftware.OASIS.API.Providers.MemcachedOASIS
         public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadAllHolonsAsync(holonType, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        { var result = new OASISResult<IEnumerable<IHolon>>(); try { var all = await LoadAllHolonsAsync(holonType, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version); var list = new List<IHolon>(); if (!all.IsError && all.Result != null) foreach (var h in all.Result) { if (h.ParentHolonId == id) list.Add(h); } result.Result = list; result.IsError = false; result.Message = $"MemcachedOASIS: Loaded {list.Count} child holon(s)."; } catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"MemcachedOASIS: {ex.Message}"); } return result; }
+        { var result = new OASISResult<IEnumerable<IHolon>>(); try { var all = await LoadAllHolonsAsync(holonType, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version); if (all.IsError) return all; var list = new List<IHolon>(); if (all.Result != null) foreach (var h in all.Result) { if (h.ParentHolonId == id) list.Add(h); } result.Result = list; result.IsError = false; result.IsLoaded = true; result.LoadedCount = list.Count; result.Message = $"MemcachedOASIS: Loaded {list.Count} child holon(s)."; } catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"MemcachedOASIS: {ex.Message}"); } return result; }
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadHolonsForParentAsync(id, holonType, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string pk, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) { if (Guid.TryParse(pk, out Guid id)) return await LoadHolonsForParentAsync(id, holonType, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version); var r = new OASISResult<IEnumerable<IHolon>>(); OASISErrorHandling.HandleError(ref r, $"MemcachedOASIS: Invalid GUID '{pk}'."); return r; }
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string pk, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadHolonsForParentAsync(pk, holonType, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
 
         public async Task<OASISResult<bool>> DeleteHolonSoftAsync(Guid id, bool softDelete = true)
-        { var result = new OASISResult<bool>(); try { if (softDelete) { var load = await LoadHolonAsync(id); if (!load.IsError && load.Result != null) { var h = (Holon)load.Result; h.DeletedDate = DateTime.UtcNow; await SaveHolonAsync(h); } } else { await DeleteAsync($"holon:{id}"); await RemoveFromIndexAsync("holons:index", id.ToString()); } result.Result = true; result.IsError = false; result.Message = $"MemcachedOASIS: Holon '{id}' deleted."; } catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"MemcachedOASIS: {ex.Message}"); } return result; }
+        {
+            var deleted = await DeleteHolonRecordAsync(id, softDelete);
+            return new OASISResult<bool>
+            {
+                Result = deleted.IsDeleted,
+                IsDeleted = deleted.IsDeleted,
+                DeletedCount = deleted.DeletedCount,
+                IsError = deleted.IsError,
+                ErrorCode = deleted.ErrorCode,
+                Exception = deleted.Exception,
+                Message = deleted.Message
+            };
+        }
+
+        private async Task<OASISResult<IHolon>> DeleteHolonRecordAsync(Guid id, bool softDelete)
+        {
+            var result = new OASISResult<IHolon>();
+            try
+            {
+                var key = $"holon:{id}";
+                var holon = await GetAsync<Holon>(key);
+                if (holon == null || (softDelete && holon.IsDeleted))
+                {
+                    result.IsError = true;
+                    result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
+                    result.Message = $"MemcachedOASIS: No holon to delete for ID '{id}'.";
+                    return result;
+                }
+                if (softDelete)
+                {
+                    holon.DeletedDate = DateTime.UtcNow;
+                    await SetAsync(key, holon);
+                }
+                else
+                {
+                    await DeleteAsync(key);
+                    await RemoveFromIndexAsync("holons:index", id.ToString("D"));
+                }
+                result.Result = holon;
+                result.IsDeleted = true;
+                result.DeletedCount = 1;
+            }
+            catch (Exception error)
+            {
+                OASISErrorHandling.HandleError(ref result, $"MemcachedOASIS: {error.Message}", error);
+            }
+            return result;
+        }
+
         public OASISResult<bool> DeleteHolonSoft(Guid id, bool softDelete = true) => DeleteHolonSoftAsync(id, softDelete).Result;
         public async Task<OASISResult<bool>> DeleteHolonSoftAsync(string pk, bool softDelete = true) { if (Guid.TryParse(pk, out Guid id)) return await DeleteHolonSoftAsync(id, softDelete); var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, $"MemcachedOASIS: Invalid GUID '{pk}'."); return r; }
         public OASISResult<bool> DeleteHolonSoft(string pk, bool softDelete = true) => DeleteHolonSoftAsync(pk, softDelete).Result;
@@ -392,24 +573,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MemcachedOASIS
         public override OASISResult<IHolon> DeleteHolon(Guid id)
             => DeleteHolonAsync(id).GetAwaiter().GetResult();
 
-        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
-        {
-            var result = new OASISResult<IHolon>();
-            var loaded = await LoadHolonAsync(id);
-            if (loaded.IsError || loaded.Result == null)
-            {
-                OASISErrorHandling.HandleError(ref result, loaded.Message);
-                return result;
-            }
-
-            var deleted = await DeleteHolonSoftAsync(id, true);
-            if (deleted.IsError)
-                OASISErrorHandling.HandleError(ref result, deleted.Message);
-            else
-                result.Result = loaded.Result;
-
-            return result;
-        }
+        public override Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
+            => DeleteHolonRecordAsync(id, softDelete: true);
 
         public override OASISResult<IHolon> DeleteHolon(string providerKey)
             => DeleteHolonAsync(providerKey).GetAwaiter().GetResult();
@@ -449,6 +614,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MemcachedOASIS
             }
 
             result.Result = matches;
+            result.IsLoaded = true;
+            result.LoadedCount = matches.Count;
             return result;
         }
 
@@ -491,6 +658,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MemcachedOASIS
             }
 
             result.Result = matches;
+            result.IsLoaded = true;
+            result.LoadedCount = matches.Count;
             return result;
         }
 
@@ -501,10 +670,12 @@ namespace NextGenSoftware.OASIS.API.Providers.MemcachedOASIS
         {
             var result = new OASISResult<bool>();
             var saved = await SaveHolonsAsync(holons);
-            if (saved.IsError)
-                OASISErrorHandling.HandleError(ref result, saved.Message);
-            else
-                result.Result = true;
+            result.Result = saved.IsSaved && !saved.IsError;
+            result.IsError = saved.IsError;
+            result.Exception = saved.Exception;
+            result.Message = saved.Message;
+            result.IsSaved = saved.IsSaved;
+            result.SavedCount = saved.SavedCount;
             return result;
         }
 
@@ -535,6 +706,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MemcachedOASIS
             }
 
             result.Result = owned;
+            result.IsLoaded = true;
+            result.LoadedCount = owned.Count;
             return result;
         }
 

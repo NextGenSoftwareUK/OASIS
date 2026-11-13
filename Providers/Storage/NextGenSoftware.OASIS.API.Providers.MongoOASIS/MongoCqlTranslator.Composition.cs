@@ -39,7 +39,7 @@ internal sealed partial class MongoCqlTranslator
         if (plan == null || limits == null || plan.Targets.Count != 1 || plan.Targets[0].Provider != ProviderType.MongoDBOASIS
             || limits.Admit(plan.Options).IsError)
             throw new ArgumentException("Mongo projected All needs one matching plan and admitted remaining work.");
-        return CompileSelected(plan.Query.Projection, limits, plan.Query.Predicate);
+        return CompileSelected(plan.Query.Projection, limits, plan.Query.Predicate,entity:plan.EntitySource);
     }
 
     private MongoCqlCompositionCommand CompileSelected<T, TResult>(CosmicProjectionQuery<T, TResult> query,

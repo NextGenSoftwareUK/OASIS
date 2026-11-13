@@ -11,6 +11,8 @@
     <PackageReference Include="MSTest.TestAdapter" Version="3.1.1" />
     <PackageReference Include="MSTest.TestFramework" Version="3.1.1" />
     <PackageReference Include="coverlet.collector" Version="6.0.0" />
+    <Compile Include="../../../../Examples/CosmicCqlDemo/NativeKeySetWalkthrough.cs" Link="Demo/NativeKeySetWalkthrough.cs" />
+    <Compile Include="../../../../Examples/CosmicCqlDemo/StellarPublicWalkthrough.cs" Link="Demo/StellarPublicWalkthrough.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.StellarOASIS\NextGenSoftware.OASIS.API.Providers.StellarOASIS.csproj" />

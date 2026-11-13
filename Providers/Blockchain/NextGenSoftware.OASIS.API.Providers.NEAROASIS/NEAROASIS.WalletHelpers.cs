@@ -17,8 +17,9 @@ public partial class NEAROASIS
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
-            if (!await EnsureSdkActiveAsync(result)) return result;
-            result.Result = NearNativeAmount.FromYocto(await _sdk.GetBalanceYoctoAsync(accountAddress));
+            var yocto = await _sdk.GetBalanceYoctoAsync(accountAddress, cancellationToken).ConfigureAwait(false);
+            result.Result = NearNativeAmount.FromYocto(yocto);
+            result.Message = "Finalized balance read through the official near-api-js SDK.";
         }
         catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error reading NEAR account balance: {ex.Message}", ex); }
         return result;

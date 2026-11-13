@@ -63,10 +63,10 @@ public sealed class SubscriptionPlanCatalogue(ISubscriptionPlanPriceReader price
 {
     public static IReadOnlyList<SubscriptionPlanDefinition> Definitions { get; } = new[]
     {
-        new SubscriptionPlanDefinition { Id="free", Name="Free", Features=new[]{"1,000 API requests/month", "100 MB storage", "Community support"}, MaxRequestsPerMonth=1000, MaxStorageGB=0, SupportLevel="Community" },
-        new SubscriptionPlanDefinition { Id="bronze", Name="Bronze", Features=new[]{"10,000 API requests/month", "1 GB storage", "Community support", "Basic analytics"}, MaxRequestsPerMonth=10000, MaxStorageGB=1, SupportLevel="Community" },
-        new SubscriptionPlanDefinition { Id="silver", Name="Silver", Features=new[]{"100,000 API requests/month", "10 GB storage", "Email support", "Priority processing", "Advanced analytics"}, MaxRequestsPerMonth=100000, MaxStorageGB=10, SupportLevel="Email" },
-        new SubscriptionPlanDefinition { Id="gold", Name="Gold", Features=new[]{"1,000,000 API requests/month", "100 GB storage", "Priority support", "Advanced analytics", "Custom integrations", "SLA guarantee"}, MaxRequestsPerMonth=1000000, MaxStorageGB=100, SupportLevel="Priority" },
+        new SubscriptionPlanDefinition { Id="free", Name="Free", Features=new[]{"30,000 API requests/month", "100 MB storage", "Community support"}, MaxRequestsPerMonth=30000, MaxStorageGB=0, SupportLevel="Community" },
+        new SubscriptionPlanDefinition { Id="bronze", Name="Bronze", Features=new[]{"300,000 API requests/month", "1 GB storage", "Community support", "Basic analytics"}, MaxRequestsPerMonth=300000, MaxStorageGB=1, SupportLevel="Community" },
+        new SubscriptionPlanDefinition { Id="silver", Name="Silver", Features=new[]{"3,000,000 API requests/month", "10 GB storage", "Email support", "Priority processing", "Advanced analytics"}, MaxRequestsPerMonth=3000000, MaxStorageGB=10, SupportLevel="Email" },
+        new SubscriptionPlanDefinition { Id="gold", Name="Gold", Features=new[]{"30,000,000 API requests/month", "100 GB storage", "Priority support", "Advanced analytics", "Custom integrations", "SLA guarantee"}, MaxRequestsPerMonth=30000000, MaxStorageGB=100, SupportLevel="Priority" },
         new SubscriptionPlanDefinition { Id="enterprise", Name="Enterprise", IsContactSales=true, Features=new[]{"Unlimited API requests", "Unlimited storage", "Dedicated support", "SLA & SSO", "On-premise deployment", "Custom contracts"}, MaxRequestsPerMonth=-1, MaxStorageGB=-1, SupportLevel="Dedicated" }
     };
 

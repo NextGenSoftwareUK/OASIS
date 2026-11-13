@@ -41,7 +41,7 @@ public class EvmStorageConformanceTests
                 throw new InvalidOperationException("This native binding uses only the retained loopback test EVM, never public/mainnet funds.");
             var chain=BigInteger.Parse(Read("OASIS_EVM_CONFORMANCE_CHAIN_ID"));
             if(chain!=31337&&chain!=1337)throw new InvalidOperationException("Retained local test chain identity required.");
-            var key=Read("OASIS_EVM_CONFORMANCE_PRIVATE_KEY");var contract=Read("OASIS_EVM_CONFORMANCE_CONTRACT");
+            var key=Read("OASIS_EVM_CONFORMANCE_PRIVATE_KEY");var contract=Environment.GetEnvironmentVariable($"OASIS_EVM_CONFORMANCE_CONTRACT_{name}_{(sync ? "SYNC" : "ASYNC")}") ?? Read("OASIS_EVM_CONFORMANCE_CONTRACT");
             _=Read("OASIS_WEB3CORE_STORAGE_ENCRYPTION_KEY");
             provider=name=="EthereumOASIS"
                 ? EthereumProviderFactory.CreateForMode(new EthereumOASISProviderSettings{ConnectionString=endpoint.AbsoluteUri,ChainPrivateKey=key,ContractAddress=contract,ChainId=checked((long)chain)},HyperDriveModes.V2,null!)

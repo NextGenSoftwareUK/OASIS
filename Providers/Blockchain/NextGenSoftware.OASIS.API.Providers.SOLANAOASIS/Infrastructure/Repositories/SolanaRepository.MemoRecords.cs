@@ -21,7 +21,7 @@ public partial class SolanaRepository
         {
             var packet=BuildStorageMemo(ciphertext,blockHash);
             RequirePacketSize(packet);
-            return await SubmitAndConfirmAsync(packet);
+            return await SubmitAndObserveStorageMemoAsync(packet, ciphertext);
         }
         var frames=new SolanaMemoFrames(ciphertext);
         // Admit every possible packet size before the first mutation. Native signatures
@@ -36,19 +36,38 @@ public partial class SolanaRepository
             for(var index=0;index<frames.Count;index++)
             {
                 if(index>0)blockHash=await GetWritableBlockHashAsync();
-                var packet=BuildStorageMemo(frames.ChunkMemo(index,index==0?null:committed[^1]),blockHash);
+                var memo=frames.ChunkMemo(index,index==0?null:committed[^1]);
+                var packet=BuildStorageMemo(memo,blockHash);
                 RequirePacketSize(packet);
-                committed.Add(await SubmitAndConfirmAsync(packet));
+                committed.Add(await SubmitAndObserveStorageMemoAsync(packet, memo));
             }
-            var commitPacket=BuildStorageMemo(frames.CommitMemo(committed[^1]),await GetWritableBlockHashAsync());
+            var commitMemo=frames.CommitMemo(committed[^1]);
+            var commitPacket=BuildStorageMemo(commitMemo,await GetWritableBlockHashAsync());
             RequirePacketSize(commitPacket);
-            return await SubmitAndConfirmAsync(commitPacket);
+            return await SubmitAndObserveStorageMemoAsync(commitPacket, commitMemo);
         }
         catch(Exception cause) when(committed.Count>0)
         {
             // Chunk transactions are real mutations, but not logical saved records.
             // Preserve all finalized references plus any attempted-signature inner error.
             throw new SolanaPartialMutationException(committed,cause);
+        }
+    }
+
+    private async Task<string> SubmitAndObserveStorageMemoAsync(byte[] packet, string memo)
+    {
+        var signature = await SubmitAndConfirmAsync(packet);
+        try
+        {
+            var transaction = await transactionReader(signature);
+            var stored = ValidateStoredTransaction(transaction, signature, oasisAccount.PublicKey.Key);
+            if (!stored.AsSpan().SequenceEqual(Encoding.UTF8.GetBytes(memo)))
+                throw new InvalidOperationException("Finalized Solana storage memo differs from the submitted payload.");
+            return signature;
+        }
+        catch (Exception error)
+        {
+            throw new SolanaTransactionReconciliationException(signature, error);
         }
     }
 

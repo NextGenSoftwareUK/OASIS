@@ -57,22 +57,40 @@ namespace NextGenSoftware.OASIS.API.Providers.BaseOASIS;
 
 public static class BaseOASISHelpers
 {
-    public static Avatar ParseBaseToAvatar(JsonElement jsonElement)
+    public static Avatar ParseBaseToAvatar(JsonElement jsonElement) => ParseRecord<Avatar>(jsonElement);
+
+    public static AvatarDetail ParseBaseToAvatarDetail(JsonElement jsonElement) => ParseRecord<AvatarDetail>(jsonElement);
+
+    public static IHolon ParseBaseToHolon(JsonElement jsonElement) => ParseRecord<Holon>(jsonElement);
+
+    private static T ParseRecord<T>(JsonElement row) where T : HolonBase
     {
-        // Implementation for parsing JSON to Avatar
-        return new Avatar();
-    }
-    
-    public static AvatarDetail ParseBaseToAvatarDetail(JsonElement jsonElement)
-    {
-        // Implementation for parsing JSON to AvatarDetail
-        return new AvatarDetail();
-    }
-    
-    public static IHolon ParseBaseToHolon(JsonElement jsonElement)
-    {
-        // Implementation for parsing JSON to Holon
-        return new Holon();
+        if (row.ValueKind != JsonValueKind.Object)
+            throw new InvalidDataException("Base record must be a JSON object.");
+
+        var keys = row.EnumerateObject().Where(property =>
+            string.Equals(property.Name, "id", StringComparison.OrdinalIgnoreCase)).ToArray();
+        if (keys.Length != 1 || keys[0].Value.ValueKind != JsonValueKind.String ||
+            !keys[0].Value.TryGetGuid(out var id) || id == Guid.Empty)
+            throw new InvalidDataException("Base record must contain one nonempty GUID identity.");
+
+        var json = row.GetRawText();
+        if (typeof(T) == typeof(Holon) && row.TryGetProperty("holon_type", out var legacyType))
+        {
+            if (row.EnumerateObject().Any(property =>
+                string.Equals(property.Name, "holonType", StringComparison.OrdinalIgnoreCase)))
+                throw new InvalidDataException("Base record contains conflicting holon type fields.");
+
+            var canonical = System.Text.Json.Nodes.JsonNode.Parse(json)!.AsObject();
+            canonical.Remove("holon_type");
+            canonical["holonType"] = System.Text.Json.Nodes.JsonNode.Parse(legacyType.GetRawText());
+            json = canonical.ToJsonString();
+        }
+
+        var record = NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.DeserializeStored<T>(json);
+        if (record == null || record.Id != id)
+            throw new InvalidDataException("Base record identity disagrees with its decoded payload.");
+        return record;
     }
 }
 

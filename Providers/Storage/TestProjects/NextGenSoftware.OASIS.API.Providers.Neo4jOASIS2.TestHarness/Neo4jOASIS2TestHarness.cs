@@ -1,170 +1,107 @@
-using NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Objects;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Objects.Search;
+using Neo4jProvider = NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Neo4jOASIS2;
 
-namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2.TestHarness
+namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2.TestHarness;
+
+public static class Neo4jOASIS2TestHarness
 {
-    public class Neo4jOASIS2TestHarness
+    public static async Task<int> Main()
     {
-        private static Neo4jOASIS2 _provider;
-
-        public static async Task Main(string[] args)
+        var endpoint = Environment.GetEnvironmentVariable("OASIS_NEO4J_V2_URI");
+        var username = Environment.GetEnvironmentVariable("OASIS_NEO4J_V2_USERNAME");
+        var password = Environment.GetEnvironmentVariable("OASIS_NEO4J_V2_PASSWORD");
+        if (Environment.GetEnvironmentVariable("OASIS_NEO4J_V2_CONFORMANCE") != "1" ||
+            !Uri.TryCreate(endpoint, UriKind.Absolute, out var uri) ||
+            uri.Scheme is not ("bolt" or "bolt+s" or "bolt+ssc" or "neo4j" or "neo4j+s" or "neo4j+ssc") ||
+            !string.IsNullOrEmpty(uri.UserInfo) || string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
         {
-            Console.WriteLine("=== Neo4jOASIS2 Test Harness ===");
-            Console.WriteLine("Testing Neo4jOASIS2 integration with OASIS...\n");
+            Console.Error.WriteLine("Enable conformance and configure the dedicated Neo4j fixture URI and credentials.");
+            return 1;
+        }
 
-            _provider = new Neo4jOASIS2();
-
+        var provider = new Neo4jProvider(endpoint, username, password);
+        try
+        {
+            var active = await provider.ActivateProviderAsync();
+            Require(active.Result && !active.IsError, active.Message);
             try
             {
-                await TestProviderActivation();
-                await TestProviderInformation();
-                await TestAvatarOperations();
-                await TestHolonOperations();
-                await TestSearchOperations();
-                await TestProviderDeactivation();
-
-                Console.WriteLine("\n=== All Tests Completed Successfully! ===");
+                await VerifyStorageAsync(provider);
             }
-            catch (Exception ex)
+            finally
             {
-                Console.WriteLine($"\n=== Test Failed: {ex.Message} ===");
-                Console.WriteLine($"Stack Trace: {ex.StackTrace}");
+                var inactive = await provider.DeActivateProviderAsync();
+                Require(inactive.Result && !inactive.IsError, inactive.Message);
             }
 
-            Console.WriteLine("\nPress any key to exit...");
-            Console.ReadKey();
+            Console.WriteLine("Neo4j V2 native avatar, holon and search checks passed.");
+            return 0;
         }
-
-        private static async Task TestProviderActivation()
+        catch (Exception error)
         {
-            Console.WriteLine("--- Testing Provider Activation ---");
-            
-            Console.WriteLine($"Provider Name: {_provider.ProviderName}");
-            Console.WriteLine($"Provider Type: {_provider.ProviderType}");
-            Console.WriteLine($"Provider Category: {_provider.ProviderCategory}");
-            Console.WriteLine($"Is Activated: {_provider.IsProviderActivated}");
-
-            var activationResult = _provider.ActivateProvider();
-            Console.WriteLine($"Activation Result: {(activationResult.IsError ? "Failed" : "Success")}");
-            if (activationResult.IsError)
-                Console.WriteLine($"Error: {activationResult.Message}");
-
-            Console.WriteLine($"Is Activated After Activation: {_provider.IsProviderActivated}");
-            Console.WriteLine();
+            Console.Error.WriteLine(error.Message);
+            return 1;
         }
+    }
 
-        private static async Task TestProviderInformation()
+    private static async Task VerifyStorageAsync(Neo4jProvider provider)
+    {
+        var marker = Guid.NewGuid().ToString("N");
+        var avatar = new Avatar { Id = Guid.NewGuid(), Username = $"neo4jv2-{marker}", Email = $"{marker}@example.invalid", Version = 1 };
+        var holon = new Holon { Id = Guid.NewGuid(), Name = $"neo4jv2-{marker}", HolonType = HolonType.Holon, Version = 1 };
+
+        var avatarSave = await provider.SaveAvatarAsync(avatar);
+        Require(avatarSave.IsSaved && !avatarSave.IsError, avatarSave.Message);
+        try
         {
-            Console.WriteLine("--- Testing Provider Information ---");
-            
-            var version = _provider.GetProviderVersion();
-            Console.WriteLine($"Provider Version: {version}");
+            var avatarLoad = await provider.LoadAvatarAsync(avatar.Id);
+            Require(!avatarLoad.IsError && avatarLoad.Result?.Username == avatar.Username, avatarLoad.Message);
 
-            var providerType = _provider.GetProviderType();
-            Console.WriteLine($"Provider Type: {providerType}");
-
-            var category = _provider.GetProviderCategory();
-            Console.WriteLine($"Provider Category: {category}");
-
-            var description = _provider.ProviderDescription;
-            Console.WriteLine($"Provider Description: {description}");
-            Console.WriteLine();
-        }
-
-        private static async Task TestAvatarOperations()
-        {
-            Console.WriteLine("--- Testing Avatar Operations ---");
-            
-            var testAvatar = new Avatar
+            var holonSave = await provider.SaveHolonAsync(holon, saveChildren: false);
+            Require(holonSave.IsSaved && !holonSave.IsError, holonSave.Message);
+            try
             {
-                Id = Guid.NewGuid(),
-                Username = "Neo4jOASIS2TestUser",
-                Email = "neo4joasis2test@example.com",
-                FirstName = "Neo4jOASIS2",
-                LastName = "Tester",
-                CreatedDate = DateTime.UtcNow
-            };
+                var holonLoad = await provider.LoadHolonAsync(holon.Id, loadChildren: false);
+                Require(!holonLoad.IsError && holonLoad.Result?.Name == holon.Name, holonLoad.Message);
 
-            Console.WriteLine($"Creating Avatar: {testAvatar.Username} ({testAvatar.Email})");
-            var saveResult = await _provider.SaveAvatarAsync(testAvatar);
-            Console.WriteLine($"Save Avatar Result: {(saveResult.IsError ? "Failed" : "Success")}");
-            if (saveResult.IsError)
-                Console.WriteLine($"Error: {saveResult.Message}");
-
-            Console.WriteLine($"Loading Avatar by ID: {testAvatar.Id}");
-            var loadResult = await _provider.LoadAvatarAsync(testAvatar.Id);
-            Console.WriteLine($"Load Avatar Result: {(loadResult.IsError ? "Failed" : "Success")}");
-            if (loadResult.IsError)
-                Console.WriteLine($"Error: {loadResult.Message}");
-
-            Console.WriteLine();
-        }
-
-        private static async Task TestHolonOperations()
-        {
-            Console.WriteLine("--- Testing Holon Operations ---");
-            
-            var testHolon = new Holon
+                var search = await provider.SearchAsync(new SearchParams
+                {
+                    SearchOnlyForCurrentAvatar = false,
+                    SearchGroups = new()
+                    {
+                        new SearchTextGroup
+                        {
+                            SearchHolons = true,
+                            SearchQuery = marker,
+                            HolonType = HolonType.All,
+                            HolonSearchParams = new SearchHolonParams { Name = true }
+                        }
+                    }
+                }, loadChildren: false);
+                Require(!search.IsError && search.Result?.SearchResultHolons.SingleOrDefault()?.Id == holon.Id, search.Message);
+            }
+            finally
             {
-                Id = Guid.NewGuid(),
-                Name = "Neo4jOASIS2TestHolon",
-                Description = "Test Holon for Neo4jOASIS2 integration",
-                CreatedDate = DateTime.UtcNow
-            };
-
-            Console.WriteLine($"Creating Holon: {testHolon.Name}");
-            var saveResult = await _provider.SaveHolonAsync(testHolon);
-            Console.WriteLine($"Save Holon Result: {(saveResult.IsError ? "Failed" : "Success")}");
-            if (saveResult.IsError)
-                Console.WriteLine($"Error: {saveResult.Message}");
-
-            Console.WriteLine($"Loading Holon by ID: {testHolon.Id}");
-            var loadResult = await _provider.LoadHolonAsync(testHolon.Id);
-            Console.WriteLine($"Load Holon Result: {(loadResult.IsError ? "Failed" : "Success")}");
-            if (loadResult.IsError)
-                Console.WriteLine($"Error: {loadResult.Message}");
-
-            Console.WriteLine();
+                var deleted = await provider.DeleteHolonAsync(holon.Id);
+                Require(deleted.IsDeleted && !deleted.IsError, deleted.Message);
+            }
         }
-
-        private static async Task TestSearchOperations()
+        finally
         {
-            Console.WriteLine("--- Testing Search Operations ---");
-            
-            var searchParams = new SearchParams
-            {
-                SearchQuery = "test",
-                SearchType = SearchType.Avatar
-            };
-
-            Console.WriteLine($"Searching Avatars with query: '{searchParams.SearchQuery}'");
-            var avatarSearchResult = await _provider.SearchAvatarsAsync(searchParams);
-            Console.WriteLine($"Avatar Search Result: {(avatarSearchResult.IsError ? "Failed" : "Success")}");
-            if (avatarSearchResult.IsError)
-                Console.WriteLine($"Error: {avatarSearchResult.Message}");
-            else
-                Console.WriteLine($"Found {avatarSearchResult.Result?.NumberOfResults ?? 0} avatars");
-
-            Console.WriteLine();
+            var deleted = await provider.DeleteAvatarAsync(avatar.Id, softDelete: false);
+            Require(deleted.IsDeleted && !deleted.IsError, deleted.Message);
         }
+    }
 
-        private static async Task TestProviderDeactivation()
-        {
-            Console.WriteLine("--- Testing Provider Deactivation ---");
-            
-            Console.WriteLine($"Is Activated Before Deactivation: {_provider.IsProviderActivated}");
-            
-            var deactivationResult = _provider.DeActivateProvider();
-            Console.WriteLine($"Deactivation Result: {(deactivationResult.IsError ? "Failed" : "Success")}");
-            if (deactivationResult.IsError)
-                Console.WriteLine($"Error: {deactivationResult.Message}");
-
-            Console.WriteLine($"Is Activated After Deactivation: {_provider.IsProviderActivated}");
-            Console.WriteLine();
-        }
+    private static void Require(bool condition, string message)
+    {
+        if (!condition)
+            throw new InvalidOperationException(message);
     }
 }

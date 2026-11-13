@@ -281,6 +281,11 @@ contract Web3CoreOASIS is ERC721, Ownable, IWeb3CoreOASIS {
         nextTokenId++;
     }
 
+    function burn(uint256 tokenId) external {
+        require(ownerOf(tokenId) == msg.sender, OWNER_NOT_TOKEN);
+        _burn(tokenId);
+    }
+
     function sendNFT(
         address fromWalletAddress,
         address toWalletAddress,

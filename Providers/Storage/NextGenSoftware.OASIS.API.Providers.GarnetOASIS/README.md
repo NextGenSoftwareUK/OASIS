@@ -55,3 +55,9 @@ Published NuGet versions are immutable. Updated documentation ships with a new u
 Storage implementation: this facade reuses the Redis SDK connection/conditional transport and canonical encrypted OASIS records, queries, graphs and optional history. The original constructor parameter/default (`connectionString = "localhost:3278"`) and default soft deletion remain. Use the explicit `DeleteHolonSoft(..., false)` API for hard deletion. The shared implementation reports version 2.0.0; facade identity remains `GarnetOASIS`. This is source consolidation, not native `GarnetOASIS` certification.
 
 Configure `OASIS_GARNET_STORAGE_ENCRYPTION_KEY` as canonical Base64 for a separately persisted 32-byte storage key, or use the constructor's key resolver. Keep that key with the data/backups; constructors never generate or replace it. Existing plaintext/legacy index layouts are refused, not converted or silently read. This is a storage-format change: do not point at existing data without a separately reviewed migration. Metadata/identity queries still use the shared implementation and opaque keyed indexes. Native product acceptance must verify the required conditional script/scan primitives and deployment configuration; a pass against Redis does not certify this product.
+
+### Garnet server configuration
+
+Enable Lua scripting and Lua transaction mode on the Garnet instance used by this provider. The shared Redis transport uses conditional Lua mutations for record updates and deletes. On Garnet 2.2.5 the verified launch flags are `--lua --lua-transaction-mode`. Set the bind address and port separately for your deployment.
+
+The focused native child cleanup test passed in both calling modes with that configuration. It confirmed removal of the encrypted relationship key, absence of the deleted child, and continued access to the parent. The same test stopped at the default deletion call when Lua was disabled.

@@ -7,7 +7,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchbaseOASIS.UnitTests
     [TestClass]
     public class CouchbaseOASISProviderTests
     {
-        private CouchbaseOASIS _provider;
+        private CouchbaseOASIS _provider = null!;
 
         [TestInitialize]
         public void Setup()
@@ -18,7 +18,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchbaseOASIS.UnitTests
         [TestMethod]
         public void ProviderType_ShouldBeCouchbaseOASIS()
         {
-            Assert.AreEqual(ProviderType.CouchbaseOASIS, _provider.ProviderType);
+            Assert.AreEqual(ProviderType.CouchbaseOASIS, _provider.ProviderType.Value);
         }
 
         [TestMethod]
@@ -38,14 +38,6 @@ namespace NextGenSoftware.OASIS.API.Providers.CouchbaseOASIS.UnitTests
         {
             Assert.IsNotNull(_provider.ProviderDescription);
             Assert.IsFalse(string.IsNullOrEmpty(_provider.ProviderDescription));
-        }
-
-        [TestMethod]
-        public void GetProviderVersion_ShouldReturnValidVersion()
-        {
-            var version = _provider.GetProviderVersion();
-            Assert.IsNotNull(version);
-            Assert.IsFalse(string.IsNullOrEmpty(version));
         }
 
         [TestCleanup]

@@ -1,0 +1,296 @@
+using System.Text.Json;
+using Microsoft.Extensions.Configuration;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Queries;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
+
+namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests;
+
+public sealed class PublicBatchReviewFactAttribute : FactAttribute
+{
+    public PublicBatchReviewFactAttribute()
+    {
+        if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("COSMIC_CQL_PUBLIC_REVIEW")))
+            Skip = "Explicit public-only export of the protected prepared batch required; no hosted mutation.";
+    }
+}
+
+public sealed class CqlPreparedPublicBatchTests
+{
+    [PublicBatchReviewFact]
+    public async Task ActualThreeFoldCandidatePlansFourPresetsWithShippingCapabilities()
+        => await CheckPreparedBatch(1);
+
+    [PublicBatchReviewFact]
+    public async Task ActualClickHouseCandidatePlansFourPresetsWithShippingCapabilities()
+        => await CheckPreparedBatch(1);
+
+    [PublicBatchReviewFact]
+    public async Task ActualZcashCandidatePlansFourPresetsWithShippingCapabilities()
+        => await CheckPreparedBatch(1);
+
+    [PublicBatchReviewFact]
+    public async Task ActualBittensorCandidatePlansFourPresetsWithShippingCapabilities()
+        => await CheckPreparedBatch(1);
+
+    [PublicBatchReviewFact]
+    public async Task ActualSevenSourceCandidatePlansAllTwentyEightPresetsWithShippingCapabilities()
+        => await CheckPreparedBatch(7);
+
+    [PublicBatchReviewFact]
+    public async Task ActualTenSourceCandidatePlansAllFortyPresetsWithShippingCapabilities()
+        => await CheckPreparedBatch(10);
+
+    [PublicBatchReviewFact]
+    public async Task ActualOptimismCandidatePlansFourPresetsWithShippingCapabilities()
+        => await CheckPreparedBatch(1);
+
+    [PublicBatchReviewFact]
+    public async Task ActualLineaScrollCandidatePlansEightPresetsWithShippingCapabilities()
+        => await CheckPreparedBatch(2);
+
+    [PublicBatchReviewFact]
+    public async Task ActualZkSyncAbstractCandidatePlansEightPresetsWithShippingCapabilities()
+        => await CheckPreparedBatch(2);
+
+    [PublicBatchReviewFact]
+    public async Task ActualMonadCandidatePlansFourPresetsWithShippingCapabilities()
+        => await CheckPreparedBatch(1);
+
+    [PublicBatchReviewFact]
+    public async Task ActualSeiCandidatePlansFourPresetsWithShippingCapabilities()
+        => await CheckPreparedBatch(1);
+
+    // Validate the complete merged publisher output, including cross-provider
+    // resolution against the same shipping Mongo capabilities used by the API.
+    [PublicBatchReviewFact]
+    public async Task ActualSeventeenSourceCandidatePlansAllSixtyEightPresetsWithShippingCapabilities()
+        => await CheckPreparedBatch(17);
+
+    [PublicBatchReviewFact]
+    public async Task ActualBerachainCandidatePlansFourPresetsWithShippingCapabilities()
+        => await CheckPreparedBatch(1);
+
+    [PublicBatchReviewFact]
+    public async Task ActualBitcoinCandidatePlansFourPresetsWithShippingCapabilities()
+        => await CheckPreparedBatch(1);
+
+    [PublicBatchReviewFact]
+    public async Task ActualXrplCandidatePlansFourPresetsWithShippingCapabilities()
+        => await CheckPreparedBatch(1);
+
+    [PublicBatchReviewFact]
+    public async Task ActualStellarCandidatePlansFourPresetsWithShippingCapabilities()
+        => await CheckPreparedBatch(1);
+
+    [PublicBatchReviewFact]
+    public async Task ActualAlgorandCandidatePlansFourPresetsWithShippingCapabilities()
+        => await CheckPreparedBatch(1);
+
+    [PublicBatchReviewFact]
+    public async Task ActualAptosCandidatePlansFourPresetsWithShippingCapabilities()
+        => await CheckPreparedBatch(1);
+
+    [PublicBatchReviewFact]
+    public async Task ActualHederaCandidatePlansFourPresetsWithShippingCapabilities()
+        => await CheckPreparedBatch(1);
+
+    [PublicBatchReviewFact]
+    public async Task ActualSuiCandidatePlansFourPresetsWithShippingCapabilities()
+        => await CheckPreparedBatch(1);
+
+    [PublicBatchReviewFact]
+    public async Task ActualElrondCandidatePlansFourPresetsWithShippingCapabilities()
+        => await CheckPreparedBatch(1);
+
+    [PublicBatchReviewFact]
+    public async Task ActualRadixCandidatePlansFourPresetsWithShippingCapabilities()
+        => await CheckPreparedBatch(1);
+
+    [PublicBatchReviewFact]
+    public async Task ActualStarknetCandidatePlansFourPresetsWithShippingCapabilities()
+        => await CheckPreparedBatch(1);
+
+    [PublicBatchReviewFact]
+    public async Task ActualCardanoCandidatePlansFourPresetsWithShippingCapabilities()
+        => await CheckPreparedBatch(1);
+
+    [PublicBatchReviewFact]
+    public async Task ActualArweaveCandidatePlansFourPresetsWithShippingCapabilities()
+        => await CheckPreparedBatch(1);
+
+    [PublicBatchReviewFact]
+    public async Task ActualTonCandidatePlansFourPresetsWithShippingCapabilities()
+    {
+        await CheckPreparedBatch(1);
+        // The live paced source needs an explicit duration on both leaf and
+        // paired requests. A stale five-second candidate must fail this gate.
+        using var review = JsonDocument.Parse(await System.IO.File.ReadAllBytesAsync(
+            Environment.GetEnvironmentVariable("COSMIC_CQL_PUBLIC_REVIEW")!));
+        foreach (var example in review.RootElement.GetProperty("examples").GetProperty("TONOASIS").EnumerateArray())
+            Assert.Equal(30000, example.GetProperty("request").GetProperty("maximumDurationMilliseconds").GetInt32());
+    }
+
+    [PublicBatchReviewFact]
+    public async Task ActualFilecoinCandidatePlansFourPresetsWithShippingCapabilities()
+        => await CheckPreparedBatch(1);
+
+    [PublicBatchReviewFact]
+    public async Task ActualTelosCandidatePlansFourPresetsWithShippingCapabilities()
+        => await CheckPreparedBatch(1);
+
+    [PublicBatchReviewFact]
+    public async Task ActualEosioCandidatePlansFourPresetsWithShippingCapabilities()
+        => await CheckPreparedBatch(1);
+
+    [PublicBatchReviewFact]
+    public async Task ActualChainLinkCandidatePlansFourPresetsWithShippingCapabilities()
+        => await CheckPreparedBatch(1);
+
+    [PublicBatchReviewFact]
+    public async Task ActualBlueSkyCandidatePlansFourPresetsWithShippingCapabilities()
+        => await CheckPreparedBatch(1);
+
+    [PublicBatchReviewFact]
+    public async Task ActualNostrCandidatePlansFourPresetsWithShippingCapabilities()
+        => await CheckPreparedBatch(1);
+
+    [PublicBatchReviewFact]
+    public async Task ActualMatrixCandidatePlansFourPresetsWithShippingCapabilities()
+        => await CheckPreparedBatch(1);
+
+    [PublicBatchReviewFact]
+    public async Task ActualStacksCandidatePlansFourPresetsWithShippingCapabilities()
+        => await CheckPreparedBatch(1);
+
+    [PublicBatchReviewFact]
+    public async Task ActualWormholeCandidatePlansFourPresetsWithShippingCapabilities()
+        => await CheckPreparedBatch(1);
+
+    [PublicBatchReviewFact]
+    public async Task ActualAkashCandidatePlansFourPresetsWithShippingCapabilities()
+        => await CheckPreparedBatch(1);
+
+    [PublicBatchReviewFact]
+    public async Task ActualEclipseCandidatePlansFourPresetsWithShippingCapabilities()
+        => await CheckPreparedBatch(1);
+
+    [PublicBatchReviewFact]
+    public async Task ActualEnsCandidatePlansFourPresetsWithShippingCapabilities()
+        => await CheckPreparedBatch(1);
+
+    [PublicBatchReviewFact]
+    public async Task ActualBlockscoutCandidatePlansFourPresetsWithShippingCapabilities()
+        => await CheckPreparedBatch(1);
+
+    [PublicBatchReviewFact]
+    public async Task ActualCelestiaCandidatePlansFourPresetsWithShippingCapabilities()
+        => await CheckPreparedBatch(1);
+
+    [PublicBatchReviewFact]
+    public async Task ActualChainflipCandidatePlansFourPresetsWithShippingCapabilities()
+        => await CheckPreparedBatch(1);
+
+    private static async Task CheckPreparedBatch(int expected)
+    {
+        var path = Environment.GetEnvironmentVariable("COSMIC_CQL_PUBLIC_REVIEW")!;
+        var bytes = await System.IO.File.ReadAllBytesAsync(path);
+        Assert.InRange(bytes.Length, 1, 262144);
+        using var json = JsonDocument.Parse(bytes);
+        Assert.Equal(new[] { "examples", "profiles" }, json.RootElement.EnumerateObject().Select(value => value.Name).Order().ToArray());
+        var profiles = json.RootElement.GetProperty("profiles");
+        Assert.Equal(expected, profiles.EnumerateObject().Count());
+        var exampleJson = json.RootElement.GetProperty("examples");
+        // Exercise the shipping per-provider configuration layout used by hosted
+        // deployment variables, rather than only the unpartitioned JSON parser.
+        var configuration = new ConfigurationBuilder().AddInMemoryCollection(
+            exampleJson.EnumerateObject().Select(entry => new KeyValuePair<string, string?>(
+                CqlHostedQueryExamples.ProviderConfigurationSection + ":" + entry.Name,
+                entry.Value.GetRawText()))).Build();
+        var examples = CqlHostedQueryExamples.FromConfiguration(configuration);
+        var disposables = new List<IDisposable>();
+        var sources = new Dictionary<ProviderType, ICosmicQueryStorageProvider>();
+        try
+        {
+            foreach (var profile in profiles.EnumerateObject())
+            {
+                var type = Enum.Parse<ProviderType>(profile.Name);
+                ICosmicQueryStorageProvider source = type switch
+                {
+                    ProviderType.ThreeFoldOASIS => Providers.ThreeFoldOASIS.ThreeFoldPublicNodeMetadataSource.FromJson(profile.Value.GetRawText()),
+                    ProviderType.ClickHouseOASIS => Providers.ClickHouseOASIS.ClickHousePublicCountryMetadataSource.FromJson(profile.Value.GetRawText()),
+                    ProviderType.ZcashOASIS => Providers.ZcashOASIS.ZcashPublicBlockMetadataSource.FromJson(profile.Value.GetRawText()),
+                    ProviderType.BittensorOASIS => Providers.BittensorOASIS.BittensorPublicHeaderMetadataSource.FromJson(profile.Value.GetRawText()),
+                    ProviderType.AkashOASIS => Providers.AkashOASIS.AkashPublicProviderMetadataSource.FromJson(profile.Value.GetRawText()),
+                    ProviderType.EclipseOASIS => Providers.EclipseOASIS.EclipsePublicAccountMetadataSource.FromJson(profile.Value.GetRawText()),
+                    ProviderType.ENSOASIS => Providers.ENSOASIS.EnsPublicNameMetadataSource.FromJson(profile.Value.GetRawText()),
+                    ProviderType.BlockscoutOASIS => Providers.BlockscoutOASIS.BlockscoutPublicAddressMetadataSource.FromJson(profile.Value.GetRawText()),
+                    ProviderType.CelestiaOASIS => Providers.CelestiaOASIS.CelestiaPublicHeaderMetadataSource.FromJson(profile.Value.GetRawText()),
+                    ProviderType.ChainflipOASIS => Providers.ChainflipOASIS.ChainflipPublicSwapMetadataSource.FromJson(profile.Value.GetRawText()),
+                    ProviderType.WormholeOASIS => Providers.WormholeOASIS.WormholePublicOperationMetadataSource.FromJson(profile.Value.GetRawText()),
+                    ProviderType.BlockStackOASIS => Providers.BlockStackOASIS.StacksPublicPrincipalMetadataSource.FromJson(profile.Value.GetRawText()),
+                    ProviderType.MatrixOASIS => Providers.MatrixOASIS.MatrixPublicRoomMetadataSource.FromJson(profile.Value.GetRawText()),
+                    ProviderType.NostrOASIS => Providers.NostrOASIS.NostrPublicEventMetadataSource.FromJson(profile.Value.GetRawText()),
+                    ProviderType.BlueSkyOASIS => Providers.BlueSkyOASIS.BlueSkyPublicProfileMetadataSource.FromJson(profile.Value.GetRawText()),
+                    ProviderType.ChainLinkOASIS => Providers.ChainLinkOASIS.ChainLinkPublicFeedMetadataSource.FromJson(profile.Value.GetRawText()),
+                    ProviderType.EOSIOOASIS => Providers.EOSIOOASIS.EosioPublicAccountMetadataSource.FromJson(profile.Value.GetRawText()),
+                    ProviderType.TelosOASIS => Providers.TelosOASIS.TelosPublicAccountMetadataSource.FromJson(profile.Value.GetRawText()),
+                    ProviderType.FilecoinOASIS => Providers.FilecoinOASIS.FilecoinPublicAccountMetadataSource.FromJson(profile.Value.GetRawText()),
+                    ProviderType.TONOASIS => Providers.TONOASIS.TonPublicHeaderMetadataSource.FromJson(profile.Value.GetRawText()),
+                    ProviderType.ArweaveOASIS => Providers.ArweaveOASIS.ArweavePublicHeaderMetadataSource.FromJson(profile.Value.GetRawText()),
+                    ProviderType.CardanoOASIS => Providers.CardanoOASIS.CardanoPublicHeaderMetadataSource.FromJson(profile.Value.GetRawText()),
+                    ProviderType.StarknetOASIS => Providers.StarknetOASIS.StarknetPublicHeaderMetadataSource.FromJson(profile.Value.GetRawText()),
+                    ProviderType.RadixOASIS => Providers.RadixOASIS.RadixPublicResourceMetadataSource.FromJson(profile.Value.GetRawText()),
+                    ProviderType.GoogleCloudOASIS => Providers.GoogleCloudOASIS.GoogleCloudPublicMetadataSource.FromJson(profile.Value.GetRawText()),
+                    ProviderType.EthereumOASIS => Providers.EthereumOASIS.EthereumPublicAccountMetadataSource.FromJson(profile.Value.GetRawText()),
+                    ProviderType.PolygonOASIS => Providers.PolygonOASIS.PolygonPublicAccountMetadataSource.FromJson(profile.Value.GetRawText()),
+                    ProviderType.ArbitrumOASIS => Providers.ArbitrumOASIS.ArbitrumPublicAccountMetadataSource.FromJson(profile.Value.GetRawText()),
+                    ProviderType.CosmosBlockChainOASIS => Providers.CosmosBlockChainOASIS.CosmosPublicValidatorMetadataSource.FromJson(profile.Value.GetRawText()),
+                    ProviderType.PolkadotOASIS => Providers.PolkadotOASIS.PolkadotPublicHeaderMetadataSource.FromJson(profile.Value.GetRawText()),
+                    ProviderType.NEAROASIS => Providers.NEAROASIS.NearPublicAccountMetadataSource.FromJson(profile.Value.GetRawText()),
+                    ProviderType.BaseOASIS => Providers.BaseOASIS.BasePublicAccountMetadataSource.FromJson(profile.Value.GetRawText()),
+                    ProviderType.AvalancheOASIS => Providers.AvalancheOASIS.AvalanchePublicAccountMetadataSource.FromJson(profile.Value.GetRawText()),
+                    ProviderType.BNBChainOASIS => Providers.BNBChainOASIS.BnbPublicAccountMetadataSource.FromJson(profile.Value.GetRawText()),
+                    ProviderType.OptimismOASIS => Providers.OptimismOASIS.OptimismPublicAccountMetadataSource.FromJson(profile.Value.GetRawText()),
+                    ProviderType.LineaOASIS => Providers.LineaOASIS.LineaPublicAccountMetadataSource.FromJson(profile.Value.GetRawText()),
+                    ProviderType.ScrollOASIS => Providers.ScrollOASIS.ScrollPublicAccountMetadataSource.FromJson(profile.Value.GetRawText()),
+                    ProviderType.ZkSyncOASIS => Providers.ZkSyncOASIS.ZkSyncPublicAccountMetadataSource.FromJson(profile.Value.GetRawText()),
+                    ProviderType.AbstractOASIS => Providers.AbstractOASIS.AbstractPublicAccountMetadataSource.FromJson(profile.Value.GetRawText()),
+                    ProviderType.MonadOASIS => Providers.MonadOASIS.MonadPublicAccountMetadataSource.FromJson(profile.Value.GetRawText()),
+                    ProviderType.StellarOASIS => Providers.StellarOASIS.StellarPublicHeaderMetadataSource.FromJson(profile.Value.GetRawText()),
+                    ProviderType.AlgorandOASIS => NextGenSoftware.OASIS.API.Providers.AlgorandOASIS.AlgorandPublicAccountMetadataSource.FromJson(profile.Value.GetRawText()),
+                    ProviderType.AptosOASIS => NextGenSoftware.OASIS.API.Providers.AptosOASIS.AptosPublicAccountMetadataSource.FromJson(profile.Value.GetRawText()),
+                    ProviderType.ElrondOASIS => Providers.ElrondOASIS.ElrondPublicAccountMetadataSource.FromJson(profile.Value.GetRawText()),
+                    ProviderType.SuiOASIS => Providers.SuiOASIS.SuiPublicObjectMetadataSource.FromJson(profile.Value.GetRawText()),
+                    ProviderType.HashgraphOASIS => NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.HederaPublicAccountMetadataSource.FromJson(profile.Value.GetRawText()),
+                    ProviderType.XRPLOASIS => Providers.XRPLOASIS.XrplPublicHeaderMetadataSource.FromJson(profile.Value.GetRawText()),
+                    ProviderType.BitcoinOASIS => Providers.BitcoinOASIS.BitcoinPublicHeaderMetadataSource.FromJson(profile.Value.GetRawText()),
+                    ProviderType.BerachainOASIS => Providers.BerachainOASIS.BerachainPublicAccountMetadataSource.FromJson(profile.Value.GetRawText()),
+                    ProviderType.SeiOASIS => Providers.SeiOASIS.SeiPublicAccountMetadataSource.FromJson(profile.Value.GetRawText()),
+                    _ => throw new InvalidOperationException("Unexpected source in the explicit reviewed batch.")
+                };
+                disposables.Add((IDisposable)source);
+                Assert.Equal(type, source.QueryProviderType);
+                Assert.False(((IOASISStorageProvider)source).IsProviderActivated);
+                sources.Add(type, source);
+            }
+            CosmicQueryCapabilities Resolve(ProviderType type) => type == ProviderType.MongoDBOASIS
+                ? Providers.MongoDBOASIS.MongoDBOASIS.CqlCapabilities : sources[type].QueryCapabilities;
+            int total = 0;
+            foreach (var (type, source) in sources)
+            {
+                // The actual publisher output, not a second hand-built request set.
+                var planned = examples.For(type, source.QueryCapabilities, Resolve);
+                Assert.Equal(4, planned.Count);
+                Assert.Equal(2, planned.Count(row => row.Operation == "Rows"));
+                Assert.Equal(2, planned.Count(row => row.Operation == "Federation"));
+                Assert.All(planned, row => Assert.True(row.Available, type + ":" + row.Id + ":" + row.ErrorCode));
+                Assert.False(((IOASISStorageProvider)source).IsProviderActivated);
+                total += planned.Count;
+            }
+            Assert.Equal(expected * 4, total);
+        }
+        finally { foreach (var disposable in disposables) disposable.Dispose(); }
+    }
+}

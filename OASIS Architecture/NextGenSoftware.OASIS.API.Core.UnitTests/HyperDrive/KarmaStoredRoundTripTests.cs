@@ -30,6 +30,37 @@ public sealed partial class HyperDriveProviderExecutionTests
     }
 
     [Theory]
+    [InlineData(false)] [InlineData(true)]
+    public async Task HistoricalJsonTextHistoryKeepsAmountsAndTransactions(bool synchronous)
+    {
+        var avatar=Guid.NewGuid();var transaction=Guid.NewGuid();var utc=DateTime.UtcNow;
+        var history=StoredRecordJson.Serialize(new[]{new Dictionary<string,object> {
+            ["id"]=transaction,["avatarId"]=avatar,["amount"]=-37L,["sourceType"]="Game",
+            ["description"]="Historical source audit",["timestamp"]=utc,["relatedEntityId"]=null }});
+        var provider=CreateActiveProvider(ProviderType.AWSOASIS,"historical-json-history-control");
+        DeclareLeafChildReadContract(provider);
+        OASISResult<IHolon> Read(Guid id)=>new(LeafSettingsObservation(id,new Holon {
+            MetaData=new() {{"totalKarma",463L},{"history",history}} }));
+        provider.Setup(value=>value.LoadHolonAsync(It.IsAny<Guid>(),true,true,0,true,false,0))
+            .ReturnsAsync((Guid id,bool a,bool b,int c,bool d,bool e,int f)=>Read(id));
+        provider.Setup(value=>value.LoadHolon(It.IsAny<Guid>(),true,true,0,true,false,0))
+            .Returns((Guid id,bool a,bool b,int c,bool d,bool e,int f)=>Read(id));
+        var dna=CreateDna(HyperDriveModes.V2);var providers=new ProviderManager(null,dna)
+            {IsAutoFailOverEnabled=false,IsAutoLoadBalanceEnabled=false,IsAutoReplicationEnabled=false};
+        providers.RegisterProvider(provider.Object);
+        var manager=new KarmaManager(provider.Object,dna,providers);
+        var balance=synchronous?manager.GetKarma(avatar):await manager.GetKarmaAsync(avatar);
+        Assert.False(balance.IsError,balance.Message);Assert.Equal(463L,balance.Result);
+        var result=await manager.GetKarmaHistoryAsync(avatar);
+        Assert.False(result.IsError,result.Message);var row=Assert.Single(result.Result);
+        Assert.Equal(transaction,row.Id);Assert.Equal(-37L,row.Amount);Assert.Equal(utc,row.Timestamp);
+        Assert.Equal("Historical source audit",row.Description);
+        var stats=await manager.GetKarmaStatsAsync(avatar);
+        Assert.False(stats.IsError,stats.Message);Assert.Equal(37L,stats.Result["totalSpent"]);
+        provider.Verify(value=>value.SaveHolonAsync(It.IsAny<IHolon>(),It.IsAny<bool>(),It.IsAny<bool>(),It.IsAny<int>(),It.IsAny<bool>(),It.IsAny<bool>()),Times.Never);
+    }
+
+    [Theory]
     [InlineData(false,false)] [InlineData(true,false)]
     [InlineData(false,true)] [InlineData(true,true)]
     public async Task KarmaLedgerSurvivesCanonicalStorageRoundTrips(bool synchronous,bool rawStoredMetadata)

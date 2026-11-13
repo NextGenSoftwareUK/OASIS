@@ -1,0 +1,92 @@
+name: QuestDB native CQL restart
+
+on:
+  workflow_dispatch:
+  workflow_call:
+    secrets:
+      PRIVATE_SUBMODULE_PAT:
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  restart:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          path: OASIS
+          submodules: recursive
+          persist-credentials: false
+
+      - name: Read the recorded Libraries revision
+        id: libraries
+        run: |
+          revision="$(sed -n 's/^LIBRARIES_COMMIT=//p' OASIS/Docker/oasis-dependency-versions.env)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "revision=$revision" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.libraries.outputs.revision }}
+          path: NextGenSoftware-Libraries
+          persist-credentials: false
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Verify native QuestDB CQL across restart
+        working-directory: OASIS
+        shell: bash
+        run: |
+          state="$(mktemp -d "$RUNNER_TEMP/questdb-cql.XXXXXX")"
+          export OASIS_QUESTDB_CQL_STATE="$state"
+          container="$(docker create --publish 127.0.0.1:18812:8812 --publish 127.0.0.1:19000:9000 docker.io/questdb/questdb@sha256:6f733a142ee7ca8623d65135b46ed6cf78aac1e9ab15d1493ad7df837721e2e4)"
+          trap 'docker rm -f -v "$container" >/dev/null' EXIT
+          jq -n --arg id "$container" '{containerId:$id}' > "$state/environment.json"
+          (umask 077; jq -n '{username:"admin",password:"quest"}' > "$state/credentials.json")
+          query() {
+            curl --fail --silent --show-error --max-time 10 --get --data-urlencode "query=$1" http://127.0.0.1:19000/exec
+          }
+          project=Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.QuestDBOASIS.IntegrationTests
+          for phase in first restart; do
+            docker start "$container" >/dev/null
+            for attempt in {1..30}; do
+              test "$(docker inspect --format '{{.State.Running}}' "$container")" = true
+              if query 'SELECT 1' | jq -e '.dataset == [[1]]'; then break; fi
+              test "$attempt" -lt 30
+              sleep 1
+            done
+            if [[ "$phase" == first ]]; then
+              for table in oasis_avatars oasis_avatar_details oasis_holons; do
+                query "CREATE TABLE $table (id SYMBOL, data VARCHAR, ts TIMESTAMP) TIMESTAMP(ts) PARTITION BY DAY WAL DEDUP UPSERT KEYS(ts, id)" |
+                  jq -e '.ddl == "OK"'
+              done
+            fi
+            dotnet test "$project" --filter 'FullyQualifiedName~QuestDbCqlNativeTests' --results-directory "$state" \
+              --logger "trx;LogFileName=$phase.trx" /m:2 /nr:false /p:UseSharedCompilation=false
+            python3 - "$state/$phase.trx" <<'PY'
+          import sys
+          import xml.etree.ElementTree as ET
+          counters = ET.parse(sys.argv[1]).find(".//{*}Counters").attrib
+          if counters["total"] != "1" or counters["passed"] != "1":
+              raise SystemExit("Expected one passing native QuestDB test")
+          PY
+            test -f "$state/source-snapshot.json"
+            test ! -e "$state/demo-seed.pending.json"
+            started="$(docker inspect --format '{{.State.StartedAt}}' "$container")"
+            docker stop --time 60 "$container" >/dev/null
+            docker inspect "$container" | jq -e '.[0].State | (.Running == false and .OOMKilled == false and (.ExitCode == 0 or .ExitCode == 143))'
+            shutdown="$(docker logs --since "$started" "$container" 2>&1)"
+            for event in 'QuestDB is shutdown.' 'component=engine from=STOPPING to=STOPPED' 'pg-server closed' 'http-server closed'; do
+              grep -Fq "$event" <<< "$shutdown"
+            done
+            if grep -Eq 'shutdown deferred|shutdown proceeding after lifecycle stop failure' <<< "$shutdown"; then
+              exit 1
+            fi
+          done

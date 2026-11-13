@@ -21,7 +21,7 @@ def validate(project: Path, link_root: str) -> int:
             continue
         if item.get('CopyToOutputDirectory') not in ('PreserveNewest', 'Always') or item.get('CopyToPublishDirectory') not in ('PreserveNewest', 'Always'):
             raise ValueError(f'Bridge entry lacks output/publish copy policy: {link}')
-        source = (project.parent / item.get('Include', '').replace('\\', '/')).resolve()
+        source = (project.parent / (item.get('Include') or item.get('Update') or '').replace('\\', '/')).resolve()
         if not source.is_file():
             raise ValueError(f'Bridge entry is not an existing explicit source file: {source}')
         if link in entries:

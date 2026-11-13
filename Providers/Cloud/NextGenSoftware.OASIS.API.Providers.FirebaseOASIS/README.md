@@ -28,6 +28,8 @@ Use this package for the responsibility described above, alongside its owning OA
 
 Provider adapters require their respective service configuration and credentials. Runtime libraries require the host application's lifecycle and persistent paths where applicable. Supply only the settings actually required by the owning component; do not copy production DNA into a client or public release.
 
+For parent queries and graph expansion, add `"parentHolonId"` to the `".indexOn"` array under the `oasis_holons` Realtime Database rules. The adapter resolves physical children from their stored parent links.
+
 ## Errors and security
 
 For APIs returning `OASISResult<T>`, check `IsError`, `ErrorCode` and `Message`; do not treat a failed result as success. Preserve useful diagnostics without logging access tokens, passwords or private keys. Keep secrets in the host's appropriate protected configuration or platform storage.

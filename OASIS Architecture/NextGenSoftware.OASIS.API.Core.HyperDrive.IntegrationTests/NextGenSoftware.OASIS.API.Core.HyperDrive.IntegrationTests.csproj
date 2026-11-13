@@ -13,6 +13,9 @@
     <PackageReference Include="FluentAssertions" Version="6.12.0" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="../../Examples/CosmicCqlDemo/NativeImportMongoDemo.cs" Link="Demo/NativeImportMongoDemo.cs" />
+    <Compile Include="../../Examples/CosmicCqlDemo/NativeImportCqlWalkthrough.cs" Link="Demo/NativeImportCqlWalkthrough.cs" />
+    <Compile Include="../../Examples/CosmicCqlDemo/NativeImportCqlDemo.cs" Link="Demo/NativeImportCqlDemo.cs" />
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Helpers/HolonWriteOwnership.cs" Link="Production/HolonWriteOwnership.cs" />
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/HyperDrive/CosmicHolonReplicationEndpoints.cs" Link="Production/CosmicHolonReplicationEndpoints.cs" />
     <Compile Include="../NextGenSoftware.OASIS.OASISBootLoader/HederaQueryPreparationConfiguration.cs" Link="Production/HederaQueryPreparationConfiguration.cs" />
@@ -32,4 +35,5 @@
     <ProjectReference Include="..\..\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.TRONOASIS\NextGenSoftware.OASIS.API.Providers.TRONOASIS.csproj" />
     <ProjectReference Include="..\..\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.HashgraphOASIS\NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.csproj" />
   </ItemGroup>
+  <ItemGroup><Compile Include="../../Scripts/TestHosts/Fixtures/CosmicOperationInventoryProbe.cs" Link="Fixtures/CosmicOperationInventoryProbe.cs" /></ItemGroup>
 </Project>

@@ -44,6 +44,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Contracts\NextGenSoftware.OASIS.API.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.Common\NextGenSoftware.OASIS.Common.csproj" />
+    <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
+    <ProjectReference Include="..\..\Shared\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.csproj" />
   </ItemGroup>
 
   <ItemGroup>

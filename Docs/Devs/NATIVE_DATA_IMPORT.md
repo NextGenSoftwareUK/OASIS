@@ -298,3 +298,47 @@ facts, such as Mastodon's page sizes (40 statuses, 80 accounts) and the SQLite f
 ## Not yet built
 
 - Live verification of caller-supplied connections. All eight readers are covered by unit tests against scripted services and real files (SQLite); the MongoDB, SQLite and Neo4j readers were verified live on dev WEB4 against the configured demo store, but not yet with a connection a user supplies.
+
+## Native import to CQL walkthrough
+
+Run `Scripts/TestHosts/Run-CosmicNativeImportCqlDemo.ps1 -ArchiveCompletedDemo`
+from the COSMIC worktree. The spaced/commented samples live in
+`Examples/CosmicCqlDemo/NativeImportCqlWalkthrough.cs` and `NativeImportCqlDemo.cs`.
+They use real SQLite source/target files and the shared public import/save/CQL APIs.
+
+The demonstration imports three native coffee rows, queries them by provenance and
+actor visibility, re-imports unchanged rows without new revisions, changes one native
+row and updates the same holon, then imports as another avatar with disjoint private
+IDs. A fresh first-avatar read still sees only its own three holons. The source stays
+read-only to the importer. Owned fixtures are journaled before creation and removed
+only after successful checks/provider shutdown; failed outcomes are preserved.
+
+Mapping replaces source-owned custom metadata, including removing stale fields.
+It must preserve save-owned `CreatedByAvatarId`, `Active` and the encryption-envelope
+slot; those keys share the save pipeline's canonical ownership definition. Native
+fields or renamed fields cannot overwrite them:exclude or rename such source fields.
+The complete mapping is validated before changing the caller, so a reserved-key
+rejection publishes neither a new name nor partial metadata. This ownership rule
+keeps an unchanged re-import from manufacturing another dirty revision.
+
+The demo disables replication/failover and does not configure encryption. It does
+not certify cross-provider migration, encrypted import, replication delivery or a
+public schema-migration framework. Those need their own declared acceptance.
+
+
+### Cross-provider target demonstration
+
+Add `-Mongo` to `Run-CosmicNativeImportCqlDemo.ps1` for a real SQLite-native-source
+to Mongo-holon-target import. Add `-VerifyOnly` for the same native integration case.
+The runner reuses the existing pinned Mongo service/data and owns only its journaled
+`cosmic_native_import_cql_demo` database. It verifies6physical records' derived IDs,
+owners/provenance and complete collection set before exact teardown.
+
+The source reader and target query adapter are distinct arguments to the shared
+walkthrough. Stable identity remains tied to importing avatar/source provider/table/
+native key; moving the target does not redefine source provenance. Native source
+changes are refreshed by explicit re-import, not an implicit stream or CQL fallback.
+Both SQLite and Mongo target workflows pass the same no-op/update/private-visibility
+scenario. This does not certify reverse imports, schema migration tooling, encryption,
+automatic replication/failover, distributed transactions or chain migration.
+

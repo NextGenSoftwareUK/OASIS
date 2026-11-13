@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Microsoft.Extensions.Configuration;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Queries;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
@@ -13,6 +14,50 @@ public class CqlHostedQueryExamplesTests
           "filters":[{"metadataPath":["NativeKey"],"scalar":"String","operator":"In","value":["101","102","103"]}]
         }}]}
         """;
+
+    private static IConfiguration Configuration(params (string Key, string Value)[] entries)
+        => new ConfigurationBuilder().AddInMemoryCollection(entries.Select(row =>
+            new KeyValuePair<string, string?>(row.Key, row.Value))).Build();
+
+    private static string Partition(string provider)
+    {
+        using var json = JsonDocument.Parse(Valid.Replace("ActivityPubOASIS", provider));
+        return json.RootElement.GetProperty(provider).GetRawText();
+    }
+
+    [Fact]
+    public void SharedAndProviderPartitionsComposeWithoutLosingRequests()
+    {
+        var configuration = Configuration(
+            (CqlHostedQueryExamples.ConfigurationKey, Valid),
+            (CqlHostedQueryExamples.ProviderConfigurationSection + ":IPFSOASIS", Partition("IPFSOASIS")));
+        var examples = CqlHostedQueryExamples.FromConfiguration(configuration);
+        var capabilities = CosmicQueryCapabilities.ForStringMetadataKeyLookup("NativeKey", 128, 40);
+        Assert.Single(examples.For(ProviderType.ActivityPubOASIS, capabilities));
+        Assert.Single(examples.For(ProviderType.IPFSOASIS, capabilities));
+    }
+
+    [Fact]
+    public void DuplicateProviderOwnershipCannotOverrideSharedCatalogue()
+        => Assert.Throws<ArgumentException>(() => CqlHostedQueryExamples.FromConfiguration(Configuration(
+            (CqlHostedQueryExamples.ConfigurationKey, Valid),
+            (CqlHostedQueryExamples.ProviderConfigurationSection + ":ActivityPubOASIS", Partition("ActivityPubOASIS")))));
+
+    [Fact]
+    public void InvalidSharedCatalogueCannotFallThroughToValidPartition()
+        => Assert.ThrowsAny<Exception>(() => CqlHostedQueryExamples.FromConfiguration(Configuration(
+            (CqlHostedQueryExamples.ConfigurationKey, "not-json"),
+            (CqlHostedQueryExamples.ProviderConfigurationSection + ":IPFSOASIS", Partition("IPFSOASIS")))));
+
+    [Fact]
+    public void NestedPartitionDoesNotBecomeAnEmptyOrPartialCatalogue()
+        => Assert.Throws<ArgumentException>(() => CqlHostedQueryExamples.FromConfiguration(Configuration(
+            (CqlHostedQueryExamples.ProviderConfigurationSection + ":IPFSOASIS:nested", "[]"))));
+
+    [Fact]
+    public void CombinedConfigurationRetainsItsTotalWorkBudget()
+        => Assert.Throws<ArgumentException>(() => CqlHostedQueryExamples.FromConfiguration(Configuration(
+            (CqlHostedQueryExamples.ProviderConfigurationSection + ":IPFSOASIS", new string(' ', 262145)))));
 
     [Fact]
     public void PublicExampleSurvivesConfigDocumentDisposalAndPassesNativeKeySetPlanning()

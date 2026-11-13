@@ -10,6 +10,29 @@ namespace NextGenSoftware.OASIS.OASISBootLoader;
 
 internal static class AwsS3ProviderFactory
 {
+    internal static NextGenSoftware.OASIS.API.Providers.AWSS3OASIS.AwsS3PublicMetadataSource CreatePublicMetadata(
+        AWSS3OASISSettings settings, string overrideConnectionString = null)
+    {
+        ArgumentNullException.ThrowIfNull(settings);
+        if (!settings.PublicObjectMetadataOnly || overrideConnectionString != null)
+            throw new ArgumentException("Public object metadata requires explicit structured configuration.");
+        ArgumentException.ThrowIfNullOrWhiteSpace(settings.Region);
+        if (settings.UseDefaultCredentials || !string.IsNullOrEmpty(settings.AccessKey) ||
+            !string.IsNullOrEmpty(settings.SecretKey) || !string.IsNullOrEmpty(settings.SessionToken))
+            throw new ArgumentException("The public metadata profile is anonymous; do not supply signing credentials.");
+        var client = new AmazonS3Client(new AnonymousAWSCredentials(), new AmazonS3Config
+        {
+            RegionEndpoint = RegionEndpoint.GetBySystemName(settings.Region), MaxErrorRetry = 0,
+            Timeout = TimeSpan.FromSeconds(15)
+        });
+        try
+        {
+            return new(client, settings.BucketName, settings.PublicObjectMetadataKeys,
+                settings.PublicObjectMetadataOwner, ownsClient: true);
+        }
+        catch { client.Dispose(); throw; }
+    }
+
     internal static Provider Create(AWSS3OASISSettings settings, string overrideConnectionString = null)
     {
         ArgumentNullException.ThrowIfNull(settings);

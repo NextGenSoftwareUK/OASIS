@@ -13,7 +13,9 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
+using NextGenSoftware.OASIS.API.Core.Serialization;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Providers.ScyllaDBOASIS
@@ -22,7 +24,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ScyllaDBOASIS
     /// OASIS provider for ScyllaDB — a high-performance Cassandra-compatible database.
     /// Uses the CassandraCSharpDriver which is fully wire-compatible with ScyllaDB.
     ///
-    /// Schema (keyspace: oasis, replication: SimpleStrategy):
+    /// Schema (keyspace: oasis, replication: NetworkTopologyStrategy):
     ///   oasis_avatars       — id uuid PK, username text, email text, is_deleted boolean, data_json text
     ///   oasis_avatar_details — id uuid PK, username text, email text, data_json text
     ///   oasis_holons        — id uuid PK, parent_holon_id uuid, holon_type int, is_deleted boolean, data_json text
@@ -35,7 +37,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ScyllaDBOASIS
     ///   keyspace      — keyspace to use/create (default "oasis")
     ///   replication   — replication factor for keyspace creation (default 1)
     /// </summary>
-    public class ScyllaDBOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
+    public partial class ScyllaDBOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
     {
         /// <summary>
         /// When true this provider stores a new record per save and links to the previous
@@ -62,6 +64,13 @@ namespace NextGenSoftware.OASIS.API.Providers.ScyllaDBOASIS
 
         public ScyllaDBOASIS(string contactPoints, int port = 9042, string? username = null, string? password = null, string keyspace = "oasis", int replication = 1)
         {
+            // Keyspace identifiers are interpolated into schema statements, never values.
+            // Keep one canonical unquoted identifier contract at the constructor boundary.
+            if (string.IsNullOrEmpty(keyspace) || keyspace.Length > 48 ||
+                !((keyspace[0] >= 'a' && keyspace[0] <= 'z')) ||
+                keyspace.Any(c => !((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '_')))
+                throw new ArgumentException("Use a lowercase Cassandra keyspace identifier, at most 48 characters.", nameof(keyspace));
+            if (replication < 1) throw new ArgumentOutOfRangeException(nameof(replication));
             _contactPoints = contactPoints.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
             _port = port;
             _username = username;
@@ -91,7 +100,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ScyllaDBOASIS
         private void EnsureSchema()
         {
             var s = GetSession();
-            s.Execute($"CREATE KEYSPACE IF NOT EXISTS {_keyspace} WITH replication = {{'class':'SimpleStrategy','replication_factor':{_replication}}}");
+            s.Execute($"CREATE KEYSPACE IF NOT EXISTS {_keyspace} WITH replication = {{'class':'NetworkTopologyStrategy','replication_factor':{_replication}}}");
             s.Execute($"USE {_keyspace}");
             s.Execute($"CREATE TABLE IF NOT EXISTS {_keyspace}.oasis_avatars (id uuid PRIMARY KEY, username text, email text, is_deleted boolean, data_json text)");
             s.Execute($"CREATE INDEX IF NOT EXISTS ON {_keyspace}.oasis_avatars (username)");
@@ -106,6 +115,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ScyllaDBOASIS
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
         {
             var result = new OASISResult<bool>();
+            IsProviderActivated = false;
             try { await Task.Run(EnsureSchema); result.Result = true; IsProviderActivated = true; result.IsError = false; result.Message = "ScyllaDBOASIS activated."; }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ScyllaDBOASIS: Error activating — {ex.Message}"); }
             return result;
@@ -115,9 +125,9 @@ namespace NextGenSoftware.OASIS.API.Providers.ScyllaDBOASIS
 
         public override async Task<OASISResult<bool>> DeActivateProviderAsync()
         {
+            IsProviderActivated = false;
             _session?.Dispose(); _session = null;
             _cluster?.Dispose(); _cluster = null;
-            IsProviderActivated = false;
             return await Task.FromResult(new OASISResult<bool> { Result = true, IsError = false, Message = "ScyllaDBOASIS deactivated." });
         }
 
@@ -136,7 +146,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ScyllaDBOASIS
                 var s = GetSession();
                 var ps = s.Prepare($"INSERT INTO {_keyspace}.oasis_avatars (id, username, email, is_deleted, data_json) VALUES (?, ?, ?, ?, ?)");
                 await Task.Run(() => s.Execute(ps.Bind(avatar.Id, avatar.Username, avatar.Email, avatar.IsDeleted, Ser(avatar))));
-                result.Result = avatar; result.IsError = false; result.Message = $"ScyllaDBOASIS: Avatar '{avatar.Username}' saved.";
+                result.Result = avatar; result.IsError = false; result.IsSaved = true; result.SavedCount = 1; result.Message = $"ScyllaDBOASIS: Avatar '{avatar.Username}' saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ScyllaDBOASIS: Error saving avatar: {ex.Message}"); }
             return result;
@@ -149,7 +159,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ScyllaDBOASIS
             var s = GetSession();
             var ps = s.Prepare(cql);
             var row = await Task.Run(() => s.Execute(ps.Bind(values)).FirstOrDefault());
-            if (row == null) return null;
+            if (row == null || row.GetValue<bool>("is_deleted")) return null;
             return Des<Avatar>(row.GetValue<string>("data_json"));
         }
 
@@ -158,9 +168,9 @@ namespace NextGenSoftware.OASIS.API.Providers.ScyllaDBOASIS
             var result = new OASISResult<IAvatar>();
             try
             {
-                var a = await QueryAvatarAsync($"SELECT data_json FROM {_keyspace}.oasis_avatars WHERE id=? LIMIT 1", id);
-                if (a == null || a.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"ScyllaDBOASIS: No avatar for ID '{id}'."); return result; }
-                result.Result = a; result.IsError = false; result.Message = "ScyllaDBOASIS: Avatar loaded.";
+                var a = await QueryAvatarAsync($"SELECT data_json, is_deleted FROM {_keyspace}.oasis_avatars WHERE id=? LIMIT 1", id);
+                if (a == null || a.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"ScyllaDBOASIS: No avatar for ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
+                result.Result = a; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "ScyllaDBOASIS: Avatar loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ScyllaDBOASIS: {ex.Message}"); }
             return result;
@@ -173,9 +183,9 @@ namespace NextGenSoftware.OASIS.API.Providers.ScyllaDBOASIS
             var result = new OASISResult<IAvatar>();
             try
             {
-                var a = await QueryAvatarAsync($"SELECT data_json FROM {_keyspace}.oasis_avatars WHERE username=? ALLOW FILTERING LIMIT 1", username);
+                var a = await QueryAvatarAsync($"SELECT data_json, is_deleted FROM {_keyspace}.oasis_avatars WHERE username=? AND is_deleted=false LIMIT 1 ALLOW FILTERING", username);
                 if (a == null || a.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"ScyllaDBOASIS: No avatar for username '{username}'."); return result; }
-                result.Result = a; result.IsError = false; result.Message = "ScyllaDBOASIS: Avatar loaded.";
+                result.Result = a; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "ScyllaDBOASIS: Avatar loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ScyllaDBOASIS: {ex.Message}"); }
             return result;
@@ -188,9 +198,9 @@ namespace NextGenSoftware.OASIS.API.Providers.ScyllaDBOASIS
             var result = new OASISResult<IAvatar>();
             try
             {
-                var a = await QueryAvatarAsync($"SELECT data_json FROM {_keyspace}.oasis_avatars WHERE email=? ALLOW FILTERING LIMIT 1", avatarEmail);
+                var a = await QueryAvatarAsync($"SELECT data_json, is_deleted FROM {_keyspace}.oasis_avatars WHERE email=? AND is_deleted=false LIMIT 1 ALLOW FILTERING", avatarEmail);
                 if (a == null || a.IsDeleted) { OASISErrorHandling.HandleError(ref result, $"ScyllaDBOASIS: No avatar for email '{avatarEmail}'."); return result; }
-                result.Result = a; result.IsError = false; result.Message = "ScyllaDBOASIS: Avatar loaded.";
+                result.Result = a; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "ScyllaDBOASIS: Avatar loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ScyllaDBOASIS: {ex.Message}"); }
             return result;
@@ -219,7 +229,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ScyllaDBOASIS
                     if (row.GetValue<bool>("is_deleted")) continue;
                     var a = Des<Avatar>(row.GetValue<string>("data_json")); if (a != null) list.Add(a);
                 }
-                result.Result = list; result.IsError = false; result.Message = $"ScyllaDBOASIS: Loaded {list.Count} avatar(s).";
+                result.Result = list; result.IsError = false; result.IsLoaded = true; result.LoadedCount = list.Count; result.Message = $"ScyllaDBOASIS: Loaded {list.Count} avatar(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ScyllaDBOASIS: {ex.Message}"); }
             return result;
@@ -240,10 +250,14 @@ namespace NextGenSoftware.OASIS.API.Providers.ScyllaDBOASIS
                 }
                 else
                 {
-                    var ps = s.Prepare($"DELETE FROM {_keyspace}.oasis_avatars WHERE id=?");
-                    await Task.Run(() => s.Execute(ps.Bind(id)));
+                    var avatar = await s.PrepareAsync($"DELETE FROM {_keyspace}.oasis_avatars WHERE id=?");
+                    var detail = await s.PrepareAsync($"DELETE FROM {_keyspace}.oasis_avatar_details WHERE id=?");
+                    var batch = new BatchStatement().SetBatchType(BatchType.Logged);
+                    batch.Add(avatar.Bind(id));
+                    batch.Add(detail.Bind(id));
+                    await s.ExecuteAsync(batch);
                 }
-                result.Result = true; result.IsError = false; result.Message = $"ScyllaDBOASIS: Avatar '{id}' deleted.";
+                result.Result = true; result.IsError = false; result.IsDeleted = true; result.DeletedCount = 1; result.Message = $"ScyllaDBOASIS: Avatar '{id}' deleted.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ScyllaDBOASIS: {ex.Message}"); }
             return result;
@@ -268,8 +282,8 @@ namespace NextGenSoftware.OASIS.API.Providers.ScyllaDBOASIS
                 if (d.Id == Guid.Empty) d.Id = Guid.NewGuid();
                 var s = GetSession();
                 var ps = s.Prepare($"INSERT INTO {_keyspace}.oasis_avatar_details (id, username, email, data_json) VALUES (?, ?, ?, ?)");
-                await Task.Run(() => s.Execute(ps.Bind(d.Id, d.Username, d.Email, Ser(d))));
-                result.Result = d; result.IsError = false; result.Message = "ScyllaDBOASIS: AvatarDetail saved.";
+                await Task.Run(() => s.Execute(ps.Bind(d.Id, d.Username, d.Email, StoredRecordJson.Serialize(d))));
+                result.Result = d; result.IsError = false; result.IsSaved = true; result.SavedCount = 1; result.Message = "ScyllaDBOASIS: AvatarDetail saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ScyllaDBOASIS: {ex.Message}"); }
             return result;
@@ -281,13 +295,13 @@ namespace NextGenSoftware.OASIS.API.Providers.ScyllaDBOASIS
         {
             var s = GetSession(); var ps = s.Prepare(cql);
             var row = await Task.Run(() => s.Execute(ps.Bind(values)).FirstOrDefault());
-            if (row == null) return null; return Des<AvatarDetail>(row.GetValue<string>("data_json"));
+            if (row == null) return null; return StoredRecordJson.DeserializeStored<AvatarDetail>(row.GetValue<string>("data_json"));
         }
 
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
         {
             var result = new OASISResult<IAvatarDetail>();
-            try { var d = await QueryDetailAsync($"SELECT data_json FROM {_keyspace}.oasis_avatar_details WHERE id=? LIMIT 1", id); if (d == null) { OASISErrorHandling.HandleError(ref result, $"ScyllaDBOASIS: No detail for ID '{id}'."); return result; } result.Result = d; result.IsError = false; result.Message = "ScyllaDBOASIS: AvatarDetail loaded."; }
+            try { var d = await QueryDetailAsync($"SELECT data_json FROM {_keyspace}.oasis_avatar_details WHERE id=? LIMIT 1", id); if (d == null) { OASISErrorHandling.HandleError(ref result, $"ScyllaDBOASIS: No detail for ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; } result.Result = d; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "ScyllaDBOASIS: AvatarDetail loaded."; }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ScyllaDBOASIS: {ex.Message}"); }
             return result;
         }
@@ -297,7 +311,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ScyllaDBOASIS
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string u, int version = 0)
         {
             var result = new OASISResult<IAvatarDetail>();
-            try { var d = await QueryDetailAsync($"SELECT data_json FROM {_keyspace}.oasis_avatar_details WHERE username=? ALLOW FILTERING LIMIT 1", u); if (d == null) { OASISErrorHandling.HandleError(ref result, $"ScyllaDBOASIS: No detail for username '{u}'."); return result; } result.Result = d; result.IsError = false; result.Message = "ScyllaDBOASIS: AvatarDetail loaded."; }
+            try { var d = await QueryDetailAsync($"SELECT data_json FROM {_keyspace}.oasis_avatar_details WHERE username=? LIMIT 1 ALLOW FILTERING", u); if (d == null) { OASISErrorHandling.HandleError(ref result, $"ScyllaDBOASIS: No detail for username '{u}'."); return result; } result.Result = d; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "ScyllaDBOASIS: AvatarDetail loaded."; }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ScyllaDBOASIS: {ex.Message}"); }
             return result;
         }
@@ -307,7 +321,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ScyllaDBOASIS
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string e, int version = 0)
         {
             var result = new OASISResult<IAvatarDetail>();
-            try { var d = await QueryDetailAsync($"SELECT data_json FROM {_keyspace}.oasis_avatar_details WHERE email=? ALLOW FILTERING LIMIT 1", e); if (d == null) { OASISErrorHandling.HandleError(ref result, $"ScyllaDBOASIS: No detail for email '{e}'."); return result; } result.Result = d; result.IsError = false; result.Message = "ScyllaDBOASIS: AvatarDetail loaded."; }
+            try { var d = await QueryDetailAsync($"SELECT data_json FROM {_keyspace}.oasis_avatar_details WHERE email=? LIMIT 1 ALLOW FILTERING", e); if (d == null) { OASISErrorHandling.HandleError(ref result, $"ScyllaDBOASIS: No detail for email '{e}'."); return result; } result.Result = d; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "ScyllaDBOASIS: AvatarDetail loaded."; }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ScyllaDBOASIS: {ex.Message}"); }
             return result;
         }
@@ -320,8 +334,8 @@ namespace NextGenSoftware.OASIS.API.Providers.ScyllaDBOASIS
             try
             {
                 var s = GetSession(); var rows = await Task.Run(() => s.Execute($"SELECT data_json FROM {_keyspace}.oasis_avatar_details"));
-                var list = new List<IAvatarDetail>(); foreach (var row in rows) { var d = Des<AvatarDetail>(row.GetValue<string>("data_json")); if (d != null) list.Add(d); }
-                result.Result = list; result.IsError = false; result.Message = $"ScyllaDBOASIS: Loaded {list.Count} detail(s).";
+                var list = new List<IAvatarDetail>(); foreach (var row in rows) { var d = StoredRecordJson.DeserializeStored<AvatarDetail>(row.GetValue<string>("data_json")); if (d != null) list.Add(d); }
+                result.Result = list; result.IsError = false; result.IsLoaded = true; result.LoadedCount = list.Count; result.Message = $"ScyllaDBOASIS: Loaded {list.Count} detail(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ScyllaDBOASIS: {ex.Message}"); }
             return result;
@@ -331,34 +345,104 @@ namespace NextGenSoftware.OASIS.API.Providers.ScyllaDBOASIS
 
         // ─── Holons ───────────────────────────────────────────────────────────────
 
-        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+        public override Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+            => SaveHolonGraphAsync(holon, saveChildren, recursive, maxChildDepth, 0);
+
+        private async Task<OASISResult<IHolon>> SaveHolonGraphAsync(IHolon holon, bool saveChildren, bool recursive, int maxChildDepth, int currentChildDepth)
         {
             var result = new OASISResult<IHolon>();
             try
             {
-                if (holon.Id == Guid.Empty) holon.Id = Guid.NewGuid();
-                var s = GetSession();
-                var ps = s.Prepare($"INSERT INTO {_keyspace}.oasis_holons (id, parent_holon_id, holon_type, is_deleted, data_json) VALUES (?, ?, ?, ?, ?)");
-                int holonType = (int)holon.HolonType;
-                await Task.Run(() => s.Execute(ps.Bind(holon.Id, holon.ParentHolonId, holonType, holon.IsDeleted, Ser(holon))));
-                result.Result = holon; result.IsError = false; result.Message = $"ScyllaDBOASIS: Holon '{holon.Name}' saved.";
+                var plan = HolonGraphWritePlan.CreateForSave(new[] { holon }, saveChildren, recursive, maxChildDepth, currentChildDepth);
+                var rows = plan.Nodes.Select(node =>
+                {
+                    var snapshot = node.Snapshot;
+                    var keys = snapshot.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
+                    keys[Core.Enums.ProviderType.ScyllaDBOASIS] = snapshot.Id.ToString("D");
+                    return (Node: node, Json: Ser(snapshot));
+                }).ToArray();
+
+                if (rows.Length == 1)
+                {
+                    var row = rows[0];
+                    var snapshot = row.Node.Snapshot;
+                    await PersistHolonAsync(snapshot.Id, snapshot.ParentHolonId, (int)snapshot.HolonType,
+                        snapshot.IsDeleted, row.Json);
+                }
+                else
+                {
+                    var session = GetSession();
+                    var prepared = await PrepareHolonWriteAsync(session);
+                    var batch = new BatchStatement().SetBatchType(BatchType.Logged);
+                    foreach (var row in rows)
+                    {
+                        var snapshot = row.Node.Snapshot;
+                        batch.Add(prepared.Bind(snapshot.Id, snapshot.ParentHolonId, (int)snapshot.HolonType,
+                            snapshot.IsDeleted, row.Json));
+                    }
+                    await session.ExecuteAsync(batch);
+                }
+
+                // Publish storage-owned identity only after the driver acknowledges the graph.
+                foreach (var row in rows)
+                {
+                    var node = row.Node;
+                    node.Source.Id = node.Snapshot.Id;
+                    node.Source.ParentHolonId = node.Snapshot.ParentHolonId;
+                    node.Source.ProviderUniqueStorageKey = node.Snapshot.ProviderUniqueStorageKey;
+                }
+                result.Result = holon;
+                result.IsSaved = true;
+                result.SavedCount = rows.Length;
             }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ScyllaDBOASIS: Error saving holon: {ex.Message}"); }
-            return result;
+            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ScyllaDBOASIS: {ex.Message}"); }
+            return await Task.FromResult(result);
         }
+
+        /// <summary>Persists one planned row and waits for its native acknowledgement.</summary>
+        protected virtual async Task PersistHolonAsync(Guid id, Guid parentId, int holonType, bool deleted, string json)
+        {
+            var session = GetSession();
+            var prepared = await PrepareHolonWriteAsync(session);
+            await session.ExecuteAsync(prepared.Bind(id, parentId, holonType, deleted, json));
+        }
+
+        private Task<PreparedStatement> PrepareHolonWriteAsync(ISession session) => session.PrepareAsync(
+            $"INSERT INTO {_keyspace}.oasis_holons (id, parent_holon_id, holon_type, is_deleted, data_json) VALUES (?, ?, ?, ?, ?)");
 
         public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) => SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider).Result;
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
-            var saved = new List<IHolon>();
-            foreach (var h in holons) { var r = await SaveHolonAsync(h, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider); if (!r.IsError && r.Result != null) saved.Add(r.Result); }
-            result.Result = saved; result.IsError = false; result.Message = $"ScyllaDBOASIS: Saved {saved.Count} holons.";
+            var saved = new List<IHolon>(); var errors = new List<string>();
+            var savedCount = 0;
+            foreach (var h in holons)
+            {
+                var write = await SaveHolonGraphAsync(h, saveChildren, recursive, maxChildDepth, curentChildDepth);
+                if (write.IsError)
+                {
+                    errors.Add(write.Message);
+                    if (!continueOnError) break;
+                }
+                else if (write.IsSaved && write.Result != null)
+                {
+                    saved.Add(write.Result);
+                    savedCount += write.SavedCount;
+                }
+            }
+            result.Result = saved;
+            result.IsError = errors.Count > 0;
+            result.ErrorCount = errors.Count;
+            result.IsSaved = saved.Count > 0;
+            result.SavedCount = savedCount;
+            result.Message = string.Join("; ", errors);
             return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) => SaveHolonsAsync(holons, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, saveChildrenOnProvider).Result;
+
+        // ─── Holon loading ────────────────────────────────────────────────────────
 
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
@@ -367,9 +451,9 @@ namespace NextGenSoftware.OASIS.API.Providers.ScyllaDBOASIS
             {
                 var s = GetSession(); var ps = s.Prepare($"SELECT data_json, is_deleted FROM {_keyspace}.oasis_holons WHERE id=? LIMIT 1");
                 var row = await Task.Run(() => s.Execute(ps.Bind(id)).FirstOrDefault());
-                if (row == null || row.GetValue<bool>("is_deleted")) { OASISErrorHandling.HandleError(ref result, $"ScyllaDBOASIS: No holon for ID '{id}'."); return result; }
+                if (row == null || row.GetValue<bool>("is_deleted")) { OASISErrorHandling.HandleError(ref result, $"ScyllaDBOASIS: No holon for ID '{id}'."); result.ErrorCode = OASISResultErrorCodes.RecordNotFound; return result; }
                 var h = Des<Holon>(row.GetValue<string>("data_json")); if (h == null) { OASISErrorHandling.HandleError(ref result, $"ScyllaDBOASIS: Failed to deserialise holon '{id}'."); return result; }
-                result.Result = h; result.IsError = false; result.Message = "ScyllaDBOASIS: Holon loaded.";
+                result.Result = h; result.IsError = false; result.IsLoaded = true; result.LoadedCount = 1; result.Message = "ScyllaDBOASIS: Holon loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ScyllaDBOASIS: {ex.Message}"); }
             return result;
@@ -400,7 +484,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ScyllaDBOASIS
                 }
                 var list = new List<IHolon>();
                 foreach (var row in rows) { if (row.GetValue<bool>("is_deleted")) continue; var h = Des<Holon>(row.GetValue<string>("data_json")); if (h != null) list.Add(h); }
-                result.Result = list; result.IsError = false; result.Message = $"ScyllaDBOASIS: Loaded {list.Count} holon(s).";
+                result.Result = list; result.IsError = false; result.IsLoaded = true; result.LoadedCount = list.Count; result.Message = $"ScyllaDBOASIS: Loaded {list.Count} holon(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ScyllaDBOASIS: {ex.Message}"); }
             return result;
@@ -426,7 +510,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ScyllaDBOASIS
                 }
                 var list = new List<IHolon>();
                 foreach (var row in rows) { if (row.GetValue<bool>("is_deleted")) continue; var h = Des<Holon>(row.GetValue<string>("data_json")); if (h != null) list.Add(h); }
-                result.Result = list; result.IsError = false; result.Message = $"ScyllaDBOASIS: Loaded {list.Count} child holon(s).";
+                result.Result = list; result.IsError = false; result.IsLoaded = true; result.LoadedCount = list.Count; result.Message = $"ScyllaDBOASIS: Loaded {list.Count} child holon(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ScyllaDBOASIS: {ex.Message}"); }
             return result;
@@ -447,18 +531,20 @@ namespace NextGenSoftware.OASIS.API.Providers.ScyllaDBOASIS
             var result = new OASISResult<bool>();
             try
             {
-                var s = GetSession();
-                if (softDelete)
+                var session = GetSession();
+                var cql = softDelete
+                    ? $"UPDATE {_keyspace}.oasis_holons SET is_deleted=true WHERE id=? IF is_deleted=false"
+                    : $"DELETE FROM {_keyspace}.oasis_holons WHERE id=? IF EXISTS";
+                var statement = await session.PrepareAsync(cql);
+                var mutation = await session.ExecuteAsync(statement.Bind(id));
+                if (!mutation.Single().GetValue<bool>("[applied]"))
                 {
-                    var ps = s.Prepare($"UPDATE {_keyspace}.oasis_holons SET is_deleted=? WHERE id=?");
-                    await Task.Run(() => s.Execute(ps.Bind(true, id)));
+                    result.IsError = true;
+                    result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
+                    result.Message = $"ScyllaDBOASIS: No holon found to delete for ID '{id}'.";
+                    return result;
                 }
-                else
-                {
-                    var ps = s.Prepare($"DELETE FROM {_keyspace}.oasis_holons WHERE id=?");
-                    await Task.Run(() => s.Execute(ps.Bind(id)));
-                }
-                result.Result = true; result.IsError = false; result.Message = $"ScyllaDBOASIS: Holon '{id}' deleted.";
+                result.Result = true; result.IsError = false; result.IsDeleted = true; result.DeletedCount = 1; result.Message = $"ScyllaDBOASIS: Holon '{id}' deleted.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"ScyllaDBOASIS: {ex.Message}"); }
             return result;
@@ -526,9 +612,17 @@ namespace NextGenSoftware.OASIS.API.Providers.ScyllaDBOASIS
 
             var deleted = await DeleteHolonSoftAsync(id, true);
             if (deleted.IsError)
-                OASISErrorHandling.HandleError(ref result, deleted.Message);
+            {
+                result.ErrorCode = deleted.ErrorCode;
+                OASISErrorHandling.HandleError(ref result, deleted.Message, deleted.Exception);
+            }
             else
+            {
+                loaded.Result.DeletedDate = DateTime.UtcNow;
                 result.Result = loaded.Result;
+                result.IsDeleted = deleted.IsDeleted;
+                result.DeletedCount = deleted.DeletedCount;
+            }
 
             return result;
         }
@@ -571,6 +665,8 @@ namespace NextGenSoftware.OASIS.API.Providers.ScyllaDBOASIS
             }
 
             result.Result = matches;
+            result.IsLoaded = true;
+            result.LoadedCount = matches.Count;
             return result;
         }
 
@@ -587,11 +683,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ScyllaDBOASIS
                 return result;
             }
 
-            if (metaKeyValuePairs == null || metaKeyValuePairs.Count == 0)
-            {
-                result.Result = new List<IHolon>(all.Result);
-                return result;
-            }
+            if (metaKeyValuePairs == null || metaKeyValuePairs.Count == 0) return all;
 
             var matches = new List<IHolon>();
             foreach (var holon in all.Result)
@@ -613,6 +705,8 @@ namespace NextGenSoftware.OASIS.API.Providers.ScyllaDBOASIS
             }
 
             result.Result = matches;
+            result.IsLoaded = true;
+            result.LoadedCount = matches.Count;
             return result;
         }
 
@@ -623,10 +717,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ScyllaDBOASIS
         {
             var result = new OASISResult<bool>();
             var saved = await SaveHolonsAsync(holons);
-            if (saved.IsError)
-                OASISErrorHandling.HandleError(ref result, saved.Message);
-            else
-                result.Result = true;
+            result.Result = saved.IsSaved && !saved.IsError;
+            result.IsError = saved.IsError;
+            result.Exception = saved.Exception;
+            result.Message = saved.Message;
+            result.IsSaved = saved.IsSaved;
+            result.SavedCount = saved.SavedCount;
             return result;
         }
 
@@ -657,6 +753,8 @@ namespace NextGenSoftware.OASIS.API.Providers.ScyllaDBOASIS
             }
 
             result.Result = owned;
+            result.IsLoaded = true;
+            result.LoadedCount = owned.Count;
             return result;
         }
 

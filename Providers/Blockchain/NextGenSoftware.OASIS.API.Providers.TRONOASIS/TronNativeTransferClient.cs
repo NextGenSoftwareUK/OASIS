@@ -107,11 +107,11 @@ public sealed partial class TronNativeTransferClient
     public async Task VerifyNetworkAsync(CancellationToken cancellationToken = default)
     {
         var genesis = await _wallet.GetProtocol().GetBlockByNum2Async(new NumberMessage { Num = 0 }, _wallet.GetHeaders(),
-            DateTime.UtcNow.AddSeconds(15), cancellationToken);
+            DateTime.UtcNow.AddSeconds(15), cancellationToken).ResponseAsync.ConfigureAwait(false);
         if (!string.Equals(Convert.ToHexString(genesis.Blockid.ToByteArray()), _genesisBlockId, StringComparison.OrdinalIgnoreCase))
             throw new InvalidOperationException("TRON genesis block does not match the configured network.");
         var solidGenesis = await _wallet.GetSolidityProtocol().GetBlockByNum2Async(new NumberMessage { Num = 0 }, _wallet.GetHeaders(),
-            DateTime.UtcNow.AddSeconds(15), cancellationToken);
+            DateTime.UtcNow.AddSeconds(15), cancellationToken).ResponseAsync.ConfigureAwait(false);
         if (!string.Equals(Convert.ToHexString(solidGenesis.Blockid.ToByteArray()), _genesisBlockId, StringComparison.OrdinalIgnoreCase))
             throw new InvalidOperationException("TRON solidity node genesis block does not match the configured network.");
     }
@@ -122,9 +122,9 @@ public sealed partial class TronNativeTransferClient
         var requested = _wallet.ParseAddress(address);
         if (requested.Length != 21 || requested[0] != 0x41)
             throw new ArgumentException("A current 21-byte TRON wallet address is required.");
-        await VerifyNetworkAsync(cancellationToken);
+        await VerifyNetworkAsync(cancellationToken).ConfigureAwait(false);
         var account = await _wallet.GetSolidityProtocol().GetAccountAsync(new Account { Address = requested },
-            _wallet.GetHeaders(), DateTime.UtcNow.AddSeconds(15), cancellationToken);
+            _wallet.GetHeaders(), DateTime.UtcNow.AddSeconds(15), cancellationToken).ResponseAsync.ConfigureAwait(false);
         return NativeBalance(account, requested);
     }
 

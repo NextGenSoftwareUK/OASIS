@@ -1,0 +1,120 @@
+name: Qualify Linux Dapr restricted-reader CQL
+
+on:
+  push:
+    branches: [work/cosmic-cql-ton-public]
+    paths:
+      - '.github/workflows/qualify-dapr-linux.yml'
+      - 'Scripts/TestHosts/DaprNativeRuntimes.py'
+      - 'Scripts/TestHosts/dapr-linux-runtime-pins.json'
+      - 'Scripts/TestHosts/run-cosmic-dapr-web4-native.py'
+      - 'Scripts/TestHosts/test_dapr_native_runtimes.py'
+      - 'Scripts/TestHosts/DaprNativePorts.py'
+      - 'Scripts/TestHosts/test_dapr_native_ports.py'
+      - 'Scripts/TestHosts/qualify-dapr-pending-recovery.cjs'
+      - 'Docker/DaprRuntime/**'
+      - 'Scripts/Sandbox/test_hosted_dapr_configuration.cjs'
+      - 'Scripts/Sandbox/test_hosted_dapr_runtime.cjs'
+      - 'Scripts/Sandbox/test_dapr_seed.cjs'
+      - 'Docker/host-sandbox-dapr.cjs'
+      - 'Docker/provision-sandbox-dapr.cjs'
+      - 'Scripts/Sandbox/test_dapr_provisioning.cjs'
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Exact scoped source commit to qualify
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  native:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          path: OASIS
+          ref: ${{ inputs.ref || github.sha }}
+          submodules: true
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - name: Read pinned dependencies
+        id: dependency
+        working-directory: OASIS
+        run: |
+          python3 -B Scripts/validate_railway_dependency_manifest.py --require-gitlinks
+          grep -E '^(LIBRARIES_COMMIT|HOLOCHAIN_COMMIT)=[0-9a-f]{40}$' Docker/oasis-dependency-versions.env >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependency.outputs.LIBRARIES_COMMIT }}
+          path: NextGenSoftware-Libraries
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          ref: ${{ steps.dependency.outputs.HOLOCHAIN_COMMIT }}
+          path: holochain-client-csharp
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+      - name: Check runtime archive boundaries
+        working-directory: OASIS
+        run: |
+          python3 -B Scripts/TestHosts/test_dapr_native_ports.py
+          python3 -B Scripts/Sandbox/test_hosted_dapr_source_commands.py
+          python3 -B Scripts/Sandbox/test_hosted_dapr_reconciliation.py
+          python3 -B Scripts/Sandbox/test_hosted_dapr_configuration.py
+          python3 -B Scripts/TestHosts/test_dapr_native_runtimes.py
+          node --test Scripts/Sandbox/test_hosted_dapr_configuration.cjs Scripts/Sandbox/test_hosted_dapr_runtime.cjs Scripts/Sandbox/test_dapr_seed.cjs Scripts/Sandbox/test_dapr_provisioning.cjs
+      - name: Install mandatory native storage OS dependencies
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libaio1t64 liburing2 libaio-dev liburing-dev build-essential cmake git uuid-dev
+      - name: Install exact Linux runtimes on the ephemeral runner
+        working-directory: OASIS
+        run: |
+          mkdir -p LocalState/COSMIC/DaprLinuxQualification
+          python3 -B Scripts/TestHosts/DaprNativeRuntimes.py --install-linux "$RUNNER_TEMP/cosmic-dapr-runtimes" > LocalState/COSMIC/DaprLinuxQualification/runtime-paths.json
+          python3 -B -c 'import json,pathlib,shutil; output=pathlib.Path("LocalState/COSMIC/DaprLinuxQualification"); paths=json.loads((output/"runtime-paths.json").read_text()); pin=json.loads(pathlib.Path("Scripts/TestHosts/dapr-linux-runtime-pins.json").read_text())["runtimes"]["garnet"]["nativeBuild"]; library=pathlib.Path(paths["garnet"]).parent/pin["runtimePath"]; shutil.copyfile(library.with_suffix(".build.json"),output/"native-build-receipt.json")'
+      - name: Diagnose native AOF writes before the host build
+        working-directory: OASIS
+        shell: pwsh
+        run: |
+          $runtimes = Get-Content LocalState/COSMIC/DaprLinuxQualification/runtime-paths.json | ConvertFrom-Json
+          python3 -B Scripts/TestHosts/run-cosmic-dapr-web4-native.py --daprd $runtimes.daprd --garnet $runtimes.garnet --runtime-directory "$env:RUNNER_TEMP/cosmic-dapr-runtimes" --results-directory LocalState/COSMIC/DaprLinuxQualification --storage-probe-only
+          if ($LASTEXITCODE) { throw 'Native AOF diagnostic failed before any Dapr seed or host build' }
+      - name: Verify native restricted reads, denied writes, restart and WEB4 CQL
+        working-directory: OASIS
+        shell: pwsh
+        run: |
+          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner dapr-linux-native-ci -Operation {
+            dotnet build ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests /m:2 /nr:false /p:UseSharedCompilation=false -v:q
+            if ($LASTEXITCODE) { throw 'Dapr native HTTP host build failed' }
+            $runtimes = Get-Content LocalState/COSMIC/DaprLinuxQualification/runtime-paths.json | ConvertFrom-Json
+            python3 -B Scripts/TestHosts/run-cosmic-dapr-web4-native.py --daprd $runtimes.daprd --garnet $runtimes.garnet --runtime-directory "$env:RUNNER_TEMP/cosmic-dapr-runtimes" --results-directory LocalState/COSMIC/DaprLinuxQualification --provisioner
+            if ($LASTEXITCODE) { throw 'Dapr Linux native qualification failed' }
+            node Scripts/TestHosts/qualify-dapr-pending-recovery.cjs $runtimes.garnet $runtimes.daprd LocalState/COSMIC/DaprLinuxQualification
+            if ($LASTEXITCODE) { throw 'Dapr native unknown-outcome reconciliation failed' }
+          }
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: dapr-linux-native-cql
+          path: |
+            OASIS/LocalState/COSMIC/DaprLinuxQualification/**/web4.trx
+            OASIS/LocalState/COSMIC/DaprLinuxQualification/native-build-receipt.json
+            OASIS/LocalState/COSMIC/DaprLinuxQualification/**/runtime-source-proof.json
+            OASIS/LocalState/COSMIC/DaprLinuxQualification/**/pending-recovery-native-proof.json
+            OASIS/LocalState/COSMIC/DaprLinuxQualification/**/result.log
+            OASIS/LocalState/COSMIC/DaprLinuxQualification/**/diagnostic.json
+            OASIS/LocalState/COSMIC/DaprLinuxQualification/**/failure-diagnostics.json
+            OASIS/LocalState/COSMIC/DaprLinuxQualification/**/seed.intent.json
+            OASIS/LocalState/COSMIC/DaprLinuxQualification/**/seed.acknowledged.json
+            OASIS/LocalState/COSMIC/DaprLinuxQualification/**/startup.json
+            OASIS/LocalState/COSMIC/DaprLinuxQualification/**/storage-probe.intent.json
+            OASIS/LocalState/COSMIC/DaprLinuxQualification/**/storage-probe.acknowledged.json
+          if-no-files-found: error
+          retention-days: 30

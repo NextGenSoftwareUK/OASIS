@@ -59,12 +59,14 @@ namespace NextGenSoftware.OASIS.API.Providers.DaprOASIS
         Task<bool> HealthyAsync(CancellationToken ct);
     }
 
-    internal sealed class DaprClientStateApi : IDaprStateApi
+    internal sealed class DaprClientStateApi : IDaprStateApi, IDisposable
     {
         private static readonly StateOptions Strong = new() { Consistency = ConsistencyMode.Strong, Concurrency = ConcurrencyMode.FirstWrite };
         private readonly DaprClient _client;
 
         public DaprClientStateApi(DaprClient client) => _client = client;
+
+        public void Dispose() => _client.Dispose();
 
         public async Task<(string Value, string ETag)> GetAsync(string store, string key, CancellationToken ct)
         {
@@ -89,40 +91,59 @@ namespace NextGenSoftware.OASIS.API.Providers.DaprOASIS
     /// Dapr state stores cannot list keys, so each "directory" (key up to its last '/') keeps an index document of
     /// its keys, updated with ETag first-write concurrency and retried on conflict.
     /// </summary>
-    internal sealed class DaprStateBackend : IKeyValueBackend
+    internal sealed class DaprStateBackend : IKeyValueBackend, IDisposable
     {
         private const string IndexPrefix = "__oasis_index__/";
         private const int MaxConflictRetries = 20;
         private readonly IDaprStateApi _api;
         private readonly string _store;
+        private readonly bool _queryOnly;
 
-        public DaprStateBackend(IDaprStateApi api, string store)
+        public DaprStateBackend(IDaprStateApi api, string store, bool queryOnly = false)
         {
             _api = api ?? throw new ArgumentNullException(nameof(api));
             if (string.IsNullOrWhiteSpace(store)) throw new ArgumentException("A Dapr state store name is required.", nameof(store));
             _store = store;
+            _queryOnly = queryOnly;
         }
 
         private static string Directory(string key) => key[..(key.LastIndexOf('/') + 1)];
         private static string IndexKey(string directory) => IndexPrefix + directory;
 
         public async Task<string> GetAsync(string key, CancellationToken cancellationToken = default)
-            => (await _api.GetAsync(_store, key, cancellationToken)).Value;
+        {
+            const string prefix = "oasis/holon/";
+            if (_queryOnly && (!key.StartsWith(prefix, StringComparison.Ordinal) ||
+                !Guid.TryParseExact(key.AsSpan(prefix.Length), "N", out var id) || key != $"{prefix}{id:N}"))
+                throw new InvalidOperationException("The Dapr query source permits only exact Holon reads.");
+            return (await _api.GetAsync(_store, key, cancellationToken)).Value;
+        }
+
+        public void Dispose() => (_api as IDisposable)?.Dispose();
+
+        private void RequireStorageMode()
+        {
+            if (_queryOnly)
+                throw new InvalidOperationException("The Dapr query source permits only exact Holon reads.");
+        }
 
         public async Task PutAsync(string key, string value, CancellationToken cancellationToken = default)
         {
+            RequireStorageMode();
             await _api.SaveAsync(_store, key, value, cancellationToken);
             await UpdateIndexAsync(Directory(key), keys => keys.Add(key), cancellationToken);
         }
 
         public async Task DeleteAsync(string key, CancellationToken cancellationToken = default)
         {
+            RequireStorageMode();
             await _api.DeleteAsync(_store, key, cancellationToken);
             await UpdateIndexAsync(Directory(key), keys => keys.Remove(key), cancellationToken);
         }
 
         public async Task<IReadOnlyList<string>> ListKeysAsync(string prefix, CancellationToken cancellationToken = default)
         {
+            RequireStorageMode();
             if (!prefix.EndsWith("/", StringComparison.Ordinal))
                 throw new NotSupportedException("Dapr key listing is by directory; prefixes must end with '/'.");
             var (json, _) = await _api.GetAsync(_store, IndexKey(prefix), cancellationToken);
@@ -131,6 +152,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DaprOASIS
 
         public async Task VerifyAsync(CancellationToken cancellationToken = default)
         {
+            RequireStorageMode();
             if (!await _api.HealthyAsync(cancellationToken))
                 throw new InvalidOperationException("The Dapr sidecar is not healthy.");
             await _api.GetAsync(_store, IndexKey("__oasis_verify__/"), cancellationToken);

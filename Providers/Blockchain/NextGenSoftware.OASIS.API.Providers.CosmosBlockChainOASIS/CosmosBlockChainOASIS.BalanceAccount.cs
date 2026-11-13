@@ -36,7 +36,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
                 OASISErrorHandling.HandleError(ref result, "Wallet balance request is required.");
                 return result;
             }
-            var balance = await GetAccountBalanceAsync(request.WalletAddress);
+            var balance = await GetAccountBalanceAsync(request.WalletAddress).ConfigureAwait(false);
             if (balance.IsError)
                 OASISErrorHandling.HandleError(ref result, balance.Message, balance.Exception);
             else result.Result = (double)balance.Result;
@@ -50,7 +50,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
             {
                 if (string.IsNullOrWhiteSpace(accountAddress)) throw new ArgumentException("Account address is required.");
                 var coin = await _sdkBackend.InvokeAsync("balance",
-                    new { walletAddress = accountAddress, denom = _nativeDenom }, token);
+                    new { walletAddress = accountAddress, denom = _nativeDenom }, token).ConfigureAwait(false);
                 if (coin.GetProperty("denom").GetString() != _nativeDenom)
                     throw new InvalidOperationException("SDK returned a different asset denomination.");
                 result.Result = NativeDisplayAmount(coin.GetProperty("amount").GetString());

@@ -6,6 +6,7 @@
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
+    <EnableDefaultCompileItems Condition="'$(PolkadotDirectProviderOnly)' == 'true'">false</EnableDefaultCompileItems>
   </PropertyGroup>
 
   <ItemGroup>
@@ -15,7 +16,16 @@
     <PackageReference Include="coverlet.collector" Version="6.0.0" />
   </ItemGroup>
 
+  <ItemGroup Condition="'$(PolkadotDirectProviderOnly)' != 'true'">
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <Compile Include="../../../../Examples/CosmicCqlDemo/IdentityFederationWalkthrough.cs" Link="Demo/IdentityFederationWalkthrough.cs" />
+    <Compile Include="../../../../Examples/CosmicCqlDemo/IdentityFederationApiHost.cs" Link="Demo/IdentityFederationApiHost.cs" />
+    <ProjectReference Include="../../../Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS/NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.csproj" />
+  </ItemGroup>
+
   <ItemGroup>
+    <Compile Include="PolkadotPublicStorageNativeTests.cs" Condition="'$(PolkadotDirectProviderOnly)' == 'true'" />
+    <Compile Include="../../../Shared/TestSupport/CoreStorageConformance.cs" Link="TestSupport/CoreStorageConformance.cs" />
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.PolkadotOASIS\NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.csproj" />
   </ItemGroup>
 
