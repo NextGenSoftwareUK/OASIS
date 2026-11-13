@@ -716,3 +716,8 @@ Status: missing account/configuration information,2 November2026. David approved
 
 - **Open, 2026-11-13.** Identify the Windows machine and user account that hold the protected WEB4 routing cohort, or designate an existing acknowledged test cohort with an active owner session and one reviewed holon present in both MongoDB and SQLite. Keep the protected session on its originating machine and keep credentials out of Git and chat.
 - **Reason** The read-only verifier needs the acknowledged owner and record to prove that the same deployed WEB4 revision serves three reads from each provider. The retained cohort was absent from the checked local OASIS worktrees. Engineering owns image qualification and verification. [Priority routing tracker](../HyperDrive-Providers/PRIORITY_HYPERDRIVE_ROUTING.md)
+
+### Hosted HoloOASIS SQLite delivery recovery
+
+- **Open, 13 November 2026.** If a retained authorization or audit record exists for the original write behind SQLite delivery sequence 543, identify its protected location and custodian. Evidence must establish the writer's authority at the time of that operation. Keep actor IDs, payloads and credentials in the protected environment.
+- **Reason** The frozen record identifies the modifier and creator, but does not attest a Wizard role or delegated authority. The reviewed queue head was denied authorization and the target had no predecessor. Engineering owns matching any evidence to the exact source operation and bound V2 route and qualifying a recovery procedure. The hosted queue remains held. [Routing tracker](../HyperDrive-Providers/PRIORITY_HYPERDRIVE_ROUTING.md)
