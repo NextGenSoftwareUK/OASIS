@@ -62,6 +62,19 @@ class OperatorSignInTests(unittest.TestCase):
             signin.prepare(self.state, "synthetic-user", "synthetic-password", self.query, self.good_role)
         self.assertEqual(self.calls, [])
 
+    def test_subscription_admin_acknowledgement_requires_subscription_authority(self):
+        with self.assertRaises(RuntimeError):
+            signin.prepare(self.state, "synthetic-user", "synthetic-password", self.query,
+                self.good_role, subscription_admin=True)
+        self.assertFalse((self.state / "operator.session.dpapi").exists())
+
+        state = self.state.with_name("subscription-admin")
+        signin.prepare(state, "synthetic-user", "synthetic-password", self.query,
+            lambda *_: {"status": 200}, subscription_admin=True)
+        ack = json.loads((state / "operator.acknowledged.json").read_text())
+        self.assertTrue(ack["subscriptionAdminAuthorityVerified"])
+        self.assertNotIn("wizardAuthorityVerified", ack)
+
     def test_missing_secure_refresh_cookie_preserves_response_without_ready_session(self):
         self.cookies = []
         with self.assertRaises(RuntimeError):
