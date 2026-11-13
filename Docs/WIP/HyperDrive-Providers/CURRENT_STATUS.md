@@ -18,6 +18,8 @@
 
 ## Verification log
 
+13 November Cancun time. [Exact Agave job 132071909921](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43479479855/job/132071909921) passed both routing modes with zero skips. CI tree `94c312c509c12ce35531523842d735714aaa186d` matches candidate `309bb68419f2`. A healthy Solana miss stopped before SQLite despite the exact record being present there. Existing replication, outage and RoundRobin assertions and fixture teardown passed. Ready for shared review after 13:21:45 Cancun. No local fixtures were created.
+
 13 November Cancun time. Solana CI `43478651713` reproduced the staged tree but stopped at compilation because the new test lacked the Core namespace import for `StorageOperationRequest`. Added the import. Native assertions have yet to run. No local artifacts were created.
 
 13 November Cancun time. All seven API deployment statuses reported success on `86c157239f29`. Railway confirmed WEB4 deployment `5a808d48-b25b-41fa-9227-d752406b9135` succeeded. [Solana and SQLite native CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43478651713) resolved Development and began checking out the test inputs. The next shared review is after 13:21:45 Cancun, based on the deployment timestamp. No local artifacts were created.
