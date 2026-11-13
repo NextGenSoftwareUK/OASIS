@@ -18,7 +18,7 @@ using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS;
 
 public partial class IPFSOASIS : IBoundCommittedHolonReplicaStorageProvider, ICommittedHolonReplicaReceiptStorageProvider,
-    IHolonReplicaHeadAuditStorageProvider, IBoundConditionalHolonWriteRecoveryStorageProvider
+    IHolonReplicaHeadAuditStorageProvider, IConditionalHolonReceiptEvidenceStorageProvider, IConditionalHolonDeltaStorageProvider
 {
     private const ProviderType ReplicaAuthority = Core.Enums.ProviderType.IPFSOASIS;
     private sealed class ReplicaLineageConflictException(string message, Exception cause = null)
@@ -154,9 +154,16 @@ public partial class IPFSOASIS : IBoundCommittedHolonReplicaStorageProvider, ICo
         CancellationToken cancellationToken = default)
         => ReadConditionalOutcomeAsync(original, expectedSource, true, cancellationToken);
 
+    public Task<OASISResult<ConditionalHolonWriteOutcome>> ReadConditionalHolonReceiptEvidenceAsync(
+        ConditionalHolonReceiptEvidenceRequest request, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        return ReadConditionalOutcomeAsync(request.Original, request.ExpectedSource, true, cancellationToken, request);
+    }
+
     private async Task<OASISResult<ConditionalHolonWriteOutcome>> ReadConditionalOutcomeAsync(
         ConditionalHolonWriteRequest original, CosmicStorageIdentity expectedSource, bool requireBinding,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken, ConditionalHolonReceiptEvidenceRequest evidenceRequest = null)
     {
         try
         {
@@ -174,11 +181,17 @@ public partial class IPFSOASIS : IBoundCommittedHolonReplicaStorageProvider, ICo
                         Message = "The IPFS catalogue does not match the requested source store." };
 
                 var receipt = GetReplicaObject(catalogue, "conditionalReceipts")[plan.OperationId.ToString("D")];
+                HolonCommittedDelta delta = null;
+                ConditionalHolonReceiptEvidence evidence = null;
                 if (receipt != null)
-                    _ = ConditionalHolonReceipt.Read(ReplicaText(receipt), plan);
+                {
+                    var roots = ConditionalHolonReceipt.Read(ReplicaText(receipt), plan, out delta);
+                    if (evidenceRequest != null)
+                        evidence = ConditionalHolonReceiptEvidenceProjection.Create(evidenceRequest, roots);
+                }
                 var state = receipt == null ? ConditionalHolonReceiptState.Absent : ConditionalHolonReceiptState.Committed;
                 return new(new ConditionalHolonWriteOutcome(plan.OperationId, plan.ActorId, plan.Authority,
-                    plan.Operation, state)) { IsLoaded = true };
+                    plan.Operation, state, delta?.SummaryJson, evidence)) { IsLoaded = true };
             }
             finally
             {
@@ -215,8 +228,7 @@ public partial class IPFSOASIS : IBoundCommittedHolonReplicaStorageProvider, ICo
                 var receipts = GetReplicaObject(catalogue, "conditionalReceipts");
                 var operationId = plan.OperationId.ToString("D");
                 if (receipts[operationId] is JToken receipt)
-                    return ConditionalHolonAcknowledgement.Create(
-                        ConditionalHolonReceipt.Read(ReplicaText(receipt), plan), plan.Operation);
+                    return AcknowledgeConditionalWrite(ReplicaText(receipt), plan);
 
                 var currentCids = records.Where(entry => entry.Value.RecordKind == "holon")
                     .ToDictionary(entry => entry.Value.Id, entry => entry.Key);
@@ -283,12 +295,14 @@ public partial class IPFSOASIS : IBoundCommittedHolonReplicaStorageProvider, ICo
                 foreach (var record in snapshots.Values)
                     record.Children = plan.ChildIds[record.Id].Select(id => (IHolon)snapshots[id]).ToList();
                 var roots = plan.RootIds.Select(id => (IHolon)snapshots[id]).ToArray();
-                var acknowledgement = ConditionalHolonReceipt.Write(roots, plan);
-                var acknowledged = ConditionalHolonReceipt.Read(acknowledgement, plan);
+                var delta = HolonCommittedDelta.Capture(plan.OperationId, plan.ActorId, plan.Authority, plan.Operation,
+                    now, previous.Values.Where(record => record != null), snapshots.Values, retainStoredValues: false);
+                var acknowledgement = ConditionalHolonReceipt.Write(roots, plan, delta);
+                var acknowledged = AcknowledgeConditionalWrite(acknowledgement, plan);
                 receipts[operationId] = acknowledgement;
                 catalogue["conditionalReceipts"] = receipts;
                 await PublishCatalogueAsync(catalogue, records, dna, cancellationToken).ConfigureAwait(false);
-                return ConditionalHolonAcknowledgement.Create(acknowledged, plan.Operation);
+                return acknowledged;
             }
             finally
             {
@@ -304,6 +318,17 @@ public partial class IPFSOASIS : IBoundCommittedHolonReplicaStorageProvider, ICo
             return ReplicaFailure(cause is CosmicConcurrencyException ? CosmicConcurrencyException.Code
                 : "COSMIC_CONDITIONAL_WRITE_FAILED", cause);
         }
+    }
+
+    private static OASISResult<IEnumerable<IHolon>> AcknowledgeConditionalWrite(string receipt, ConditionalHolonPlan plan)
+    {
+        var roots = ConditionalHolonReceipt.Read(receipt, plan, out var delta);
+        var result = ConditionalHolonAcknowledgement.Create(roots, plan.Operation);
+        result.MetaData ??= new Dictionary<string, string>();
+        result.MetaData["COSMIC.OperationId"] = plan.OperationId.ToString("D");
+        if (delta != null)
+            result.MetaData[HolonCommittedDelta.ResultMetadataKey] = delta.SummaryJson;
+        return result;
     }
 
     private async Task<OASISResult<IEnumerable<IHolon>>> ApplyReplicaAsync(CommittedHolonReplicaRequest request,

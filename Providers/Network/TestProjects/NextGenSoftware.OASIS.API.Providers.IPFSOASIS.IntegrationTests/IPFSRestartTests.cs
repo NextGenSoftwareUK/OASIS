@@ -167,10 +167,28 @@ public sealed class IPFSRestartTests
                 var outcome = await provider.ReadBoundConditionalHolonWriteOutcomeAsync(request, identity.Result);
                 Assert.True(outcome.IsLoaded && !outcome.IsError, outcome.Message);
                 Assert.Equal(ConditionalHolonReceiptState.Committed, outcome.Result.ReceiptState);
+                Assert.False(string.IsNullOrWhiteSpace(outcome.Result.CommittedDeltaSummaryJson));
+                var wrongSource = new CosmicStorageIdentity(identity.Result.Authority,
+                    identity.Result.EndpointFingerprint, Guid.NewGuid());
+                var mismatched = await provider.ReadBoundConditionalHolonWriteOutcomeAsync(request, wrongSource);
+                Assert.True(mismatched.IsError);
+                Assert.Equal("COSMIC_SOURCE_STORAGE_BINDING_MISMATCH", mismatched.ErrorCode);
+                Assert.Null(mismatched.Result);
                 Assert.Equal(pointerBeforeReplay, await File.ReadAllTextAsync(dnaPath));
                 var replay = await provider.ExecuteConditionalHolonWriteAsync(request);
                 Assert.True(replay.IsSaved && !replay.IsError, replay.Message);
                 Assert.Equal(Guid.Parse(await File.ReadAllTextAsync(conditionalVersionPath)), Assert.Single(replay.Result).VersionId);
+                var evidenceRequest = new ConditionalHolonReceiptEvidenceRequest(request, identity.Result,
+                    identity.Result, new[] { conditionalRecord.Id });
+                var evidence = await provider.ReadConditionalHolonReceiptEvidenceAsync(evidenceRequest);
+                Assert.True(evidence.IsLoaded && !evidence.IsError, evidence.Message);
+                var committed = Assert.Single(evidence.Result.ReceiptEvidence.Records);
+                var replayedRecord = Assert.Single(replay.Result);
+                Assert.Equal(replayedRecord.VersionId, committed.VersionId);
+                Assert.Equal(CosmicConcurrency.GetProviderRevisionId(replayedRecord, ProviderType.IPFSOASIS),
+                    committed.SourceProviderRevisionId);
+                Assert.Equal(CommittedHolonReplicaPlan.PortableContentDigest(replayedRecord, ProviderType.IPFSOASIS),
+                    committed.PortableContentDigest);
                 Assert.Equal(pointerBeforeReplay, await File.ReadAllTextAsync(dnaPath));
 
                 var beforeDelete = await provider.LoadHolonAsync(conditionalRecord.Id, loadChildren: false);
