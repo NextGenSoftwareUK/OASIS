@@ -118,8 +118,8 @@ class Graph:
                     props.setdefault(name, (prop.text or "").strip())
 
         def expand(value):
-            value = value.replace("$(MSBuildThisFileDirectory)", path.parent.as_posix() + "/")
             for _ in range(5):
+                value = value.replace("$(MSBuildThisFileDirectory)", path.parent.as_posix() + "/")
                 value = re.sub(r"\$\((\w+)\)", lambda m: props.get(m.group(1), m.group(0)), value)
             return value
 
