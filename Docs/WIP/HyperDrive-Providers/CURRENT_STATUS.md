@@ -18,6 +18,8 @@
 
 ## Verification log
 
+13 November Cancun time. [Exact ActivityPub deletion qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43487962274/job/132101348404) passed both sync and async native Mastodon cases and removed its fixture directory. Candidate 7aaf3da9fea7 on Development e247ea434af1 has the same tree 3746d2c4830728f6ea42ea86bd3bc11e2abd5444 as qualification a1d13fd3b34c. The test-only batch is ready for the next shared review after 14:26:53 Cancun if the parent and rollout still match. WEB6 reported success and six deployments remained pending. Logs were inspected in memory and no local fixture or build output was created.
+
 13 November Cancun time. Development advanced to e247ea434af1 with the exact qualified ActivityPub public URI route and Solana signature-version absence batch. All seven Railway API deployments were pending at the first status check. The ActivityPub deletion regression is verified separately on the provider branch. Hosted and cross-instance acceptance remain open.
 
 13 November Cancun time. [Native ActivityPub absence regression](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43486323641/job/132095639208) passed 2/2 on d8ccfa4b017a. Both modes returned RecordNotFound for the same public object URI after an independent HTTP 404 confirmed deletion. CI removed its fixture directory. This test-only follow-up is outside the previously qualified Development candidate. No local artifacts were created.
