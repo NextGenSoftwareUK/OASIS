@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. IPFS lineage and delete acknowledgement restart 43359026041 and multi-process publication 43359008408 passed on exact EOSIO-based tree c0bd80d99bdf6b12e1390ad32c24c56ab57f9fae. Both jobs confirmed fixture cleanup. All seven APIs succeeded on EOSIO Development 4d338173e64d and COSMIC independently verified four live public presets. The shared review remains after 22:39:53.
+
 12 November Cancun time. IPFS replica apply now reports the same lineage conflict code as SQLite and Neo4j, allowing durable delivery to classify the conflict. Delete replay returns a deletion acknowledgement. The restart fixture checks both contracts against Kubo. No local build or download.
 
 12 November Cancun time. Consolidated IPFS binding reads into one immutable catalogue snapshot reader for identity capture, receipt audit, head audit and receiver apply. An atomic source writer can use that reader under the existing cross-process lease. Source conditional mutation, receipt and outbox publication still need implementation and native qualification. No local build or download.

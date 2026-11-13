@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+12 November lineage and delete acknowledgement runs 43359026041 and 43359008408 confirmed removal of the disposable Kubo runtime, repository and logs. No local build or download.
+
 12 November replica head audit runs 43358073433 and 43358055700 confirmed removal of the disposable runtime, repository and logs. No local build or download.
 
 12 November EOSIO-baseline IPFS checks 43357257220 and 43357260351 confirmed removal of the Kubo fixture directories. The temporary remote qualification tag was deleted and verified absent. No local build, runtime or download.
