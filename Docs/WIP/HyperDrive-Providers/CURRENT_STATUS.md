@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. Prepared alternate HyperDrive candidate b67ce97ec562 on COSMIC Arbitrum db5b9cf03dc3, should that revision land first after Polygon. All 25 routing and IPFS path modes and object IDs match the Polygon-based batch. Polygon has the 19:24:08 shared window if the parent and rollout checks hold. No local fixture or temporary index was created.
+
 12 November Cancun time. IPFS exact Development persistence 43335687633 and active-reader regression 43335780583 passed on independently reproduced tree cd6e5e90535726145af207337efdd1d436943212. Prepared four-file candidate 29c8ffa64101 on the Polygon-based routing batch. Durable replica replay and source outbox remain open.
 
 12 November Cancun time. Polygon exact WEB4 image 43332319040 passed before the shared review, and COSMIC is preparing its nine-file batch. HyperDrive prepared candidate e7bc1b483529 on Polygon c47edf2e3062 and verified the same 21 routing path modes and object IDs as candidate b53b3c603d6d. Recheck remote and deployment before any push. IPFS exact Development persistence run 43335687633 and active-reader run 43335780583 are active. No local fixture or temporary index was created.
