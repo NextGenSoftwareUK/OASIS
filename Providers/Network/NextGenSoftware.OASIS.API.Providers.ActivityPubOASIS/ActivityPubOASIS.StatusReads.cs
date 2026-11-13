@@ -45,7 +45,15 @@ public partial class ActivityPubOASIS
                     throw new NotSupportedException("Public object URI reads do not include a native reply graph.");
                 return await LoadPublicStatusByObjectUriAsync(key).ConfigureAwait(false);
             }
-            using var response=await _httpClient.GetAsync("/api/v1/statuses/"+Uri.EscapeDataString(selected)).ConfigureAwait(false);response.EnsureSuccessStatusCode();
+            using var response=await _httpClient.GetAsync("/api/v1/statuses/"+Uri.EscapeDataString(selected)).ConfigureAwait(false);
+            if (response.StatusCode == HttpStatusCode.NotFound)
+                return new OASISResult<IHolon>
+                {
+                    IsError = true,
+                    ErrorCode = OASISResultErrorCodes.RecordNotFound,
+                    Message = "The configured instance did not find the native status."
+                };
+            response.EnsureSuccessStatusCode();
             using var document=JsonDocument.Parse(await response.Content.ReadAsStringAsync().ConfigureAwait(false));var status=document.RootElement;
             var holon=ProjectMastodonStatus(status,selected);
             result.Result=children&&providerChildren?await ReadMastodonReplyGraphAsync(holon,recursive,depth).ConfigureAwait(false):holon;
@@ -53,7 +61,6 @@ public partial class ActivityPubOASIS
             result.IsLoaded=true;
         }catch(Exception error){
             OASISErrorHandling.HandleError(ref result,"Mastodon native status read failed.",error);
-            if(error is HttpRequestException http&&http.StatusCode==HttpStatusCode.NotFound)result.ErrorCode=OASISResultErrorCodes.RecordNotFound;
         }
         return result;
     }
