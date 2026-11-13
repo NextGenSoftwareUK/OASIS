@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+13 November Cancun time. Solana signature candidate `7119fcb369cd` used one temporary Git index and verified its removal. Native job 132078673640 completed disposable Agave ledger and SQLite fixture teardown. No local build, runtime download or test fixture was created.
+
 13 November Cancun time. Solana candidates `09bf570d7db9` and `309bb68419f2` used temporary Git indices that were removed. Native job 132071909921 completed the disposable Agave ledger and SQLite fixture teardown. CI logs were inspected in memory. No local build, runtime download or test fixture was created.
 
 13 November Cancun time. HoloOASIS integration candidates `73bc7c86ea74` and `86c157239f29` used temporary Git indices, removed after writing the trees. Native jobs 132042931857 and 132047519781 completed the disposable conductor checks. CI logs were inspected in memory. No local build, runtime download or test fixture was created.
