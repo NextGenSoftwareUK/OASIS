@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Google.Cloud.Firestore;
+using Google.Protobuf;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -18,7 +18,7 @@ using Native = Google.Cloud.Firestore.V1;
 
 namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS;
 
-public partial class GoogleCloudOASIS : IBoundCommittedHolonReplicaStorageProvider
+public partial class GoogleCloudOASIS : IBoundCommittedHolonReplicaStorageProvider, IHolonReplicaHeadAuditStorageProvider
 {
     private const ProviderType FirestoreReplicaAuthority = Core.Enums.ProviderType.GoogleCloudOASIS;
 
@@ -83,10 +83,8 @@ public partial class GoogleCloudOASIS : IBoundCommittedHolonReplicaStorageProvid
                         var id = record.Id.ToString("D");
                         var target = database.Collection("holons").Document(id);
                         var head = database.Collection("cosmicReplicaHeads").Document(id);
-                        var current = await ReadFirestoreIdentityDocumentAsync(target, transaction).ConfigureAwait(false);
-                        var prior = await ReadFirestoreTransactionDocumentAsync(head, transaction,
-                            new[] { "source", "authority", "snapshot", "digest", "revision", "hardDeleted" },
-                            cancellationToken).ConfigureAwait(false);
+                        var current = await ReadFirestoreIdentityDocumentAsync(target, transaction, cancellationToken).ConfigureAwait(false);
+                        var prior = await ReadFirestoreReplicaHeadAsync(head, transaction, cancellationToken).ConfigureAwait(false);
                         var fields = current == null ? null : DecodeFirestoreIdentityFields(current);
                         if (prior == null)
                         {
@@ -95,12 +93,7 @@ public partial class GoogleCloudOASIS : IBoundCommittedHolonReplicaStorageProvid
                         }
                         else
                         {
-                            var metadata = DecodeFirestoreIdentityFields(prior);
-                            var evidence = HolonReplicaHeadRecord.Read(record.Id, FirestoreReplicaAuthority,
-                                (string)metadata["source"], (string)metadata["authority"], (string)metadata["snapshot"],
-                                (string)metadata["digest"], (string)metadata["revision"], (bool)metadata["hardDeleted"]).Evidence;
-                            var currentRecord = fields == null ? null : await ReadFirestoreHistoryAsync<Holon>(fields, id, 0);
-                            HolonReplicaHeadRecord.ValidateCurrent(record.Id, FirestoreReplicaAuthority, currentRecord, evidence);
+                            var evidence = await ValidateFirestoreReplicaHeadAsync(record.Id, prior, fields).ConfigureAwait(false);
                             if (evidence.SourceId != plan.SourceId || evidence.SourceAuthority != plan.SourceAuthority
                                 || evidence.VersionId != record.PreviousVersionId || evidence.Version != record.Version - 1)
                                 throw ReplicaLineageConflict();
@@ -152,6 +145,78 @@ public partial class GoogleCloudOASIS : IBoundCommittedHolonReplicaStorageProvid
             return new() { IsError = true, ErrorCount = 1, Exception = cause, Message = cause.Message,
                 ErrorCode = cause is FirestoreReplicaConflict conflict ? conflict.Code : "COSMIC_REPLICA_WRITE_FAILED" };
         }
+    }
+
+    public async Task<OASISResult<HolonReplicaHeadReadResult>> ReadHolonReplicaHeadsAsync(
+        HolonReplicaHeadReadRequest request, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        if (request == null || request.ExpectedStorage.Authority != FirestoreReplicaAuthority)
+            return new() { IsError = true, ErrorCount = 1, ErrorCode = "COSMIC_REPLICA_HEAD_AUDIT_OPTIONS_INVALID",
+                Message = "An exact Firestore replica-head intent and binding are required." };
+
+        try
+        {
+            var database = _firestoreDb;
+            if (!IsProviderActivated || !_enableFirestore || database == null)
+                throw new InvalidOperationException("Activate the enrolled Firestore database before reading replica heads.");
+
+            var identity = FirestoreStorageIdentityDocument(database);
+            var result = await RunFirestoreIdentityTransactionAsync<HolonReplicaHeadReadResult>(
+                database, identity.Path, async transaction =>
+                {
+                    var stored = await ReadFirestoreTransactionDocumentAsync(identity, transaction,
+                        new[] { "storeId" }, cancellationToken).ConfigureAwait(false);
+                    if (stored == null)
+                        throw new FirestoreReplicaConflict("COSMIC_REPLICA_HEAD_AUDIT_STORAGE_MISMATCH",
+                            "The Firestore database has no persisted routing identity.");
+                    var storage = ParseFirestoreStorageIdentity(database, ReadReplicaReceiptField(stored, "storeId"));
+                    if (storage.BindingFingerprint != request.ExpectedStorage.BindingFingerprint)
+                        throw new FirestoreReplicaConflict("COSMIC_REPLICA_HEAD_AUDIT_STORAGE_MISMATCH",
+                            "The physical Firestore database differs from the reviewed binding.");
+
+                    var observations = new List<HolonReplicaHeadObservation>(request.HolonIds.Count);
+                    foreach (var holonId in request.HolonIds)
+                    {
+                        var id = holonId.ToString("D");
+                        var current = await ReadFirestoreIdentityDocumentAsync(database.Collection("holons").Document(id),
+                            transaction, cancellationToken).ConfigureAwait(false);
+                        var head = await ReadFirestoreReplicaHeadAsync(database.Collection("cosmicReplicaHeads").Document(id),
+                            transaction, cancellationToken).ConfigureAwait(false);
+                        var evidence = head == null ? null : await ValidateFirestoreReplicaHeadAsync(holonId, head,
+                            current == null ? null : DecodeFirestoreIdentityFields(current)).ConfigureAwait(false);
+                        observations.Add(new HolonReplicaHeadObservation(holonId, current != null, evidence));
+                    }
+
+                    return (new HolonReplicaHeadReadResult(storage, observations), Array.Empty<Native.Write>());
+                }, cancellationToken: cancellationToken).ConfigureAwait(false);
+            return new(result) { IsLoaded = true };
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { throw; }
+        catch (Exception cause)
+        {
+            return new() { IsError = true, ErrorCount = 1, Exception = cause,
+                ErrorCode = cause is FirestoreReplicaConflict conflict ? conflict.Code : "COSMIC_REPLICA_HEAD_AUDIT_UNVERIFIED",
+                Message = cause is FirestoreReplicaConflict ? cause.Message : "The Firestore replica heads could not be verified." };
+        }
+    }
+
+    private static Task<Native.Document> ReadFirestoreReplicaHeadAsync(DocumentReference reference,
+        ByteString transaction, CancellationToken cancellationToken)
+        => ReadFirestoreTransactionDocumentAsync(reference, transaction,
+            new[] { "source", "authority", "snapshot", "digest", "revision", "hardDeleted" }, cancellationToken);
+
+    private async Task<HolonReplicaHeadEvidence> ValidateFirestoreReplicaHeadAsync(Guid id, Native.Document head,
+        Dictionary<string, object> currentFields)
+    {
+        var metadata = DecodeFirestoreIdentityFields(head);
+        var evidence = HolonReplicaHeadRecord.Read(id, FirestoreReplicaAuthority,
+            (string)metadata["source"], (string)metadata["authority"], (string)metadata["snapshot"],
+            (string)metadata["digest"], (string)metadata["revision"], (bool)metadata["hardDeleted"]).Evidence;
+        var current = currentFields == null ? null : await ReadFirestoreHistoryAsync<Holon>(currentFields,
+            id.ToString("D"), 0).ConfigureAwait(false);
+        HolonReplicaHeadRecord.ValidateCurrent(id, FirestoreReplicaAuthority, current, evidence);
+        return evidence;
     }
 
     private static Native.Precondition ReplicaPrecondition(Native.Document prior)
