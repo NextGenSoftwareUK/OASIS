@@ -2,7 +2,7 @@ name: ActivityPub native HyperDrive routing
 
 on:
   push:
-    branches: [work/hyperdrive-provider-completion]
+    branches: [work/hyperdrive-provider-completion, work/hyperdrive-activitypub-qualification]
     paths:
       - '.github/workflows/activitypub-native-routing.yml'
       - '.github/workflows/activitypub-native-search.yml'
