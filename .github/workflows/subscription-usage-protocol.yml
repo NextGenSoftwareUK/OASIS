@@ -82,6 +82,18 @@ jobs:
         run: dotnet test Scripts/SubscriptionLedger.OutboxAdmin.Tests/SubscriptionLedger.OutboxAdmin.Tests.csproj -m:1 --logger trx --results-directory TestResults/operator
       - name: Private operator publish
         run: dotnet publish Scripts/SubscriptionLedger.OutboxAdmin/SubscriptionLedger.OutboxAdmin.csproj -c Release -m:1
+      - name: Verify SQLite native entity-selected All
+        if: ${{ inputs.source_ref != '' }}
+        shell: pwsh
+        run: |
+          $env:OASIS_CQL_NEO_ENTITY_PROJECTION_ROOT = (Get-Location).Path
+          New-Item -ItemType Directory -Force TestResults/Neo4jCurrent | Out-Null
+          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cql-sqlite-entity-projection-ci -Operation {
+            dotnet test Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~NativeSqliteEntityProjectionPreservesStagesAndProofBeforeDtoConstruction' --logger 'trx;LogFileName=entity-projection.trx' --results-directory TestResults/Neo4jCurrent
+            if ($LASTEXITCODE) { throw 'Native SQLite entity projection failed.' }
+            $report = Get-Content TestResults/Neo4jCurrent/sqlite-entity-projection-native.json -Raw | ConvertFrom-Json
+            if ($report.checks -ne 43 -or !$report.inMemoryFixture) { throw 'Expected all 43 SQLite native assertions.' }
+          }
       - name: Publish the exact WEB4-WEB10 source graph
         shell: bash
         run: |
