@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. Atomic DNA publication uses .NET Standard-compatible replacement for an existing file and a non-overwriting move for first publication. Linux native Kubo run 43339348600 passed on the earlier implementation. Exact compatible commit 72c62ee811bd is now under native Windows active-reader verification 43339736537 and Linux multi-process verification 43339841493. The existing 29-path Development candidate excludes this unqualified DNA change.
+
 12 November Cancun time. IPFS catalogue publication exposed a shared DNA persistence gap: SaveDNA truncated the visible pointer before writing the replacement. Sync and async saves now flush a sibling file, replace the pointer, then update shared in-memory state. IPFS reads share delete access for Windows rename. Native CI is pending; this does not implement bound replica replay or an outbox.
 
 12 November Cancun time. If COSMIC publishes Arbitrum first, candidate 684cce6c6727 on db5b9cf03dc3 preserves all 29 reviewed routing, IPFS and Hedera paths byte for byte relative to the Polygon-based candidate 088f6817ca5a. Development remains on Polygon and the next shared review is after 19:56:21, subject to the current remote and rollout. No local build or temporary index.
