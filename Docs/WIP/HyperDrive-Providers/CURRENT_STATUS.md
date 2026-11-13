@@ -18,6 +18,8 @@
 
 ## Verification log
 
+13 November Cancun time. [Native ActivityPub absence regression](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43486323641/job/132095639208) passed 2/2 on d8ccfa4b017a. Both modes returned RecordNotFound for the same public object URI after an independent HTTP 404 confirmed deletion. CI removed its fixture directory. This test-only follow-up is outside the previously qualified Development candidate. No local artifacts were created.
+
 13 November Cancun time. [Exact ActivityPub qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43485281300/job/132091964589) passed both routed Mastodon cases and removed its fixture directory. Qualification 6805e2e6fbd3 and combined candidate e247ea434af1 have the same tree 12e7caae1af660ccacaf2722bb3821562aca70bc. The candidate layers two ActivityPub files on the native-qualified Solana signature revision 7119fcb369cd. Review for the shared Development window after 13:54:12 Cancun against the then-current remote head. Logs were inspected in memory and the temporary qualification index was removed.
 
 13 November Cancun time. Native Mastodon 4.4.28 passed 2/2 HyperDrive cases with zero skips on 6ac5d6b1bdb0. Each mode resolved the exact public object URI through the provider-key route, confirmed the serving provider and local native ID, and verified fixture deletion with an independent HTTP 404. The runner removed its containers, network and fixture directory. [Native job](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43484054336/job/132087695900). Exact Development qualification and cross-instance routing remain open.
