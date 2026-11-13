@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. Native tombstone restart 43365762650 and multi-process 43365761546 passed on exact Cosmos-based input tree 5f63fb0755b44a79c7342c33233fd6f16a912e24. The audit read the retained Kubo tombstone block and validated its lineage and content against the protected head. Both jobs confirmed cleanup. All seven APIs report success on Cosmos 23a78784f465. The already coordinated 2ec99009d7c8 candidate remains unchanged.
+
 12 November Cancun time. Hardened the IPFS replica head validator to read the native tombstone CID and compare its logical lineage, provider revision and portable content digest with the protected head. The existing native hard-delete audit exercises this path. This follow-up awaits CI. Candidate 2ec99009d7c8 retains its qualified scope. No local builds or downloads.
 
 12 November Cancun time. Native Kubo restart 43364403850 passed on the exact Cosmos-based integration tree 0d2d89c0aae57a3a04c67a523496a964468daa99 and confirmed fixture cleanup. Companion multi-process 43364406865 also passed on that exact tree and confirmed fixture cleanup. Candidate 2ec99009d7c8 is qualified for the coordinated Development review after 23:45:22 Cancun, pending the actual remote parent and rollout. COSMIC has prepared Polkadot follow-on 49f8463de927 on the three-file IPFS candidate. No local builds or downloads.

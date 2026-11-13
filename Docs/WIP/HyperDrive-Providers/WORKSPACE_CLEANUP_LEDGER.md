@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+12 November native tombstone runs 43365762650 and 43365761546 logged removal of both disposable Kubo fixtures. No local build or download.
+
 12 November Cosmos-baseline runs 43364403850 and 43364406865 confirmed removal of the disposable Kubo runtime, repository and logs. No local builds or downloads.
 
 12 November removed and verified absence of the temporary Git index used to prepare the graph-qualified IPFS integration candidates. No local build or download.
