@@ -18,6 +18,8 @@
 
 ## Verification log
 
+13 November 12:25 Cancun time. Prepared local HoloOASIS candidate `86c157239f29` on Development `df8b75695e08`. It contains only the two shipping provider files and the isolated native tests. The reusable workflow and task-branch workflow remain on the provider branch. [Native CI 43472431193](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43472431193) is running. Compare its recorded input tree against candidate tree `c02e6f406d60fd65e92e47aea1eabef3fb29d027` before integration. Temporary indices were removed. No local build or test files were created.
+
 13 November Cancun time. [Isolated HoloOASIS job 132042931857](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43471110151/job/132042931857) passed all four cases with zero skips on tree `7bd3c171e12246eeff99c4c91934a0a94686d91b`. Both action-hash reads and both collection and HyperDrive routing cases passed with the unique seed. Development advanced independently to `df8b75695e08` for projection admission and preserves the SQLite and Oracle batch. The new commits do not touch the HoloOASIS scope. Reconcile the native scope on the new parent before integration. Logs were inspected in memory and no local artifacts were created.
 
 13 November 12:15 Cancun time. Reviewed Development `0ca6397b2fce` and the COSMIC handoff at the shared integration window. The current HoloOASIS batch remains in qualification: [native job 132042931857](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43471110151/job/132042931857) resolved the Development base and was checking out inputs. The two direct action-hash passes carry forward. The unique-seed fixture still needs full collection and routing results. No Development push or local artifacts.
