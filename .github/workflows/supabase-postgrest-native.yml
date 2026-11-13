@@ -78,7 +78,7 @@ jobs:
         if: inputs.scenario == 'routing'
         shell: bash
         run: |
-          base=d74e43b9def4a3d57dd4a56da86a5e50904a8514
+          base=59bc51b9ba7cad3ec933300d38ea94b9f7359d32
           git -C ../provider-source fetch --no-tags --depth=1 origin "$base"
           tests='Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.SupabaseOASIS.IntegrationTests'
           for path in "$tests/NextGenSoftware.OASIS.API.Providers.SupabaseOASIS.IntegrationTests.csproj" "$tests/SupabaseSqliteHyperDriveTests.cs"; do
