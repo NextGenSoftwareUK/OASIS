@@ -240,6 +240,8 @@ internal sealed class HoloOasisDevelopmentConductor
             if (expectedCell is not { Length: 2 })
                 throw new InvalidOperationException("The enabled HoloOASIS teaching app has no provisioned cell.");
 
+            var completedPolls = 0;
+            var lastRunningCellCount = 0;
             try
             {
                 using var poll = new PeriodicTimer(TimeSpan.FromMilliseconds(250));
@@ -248,6 +250,8 @@ internal sealed class HoloOasisDevelopmentConductor
                     var running = await ListCellIdsAsync().WaitAsync(readiness.Token);
                     if (running.IsError)
                         throw new InvalidOperationException($"The conductor could not list running cells. {running.Message}");
+                    completedPolls++;
+                    lastRunningCellCount = running.CellIds.Count();
                     if (running.CellIds.Any(cell => cell.Length == 2 &&
                         cell[0].SequenceEqual(expectedCell[0]) && cell[1].SequenceEqual(expectedCell[1])))
                         return;
@@ -255,7 +259,9 @@ internal sealed class HoloOasisDevelopmentConductor
             }
             catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
             {
-                throw new TimeoutException("The existing HoloOASIS teaching cell did not start within the conductor readiness budget.");
+                throw new TimeoutException(
+                    $"The existing HoloOASIS teaching cell did not start within the conductor readiness budget. " +
+                    $"Completed cell-list replies: {completedPolls}; cells in the last reply: {lastRunningCellCount}.");
             }
         }
 
