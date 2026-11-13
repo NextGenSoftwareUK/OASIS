@@ -169,7 +169,13 @@ public partial class IPFSOASIS : IBoundCommittedHolonReplicaStorageProvider, ICo
         {
             if (requireBinding)
                 ArgumentNullException.ThrowIfNull(expectedSource);
-            var plan = ConditionalHolonPlan.Create(original, ReplicaAuthority);
+            var enrollment = original?.Write.ReplicationEnrollment;
+            var plan = enrollment == null ? ConditionalHolonPlan.Create(original, ReplicaAuthority)
+                : ConditionalHolonPlan.CreateReplicating(original, ReplicaAuthority, enrollment);
+            if (expectedSource != null && enrollment?.SourceStorageIdentity != null
+                && expectedSource.BindingFingerprint != enrollment.SourceStorageIdentity.BindingFingerprint)
+                throw new InvalidDataException("The requested source differs from the enrolled IPFS source.");
+            expectedSource ??= enrollment?.SourceStorageIdentity;
             var gate = CatalogueGate;
             await gate.WaitAsync(cancellationToken).ConfigureAwait(false);
             try
@@ -212,19 +218,36 @@ public partial class IPFSOASIS : IBoundCommittedHolonReplicaStorageProvider, ICo
     public OASISResult<IEnumerable<IHolon>> ExecuteConditionalHolonWrite(ConditionalHolonWriteRequest request)
         => ExecuteConditionalHolonWriteAsync(request).GetAwaiter().GetResult();
 
-    public async Task<OASISResult<IEnumerable<IHolon>>> ExecuteConditionalHolonWriteAsync(
+    public Task<OASISResult<IEnumerable<IHolon>>> ExecuteConditionalHolonWriteAsync(
         ConditionalHolonWriteRequest request, CancellationToken cancellationToken = default)
+        => ExecuteCatalogueWriteAsync(request, null, cancellationToken);
+
+    internal Task<OASISResult<IEnumerable<IHolon>>> ExecuteEnrolledCatalogueWriteAsync(
+        ConditionalHolonWriteRequest request, HolonReplicationEnrollment enrollment, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(enrollment);
+        return ExecuteCatalogueWriteAsync(request, enrollment, cancellationToken);
+    }
+
+    private async Task<OASISResult<IEnumerable<IHolon>>> ExecuteCatalogueWriteAsync(
+        ConditionalHolonWriteRequest request, HolonReplicationEnrollment enrollment, CancellationToken cancellationToken)
     {
         try
         {
-            var plan = ConditionalHolonPlan.Create(request, ReplicaAuthority);
+            var plan = enrollment == null ? ConditionalHolonPlan.Create(request, ReplicaAuthority)
+                : ConditionalHolonPlan.CreateReplicating(request, ReplicaAuthority, enrollment);
+            if (enrollment != null && (enrollment.SourceStorageIdentity == null || enrollment.NativeRoutes.Count == 0))
+                throw new ArgumentException("IPFS replication requires a physical source and native target routes.");
             var gate = CatalogueGate;
             await gate.WaitAsync(cancellationToken).ConfigureAwait(false);
             try
             {
                 using var lease = await AcquireCatalogueFileLeaseAsync(cancellationToken).ConfigureAwait(false);
                 var dna = ReadPersistedCatalogueDna();
-                var (catalogue, records, _) = await ReadBoundCatalogueAsync(dna, cancellationToken).ConfigureAwait(false);
+                var (catalogue, records, storage) = await ReadBoundCatalogueAsync(dna, cancellationToken).ConfigureAwait(false);
+                if (enrollment != null && enrollment.SourceStorageIdentity.BindingFingerprint != storage.BindingFingerprint)
+                    return ReplicaFailure("COSMIC_SOURCE_STORAGE_BINDING_MISMATCH",
+                        new InvalidOperationException("The IPFS catalogue does not match the enrolled source store."));
                 var receipts = GetReplicaObject(catalogue, "conditionalReceipts");
                 var operationId = plan.OperationId.ToString("D");
                 if (receipts[operationId] is JToken receipt)
@@ -301,6 +324,8 @@ public partial class IPFSOASIS : IBoundCommittedHolonReplicaStorageProvider, ICo
                 var acknowledged = AcknowledgeConditionalWrite(acknowledgement, plan);
                 receipts[operationId] = acknowledgement;
                 catalogue["conditionalReceipts"] = receipts;
+                if (enrollment != null)
+                    StageOutboundDeliveries(catalogue, plan, acknowledged.Result, now);
                 await PublishCatalogueAsync(catalogue, records, dna, cancellationToken).ConfigureAwait(false);
                 return acknowledged;
             }
@@ -318,6 +343,39 @@ public partial class IPFSOASIS : IBoundCommittedHolonReplicaStorageProvider, ICo
             return ReplicaFailure(cause is CosmicConcurrencyException ? CosmicConcurrencyException.Code
                 : "COSMIC_CONDITIONAL_WRITE_FAILED", cause);
         }
+    }
+
+    private static void StageOutboundDeliveries(JObject catalogue, ConditionalHolonPlan plan,
+        IEnumerable<IHolon> acknowledged, DateTime committedAtUtc)
+    {
+        var enrollment = plan.ReplicationEnrollment;
+        var payload = CommittedHolonReplicaPayload.Capture(new CommittedHolonReplicaRequest(
+            plan.OperationId, enrollment.SourceId, plan.Authority, plan.ActorId, plan.Operation,
+            acknowledged, plan.SaveChildren, plan.Recursive, plan.MaxChildDepth, enrollment.NativeRoutes));
+        var deliveries = GetReplicaObject(catalogue, "outboundDeliveries");
+        var sequenceToken = catalogue["outboundSequence"];
+        var sequence = sequenceToken == null && !deliveries.HasValues ? 0 :
+            sequenceToken?.Type == JTokenType.Integer ? sequenceToken.Value<long>() :
+            throw new InvalidDataException("The IPFS outbound delivery sequence is missing or invalid.");
+        if (sequence < 0)
+            throw new InvalidDataException("The IPFS outbound delivery sequence cannot be negative.");
+
+        foreach (var route in enrollment.NativeRoutes)
+        {
+            sequence = checked(sequence + 1);
+            deliveries.Add(sequence.ToString(System.Globalization.CultureInfo.InvariantCulture), new JObject
+            {
+                ["operation"] = plan.OperationId.ToString("D"),
+                ["target"] = route.TargetId,
+                ["payload"] = payload,
+                ["digest"] = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(payload))),
+                ["committedAtUtcTicks"] = committedAtUtc.Ticks,
+                ["state"] = nameof(HolonDeliveryState.Pending),
+                ["attempts"] = 0
+            });
+        }
+        catalogue["outboundDeliveries"] = deliveries;
+        catalogue["outboundSequence"] = sequence;
     }
 
     private static OASISResult<IEnumerable<IHolon>> AcknowledgeConditionalWrite(string receipt, ConditionalHolonPlan plan)
