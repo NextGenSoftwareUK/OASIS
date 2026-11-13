@@ -18,6 +18,8 @@
 
 ## Verification log
 
+13 November Cancun time. Native graph run 43419743754 advanced both MongoDB-primary modes through graph replication after hydrating committed child roles from BSON. All four cases then failed the historical metadata read on duplicate logical versions. The predictive write in the fixture changed payload without advancing its caller-owned version. Combined candidate c38fb7813289 assigns version 2 to that write and runs in 43420249445 on Development 97521160d47e. The full routing suite remains open.
+
 13 November Cancun time. Native MongoDB regression run 43417731326 progressed beyond the corrected no-group search assertion in all four combinations. Both MongoDB-primary cases failed capturing the committed graph for replication after the primary acknowledged persistence. Both SQLite-primary cases failed a MongoDB multi-key metadata collection read. These failures remain open and are distinct from the passing focused RoundRobin test.
 
 13 November Cancun time. Fast-forwarded Development to 97521160d47e after the half-hour review and seven successful predecessor deployments. The two-file test and workflow batch matches the native RoundRobin-tested tree. Verified the remote ref. Hosted distribution remains open. No local build or downloads.
