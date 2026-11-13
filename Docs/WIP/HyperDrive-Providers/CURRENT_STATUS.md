@@ -18,7 +18,7 @@
 
 ## Verification log
 
-13 November Cancun time. Prepared outbound IPFS candidate 0afae3fde6f59fb8054b0e9d262f3faf2301d5e4 on Development a41c57060d51 with expected tree 9d659f366c72ded64654fbc9b262a2750eeb5966. Only the native catalogue writer, outbox and Kubo restart fixture differ. Exact Development restart 43395859849 and multi-process 43395841401 were queued at inspection.
+13 November Cancun time. Prepared outbound IPFS candidate 0afae3fde6f59fb8054b0e9d262f3faf2301d5e4 on Development a41c57060d51 with expected tree 9d659f366c72ded64654fbc9b262a2750eeb5966. Only the native catalogue writer, outbox and Kubo restart fixture differ. Exact Development restart 43395859849 and multi-process 43395841401 passed on that same tree and confirmed cleanup. The restart scenario delivered an enrolled native Kubo write to SQLite through the shipping dispatcher and verified replay created no duplicate. Three of seven predecessor API deployments had succeeded at inspection.
 
 13 November 03:41 Cancun time. Fast-forwarded Development to a41c57060d51 after seven successful predecessor deployments. This batch contains only the two exact Kubo-tested receipt evidence files. Separately, IPFS-to-SQLite delivery passed via the shipping dispatcher in restart 43394933840. Multi-process 43394916565 passed on the same tree 9d659f366c72ded64654fbc9b262a2750eeb5966. Both confirmed fixture removal. The outbound batch remains on the work branch pending qualification on the new Development parent.
 

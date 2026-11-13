@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+13 November exact Development outbound runs 43395859849 and 43395841401 removed the disposable Kubo and SQLite fixture directories. No local builds or downloads.
+
 13 November removed and verified absence of the temporary Git index used to assemble the outbound IPFS candidate. No local builds or downloads.
 
 13 November outbound IPFS runs 43394933840 and 43394916565 removed their disposable Kubo and SQLite fixtures. No local builds or downloads.
