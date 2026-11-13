@@ -18,6 +18,8 @@
 
 ## Verification log
 
+13 November Cancun time. Native multi-process Kubo run 43376494012 passed with cleanup after cancellation was propagated through storage binding capture. Candidate 52e963497016 reproduces its exact tree f20109bb0d75f036f3d903d68f5ba53cc042a905 on Development 49f8463de927. Restart run 43376859488 was dispatched for the same source. Alternate 840e4109a52d on COSMIC correction 6dbb74381641 has the same three IPFS file objects and awaits qualification on the actual Development parent. The shared review confirmed the Polkadot BootLoader correction remains first. Its registration CI passed and exact image was still running.
+
 13 November Cancun time. Prepared three-file IPFS cancellation and recovery candidate 128ec349fd04 on current Polkadot Development. The tree exactly reproduces both passing Kubo runs. Alternate 150b4d3fbde2 on proposed Polkadot BootLoader correction 6dbb74381641 preserves the three file objects and has tree 893e27c3b9100f996d5c5b8a379e8703fa7dc851. No paths overlap. Qualify the alternate only after the corrected parent lands.
 
 13 November Cancun time. Cancellation restart 43375404293 and multi-process 43375401696 passed on tree 818b19acdb0e3422110f859cbe4ebf839c8a31f1. Cancelling while the catalogue lock was held left persisted DNA unchanged. Both runs confirmed cleanup. COSMIC is prioritizing a Polkadot BootLoader correction before TON because live CQL requires a read-only registration path. Development remains on 49f8463de927.
