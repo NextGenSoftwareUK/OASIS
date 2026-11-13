@@ -59,7 +59,8 @@ jobs:
         shell: bash
         run: |
           base=2b8081b30f84d725509707fa102e13cc95a24213
-          git -C ../provider-source fetch --no-tags --depth=1 origin "$base"
+          identity=d4276e40489510fb89e544f6c118d7b89f8cd5ce
+          git -C ../provider-source fetch --no-tags --depth=1 origin "$base" "$identity"
           provider='Providers/Network/NextGenSoftware.OASIS.API.Providers.IPFSOASIS'
           tests='Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.IPFSOASIS.IntegrationTests'
           for path in "$provider/IPFSOASIS.Init.cs" "$provider/IPFSOASIS.IndexIdentity.cs" \
@@ -68,8 +69,12 @@ jobs:
             "$tests/IPFSConcurrentPublicationTests.cs" "$tests/IPFSRestartTests.cs"; do
             current="$(git ls-tree HEAD -- "$path")"
             reviewed="$(git -C ../provider-source ls-tree "$base" -- "$path")"
+            integrated="$(git -C ../provider-source ls-tree "$identity" -- "$path")"
             incoming="$(git -C ../provider-source ls-tree HEAD -- "$path")"
-            [[ -n "$incoming" && ( "$current" == "$reviewed" || "$current" == "$incoming" ) ]]
+            if [[ -z "$incoming" || ( "$current" != "$reviewed" && "$current" != "$integrated" && "$current" != "$incoming" ) ]]; then
+              echo "::error::Unreviewed Development or missing incoming file: $path"
+              exit 1
+            fi
             cp -- "../provider-source/$path" "$path"
             git add -- "$path"
           done
