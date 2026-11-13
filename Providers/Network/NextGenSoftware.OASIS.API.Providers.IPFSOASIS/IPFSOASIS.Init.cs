@@ -327,6 +327,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             var settings = dna.OASIS.StorageProviders.IPFSOASIS;
             var previousRoot = settings.LookUpIPFSAddress;
             catalogue["records"] = JObject.FromObject(records);
+            DeserializeLookup(catalogue, out _);
             var encrypted = ProtectIndex(catalogue.ToString(Formatting.None));
             cancellationToken.ThrowIfCancellationRequested();
             var fsn = await IPFSClient.FileSystem.AddTextAsync(encrypted, cancel: cancellationToken).ConfigureAwait(false);

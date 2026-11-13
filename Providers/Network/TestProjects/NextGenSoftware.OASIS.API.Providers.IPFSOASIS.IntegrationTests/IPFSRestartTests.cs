@@ -73,6 +73,11 @@ public sealed class IPFSRestartTests
                 var identity = await provider.CaptureStorageIdentityAsync();
                 Assert.False(identity.IsError, identity.Message);
                 await File.WriteAllTextAsync(identityPath, identity.Result.BindingFingerprint);
+                var publishedDna = await File.ReadAllTextAsync(dnaPath);
+                var invalidCatalogue = await provider.LoadLookupToJson();
+                invalidCatalogue.Add("invalid-cid", new HolonResume());
+                await Assert.ThrowsAsync<InvalidDataException>(() => provider.SaveLookupToFile(invalidCatalogue));
+                Assert.Equal(publishedDna, await File.ReadAllTextAsync(dnaPath));
                 await VerifyReplicaAsync(provider, identity.Result, dnaPath, replay: false);
                 holon.Name = "after update";
                 holon.Version = 2;
