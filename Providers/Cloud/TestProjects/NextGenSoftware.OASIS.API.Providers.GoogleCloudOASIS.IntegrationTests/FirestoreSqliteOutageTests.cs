@@ -2,6 +2,7 @@ using System.Text.Json;
 using Google.Cloud.Firestore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core;
+using NextGenSoftware.OASIS.API.Core.Configuration;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -9,6 +10,8 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using NextGenSoftware.Utilities;
 using SqliteProvider = NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.SQLLiteDBOASIS;
 
@@ -154,6 +157,7 @@ public sealed class FirestoreSqliteOutageTests
                 await otherStore.DeActivateProviderAsync();
             }
             var avatarDocument = db.Collection("avatars").Document(id.ToString());
+            await VerifySqliteDeliveryAsync(firestore, db, bindings[0].Result, fixture);
             try
             {
                 var avatar = await firestore.SaveAvatarAsync(new Avatar { Id = id, IsActive = true });
@@ -251,6 +255,62 @@ public sealed class FirestoreSqliteOutageTests
             {
                 await firestore.DeActivateProviderAsync();
             }
+        }
+    }
+
+    private static async Task VerifySqliteDeliveryAsync(GoogleCloudOASIS firestore, FirestoreDb db,
+        CosmicStorageIdentity identity, string fixture)
+    {
+        var actor = Guid.NewGuid();
+        var policy = new HolonReplicationActorGrant(new[] { actor }, DateTime.UtcNow.AddMinutes(10));
+        var connection = $"Data Source={Path.Combine(fixture, $"{Guid.NewGuid():N}.outbox.db")};Pooling=False";
+        using var sqlite = new SqliteProvider(connection);
+        var activated = await sqlite.ActivateProviderAsync();
+        Assert.IsFalse(activated.IsError, activated.Message);
+        var captured = await sqlite.CaptureStorageIdentityAsync();
+        Assert.IsFalse(captured.IsError, captured.Message);
+        var route = new HolonReplicationRouteBinding(captured.Result, identity, policy.BindingIdentity);
+        var enrollment = new HolonReplicationEnrollment(route.SourceId, new[] { route.TargetId }, captured.Result, new[] { route });
+        var record = new Holon { Id = Guid.NewGuid(), Name = "Owned Firestore dispatcher fixture" };
+        var write = new ConditionalHolonWrite(Guid.NewGuid(), actor, captured.Result.Authority,
+            new[] { new HolonWriteCondition(record.Id, null) });
+        var document = db.Collection("holons").Document(record.Id.ToString("D"));
+        var receipt = db.Collection("cosmicReplicaReceipts").Document(write.OperationId.ToString("D"));
+        var head = db.Collection("cosmicReplicaHeads").Document(record.Id.ToString("D"));
+        try
+        {
+            var saved = await sqlite.ExecuteReplicatingHolonWriteAsync(
+                new ConditionalHolonWriteRequest(write, ConditionalHolonOperation.Save, new[] { record }, saveChildren: false), enrollment);
+            Assert.IsTrue(!saved.IsError && saved.IsSaved, saved.Message);
+            var committed = saved.Result.Single();
+            var target = new CommittedHolonReplicaTarget(route.TargetId, firestore, identity.Authority, route.SourceId,
+                route.SourceStorage.Authority, policy, "firestore-fixture", Guid.NewGuid(), policy.BindingIdentity, identity);
+            var worker = new HolonOutboxDispatcher(new SqliteHolonReplicationOutbox(connection), new[] { target }, "firestore-fixture");
+            var delivered = await worker.DispatchOnceAsync(route.TargetId, maximumCount: 1);
+            Assert.IsFalse(delivered.IsError, delivered.Message);
+            Assert.AreEqual(1, delivered.Result.CompletedCount);
+            var native = await document.GetSnapshotAsync();
+            Assert.IsTrue(native.Exists);
+            var loaded = await firestore.LoadHolonAsync(record.Id, loadChildren: false);
+            Assert.AreEqual(committed.VersionId, loaded.Result?.VersionId);
+            var request = new CommittedHolonReplicaRequest(write.OperationId, route.SourceId, route.SourceStorage.Authority,
+                actor, ConditionalHolonOperation.Save, new[] { committed }, false, true, 0, new[] { route });
+            var evidence = await firestore.ReadCommittedHolonReplicaReceiptAsync(new(request, identity));
+            Assert.IsFalse(evidence.IsError, evidence.Message);
+            Assert.AreEqual(ConditionalHolonReceiptState.Committed, evidence.Result.ReceiptState);
+            var restarted = new HolonOutboxDispatcher(new SqliteHolonReplicationOutbox(connection),
+                new[] { target }, "firestore-fixture-restarted");
+            var replay = await restarted.DispatchOnceAsync(route.TargetId, maximumCount: 1);
+            Assert.IsFalse(replay.IsError, replay.Message);
+            Assert.AreEqual(0, replay.Result.CompletedCount);
+            Assert.AreEqual(native.UpdateTime, (await document.GetSnapshotAsync()).UpdateTime);
+        }
+        finally
+        {
+            await sqlite.DeActivateProviderAsync();
+            await document.DeleteAsync();
+            await receipt.DeleteAsync();
+            await head.DeleteAsync();
         }
     }
 }
