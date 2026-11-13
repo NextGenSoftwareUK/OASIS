@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+12 November IPFS receipt and successor runs 43351574704, 43351804270 and 43351784030 each logged removal of the disposable Kubo runtime, repository and logs. Both temporary indices for the scoped receiver candidate were removed and verified absent. No local build or download. C: reported 33.12 GB free at inspection.
+
 12 November IPFS identity runs 43347831988 and 43347800744 confirmed removal of both disposable Kubo runtimes, repositories and logs. No local builds or downloads.
 
 12 November removed and verified absence of the temporary Git index used to compute the exact IPFS identity tree. The stale-baseline jobs stopped before provisioning Kubo. No local build or download.
