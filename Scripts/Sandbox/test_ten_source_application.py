@@ -73,7 +73,7 @@ class ApplicationScopeTests(unittest.TestCase):
                 with self.assertRaises(ValueError):batch.application_keys(before,after)
 class DeploymentGuardTests(unittest.TestCase):
     def configuration(self):
-        return SimpleNamespace(CLI="existing-railway",COMMON=["-e","dev"])
+        return SimpleNamespace(CLI="existing-railway",DEPLOYMENT_SCOPE=["-e","dev"])
     def test_missing_reviewed_sha_never_observes_or_mutates_host(self):
         with patch.dict(batch.os.environ,{},clear=True),patch.object(batch.subprocess,"run") as run:
             with self.assertRaises(RuntimeError):batch.require_matching_release(self.configuration())

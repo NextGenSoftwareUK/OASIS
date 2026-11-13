@@ -55,7 +55,7 @@ def require_matching_release(configuration, *, release_ref="HEAD"):
     revision=subprocess.run(["git", "rev-parse", "--verify", "--end-of-options", release_ref + "^{commit}"], cwd=ROOT, capture_output=True, text=True)
     if revision.returncode or revision.stdout.strip()!=expected:
         raise RuntimeError("The selected release differs from the reviewed deployment SHA")
-    observed=subprocess.run([str(configuration.CLI), "deployment", "list", *configuration.COMMON,
+    observed=subprocess.run([str(configuration.CLI), "deployment", "list", *configuration.DEPLOYMENT_SCOPE,
         "--limit", "1", "--json"], capture_output=True)
     if observed.returncode:
         raise RuntimeError("Deployment observation failed; output withheld and no configuration mutation")
