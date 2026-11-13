@@ -18,6 +18,8 @@
 
 ## Verification log
 
+13 November Cancun time. Added ActivityPub workflow triggers for the native fixture runner and both point-selector test files. Changes to those inputs now select routing CI directly. This workflow change is separate from the verified public URI lookup candidate 7cc1f77b6ba7. No local build or service started.
+
 13 November Cancun time. All seven APIs completed deployment of ActivityPub Development 29c4b494895e. Public object lookup candidate 445a2fd6045e passes exact CI and its scoped diff check. Reviewed Core instance identity through registration, selection, failover, metrics and response attribution. Added the authoritative-absence requirement to the routing ledger. No local build or fixture created.
 
 13 November Cancun time. Public ActivityPub object-URI lookup b79fd942ab07 uses the configured Mastodon search API and requires an exact public object match. The automatically queued authenticated-search job does not select the routed public-object case. Dispatched [native routing CI 43449093830](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43449093830) for that case. [Exact Development CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43449954359) passed 46 selector tests and both native Mastodon cases, including exact public URI lookup, on 445a2fd6045e. Ready for the shared integration review after 10:31:05 Cancun, based on the recorded Development push. Candidate 7cc1f77b6ba7 adds the provider README to the qualified code tree. The README is the only difference from 445a2fd6045e. The scoped diff check passed. Instance-level HyperDrive selection remains open.
