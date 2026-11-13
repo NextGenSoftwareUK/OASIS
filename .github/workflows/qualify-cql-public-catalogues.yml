@@ -25,6 +25,11 @@ on:
         description: Exact reviewed source commit
         required: true
         type: string
+      s3_shipping:
+        description: Verify shipping AWS S3 public metadata CQL admission and SDK request handling
+        required: false
+        type: boolean
+        default: false
       solana_native:
         description: Verify the shipping Solana provider against the reviewed public mainnet catalogue
         required: false
@@ -144,6 +149,27 @@ jobs:
             [xml]$report = Get-Content TestResults/MoralisBurnCapabilityCurrent/capability.trx
             if ($report.TestRun.ResultSummary.Counters.passed -ne '4' -or $report.TestRun.ResultSummary.Counters.total -ne '4') {
               throw 'All four Moralis activation and burn cases must pass'
+            }
+          }
+      - name: Verify shipping AWS S3 public metadata CQL
+        if: inputs.s3_shipping
+        working-directory: OASIS
+        shell: pwsh
+        run: |
+          dotnet test ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests --no-build --no-restore /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CqlAwsS3PublicExamplesTests' --results-directory TestResults/CqlPublicReadCatalogueCurrent --logger 'trx;LogFileName=s3-web4.trx'
+          if ($LASTEXITCODE) { throw 'AWS S3 WEB4 admission tests failed' }
+          [xml]$report = Get-Content TestResults/CqlPublicReadCatalogueCurrent/s3-web4.trx
+          $counts = $report.TestRun.ResultSummary.Counters
+          if ($counts.passed -ne '2' -or $counts.total -ne '2') {
+            throw 'Both AWS S3 WEB4 admission tests must pass'
+          }
+          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner s3-public-metadata-ci -Operation {
+            dotnet test Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.AWSOASIS.UnitTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~AwsS3PublicMetadataTests&TestCategory!=AwsS3PublicNative' --results-directory TestResults/CqlPublicReadCatalogueCurrent --logger 'trx;LogFileName=s3-sdk.trx'
+            if ($LASTEXITCODE) { throw 'AWS S3 SDK request tests failed' }
+            [xml]$report = Get-Content TestResults/CqlPublicReadCatalogueCurrent/s3-sdk.trx
+            $counts = $report.TestRun.ResultSummary.Counters
+            if ([int]$counts.passed -lt 1 -or $counts.passed -ne $counts.total) {
+              throw 'All selected AWS S3 SDK request tests must pass'
             }
           }
       - uses: actions/upload-artifact@v7
