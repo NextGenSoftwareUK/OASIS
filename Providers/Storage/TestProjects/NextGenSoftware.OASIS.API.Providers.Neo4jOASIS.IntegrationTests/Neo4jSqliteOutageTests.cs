@@ -95,6 +95,16 @@ public sealed class Neo4jSqliteOutageTests
             Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound, missing.ErrorCode);
             Assert.IsNull(missing.Result);
 
+            var keyRequest = new StorageOperationRequest
+            {
+                Operation = "LoadHolonByProviderKey", ProviderKey = id.ToString(), LoadChildren = false,
+                PreferredProvider = ProviderType.SQLLiteDBOASIS
+            };
+            var missingByKey = synchronous ? healthyRouter.RouteRequest<IHolon>(keyRequest)
+                : await healthyRouter.RouteRequestAsync<IHolon>(keyRequest);
+            Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound, missingByKey.ErrorCode);
+            Assert.IsNull(missingByKey.Result);
+
             var detailRequests = new StorageOperationRequest[]
             {
                 new() { Operation = "LoadAvatarDetail", AvatarId = id },
