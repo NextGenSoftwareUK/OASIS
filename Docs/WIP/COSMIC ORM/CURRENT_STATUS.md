@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Multi-field grouping
+
+Web4Site 7a21d4054759 exposes multi-field GROUP BY with COUNT in the Playground and Ask your data. All 172 frontend tests passed. Hosted browser verification remains open. Combined protocol CI 43526891579 passed; the current WEB4 deployment was still building at review.
+
 ## SQL-like grouped result ordering
 
 Web4Site 9d9e46f8c927 supports a second selected sort alias for grouped results, so the grouping key can break ties before LIMIT and OFFSET. Ask your data documents the same syntax. All 171 website tests passed. Hosted browser acceptance remains open.
