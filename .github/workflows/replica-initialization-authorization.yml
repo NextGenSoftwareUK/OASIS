@@ -2,7 +2,7 @@ name: Replica initialization authorization
 
 on:
   push:
-    branches: [work/hyperdrive-provider-completion]
+    branches: [work/hyperdrive-provider-completion, work/hyperdrive-replica-auth-qualification]
     paths:
       - '.github/workflows/replica-initialization-authorization.yml'
       - 'Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests/HolonReplicaInitializationPreparationTests.cs'
