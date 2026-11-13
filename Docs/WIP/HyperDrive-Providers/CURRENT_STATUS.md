@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. IPFS store identity capture at 77db43511a39 reads the authenticated catalogue through Kubo and derives its binding from the persisted store UUID and credential-free endpoint. The restart scenario 43346342706 checks the same fingerprint after a catalogue update and daemon restart. Multi-process CI 43346324638 checks ordinary publication. Both are pending. Binding alone does not enroll a replica route. Receiver apply and source outbox remain open.
+
 12 November Cancun time. Development fast-forwarded from db5b9cf03dc3 to verified HyperDrive batch 2b8081b30f84 after COSMIC released the shared window and all seven Arbitrum services were green. Verified ten native qualification runs, dependency pins, clean diff and the exact remote ref. The Development workflow records 20:31:04 Cancun. The next shared review is after 21:01:04 and requires rollout verification. All seven new Railway services were pending at inspection.
 
 12 November Cancun time. Prepared NEAR-based candidate 4ef91b73a326 with the passing IPFS concurrent pointer test included. All 30 HyperDrive path modes and object IDs match the Arbitrum-based candidate 2b8081b30f84. Development remains on Arbitrum. Check the remote and COSMIC handoff after 20:28:33 Cancun before publishing either candidate. No local fixtures or temporary index were created.
