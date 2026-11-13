@@ -164,6 +164,11 @@ public sealed class IPFSRestartTests
             replica.Name = originalName;
 
             await VerifyReplicaSuccessorAsync(provider, identity, replica, dnaPath);
+            var advancedPointer = await File.ReadAllTextAsync(dnaPath);
+            var historicalReplay = await provider.ApplyBoundCommittedHolonReplicaAsync(request, identity);
+            Assert.True(historicalReplay.IsSaved && !historicalReplay.IsError, historicalReplay.Message);
+            Assert.Equal(replica.VersionId, Assert.Single(historicalReplay.Result).VersionId);
+            Assert.Equal(advancedPointer, await File.ReadAllTextAsync(dnaPath));
             await VerifyHostedReplicaTargetAsync(provider, identity, dnaPath);
         }
     }
