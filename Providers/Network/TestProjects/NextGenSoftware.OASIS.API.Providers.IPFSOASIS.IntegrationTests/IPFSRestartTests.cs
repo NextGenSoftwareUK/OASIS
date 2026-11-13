@@ -215,6 +215,9 @@ public sealed class IPFSRestartTests
             Name = "hosted replica target",
             HolonType = HolonType.Holon
         };
+        var child = new Holon { Id = Guid.NewGuid(), Name = "replicated child", HolonType = HolonType.Holon,
+            ParentHolonId = replica.Id };
+        replica.Children = new List<IHolon> { child };
         HolonReplicationRouteBinding route;
         IHolon committed;
         using (var sqlite = new SqliteProvider(connection))
@@ -227,9 +230,9 @@ public sealed class IPFSRestartTests
             route = new HolonReplicationRouteBinding(sourceStorage, identity, policy.BindingIdentity);
             var enrollment = new HolonReplicationEnrollment(route.SourceId, new[] { route.TargetId }, sourceStorage, new[] { route });
             var write = new ConditionalHolonWrite(Guid.NewGuid(), actor, sourceStorage.Authority,
-                new[] { new HolonWriteCondition(replica.Id, null) });
+                new[] { new HolonWriteCondition(replica.Id, null), new HolonWriteCondition(child.Id, null) });
             var saved = await sqlite.ExecuteReplicatingHolonWriteAsync(
-                new ConditionalHolonWriteRequest(write, ConditionalHolonOperation.Save, new[] { replica }, saveChildren: false), enrollment);
+                new ConditionalHolonWriteRequest(write, ConditionalHolonOperation.Save, new[] { replica }, saveChildren: true), enrollment);
             Assert.True(saved.IsSaved && !saved.IsError, saved.Message);
             committed = Assert.Single(saved.Result);
         }
@@ -241,9 +244,13 @@ public sealed class IPFSRestartTests
         var result = await worker.DispatchOnceAsync(route.TargetId, maximumCount: 1);
         Assert.False(result.IsError, result.Message);
         Assert.Equal(1, result.Result.CompletedCount);
-        var copied = await provider.LoadHolonAsync(replica.Id, loadChildren: false);
+        var copied = await provider.LoadHolonAsync(replica.Id, loadChildren: true);
         Assert.True(copied.IsLoaded && !copied.IsError, copied.Message);
         Assert.Equal(committed.VersionId, copied.Result.VersionId);
+        var copiedChild = Assert.Single(copied.Result.Children);
+        Assert.Equal(child.Id, copiedChild.Id);
+        Assert.Equal(replica.Id, copiedChild.ParentHolonId);
+        Assert.Equal(Assert.Single(committed.Children).VersionId, copiedChild.VersionId);
 
         var persistedAfterDelivery = await File.ReadAllTextAsync(dnaPath);
         var resumedWorker = new HolonOutboxDispatcher(new SqliteHolonReplicationOutbox(connection),

@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. Extended the native SQLite-to-IPFS route to commit and deliver a parent-child graph and compare both logical revisions and the parent link. Native CI pending. COSMIC requests the next shared window for the qualified Cosmos demo batch, so use the Cosmos-based IPFS reconciliation candidate after the actual shared parent changes. No local build or download.
+
 12 November Cancun time. Current-record audit restart 43362252968 and multi-process 43362236259 passed on tree 0472e1659a39912920debb3699834945842dfe68. IPFS reported the live replica and its predecessor without changing the catalogue pointer. Both runs removed their fixtures. All seven APIs are healthy on fd9b328ac712 and COSMIC verified EOSIO public reads against the exact deployed revision. Hosted replica delivery remains open.
 
 12 November Cancun time. Added a native assertion that the read-only IPFS head audit agrees with the current Kubo record revision and its predecessor after successor apply. It also checks that the audit leaves the pointer unchanged. This covers the current-record path alongside the existing deleted and unknown ID cases. Native restart verification pending. No local builds or downloads.
