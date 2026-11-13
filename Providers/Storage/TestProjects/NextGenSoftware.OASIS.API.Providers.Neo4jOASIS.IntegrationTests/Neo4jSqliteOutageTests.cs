@@ -95,15 +95,20 @@ public sealed class Neo4jSqliteOutageTests
             Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound, missing.ErrorCode);
             Assert.IsNull(missing.Result);
 
-            var detailRequest = new StorageOperationRequest
+            var detailRequests = new StorageOperationRequest[]
             {
-                Operation = "LoadAvatarDetail", AvatarId = id,
-                PreferredProvider = ProviderType.SQLLiteDBOASIS
+                new() { Operation = "LoadAvatarDetail", AvatarId = id },
+                new() { Operation = "LoadAvatarDetailByUsername", Username = $"absent-{id:N}" },
+                new() { Operation = "LoadAvatarDetailByEmail", Email = $"absent-{id:N}@example.invalid" }
             };
-            var missingDetail = synchronous ? healthyRouter.RouteRequest<IAvatarDetail>(detailRequest)
-                : await healthyRouter.RouteRequestAsync<IAvatarDetail>(detailRequest);
-            Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound, missingDetail.ErrorCode);
-            Assert.IsNull(missingDetail.Result);
+            foreach (var request in detailRequests)
+            {
+                request.PreferredProvider = ProviderType.SQLLiteDBOASIS;
+                var missingDetail = synchronous ? healthyRouter.RouteRequest<IAvatarDetail>(request)
+                    : await healthyRouter.RouteRequestAsync<IAvatarDetail>(request);
+                Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound, missingDetail.ErrorCode, request.Operation);
+                Assert.IsNull(missingDetail.Result, request.Operation);
+            }
             Assert.AreEqual(0L, healthyManager.PerformanceMonitor.GetMetrics(ProviderType.Neo4jOASIS)?.TotalRequests ?? 0);
         }
         finally
