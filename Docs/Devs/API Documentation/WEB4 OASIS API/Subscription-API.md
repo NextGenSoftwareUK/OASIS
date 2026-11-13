@@ -117,3 +117,54 @@ The controller also exposes:
 - POST update-hyperdrive-config, GET hyperdrive-usage and POST check-hyperdrive-quota — HyperDrive configuration/read surfaces; they do not form a second WEB5–WEB10 accounting path.
 
 Use the [executable Postman collection](WEB4-Subscription-Usage.postman_collection.json) against isolated staging subscribers. It covers each consuming service's reserve/start/settle sequence and retries. For credentials, live provider tests, outage injection, signed historical migration, Stripe cost-basis tags and retention, use the [operations runbook](../../../WIP/Subscriptions/WEB4_SUBSCRIPTION_USAGE_OPERATIONS.md).
+
+## Usage visibility, owners and warnings
+
+Charts and alerts for people, app owners and administrators, built on the same day and month buckets as the usage ledger (read only, no request content). A person sees only their own usage, an app owner sees only the apps they own, and a Wizard sees everything.
+
+### Usage series (charts)
+
+| Endpoint | Who | Returns |
+|---|---|---|
+| `GET /api/subscription/usage/series?from=2026-11-01&to=2026-11-13` | the signed-in avatar | its own daily requests, daily and monthly limits, today, month total and status |
+| `GET /api/subscription/admin/users/{userId}/usage/series` | Wizard | any avatar's series |
+| `GET /api/subscription/admin/app-accounts/{appId}/usage/series` | Wizard | an app pool's series plus its pool usage and limits |
+
+Dates are UTC `yyyy-MM-dd`. The default is the last 30 days, a reversed range is swapped, the end is clamped to today and a range longer than 92 days is rejected (400). Missing days are returned as zero. `status` is `ok`, `warning` (from 80% of the monthly limit) or `exhausted`, and empty when the plan has no limit.
+
+### App owners
+
+An administrator links one or more avatars (at most 10) to an app account: `POST /api/subscription/admin/app-accounts/{appId}/owners` with `{ "ownerAvatarIds": ["..."], "reason": "..." }` (audited). Owners then use:
+
+| Endpoint | What it does |
+|---|---|
+| `GET /api/subscription/app-owner/apps` | The apps I own. |
+| `GET /api/subscription/app-owner/{appId}/usage` | Pool size, used this month and today, daily series, which people used what (usernames resolved, no content) and the app's alerts. Anyone who does not own the app gets 403. |
+| `GET` / `POST /api/subscription/app-owner/{appId}/settings` | This app's own on/off choices (see overrides below). Audited. |
+| `GET` / `POST /api/subscription/app-owner/{appId}/notifications` | The owner's warning thresholds. |
+
+### Warnings
+
+`GET /api/subscription/usage/alerts` returns the person's own alert and one per app they own, once the chosen thresholds (default 80% and 100%) are reached; the portal shows it as a banner that can be dismissed for the day. `GET` / `POST /api/subscription/usage/notifications` read and change `thresholds` (1 to 4 whole percents), `emailRequested` (default true) and `warningsEnabled` (null follows the node default, true or false is the person's own choice). Every change is recorded in the audit trail.
+
+Email reuses the existing OASIS email settings (`OASIS.Email`): one warning email per threshold per month, only when email is configured and the person has not opted out. Nothing is sent otherwise.
+
+### Overrides (a person or app can opt in or out)
+
+The node-wide defaults live in `OASIS_DNA.json` (below). Each person and each app account can override them for themselves, in either direction, in the portal: warnings (person and app), the owner view (app) and the access log (app). The override wins over the DNA value, `null` means follow the default.
+
+### App pay-as-you-go (settings only)
+
+`GET` / `POST /api/subscription/app-owner/{appId}/payg` show and record an app owner's consent and monthly USD cap (from 0.50, whole cents). Prices come from `Configuration/app-overage-prices.json` (same per-request rates as individuals; the free plan has none). **Charging for app pools is not built**: nothing is invoiced or charged, and the response says `chargingImplemented: false`. Enabling requires a price for the plan, the cap and consent.
+
+### DNA settings (`OASIS.UsageVisibility`)
+
+| Key | Default | Meaning |
+|---|---|---|
+| OwnerViewEnabled | true | Owners can open usage for their own apps. |
+| WarningsEnabled | true | Usage warnings and the banner. |
+| EmailEnabled | true | Email the warnings (needs `OASIS.Email` configured). |
+| DefaultWarningPercents | [80, 100] | Thresholds used until someone chooses their own. |
+| AppPayAsYouGoEnabled | true | Settings and display for app pay-as-you-go (charging is not built). |
+
+On Railway edit the `OASIS_DNA_JSON` variable; keep every DNA copy in sync.

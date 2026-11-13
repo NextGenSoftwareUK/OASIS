@@ -44,3 +44,13 @@ A product with many users (for example PIPER) can hold a plan of its own, so its
 ## Deployment order
 
 Deploy WEB4 and WEB6 admin APIs before OPORTAL. Remove the matching entries from `OPORTAL-JS/scripts/pending-endpoints.json` after regenerating endpoints from the deployed OpenAPI documents. The ledger activation procedure is separate and is documented in `SUBSCRIPTION_RAILWAY_CONFIGURATION.md`.
+
+## Usage and billing screen, app owners and the admin App usage tab
+
+**People** (Usage and billing): a daily requests chart with the daily limit, month and today progress bars, the pay-as-you-go section, and a Usage warnings box to opt in or out, choose thresholds and choose whether to be emailed. A dismissible banner appears when a threshold is reached.
+
+**App owners** ("Your apps", shown only to owners): for each app the pool chart, who used what this month, per-app settings that override the node defaults (owner view, warnings, access log), and the pay-as-you-go consent and cap (no charging yet).
+
+**Administrators** (Wizard, Subscription admin, App usage tab): enter an app id to see pool status, plan, used this month and today, the daily chart and the top users, set the app's owners (audited), or look at any avatar's daily usage by avatar id, with a date range.
+
+Everything above is read from the usage ledger buckets and never shows request content. See Subscription-API.md for the endpoints and the `OASIS.UsageVisibility` DNA settings.
