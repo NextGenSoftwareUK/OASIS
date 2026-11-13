@@ -1,5 +1,6 @@
 """Interactive existing-account sign-in. Password stays off command lines, files and chat."""
 from pathlib import Path
+import argparse
 import getpass
 import base64
 import hashlib
@@ -13,6 +14,7 @@ import uuid
 
 ROOT = Path(__file__).resolve().parents[2]
 STATE = ROOT / "LocalState/COSMIC/HostedSourceRecoveryOperatorCurrent"
+SUBSCRIPTION_STATE = ROOT / "LocalState/COSMIC/HostedSubscriptionAdminCurrent"
 
 
 def write_new(path, data):
@@ -43,7 +45,18 @@ def operator_authority(query, token):
                 "responseSha256": hashlib.sha256(raw).hexdigest()}
 
 
-def prepare(state, username, password, query, authority=operator_authority):
+def subscription_authority(query, token):
+    request = urllib.request.Request(query.BASE + "subscription/admin/subscriptions?limit=1",
+        headers={"Authorization": "Bearer " + token})
+    try:
+        response = urllib.request.build_opener(query.NoRedirect()).open(request, timeout=45)
+    except urllib.error.HTTPError as error:
+        response = error
+    with response:
+        return {"status": response.status}
+
+
+def prepare(state, username, password, query, authority=operator_authority, *, subscription_admin=False):
     if not username.strip() or not password:
         raise ValueError("Existing account credentials required.")
     state.mkdir(parents=True, exist_ok=True)
@@ -70,27 +83,38 @@ def prepare(state, username, password, query, authority=operator_authority):
     credential = query.session_credentials.bundle(owner, avatar["jwtToken"], captured[0][1], requested_at=requested_at)
     role = authority(query, credential["jwtToken"])
     write_new(state / "operator.authority-observed.json", json.dumps(role).encode())
-    if role["status"] != 409 or role["errorCode"] != "CQL_SOURCE_HOST_INSTANCE_CONFLICT":
+    verified = (role["status"] == 200 if subscription_admin else
+                role["status"] == 409 and role["errorCode"] == "CQL_SOURCE_HOST_INSTANCE_CONFLICT")
+    if not verified:
         raise RuntimeError("The existing account did not prove operator authority;no role changes performed.")
     write_new(state / "operator.session.dpapi", query.verification.protected_token(json.dumps(credential).encode()))
     write_new(state / "operator.acknowledged.json", json.dumps({"id": owner,
         "label": "operator", "operationId": operation, "credentialsSchema": 1,
-        "wizardAuthorityVerified": True, "existingAccountOnly": True}).encode())
+        ("subscriptionAdminAuthorityVerified" if subscription_admin else "wizardAuthorityVerified"): True,
+        "existingAccountOnly": True}).encode())
 
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--subscription-admin", action="store_true",
+                        help="Verify Development subscription administrator access in a separate session.")
+    args = parser.parse_args()
     if os.name != "nt" or not sys.stdin.isatty():
         raise RuntimeError("Run in your own interactive Windows terminal;do not supply passwords as arguments.")
     spec = importlib.util.spec_from_file_location("query", Path(__file__).with_name("Verify-HostedQuerySource.py"))
     query = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(query)
-    username = input("Existing development Wizard username: ")
+    role = "subscription administrator" if args.subscription_admin else "Wizard"
+    username = input(f"Existing Development {role} username: ")
     password = getpass.getpass("Password (hidden;never saved): ")
     try:
-        prepare(STATE, username, password, query)
+        if args.subscription_admin:
+            prepare(SUBSCRIPTION_STATE, username, password, query, subscription_authority, subscription_admin=True)
+        else:
+            prepare(STATE, username, password, query)
     finally:
         password = None
-    print("Existing Wizard session protected locally. Tell the agent: operator sign-in complete.")
+    print(f"Development {role} session protected locally. Tell the agent: sign-in complete.")
 
 
 if __name__ == "__main__":
