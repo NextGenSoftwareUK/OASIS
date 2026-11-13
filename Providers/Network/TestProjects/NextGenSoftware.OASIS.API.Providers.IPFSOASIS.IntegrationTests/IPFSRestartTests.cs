@@ -426,6 +426,32 @@ public sealed class IPFSRestartTests
         Assert.True(replay.IsSaved && !replay.IsError, replay.Message);
         Assert.Equal(pointer, await File.ReadAllTextAsync(dnaPath));
         Assert.Null((await store.Result.PeekNextAsync(route.TargetId)).Result);
+
+        var committed = Assert.Single(saved.Result);
+        foreach (var operation in new[] { ConditionalHolonOperation.SoftDelete, ConditionalHolonOperation.HardDelete })
+        {
+            var revision = CosmicConcurrency.GetProviderRevisionId(committed, source.Authority);
+            Assert.NotNull(revision);
+            var delete = new ConditionalHolonWrite(Guid.NewGuid(), actor, source.Authority,
+                new[] { new HolonWriteCondition(record.Id, revision) }, enrollment);
+            var deleted = await provider.ExecuteReplicatingHolonWriteAsync(
+                new ConditionalHolonWriteRequest(delete, operation, new[] { committed }, saveChildren: false), enrollment);
+            Assert.True(deleted.IsDeleted && !deleted.IsError, deleted.Message);
+            committed = Assert.Single(deleted.Result);
+            var replicated = await worker.DispatchOnceAsync(route.TargetId, maximumCount: 1);
+            Assert.False(replicated.IsError, replicated.Message);
+            Assert.Equal(1, replicated.Result.CompletedCount);
+            var expected = new CommittedHolonReplicaRequest(delete.OperationId, route.SourceId, source.Authority,
+                actor, operation, new[] { committed }, false, true, 0, new[] { route });
+            var receipt = await sqlite.ReadCommittedHolonReplicaReceiptAsync(new(expected, captured.Result));
+            Assert.True(receipt.IsLoaded && !receipt.IsError, receipt.Message);
+            Assert.Equal(ConditionalHolonReceiptState.Committed, receipt.Result.ReceiptState);
+        }
+
+        var removed = await sqlite.LoadHolonAsync(record.Id, loadChildren: false);
+        Assert.False(removed.IsLoaded);
+        Assert.Null(removed.Result);
+        Assert.DoesNotContain(await provider.LoadLookupToJson(), entry => entry.Value.Id == record.Id);
     }
 
     private static async Task VerifyHostedReplicaTargetAsync(IPFSOASIS provider, CosmicStorageIdentity identity, string dnaPath)
