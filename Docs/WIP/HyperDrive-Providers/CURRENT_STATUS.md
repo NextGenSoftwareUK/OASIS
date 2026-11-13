@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. Native Kubo restart 43351574704 passed on input tree 546c089b22bde342c54fb03634e226bbdc575416. The test verified receipt absence before apply, committed receipt lookup, identical digest after an ordinary write and daemon restart, and no pointer change on wrong-store rejection or replay. COSMIC is building the combined EOSIO and IPFS image 43351408782. No local outputs.
+
 12 November 21:22 Cancun time. All seven APIs report success for exact NEAR Development 6c61e3e5c33d. COSMIC independently confirmed four public shipping-provider presets on its exact WEB4 deployment. Both IPFS identity jobs reported the exact integration tree a669f65f612b875acd6d3f7f4b45a2e44cf10fd5. Recheck the remote and COSMIC handoff at the next 30-minute review before pushing candidate d4276e404895. This candidate excludes the newer receiver and historical receipt changes. Receiver CI 43351546342 passed multi-process publication; receipt restart 43351574704 and lineage restart 43351804270 were still live. No local runtime or fixture.
 
 12 November Cancun time. The Kubo restart scenario now also rejects a successor with incorrect lineage without changing the catalogue pointer, then accepts the valid successor and checks the earlier version through the native CID chain. Both prior bound receiver runs passed after the compiler fix. Historical receipt and successor checks await their own native results. No local build, fixture or download.
