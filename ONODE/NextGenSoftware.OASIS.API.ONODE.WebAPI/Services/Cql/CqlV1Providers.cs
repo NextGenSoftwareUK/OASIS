@@ -123,8 +123,10 @@ public sealed class CqlHostedSourceRegistry : ICqlHostedSourceRegistry
         if (profiles.TryGetValue(provider, out var profile)) storage = profile.Storage;
         else
         {
-            var registration = await OASISBootLoader.OASISBootLoader.RegisterProviderAsync(provider,
-                activateProviderIfOASISProviderBootTypeIsHot: false);
+            var registration = provider == ProviderType.PolkadotOASIS && polkadotPublicHeaderConfiguration != null
+                ? await OASISBootLoader.OASISBootLoader.RegisterPolkadotPublicReaderAsync(polkadotPublicHeaderConfiguration)
+                : await OASISBootLoader.OASISBootLoader.RegisterProviderAsync(provider,
+                    activateProviderIfOASISProviderBootTypeIsHot: false);
             if (registration == null || registration.IsError || registration.Result == null)
                 throw new InvalidOperationException("CQL_SOURCE_REGISTRATION_FAILED");
             storage = registration.Result;

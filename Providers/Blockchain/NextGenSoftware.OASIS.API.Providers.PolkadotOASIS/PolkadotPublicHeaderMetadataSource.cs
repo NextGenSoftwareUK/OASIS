@@ -227,6 +227,7 @@ public sealed class PolkadotPublicHeaderMetadataSource : KeyValueStorageProvider
     {
         private readonly HttpClient client;
         private readonly Uri rpc;
+        internal Uri Endpoint => rpc;
         private readonly Guid owner;
         private readonly bool ownsClient;
         private readonly Dictionary<string, string> records;

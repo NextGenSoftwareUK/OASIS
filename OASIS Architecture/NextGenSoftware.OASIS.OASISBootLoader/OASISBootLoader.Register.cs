@@ -59,7 +59,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 {
     public static partial class OASISBootLoader
     {
-        private static OASISResult<IOASISStorageProvider> RegisterProviderInternal(ProviderType providerType, string overrideConnectionString = null, bool forceRegister = false)
+        private static OASISResult<IOASISStorageProvider> RegisterProviderInternal(ProviderType providerType, string overrideConnectionString = null, bool forceRegister = false, string polkadotPublicHeaderConfiguration = null)
         {
             OASISResult<IOASISStorageProvider> result = new OASISResult<IOASISStorageProvider>();
 
@@ -353,6 +353,14 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                         //        result.Result = cardanoOASIS;
                         //    }
                         //    break;
+
+                        case ProviderType.PolkadotOASIS:
+                        {
+                            result.Result = NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.PolkadotOASIS
+                                .CreatePublicHeaderReader(polkadotPublicHeaderConfiguration ??
+                                    throw new InvalidOperationException("Polkadot storage registration is not configured on this branch."));
+                        }
+                        break;
 
                         //case ProviderType.PolkadotOASIS:
                         //    {
