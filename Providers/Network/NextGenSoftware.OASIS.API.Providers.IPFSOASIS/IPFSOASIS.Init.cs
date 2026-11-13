@@ -76,7 +76,9 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             if (!File.Exists(path))
                 return _OASISDNA;
 
-            var persisted = JsonConvert.DeserializeObject<OASISDNA>(File.ReadAllText(path));
+            using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete);
+            using var reader = new StreamReader(stream);
+            var persisted = JsonConvert.DeserializeObject<OASISDNA>(reader.ReadToEnd());
             var settings = persisted?.OASIS?.StorageProviders?.IPFSOASIS;
             var current = _OASISDNA.OASIS.StorageProviders.IPFSOASIS;
             if (settings == null || !StringComparer.Ordinal.Equals(settings.ConnectionString, current.ConnectionString))

@@ -63,6 +63,7 @@ jobs:
           provider='Providers/Network/NextGenSoftware.OASIS.API.Providers.IPFSOASIS'
           tests='Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.IPFSOASIS.IntegrationTests'
           for path in "$provider/IPFSOASIS.Init.cs" "$provider/IPFSOASIS.IndexIdentity.cs" \
+            'OASIS Architecture/NextGenSoftware.OASIS.API.DNA/OASISDNAManager.cs' \
             "$provider/IPFSOASIS.AvatarLifecycle.cs" "$tests/IPFSConcurrentPublicationTests.cs"; do
             current="$(git ls-tree HEAD -- "$path")"
             reviewed="$(git -C ../provider-source ls-tree "$base" -- "$path")"
