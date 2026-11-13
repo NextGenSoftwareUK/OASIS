@@ -14,6 +14,15 @@ public sealed class IPFSRestartTests
 {
     private static readonly Guid RecordId = new("90644865-2be6-4044-bdfb-3e6a394f5b22");
 
+    private static readonly Guid ConditionalOperationId = new("90644865-2be6-4044-bdfb-3e6a394f5b30");
+
+    private static Holon CreateConditionalFixtureRecord() => new()
+    {
+        Id = new Guid("90644865-2be6-4044-bdfb-3e6a394f5b31"),
+        Name = "conditional IPFS create",
+        HolonType = HolonType.Holon
+    };
+
     [Fact]
     public async Task PersistsCurrentAndHistoricalHolonAcrossDaemonRestart()
     {
@@ -25,6 +34,7 @@ public sealed class IPFSRestartTests
         Assert.True(phase is "write" or "read", "Select the disposable Kubo restart fixture phase.");
 
         var identityPath = dnaPath + ".identity";
+        var conditionalVersionPath = dnaPath + ".conditional-version";
         OASISDNA dna;
         if (phase == "write")
         {
@@ -78,6 +88,64 @@ public sealed class IPFSRestartTests
                 invalidCatalogue.Add("invalid-cid", new HolonResume());
                 await Assert.ThrowsAsync<InvalidDataException>(() => provider.SaveLookupToFile(invalidCatalogue));
                 Assert.Equal(publishedDna, await File.ReadAllTextAsync(dnaPath));
+                var oversizedCatalogue = await provider.LoadLookupToJson();
+                var alphabet = Enumerable.Range(32, 95).Select(value => (char)value)
+                    .Where(value => value != (char)34 && value != (char)92).ToArray();
+                var random = System.Security.Cryptography.RandomNumberGenerator.GetBytes(4_150_000);
+                Assert.Single(oversizedCatalogue).Value.login = string.Create(random.Length, (random, alphabet),
+                    static (characters, state) =>
+                    {
+                        for (var i = 0; i < characters.Length; i++)
+                            characters[i] = state.alphabet[state.random[i] % state.alphabet.Length];
+                    });
+                var sizeError = await Assert.ThrowsAsync<InvalidDataException>(
+                    () => provider.SaveLookupToFile(oversizedCatalogue));
+                Assert.Contains("exceeds the native query and replica read limit", sizeError.Message);
+                Assert.Equal(publishedDna, await File.ReadAllTextAsync(dnaPath));
+                var conditionalRecord = CreateConditionalFixtureRecord();
+                var condition = new ConditionalHolonWrite(ConditionalOperationId, RecordId, ProviderType.IPFSOASIS,
+                    new[] { new HolonWriteCondition(conditionalRecord.Id, null) });
+                var conditionalRequest = new ConditionalHolonWriteRequest(condition, ConditionalHolonOperation.Save,
+                    new[] { conditionalRecord }, saveChildren: false);
+                var conditional = await provider.ExecuteConditionalHolonWriteAsync(conditionalRequest);
+                Assert.True(conditional.IsSaved && !conditional.IsError, conditional.Message);
+                await File.WriteAllTextAsync(conditionalVersionPath, Assert.Single(conditional.Result).VersionId.ToString("D"));
+                var conditionalPointer = await File.ReadAllTextAsync(dnaPath);
+                var replayed = provider.ExecuteConditionalHolonWrite(conditionalRequest);
+                Assert.True(replayed.IsSaved && !replayed.IsError, replayed.Message);
+                Assert.Equal(Assert.Single(conditional.Result).VersionId, Assert.Single(replayed.Result).VersionId);
+                Assert.Equal(conditionalPointer, await File.ReadAllTextAsync(dnaPath));
+                var staleCondition = new ConditionalHolonWrite(Guid.NewGuid(), RecordId, ProviderType.IPFSOASIS,
+                    new[] { new HolonWriteCondition(conditionalRecord.Id, Guid.NewGuid()) });
+                var staleRequest = new ConditionalHolonWriteRequest(staleCondition, ConditionalHolonOperation.Save,
+                    new[] { conditionalRecord }, saveChildren: false);
+                var stale = await provider.ExecuteConditionalHolonWriteAsync(staleRequest);
+                Assert.True(stale.IsError);
+                Assert.Equal(CosmicConcurrencyException.Code, stale.ErrorCode);
+                Assert.Equal(conditionalPointer, await File.ReadAllTextAsync(dnaPath));
+                var priorRevision = CosmicConcurrency.GetProviderRevisionId(Assert.Single(conditional.Result), ProviderType.IPFSOASIS);
+                Assert.NotNull(priorRevision);
+                var ordinaryRecord = Assert.Single(conditional.Result);
+                ordinaryRecord.Name = "ordinary edit before conditional retry";
+                ordinaryRecord.PreviousVersionId = ordinaryRecord.VersionId;
+                ordinaryRecord.VersionId = Guid.NewGuid();
+                ordinaryRecord.Version++;
+                var ordinary = await provider.SaveHolonAsync(ordinaryRecord, saveChildren: false);
+                Assert.True(ordinary.IsSaved && !ordinary.IsError, ordinary.Message);
+                var newRevision = CosmicConcurrency.GetProviderRevisionId(ordinary.Result, ProviderType.IPFSOASIS);
+                Assert.NotNull(newRevision);
+                Assert.NotEqual(priorRevision, newRevision);
+                var loadedAfterEdit = await provider.LoadHolonAsync(conditionalRecord.Id, loadChildren: false);
+                Assert.True(loadedAfterEdit.IsLoaded && !loadedAfterEdit.IsError, loadedAfterEdit.Message);
+                Assert.Equal(newRevision, CosmicConcurrency.GetProviderRevisionId(loadedAfterEdit.Result, ProviderType.IPFSOASIS));
+                var editedPointer = await File.ReadAllTextAsync(dnaPath);
+                var interveningCondition = new ConditionalHolonWrite(Guid.NewGuid(), RecordId, ProviderType.IPFSOASIS,
+                    new[] { new HolonWriteCondition(conditionalRecord.Id, priorRevision) });
+                var interveningRequest = new ConditionalHolonWriteRequest(interveningCondition, ConditionalHolonOperation.Save,
+                    new[] { conditionalRecord }, saveChildren: false);
+                var intervening = await provider.ExecuteConditionalHolonWriteAsync(interveningRequest);
+                Assert.Equal(CosmicConcurrencyException.Code, intervening.ErrorCode);
+                Assert.Equal(editedPointer, await File.ReadAllTextAsync(dnaPath));
                 await VerifyReplicaAsync(provider, identity.Result, dnaPath, replay: false);
                 holon.Name = "after update";
                 holon.Version = 2;
@@ -90,6 +158,37 @@ public sealed class IPFSRestartTests
                 var identity = await provider.CaptureStorageIdentityAsync();
                 Assert.False(identity.IsError, identity.Message);
                 Assert.Equal(await File.ReadAllTextAsync(identityPath), identity.Result.BindingFingerprint);
+                var conditionalRecord = CreateConditionalFixtureRecord();
+                var condition = new ConditionalHolonWrite(ConditionalOperationId, RecordId, ProviderType.IPFSOASIS,
+                    new[] { new HolonWriteCondition(conditionalRecord.Id, null) });
+                var request = new ConditionalHolonWriteRequest(condition, ConditionalHolonOperation.Save,
+                    new[] { conditionalRecord }, saveChildren: false);
+                var pointerBeforeReplay = await File.ReadAllTextAsync(dnaPath);
+                var outcome = await provider.ReadBoundConditionalHolonWriteOutcomeAsync(request, identity.Result);
+                Assert.True(outcome.IsLoaded && !outcome.IsError, outcome.Message);
+                Assert.Equal(ConditionalHolonReceiptState.Committed, outcome.Result.ReceiptState);
+                Assert.Equal(pointerBeforeReplay, await File.ReadAllTextAsync(dnaPath));
+                var replay = await provider.ExecuteConditionalHolonWriteAsync(request);
+                Assert.True(replay.IsSaved && !replay.IsError, replay.Message);
+                Assert.Equal(Guid.Parse(await File.ReadAllTextAsync(conditionalVersionPath)), Assert.Single(replay.Result).VersionId);
+                Assert.Equal(pointerBeforeReplay, await File.ReadAllTextAsync(dnaPath));
+
+                var beforeDelete = await provider.LoadHolonAsync(conditionalRecord.Id, loadChildren: false);
+                Assert.True(beforeDelete.IsLoaded && !beforeDelete.IsError, beforeDelete.Message);
+                var revision = CosmicConcurrency.GetProviderRevisionId(beforeDelete.Result, ProviderType.IPFSOASIS);
+                Assert.NotNull(revision);
+                var deleteCondition = new ConditionalHolonWrite(Guid.NewGuid(), RecordId, ProviderType.IPFSOASIS,
+                    new[] { new HolonWriteCondition(conditionalRecord.Id, revision) });
+                var deleteRequest = new ConditionalHolonWriteRequest(deleteCondition, ConditionalHolonOperation.HardDelete,
+                    new[] { beforeDelete.Result }, saveChildren: false);
+                var deleted = await provider.ExecuteConditionalHolonWriteAsync(deleteRequest);
+                Assert.True(deleted.IsDeleted && !deleted.IsError, deleted.Message);
+                Assert.DoesNotContain(await provider.LoadLookupToJson(), entry => entry.Value.Id == conditionalRecord.Id);
+                var pointerAfterDelete = await File.ReadAllTextAsync(dnaPath);
+                var deleteReplay = provider.ExecuteConditionalHolonWrite(deleteRequest);
+                Assert.True(deleteReplay.IsDeleted && !deleteReplay.IsError, deleteReplay.Message);
+                Assert.Equal(Assert.Single(deleted.Result).VersionId, Assert.Single(deleteReplay.Result).VersionId);
+                Assert.Equal(pointerAfterDelete, await File.ReadAllTextAsync(dnaPath));
                 await VerifyReplicaAsync(provider, identity.Result, dnaPath, replay: true);
                 var current = await provider.LoadHolonAsync(RecordId, loadChildren: false);
                 Assert.True(current.IsLoaded && !current.IsError, current.Message);

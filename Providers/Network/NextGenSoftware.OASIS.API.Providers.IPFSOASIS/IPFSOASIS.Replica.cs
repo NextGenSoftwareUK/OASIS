@@ -18,7 +18,7 @@ using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS;
 
 public partial class IPFSOASIS : IBoundCommittedHolonReplicaStorageProvider, ICommittedHolonReplicaReceiptStorageProvider,
-    IHolonReplicaHeadAuditStorageProvider
+    IHolonReplicaHeadAuditStorageProvider, IBoundConditionalHolonWriteRecoveryStorageProvider
 {
     private const ProviderType ReplicaAuthority = Core.Enums.ProviderType.IPFSOASIS;
     private sealed class ReplicaLineageConflictException(string message, Exception cause = null)
@@ -144,6 +144,167 @@ public partial class IPFSOASIS : IBoundCommittedHolonReplicaStorageProvider, ICo
     public Task<OASISResult<IEnumerable<IHolon>>> ApplyBoundCommittedHolonReplicaAsync(CommittedHolonReplicaRequest request,
         CosmicStorageIdentity expectedStorage, CancellationToken cancellationToken = default)
         => ApplyReplicaAsync(request, expectedStorage, true, cancellationToken);
+
+    public Task<OASISResult<ConditionalHolonWriteOutcome>> ReadConditionalHolonWriteOutcomeAsync(
+        ConditionalHolonWriteRequest original, CancellationToken cancellationToken = default)
+        => ReadConditionalOutcomeAsync(original, null, false, cancellationToken);
+
+    public Task<OASISResult<ConditionalHolonWriteOutcome>> ReadBoundConditionalHolonWriteOutcomeAsync(
+        ConditionalHolonWriteRequest original, CosmicStorageIdentity expectedSource,
+        CancellationToken cancellationToken = default)
+        => ReadConditionalOutcomeAsync(original, expectedSource, true, cancellationToken);
+
+    private async Task<OASISResult<ConditionalHolonWriteOutcome>> ReadConditionalOutcomeAsync(
+        ConditionalHolonWriteRequest original, CosmicStorageIdentity expectedSource, bool requireBinding,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            if (requireBinding)
+                ArgumentNullException.ThrowIfNull(expectedSource);
+            var plan = ConditionalHolonPlan.Create(original, ReplicaAuthority);
+            var gate = CatalogueGate;
+            await gate.WaitAsync(cancellationToken).ConfigureAwait(false);
+            try
+            {
+                var (catalogue, _, storage) = await ReadBoundCatalogueAsync(
+                    ReadPersistedCatalogueDna(), cancellationToken).ConfigureAwait(false);
+                if (expectedSource != null && storage.BindingFingerprint != expectedSource.BindingFingerprint)
+                    return new() { IsError = true, ErrorCount = 1, ErrorCode = "COSMIC_SOURCE_STORAGE_BINDING_MISMATCH",
+                        Message = "The IPFS catalogue does not match the requested source store." };
+
+                var receipt = GetReplicaObject(catalogue, "conditionalReceipts")[plan.OperationId.ToString("D")];
+                if (receipt != null)
+                    _ = ConditionalHolonReceipt.Read(ReplicaText(receipt), plan);
+                var state = receipt == null ? ConditionalHolonReceiptState.Absent : ConditionalHolonReceiptState.Committed;
+                return new(new ConditionalHolonWriteOutcome(plan.OperationId, plan.ActorId, plan.Authority,
+                    plan.Operation, state)) { IsLoaded = true };
+            }
+            finally
+            {
+                gate.Release();
+            }
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception cause)
+        {
+            return new() { IsError = true, ErrorCount = 1, ErrorCode = "COSMIC_CONDITIONAL_RECEIPT_READ_FAILED",
+                Message = cause.Message, Exception = cause };
+        }
+    }
+
+    public OASISResult<IEnumerable<IHolon>> ExecuteConditionalHolonWrite(ConditionalHolonWriteRequest request)
+        => ExecuteConditionalHolonWriteAsync(request).GetAwaiter().GetResult();
+
+    public async Task<OASISResult<IEnumerable<IHolon>>> ExecuteConditionalHolonWriteAsync(
+        ConditionalHolonWriteRequest request, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var plan = ConditionalHolonPlan.Create(request, ReplicaAuthority);
+            var gate = CatalogueGate;
+            await gate.WaitAsync(cancellationToken).ConfigureAwait(false);
+            try
+            {
+                using var lease = await AcquireCatalogueFileLeaseAsync(cancellationToken).ConfigureAwait(false);
+                var dna = ReadPersistedCatalogueDna();
+                var (catalogue, records, _) = await ReadBoundCatalogueAsync(dna, cancellationToken).ConfigureAwait(false);
+                var receipts = GetReplicaObject(catalogue, "conditionalReceipts");
+                var operationId = plan.OperationId.ToString("D");
+                if (receipts[operationId] is JToken receipt)
+                    return ConditionalHolonAcknowledgement.Create(
+                        ConditionalHolonReceipt.Read(ReplicaText(receipt), plan), plan.Operation);
+
+                var currentCids = records.Where(entry => entry.Value.RecordKind == "holon")
+                    .ToDictionary(entry => entry.Value.Id, entry => entry.Key);
+                var previous = new Dictionary<Guid, Holon>();
+                var conflicts = new List<CosmicConcurrencyConflict>();
+                foreach (var node in plan.Nodes)
+                {
+                    var id = node.Snapshot.Id;
+                    currentCids.TryGetValue(id, out var cid);
+                    var current = cid == null ? null : DecodePrivateRecord<Holon>(cid, "holon", id,
+                        await ReadCqlEnvelopeAsync(cid, cancellationToken).ConfigureAwait(false), cancellationToken);
+                    previous.Add(id, current);
+                    var expected = plan.ExpectedRevisions[id];
+                    var actual = current == null ? (Guid?)null : CosmicConcurrency.GetProviderRevisionId(current, ReplicaAuthority) ?? Guid.Empty;
+                    if (expected != actual)
+                        conflicts.Add(new CosmicConcurrencyConflict { HolonId = id, ExpectedRevisionId = expected,
+                            ActualRevisionId = actual, ActualVersionId = current?.VersionId, ActualVersion = current?.Version });
+                }
+                if (conflicts.Count != 0)
+                    throw new CosmicConcurrencyException(conflicts);
+
+                var snapshots = new Dictionary<Guid, Holon>();
+                var now = DateTime.UtcNow;
+                foreach (var node in plan.Nodes)
+                {
+                    var prior = previous[node.Snapshot.Id];
+                    var saving = plan.Operation == ConditionalHolonOperation.Save;
+                    var record = saving ? node.Snapshot : OasisJson.Project<Holon>(prior);
+                    if (saving)
+                        HolonSaveLifecycle.RequireCompatibleSave(prior, record);
+                    record.ChildRoleManifestJson = HolonChildRolePersistence.Resolve(node,
+                        saving ? HolonChildRoleWriteKind.SourceSave : HolonChildRoleWriteKind.SourceDelete,
+                        prior != null, prior?.ChildRoleManifestJson);
+                    record.Version = 0;
+                    record.VersionId = Guid.Empty;
+                    record.PreviousVersionId = Guid.Empty;
+                    await StoredRecordVersions.StampAsync(record.Id, record, prior, null).ConfigureAwait(false);
+                    record.CreatedDate = prior?.CreatedDate ?? now;
+                    record.CreatedByAvatarId = prior?.CreatedByAvatarId ?? plan.ActorId;
+                    record.CreatedProviderType = prior?.CreatedProviderType ?? new NextGenSoftware.Utilities.EnumValue<ProviderType>(ReplicaAuthority);
+                    record.ModifiedDate = prior == null ? DateTime.MinValue : now;
+                    record.ModifiedByAvatarId = prior == null ? Guid.Empty : plan.ActorId;
+                    record.InstanceSavedOnProviderType = new NextGenSoftware.Utilities.EnumValue<ProviderType>(ReplicaAuthority);
+                    record.IsNewHolon = false;
+                    if (!saving)
+                    {
+                        record.IsActive = false;
+                        record.DeletedDate = now;
+                        record.DeletedByAvatarId = plan.ActorId;
+                    }
+                    record.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
+                    record.ProviderUniqueStorageKey.Remove(ReplicaAuthority);
+                    record.PreviousVersionProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
+                    record.PreviousVersionProviderUniqueStorageKey.Remove(ReplicaAuthority);
+                    currentCids.TryGetValue(record.Id, out var previousCid);
+                    if (previousCid != null)
+                        record.PreviousVersionProviderUniqueStorageKey[ReplicaAuthority] = previousCid;
+                    CosmicConcurrency.SetProviderRevisionId(record, ReplicaAuthority, Guid.NewGuid());
+                    await StageCatalogueHolonAsync(record, StoredRecordJson.Serialize<IHolon>(record), previousCid,
+                        plan.Operation == ConditionalHolonOperation.HardDelete, records, cancellationToken).ConfigureAwait(false);
+                    snapshots.Add(record.Id, record);
+                }
+
+                foreach (var record in snapshots.Values)
+                    record.Children = plan.ChildIds[record.Id].Select(id => (IHolon)snapshots[id]).ToList();
+                var roots = plan.RootIds.Select(id => (IHolon)snapshots[id]).ToArray();
+                var acknowledgement = ConditionalHolonReceipt.Write(roots, plan);
+                var acknowledged = ConditionalHolonReceipt.Read(acknowledgement, plan);
+                receipts[operationId] = acknowledgement;
+                catalogue["conditionalReceipts"] = receipts;
+                await PublishCatalogueAsync(catalogue, records, dna, cancellationToken).ConfigureAwait(false);
+                return ConditionalHolonAcknowledgement.Create(acknowledged, plan.Operation);
+            }
+            finally
+            {
+                gate.Release();
+            }
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception cause)
+        {
+            return ReplicaFailure(cause is CosmicConcurrencyException ? CosmicConcurrencyException.Code
+                : "COSMIC_CONDITIONAL_WRITE_FAILED", cause);
+        }
+    }
 
     private async Task<OASISResult<IEnumerable<IHolon>>> ApplyReplicaAsync(CommittedHolonReplicaRequest request,
         CosmicStorageIdentity expectedStorage, bool requireBinding, CancellationToken cancellationToken)

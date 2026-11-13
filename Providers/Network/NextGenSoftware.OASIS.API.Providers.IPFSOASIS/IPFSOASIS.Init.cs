@@ -397,6 +397,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             if(kind=="holon" && entity is Holon holon){
                 var observed=previous.Value==null?null:await ReadPrivateRecordAsync<Holon>(previous.Key,kind,entity.Id);
                 var write=plannedHolon??new NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PlannedHolonWrite(holon,holon);
+                CosmicConcurrency.SetProviderRevisionId(holon, Core.Enums.ProviderType.IPFSOASIS, Guid.NewGuid());
                 holon.ChildRoleManifestJson=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.HolonChildRolePersistence.Resolve(write,
                     NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.HolonChildRoleWriteKind.SourceSave,observed!=null,observed?.ChildRoleManifestJson);
             }
@@ -441,6 +442,8 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
                 ParentHolonId=proposal.ParentHolonId, HolonType=proposal.HolonType },plan,Validate);
             holon.ProviderUniqueStorageKey=new Dictionary<Core.Enums.ProviderType,string>(proposal.ProviderUniqueStorageKey);
             holon.PreviousVersionProviderUniqueStorageKey=new Dictionary<Core.Enums.ProviderType,string>(proposal.PreviousVersionProviderUniqueStorageKey);
+            CosmicConcurrency.SetProviderRevisionId(holon, Core.Enums.ProviderType.IPFSOASIS,
+                CosmicConcurrency.GetProviderRevisionId(proposal, Core.Enums.ProviderType.IPFSOASIS).Value);
             if(holon is Holon caller)caller.ChildRoleManifestJson=proposal.ChildRoleManifestJson;
             return holon;
         }
