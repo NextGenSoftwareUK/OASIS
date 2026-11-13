@@ -8,6 +8,21 @@ from tempfile import TemporaryDirectory
 spec=importlib.util.spec_from_file_location('gate',Path(__file__).with_name('Verify-HostedHyperdriveCandidateRouting.py'))
 gate=importlib.util.module_from_spec(spec);spec.loader.exec_module(gate)
 class CandidateRoutingTests(unittest.TestCase):
+    def test_candidate_gate_requires_existing_unexpired_owner_session(self):
+        with (patch.object(gate, "ROOT", Path("controlled-root")),
+              patch.object(Path, "exists", return_value=False),
+              patch.object(Path, "read_text", return_value='{"id":"owner"}'),
+              patch.object(gate.routing, "reviewed_record", return_value={}),
+              patch.object(gate.flow, "session", side_effect=RuntimeError("expired")) as session,
+              patch.object(gate.flow, "call") as request,
+              patch("sys.argv", ["candidate-routing"])):
+            with self.assertRaisesRegex(RuntimeError, "expired"):
+                gate.main()
+            session.assert_called_once_with(
+                Path("controlled-root/LocalState/COSMIC/HostedHyperdriveRoutingV2Current"),
+                "owner", allow_create=False, allow_renewal=False)
+            request.assert_not_called()
+
     def test_each_eligible_provider_and_rejection_of_other_serving_provider(self):
         expected={'id':'record','name':'coffee','version':1,'createdByAvatarId':'owner'}
         for eligible in gate.routing.PROVIDERS:
