@@ -18,6 +18,8 @@
 
 ## Verification log
 
+13 November Cancun time. Development advanced to 0d965e8c4459 with the exact two-file IPFS tree 46a70c3cbcc4a63bab2c3eb5738248ab8b24faaf. Native restart 43404048980 and multi-process 43404025348 passed. A mismatched source returns the same explicit binding error as SQLite, and the restart fixture verifies discovery and eventual delivery of the pending route. All seven predecessor Railway deployments succeeded. The new rollout and hosted IPFS writes remain open.
+
 13 November Cancun time. Native restart 43402827306 confirmed that the wrong IPFS source identity cannot list or claim a pending replica and leaves the catalogue pointer unchanged. Multi-process 43402809673 passed on the same tree aa7c707a7950647a8e94d7865aeb355b1bbf9e93. Single-test-file candidate fc87e8a8b425730af5169dc3945f173a4e83ce19 supersedes the previous candidate for the next shared Development review.
 
 13 November Cancun time. Native restart 43401897171 verified route inventory discovers the pending IPFS delivery across Kubo restart and clears it after confirmed SQLite dispatch. Multi-process 43401880550 passed on the same tree 406d4f3cbd4df87e9a9ee672f3af3295ed107de4. Single-test-file candidate 62c8d9fc653eb2469b0f72aafe6141142bc8097c supersedes ccc17609fad6 for the next Development review.
