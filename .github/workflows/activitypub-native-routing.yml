@@ -20,6 +20,3 @@ jobs:
       routing: true
     secrets:
       PRIVATE_SUBMODULE_PAT: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
-
-
-
