@@ -68,6 +68,17 @@ public sealed class FirestoreSqliteOutageTests
                 var otherBinding = await otherStore.CaptureStorageIdentityAsync();
                 Assert.IsFalse(otherBinding.IsError, otherBinding.Message);
                 Assert.AreNotEqual(bindings[0].Result.BindingFingerprint, otherBinding.Result.BindingFingerprint);
+                var source = new Holon { Id = Guid.NewGuid(), Version = 1, VersionId = Guid.NewGuid() };
+                CosmicConcurrency.SetProviderRevisionId(source, ProviderType.SQLLiteDBOASIS, Guid.NewGuid());
+                var original = new CommittedHolonReplicaRequest(Guid.NewGuid(), "owned-sqlite",
+                    ProviderType.SQLLiteDBOASIS, Guid.NewGuid(), ConditionalHolonOperation.Save,
+                    new[] { source }, saveChildren: false);
+                var request = new CommittedHolonReplicaReceiptReadRequest(original, bindings[0].Result);
+                var absent = await firestore.ReadCommittedHolonReplicaReceiptAsync(request);
+                Assert.IsFalse(absent.IsError, absent.Message);
+                Assert.AreEqual(ConditionalHolonReceiptState.Absent, absent.Result.ReceiptState);
+                var mismatch = await otherStore.ReadCommittedHolonReplicaReceiptAsync(request);
+                Assert.AreEqual("COSMIC_REPLICA_RECEIPT_STORAGE_MISMATCH", mismatch.ErrorCode);
             }
             finally
             {
