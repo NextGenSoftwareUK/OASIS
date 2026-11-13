@@ -46,8 +46,10 @@ public partial class GoogleCloudOASIS
 
     // One protocol owner for identity saves and paired lifecycle writes. Preparation executes ONCE.
     private static async Task<T> RunFirestoreIdentityTransactionAsync<T>(FirestoreDb database,string paths,
-        Func<ByteString,Task<(T Result,IReadOnlyList<Native.Write> Writes)>> prepare,Action validateCaller=null)
+        Func<ByteString,Task<(T Result,IReadOnlyList<Native.Write> Writes)>> prepare,Action validateCaller=null,
+        CancellationToken cancellationToken=default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         RequireSingleAttemptFirestoreCommit(database);
         var client=database.Client;var databasePath=$"projects/{database.ProjectId}/databases/{database.DatabaseId}";
         var opened=await client.BeginTransactionAsync(new Native.BeginTransactionRequest{Database=databasePath},IdentityTransactionCallSettings);
@@ -58,6 +60,8 @@ public partial class GoogleCloudOASIS
             var prepared=await prepare(transaction);
             if(prepared.Writes==null)throw new InvalidDataException("Firestore identity preparation returned no write plan.");
             validateCaller?.Invoke();
+            // Once Commit is dispatched, resolve the native acknowledgement even if the caller cancels.
+            cancellationToken.ThrowIfCancellationRequested();
             if(prepared.Writes.Count==0){
                 rollbackAttempted=true;
                 await client.RollbackAsync(new Native.RollbackRequest{Database=databasePath,Transaction=transaction},IdentityTransactionCallSettings);
