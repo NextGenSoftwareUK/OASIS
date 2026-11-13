@@ -8,6 +8,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive;
 using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 using NextGenSoftware.OASIS.API.Providers.SQLServerDBOASIS;
 using NextGenSoftware.Utilities;
@@ -92,6 +93,27 @@ public sealed class SqlServerSqliteHyperDriveTests
             }
             foreach (var provider in providerTypes)
                 Assert.Equal(3, served.Count(value => value == provider.ToString()));
+
+            var sqliteOnly = new Holon { Id = Guid.NewGuid(), Name = "SQLite-only holon", CreatedByAvatarId = Guid.NewGuid() };
+            var sqliteSave = await sqlite.SaveHolonAsync(sqliteOnly, saveChildren: false);
+            Assert.True(!sqliteSave.IsError && sqliteSave.IsSaved, sqliteSave.Message);
+            AssertRecord(sqliteOnly, (await sqlite.LoadHolonAsync(sqliteOnly.Id, loadChildren: false)).Result);
+
+            var healthyFailover = new ProviderManager(null, dna) { IsAutoFailOverEnabled = true };
+            healthyFailover.RegisterProvider(sql);
+            healthyFailover.RegisterProvider(sqlite);
+            Assert.False(healthyFailover.SetAndReplaceAutoFailOverListForProviders(candidates).IsError);
+            var healthyRouter = new OASISHyperDrive(healthyFailover);
+            var missing = new StorageOperationRequest
+            {
+                Operation = "LoadHolonByProviderKey", ProviderKey = sqliteOnly.Id.ToString("D"),
+                PreferredProvider = sql.ProviderType.Value, LoadChildren = false
+            };
+            var absent = sync ? healthyRouter.RouteRequest<IHolon>(missing)
+                : await healthyRouter.RouteRequestAsync<IHolon>(missing);
+            Assert.Equal(OASISResultErrorCodes.RecordNotFound, absent.ErrorCode);
+            Assert.Null(absent.Result);
+            Assert.Equal(0L, healthyFailover.PerformanceMonitor.GetMetrics(sqlite.ProviderType.Value)?.TotalRequests ?? 0);
 
             using var unavailableEndpoint = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             unavailableEndpoint.Bind(new IPEndPoint(IPAddress.Loopback, 0));
