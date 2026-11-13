@@ -6580,3 +6580,5 @@ Track temporary tag `ci-cosmic-infura-web4-ee3a6589a6` for exact runs `432184056
 13 November Cancun time. HostedSourceRolloutCurrent retains the grouped-admission preview, protected before and candidate settings, and one intent and acknowledgement. Keep protected snapshots through live rollout and rollback review, then retire them according to the existing journal policy. No runtime installs, fixtures, or build outputs.
 
 13 November Cancun time. The three scoped grouped count fixtures were hard-deleted and their absence verified directly on each named provider. Twelve compact group-proof receipts remain in LocalState/COSMIC/HostedCqlReadiness-Polkadot. No local builds, runtime installs, or downloads.
+
+- 13 November Cancun: Web4Site b2b6cdb7ded8 ran 170 Node tests from a temporary exact-source directory and removed that directory and its temporary Git index after committing. No runtime download, database, or build output was created.

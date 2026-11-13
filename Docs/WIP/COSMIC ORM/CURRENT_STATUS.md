@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Ask your data draft availability
+
+Web4Site b2b6cdb7ded8 validates the draft against the current Development provider catalogue before offering to open it. The Playground uses the same capability check when loading the reviewed draft. All 170 website tests passed, including an unavailable-provider draft regression. Hosted WEB6 draft acceptance remains pending.
+
 ## Coordinated Development batch - 13 November, Cancun
 
 HyperDrive advanced Development to `295ccba0c9ec` with the qualified Firestore database isolation test at 17:54:19. COSMIC integration candidate `5198038dca1c` preserves that test and carries exactly the six files from qualified protocol candidate `acc2d0c5dc90`. [Exact combined qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43523609778) is running. [Standalone Development protocol CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43523021373) failed in the source-linked ledger test project because AppPaygSettings was outside its compile graph. The combined candidate includes the existing model relocation that addresses this failure. Authenticated WEB4 discovery during the rollout returned 105/107 native and federated sources ready. Hedera and Nostr were unavailable. A follow-up authenticated read bracketed by the same successful Railway deployment ff58ecd7-2479-4bdd-b001-f2bf8c8b53e1 confirmed 105/107 on fad850b80651. The read reused the acknowledged visitor. Combined CI passed pin validation and the WEB4 ledger step that failed on standalone Development. The remaining protocol checks are in progress. Review the shared rollout after 18:24:19 and coordinate one publisher. This staging step created no local build outputs or test fixtures.
