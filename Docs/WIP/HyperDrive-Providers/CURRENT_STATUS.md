@@ -18,6 +18,8 @@
 
 ## Verification log
 
+13 November Cancun time. [Native Bolt job 131987139923](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43455134865/job/131987139923) passed both sync and async cases with zero skips. A healthy SQLite miss returned `RecordNotFound` without querying the Neo4j replica. A SQLite outage still recovered the exact Neo4j record only when failover was enabled. The job verified fixture cleanup. Exact qualification on Development `a21ef5600214` remains pending.
+
 13 November 10:42 Cancun time. Remote Development `a21ef5600214` combines the verified ActivityPub public URI batch `58a195605e6b` and COSMIC's HoloOASIS startup diagnostics `92894d69378f`. Railway accepted the 10:39:31 push and queued WEB4 deployment `cfc3ba9b-f9c6-4b61-ab8a-ca386fc934d5`. Hosted acceptance is pending. The next normal shared review is after 11:09:31 Cancun. The independent SQLite and Neo4j absence check reached its native Bolt verification step in CI `43455134865`. The new Development changes do not touch either file in that batch. Read-only review created no local artifacts.
 
 13 November Cancun time. SQLite holon point reads now return the standard record-not-found code for a healthy miss by ID or provider key. HyperDrive uses that code to stop failover instead of exposing a stale Neo4j replica. Commit `748c32342469` adds the healthy-empty control to both existing native SQLite-to-Neo4j outage cases. The control requires an empty result and zero requests to the real Bolt candidate. [Native CI 43455134865](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43455134865) is queued. The new SQLite fixture is an owned in-memory database. No local build or fixture files were created.
