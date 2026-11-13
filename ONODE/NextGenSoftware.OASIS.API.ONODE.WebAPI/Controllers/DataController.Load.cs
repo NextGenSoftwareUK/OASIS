@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
@@ -48,7 +48,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status401Unauthorized)]
         public async Task<OASISHttpResponseMessage<Holon>> LoadHolon(Models.Data.LoadHolonRequest request)
         {
-            //OASISResult<Holon> response = new OASISResult<Holon>();
+            var strategy = LoadBalancingStrategy.Auto;
+            if (request.LoadBalancingStrategy != null &&
+                (!Enum.GetNames<LoadBalancingStrategy>().Contains(request.LoadBalancingStrategy, StringComparer.OrdinalIgnoreCase) ||
+                 !Enum.TryParse(request.LoadBalancingStrategy, ignoreCase: true, out strategy) ||
+                 request.SetGlobally ||
+                 OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.HyperDriveMode != NextGenSoftware.OASIS.API.DNA.HyperDriveModes.V2))
+            {
+                Response.StatusCode = StatusCodes.Status400BadRequest;
+                return TestDataHelper.CreateErrorResponse<Holon>(
+                    "LoadBalancingStrategy requires a named strategy on a request-scoped HyperDrive V2 read.",
+                    null, System.Net.HttpStatusCode.BadRequest);
+            }
+
             OASISHttpResponseMessage<Holon> response;
             (response, HolonType childHolonType) = ValidateHolonType<Holon>(request.ChildHolonType);
 
@@ -79,7 +91,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     manager = requestContext.Manager;
                 }
 
-                result = await manager.LoadHolonAsync(request.Id, request.LoadChildren, request.Recursive, request.MaxChildDepth, request.ContinueOnError, request.LoadChildrenFromProvider, childHolonType, request.Version);
+                result = await manager.LoadHolonAsync(request.Id, request.LoadChildren, request.Recursive, request.MaxChildDepth, request.ContinueOnError, request.LoadChildrenFromProvider, childHolonType, request.Version, ProviderType.Default, allowMissing: false, strategy: strategy);
 
                 ResetOASISSettings(request, configResult);
 
