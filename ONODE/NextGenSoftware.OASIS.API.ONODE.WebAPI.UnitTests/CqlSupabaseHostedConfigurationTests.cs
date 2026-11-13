@@ -55,6 +55,7 @@ public class CqlSupabaseHostedConfigurationTests
         services.AddSupabaseReadSource(Configuration());
         using var container = services.BuildServiceProvider();
         var source = Assert.Single(container.GetServices<CqlReadSourceProfile>()).Storage;
+        Assert.IsType<NextGenSoftware.OASIS.API.Providers.SupabaseOASIS.SupabaseOASIS>(source);
         Assert.Equal(ProviderType.SupabaseOASIS, source.ProviderType.Value);
         Assert.False(source.IsProviderActivated);
     }

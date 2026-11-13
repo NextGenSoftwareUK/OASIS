@@ -123,6 +123,17 @@ jobs:
               throw 'All thirty shipping provider catalogue and preset admission cases must pass'
             }
           }
+      - name: Verify shipping Supabase hosted CQL admission
+        working-directory: OASIS
+        shell: pwsh
+        run: |
+          dotnet test ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests --no-build --no-restore /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CqlSupabaseHostedConfigurationTests' --results-directory TestResults/CqlPublicReadCatalogueCurrent --logger 'trx;LogFileName=supabase-shipping.trx'
+          if ($LASTEXITCODE) { throw 'Shipping Supabase admission failed' }
+          [xml]$report = Get-Content TestResults/CqlPublicReadCatalogueCurrent/supabase-shipping.trx
+          $counts = $report.TestRun.ResultSummary.Counters
+          if ($counts.passed -ne '10' -or $counts.total -ne '10' -or $counts.executed -ne '10') {
+            throw 'All ten Supabase configuration and guard cases must pass'
+          }
       - name: Verify Moralis activation and unsupported NFT burns
         working-directory: OASIS
         shell: pwsh
