@@ -18,6 +18,8 @@
 
 ## Verification log
 
+13 November 10:31 Cancun time. At the shared Development review, remote Development still pointed to `29c4b494895e` and Railway listed WEB4 deployment `bda030f6-ea20-4056-a74f-faae7ee6348e` as `CRASHED`. The retained logs show the same persisted HoloOASIS cell timeout on successive process starts. The deployed startup code found the teaching app marked Running and waited for its exact DNA and agent hashes in the running-cell list. The cause of the missing exact cell remains unverified. The ActivityPub revision does not change this conductor path. The corresponding conductor source is present in the COSMIC working tree. Preserve its state and hold candidate `58a195605e6b` at the rollout gate. The review used read-only Git and Railway inspection, created no local build or fixture artifacts, and measured 27.8 GiB free on C:.
+
 13 November Cancun time. Railway reported WEB4 deployment bda030f6-ea20-4056-a74f-faae7ee6348e failed on Development 29c4b494895e. Runtime logs show HoloOasisDevelopmentConductor.TeachingAdmin.WaitForPersistedCellAsync timed out waiting for the existing teaching cell. The other six APIs reported success. ActivityPub candidate 58a195605e6b remains qualified. Hold its integration while the shared WEB4 startup failure is diagnosed. Read-only log inspection created no local artifacts.
 
 13 November Cancun time. [ActivityPub workflow CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43451857900) passed all 46 selector tests and both native Mastodon cases with fixture cleanup. Combined candidate 58a195605e6b adds only the verified workflow trigger to 7cc1f77b6ba7. The code matches exact Development CI 43449954359. The next shared review is after 10:31:05 Cancun.
