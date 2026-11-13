@@ -16,10 +16,9 @@ public partial class SearchRepository
     internal static BsonDocument SelectSearchVersion(BsonDocument document,int version,bool avatar)
     {
         if(version<1)throw new ArgumentOutOfRangeException(nameof(version));
-        IReadOnlyList<IHolonBase> history=avatar
-            ?MongoNativeAccountHistory.ReadAvatar(document).Cast<IHolonBase>().ToArray()
-            :MongoNativeHolonHistory.Read(document).Cast<IHolonBase>().ToArray();
-        var selected=history.SingleOrDefault(row=>row.Version==version);
+        IHolonBase selected=avatar
+            ?MongoNativeAccountHistory.ReadAvatar(document,selectedVersion:version).SingleOrDefault()
+            :MongoNativeHolonHistory.Read(document,selectedVersion:version).SingleOrDefault();
         if(selected==null)return null;
         BsonDocument snapshot=null;
         if(document["Version"].ToInt32()==version)snapshot=(BsonDocument)document.DeepClone();

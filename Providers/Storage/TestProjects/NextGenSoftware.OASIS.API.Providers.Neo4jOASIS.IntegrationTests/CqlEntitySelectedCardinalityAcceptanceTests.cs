@@ -34,6 +34,10 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Assert.IsTrue(expectedVersions.Length > 0);
         Assert.AreEqual(expectedVersions.Min(row => row.Version), versions.Min(row => row.Version));
         Assert.AreEqual(expectedVersions.Max(row => row.Version), versions.Select(row => row.Version).Max());
+        Assert.AreEqual(expectedVersions.Sum(row => row.Version), versions.Sum(row => row.Version));
+        Assert.AreEqual(expectedVersions.Average(row => row.Version), versions.Select(row => row.Version).Average());
+        Passed("native Sum and Average preserve entity windows and selected predicates");
+
         var nullable = root.OrderBy(row => row.Name).Take(3).Reverse().Take(0)
             .Select(row => CosmicQueryMetadata.Value<int?>(row, "nullableInt"));
         Assert.IsNull(nullable.Min());
