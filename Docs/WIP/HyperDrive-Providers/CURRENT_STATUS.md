@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November 21:22 Cancun time. All seven APIs report success for exact NEAR Development 6c61e3e5c33d. COSMIC independently confirmed four public shipping-provider presets on its exact WEB4 deployment. Both IPFS identity jobs reported the exact integration tree a669f65f612b875acd6d3f7f4b45a2e44cf10fd5. Recheck the remote and COSMIC handoff at the next 30-minute review before pushing candidate d4276e404895. This candidate excludes the newer receiver and historical receipt changes. Receiver CI 43351546342 passed multi-process publication; receipt restart 43351574704 and lineage restart 43351804270 were still live. No local runtime or fixture.
+
 12 November Cancun time. The Kubo restart scenario now also rejects a successor with incorrect lineage without changing the catalogue pointer, then accepts the valid successor and checks the earlier version through the native CID chain. Both prior bound receiver runs passed after the compiler fix. Historical receipt and successor checks await their own native results. No local build, fixture or download.
 
 12 November Cancun time. IPFS now exposes read-only historical replica receipt evidence from the immutable catalogue selected by one persisted pointer read. The restart check asserts receipt absence before apply, a committed digest after apply, and the same digest after restart and replay. These changes await native CI. No local runtime, build or download was created.
