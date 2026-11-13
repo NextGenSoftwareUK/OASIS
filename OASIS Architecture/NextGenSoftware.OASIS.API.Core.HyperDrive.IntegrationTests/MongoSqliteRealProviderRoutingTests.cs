@@ -391,6 +391,27 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
             var sqliteMs = Math.Max(timer.Elapsed.TotalMilliseconds,0.001);
             balanceManager.PerformanceMonitor.RecordRequest(ProviderType.MongoDBOASIS,true,mongoMs);
             balanceManager.PerformanceMonitor.RecordRequest(ProviderType.SQLLiteDBOASIS,true,sqliteMs);
+            if (!synchronous)
+            {
+                var pointReader = new HolonManager(null, dna, balanceManager);
+                var servedBy = new List<string>();
+                for (var index = 0; index < 6; index++)
+                {
+                    var scope = pointReader.CreateRequestContext(
+                        new NextGenSoftware.OASIS.API.Core.Configuration.ProviderRoutingOverrides(autoFailoverEnabled: false),
+                        routeDefaultProvider: true, providerType: ProviderType.Default);
+                    Assert.False(scope.IsError, scope.Message);
+                    var loaded = await scope.Result.Manager.LoadHolonAsync(holon.Id, false, false, 0, false, true,
+                        HolonType.All, 0, ProviderType.Default, false, LoadBalancingStrategy.RoundRobin);
+                    Assert.True(loaded.IsLoaded && !loaded.IsError, loaded.Message);
+                    Assert.Equal(holon.Id, loaded.Result.Id);
+                    using var route = System.Text.Json.JsonDocument.Parse(loaded.MetaData["hyperDriveRoute"]);
+                    Assert.Equal("RoundRobin", route.RootElement.GetProperty("RequestedStrategy").GetString());
+                    servedBy.Add(route.RootElement.GetProperty("ServingProvider").GetString()!);
+                }
+                Assert.Equal(3, servedBy.Count(value => value == nameof(ProviderType.MongoDBOASIS)));
+                Assert.Equal(3, servedBy.Count(value => value == nameof(ProviderType.SQLLiteDBOASIS)));
+            }
             var balancedRouter = new OASISHyperDrive(balanceManager);
             var read = new StorageOperationRequest { Operation = "LoadHolon", HolonId = holon.Id, LoadChildren = false };
             var balanced = synchronous ? balancedRouter.RouteRequest<IHolon>(read,LoadBalancingStrategy.Performance) : await balancedRouter.RouteRequestAsync<IHolon>(read,LoadBalancingStrategy.Performance);
