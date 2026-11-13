@@ -32,7 +32,7 @@ Sources for this checkpoint are the [native routing archive](Archive/HYPERDRIVE_
 
 ## HoloOASIS provider-key read gap
 
-Both native regression cases reproduced the packaged hApp rejecting a map payload at `get_holon_by_id` during deserialization. The C# provider exposes an action hash as the holon provider key. The fix in `3eca0776e7b2` sends that hash to `get_entry_holon` through HoloNET in both modes. Verification against the packaged hApp is pending. Retained storage and hosted outbox evidence cover separate paths. [Native regression](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43466001272/job/132025169645) · [Fix qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43466617385)
+Both native regression cases reproduced the packaged hApp rejecting a map payload at `get_holon_by_id` during deserialization. The C# provider exposes an action hash as the holon provider key. The fix in `3eca0776e7b2` sends that hash to `get_entry_holon` through HoloNET in both modes. The fix and collection diagnostics passed both native routing cases with zero skips on tree `af00e304101fd7d6890bee47701fddb68900f6fa`. An earlier fix run stopped during the initial collection read, and its cause is still unverified. The follow-up checks the key directly from the save response. Hosted outbox verification remains open. [Native regression](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43466001272/job/132025169645) · [Passing native qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43467969317/job/132032080232) · [Standalone key checks](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43468243143)
 
 ## Oracle and SQLite point-read failover
 
