@@ -29,7 +29,7 @@ using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 {
-    public partial class IPFSOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider
+    public partial class IPFSOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, ICosmicStorageIdentityProvider
     {
         private static readonly ConcurrentDictionary<string, SemaphoreSlim> CatalogueGates =
             new(OperatingSystem.IsWindows() ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal);
@@ -84,6 +84,42 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             if (settings == null || !StringComparer.Ordinal.Equals(settings.ConnectionString, current.ConnectionString))
                 throw new InvalidDataException("The persisted IPFS catalogue targets a different connection.");
             return persisted;
+        }
+
+        public async Task<OASISResult<CosmicStorageIdentity>> CaptureStorageIdentityAsync(CancellationToken cancellationToken = default)
+        {
+            var result = new OASISResult<CosmicStorageIdentity>();
+            var gate = CatalogueGate;
+            try
+            {
+                await gate.WaitAsync(cancellationToken).ConfigureAwait(false);
+                try
+                {
+                    var settings = ReadPersistedCatalogueDna().OASIS.StorageProviders.IPFSOASIS;
+                    if (IPFSClient == null || string.IsNullOrWhiteSpace(settings.LookUpIPFSAddress))
+                        throw new InvalidOperationException("An active IPFS client and published catalogue are required.");
+
+                    var envelope = await ReadCqlEnvelopeAsync(settings.LookUpIPFSAddress, cancellationToken).ConfigureAwait(false);
+                    DeserializeLookup(UnprotectIndex(envelope), out var storeId);
+                    if (storeId == Guid.Empty)
+                        throw new InvalidOperationException("Publish the existing IPFS catalogue to assign its durable identity before binding it.");
+
+                    var endpoint = new Uri(settings.ConnectionString, UriKind.Absolute);
+                    var canonicalEndpoint = endpoint.GetComponents(UriComponents.SchemeAndServer | UriComponents.Path, UriFormat.UriEscaped);
+                    using var digest = System.Security.Cryptography.SHA256.Create();
+                    var fingerprint = BitConverter.ToString(digest.ComputeHash(Encoding.UTF8.GetBytes(canonicalEndpoint))).Replace("-", "");
+                    result.Result = new CosmicStorageIdentity(Core.Enums.ProviderType.IPFSOASIS, fingerprint, storeId);
+                }
+                finally
+                {
+                    gate.Release();
+                }
+            }
+            catch (Exception cause)
+            {
+                OASISErrorHandling.HandleError(ref result, "Could not capture the IPFS catalogue identity.", cause);
+            }
+            return result;
         }
 
         public override OASISResult<bool> ActivateProvider()

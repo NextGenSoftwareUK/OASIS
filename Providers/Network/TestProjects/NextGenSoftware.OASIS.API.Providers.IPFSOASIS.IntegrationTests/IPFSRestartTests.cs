@@ -19,6 +19,7 @@ public sealed class IPFSRestartTests
         Assert.False(string.IsNullOrWhiteSpace(dnaPath));
         Assert.True(phase is "write" or "read", "Select the disposable Kubo restart fixture phase.");
 
+        var identityPath = dnaPath + ".identity";
         OASISDNA dna;
         if (phase == "write")
         {
@@ -49,6 +50,9 @@ public sealed class IPFSRestartTests
                 var holon = new Holon { Id = RecordId, Name = "before update", Version = 1, HolonType = HolonType.Holon };
                 var saved = await provider.SaveHolonAsync(holon, saveChildren: false);
                 Assert.True(saved.IsSaved && !saved.IsError, saved.Message);
+                var identity = await provider.CaptureStorageIdentityAsync();
+                Assert.False(identity.IsError, identity.Message);
+                await File.WriteAllTextAsync(identityPath, identity.Result.BindingFingerprint);
                 holon.Name = "after update";
                 holon.Version = 2;
                 saved = await provider.SaveHolonAsync(holon, saveChildren: false);
@@ -57,6 +61,9 @@ public sealed class IPFSRestartTests
             }
             else
             {
+                var identity = await provider.CaptureStorageIdentityAsync();
+                Assert.False(identity.IsError, identity.Message);
+                Assert.Equal(await File.ReadAllTextAsync(identityPath), identity.Result.BindingFingerprint);
                 var current = await provider.LoadHolonAsync(RecordId, loadChildren: false);
                 Assert.True(current.IsLoaded && !current.IsError, current.Message);
                 Assert.Equal("after update", current.Result.Name);
