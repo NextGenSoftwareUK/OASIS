@@ -18,6 +18,8 @@
 
 ## Verification log
 
+13 November Cancun time. Staged Development candidate 5d0768dbdaf9 containing the two exact-CI replica authorization files and the two verified hosted RoundRobin verifier files. All sandbox scripts match the tested task-branch versions. Development is d495c8fe651a, whose seven APIs have completed deployment. Review again at 09:26:02 Cancun, 30 minutes after the recorded Development push. The protected hosted cohort and original writer evidence are still open.
+
 13 November Cancun time. All seven API deployments succeeded on d495c8fe651a. Tightened the hosted load-balancing verifier to require an integer returned record version, so Boolean and decimal values cannot match an acknowledged integer through Python equality. The focused verifier suite passed 9/9 without bytecode output. Live verification still needs the protected acknowledged cohort.
 
 13 November Cancun time. [Exact Development authorization CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43440312113) passed all eight rejection cases with zero skips on candidate 50bb6ad5bf80. The verified batch contains the regression and its CI workflow. The shared review remains subject to the preceding rollout and current Development head. Hosted sequence 543 remains held pending protected writer evidence.

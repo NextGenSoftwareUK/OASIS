@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+13 November Cancun time. Routing candidate 5d0768dbdaf9 used one temporary Git index, removed and verified absent. The Python verifier suite ran with bytecode output disabled. No new build, runtime or download.
+
 13 November Cancun time. Replica authorization qualification candidate 50bb6ad5bf80 used one temporary Git index, removed and verified absent. CI job 131935908498 passed its fixture cleanup gate. The existing PolygonArbitrumOutageOwned directory remains present. The repository cleanup script accepts individual reports in TestResults and its default invocation also touches other locations, so it was not used for this directory.
 
 13 November Cancun time. Replica authorization CI job 131932346546 passed all eight cases and its isolated build/results cleanup gate. The local combined command was rejected before creating artifacts. No local runtime or test output was created.
