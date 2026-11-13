@@ -102,13 +102,34 @@ class Graph:
             xml = ET.fromstring(self.git(root, "show", f"{commit}:{relative}").lstrip("\ufeff"))
         except ET.ParseError as error:
             raise ValueError(f"Invalid project XML at {root} {commit}:{relative}: {error}") from error
+        # Resolve properties the project defines itself (plain values, or the
+        # "default when empty" pattern) so a reference such as $(StarDnaProjectPath)
+        # can be followed to its real file instead of being unprovable.
+        props = {}
+        for group in xml.iter():
+            if group.tag.rsplit("}", 1)[-1] != "PropertyGroup":
+                continue
+            for prop in group:
+                name = prop.tag.rsplit("}", 1)[-1]
+                condition = prop.get("Condition")
+                if condition is None:
+                    props[name] = (prop.text or "").strip()
+                elif re.fullmatch(r"\s*'\$\(" + re.escape(name) + r"\)'\s*==\s*''\s*", condition):
+                    props.setdefault(name, (prop.text or "").strip())
+
+        def expand(value):
+            value = value.replace("$(MSBuildThisFileDirectory)", path.parent.as_posix() + "/")
+            for _ in range(5):
+                value = re.sub(r"\$\((\w+)\)", lambda m: props.get(m.group(1), m.group(0)), value)
+            return value
+
         for node in xml.iter():
             kind = node.tag.rsplit("}", 1)[-1]
             include = node.get("Include") or (node.get("Project") if kind == "Import" else None)
             if not include or kind not in ("ProjectReference", "Import", "Compile", "Content", "None", "EmbeddedResource"):
                 continue
             # Local globs are covered by the whole project directory tree.
-            normalized = include.replace("\\", "/")
+            normalized = expand(include).replace("\\", "/")
             if "$" in normalized or "*" in normalized or ";" in normalized:
                 if ".." in normalized or kind in ("Import", "ProjectReference"):
                     raise ValueError(f"Cannot prove dynamic external input: {path}: {include}")
