@@ -2,7 +2,7 @@ name: Neo4j and SQLite native failover
 
 on:
   push:
-    branches: [work/hyperdrive-provider-completion]
+    branches: [work/hyperdrive-provider-completion, work/hyperdrive-neo4j-failover-qualification]
     paths:
       - '.github/workflows/neo4j-sqlite-native-failover.yml'
       - 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/Neo4jSqliteOutageTests.cs'
