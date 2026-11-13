@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Shared rollout includes native Firestore regressions
+
+Candidate `25df73dca702` extends protocol-qualified `f50b747c8329` with only FirestoreSqliteOutageTests.cs. The overlapping test was resolved to the exact native-tested blob from HyperDrive candidate `efb55a264f16`, which passed [native qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43527832254) for predecessor rejection, successor and deletion, and SQLite dispatcher delivery. Shipping files match [protocol qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43526891579). WEB4 deployment 9948bb48-e9b2-4b09-813e-f85c6b78c46a was still building. Review after 18:51:38 Cancun.
+
 ## Compound HAVING filters
 
 Web4Site 777f7a127bd0 compiles ANDed HAVING comparisons into the existing grouped-result filter list. Ask your data demonstrates a count range. All 173 website tests passed. Live acceptance remains open.
