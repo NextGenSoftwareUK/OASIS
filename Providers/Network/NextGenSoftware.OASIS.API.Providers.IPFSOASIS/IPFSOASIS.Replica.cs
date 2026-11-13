@@ -22,18 +22,23 @@ public partial class IPFSOASIS : IBoundCommittedHolonReplicaStorageProvider, ICo
 {
     private const ProviderType ReplicaAuthority = Core.Enums.ProviderType.IPFSOASIS;
     private sealed class ReplicaLineageConflictException(string message) : InvalidOperationException(message);
+    private sealed class ReplicaStorageBindingException(string message) : InvalidOperationException(message);
 
     // Atomic callers acquire both catalogue locks before reading this snapshot.
     private async Task<(JObject Catalogue, Dictionary<string, HolonResume> Records, CosmicStorageIdentity Storage)>
         ReadBoundCatalogueAsync(OASISDNA dna, CancellationToken cancellationToken)
     {
         var settings = dna.OASIS.StorageProviders.IPFSOASIS;
-        if (IPFSClient == null || string.IsNullOrWhiteSpace(settings.LookUpIPFSAddress))
-            throw new InvalidOperationException("An active IPFS client and published catalogue are required.");
+        if (IPFSClient == null)
+            throw new InvalidOperationException("An active IPFS client is required.");
+        if (string.IsNullOrWhiteSpace(settings.LookUpIPFSAddress))
+            throw new ReplicaStorageBindingException("The IPFS catalogue has no published storage identity.");
 
         var envelope = await ReadCqlEnvelopeAsync(settings.LookUpIPFSAddress, cancellationToken).ConfigureAwait(false);
         var catalogue = ParseCatalogue(UnprotectIndex(envelope));
         var records = DeserializeLookup(catalogue, out var storeId);
+        if (storeId == Guid.Empty)
+            throw new ReplicaStorageBindingException("The IPFS catalogue has no persisted storage identity.");
         return (catalogue, records, CreateCatalogueStorageIdentity(settings.ConnectionString, storeId));
     }
 
@@ -201,8 +206,13 @@ public partial class IPFSOASIS : IBoundCommittedHolonReplicaStorageProvider, ICo
         }
         catch (Exception cause)
         {
-            return ReplicaFailure(cause is ReplicaLineageConflictException
-                ? "COSMIC_REPLICA_LINEAGE_CONFLICT" : "COSMIC_REPLICA_WRITE_FAILED", cause);
+            var code = cause switch
+            {
+                ReplicaLineageConflictException => "COSMIC_REPLICA_LINEAGE_CONFLICT",
+                ReplicaStorageBindingException => "COSMIC_REPLICA_STORAGE_BINDING_INVALID",
+                _ => "COSMIC_REPLICA_WRITE_FAILED"
+            };
+            return ReplicaFailure(code, cause);
         }
     }
 

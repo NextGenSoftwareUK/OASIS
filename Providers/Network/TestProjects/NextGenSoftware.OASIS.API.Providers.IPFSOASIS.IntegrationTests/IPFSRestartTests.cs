@@ -57,6 +57,16 @@ public sealed class IPFSRestartTests
                 Assert.Null(unbound.Result);
                 Assert.False(File.Exists(dnaPath));
 
+                var expected = new CosmicStorageIdentity(ProviderType.IPFSOASIS, new string('A', 64), Guid.NewGuid());
+                var original = new Holon { Id = Guid.NewGuid(), Version = 1, VersionId = Guid.NewGuid(), HolonType = HolonType.Holon };
+                CosmicConcurrency.SetProviderRevisionId(original, ProviderType.SQLLiteDBOASIS, Guid.NewGuid());
+                var delivery = new CommittedHolonReplicaRequest(Guid.NewGuid(), "unpublished-store-source",
+                    ProviderType.SQLLiteDBOASIS, RecordId, ConditionalHolonOperation.Save, new[] { original }, saveChildren: false);
+                var unavailable = await provider.ApplyBoundCommittedHolonReplicaAsync(delivery, expected);
+                Assert.True(unavailable.IsError);
+                Assert.Equal("COSMIC_REPLICA_STORAGE_BINDING_INVALID", unavailable.ErrorCode);
+                Assert.False(File.Exists(dnaPath));
+
                 var holon = new Holon { Id = RecordId, Name = "before update", Version = 1, HolonType = HolonType.Holon };
                 var saved = await provider.SaveHolonAsync(holon, saveChildren: false);
                 Assert.True(saved.IsSaved && !saved.IsError, saved.Message);
