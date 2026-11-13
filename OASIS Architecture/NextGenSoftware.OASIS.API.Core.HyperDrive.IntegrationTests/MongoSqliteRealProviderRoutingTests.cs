@@ -378,6 +378,7 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
             var alternative = mongoPrimary ? ProviderType.SQLLiteDBOASIS : ProviderType.MongoDBOASIS;
             await (Task)redirect.Invoke(engine, new object[] { selected, alternative })!;
             holon.Name = "predictive-replicated";
+            holon.Version = 2;
             var redirected = synchronous ? router.RouteRequest<IHolon>(request) : await router.RouteRequestAsync<IHolon>(request);
             redirected.IsError.Should().BeFalse(redirected.Message);
             redirected.IsWarning.Should().BeFalse(redirected.Message);
