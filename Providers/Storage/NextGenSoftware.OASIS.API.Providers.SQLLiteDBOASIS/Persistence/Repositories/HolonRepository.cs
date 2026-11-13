@@ -43,6 +43,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     {
                         IsLoaded = false,
                         IsError = false,
+                        ErrorCode = OASISResultErrorCodes.RecordNotFound,
                         Message = "No Holon Found"
                     };
                 return new OASISResult<IHolon>
@@ -82,6 +83,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     {
                         IsLoaded = false,
                         IsError = false,
+                        ErrorCode = OASISResultErrorCodes.RecordNotFound,
                         Message = "No Holon Found"
                     };
                 return new OASISResult<IHolon>
