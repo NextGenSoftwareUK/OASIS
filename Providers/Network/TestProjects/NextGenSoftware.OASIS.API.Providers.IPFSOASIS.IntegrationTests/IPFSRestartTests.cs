@@ -142,6 +142,16 @@ public sealed class IPFSRestartTests
             Assert.Equal(receipt.Result.AcknowledgementDigest, committed.Result.AcknowledgementDigest);
             Assert.Equal(revision, CosmicConcurrency.GetProviderRevisionId(before.Result, ProviderType.IPFSOASIS));
             Assert.Equal(persistedBefore, await File.ReadAllTextAsync(dnaPath));
+
+            var originalName = replica.Name;
+            replica.Name = "different intent under the same operation";
+            var conflicting = await provider.ApplyBoundCommittedHolonReplicaAsync(request, identity);
+            Assert.True(conflicting.IsError);
+            var conflictingReceipt = await provider.ReadCommittedHolonReplicaReceiptAsync(observation);
+            Assert.True(conflictingReceipt.IsError);
+            Assert.Equal(persistedBefore, await File.ReadAllTextAsync(dnaPath));
+            replica.Name = originalName;
+
             await VerifyReplicaSuccessorAsync(provider, identity, replica, dnaPath);
             await VerifyHostedReplicaTargetAsync(provider, identity, dnaPath);
         }
