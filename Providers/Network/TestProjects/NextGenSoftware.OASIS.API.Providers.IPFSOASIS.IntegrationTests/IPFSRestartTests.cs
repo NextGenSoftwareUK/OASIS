@@ -14,6 +14,15 @@ public sealed class IPFSRestartTests
 {
     private static readonly Guid RecordId = new("90644865-2be6-4044-bdfb-3e6a394f5b22");
 
+    private static readonly Guid ConditionalOperationId = new("90644865-2be6-4044-bdfb-3e6a394f5b30");
+
+    private static Holon CreateConditionalFixtureRecord() => new()
+    {
+        Id = new Guid("90644865-2be6-4044-bdfb-3e6a394f5b31"),
+        Name = "conditional IPFS create",
+        HolonType = HolonType.Holon
+    };
+
     [Fact]
     public async Task PersistsCurrentAndHistoricalHolonAcrossDaemonRestart()
     {
@@ -25,6 +34,7 @@ public sealed class IPFSRestartTests
         Assert.True(phase is "write" or "read", "Select the disposable Kubo restart fixture phase.");
 
         var identityPath = dnaPath + ".identity";
+        var conditionalVersionPath = dnaPath + ".conditional-version";
         OASISDNA dna;
         if (phase == "write")
         {
@@ -92,13 +102,14 @@ public sealed class IPFSRestartTests
                     () => provider.SaveLookupToFile(oversizedCatalogue));
                 Assert.Contains("exceeds the native query and replica read limit", sizeError.Message);
                 Assert.Equal(publishedDna, await File.ReadAllTextAsync(dnaPath));
-                var conditionalRecord = new Holon { Id = Guid.NewGuid(), Name = "conditional IPFS create", HolonType = HolonType.Holon };
-                var condition = new ConditionalHolonWrite(Guid.NewGuid(), RecordId, ProviderType.IPFSOASIS,
+                var conditionalRecord = CreateConditionalFixtureRecord();
+                var condition = new ConditionalHolonWrite(ConditionalOperationId, RecordId, ProviderType.IPFSOASIS,
                     new[] { new HolonWriteCondition(conditionalRecord.Id, null) });
                 var conditionalRequest = new ConditionalHolonWriteRequest(condition, ConditionalHolonOperation.Save,
                     new[] { conditionalRecord }, saveChildren: false);
                 var conditional = await provider.ExecuteConditionalHolonWriteAsync(conditionalRequest);
                 Assert.True(conditional.IsSaved && !conditional.IsError, conditional.Message);
+                await File.WriteAllTextAsync(conditionalVersionPath, Assert.Single(conditional.Result).VersionId.ToString("D"));
                 var conditionalPointer = await File.ReadAllTextAsync(dnaPath);
                 var replayed = provider.ExecuteConditionalHolonWrite(conditionalRequest);
                 Assert.True(replayed.IsSaved && !replayed.IsError, replayed.Message);
@@ -147,6 +158,16 @@ public sealed class IPFSRestartTests
                 var identity = await provider.CaptureStorageIdentityAsync();
                 Assert.False(identity.IsError, identity.Message);
                 Assert.Equal(await File.ReadAllTextAsync(identityPath), identity.Result.BindingFingerprint);
+                var conditionalRecord = CreateConditionalFixtureRecord();
+                var condition = new ConditionalHolonWrite(ConditionalOperationId, RecordId, ProviderType.IPFSOASIS,
+                    new[] { new HolonWriteCondition(conditionalRecord.Id, null) });
+                var request = new ConditionalHolonWriteRequest(condition, ConditionalHolonOperation.Save,
+                    new[] { conditionalRecord }, saveChildren: false);
+                var pointerBeforeReplay = await File.ReadAllTextAsync(dnaPath);
+                var replay = await provider.ExecuteConditionalHolonWriteAsync(request);
+                Assert.True(replay.IsSaved && !replay.IsError, replay.Message);
+                Assert.Equal(Guid.Parse(await File.ReadAllTextAsync(conditionalVersionPath)), Assert.Single(replay.Result).VersionId);
+                Assert.Equal(pointerBeforeReplay, await File.ReadAllTextAsync(dnaPath));
                 await VerifyReplicaAsync(provider, identity.Result, dnaPath, replay: true);
                 var current = await provider.LoadHolonAsync(RecordId, loadChildren: false);
                 Assert.True(current.IsLoaded && !current.IsError, current.Message);
