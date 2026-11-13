@@ -1496,6 +1496,235 @@
       ]
     },
     {
+      "name": "Usage visibility: series, owners, warnings, app pay-as-you-go",
+      "description": "People see only their own usage; app owners only their apps; administrators (Wizard, {{adminToken}}) everything. Defaults are in OASIS_DNA.json (OASIS.UsageVisibility); people and apps can override them. App pay-as-you-go stores consent and a cap only: nothing is charged.",
+      "item": [
+        {
+          "name": "My usage series (daily)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/subscription/usage/series?from=2026-11-01&to=2026-11-13"
+          }
+        },
+        {
+          "name": "Admin: avatar usage series",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/subscription/admin/users/{{userId}}/usage/series"
+          }
+        },
+        {
+          "name": "Admin: app pool usage series",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/subscription/admin/app-accounts/{{appId}}/usage/series"
+          }
+        },
+        {
+          "name": "Admin: set app owners",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/subscription/admin/app-accounts/{{appId}}/owners",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ownerAvatarIds\": [\n    \"{{userId}}\"\n  ],\n  \"reason\": \"Business owner\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Owner: my apps",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/subscription/app-owner/apps"
+          }
+        },
+        {
+          "name": "Owner: app usage",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/subscription/app-owner/{{appId}}/usage"
+          }
+        },
+        {
+          "name": "Owner: app settings (override defaults)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/subscription/app-owner/{{appId}}/settings",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ownerViewEnabled\": null,\n  \"warningsEnabled\": true,\n  \"accessLogEnabled\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Usage alerts (banner)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/subscription/usage/alerts"
+          }
+        },
+        {
+          "name": "Usage warning settings (opt in/out)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/subscription/usage/notifications",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"thresholds\": [\n    80,\n    100\n  ],\n  \"emailRequested\": true,\n  \"warningsEnabled\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Owner: app pay-as-you-go (estimate)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/subscription/app-owner/{{appId}}/payg"
+          }
+        },
+        {
+          "name": "Owner: app pay-as-you-go consent and cap (no charging)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/subscription/app-owner/{{appId}}/payg",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"enabled\": true,\n  \"monthlyCapUsd\": 50,\n  \"consent\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
       "name": "Administrator: plan grants and app accounts",
       "description": "Administrator (Wizard) JWT required: set {{adminToken}}. Every change is audited with the administrator and reason. Keys are returned once, when an app account is created or its key rotated; store them as secrets.",
       "item": [

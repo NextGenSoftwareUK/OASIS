@@ -53,6 +53,21 @@ def collection():
         item("Operation projections", "GET", "/api/subscription/usage/events?limit=100", bearer=True),
         item("Immutable audit", "GET", "/api/subscription/usage/audit?limit=100", bearer=True)
     ]})
+    folders.append({"name": "Usage visibility: series, owners, warnings, app pay-as-you-go",
+        "description": "People see only their own usage; app owners only their apps; administrators (Wizard, {{adminToken}}) everything. Defaults are in OASIS_DNA.json (OASIS.UsageVisibility); people and apps can override them. App pay-as-you-go stores consent and a cap only: nothing is charged.",
+        "item": [
+            item("My usage series (daily)", "GET", "/api/subscription/usage/series?from=2026-11-01&to=2026-11-13", bearer=True),
+            item("Admin: avatar usage series", "GET", "/api/subscription/admin/users/{{userId}}/usage/series", bearer=True, token="adminToken"),
+            item("Admin: app pool usage series", "GET", "/api/subscription/admin/app-accounts/{{appId}}/usage/series", bearer=True, token="adminToken"),
+            item("Admin: set app owners", "POST", "/api/subscription/admin/app-accounts/{{appId}}/owners", {"ownerAvatarIds": ["{{userId}}"], "reason": "Business owner"}, bearer=True, token="adminToken"),
+            item("Owner: my apps", "GET", "/api/subscription/app-owner/apps", bearer=True),
+            item("Owner: app usage", "GET", "/api/subscription/app-owner/{{appId}}/usage", bearer=True),
+            item("Owner: app settings (override defaults)", "POST", "/api/subscription/app-owner/{{appId}}/settings", {"ownerViewEnabled": None, "warningsEnabled": True, "accessLogEnabled": None}, bearer=True),
+            item("Usage alerts (banner)", "GET", "/api/subscription/usage/alerts", bearer=True),
+            item("Usage warning settings (opt in/out)", "POST", "/api/subscription/usage/notifications", {"thresholds": [80, 100], "emailRequested": True, "warningsEnabled": None}, bearer=True),
+            item("Owner: app pay-as-you-go (estimate)", "GET", "/api/subscription/app-owner/{{appId}}/payg", bearer=True),
+            item("Owner: app pay-as-you-go consent and cap (no charging)", "POST", "/api/subscription/app-owner/{{appId}}/payg", {"enabled": True, "monthlyCapUsd": 50, "consent": True}, bearer=True)
+        ]})
     folders.append({"name": "Administrator: plan grants and app accounts",
         "description": "Administrator (Wizard) JWT required: set {{adminToken}}. Every change is audited with the administrator and reason. Keys are returned once, when an app account is created or its key rotated; store them as secrets.",
         "item": [

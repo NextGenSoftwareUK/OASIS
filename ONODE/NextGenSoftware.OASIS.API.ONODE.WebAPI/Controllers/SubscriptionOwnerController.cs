@@ -193,7 +193,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             await RequireOwnerAsync(appId, me);
             var account = await RequireOwnerAsync(appId, me);
             var prices = AppOveragePrices.Load();
-            return new { featureEnabled = Settings.AppPayAsYouGoEnabled, pricesConfigured = prices.HasPrice(account.PlanId), pricingVersion = prices.Version, settings = account.Payg ?? new AppPaygSettings(), chargingImplemented = false };
+            var pool = await _repository.GetAppPoolUsageAsync(appId, HttpContext.RequestAborted);
+            var payg = account.Payg ?? new AppPaygSettings();
+            var estimate = AppOverageEstimate.Compute(pool.Usage?.MonthlyRequests ?? 0, pool.Limits?.MonthlyRequestLimit ?? 0, prices.Rate(account.PlanId), payg.MonthlyCapUsd);
+            return new { featureEnabled = Settings.AppPayAsYouGoEnabled, pricesConfigured = prices.HasPrice(account.PlanId), pricingVersion = prices.Version, ratePerRequestUsd = prices.Rate(account.PlanId), settings = payg, estimate, chargingImplemented = false };
         });
 
         [Authorize]
@@ -269,6 +272,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     {
         public string Version { get; private set; } = "app-overages-unset";
         private readonly Dictionary<string, decimal> _rates = new Dictionary<string, decimal>(StringComparer.OrdinalIgnoreCase);
+        public decimal Rate(string planId) => planId != null && _rates.TryGetValue(planId, out var r) ? r : 0m;
         public bool HasPrice(string planId) => planId != null && _rates.TryGetValue(planId, out var r) && r > 0;
 
         public static AppOveragePrices Load()
