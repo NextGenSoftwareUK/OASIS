@@ -18,6 +18,8 @@
 
 ## Verification log
 
+13 November Cancun time. Added native coverage that an already cancelled IPFS identity capture propagates cancellation and leaves the persisted catalogue pointer unchanged before and after restart. Targeted restart verification pending. No local builds or downloads.
+
 13 November Cancun time. Native multi-process Kubo run 43376494012 passed with cleanup after cancellation was propagated through storage binding capture. Candidate 52e963497016 reproduces its exact tree f20109bb0d75f036f3d903d68f5ba53cc042a905 on Development 49f8463de927. [Native restart run 43376859488](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43376859488) also passed both entry points on the exact same tree and confirmed fixture removal. Alternate 840e4109a52d on COSMIC correction 6dbb74381641 has the same three IPFS file objects and awaits qualification on the actual Development parent. The shared review confirmed the Polkadot BootLoader correction remains first. Its registration CI passed and exact image was still running.
 
 13 November Cancun time. Prepared three-file IPFS cancellation and recovery candidate 128ec349fd04 on current Polkadot Development. The tree exactly reproduces both passing Kubo runs. Alternate 150b4d3fbde2 on proposed Polkadot BootLoader correction 6dbb74381641 preserves the three file objects and has tree 893e27c3b9100f996d5c5b8a379e8703fa7dc851. No paths overlap. Qualify the alternate only after the corrected parent lands.

@@ -126,6 +126,11 @@ public sealed class IPFSRestartTests
                 () => provider.ApplyBoundCommittedHolonReplicaAsync(request, identity, cancellation.Token));
             Assert.Equal(persistedBefore, await File.ReadAllTextAsync(dnaPath));
         }
+        using var cancelledCapture = new CancellationTokenSource();
+        cancelledCapture.Cancel();
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(
+            () => provider.CaptureStorageIdentityAsync(cancelledCapture.Token));
+        Assert.Equal(persistedBefore, await File.ReadAllTextAsync(dnaPath));
         var wrongStore = new CosmicStorageIdentity(identity.Authority, identity.EndpointFingerprint, Guid.NewGuid());
         var rejected = await provider.ApplyBoundCommittedHolonReplicaAsync(request, wrongStore);
         Assert.True(rejected.IsError);
