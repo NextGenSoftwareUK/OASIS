@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. Current-record audit restart 43362252968 and multi-process 43362236259 passed on tree 0472e1659a39912920debb3699834945842dfe68. IPFS reported the live replica and its predecessor without changing the catalogue pointer. Both runs removed their fixtures. All seven APIs are healthy on fd9b328ac712 and COSMIC verified EOSIO public reads against the exact deployed revision. Hosted replica delivery remains open.
+
 12 November Cancun time. Added a native assertion that the read-only IPFS head audit agrees with the current Kubo record revision and its predecessor after successor apply. It also checks that the audit leaves the pointer unchanged. This covers the current-record path alongside the existing deleted and unknown ID cases. Native restart verification pending. No local builds or downloads.
 
 12 November Cancun time. Prepared three-file reconciliation candidate 648066f915e5 on integrated IPFS receiver fd9b328ac712. Its tree f489e8d88c10bc828bab07ac03e4a6b1323c8300 matches both passing Kubo jobs. Alternate 8a4aba3de933 on COSMIC Cosmos 23a78784f465 preserves all three blobs and has tree 093cfbd82974b7afad06f02afbcd9ea9d19779d9. It needs native qualification if Cosmos lands first. Both diffs passed whitespace checks and the temporary index was removed.
