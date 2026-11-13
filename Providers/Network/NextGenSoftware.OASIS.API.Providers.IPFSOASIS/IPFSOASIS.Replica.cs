@@ -297,12 +297,29 @@ public partial class IPFSOASIS : IBoundCommittedHolonReplicaStorageProvider, ICo
         plan.ValidateAcknowledgedRecord(record);
 
         var snapshot = StoredRecordJson.Serialize<IHolon>(record);
+        var hardDeleted = plan.Operation == ConditionalHolonOperation.HardDelete;
+        var cid = await StageCatalogueHolonAsync(record, snapshot, previousCid, hardDeleted, records, cancellationToken)
+            .ConfigureAwait(false);
+        heads[record.Id.ToString("D")] = new JObject
+        {
+            ["cid"] = cid,
+            ["source"] = plan.SourceId,
+            ["authority"] = plan.SourceAuthority.ToString(),
+            ["snapshot"] = snapshot,
+            ["digest"] = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(snapshot))),
+            ["revision"] = revision.ToString("D"),
+            ["hardDeleted"] = hardDeleted
+        };
+    }
+
+    private async Task<string> StageCatalogueHolonAsync(Holon record, string snapshot, string previousCid,
+        bool hardDeleted, Dictionary<string, HolonResume> records, CancellationToken cancellationToken)
+    {
         cancellationToken.ThrowIfCancellationRequested();
         var native = await IPFSClient.FileSystem.AddTextAsync(ProtectRecord("holon", record.Id, snapshot),
             cancel: cancellationToken).ConfigureAwait(false);
         var cid = native.Id.ToString();
         record.ProviderUniqueStorageKey[ReplicaAuthority] = cid;
-        var hardDeleted = plan.Operation == ConditionalHolonOperation.HardDelete;
         if (hardDeleted)
             records.Remove(previousCid);
         else
@@ -314,16 +331,7 @@ public partial class IPFSOASIS : IBoundCommittedHolonReplicaStorageProvider, ICo
                 ParentHolonId = record.ParentHolonId,
                 ProviderUniqueStorageKey = new Dictionary<ProviderType, string>(record.ProviderUniqueStorageKey)
             });
-        heads[record.Id.ToString("D")] = new JObject
-        {
-            ["cid"] = cid,
-            ["source"] = plan.SourceId,
-            ["authority"] = plan.SourceAuthority.ToString(),
-            ["snapshot"] = snapshot,
-            ["digest"] = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(snapshot))),
-            ["revision"] = revision.ToString("D"),
-            ["hardDeleted"] = hardDeleted
-        };
+        return cid;
     }
 
     private static JObject GetReplicaObject(JObject catalogue, string key)
