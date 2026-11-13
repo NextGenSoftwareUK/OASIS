@@ -18,6 +18,8 @@
 
 ## Verification log
 
+13 November Cancun time. Solana CI `43478651713` reproduced the staged tree but stopped at compilation because the new test lacked the Core namespace import for `StorageOperationRequest`. Added the import. Native assertions have yet to run. No local artifacts were created.
+
 13 November Cancun time. All seven API deployment statuses reported success on `86c157239f29`. Railway confirmed WEB4 deployment `5a808d48-b25b-41fa-9227-d752406b9135` succeeded. [Solana and SQLite native CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43478651713) resolved Development and began checking out the test inputs. The next shared review is after 13:21:45 Cancun, based on the deployment timestamp. No local artifacts were created.
 
 13 November Cancun time. Added a native Agave and SQLite regression for authoritative Solana absence. The test independently verifies the SQLite-only record and requires both HyperDrive modes to return `RecordNotFound` without a SQLite read. The scoped CI overlay includes the shipping fix and checks it against the integrated Development baseline. No local build or fixtures were created.
