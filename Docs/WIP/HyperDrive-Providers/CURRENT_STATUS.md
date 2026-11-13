@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. IPFS ordinary catalogue writes now retain authenticated root fields alongside the record index, so later writes can preserve committed replica heads and receipts. The receiver can reuse the same storage identity derivation and cancel while waiting for the existing cross-process file lease. Native CI is pending. No local runtime, download or build output was created.
+
 12 November Cancun time. Development advanced to COSMIC NEAR 6c61e3e5c33d. IPFS restart 43349519780 and multi-process 43349524184 were dispatched for the changed Development baseline. Both must report candidate tree a669f65f612b875acd6d3f7f4b45a2e44cf10fd5 before integration. The previous native passes remain accepted for their original baseline. No local runtime, download, test result or build output was created.
 
 12 November Cancun time. Verified IPFS identity candidate d82967e0723a targets Development 2b8081b30f84. If COSMIC NEAR lands first, candidate d4276e404895 on 6c61e3e5c33d preserves the two IPFS file modes and object IDs exactly. NEAR exact WEB4 image 43346280073 completed successfully before the 21:01:04 shared window. Give the qualified COSMIC NEAR demo batch precedence in that window. Reconfirm the remote and fleet before qualifying the next IPFS integration on its actual parent. No local build, download or fixture was created.
