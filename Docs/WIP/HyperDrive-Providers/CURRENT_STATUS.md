@@ -18,6 +18,8 @@
 
 ## Verification log
 
+13 November Cancun time. [Isolated HoloOASIS job 132042931857](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43471110151/job/132042931857) passed all four cases with zero skips on tree `7bd3c171e12246eeff99c4c91934a0a94686d91b`. Both action-hash reads and both collection and HyperDrive routing cases passed with the unique seed. Development advanced independently to `df8b75695e08` for projection admission and preserves the SQLite and Oracle batch. The new commits do not touch the HoloOASIS scope. Reconcile the native scope on the new parent before integration. Logs were inspected in memory and no local artifacts were created.
+
 13 November 12:15 Cancun time. Reviewed Development `0ca6397b2fce` and the COSMIC handoff at the shared integration window. The current HoloOASIS batch remains in qualification: [native job 132042931857](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43471110151/job/132042931857) resolved the Development base and was checking out inputs. The two direct action-hash passes carry forward. The unique-seed fixture still needs full collection and routing results. No Development push or local artifacts.
 
 13 November Cancun time. Native job `132037589694` passed both action-hash cases and confirmed that the collection failure contains a non-GUID string identity. The disposable routing fixture used the packaged app's default network seed, so the same DNA could discover records from other conductors. The runner now installs the exact verified bundle with a unique seed before shipping activation. The collection parser still rejects invalid identities. Native verification of isolation is pending. No local conductor or fixture was created.
