@@ -6544,3 +6544,5 @@ Track temporary tag `ci-cosmic-infura-web4-ee3a6589a6` for exact runs `432184056
 12 November Cancun time. Reused the existing Railway CLI for read-only NEAR and EOSIO catalogue preflight, with no report or credentials written. Exact builds and test jobs remain on GitHub. Temporary index for the three documentation updates is removed before push.
 
 12 November Cancun time. Retired the temporary EOSIO qualification tag ci-cosmic-eosio-ipfs-4d338173e64d after controlled admission, exact image publication and all four live WEB4 presets passed. Confirmed the revision is still reachable through Development and the remote tag is absent. No local artifacts created.
+
+12 November Cancun time. Removed the completed temporary NEAR qualification tag ci-cosmic-near-shipping-6c61e3e5c33d and verified remote absence. The live-verified NEAR revision remains an ancestor of Development. Existing GitHub CI evidence and image digest remain recorded. No local outputs.
