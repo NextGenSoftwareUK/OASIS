@@ -31,12 +31,47 @@ jobs:
       run:
         working-directory: OASIS
     steps:
+      - name: Resolve Development
+        id: baseline
+        shell: bash
+        working-directory: ${{ github.workspace }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          revision="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/Development" --jq .object.sha)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "revision=$revision" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v7
+        with:
+          path: provider-source
+          persist-credentials: false
+
       - uses: actions/checkout@v7
         with:
           token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          ref: ${{ steps.baseline.outputs.revision }}
           path: OASIS
           submodules: recursive
           persist-credentials: false
+
+      - name: Apply verified IPFS publication scope
+        shell: bash
+        run: |
+          base=18f227af493af1ca26c90429343f37a0f1a2147a
+          git -C ../provider-source fetch --no-tags --depth=1 origin "$base"
+          provider='Providers/Network/NextGenSoftware.OASIS.API.Providers.IPFSOASIS'
+          tests='Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.IPFSOASIS.IntegrationTests'
+          for path in "$provider/IPFSOASIS.Init.cs" "$provider/IPFSOASIS.IndexIdentity.cs" \
+            "$provider/IPFSOASIS.AvatarLifecycle.cs" "$tests/IPFSConcurrentPublicationTests.cs"; do
+            current="$(git ls-tree HEAD -- "$path")"
+            reviewed="$(git -C ../provider-source ls-tree "$base" -- "$path")"
+            incoming="$(git -C ../provider-source ls-tree HEAD -- "$path")"
+            [[ -n "$incoming" && ( "$current" == "$reviewed" || "$current" == "$incoming" ) ]]
+            cp -- "../provider-source/$path" "$path"
+            git add -- "$path"
+          done
+          echo "Qualified input tree: $(git write-tree)"
 
       - name: Resolve the recorded Libraries revision
         id: dependencies
