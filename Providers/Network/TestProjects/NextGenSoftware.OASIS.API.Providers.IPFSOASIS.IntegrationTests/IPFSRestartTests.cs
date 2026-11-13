@@ -409,6 +409,18 @@ public sealed class IPFSRestartTests
         var head = Assert.Single(inventory.Result.Heads);
         Assert.Equal(pending.Result.Sequence, head.Sequence);
         Assert.Equal(operationId, head.OperationId);
+
+        var wrongSource = new CosmicStorageIdentity(source.Authority, source.EndpointFingerprint, Guid.NewGuid());
+        var wrongStore = provider.GetBoundHolonReplicationOutbox(wrongSource);
+        Assert.False(wrongStore.IsError, wrongStore.Message);
+        var pointer = await File.ReadAllTextAsync(dnaPath);
+        var rejectedInventory = await wrongStore.Result.ReadRouteHeadsAsync();
+        Assert.True(rejectedInventory.IsError);
+        Assert.Null(rejectedInventory.Result);
+        var rejectedClaim = await wrongStore.Result.ClaimNextAsync(route.TargetId, "wrong-source", TimeSpan.FromMinutes(1));
+        Assert.True(rejectedClaim.IsError);
+        Assert.Null(rejectedClaim.Result);
+        Assert.Equal(pointer, await File.ReadAllTextAsync(dnaPath));
         Assert.Equal(HolonDeliveryState.Pending, pending.Result.State);
         if (publish)
             return;
