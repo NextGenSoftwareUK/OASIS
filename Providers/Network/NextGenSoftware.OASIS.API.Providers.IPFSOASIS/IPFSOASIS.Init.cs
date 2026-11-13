@@ -29,7 +29,7 @@ using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 {
-    public partial class IPFSOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider
+    public partial class IPFSOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, ICosmicStorageIdentityProvider
     {
         private static readonly ConcurrentDictionary<string, SemaphoreSlim> CatalogueGates =
             new(OperatingSystem.IsWindows() ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal);
@@ -84,6 +84,42 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             if (settings == null || !StringComparer.Ordinal.Equals(settings.ConnectionString, current.ConnectionString))
                 throw new InvalidDataException("The persisted IPFS catalogue targets a different connection.");
             return persisted;
+        }
+
+        public async Task<OASISResult<CosmicStorageIdentity>> CaptureStorageIdentityAsync(CancellationToken cancellationToken = default)
+        {
+            var result = new OASISResult<CosmicStorageIdentity>();
+            var gate = CatalogueGate;
+            try
+            {
+                await gate.WaitAsync(cancellationToken).ConfigureAwait(false);
+                try
+                {
+                    var settings = ReadPersistedCatalogueDna().OASIS.StorageProviders.IPFSOASIS;
+                    if (IPFSClient == null || string.IsNullOrWhiteSpace(settings.LookUpIPFSAddress))
+                        throw new InvalidOperationException("An active IPFS client and published catalogue are required.");
+
+                    var envelope = await ReadCqlEnvelopeAsync(settings.LookUpIPFSAddress, cancellationToken).ConfigureAwait(false);
+                    DeserializeLookup(UnprotectIndex(envelope), out var storeId);
+                    if (storeId == Guid.Empty)
+                        throw new InvalidOperationException("Publish the existing IPFS catalogue to assign its durable identity before binding it.");
+
+                    var endpoint = new Uri(settings.ConnectionString, UriKind.Absolute);
+                    var canonicalEndpoint = endpoint.GetComponents(UriComponents.SchemeAndServer | UriComponents.Path, UriFormat.UriEscaped);
+                    using var digest = System.Security.Cryptography.SHA256.Create();
+                    var fingerprint = BitConverter.ToString(digest.ComputeHash(Encoding.UTF8.GetBytes(canonicalEndpoint))).Replace("-", "");
+                    result.Result = new CosmicStorageIdentity(Core.Enums.ProviderType.IPFSOASIS, fingerprint, storeId);
+                }
+                finally
+                {
+                    gate.Release();
+                }
+            }
+            catch (Exception cause)
+            {
+                OASISErrorHandling.HandleError(ref result, "Could not capture the IPFS catalogue identity.", cause);
+            }
+            return result;
         }
 
         public override OASISResult<bool> ActivateProvider()
@@ -190,13 +226,24 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             return _idLookup;
         }
 
-        private static Dictionary<string,HolonResume> DeserializeLookup(string json)
+        private static Dictionary<string,HolonResume> DeserializeLookup(string json) => DeserializeLookup(json, out _);
+
+        private static Dictionary<string,HolonResume> DeserializeLookup(string json, out Guid storeId)
         {
             var token=Newtonsoft.Json.Linq.JToken.Parse(json,new Newtonsoft.Json.Linq.JsonLoadSettings {
                 DuplicatePropertyNameHandling=Newtonsoft.Json.Linq.DuplicatePropertyNameHandling.Error });
             if(token.Type==Newtonsoft.Json.Linq.JTokenType.Null) throw new InvalidDataException("IPFS lookup root contained no index object.");
             if(token is not Newtonsoft.Json.Linq.JObject) throw new JsonSerializationException("IPFS lookup root must be an object.");
-            var records=token.ToObject<Dictionary<string,HolonResume>>();
+            storeId = Guid.Empty;
+            if (token["schema"] != null)
+            {
+                if ((string)token["schema"] != "oasis-ipfs-catalogue-v2" ||
+                    !Guid.TryParseExact((string)token["storeId"], "D", out storeId) || storeId == Guid.Empty ||
+                    token["records"] is not Newtonsoft.Json.Linq.JObject)
+                    throw new InvalidDataException("IPFS catalogue metadata is invalid.");
+                token = token["records"];
+            }
+            var records = token.ToObject<Dictionary<string, HolonResume>>();
             foreach(var entry in records)
             {
                 var row=entry.Value;
@@ -237,11 +284,20 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
         private async Task<string> SaveCatalogueAsync(Dictionary<string, HolonResume> idLookup, OASISDNA dna)
         {
-            string json = ProtectIndex(JsonConvert.SerializeObject(idLookup));
-            var fsn = await IPFSClient.FileSystem.AddTextAsync(json);
-
             var settings = dna.OASIS.StorageProviders.IPFSOASIS;
             var previousRoot = settings.LookUpIPFSAddress;
+            var storeId = Guid.Empty;
+            if (!string.IsNullOrWhiteSpace(previousRoot))
+                DeserializeLookup(UnprotectIndex(await LoadStringToJson(previousRoot).ConfigureAwait(false)), out storeId);
+            if (storeId == Guid.Empty)
+                storeId = Guid.NewGuid();
+            string json = ProtectIndex(JsonConvert.SerializeObject(new
+            {
+                schema = "oasis-ipfs-catalogue-v2",
+                storeId = storeId.ToString("D"),
+                records = idLookup
+            }));
+            var fsn = await IPFSClient.FileSystem.AddTextAsync(json);
             settings.LookUpIPFSAddress = fsn.Id;
             try
             {
