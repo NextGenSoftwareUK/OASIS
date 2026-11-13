@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. Live Arbitrum passed its four public presets on Development db5b9cf03dc3, and all seven Railway services succeeded. The next shared review is after 20:28:33. Windows IPFS pointer-read regression 43343014391 is queued on 07ba1108ebb9. It verifies concurrent reads during publication and remains outside the 30-path integration candidate until it passes.
+
 12 November Cancun time. Prepared candidate d08da2432631 on the qualified COSMIC NEAR revision efda7dac8b65 in case it lands before the HyperDrive batch. All 30 path modes and object IDs match the Arbitrum-based candidate 8ac334af67c2. Development remains on Arbitrum and the next shared review is after 20:28:33. No local environment or temporary index was created.
 
 12 November Cancun time. Native IPFS CI 43341744791 passed the explicit netstandard2.1 DNA package build and Kubo process persistence on Arbitrum Development. Independently reproduced tree 371c35e6aac6a9f7f5c8de4d0d7a0ee5f9ed0eb2 from candidate 8ac334af67c2. This qualifies the package compile target and catalogue publication scope. Durable replica replay remains open.
