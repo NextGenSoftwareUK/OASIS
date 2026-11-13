@@ -84,6 +84,9 @@ def verify_round_robin(state, revision):
     identity, token = flow.session(state, "owner", allow_create=False, allow_renewal=False)
     if identity["id"] != owner or flow.call("sandbox/faults", token, method="GET")["result"]:
         raise RuntimeError("The acknowledged owner and a fault-free baseline are required.")
+    remaining = flow.call("subscription/usage/current", token, method="GET").get("dailyCallsRemaining")
+    if type(remaining) is not int or (remaining != -1 and remaining < 6):
+        raise RuntimeError("The acknowledged owner needs six remaining daily calls for this read gate.")
     providers = {"MongoDBOASIS", "SQLLiteDBOASIS"}
     flow.write_new(attempt, json.dumps({"deployment": deployment, "revision": revision}).encode())
     selected = Counter()
