@@ -131,6 +131,18 @@ public sealed class FirestoreSqliteOutageTests
                     var loaded = await firestore.LoadHolonAsync(source.Id, loadChildren: false);
                     Assert.AreEqual(successor.VersionId, loaded.Result?.VersionId);
 
+                    var missingId = Guid.NewGuid();
+                    var headRequest = new HolonReplicaHeadReadRequest(bindings[0].Result, new[] { source.Id, missingId });
+                    var liveAudit = await firestore.ReadHolonReplicaHeadsAsync(headRequest);
+                    Assert.IsFalse(liveAudit.IsError, liveAudit.Message);
+                    Assert.AreEqual(bindings[0].Result.BindingFingerprint, liveAudit.Result.StorageFingerprint);
+                    Assert.AreEqual(HolonReplicaHeadReadConsistency.NativeSnapshot, liveAudit.Result.Consistency);
+                    Assert.IsTrue(liveAudit.Result.Records[0].HasCurrentRecord);
+                    Assert.AreEqual(successor.VersionId, liveAudit.Result.Records[0].Head.VersionId);
+                    Assert.AreEqual(missingId, liveAudit.Result.Records[1].HolonId);
+                    Assert.IsFalse(liveAudit.Result.Records[1].HasCurrentRecord);
+                    Assert.IsNull(liveAudit.Result.Records[1].Head);
+
                     var tombstone = new Holon { Id = source.Id, Version = 3, VersionId = Guid.NewGuid(),
                         PreviousVersionId = successor.VersionId, Name = successor.Name, IsActive = false,
                         DeletedDate = DateTime.UtcNow, DeletedByAvatarId = original.ActorId };
@@ -142,6 +154,13 @@ public sealed class FirestoreSqliteOutageTests
                     Assert.IsTrue(!deleted.IsError && deleted.IsDeleted, deleted.Message);
                     Assert.IsFalse((await replicated.GetSnapshotAsync()).Exists);
                     Assert.IsTrue((await head.GetSnapshotAsync()).GetValue<bool>("hardDeleted"));
+                    var nativeHead = await head.GetSnapshotAsync();
+                    var deleteAudit = await firestore.ReadHolonReplicaHeadsAsync(headRequest);
+                    Assert.IsFalse(deleteAudit.IsError, deleteAudit.Message);
+                    Assert.IsFalse(deleteAudit.Result.Records[0].HasCurrentRecord);
+                    Assert.IsTrue(deleteAudit.Result.Records[0].Head.HardDeleted);
+                    Assert.AreEqual(tombstone.VersionId, deleteAudit.Result.Records[0].Head.VersionId);
+                    Assert.AreEqual(nativeHead.UpdateTime, (await head.GetSnapshotAsync()).UpdateTime);
                     var historical = await firestore.ReadCommittedHolonReplicaReceiptAsync(request);
                     Assert.AreEqual(committed.Result.AcknowledgementDigest, historical.Result?.AcknowledgementDigest);
                     var deleteEvidence = await firestore.ReadCommittedHolonReplicaReceiptAsync(

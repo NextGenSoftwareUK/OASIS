@@ -93,9 +93,11 @@ public partial class GoogleCloudOASIS
         }
     }
 
-    private static Task<Native.Document> ReadFirestoreIdentityDocumentAsync(DocumentReference reference,ByteString transaction)
+    private static Task<Native.Document> ReadFirestoreIdentityDocumentAsync(DocumentReference reference, ByteString transaction,
+        CancellationToken cancellationToken = default)
         => ReadFirestoreTransactionDocumentAsync(reference, transaction,
-            new[]{"id","data_json","version","isActive","isDeleted","username","email","previousVersionId","nextVersionId"});
+            new[]{"id","data_json","version","isActive","isDeleted","username","email","previousVersionId","nextVersionId"},
+            cancellationToken);
 
     private static async Task<Native.Document> ReadFirestoreTransactionDocumentAsync(
         DocumentReference reference, ByteString transaction, IReadOnlyList<string> fields,
