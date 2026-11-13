@@ -170,11 +170,11 @@ public sealed class IPFSRestartTests
             Assert.Equal(replica.VersionId, Assert.Single(historicalReplay.Result).VersionId);
             Assert.Equal(advancedPointer, await File.ReadAllTextAsync(dnaPath));
             await VerifyHostedReplicaTargetAsync(provider, identity, dnaPath);
-            var current = await provider.LoadHolonAsync(replica.Id, loadChildren: false);
-            Assert.True(current.IsLoaded && !current.IsError, current.Message);
-            var previousVersion = current.Result.VersionId;
-            current.Result.Name = "local divergence";
-            var localWrite = await provider.SaveHolonAsync(current.Result, saveChildren: false);
+            var successorRead = await provider.LoadHolonAsync(replica.Id, loadChildren: false);
+            Assert.True(successorRead.IsLoaded && !successorRead.IsError, successorRead.Message);
+            var previousVersion = successorRead.Result.VersionId;
+            successorRead.Result.Name = "local divergence";
+            var localWrite = await provider.SaveHolonAsync(successorRead.Result, saveChildren: false);
             Assert.True(localWrite.IsSaved && !localWrite.IsError, localWrite.Message);
             var divergentPointer = await File.ReadAllTextAsync(dnaPath);
             var next = new Holon { Id = replica.Id, Version = 3, VersionId = Guid.NewGuid(),
