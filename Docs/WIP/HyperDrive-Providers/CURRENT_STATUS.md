@@ -18,6 +18,8 @@
 
 ## Verification log
 
+13 November Cancun time. Prepared three-file IPFS cancellation and recovery candidate 128ec349fd04 on current Polkadot Development. The tree exactly reproduces both passing Kubo runs. Alternate 150b4d3fbde2 on proposed Polkadot BootLoader correction 6dbb74381641 preserves the three file objects and has tree 893e27c3b9100f996d5c5b8a379e8703fa7dc851. No paths overlap. Qualify the alternate only after the corrected parent lands.
+
 13 November Cancun time. Cancellation restart 43375404293 and multi-process 43375401696 passed on tree 818b19acdb0e3422110f859cbe4ebf839c8a31f1. Cancelling while the catalogue lock was held left persisted DNA unchanged. Both runs confirmed cleanup. COSMIC is prioritizing a Polkadot BootLoader correction before TON because live CQL requires a read-only registration path. Development remains on 49f8463de927.
 
 13 November Cancun time. IPFS replica writes now pass the delivery cancellation token to the native Kubo record and encrypted catalogue uploads. Pointer publication keeps its existing cancellation check before persisting DNA. Ordinary writes retain their existing non-cancellable publication semantics. Native CI is pending. No local builds or downloads.
