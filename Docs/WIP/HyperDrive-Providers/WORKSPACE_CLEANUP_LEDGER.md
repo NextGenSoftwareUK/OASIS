@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+13 November Cancun time. SQL Server jobs 132124427122 and 132124427789 passed and removed their containers, volumes, SQLite databases and test outputs. Logs were inspected in memory. The temporary candidate index was removed. No local fixtures or build outputs were created.
+
 13 November Cancun time. Supabase job 132120831504 passed both native routing modes and independently confirmed all three PostgreSQL fixture tables empty. Logs were read in memory. No local artifacts were created.
 
 13 November Cancun time. ActivityPub absence job 132095639208 passed both native routing cases and removed its owned Mastodon fixture directory. Development integration of the earlier qualified batch used existing Git objects. Logs and deployment statuses were inspected in memory, with no local downloads, fixture data or build outputs.
