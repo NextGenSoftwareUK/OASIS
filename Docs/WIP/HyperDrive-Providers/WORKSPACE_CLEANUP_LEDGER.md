@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+13 November Cancun time. ActivityPub jobs 131948445393 and 131951351188 confirmed removal of their owned Mastodon fixture directories. Both temporary candidate indices were removed and verified absent. Logs were read in memory. No local build, runtime or download was created.
+
 13 November Cancun time. Development integration 7f3331146b9d used one temporary Git index, removed and verified absent. No local build or download was created.
 
 13 November Cancun time. Routing candidate 5d0768dbdaf9 used one temporary Git index, removed and verified absent. The Python verifier suite ran with bytecode output disabled. No new build, runtime or download.
