@@ -6,6 +6,7 @@ on:
     paths:
       - '.github/workflows/neo4j-sqlite-native-failover.yml'
       - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/Persistence/Repositories/HolonRepository.cs'
+      - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/Persistence/Repositories/AvatarDetailRepository.cs'
       - 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/Neo4jSqliteOutageTests.cs'
       - 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.UnitTests.csproj'
   workflow_dispatch:

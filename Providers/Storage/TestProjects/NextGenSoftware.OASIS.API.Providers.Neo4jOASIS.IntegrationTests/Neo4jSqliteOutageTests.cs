@@ -94,6 +94,16 @@ public sealed class Neo4jSqliteOutageTests
                 : await healthyRouter.RouteRequestAsync<IHolon>(ReadSqlite());
             Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound, missing.ErrorCode);
             Assert.IsNull(missing.Result);
+
+            var detailRequest = new StorageOperationRequest
+            {
+                Operation = "LoadAvatarDetail", AvatarId = id,
+                PreferredProvider = ProviderType.SQLLiteDBOASIS
+            };
+            var missingDetail = synchronous ? healthyRouter.RouteRequest<IAvatarDetail>(detailRequest)
+                : await healthyRouter.RouteRequestAsync<IAvatarDetail>(detailRequest);
+            Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound, missingDetail.ErrorCode);
+            Assert.IsNull(missingDetail.Result);
             Assert.AreEqual(0L, healthyManager.PerformanceMonitor.GetMetrics(ProviderType.Neo4jOASIS)?.TotalRequests ?? 0);
         }
         finally
