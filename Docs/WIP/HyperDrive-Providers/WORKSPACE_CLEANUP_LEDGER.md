@@ -1,6 +1,6 @@
 # Current resource and cleanup ledger
 
-13 November Cancun time. MongoDB qualification candidate cc731960c128 used one temporary Git index in the task worktree. Removed it and verified no matching index remains. CI logs were read in memory. No local builds, downloads or test fixtures were created. C: had 28.73 GiB free after cleanup.
+13 November Cancun time. MongoDB qualification candidates cc731960c128 and a539bfe26c85 each used one temporary Git index in the task worktree. Removed each index and verified no matching index remains. CI logs were read in memory. No local builds, downloads or test fixtures were created. C: had 28.73 GiB free after cleanup.
 
 13 November removed and verified absence of the temporary Git indexes used to assemble the MongoDB diagnostic, graph and version qualification candidates. No local builds or runtime downloads.
 
