@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+13 November removed the temporary Git index used to prepare the TON-based IPFS follow-up and verified it was absent. The Polkadot-based restart job removed its disposable fixture. No local builds or downloads.
+
 13 November removed and verified absence of the temporary Git index used to prepare the exact Polkadot-based replay candidate. No local build or download.
 
 13 November historical replay checks 43370692451 and 43370688880 confirmed removal of both disposable Kubo fixtures. No local builds or downloads.
