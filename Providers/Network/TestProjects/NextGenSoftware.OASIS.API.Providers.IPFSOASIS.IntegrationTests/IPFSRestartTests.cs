@@ -164,6 +164,10 @@ public sealed class IPFSRestartTests
                 var request = new ConditionalHolonWriteRequest(condition, ConditionalHolonOperation.Save,
                     new[] { conditionalRecord }, saveChildren: false);
                 var pointerBeforeReplay = await File.ReadAllTextAsync(dnaPath);
+                var outcome = await provider.ReadBoundConditionalHolonWriteOutcomeAsync(request, identity.Result);
+                Assert.True(outcome.IsLoaded && !outcome.IsError, outcome.Message);
+                Assert.Equal(ConditionalHolonReceiptState.Committed, outcome.Result.ReceiptState);
+                Assert.Equal(pointerBeforeReplay, await File.ReadAllTextAsync(dnaPath));
                 var replay = await provider.ExecuteConditionalHolonWriteAsync(request);
                 Assert.True(replay.IsSaved && !replay.IsError, replay.Message);
                 Assert.Equal(Guid.Parse(await File.ReadAllTextAsync(conditionalVersionPath)), Assert.Single(replay.Result).VersionId);

@@ -18,7 +18,7 @@ using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS;
 
 public partial class IPFSOASIS : IBoundCommittedHolonReplicaStorageProvider, ICommittedHolonReplicaReceiptStorageProvider,
-    IHolonReplicaHeadAuditStorageProvider, IConditionalHolonStorageProvider
+    IHolonReplicaHeadAuditStorageProvider, IBoundConditionalHolonWriteRecoveryStorageProvider
 {
     private const ProviderType ReplicaAuthority = Core.Enums.ProviderType.IPFSOASIS;
     private sealed class ReplicaLineageConflictException(string message, Exception cause = null)
@@ -144,6 +144,57 @@ public partial class IPFSOASIS : IBoundCommittedHolonReplicaStorageProvider, ICo
     public Task<OASISResult<IEnumerable<IHolon>>> ApplyBoundCommittedHolonReplicaAsync(CommittedHolonReplicaRequest request,
         CosmicStorageIdentity expectedStorage, CancellationToken cancellationToken = default)
         => ApplyReplicaAsync(request, expectedStorage, true, cancellationToken);
+
+    public Task<OASISResult<ConditionalHolonWriteOutcome>> ReadConditionalHolonWriteOutcomeAsync(
+        ConditionalHolonWriteRequest original, CancellationToken cancellationToken = default)
+        => ReadConditionalOutcomeAsync(original, null, false, cancellationToken);
+
+    public Task<OASISResult<ConditionalHolonWriteOutcome>> ReadBoundConditionalHolonWriteOutcomeAsync(
+        ConditionalHolonWriteRequest original, CosmicStorageIdentity expectedSource,
+        CancellationToken cancellationToken = default)
+        => ReadConditionalOutcomeAsync(original, expectedSource, true, cancellationToken);
+
+    private async Task<OASISResult<ConditionalHolonWriteOutcome>> ReadConditionalOutcomeAsync(
+        ConditionalHolonWriteRequest original, CosmicStorageIdentity expectedSource, bool requireBinding,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            if (requireBinding)
+                ArgumentNullException.ThrowIfNull(expectedSource);
+            var plan = ConditionalHolonPlan.Create(original, ReplicaAuthority);
+            var gate = CatalogueGate;
+            await gate.WaitAsync(cancellationToken).ConfigureAwait(false);
+            try
+            {
+                var (catalogue, _, storage) = await ReadBoundCatalogueAsync(
+                    ReadPersistedCatalogueDna(), cancellationToken).ConfigureAwait(false);
+                if (expectedSource != null && storage.BindingFingerprint != expectedSource.BindingFingerprint)
+                    return new() { IsError = true, ErrorCount = 1, ErrorCode = "COSMIC_SOURCE_STORAGE_BINDING_MISMATCH",
+                        Message = "The IPFS catalogue does not match the requested source store." };
+
+                var receipt = GetReplicaObject(catalogue, "conditionalReceipts")[plan.OperationId.ToString("D")];
+                if (receipt != null)
+                    _ = ConditionalHolonReceipt.Read(ReplicaText(receipt), plan);
+                var state = receipt == null ? ConditionalHolonReceiptState.Absent : ConditionalHolonReceiptState.Committed;
+                return new(new ConditionalHolonWriteOutcome(plan.OperationId, plan.ActorId, plan.Authority,
+                    plan.Operation, state)) { IsLoaded = true };
+            }
+            finally
+            {
+                gate.Release();
+            }
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception cause)
+        {
+            return new() { IsError = true, ErrorCount = 1, ErrorCode = "COSMIC_CONDITIONAL_RECEIPT_READ_FAILED",
+                Message = cause.Message, Exception = cause };
+        }
+    }
 
     public OASISResult<IEnumerable<IHolon>> ExecuteConditionalHolonWrite(ConditionalHolonWriteRequest request)
         => ExecuteConditionalHolonWriteAsync(request).GetAwaiter().GetResult();
