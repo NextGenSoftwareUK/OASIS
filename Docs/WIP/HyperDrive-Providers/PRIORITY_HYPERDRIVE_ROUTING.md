@@ -34,6 +34,8 @@ Sources for this checkpoint are the [native routing archive](Archive/HYPERDRIVE_
 
 Both native regression cases reproduced the packaged hApp rejecting a map payload at `get_holon_by_id` during deserialization. The C# provider exposes an action hash as the holon provider key. The fix in `3eca0776e7b2` sends that hash to `get_entry_holon` through HoloNET in both modes. The fix and collection diagnostics passed both native routing cases with zero skips on tree `af00e304101fd7d6890bee47701fddb68900f6fa`. An earlier fix run stopped during the initial collection read, and its cause is still unverified. The follow-up passed both direct reads using keys from native save responses. Both collection-routing cases failed in that run, so the full routing batch remains open. Hosted outbox verification remains open. [Native regression](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43466001272/job/132025169645) · [Passing native qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43467969317/job/132032080232) · [Standalone key checks](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43468243143)
 
+The isolated hApp fixture uses a unique network seed. All four cases passed on the exact Development-based tree `c02e6f406d60fd65e92e47aea1eabef3fb29d027`, covering native action-hash reads and the existing collection, replication, outage and RoundRobin assertions. The earlier non-GUID identity was observed on the default-seed fixture. Its provenance remains unverified. [Exact native qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43472431193/job/132047519781)
+
 ## Oracle and SQLite point-read failover
 
 

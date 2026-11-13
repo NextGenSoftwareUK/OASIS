@@ -18,6 +18,8 @@
 
 ## Verification log
 
+13 November Cancun time. Railway confirmed WEB4 deployment `a4be261f-a251-49bf-926b-e3882cee5766` on `df8b75695e08` succeeded. The exact HoloOASIS candidate `86c157239f29` is ready for shared review after 12:47:47 Cancun, subject to the current remote parent and COSMIC coordination. No local artifacts were created.
+
 13 November Cancun time. [Exact HoloOASIS job 132047519781](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43472431193/job/132047519781) passed all four cases with zero skips. Its input tree `c02e6f406d60fd65e92e47aea1eabef3fb29d027` exactly matches three-file candidate `86c157239f29` on Development `df8b75695e08`. Both action-hash reads and both isolated collection and HyperDrive routing cases passed. Review for integration after the preceding WEB4 rollout and shared window. No local build or fixture files were created.
 
 13 November 12:25 Cancun time. Prepared local HoloOASIS candidate `86c157239f29` on Development `df8b75695e08`. It contains only the two shipping provider files and the isolated native tests. The reusable workflow and task-branch workflow remain on the provider branch. [Native CI 43472431193](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43472431193) is running. Compare its recorded input tree against candidate tree `c02e6f406d60fd65e92e47aea1eabef3fb29d027` before integration. Temporary indices were removed. No local build or test files were created.
