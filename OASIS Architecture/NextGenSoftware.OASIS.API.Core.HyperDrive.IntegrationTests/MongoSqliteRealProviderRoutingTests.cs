@@ -28,6 +28,61 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
         "web3TokenId", "NFT.MintedByAvatarId", "NFT.MintWalletAddress", "NFT.ParentWeb4NFTId", "GEONFT.PlacedByAvatarId",
         "GEONFT.MintedByAvatarId", "GEONFT.OriginalOASISNFT.MintWalletAddress", "GEONFT.LatLong", "Status", "ActiveQuestId",
         "ActiveObjectiveId", "ParentMissionId", "Avatar", "AppRegion" };
+    [Fact]
+    public async Task ScopedRoundRobinPointReadsUseBothNativeStores()
+    {
+        const string uri = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
+        if (Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI") != uri)
+            throw new InvalidOperationException("Owned reusable Mongo runner required; refusing other databases.");
+
+        var database = "hyperdrive_round_robin_" + Guid.NewGuid().ToString("N");
+        var directory = Directory.CreateTempSubdirectory("oasis-round-robin-");
+        var client = new MongoClient(uri);
+        var mongo = new MongoDBOASIS(uri, database);
+        try
+        {
+            using var sqlite = new SQLLiteDBOASIS($"Data Source={Path.Combine(directory.FullName, "point-reads.db")};Pooling=False");
+            Assert.False((await mongo.ActivateProviderAsync()).IsError);
+            Assert.False((await sqlite.ActivateProviderAsync()).IsError);
+            var id = Guid.NewGuid();
+            foreach (var provider in new IOASISStorageProvider[] { mongo, sqlite })
+            {
+                var saved = await provider.SaveHolonAsync(new Holon { Id = id, Name = "RoundRobin point read" }, saveChildren: false);
+                Assert.True(saved.IsSaved && !saved.IsError, saved.Message);
+            }
+
+            var dna = new OASISDNA { OASIS = new NextGenSoftware.OASIS.API.DNA.OASIS
+                { HyperDriveMode = HyperDriveModes.V2, StorageProviders = new StorageProviderSettings() } };
+            var manager = new ProviderManager(null, dna);
+            manager.RegisterProvider(mongo);
+            manager.RegisterProvider(sqlite);
+            var pointReader = new HolonManager(null, dna, manager);
+            var providers = new[] { ProviderType.MongoDBOASIS, ProviderType.SQLLiteDBOASIS };
+            var overrides = new NextGenSoftware.OASIS.API.Core.Configuration.ProviderRoutingOverrides(
+                autoFailoverEnabled: false, autoLoadBalancingEnabled: true, loadBalancingProviders: providers);
+            var servedBy = new List<string>();
+            for (var index = 0; index < 6; index++)
+            {
+                var scope = pointReader.CreateRequestContext(overrides, ProviderType.Default, routeDefaultProvider: true);
+                Assert.False(scope.IsError, scope.Message);
+                var loaded = await scope.Result.Manager.LoadHolonAsync(id, false, false, 0, false, true,
+                    HolonType.All, 0, ProviderType.Default, false, LoadBalancingStrategy.RoundRobin);
+                Assert.True(loaded.IsLoaded && !loaded.IsError, loaded.Message);
+                Assert.Equal(id, loaded.Result.Id);
+                using var route = System.Text.Json.JsonDocument.Parse(loaded.MetaData["hyperDriveRoute"]);
+                Assert.Equal("RoundRobin", route.RootElement.GetProperty("RequestedStrategy").GetString());
+                servedBy.Add(route.RootElement.GetProperty("ServingProvider").GetString()!);
+            }
+            Assert.Equal(3, servedBy.Count(value => value == nameof(ProviderType.MongoDBOASIS)));
+            Assert.Equal(3, servedBy.Count(value => value == nameof(ProviderType.SQLLiteDBOASIS)));
+        }
+        finally
+        {
+            try { await client.DropDatabaseAsync(database); }
+            finally { directory.Delete(recursive: true); }
+        }
+    }
+
     [Theory]
     [InlineData(true, true)]
     [InlineData(true, false)]
