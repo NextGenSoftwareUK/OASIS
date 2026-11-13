@@ -23,7 +23,7 @@ public sealed class FirestoreSqliteOutageTests
     public async Task SqliteOutageRoutesToFirestore(bool synchronous)
     {
         Assert.AreEqual("127.0.0.1:18180", Environment.GetEnvironmentVariable("FIRESTORE_EMULATOR_HOST"));
-        const string project = "demo-oasis-firestore-outage";
+        var project = synchronous ? "demo-oasis-firestore-sync" : "demo-oasis-firestore-async";
         var db = GoogleNativeFirestore.Database(project);
         var fixture = Path.GetFullPath(Environment.GetEnvironmentVariable("OASIS_FIRESTORE_CI_FIXTURE")
             ?? throw new InvalidOperationException("An owned Firestore fixture directory is required."));
@@ -58,6 +58,20 @@ public sealed class FirestoreSqliteOutageTests
             finally
             {
                 await reopened.DeActivateProviderAsync();
+            }
+            var otherStore = new GoogleCloudOASIS(projectId: $"{project}-other", enableStorage: false,
+                enableFirestore: true, enableBigQuery: false);
+            try
+            {
+                var otherActivation = await otherStore.ActivateProviderAsync();
+                Assert.IsFalse(otherActivation.IsError, otherActivation.Message);
+                var otherBinding = await otherStore.CaptureStorageIdentityAsync();
+                Assert.IsFalse(otherBinding.IsError, otherBinding.Message);
+                Assert.AreNotEqual(bindings[0].Result.BindingFingerprint, otherBinding.Result.BindingFingerprint);
+            }
+            finally
+            {
+                await otherStore.DeActivateProviderAsync();
             }
             var saved = await firestore.SaveHolonAsync(new Holon { Id = id, Name = expected, IsActive = true }, saveChildren: false);
             Assert.IsFalse(saved.IsError, saved.Message);
