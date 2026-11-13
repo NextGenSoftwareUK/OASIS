@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 using System.Threading.Tasks;
+using System.Threading;
 using Newtonsoft.Json;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.Common;
@@ -51,10 +52,10 @@ public partial class IPFSOASIS
         return codec.Encrypt(PrivateIndexContext,json);
     }
 
-    private string UnprotectIndex(string envelope)
+    private string UnprotectIndex(string envelope, CancellationToken cancellationToken = default)
     {
         using var codec=OpenPrivateCodec();
-        return DecryptStoredPayload(codec,PrivateIndexContext,envelope);
+        return DecryptStoredPayload(codec,PrivateIndexContext,envelope,cancellationToken);
     }
 
     private static string RecordContext(string kind,Guid id)
@@ -71,16 +72,16 @@ public partial class IPFSOASIS
         return codec.Encrypt(context,json);
     }
 
-    private string UnprotectRecord(string kind,Guid id,string envelope)
+    private string UnprotectRecord(string kind,Guid id,string envelope,CancellationToken cancellationToken = default)
     {
         var context=RecordContext(kind,id);
         using var codec=OpenPrivateCodec();
-        return DecryptStoredPayload(codec,context,envelope);
+        return DecryptStoredPayload(codec,context,envelope,cancellationToken);
     }
 
-    private static string DecryptStoredPayload(EncryptedRecordCodec codec,string context,string envelope)
+    private static string DecryptStoredPayload(EncryptedRecordCodec codec,string context,string envelope,CancellationToken cancellationToken = default)
     {
-        try { return codec.Decrypt(context,envelope); }
+        try { return codec.Decrypt(context,envelope,cancellationToken); }
         catch(Exception cause) when(cause is CryptographicException or FormatException or System.Text.DecoderFallbackException)
         {
             throw new InvalidDataException("IPFS stored private payload is invalid or cannot be authenticated.",cause);
@@ -93,9 +94,9 @@ public partial class IPFSOASIS
         return DecodePrivateRecord<T>(cid,kind,id,envelope);
     }
 
-    private T DecodePrivateRecord<T>(string cid,string kind,Guid id,string envelope) where T:class,IHolonBase
+    private T DecodePrivateRecord<T>(string cid,string kind,Guid id,string envelope,CancellationToken cancellationToken = default) where T:class,IHolonBase
     {
-        var json=UnprotectRecord(kind,id,envelope);
+        var json=UnprotectRecord(kind,id,envelope,cancellationToken);
         var record=OasisJson.DeserializeStored<T>(json) ?? throw new InvalidDataException("IPFS private blob has no entity content.");
         if(record.Id!=id) throw new InvalidDataException("IPFS private blob identity disagrees with its authenticated index.");
         record.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();

@@ -21,19 +21,26 @@ public partial class IPFSOASIS : IBoundCommittedHolonReplicaStorageProvider, ICo
     IHolonReplicaHeadAuditStorageProvider
 {
     private const ProviderType ReplicaAuthority = Core.Enums.ProviderType.IPFSOASIS;
-    private sealed class ReplicaLineageConflictException(string message) : InvalidOperationException(message);
+    private sealed class ReplicaLineageConflictException(string message, Exception cause = null)
+        : InvalidOperationException(message, cause);
+    private sealed class ReplicaStorageBindingException(string message) : InvalidOperationException(message);
 
     // Atomic callers acquire both catalogue locks before reading this snapshot.
     private async Task<(JObject Catalogue, Dictionary<string, HolonResume> Records, CosmicStorageIdentity Storage)>
         ReadBoundCatalogueAsync(OASISDNA dna, CancellationToken cancellationToken)
     {
         var settings = dna.OASIS.StorageProviders.IPFSOASIS;
-        if (IPFSClient == null || string.IsNullOrWhiteSpace(settings.LookUpIPFSAddress))
-            throw new InvalidOperationException("An active IPFS client and published catalogue are required.");
+        if (IPFSClient == null)
+            throw new InvalidOperationException("An active IPFS client is required.");
+        if (string.IsNullOrWhiteSpace(settings.LookUpIPFSAddress))
+            throw new ReplicaStorageBindingException("The IPFS catalogue has no published storage identity.");
 
         var envelope = await ReadCqlEnvelopeAsync(settings.LookUpIPFSAddress, cancellationToken).ConfigureAwait(false);
-        var catalogue = ParseCatalogue(UnprotectIndex(envelope));
+        var catalogue = ParseCatalogue(UnprotectIndex(envelope, cancellationToken));
         var records = DeserializeLookup(catalogue, out var storeId);
+        cancellationToken.ThrowIfCancellationRequested();
+        if (storeId == Guid.Empty)
+            throw new ReplicaStorageBindingException("The IPFS catalogue has no persisted storage identity.");
         return (catalogue, records, CreateCatalogueStorageIdentity(settings.ConnectionString, storeId));
     }
 
@@ -201,8 +208,13 @@ public partial class IPFSOASIS : IBoundCommittedHolonReplicaStorageProvider, ICo
         }
         catch (Exception cause)
         {
-            return ReplicaFailure(cause is ReplicaLineageConflictException
-                ? "COSMIC_REPLICA_LINEAGE_CONFLICT" : "COSMIC_REPLICA_WRITE_FAILED", cause);
+            var code = cause switch
+            {
+                ReplicaLineageConflictException => "COSMIC_REPLICA_LINEAGE_CONFLICT",
+                ReplicaStorageBindingException => "COSMIC_REPLICA_STORAGE_BINDING_INVALID",
+                _ => "COSMIC_REPLICA_WRITE_FAILED"
+            };
+            return ReplicaFailure(code, cause);
         }
     }
 
@@ -243,11 +255,29 @@ public partial class IPFSOASIS : IBoundCommittedHolonReplicaStorageProvider, ICo
             ReplicaText(head["authority"]), ReplicaText(head["snapshot"]), ReplicaText(head["digest"]),
             ReplicaText(head["revision"]), head["hardDeleted"]?.Type == JTokenType.Boolean
                 ? head.Value<bool>("hardDeleted") : throw new InvalidDataException("Invalid IPFS replica deletion state."));
-        if (!validated.Evidence.HardDeleted && currentCid != headCid)
-            throw new InvalidDataException("The IPFS replica head CID differs from the current catalogue.");
+        if (validated.Evidence.HardDeleted ? currentCid != null : currentCid != headCid)
+            throw new ReplicaLineageConflictException("The IPFS replica head CID differs from the current catalogue.");
+        if (validated.Evidence.HardDeleted)
+        {
+            var tombstone = DecodePrivateRecord<Holon>(headCid, "holon", id,
+                await ReadCqlEnvelopeAsync(headCid, cancellationToken).ConfigureAwait(false), cancellationToken);
+            if (!tombstone.IsDeleted || tombstone.VersionId != validated.Evidence.VersionId ||
+                tombstone.Version != validated.Evidence.Version ||
+                tombstone.PreviousVersionId != validated.Evidence.PreviousVersionId ||
+                CosmicConcurrency.GetProviderRevisionId(tombstone, ReplicaAuthority) != validated.Evidence.ProviderRevisionId ||
+                CommittedHolonReplicaPlan.PortableContentDigest(tombstone, ReplicaAuthority) != validated.Evidence.PortableContentDigest)
+                throw new InvalidDataException("The native IPFS tombstone differs from its protected replica head.");
+        }
         var current = currentCid == null ? null : DecodePrivateRecord<Holon>(currentCid, "holon", id,
-            await ReadCqlEnvelopeAsync(currentCid, cancellationToken).ConfigureAwait(false));
-        HolonReplicaHeadRecord.ValidateCurrent(id, ReplicaAuthority, current, validated.Evidence);
+            await ReadCqlEnvelopeAsync(currentCid, cancellationToken).ConfigureAwait(false), cancellationToken);
+        try
+        {
+            HolonReplicaHeadRecord.ValidateCurrent(id, ReplicaAuthority, current, validated.Evidence);
+        }
+        catch (InvalidDataException cause)
+        {
+            throw new ReplicaLineageConflictException(cause.Message, cause);
+        }
         return validated.Evidence;
     }
 
@@ -267,11 +297,32 @@ public partial class IPFSOASIS : IBoundCommittedHolonReplicaStorageProvider, ICo
         plan.ValidateAcknowledgedRecord(record);
 
         var snapshot = StoredRecordJson.Serialize<IHolon>(record);
+        var hardDeleted = plan.Operation == ConditionalHolonOperation.HardDelete;
+        var cid = await StageCatalogueHolonAsync(record, snapshot, previousCid, hardDeleted, records, cancellationToken)
+            .ConfigureAwait(false);
+        heads[record.Id.ToString("D")] = new JObject
+        {
+            ["cid"] = cid,
+            ["source"] = plan.SourceId,
+            ["authority"] = plan.SourceAuthority.ToString(),
+            ["snapshot"] = snapshot,
+            ["digest"] = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(snapshot))),
+            ["revision"] = revision.ToString("D"),
+            ["hardDeleted"] = hardDeleted
+        };
+    }
+
+    private async Task<string> StageCatalogueHolonAsync(Holon record, string snapshot, string previousCid,
+        bool hardDeleted, Dictionary<string, HolonResume> records, CancellationToken cancellationToken)
+    {
         cancellationToken.ThrowIfCancellationRequested();
-        var native = await IPFSClient.FileSystem.AddTextAsync(ProtectRecord("holon", record.Id, snapshot)).ConfigureAwait(false);
+        var encrypted = ProtectRecord("holon", record.Id, snapshot);
+        if (encrypted.Length > CqlMaximumEnvelopeBytes)
+            throw new InvalidDataException("The encrypted IPFS holon exceeds the native query and replica read limit.");
+        var native = await IPFSClient.FileSystem.AddTextAsync(encrypted,
+            cancel: cancellationToken).ConfigureAwait(false);
         var cid = native.Id.ToString();
         record.ProviderUniqueStorageKey[ReplicaAuthority] = cid;
-        var hardDeleted = plan.Operation == ConditionalHolonOperation.HardDelete;
         if (hardDeleted)
             records.Remove(previousCid);
         else
@@ -283,16 +334,7 @@ public partial class IPFSOASIS : IBoundCommittedHolonReplicaStorageProvider, ICo
                 ParentHolonId = record.ParentHolonId,
                 ProviderUniqueStorageKey = new Dictionary<ProviderType, string>(record.ProviderUniqueStorageKey)
             });
-        heads[record.Id.ToString("D")] = new JObject
-        {
-            ["cid"] = cid,
-            ["source"] = plan.SourceId,
-            ["authority"] = plan.SourceAuthority.ToString(),
-            ["snapshot"] = snapshot,
-            ["digest"] = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(snapshot))),
-            ["revision"] = revision.ToString("D"),
-            ["hardDeleted"] = hardDeleted
-        };
+        return cid;
     }
 
     private static JObject GetReplicaObject(JObject catalogue, string key)

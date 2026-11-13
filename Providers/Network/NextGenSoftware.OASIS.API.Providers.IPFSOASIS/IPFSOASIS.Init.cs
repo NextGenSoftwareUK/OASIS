@@ -107,6 +107,10 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
                     gate.Release();
                 }
             }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
+            }
             catch (Exception cause)
             {
                 OASISErrorHandling.HandleError(ref result, "Could not capture the IPFS catalogue identity.", cause);
@@ -323,9 +327,12 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             var settings = dna.OASIS.StorageProviders.IPFSOASIS;
             var previousRoot = settings.LookUpIPFSAddress;
             catalogue["records"] = JObject.FromObject(records);
+            DeserializeLookup(catalogue, out _);
             var encrypted = ProtectIndex(catalogue.ToString(Formatting.None));
+            if (encrypted.Length > CqlMaximumEnvelopeBytes)
+                throw new InvalidDataException("The encrypted IPFS catalogue exceeds the native query and replica read limit.");
             cancellationToken.ThrowIfCancellationRequested();
-            var fsn = await IPFSClient.FileSystem.AddTextAsync(encrypted).ConfigureAwait(false);
+            var fsn = await IPFSClient.FileSystem.AddTextAsync(encrypted, cancel: cancellationToken).ConfigureAwait(false);
             cancellationToken.ThrowIfCancellationRequested();
             settings.LookUpIPFSAddress = fsn.Id;
             try
