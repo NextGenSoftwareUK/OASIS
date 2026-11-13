@@ -316,7 +316,10 @@ public partial class IPFSOASIS : IBoundCommittedHolonReplicaStorageProvider, ICo
         bool hardDeleted, Dictionary<string, HolonResume> records, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        var native = await IPFSClient.FileSystem.AddTextAsync(ProtectRecord("holon", record.Id, snapshot),
+        var encrypted = ProtectRecord("holon", record.Id, snapshot);
+        if (encrypted.Length > CqlMaximumEnvelopeBytes)
+            throw new InvalidDataException("The encrypted IPFS holon exceeds the native query and replica read limit.");
+        var native = await IPFSClient.FileSystem.AddTextAsync(encrypted,
             cancel: cancellationToken).ConfigureAwait(false);
         var cid = native.Id.ToString();
         record.ProviderUniqueStorageKey[ReplicaAuthority] = cid;
