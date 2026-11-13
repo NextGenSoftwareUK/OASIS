@@ -91,7 +91,7 @@ def verify_round_robin(state, revision):
     flow.write_new(attempt, json.dumps({"deployment": deployment, "revision": revision}).encode())
     selected = Counter()
     serving_order = []
-    for _ in range(6):
+    for read_number in range(1, 7):
         response = flow.call("data/load-holon", token, {
             "id": expected["id"], "providerType": "Default", "loadChildren": False,
             "autoLoadBalanceMode": "ON", "autoLoadBalanceProviders": ",".join(sorted(providers)),
@@ -101,6 +101,9 @@ def verify_round_robin(state, revision):
         provider = route["ServingProvider"]
         selected[provider] += 1
         serving_order.append(provider)
+        receipt = state / f"hyperdrive-round-robin-{deployment}.read-{read_number}.json"
+        flow.write_new(receipt, json.dumps({"read": read_number, "servingProvider": provider,
+                                           "strategy": route["RequestedStrategy"]}).encode())
     if serving_deployment() != deployment:
         raise RuntimeError("The reviewed WEB4 deployment changed during the RoundRobin reads.")
     if selected != Counter({provider: 3 for provider in providers}):
