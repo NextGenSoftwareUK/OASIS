@@ -138,6 +138,41 @@ public sealed class IPFSRestartTests
             Assert.Equal(receipt.Result.AcknowledgementDigest, committed.Result.AcknowledgementDigest);
             Assert.Equal(revision, CosmicConcurrency.GetProviderRevisionId(before.Result, ProviderType.IPFSOASIS));
             Assert.Equal(persistedBefore, await File.ReadAllTextAsync(dnaPath));
+            await VerifyReplicaSuccessorAsync(provider, identity, replica, dnaPath);
         }
+    }
+
+    private static async Task VerifyReplicaSuccessorAsync(IPFSOASIS provider, CosmicStorageIdentity identity,
+        Holon original, string dnaPath)
+    {
+        var successor = new Holon
+        {
+            Id = original.Id,
+            Version = 2,
+            VersionId = Guid.NewGuid(),
+            PreviousVersionId = Guid.NewGuid(),
+            Name = "updated replica",
+            HolonType = HolonType.Holon
+        };
+        CosmicConcurrency.SetProviderRevisionId(successor, ProviderType.SQLLiteDBOASIS, Guid.NewGuid());
+        var operationId = Guid.NewGuid();
+        CommittedHolonReplicaRequest Request() => new(operationId, "restart-sqlite-source",
+            ProviderType.SQLLiteDBOASIS, RecordId, ConditionalHolonOperation.Save, new[] { successor }, saveChildren: false);
+
+        var persistedBefore = await File.ReadAllTextAsync(dnaPath);
+        var rejected = await provider.ApplyBoundCommittedHolonReplicaAsync(Request(), identity);
+        Assert.True(rejected.IsError);
+        Assert.Contains("lineage", rejected.Message);
+        Assert.Equal(persistedBefore, await File.ReadAllTextAsync(dnaPath));
+
+        successor.PreviousVersionId = original.VersionId;
+        var accepted = await provider.ApplyBoundCommittedHolonReplicaAsync(Request(), identity);
+        Assert.True(accepted.IsSaved && !accepted.IsError, accepted.Message);
+        var current = await provider.LoadHolonAsync(original.Id, loadChildren: false);
+        Assert.True(current.IsLoaded && !current.IsError, current.Message);
+        Assert.Equal(successor.VersionId, current.Result.VersionId);
+        var prior = await provider.LoadHolonAsync(original.Id, loadChildren: false, version: 1);
+        Assert.True(prior.IsLoaded && !prior.IsError, prior.Message);
+        Assert.Equal(original.VersionId, prior.Result.VersionId);
     }
 }

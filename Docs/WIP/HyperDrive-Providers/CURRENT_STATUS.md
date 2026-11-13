@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. The Kubo restart scenario now also rejects a successor with incorrect lineage without changing the catalogue pointer, then accepts the valid successor and checks the earlier version through the native CID chain. Both prior bound receiver runs passed after the compiler fix. Historical receipt and successor checks await their own native results. No local build, fixture or download.
+
 12 November Cancun time. IPFS now exposes read-only historical replica receipt evidence from the immutable catalogue selected by one persisted pointer read. The restart check asserts receipt absence before apply, a committed digest after apply, and the same digest after restart and replay. These changes await native CI. No local runtime, build or download was created.
 
 12 November Cancun time. Native run 43349908192 stopped at C# compilation because the new catalogue record-index pattern variable shared a name with the deserialized dictionary. Renamed the pattern variable at the parser boundary. This failure affects receiver-branch checks that contain the same parser change. The separately qualified two-file Development identity candidate does not contain it. No local build or download.
