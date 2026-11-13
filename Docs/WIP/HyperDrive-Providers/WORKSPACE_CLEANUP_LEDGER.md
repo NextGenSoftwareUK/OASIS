@@ -910,3 +910,5 @@ Urgent disk cleanup follow-up: leased standard project clean succeeded for AWS u
 13 November. TON job 132149191211 removed its compilation, TVM ledgers, SQLite files and test output after both assertions failed. Logs were inspected in memory.
 
 13 November. TON job 132152403254 passed both modes and removed the owned compilation, TVM ledgers, SQLite files and test output. Logs were reviewed in memory. No local builds were run.
+
+13 November. TON qualification job 132157039582 removed the owned fixture after stopping before tests. The old compiler wrote its output under TestResults on the hosted runner. The corrected candidate writes inside the owned fixture. Both local temporary Git indexes were removed. No local builds or downloads ran.
