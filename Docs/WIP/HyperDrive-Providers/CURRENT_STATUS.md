@@ -18,6 +18,8 @@
 
 ## Verification log
 
+13 November Cancun time. All seven Railway API statuses succeeded on IPFS audit Development 2ec99009d7c8. Exact live WEB4 preset verification is tracked with COSMIC. The new native restart workflow runs offline Kubo garbage collection between write and read phases. Restart 43369671972 and multi-process 43369656876 remain queued. The IPFS candidate is prepared after Polkadot and remains outside the current rollout. No local builds or downloads.
+
 13 November Cancun time. Prepared two-file IPFS candidate 8c2256082a0a on planned Polkadot parent 49f8463de927, tree 7b46ae2ae6ab6289e0e3a9541bdb93dc5147f177. Both paths match the native-qualified IPFS source and do not overlap Polkadot. Development still points to the audit baseline. Qualify only after the actual parent lands.
 
 12 November Cancun time. Prepared two-file IPFS tombstone and binding candidate 7c337ab7d8c1 on Development 2ec99009d7c8. Independently reproduced previously tested tree fb4ea5c681ab3591bb9a1cdb729099531868a531. Replacement native restart 43368094591 and multi-process 43368085941 passed on that exact tree after CI adopted the integrated audit baseline. Both runs confirmed fixture cleanup. Polkadot is the coordinated follow-on after 00:17:49. No local builds or downloads.
