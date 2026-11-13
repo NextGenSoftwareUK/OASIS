@@ -110,11 +110,22 @@ public sealed class IPFSRestartTests
         Assert.Equal("COSMIC_REPLICA_STORAGE_BINDING_MISMATCH", rejected.ErrorCode);
         Assert.Equal(persistedBefore, await File.ReadAllTextAsync(dnaPath));
 
+        var observation = new CommittedHolonReplicaReceiptReadRequest(request, identity);
+        var receipt = await provider.ReadCommittedHolonReplicaReceiptAsync(observation);
+        Assert.True(receipt.IsLoaded && !receipt.IsError, receipt.Message);
+        Assert.Equal(replay ? ConditionalHolonReceiptState.Committed : ConditionalHolonReceiptState.Absent,
+            receipt.Result.ReceiptState);
+        Assert.Equal(persistedBefore, await File.ReadAllTextAsync(dnaPath));
+
         var before = await provider.LoadHolonAsync(replica.Id, loadChildren: false);
         if (replay)
             Assert.True(before.IsLoaded && !before.IsError, before.Message);
         var applied = await provider.ApplyBoundCommittedHolonReplicaAsync(request, identity);
         Assert.True(applied.IsSaved && !applied.IsError, applied.Message);
+        var committed = await provider.ReadCommittedHolonReplicaReceiptAsync(observation);
+        Assert.True(committed.IsLoaded && !committed.IsError, committed.Message);
+        Assert.Equal(ConditionalHolonReceiptState.Committed, committed.Result.ReceiptState);
+        Assert.NotNull(committed.Result.AcknowledgementDigest);
         var acknowledgement = Assert.Single(applied.Result);
         var current = await provider.LoadHolonAsync(replica.Id, loadChildren: false);
         Assert.True(current.IsLoaded && !current.IsError, current.Message);
@@ -124,6 +135,7 @@ public sealed class IPFSRestartTests
         Assert.Equal(revision, CosmicConcurrency.GetProviderRevisionId(current.Result, ProviderType.IPFSOASIS));
         if (replay)
         {
+            Assert.Equal(receipt.Result.AcknowledgementDigest, committed.Result.AcknowledgementDigest);
             Assert.Equal(revision, CosmicConcurrency.GetProviderRevisionId(before.Result, ProviderType.IPFSOASIS));
             Assert.Equal(persistedBefore, await File.ReadAllTextAsync(dnaPath));
         }

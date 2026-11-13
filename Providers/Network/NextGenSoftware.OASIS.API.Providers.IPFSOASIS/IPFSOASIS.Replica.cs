@@ -16,9 +16,54 @@ using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS;
 
-public partial class IPFSOASIS : IBoundCommittedHolonReplicaStorageProvider
+public partial class IPFSOASIS : IBoundCommittedHolonReplicaStorageProvider, ICommittedHolonReplicaReceiptStorageProvider
 {
     private const ProviderType ReplicaAuthority = Core.Enums.ProviderType.IPFSOASIS;
+
+    public async Task<OASISResult<CommittedHolonReplicaReceiptEvidence>> ReadCommittedHolonReplicaReceiptAsync(
+        CommittedHolonReplicaReceiptReadRequest request, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var plan = CommittedHolonReplicaReceiptProjection.Prepare(request);
+            var gate = CatalogueGate;
+            await gate.WaitAsync(cancellationToken).ConfigureAwait(false);
+            try
+            {
+                var settings = ReadPersistedCatalogueDna().OASIS.StorageProviders.IPFSOASIS;
+                if (IPFSClient == null || string.IsNullOrWhiteSpace(settings.LookUpIPFSAddress))
+                    throw new InvalidOperationException("An active IPFS client and published catalogue are required to read a receipt.");
+
+                // The pointer is read once. Its CID identifies an immutable native snapshot.
+                var envelope = await ReadCqlEnvelopeAsync(settings.LookUpIPFSAddress, cancellationToken).ConfigureAwait(false);
+                var catalogue = ParseCatalogue(UnprotectIndex(envelope));
+                DeserializeLookup(catalogue, out var storeId);
+                var storage = CreateCatalogueStorageIdentity(settings.ConnectionString, storeId);
+                if (storage.BindingFingerprint != request.ExpectedStorage.BindingFingerprint)
+                    return new() { IsError = true, ErrorCount = 1, ErrorCode = "COSMIC_REPLICA_STORAGE_BINDING_MISMATCH",
+                        Message = "The IPFS catalogue does not match the enrolled replica store." };
+
+                var receipt = GetReplicaObject(catalogue, "replicaReceipts")[plan.OperationId.ToString("D")];
+                var evidence = CommittedHolonReplicaReceiptProjection.Project(request, plan,
+                    receipt == null ? null : plan.Fingerprint, receipt == null ? null : ReplicaText(receipt),
+                    HolonReplicaHeadReadConsistency.NativeSnapshot);
+                return new(evidence) { IsLoaded = true };
+            }
+            finally
+            {
+                gate.Release();
+            }
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception cause)
+        {
+            return new() { IsError = true, ErrorCount = 1, ErrorCode = "COSMIC_REPLICA_RECEIPT_READ_FAILED",
+                Exception = cause, Message = cause.Message };
+        }
+    }
 
     public OASISResult<IEnumerable<IHolon>> ApplyCommittedHolonReplica(CommittedHolonReplicaRequest request)
         => ApplyCommittedHolonReplicaAsync(request).GetAwaiter().GetResult();
