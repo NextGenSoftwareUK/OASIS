@@ -11,6 +11,7 @@ public class SandboxCqlAdmissionTests
     [Theory]
     [InlineData("POST", "/api/data/query-cql", 1)]
     [InlineData("POST", "/api/data/query-cql/scalar", 1)]
+    [InlineData("POST", "/api/data/query-cql/projection", 1)]
     [InlineData("POST", "/api/data/query-cql/federation", 3)]
     [InlineData("POST", "/api/data/save-holon", 512)]
     [InlineData("POST", "/api/data/save-holons", 512)]
@@ -50,7 +51,8 @@ public class SandboxCqlAdmissionTests
             }, CancellationToken.None);
         Assert.Equal("QUOTA_CHECK_REACHED", decision.Code);
         repository.VerifyAll(); // A free price must still go through quota authorization.
-        context.Request.Path = "/api/data/query-cql/projection";
+        context.Request.Method = "POST";
+        context.Request.Path = "/api/data/query-cql/grouped";
         Assert.Null(select(context)); // This profile does not silently enroll other routes.
     }
     [Theory]
