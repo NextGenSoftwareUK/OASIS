@@ -244,7 +244,7 @@ public sealed class IPFSRestartTests
         var result = await worker.DispatchOnceAsync(route.TargetId, maximumCount: 1);
         Assert.False(result.IsError, result.Message);
         Assert.Equal(1, result.Result.CompletedCount);
-        var copied = await provider.LoadHolonAsync(replica.Id, loadChildren: true);
+        var copied = await provider.LoadHolonAsync(replica.Id, loadChildren: true, loadChildrenFromProvider: true);
         Assert.True(copied.IsLoaded && !copied.IsError, copied.Message);
         Assert.Equal(committed.VersionId, copied.Result.VersionId);
         var copiedChild = Assert.Single(copied.Result.Children);
