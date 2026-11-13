@@ -112,10 +112,23 @@ public sealed class IPFSConcurrentPublicationTests
                 var first = await writer.SaveHolonAsync(holons[0], saveChildren: false);
                 Assert.True(first.IsSaved && !first.IsError, first.Message);
             }
-            var saves = await Task.WhenAll(holons
-                .Skip(independentWriters ? 1 : 0)
-                .Select((holon, index) => (index % 2 == 0 ? secondWriter : writer).SaveHolonAsync(holon, saveChildren: false)));
-            Assert.All(saves, saved => Assert.True(saved.IsSaved && !saved.IsError, saved.Message));
+            using var stopReader = new CancellationTokenSource();
+            var pointerReader = independentWriters
+                ? ObservePublishedPointersAsync(dnaPath, endpoint, stopReader.Token)
+                : Task.CompletedTask;
+            try
+            {
+                var saves = await Task.WhenAll(holons
+                    .Skip(independentWriters ? 1 : 0)
+                    .Select((holon, index) => (index % 2 == 0 ? secondWriter : writer).SaveHolonAsync(holon, saveChildren: false)));
+                Assert.All(saves, saved => Assert.True(saved.IsSaved && !saved.IsError, saved.Message));
+            }
+            finally
+            {
+                stopReader.Cancel();
+                await pointerReader;
+            }
+
             if (independentWriters)
             {
                 foreach (var existingWriter in new[] { writer, secondWriter })
@@ -148,5 +161,18 @@ public sealed class IPFSConcurrentPublicationTests
         {
             await reader.DeActivateProviderAsync();
         }
+    }
+    private static async Task ObservePublishedPointersAsync(string path, string endpoint, CancellationToken stop)
+    {
+        do
+        {
+            using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete);
+            using var reader = new StreamReader(stream);
+            var dna = Newtonsoft.Json.JsonConvert.DeserializeObject<OASISDNA>(await reader.ReadToEndAsync());
+            var settings = Assert.IsType<IPFSOASISSettings>(dna?.OASIS.StorageProviders.IPFSOASIS);
+            Assert.Equal(endpoint, settings.ConnectionString);
+            Assert.False(string.IsNullOrWhiteSpace(settings.LookUpIPFSAddress));
+            await Task.Delay(1);
+        } while (!stop.IsCancellationRequested);
     }
 }
