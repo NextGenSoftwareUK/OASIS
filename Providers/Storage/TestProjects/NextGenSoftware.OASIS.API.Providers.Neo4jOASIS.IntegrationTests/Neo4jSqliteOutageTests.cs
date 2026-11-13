@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Microsoft.Data.Sqlite;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -72,6 +73,28 @@ public sealed class Neo4jSqliteOutageTests
             Assert.AreEqual(nameof(ProviderType.SQLLiteDBOASIS), route.RootElement.GetProperty("RequestedProvider").GetString());
             Assert.AreEqual(nameof(ProviderType.Neo4jOASIS), route.RootElement.GetProperty("ServingProvider").GetString());
             Assert.IsFalse(File.Exists(unavailablePath));
+
+            // A healthy primary's authoritative absence must not expose a stale replica.
+            await using var emptyDatabase = new SqliteConnection($"Data Source=oasis-absence-{id:N};Mode=Memory;Cache=Shared;Pooling=False");
+            await emptyDatabase.OpenAsync();
+            using var emptySqlite = new SqliteProvider(emptyDatabase.ConnectionString);
+            var sqliteActivated = await emptySqlite.ActivateProviderAsync();
+            Assert.IsFalse(sqliteActivated.IsError, sqliteActivated.Message);
+            var healthyManager = new ProviderManager(null, dna) { IsAutoFailOverEnabled = true };
+            healthyManager.RegisterProvider(emptySqlite);
+            healthyManager.RegisterProvider(provider);
+            var healthyConfigured = healthyManager.SetAndReplaceAutoFailOverListForProviders(new[]
+            {
+                new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS),
+                new EnumValue<ProviderType>(ProviderType.Neo4jOASIS)
+            });
+            Assert.IsFalse(healthyConfigured.IsError, healthyConfigured.Message);
+            var healthyRouter = new OASISHyperDrive(healthyManager);
+            var missing = synchronous ? healthyRouter.RouteRequest<IHolon>(ReadSqlite())
+                : await healthyRouter.RouteRequestAsync<IHolon>(ReadSqlite());
+            Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound, missing.ErrorCode);
+            Assert.IsNull(missing.Result);
+            Assert.AreEqual(0L, healthyManager.PerformanceMonitor.GetMetrics(ProviderType.Neo4jOASIS)?.TotalRequests ?? 0);
         }
         finally
         {
