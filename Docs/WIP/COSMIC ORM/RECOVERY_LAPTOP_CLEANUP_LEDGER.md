@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+13 November: all 127 Web4Site tests ran from a temporary Git snapshot using installed Node. The snapshot and temporary Git index were removed. No local packages or build artifacts were created.
+
 13 November: C: reported 28.91 GiB free. Ran three SQL-like parser tests using Node already installed and a temporary directory. The test files and temporary Git indexes were removed. WEB6 protocol qualification runs remotely in GitHub Actions. No local packages, runtimes, build outputs or fixtures were created.
 
 11 November disk observation: C: reached 19.66 GiB free. No recently

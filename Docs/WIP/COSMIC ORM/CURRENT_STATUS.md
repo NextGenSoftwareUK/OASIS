@@ -1,5 +1,7 @@
 # COSMIC ORM / CQL current status
 
+Web4Site `4db46979723e`: all 127 exact-source frontend tests passed. The public frontend currently lacks the SQL-like editor and Ask your data controls. Development preview discovery is gated on OASIS team access in Vercel, tracked in ACTIONS-FOR-DAVID. WEB6 pricing and bounds passed in the full protocol rerun, which continued to provider recovery checks.
+
 ## SQL-like CQL and Ask your data · 13 November, Cancun
 
 Web4Site feature revision `cc2cafa9be50` adds direct parser regression coverage for typed filters, grouped OR, ordered paging, COUNT and bounded federation across MongoDB, SQLite and Neo4j. All three parser tests passed. Earlier live Development HTTP checks passed for COUNT and three-store federation. The Ask your data tab sends a bounded WEB6 completion, validates the returned read-only CQL, and leaves execution to the user in the Playground. Hosted browser acceptance remains open.
