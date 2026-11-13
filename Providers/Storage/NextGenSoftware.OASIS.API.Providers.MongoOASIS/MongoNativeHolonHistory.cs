@@ -77,7 +77,7 @@ internal static class MongoNativeHolonHistory
             var first=group.First();
             foreach(var candidate in group.Skip(1))
                 if(!StoredRecordPayloadEquality.Equivalent(StoredRecordJson.CaptureRuntimeToken(first),StoredRecordJson.CaptureRuntimeToken(candidate)))
-                    throw new InvalidDataException("The logical Mongo version identifies multiple native revisions.");
+                    throw new InvalidDataException($"Mongo record {current.Id:D} has multiple native revisions for logical version {group.Key}.");
             distinct.Add(first);
         }
         return distinct.OrderBy(record=>record.Version).ToArray();
