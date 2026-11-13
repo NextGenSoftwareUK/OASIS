@@ -18,7 +18,7 @@
 
 ## Verification log
 
-13 November Cancun time. Extended the existing Polygon and Arbitrum native fixtures to verify SQLite-to-chain read failover. Each entry point checks failover-disabled rejection, then the exact replicated holon and response-owned provider attribution when enabled. The isolated test project build passed with zero errors. The local native launch was rejected by the automatic command policy before any chain started. Native acceptance and Development integration remain open.
+13 November Cancun time. Extended the existing Polygon and Arbitrum native fixtures to verify SQLite-to-chain read failover. Each entry point checks failover-disabled rejection, then the exact replicated holon and response-owned provider attribution when enabled. The isolated test project build passed with zero errors. The local native launch was rejected by the automatic command policy before any chain started. Native acceptance and Development integration remain open. [Native CI 43426793143](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43426793143) is running both wrappers on a disposable loopback Hardhat chain and checks for zero skips and fixture cleanup.
 
 13 November Cancun time. [Native MongoDB–SQLite CI 43424125859](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43424125859) passed all four replication cases, both primary directions and both entry points, with zero skips. The database teardown step succeeded. Development a88f960c558e integrates the eight verified source and test files. The qualification-only workflow filter stayed on its qualification branch. All seven APIs on the preceding Development revision reported success. The new rollout and hosted RoundRobin remain open.
 
