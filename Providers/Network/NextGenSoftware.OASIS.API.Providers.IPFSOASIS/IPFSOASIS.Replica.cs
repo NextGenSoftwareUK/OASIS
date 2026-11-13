@@ -161,7 +161,16 @@ public partial class IPFSOASIS : IBoundCommittedHolonReplicaStorageProvider, ICo
                 var receipts = GetReplicaObject(catalogue, "replicaReceipts");
                 var operationId = plan.OperationId.ToString("D");
                 if (receipts[operationId] is JToken receipt)
-                    return ReplicaSuccess(ConditionalHolonReceipt.Read(ReplicaText(receipt), plan), plan);
+                {
+                    try
+                    {
+                        return ReplicaSuccess(ConditionalHolonReceipt.Read(ReplicaText(receipt), plan), plan);
+                    }
+                    catch (InvalidDataException cause)
+                    {
+                        return ReplicaFailure("COSMIC_REPLICA_ACKNOWLEDGEMENT_INVALID", cause);
+                    }
+                }
 
                 var heads = GetReplicaObject(catalogue, "replicaHeads");
                 var previousCids = await ValidateReplicaHeadsAsync(records, heads, plan, cancellationToken).ConfigureAwait(false);

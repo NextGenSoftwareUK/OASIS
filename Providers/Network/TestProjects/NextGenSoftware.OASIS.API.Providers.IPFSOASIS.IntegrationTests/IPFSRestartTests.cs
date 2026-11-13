@@ -147,6 +147,7 @@ public sealed class IPFSRestartTests
             replica.Name = "different intent under the same operation";
             var conflicting = await provider.ApplyBoundCommittedHolonReplicaAsync(request, identity);
             Assert.True(conflicting.IsError);
+            Assert.Equal("COSMIC_REPLICA_ACKNOWLEDGEMENT_INVALID", conflicting.ErrorCode);
             var conflictingReceipt = await provider.ReadCommittedHolonReplicaReceiptAsync(observation);
             Assert.True(conflictingReceipt.IsError);
             Assert.Equal(persistedBefore, await File.ReadAllTextAsync(dnaPath));

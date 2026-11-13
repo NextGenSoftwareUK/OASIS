@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. The receiver Development push run 43360763623 records 22:42:44 Cancun, placing the next shared review after 23:12:44. COSMIC has started the receiver-based Cosmos image. On the provider branch, IPFS now marks an invalid retained acknowledgement as requiring dispatcher reconciliation, including changed intent under the same operation ID. The restart test asserts that exact error code. Native CI pending. No local builds or downloads.
+
 12 November Cancun time. Development fast-forwarded from live-verified EOSIO 4d338173e64d to the exact four-file IPFS receiver candidate fd9b328ac712. All seven predecessor APIs were healthy. Native Kubo restart and multiprocess runs 43357257220 and 43357260351 matched the integrated tree. The remote ref and Railway manifest were confirmed. New rollout verification and later replica audit changes remain open. No local build or download.
 
 12 November Cancun time. Native restart 43360074502 rejected changed intent under an already committed operation ID for both apply and receipt lookup without changing the IPFS pointer. Multi-process 43360045368 passed on the same tree ff4837a2d945dd2c319afaf803b8ece65a63db25. Both fixture cleanups passed. The coordinated receiver candidate retains its earlier qualified file scope.
