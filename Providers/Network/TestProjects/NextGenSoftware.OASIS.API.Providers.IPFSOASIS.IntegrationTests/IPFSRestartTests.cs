@@ -187,6 +187,16 @@ public sealed class IPFSRestartTests
         var current = await provider.LoadHolonAsync(original.Id, loadChildren: false);
         Assert.True(current.IsLoaded && !current.IsError, current.Message);
         Assert.Equal(successor.VersionId, current.Result.VersionId);
+        var currentPointer = await File.ReadAllTextAsync(dnaPath);
+        var audit = await provider.ReadHolonReplicaHeadsAsync(new(identity, new[] { original.Id }));
+        Assert.True(audit.IsLoaded && !audit.IsError, audit.Message);
+        var head = Assert.Single(audit.Result.Records);
+        Assert.True(head.HasCurrentRecord);
+        Assert.False(head.Head.HardDeleted);
+        Assert.Equal(successor.VersionId, head.Head.VersionId);
+        Assert.Equal(original.VersionId, head.Head.PreviousVersionId);
+        Assert.Equal(CosmicConcurrency.GetProviderRevisionId(current.Result, ProviderType.IPFSOASIS), head.Head.ProviderRevisionId);
+        Assert.Equal(currentPointer, await File.ReadAllTextAsync(dnaPath));
         var prior = await provider.LoadHolonAsync(original.Id, loadChildren: false, version: 1);
         Assert.True(prior.IsLoaded && !prior.IsError, prior.Message);
         Assert.Equal(original.VersionId, prior.Result.VersionId);
