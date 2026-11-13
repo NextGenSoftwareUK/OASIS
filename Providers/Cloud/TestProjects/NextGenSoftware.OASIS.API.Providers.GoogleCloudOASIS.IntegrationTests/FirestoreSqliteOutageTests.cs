@@ -8,6 +8,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive;
 using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 using SqliteProvider = NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.SQLLiteDBOASIS;
 
@@ -78,6 +79,36 @@ public sealed class FirestoreSqliteOutageTests
             Assert.AreEqual(nameof(ProviderType.SQLLiteDBOASIS), route.RootElement.GetProperty("RequestedProvider").GetString());
             Assert.AreEqual(nameof(ProviderType.GoogleCloudOASIS), route.RootElement.GetProperty("ServingProvider").GetString());
             Assert.IsFalse(File.Exists(path));
+
+            using var staleSqlite = new SqliteProvider($"Data Source={Path.Combine(fixture, $"{id:N}.db")};Pooling=False");
+            var sqliteActivation = await staleSqlite.ActivateProviderAsync();
+            Assert.IsTrue(!sqliteActivation.IsError && sqliteActivation.Result, sqliteActivation.Message);
+            var replica = await staleSqlite.SaveHolonAsync(new Holon { Id = id, Name = expected, IsActive = true }, saveChildren: false);
+            Assert.IsFalse(replica.IsError, replica.Message);
+            var snapshot = await document.GetSnapshotAsync();
+            await document.DeleteAsync(Precondition.LastUpdated(snapshot.UpdateTime!.Value));
+            Assert.IsFalse((await document.GetSnapshotAsync()).Exists);
+            Assert.AreEqual(id, (await staleSqlite.LoadHolonAsync(id, loadChildren: false)).Result?.Id);
+
+            var healthy = new ProviderManager(null, dna) { IsAutoFailOverEnabled = true };
+            healthy.RegisterProvider(firestore);
+            healthy.RegisterProvider(staleSqlite);
+            Assert.IsFalse(healthy.SetAndReplaceAutoFailOverListForProviders(new[]
+            {
+                new EnumValue<ProviderType>(ProviderType.GoogleCloudOASIS),
+                new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS)
+            }).IsError);
+            var healthyRouter = new OASISHyperDrive(healthy);
+            var readFirestore = new StorageOperationRequest
+            {
+                Operation = "LoadHolon", HolonId = id, LoadChildren = false,
+                PreferredProvider = ProviderType.GoogleCloudOASIS
+            };
+            var missing = synchronous ? healthyRouter.RouteRequest<IHolon>(readFirestore)
+                : await healthyRouter.RouteRequestAsync<IHolon>(readFirestore);
+            Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, missing.ErrorCode, missing.Message);
+            Assert.IsNull(missing.Result);
+            Assert.AreEqual(0L, healthy.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS)?.TotalRequests ?? 0);
         }
         finally
         {
