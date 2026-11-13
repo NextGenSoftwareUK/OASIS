@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Coordinated Development batch - 13 November, Cancun
+
+HyperDrive advanced Development to `295ccba0c9ec` with the qualified Firestore database isolation test at 17:54:19. COSMIC integration candidate `5198038dca1c` preserves that test and carries exactly the six files from qualified protocol candidate `acc2d0c5dc90`. Exact combined qualification is pending. Review the shared rollout after 18:24:19 and coordinate one publisher. This staging step created no local build outputs or test fixtures.
+
 Web4Site `4db46979723e`: all 127 exact-source frontend tests passed. The public frontend currently lacks the SQL-like editor and Ask your data controls. Development preview discovery is gated on OASIS team access in Vercel, tracked in ACTIONS-FOR-DAVID. WEB6 pricing and bounds passed in the full protocol rerun, which continued to provider recovery checks.
 
 ## SQL-like CQL and Ask your data · 13 November, Cancun
