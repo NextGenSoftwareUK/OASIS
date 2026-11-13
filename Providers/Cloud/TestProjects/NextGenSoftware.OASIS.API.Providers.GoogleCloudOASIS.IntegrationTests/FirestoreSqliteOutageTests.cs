@@ -7,10 +7,8 @@ using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive;
-using NextGenSoftware.OASIS.API.Core.Serialization;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.Common;
-using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using NextGenSoftware.Utilities;
 using SqliteProvider = NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.SQLLiteDBOASIS;
 
@@ -82,17 +80,23 @@ public sealed class FirestoreSqliteOutageTests
                 var mismatch = await otherStore.ReadCommittedHolonReplicaReceiptAsync(request);
                 Assert.AreEqual("COSMIC_REPLICA_RECEIPT_STORAGE_MISMATCH", mismatch.ErrorCode);
 
-                var plan = CommittedHolonReplicaReceiptProjection.Prepare(request);
-                var acknowledged = StoredRecordJson.Project<Holon>(source);
-                CosmicConcurrency.SetProviderRevisionId(acknowledged, ProviderType.GoogleCloudOASIS, Guid.NewGuid());
                 var receipt = db.Collection("cosmicReplicaReceipts").Document(original.OperationId.ToString("D"));
+                var replicated = db.Collection("holons").Document(source.Id.ToString("D"));
+                var head = db.Collection("cosmicReplicaHeads").Document(source.Id.ToString("D"));
                 try
                 {
-                    await receipt.CreateAsync(new Dictionary<string, object>
-                    {
-                        ["fingerprint"] = plan.Fingerprint,
-                        ["acknowledgement"] = ConditionalHolonReceipt.Write(new[] { acknowledged }, plan)
-                    });
+                    var rejectedReplica = await otherStore.ApplyBoundCommittedHolonReplicaAsync(original, bindings[0].Result);
+                    Assert.AreEqual("COSMIC_REPLICA_STORAGE_BINDING_MISMATCH", rejectedReplica.ErrorCode);
+                    var applied = synchronous ? firestore.ApplyBoundCommittedHolonReplica(original, bindings[0].Result)
+                        : await firestore.ApplyBoundCommittedHolonReplicaAsync(original, bindings[0].Result);
+                    Assert.IsFalse(applied.IsError, applied.Message);
+                    Assert.AreEqual(source.VersionId, applied.Result.Single().VersionId);
+                    var native = await replicated.GetSnapshotAsync();
+                    Assert.IsTrue(native.Exists);
+                    Assert.IsTrue((await head.GetSnapshotAsync()).Exists);
+                    var replay = await firestore.ApplyBoundCommittedHolonReplicaAsync(original, bindings[0].Result);
+                    Assert.IsFalse(replay.IsError, replay.Message);
+                    Assert.AreEqual(native.UpdateTime, (await replicated.GetSnapshotAsync()).UpdateTime);
                     var committed = await firestore.ReadCommittedHolonReplicaReceiptAsync(request);
                     Assert.IsFalse(committed.IsError, committed.Message);
                     Assert.AreEqual(ConditionalHolonReceiptState.Committed, committed.Result.ReceiptState);
@@ -107,6 +111,8 @@ public sealed class FirestoreSqliteOutageTests
                 finally
                 {
                     await receipt.DeleteAsync();
+                    await replicated.DeleteAsync();
+                    await head.DeleteAsync();
                 }
             }
             finally
