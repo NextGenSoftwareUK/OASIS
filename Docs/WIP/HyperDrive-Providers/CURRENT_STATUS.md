@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. Windows active-reader 43339736537 and Linux writer-process 43339841493 passed on independently reproduced Development tree 1a5e59b287abdc3c55e0cd79ff28572a4509cc20. Prepared candidate 1c5edd702f65 with the two atomic DNA publication paths on the verified Polygon-based batch. No overlap with the pending Arbitrum scope.
+
 12 November Cancun time. Atomic DNA publication uses .NET Standard-compatible replacement for an existing file and a non-overwriting move for first publication. Linux native Kubo run 43339348600 passed on the earlier implementation. Exact compatible commit 72c62ee811bd is now under native Windows active-reader verification 43339736537 and Linux multi-process verification 43339841493. The existing 29-path Development candidate excludes this unqualified DNA change.
 
 12 November Cancun time. IPFS catalogue publication exposed a shared DNA persistence gap: SaveDNA truncated the visible pointer before writing the replacement. Sync and async saves now flush a sibling file, replace the pointer, then update shared in-memory state. IPFS reads share delete access for Windows rename. Native CI is pending; this does not implement bound replica replay or an outbox.

@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+12 November both exact DNA/IPFS native jobs removed their disposable Kubo runtimes, repositories and logs. Both temporary Git indexes used to reproduce the CI tree and compose 1c5edd702f65 were removed and verified absent. No local build or download.
+
 12 November removed and verified absence of the temporary Git index used to reproduce the Hedera CI tree and compose 088f6817ca5a. No local build or download.
 
 12 November both Hedera routing jobs in 43336838228 removed their owned Hiero fixtures and SDK dependencies. No local build or download.
