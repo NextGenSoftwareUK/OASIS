@@ -104,8 +104,8 @@ jobs:
               if ($LASTEXITCODE) { throw 'Native entity projection failed.' }
               foreach ($store in 'sqlite','mongo','neo') {
                 $report = Get-Content "TestResults/Neo4jCurrent/$store-entity-projection-native.json" -Raw | ConvertFrom-Json
-                if ($report.checks -ne 43 -or !($report.inMemoryFixture -or $report.exactCleanupVerified)) {
-                  throw "Expected all 43 native assertions and fixture cleanup for $store."
+                if ($report.checks -ne 44 -or !($report.inMemoryFixture -or $report.exactCleanupVerified)) {
+                  throw "Expected all 44 native assertions and fixture cleanup for $store."
                 }
               }
             }
