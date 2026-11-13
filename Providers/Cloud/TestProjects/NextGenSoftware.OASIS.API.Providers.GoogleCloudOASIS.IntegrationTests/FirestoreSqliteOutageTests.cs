@@ -83,6 +83,9 @@ public sealed class FirestoreSqliteOutageTests
                 var receipt = db.Collection("cosmicReplicaReceipts").Document(original.OperationId.ToString("D"));
                 var replicated = db.Collection("holons").Document(source.Id.ToString("D"));
                 var head = db.Collection("cosmicReplicaHeads").Document(source.Id.ToString("D"));
+                var successorId = Guid.NewGuid();
+                var deleteId = Guid.NewGuid();
+                var receipts = receipt.Parent;
                 try
                 {
                     var rejectedReplica = await otherStore.ApplyBoundCommittedHolonReplicaAsync(original, bindings[0].Result);
@@ -103,6 +106,35 @@ public sealed class FirestoreSqliteOutageTests
                     Assert.AreEqual(original.OperationId, committed.Result.OperationId);
                     Assert.IsFalse(string.IsNullOrEmpty(committed.Result.AcknowledgementDigest));
 
+                    var successor = new Holon { Id = source.Id, Version = 2, VersionId = Guid.NewGuid(),
+                        PreviousVersionId = source.VersionId, Name = "Replica successor", IsActive = true };
+                    CosmicConcurrency.SetProviderRevisionId(successor, ProviderType.SQLLiteDBOASIS, Guid.NewGuid());
+                    var update = new CommittedHolonReplicaRequest(successorId, original.SourceId, original.SourceAuthority,
+                        original.ActorId, ConditionalHolonOperation.Save, new[] { successor }, saveChildren: false);
+                    var updated = synchronous ? firestore.ApplyBoundCommittedHolonReplica(update, bindings[0].Result)
+                        : await firestore.ApplyBoundCommittedHolonReplicaAsync(update, bindings[0].Result);
+                    Assert.IsFalse(updated.IsError, updated.Message);
+                    var loaded = await firestore.LoadHolonAsync(source.Id, loadChildren: false);
+                    Assert.AreEqual(successor.VersionId, loaded.Result?.VersionId);
+
+                    var tombstone = new Holon { Id = source.Id, Version = 3, VersionId = Guid.NewGuid(),
+                        PreviousVersionId = successor.VersionId, Name = successor.Name, IsActive = false,
+                        DeletedDate = DateTime.UtcNow, DeletedByAvatarId = original.ActorId };
+                    CosmicConcurrency.SetProviderRevisionId(tombstone, ProviderType.SQLLiteDBOASIS, Guid.NewGuid());
+                    var deletion = new CommittedHolonReplicaRequest(deleteId, original.SourceId, original.SourceAuthority,
+                        original.ActorId, ConditionalHolonOperation.HardDelete, new[] { tombstone }, saveChildren: false);
+                    var deleted = synchronous ? firestore.ApplyBoundCommittedHolonReplica(deletion, bindings[0].Result)
+                        : await firestore.ApplyBoundCommittedHolonReplicaAsync(deletion, bindings[0].Result);
+                    Assert.IsTrue(!deleted.IsError && deleted.IsDeleted, deleted.Message);
+                    Assert.IsFalse((await replicated.GetSnapshotAsync()).Exists);
+                    Assert.IsTrue((await head.GetSnapshotAsync()).GetValue<bool>("hardDeleted"));
+                    var historical = await firestore.ReadCommittedHolonReplicaReceiptAsync(request);
+                    Assert.AreEqual(committed.Result.AcknowledgementDigest, historical.Result?.AcknowledgementDigest);
+                    var deleteEvidence = await firestore.ReadCommittedHolonReplicaReceiptAsync(
+                        new CommittedHolonReplicaReceiptReadRequest(deletion, bindings[0].Result));
+                    Assert.IsFalse(deleteEvidence.IsError, deleteEvidence.Message);
+                    Assert.AreEqual(ConditionalHolonReceiptState.Committed, deleteEvidence.Result.ReceiptState);
+
                     await receipt.UpdateAsync("fingerprint", new string('0', 64));
                     var tampered = await firestore.ReadCommittedHolonReplicaReceiptAsync(request);
                     Assert.AreEqual("COSMIC_REPLICA_RECEIPT_UNVERIFIED", tampered.ErrorCode);
@@ -111,6 +143,8 @@ public sealed class FirestoreSqliteOutageTests
                 finally
                 {
                     await receipt.DeleteAsync();
+                    await receipts.Document(successorId.ToString("D")).DeleteAsync();
+                    await receipts.Document(deleteId.ToString("D")).DeleteAsync();
                     await replicated.DeleteAsync();
                     await head.DeleteAsync();
                 }
