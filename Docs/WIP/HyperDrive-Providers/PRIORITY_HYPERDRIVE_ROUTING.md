@@ -30,6 +30,10 @@
 
 Sources for this checkpoint are the [native routing archive](Archive/HYPERDRIVE_V2_PROVIDER_IO_COVERAGE.md), the [hosted routing plan and receipts](../COSMIC%20ORM/HOSTED_SANDBOX_INTEGRATION_PLAN.md), the [COSMIC handoff](../COSMIC%20ORM/CURRENT_STATUS.md), and the [provider matrix](PROVIDER_MATRIX.md). Existing scoped passes carry forward. Auto selection and RoundRobin distribution have separate assertions. Native outages, sandbox faults, replica delivery, and direct provider storage each retain their own evidence.
 
+## Solana and SQLite point-read failover
+
+Both native Agave routing modes verified that a healthy Solana miss returns `RecordNotFound` without reading a SQLite replica holding the exact holon. Bidirectional replication, outage failover and RoundRobin passed in the same run. The tested tree matches Development candidate `309bb68419f2`. Hosted Solana writes and retained-ledger reconciliation remain open. [Exact native job](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43479479855/job/132071909921)
+
 ## HoloOASIS provider-key read gap
 
 Both native regression cases reproduced the packaged hApp rejecting a map payload at `get_holon_by_id` during deserialization. The C# provider exposes an action hash as the holon provider key. The fix in `3eca0776e7b2` sends that hash to `get_entry_holon` through HoloNET in both modes. The fix and collection diagnostics passed both native routing cases with zero skips on tree `af00e304101fd7d6890bee47701fddb68900f6fa`. An earlier fix run stopped during the initial collection read, and its cause is still unverified. The follow-up passed both direct reads using keys from native save responses. Both collection-routing cases failed in that run, so the full routing batch remains open. Hosted outbox verification remains open. [Native regression](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43466001272/job/132025169645) · [Passing native qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43467969317/job/132032080232) · [Standalone key checks](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43468243143)

@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+13 November Cancun time. Solana candidates `09bf570d7db9` and `309bb68419f2` used temporary Git indices that were removed. Native job 132071909921 completed the disposable Agave ledger and SQLite fixture teardown. CI logs were inspected in memory. No local build, runtime download or test fixture was created.
+
 13 November Cancun time. HoloOASIS integration candidates `73bc7c86ea74` and `86c157239f29` used temporary Git indices, removed after writing the trees. Native jobs 132042931857 and 132047519781 completed the disposable conductor checks. CI logs were inspected in memory. No local build, runtime download or test fixture was created.
 
 13 November Cancun time. SQLite and Oracle qualification candidates `fe8319aa11bd`, `799e39c25f60`, `31e53ead6e46` and `0ca6397b2fce` each used a temporary Git index removed in the candidate command's cleanup. Native Neo4j jobs 131997447542 and 132006200160 passed the owned fixture directory removal and service teardown. Oracle job 132012019566 passed the owned fixture directory and container-volume removal. Logs were inspected in memory. No local build, runtime, download or test fixture was created. C: had 27.75 GiB free at 11:31 Cancun time.
