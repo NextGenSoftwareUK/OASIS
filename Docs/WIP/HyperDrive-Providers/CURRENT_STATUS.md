@@ -18,7 +18,7 @@
 
 ## Verification log
 
-13 November Cancun time. Native Kubo run 43386691309 passed on integrated Development fe97923f2af4 and confirmed fixture cleanup. Follow-up test 702414754a2e exercises the encrypted catalogue read limit and checks that rejecting an oversized index preserves the published DNA pointer. Restart 43387168850 and automatic multi-process 43387140767 are queued. Atomic outbound replication remains open.
+13 November Cancun time. Native Kubo run 43386691309 passed on integrated Development fe97923f2af4 and confirmed fixture cleanup. Follow-up test 702414754a2e exercises the encrypted catalogue read limit and checks that rejecting an oversized index preserves the published DNA pointer. Restart 43387168850 verified that the oversized encrypted catalogue was rejected without moving the published pointer. Multi-process 43387140767 also passed on exact tree 81e540d69add1716b1910b39bc4554fce781fd76. Atomic outbound replication remains open.
 
 13 November Cancun time. Updated the native IPFS workflow reviewed baseline to integrated Development fe97923f2af4 so future IPFS changes qualify against the published four-file scope. The overlay still rejects any unexpected Development file revision. No local builds or downloads.
 
