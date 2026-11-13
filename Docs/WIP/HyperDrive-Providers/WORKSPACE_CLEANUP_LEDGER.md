@@ -914,3 +914,5 @@ Urgent disk cleanup follow-up: leased standard project clean succeeded for AWS u
 13 November. TON qualification job 132157039582 removed the owned fixture after stopping before tests. The old compiler wrote its output under TestResults on the hosted runner. The corrected candidate writes inside the owned fixture. Both local temporary Git indexes were removed. No local builds or downloads ran.
 
 13 November. Exact TON qualification job 132158447253 removed its owned compilation, TVM ledgers, SQLite files and test output. Logs were reviewed in memory.
+
+13 November. Native DynamoDB job 132162428762 passed the workflow teardown gate for the owned DynamoDB process and runner fixture. The Development candidate used a temporary Git index that was removed after pushing. No local builds or downloads ran.
