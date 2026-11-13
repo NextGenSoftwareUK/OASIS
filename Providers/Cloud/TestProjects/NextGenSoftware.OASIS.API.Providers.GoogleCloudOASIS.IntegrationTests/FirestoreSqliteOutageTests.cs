@@ -73,6 +73,20 @@ public sealed class FirestoreSqliteOutageTests
             {
                 await otherStore.DeActivateProviderAsync();
             }
+            var avatarDocument = db.Collection("avatars").Document(id.ToString());
+            try
+            {
+                var avatar = await firestore.SaveAvatarAsync(new Avatar { Id = id, IsActive = true });
+                Assert.IsFalse(avatar.IsError, avatar.Message);
+                Assert.IsTrue((await avatarDocument.GetSnapshotAsync()).Exists);
+            }
+            finally
+            {
+                var storedAvatar = await avatarDocument.GetSnapshotAsync();
+                if (storedAvatar.Exists)
+                    await avatarDocument.DeleteAsync(Precondition.LastUpdated(storedAvatar.UpdateTime!.Value));
+                Assert.IsFalse((await avatarDocument.GetSnapshotAsync()).Exists);
+            }
             var saved = await firestore.SaveHolonAsync(new Holon { Id = id, Name = expected, IsActive = true }, saveChildren: false);
             Assert.IsFalse(saved.IsError, saved.Message);
             Assert.IsTrue((await document.GetSnapshotAsync()).Exists);
