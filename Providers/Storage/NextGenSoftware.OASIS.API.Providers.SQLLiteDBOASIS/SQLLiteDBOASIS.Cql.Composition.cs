@@ -7,7 +7,7 @@ using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 
-public partial class SQLLiteDBOASIS : ICosmicQueryProjectedAllStorageProvider, ICosmicQueryEntityProjectionCardinalityStorageProvider, ICosmicQueryEntityProjectedAllStorageProvider
+public partial class SQLLiteDBOASIS : ICosmicQueryProjectedAllStorageProvider, ICosmicQueryEntityProjectionCardinalityStorageProvider, ICosmicQueryEntityProjectionNumericStorageProvider, ICosmicQueryEntityProjectedAllStorageProvider
 {
     public bool SupportsEntityProjectedAll=>true;
     public Task<OASISResult<CosmicProjectedAllPacket>> ExecuteCosmicEntityProjectedAllAsync<T,TResult>(
@@ -22,6 +22,7 @@ public partial class SQLLiteDBOASIS : ICosmicQueryProjectedAllStorageProvider, I
             : repository.ExecuteCosmicEntityProjectedAllAsync(plan,limits,cancellationToken);
     }
 
+    public bool SupportsEntityProjectionNumeric => true;
     public bool SupportsEntityProjectionCardinality=>true;
     public bool SupportsEntityProjectionComposition => true;
     public Task<OASISResult<CosmicProjectionCompositionPacket>> ExecuteCosmicEntityProjectionCompositionAsync<T,TResult>(
