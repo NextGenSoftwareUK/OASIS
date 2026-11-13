@@ -944,3 +944,5 @@ Urgent disk cleanup follow-up: leased standard project clean succeeded for AWS u
 13 November. Firestore job 132198951176 removed its emulator and owned fixture. Logs were reviewed in memory. No local test outputs were produced.
 
 13 November. Firestore job 132202881833 removed its emulator and fixture after the project mismatch. No local build ran.
+
+13 November. Removed the temporary Git indexes used to stage Firestore database isolation on 87d37316ed4d and then 5d0c50d707fe. No local runtime or test artifacts were produced.
