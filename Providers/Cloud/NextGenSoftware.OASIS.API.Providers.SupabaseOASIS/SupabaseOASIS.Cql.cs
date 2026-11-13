@@ -14,8 +14,24 @@ using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS;
 
-public partial class SupabaseOASIS : ICosmicQueryStorageProvider
+public partial class SupabaseOASIS : ICosmicQueryStorageProvider, ICosmicReadOnlyQueryActivation
 {
+    private readonly Guid _publicQueryProbeId;
+
+    protected SupabaseOASIS(string origin, string gatewayKey, string readerToken, HttpClient client, Guid probeId)
+        : this(origin, gatewayKey, client, "/rest/v1", readerToken)
+    {
+        if (probeId == Guid.Empty)
+            throw new ArgumentException("An existing public teaching probe is required.", nameof(probeId));
+        _publicQueryProbeId = probeId;
+    }
+
+    public static SupabaseOASIS CreatePublicQueryProvider(string origin, string gatewayKey, string readerToken,
+        HttpClient client, Guid probeId) => new(origin, gatewayKey, readerToken, client, probeId);
+
+    public Task<OASISResult<bool>> ActivateQuerySourceAsync(CancellationToken cancellationToken = default)
+        => VerifyPublicQueryProbeAsync(_publicQueryProbeId, cancellationToken);
+
     public ProviderType QueryProviderType => ProviderType.Value;
     private static readonly CosmicQueryCapabilities UnsupportedAlias = new(CosmicQueryFeatures.None,
         Array.Empty<CosmicQueryFieldCapability>());

@@ -34,7 +34,7 @@ public static class CqlSupabaseReadSourceRegistration
 
         services.AddKeyedSingleton<HttpClient>(ClientKey, (_, _) => new HttpClient(
             new ExactReadHandler(origin, NativeConnectionGuard.CreateGuardedHttpHandler())));
-        services.AddSingleton<CqlReadSourceProfile>(provider => new CqlReadSourceProfile(new SupabaseQuerySource(
+        services.AddSingleton<CqlReadSourceProfile>(provider => new CqlReadSourceProfile(SupabaseOASIS.CreatePublicQueryProvider(
             origin.AbsoluteUri, key, reader, provider.GetRequiredKeyedService<HttpClient>(ClientKey), id)));
     }
 

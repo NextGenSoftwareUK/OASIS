@@ -13,7 +13,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS.IntegrationTests;
 [TestClass]
 public class SupabaseHostedCqlNativeTests
 {
-    private sealed record Source(Guid Actor, Guid[] LiveIds, Guid DeletedId, Guid MissingId);
+    private sealed record Source(Guid Actor, Guid[] LiveIds, Guid DeletedId, Guid MissingId, string Origin);
 
     [TestMethod]
     [TestCategory("SupabaseHostedCqlNative")]
@@ -33,11 +33,14 @@ public class SupabaseHostedCqlNativeTests
         const string prefix = "CQL_SUPABASE_QUERY_";
         var settings = new[] { "ORIGIN", "GATEWAY_KEY", "READER_TOKEN", "PROBE_ID" }
             .ToDictionary(name => prefix + name, name => Environment.GetEnvironmentVariable(prefix + name));
-        Assert.IsTrue(Guid.TryParseExact(settings[prefix + "PROBE_ID"], "D", out var probe) && source.LiveIds.Contains(probe));
+        Assert.IsFalse(string.IsNullOrWhiteSpace(source.Origin));
+        Assert.AreEqual(source.Origin, settings[prefix + "ORIGIN"]);
+        Assert.AreEqual(source.LiveIds[0].ToString("D"), settings[prefix + "PROBE_ID"]);
         var services = new ServiceCollection();
         services.AddSupabaseReadSource(new ConfigurationBuilder().AddInMemoryCollection(settings).Build());
         using var container = services.BuildServiceProvider();
-        var provider = (SupabaseQuerySource)container.GetRequiredService<CqlReadSourceProfile>().Storage;
+        var provider = (SupabaseOASIS)container.GetRequiredService<CqlReadSourceProfile>().Storage;
+        Assert.AreEqual(typeof(SupabaseOASIS), provider.GetType());
         const ProviderType authority = ProviderType.SupabaseOASIS;
         CosmicQuery<Holon> Query() => CosmicQuery<Holon>.Create(CosmicQueryScope.Named(authority).Result)
             .WithReadAccess(CosmicQueryReadAccess.AuthoritativeRecords(source.Actor, authority, ids).Result).Result;
