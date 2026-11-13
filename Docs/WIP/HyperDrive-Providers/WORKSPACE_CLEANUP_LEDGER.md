@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+13 November historical replay checks 43370692451 and 43370688880 confirmed removal of both disposable Kubo fixtures. No local builds or downloads.
+
 13 November garbage-collection restart 43369671972 and multi-process 43369656876 logged removal of both disposable Kubo fixtures. No local builds or downloads.
 
 13 November removed and verified absence of the temporary Git index used for the Polkadot-based IPFS candidate. No local build or download.

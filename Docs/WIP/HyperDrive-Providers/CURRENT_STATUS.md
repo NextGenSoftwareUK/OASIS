@@ -18,6 +18,8 @@
 
 ## Verification log
 
+13 November Cancun time. Polkadot 49f8463de927 is now the remote Development head. Dispatched native restart 43371454193 and multi-process 43371456764 from c5d12062f03c. These runs include the historical replay assertion added after the earlier Polkadot-based candidate. Verify the emitted tree against a candidate assembled from those exact inputs before integration.
+
 13 November Cancun time. Native Kubo restart 43370692451 passed historical replay after a successor commit on tree 99d8f301988da4e8afb075a88fb054fd599db45a. The older acknowledgement was returned and the newer catalogue pointer remained unchanged. The restart job confirmed fixture cleanup. The Polkadot image passed and remains the next coordinated batch after 00:17:49.
 
 13 November Cancun time. All seven Railway API statuses succeeded on IPFS audit Development 2ec99009d7c8. COSMIC verified all four public IPFS presets on the exact WEB4 deployment b1099595-52d6-461d-908e-43c134c540ec, including MongoDB federation. Hosted replica writes remain open. The new native restart workflow runs offline Kubo garbage collection between write and read phases. Restart 43369671972 passed after native Kubo garbage collection. Current and historical records survived restart, and subsequent native replica assertions passed. Companion multi-process 43369656876 passed on the same tree fb4ea5c681ab3591bb9a1cdb729099531868a531. Both jobs removed their fixtures. The IPFS candidate is prepared after Polkadot and remains outside the current rollout. No local builds or downloads.
