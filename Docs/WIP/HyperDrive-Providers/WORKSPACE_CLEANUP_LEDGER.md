@@ -906,3 +906,5 @@ Urgent disk cleanup follow-up: leased standard project clean succeeded for AWS u
 13 November: Native Mastodon job 132141097559 removed its fixture directory. The combined Solid and ActivityPub qualification used a temporary Git index, removed after pushing. No local builds or downloads were used.
 
 13 November. Exact Mastodon qualification job 132146535759 removed its owned fixture directory. The job log was reviewed in memory. No local test outputs or downloads were retained.
+
+13 November. TON job 132149191211 removed its compilation, TVM ledgers, SQLite files and test output after both assertions failed. Logs were inspected in memory.

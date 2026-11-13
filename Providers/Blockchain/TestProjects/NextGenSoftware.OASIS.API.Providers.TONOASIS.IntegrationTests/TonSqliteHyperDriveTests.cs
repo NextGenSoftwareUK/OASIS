@@ -89,7 +89,6 @@ public sealed class TonSqliteHyperDriveTests
                 PreferredProvider = ton.ProviderType.Value, LoadChildren = false
             };
             var absent = sync ? router.RouteRequest<IHolon>(request) : await router.RouteRequestAsync<IHolon>(request);
-            Assert.IsTrue(absent.IsError, absent.Message);
             Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, absent.ErrorCode, absent.Message);
             Assert.IsNull(absent.Result);
             Assert.AreEqual(0L, manager.PerformanceMonitor.GetMetrics(sqlite.ProviderType.Value)?.TotalRequests ?? 0);
