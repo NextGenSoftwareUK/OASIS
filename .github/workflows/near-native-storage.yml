@@ -59,7 +59,7 @@ jobs:
         if: inputs.routing
         shell: bash
         run: |
-          base=df02d6f43bfe282017cb236366c15940391a864c
+          base=33174f42c5c38f00dbf92f508eb720203fd58a54
           git -C ../provider-source fetch --no-tags --depth=1 origin "$base"
           near='Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests'
           for path in "$near/NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests.csproj" \
