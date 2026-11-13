@@ -18,6 +18,8 @@
 
 ## Verification log
 
+13 November Cancun time. Added the SQLite holon repository to the existing native Neo4j failover workflow's path filters. Changes to SQLite's point-read outcome now trigger the outage and healthy-miss controls on the task branch. Reviewed MongoDB's corresponding shipping point-read implementation, which already returns `RecordNotFound` when the requested root is absent. No MongoDB change or repeat native suite was needed. No local artifacts were created.
+
 13 November Cancun time. [Exact Development Bolt job 131991318279](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43456326665/job/131991318279) passed both native SQLite and Neo4j cases with zero skips on `f9dc0d5811f3` and verified fixture cleanup. The healthy-miss check observed no request to Neo4j. The outage case returned the exact Neo4j record only with failover enabled. The candidate is qualified for the next shared review after 11:09:31 Cancun, subject to the current parent and WEB4 rollout. No local artifacts were created.
 
 13 November Cancun time. Staged `f9dc0d5811f3` on Development `a21ef5600214` using the existing Neo4j qualification ref and the assigned worktree. Verified that its two changed files exactly match the native-tested fix `748c32342469`. [Exact native qualification 43456326665](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43456326665) is running. Railway was still building WEB4 deployment `cfc3ba9b-f9c6-4b61-ab8a-ca386fc934d5`. No Development push, new worktree, local build or fixture files were created.
