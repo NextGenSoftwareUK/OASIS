@@ -30,6 +30,10 @@
 
 Sources for this checkpoint are the [native routing archive](Archive/HYPERDRIVE_V2_PROVIDER_IO_COVERAGE.md), the [hosted routing plan and receipts](../COSMIC%20ORM/HOSTED_SANDBOX_INTEGRATION_PLAN.md), the [COSMIC handoff](../COSMIC%20ORM/CURRENT_STATUS.md), and the [provider matrix](PROVIDER_MATRIX.md). Existing scoped passes carry forward. Auto selection and RoundRobin distribution have separate assertions. Native outages, sandbox faults, replica delivery, and direct provider storage each retain their own evidence.
 
+## SQLite and Neo4j point-read failover
+
+The combined candidate `fe8319aa11bd` passed both sync and async against SQLite and Neo4j over Bolt. With SQLite unavailable, HyperDrive returned the exact Neo4j holon only when failover was enabled. With SQLite healthy, a holon miss by ID and avatar-detail misses by ID, username and email each returned `RecordNotFound` without sending a read to Neo4j. SQLite holon lookup by provider key uses the same absence code. This native fixture exercised the holon ID route. CI verified cleanup and container teardown. Development integration remains pending. [Exact native job](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43458081690/job/131997447542)
+
 ## ActivityPub cross-instance read acceptance
 
 Mastodon status and account IDs belong to the instance that returned them. Cross-instance status reads need an explicit ActivityPub object URI and an exact match against the returned status URI. Mastodon's authenticated search can resolve an HTTPS URL. That lookup uses the configured instance and its read-scoped token. [Native ID scope](https://docs.joinmastodon.org/client/public/) · [URL resolution](https://docs.joinmastodon.org/methods/search/)
