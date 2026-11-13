@@ -18,6 +18,8 @@
 
 ## Verification log
 
+13 November Cancun time. Prepared candidate c857eef18ef180459281007523beaba47ec64696 on Development fe97923f2af4, matching tree 1f3b39c3f0e7cad3aa9929a9b42d5193cb2b25a5 from native Kubo restart run 43388976977. That run proved ordinary-save revision invalidation and confirmed cleanup. The later cross-restart conditional receipt replay run 43389504857 remains queued. Keep the conditional write scope on the work branch while broader native verification continues.
+
 13 November Cancun time. Initial native IPFS conditional create and receipt replay passed restart run 43388345691. Added a regression for an intervening ordinary save, checking its new revision against a native reload and verifying the stale conditional request leaves the pointer untouched. Targeted verification pending. No local builds or downloads.
 
 13 November Cancun time. IPFS conditional graph writes now compare native revisions under the catalogue lease and publish the graph and replay receipt under one durable pointer. Added a native stale-revision assertion for an unchanged pointer. Restart verification is pending. Outbound route enrollment, leasing and dispatch remain open. No local builds or downloads.
