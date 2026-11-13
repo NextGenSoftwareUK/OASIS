@@ -18,6 +18,8 @@
 
 ## Verification log
 
+13 November Cancun time. Added a native HyperDrive control for a healthy SQLite holon miss by provider key in both modes. It requires `RecordNotFound` and shares the existing zero-Neo4j-requests assertion. The previously verified combined candidate remains available for the shared integration review. No local build or fixture files were created.
+
 13 November 11:00 Cancun time. [Exact combined native job 131997447542](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43458081690/job/131997447542) finished successfully on `fe8319aa11bd`, including both Bolt routing modes with zero skips, fixture removal and container teardown. Healthy SQLite holon and avatar-detail misses stopped before Neo4j. The absent SQLite file still exercised actual failover to the exact Neo4j record. Development still points to `a21ef5600214`; the combined candidate is ready for the shared review after 11:09:31 Cancun. No local build or fixture outputs were created.
 
 13 November 10:58 Cancun time. All seven API deployment statuses reported success for Development `a21ef5600214`, with WEB4 independently confirmed in Railway. The exact combined SQLite candidate `fe8319aa11bd` is on the existing qualification ref in [native CI 43458081690](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43458081690). The earlier holon-only candidate remains verified. The next shared integration review is after 11:09:31 Cancun. The temporary candidate index was removed and no local build or test fixtures were created.
