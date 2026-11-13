@@ -101,8 +101,10 @@ def verify_round_robin(state, revision):
         provider = route["ServingProvider"]
         selected[provider] += 1
         serving_order.append(provider)
-    if selected != Counter({provider: 3 for provider in providers}) or serving_deployment() != deployment:
-        raise RuntimeError("The reviewed deployment did not serve three reads from each provider.")
+    if serving_deployment() != deployment:
+        raise RuntimeError("The reviewed WEB4 deployment changed during the RoundRobin reads.")
+    if selected != Counter({provider: 3 for provider in providers}):
+        raise RuntimeError(f"Expected three reads from each provider. Observed serving order: {serving_order}.")
     evidence = {"deployment": deployment, "revision": revision, "servingCounts": dict(selected),
                 "servingOrder": serving_order, "strategy": "RoundRobin", "newSaves": 0}
     flow.write_new(acknowledgement, json.dumps(evidence).encode())
