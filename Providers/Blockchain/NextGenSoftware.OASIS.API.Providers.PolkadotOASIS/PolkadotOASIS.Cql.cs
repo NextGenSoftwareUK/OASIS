@@ -34,6 +34,16 @@ public partial class PolkadotOASIS : ICosmicQueryStorageProvider, ICosmicReadOnl
         ? PolkadotCqlCompiler.Capabilities : CombinedQueryCapabilities;
     public bool IsQuerySourceActivated => publicQueryVerified;
 
+    public static PolkadotOASIS CreatePublicHeaderReader(string json)
+    {
+        var headers = PolkadotPublicHeaderMetadataSource.CreateHeaders(json, PublicAccountHttp);
+        return new PolkadotOASIS(headers.Endpoint.AbsoluteUri, PolkadotPublicHeaderMetadataSource.Genesis,
+            privateKey: null, bridgePoolAddress: null, storage: null, nft: null, tokenEscrow: null)
+        {
+            publicHeaders = headers
+        };
+    }
+
     public void ConfigurePublicHeaderQuery(string json)
     {
         if (publicHeaders != null)

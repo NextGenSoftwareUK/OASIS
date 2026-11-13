@@ -59,7 +59,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 {
     public static partial class OASISBootLoader
     {
-        private static OASISResult<IOASISStorageProvider> RegisterProviderInternal(ProviderType providerType, string overrideConnectionString = null, bool forceRegister = false)
+        private static OASISResult<IOASISStorageProvider> RegisterProviderInternal(ProviderType providerType, string overrideConnectionString = null, bool forceRegister = false, string polkadotPublicHeaderConfiguration = null)
         {
             OASISResult<IOASISStorageProvider> result = new OASISResult<IOASISStorageProvider>();
 
@@ -361,6 +361,14 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
                         case ProviderType.PolkadotOASIS:
                         {
+                            if (polkadotPublicHeaderConfiguration != null)
+                            {
+                                var reader = NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.PolkadotOASIS
+                                    .CreatePublicHeaderReader(polkadotPublicHeaderConfiguration);
+                                reader.OnStorageProviderError += (_, error) => HandleProviderError("PolkadotOASIS", error);
+                                result.Result = reader;
+                                break;
+                            }
                             var settings = OASISDNA.OASIS.StorageProviders.PolkadotOASIS
                                 ?? throw new InvalidOperationException("Polkadot storage settings are required.");
                             if (!System.Text.RegularExpressions.Regex.IsMatch(settings.GenesisHash ?? "", "^0x[0-9a-fA-F]{64}$"))
