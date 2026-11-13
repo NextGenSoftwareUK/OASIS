@@ -178,6 +178,17 @@ public sealed class IPFSRestartTests
                 var replay = await provider.ExecuteConditionalHolonWriteAsync(request);
                 Assert.True(replay.IsSaved && !replay.IsError, replay.Message);
                 Assert.Equal(Guid.Parse(await File.ReadAllTextAsync(conditionalVersionPath)), Assert.Single(replay.Result).VersionId);
+                var evidenceRequest = new ConditionalHolonReceiptEvidenceRequest(request, identity.Result,
+                    identity.Result, new[] { conditionalRecord.Id });
+                var evidence = await provider.ReadConditionalHolonReceiptEvidenceAsync(evidenceRequest);
+                Assert.True(evidence.IsLoaded && !evidence.IsError, evidence.Message);
+                var committed = Assert.Single(evidence.Result.ReceiptEvidence.Records);
+                var replayedRecord = Assert.Single(replay.Result);
+                Assert.Equal(replayedRecord.VersionId, committed.VersionId);
+                Assert.Equal(CosmicConcurrency.GetProviderRevisionId(replayedRecord, ProviderType.IPFSOASIS),
+                    committed.SourceProviderRevisionId);
+                Assert.Equal(CommittedHolonReplicaPlan.PortableContentDigest(replayedRecord, ProviderType.IPFSOASIS),
+                    committed.PortableContentDigest);
                 Assert.Equal(pointerBeforeReplay, await File.ReadAllTextAsync(dnaPath));
 
                 var beforeDelete = await provider.LoadHolonAsync(conditionalRecord.Id, loadChildren: false);
