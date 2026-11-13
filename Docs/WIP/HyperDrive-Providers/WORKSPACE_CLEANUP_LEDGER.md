@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+13 November removed and verified absence of the temporary Git index used for the Polkadot-based IPFS candidate. No local build or download.
+
 12 November exact audit-baseline checks 43368094591 and 43368085941 removed both disposable Kubo runtime and fixture directories. No local build or download.
 
 12 November removed the temporary index used to reproduce the IPFS tombstone and binding tree and verified it was absent. No local build or download.
