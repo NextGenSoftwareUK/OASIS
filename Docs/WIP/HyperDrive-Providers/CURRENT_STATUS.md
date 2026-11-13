@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. Polygon exact WEB4 image 43332319040 passed before the shared review, and COSMIC is preparing its nine-file batch. HyperDrive prepared candidate e7bc1b483529 on Polygon c47edf2e3062 and verified the same 21 routing path modes and object IDs as candidate b53b3c603d6d. Recheck remote and deployment before any push. IPFS exact Development persistence run 43335687633 and active-reader run 43335780583 are active. No local fixture or temporary index was created.
+
 12 November Cancun time. IPFS persisted catalogue reads passed the exact independent-writer regression 43334872668. Both already-active provider instances and a fresh reader returned every acknowledged ID from real Kubo. The companion multi-process run 43334831167 also passed. COSMIC and HyperDrive review the shared window after 19:24:08. Polygon has the window if its exact image passes and the parent is unchanged.
 
 12 November Cancun time. COSMIC verified live WEB4 recovery on Development 18f227af493a. Browser preflight and the four HoloOASIS and four Ethereum public presets passed, and all seven API deployments succeeded. The next shared review opens after 19:24:08 Cancun. IPFS independent-writer run 43334872668 targets the two active instances on the persisted catalogue root. The earlier writer-process cleanup is confirmed in 43334318232.
