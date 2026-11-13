@@ -162,6 +162,9 @@ jobs:
             }
           }
           ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner 'CI-IpfsPersistence' -Operation {
+            $dnaProject = 'OASIS Architecture/NextGenSoftware.OASIS.API.DNA/NextGenSoftware.OASIS.API.DNA.csproj'
+            dotnet build $dnaProject --framework netstandard2.1 /m:2 /nr:false /p:UseSharedCompilation=false
+            if ($LASTEXITCODE -ne 0) { throw 'DNA must compile for its .NET Standard package target.' }
             $project = 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.IPFSOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.IPFSOASIS.IntegrationTests.csproj'
             if ($env:IPFS_TEST_SCENARIO -eq 'restart') {
               $testFilter = 'FullyQualifiedName~PersistsCurrentAndHistoricalHolonAcrossDaemonRestart'
