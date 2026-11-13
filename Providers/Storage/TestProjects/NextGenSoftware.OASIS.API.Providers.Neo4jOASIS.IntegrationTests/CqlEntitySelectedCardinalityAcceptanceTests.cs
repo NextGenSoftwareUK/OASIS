@@ -18,6 +18,27 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Assert.AreEqual(2,selected.Count());Assert.AreEqual(2L,selected.LongCount());Assert.IsTrue(selected.Any());
         Passed("native Count LongCount Any after entity windows without selected stages");
 
+        var expected=selected.ToArray();
+        Assert.AreEqual(2,expected.Length);
+        Assert.AreEqual(expected[0],selected.First());
+        Assert.AreEqual(expected[1],selected.Last());
+        Assert.AreEqual(expected[1],selected.ElementAt(1));
+        Assert.AreEqual(expected[1],selected.ElementAt(^1));
+        Assert.AreEqual(expected[0],selected.Take(1).Single());
+        Assert.AreEqual("missing",selected.Take(0).FirstOrDefault("missing"));
+        Passed("native entity-selected element terminals retain window order and explicit default");
+
+        var versions = root.OrderBy(row => row.Name).Take(3).Reverse().Take(2)
+            .Select(row => new { row.Version, row.Name }).Where(row => row.Version >= 1);
+        var expectedVersions = versions.ToArray();
+        Assert.IsTrue(expectedVersions.Length > 0);
+        Assert.AreEqual(expectedVersions.Min(row => row.Version), versions.Min(row => row.Version));
+        Assert.AreEqual(expectedVersions.Max(row => row.Version), versions.Select(row => row.Version).Max());
+        var nullable = root.OrderBy(row => row.Name).Take(3).Reverse().Take(0)
+            .Select(row => CosmicQueryMetadata.Value<int?>(row, "nullableInt"));
+        Assert.IsNull(nullable.Min());
+        Passed("native Min and Max preserve entity windows, selected predicates, reselection and empty nullable output");
+
         var first=root.OrderBy(row=>row.Name).Take(1).Where(row=>row.Version>=1)
             .Select(row=>new NativeProjectionProbe{Name=row.Name}).Select(row=>row.Name).Take(1);
         NativeProjectionProbe.Constructors=0;
