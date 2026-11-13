@@ -88,6 +88,7 @@ public sealed class FirestoreSqliteOutageTests
                 var head = db.Collection("cosmicReplicaHeads").Document(source.Id.ToString("D"));
                 var successorId = Guid.NewGuid();
                 var deleteId = Guid.NewGuid();
+                var rejectedId = Guid.NewGuid();
                 var receipts = receipt.Parent;
                 try
                 {
@@ -112,6 +113,16 @@ public sealed class FirestoreSqliteOutageTests
                     var successor = new Holon { Id = source.Id, Version = 2, VersionId = Guid.NewGuid(),
                         PreviousVersionId = source.VersionId, Name = "Replica successor", IsActive = true };
                     CosmicConcurrency.SetProviderRevisionId(successor, ProviderType.SQLLiteDBOASIS, Guid.NewGuid());
+                    var wrongPredecessor = successor.PreviousVersionId;
+                    successor.PreviousVersionId = Guid.NewGuid();
+                    var invalidUpdate = new CommittedHolonReplicaRequest(rejectedId, original.SourceId, original.SourceAuthority,
+                        original.ActorId, ConditionalHolonOperation.Save, new[] { successor }, saveChildren: false);
+                    var rejected = synchronous ? firestore.ApplyBoundCommittedHolonReplica(invalidUpdate, bindings[0].Result)
+                        : await firestore.ApplyBoundCommittedHolonReplicaAsync(invalidUpdate, bindings[0].Result);
+                    Assert.AreEqual("COSMIC_REPLICA_LINEAGE_CONFLICT", rejected.ErrorCode, rejected.Message);
+                    Assert.AreEqual(native.UpdateTime, (await replicated.GetSnapshotAsync()).UpdateTime);
+                    Assert.IsFalse((await receipts.Document(rejectedId.ToString("D")).GetSnapshotAsync()).Exists);
+                    successor.PreviousVersionId = wrongPredecessor;
                     var update = new CommittedHolonReplicaRequest(successorId, original.SourceId, original.SourceAuthority,
                         original.ActorId, ConditionalHolonOperation.Save, new[] { successor }, saveChildren: false);
                     var updated = synchronous ? firestore.ApplyBoundCommittedHolonReplica(update, bindings[0].Result)
@@ -148,6 +159,7 @@ public sealed class FirestoreSqliteOutageTests
                     await receipt.DeleteAsync();
                     await receipts.Document(successorId.ToString("D")).DeleteAsync();
                     await receipts.Document(deleteId.ToString("D")).DeleteAsync();
+                    await receipts.Document(rejectedId.ToString("D")).DeleteAsync();
                     await replicated.DeleteAsync();
                     await head.DeleteAsync();
                 }
