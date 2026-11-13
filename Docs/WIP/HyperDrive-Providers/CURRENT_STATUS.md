@@ -18,6 +18,8 @@
 
 ## Verification log
 
+13 November Cancun time. Development advanced to 9a80b945db8a with COSMIC extrema and CQL test changes. The scoped WEB4 point-read candidate is now 747ac0d8d140, tree ebf3054413b0e747fdda7eacdb5a1641efa7e551, with Core 3e358637 on shared Core fcbc9248. Exact image run 43408972198 is pending. Requested cancellation of superseded run 43406649562 to release the shared image build slot. Hosted fixture verification remains open.
+
 13 November Cancun time. WEB4 qualification candidate d32e19c492c5 on Development 0d965e8c4459 preserves the shared tree outside the controller, request model, Core gitlink and Railway pin. Exact image run 43406649562 reached Build and push. All seven predecessor Railway statuses succeeded. The acknowledged hosted MongoDB/SQLite cohort was absent from the local OASIS checkouts inspected. The protected cohort access dependency is recorded in ACTIONS-FOR-DAVID.md.
 
 13 November Cancun time. WEB4 point-read strategy is implemented on the task branch at 72016de31f21, with Core b1e08eb5. Image build 43405964931 is active. The hosted RoundRobin verifier reuses an acknowledged owner and record, checks the serving revision before and after, and requires three response-owned reads per provider across MongoDB and SQLite. The retained cohort is absent from the checked local worktrees. Hosted execution remains open. Python CLI import and argument parsing passed with bytecode disabled. No local builds or downloads.
