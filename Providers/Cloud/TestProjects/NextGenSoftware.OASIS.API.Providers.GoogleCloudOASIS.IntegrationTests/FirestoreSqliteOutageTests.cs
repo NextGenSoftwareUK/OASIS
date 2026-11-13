@@ -23,7 +23,7 @@ public sealed class FirestoreSqliteOutageTests
     public async Task SqliteOutageRoutesToFirestore(bool synchronous)
     {
         Assert.AreEqual("127.0.0.1:18180", Environment.GetEnvironmentVariable("FIRESTORE_EMULATOR_HOST"));
-        var project = synchronous ? "demo-oasis-firestore-sync" : "demo-oasis-firestore-async";
+        const string project = "demo-oasis-firestore-outage";
         var db = GoogleNativeFirestore.Database(project);
         var fixture = Path.GetFullPath(Environment.GetEnvironmentVariable("OASIS_FIRESTORE_CI_FIXTURE")
             ?? throw new InvalidOperationException("An owned Firestore fixture directory is required."));
@@ -59,8 +59,8 @@ public sealed class FirestoreSqliteOutageTests
             {
                 await reopened.DeActivateProviderAsync();
             }
-            var otherStore = new GoogleCloudOASIS(projectId: $"{project}-other", enableStorage: false,
-                enableFirestore: true, enableBigQuery: false);
+            var otherStore = new GoogleCloudOASIS(projectId: project, enableStorage: false,
+                enableFirestore: true, enableBigQuery: false, firestoreDatabaseId: "replica-binding-other");
             try
             {
                 var otherActivation = await otherStore.ActivateProviderAsync();
