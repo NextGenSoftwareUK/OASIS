@@ -70,8 +70,9 @@ public partial class AWSOASISIntegrationTests
             var existing = await _provider.LoadHolonAsync(id, loadChildren: false);
             if (existing.Result != null)
             {
-                var deleted = await _provider.DeleteHolonAsync(id, softDelete: false);
+                var deleted = await _provider.DeleteHolonAsync(id);
                 Assert.IsFalse(deleted.IsError, deleted.Message);
+                Assert.IsTrue(deleted.IsDeleted);
             }
             var absent = await _provider.LoadHolonAsync(id, loadChildren: false);
             Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound, absent.ErrorCode);
