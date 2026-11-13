@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. Native SQLite-to-IPFS restart 43355036904 and multiprocess publication 43355009830 passed on exact input tree 51e3d568fb7ae126b2890ec50c57e422d7a05bf6. A file-backed SQLite conditional write produced a bound outbox obligation, the shipping dispatcher completed delivery, and native Kubo returned the committed logical revision. Both jobs logged fixture removal. EOSIO has the next shared Development window. IPFS as an atomic source remains open.
+
 12 November Cancun time. SQLite-to-IPFS CI 43354521720 and 43354501533 reached compilation, where the test namespace resolved SQLLiteDBOASIS as a namespace. The fixture now explicitly aliases the shipping SQLite class. Both jobs confirmed disposable Kubo cleanup. No local output.
 
 12 November Cancun time. Replaced the constructed source fixture with a real file-backed SQLite provider. The Kubo restart scenario now captures both native bindings, commits a conditional source write and outbox obligation in SQLite, dispatches through the shipping worker and target, and compares the native IPFS logical revision to the SQLite acknowledgement. The runner owns the database and sidecar in its existing disposable fixture directory. Native CI pending. COSMIC EOSIO image passed and has the next eligible Development window. No local runtime or build.
