@@ -18,6 +18,8 @@
 
 ## Verification log
 
+13 November Cancun time. Solana's authenticated identity lookup now returns an authoritative `RecordNotFound` result for a successful empty query. Previously it attached a `KeyNotFoundException`, which HyperDrive treats as a failed read eligible for failover. Exceptions from collection loading still propagate as failures. Native routing qualification remains open. No local artifacts were created.
+
 13 November 12:49 Cancun time. Development advanced to `86c157239f29` with the three-file canonical HoloOASIS action-hash and isolated native routing batch. Verified the unchanged parent, the seven successful prior API statuses, and the exact native-qualified tree before pushing. Hosted rollout and acceptance remain pending. No local artifacts were created.
 
 13 November Cancun time. Railway confirmed WEB4 deployment `a4be261f-a251-49bf-926b-e3882cee5766` on `df8b75695e08` succeeded. The exact HoloOASIS candidate `86c157239f29` is ready for shared review after 12:47:47 Cancun, subject to the current remote parent and COSMIC coordination. No local artifacts were created.
