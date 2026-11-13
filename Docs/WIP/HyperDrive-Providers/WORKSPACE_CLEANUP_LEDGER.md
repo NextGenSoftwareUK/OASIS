@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+13 November IPFS staging runs 43380469565 and 43380449288 confirmed removal of both disposable Kubo fixtures. Removed and verified absence of the temporary Git index used to assemble the tested tree. No local builds or downloads.
+
 13 November IPFS catalogue validation runs 43379632844 and 43379623191 confirmed removal of both disposable Kubo fixtures. Removed the temporary Git index for the exact integration candidate and verified its absence. No local build or download.
 
 13 November IPFS restart qualification 43378660201 on corrected Development confirmed disposable Kubo fixture removal. No local build or download.
