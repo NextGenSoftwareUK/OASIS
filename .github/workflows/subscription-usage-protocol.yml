@@ -82,17 +82,36 @@ jobs:
         run: dotnet test Scripts/SubscriptionLedger.OutboxAdmin.Tests/SubscriptionLedger.OutboxAdmin.Tests.csproj -m:1 --logger trx --results-directory TestResults/operator
       - name: Private operator publish
         run: dotnet publish Scripts/SubscriptionLedger.OutboxAdmin/SubscriptionLedger.OutboxAdmin.csproj -c Release -m:1
-      - name: Verify SQLite native entity-selected All
+      - name: Verify native entity-selected All on three stores
         if: ${{ inputs.source_ref != '' }}
         shell: pwsh
         run: |
           $env:OASIS_CQL_NEO_ENTITY_PROJECTION_ROOT = (Get-Location).Path
+          $env:OASIS_CQL_MONGO_ENTITY_PROJECTION_ROOT = (Get-Location).Path
           New-Item -ItemType Directory -Force TestResults/Neo4jCurrent | Out-Null
-          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cql-sqlite-entity-projection-ci -Operation {
-            dotnet test Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~NativeSqliteEntityProjectionPreservesStagesAndProofBeforeDtoConstruction' --logger 'trx;LogFileName=entity-projection.trx' --results-directory TestResults/Neo4jCurrent
-            if ($LASTEXITCODE) { throw 'Native SQLite entity projection failed.' }
-            $report = Get-Content TestResults/Neo4jCurrent/sqlite-entity-projection-native.json -Raw | ConvertFrom-Json
-            if ($report.checks -ne 43 -or !$report.inMemoryFixture) { throw 'Expected all 43 SQLite native assertions.' }
+          try {
+            docker run -d --name cql-entity-neo -p 127.0.0.1:17687:7687 -e NEO4J_AUTH=neo4j/oasis-local-test-only neo4j:5.26.12
+            if ($LASTEXITCODE) { throw 'Neo4j fixture did not start.' }
+            $ready = $false
+            for ($attempt = 0; $attempt -lt 45; $attempt++) {
+              docker exec cql-entity-neo cypher-shell -u neo4j -p oasis-local-test-only 'RETURN 1' 2>$null | Out-Null
+              if ($LASTEXITCODE -eq 0) { $ready = $true; break }
+              Start-Sleep -Seconds 2
+            }
+            if (!$ready) { throw 'Neo4j fixture did not become ready.' }
+            & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cql-entity-projection-ci -Operation {
+              dotnet test Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~EntityProjectionPreservesStagesAndProofBeforeDtoConstruction' --logger 'trx;LogFileName=entity-projection.trx' --results-directory TestResults/Neo4jCurrent
+              if ($LASTEXITCODE) { throw 'Native entity projection failed.' }
+              foreach ($store in 'sqlite','mongo','neo') {
+                $report = Get-Content "TestResults/Neo4jCurrent/$store-entity-projection-native.json" -Raw | ConvertFrom-Json
+                if ($report.checks -ne 43 -or !($report.inMemoryFixture -or $report.exactCleanupVerified)) {
+                  throw "Expected all 43 native assertions and fixture cleanup for $store."
+                }
+              }
+            }
+          } finally {
+            docker rm -f -v cql-entity-neo
+            if ($LASTEXITCODE) { throw 'Neo4j fixture cleanup failed.' }
           }
       - name: Publish the exact WEB4-WEB10 source graph
         shell: bash
