@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+13 November Cancun time. Firestore outage CI job 131900724867 confirmed removal of its owned emulator and fixture directory, including its isolated build and test results. Logs were inspected in memory. No local Firestore artifacts were created.
+
 13 November Cancun time. Exact EVM qualification candidate 35ab1d28c72a used one temporary Git index. Removed it and verified no matching index remains. Native CI job 131895565592 passed with its owned loopback chain and fixture cleanup gate. The earlier local build directory remains listed below.
 
 13 November Cancun time. Polygon and Arbitrum SQLite outage compilation produced owned build output in TestResults/PolygonArbitrumOutageOwned. Exact cleanup path resolved inside the task worktree. Automatic command policy rejected recursive cleanup. Build finished and no chain was started. Cleanup of that specific directory is still pending.
