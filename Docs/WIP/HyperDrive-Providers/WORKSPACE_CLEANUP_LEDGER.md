@@ -920,3 +920,5 @@ Urgent disk cleanup follow-up: leased standard project clean succeeded for AWS u
 13 November. DynamoDB job 132164110938 passed the owned process and fixture teardown checks. The job log was inspected in memory. No local runtime or build outputs were generated.
 
 13 November. Initial NEAR job 132167742807 stopped during scope application before starting its native fixture. Logs were reviewed in memory. No local builds, downloads or test outputs were generated.
+
+13 November. NEAR job 132171064191 removed its owned sandbox and test reports after the two failing assertions. Logs were reviewed in memory.

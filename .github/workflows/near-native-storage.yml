@@ -64,6 +64,7 @@ jobs:
           near='Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests'
           for path in "$near/NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests.csproj" \
             "$near/NearSqliteHyperDriveTests.cs" \
+            'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.NEAROASIS/NEAROASIS.Storage.cs' \
             'Scripts/TestHosts/near-local/run-fresh-managed-lifecycle.mjs' \
             'Providers/Shared/TestSupport/NativePriorityRouting.cs'; do
             current="$(git ls-tree HEAD -- "$path")"
