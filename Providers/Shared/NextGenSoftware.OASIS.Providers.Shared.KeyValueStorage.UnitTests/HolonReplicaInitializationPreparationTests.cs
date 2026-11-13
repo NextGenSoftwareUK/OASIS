@@ -48,7 +48,7 @@ public sealed class HolonReplicaInitializationPreparationTests
 
     [DataTestMethod]
     [DataRow("digest")] [DataRow("state")] [DataRow("target")] [DataRow("attempts")]
-    [DataRow("error")] [DataRow("native-unknown")] [DataRow("missing-evidence")]
+    [DataRow("error")] [DataRow("authorization-denied")] [DataRow("native-unknown")] [DataRow("missing-evidence")]
     public async Task UnboundOrUncertainSourceEvidenceNeverProducesAnInitializationIntent(string invalid)
     {
         var source=new Source(invalid);var result=await Prepare(source,new()).PrepareAsync(Guid.NewGuid(),6,Guid.NewGuid());
@@ -185,7 +185,12 @@ public sealed class HolonReplicaInitializationPreparationTests
                 record.CreatedByAvatarId,ConditionalHolonOperation.Save,new[]{record}));
             var inspection=new HolonDeliveryInspection(6,operation,invalid=="target" ? "wrong-target":"target-v1",
                 invalid=="state" ? HolonDeliveryState.Pending:HolonDeliveryState.ReconciliationRequired,invalid=="attempts" ? 0:1,
-                invalid=="error" ? "OTHER_ERROR":"COSMIC_REPLICA_LINEAGE_CONFLICT",null,
+                invalid switch
+                {
+                    "error" => "OTHER_ERROR",
+                    "authorization-denied" => "COSMIC_REPLICA_AUTHORIZATION_DENIED",
+                    _ => "COSMIC_REPLICA_LINEAGE_CONFLICT"
+                },null,
                 invalid=="missing-evidence" ? null:new HolonDeliveryRecoveryEvidence(invalid=="native-unknown",Array.Empty<string>()));
             Observation=new(inspection,payload,invalid=="digest" ? new string('0',64):Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(payload))));
         }

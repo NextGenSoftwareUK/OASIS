@@ -1,0 +1,80 @@
+name: Replica initialization authorization
+
+on:
+  push:
+    branches: [work/hyperdrive-provider-completion, work/hyperdrive-replica-auth-qualification]
+    paths:
+      - '.github/workflows/replica-initialization-authorization.yml'
+      - 'Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests/HolonReplicaInitializationPreparationTests.cs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  activation:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: OASIS
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          path: OASIS
+          submodules: recursive
+          persist-credentials: false
+
+      - name: Read the recorded Libraries revision
+        id: dependencies
+        shell: bash
+        run: |
+          revision="$(sed -n 's/^LIBRARIES_COMMIT=//p' Docker/oasis-dependency-versions.env)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "libraries=$revision" >> "$GITHUB_OUTPUT"
+          revision="$(sed -n 's/^HOLOCHAIN_COMMIT=//p' Docker/oasis-dependency-versions.env)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "holochain=$revision" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependencies.outputs.libraries }}
+          path: NextGenSoftware-Libraries
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+
+      - uses: actions/checkout@v7
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          ref: ${{ steps.dependencies.outputs.holochain }}
+          path: holochain-client-csharp
+          persist-credentials: false
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Verify rejected initialization evidence
+        shell: pwsh
+        run: |
+          $fixture = Join-Path $env:RUNNER_TEMP ('oasis-replica-auth-' + [Guid]::NewGuid().ToString('N'))
+          New-Item -ItemType Directory -Path $fixture | Out-Null
+          try {
+            ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-ReplicaInitializationAuthorization -Operation {
+              $project = 'Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests'
+              dotnet test $project --filter 'FullyQualifiedName~UnboundOrUncertainSourceEvidenceNeverProducesAnInitializationIntent' --artifacts-path (Join-Path $fixture build) --results-directory $fixture --logger 'trx;LogFileName=authorization.trx' /m:2 /nr:false /p:UseSharedCompilation=false
+              if ($LASTEXITCODE) { throw 'Replica initialization authorization tests failed.' }
+              [xml]$report = Get-Content -LiteralPath (Join-Path $fixture authorization.trx)
+              $counts = $report.TestRun.ResultSummary.Counters
+              if ([int]$counts.total -ne 8 -or [int]$counts.passed -ne 8 -or [int]$counts.notExecuted -ne 0) {
+                throw 'Expected all eight rejection cases to pass with zero skips.'
+              }
+            }
+          } finally {
+            $resolved = (Resolve-Path -LiteralPath $fixture).Path
+            if ($resolved -ne $fixture -or (Split-Path -Parent $resolved) -ne $env:RUNNER_TEMP) { throw 'Unexpected fixture path.' }
+            Remove-Item -LiteralPath $resolved -Recurse -Force
+            if (Test-Path -LiteralPath $resolved) { throw 'Fixture cleanup failed.' }
+          }
