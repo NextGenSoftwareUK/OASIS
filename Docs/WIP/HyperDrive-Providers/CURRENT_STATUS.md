@@ -18,6 +18,8 @@
 
 ## Verification log
 
+13 November Cancun time. All seven Railway API deployment statuses for RoundRobin Development 747ac0d8d140 reported success. Native run 43413895052 stopped before the new point-read assertions on a stale expectation that an unfiltered MongoDB query with no groups returns zero rows. The shipping search contract returns matching candidates, so 6bef433adf25 now checks the exact seeded holon and avatar IDs. The focused point-read fixture runs separately in 43414762460 on 610147a95cf0. Hosted distribution awaits the acknowledged fixture.
+
 13 November Cancun time. Native MongoDB and SQLite qualification 43413895052 runs two added files on exact Development 747ac0d8d140, candidate a8ed505cd319, tree e7a807260797b1ab305e0898d936c15a7a7f0671. It exercises the new point-read path through six separate request contexts using the disposable native replica set and file-backed SQLite. The superseded work-branch run 43413555125 used an older Core pin and was sent a cancellation request. No local builds or downloads.
 
 13 November Cancun time. Fast-forwarded Core Development to 3e358637 and parent Development to exact WEB4-qualified 747ac0d8d140 after the half-hour review and seven successful predecessor Railway deployments. Verified the remote parent head. The new Railway rollout and hosted MongoDB/SQLite RoundRobin verification remain open. No local build or image download.
