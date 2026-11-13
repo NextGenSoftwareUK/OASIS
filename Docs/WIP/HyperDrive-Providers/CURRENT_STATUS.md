@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. Kubo restart 43356532249 passed native soft and hard deletion delivery from the SQLite outbox. Both receipts remained queryable and the hard-deleted record was absent from the current index. Multi-process publication 43356511859 passed on the same input tree 6578862e3f45042e8c33f300c8c0bf071ff55021. Both jobs removed their disposable fixtures. The stable receiver candidate retains its original test scope.
+
 12 November Cancun time. Extended the native SQLite-to-IPFS test to deliver soft and hard deletes through the same bound outbox route. It checks both receipt states and absence from the IPFS current catalogue after hard delete. This branch extension awaits native CI and does not change the staged receiver candidate. No local fixture or download.
 
 12 November Cancun time. Native SQLite outbox reopen and IPFS restart run 43355888239 passed. The source provider was disposed before dispatch. A second dispatcher reopened the outbox, completed zero deliveries and left the IPFS pointer unchanged. Multi-process run 43355872380 passed on the same tree 73bae7772ef56d40dc6fdb1322eb251a496fb178. Both jobs removed their fixtures. Keep fd9b328ac712 as the stable EOSIO follow-on while COSMIC prepares its dependent Cosmos candidate.

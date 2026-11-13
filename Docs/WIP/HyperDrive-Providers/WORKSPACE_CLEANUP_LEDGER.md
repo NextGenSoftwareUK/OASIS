@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+12 November delete delivery runs 43356532249 and 43356511859 logged removal of their disposable Kubo runtime, repository and logs. The SQLite source database lived in the same fixture directory. No local builds or downloads.
+
 12 November outbox reopen runs 43355888239 and 43355872380 logged removal of the disposable runtime, repository and logs. The restart fixture directory also contained the source SQLite database. No local builds or downloads.
 
 12 November SQLite-to-IPFS runs 43355036904 and 43355009830 confirmed removal of the disposable Kubo fixture directory, which also owned the SQLite source database. Earlier compile-stop runs 43354521720 and 43354501533 confirmed fixture removal as well. No local build or download.
