@@ -18,7 +18,7 @@
 
 ## Verification log
 
-13 November Cancun time. Added native conditional hard-delete coverage after Kubo restart: verify removal from the published catalogue, replay the exact receipt and require an unchanged pointer. Verification pending. No local builds or downloads.
+13 November Cancun time. Added native conditional hard-delete coverage after Kubo restart: verify removal from the published catalogue, replay the exact receipt and require an unchanged pointer. Native restart run 43389998053 passed the hard-delete and replay assertions on tree ce4782cd62005ebc792305718f191deb3224eb46. Earlier run 43389504857 passed cross-restart receipt replay. Both removed their fixtures. The new read-only bound recovery is being verified in 43390393387. All seven API deployments on Development fe97923f2af4 report success. No local builds or downloads.
 
 13 November Cancun time. Prepared candidate c857eef18ef180459281007523beaba47ec64696 on Development fe97923f2af4, matching tree 1f3b39c3f0e7cad3aa9929a9b42d5193cb2b25a5 from native Kubo restart run 43388976977. That run proved ordinary-save revision invalidation and confirmed cleanup. The later cross-restart conditional receipt replay run 43389504857 remains queued. Keep the conditional write scope on the work branch while broader native verification continues.
 
