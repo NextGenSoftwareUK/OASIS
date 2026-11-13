@@ -8,6 +8,8 @@ from pathlib import Path
 import importlib.util
 import json
 import argparse
+from collections import Counter
+import subprocess
 import uuid
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -17,7 +19,7 @@ spec.loader.exec_module(flow)
 PROVIDERS = {"MongoDBOASIS", "SQLLiteDBOASIS", "Neo4jOASIS"}
 
 
-def verify_response(response, expected, requested, *, providers=PROVIDERS):
+def verify_response(response, expected, requested, *, providers=PROVIDERS, strategy="Auto"):
     row = response.get("result") or {}
     if response.get("isError") or any(row.get(key) != expected[key] for key in ("id", "name", "version", "createdByAvatarId")):
         raise ValueError("Load did not return the acknowledged identity/content/version/owner.")
@@ -27,7 +29,7 @@ def verify_response(response, expected, requested, *, providers=PROVIDERS):
     route = json.loads(encoded)
     if (route.get("RequestedProvider") != requested or route.get("InitialProvider") not in providers or
             route.get("ServingProvider") != route.get("InitialProvider") or route.get("Succeeded") is not True or
-            route.get("RequestedStrategy") != "Auto"):
+            route.get("RequestedStrategy") != strategy):
         raise ValueError("Response-owned route does not match this request and enrolled sources.")
     if requested != "Default" and (route["InitialProvider"] != requested or route["ServingProvider"] != requested):
         raise ValueError("An explicit provider read selected a different provider.")
@@ -54,10 +56,64 @@ def reviewed_record(document, owner):
     return dict(expected)
 
 
+def verify_round_robin(state, revision):
+    if len(revision) != 40 or any(c not in "0123456789abcdef" for c in revision):
+        raise ValueError("An exact lowercase WEB4 release SHA is required.")
+    config_spec = importlib.util.spec_from_file_location(
+        "railway_configuration", Path(__file__).with_name("Publish-HostedSolidConfiguration.py"))
+    config = importlib.util.module_from_spec(config_spec)
+    config_spec.loader.exec_module(config)
+
+    def serving_deployment():
+        result = subprocess.run([str(config.CLI), "deployment", "list", *config.COMMON,
+                                 "--limit", "1", "--json"], capture_output=True, check=True)
+        deployments = json.loads(result.stdout)
+        if len(deployments) != 1 or deployments[0].get("status") != "SUCCESS" or (
+                deployments[0].get("meta", {}).get("commitHash") != revision):
+            raise RuntimeError("The reviewed WEB4 release must be serving.")
+        return str(uuid.UUID(deployments[0]["id"]))
+
+    state = state.resolve(strict=True)
+    deployment = serving_deployment()
+    attempt = state / f"hyperdrive-round-robin-{deployment}.started.json"
+    acknowledgement = state / f"hyperdrive-round-robin-{deployment}.acknowledged.json"
+    if attempt.exists() or acknowledgement.exists():
+        raise RuntimeError("A completed or uncertain RoundRobin attempt is retained.")
+    owner = json.loads((state / "owner.acknowledged.json").read_text())["id"]
+    expected = reviewed_record(json.loads((state / "routing-record.acknowledged.json").read_text()), owner)
+    identity, token = flow.session(state, "owner", allow_create=False, allow_renewal=False)
+    if identity["id"] != owner or flow.call("sandbox/faults", token, method="GET")["result"]:
+        raise RuntimeError("The acknowledged owner and a fault-free baseline are required.")
+    providers = {"MongoDBOASIS", "SQLLiteDBOASIS"}
+    flow.write_new(attempt, json.dumps({"deployment": deployment, "revision": revision}).encode())
+    selected = Counter()
+    for _ in range(6):
+        response = flow.call("data/load-holon", token, {
+            "id": expected["id"], "providerType": "Default", "loadChildren": False,
+            "autoLoadBalanceMode": "ON", "autoLoadBalanceProviders": ",".join(sorted(providers)),
+            "loadBalancingStrategy": "RoundRobin", "autoFailOverMode": "OFF",
+        })
+        route = verify_response(response, expected, "Default", providers=providers, strategy="RoundRobin")
+        selected[route["ServingProvider"]] += 1
+    if selected != Counter({provider: 3 for provider in providers}) or serving_deployment() != deployment:
+        raise RuntimeError("The reviewed deployment did not serve three reads from each provider.")
+    evidence = {"deployment": deployment, "revision": revision, "servingCounts": dict(selected), "newSaves": 0}
+    flow.write_new(acknowledgement, json.dumps(evidence).encode())
+    print(json.dumps(evidence))
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--cohort", choices=["original-solana", "routing-v1", "routing-v2"], default="original-solana")
+    parser.add_argument("--round-robin-state", type=Path, help="Existing acknowledged owner and shared record.")
+    parser.add_argument("--expected-web4-revision", help="Exact deployed WEB4 release SHA for RoundRobin.")
     options = parser.parse_args()
+    if options.round_robin_state is not None:
+        if not options.expected_web4_revision:
+            parser.error("--expected-web4-revision is required for RoundRobin")
+        verify_round_robin(options.round_robin_state, options.expected_web4_revision)
+        return
+    if options.expected_web4_revision:
+        parser.error("--expected-web4-revision requires --round-robin-state")
     state = ROOT / "LocalState/COSMIC" / ("HostedQueryAcceptance-SolanaOASIS"
         if options.cohort == "original-solana" else "HostedHyperdriveRoutingV2Current" if options.cohort == "routing-v2" else "HostedHyperdriveRoutingCurrent")
     report = ROOT / "TestResults/HostedCqlIntegrationCurrent" / f"hyperdrive-auto-selection-{options.cohort}-http.json"

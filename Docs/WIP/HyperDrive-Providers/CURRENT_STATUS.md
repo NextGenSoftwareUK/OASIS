@@ -18,6 +18,8 @@
 
 ## Verification log
 
+13 November Cancun time. WEB4 point-read strategy is implemented on the task branch at 72016de31f21, with Core b1e08eb5. Image build 43405964931 is active. The hosted RoundRobin verifier reuses an acknowledged owner and record, checks the serving revision before and after, and requires three response-owned reads per provider across MongoDB and SQLite. The retained cohort is absent from the checked local worktrees. Hosted execution remains open. Python CLI import and argument parsing passed with bytecode disabled. No local builds or downloads.
+
 13 November Cancun time. Development advanced to 0d965e8c4459 with the exact two-file IPFS tree 46a70c3cbcc4a63bab2c3eb5738248ab8b24faaf. Native restart 43404048980 and multi-process 43404025348 passed. A mismatched source returns the same explicit binding error as SQLite, and the restart fixture verifies discovery and eventual delivery of the pending route. All seven predecessor Railway deployments succeeded. The new rollout and hosted IPFS writes remain open.
 
 13 November Cancun time. Native restart 43402827306 confirmed that the wrong IPFS source identity cannot list or claim a pending replica and leaves the catalogue pointer unchanged. Multi-process 43402809673 passed on the same tree aa7c707a7950647a8e94d7865aeb355b1bbf9e93. Single-test-file candidate fc87e8a8b425730af5169dc3945f173a4e83ce19 supersedes the previous candidate for the next shared Development review.
