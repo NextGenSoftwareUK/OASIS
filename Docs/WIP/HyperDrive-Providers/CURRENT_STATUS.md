@@ -18,6 +18,8 @@
 
 ## Verification log
 
+13 November Cancun time. Development advanced to `309bb68419f2` with the verified Solana identity-miss fix and native regression. The previous seven API deployments were successful. The new rollout is pending. [Expanded Agave job 132078673640](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43481447508/job/132078673640) also passed both modes with zero skips on tree `9a29630f0fe583c114545c61e6c17ce9df0a4c55`, covering finalized signature reads and mismatched versions. That follow-up awaits reconciliation on the new Development parent. No local artifacts were created.
+
 13 November Cancun time. Added native Agave assertions for the holon version tied to a finalized transaction signature. Both routing modes must load the exact holon from its signature and return authoritative absence for the next version without reading SQLite. The CI overlay includes the shipping signature-read change. The earlier identity-only candidate remains independently qualified. No local fixtures were created.
 
 13 November Cancun time. A finalized Solana transaction signature identifies a specific record version. The provider-key holon read now returns authoritative absence when the verified record version differs from the requested version. A missing transaction or memo chunk can reflect unavailable history, so the existing error handling for those reads remains in force. Native qualification of the version mismatch is pending. No local artifacts were created.
