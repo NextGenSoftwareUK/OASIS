@@ -221,7 +221,7 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
             var graphRequest = new StorageOperationRequest { Operation = "SaveHolon", Payload = replicatedGraphRoot,
                 PreferredProvider = request.PreferredProvider, SaveChildren = true, Recursive = true, ChildrenFromProvider = true };
             var graphSaved = synchronous ? router.RouteRequest<IHolon>(graphRequest) : await router.RouteRequestAsync<IHolon>(graphRequest);
-            graphSaved.IsError.Should().BeFalse(graphSaved.Message);
+            graphSaved.IsError.Should().BeFalse(graphSaved.Exception?.ToString() ?? graphSaved.Message);
             graphSaved.IsWarning.Should().BeFalse(graphSaved.Message);
             foreach (var graphNode in new[] { replicatedGraphRoot, replicatedGraphChild, replicatedGraphGrandchild })
             foreach (var graphStore in new IOASISStorageProvider[] { mongo, sqlite })
@@ -323,6 +323,7 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
             var alternative = mongoPrimary ? ProviderType.SQLLiteDBOASIS : ProviderType.MongoDBOASIS;
             await (Task)redirect.Invoke(engine, new object[] { selected, alternative })!;
             holon.Name = "predictive-replicated";
+            holon.Version = 2;
             var redirected = synchronous ? router.RouteRequest<IHolon>(request) : await router.RouteRequestAsync<IHolon>(request);
             redirected.IsError.Should().BeFalse(redirected.Message);
             redirected.IsWarning.Should().BeFalse(redirected.Message);
@@ -364,7 +365,7 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
                     synchronous ? mongo.LoadHolonsByMetaData(pairs,mode,loadChildren:false,version:requestedVersion) : await mongo.LoadHolonsByMetaDataAsync(pairs,mode,loadChildren:false,version:requestedVersion),
                     synchronous ? sqlite.LoadHolonsByMetaData(pairs,mode,loadChildren:false,version:requestedVersion) : await sqlite.LoadHolonsByMetaDataAsync(pairs,mode,loadChildren:false,version:requestedVersion) })
                 {
-                    query.IsError.Should().BeFalse(query.Message);
+                    query.IsError.Should().BeFalse(query.Exception?.ToString() ?? query.Message);
                     if (requestedVersion != 2 && (mismatchCount == 0 || (mode == MetaKeyValuePairMatchMode.Any && mismatchCount == 1)))
                         query.Result.Select(x=>x.Id).Should().Equal(holon.Id);
                     else query.Result.Should().BeEmpty();

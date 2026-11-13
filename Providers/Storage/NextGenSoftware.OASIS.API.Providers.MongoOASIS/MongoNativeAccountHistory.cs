@@ -46,9 +46,12 @@ internal static class MongoNativeAccountHistory
         =>throw new InvalidDataException("Mongo account history does not define a legacy JSON archive format.");
 
     internal static IReadOnlyList<IAvatar> ReadAvatar(BsonDocument document)
+        =>ReadAvatar(document,selectedVersion:null);
+
+    internal static IReadOnlyList<IAvatar> ReadAvatar(BsonDocument document,int? selectedVersion)
     {
         ValidatePhysicalArchive(document);
-        return MongoNativeHolonHistory.Read(document,Avatar,UndefinedLegacy<IAvatar>);
+        return MongoNativeHolonHistory.Read(document,Avatar,UndefinedLegacy<IAvatar>,selectedVersion:selectedVersion);
     }
     internal static IReadOnlyList<IAvatarDetail> ReadDetail(BsonDocument document)
     {
