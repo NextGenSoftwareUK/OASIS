@@ -18,6 +18,8 @@
 
 ## Verification log
 
+13 November 00:51 Cancun time. At the shared review, remote Development still pointed to Polkadot 49f8463de927 and all seven Railway statuses were successful. Exact TON image 43367464873 and Hedera image 43369893169 both reported success. Preserve the coordinated TON slot. The IPFS follow-up on TON remains staged at 28752bf7b233. Dispatch native qualification once the remote confirms the actual new parent. No local builds or downloads.
+
 13 November Cancun time. Prepared divergence-qualified IPFS candidate 2adfc398911e on Polkadot. Its two files reproduce passing native tree 75c146a127742742e0739ef6d341c807e550027c. Alternate 28752bf7b233 on qualified TON has tree d42362b72cd1733596ddb9d60c9c851467eebd67 and the exact same IPFS file objects. These supersede the older replay-only candidates. TON retains the proposed shared slot after 00:50:16. Verify the actual parent before further CI.
 
 13 November Cancun time. IPFS branch commit 8a60645276fb classifies a locally changed replica CID or native current-head divergence as a lineage conflict, so the dispatcher can reconcile it. Initial CI 43372453174 and 43372448800 stopped at a test variable scope error. Fixed at 905075354e1f. Native restart 43373391890 and multi-process 43373392408 passed on Polkadot input tree 75c146a127742742e0739ef6d341c807e550027c. A local edit survived rejection of a later replica write with the lineage conflict code. Both jobs confirmed fixture cleanup. All seven APIs reported successful Polkadot rollout at the next check. Polkadot rollout has five of seven services successful, with WEB4 and WEB9 pending. COSMIC identified a separate inherited submodule branch check failure and is coordinating that repair. No local builds or downloads.
