@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using Google.Cloud.Firestore;
 using Google.Protobuf;
@@ -88,27 +89,34 @@ public partial class GoogleCloudOASIS
         }
     }
 
-    private static async Task<Native.Document> ReadFirestoreIdentityDocumentAsync(DocumentReference reference,ByteString transaction)
+    private static Task<Native.Document> ReadFirestoreIdentityDocumentAsync(DocumentReference reference,ByteString transaction)
+        => ReadFirestoreTransactionDocumentAsync(reference, transaction,
+            new[]{"id","data_json","version","isActive","isDeleted","username","email","previousVersionId","nextVersionId"});
+
+    private static async Task<Native.Document> ReadFirestoreTransactionDocumentAsync(
+        DocumentReference reference, ByteString transaction, IReadOnlyList<string> fields,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         var database=reference.Database;
         var request=new Native.BatchGetDocumentsRequest{Database=$"projects/{database.ProjectId}/databases/{database.DatabaseId}",Transaction=transaction,Mask=new Native.DocumentMask()};
         request.Documents.Add(reference.Path);
-        request.Mask.FieldPaths.Add(new[]{"id","data_json","version","isActive","isDeleted","username","email","previousVersionId","nextVersionId"});
+        request.Mask.FieldPaths.Add(fields);
         // GAX server-streaming calls prohibit Retry settings entirely; there is no automatic stream replay.
         using var call=database.Client.BatchGetDocuments(request);
         var stream=call.GetResponseStream();Native.Document document=null;var observed=false;
-        while(await stream.MoveNextAsync()){
+        while(await stream.MoveNextAsync(cancellationToken)){
             var response=stream.Current;
-            if(observed)throw new InvalidDataException("Firestore identity point read returned multiple documents.");
+            if(observed)throw new InvalidDataException("Firestore transaction point read returned multiple documents.");
             if(response.ResultCase==Native.BatchGetDocumentsResponse.ResultOneofCase.Found){
                 document=response.Found;
                 if(document.Name!=reference.Path||document.UpdateTime==null||Timestamp.FromProto(document.UpdateTime).Equals(default(Timestamp)))
-                    throw new InvalidDataException("Firestore identity point read lacks matching identity/revision.");
+                    throw new InvalidDataException("Firestore transaction point read lacks matching identity/revision.");
             }else if(response.ResultCase!=Native.BatchGetDocumentsResponse.ResultOneofCase.Missing||response.Missing!=reference.Path)
-                throw new InvalidDataException("Firestore identity point read lacks a matching found/missing result.");
+                throw new InvalidDataException("Firestore transaction point read lacks a matching found/missing result.");
             observed=true;
         }
-        if(!observed)throw new InvalidDataException("Firestore identity point read returned no result.");
+        if(!observed)throw new InvalidDataException("Firestore transaction point read returned no result.");
         return document;
     }
 
