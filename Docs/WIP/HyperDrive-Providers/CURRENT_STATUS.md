@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November 20:44 Cancun time. Railway reports success for WEB4 through WEB10 on exact Development 2b8081b30f84. This establishes rollout, while hosted routing acceptance remains open. Both superseded IPFS identity jobs are cancelled. Replacement restart 43347007391 and process run 43346975578 remain queued. Next shared review is after 21:01:04 Cancun.
+
 12 November Cancun time. Restart run 43347007391 includes the unpublished-store guard and the persisted fingerprint assertion. Requested cancellation of the superseded queued restart run 43346342706 to avoid duplicate fixture provisioning. Development 2b8081b30f84 had five successful deployments, with WEB4 and WEB5 pending.
 
 12 November Cancun time. IPFS store identity capture at 77db43511a39 reads the authenticated catalogue through Kubo and derives its binding from the persisted store UUID and credential-free endpoint. The restart scenario 43346342706 checks the same fingerprint after a catalogue update and daemon restart. Multi-process CI 43346324638 checks ordinary publication. Both are pending. Binding alone does not enroll a replica route. Receiver apply and source outbox remain open.
