@@ -1,6 +1,6 @@
 # Current resource and cleanup ledger
 
-13 November Kubo lineage run 43384189870 confirmed disposable fixture removal. Removed and verified absence of the temporary Git index used for the tested candidate. No local builds or downloads.
+13 November Kubo lineage runs 43384189870 and 43384206880 confirmed disposable fixture removal. Removed and verified absence of the temporary Git index used for the tested candidate. No local builds or downloads.
 
 13 November Kubo decoder runs 43383401532 and 43383491897 removed their disposable fixtures. Superseded run 43383271444 was cancelled before running the test and its cleanup step passed. Removed the temporary Git index for the four-file integration candidate and verified its absence. No local builds or downloads.
 
