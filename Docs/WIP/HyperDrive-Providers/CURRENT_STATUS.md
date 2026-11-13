@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. Native SQLite outbox reopen and IPFS restart run 43355888239 passed. The source provider was disposed before dispatch. A second dispatcher reopened the outbox, completed zero deliveries and left the IPFS pointer unchanged. Multi-process run 43355872380 passed on the same tree 73bae7772ef56d40dc6fdb1322eb251a496fb178. Both jobs removed their fixtures. Keep fd9b328ac712 as the stable EOSIO follow-on while COSMIC prepares its dependent Cosmos candidate.
+
 12 November Cancun time. Prepared IPFS receiver and native SQLite delivery candidate fd9b328ac712 on qualified EOSIO 4d338173e64d. Its tree eeaa5ddc3c29ae68ea938319259fafbf537519cf changes exactly the four qualified provider and test paths. The temporary index was verified absent. All seven APIs are healthy on the current IPFS identity Development revision, with four exact live CQL presets confirmed by COSMIC. EOSIO retains the next shared window after 22:07:01. No local build or download.
 
 12 November Cancun time. Native SQLite-to-IPFS restart 43355036904 and multiprocess publication 43355009830 passed on exact input tree 51e3d568fb7ae126b2890ec50c57e422d7a05bf6. A file-backed SQLite conditional write produced a bound outbox obligation, the shipping dispatcher completed delivery, and native Kubo returned the committed logical revision. Both jobs logged fixture removal. EOSIO has the next shared Development window. IPFS as an atomic source remains open.

@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+12 November outbox reopen runs 43355888239 and 43355872380 logged removal of the disposable runtime, repository and logs. The restart fixture directory also contained the source SQLite database. No local builds or downloads.
+
 12 November SQLite-to-IPFS runs 43355036904 and 43355009830 confirmed removal of the disposable Kubo fixture directory, which also owned the SQLite source database. Earlier compile-stop runs 43354521720 and 43354501533 confirmed fixture removal as well. No local build or download.
 
 12 November IPFS receipt and successor runs 43351574704, 43351804270 and 43351784030 each logged removal of the disposable Kubo runtime, repository and logs. Both temporary indices for the scoped receiver candidate were removed and verified absent. No local build or download. C: reported 33.12 GB free at inspection.
