@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. Confirmed remote Development advanced to exact EOSIO 4d338173e64d. The prepared IPFS receiver candidate fd9b328ac712 has exactly four changed paths and clean whitespace. Dispatched restart 43357257220 and multi-process 43357260351 from temporary qualification tag qualification/ipfs-receiver-eosio-fd9b328 at 7febf62da1e8. Both must emit candidate tree eeaa5ddc3c29ae68ea938319259fafbf537519cf. Retire the tag after the jobs complete. No local builds or downloads.
+
 12 November Cancun time. Kubo restart 43356532249 passed native soft and hard deletion delivery from the SQLite outbox. Both receipts remained queryable and the hard-deleted record was absent from the current index. Multi-process publication 43356511859 passed on the same input tree 6578862e3f45042e8c33f300c8c0bf071ff55021. Both jobs removed their disposable fixtures. The stable receiver candidate retains its original test scope.
 
 12 November Cancun time. Extended the native SQLite-to-IPFS test to deliver soft and hard deletes through the same bound outbox route. It checks both receipt states and absence from the IPFS current catalogue after hard delete. This branch extension awaits native CI and does not change the staged receiver candidate. No local fixture or download.
