@@ -1,0 +1,103 @@
+name: Polygon and Arbitrum native failover
+
+on:
+  push:
+    branches: [work/hyperdrive-provider-completion]
+    paths:
+      - '.github/workflows/evm-sqlite-native-failover.yml'
+      - 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.UnitTests/Web3NativeStorageTests.SqliteOutage.cs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  failover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: OASIS
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          path: OASIS
+          submodules: recursive
+          persist-credentials: false
+      - name: Read the recorded Libraries revision
+        id: dependencies
+        run: |
+          revision="$(sed -n 's/^LIBRARIES_COMMIT=//p' Docker/oasis-dependency-versions.env)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "libraries=$revision" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependencies.outputs.libraries }}
+          path: NextGenSoftware-Libraries
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify reverse failover on the native loopback EVM
+        shell: bash
+        run: |
+          contract_root=Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS
+          fixture="$(mktemp -d "$RUNNER_TEMP/oasis-evm-failover.XXXXXXXX")"
+          [[ ! -e "$contract_root/node_modules" && ! -e TestResults/Web3CoreCurrent ]]
+          chain_pid=""
+          cleanup() {
+            status=$?
+            if [[ -n "$chain_pid" ]]; then
+              kill "$chain_pid" 2>/dev/null || true
+              wait "$chain_pid" 2>/dev/null || true
+            fi
+            if (( status != 0 )); then tail -n 25 "$fixture/hardhat.log" 2>/dev/null || true; fi
+            rm -rf -- "$contract_root/node_modules" TestResults/Web3CoreCurrent
+            if [[ "$fixture" == "$RUNNER_TEMP"/oasis-evm-failover.* ]]; then rm -rf -- "$fixture"; fi
+            [[ ! -e "$fixture" && ! -e "$contract_root/node_modules" && ! -e TestResults/Web3CoreCurrent ]] || status=1
+            exit "$status"
+          }
+          trap cleanup EXIT
+          export npm_config_cache="$fixture/npm"
+          export OASIS_WEB3CORE_BUILD_ROOT="$fixture/hardhat"
+          export LOCAL_CHAIN_ID=31337
+          export ETHEREUMOASIS_TEST_RPC=http://127.0.0.1:18545
+          # Deterministic, publicly known Hardhat development account.
+          export ETHEREUMOASIS_TEST_PRIVATE_KEY=0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
+          export OASIS_WEB3CORE_STORAGE_ENCRYPTION_KEY="$(openssl rand -base64 32)"
+          export WEB3CORE_NATIVE_FIXTURE="$PWD/TestResults/Web3CoreCurrent/web3-storage.json"
+          npm ci --prefix "$contract_root" --no-audit --no-fund
+          node Scripts/TestHosts/compile-web3core-storage.cjs
+          (cd "$contract_root"; exec node node_modules/hardhat/internal/cli/cli.js node --hostname 127.0.0.1 --port 18545) >"$fixture/hardhat.log" 2>&1 &
+          chain_pid=$!
+          chain_ready() {
+            curl -fsS --max-time 2 -H 'Content-Type: application/json' \
+              -d '{"jsonrpc":"2.0","id":1,"method":"eth_chainId","params":[]}' "$ETHEREUMOASIS_TEST_RPC" 2>/dev/null \
+              | jq -e '.result == "0x7a69"' >/dev/null
+          }
+          for attempt in {1..30}; do
+            kill -0 "$chain_pid"
+            if chain_ready; then break; fi
+            sleep 1
+          done
+          chain_ready
+          export OASIS_EVM_OUTAGE_ARTIFACTS="$fixture"
+          pwsh -NoProfile -Command '
+            ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-EvmSqliteFailover -Operation {
+              $project = "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.UnitTests"
+              $filter = "FullyQualifiedName~ActualPolygonProviderRoundtripsEncryptedRecordsAndPagedCollections|FullyQualifiedName~ActualArbitrumWrapperEncryptsRecordsAndRunsV2Policies"
+              $fixture = $env:OASIS_EVM_OUTAGE_ARTIFACTS
+              dotnet test $project --filter $filter --artifacts-path (Join-Path $fixture build) --results-directory $fixture --logger "trx;LogFileName=failover.trx" /m:2 /nr:false /p:UseSharedCompilation=false
+              if ($LASTEXITCODE) { throw "Native failover tests failed." }
+              [xml]$report = Get-Content -LiteralPath (Join-Path $fixture failover.trx)
+              $counts = $report.TestRun.ResultSummary.Counters
+              if ([int]$counts.total -ne 2 -or [int]$counts.passed -ne 2 -or [int]$counts.notExecuted -ne 0) {
+                throw "Expected both native wrapper tests to pass with zero skips."
+              }
+            }'
