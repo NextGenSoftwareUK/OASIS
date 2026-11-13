@@ -59,7 +59,7 @@ public sealed class IPFSRestartTests
                 var identity = await provider.CaptureStorageIdentityAsync();
                 Assert.False(identity.IsError, identity.Message);
                 await File.WriteAllTextAsync(identityPath, identity.Result.BindingFingerprint);
-                await VerifyReplicaAsync(provider, identity.Result, replay: false);
+                await VerifyReplicaAsync(provider, identity.Result, dnaPath, replay: false);
                 holon.Name = "after update";
                 holon.Version = 2;
                 saved = await provider.SaveHolonAsync(holon, saveChildren: false);
@@ -71,7 +71,7 @@ public sealed class IPFSRestartTests
                 var identity = await provider.CaptureStorageIdentityAsync();
                 Assert.False(identity.IsError, identity.Message);
                 Assert.Equal(await File.ReadAllTextAsync(identityPath), identity.Result.BindingFingerprint);
-                await VerifyReplicaAsync(provider, identity.Result, replay: true);
+                await VerifyReplicaAsync(provider, identity.Result, dnaPath, replay: true);
                 var current = await provider.LoadHolonAsync(RecordId, loadChildren: false);
                 Assert.True(current.IsLoaded && !current.IsError, current.Message);
                 Assert.Equal("after update", current.Result.Name);
@@ -88,7 +88,7 @@ public sealed class IPFSRestartTests
         }
     }
 
-    private static async Task VerifyReplicaAsync(IPFSOASIS provider, CosmicStorageIdentity identity, bool replay)
+    private static async Task VerifyReplicaAsync(IPFSOASIS provider, CosmicStorageIdentity identity, string dnaPath, bool replay)
     {
         var replica = new Holon
         {
@@ -103,6 +103,13 @@ public sealed class IPFSRestartTests
         var request = new CommittedHolonReplicaRequest(
             new Guid("90644865-2be6-4044-bdfb-3e6a394f5b26"), "restart-sqlite-source",
             ProviderType.SQLLiteDBOASIS, RecordId, ConditionalHolonOperation.Save, new[] { replica }, saveChildren: false);
+        var persistedBefore = await File.ReadAllTextAsync(dnaPath);
+        var wrongStore = new CosmicStorageIdentity(identity.Authority, identity.EndpointFingerprint, Guid.NewGuid());
+        var rejected = await provider.ApplyBoundCommittedHolonReplicaAsync(request, wrongStore);
+        Assert.True(rejected.IsError);
+        Assert.Equal("COSMIC_REPLICA_STORAGE_BINDING_MISMATCH", rejected.ErrorCode);
+        Assert.Equal(persistedBefore, await File.ReadAllTextAsync(dnaPath));
+
         var before = await provider.LoadHolonAsync(replica.Id, loadChildren: false);
         if (replay)
             Assert.True(before.IsLoaded && !before.IsError, before.Message);
@@ -116,6 +123,9 @@ public sealed class IPFSRestartTests
         Assert.NotNull(revision);
         Assert.Equal(revision, CosmicConcurrency.GetProviderRevisionId(current.Result, ProviderType.IPFSOASIS));
         if (replay)
+        {
             Assert.Equal(revision, CosmicConcurrency.GetProviderRevisionId(before.Result, ProviderType.IPFSOASIS));
+            Assert.Equal(persistedBefore, await File.ReadAllTextAsync(dnaPath));
+        }
     }
 }
