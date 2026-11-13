@@ -190,13 +190,24 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             return _idLookup;
         }
 
-        private static Dictionary<string,HolonResume> DeserializeLookup(string json)
+        private static Dictionary<string,HolonResume> DeserializeLookup(string json) => DeserializeLookup(json, out _);
+
+        private static Dictionary<string,HolonResume> DeserializeLookup(string json, out Guid storeId)
         {
             var token=Newtonsoft.Json.Linq.JToken.Parse(json,new Newtonsoft.Json.Linq.JsonLoadSettings {
                 DuplicatePropertyNameHandling=Newtonsoft.Json.Linq.DuplicatePropertyNameHandling.Error });
             if(token.Type==Newtonsoft.Json.Linq.JTokenType.Null) throw new InvalidDataException("IPFS lookup root contained no index object.");
             if(token is not Newtonsoft.Json.Linq.JObject) throw new JsonSerializationException("IPFS lookup root must be an object.");
-            var records=token.ToObject<Dictionary<string,HolonResume>>();
+            storeId = Guid.Empty;
+            if (token["schema"] != null)
+            {
+                if ((string)token["schema"] != "oasis-ipfs-catalogue-v2" ||
+                    !Guid.TryParseExact((string)token["storeId"], "D", out storeId) || storeId == Guid.Empty ||
+                    token["records"] is not Newtonsoft.Json.Linq.JObject)
+                    throw new InvalidDataException("IPFS catalogue metadata is invalid.");
+                token = token["records"];
+            }
+            var records = token.ToObject<Dictionary<string, HolonResume>>();
             foreach(var entry in records)
             {
                 var row=entry.Value;
@@ -237,11 +248,20 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
         private async Task<string> SaveCatalogueAsync(Dictionary<string, HolonResume> idLookup, OASISDNA dna)
         {
-            string json = ProtectIndex(JsonConvert.SerializeObject(idLookup));
-            var fsn = await IPFSClient.FileSystem.AddTextAsync(json);
-
             var settings = dna.OASIS.StorageProviders.IPFSOASIS;
             var previousRoot = settings.LookUpIPFSAddress;
+            var storeId = Guid.Empty;
+            if (!string.IsNullOrWhiteSpace(previousRoot))
+                DeserializeLookup(UnprotectIndex(await LoadStringToJson(previousRoot).ConfigureAwait(false)), out storeId);
+            if (storeId == Guid.Empty)
+                storeId = Guid.NewGuid();
+            string json = ProtectIndex(JsonConvert.SerializeObject(new
+            {
+                schema = "oasis-ipfs-catalogue-v2",
+                storeId = storeId.ToString("D"),
+                records = idLookup
+            }));
+            var fsn = await IPFSClient.FileSystem.AddTextAsync(json);
             settings.LookUpIPFSAddress = fsn.Id;
             try
             {
