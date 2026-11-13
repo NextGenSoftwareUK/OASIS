@@ -10,9 +10,9 @@
 | ActivityPub and routing | ActivityPub has 5/5 native capability checks. GOMap passed a public OSRM driving route. Authenticated Google Routes, Mapbox and HERE checks remain open. Niantic and WRLD still have reviewed adapter gaps. |
 | Canonical HoloOASIS | Top priority. Both modes passed all 52 native core-storage-v2 checks on the official Windows conductor with the verified identity-delete hApp in [run 43178174352](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43178174352). The verified bundle is packaged on the provider branch. Hosted, multi-agent and broader capability acceptance remain open. |
 | HoloOASIS.Desktop | Obsolete in source, package metadata and repository documentation at `45d6665da989`. The six-file compatibility and documentation batch reached Development at `70d3fbb4a31c`. Published NuGet metadata and live site listings still need the obsolescence update. |
-| Development | aaf73da6d006 contains the Supabase and SQL Server native absence regressions. WEB4 rollout is queued. Hosted HoloOASIS writes remain open. |
+| Development | aaf73da6d006 contains the Supabase and SQL Server native absence regressions. The preceding Development deployment reported success. Solid and ActivityPub are qualified for the next shared review. Hosted HoloOASIS writes remain open. |
 | BootLoader startup | The shipping registration, activation and deactivation path passed against native Polkadot and TRON fixtures and the Microsoft Azure Cosmos DB emulator. [Azure Cosmos DB job 131055311882](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43180594194/job/131055311882) confirmed fixture teardown. |
-| HyperDrive | Priority-provider failover, replication and load balancing verification is active. Whole-inventory acceptance remains open. |
+| HyperDrive | Priority-provider failover, replication and load balancing verification is active. [Native TON and SQLite CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43501794529) is checking whether an authoritative TON miss stops failover to a stale SQLite copy. Whole-inventory acceptance remains open. |
 
 [Provider matrix](PROVIDER_MATRIX.md) · [Evidence registry](CONFORMANCE_RESULTS.json) · [Cleanup ledger](WORKSPACE_CLEANUP_LEDGER.md)
 
