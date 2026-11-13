@@ -245,6 +245,17 @@ public partial class IPFSOASIS : IBoundCommittedHolonReplicaStorageProvider, ICo
                 ? head.Value<bool>("hardDeleted") : throw new InvalidDataException("Invalid IPFS replica deletion state."));
         if (!validated.Evidence.HardDeleted && currentCid != headCid)
             throw new InvalidDataException("The IPFS replica head CID differs from the current catalogue.");
+        if (validated.Evidence.HardDeleted)
+        {
+            var tombstone = DecodePrivateRecord<Holon>(headCid, "holon", id,
+                await ReadCqlEnvelopeAsync(headCid, cancellationToken).ConfigureAwait(false));
+            if (!tombstone.IsDeleted || tombstone.VersionId != validated.Evidence.VersionId ||
+                tombstone.Version != validated.Evidence.Version ||
+                tombstone.PreviousVersionId != validated.Evidence.PreviousVersionId ||
+                CosmicConcurrency.GetProviderRevisionId(tombstone, ReplicaAuthority) != validated.Evidence.ProviderRevisionId ||
+                CommittedHolonReplicaPlan.PortableContentDigest(tombstone, ReplicaAuthority) != validated.Evidence.PortableContentDigest)
+                throw new InvalidDataException("The native IPFS tombstone differs from its protected replica head.");
+        }
         var current = currentCid == null ? null : DecodePrivateRecord<Holon>(currentCid, "holon", id,
             await ReadCqlEnvelopeAsync(currentCid, cancellationToken).ConfigureAwait(false));
         HolonReplicaHeadRecord.ValidateCurrent(id, ReplicaAuthority, current, validated.Evidence);
