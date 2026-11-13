@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+13 November IPFS receipt evidence runs 43393557901 and 43393544412 removed their disposable Kubo fixtures. Removed and verified absence of the temporary Git index used to assemble the tested candidate. No local builds or downloads.
+
 13 November removed and verified absence of the temporary Git index used to stage the exact IPFS conditional delta candidate. No local builds or downloads.
 
 13 November IPFS wrong-store runs 43392263118 and 43392244567 removed their disposable Kubo fixtures. No local build or download.
