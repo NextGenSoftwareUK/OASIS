@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Live complex grouped CQL
+
+The exact Web4Site parser at 777f7a127bd0 compiled a two-key grouped count with two HAVING bounds, three sort keys and LIMIT. Live Development e115e8e9102d accepted the authenticated grouped requests on MongoDB, SQLite and Neo4j. This proves route and compiler compatibility. The read-only check did not seed positive fixtures or assert result counts. Hosted browser and WEB6 drafting remain open. No local files or databases were generated.
+
 ## WEB4 recovered on the subscription estimate revision
 
 13 November Cancun. Railway read-only SSH confirmed e115e8e9102d running dotnet with a live Holochain child and both expected loopback ports listening. Public /api/health returned 200. After warmup the retained visitor measured 105/107 sources ready. Hedera and Nostr remain unavailable. The live shipping HoloOASIS provider returned matching 3/2 IDs with native and MongoDB-federated public presets and HoloOASIS provenance. The earlier persisted cell failures remain in history. No restart, reseed, new visitor, or test writes. Review the shared rollout after 18:51:38 Cancun.
