@@ -52,7 +52,7 @@ public partial class MongoDBOASIS
                 var raw=Database.MongoDB.GetCollection<BsonDocument>(Database.Holon.CollectionNamespace.CollectionName,Database.Holon.Settings);
                 var cursor=raw.Find(session,FilterDefinition<BsonDocument>.Empty);
                 var documents=synchronous?cursor.ToList():await cursor.ToListAsync().ConfigureAwait(false);
-                var candidates=documents.SelectMany(document=>MongoNativeHolonHistory.Read(document)).Where(row=>row.Version==version).ToList();
+                var candidates=documents.SelectMany(document=>MongoNativeHolonHistory.Read(document,selectedVersion:version)).ToList();
                 if(candidates.GroupBy(row=>row.Id).Any(group=>group.Count()>1))throw new StorageIdentityAmbiguousException();
                 candidates=candidates.Where(row=>row.DeletedDate==DateTime.MinValue && (type==HolonType.All || row.HolonType==type)
                     && (!parent.HasValue || row.ParentHolonId==parent.Value)).ToList();
