@@ -142,6 +142,17 @@ public sealed class IPFSRestartTests
             Assert.Equal(receipt.Result.AcknowledgementDigest, committed.Result.AcknowledgementDigest);
             Assert.Equal(revision, CosmicConcurrency.GetProviderRevisionId(before.Result, ProviderType.IPFSOASIS));
             Assert.Equal(persistedBefore, await File.ReadAllTextAsync(dnaPath));
+
+            var originalName = replica.Name;
+            replica.Name = "different intent under the same operation";
+            var conflicting = await provider.ApplyBoundCommittedHolonReplicaAsync(request, identity);
+            Assert.True(conflicting.IsError);
+            Assert.Equal("COSMIC_REPLICA_ACKNOWLEDGEMENT_INVALID", conflicting.ErrorCode);
+            var conflictingReceipt = await provider.ReadCommittedHolonReplicaReceiptAsync(observation);
+            Assert.True(conflictingReceipt.IsError);
+            Assert.Equal(persistedBefore, await File.ReadAllTextAsync(dnaPath));
+            replica.Name = originalName;
+
             await VerifyReplicaSuccessorAsync(provider, identity, replica, dnaPath);
             await VerifyHostedReplicaTargetAsync(provider, identity, dnaPath);
         }
@@ -167,7 +178,7 @@ public sealed class IPFSRestartTests
         var persistedBefore = await File.ReadAllTextAsync(dnaPath);
         var rejected = await provider.ApplyBoundCommittedHolonReplicaAsync(Request(), identity);
         Assert.True(rejected.IsError);
-        Assert.Contains("lineage", rejected.Message);
+        Assert.Equal("COSMIC_REPLICA_LINEAGE_CONFLICT", rejected.ErrorCode);
         Assert.Equal(persistedBefore, await File.ReadAllTextAsync(dnaPath));
 
         successor.PreviousVersionId = original.VersionId;
@@ -176,6 +187,16 @@ public sealed class IPFSRestartTests
         var current = await provider.LoadHolonAsync(original.Id, loadChildren: false);
         Assert.True(current.IsLoaded && !current.IsError, current.Message);
         Assert.Equal(successor.VersionId, current.Result.VersionId);
+        var currentPointer = await File.ReadAllTextAsync(dnaPath);
+        var audit = await provider.ReadHolonReplicaHeadsAsync(new(identity, new[] { original.Id }));
+        Assert.True(audit.IsLoaded && !audit.IsError, audit.Message);
+        var head = Assert.Single(audit.Result.Records);
+        Assert.True(head.HasCurrentRecord);
+        Assert.False(head.Head.HardDeleted);
+        Assert.Equal(successor.VersionId, head.Head.VersionId);
+        Assert.Equal(original.VersionId, head.Head.PreviousVersionId);
+        Assert.Equal(CosmicConcurrency.GetProviderRevisionId(current.Result, ProviderType.IPFSOASIS), head.Head.ProviderRevisionId);
+        Assert.Equal(currentPointer, await File.ReadAllTextAsync(dnaPath));
         var prior = await provider.LoadHolonAsync(original.Id, loadChildren: false, version: 1);
         Assert.True(prior.IsLoaded && !prior.IsError, prior.Message);
         Assert.Equal(original.VersionId, prior.Result.VersionId);
@@ -188,36 +209,102 @@ public sealed class IPFSRestartTests
         var databasePath = dnaPath + ".source.sqlite";
         Assert.False(File.Exists(databasePath));
         var connection = $"Data Source={databasePath};Pooling=False";
-        using var sqlite = new SqliteProvider(connection);
-        var activated = await sqlite.ActivateProviderAsync();
-        Assert.True(activated.Result && !activated.IsError, activated.Message);
-        var captured = await sqlite.CaptureStorageIdentityAsync();
-        Assert.False(captured.IsError, captured.Message);
-        var source = captured.Result;
-        var route = new HolonReplicationRouteBinding(source, identity, policy.BindingIdentity);
         var replica = new Holon
         {
             Id = Guid.NewGuid(),
             Name = "hosted replica target",
             HolonType = HolonType.Holon
         };
-        var operationId = Guid.NewGuid();
-        var enrollment = new HolonReplicationEnrollment(route.SourceId, new[] { route.TargetId }, source, new[] { route });
-        var write = new ConditionalHolonWrite(operationId, actor, source.Authority,
-            new[] { new HolonWriteCondition(replica.Id, null) });
-        var saved = await sqlite.ExecuteReplicatingHolonWriteAsync(
-            new ConditionalHolonWriteRequest(write, ConditionalHolonOperation.Save, new[] { replica }, saveChildren: false), enrollment);
-        Assert.True(saved.IsSaved && !saved.IsError, saved.Message);
-        var committed = Assert.Single(saved.Result);
+        var child = new Holon { Id = Guid.NewGuid(), Name = "replicated child", HolonType = HolonType.Holon,
+            ParentHolonId = replica.Id };
+        replica.Children = new List<IHolon> { child };
+        HolonReplicationRouteBinding route;
+        IHolon committed;
+        using (var sqlite = new SqliteProvider(connection))
+        {
+            var activated = await sqlite.ActivateProviderAsync();
+            Assert.True(activated.Result && !activated.IsError, activated.Message);
+            var captured = await sqlite.CaptureStorageIdentityAsync();
+            Assert.False(captured.IsError, captured.Message);
+            var sourceStorage = captured.Result;
+            route = new HolonReplicationRouteBinding(sourceStorage, identity, policy.BindingIdentity);
+            var enrollment = new HolonReplicationEnrollment(route.SourceId, new[] { route.TargetId }, sourceStorage, new[] { route });
+            var write = new ConditionalHolonWrite(Guid.NewGuid(), actor, sourceStorage.Authority,
+                new[] { new HolonWriteCondition(replica.Id, null), new HolonWriteCondition(child.Id, null) });
+            var saved = await sqlite.ExecuteReplicatingHolonWriteAsync(
+                new ConditionalHolonWriteRequest(write, ConditionalHolonOperation.Save, new[] { replica }, saveChildren: true), enrollment);
+            Assert.True(saved.IsSaved && !saved.IsError, saved.Message);
+            committed = Assert.Single(saved.Result);
+        }
+
         var target = new CommittedHolonReplicaTarget(route.TargetId, provider, identity.Authority, route.SourceId,
-            source.Authority, policy, "ipfs-restart-fixture", Guid.NewGuid(), policy.BindingIdentity, identity);
+            route.SourceStorage.Authority, policy, "ipfs-restart-fixture", Guid.NewGuid(), policy.BindingIdentity, identity);
         var worker = new HolonOutboxDispatcher(new SqliteHolonReplicationOutbox(connection),
             new[] { target }, "ipfs-restart-fixture");
         var result = await worker.DispatchOnceAsync(route.TargetId, maximumCount: 1);
         Assert.False(result.IsError, result.Message);
         Assert.Equal(1, result.Result.CompletedCount);
-        var copied = await provider.LoadHolonAsync(replica.Id, loadChildren: false);
+        var copied = await provider.LoadHolonAsync(replica.Id, loadChildren: true, loadChildrenFromProvider: true);
         Assert.True(copied.IsLoaded && !copied.IsError, copied.Message);
         Assert.Equal(committed.VersionId, copied.Result.VersionId);
+        var copiedChild = Assert.Single(copied.Result.Children);
+        Assert.Equal(child.Id, copiedChild.Id);
+        Assert.Equal(replica.Id, copiedChild.ParentHolonId);
+        Assert.Equal(Assert.Single(committed.Children).VersionId, copiedChild.VersionId);
+
+        var persistedAfterDelivery = await File.ReadAllTextAsync(dnaPath);
+        var resumedWorker = new HolonOutboxDispatcher(new SqliteHolonReplicationOutbox(connection),
+            new[] { target }, "ipfs-restart-fixture-resumed");
+        var resumed = await resumedWorker.DispatchOnceAsync(route.TargetId, maximumCount: 1);
+        Assert.False(resumed.IsError, resumed.Message);
+        Assert.Equal(0, resumed.Result.CompletedCount);
+        Assert.Equal(persistedAfterDelivery, await File.ReadAllTextAsync(dnaPath));
+
+        foreach (var operation in new[] { ConditionalHolonOperation.SoftDelete, ConditionalHolonOperation.HardDelete })
+        {
+            using var sqlite = new SqliteProvider(connection);
+            var activated = await sqlite.ActivateProviderAsync();
+            Assert.True(activated.Result && !activated.IsError, activated.Message);
+            var expectedRevision = CosmicConcurrency.GetProviderRevisionId(committed, route.SourceStorage.Authority);
+            Assert.NotNull(expectedRevision);
+            var write = new ConditionalHolonWrite(Guid.NewGuid(), actor, route.SourceStorage.Authority,
+                new[] { new HolonWriteCondition(replica.Id, expectedRevision) });
+            var enrollment = new HolonReplicationEnrollment(route.SourceId, new[] { route.TargetId }, route.SourceStorage,
+                new[] { route });
+            var deleted = await sqlite.ExecuteReplicatingHolonWriteAsync(
+                new ConditionalHolonWriteRequest(write, operation, new[] { committed }, saveChildren: false), enrollment);
+            Assert.False(deleted.IsError, deleted.Message);
+            committed = Assert.Single(deleted.Result);
+            Assert.True(committed.IsDeleted);
+            var delivery = await resumedWorker.DispatchOnceAsync(route.TargetId, maximumCount: 1);
+            Assert.False(delivery.IsError, delivery.Message);
+            Assert.Equal(1, delivery.Result.CompletedCount);
+            var request = new CommittedHolonReplicaRequest(write.OperationId, route.SourceId, route.SourceStorage.Authority,
+                actor, operation, new[] { committed }, false, true, 0, new[] { route });
+            var receipt = await provider.ReadCommittedHolonReplicaReceiptAsync(new(request, identity));
+            Assert.True(receipt.IsLoaded && !receipt.IsError, receipt.Message);
+            Assert.Equal(ConditionalHolonReceiptState.Committed, receipt.Result.ReceiptState);
+            var beforeReplay = await File.ReadAllTextAsync(dnaPath);
+            var replay = await provider.ApplyBoundCommittedHolonReplicaAsync(request, identity);
+            Assert.True(replay.IsDeleted && !replay.IsError, replay.Message);
+            Assert.Equal(beforeReplay, await File.ReadAllTextAsync(dnaPath));
+        }
+        var removed = await provider.LoadHolonAsync(replica.Id, loadChildren: false);
+        Assert.False(removed.IsLoaded);
+        Assert.Null(removed.Result);
+        var beforeAudit = await File.ReadAllTextAsync(dnaPath);
+        var missingId = Guid.NewGuid();
+        var audit = await provider.ReadHolonReplicaHeadsAsync(new(identity, new[] { replica.Id, missingId }));
+        Assert.True(audit.IsLoaded && !audit.IsError, audit.Message);
+        Assert.Equal(HolonReplicaHeadReadConsistency.NativeSnapshot, audit.Result.Consistency);
+        Assert.Equal(identity.BindingFingerprint, audit.Result.StorageFingerprint);
+        var deletedHead = audit.Result.Records.Single(row => row.HolonId == replica.Id);
+        Assert.False(deletedHead.HasCurrentRecord);
+        Assert.True(deletedHead.Head.HardDeleted);
+        Assert.Equal(committed.VersionId, deletedHead.Head.VersionId);
+        var missing = audit.Result.Records.Single(row => row.HolonId == missingId);
+        Assert.False(missing.HasCurrentRecord);
+        Assert.Null(missing.Head);
+        Assert.Equal(beforeAudit, await File.ReadAllTextAsync(dnaPath));
     }
 }
