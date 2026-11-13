@@ -18,6 +18,8 @@
 
 ## Verification log
 
+13 November Cancun time. ActivityPub point reads and status deletion now share native path-segment validation. Added explicit period and double-period rejection assertions through both HyperDrive entry points on the disposable Mastodon fixture, followed by the valid read and independently verified delete. Native CI pending. No local runtime or build outputs.
+
 13 November Cancun time. Development advanced to 7f3331146b9d in the 09:26 shared window after all seven preceding APIs deployed successfully. The six verified files cover replica initialization authorization and read-only hosted routing evidence. The new rollout and protected hosted evidence remain open.
 
 13 November Cancun time. The read-only hosted candidate verifier now requires the retained owner session to be valid without renewal. The regression confirms an expired session stops before any routing request. All 30 sandbox HyperDrive verifier tests passed with bytecode output disabled. No hosted credentials, requests or local build artifacts were used.

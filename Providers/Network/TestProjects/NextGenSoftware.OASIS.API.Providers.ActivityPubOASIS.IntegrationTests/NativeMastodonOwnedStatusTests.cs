@@ -84,6 +84,20 @@ public class NativeMastodonOwnedStatusTests
         var router = new OASISHyperDrive(manager);
         Task<NextGenSoftware.OASIS.Common.OASISResult<IHolon>> Route(StorageOperationRequest request)
             => synchronous ? Task.FromResult(router.RouteRequest<IHolon>(request)) : router.RouteRequestAsync<IHolon>(request);
+        foreach (var invalidKey in new[] { ".", ".." })
+        {
+            var rejected = await Route(new StorageOperationRequest
+            {
+                Operation = "LoadHolonByProviderKey",
+                ProviderKey = invalidKey,
+                PreferredProvider = ProviderType.ActivityPubOASIS,
+                LoadChildren = false
+            });
+            Assert.True(rejected.IsError);
+            Assert.False(rejected.IsLoaded);
+            Assert.Null(rejected.Result);
+            Assert.IsType<ArgumentException>(rejected.Exception);
+        }
         var loaded = await Route(new StorageOperationRequest
         {
             Operation = "LoadHolonByProviderKey",
