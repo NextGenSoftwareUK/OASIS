@@ -18,6 +18,8 @@
 
 ## Verification log
 
+13 November Cancun time. [Standalone HoloOASIS job 132033029467](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43468243143/job/132033029467) passed both direct reads using keys from the native save responses. Both collection-routing cases failed, with a mapped HcHolon, action hash and raw identity field present. Added value-free diagnostics to distinguish malformed GUIDs from the empty GUID. Keep the full routing gate open. No local artifacts were created.
+
 13 November Cancun time. All seven API deployments reported success on Development `0ca6397b2fce`, which includes the SQLite provider-key fix and Oracle native routing coverage. The HoloOASIS collection diagnostic and standalone action-hash jobs remain active. The next shared review is after 12:14:45 Cancun based on the rollout timestamp. No local artifacts were created.
 
 13 November Cancun time. Split the native action-hash assertions into independent sync and async tests on the same packaged conductor. Each saves one owned holon, reads it using the key from the save response, checks its ID and name, and deletes it in a finally block. The existing collection and HyperDrive routing tests still run and must pass. This lets CI report the action-hash result even when collection decoding fails. No local artifacts were created.

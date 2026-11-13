@@ -157,16 +157,18 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                 {
                     var entry = (object)record.EntryDataObject as HcHolon;
                     // Read the identity from the entry itself, independently of the record envelope.
+                    object nativeId = null;
+                    var hasIdentity = record.EntryKeyValuePairs?.TryGetValue("id", out nativeId) == true;
+                    var parses = Guid.TryParse(nativeId as string, out var holonId);
                     if (entry == null || string.IsNullOrWhiteSpace(record.ActionHash) ||
-                        record.EntryKeyValuePairs == null ||
-                        !record.EntryKeyValuePairs.TryGetValue("id", out var nativeId) ||
-                        !(nativeId is string id) || !Guid.TryParse(id, out var holonId) || holonId == Guid.Empty)
+                        !hasIdentity || !parses || holonId == Guid.Empty)
                     {
                         OASISErrorHandling.HandleError(ref result,
                             $"Holochain {function} returned an invalid holon record or identity " +
                             $"(entry type: {record.EntryDataObject?.GetType().Name ?? "none"}, " +
                             $"action hash present: {!string.IsNullOrWhiteSpace(record.ActionHash)}, " +
-                            $"identity field present: {record.EntryKeyValuePairs?.ContainsKey("id") == true}).");
+                            $"identity field present: {hasIdentity}, identity type: {nativeId?.GetType().Name ?? "none"}, " +
+                            $"identity parses as GUID: {parses}, identity is empty GUID: {parses && holonId == Guid.Empty}).");
                         return result;
                     }
 
