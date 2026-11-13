@@ -168,6 +168,12 @@ public sealed class IPFSRestartTests
                 Assert.True(outcome.IsLoaded && !outcome.IsError, outcome.Message);
                 Assert.Equal(ConditionalHolonReceiptState.Committed, outcome.Result.ReceiptState);
                 Assert.False(string.IsNullOrWhiteSpace(outcome.Result.CommittedDeltaSummaryJson));
+                var wrongSource = new CosmicStorageIdentity(identity.Result.Authority,
+                    identity.Result.EndpointFingerprint, Guid.NewGuid());
+                var mismatched = await provider.ReadBoundConditionalHolonWriteOutcomeAsync(request, wrongSource);
+                Assert.True(mismatched.IsError);
+                Assert.Equal("COSMIC_SOURCE_STORAGE_BINDING_MISMATCH", mismatched.ErrorCode);
+                Assert.Null(mismatched.Result);
                 Assert.Equal(pointerBeforeReplay, await File.ReadAllTextAsync(dnaPath));
                 var replay = await provider.ExecuteConditionalHolonWriteAsync(request);
                 Assert.True(replay.IsSaved && !replay.IsError, replay.Message);

@@ -18,6 +18,8 @@
 
 ## Verification log
 
+13 November Cancun time. Added native restart coverage that bound conditional recovery rejects another store before disclosing receipt or delta evidence. Existing pointer equality assertion covers both observations. Outbound enrollment and durable worker claims remain open.
+
 13 November Cancun time. Added redacted committed delta evidence to new IPFS conditional receipts, replay and read-only recovery. Existing receipts remain readable and report absent delta evidence. Native restart qualification pending. No local builds or downloads.
 
 13 November Cancun time. Fast-forwarded Development to 9da992b83968 after seven successful predecessor rollouts. The four-file batch is the exact native Kubo-tested tree 5ad0ed6e224aabc59da5414355eb5976275dd990. It adds conditional graph writes, ordinary-save revision invalidation, durable receipt replay and read-only bound recovery. Deployment verification and outbound route enrollment and dispatch remain open.
