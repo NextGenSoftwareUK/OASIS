@@ -1,7 +1,14 @@
 using System.Net;
 using System.Net.Sockets;
+using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive;
+using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.Providers.TestSupport;
+using NextGenSoftware.Utilities;
 using Xunit;
 using SqliteProvider = NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.SQLLiteDBOASIS;
 
@@ -53,6 +60,29 @@ public partial class TronNativeStorageLifecycleTests
                 Assert.True(!removed.IsError && removed.IsDeleted && removed.Result?.Id == record.Id, removed.Message);
             }
             Assert.Empty(await native.ListKeysAsync(string.Empty));
+            var staleId = fixtures[0].Id;
+            Assert.Equal(staleId, (await sqlite.LoadHolonAsync(staleId, loadChildren: false)).Result?.Id);
+            var dna = new OASISDNA { OASIS = new NextGenSoftware.OASIS.API.DNA.OASIS
+                { HyperDriveMode = HyperDriveModes.V2, StorageProviders = new StorageProviderSettings() } };
+            dna.OASIS.SubscriptionConfig.PlanType = "Gold";
+            var manager = new ProviderManager(null, dna) { IsAutoFailOverEnabled = true };
+            manager.RegisterProvider(tron);
+            manager.RegisterProvider(sqlite);
+            Assert.False(manager.SetAndReplaceAutoFailOverListForProviders(new[]
+            {
+                new EnumValue<ProviderType>(tron.ProviderType.Value),
+                new EnumValue<ProviderType>(sqlite.ProviderType.Value)
+            }).IsError);
+            var router = new OASISHyperDrive(manager);
+            var request = new StorageOperationRequest
+            {
+                Operation = "LoadHolon", HolonId = staleId,
+                PreferredProvider = tron.ProviderType.Value, LoadChildren = false
+            };
+            var absent = synchronous ? router.RouteRequest<IHolon>(request) : await router.RouteRequestAsync<IHolon>(request);
+            Assert.Equal(OASISResultErrorCodes.RecordNotFound, absent.ErrorCode);
+            Assert.Null(absent.Result);
+            Assert.Equal(0L, manager.PerformanceMonitor.GetMetrics(sqlite.ProviderType.Value)?.TotalRequests ?? 0);
         }
         finally
         {
