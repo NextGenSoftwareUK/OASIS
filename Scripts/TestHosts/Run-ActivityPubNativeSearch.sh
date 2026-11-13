@@ -152,8 +152,21 @@ echo 'Native authenticated search returned the two expected second-page accounts
 export OASIS_ACTIVITYPUB_SEARCH_LIVE=1 OASIS_ACTIVITYPUB_SEARCH_INSTANCE="$origin"
 export OASIS_ACTIVITYPUB_SEARCH_QUERY=oasisfixture OASIS_ACTIVITYPUB_SEARCH_TOKEN="$token"
 export OASIS_ACTIVITYPUB_STATUS_FIXTURE_TOKEN="$status_token"
+export OASIS_ACTIVITYPUB_TEST_DIRECTORY="$fixture"
 pwsh -NoProfile -Command '
   ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-ActivityPubSearch -Operation {
-    dotnet test "Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS.IntegrationTests.csproj" --filter "FullyQualifiedName~AuthorizedMastodonAccountSearchTests|FullyQualifiedName~NativeMastodonOwnedStatusTests" /p:ActivityPubDirectProviderOnly=true /m:2 /nr:false /p:UseSharedCompilation=false --logger "console;verbosity=normal"
-    if ($LASTEXITCODE -ne 0) { throw "Native Mastodon authenticated search or status deletion verification failed." }
+    $routing = $env:OASIS_ACTIVITYPUB_ROUTING -eq "1"
+    $filter = if ($routing) {
+      "FullyQualifiedName~RoutesInstanceScopedStatusReadAndDelete"
+    } else {
+      "FullyQualifiedName~AuthorizedMastodonAccountSearchTests|FullyQualifiedName~DeletesAnOwnedPrivateStatusAndNativeReadConfirmsAbsence"
+    }
+    dotnet test "Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS.IntegrationTests.csproj" --filter $filter /p:ActivityPubDirectProviderOnly=true /m:2 /nr:false /p:UseSharedCompilation=false --logger "console;verbosity=normal" --results-directory $env:OASIS_ACTIVITYPUB_TEST_DIRECTORY --logger "trx;LogFileName=native.trx"
+    if ($LASTEXITCODE -ne 0) { throw "Native Mastodon verification failed." }
+    if ($routing) {
+      [xml]$report = Get-Content -LiteralPath (Join-Path $env:OASIS_ACTIVITYPUB_TEST_DIRECTORY "native.trx")
+      if ($report.TestRun.ResultSummary.Counters.passed -ne "2" -or $report.TestRun.ResultSummary.Counters.total -ne "2") {
+        throw "Both native Mastodon routing cases must execute and pass."
+      }
+    }
   }'
