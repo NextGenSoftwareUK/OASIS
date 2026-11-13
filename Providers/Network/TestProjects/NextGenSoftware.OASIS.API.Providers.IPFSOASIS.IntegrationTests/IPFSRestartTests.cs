@@ -104,6 +104,14 @@ public sealed class IPFSRestartTests
                 Assert.True(replayed.IsSaved && !replayed.IsError, replayed.Message);
                 Assert.Equal(Assert.Single(conditional.Result).VersionId, Assert.Single(replayed.Result).VersionId);
                 Assert.Equal(conditionalPointer, await File.ReadAllTextAsync(dnaPath));
+                var staleCondition = new ConditionalHolonWrite(Guid.NewGuid(), RecordId, ProviderType.IPFSOASIS,
+                    new[] { new HolonWriteCondition(conditionalRecord.Id, Guid.NewGuid()) });
+                var staleRequest = new ConditionalHolonWriteRequest(staleCondition, ConditionalHolonOperation.Save,
+                    new[] { conditionalRecord }, saveChildren: false);
+                var stale = await provider.ExecuteConditionalHolonWriteAsync(staleRequest);
+                Assert.True(stale.IsError);
+                Assert.Equal(CosmicConcurrencyException.Code, stale.ErrorCode);
+                Assert.Equal(conditionalPointer, await File.ReadAllTextAsync(dnaPath));
                 await VerifyReplicaAsync(provider, identity.Result, dnaPath, replay: false);
                 holon.Name = "after update";
                 holon.Version = 2;
