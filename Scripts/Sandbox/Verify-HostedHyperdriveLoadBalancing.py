@@ -90,6 +90,7 @@ def verify_round_robin(state, revision):
     providers = {"MongoDBOASIS", "SQLLiteDBOASIS"}
     flow.write_new(attempt, json.dumps({"deployment": deployment, "revision": revision}).encode())
     selected = Counter()
+    serving_order = []
     for _ in range(6):
         response = flow.call("data/load-holon", token, {
             "id": expected["id"], "providerType": "Default", "loadChildren": False,
@@ -97,10 +98,13 @@ def verify_round_robin(state, revision):
             "loadBalancingStrategy": "RoundRobin", "autoFailOverMode": "OFF",
         })
         route = verify_response(response, expected, "Default", providers=providers, strategy="RoundRobin")
-        selected[route["ServingProvider"]] += 1
+        provider = route["ServingProvider"]
+        selected[provider] += 1
+        serving_order.append(provider)
     if selected != Counter({provider: 3 for provider in providers}) or serving_deployment() != deployment:
         raise RuntimeError("The reviewed deployment did not serve three reads from each provider.")
-    evidence = {"deployment": deployment, "revision": revision, "servingCounts": dict(selected), "newSaves": 0}
+    evidence = {"deployment": deployment, "revision": revision, "servingCounts": dict(selected),
+                "servingOrder": serving_order, "strategy": "RoundRobin", "newSaves": 0}
     flow.write_new(acknowledgement, json.dumps(evidence).encode())
     print(json.dumps(evidence))
 
