@@ -107,6 +107,10 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
                     gate.Release();
                 }
             }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
+            }
             catch (Exception cause)
             {
                 OASISErrorHandling.HandleError(ref result, "Could not capture the IPFS catalogue identity.", cause);
