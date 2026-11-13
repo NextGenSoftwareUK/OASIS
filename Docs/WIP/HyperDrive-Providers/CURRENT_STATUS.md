@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. Added the IPFS bound committed-replica receiver on the task branch. It checks the enrolled identity before replay, compares protected lineage against the native record, and publishes the updated records, heads and exact acknowledgement in one catalogue root. The disposable Kubo restart scenario now exercises apply and replay around an intervening ordinary write. Build and native acceptance are pending. Source outbox and routed delivery remain open. No local runtime, build or download was created.
+
 12 November Cancun time. IPFS ordinary catalogue writes now retain authenticated root fields alongside the record index, so later writes can preserve committed replica heads and receipts. The receiver can reuse the same storage identity derivation and cancel while waiting for the existing cross-process file lease. Native CI is pending. No local runtime, download or build output was created.
 
 12 November Cancun time. Development advanced to COSMIC NEAR 6c61e3e5c33d. IPFS restart 43349519780 and multi-process 43349524184 were dispatched for the changed Development baseline. Both must report candidate tree a669f65f612b875acd6d3f7f4b45a2e44cf10fd5 before integration. The previous native passes remain accepted for their original baseline. No local runtime, download, test result or build output was created.

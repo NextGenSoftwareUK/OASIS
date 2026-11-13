@@ -317,10 +317,20 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
                 ["schema"] = "oasis-ipfs-catalogue-v2",
                 ["storeId"] = Guid.NewGuid().ToString("D")
             };
-            // Ordinary writes replace the record index while preserving other state in the authenticated root.
-            catalogue["records"] = JObject.FromObject(idLookup);
-            string json = ProtectIndex(catalogue.ToString(Formatting.None));
-            var fsn = await IPFSClient.FileSystem.AddTextAsync(json);
+            return await PublishCatalogueAsync(catalogue, idLookup, dna, CancellationToken.None).ConfigureAwait(false);
+        }
+
+        // The caller holds both catalogue locks and stages every change against the same root.
+        private async Task<string> PublishCatalogueAsync(JObject catalogue, Dictionary<string, HolonResume> records,
+            OASISDNA dna, CancellationToken cancellationToken)
+        {
+            var settings = dna.OASIS.StorageProviders.IPFSOASIS;
+            var previousRoot = settings.LookUpIPFSAddress;
+            catalogue["records"] = JObject.FromObject(records);
+            var encrypted = ProtectIndex(catalogue.ToString(Formatting.None));
+            cancellationToken.ThrowIfCancellationRequested();
+            var fsn = await IPFSClient.FileSystem.AddTextAsync(encrypted).ConfigureAwait(false);
+            cancellationToken.ThrowIfCancellationRequested();
             settings.LookUpIPFSAddress = fsn.Id;
             try
             {
@@ -335,7 +345,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             }
 
             _OASISDNA.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress = fsn.Id;
-            _idLookup = idLookup;
+            _idLookup = records;
             return fsn.Id;
         }
 

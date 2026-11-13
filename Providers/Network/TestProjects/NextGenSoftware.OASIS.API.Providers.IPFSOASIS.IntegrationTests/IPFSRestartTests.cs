@@ -1,5 +1,6 @@
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.DNA;
 using Xunit;
 
@@ -58,6 +59,7 @@ public sealed class IPFSRestartTests
                 var identity = await provider.CaptureStorageIdentityAsync();
                 Assert.False(identity.IsError, identity.Message);
                 await File.WriteAllTextAsync(identityPath, identity.Result.BindingFingerprint);
+                await VerifyReplicaAsync(provider, identity.Result, replay: false);
                 holon.Name = "after update";
                 holon.Version = 2;
                 saved = await provider.SaveHolonAsync(holon, saveChildren: false);
@@ -69,6 +71,7 @@ public sealed class IPFSRestartTests
                 var identity = await provider.CaptureStorageIdentityAsync();
                 Assert.False(identity.IsError, identity.Message);
                 Assert.Equal(await File.ReadAllTextAsync(identityPath), identity.Result.BindingFingerprint);
+                await VerifyReplicaAsync(provider, identity.Result, replay: true);
                 var current = await provider.LoadHolonAsync(RecordId, loadChildren: false);
                 Assert.True(current.IsLoaded && !current.IsError, current.Message);
                 Assert.Equal("after update", current.Result.Name);
@@ -83,5 +86,36 @@ public sealed class IPFSRestartTests
         {
             await provider.DeActivateProviderAsync();
         }
+    }
+
+    private static async Task VerifyReplicaAsync(IPFSOASIS provider, CosmicStorageIdentity identity, bool replay)
+    {
+        var replica = new Holon
+        {
+            Id = new Guid("90644865-2be6-4044-bdfb-3e6a394f5b23"),
+            VersionId = new Guid("90644865-2be6-4044-bdfb-3e6a394f5b24"),
+            Name = "replicated from SQLite",
+            Version = 1,
+            HolonType = HolonType.Holon
+        };
+        CosmicConcurrency.SetProviderRevisionId(replica, ProviderType.SQLLiteDBOASIS,
+            new Guid("90644865-2be6-4044-bdfb-3e6a394f5b25"));
+        var request = new CommittedHolonReplicaRequest(
+            new Guid("90644865-2be6-4044-bdfb-3e6a394f5b26"), "restart-sqlite-source",
+            ProviderType.SQLLiteDBOASIS, RecordId, ConditionalHolonOperation.Save, new[] { replica }, saveChildren: false);
+        var before = await provider.LoadHolonAsync(replica.Id, loadChildren: false);
+        if (replay)
+            Assert.True(before.IsLoaded && !before.IsError, before.Message);
+        var applied = await provider.ApplyBoundCommittedHolonReplicaAsync(request, identity);
+        Assert.True(applied.IsSaved && !applied.IsError, applied.Message);
+        var acknowledgement = Assert.Single(applied.Result);
+        var current = await provider.LoadHolonAsync(replica.Id, loadChildren: false);
+        Assert.True(current.IsLoaded && !current.IsError, current.Message);
+        Assert.Equal(replica.VersionId, current.Result.VersionId);
+        var revision = CosmicConcurrency.GetProviderRevisionId(acknowledgement, ProviderType.IPFSOASIS);
+        Assert.NotNull(revision);
+        Assert.Equal(revision, CosmicConcurrency.GetProviderRevisionId(current.Result, ProviderType.IPFSOASIS));
+        if (replay)
+            Assert.Equal(revision, CosmicConcurrency.GetProviderRevisionId(before.Result, ProviderType.IPFSOASIS));
     }
 }
