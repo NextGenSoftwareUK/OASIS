@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+12 November IPFS identity runs 43347831988 and 43347800744 confirmed removal of both disposable Kubo runtimes, repositories and logs. No local builds or downloads.
+
 12 November removed and verified absence of the temporary Git index used to compute the exact IPFS identity tree. The stale-baseline jobs stopped before provisioning Kubo. No local build or download.
 
 12 November removed and verified absence of the temporary Git index used to reproduce the IPFS concurrent reader tree and compose 2b8081b30f84. No local build or download.
