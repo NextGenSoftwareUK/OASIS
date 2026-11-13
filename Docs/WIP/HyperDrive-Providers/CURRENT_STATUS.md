@@ -18,6 +18,8 @@
 
 ## Verification log
 
+13 November Cancun time. All seven API deployments reported success on Development `0ca6397b2fce`, which includes the SQLite provider-key fix and Oracle native routing coverage. The HoloOASIS collection diagnostic and standalone action-hash jobs remain active. The next shared review is after 12:14:45 Cancun based on the rollout timestamp. No local artifacts were created.
+
 13 November Cancun time. Split the native action-hash assertions into independent sync and async tests on the same packaged conductor. Each saves one owned holon, reads it using the key from the save response, checks its ID and name, and deletes it in a finally block. The existing collection and HyperDrive routing tests still run and must pass. This lets CI report the action-hash result even when collection decoding fails. No local artifacts were created.
 
 13 November Cancun time. HoloOASIS fix job `132027339368` built but failed both routing cases at the initial `get_all_holons` collection check, before either provider-key assertion. The previous regression reached the key assertions and reproduced the old dispatch error. Added collection diagnostics that report decoded type and field presence without record contents. The next conductor run must resolve this collection failure or reach the provider-key checks before the fix can be accepted. No local fixtures were created.
