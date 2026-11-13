@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. Development fast-forwarded from live-verified EOSIO 4d338173e64d to the exact four-file IPFS receiver candidate fd9b328ac712. All seven predecessor APIs were healthy. Native Kubo restart and multiprocess runs 43357257220 and 43357260351 matched the integrated tree. The remote ref and Railway manifest were confirmed. New rollout verification and later replica audit changes remain open. No local build or download.
+
 12 November Cancun time. Native restart 43360074502 rejected changed intent under an already committed operation ID for both apply and receipt lookup without changing the IPFS pointer. Multi-process 43360045368 passed on the same tree ff4837a2d945dd2c319afaf803b8ece65a63db25. Both fixture cleanups passed. The coordinated receiver candidate retains its earlier qualified file scope.
 
 12 November Cancun time. Prepared receiver candidate 657dc263a079 for the alternate Cosmos-first integration order on ec1f5a9134ad. All four receiver paths match fd9b328ac712. The resulting tree 1fd5069150e25e921885b9bdc7988df427ee6e3d exactly matches the COSMIC receiver-first follow-on. Development still points to healthy EOSIO 4d338173e64d. The receiver-first candidate remains qualified for its exact parent, and the alternate requires native checks only if Cosmos lands first.
