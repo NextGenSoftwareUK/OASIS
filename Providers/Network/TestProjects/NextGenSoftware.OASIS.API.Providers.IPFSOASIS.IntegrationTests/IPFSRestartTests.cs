@@ -92,6 +92,18 @@ public sealed class IPFSRestartTests
                     () => provider.SaveLookupToFile(oversizedCatalogue));
                 Assert.Contains("exceeds the native query and replica read limit", sizeError.Message);
                 Assert.Equal(publishedDna, await File.ReadAllTextAsync(dnaPath));
+                var conditionalRecord = new Holon { Id = Guid.NewGuid(), Name = "conditional IPFS create", HolonType = HolonType.Holon };
+                var condition = new ConditionalHolonWrite(Guid.NewGuid(), RecordId, ProviderType.IPFSOASIS,
+                    new[] { new HolonWriteCondition(conditionalRecord.Id, null) });
+                var conditionalRequest = new ConditionalHolonWriteRequest(condition, ConditionalHolonOperation.Save,
+                    new[] { conditionalRecord }, saveChildren: false);
+                var conditional = await provider.ExecuteConditionalHolonWriteAsync(conditionalRequest);
+                Assert.True(conditional.IsSaved && !conditional.IsError, conditional.Message);
+                var conditionalPointer = await File.ReadAllTextAsync(dnaPath);
+                var replayed = provider.ExecuteConditionalHolonWrite(conditionalRequest);
+                Assert.True(replayed.IsSaved && !replayed.IsError, replayed.Message);
+                Assert.Equal(Assert.Single(conditional.Result).VersionId, Assert.Single(replayed.Result).VersionId);
+                Assert.Equal(conditionalPointer, await File.ReadAllTextAsync(dnaPath));
                 await VerifyReplicaAsync(provider, identity.Result, dnaPath, replay: false);
                 holon.Name = "after update";
                 holon.Version = 2;
