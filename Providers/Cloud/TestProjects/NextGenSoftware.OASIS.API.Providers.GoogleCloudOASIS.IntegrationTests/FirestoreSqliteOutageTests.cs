@@ -46,6 +46,33 @@ public sealed class FirestoreSqliteOutageTests
             var identity = await db.Collection("cosmicStorageIdentity").Document("store").GetSnapshotAsync();
             Assert.AreEqual(identity.GetValue<string>("storeId"), bindings[0].Result.StoreId);
             Assert.AreEqual(bindings[0].Result.BindingFingerprint, bindings[1].Result.BindingFingerprint);
+            var reopened = new GoogleCloudOASIS(projectId: project, enableStorage: false, enableFirestore: true, enableBigQuery: false);
+            try
+            {
+                var reopenedActivation = await reopened.ActivateProviderAsync();
+                Assert.IsFalse(reopenedActivation.IsError, reopenedActivation.Message);
+                var reopenedBinding = await reopened.CaptureStorageIdentityAsync();
+                Assert.IsFalse(reopenedBinding.IsError, reopenedBinding.Message);
+                Assert.AreEqual(bindings[0].Result.BindingFingerprint, reopenedBinding.Result.BindingFingerprint);
+            }
+            finally
+            {
+                await reopened.DeActivateProviderAsync();
+            }
+            var otherStore = new GoogleCloudOASIS(projectId: project, enableStorage: false,
+                enableFirestore: true, enableBigQuery: false, firestoreDatabaseId: "replica-binding-other");
+            try
+            {
+                var otherActivation = await otherStore.ActivateProviderAsync();
+                Assert.IsFalse(otherActivation.IsError, otherActivation.Message);
+                var otherBinding = await otherStore.CaptureStorageIdentityAsync();
+                Assert.IsFalse(otherBinding.IsError, otherBinding.Message);
+                Assert.AreNotEqual(bindings[0].Result.BindingFingerprint, otherBinding.Result.BindingFingerprint);
+            }
+            finally
+            {
+                await otherStore.DeActivateProviderAsync();
+            }
             var saved = await firestore.SaveHolonAsync(new Holon { Id = id, Name = expected, IsActive = true }, saveChildren: false);
             Assert.IsFalse(saved.IsError, saved.Message);
             Assert.IsTrue((await document.GetSnapshotAsync()).Exists);
