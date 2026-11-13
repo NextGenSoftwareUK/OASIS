@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. Remote Development advanced to exact COSMIC Cosmos 23a78784f465. Dispatched native Kubo restart 43364403850 and multi-process 43364406865 from the provider branch. Both must report candidate tree 0d2d89c0aae57a3a04c67a523496a964468daa99 before integrating the audit and reconciliation follow-up. The previous native graph evidence carries forward for its original tree. No local builds or downloads.
+
 12 November Cancun time. Prepared graph-qualified IPFS follow-up a91001d1a4f2 on fd9b328ac712. Its three changed paths reproduce passing tree 6083d3df2a9c8ea0649c03339194f25c66a8c30b exactly. Cosmos-based 2ec99009d7c8 preserves those file objects and needs qualification on actual Development tree 0d2d89c0aae57a3a04c67a523496a964468daa99. This supersedes the earlier reconciliation-only candidate and includes native graph and audit coverage. COSMIC independently verified all four IPFS public CQL presets on the receiver deployment. Hosted delivery remains open.
 
 12 November Cancun time. Native graph restart 43363302327 and multi-process publication 43363293816 passed on tree 6083d3df2a9c8ea0649c03339194f25c66a8c30b. SQLite outbox delivery preserved parent and child logical revisions and the parent link in Kubo. Both jobs removed the disposable fixtures. Cosmos retains the next shared window.
