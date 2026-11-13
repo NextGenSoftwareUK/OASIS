@@ -18,6 +18,8 @@
 
 ## Verification log
 
+13 November Cancun time. Native Mastodon 4.4.28 passed 2/2 HyperDrive cases with zero skips on 6ac5d6b1bdb0. Each mode resolved the exact public object URI through the provider-key route, confirmed the serving provider and local native ID, and verified fixture deletion with an independent HTTP 404. The runner removed its containers, network and fixture directory. [Native job](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43484054336/job/132087695900). Exact Development qualification and cross-instance routing remain open.
+
 13 November 13:35 Cancun time. All seven Railway API deployment statuses for Development 309bb68419f2 reported success, including WEB4. The remote Development ref still matches the verified Solana signature candidate parent. The next shared review remains after 13:54:12 Cancun. The ActivityPub run passed the point-selector validation step and entered its native Mastodon step. No local artifacts were created.
 
 13 November Cancun time. The ActivityPub provider-key read now accepts a public HTTPS object URI through the shipping HyperDrive point-read path. The native Mastodon test exercises sync and async routing and checks serving-provider attribution, exact object identity and the instance-local status ID. Native CI is pending. Multiple independently configured instances remain a separate routing gate. No local runtime or fixture artifacts were created.
