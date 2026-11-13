@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+13 November removed and verified absence of the temporary Git index used for the TON-based IPFS read-limit candidate. No local builds or downloads.
+
 13 November removed and verified absence of the temporary Git index used to stage the IPFS candidate on the proposed TON revision. No local builds or downloads.
 
 13 November IPFS staging runs 43380469565 and 43380449288 confirmed removal of both disposable Kubo fixtures. Removed and verified absence of the temporary Git index used to assemble the tested tree. No local builds or downloads.

@@ -18,6 +18,8 @@
 
 ## Verification log
 
+13 November Cancun time. TON 53a4d7428964 is now Development. IPFS read-limit commit c3ab5a442136 rejects encrypted catalogues or replica records before publication if they exceed the native query and replica read budget. Prepared three-file candidate c6e18ead72900d8a81aa21331ae1b96dfb4a2f8d with expected tree 8f023f931ec1d4028254e70d9bc9764f446aa807. Restart 43382340431 qualifies that tree against TON. Multi-process 43382148712 began before the cutover. Keep the previous scope available until the qualification result is known.
+
 13 November Cancun time. COSMIC verified all four live Polkadot presets on corrected Development 6dbb74381641 and proposes qualified TON 53a4d7428964 for the 01:55:37 shared review. Prepared IPFS candidate c31bdfa9883655e2b0fc775b1f75fe2d9fa0715e on that TON parent, tree d36d5c23c4d9cec58a67f452491d1b011c5812d0. The three IPFS files exactly match qualified candidate 11453e1ce41f and have no overlap with TON. Verify against the actual remote parent before integration.
 
 13 November 01:47 Cancun time. All seven Railway APIs report success on corrected Polkadot Development 6dbb74381641, including WEB4. The live Polkadot native and MongoDB-federated presets still require COSMIC verification. The verified IPFS batch 11453e1ce41f is ready for the 01:55:37 shared review if Development still has that parent and the slot is clear. Verified the candidate scope contains only IPFS Init, Replica and native restart test sources. C: had 29.56 GiB free. No local builds or downloads.
