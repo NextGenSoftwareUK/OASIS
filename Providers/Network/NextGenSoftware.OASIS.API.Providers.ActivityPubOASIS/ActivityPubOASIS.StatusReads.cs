@@ -14,6 +14,14 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS;
 
 public partial class ActivityPubOASIS
 {
+    private static string RequireNativePathId(string key)
+    {
+        var selected = key?.Trim();
+        if (string.IsNullOrEmpty(selected) || selected is "." or "..")
+            throw new ArgumentException("A native ID must be a nonempty path segment.", nameof(key));
+        return selected;
+    }
+
     private static OASISResult<T> RejectProjectionGuid<T>()
     {
         var result=new OASISResult<T>();
@@ -29,7 +37,7 @@ public partial class ActivityPubOASIS
             if(string.IsNullOrWhiteSpace(key))throw new ArgumentException("A native status ID is required.",nameof(key));
             if(depth<0)throw new ArgumentOutOfRangeException(nameof(depth));
             if(version!=0)throw new NotSupportedException("Native status edit history is not an OASIS holon version.");
-            var selected=key.Trim();
+            var selected=RequireNativePathId(key);
             if(!_isActivated){var activated=await ActivateProviderAsync().ConfigureAwait(false);if(activated.IsError)return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<bool,IHolon>(activated);}
             using var response=await _httpClient.GetAsync("/api/v1/statuses/"+Uri.EscapeDataString(selected)).ConfigureAwait(false);response.EnsureSuccessStatusCode();
             using var document=JsonDocument.Parse(await response.Content.ReadAsStringAsync().ConfigureAwait(false));var status=document.RootElement;

@@ -82,7 +82,7 @@ public partial class ActivityPubOASIS
             ObjectDisposedException.ThrowIf(_disposed,this);
             if(string.IsNullOrWhiteSpace(selector))throw new ArgumentException("A nonblank native account ID or acct handle is required.",nameof(selector));
             if(version!=0)throw new NotSupportedException("Mastodon public account reads do not expose OASIS record history.");
-            var selected=selector.Trim();
+            var selected=nativeId ? RequireNativePathId(selector) : selector.Trim();
             if(!_isActivated){
                 var activated=await ActivateProviderAsync();
                 if(activated.IsError)return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<bool,T>(activated);
