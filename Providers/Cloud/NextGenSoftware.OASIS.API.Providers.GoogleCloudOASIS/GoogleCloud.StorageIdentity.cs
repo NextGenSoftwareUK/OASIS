@@ -13,6 +13,9 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS;
 
 public partial class GoogleCloudOASIS : ICosmicStorageIdentityProvider
 {
+    private static DocumentReference FirestoreStorageIdentityDocument(FirestoreDb database)
+        => database.Collection("cosmicStorageIdentity").Document("store");
+
     public async Task<OASISResult<CosmicStorageIdentity>> CaptureStorageIdentityAsync(
         CancellationToken cancellationToken = default)
     {
@@ -24,7 +27,7 @@ public partial class GoogleCloudOASIS : ICosmicStorageIdentityProvider
 
         try
         {
-            var reference = database.Collection("cosmicStorageIdentity").Document("store");
+            var reference = FirestoreStorageIdentityDocument(database);
             var snapshot = await reference.GetSnapshotAsync(cancellationToken).ConfigureAwait(false);
             if (!snapshot.Exists)
             {
@@ -55,11 +58,17 @@ public partial class GoogleCloudOASIS : ICosmicStorageIdentityProvider
 
     private static CosmicStorageIdentity ReadFirestoreStorageIdentity(DocumentSnapshot snapshot)
     {
-        if (!snapshot.Exists || !snapshot.TryGetValue<string>("storeId", out var value)
-            || !Guid.TryParseExact(value, "D", out var id) || id == Guid.Empty || id.ToString("D") != value)
+        if (!snapshot.Exists || !snapshot.TryGetValue<string>("storeId", out var value))
             throw new InvalidOperationException("The Firestore storage identity document is absent or invalid.");
 
-        return CreateFirestoreStorageIdentity(snapshot.Reference.Database, id);
+        return ParseFirestoreStorageIdentity(snapshot.Reference.Database, value);
+    }
+
+    private static CosmicStorageIdentity ParseFirestoreStorageIdentity(FirestoreDb database, string value)
+    {
+        if (!Guid.TryParseExact(value, "D", out var id) || id == Guid.Empty || id.ToString("D") != value)
+            throw new InvalidOperationException("The Firestore storage identity is invalid.");
+        return CreateFirestoreStorageIdentity(database, id);
     }
 
     private static CosmicStorageIdentity CreateFirestoreStorageIdentity(FirestoreDb database, Guid id)
