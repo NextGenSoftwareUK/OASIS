@@ -118,6 +118,14 @@ public sealed class IPFSRestartTests
             new Guid("90644865-2be6-4044-bdfb-3e6a394f5b26"), "restart-sqlite-source",
             ProviderType.SQLLiteDBOASIS, RecordId, ConditionalHolonOperation.Save, new[] { replica }, saveChildren: false);
         var persistedBefore = await File.ReadAllTextAsync(dnaPath);
+        if (!replay)
+        {
+            using var lease = new FileStream(dnaPath + ".ipfs.lock", FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+            using var cancellation = new CancellationTokenSource(TimeSpan.FromSeconds(1));
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(
+                () => provider.ApplyBoundCommittedHolonReplicaAsync(request, identity, cancellation.Token));
+            Assert.Equal(persistedBefore, await File.ReadAllTextAsync(dnaPath));
+        }
         var wrongStore = new CosmicStorageIdentity(identity.Authority, identity.EndpointFingerprint, Guid.NewGuid());
         var rejected = await provider.ApplyBoundCommittedHolonReplicaAsync(request, wrongStore);
         Assert.True(rejected.IsError);
