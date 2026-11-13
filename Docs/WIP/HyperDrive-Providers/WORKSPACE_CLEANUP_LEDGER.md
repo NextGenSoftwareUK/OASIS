@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+13 November native MongoDB and SQLite run 43414762460 removed its temporary MongoDB container after the subscription-eligibility assertion failed. Removed and verified absence of the temporary Git index for corrected candidate 1818e1d5f063. No local database, build or download.
+
 13 November removed and verified absence of the temporary Git index used to stage the exact MongoDB and SQLite routing candidate. No local build, database or runtime download.
 
 13 November removed and verified absence of the temporary Git index used to assemble WEB4 candidate 747ac0d8d140. No local builds or runtime downloads.
