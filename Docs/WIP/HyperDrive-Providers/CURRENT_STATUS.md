@@ -18,6 +18,8 @@
 
 ## Verification log
 
+13 November Cancun time. ActivityPub endpoint audit found the same path normalization risk in the provider CQL point selector. Point reads now enforce the existing decimal native ID rule used by the batch selector. Added a focused rejection regression. Existing native routing candidate 75e662fdc8e4 does not contain this follow-up. No local build artifacts.
+
 13 November Cancun time. ActivityPub point reads and status deletion now share native path-segment validation. Added explicit period and double-period rejection assertions through both HyperDrive entry points on the disposable Mastodon fixture, followed by the valid read and independently verified delete. [Task-branch CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43443960848) and [exact Development CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43444802683) each passed both modes and removed their fixtures. Candidate 75e662fdc8e4 is ready for the next shared review. No local runtime or build outputs.
 
 13 November Cancun time. Development advanced to 7f3331146b9d in the 09:26 shared window after all seven preceding APIs deployed successfully. The six verified files cover replica initialization authorization and read-only hosted routing evidence. The new rollout and protected hosted evidence remain open.
