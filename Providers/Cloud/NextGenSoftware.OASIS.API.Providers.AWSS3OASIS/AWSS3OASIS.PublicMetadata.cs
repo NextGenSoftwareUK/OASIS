@@ -15,19 +15,17 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSS3OASIS;
 /// Explicit read-only view of native public S3 object metadata. It never downloads
 /// object bodies and is separate from encrypted, owned AWSS3OASIS record storage.
 /// </summary>
-public sealed class AwsS3PublicMetadataSource : KeyValueStorageProviderBase,
-    ICosmicQueryStorageProvider, ICosmicReadOnlyQueryActivation, IDisposable
+public sealed partial class AWSS3OASIS : ICosmicReadOnlyQueryActivation
 {
     public const string ObjectKeyMetadata = "S3ObjectKey";
     private const string Prefix = "public-metadata/";
     private readonly MetadataBackend metadata;
-    private bool disposed;
 
-    public AwsS3PublicMetadataSource(IAmazonS3 client, string bucket, IEnumerable<string> keys,
+    public AWSS3OASIS(IAmazonS3 client, string bucket, IEnumerable<string> keys,
         Guid sourceOwner, bool ownsClient = false)
         : this(new MetadataBackend(client, bucket, keys, sourceOwner, ownsClient)) { }
 
-    private AwsS3PublicMetadataSource(MetadataBackend backend) : base(backend, Prefix)
+    private AWSS3OASIS(MetadataBackend backend) : base(backend, Prefix)
     {
         metadata = backend;
         ProviderName = "AWSS3OASIS";
@@ -36,18 +34,21 @@ public sealed class AwsS3PublicMetadataSource : KeyValueStorageProviderBase,
         ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
     }
 
-    public ProviderType QueryProviderType => Core.Enums.ProviderType.AWSS3OASIS;
-    public CosmicQueryCapabilities QueryCapabilities { get; } =
+    private static CosmicQueryCapabilities PublicMetadataCapabilities { get; } =
         CosmicQueryCapabilities.ForStringMetadataKeyLookup(ObjectKeyMetadata, 128, 8);
 
-    public override Task<OASISResult<bool>> ActivateProviderAsync() => ActivateQuerySourceAsync(default);
+    public override Task<OASISResult<bool>> ActivateProviderAsync() =>
+        metadata == null ? base.ActivateProviderAsync() : ActivateQuerySourceAsync();
 
-    public async Task<OASISResult<bool>> ActivateQuerySourceAsync(CancellationToken cancellationToken)
+    public async Task<OASISResult<bool>> ActivateQuerySourceAsync(CancellationToken cancellationToken = default)
     {
         try
         {
-            ObjectDisposedException.ThrowIf(disposed, this);
+            ObjectDisposedException.ThrowIf(_disposed, this);
             cancellationToken.ThrowIfCancellationRequested();
+            if (metadata == null)
+                return new() { IsError = true, ErrorCount = 1, ErrorCode = "CQL_SOURCE_UNAVAILABLE",
+                    Message = "The AWS S3 provider has no public metadata catalogue." };
             await metadata.VerifyAsync(cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
             IsProviderActivated = true;
@@ -61,12 +62,12 @@ public sealed class AwsS3PublicMetadataSource : KeyValueStorageProviderBase,
         }
     }
 
-    public async Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicQueryAsync<T>(CosmicQueryPlan<T> plan,
+    private async Task<OASISResult<IReadOnlyList<IHolon>>> ExecutePublicMetadataQueryAsync<T>(CosmicQueryPlan<T> plan,
         int maximumResults = 100, CancellationToken cancellationToken = default) where T : IHolon
     {
         try
         {
-            ObjectDisposedException.ThrowIf(disposed, this);
+            ObjectDisposedException.ThrowIf(_disposed, this);
             if (plan == null || plan.Targets.Count != 1 || plan.Targets[0].Provider != QueryProviderType)
                 return Failure("CQL_PLAN_TARGET_UNAVAILABLE", "One explicitly admitted public S3 source is required.");
             if (maximumResults is < 1 or > 10000)
@@ -106,14 +107,6 @@ public sealed class AwsS3PublicMetadataSource : KeyValueStorageProviderBase,
         }
         catch (OperationCanceledException error) { return Failure("CQL_QUERY_CANCELLED", "Public S3 metadata query cancelled; no partial rows.", error); }
         catch (Exception error) { return Failure("CQL_QUERY_FAILED", "Public S3 metadata query failed; no partial rows.", error); }
-    }
-
-    public void Dispose()
-    {
-        if (disposed) return;
-        disposed = true;
-        IsProviderActivated = false;
-        metadata.Dispose();
     }
 
     private static OASISResult<IReadOnlyList<IHolon>> Failure(string code, string message, Exception? error = null)
@@ -160,7 +153,7 @@ public sealed class AwsS3PublicMetadataSource : KeyValueStorageProviderBase,
             try { response = await client.GetObjectMetadataAsync(new GetObjectMetadataRequest { BucketName = bucket, Key = key }, token); }
             catch (AmazonS3Exception error) when (error.StatusCode == System.Net.HttpStatusCode.NotFound) { return null; }
             token.ThrowIfCancellationRequested();
-            if (response == null || response.ContentLength < 0 || string.IsNullOrWhiteSpace(response.ETag))
+            if (response == null || response.ContentLength < 0 || response.LastModified is not DateTime lastModified || string.IsNullOrWhiteSpace(response.ETag))
                 throw new InvalidDataException("Native S3 metadata is incomplete.");
             var fields = new Dictionary<string, object>
             {
@@ -171,7 +164,7 @@ public sealed class AwsS3PublicMetadataSource : KeyValueStorageProviderBase,
                 ["S3ContentLength"] = response.ContentLength,
                 ["S3ContentType"] = response.Headers.ContentType ?? "",
                 ["S3ETag"] = response.ETag,
-                ["S3LastModified"] = response.LastModified.ToUniversalTime()
+                ["S3LastModified"] = lastModified.ToUniversalTime()
             };
             var mapped = NativeRecordHolonMapper.CreateHolon(owner, Core.Enums.ProviderType.AWSS3OASIS,
                 new NativeRecord(sourceName, key, fields), NativeDataMapping.ForSource(sourceName));

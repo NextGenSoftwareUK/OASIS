@@ -44,7 +44,8 @@ public sealed partial class AWSS3OASIS : KeyValueStorageProviderBase, IDisposabl
     {
         if (_disposed) return;
         _disposed = true; IsProviderActivated = false;
-        _private.Dispose();
+        _private?.Dispose();
+        metadata?.Dispose();
         if (_ownsClient) _client.Dispose();
     }
 }

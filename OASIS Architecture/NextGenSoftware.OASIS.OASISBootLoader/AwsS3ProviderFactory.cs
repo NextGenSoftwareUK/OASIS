@@ -10,7 +10,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader;
 
 internal static class AwsS3ProviderFactory
 {
-    internal static NextGenSoftware.OASIS.API.Providers.AWSS3OASIS.AwsS3PublicMetadataSource CreatePublicMetadata(
+    internal static Provider CreatePublicMetadata(
         AWSS3OASISSettings settings, string overrideConnectionString = null)
     {
         ArgumentNullException.ThrowIfNull(settings);

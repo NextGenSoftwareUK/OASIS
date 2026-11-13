@@ -10,7 +10,7 @@ using NextGenSoftware.OASIS.API.Core.Objects.NativeData;
 using NextGenSoftware.OASIS.API.Core.Queries;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.OASISBootLoader;
-using Source = NextGenSoftware.OASIS.API.Providers.AWSS3OASIS.AwsS3PublicMetadataSource;
+using Source = NextGenSoftware.OASIS.API.Providers.AWSS3OASIS.AWSS3OASIS;
 
 namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS.UnitTests;
 
