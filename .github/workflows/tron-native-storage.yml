@@ -58,7 +58,7 @@ jobs:
         if: inputs.routing
         shell: bash
         run: |
-          base=716711320680c29d1f5670a57d0e0b85f79ca742
+          base=57f73e1bb3044bf06ddaeffd871ce28616f92b6c
           git -C ../provider-source fetch --no-tags --depth=1 origin "$base"
           tests='Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.TRONOASIS.IntegrationTests'
           for path in "$tests/NextGenSoftware.OASIS.API.Providers.TRONOASIS.IntegrationTests.csproj" \
@@ -67,7 +67,10 @@ jobs:
             current="$(git ls-tree HEAD -- "$path")"
             reviewed="$(git -C ../provider-source ls-tree "$base" -- "$path")"
             incoming="$(git -C ../provider-source ls-tree HEAD -- "$path")"
-            [[ -n "$incoming" && ( "$current" == "$reviewed" || "$current" == "$incoming" ) ]]
+            if [[ -z "$incoming" || ( "$current" != "$reviewed" && "$current" != "$incoming" ) ]]; then
+              echo "::error::TRON routing source differs from the reviewed baseline: $path"
+              exit 1
+            fi
             install -m 644 "../provider-source/$path" "$path"
             git add -- "$path"
           done
