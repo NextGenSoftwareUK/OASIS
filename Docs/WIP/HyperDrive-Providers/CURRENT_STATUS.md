@@ -18,6 +18,8 @@
 
 ## Verification log
 
+13 November Cancun time. Updated the native IPFS workflow reviewed baseline to integrated Development fe97923f2af4 so future IPFS changes qualify against the published four-file scope. The overlay still rejects any unexpected Development file revision. No local builds or downloads.
+
 13 November Cancun time. Development advanced to fe97923f2af4, merging the qualified IPFS candidate ccbead997a61 with the WEB6 model admission batch. The provider and native fixture trees are unchanged from the exact Kubo-verified IPFS candidate. Dependency-pin synchronization 43386251585 passed. Development CI 43386251467 and all seven API deployments are pending. No separate Development push is needed.
 
 13 November 02:28 Cancun time. Shared review confirmed remote Development still on 53a4d7428964 and all seven TON rollout statuses successful. The COSMIC handoff has no exact live TON preset result yet, so preserve that deployment for its verification. IPFS candidate ccbead997a61 remains ready. Development CI 43382337216 failed the inherited submodule branch rule. The candidate changes no Git dependency pins or Railway manifest values. No local builds or downloads. C: had 28.91 GiB free.

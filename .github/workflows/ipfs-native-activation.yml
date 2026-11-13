@@ -58,7 +58,7 @@ jobs:
       - name: Apply verified IPFS publication scope
         shell: bash
         run: |
-          reviewed_baseline=2ec99009d7c8b7030e4ced1d96b7e625bfda9da6
+          reviewed_baseline=fe97923f2af42fd392165adadf9b052de301eb3d
           git -C ../provider-source fetch --no-tags --depth=1 origin "$reviewed_baseline"
           provider='Providers/Network/NextGenSoftware.OASIS.API.Providers.IPFSOASIS'
           tests='Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.IPFSOASIS.IntegrationTests'
