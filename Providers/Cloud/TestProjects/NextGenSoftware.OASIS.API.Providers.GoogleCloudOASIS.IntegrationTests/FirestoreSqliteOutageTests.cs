@@ -7,8 +7,10 @@ using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive;
+using NextGenSoftware.OASIS.API.Core.Serialization;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using NextGenSoftware.Utilities;
 using SqliteProvider = NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.SQLLiteDBOASIS;
 
@@ -68,10 +70,62 @@ public sealed class FirestoreSqliteOutageTests
                 var otherBinding = await otherStore.CaptureStorageIdentityAsync();
                 Assert.IsFalse(otherBinding.IsError, otherBinding.Message);
                 Assert.AreNotEqual(bindings[0].Result.BindingFingerprint, otherBinding.Result.BindingFingerprint);
+                var source = new Holon { Id = Guid.NewGuid(), Version = 1, VersionId = Guid.NewGuid() };
+                CosmicConcurrency.SetProviderRevisionId(source, ProviderType.SQLLiteDBOASIS, Guid.NewGuid());
+                var original = new CommittedHolonReplicaRequest(Guid.NewGuid(), "owned-sqlite",
+                    ProviderType.SQLLiteDBOASIS, Guid.NewGuid(), ConditionalHolonOperation.Save,
+                    new[] { source }, saveChildren: false);
+                var request = new CommittedHolonReplicaReceiptReadRequest(original, bindings[0].Result);
+                var absent = await firestore.ReadCommittedHolonReplicaReceiptAsync(request);
+                Assert.IsFalse(absent.IsError, absent.Message);
+                Assert.AreEqual(ConditionalHolonReceiptState.Absent, absent.Result.ReceiptState);
+                var mismatch = await otherStore.ReadCommittedHolonReplicaReceiptAsync(request);
+                Assert.AreEqual("COSMIC_REPLICA_RECEIPT_STORAGE_MISMATCH", mismatch.ErrorCode);
+
+                var plan = CommittedHolonReplicaReceiptProjection.Prepare(request);
+                var acknowledged = StoredRecordJson.Project<Holon>(source);
+                CosmicConcurrency.SetProviderRevisionId(acknowledged, ProviderType.GoogleCloudOASIS, Guid.NewGuid());
+                var receipt = db.Collection("cosmicReplicaReceipts").Document(original.OperationId.ToString("D"));
+                try
+                {
+                    await receipt.CreateAsync(new Dictionary<string, object>
+                    {
+                        ["fingerprint"] = plan.Fingerprint,
+                        ["acknowledgement"] = ConditionalHolonReceipt.Write(new[] { acknowledged }, plan)
+                    });
+                    var committed = await firestore.ReadCommittedHolonReplicaReceiptAsync(request);
+                    Assert.IsFalse(committed.IsError, committed.Message);
+                    Assert.AreEqual(ConditionalHolonReceiptState.Committed, committed.Result.ReceiptState);
+                    Assert.AreEqual(original.OperationId, committed.Result.OperationId);
+                    Assert.IsFalse(string.IsNullOrEmpty(committed.Result.AcknowledgementDigest));
+
+                    await receipt.UpdateAsync("fingerprint", new string('0', 64));
+                    var tampered = await firestore.ReadCommittedHolonReplicaReceiptAsync(request);
+                    Assert.AreEqual("COSMIC_REPLICA_RECEIPT_UNVERIFIED", tampered.ErrorCode);
+                    Assert.IsNull(tampered.Result);
+                }
+                finally
+                {
+                    await receipt.DeleteAsync();
+                }
             }
             finally
             {
                 await otherStore.DeActivateProviderAsync();
+            }
+            var avatarDocument = db.Collection("avatars").Document(id.ToString());
+            try
+            {
+                var avatar = await firestore.SaveAvatarAsync(new Avatar { Id = id, IsActive = true });
+                Assert.IsFalse(avatar.IsError, avatar.Message);
+                Assert.IsTrue((await avatarDocument.GetSnapshotAsync()).Exists);
+            }
+            finally
+            {
+                var storedAvatar = await avatarDocument.GetSnapshotAsync();
+                if (storedAvatar.Exists)
+                    await avatarDocument.DeleteAsync(Precondition.LastUpdated(storedAvatar.UpdateTime!.Value));
+                Assert.IsFalse((await avatarDocument.GetSnapshotAsync()).Exists);
             }
             var saved = await firestore.SaveHolonAsync(new Holon { Id = id, Name = expected, IsActive = true }, saveChildren: false);
             Assert.IsFalse(saved.IsError, saved.Message);
