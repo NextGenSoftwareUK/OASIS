@@ -6540,3 +6540,5 @@ Track temporary tag `ci-cosmic-infura-web4-ee3a6589a6` for exact runs `432184056
 12 November Cancun time. Scoped .NET clean after the 22-case Core admission run cleared all test binaries and retained 0.94 MiB of restore metadata. Free disk was 29.31 GiB. Exact image builds ran remotely.
 
 12 November Cancun time. Verified the NEAR plus HyperDrive combined tree `577b7f28e14c` using a temporary Git index only. The index was removed and no matching COSMIC temporary-index directory remains. No runtime, local image, database copy or local build output was created. Development Arbitrum rollout and the EOSIO/Cosmos image jobs use hosted infrastructure.
+
+12 November Cancun time. Reused the existing Railway CLI for read-only NEAR and EOSIO catalogue preflight, with no report or credentials written. Exact builds and test jobs remain on GitHub. Temporary index for the three documentation updates is removed before push.
