@@ -114,8 +114,12 @@ public sealed class IPFSRestartTests
                 Assert.Equal(conditionalPointer, await File.ReadAllTextAsync(dnaPath));
                 var priorRevision = CosmicConcurrency.GetProviderRevisionId(Assert.Single(conditional.Result), ProviderType.IPFSOASIS);
                 Assert.NotNull(priorRevision);
-                conditionalRecord.Name = "ordinary edit before conditional retry";
-                var ordinary = await provider.SaveHolonAsync(conditionalRecord, saveChildren: false);
+                var ordinaryRecord = Assert.Single(conditional.Result);
+                ordinaryRecord.Name = "ordinary edit before conditional retry";
+                ordinaryRecord.PreviousVersionId = ordinaryRecord.VersionId;
+                ordinaryRecord.VersionId = Guid.NewGuid();
+                ordinaryRecord.Version++;
+                var ordinary = await provider.SaveHolonAsync(ordinaryRecord, saveChildren: false);
                 Assert.True(ordinary.IsSaved && !ordinary.IsError, ordinary.Message);
                 var newRevision = CosmicConcurrency.GetProviderRevisionId(ordinary.Result, ProviderType.IPFSOASIS);
                 Assert.NotNull(newRevision);
