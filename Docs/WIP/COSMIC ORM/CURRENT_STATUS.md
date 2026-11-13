@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Positive live complex grouped query
+
+The exact Web4Site parser 777f7a127bd0 ran a two-field GROUP BY with compound HAVING, three sort keys and LIMIT on live WEB4. Each of MongoDB, SQLite and Neo4j returned [1, true, "1"] for one private fixture and no group when the upper bound excluded one. All three fixtures and the initial MongoDB setup record were conditionally hard-deleted and confirmed absent. Browser rollout and real WEB6 drafting remain open.
+
 ## COSMIC integration after Firestore replica-head qualification
 
 Candidate `a00d91f29672` keeps the exact five Firestore files from `bdd6b945e3fd` and changes only the six scoped COSMIC paths relative to that candidate. Firestore passed [native qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43529260559). Exact combined protocol CI is pending. The Firestore candidate is the first parent so the verified COSMIC batch can follow if HyperDrive publishes first. WEB4 health remained HTTP 200 on the previous serving revision. No local build or test fixtures.
