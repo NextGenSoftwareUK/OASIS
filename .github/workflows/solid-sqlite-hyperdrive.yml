@@ -5,6 +5,7 @@ on:
     branches: [work/hyperdrive-provider-completion]
     paths:
       - '.github/workflows/solid-sqlite-hyperdrive.yml'
+      - 'Providers/Network/NextGenSoftware.OASIS.API.Providers.SOLIDOASIS/SOLIDOASIS.RecordHttp.cs'
       - 'Providers/Shared/TestSupport/NativePriorityRouting.cs'
       - 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.IntegrationTests/SolidSqliteHyperDriveTests.cs'
   workflow_dispatch:
@@ -48,11 +49,11 @@ jobs:
       - name: Apply the reviewed Solid routing scope
         shell: bash
         run: |
-          base=716711320680c29d1f5670a57d0e0b85f79ca742
+          base=59bc51b9ba7cad3ec933300d38ea94b9f7359d32
           git -C ../provider-source fetch --no-tags --depth=1 origin "$base"
           tests='Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.IntegrationTests'
           for path in "$tests/NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.IntegrationTests.csproj" \
-            "$tests/SolidSqliteHyperDriveTests.cs" 'Providers/Shared/TestSupport/NativePriorityRouting.cs'; do
+            "$tests/SolidSqliteHyperDriveTests.cs" 'Providers/Shared/TestSupport/NativePriorityRouting.cs' 'Providers/Network/NextGenSoftware.OASIS.API.Providers.SOLIDOASIS/SOLIDOASIS.RecordHttp.cs'; do
             current="$(git ls-tree HEAD -- "$path")"
             reviewed="$(git -C ../provider-source ls-tree "$base" -- "$path")"
             incoming="$(git -C ../provider-source ls-tree HEAD -- "$path")"

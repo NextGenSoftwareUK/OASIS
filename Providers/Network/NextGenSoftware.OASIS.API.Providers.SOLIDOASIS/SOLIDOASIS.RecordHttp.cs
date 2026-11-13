@@ -175,8 +175,14 @@ public partial class SOLIDOASIS
             if(result.Result==null){result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;result.Message="Requested SOLID record version was not found.";}
             else{result.IsLoaded=true;result.LoadedCount=1;}
         }catch(Exception error){
+            if (error is HttpRequestException { StatusCode: System.Net.HttpStatusCode.NotFound })
+                return new OASISResult<T>
+                {
+                    IsError = true,
+                    ErrorCode = OASISResultErrorCodes.RecordNotFound,
+                    Message = "Requested SOLID record was not found."
+                };
             OASISErrorHandling.HandleError(ref result,"SOLID private record read failed.",error);
-            if(error is HttpRequestException http&&http.StatusCode==System.Net.HttpStatusCode.NotFound)result.ErrorCode=OASISResultErrorCodes.RecordNotFound;
         }
         return result;
     }
