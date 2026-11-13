@@ -18,6 +18,8 @@
 
 ## Verification log
 
+13 November Cancun time. [Exact ActivityPub CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43446252219) passed all 46 point-selector unit cases and both native Mastodon routing cases with zero skips on 29c4b494895e. The job confirmed fixture removal. Candidate is ready for the shared Development review after 09:58:44 Cancun, based on the last recorded Development push. Cross-instance failover remains open.
+
 13 November Cancun time. ActivityPub endpoint audit found the same path normalization risk in the provider CQL point selector. Point reads now enforce the existing decimal native ID rule used by the batch selector. Added a focused rejection regression. Existing native routing candidate 75e662fdc8e4 does not contain this follow-up. No local build artifacts.
 
 13 November Cancun time. ActivityPub point reads and status deletion now share native path-segment validation. Added explicit period and double-period rejection assertions through both HyperDrive entry points on the disposable Mastodon fixture, followed by the valid read and independently verified delete. [Task-branch CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43443960848) and [exact Development CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43444802683) each passed both modes and removed their fixtures. Candidate 75e662fdc8e4 is ready for the next shared review. No local runtime or build outputs.
