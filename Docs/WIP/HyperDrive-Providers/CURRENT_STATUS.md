@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. Development fast-forwarded from live-verified Cosmos 23a78784f465 to the exact three-file IPFS audit and reconciliation batch 2ec99009d7c8 after the 23:45:22 shared window opened. All seven predecessor APIs were healthy. Kubo runs 43364403850 and 43364406865 matched the integrated tree and confirmed cleanup. The remote ref and Railway manifest were verified. Polkadot is the coordinated follow-on. New rollout and later IPFS binding and tombstone changes remain open.
+
 12 November Cancun time. Native restart 43366903327 verified that bound delivery rejects an unpublished IPFS catalogue with the invalid storage binding code and creates no DNA file. Multi-process 43366901241 passed on the same tree fb4ea5c681ab3591bb9a1cdb729099531868a531. Both fixtures were removed. Verified the Polkadot candidate descends from the coordinated IPFS batch 2ec99009d7c8.
 
 12 November Cancun time. Bound IPFS delivery now classifies unpublished and legacy catalogues without a persisted identity as invalid bindings for dispatcher reconciliation. Transport failure retains the normal write failure path. The native restart fixture attempts bound delivery before first publication and requires the invalid binding code and no DNA creation. Existing qualified candidate 2ec99009d7c8 remains scoped to its tested tree.
