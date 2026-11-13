@@ -2413,3 +2413,5 @@ Candidate `e54973c380c9` preserves the five managed files and four OpenSearch fi
 13 November UTC. Exact EVM failover rollout 35ab1d28c72a is serving WEB4 in Railway 3d5c5f05. Browser preflight recovered after cutover and the retained visitor renewed. Arbitrum and Polygon each returned the exact three reviewed public records in their compiled SQL-like query. Polygon became ready as discovery warmed to 84 of 107. No new fixtures or local artifacts.
 
 13 November UTC. SQL-like MongoDB federation on exact live WEB4 35ab1d28c72a matched all three reviewed native identities for each of Polygon and Arbitrum. Every selected row and copy retained the expected provider and identity. This is read verification on the EVM failover rollout. No new fixtures or local artifacts.
+
+13 November UTC. Combined candidate dfcd5cf7d873 passed the explicit shipping blockchain catalogue run 43430699280 and full protocol run 43429690555, including the native three-store decimal fixture and WEB4-WEB10 source build. Exact WEB4 container run 43429687077 remains in build and push. Shared Development remains 35ab1d28c72a. No local artifacts.
