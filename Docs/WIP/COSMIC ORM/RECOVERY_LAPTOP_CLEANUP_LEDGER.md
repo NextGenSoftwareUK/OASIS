@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+13 November: C: reported 28.91 GiB free. Ran three SQL-like parser tests using Node already installed and a temporary directory. The test files and temporary Git indexes were removed. WEB6 protocol qualification runs remotely in GitHub Actions. No local packages, runtimes, build outputs or fixtures were created.
+
 11 November disk observation: C: reached 19.66 GiB free. No recently
 written file above 75 MiB was found in the COSMIC local state or test
 results. Two recently written OASIS bare-repository packs in another

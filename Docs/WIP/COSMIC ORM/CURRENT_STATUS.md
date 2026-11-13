@@ -1,5 +1,11 @@
 # COSMIC ORM / CQL current status
 
+## SQL-like CQL and Ask your data · 13 November, Cancun
+
+Web4Site feature revision `cc2cafa9be50` adds direct parser regression coverage for typed filters, grouped OR, ordered paging, COUNT and bounded federation across MongoDB, SQLite and Neo4j. All three parser tests passed. Earlier live Development HTTP checks passed for COUNT and three-store federation. The Ask your data tab sends a bounded WEB6 completion, validates the returned read-only CQL, and leaves execution to the user in the Playground. Hosted browser acceptance remains open.
+
+The latest authenticated WEB6 draft returned `MEASUREMENT_REQUIRED`. Its outbox operation was in recovery with zero provider attempts. WEB6 feature revision `8e5747a50a6f` aligns frozen prices with plan-admissible automatic model selection and tests explicit model isolation. Parent candidate `13ded91004ca` pins the matching WEB6 gitlink and Railway manifest. [Protocol qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43383593589) is running. Live authenticated draft acceptance and a verified rollout are pending.
+
 ## Live shipping Solana public CQL
 
 12 November Cancun time. Live Development WEB4 deployment `15c2e5cd-4773-4294-9a1e-9263a32699f7` served `061ceca0221e` throughout all four public Solana preset checks. After serial source warm-up, native full/subset returned the exact 3/2 reviewed finalized public accounts and stable IDs. Both federated presets returned the same 3/2 IDs with Solana-only copies for the retained visitor. The deployed registry dispatches to BootLoader's shipping `SolanaOASIS`. No new visitor, private seed, signed transaction or HyperDrive write was used. Ethereum's revised exact image qualification is run `43308673695`.
