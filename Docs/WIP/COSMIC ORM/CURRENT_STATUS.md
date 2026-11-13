@@ -2415,3 +2415,5 @@ Candidate `e54973c380c9` preserves the five managed files and four OpenSearch fi
 13 November UTC. SQL-like MongoDB federation on exact live WEB4 35ab1d28c72a matched all three reviewed native identities for each of Polygon and Arbitrum. Every selected row and copy retained the expected provider and identity. This is read verification on the EVM failover rollout. No new fixtures or local artifacts.
 
 13 November UTC. Combined candidate dfcd5cf7d873 passed the explicit shipping blockchain catalogue run 43430699280 and full protocol run 43429690555, including the native three-store decimal fixture and WEB4-WEB10 source build. Exact WEB4 container run 43429687077 remains in build and push. Shared Development remains 35ab1d28c72a. No local artifacts.
+
+13 November UTC. Web4Site f19d100ba0bf validates quoted GUID literals for Id against WEB4 before opening a SQL-like or WEB6 draft. The full frontend suite and exact preview build passed. Temporary test extracts and index were removed. Browser and live WEB6 draft acceptance remain open. Exact Hedera WEB4 image 43429687077 is still building.
