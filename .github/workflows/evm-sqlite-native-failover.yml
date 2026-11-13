@@ -2,7 +2,7 @@ name: Polygon and Arbitrum native failover
 
 on:
   push:
-    branches: [work/hyperdrive-provider-completion]
+    branches: [work/hyperdrive-provider-completion, work/hyperdrive-evm-failover-qualification]
     paths:
       - '.github/workflows/evm-sqlite-native-failover.yml'
       - 'Scripts/TestHosts/compile-web3core-storage.cjs'
