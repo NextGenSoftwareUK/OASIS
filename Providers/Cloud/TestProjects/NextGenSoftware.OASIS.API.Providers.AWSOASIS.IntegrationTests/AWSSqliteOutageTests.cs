@@ -7,6 +7,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive;
 using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 using SqliteProvider = NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.SQLLiteDBOASIS;
 
@@ -64,6 +65,37 @@ public partial class AWSOASISIntegrationTests
             Assert.AreEqual(nameof(ProviderType.SQLLiteDBOASIS), route.RootElement.GetProperty("RequestedProvider").GetString());
             Assert.AreEqual(nameof(ProviderType.AWSOASIS), route.RootElement.GetProperty("ServingProvider").GetString());
             Assert.IsFalse(File.Exists(unavailablePath));
+
+            var fixture = Environment.GetEnvironmentVariable("OASIS_DYNAMO_OUTAGE_FIXTURE");
+            Assert.IsFalse(string.IsNullOrWhiteSpace(fixture), "The owned DynamoDB fixture is required.");
+            using var staleSqlite = new SqliteProvider($"Data Source={Path.Combine(fixture!, $"{id:N}.db")};Pooling=False");
+            var activated = await staleSqlite.ActivateProviderAsync();
+            Assert.IsTrue(!activated.IsError && activated.Result, activated.Message);
+            var replica = await staleSqlite.SaveHolonAsync(new Holon { Id = id, Name = expected, IsActive = true }, saveChildren: false);
+            Assert.IsFalse(replica.IsError, replica.Message);
+            var deleted = await _provider.DeleteHolonAsync(id);
+            Assert.IsTrue(!deleted.IsError && deleted.IsDeleted, deleted.Message);
+            Assert.AreEqual(id, (await staleSqlite.LoadHolonAsync(id, loadChildren: false)).Result?.Id);
+
+            var healthy = new ProviderManager(null, dna) { IsAutoFailOverEnabled = true };
+            healthy.RegisterProvider(_provider);
+            healthy.RegisterProvider(staleSqlite);
+            Assert.IsFalse(healthy.SetAndReplaceAutoFailOverListForProviders(new[]
+            {
+                new EnumValue<ProviderType>(ProviderType.AWSOASIS),
+                new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS)
+            }).IsError);
+            var healthyRouter = new OASISHyperDrive(healthy);
+            var readAws = new StorageOperationRequest
+            {
+                Operation = "LoadHolon", HolonId = id, LoadChildren = false,
+                PreferredProvider = ProviderType.AWSOASIS
+            };
+            var missing = synchronous ? healthyRouter.RouteRequest<IHolon>(readAws)
+                : await healthyRouter.RouteRequestAsync<IHolon>(readAws);
+            Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, missing.ErrorCode, missing.Message);
+            Assert.IsNull(missing.Result);
+            Assert.AreEqual(0L, healthy.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS)?.TotalRequests ?? 0);
         }
         finally
         {
