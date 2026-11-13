@@ -54,7 +54,7 @@ public partial class IPFSOASIS : IBoundAtomicHolonReplicationStorageProvider, IB
                     var dna = provider.ReadPersistedCatalogueDna();
                     var (catalogue, records, storage) = await provider.ReadBoundCatalogueAsync(dna, token).ConfigureAwait(false);
                     if (storage.BindingFingerprint != source.BindingFingerprint)
-                        throw new ReplicaStorageBindingException("The IPFS outbox source binding changed.");
+                        return new() { IsError = true, ErrorCount = 1, ErrorCode = "COSMIC_OUTBOX_SOURCE_STORAGE_BINDING_MISMATCH", Message = "The IPFS outbox source differs from the enrolled native store." };
                     var deliveries = GetReplicaObject(catalogue, "outboundDeliveries");
                     var (value, changed) = operation(deliveries);
                     if (changed)

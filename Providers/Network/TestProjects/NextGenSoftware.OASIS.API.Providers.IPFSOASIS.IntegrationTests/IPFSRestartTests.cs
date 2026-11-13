@@ -415,10 +415,10 @@ public sealed class IPFSRestartTests
         Assert.False(wrongStore.IsError, wrongStore.Message);
         var pointer = await File.ReadAllTextAsync(dnaPath);
         var rejectedInventory = await wrongStore.Result.ReadRouteHeadsAsync();
-        Assert.True(rejectedInventory.IsError);
+        Assert.Equal("COSMIC_OUTBOX_SOURCE_STORAGE_BINDING_MISMATCH", rejectedInventory.ErrorCode);
         Assert.Null(rejectedInventory.Result);
         var rejectedClaim = await wrongStore.Result.ClaimNextAsync(route.TargetId, "wrong-source", TimeSpan.FromMinutes(1));
-        Assert.True(rejectedClaim.IsError);
+        Assert.Equal("COSMIC_OUTBOX_SOURCE_STORAGE_BINDING_MISMATCH", rejectedClaim.ErrorCode);
         Assert.Null(rejectedClaim.Result);
         Assert.Equal(pointer, await File.ReadAllTextAsync(dnaPath));
         Assert.Equal(HolonDeliveryState.Pending, pending.Result.State);
