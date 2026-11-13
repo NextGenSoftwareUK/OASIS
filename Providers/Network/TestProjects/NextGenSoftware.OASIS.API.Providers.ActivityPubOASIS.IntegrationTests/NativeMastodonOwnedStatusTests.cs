@@ -162,12 +162,24 @@ public class NativeMastodonOwnedStatusTests
 
         await VerifyPublicObjectResolutionAsync(client, Route);
 
-        return await Route(new StorageOperationRequest
+        var deleted = await Route(new StorageOperationRequest
         {
             Operation = "DeleteHolonByProviderKey",
             ProviderKey = id,
             PreferredProvider = ProviderType.ActivityPubOASIS,
             SoftDelete = false
         });
+        Assert.False(deleted.IsError, deleted.Message);
+        var absent = await Route(new StorageOperationRequest
+        {
+            Operation = "LoadHolonByProviderKey",
+            ProviderKey = id,
+            PreferredProvider = ProviderType.ActivityPubOASIS,
+            LoadChildren = false
+        });
+        Assert.Equal(OASISResultErrorCodes.RecordNotFound, absent.ErrorCode);
+        Assert.Null(absent.Exception);
+        Assert.Null(absent.Result);
+        return deleted;
     }
 }

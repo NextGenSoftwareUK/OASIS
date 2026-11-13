@@ -88,12 +88,19 @@ public partial class ActivityPubOASIS
                 if(activated.IsError)return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<bool,T>(activated);
             }
             var path=nativeId?"/api/v1/accounts/"+Uri.EscapeDataString(selected):"/api/v1/accounts/lookup?acct="+Uri.EscapeDataString(selected);
-            using var response=await _httpClient.GetAsync(path);response.EnsureSuccessStatusCode();
+            using var response=await _httpClient.GetAsync(path);
+            if (response.StatusCode == HttpStatusCode.NotFound)
+                return new OASISResult<T>
+                {
+                    IsError = true,
+                    ErrorCode = OASISResultErrorCodes.RecordNotFound,
+                    Message = "The configured instance did not find the native account."
+                };
+            response.EnsureSuccessStatusCode();
             using var document=JsonDocument.Parse(await response.Content.ReadAsStringAsync());var account=document.RootElement;
             result.Result=project(ReadMastodonPublicProfile(account,nativeId?selected:null));result.IsLoaded=true;result.LoadedCount=1;
         }catch(Exception error){
             OASISErrorHandling.HandleError(ref result,"Mastodon public account read failed.",error);
-            if(error is HttpRequestException http&&http.StatusCode==HttpStatusCode.NotFound)result.ErrorCode=OASISResultErrorCodes.RecordNotFound;
         }
         return result;
     }
