@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. COSMIC verified live WEB4 recovery on Development 18f227af493a. Browser preflight and the four HoloOASIS and four Ethereum public presets passed, and all seven API deployments succeeded. The next shared review opens after 19:24:08 Cancun. IPFS independent-writer run 43334872668 targets the two active instances on the persisted catalogue root. The earlier writer-process cleanup is confirmed in 43334318232.
+
 12 November Cancun time. IPFS catalogue staging passed separate writer processes in 43334066316 and a real Kubo restart in 43334181726. Separate write and read phases verified current and historical revisions and stopped both owned daemon processes. This verifies ordinary catalogue persistence. Bound committed replica replay and source outbox remain open. Explicit runner fixture removal is being verified in 43334318232.
 
 12 November Cancun time. IPFS now stages catalogue changes separately and publishes them through the existing encrypted root and persisted DNA pointer before updating the provider cache. Failed publication leaves the active catalogue untouched. This is a prerequisite for staging durable replica state with the graph. Bound replica identity, lineage, receipts and outbox remain open. The native persistence workflow will exercise the changed publication path.
