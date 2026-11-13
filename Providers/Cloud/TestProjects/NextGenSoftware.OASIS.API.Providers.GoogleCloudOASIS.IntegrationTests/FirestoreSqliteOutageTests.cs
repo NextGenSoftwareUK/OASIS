@@ -39,6 +39,13 @@ public sealed class FirestoreSqliteOutageTests
         {
             var activated = await firestore.ActivateProviderAsync();
             Assert.IsFalse(activated.IsError, activated.Message);
+            var bindings = await Task.WhenAll(firestore.CaptureStorageIdentityAsync(),
+                firestore.CaptureStorageIdentityAsync());
+            foreach (var binding in bindings)
+                Assert.IsFalse(binding.IsError, binding.Message);
+            var identity = await db.Collection("cosmicStorageIdentity").Document("store").GetSnapshotAsync();
+            Assert.AreEqual(identity.GetValue<string>("storeId"), bindings[0].Result.StoreId);
+            Assert.AreEqual(bindings[0].Result.BindingFingerprint, bindings[1].Result.BindingFingerprint);
             var saved = await firestore.SaveHolonAsync(new Holon { Id = id, Name = expected, IsActive = true }, saveChildren: false);
             Assert.IsFalse(saved.IsError, saved.Message);
             Assert.IsTrue((await document.GetSnapshotAsync()).Exists);
