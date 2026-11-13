@@ -152,6 +152,7 @@ public sealed class IPFSRestartTests
                 saved = await provider.SaveHolonAsync(holon, saveChildren: false);
                 Assert.True(saved.IsSaved && !saved.IsError, saved.Message);
                 Assert.True(File.Exists(dnaPath));
+                await VerifyPendingOutboundAcrossRestartAsync(provider, identity.Result, dnaPath, publish: true);
             }
             else
             {
@@ -208,6 +209,7 @@ public sealed class IPFSRestartTests
                 Assert.Equal(Assert.Single(deleted.Result).VersionId, Assert.Single(deleteReplay.Result).VersionId);
                 Assert.Equal(pointerAfterDelete, await File.ReadAllTextAsync(dnaPath));
                 await VerifyReplicaAsync(provider, identity.Result, dnaPath, replay: true);
+                await VerifyPendingOutboundAcrossRestartAsync(provider, identity.Result, dnaPath, publish: false);
                 await VerifyOutboundDeliveryAsync(provider, identity.Result, dnaPath);
                 var current = await provider.LoadHolonAsync(RecordId, loadChildren: false);
                 Assert.True(current.IsLoaded && !current.IsError, current.Message);
@@ -366,6 +368,69 @@ public sealed class IPFSRestartTests
         var prior = await provider.LoadHolonAsync(original.Id, loadChildren: false, version: 1);
         Assert.True(prior.IsLoaded && !prior.IsError, prior.Message);
         Assert.Equal(original.VersionId, prior.Result.VersionId);
+    }
+
+    private static async Task VerifyPendingOutboundAcrossRestartAsync(IPFSOASIS provider, CosmicStorageIdentity source,
+        string dnaPath, bool publish)
+    {
+        var databasePath = dnaPath + ".pending-target.sqlite";
+        Assert.Equal(!publish, File.Exists(databasePath));
+        using var sqlite = new SqliteProvider($"Data Source={databasePath};Pooling=False");
+        var activated = await sqlite.ActivateProviderAsync();
+        Assert.True(activated.Result && !activated.IsError, activated.Message);
+        var captured = await sqlite.CaptureStorageIdentityAsync();
+        Assert.False(captured.IsError, captured.Message);
+
+        var operationId = new Guid("90644865-2be6-4044-bdfb-3e6a394f5b32");
+        var recordId = new Guid("90644865-2be6-4044-bdfb-3e6a394f5b33");
+        var expiry = new DateTime(2100, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        var policy = new HolonReplicationActorGrant(new[] { RecordId }, expiry);
+        var route = new HolonReplicationRouteBinding(source, captured.Result, policy.BindingIdentity);
+        if (publish)
+        {
+            var enrollment = new HolonReplicationEnrollment(route.SourceId, new[] { route.TargetId }, source, new[] { route });
+            var record = new Holon { Id = recordId, Name = "pending across restart", HolonType = HolonType.Holon };
+            var write = new ConditionalHolonWrite(operationId, RecordId, source.Authority,
+                new[] { new HolonWriteCondition(recordId, null) }, enrollment);
+            var saved = await provider.ExecuteReplicatingHolonWriteAsync(
+                new ConditionalHolonWriteRequest(write, ConditionalHolonOperation.Save, new[] { record }, saveChildren: false),
+                enrollment);
+            Assert.True(saved.IsSaved && !saved.IsError, saved.Message);
+        }
+
+        var store = provider.GetBoundHolonReplicationOutbox(source);
+        Assert.False(store.IsError, store.Message);
+        var pending = await store.Result.PeekNextAsync(route.TargetId);
+        Assert.False(pending.IsError, pending.Message);
+        Assert.NotNull(pending.Result);
+        Assert.Equal(operationId, pending.Result.OperationId);
+        var inventory = await store.Result.ReadRouteHeadsAsync();
+        Assert.False(inventory.IsError, inventory.Message);
+        var head = Assert.Single(inventory.Result.Heads);
+        Assert.Equal(pending.Result.Sequence, head.Sequence);
+        Assert.Equal(operationId, head.OperationId);
+        Assert.Equal(HolonDeliveryState.Pending, pending.Result.State);
+        if (publish)
+            return;
+
+        var target = new CommittedHolonReplicaTarget(route.TargetId, sqlite, captured.Result.Authority, route.SourceId,
+            source.Authority, policy, "ipfs-restarted-worker", Guid.NewGuid(), policy.BindingIdentity, captured.Result);
+        var worker = new HolonOutboxDispatcher(store.Result, new[] { target }, "ipfs-restarted-worker");
+        var delivery = await worker.DispatchOnceAsync(route.TargetId, maximumCount: 1);
+        Assert.False(delivery.IsError, delivery.Message);
+        Assert.Equal(1, delivery.Result.CompletedCount);
+
+        var original = await provider.LoadHolonAsync(recordId, loadChildren: false);
+        Assert.True(original.IsLoaded && !original.IsError, original.Message);
+        var copied = await sqlite.LoadHolonAsync(recordId, loadChildren: false);
+        Assert.True(copied.IsLoaded && !copied.IsError, copied.Message);
+        Assert.Equal(original.Result.VersionId, copied.Result.VersionId);
+        var outcome = await store.Result.InspectAsync(pending.Result.Sequence);
+        Assert.False(outcome.IsError, outcome.Message);
+        Assert.Equal(HolonDeliveryState.Completed, outcome.Result.State);
+        var drained = await store.Result.ReadRouteHeadsAsync();
+        Assert.False(drained.IsError, drained.Message);
+        Assert.Empty(drained.Result.Heads);
     }
 
     private static async Task VerifyOutboundDeliveryAsync(IPFSOASIS provider, CosmicStorageIdentity source, string dnaPath)
