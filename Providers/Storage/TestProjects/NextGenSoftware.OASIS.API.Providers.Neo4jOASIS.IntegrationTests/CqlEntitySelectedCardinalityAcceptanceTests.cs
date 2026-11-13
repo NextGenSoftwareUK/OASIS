@@ -28,6 +28,15 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Assert.AreEqual("missing",selected.Take(0).FirstOrDefault("missing"));
         Passed("native entity-selected element terminals retain window order and explicit default");
 
+        var versions = root.OrderBy(row => row.Name).Take(3).Reverse().Take(2)
+            .Select(row => new { row.Version, row.Name }).Where(row => row.Version >= 1);
+        var expectedVersions = versions.ToArray();
+        Assert.IsTrue(expectedVersions.Length > 0);
+        Assert.AreEqual(expectedVersions.Min(row => row.Version), versions.Min(row => row.Version));
+        Assert.AreEqual(expectedVersions.Max(row => row.Version), versions.Select(row => row.Version).Max());
+        Assert.IsNull(versions.Take(0).Select(row => (int?)row.Version).Min());
+        Passed("native Min and Max preserve entity windows, selected predicates, reselection and empty nullable output");
+
         var first=root.OrderBy(row=>row.Name).Take(1).Where(row=>row.Version>=1)
             .Select(row=>new NativeProjectionProbe{Name=row.Name}).Select(row=>row.Name).Take(1);
         NativeProjectionProbe.Constructors=0;
