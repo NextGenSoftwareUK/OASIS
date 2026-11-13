@@ -1,4 +1,4 @@
-//using NextGenSoftware.OASIS.API.Providers.TONOASIS; // Not referenced in Core Only solution
+using NextGenSoftware.OASIS.API.Providers.TONOASIS;
 //using NextGenSoftware.OASIS.API.Providers.ZkSyncOASIS;
 //using NextGenSoftware.OASIS.API.Providers.LineaOASIS;
 //using NextGenSoftware.OASIS.API.Providers.ScrollOASIS;
@@ -156,6 +156,10 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                                 solanaOasis.OnStorageProviderError += SolanaOASIS_StorageProviderError;
                                 result.Result = solanaOasis;
                             }
+                            break;
+
+                        case ProviderType.TONOASIS:
+                            result.Result = new TONOASIS();
                             break;
 
                         case ProviderType.EOSIOOASIS:

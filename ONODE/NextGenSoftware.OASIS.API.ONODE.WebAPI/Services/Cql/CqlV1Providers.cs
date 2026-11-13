@@ -20,6 +20,7 @@ using NearProvider = NextGenSoftware.OASIS.API.Providers.NEAROASIS.NEAROASIS;
 using PolkadotProvider = NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.PolkadotOASIS;
 using PolygonProvider = NextGenSoftware.OASIS.API.Providers.PolygonOASIS.PolygonOASIS;
 using SolanaProvider = NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.SolanaOASIS;
+using TonProvider = NextGenSoftware.OASIS.API.Providers.TONOASIS.TONOASIS;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 
@@ -73,6 +74,7 @@ public sealed class CqlHostedSourceRegistry : ICqlHostedSourceRegistry
     private readonly string eosioPublicAccountConfiguration;
     private readonly string cosmosPublicValidatorConfiguration;
     private readonly string polkadotPublicHeaderConfiguration;
+    private readonly string tonPublicHeaderConfiguration;
 
     private readonly ILogger<CqlHostedSourceRegistry> logger;
 
@@ -94,6 +96,7 @@ public sealed class CqlHostedSourceRegistry : ICqlHostedSourceRegistry
         eosioPublicAccountConfiguration = configuration?["CQL_EOSIO_PUBLIC_SOURCE_JSON"];
         cosmosPublicValidatorConfiguration = configuration?["CQL_COSMOS_PUBLIC_SOURCE_JSON"];
         polkadotPublicHeaderConfiguration = configuration?["CQL_POLKADOT_PUBLIC_SOURCE_JSON"];
+        tonPublicHeaderConfiguration = configuration?["CQL_TON_PUBLIC_SOURCE_JSON"];
     }
 
     public IOASISStorageProvider Find(ProviderType provider)
@@ -138,6 +141,8 @@ public sealed class CqlHostedSourceRegistry : ICqlHostedSourceRegistry
                 cosmos.ConfigurePublicValidatorQuery(cosmosPublicValidatorConfiguration);
             if (storage is PolkadotProvider polkadot && polkadotPublicHeaderConfiguration != null)
                 polkadot.ConfigurePublicHeaderQuery(polkadotPublicHeaderConfiguration);
+            if (storage is TonProvider ton && tonPublicHeaderConfiguration != null)
+                ton.ConfigurePublicHeaderQuery(tonPublicHeaderConfiguration);
         }
         if (storage.ProviderType?.Value != provider || storage is not ICosmicQueryStorageProvider adapter
             || adapter.QueryProviderType != provider || adapter.QueryCapabilities == null
