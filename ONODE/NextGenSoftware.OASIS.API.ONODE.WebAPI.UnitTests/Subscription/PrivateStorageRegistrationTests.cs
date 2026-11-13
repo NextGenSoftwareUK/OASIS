@@ -15,6 +15,46 @@ public class PrivateStorageRegistrationCollection { }
 [Collection("PrivateStorageRegistration")]
 public class PrivateStorageRegistrationTests
 {
+    [Fact]
+    public void PolkadotPublicRegistrationUsesShippingProviderWithoutWritableSettings()
+    {
+        const ProviderType type = ProviderType.PolkadotOASIS;
+        var manager = ProviderManager.Instance;
+        var prior = manager.IsProviderRegistered(type) ? manager.GetProvider(type) : null;
+        var priorDna = Boot.OASISDNA;
+        try
+        {
+            if (prior != null) manager.UnRegisterProvider(type);
+            Boot.OASISDNA = new OASISDNA { OASIS = new NextGenSoftware.OASIS.API.DNA.OASIS
+                { StorageProviders = new StorageProviderSettings() } };
+            var catalogue = System.Text.Json.JsonSerializer.Serialize(new
+            {
+                schema = 1, rpcUrl = "https://rpc.example.invalid/",
+                genesisHash = NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.PolkadotPublicHeaderMetadataSource.Genesis,
+                blockHashes = new[] { "0x" + 1.ToString("x64") }, sourceOwner = Guid.NewGuid()
+            });
+            var method = typeof(Boot).GetMethod("RegisterProviderInternal", BindingFlags.NonPublic | BindingFlags.Static)!;
+            var result = (OASISResult<IOASISStorageProvider>)method.Invoke(null,
+                new object?[] { type, null, false, catalogue })!;
+            Assert.False(result.IsError, result.Message);
+            var provider = Assert.IsType<NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.PolkadotOASIS>(result.Result);
+            Assert.Same(provider, manager.GetProvider(type));
+            Assert.NotNull(provider.QueryCapabilities.StringKeySetLookup);
+            Assert.False(provider.IsProviderActivated);
+        }
+        finally
+        {
+            if (manager.IsProviderRegistered(type))
+            {
+                var created = manager.GetProvider(type);
+                manager.UnRegisterProvider(type);
+                (created as IDisposable)?.Dispose();
+            }
+            if (prior != null) manager.RegisterProvider(prior);
+            Boot.OASISDNA = priorDna;
+        }
+    }
+
     [Theory]
     [InlineData(ProviderType.CosmosBlockChainOASIS)] [InlineData(ProviderType.SuiOASIS)]
     public async Task CreatedProviderRetainsRegisteredKeyReferenceAfterDnaChanges(ProviderType type)
@@ -36,7 +76,7 @@ public class PrivateStorageRegistrationTests
             settings.SuiOASIS=new SuiOASISProviderSettings { RpcEndpoint="http://127.0.0.1:1",StorageEncryptionKeyEnvironmentVariable=originalName };
             Boot.OASISDNA=new OASISDNA { OASIS=new NextGenSoftware.OASIS.API.DNA.OASIS { StorageProviders=settings } };
             var method=typeof(Boot).GetMethod("RegisterProviderInternal",BindingFlags.NonPublic|BindingFlags.Static)!;
-            var registered=(OASISResult<IOASISStorageProvider>)method.Invoke(null,new object?[]{type,null,false})!;
+            var registered=(OASISResult<IOASISStorageProvider>)method.Invoke(null,new object?[]{type,null,false,null})!;
             Assert.False(registered.IsError,registered.Message);created=registered.Result;Assert.NotNull(created);
             settings.CosmosBlockChainOASIS.StorageEncryptionKeyEnvironmentVariable=replacementName;
             settings.SuiOASIS.StorageEncryptionKeyEnvironmentVariable=replacementName;
