@@ -964,3 +964,7 @@ Power recovery verified on 11 November UTC: battery 21% and charging (Win32_Batt
 ### WEB6 Ask your data Development demo entitlement · 13 November
 
 Approved 13 November. David approved the 30-minute Bronze grant for the dedicated Development test visitor and agreed to sign in privately. Waiting for the separate protected Development administrator session before applying it. The Free catalogue only admits Ollama and no Ollama inference route is configured in Development. The deployed WEB4 subscription admin API supports audited plan grants with an expiry and no Stripe checkout. Proposed grant: 30 minutes, dedicated test visitor only, for one real WEB6 draft and WEB4 CQL execution. The prior Wizard sign-in was scoped to Hedera recovery. [Plan grant API](../../Devs/API%20Documentation/WEB4%20OASIS%20API/Subscription-API.md)
+
+## COSMIC Web4Site preview access
+
+Open 13 November. Approve the Vercel OASIS team access request when a fresh one-time consent link is provided, so engineering can open and verify the protected Development demo preview in a browser. No production change is requested. The preview build succeeded for Web4Site 9564a317fca2. [Protected preview](https://web4-site-3yiuiyxzi-oasis-team.vercel.app/web4-sandbox.html).
