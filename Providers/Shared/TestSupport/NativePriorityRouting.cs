@@ -1,11 +1,12 @@
 using System.Text.Json;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Assert = Microsoft.VisualStudio.TestTools.UnitTesting.Assert;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive;
+using NextGenSoftware.OASIS.API.Core.Services.Subscriptions;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.Utilities;
 
@@ -14,7 +15,8 @@ namespace NextGenSoftware.OASIS.Providers.TestSupport;
 internal static class NativePriorityRouting
 {
     public static async Task VerifyAsync(IOASISStorageProvider first, IOASISStorageProvider second,
-        IOASISStorageProvider unavailableFirst, IOASISStorageProvider unavailableSecond, bool sync)
+        IOASISStorageProvider unavailableFirst, IOASISStorageProvider unavailableSecond, bool sync,
+        PreparedStorageExecution? preparedWrites = null)
     {
         var dna = new OASISDNA { OASIS = new NextGenSoftware.OASIS.API.DNA.OASIS
             { HyperDriveMode = HyperDriveModes.V2, StorageProviders = new StorageProviderSettings() } };
@@ -30,7 +32,7 @@ internal static class NativePriorityRouting
         foreach (var primary in providerTypes)
         {
             var holon = new Holon { Id = Guid.NewGuid(), Name = $"priority routing {primary}", CreatedByAvatarId = Guid.NewGuid() };
-            var request = new StorageOperationRequest { Operation = "SaveHolon", PreferredProvider = primary, Payload = holon, SaveChildren = false };
+            var request = new StorageOperationRequest { Operation = "SaveHolon", PreferredProvider = primary, Payload = holon, SaveChildren = false, PreparedExecution = preparedWrites };
             var saved = sync ? replicationRouter.RouteRequest<IHolon>(request) : await replicationRouter.RouteRequestAsync<IHolon>(request);
             Assert.IsFalse(saved.IsError || saved.IsWarning, saved.Message);
             foreach (var provider in new IOASISStorageProvider[] { first, second })

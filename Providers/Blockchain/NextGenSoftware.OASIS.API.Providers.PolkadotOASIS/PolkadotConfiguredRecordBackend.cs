@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core.Services.Subscriptions;
 using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS;
@@ -38,6 +39,9 @@ internal sealed class PolkadotConfiguredRecordBackend : IConditionalKeyValueBack
     private IConditionalKeyValueBackend Conditional(CancellationToken token) => (IConditionalKeyValueBackend)Resolve(token).Private;
     internal Task<T> WithPreparationAsync<T>(Func<Task<T>> action, Func<string,string,PreparedSubmissionServer> factory, CancellationToken token)
         => Resolve(token).Raw.WithPreparationAsync(action, factory, token);
+    internal Task<T> ExecutePreparedAsync<T>(Func<Task<T>> action, UsageExecutionHandle execution,
+        string clientRequestId, string expectedSender, CancellationToken token)
+        => Resolve(token).Raw.ExecutePreparedAsync(action, execution, clientRequestId, expectedSender, token);
     public Task<string> GetAsync(string key,CancellationToken token=default)=>Resolve(token).Private.GetAsync(key,token);
     public Task PutAsync(string key,string value,CancellationToken token=default)=>Resolve(token).Private.PutAsync(key,value,token);
     public Task DeleteAsync(string key,CancellationToken token=default)=>Resolve(token).Private.DeleteAsync(key,token);

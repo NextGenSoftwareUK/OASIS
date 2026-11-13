@@ -9,7 +9,7 @@ using Solnet.Wallet.Utilities;
 namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.IntegrationTests;
 
 [TestClass, DoNotParallelize]
-public class SolanaCoreStorageConformanceTests
+public partial class SolanaCoreStorageConformanceTests
 {
     [TestMethod, TestCategory("SolanaCoreStorageInspect")]
     public async Task InspectOriginalIdFailuresWithoutMutation()
@@ -125,7 +125,7 @@ public class SolanaCoreStorageConformanceTests
         }
     }
 
-    private static async Task<SolanaOASIS> OpenFreshValidator()
+    private static async Task<SolanaOASIS> OpenFreshValidator(string? unavailableEndpoint = null)
     {
         const string endpoint = "http://127.0.0.1:18899";
         Assert.AreEqual(endpoint, Environment.GetEnvironmentVariable("SOLANA_RPC_URL"));
@@ -150,7 +150,7 @@ public class SolanaCoreStorageConformanceTests
         var secret = Array.ConvertAll(keypair, value => checked((byte)value));
         try
         {
-            return new SolanaOASIS(endpoint, Encoders.Base58.EncodeData(secret),
+            return new SolanaOASIS(unavailableEndpoint ?? endpoint, Encoders.Base58.EncodeData(secret),
                 Encoders.Base58.EncodeData(secret[32..]));
         }
         finally

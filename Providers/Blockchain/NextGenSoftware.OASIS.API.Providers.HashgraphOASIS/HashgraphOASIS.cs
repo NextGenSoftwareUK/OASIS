@@ -37,10 +37,12 @@ using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
 {
-    public partial class HashgraphOASIS : KeyValueStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IOASISBlockchainStorageProvider, IOASISIdBoundTokenEscrowProvider, IOASISSmartContractProvider, IOASISNFTProvider, IOASISSuperStar
+    public partial class HashgraphOASIS : KeyValueStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IOASISBlockchainStorageProvider, IOASISIdBoundTokenEscrowProvider, IOASISSmartContractProvider, IOASISNFTProvider, IOASISSuperStar, IProviderTransportFailureClassifier
     {
         private WalletManager _walletManager;
         private HttpClient _httpClient;
+        bool IProviderTransportFailureClassifier.IsProviderTransportFailure(Exception failure)
+            => failure is HederaReadDeadlineException;
         private readonly string _nftEscrowContractId;
         private readonly string _nftEscrowRuntimeCodeHash;
         private readonly long _nftEscrowGasLimit;

@@ -116,6 +116,15 @@ public sealed class IPFSConcurrentPublicationTests
                 .Skip(independentWriters ? 1 : 0)
                 .Select((holon, index) => (index % 2 == 0 ? secondWriter : writer).SaveHolonAsync(holon, saveChildren: false)));
             Assert.All(saves, saved => Assert.True(saved.IsSaved && !saved.IsError, saved.Message));
+            if (independentWriters)
+            {
+                foreach (var existingWriter in new[] { writer, secondWriter })
+                {
+                    var loaded = await existingWriter.LoadAllHolonsAsync(loadChildren: false);
+                    Assert.True(loaded.IsLoaded && !loaded.IsError, loaded.Message);
+                    Assert.Equal(holons.Select(holon => holon.Id).Order(), loaded.Result.Select(holon => holon.Id).Order());
+                }
+            }
         }
         finally
         {

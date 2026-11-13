@@ -563,6 +563,42 @@ namespace NextGenSoftware.OASIS.API.DNA
             return SaveDNA(OASISDNAPath, OASISDNA);
         }
 
+        private static async Task PersistDnaAsync(string path, OASISDNA dna, bool useAsync)
+        {
+            var json = JsonConvert.SerializeObject(dna);
+            var destination = Path.GetFullPath(path);
+            var temporary = destination + "." + Guid.NewGuid().ToString("N") + ".tmp";
+            try
+            {
+                using (var stream = new FileStream(temporary, FileMode.CreateNew, FileAccess.Write, FileShare.None, 4096, useAsync))
+                {
+                    using (var writer = new StreamWriter(stream, new System.Text.UTF8Encoding(false), 4096, leaveOpen: true))
+                    {
+                        if (useAsync)
+                        {
+                            await writer.WriteAsync(json).ConfigureAwait(false);
+                            await writer.FlushAsync().ConfigureAwait(false);
+                        }
+                        else
+                        {
+                            writer.Write(json);
+                            writer.Flush();
+                        }
+                    }
+                    stream.Flush(flushToDisk: true);
+                }
+
+                if (File.Exists(destination))
+                    File.Replace(temporary, destination, destinationBackupFileName: null);
+                else
+                    File.Move(temporary, destination);
+            }
+            finally
+            {
+                File.Delete(temporary);
+            }
+        }
+
         public static OASISResult<bool> SaveDNA(string OASISDNAPath, OASISDNA OASISDNA)
         {
             OASISResult<bool> result = new OASISResult<bool>();
@@ -581,12 +617,9 @@ namespace NextGenSoftware.OASIS.API.DNA
                     if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
                         Directory.CreateDirectory(dir);
 
+                    PersistDnaAsync(effectivePath, OASISDNA, useAsync: false).GetAwaiter().GetResult();
                     OASISDNAManager.OASISDNA = OASISDNA;
                     OASISDNAManager.OASISDNAPath = effectivePath;
-
-                    string json = JsonConvert.SerializeObject(OASISDNA);
-                    using (var writer = new StreamWriter(effectivePath))
-                        writer.Write(json);
                     result.Result = true;
                 }
             }
@@ -621,12 +654,9 @@ namespace NextGenSoftware.OASIS.API.DNA
                     if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
                         Directory.CreateDirectory(dir);
 
+                    await PersistDnaAsync(effectivePath, OASISDNA, useAsync: true).ConfigureAwait(false);
                     OASISDNAManager.OASISDNA = OASISDNA;
                     OASISDNAManager.OASISDNAPath = effectivePath;
-
-                    string json = JsonConvert.SerializeObject(OASISDNA);
-                    using (var writer = new StreamWriter(effectivePath))
-                        await writer.WriteAsync(json);
                     result.Result = true;
                 }
             }

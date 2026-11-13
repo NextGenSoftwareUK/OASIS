@@ -29,4 +29,10 @@
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.PolkadotOASIS\NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="PolkadotSqliteHyperDriveTests.cs" />
+    <Compile Include="PolkadotSqliteHyperDriveTests.cs" Condition="'$(PolkadotRoutingTests)' == 'true'" />
+    <Compile Include="../../../Shared/TestSupport/NativePriorityRouting.cs" Link="TestSupport/NativePriorityRouting.cs" Condition="'$(PolkadotRoutingTests)' == 'true'" />
+    <ProjectReference Include="../../../Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.csproj" Condition="'$(PolkadotRoutingTests)' == 'true'" />
+  </ItemGroup>
 </Project>
