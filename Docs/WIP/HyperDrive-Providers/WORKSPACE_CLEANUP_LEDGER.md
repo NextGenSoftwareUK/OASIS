@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+12 November removed the temporary index used to reproduce the IPFS tombstone and binding tree and verified it was absent. No local build or download.
+
 12 November unpublished-store runs 43366903327 and 43366901241 confirmed removal of disposable Kubo files. No local builds or downloads. C: had 32.06 GB free at inspection.
 
 12 November native tombstone runs 43365762650 and 43365761546 logged removal of both disposable Kubo fixtures. No local build or download.
