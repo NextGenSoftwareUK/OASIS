@@ -6574,3 +6574,5 @@ Track temporary tag `ci-cosmic-infura-web4-ee3a6589a6` for exact runs `432184056
 13 November Cancun time. Live decimal filter verification on WEB4 59bc51b9ba7c wrote three private temporary records with replication off. Conditional deletes succeeded and final reads verified all three absent. Keep only twelve compact intent/acknowledgement receipts under LocalState/COSMIC/HostedAskYourDataAcceptance. No runtime, database, build output or download was created. The temporary documentation index was automatically removed.
 
 13 November Cancun time. HostedAskYourDataAcceptance retains four compact MongoDBOASIS-datetime-proof receipts for one private timestamp fixture. Conditional deletion returned 409 and cleanup remains open. Preserve the journal for reconciliation. No SQLite or Neo4j timestamp fixtures, local runtime installs, or build outputs.
+
+13 November Cancun time. MongoDB timestamp proof fixture was conditionally hard-deleted with its provider revision, and the same visitor confirmed absence by exact CQL ID lookup. Six compact intent and acknowledgement receipts remain. No local runtimes or build outputs.
