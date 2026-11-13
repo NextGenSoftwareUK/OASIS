@@ -21,7 +21,8 @@ public partial class IPFSOASIS : IBoundCommittedHolonReplicaStorageProvider, ICo
     IHolonReplicaHeadAuditStorageProvider
 {
     private const ProviderType ReplicaAuthority = Core.Enums.ProviderType.IPFSOASIS;
-    private sealed class ReplicaLineageConflictException(string message) : InvalidOperationException(message);
+    private sealed class ReplicaLineageConflictException(string message, Exception cause = null)
+        : InvalidOperationException(message, cause);
     private sealed class ReplicaStorageBindingException(string message) : InvalidOperationException(message);
 
     // Atomic callers acquire both catalogue locks before reading this snapshot.
@@ -253,8 +254,8 @@ public partial class IPFSOASIS : IBoundCommittedHolonReplicaStorageProvider, ICo
             ReplicaText(head["authority"]), ReplicaText(head["snapshot"]), ReplicaText(head["digest"]),
             ReplicaText(head["revision"]), head["hardDeleted"]?.Type == JTokenType.Boolean
                 ? head.Value<bool>("hardDeleted") : throw new InvalidDataException("Invalid IPFS replica deletion state."));
-        if (!validated.Evidence.HardDeleted && currentCid != headCid)
-            throw new InvalidDataException("The IPFS replica head CID differs from the current catalogue.");
+        if (validated.Evidence.HardDeleted ? currentCid != null : currentCid != headCid)
+            throw new ReplicaLineageConflictException("The IPFS replica head CID differs from the current catalogue.");
         if (validated.Evidence.HardDeleted)
         {
             var tombstone = DecodePrivateRecord<Holon>(headCid, "holon", id,
@@ -268,7 +269,14 @@ public partial class IPFSOASIS : IBoundCommittedHolonReplicaStorageProvider, ICo
         }
         var current = currentCid == null ? null : DecodePrivateRecord<Holon>(currentCid, "holon", id,
             await ReadCqlEnvelopeAsync(currentCid, cancellationToken).ConfigureAwait(false));
-        HolonReplicaHeadRecord.ValidateCurrent(id, ReplicaAuthority, current, validated.Evidence);
+        try
+        {
+            HolonReplicaHeadRecord.ValidateCurrent(id, ReplicaAuthority, current, validated.Evidence);
+        }
+        catch (InvalidDataException cause)
+        {
+            throw new ReplicaLineageConflictException(cause.Message, cause);
+        }
         return validated.Evidence;
     }
 

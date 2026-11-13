@@ -170,6 +170,21 @@ public sealed class IPFSRestartTests
             Assert.Equal(replica.VersionId, Assert.Single(historicalReplay.Result).VersionId);
             Assert.Equal(advancedPointer, await File.ReadAllTextAsync(dnaPath));
             await VerifyHostedReplicaTargetAsync(provider, identity, dnaPath);
+            var current = await provider.LoadHolonAsync(replica.Id, loadChildren: false);
+            Assert.True(current.IsLoaded && !current.IsError, current.Message);
+            var previousVersion = current.Result.VersionId;
+            current.Result.Name = "local divergence";
+            var localWrite = await provider.SaveHolonAsync(current.Result, saveChildren: false);
+            Assert.True(localWrite.IsSaved && !localWrite.IsError, localWrite.Message);
+            var divergentPointer = await File.ReadAllTextAsync(dnaPath);
+            var next = new Holon { Id = replica.Id, Version = 3, VersionId = Guid.NewGuid(),
+                PreviousVersionId = previousVersion, HolonType = HolonType.Holon };
+            CosmicConcurrency.SetProviderRevisionId(next, ProviderType.SQLLiteDBOASIS, Guid.NewGuid());
+            var nextRequest = new CommittedHolonReplicaRequest(Guid.NewGuid(), "restart-sqlite-source",
+                ProviderType.SQLLiteDBOASIS, RecordId, ConditionalHolonOperation.Save, new[] { next }, saveChildren: false);
+            var conflict = await provider.ApplyBoundCommittedHolonReplicaAsync(nextRequest, identity);
+            Assert.Equal("COSMIC_REPLICA_LINEAGE_CONFLICT", conflict.ErrorCode);
+            Assert.Equal(divergentPointer, await File.ReadAllTextAsync(dnaPath));
         }
     }
 
