@@ -98,7 +98,18 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                     // after native serialization and opaque frontier preservation.
                     var actual=bodies.ToDictionary(pair=>pair.Key,pair=>ReadFlatCommittedHolon(pair.Value));
                     committedRecords=actual;
-                    foreach(var node in plan.Nodes)actual[node.Snapshot.Id].Children=node.SelectedChildIds.Select(id=>actual[id]).ToList();
+                    foreach (var node in plan.Nodes)
+                    {
+                        var acknowledgement = actual[node.Snapshot.Id];
+                        acknowledgement.Children = node.SelectedChildIds.Select(id => actual[id]).ToList();
+                        if (conditionalPlan == null && node.SelectsChildren)
+                        {
+                            var manifest = HolonChildRoleManifestJson.Deserialize(((Holon)acknowledgement).ChildRoleManifestJson);
+                            var hydrated = HolonChildRoleHydration.ApplyFullySelected(acknowledgement, manifest, id => actual[id]);
+                            if (hydrated.IsError)
+                                throw new InvalidOperationException(hydrated.Message, hydrated.Exception);
+                        }
+                    }
                     responses.AddRange(roots.Select(root=>actual[snapshots[root].Id]));
                 }).ConfigureAwait(false);
                 if (saved.IsError)
