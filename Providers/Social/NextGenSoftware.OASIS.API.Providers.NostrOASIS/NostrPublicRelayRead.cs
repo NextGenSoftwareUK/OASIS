@@ -23,7 +23,7 @@ internal static class NostrPublicRelayRead
         using var socket = new ClientWebSocket();
         await ConnectAsync(socket, invoker, relay, deadline.Token);
         try { return await ReadConnectedAsync(socket, ids, "cosmic-" + Guid.NewGuid().ToString("N"), deadline.Token); }
-        catch (Exception error) when (error is not OperationCanceledException)
+        catch (Exception error)
         {
             error.Data["COSMIC.NativeStage"] = "subscription";
             throw;
@@ -34,6 +34,11 @@ internal static class NostrPublicRelayRead
     {
         socket.Options.CollectHttpResponseDetails = true;
         try { await socket.ConnectAsync(relay, invoker, token); }
+        catch (OperationCanceledException error)
+        {
+            error.Data["COSMIC.NativeStage"] = "connect";
+            throw;
+        }
         catch (Exception cause) when (cause is WebSocketException or HttpRequestException)
         {
             // Preserve the real cause and typed HTTP status. Never parse or log
