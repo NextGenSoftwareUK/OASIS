@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+13 November Cancun time. Public object lookup qualification 445a2fd6045e used one temporary Git index. Removed and verified absent. Mastodon CI jobs 131966236920 and 131969194514 confirmed fixture removal. No local build, download or service.
+
 13 November Cancun time. ActivityPub exact candidate 29c4b494895e used one temporary Git index, removed and verified absent. CI job 131956352937 removed its Mastodon fixture directory. No local artifacts.
 
 13 November Cancun time. ActivityPub jobs 131948445393 and 131951351188 confirmed removal of their owned Mastodon fixture directories. Both temporary candidate indices were removed and verified absent. Logs were read in memory. No local build, runtime or download was created.

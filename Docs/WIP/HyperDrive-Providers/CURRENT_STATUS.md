@@ -18,7 +18,7 @@
 
 ## Verification log
 
-13 November Cancun time. Public ActivityPub object-URI lookup b79fd942ab07 uses the configured Mastodon search API and requires an exact public object match. The automatically queued authenticated-search job does not select the routed public-object case. Dispatched [native routing CI 43449093830](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43449093830) for that case. No local fixture or build was created. Instance-level HyperDrive selection remains open.
+13 November Cancun time. Public ActivityPub object-URI lookup b79fd942ab07 uses the configured Mastodon search API and requires an exact public object match. The automatically queued authenticated-search job does not select the routed public-object case. Dispatched [native routing CI 43449093830](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43449093830) for that case. [Exact Development CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43449954359) passed 46 selector tests and both native Mastodon cases, including exact public URI lookup, on 445a2fd6045e. Ready for the next shared integration window. Instance-level HyperDrive selection remains open.
 
 13 November Cancun time. [Exact ActivityPub CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43446252219) passed all 46 point-selector unit cases and both native Mastodon routing cases with zero skips on 29c4b494895e. The job confirmed fixture removal. The verified ten-file batch reached Development at 29c4b494895e after 09:58:44 Cancun. All seven APIs on the preceding revision had completed deployment. The new rollout remains open. Cross-instance failover remains open.
 
