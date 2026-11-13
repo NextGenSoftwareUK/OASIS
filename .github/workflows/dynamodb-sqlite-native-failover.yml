@@ -1,0 +1,100 @@
+name: DynamoDB and SQLite native failover
+
+on:
+  push:
+    branches: [work/hyperdrive-provider-completion]
+    paths:
+      - '.github/workflows/dynamodb-sqlite-native-failover.yml'
+      - 'Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.AWSOASIS.IntegrationTests/AWSSqliteOutageTests.cs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  activation:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: OASIS
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          path: OASIS
+          submodules: recursive
+          persist-credentials: false
+
+      - name: Read the recorded Libraries revision
+        id: dependencies
+        shell: bash
+        run: |
+          revision="$(sed -n 's/^LIBRARIES_COMMIT=//p' Docker/oasis-dependency-versions.env)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "libraries=$revision" >> "$GITHUB_OUTPUT"
+          revision="$(sed -n 's/^HOLOCHAIN_COMMIT=//p' Docker/oasis-dependency-versions.env)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "holochain=$revision" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependencies.outputs.libraries }}
+          path: NextGenSoftware-Libraries
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+
+      - uses: actions/checkout@v7
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          ref: ${{ steps.dependencies.outputs.holochain }}
+          path: holochain-client-csharp
+          persist-credentials: false
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Verify SQLite failover to DynamoDB Local
+        shell: bash
+        run: |
+          fixture="$(mktemp -d "$RUNNER_TEMP/oasis-dynamo-failover.XXXXXXXX")"
+          dynamo_pid=""
+          cleanup() {
+            status=$?
+            if [[ -n "$dynamo_pid" ]]; then
+              kill "$dynamo_pid" 2>/dev/null || true
+              wait "$dynamo_pid" 2>/dev/null || true
+            fi
+            if (( status != 0 )); then tail -n 30 "$fixture/dynamo.log" 2>/dev/null || true; fi
+            if [[ "$fixture" == "$RUNNER_TEMP"/oasis-dynamo-failover.* ]]; then rm -rf -- "$fixture"; fi
+            [[ ! -e "$fixture" ]] || status=1
+            exit "$status"
+          }
+          trap cleanup EXIT
+          curl -fsSL 'https://d1ni2b6xgvw0s0.cloudfront.net/v2.x/dynamodb_local_latest.zip' -o "$fixture/dynamo.zip"
+          (cd "$fixture"; echo '667cde09f96f4785cede4d107d8066011e5eeceb5dd4566ea8c74c0d378fe919  dynamo.zip' | sha256sum -c; unzip -q dynamo.zip)
+          (cd "$fixture"; exec java -Xms32m -Xmx256m -Djava.library.path=DynamoDBLocal_lib -jar DynamoDBLocal.jar -inMemory -sharedDb -port 18000) >"$fixture/dynamo.log" 2>&1 &
+          dynamo_pid=$!
+          export DYNAMODB_SERVICE_URL=http://127.0.0.1:18000
+          curl -sS --retry 20 --retry-all-errors --retry-delay 1 --max-time 3 "$DYNAMODB_SERVICE_URL" >/dev/null
+          kill -0 "$dynamo_pid"
+          export OASIS_DYNAMO_OUTAGE_FIXTURE="$fixture"
+          pwsh -NoProfile -Command '
+            ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-DynamoSqliteFailover -Operation {
+              $project = "Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.AWSOASIS.IntegrationTests"
+              $fixture = $env:OASIS_DYNAMO_OUTAGE_FIXTURE
+              dotnet test $project --filter "FullyQualifiedName~SqliteOutageRoutesToDynamoDb" --artifacts-path (Join-Path $fixture build) --results-directory $fixture --logger "trx;LogFileName=failover.trx" /m:2 /nr:false /p:UseSharedCompilation=false
+              if ($LASTEXITCODE) { throw "Native DynamoDB failover failed." }
+              [xml]$report = Get-Content -LiteralPath (Join-Path $fixture failover.trx)
+              $counts = $report.TestRun.ResultSummary.Counters
+              if ([int]$counts.total -ne 2 -or [int]$counts.passed -ne 2 -or [int]$counts.notExecuted -ne 0) {
+                throw "Expected both native failover modes to pass with zero skips."
+              }
+            }'
