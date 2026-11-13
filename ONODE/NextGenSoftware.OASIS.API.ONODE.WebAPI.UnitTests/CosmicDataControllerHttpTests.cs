@@ -437,6 +437,9 @@ public sealed partial class CosmicDataControllerHttpTests
                 .AddApplicationPart(typeof(DataController).Assembly)
                 .AddControllersAsServices();
             builder.Services.AddTransient<DataController>(_ => new DataController(manager));
+            builder.Services.AddSingleton(_ => new NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.AccessLog.AccessLogService(
+                () => dna.OASIS.AccessLog, new Mock<NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.AccessLog.IAccessLogStore>(MockBehavior.Strict).Object));
+            builder.Services.AddScoped<NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.AccessLog.AccessLogFilter>();
             if (admission != null)
                 builder.Services.AddSingleton<IPreparedStorageAdmissionFactory>(new FixtureAdmissionFactory(admission));
             if (configuredAdmission)
