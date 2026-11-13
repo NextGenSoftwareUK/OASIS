@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. Candidate 2b8081b30f84 includes the passing IPFS concurrent pointer test on the existing Arbitrum-based HyperDrive batch. Independently reproduced exact CI tree fe335c0dc9687933983230f929722fc9a6f3fc8d. Only the test file changes relative to 8ac334af67c2. Review the shared Development window after 20:28:33 Cancun.
+
 12 November Cancun time. Windows concurrent IPFS pointer reads passed in 43343014391 on Arbitrum-based source tree fe335c0dc9687933983230f929722fc9a6f3fc8d. Active readers saw complete DNA pointers during native Kubo writes. Linux 43342984019 passed its separate process scenario on the same tree. Both runners removed their fixtures.
 
 12 November Cancun time. Live Arbitrum passed its four public presets on Development db5b9cf03dc3, and all seven Railway services succeeded. The next shared review is after 20:28:33. Windows IPFS pointer-read regression 43343014391 is queued on 07ba1108ebb9. It verifies concurrent reads during publication and remains outside the 30-path integration candidate until it passes.
