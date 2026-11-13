@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+12 November Windows IPFS run 43343014391 removed its disposable Kubo runtime, repository and logs after the concurrent pointer-reader pass. No local build or download.
+
 12 November IPFS run 43342984019 passed all three Linux process cases and confirmed removal of the Kubo runtime, repository and logs. The Windows concurrent pointer-reader case is tracked separately in 43343014391.
 
 12 November IPFS CI 43341744791 confirmed removal of Kubo runtime, repository and logs. The temporary Git index used to reproduce its exact tree was removed and verified absent.
