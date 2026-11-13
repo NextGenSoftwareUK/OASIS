@@ -18,6 +18,8 @@
 
 ## Verification log
 
+13 November Cancun time. Oracle Free and SQLite native job `132012019566` passed both modes with zero skips and completed teardown. The job applied the reviewed Oracle routing scope to Development `fe8319aa11bd` and recorded tree `8258eabfc258c8fd27ae08501851bc1e46b9d6a7`. A healthy Oracle miss did not query a SQLite replica holding the exact record. No local build or fixture files were created.
+
 13 November 11:24 Cancun time. All seven Development API deployment statuses are successful for `fe8319aa11bd`, including the SQLite holon-by-ID and avatar-detail failover fixes. The exact provider-key candidate `31e53ead6e46` remains ready for the shared review after 11:42:21 Cancun. The corrected Oracle workflow cleared its scope check and reached the native Oracle Free and SQLite step in [job 132012019566](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43462283164/job/132012019566). No local build or fixture outputs were created.
 
 13 November Cancun time. Oracle CI `43461673176` stopped before starting fixtures. Its scope guard used the original pre-integration baseline, which did not contain the routing test and had a different project file. Verified that both files on Development `fe8319aa11bd` match the provider branch immediately before the new Oracle test. Updated the reviewed baseline to that exact revision, preserving rejection of unrelated changes. The CI cleanup trap removes the owned SQLite directory and Oracle container with its volumes. No local artifacts were created.

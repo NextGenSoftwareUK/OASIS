@@ -30,6 +30,10 @@
 
 Sources for this checkpoint are the [native routing archive](Archive/HYPERDRIVE_V2_PROVIDER_IO_COVERAGE.md), the [hosted routing plan and receipts](../COSMIC%20ORM/HOSTED_SANDBOX_INTEGRATION_PLAN.md), the [COSMIC handoff](../COSMIC%20ORM/CURRENT_STATUS.md), and the [provider matrix](PROVIDER_MATRIX.md). Existing scoped passes carry forward. Auto selection and RoundRobin distribution have separate assertions. Native outages, sandbox faults, replica delivery, and direct provider storage each retain their own evidence.
 
+## Oracle and SQLite point-read failover
+
+On Development `fe8319aa11bd`, the native Oracle Free fixture verified that a healthy Oracle miss returned `RecordNotFound` without querying SQLite, even when SQLite held the exact holon. The same sync and async cases retained bidirectional outage, replication and RoundRobin checks. Both passed with zero skips and fixture cleanup. CI recorded input tree `8258eabfc258c8fd27ae08501851bc1e46b9d6a7`. Hosted Oracle acceptance remains open. [Native Oracle job](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43462283164/job/132012019566)
+
 ## SQLite and Neo4j point-read failover
 
 The combined candidate `fe8319aa11bd` passed both sync and async against SQLite and Neo4j over Bolt. With SQLite unavailable, HyperDrive returned the exact Neo4j holon only when failover was enabled. With SQLite healthy, a holon miss by ID and avatar-detail misses by ID, username and email each returned `RecordNotFound` without sending a read to Neo4j. CI verified cleanup and container teardown. [Exact native job](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43458081690/job/131997447542)
