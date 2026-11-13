@@ -404,6 +404,11 @@ public sealed class IPFSRestartTests
         Assert.False(pending.IsError, pending.Message);
         Assert.NotNull(pending.Result);
         Assert.Equal(operationId, pending.Result.OperationId);
+        var inventory = await store.Result.ReadRouteHeadsAsync();
+        Assert.False(inventory.IsError, inventory.Message);
+        var head = Assert.Single(inventory.Result.Heads);
+        Assert.Equal(pending.Result.Sequence, head.Sequence);
+        Assert.Equal(operationId, head.OperationId);
         Assert.Equal(HolonDeliveryState.Pending, pending.Result.State);
         if (publish)
             return;
@@ -423,6 +428,9 @@ public sealed class IPFSRestartTests
         var outcome = await store.Result.InspectAsync(pending.Result.Sequence);
         Assert.False(outcome.IsError, outcome.Message);
         Assert.Equal(HolonDeliveryState.Completed, outcome.Result.State);
+        var drained = await store.Result.ReadRouteHeadsAsync();
+        Assert.False(drained.IsError, drained.Message);
+        Assert.Empty(drained.Result.Heads);
     }
 
     private static async Task VerifyOutboundDeliveryAsync(IPFSOASIS provider, CosmicStorageIdentity source, string dnaPath)
