@@ -78,6 +78,21 @@ public partial class SolanaCoreStorageConformanceTests
                 fixtures.Select(record => record.Name).ToArray());
             foreach (var record in fixtures)
             {
+                var signature = record.ProviderUniqueStorageKey[solana.ProviderType.Value];
+                var matching = new StorageOperationRequest
+                {
+                    Operation = "LoadHolonByProviderKey", ProviderKey = signature,
+                    PreferredProvider = solana.ProviderType.Value, LoadChildren = false
+                };
+                var loaded = sync ? router.RouteRequest<IHolon>(matching) : await router.RouteRequestAsync<IHolon>(matching);
+                Assert.IsTrue(!loaded.IsError && loaded.IsLoaded, loaded.Message);
+                Assert.AreEqual(record.Id, loaded.Result.Id);
+                matching.Version = checked(loaded.Result.Version + 1);
+                var wrongVersion = sync ? router.RouteRequest<IHolon>(matching) : await router.RouteRequestAsync<IHolon>(matching);
+                Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, wrongVersion.ErrorCode, wrongVersion.Message);
+                Assert.IsNull(wrongVersion.Result);
+                Assert.AreEqual(0L, manager.PerformanceMonitor.GetMetrics(sqlite.ProviderType.Value)?.TotalRequests ?? 0);
+
                 var removed = await solana.DeleteHolonAsync(record.Id);
                 Assert.IsTrue(!removed.IsError && removed.IsDeleted && removed.DeletedCount == 1, removed.Message);
             }
