@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+12 November removed and verified absence of the temporary Git index used to prepare the graph-qualified IPFS integration candidates. No local build or download.
+
 12 November native graph runs 43362838046, 43362820146, 43363302327 and 43363293816 confirmed removal of their disposable Kubo fixture directories. No local build or download.
 
 12 November current-record audit runs 43362252968 and 43362236259 confirmed removal of the disposable Kubo runtime, repository and logs. No local builds or downloads.

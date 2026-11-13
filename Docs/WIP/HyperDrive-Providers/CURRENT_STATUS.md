@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. Prepared graph-qualified IPFS follow-up a91001d1a4f2 on fd9b328ac712. Its three changed paths reproduce passing tree 6083d3df2a9c8ea0649c03339194f25c66a8c30b exactly. Cosmos-based 2ec99009d7c8 preserves those file objects and needs qualification on actual Development tree 0d2d89c0aae57a3a04c67a523496a964468daa99. This supersedes the earlier reconciliation-only candidate and includes native graph and audit coverage. COSMIC independently verified all four IPFS public CQL presets on the receiver deployment. Hosted delivery remains open.
+
 12 November Cancun time. Native graph restart 43363302327 and multi-process publication 43363293816 passed on tree 6083d3df2a9c8ea0649c03339194f25c66a8c30b. SQLite outbox delivery preserved parent and child logical revisions and the parent link in Kubo. Both jobs removed the disposable fixtures. Cosmos retains the next shared window.
 
 12 November Cancun time. Graph restart 43362838046 delivered the graph but the test used a root-only native read and found no children. Request the shipping provider-backed child projection explicitly. Multi-process 43362820146 passed. Both confirmed fixture cleanup. No local output.
