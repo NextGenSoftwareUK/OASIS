@@ -73,7 +73,7 @@ jobs:
           export OASIS_WEB3CORE_STORAGE_ENCRYPTION_KEY="$(openssl rand -base64 32)"
           export WEB3CORE_NATIVE_FIXTURE="$PWD/TestResults/Web3CoreCurrent/web3-storage.json"
           npm ci --prefix "$contract_root" --no-audit --no-fund
-          node Scripts/TestHosts/compile-web3core-storage.cjs
+          node Scripts/TestHosts/compile-web3core-storage.cjs --storage-only
           (cd "$contract_root"; exec node node_modules/hardhat/internal/cli/cli.js node --hostname 127.0.0.1 --port 18545) >"$fixture/hardhat.log" 2>&1 &
           chain_pid=$!
           chain_ready() {
