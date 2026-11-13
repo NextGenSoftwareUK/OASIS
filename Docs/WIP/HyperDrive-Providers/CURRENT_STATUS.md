@@ -18,6 +18,8 @@
 
 ## Verification log
 
+13 November Cancun time. IPFS outbound graph delivery passed native Kubo restart 43398958217 and multi-process 43398916050 on exact tree a2fa2c46106f8615803a9cf56bbf4b0f9fd39716. The shipping dispatcher preserved the parent and child revisions and the parent link in SQLite. Candidate 6205d946c478 supersedes 9820afaa6d07 for the shared Development review. All seven predecessor Railway API statuses succeeded. Hosted writes remain open.
+
 13 November Cancun time. Added IPFS-to-SQLite graph replication coverage on 87f809eb1a01. Native restart 43398958217 and multi-process 43398916050 are active. Shared Development CI 43395456380 on a41c57060d51 failed Solution Integrity on submodule branch rules and Test Coverage on CqlV1Web4Tests.InvalidProviderDoesNotResolve for HoloOASIS. The scoped IPFS candidate 9820afaa6d07 remains separate from those failures. Recheck the fleet and shared head before integration. No local builds or downloads.
 
 13 November Cancun time. Native IPFS-to-SQLite soft and hard delete delivery passed in restart 43397603623. SQLite receipts were committed and both current catalogues excluded the hard-deleted holon. Multi-process 43397586035 passed on the same tree 63bbf9fcaa521832d87d8ef73c7435dd80ac1293. Three-file candidate 9820afaa6d079a59111aa6d2dda2cd3d9de4ee7a supersedes the earlier outbound scope for the next shared review.
