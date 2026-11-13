@@ -18,6 +18,8 @@
 
 ## Verification log
 
+13 November Cancun time. Native restart 43401897171 verified route inventory discovers the pending IPFS delivery across Kubo restart and clears it after confirmed SQLite dispatch. Multi-process 43401880550 passed on the same tree 406d4f3cbd4df87e9a9ee672f3af3295ed107de4. Single-test-file candidate 62c8d9fc653eb2469b0f72aafe6141142bc8097c supersedes ccc17609fad6 for the next Development review.
+
 13 November Cancun time. Staged ccc17609fad6a439459c40520d7032648439faac directly on Development 6205d946c478. The candidate changes only IPFSRestartTests.cs and exactly reproduces the qualified native tree b36b29f6d5c5987ec6d4d02eaf6c125b4ea1e92a. WEB4 was the only pending Railway deployment at inspection. Recheck Development, Railway and COSMIC at the shared review.
 
 13 November Cancun time. Native Kubo restart 43400766420 verified that a pending IPFS delivery created before daemon shutdown and repository garbage collection survived restart. The shipping dispatcher reopened the bound SQLite target, delivered the exact source revision and persisted completion. Multi-process 43400746242 passed on the same Development-based tree b36b29f6d5c5987ec6d4d02eaf6c125b4ea1e92a. Both jobs confirmed teardown. Six of seven Railway API deployments for 6205d946c478 succeeded at inspection. Hosted writable IPFS remains open.
