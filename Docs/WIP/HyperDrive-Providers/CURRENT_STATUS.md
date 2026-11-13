@@ -18,6 +18,8 @@
 
 ## Verification log
 
+13 November Cancun time. All seven API deployments succeeded on d495c8fe651a. Tightened the hosted load-balancing verifier to require an integer returned record version, so Boolean and decimal values cannot match an acknowledged integer through Python equality. The focused verifier suite passed 9/9 without bytecode output. Live verification still needs the protected acknowledged cohort.
+
 13 November Cancun time. [Exact Development authorization CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43440312113) passed all eight rejection cases with zero skips on candidate 50bb6ad5bf80. The verified batch contains the regression and its CI workflow. The shared review remains subject to the preceding rollout and current Development head. Hosted sequence 543 remains held pending protected writer evidence.
 
 13 November Cancun time. Reviewed WEB4 write admission and delivery logging for sequence 543. The write endpoint chooses the Wizard path from the authenticated avatar role. The delivery warning logs source, target, sequence, operation and error code, with no historical role attestation. Those fields can correlate the failure but cannot prove the original grant. Recorded the protected audit evidence request in ACTIONS-FOR-DAVID. No hosted logs, queue entries or credentials were changed.

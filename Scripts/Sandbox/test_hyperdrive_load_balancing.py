@@ -81,6 +81,11 @@ class RouteEvidenceTests(unittest.TestCase):
         self.assertEqual(gate.verify_response(response, expected, "Default", strategy="RoundRobin"), route)
         with self.assertRaises(ValueError):
             gate.verify_response(response, expected, "Default")
+        for invalid_version in (True, 1.0, "1"):
+            with self.subTest(version=invalid_version), self.assertRaises(ValueError):
+                gate.verify_response(
+                    {**response, "result": {**expected, "version": invalid_version}},
+                    expected, "Default", strategy="RoundRobin")
 
     def test_default_read_with_failover_disabled_cannot_change_serving_provider(self):
         expected = {"id": "owned", "name": "Coffee", "version": 1, "createdByAvatarId": "actor"}

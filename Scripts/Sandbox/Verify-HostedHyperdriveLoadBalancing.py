@@ -21,7 +21,8 @@ PROVIDERS = {"MongoDBOASIS", "SQLLiteDBOASIS", "Neo4jOASIS"}
 
 def verify_response(response, expected, requested, *, providers=PROVIDERS, strategy="Auto"):
     row = response.get("result") or {}
-    if response.get("isError") or any(row.get(key) != expected[key] for key in ("id", "name", "version", "createdByAvatarId")):
+    if (response.get("isError") or type(row.get("version")) is not int
+            or any(row.get(key) != expected[key] for key in ("id", "name", "version", "createdByAvatarId"))):
         raise ValueError("Load did not return the acknowledged identity/content/version/owner.")
     encoded = response.get("metaData", {}).get("hyperDriveRoute")
     if not isinstance(encoded, str):
