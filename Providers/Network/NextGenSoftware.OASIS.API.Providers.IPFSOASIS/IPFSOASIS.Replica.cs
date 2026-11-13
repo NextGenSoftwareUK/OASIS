@@ -16,9 +16,62 @@ using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS;
 
-public partial class IPFSOASIS : IBoundCommittedHolonReplicaStorageProvider, ICommittedHolonReplicaReceiptStorageProvider
+public partial class IPFSOASIS : IBoundCommittedHolonReplicaStorageProvider, ICommittedHolonReplicaReceiptStorageProvider,
+    IHolonReplicaHeadAuditStorageProvider
 {
     private const ProviderType ReplicaAuthority = Core.Enums.ProviderType.IPFSOASIS;
+
+    public async Task<OASISResult<HolonReplicaHeadReadResult>> ReadHolonReplicaHeadsAsync(
+        HolonReplicaHeadReadRequest request, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            ArgumentNullException.ThrowIfNull(request);
+            var gate = CatalogueGate;
+            await gate.WaitAsync(cancellationToken).ConfigureAwait(false);
+            try
+            {
+                var settings = ReadPersistedCatalogueDna().OASIS.StorageProviders.IPFSOASIS;
+                if (IPFSClient == null || string.IsNullOrWhiteSpace(settings.LookUpIPFSAddress))
+                    throw new InvalidOperationException("An active IPFS client and published catalogue are required to audit replica heads.");
+                var envelope = await ReadCqlEnvelopeAsync(settings.LookUpIPFSAddress, cancellationToken).ConfigureAwait(false);
+                var catalogue = ParseCatalogue(UnprotectIndex(envelope));
+                var records = DeserializeLookup(catalogue, out var storeId);
+                var storage = CreateCatalogueStorageIdentity(settings.ConnectionString, storeId);
+                if (storage.BindingFingerprint != request.ExpectedStorage.BindingFingerprint)
+                    return new() { IsError = true, ErrorCount = 1, ErrorCode = "COSMIC_REPLICA_STORAGE_BINDING_MISMATCH",
+                        Message = "The IPFS catalogue does not match the enrolled replica store." };
+
+                var heads = GetReplicaObject(catalogue, "replicaHeads");
+                var currentCids = records.Where(entry => entry.Value.RecordKind == "holon")
+                    .ToDictionary(entry => entry.Value.Id, entry => entry.Key);
+                var observations = new List<HolonReplicaHeadObservation>(request.HolonIds.Count);
+                foreach (var id in request.HolonIds)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    currentCids.TryGetValue(id, out var currentCid);
+                    var head = heads[id.ToString("D")];
+                    var evidence = head == null ? null :
+                        await ValidateReplicaHeadAsync(id, currentCid, head, cancellationToken).ConfigureAwait(false);
+                    observations.Add(new(id, currentCid != null, evidence));
+                }
+                return new(new HolonReplicaHeadReadResult(storage, observations)) { IsLoaded = true };
+            }
+            finally
+            {
+                gate.Release();
+            }
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception cause)
+        {
+            return new() { IsError = true, ErrorCount = 1, ErrorCode = "COSMIC_REPLICA_HEAD_AUDIT_UNVERIFIED",
+                Exception = cause, Message = cause.Message };
+        }
+    }
 
     public async Task<OASISResult<CommittedHolonReplicaReceiptEvidence>> ReadCommittedHolonReplicaReceiptAsync(
         CommittedHolonReplicaReceiptReadRequest request, CancellationToken cancellationToken = default)
@@ -165,21 +218,29 @@ public partial class IPFSOASIS : IBoundCommittedHolonReplicaStorageProvider, ICo
                 continue;
             }
 
-            var previousCid = ReplicaText(head["cid"]);
-            var validated = HolonReplicaHeadRecord.Read(record.Id, ReplicaAuthority, ReplicaText(head["source"]),
-                ReplicaText(head["authority"]), ReplicaText(head["snapshot"]), ReplicaText(head["digest"]),
-                ReplicaText(head["revision"]), head["hardDeleted"]?.Type == JTokenType.Boolean
-                    ? head.Value<bool>("hardDeleted") : throw new InvalidDataException("Invalid IPFS replica deletion state."));
-            var current = currentCid == null ? null : DecodePrivateRecord<Holon>(currentCid, "holon", record.Id,
-                await ReadCqlEnvelopeAsync(currentCid, cancellationToken).ConfigureAwait(false));
-            HolonReplicaHeadRecord.ValidateCurrent(record.Id, ReplicaAuthority, current, validated.Evidence);
-            if (validated.Evidence.SourceId != plan.SourceId || validated.Evidence.SourceAuthority != plan.SourceAuthority
-                || validated.Evidence.VersionId != record.PreviousVersionId || validated.Evidence.Version != record.Version - 1
-                || (!validated.Evidence.HardDeleted && currentCid != previousCid))
+            var evidence = await ValidateReplicaHeadAsync(record.Id, currentCid, head, cancellationToken).ConfigureAwait(false);
+            if (evidence.SourceId != plan.SourceId || evidence.SourceAuthority != plan.SourceAuthority
+                || evidence.VersionId != record.PreviousVersionId || evidence.Version != record.Version - 1)
                 throw new InvalidDataException("The IPFS replica lineage does not match the enrolled source.");
-            previousCids.Add(record.Id, previousCid);
+            previousCids.Add(record.Id, ReplicaText(head["cid"]));
         }
         return previousCids;
+    }
+
+    private async Task<HolonReplicaHeadEvidence> ValidateReplicaHeadAsync(Guid id, string currentCid, JToken head,
+        CancellationToken cancellationToken)
+    {
+        var headCid = ReplicaText(head["cid"]);
+        var validated = HolonReplicaHeadRecord.Read(id, ReplicaAuthority, ReplicaText(head["source"]),
+            ReplicaText(head["authority"]), ReplicaText(head["snapshot"]), ReplicaText(head["digest"]),
+            ReplicaText(head["revision"]), head["hardDeleted"]?.Type == JTokenType.Boolean
+                ? head.Value<bool>("hardDeleted") : throw new InvalidDataException("Invalid IPFS replica deletion state."));
+        if (!validated.Evidence.HardDeleted && currentCid != headCid)
+            throw new InvalidDataException("The IPFS replica head CID differs from the current catalogue.");
+        var current = currentCid == null ? null : DecodePrivateRecord<Holon>(currentCid, "holon", id,
+            await ReadCqlEnvelopeAsync(currentCid, cancellationToken).ConfigureAwait(false));
+        HolonReplicaHeadRecord.ValidateCurrent(id, ReplicaAuthority, current, validated.Evidence);
+        return validated.Evidence;
     }
 
     private async Task StageReplicaRecordAsync(Holon record, string previousCid, CommittedHolonReplicaPlan plan,

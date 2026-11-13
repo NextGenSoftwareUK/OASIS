@@ -260,5 +260,19 @@ public sealed class IPFSRestartTests
         var removed = await provider.LoadHolonAsync(replica.Id, loadChildren: false);
         Assert.False(removed.IsLoaded);
         Assert.Null(removed.Result);
+        var beforeAudit = await File.ReadAllTextAsync(dnaPath);
+        var missingId = Guid.NewGuid();
+        var audit = await provider.ReadHolonReplicaHeadsAsync(new(identity, new[] { replica.Id, missingId }));
+        Assert.True(audit.IsLoaded && !audit.IsError, audit.Message);
+        Assert.Equal(HolonReplicaHeadReadConsistency.NativeSnapshot, audit.Result.Consistency);
+        Assert.Equal(identity.BindingFingerprint, audit.Result.StorageFingerprint);
+        var deletedHead = audit.Result.Records.Single(row => row.HolonId == replica.Id);
+        Assert.False(deletedHead.HasCurrentRecord);
+        Assert.True(deletedHead.Head.HardDeleted);
+        Assert.Equal(committed.VersionId, deletedHead.Head.VersionId);
+        var missing = audit.Result.Records.Single(row => row.HolonId == missingId);
+        Assert.False(missing.HasCurrentRecord);
+        Assert.Null(missing.Head);
+        Assert.Equal(beforeAudit, await File.ReadAllTextAsync(dnaPath));
     }
 }
