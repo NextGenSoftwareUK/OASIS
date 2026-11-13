@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+13 November IPFS catalogue validation runs 43379632844 and 43379623191 confirmed removal of both disposable Kubo fixtures. Removed the temporary Git index for the exact integration candidate and verified its absence. No local build or download.
+
 13 November IPFS restart qualification 43378660201 on corrected Development confirmed disposable Kubo fixture removal. No local build or download.
 
 13 November native IPFS runs 43377710843 and 43377695105 confirmed disposable Kubo fixture removal. Removed and verified absence of the temporary Git index used for the exact regression-qualified candidate. Also removed and verified absence of the temporary index used for the updated Polkadot-correction alternate.
