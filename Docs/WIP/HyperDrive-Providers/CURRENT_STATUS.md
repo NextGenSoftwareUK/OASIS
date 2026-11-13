@@ -10,13 +10,15 @@
 | ActivityPub and routing | ActivityPub has 5/5 native capability checks. GOMap passed a public OSRM driving route. Authenticated Google Routes, Mapbox and HERE checks remain open. Niantic and WRLD still have reviewed adapter gaps. |
 | Canonical HoloOASIS | Top priority. Both modes passed all 52 native core-storage-v2 checks on the official Windows conductor with the verified identity-delete hApp in [run 43178174352](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43178174352). The verified bundle is packaged on the provider branch. Hosted, multi-agent and broader capability acceptance remain open. |
 | HoloOASIS.Desktop | Obsolete in source, package metadata and repository documentation at `45d6665da989`. The six-file compatibility and documentation batch reached Development at `70d3fbb4a31c`. Published NuGet metadata and live site listings still need the obsolescence update. |
-| Development | e247ea434af1 includes the Solana signature-version and ActivityPub public URI changes. API rollout is pending. Hosted HoloOASIS writes remain open. |
+| Development | WEB4 deployment succeeded on e247ea434af1 with the Solana signature-version and ActivityPub public URI changes. The COSMIC relay successor ae26ea4d4fa7 is rolling out. Hosted HoloOASIS writes remain open. |
 | BootLoader startup | The shipping registration, activation and deactivation path passed against native Polkadot and TRON fixtures and the Microsoft Azure Cosmos DB emulator. [Azure Cosmos DB job 131055311882](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43180594194/job/131055311882) confirmed fixture teardown. |
 | HyperDrive | Priority-provider failover, replication and load balancing verification is active. Whole-inventory acceptance remains open. |
 
 [Provider matrix](PROVIDER_MATRIX.md) · [Evidence registry](CONFORMANCE_RESULTS.json) · [Cleanup ledger](WORKSPACE_CLEANUP_LEDGER.md)
 
 ## Verification log
+
+13 November Cancun time. Railway reported WEB4 successful on e247ea434af1, the ActivityPub and Solana revision. Development now points to COSMIC relay revision ae26ea4d4fa7, whose WEB4 status remains pending. ActivityPub regression candidate 2f13935593d0 includes that revision. The only file difference from native-qualified tree a1d13fd3b34c is the WEB4 CQL HoloOASIS teaching relay hostname, outside the native test project and provider dependencies. The scoped diff check passed. The next shared review is after 14:27:26 Cancun. The retained hosted MongoDB and SQLite cohort was absent from both checked worktrees. No local builds or fixtures were created, and the temporary Git index was removed.
 
 13 November Cancun time. [Exact ActivityPub deletion qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43487962274/job/132101348404) passed both sync and async native Mastodon cases and removed its fixture directory. Candidate 7aaf3da9fea7 on Development e247ea434af1 has the same tree 3746d2c4830728f6ea42ea86bd3bc11e2abd5444 as qualification a1d13fd3b34c. The test-only batch is ready for the next shared review after 14:26:53 Cancun if the parent and rollout still match. WEB6 reported success and six deployments remained pending. Logs were inspected in memory and no local fixture or build output was created.
 
