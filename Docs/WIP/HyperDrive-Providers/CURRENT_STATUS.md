@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. The IPFS identity Development push workflow 43353410566 records 21:37:01 Cancun. The next shared integration review is after 22:07:01. Receiver restart 43353630378 and multi-process 43353633890 were dispatched on the shipping scope against the current Development parent. Because that parent changes only the two paths replaced by the receiver scope, the expected input tree is the previously verified 8b486e29f10b0647bd24fd6723aeb1483386124c. Verify the emitted tree and fixture cleanup before relying on either result. No local build, runtime or download.
+
 12 November Cancun time. Development fast-forwarded from live-verified NEAR 6c61e3e5c33d to the two-file IPFS storage identity batch d4276e404895 in the shared 21:34 window. All seven predecessor APIs were healthy and native Kubo checks 43349519780 and 43349524184 matched the exact integrated tree. The remote ref and Railway manifest were verified. The combined EOSIO image was still running at review, so it can follow on the exact IPFS parent. The new rollout and the replica receiver integration remain open. No local runtime or build output.
 
 12 November Cancun time. Prepared the three-file IPFS replica receiver candidate ed18ed3769f2 on the proposed combined EOSIO and IPFS identity parent 4d338173e64d. Candidate tree 3ed5975645a5e9e19264a5b9d388800ae1113fc2 reuses the native-qualified source blobs. Qualify on the actual Development parent after the shared integration. Temporary indices were removed and checked absent. No local build or download.
