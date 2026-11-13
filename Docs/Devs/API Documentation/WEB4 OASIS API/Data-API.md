@@ -770,6 +770,40 @@ Answer taken from the code (Mongo provider, the default store; other providers d
 - **Permanent delete removes the whole holon including its history.** `DELETE /api/data/delete-holon/{id}/false` can be called by the holon's creator or a Wizard. History is not preserved after a permanent delete, so an app that needs a lasting record should soft delete only.
 - **Limits.** The checksums are not chained or signed, so someone with direct database access (or a Wizard using the provider layer) could rewrite a snapshot and its checksum. The trail is tamper-resistant against API users but not cryptographically tamper-proof. Where that matters, anchor periodic hashes on a blockchain provider.
 
+## Holon Access Log
+
+Records who READ a holon (the version history only records writes). Off by default and opt-in: set `OASIS.AccessLog.Enabled` to `true` in `OASIS_DNA.json` (on Railway edit the `OASIS_DNA_JSON` variable). With it off nothing is recorded, queued or written. Only ids are stored, never holon content.
+
+### Endpoints
+
+`GET /api/data/holon-access-log/{id}?limit=50&offset=0` - who read this holon, newest first. Only the holon's owner or a Wizard (administrator) may ask; anyone else gets 403.
+
+`GET /api/data/access-log?avatarId={id}&limit=50&offset=0` - an avatar's own reads (default), or any avatar's for a Wizard.
+
+Each entry: `timestamp`, `avatarId`, `avatarName` (username, blank if unreadable), `appId` (from the `X-OASIS-App-Id` header), `operation` (e.g. LoadHolon), `holonType`, `holonIds` and `totalCount`, plus `ipAddress` only when `CaptureIp` is on. When the log is off both endpoints return 404.
+
+### DNA settings (`OASIS.AccessLog`)
+
+| Key | Default | Meaning |
+|---|---|---|
+| Enabled | false | Master switch. Off = zero overhead and no writes. |
+| Apps | [] | App ids to record; empty = all apps once enabled. |
+| HolonTypes | [] | Holon types to record; empty = all. |
+| Operations | [] | LoadHolon, LoadHolonsForParent, LoadAllHolons, LoadHolonsByMetaData, LoadHolonByMetaData, Search...; empty = all reads. |
+| CaptureIp | false | Also store the caller's IP (personal data). |
+| RetentionDays | 365 | Events older than this are deleted automatically (MongoDB TTL index). 0 = keep forever. |
+| QueueCapacity | 10000 | In-memory queue size; when full new events are dropped and counted, a read is never blocked. |
+| FlushIntervalSeconds | 5 | How often the queue is written. |
+| BatchSize | 500 | Events written per batch. |
+| MaxHolonIdsPerEvent | 200 | A bulk read stores ONE event with at most this many ids plus the total count. |
+
+### Things to know
+
+- Events are stored in the MongoDBOASIS database named in `StorageProviders.MongoDBOASIS` (collection `AccessLogEvents`, append-only). MongoDB must be configured or nothing is stored.
+- Volume: every read creates an event (bulk reads one event). A busy app can add millions of rows a year; keep `RetentionDays` sensible and use `Apps`, `HolonTypes` and `Operations` to record only what you need.
+- Writes are asynchronous and best effort: events still queued when the node stops, or dropped when the queue is full, are lost.
+- It only covers reads served through the WEB4 Data API. Reads straight from provider storage, other WEB APIs or direct database access are NOT recorded.
+
 ## Data Security
 
 ### Get Data Security

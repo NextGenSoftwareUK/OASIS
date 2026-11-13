@@ -954,6 +954,50 @@ Authorization: Bearer YOUR_TOKEN
 
 ---
 
+## Multi-factor authentication (MFA)
+
+An optional second sign-in step using an authenticator app (TOTP, 6-digit codes) with one-time recovery codes. Off by default. Set `OASIS.Security.Mfa.Enabled` to `true` in `OASIS_DNA.json` (on Railway edit `OASIS_DNA_JSON`); even then only avatars that enrol are asked for a code, so existing sign-ins keep working unchanged.
+
+### Sign-in flow
+
+1. `POST /api/avatar/authenticate` (password) - for an avatar WITHOUT MFA nothing changes. For an avatar with MFA the reply has no `jwtToken` or `refreshToken`; instead `result.metaData` holds `mfaRequired: true` and a single-use `mfaChallengeToken` (valid 5 minutes by default).
+2. `POST /api/avatar/authenticate-mfa` with `{ "challengeToken": "...", "code": "123456" }` (or `"recoveryCode": "ABCDE-FGHIJ"`). On success the reply is the normal signed-in avatar with the JWT and refresh token.
+
+The same second step applies to `authenticate-did`. gRPC `Authenticate` cannot complete a second step, so it refuses MFA avatars with an error. `refresh-token` and `authenticate-token` still work from a session that already passed MFA. Resetting a password does NOT remove MFA.
+
+### Management endpoints (signed in)
+
+| Endpoint | What it does |
+|---|---|
+| GET /api/avatar/mfa/status | Is MFA on, recovery codes left. |
+| POST /api/avatar/mfa/enrol | Returns the secret and `otpauth://` link for the authenticator app. Not on yet. |
+| POST /api/avatar/mfa/confirm `{code}` | Turns MFA on with the first code and returns the 10 recovery codes (shown once). |
+| POST /api/avatar/mfa/disable `{code or recoveryCode}` | Turns MFA off. Avatar types in `AvatarTypesThatCannotDisable` must ask an administrator. |
+| POST /api/avatar/mfa/recovery-codes `{code}` | Replaces the recovery codes. |
+| POST /api/avatar/mfa/reset/{avatarId} | Wizard only: removes an avatar's MFA (lost device). Audited with the administrator's id. |
+| GET /api/avatar/mfa/events | Enrol, verify, failure, recovery and reset events (own; a Wizard may pass `avatarId`). |
+
+### DNA settings (`OASIS.Security.Mfa`)
+
+| Key | Default | Meaning |
+|---|---|---|
+| Enabled | false | Master switch. Off = no sign-in path asks for a second step and the store is never touched. |
+| Issuer | OASIS | Name shown in the authenticator app. |
+| AvatarTypesThatCannotDisable | [] | e.g. ["Wizard"]: these must use an administrator reset. |
+| Apps | [] | App ids (`X-OASIS-App-Id`) whose sign-ins ask for the second step; empty = all. |
+| CodeDigits / TimeStepSeconds / AllowedDriftSteps | 6 / 30 / 1 | TOTP parameters. |
+| ChallengeTtlSeconds | 300 | How long a sign-in challenge lasts. |
+| MaxChallengeAttempts | 5 | Wrong codes before a challenge is destroyed. |
+| MaxFailedCodes / CooldownSeconds / MaxCooldownSeconds | 5 / 60 / 3600 | Per-avatar cool-down after repeated wrong codes; doubles up to the maximum. |
+| RecoveryCodeCount | 10 | Recovery codes issued. |
+| EventRetentionDays | 730 | How long the audit events are kept (0 = forever). |
+
+### Security notes
+
+- State lives in the MongoDBOASIS database named in the DNA (collections `AvatarMfa`, `AvatarMfaChallenges`, `AvatarMfaEvents`), not on the avatar, so API users cannot read or edit it. The TOTP secret is AES-GCM encrypted with a key derived from `Security.SecretKey`; recovery codes are stored as hashes; codes, secrets and challenge tokens are never logged.
+- A code cannot be reused (replay protection), a challenge is single use, and wrong codes trigger a per-challenge limit and a per-avatar cool-down.
+- Not covered: someone with direct database access plus the DNA secret key could read secrets; a lost device and lost recovery codes need an administrator reset. Disabling currently needs a signed-in session plus a code (no extra password prompt).
+
 ## Navigation
 
 **← Previous:** [ONET API](ONET-API.md) | **Next:** [Missions API](Missions-API.md) →
