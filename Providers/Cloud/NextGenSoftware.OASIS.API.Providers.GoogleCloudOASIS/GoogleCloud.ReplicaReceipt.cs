@@ -30,16 +30,15 @@ public partial class GoogleCloudOASIS : ICommittedHolonReplicaReceiptStorageProv
                 throw new InvalidOperationException("Activate the enrolled Firestore database before reading receipts.");
 
             var plan = CommittedHolonReplicaReceiptProjection.Prepare(request);
-            var identity = database.Collection("cosmicStorageIdentity").Document("store");
+            var identity = FirestoreStorageIdentityDocument(database);
             var receipt = database.Collection(ReplicaReceiptCollection).Document(plan.OperationId.ToString("D"));
             return await RunFirestoreIdentityTransactionAsync<OASISResult<CommittedHolonReplicaReceiptEvidence>>(
                 database, receipt.Path, async transaction =>
                 {
                     var store = await ReadFirestoreTransactionDocumentAsync(identity, transaction,
                         new[] { "storeId" }, cancellationToken).ConfigureAwait(false);
-                    var value = store == null ? null : ReadReplicaReceiptField(store, "storeId");
-                    if (!Guid.TryParseExact(value, "D", out var id) || id == Guid.Empty || id.ToString("D") != value
-                        || CreateFirestoreStorageIdentity(database, id).BindingFingerprint != request.ExpectedStorage.BindingFingerprint)
+                    if (store == null || ParseFirestoreStorageIdentity(database, ReadReplicaReceiptField(store, "storeId"))
+                        .BindingFingerprint != request.ExpectedStorage.BindingFingerprint)
                         return (FirestoreReplicaReceiptError("COSMIC_REPLICA_RECEIPT_STORAGE_MISMATCH",
                             "The physical Firestore database differs from the reviewed binding."), Array.Empty<Native.Write>());
 
