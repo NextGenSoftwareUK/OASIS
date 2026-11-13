@@ -10,13 +10,15 @@
 | ActivityPub and routing | ActivityPub has 5/5 native capability checks. GOMap passed a public OSRM driving route. Authenticated Google Routes, Mapbox and HERE checks remain open. Niantic and WRLD still have reviewed adapter gaps. |
 | Canonical HoloOASIS | Top priority. Both modes passed all 52 native core-storage-v2 checks on the official Windows conductor with the verified identity-delete hApp in [run 43178174352](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43178174352). The verified bundle is packaged on the provider branch. Hosted, multi-agent and broader capability acceptance remain open. |
 | HoloOASIS.Desktop | Obsolete in source, package metadata and repository documentation at `45d6665da989`. The six-file compatibility and documentation batch reached Development at `70d3fbb4a31c`. Published NuGet metadata and live site listings still need the obsolescence update. |
-| Development | `309bb68419f2` adds Solana authoritative identity misses to the deployed HoloOASIS routing revision. The new WEB4 rollout is pending. Hosted HoloOASIS writes remain open. |
+| Development | `309bb68419f2` adds Solana authoritative identity misses to the deployed HoloOASIS routing revision. All seven API deployment statuses succeeded. Hosted HoloOASIS writes remain open. |
 | BootLoader startup | The shipping registration, activation and deactivation path passed against native Polkadot and TRON fixtures and the Microsoft Azure Cosmos DB emulator. [Azure Cosmos DB job 131055311882](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43180594194/job/131055311882) confirmed fixture teardown. |
 | HyperDrive | Priority-provider failover, replication and load balancing verification is active. Whole-inventory acceptance remains open. |
 
 [Provider matrix](PROVIDER_MATRIX.md) · [Evidence registry](CONFORMANCE_RESULTS.json) · [Cleanup ledger](WORKSPACE_CLEANUP_LEDGER.md)
 
 ## Verification log
+
+13 November 13:35 Cancun time. All seven Railway API deployment statuses for Development 309bb68419f2 reported success, including WEB4. The remote Development ref still matches the verified Solana signature candidate parent. The next shared review remains after 13:54:12 Cancun. The ActivityPub run passed the point-selector validation step and entered its native Mastodon step. No local artifacts were created.
 
 13 November Cancun time. The ActivityPub provider-key read now accepts a public HTTPS object URI through the shipping HyperDrive point-read path. The native Mastodon test exercises sync and async routing and checks serving-provider attribution, exact object identity and the instance-local status ID. Native CI is pending. Multiple independently configured instances remain a separate routing gate. No local runtime or fixture artifacts were created.
 
