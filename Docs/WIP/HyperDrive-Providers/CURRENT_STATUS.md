@@ -18,6 +18,8 @@
 
 ## Verification log
 
+13 November Cancun time. [Exact Solid qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43498382632/job/132137393302) passed both native modes with zero skips. Its tested tree 0e848cbe5e4c413546c0fe226dc64edeb2e77177 exactly matches Solid candidate 2b31718f9e46 on Development aaf73da6d006. The hosted runner removed all owned fixture resources and outputs. Review for integration after 15:32:18 Cancun subject to the remote head and preceding rollout. No local artifacts were created.
+
 13 November Cancun time. [Native Solid qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43497027376/job/132132694377) passed 2/2 on tree 7e8b259860ad9e4e0b3f1f9aa511139683f759b4. Healthy Pod absence returned RecordNotFound with no SQLite reads even when a stale replica existed. Candidate 2b31718f9e46 adds the two qualified Solid files to Development aaf73da6d006, which contains the Supabase and SQL Server regressions. Railway queued WEB4 deployment f129d091-8b2d-4018-ac03-57842b342b13 at 15:02:18 Cancun. The next shared review is after 15:32:18 Cancun. No local builds or fixtures were created.
 
 13 November Cancun time. [Native SQL Server qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43494640928) passed both modes with zero skips on tree f037295399da0fb43f105087dcb1d06f813dd566. A healthy SQL Server provider-key miss returned RecordNotFound and sent zero reads to SQLite, which held the requested holon. CI removed both fixtures. Candidate aaf73da6d006 layers the independently qualified SQL Server and Supabase tests onto Development 59bc51b9ba7c. All seven preceding API deployments succeeded. Review after 14:59:52 Cancun. No local build artifacts were created.
