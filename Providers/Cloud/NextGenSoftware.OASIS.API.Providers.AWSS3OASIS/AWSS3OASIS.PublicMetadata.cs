@@ -153,7 +153,8 @@ public sealed partial class AWSS3OASIS : ICosmicReadOnlyQueryActivation
             try { response = await client.GetObjectMetadataAsync(new GetObjectMetadataRequest { BucketName = bucket, Key = key }, token); }
             catch (AmazonS3Exception error) when (error.StatusCode == System.Net.HttpStatusCode.NotFound) { return null; }
             token.ThrowIfCancellationRequested();
-            if (response == null || response.ContentLength < 0 || response.LastModified is not DateTime lastModified || string.IsNullOrWhiteSpace(response.ETag))
+            DateTime? timestamp = response?.LastModified;
+            if (response == null || response.ContentLength < 0 || timestamp is not DateTime lastModified || string.IsNullOrWhiteSpace(response.ETag))
                 throw new InvalidDataException("Native S3 metadata is incomplete.");
             var fields = new Dictionary<string, object>
             {
