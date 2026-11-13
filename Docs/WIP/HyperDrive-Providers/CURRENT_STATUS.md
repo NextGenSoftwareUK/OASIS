@@ -18,6 +18,8 @@
 
 ## Verification log
 
+13 November Cancun time. [Exact ActivityPub qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43485281300/job/132091964589) passed both routed Mastodon cases and removed its fixture directory. Qualification 6805e2e6fbd3 and combined candidate e247ea434af1 have the same tree 12e7caae1af660ccacaf2722bb3821562aca70bc. The candidate layers two ActivityPub files on the native-qualified Solana signature revision 7119fcb369cd. Review for the shared Development window after 13:54:12 Cancun against the then-current remote head. Logs were inspected in memory and the temporary qualification index was removed.
+
 13 November Cancun time. Native Mastodon 4.4.28 passed 2/2 HyperDrive cases with zero skips on 6ac5d6b1bdb0. Each mode resolved the exact public object URI through the provider-key route, confirmed the serving provider and local native ID, and verified fixture deletion with an independent HTTP 404. The runner removed its containers, network and fixture directory. [Native job](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43484054336/job/132087695900). Exact Development qualification and cross-instance routing remain open.
 
 13 November 13:35 Cancun time. All seven Railway API deployment statuses for Development 309bb68419f2 reported success, including WEB4. The remote Development ref still matches the verified Solana signature candidate parent. The next shared review remains after 13:54:12 Cancun. The ActivityPub run passed the point-selector validation step and entered its native Mastodon step. No local artifacts were created.
