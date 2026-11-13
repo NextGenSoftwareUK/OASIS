@@ -2,22 +2,92 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Objects.NativeData;
 using NextGenSoftware.OASIS.API.Core.Queries;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS;
 
-public partial class HashgraphOASIS : ICosmicQueryStorageProvider
+public partial class HashgraphOASIS : ICosmicQueryStorageProvider, ICosmicReadOnlyQueryActivation
 {
+    private static readonly HttpClient PublicAccountHttp = new(NativeConnectionGuard.CreateGuardedHttpHandler())
+    {
+        Timeout = TimeSpan.FromSeconds(15)
+    };
+    private HederaPublicAccountMetadataSource.AccountsBackend publicAccounts;
+    private readonly object publicQueryActivationGate = new();
+    private int publicQueryActivationGeneration;
+    private volatile bool publicQueryVerified;
+
+    private static readonly CosmicQueryCapabilities CombinedQueryCapabilities = HederaCqlCompiler.Capabilities
+        .WithStringMetadataLookup(HederaPublicAccountMetadataSource.AddressMetadata, 62, 8);
+
+    public bool IsQuerySourceActivated => publicQueryVerified;
+
+    public void ConfigurePublicAccountQuery(string json)
+    {
+        if (publicAccounts != null)
+            return;
+        var configured = HederaPublicAccountMetadataSource.CreateAccounts(json, PublicAccountHttp);
+        Interlocked.CompareExchange(ref publicAccounts, configured, null);
+    }
+
+    private int ResetPublicQueryActivation()
+    {
+        lock (publicQueryActivationGate)
+        {
+            publicQueryVerified = false;
+            return ++publicQueryActivationGeneration;
+        }
+    }
+
+    public override Task<OASISResult<bool>> DeActivateProviderAsync()
+    {
+        ResetPublicQueryActivation();
+        return base.DeActivateProviderAsync();
+    }
+
+    public async Task<OASISResult<bool>> ActivateQuerySourceAsync(CancellationToken cancellationToken)
+    {
+        var generation = ResetPublicQueryActivation();
+        var accounts = publicAccounts;
+        if (accounts == null)
+            return new() { IsError = true, ErrorCount = 1, ErrorCode = "CQL_CAPABILITY_UNSUPPORTED",
+                Message = "Configure the reviewed Hedera public account catalogue first." };
+
+        try
+        {
+            await accounts.VerifyAsync(cancellationToken).ConfigureAwait(false);
+            lock (publicQueryActivationGate)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                if (generation != publicQueryActivationGeneration)
+                    return new() { IsError = true, ErrorCount = 1, ErrorCode = "CQL_SOURCE_UNAVAILABLE",
+                        Message = "The public account activation was superseded." };
+                publicQueryVerified = true;
+            }
+            return new(true);
+        }
+        catch (Exception error)
+        {
+            return new() { IsError = true, ErrorCount = 1, ErrorCode = error is OperationCanceledException
+                ? "CQL_QUERY_CANCELLED" : "CQL_SOURCE_UNAVAILABLE",
+                Message = "Public Hedera account query activation failed.", Exception = error };
+        }
+    }
+
+
     public ProviderType QueryProviderType => Core.Enums.ProviderType.HashgraphOASIS;
-    public CosmicQueryCapabilities QueryCapabilities => HederaCqlCompiler.Capabilities;
+    public CosmicQueryCapabilities QueryCapabilities => publicAccounts == null
+        ? HederaCqlCompiler.Capabilities : CombinedQueryCapabilities;
 
     public async Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicQueryAsync<T>(
         CosmicQueryPlan<T> plan, int maximumResults = 100,
@@ -34,6 +104,10 @@ public partial class HashgraphOASIS : ICosmicQueryStorageProvider
                 return Error("CQL_QUERY_LIMIT", "A result budget between 1 and 10,000 is required.");
             var admitted = QueryCapabilities.AdmitPlan(plan);
             if (admitted.IsError) return Error(admitted.ErrorCode, admitted.Message);
+            var accounts = publicAccounts;
+            if (accounts != null && QueryCapabilities.UsesStringMetadataLookup(plan.Query))
+                return await HederaPublicAccountMetadataSource.ExecutePublicQueryAsync(accounts, IsQuerySourceActivated,
+                    plan, maximumResults, cancellationToken).ConfigureAwait(false);
             var selection = HederaCqlCompiler.Compile(plan.Query, QueryProviderType);
             if (selection.IsError) return Error(selection.ErrorCode, selection.Message);
             cancellationToken.ThrowIfCancellationRequested();
