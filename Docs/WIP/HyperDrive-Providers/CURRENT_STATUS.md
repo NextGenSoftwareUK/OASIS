@@ -18,6 +18,8 @@
 
 ## Verification log
 
+13 November Cancun time. Shared Development Solution Integrity job 131829094543 on 9a80b945db8a identified branch declarations for STAR ODK, API Core and ONODE Core as main while the Development validator expects Development. The reported gitlinks matched their branch tips in that run. This is separate from the Railway manifest, whose synchronization job passed, and from WEB4 strategy image qualification 43408972198, which remains active. No shared dependency declarations or gitlinks were changed in this review.
+
 13 November Cancun time. Development advanced to 9a80b945db8a with COSMIC extrema and CQL test changes. The scoped WEB4 point-read candidate is now 747ac0d8d140, tree ebf3054413b0e747fdda7eacdb5a1641efa7e551, with Core 3e358637 on shared Core fcbc9248. Exact image run 43408972198 is pending. Requested cancellation of superseded run 43406649562 to release the shared image build slot. Hosted fixture verification remains open.
 
 13 November Cancun time. WEB4 qualification candidate d32e19c492c5 on Development 0d965e8c4459 preserves the shared tree outside the controller, request model, Core gitlink and Railway pin. Exact image run 43406649562 reached Build and push. All seven predecessor Railway statuses succeeded. The acknowledged hosted MongoDB/SQLite cohort was absent from the local OASIS checkouts inspected. The protected cohort access dependency is recorded in ACTIONS-FOR-DAVID.md.
