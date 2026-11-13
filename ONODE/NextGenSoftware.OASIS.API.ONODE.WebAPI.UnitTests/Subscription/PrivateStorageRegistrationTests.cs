@@ -2,6 +2,8 @@ using System.Reflection;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Queries;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.Common;
 using Boot=NextGenSoftware.OASIS.OASISBootLoader.OASISBootLoader;
@@ -27,11 +29,12 @@ public class PrivateStorageRegistrationTests
             if (prior != null) manager.UnRegisterProvider(type);
             Boot.OASISDNA = new OASISDNA { OASIS = new NextGenSoftware.OASIS.API.DNA.OASIS
                 { StorageProviders = new StorageProviderSettings() } };
+            var blockHashes = new[] { "0x" + 1.ToString("x64") };
             var catalogue = System.Text.Json.JsonSerializer.Serialize(new
             {
                 schema = 1, rpcUrl = "https://rpc.example.invalid/",
                 genesisHash = NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.PolkadotPublicHeaderMetadataSource.Genesis,
-                blockHashes = new[] { "0x" + 1.ToString("x64") }, sourceOwner = Guid.NewGuid()
+                blockHashes, sourceOwner = Guid.NewGuid()
             });
             var method = typeof(Boot).GetMethod("RegisterProviderInternal", BindingFlags.NonPublic | BindingFlags.Static)!;
             var result = (OASISResult<IOASISStorageProvider>)method.Invoke(null,
@@ -39,7 +42,14 @@ public class PrivateStorageRegistrationTests
             Assert.False(result.IsError, result.Message);
             var provider = Assert.IsType<NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.PolkadotOASIS>(result.Result);
             Assert.Same(provider, manager.GetProvider(type));
-            Assert.NotNull(provider.QueryCapabilities.StringKeySetLookup);
+            const string metadataKey = NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.PolkadotPublicHeaderMetadataSource.AddressMetadata;
+            var lookup = CosmicQuery<Holon>.Create()
+                .Where(holon => blockHashes.Contains(CosmicQueryMetadata.Value<string>(holon, metadataKey)));
+            Assert.False(lookup.IsError, lookup.Message);
+            Assert.True(provider.QueryCapabilities.UsesStringMetadataLookup(lookup.Result));
+            var admission = provider.QueryCapabilities.Admit(lookup.Result);
+            Assert.False(admission.IsError, admission.Message);
+            Assert.False(provider.IsQuerySourceActivated);
             Assert.False(provider.IsProviderActivated);
         }
         finally
