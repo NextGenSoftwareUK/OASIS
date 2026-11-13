@@ -1,4 +1,4 @@
-﻿# WEB4 OASIS API - Complete Documentation
+# WEB4 OASIS API - Complete Documentation
 
 ## 📋 **Table of Contents**
 
@@ -1056,6 +1056,8 @@ Authorization: Bearer YOUR_TOKEN
   "version": "latest"
 }
 ```
+
+The HyperDrive V2 point-read strategy is pending deployment. Once available, include an optional named `loadBalancingStrategy` in the POST body. For round-robin reads, set `providerType` to `Default`, `autoLoadBalanceMode` to `ON`, and `loadBalancingStrategy` to `RoundRobin`. Use `autoLoadBalanceProviders` to supply a comma-separated list of eligible providers. The strategy applies only to this request. Omit it to use `Auto`. Read `metaData.hyperDriveRoute` for the requested strategy and the provider that served the record.
 
 **Response:**
 ```json
