@@ -260,7 +260,7 @@ public partial class IPFSOASIS : IBoundCommittedHolonReplicaStorageProvider, ICo
         if (validated.Evidence.HardDeleted)
         {
             var tombstone = DecodePrivateRecord<Holon>(headCid, "holon", id,
-                await ReadCqlEnvelopeAsync(headCid, cancellationToken).ConfigureAwait(false));
+                await ReadCqlEnvelopeAsync(headCid, cancellationToken).ConfigureAwait(false), cancellationToken);
             if (!tombstone.IsDeleted || tombstone.VersionId != validated.Evidence.VersionId ||
                 tombstone.Version != validated.Evidence.Version ||
                 tombstone.PreviousVersionId != validated.Evidence.PreviousVersionId ||
@@ -269,7 +269,7 @@ public partial class IPFSOASIS : IBoundCommittedHolonReplicaStorageProvider, ICo
                 throw new InvalidDataException("The native IPFS tombstone differs from its protected replica head.");
         }
         var current = currentCid == null ? null : DecodePrivateRecord<Holon>(currentCid, "holon", id,
-            await ReadCqlEnvelopeAsync(currentCid, cancellationToken).ConfigureAwait(false));
+            await ReadCqlEnvelopeAsync(currentCid, cancellationToken).ConfigureAwait(false), cancellationToken);
         try
         {
             HolonReplicaHeadRecord.ValidateCurrent(id, ReplicaAuthority, current, validated.Evidence);
