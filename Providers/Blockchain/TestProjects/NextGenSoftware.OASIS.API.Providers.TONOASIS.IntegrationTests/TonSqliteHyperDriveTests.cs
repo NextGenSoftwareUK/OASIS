@@ -1,7 +1,14 @@
 using System.Security.Cryptography;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive;
+using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.Providers.TestSupport;
+using NextGenSoftware.Utilities;
 using SqliteProvider = NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.SQLLiteDBOASIS;
 
 namespace NextGenSoftware.OASIS.API.Providers.TONOASIS.IntegrationTests;
@@ -61,6 +68,31 @@ public sealed class TonSqliteHyperDriveTests
                 Assert.IsTrue(!removed.IsError && removed.IsDeleted && removed.Result?.Id == record.Id, removed.Message);
             }
             Assert.AreEqual(0, (await native.ListKeysAsync(string.Empty)).Count);
+
+            var staleReplica = fixtures[0];
+            Assert.AreEqual(staleReplica.Id, (await sqlite.LoadHolonAsync(staleReplica.Id, loadChildren: false)).Result?.Id);
+            var dna = new OASISDNA { OASIS = new NextGenSoftware.OASIS.API.DNA.OASIS
+                { HyperDriveMode = HyperDriveModes.V2, StorageProviders = new StorageProviderSettings() } };
+            dna.OASIS.SubscriptionConfig.PlanType = "Gold";
+            var manager = new ProviderManager(null, dna) { IsAutoFailOverEnabled = true };
+            manager.RegisterProvider(ton);
+            manager.RegisterProvider(sqlite);
+            Assert.IsFalse(manager.SetAndReplaceAutoFailOverListForProviders(new[]
+            {
+                new EnumValue<ProviderType>(ton.ProviderType.Value),
+                new EnumValue<ProviderType>(sqlite.ProviderType.Value)
+            }).IsError);
+            var router = new OASISHyperDrive(manager);
+            var request = new StorageOperationRequest
+            {
+                Operation = "LoadHolon", HolonId = staleReplica.Id,
+                PreferredProvider = ton.ProviderType.Value, LoadChildren = false
+            };
+            var absent = sync ? router.RouteRequest<IHolon>(request) : await router.RouteRequestAsync<IHolon>(request);
+            Assert.IsTrue(absent.IsError, absent.Message);
+            Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, absent.ErrorCode, absent.Message);
+            Assert.IsNull(absent.Result);
+            Assert.AreEqual(0L, manager.PerformanceMonitor.GetMetrics(sqlite.ProviderType.Value)?.TotalRequests ?? 0);
         }
         finally
         {
