@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. Polygon Development push workflow 43337069687 started at 19:26:21 Cancun. The next shared integration review opens after 19:56:21. Candidate 29c8ffa64101 remains based on the exact Polygon commit. Verify the live Polygon rollout, seven deployment statuses and current remote before selecting the batch.
+
 12 November Cancun time. Development advanced to COSMIC Polygon c47edf2e3062 during the shared window. HyperDrive candidate 29c8ffa64101 includes the qualified routing and IPFS scope on this parent. Verify the Polygon deployment before publishing. Hedera exact routing CI 43336838228 is active. Its expected recovery-parent tree is a9261d359af1bef6121360991dd264b43637d784, reproduced using a temporary Git index that was removed and verified absent. The five tested inputs do not overlap COSMIC Hedera 56aaf3244d47.
 
 12 November Cancun time. Prepared alternate HyperDrive candidate b67ce97ec562 on COSMIC Arbitrum db5b9cf03dc3, should that revision land first after Polygon. All 25 routing and IPFS path modes and object IDs match the Polygon-based batch. Polygon has the 19:24:08 shared window if the parent and rollout checks hold. No local fixture or temporary index was created.
