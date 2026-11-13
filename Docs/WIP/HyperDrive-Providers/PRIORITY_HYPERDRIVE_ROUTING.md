@@ -32,7 +32,7 @@ Sources for this checkpoint are the [native routing archive](Archive/HYPERDRIVE_
 
 ## HoloOASIS provider-key read gap
 
-Both shipping holon provider-key reads currently call `get_holon_by_id`. The coordinator source defines a separate `get_holon_by_provider_key` index based on the saved `provider_unique_storage_key`, while the C# read response exposes the native action hash as the HoloOASIS provider key. Verify a newly saved action-hash key against the packaged hApp in both modes before changing the dispatch. A lookup against the wrong identity cannot establish authoritative absence. Retained storage and hosted outbox evidence cover separate paths.
+Both native regression cases reproduced the packaged hApp rejecting a map payload at `get_holon_by_id` during deserialization. The C# provider exposes an action hash as the holon provider key. The fix in `3eca0776e7b2` sends that hash to `get_entry_holon` through HoloNET in both modes. Verification against the packaged hApp is pending. Retained storage and hosted outbox evidence cover separate paths. [Native regression](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43466001272/job/132025169645) · [Fix qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43466617385)
 
 ## Oracle and SQLite point-read failover
 
