@@ -18,7 +18,7 @@
 
 ## Verification log
 
-13 November Cancun time. Native restart 43371454193 passed on exact Polkadot-based candidate tree 1634b34b065c4f78bdb7af61c15c7e2b7490bcd3 and confirmed cleanup. Companion multi-process remains active. COSMIC has qualified TON and proposed it for the next shared window. Prepared alternate IPFS candidate f2cd719c113e on TON 450dc4e8dedf with tree b730d00e339c5b8d0ed935e397df32a789103af1. Both files match the Polkadot-based scope. Qualify against the actual shared parent.
+13 November Cancun time. Native restart 43371454193 passed on exact Polkadot-based candidate tree 1634b34b065c4f78bdb7af61c15c7e2b7490bcd3 and confirmed cleanup. Companion multi-process 43371456764 also passed on the exact candidate tree and confirmed fixture cleanup. The Polkadot-based two-file candidate is qualified. COSMIC has qualified TON and proposed it for the next shared window. Prepared alternate IPFS candidate f2cd719c113e on TON 450dc4e8dedf with tree b730d00e339c5b8d0ed935e397df32a789103af1. Both files match the Polkadot-based scope. Qualify against the actual shared parent.
 
 13 November Cancun time. Prepared exact two-file IPFS candidate f5795b528b5b on integrated Polkadot 49f8463de927. Its expected tree 1634b34b065c4f78bdb7af61c15c7e2b7490bcd3 includes the historical replay check in runs 43371454193 and 43371456764. The staged file list and whitespace were checked. Polkadot push workflow 43371354734 places the next shared review after 00:50:16 Cancun.
 
