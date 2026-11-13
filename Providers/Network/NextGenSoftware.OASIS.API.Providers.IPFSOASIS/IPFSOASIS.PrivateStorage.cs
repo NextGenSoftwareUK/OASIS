@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 using System.Threading.Tasks;
+using System.Threading;
 using Newtonsoft.Json;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.Common;
@@ -51,10 +52,10 @@ public partial class IPFSOASIS
         return codec.Encrypt(PrivateIndexContext,json);
     }
 
-    private string UnprotectIndex(string envelope)
+    private string UnprotectIndex(string envelope, CancellationToken cancellationToken = default)
     {
         using var codec=OpenPrivateCodec();
-        return DecryptStoredPayload(codec,PrivateIndexContext,envelope);
+        return DecryptStoredPayload(codec,PrivateIndexContext,envelope,cancellationToken);
     }
 
     private static string RecordContext(string kind,Guid id)
@@ -78,9 +79,9 @@ public partial class IPFSOASIS
         return DecryptStoredPayload(codec,context,envelope);
     }
 
-    private static string DecryptStoredPayload(EncryptedRecordCodec codec,string context,string envelope)
+    private static string DecryptStoredPayload(EncryptedRecordCodec codec,string context,string envelope,CancellationToken cancellationToken = default)
     {
-        try { return codec.Decrypt(context,envelope); }
+        try { return codec.Decrypt(context,envelope,cancellationToken); }
         catch(Exception cause) when(cause is CryptographicException or FormatException or System.Text.DecoderFallbackException)
         {
             throw new InvalidDataException("IPFS stored private payload is invalid or cannot be authenticated.",cause);

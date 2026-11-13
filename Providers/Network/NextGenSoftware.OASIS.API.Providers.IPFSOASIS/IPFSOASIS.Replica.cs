@@ -36,7 +36,7 @@ public partial class IPFSOASIS : IBoundCommittedHolonReplicaStorageProvider, ICo
             throw new ReplicaStorageBindingException("The IPFS catalogue has no published storage identity.");
 
         var envelope = await ReadCqlEnvelopeAsync(settings.LookUpIPFSAddress, cancellationToken).ConfigureAwait(false);
-        var catalogue = ParseCatalogue(UnprotectIndex(envelope));
+        var catalogue = ParseCatalogue(UnprotectIndex(envelope, cancellationToken));
         var records = DeserializeLookup(catalogue, out var storeId);
         cancellationToken.ThrowIfCancellationRequested();
         if (storeId == Guid.Empty)
