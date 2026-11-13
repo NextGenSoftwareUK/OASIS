@@ -47,6 +47,11 @@ public sealed class IPFSRestartTests
             Assert.True(active.Result && !active.IsError, active.Message);
             if (phase == "write")
             {
+                var unbound = await provider.CaptureStorageIdentityAsync();
+                Assert.True(unbound.IsError);
+                Assert.Null(unbound.Result);
+                Assert.False(File.Exists(dnaPath));
+
                 var holon = new Holon { Id = RecordId, Name = "before update", Version = 1, HolonType = HolonType.Holon };
                 var saved = await provider.SaveHolonAsync(holon, saveChildren: false);
                 Assert.True(saved.IsSaved && !saved.IsError, saved.Message);
