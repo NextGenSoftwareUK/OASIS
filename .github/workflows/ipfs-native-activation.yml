@@ -179,3 +179,15 @@ jobs:
               }
             }
           }
+
+      - name: Remove the disposable Kubo fixture
+        if: always()
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $fixture = Join-Path ([IO.Path]::GetFullPath($env:RUNNER_TEMP)) 'oasis-ipfs-activation'
+          if (Test-Path -LiteralPath $fixture) {
+            Remove-Item -LiteralPath $fixture -Recurse -Force
+          }
+          if (Test-Path -LiteralPath $fixture) { throw 'The disposable Kubo fixture still exists.' }
+          Write-Host 'Removed the disposable Kubo runtime, repository and logs.'

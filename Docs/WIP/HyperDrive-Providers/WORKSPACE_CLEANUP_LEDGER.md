@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+12 November IPFS persistence CI now explicitly removes and checks the owned Kubo runtime, repository and logs after the test step. No local fixtures were created.
+
 12 November used one temporary Git index to compose TRON candidate b53b3c603d6d and verified it was removed. No local builds, downloads or reports were created.
 
 12 November TRON run 43332332675 removed its owned container and ledger after both native routing cases passed. No local build or test outputs were created.
