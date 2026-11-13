@@ -168,6 +168,23 @@ public sealed class IPFSRestartTests
                 Assert.True(replay.IsSaved && !replay.IsError, replay.Message);
                 Assert.Equal(Guid.Parse(await File.ReadAllTextAsync(conditionalVersionPath)), Assert.Single(replay.Result).VersionId);
                 Assert.Equal(pointerBeforeReplay, await File.ReadAllTextAsync(dnaPath));
+
+                var beforeDelete = await provider.LoadHolonAsync(conditionalRecord.Id, loadChildren: false);
+                Assert.True(beforeDelete.IsLoaded && !beforeDelete.IsError, beforeDelete.Message);
+                var revision = CosmicConcurrency.GetProviderRevisionId(beforeDelete.Result, ProviderType.IPFSOASIS);
+                Assert.NotNull(revision);
+                var deleteCondition = new ConditionalHolonWrite(Guid.NewGuid(), RecordId, ProviderType.IPFSOASIS,
+                    new[] { new HolonWriteCondition(conditionalRecord.Id, revision) });
+                var deleteRequest = new ConditionalHolonWriteRequest(deleteCondition, ConditionalHolonOperation.HardDelete,
+                    new[] { beforeDelete.Result }, saveChildren: false);
+                var deleted = await provider.ExecuteConditionalHolonWriteAsync(deleteRequest);
+                Assert.True(deleted.IsDeleted && !deleted.IsError, deleted.Message);
+                Assert.DoesNotContain(await provider.LoadLookupToJson(), entry => entry.Value.Id == conditionalRecord.Id);
+                var pointerAfterDelete = await File.ReadAllTextAsync(dnaPath);
+                var deleteReplay = provider.ExecuteConditionalHolonWrite(deleteRequest);
+                Assert.True(deleteReplay.IsDeleted && !deleteReplay.IsError, deleteReplay.Message);
+                Assert.Equal(Assert.Single(deleted.Result).VersionId, Assert.Single(deleteReplay.Result).VersionId);
+                Assert.Equal(pointerAfterDelete, await File.ReadAllTextAsync(dnaPath));
                 await VerifyReplicaAsync(provider, identity.Result, dnaPath, replay: true);
                 var current = await provider.LoadHolonAsync(RecordId, loadChildren: false);
                 Assert.True(current.IsLoaded && !current.IsError, current.Message);
