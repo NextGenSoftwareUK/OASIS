@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+12 November removed and verified absence of the temporary index used to prepare both IPFS reconciliation candidates. No local build or download.
+
 12 November reconciliation runs 43361274139 and 43361273277 confirmed disposal of the Kubo runtime, repository and logs. No local builds or downloads.
 
 12 November operation-intent replay runs 43360074502 and 43360045368 confirmed removal of the disposable Kubo runtime, repository and logs. No local builds or downloads.
