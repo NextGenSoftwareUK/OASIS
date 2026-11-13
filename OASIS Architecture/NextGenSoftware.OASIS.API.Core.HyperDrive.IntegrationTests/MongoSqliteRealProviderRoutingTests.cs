@@ -52,7 +52,7 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
             }
 
             var dna = new OASISDNA { OASIS = new NextGenSoftware.OASIS.API.DNA.OASIS
-                { HyperDriveMode = HyperDriveModes.V2, StorageProviders = new StorageProviderSettings() } };
+                { HyperDriveMode = HyperDriveModes.V2, StorageProviders = new StorageProviderSettings(), SubscriptionConfig = new() { PlanType = "Gold" } } };
             var manager = new ProviderManager(null, dna);
             manager.RegisterProvider(mongo);
             manager.RegisterProvider(sqlite);
