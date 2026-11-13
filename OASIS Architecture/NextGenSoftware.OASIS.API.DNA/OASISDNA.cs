@@ -31,6 +31,8 @@ namespace NextGenSoftware.OASIS.API.DNA
         public OASISHyperDriveConfig OASISHyperDriveConfig { get; set; }
         public NativeImportSettings NativeImport { get; set; } = new NativeImportSettings();
         public SandboxSettings Sandbox { get; set; } = new SandboxSettings();
+        /// <summary>Opt-in record of who read a holon (ids only). Off by default.</summary>
+        public AccessLogSettings AccessLog { get; set; } = new AccessLogSettings();
         public OLandCommerceSettings OLand { get; set; } = new OLandCommerceSettings();
         public CqlSettings Cql { get; set; } = new CqlSettings();
         public Web6Settings Web6 { get; set; } = new Web6Settings();
@@ -386,6 +388,8 @@ namespace NextGenSoftware.OASIS.API.DNA
         public int JwtTokenExpirationMinutes { get; set; } = 15;
         /// <summary>Refresh token expiration in days. Industry standard 1–30; default 7. Used when issuing refresh tokens and setting auth cookie expiry.</summary>
         public int RefreshTokenExpirationDays { get; set; } = 7;
+        /// <summary>Optional second sign-in step (authenticator app). Off by default.</summary>
+        public MfaSettings Mfa { get; set; } = new MfaSettings();
         public EncryptionSettings AvatarPassword { get; set; }
         public EncryptionSettings OASISProviderPrivateKeys { get; set; }
         /// <summary>Encryption settings applied to holon MetaData at rest. All layers are reversible (no BCrypt). Overridable per SaveHolon call via Holon.DataEncryptionOverride.</summary>

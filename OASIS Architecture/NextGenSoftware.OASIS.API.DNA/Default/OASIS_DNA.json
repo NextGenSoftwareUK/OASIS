@@ -102,6 +102,22 @@
         "WindowSeconds": 60,
         "WindowSegments": 6,
         "QueueLimit": 0
+      },
+      "Mfa": {
+        "Enabled": false,
+        "Issuer": "OASIS",
+        "AvatarTypesThatCannotDisable": [],
+        "Apps": [],
+        "CodeDigits": 6,
+        "TimeStepSeconds": 30,
+        "AllowedDriftSteps": 1,
+        "ChallengeTtlSeconds": 300,
+        "MaxChallengeAttempts": 5,
+        "MaxFailedCodes": 5,
+        "CooldownSeconds": 60,
+        "MaxCooldownSeconds": 3600,
+        "RecoveryCodeCount": 10,
+        "EventRetentionDays": 730
       }
     },
     "Email": {
@@ -601,6 +617,18 @@
       "DemoNeo4jLabel": "ShopLoyaltyMember",
       "MaximumSessionsPerAddressPerHour": 20,
       "MaximumSessionsPerDay": 1000
+    },
+    "AccessLog": {
+      "Enabled": false,
+      "Apps": [],
+      "HolonTypes": [],
+      "Operations": [],
+      "CaptureIp": false,
+      "RetentionDays": 365,
+      "QueueCapacity": 10000,
+      "FlushIntervalSeconds": 5,
+      "BatchSize": 500,
+      "MaxHolonIdsPerEvent": 200
     },
     "Web6": {
       "DefaultProvider": "Auto",

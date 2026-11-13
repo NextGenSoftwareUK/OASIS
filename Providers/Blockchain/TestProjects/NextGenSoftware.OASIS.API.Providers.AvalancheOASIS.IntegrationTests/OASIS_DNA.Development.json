@@ -1,5 +1,5 @@
 {
-  "OASIS": {
+  "OASIS": { "AccessLog": {"Enabled": false, "Apps": [], "HolonTypes": [], "Operations": [], "CaptureIp": false, "RetentionDays": 365, "QueueCapacity": 10000, "FlushIntervalSeconds": 5, "BatchSize": 500, "MaxHolonIdsPerEvent": 200},
     "Providers": {
       "AvalancheOASIS": {
         "HostUri": "https://api.avax-test.network/ext/bc/C/rpc",
@@ -8,7 +8,7 @@
         "ContractAddress": "TEST_CONTRACT_ADDRESS_PLACEHOLDER"
       }
     },
-    "Security": {
+    "Security": { "Mfa": {"Enabled": false, "Issuer": "OASIS", "AvatarTypesThatCannotDisable": [], "Apps": [], "CodeDigits": 6, "TimeStepSeconds": 30, "AllowedDriftSteps": 1, "ChallengeTtlSeconds": 300, "MaxChallengeAttempts": 5, "MaxFailedCodes": 5, "CooldownSeconds": 60, "MaxCooldownSeconds": 3600, "RecoveryCodeCount": 10, "EventRetentionDays": 730},
       "SecretKey": "TEST_SECRET_KEY"
     }
   }

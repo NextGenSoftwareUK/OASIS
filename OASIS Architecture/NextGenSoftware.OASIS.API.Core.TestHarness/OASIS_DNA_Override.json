@@ -6,7 +6,7 @@
   },
   "AllowedHosts": "*",
 
-  "OASIS": {
+  "OASIS": { "AccessLog": {"Enabled": false, "Apps": [], "HolonTypes": [], "Operations": [], "CaptureIp": false, "RetentionDays": 365, "QueueCapacity": 10000, "FlushIntervalSeconds": 5, "BatchSize": 500, "MaxHolonIdsPerEvent": 200},
     "Secret": "",
     "Email": {
       "EmailFrom": "",

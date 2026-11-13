@@ -346,7 +346,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
             if (!result.IsError && result.Result != null)
             {
-                setTokenCookie(result.Result.RefreshToken);
+                if (!string.IsNullOrEmpty(result.Result.RefreshToken)) // empty while a second sign-in step (MFA) is pending
+                    setTokenCookie(result.Result.RefreshToken);
                 return HttpResponseHelper.FormatResponse(result, HttpStatusCode.OK, request.ShowDetailedSettings);
             }
             else

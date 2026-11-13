@@ -435,6 +435,16 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             services.AddHostedService<Services.HyperDrive.OASISInitializationHostedService>();
             // Registered on every WEB4, but it does nothing unless that node's DNA has OASIS.Sandbox.Enabled (see SandboxCleanupHostedService).
             services.AddHostedService<Services.Sandbox.SandboxCleanupHostedService>();
+
+            // Opt-in features, all configured in OASIS_DNA.json and OFF by default (OASIS.AccessLog, OASIS.Security.Mfa).
+            services.AddHttpContextAccessor();
+            services.AddSingleton<System.Func<NextGenSoftware.OASIS.API.DNA.AccessLogSettings>>(_ => () => OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.AccessLog);
+            services.AddSingleton(_ => new Services.AccessLog.AccessLogService(() => OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.AccessLog,
+                new Services.AccessLog.MongoAccessLogStore(() => OASISBootLoader.OASISBootLoader.OASISDNA)));
+            services.AddHostedService<Services.AccessLog.AccessLogFlushHostedService>();
+            services.AddScoped<Services.AccessLog.AccessLogFilter>();
+            services.AddSingleton(_ => new Services.Mfa.MfaService(() => OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.Security?.Mfa,
+                new Services.Mfa.MongoMfaStore(() => OASISBootLoader.OASISBootLoader.OASISDNA), OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.Security?.SecretKey));
             NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.ConfiguredHolonReplicationRegistration.AddConfiguredCosmicHolonReplicationFromServices(
                 services, Configuration["COSMIC_HOLON_REPLICATION_JSON"], provider =>
                     new NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.HolonReplicationProviderResolver(
@@ -972,6 +982,11 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             //app.UseCors(MyAllowSpecificOrigins);
 
             // Rate limiting: per-IP sliding window, config via OASISDNA.OASIS.Security.RateLimiting
+            // Second sign-in step hook (does nothing unless OASIS.Security.Mfa.Enabled is true).
+            NextGenSoftware.OASIS.API.Core.Managers.AvatarManager.SecondFactorGate = (avatar, ip) =>
+                Services.Mfa.MfaGate.Create(app.ApplicationServices.GetRequiredService<Services.Mfa.MfaService>(),
+                    app.ApplicationServices.GetRequiredService<Microsoft.AspNetCore.Http.IHttpContextAccessor>())(avatar, ip);
+
             app.UseRateLimiter();
 
             app.UseMiddleware<OASISRequestContextMiddleware>();

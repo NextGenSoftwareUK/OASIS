@@ -1,5 +1,5 @@
 {
-  "OASIS": {
+  "OASIS": { "AccessLog": {"Enabled": false, "Apps": [], "HolonTypes": [], "Operations": [], "CaptureIp": false, "RetentionDays": 365, "QueueCapacity": 10000, "FlushIntervalSeconds": 5, "BatchSize": 500, "MaxHolonIdsPerEvent": 200},
     "TelegramOASIS": {
       "BotToken": "7927576561:AAEFHa3k1t6kj0t6wOu6QtU61KRsNxOoeMo",
       "WebhookUrl": "https://oasisweb4.one/api/telegram/webhook",
@@ -11,7 +11,7 @@
     },
     "IsProduction": false,
     "OASISAPIURL": "https://oasisweb4.one/api",
-    "Security": {
+    "Security": { "Mfa": {"Enabled": false, "Issuer": "OASIS", "AvatarTypesThatCannotDisable": [], "Apps": [], "CodeDigits": 6, "TimeStepSeconds": 30, "AllowedDriftSteps": 1, "ChallengeTtlSeconds": 300, "MaxChallengeAttempts": 5, "MaxFailedCodes": 5, "CooldownSeconds": 60, "MaxCooldownSeconds": 3600, "RecoveryCodeCount": 10, "EventRetentionDays": 730},
       "HideVerificationToken": true,
       "HideRefreshTokens": true,
       "SecretKey": "",
