@@ -117,9 +117,9 @@ public sealed class FirestoreSqliteOutageTests
                     successor.PreviousVersionId = Guid.NewGuid();
                     var invalidUpdate = new CommittedHolonReplicaRequest(rejectedId, original.SourceId, original.SourceAuthority,
                         original.ActorId, ConditionalHolonOperation.Save, new[] { successor }, saveChildren: false);
-                    var rejected = synchronous ? firestore.ApplyBoundCommittedHolonReplica(invalidUpdate, bindings[0].Result)
+                    var rejectedSuccessor = synchronous ? firestore.ApplyBoundCommittedHolonReplica(invalidUpdate, bindings[0].Result)
                         : await firestore.ApplyBoundCommittedHolonReplicaAsync(invalidUpdate, bindings[0].Result);
-                    Assert.AreEqual("COSMIC_REPLICA_LINEAGE_CONFLICT", rejected.ErrorCode, rejected.Message);
+                    Assert.AreEqual("COSMIC_REPLICA_LINEAGE_CONFLICT", rejectedSuccessor.ErrorCode, rejectedSuccessor.Message);
                     Assert.AreEqual(native.UpdateTime, (await replicated.GetSnapshotAsync()).UpdateTime);
                     Assert.IsFalse((await receipts.Document(rejectedId.ToString("D")).GetSnapshotAsync()).Exists);
                     successor.PreviousVersionId = wrongPredecessor;
