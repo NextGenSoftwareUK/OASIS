@@ -4,6 +4,7 @@ using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
+using SqliteProvider = NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.SQLLiteDBOASIS;
 using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using Xunit;
 
@@ -187,7 +188,7 @@ public sealed class IPFSRestartTests
         var databasePath = dnaPath + ".source.sqlite";
         Assert.False(File.Exists(databasePath));
         var connection = $"Data Source={databasePath};Pooling=False";
-        using var sqlite = new SQLLiteDBOASIS(connection);
+        using var sqlite = new SqliteProvider(connection);
         var activated = await sqlite.ActivateProviderAsync();
         Assert.True(activated.Result && !activated.IsError, activated.Message);
         var captured = await sqlite.CaptureStorageIdentityAsync();
