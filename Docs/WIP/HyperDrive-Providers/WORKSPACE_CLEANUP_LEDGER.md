@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+13 November removed and verified absence of the temporary Git index used to prepare both divergence-qualified IPFS candidates. No local builds or downloads.
+
 13 November IPFS divergence jobs 43372453174, 43372448800, 43373391890 and 43373392408 confirmed removal of disposable Kubo fixtures. No local build or download.
 
 13 November removed the temporary Git index used to prepare the TON-based IPFS follow-up and verified it was absent. Both Polkadot-based jobs, 43371454193 and 43371456764, logged removal of their disposable Kubo runtime, repository and logs. No local builds or downloads.
