@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+13 November Kubo jobs 43400766420 and 43400746242 removed the disposable runtime, repository, fixture databases and logs. Job logs were inspected in memory. No local builds or downloads.
+
 13 November IPFS graph qualification runs 43398958217 and 43398916050 removed their disposable Kubo runtime, repositories, SQLite fixtures and logs. Removed and verified absence of the temporary Git index used to assemble candidate 6205d946c478. No local builds or downloads.
 
 13 November IPFS outbound deletion jobs 43397603623 and 43397586035 removed their disposable Kubo and SQLite fixtures. Removed and verified absence of the temporary Git index for the exact candidate. No local builds or downloads. C: had 28.34 GiB free.
