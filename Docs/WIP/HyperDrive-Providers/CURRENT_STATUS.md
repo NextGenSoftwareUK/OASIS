@@ -18,6 +18,8 @@
 
 ## Verification log
 
+13 November Cancun time. HoloOASIS fix job `132027339368` built but failed both routing cases at the initial `get_all_holons` collection check, before either provider-key assertion. The previous regression reached the key assertions and reproduced the old dispatch error. Added collection diagnostics that report decoded type and field presence without record contents. The next conductor run must resolve this collection failure or reach the provider-key checks before the fix can be accepted. No local fixtures were created.
+
 13 November Cancun time. Canonical HoloOASIS provider-key holon reads now send the action hash returned by the provider to the native `get_entry_holon` endpoint. The shared native record decoder preserves authoritative absence and validates the response record. Both modes use the same implementation. The scoped CI overlay includes the repository change. The packaged conductor regression is pending. No local artifacts were created.
 
 13 November 11:42 Cancun time. Development advanced to `0ca6397b2fce` with the verified SQLite provider-key fix and Oracle routing test and workflow. The preceding seven API deployments were green. The new rollout is pending. HoloOASIS job `132022655812` stopped before running the conductor because the original routing scope base predates the already integrated test file. Updated that base to current Development and added the reusable workflow to the routing trigger. No local build or fixture was created.

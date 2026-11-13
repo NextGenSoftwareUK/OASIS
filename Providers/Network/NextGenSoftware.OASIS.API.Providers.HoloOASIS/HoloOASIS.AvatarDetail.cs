@@ -162,7 +162,11 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                         !record.EntryKeyValuePairs.TryGetValue("id", out var nativeId) ||
                         !(nativeId is string id) || !Guid.TryParse(id, out var holonId) || holonId == Guid.Empty)
                     {
-                        OASISErrorHandling.HandleError(ref result, $"Holochain {function} returned an invalid holon record or identity.");
+                        OASISErrorHandling.HandleError(ref result,
+                            $"Holochain {function} returned an invalid holon record or identity " +
+                            $"(entry type: {record.EntryDataObject?.GetType().Name ?? "none"}, " +
+                            $"action hash present: {!string.IsNullOrWhiteSpace(record.ActionHash)}, " +
+                            $"identity field present: {record.EntryKeyValuePairs?.ContainsKey("id") == true}).");
                         return result;
                     }
 
