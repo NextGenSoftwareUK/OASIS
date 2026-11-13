@@ -18,6 +18,8 @@
 
 ## Verification log
 
+13 November Cancun time. The outbound IPFS work now reuses the native encrypted holon upload and catalogue index update extracted from the inbound replica path in 1988ef459e74. Native restart 43380469565 and multi-process 43380449288 are running. Candidate a6e6e6fb6a71 remains the verified Development scope. The outbound conditional write, operation receipt and queued deliveries still need to commit under one catalogue pointer. No local builds or downloads.
+
 13 November Cancun time. IPFS commit 6fa187071a01 validates the complete staged catalogue before publishing its durable pointer. Native restart 43379632844 exercises rejection of a malformed index with unchanged persisted DNA, and multi-process run 43379623191 covers valid publication. Both passed on exact tree 5ac4d98eab1622d6a3bc98ec0b2adc348c7d847c and confirmed fixture removal. Three-file candidate a6e6e6fb6a71ff1e3a12ea6fb4feee8003965f54 on Development 6dbb74381641 supersedes the previous candidate for the shared review. At the latest rollout inspection five services had succeeded and two were pending. No local builds or downloads.
 
 13 November Cancun time. Polkadot BootLoader correction 6dbb74381641 is now the Development parent. COSMIC verified its exact image and 33 shipping regressions on the runtime-identical candidate. The three-file IPFS alternate 0a0cc4d4d71d passed sync and async native Kubo restart in [run 43378660201](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43378660201), including fixture cleanup. Its tested tree exactly matches add017b796f00a3af741ba9cb63dbfe174d6ade3. The next shared review is after 01:55:37 Cancun. All seven rollout statuses were pending at inspection. No local builds or downloads.
