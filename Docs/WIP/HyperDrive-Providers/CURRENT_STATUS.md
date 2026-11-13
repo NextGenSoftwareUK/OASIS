@@ -18,6 +18,8 @@
 
 ## Verification log
 
+13 November Cancun time. The hosted Default candidate verifier now checks the reviewed WEB4 deployment before and after its provider reads and includes the verified deployment UUID in its report. It publishes evidence only after the complete read set passes on the same deployment. The existing 30 verifier tests passed with bytecode disabled. Hosted execution still requires the retained owner cohort. No local artifacts were created.
+
 13 November 14:18 Cancun time. Railway WEB4 deployment 65d09b9c-37df-4494-995a-9a7c73e3b19d succeeded on Development ae26ea4d4fa7. The corrected hosted release guard resolved origin/Development to that exact commit and returned the same deployment UUID from real Railway. Five API deployments succeeded and WEB6 and WEB7 remained pending. Candidate 65bd3a23b285 remains staged for the shared review after 14:27:26 Cancun. No protected cohort, local fixture or build output was used.
 
 13 November 14:12 Cancun time. Candidate 65bd3a23b285 on COSMIC Development ae26ea4d4fa7 combines the native-qualified ActivityPub deletion test and the four checked hosted-verifier files. Each scope matches its verified file versions. The installed Railway 4.11.0 CLI rejects a project flag on deployment list. The corrected read-only checks use the explicit WEB4 environment and service scope. All 41 focused tests passed without bytecode output, and the real CLI guard rejected the still-building successor. Railway listed e247ea434af1 as successful. The next shared review remains after 14:27:26 Cancun. The temporary candidate index was removed, no local builds or fixtures were created, and C: had 26.69 GiB free.
