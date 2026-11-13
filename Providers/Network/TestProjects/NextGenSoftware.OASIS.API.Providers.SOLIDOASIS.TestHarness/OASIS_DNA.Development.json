@@ -1,5 +1,5 @@
 {
-  "OASIS": { "AccessLog": {"Enabled": false, "Apps": [], "HolonTypes": [], "Operations": [], "CaptureIp": false, "RetentionDays": 365, "QueueCapacity": 10000, "FlushIntervalSeconds": 5, "BatchSize": 500, "MaxHolonIdsPerEvent": 200},
+  "OASIS": { "UsageVisibility": {"OwnerViewEnabled": true, "WarningsEnabled": true, "EmailEnabled": true, "DefaultWarningPercents": [80, 100], "AppPayAsYouGoEnabled": true}, "AccessLog": {"Enabled": false, "Apps": [], "HolonTypes": [], "Operations": [], "CaptureIp": false, "RetentionDays": 365, "QueueCapacity": 10000, "FlushIntervalSeconds": 5, "BatchSize": 500, "MaxHolonIdsPerEvent": 200},
     "Providers": {
       "SOLIDOASIS": {
         "PodServerUrl": "https://solidcommunity.net",

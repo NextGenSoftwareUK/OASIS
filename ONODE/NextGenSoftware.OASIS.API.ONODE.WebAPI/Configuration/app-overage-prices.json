@@ -1,0 +1,12 @@
+{
+  "version": "app-overages-2026-11-13-v1",
+  "currency": "USD",
+  "aiMargin": 0,
+  "note": "Same per-request rates as individual plans (subscription-overage-prices.json). The free plan has no overage price. Charging for app pools is NOT built yet: owners can record their consent and monthly cap, but nothing is invoiced.",
+  "requestRatesUsd": {
+    "bronze": 0.001,
+    "silver": 0.0005,
+    "gold": 0.0002,
+    "enterprise": 0.0001
+  }
+}

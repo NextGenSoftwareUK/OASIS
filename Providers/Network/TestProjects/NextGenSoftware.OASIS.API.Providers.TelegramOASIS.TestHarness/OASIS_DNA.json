@@ -1,5 +1,5 @@
 {
-  "OASIS": { "AccessLog": {"Enabled": false, "Apps": [], "HolonTypes": [], "Operations": [], "CaptureIp": false, "RetentionDays": 365, "QueueCapacity": 10000, "FlushIntervalSeconds": 5, "BatchSize": 500, "MaxHolonIdsPerEvent": 200},
+  "OASIS": { "UsageVisibility": {"OwnerViewEnabled": true, "WarningsEnabled": true, "EmailEnabled": true, "DefaultWarningPercents": [80, 100], "AppPayAsYouGoEnabled": true}, "AccessLog": {"Enabled": false, "Apps": [], "HolonTypes": [], "Operations": [], "CaptureIp": false, "RetentionDays": 365, "QueueCapacity": 10000, "FlushIntervalSeconds": 5, "BatchSize": 500, "MaxHolonIdsPerEvent": 200},
     "TelegramOASIS": {
       "BotToken": "7927576561:AAEFHa3k1t6kj0t6wOu6QtU61KRsNxOoeMo",
       "WebhookUrl": "https://oasisweb4.one/api/telegram/webhook",

@@ -56,7 +56,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.AccessLog
 
         public long DroppedEvents => Interlocked.Read(ref _dropped);
         public long FailedBatches => Interlocked.Read(ref _failedBatches);
-        public bool IsEnabled => _settings()?.Enabled == true;
+        /// <summary>Per-app choice (true = record, false = do not) that overrides AccessLog.Enabled for that app; null follows the DNA. Read from memory only.</summary>
+        public AccessLogOverrides Overrides { get; } = new AccessLogOverrides();
+        public bool IsEnabled => _settings()?.Enabled == true || Overrides.AnyEnabled;
 
         /// <summary>Queues one read. Never throws, never blocks.</summary>
         public void Record(Guid avatarId, string appId, string operation, IReadOnlyCollection<(Guid Id, string Type)> holons, string ip = null)
@@ -64,7 +66,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.AccessLog
             try
             {
                 var s = _settings();
-                if (s == null || !s.Enabled) return; // zero overhead and zero writes when off
+                var appChoice = appId == null ? null : Overrides.For(appId);
+                if (!(appChoice ?? (s != null && s.Enabled))) return; // zero overhead and zero writes when off (unless this app opted in)
+                s ??= new AccessLogSettings();
                 if (holons == null || holons.Count == 0 || avatarId == Guid.Empty) return;
                 if (s.Apps != null && s.Apps.Count > 0 && !s.Apps.Contains(appId ?? "", StringComparer.OrdinalIgnoreCase)) return;
                 if (s.Operations != null && s.Operations.Count > 0 && !s.Operations.Contains(operation ?? "", StringComparer.OrdinalIgnoreCase)) return;
@@ -140,5 +144,20 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.AccessLog
             => _store.QueryByAvatarAsync(avatarId, Clamp(limit), Math.Max(0, offset), c);
 
         private static int Clamp(int limit) => limit <= 0 ? 50 : Math.Min(limit, 200);
+    }
+
+    /// <summary>In-memory per-app on/off choices, refreshed periodically from the app accounts so a read never touches the database.</summary>
+    public sealed class AccessLogOverrides
+    {
+        private volatile System.Collections.Generic.Dictionary<string, bool> _map = new System.Collections.Generic.Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
+        private volatile bool _any;
+        public bool AnyEnabled => _any;
+        public bool? For(string appId) => _map.TryGetValue(appId, out var v) ? v : (bool?)null;
+        public void Replace(System.Collections.Generic.IEnumerable<(string AppId, bool? Choice)> choices)
+        {
+            var map = new System.Collections.Generic.Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
+            foreach (var c in choices) if (c.Choice.HasValue && !string.IsNullOrEmpty(c.AppId)) map[c.AppId] = c.Choice.Value;
+            _map = map; _any = map.Values.Any(v => v);
+        }
     }
 }

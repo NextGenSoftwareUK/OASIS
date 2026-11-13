@@ -7,6 +7,7 @@ using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
 using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.AccessLog
 {
@@ -85,7 +86,23 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.AccessLog
     {
         private readonly AccessLogService _service;
         private readonly Func<AccessLogSettings> _settings;
-        public AccessLogFlushHostedService(AccessLogService service, Func<AccessLogSettings> settings) { _service = service; _settings = settings; }
+        private readonly IServiceProvider _services;
+        private DateTime _lastOverrideRefresh = DateTime.MinValue;
+        public AccessLogFlushHostedService(AccessLogService service, Func<AccessLogSettings> settings, IServiceProvider services = null) { _service = service; _settings = settings; _services = services; }
+
+        private async Task RefreshOverridesAsync(CancellationToken c)
+        {
+            if (_services == null || DateTime.UtcNow - _lastOverrideRefresh < TimeSpan.FromSeconds(60)) return;
+            _lastOverrideRefresh = DateTime.UtcNow;
+            try
+            {
+                var repo = (Services.Subscription.MongoSubscriptionUsageRepository)_services.GetService(typeof(Services.Subscription.MongoSubscriptionUsageRepository));
+                if (repo == null) return;
+                var accounts = await repo.ListAppAccountsAsync(c).ConfigureAwait(false);
+                _service.Overrides.Replace(accounts.Select(a => (a.AppId, a.Overrides?.AccessLogEnabled)));
+            }
+            catch (Exception) { /* keep the last known choices */ }
+        }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
@@ -93,6 +110,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.AccessLog
             {
                 var seconds = Math.Max(1, _settings()?.FlushIntervalSeconds ?? 5);
                 try { await Task.Delay(TimeSpan.FromSeconds(seconds), stoppingToken).ConfigureAwait(false); } catch (OperationCanceledException) { break; }
+                await RefreshOverridesAsync(stoppingToken).ConfigureAwait(false);
                 if (_service.IsEnabled) await _service.FlushAsync(stoppingToken).ConfigureAwait(false);
             }
             if (_service.IsEnabled) await _service.FlushAsync().ConfigureAwait(false);

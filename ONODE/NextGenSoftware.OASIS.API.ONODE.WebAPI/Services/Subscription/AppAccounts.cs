@@ -35,6 +35,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
         public bool PooledQuota { get; set; }
         /// <summary>Personal plan floor for users while they use a pooled app. Defaults to silver.</summary>
         public string PerUserPlanId { get; set; }
+        /// <summary>Avatars allowed to open the owner usage view of ONLY this app (administrator-set, audited).</summary>
+        public List<string> OwnerAvatarIds { get; set; } = new List<string>();
+        /// <summary>Pay-as-you-go preference of this app pool. Settings only: nothing is charged.</summary>
+        public AppPaygSettings Payg { get; set; }
+        /// <summary>This app's own on/off choices that override the node defaults (null = follow the default).</summary>
+        public AppUsageOverrides Overrides { get; set; }
 
         /// <summary>A copy that is safe to return from an API: no key hash.</summary>
         public AppAccountRecord Redacted()
@@ -43,6 +49,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
             copy.KeyHashSha256 = null;
             return copy;
         }
+    }
+
+    public sealed class AppUsageOverrides
+    {
+        public bool? OwnerViewEnabled { get; set; }
+        public bool? WarningsEnabled { get; set; }
+        /// <summary>Record who read this app's holons even when the node default is off (or stop recording when it is on).</summary>
+        public bool? AccessLogEnabled { get; set; }
     }
 
     public interface IAppAccountRepository
