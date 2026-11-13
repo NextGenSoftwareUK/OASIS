@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Shared COSMIC and Firestore receiver qualification
+
+Candidate `63084fd292d5` combines COSMIC `5198038dca1c` with HyperDrive's independently qualified Firestore receiver `0719383891ab` on Development `295ccba0c9ec`. The merge is clean and contains the six scoped COSMIC paths and the Firestore batch. Exact combined protocol qualification is pending. Railway marked the current WEB4 deployment successful, but the first authenticated catalogue check did not acknowledge the expected browser origin, so hosted cutover acceptance remains open. Review after 18:24:19 Cancun and coordinate one publisher. No local build outputs or fixtures were created.
+
 ## Ask your data draft availability
 
 Web4Site b2b6cdb7ded8 validates the draft against the current Development provider catalogue before offering to open it. The Playground uses the same capability check when loading the reviewed draft. All 170 website tests passed, including an unavailable-provider draft regression. Hosted WEB6 draft acceptance remains pending.
