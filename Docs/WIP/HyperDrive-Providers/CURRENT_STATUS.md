@@ -1454,3 +1454,5 @@ Holo Desktop diagnostic run 43155153231 found that the conductor tool path was d
 ### Azure Cosmos DB BootLoader fixture
 
 12 November Cancun time. Added a branch CI check for the shipping BootLoader registration, activation and deactivation path against a digest-pinned Microsoft Azure Cosmos DB emulator. This exercises the remaining local startup gate using the SDK and the three native OASIS containers. The accepted 52-check storage suite is outside this run. CI execution and hosted Azure acceptance remain open.
+
+13 November, ActivityPub qualification. Both native Mastodon routing modes passed on task commit 606755d2f66c: a healthy local status ID miss returns RecordNotFound after native deletion. The account point-read path uses the same direct HTTP 404 classification. [Native CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43499455681/job/132141097559). Exact combined Solid and ActivityPub qualification was pushed as b4ae08da85ce, tree e045ac1d63d6466171fa9265c598784593b411e5, with Development candidate 33174f42c5c3. Integration is pending.

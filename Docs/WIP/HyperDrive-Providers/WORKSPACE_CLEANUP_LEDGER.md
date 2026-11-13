@@ -902,3 +902,5 @@ Urgent disk cleanup follow-up: leased standard project clean succeeded for AWS u
 12 November Cancun time. Qdrant Development jobs 131388484188 and 131388484827 confirmed exact fixture cleanup and removed their owned nodes, volumes and results. The local temporary Git index used to reproduce their exact tree was removed and its absence verified. No local builds or downloads were created.
 
 12 November Cancun time. Qdrant embedding attachment and query checks reuse the disposable shared storage fixture and delete the exact embedded holon before the three independent collection counts. No local runtime, build or result files were created. CI cleanup evidence is pending.
+
+13 November: Native Mastodon job 132141097559 removed its fixture directory. The combined Solid and ActivityPub qualification used a temporary Git index, removed after pushing. No local builds or downloads were used.
