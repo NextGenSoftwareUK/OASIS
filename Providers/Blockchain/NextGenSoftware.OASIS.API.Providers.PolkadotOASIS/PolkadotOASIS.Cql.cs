@@ -2,22 +2,83 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Objects.NativeData;
 using NextGenSoftware.OASIS.API.Core.Queries;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS;
 
-public partial class PolkadotOASIS : ICosmicQueryStorageProvider
+public partial class PolkadotOASIS : ICosmicQueryStorageProvider, ICosmicReadOnlyQueryActivation
 {
+    private static readonly HttpClient PublicAccountHttp = new(NativeConnectionGuard.CreateGuardedHttpHandler())
+    {
+        Timeout = TimeSpan.FromSeconds(15)
+    };
+    private static readonly CosmicQueryCapabilities CombinedQueryCapabilities = PolkadotCqlCompiler.Capabilities
+        .WithStringMetadataLookup(PolkadotPublicHeaderMetadataSource.AddressMetadata, 66, 8);
+    private PolkadotPublicHeaderMetadataSource.HeadersBackend publicHeaders;
+    private readonly object publicQueryActivationGate = new();
+    private int publicQueryActivationGeneration;
+    private volatile bool publicQueryVerified;
+
     public ProviderType QueryProviderType => Core.Enums.ProviderType.PolkadotOASIS;
-    public CosmicQueryCapabilities QueryCapabilities => PolkadotCqlCompiler.Capabilities;
+    public CosmicQueryCapabilities QueryCapabilities => publicHeaders == null
+        ? PolkadotCqlCompiler.Capabilities : CombinedQueryCapabilities;
+    public bool IsQuerySourceActivated => publicQueryVerified;
+
+    public void ConfigurePublicHeaderQuery(string json)
+    {
+        if (publicHeaders != null)
+            return;
+        var configured = PolkadotPublicHeaderMetadataSource.CreateHeaders(json, PublicAccountHttp);
+        Interlocked.CompareExchange(ref publicHeaders, configured, null);
+    }
+
+    private int ResetPublicQueryActivation()
+    {
+        lock (publicQueryActivationGate)
+        {
+            publicQueryVerified = false;
+            return ++publicQueryActivationGeneration;
+        }
+    }
+
+    public async Task<OASISResult<bool>> ActivateQuerySourceAsync(CancellationToken cancellationToken)
+    {
+        var generation = ResetPublicQueryActivation();
+        var headers = publicHeaders;
+        if (headers == null)
+            return new() { IsError = true, ErrorCount = 1, ErrorCode = "CQL_CAPABILITY_UNSUPPORTED",
+                Message = "Configure the reviewed Polkadot public header catalogue first." };
+
+        try
+        {
+            await headers.VerifyAsync(cancellationToken).ConfigureAwait(false);
+            lock (publicQueryActivationGate)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                if (generation != publicQueryActivationGeneration)
+                    return new() { IsError = true, ErrorCount = 1, ErrorCode = "CQL_SOURCE_UNAVAILABLE",
+                        Message = "The public header activation was superseded." };
+                publicQueryVerified = true;
+            }
+            return new(true);
+        }
+        catch (Exception error)
+        {
+            return new() { IsError = true, ErrorCount = 1, ErrorCode = error is OperationCanceledException
+                ? "CQL_QUERY_CANCELLED" : "CQL_SOURCE_UNAVAILABLE",
+                Message = "Public Polkadot header query activation failed.", Exception = error };
+        }
+    }
 
     public async Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicQueryAsync<T>(
         CosmicQueryPlan<T> plan, int maximumResults = 100,
@@ -32,8 +93,13 @@ public partial class PolkadotOASIS : ICosmicQueryStorageProvider
                 return Error("CQL_PLAN_TARGET_UNAVAILABLE", "One explicit Polkadot blockchain target is required.");
             if (maximumResults < 1 || maximumResults > 10000)
                 return Error("CQL_QUERY_LIMIT", "A result budget between 1 and 10,000 is required.");
-            var admitted = QueryCapabilities.AdmitPlan(plan);
+            var headers = publicHeaders;
+            var capabilities = headers == null ? PolkadotCqlCompiler.Capabilities : CombinedQueryCapabilities;
+            var admitted = capabilities.AdmitPlan(plan);
             if (admitted.IsError) return Error(admitted.ErrorCode, admitted.Message);
+            if (headers != null && capabilities.UsesStringMetadataLookup(plan.Query))
+                return await PolkadotPublicHeaderMetadataSource.ExecutePublicQueryAsync(headers, IsQuerySourceActivated,
+                    plan, maximumResults, cancellationToken).ConfigureAwait(false);
             var selection = PolkadotCqlCompiler.Compile(plan.Query, QueryProviderType);
             if (selection.IsError) return Error(selection.ErrorCode, selection.Message);
             cancellationToken.ThrowIfCancellationRequested();
