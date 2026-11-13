@@ -110,6 +110,27 @@ public sealed class OracleSqliteHyperDriveTests
             using var unavailableSqlite = new SqliteProvider($"Data Source={unavailablePath};Mode=ReadWrite;Pooling=False;Default Timeout=1");
             await VerifyFailoverAsync(dna, candidates, selected, sync, unavailableSqlite, oracle);
             Assert.IsFalse(File.Exists(unavailablePath));
+
+            var replicaOnly = new Holon { Id = Guid.NewGuid(), Name = "SQLite-only replica", CreatedByAvatarId = Guid.NewGuid() };
+            var replicaSave = await sqlite.SaveHolonAsync(replicaOnly, saveChildren: false);
+            Assert.IsTrue(!replicaSave.IsError && replicaSave.IsSaved, replicaSave.Message);
+            AssertRecord(replicaOnly, (await sqlite.LoadHolonAsync(replicaOnly.Id, loadChildren: false)).Result);
+
+            var healthy = new ProviderManager(null, dna) { IsAutoFailOverEnabled = true };
+            healthy.RegisterProvider(oracle);
+            healthy.RegisterProvider(sqlite);
+            Assert.IsFalse(healthy.SetAndReplaceAutoFailOverListForProviders(candidates).IsError);
+            var router = new OASISHyperDrive(healthy);
+            var readMissing = new StorageOperationRequest
+            {
+                Operation = "LoadHolon", HolonId = replicaOnly.Id, LoadChildren = false,
+                PreferredProvider = ProviderType.OracleDBOASIS
+            };
+            var missing = sync ? router.RouteRequest<IHolon>(readMissing)
+                : await router.RouteRequestAsync<IHolon>(readMissing);
+            Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound, missing.ErrorCode);
+            Assert.IsNull(missing.Result);
+            Assert.AreEqual(0L, healthy.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS)?.TotalRequests ?? 0);
         }
         finally
         {

@@ -18,6 +18,8 @@
 
 ## Verification log
 
+13 November Cancun time. Added a native Oracle Free control for healthy point-read absence with automatic failover enabled. The fixture verifies that the exact holon exists only in SQLite and that Oracle's `RecordNotFound` stops the route before SQLite is queried. The existing paired outage checks remain in the same job. Native CI is pending. No local build or fixture files were created.
+
 13 November Cancun time. Development advanced to `fe8319aa11bd` with the verified SQLite holon-by-ID and avatar-detail absence fixes. Railway began building WEB4 deployment `78b568fb-b5b3-43b8-87a5-54f66e402977` at 11:12:21 Cancun. Use 11:42:21 for the next shared review, subject to the rollout and COSMIC coordination. The separate provider-key regression failed both modes on `799e39c25f60`. The string overloads in SQLite's holon repository returned a null code on healthy misses. The fix is on the task branch at `c8a3d7c1089a` and staged on the current Development base at `31e53ead6e46`. [Exact native CI 43460607223](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43460607223) is running. The temporary Git index was removed. No local build or test files were created.
 
 13 November Cancun time. Added a native HyperDrive control for a healthy SQLite holon miss by provider key in both modes. It requires `RecordNotFound` and shares the existing zero-Neo4j-requests assertion. The previously verified combined candidate remains available for the shared integration review. No local build or fixture files were created.
