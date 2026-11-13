@@ -25,6 +25,11 @@ on:
         description: Exact reviewed source commit
         required: true
         type: string
+      solution_coverage:
+        description: Verify full solution enrollment and compile the two verification hosts
+        required: false
+        type: boolean
+        default: false
       s3_shipping:
         description: Verify shipping AWS S3 public metadata CQL admission and SDK request handling
         required: false
@@ -72,6 +77,23 @@ jobs:
       - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 10.0.x
+      - name: Verify solution enrollment and verification hosts
+        if: inputs.solution_coverage
+        working-directory: OASIS
+        shell: pwsh
+        run: |
+          python3 -B Scripts/check_solution_coverage.py
+          if ($LASTEXITCODE) { throw 'Solution coverage failed' }
+          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner solution-coverage-ci -Operation {
+            $projects = @(
+              'Providers/Identity/TestProjects/zkPassOASIS.LiveVerification/zkPassOASIS.LiveVerification.csproj',
+              'Scripts/TestHosts/UrbitContactsHttpHost/UrbitContactsHttpHost.csproj'
+            )
+            foreach ($project in $projects) {
+              dotnet build $project /m:2 /nr:false /p:UseSharedCompilation=false
+              if ($LASTEXITCODE) { throw "Verification host build failed for $project" }
+            }
+          }
       - name: Verify catalogues, DuckDB admission and native failure diagnostics
         working-directory: OASIS
         shell: pwsh
