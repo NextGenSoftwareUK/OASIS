@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Compound HAVING filters
+
+Web4Site 777f7a127bd0 compiles ANDed HAVING comparisons into the existing grouped-result filter list. Ask your data demonstrates a count range. All 173 website tests passed. Live acceptance remains open.
+
 ## Multi-field grouping
 
 Web4Site 7a21d4054759 exposes multi-field GROUP BY with COUNT in the Playground and Ask your data. All 172 frontend tests passed. Hosted browser verification remains open. Combined protocol CI 43526891579 passed; the current WEB4 deployment was still building at review.
