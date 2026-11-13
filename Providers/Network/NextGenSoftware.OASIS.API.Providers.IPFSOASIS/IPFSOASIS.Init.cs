@@ -70,7 +70,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
                 || (OperatingSystem.IsMacOS() && cause.HResult == 35);
         }
 
-        private OASISDNA ReadCatalogueMutationDna()
+        private OASISDNA ReadPersistedCatalogueDna()
         {
             var path = OASISDNAManager.ResolveEffectiveOASISDNAPath(_OASISDNAPath);
             if (!File.Exists(path))
@@ -170,7 +170,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
         private async Task<Dictionary<string, HolonResume>> LoadCatalogueAsync(OASISDNA dna = null)
         {
-            var settings = (dna ?? _OASISDNA)?.OASIS?.StorageProviders?.IPFSOASIS;
+            var settings = (dna ?? ReadPersistedCatalogueDna())?.OASIS?.StorageProviders?.IPFSOASIS;
             if(settings == null)
                 throw new InvalidOperationException("IPFS storage configuration is required before reading the private index.");
             var address=settings.LookUpIPFSAddress;
@@ -228,7 +228,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             try
             {
                 using var lease = await AcquireCatalogueFileLeaseAsync().ConfigureAwait(false);
-                return await SaveCatalogueAsync(idLookup, ReadCatalogueMutationDna()).ConfigureAwait(false);
+                return await SaveCatalogueAsync(idLookup, ReadPersistedCatalogueDna()).ConfigureAwait(false);
             }
             finally { gate.Release(); }
         }
@@ -297,7 +297,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PlannedHolonWrite plannedHolon, Action validateCaller)
         {
             if (entity == null || entity.Id == Guid.Empty) throw new ArgumentException("IPFS entity identity must be nonempty.");
-            var dna = ReadCatalogueMutationDna();
+            var dna = ReadPersistedCatalogueDna();
             await LoadCatalogueAsync(dna).ConfigureAwait(false);
             var previous = FindIndexEntry(kind, row => row.Id == entity.Id, true);
             if(kind=="holon" && entity is Holon holon){
