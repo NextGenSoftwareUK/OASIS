@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. IPFS replica apply now reports the same lineage conflict code as SQLite and Neo4j, allowing durable delivery to classify the conflict. Delete replay returns a deletion acknowledgement. The restart fixture checks both contracts against Kubo. No local build or download.
+
 12 November Cancun time. Consolidated IPFS binding reads into one immutable catalogue snapshot reader for identity capture, receipt audit, head audit and receiver apply. An atomic source writer can use that reader under the existing cross-process lease. Source conditional mutation, receipt and outbox publication still need implementation and native qualification. No local build or download.
 
 12 November Cancun time. Replica head audit restart 43358073433 and multi-process 43358055700 passed on tree 8d532a929f3146903df44c928c15e8483b23ae42 over EOSIO. A hard-deleted replica retained protected lineage, a never-seen ID had no head, and the audit left the pointer unchanged. Both fixture removals were confirmed. The separately qualified fd9b328ac712 receiver remains the coordinated Development candidate.

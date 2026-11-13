@@ -21,6 +21,7 @@ public partial class IPFSOASIS : IBoundCommittedHolonReplicaStorageProvider, ICo
     IHolonReplicaHeadAuditStorageProvider
 {
     private const ProviderType ReplicaAuthority = Core.Enums.ProviderType.IPFSOASIS;
+    private sealed class ReplicaLineageConflictException(string message) : InvalidOperationException(message);
 
     // Atomic callers acquire both catalogue locks before reading this snapshot.
     private async Task<(JObject Catalogue, Dictionary<string, HolonResume> Records, CosmicStorageIdentity Storage)>
@@ -160,7 +161,7 @@ public partial class IPFSOASIS : IBoundCommittedHolonReplicaStorageProvider, ICo
                 var receipts = GetReplicaObject(catalogue, "replicaReceipts");
                 var operationId = plan.OperationId.ToString("D");
                 if (receipts[operationId] is JToken receipt)
-                    return ReplicaSuccess(ConditionalHolonReceipt.Read(ReplicaText(receipt), plan), plan.Nodes.Count);
+                    return ReplicaSuccess(ConditionalHolonReceipt.Read(ReplicaText(receipt), plan), plan);
 
                 var heads = GetReplicaObject(catalogue, "replicaHeads");
                 var previousCids = await ValidateReplicaHeadsAsync(records, heads, plan, cancellationToken).ConfigureAwait(false);
@@ -178,7 +179,7 @@ public partial class IPFSOASIS : IBoundCommittedHolonReplicaStorageProvider, ICo
                 catalogue["replicaHeads"] = heads;
                 catalogue["replicaReceipts"] = receipts;
                 await PublishCatalogueAsync(catalogue, records, dna, cancellationToken).ConfigureAwait(false);
-                return ReplicaSuccess(acknowledgedRoots, plan.Nodes.Count);
+                return ReplicaSuccess(acknowledgedRoots, plan);
             }
             finally
             {
@@ -191,7 +192,8 @@ public partial class IPFSOASIS : IBoundCommittedHolonReplicaStorageProvider, ICo
         }
         catch (Exception cause)
         {
-            return ReplicaFailure("COSMIC_REPLICA_WRITE_FAILED", cause);
+            return ReplicaFailure(cause is ReplicaLineageConflictException
+                ? "COSMIC_REPLICA_LINEAGE_CONFLICT" : "COSMIC_REPLICA_WRITE_FAILED", cause);
         }
     }
 
@@ -210,7 +212,7 @@ public partial class IPFSOASIS : IBoundCommittedHolonReplicaStorageProvider, ICo
             if (head == null)
             {
                 if (currentCid != null || record.Version != 1)
-                    throw new InvalidDataException("The IPFS replica does not begin at an unused version-one identity.");
+                    throw new ReplicaLineageConflictException("The IPFS replica does not begin at an unused version-one identity.");
                 previousCids.Add(record.Id, null);
                 continue;
             }
@@ -218,7 +220,7 @@ public partial class IPFSOASIS : IBoundCommittedHolonReplicaStorageProvider, ICo
             var evidence = await ValidateReplicaHeadAsync(record.Id, currentCid, head, cancellationToken).ConfigureAwait(false);
             if (evidence.SourceId != plan.SourceId || evidence.SourceAuthority != plan.SourceAuthority
                 || evidence.VersionId != record.PreviousVersionId || evidence.Version != record.Version - 1)
-                throw new InvalidDataException("The IPFS replica lineage does not match the enrolled source.");
+                throw new ReplicaLineageConflictException("The IPFS replica lineage does not match the enrolled source.");
             previousCids.Add(record.Id, ReplicaText(head["cid"]));
         }
         return previousCids;
@@ -292,8 +294,13 @@ public partial class IPFSOASIS : IBoundCommittedHolonReplicaStorageProvider, ICo
         => value?.Type == JTokenType.String ? value.Value<string>()
             : throw new InvalidDataException("Invalid IPFS replica catalogue value.");
 
-    private static OASISResult<IEnumerable<IHolon>> ReplicaSuccess(IEnumerable<IHolon> roots, int count)
-        => new(roots) { IsSaved = true, SavedCount = count };
+    private static OASISResult<IEnumerable<IHolon>> ReplicaSuccess(IEnumerable<IHolon> roots, CommittedHolonReplicaPlan plan)
+        => new(roots)
+        {
+            IsSaved = plan.Operation == ConditionalHolonOperation.Save,
+            SavedCount = plan.Operation == ConditionalHolonOperation.Save ? plan.Nodes.Count : 0,
+            IsDeleted = plan.Operation != ConditionalHolonOperation.Save
+        };
 
     private static OASISResult<IEnumerable<IHolon>> ReplicaFailure(string code, Exception cause)
         => new() { IsError = true, ErrorCount = 1, ErrorCode = code, Exception = cause, Message = cause.Message };

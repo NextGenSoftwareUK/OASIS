@@ -167,7 +167,7 @@ public sealed class IPFSRestartTests
         var persistedBefore = await File.ReadAllTextAsync(dnaPath);
         var rejected = await provider.ApplyBoundCommittedHolonReplicaAsync(Request(), identity);
         Assert.True(rejected.IsError);
-        Assert.Contains("lineage", rejected.Message);
+        Assert.Equal("COSMIC_REPLICA_LINEAGE_CONFLICT", rejected.ErrorCode);
         Assert.Equal(persistedBefore, await File.ReadAllTextAsync(dnaPath));
 
         successor.PreviousVersionId = original.VersionId;
@@ -256,6 +256,10 @@ public sealed class IPFSRestartTests
             var receipt = await provider.ReadCommittedHolonReplicaReceiptAsync(new(request, identity));
             Assert.True(receipt.IsLoaded && !receipt.IsError, receipt.Message);
             Assert.Equal(ConditionalHolonReceiptState.Committed, receipt.Result.ReceiptState);
+            var beforeReplay = await File.ReadAllTextAsync(dnaPath);
+            var replay = await provider.ApplyBoundCommittedHolonReplicaAsync(request, identity);
+            Assert.True(replay.IsDeleted && !replay.IsError, replay.Message);
+            Assert.Equal(beforeReplay, await File.ReadAllTextAsync(dnaPath));
         }
         var removed = await provider.LoadHolonAsync(replica.Id, loadChildren: false);
         Assert.False(removed.IsLoaded);
