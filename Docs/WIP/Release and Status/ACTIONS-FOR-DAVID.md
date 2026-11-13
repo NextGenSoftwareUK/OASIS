@@ -641,6 +641,11 @@ Status: missing account/configuration information,2 November2026. David approved
 - **Open, 2026-11-10.** Identify the machine that still holds the retained offline Kubo test repository and protected storage key, and make that fixture available to the provider verification session. Keep the key in protected local storage and keep credentials out of Git and chat.
 - **Reason** The historical 52/52 native baseline carries forward. Fresh Kubo 0.43.1 fixtures verified graceful restart and separate-process concurrent publication on Windows and Linux. The original repository and protected key are still needed to verify historical-data recovery and compatibility with that retained data. [Provider matrix](../HyperDrive-Providers/PROVIDER_MATRIX.md)
 
+### IPFS hosted replication fixture
+
+- **Open, 2026-11-12.** Identify an existing disposable hosted Kubo repository approved for synthetic writes, or designate a dedicated writable test repository for the hosted WEB4 worker. Supply access through protected host settings. The fixture needs a persisted catalogue pointer and storage key, plus an approved bound route from an isolated writable source. Keep credentials out of Git and chat.
+- **Reason** Native SQLite-to-Kubo delivery and restart checks pass. The deployed public COSMIC catalogue is used for read-only verification. Hosted acceptance needs a dedicated route where a synthetic graph can be committed, delivered, inspected and cleaned up without altering that catalogue. [Priority routing report](../HyperDrive-Providers/PRIORITY_HYPERDRIVE_ROUTING.md)
+
 ### Pinata hosted round-trip fixture
 
 - **Open, 2026-11-10.** Designate a disposable Pinata test account and gateway authorized for a synthetic public pin and exact unpin. Configure a scoped test JWT as OASIS_PINATA_JWT through protected local settings. Set OASIS_PINATA_HOSTED_WRITE_TEST=1 only for that fixture. Keep secrets out of Git and chat.

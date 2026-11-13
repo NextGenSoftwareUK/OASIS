@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. The hosted IPFS runtime documented by COSMIC serves the protected read-only public catalogue through offline Kubo on the WEB4 loopback interface. No dedicated writable hosted IPFS route was found in the checked settings or owner ledger. Recorded fixture access in Actions for David. Native work and Development integration can continue. COSMIC verified the exact Cosmos rollout and prepared Polkadot on the qualified IPFS candidate. No local outputs.
+
 12 November Cancun time. Native tombstone restart 43365762650 and multi-process 43365761546 passed on exact Cosmos-based input tree 5f63fb0755b44a79c7342c33233fd6f16a912e24. The audit read the retained Kubo tombstone block and validated its lineage and content against the protected head. Both jobs confirmed cleanup. All seven APIs report success on Cosmos 23a78784f465. The already coordinated 2ec99009d7c8 candidate remains unchanged.
 
 12 November Cancun time. Hardened the IPFS replica head validator to read the native tombstone CID and compare its logical lineage, provider revision and portable content digest with the protected head. The existing native hard-delete audit exercises this path. This follow-up awaits CI. Candidate 2ec99009d7c8 retains its qualified scope. No local builds or downloads.
