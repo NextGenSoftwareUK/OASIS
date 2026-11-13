@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+13 November Cancun time. Supabase job 132120831504 passed both native routing modes and independently confirmed all three PostgreSQL fixture tables empty. Logs were read in memory. No local artifacts were created.
+
 13 November Cancun time. ActivityPub absence job 132095639208 passed both native routing cases and removed its owned Mastodon fixture directory. Development integration of the earlier qualified batch used existing Git objects. Logs and deployment statuses were inspected in memory, with no local downloads, fixture data or build outputs.
 
 13 November Cancun time. ActivityPub job 132087695900 completed both native routing cases. The hosted runner removed the Mastodon web, TLS, database and Redis containers, its compose network and the owned fixture directory. Logs were read in memory. No local fixtures, downloads or build outputs were created.

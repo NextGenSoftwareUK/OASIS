@@ -18,6 +18,8 @@
 
 ## Verification log
 
+13 November Cancun time. [Native PostgREST qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43493606473/job/132120831504) passed both modes on tree afcec1f12f65bc4c636a47cecb77234a9d487415. A healthy Supabase provider-key miss returned RecordNotFound without querying SQLite, which held the exact record. Both outage directions, replication and RoundRobin continued to pass. CI confirmed all three PostgreSQL tables empty. No local artifacts were created.
+
 13 November Cancun time. Development advanced from ae26ea4d4fa7 to 59bc51b9ba7c after all seven preceding API deployments succeeded. The six scoped files add the native-verified ActivityPub deletion regression and bind hosted verifier evidence to the reviewed Railway deployment. Railway queued WEB4 deployment d5d577e5-ea86-4fc4-9e25-3714a51998af at 14:29:52 Cancun. The next shared review is after 14:59:52 Cancun. Hosted RoundRobin still needs the retained owner and shared record. No local artifacts were created.
 
 13 November 14:22 Cancun time. All seven Railway API deployments succeeded on Development ae26ea4d4fa7. The six scoped files in candidate 59bc51b9ba7c match the provider branch and include the latest deployment-bound Default routing verifier. The candidate preserves the COSMIC projection admission file inherited from Development. The shared review remains after 14:27:26 Cancun. No local builds or fixtures were created.
