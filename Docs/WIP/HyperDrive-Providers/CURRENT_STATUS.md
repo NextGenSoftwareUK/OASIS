@@ -18,6 +18,8 @@
 
 ## Verification log
 
+13 November Cancun time. IPFS now projects source receipt evidence from the same store-bound immutable catalogue snapshot used by recovery. This provides the original committed revision and portable digest for outbound reconciliation. Native validation pending. Enqueue and delivery remain open.
+
 13 November Cancun time. Prepared two-file IPFS candidate 6ddf2fa3ab7fdda0ebbd076d8cb5d6c238078f5d on Development 9da992b83968. Tree 06b2656d63609293a2f1db26a349d2647078bea0 matches native restart and multi-process passes. The Development push workflow 43391220410 records 03:11 Cancun, so review the next verified batch after 03:41 Cancun. Five of seven API deployments report success.
 
 13 November Cancun time. Added native restart coverage that bound conditional recovery rejects another store before disclosing receipt or delta evidence. Existing pointer equality assertion covers both observations. Outbound enrollment and durable worker claims remain open.

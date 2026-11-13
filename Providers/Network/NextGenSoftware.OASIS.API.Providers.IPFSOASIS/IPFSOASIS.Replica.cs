@@ -18,7 +18,7 @@ using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS;
 
 public partial class IPFSOASIS : IBoundCommittedHolonReplicaStorageProvider, ICommittedHolonReplicaReceiptStorageProvider,
-    IHolonReplicaHeadAuditStorageProvider, IBoundConditionalHolonWriteRecoveryStorageProvider, IConditionalHolonDeltaStorageProvider
+    IHolonReplicaHeadAuditStorageProvider, IConditionalHolonReceiptEvidenceStorageProvider, IConditionalHolonDeltaStorageProvider
 {
     private const ProviderType ReplicaAuthority = Core.Enums.ProviderType.IPFSOASIS;
     private sealed class ReplicaLineageConflictException(string message, Exception cause = null)
@@ -154,9 +154,16 @@ public partial class IPFSOASIS : IBoundCommittedHolonReplicaStorageProvider, ICo
         CancellationToken cancellationToken = default)
         => ReadConditionalOutcomeAsync(original, expectedSource, true, cancellationToken);
 
+    public Task<OASISResult<ConditionalHolonWriteOutcome>> ReadConditionalHolonReceiptEvidenceAsync(
+        ConditionalHolonReceiptEvidenceRequest request, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        return ReadConditionalOutcomeAsync(request.Original, request.ExpectedSource, true, cancellationToken, request);
+    }
+
     private async Task<OASISResult<ConditionalHolonWriteOutcome>> ReadConditionalOutcomeAsync(
         ConditionalHolonWriteRequest original, CosmicStorageIdentity expectedSource, bool requireBinding,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken, ConditionalHolonReceiptEvidenceRequest evidenceRequest = null)
     {
         try
         {
@@ -175,11 +182,16 @@ public partial class IPFSOASIS : IBoundCommittedHolonReplicaStorageProvider, ICo
 
                 var receipt = GetReplicaObject(catalogue, "conditionalReceipts")[plan.OperationId.ToString("D")];
                 HolonCommittedDelta delta = null;
+                ConditionalHolonReceiptEvidence evidence = null;
                 if (receipt != null)
-                    _ = ConditionalHolonReceipt.Read(ReplicaText(receipt), plan, out delta);
+                {
+                    var roots = ConditionalHolonReceipt.Read(ReplicaText(receipt), plan, out delta);
+                    if (evidenceRequest != null)
+                        evidence = ConditionalHolonReceiptEvidenceProjection.Create(evidenceRequest, roots);
+                }
                 var state = receipt == null ? ConditionalHolonReceiptState.Absent : ConditionalHolonReceiptState.Committed;
                 return new(new ConditionalHolonWriteOutcome(plan.OperationId, plan.ActorId, plan.Authority,
-                    plan.Operation, state, delta?.SummaryJson)) { IsLoaded = true };
+                    plan.Operation, state, delta?.SummaryJson, evidence)) { IsLoaded = true };
             }
             finally
             {
