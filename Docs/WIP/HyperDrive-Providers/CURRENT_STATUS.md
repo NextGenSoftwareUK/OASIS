@@ -18,6 +18,8 @@
 
 ## Verification log
 
+13 November 11:42 Cancun time. Development advanced to `0ca6397b2fce` with the verified SQLite provider-key fix and Oracle routing test and workflow. The preceding seven API deployments were green. The new rollout is pending. HoloOASIS job `132022655812` stopped before running the conductor because the original routing scope base predates the already integrated test file. Updated that base to current Development and added the reusable workflow to the routing trigger. No local build or fixture was created.
+
 13 November Cancun time. Added a canonical HoloOASIS native regression that reads the shipping action-hash key from each fixture holon, then resolves it through the sync or async provider-key method. The fixture records lookup failures and removes its holons before reporting them. The test uses the existing disposable conductor workflow. No local runtime or fixture was created.
 
 13 November 11:33 Cancun time. Both native checks for staged `0ca6397b2fce` completed successfully. [SQLite and Neo4j](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43463625099/job/132016817554) tested the full tree. [Oracle Free and SQLite](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43463631812/job/132016837461) tested the Oracle overlay on Development. Both jobs enforce zero skips and fixture cleanup. Development remains `fe8319aa11bd`; review the qualified batch after 11:42:21 Cancun. No local artifacts were created.

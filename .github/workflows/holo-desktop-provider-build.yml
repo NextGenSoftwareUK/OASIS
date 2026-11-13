@@ -102,7 +102,7 @@ jobs:
             'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests/HoloOASISIntegrationTests.cs'
             'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests.csproj'
           )
-          $routingBase = '41f685efd3ef66f7b4226edc4e6fca0991c3876d'
+          $routingBase = '0ca6397b2fce3f2d9db4535c878936d2817ef9f6'
           if ($env:HOLO_VERIFICATION -eq 'routing') {
             $paths = @(
               'Scripts/test_holonet_live_release.ps1'
