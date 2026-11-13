@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+12 November both Hedera routing jobs in 43336838228 removed their owned Hiero fixtures and SDK dependencies. No local build or download.
+
 12 November removed and verified absence of the temporary index used to reproduce the Hedera qualification tree. No local build or download.
 
 12 November both exact Development IPFS jobs removed their disposable Kubo runtimes, repositories and logs. The temporary Git index used to verify the tested tree and compose 29c8ffa64101 was removed and verified absent.

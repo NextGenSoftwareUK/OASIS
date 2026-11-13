@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. Hedera exact Development routing run 43336838228 passed both modes with zero skips on expected tree a9261d359af1bef6121360991dd264b43637d784. Both confirmed native Hiero teardown. Funded testnet and hosted CQL remain separate verification scopes.
+
 12 November Cancun time. Polygon Development push workflow 43337069687 started at 19:26:21 Cancun. The next shared integration review opens after 19:56:21. Candidate 29c8ffa64101 remains based on the exact Polygon commit. Verify the live Polygon rollout, seven deployment statuses and current remote before selecting the batch.
 
 12 November Cancun time. Development advanced to COSMIC Polygon c47edf2e3062 during the shared window. HyperDrive candidate 29c8ffa64101 includes the qualified routing and IPFS scope on this parent. Verify the Polygon deployment before publishing. Hedera exact routing CI 43336838228 is active. Its expected recovery-parent tree is a9261d359af1bef6121360991dd264b43637d784, reproduced using a temporary Git index that was removed and verified absent. The five tested inputs do not overlap COSMIC Hedera 56aaf3244d47.
