@@ -18,6 +18,8 @@
 
 ## Verification log
 
+13 November Cancun time. Prepared exact two-file IPFS candidate f5795b528b5b on integrated Polkadot 49f8463de927. Its expected tree 1634b34b065c4f78bdb7af61c15c7e2b7490bcd3 includes the historical replay check in runs 43371454193 and 43371456764. The staged file list and whitespace were checked. Polkadot push workflow 43371354734 places the next shared review after 00:50:16 Cancun.
+
 13 November Cancun time. Polkadot 49f8463de927 is now the remote Development head. Dispatched native restart 43371454193 and multi-process 43371456764 from c5d12062f03c. These runs include the historical replay assertion added after the earlier Polkadot-based candidate. Verify the emitted tree against a candidate assembled from those exact inputs before integration.
 
 13 November Cancun time. Native Kubo restart 43370692451 passed historical replay after a successor commit on tree 99d8f301988da4e8afb075a88fb054fd599db45a. The older acknowledgement was returned and the newer catalogue pointer remained unchanged. The restart job confirmed fixture cleanup. The Polkadot image passed and remains the next coordinated batch after 00:17:49.
