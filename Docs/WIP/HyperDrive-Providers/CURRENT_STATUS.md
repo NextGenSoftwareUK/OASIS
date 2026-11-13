@@ -18,6 +18,8 @@
 
 ## Verification log
 
+13 November Cancun time. Native job `132037589694` passed both action-hash cases and confirmed that the collection failure contains a non-GUID string identity. The disposable routing fixture used the packaged app's default network seed, so the same DNA could discover records from other conductors. The runner now installs the exact verified bundle with a unique seed before shipping activation. The collection parser still rejects invalid identities. Native verification of isolation is pending. No local conductor or fixture was created.
+
 13 November Cancun time. [Standalone HoloOASIS job 132033029467](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43468243143/job/132033029467) passed both direct reads using keys from the native save responses. Both collection-routing cases failed, with a mapped HcHolon, action hash and raw identity field present. Added value-free diagnostics to distinguish malformed GUIDs from the empty GUID. Keep the full routing gate open. No local artifacts were created.
 
 13 November Cancun time. All seven API deployments reported success on Development `0ca6397b2fce`, which includes the SQLite provider-key fix and Oracle native routing coverage. The HoloOASIS collection diagnostic and standalone action-hash jobs remain active. The next shared review is after 12:14:45 Cancun based on the rollout timestamp. No local artifacts were created.

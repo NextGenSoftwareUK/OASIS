@@ -11,10 +11,13 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests;
 
 public sealed class HoloNativeRoutingTests
 {
+    private static readonly Lazy<Task> InstallIsolatedApp = new(InstallIsolatedAppAsync);
+
     [Theory, InlineData(false), InlineData(true)]
     public async Task RoutesAcrossOfficialConductorAndSqlite(bool sync)
     {
         Assert.Equal("true", Environment.GetEnvironmentVariable("GITHUB_ACTIONS"));
+        await InstallIsolatedApp.Value;
         var admin = new Uri(Required("OASIS_HOLOCHAIN_ADMIN_URI"));
         Assert.True(admin.IsLoopback);
         var directory = Path.GetFullPath(Required("OASIS_HOLOCHAIN_REPORT_DIR"));
@@ -79,6 +82,7 @@ public sealed class HoloNativeRoutingTests
     public async Task LoadsNativeHolonByReturnedActionHash(bool sync)
     {
         Assert.Equal("true", Environment.GetEnvironmentVariable("GITHUB_ACTIONS"));
+        await InstallIsolatedApp.Value;
         var admin = new Uri(Required("OASIS_HOLOCHAIN_ADMIN_URI"));
         Assert.True(admin.IsLoopback);
         var holo = OpenProvider(admin);
@@ -111,13 +115,35 @@ public sealed class HoloNativeRoutingTests
         }
     }
 
-    private static HoloOASIS OpenProvider(Uri endpoint)
-        => new(new HoloNETClientAdmin(new HoloNETDNA
+    private static async Task InstallIsolatedAppAsync()
+    {
+        var endpoint = new Uri(Required("OASIS_HOLOCHAIN_ADMIN_URI"));
+        Assert.True(endpoint.IsLoopback);
+        var admin = OpenAdmin(endpoint);
+        var connected = await admin.ConnectAsync();
+        Assert.False(connected.IsError, connected.Message);
+        try
+        {
+            var installed = await admin.InstallAppAsync(HoloOASIS.OASIS_HAPP_ID,
+                Required("HOLONET_LIVE_HAPP_PATH"), network_seed: Guid.NewGuid().ToString("N"));
+            Assert.False(installed.IsError, installed.Message);
+        }
+        finally
+        {
+            await admin.DisconnectAsync();
+        }
+    }
+
+    private static HoloNETClientAdmin OpenAdmin(Uri endpoint)
+        => new(new HoloNETDNA
         {
             HolochainConductorAdminURI = endpoint.AbsoluteUri,
             AutoStartHolochainConductor = false,
             AutoShutdownHolochainConductor = false
-        }), null!, useHoloNetwork: false);
+        });
+
+    private static HoloOASIS OpenProvider(Uri endpoint)
+        => new(OpenAdmin(endpoint), null!, useHoloNetwork: false);
     private static string Required(string name)
         => Environment.GetEnvironmentVariable(name) is { Length: > 0 } value
             ? value : throw new InvalidOperationException($"Missing fixture setting {name}.");
