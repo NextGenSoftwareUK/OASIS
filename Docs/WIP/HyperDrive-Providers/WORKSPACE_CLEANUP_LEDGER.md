@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+13 November jobs 43402827306 and 43402809673 confirmed disposable Kubo fixture teardown. Removed and verified absence of the temporary Git index used for the source isolation candidate. No local builds or downloads.
+
 13 November jobs 43401897171 and 43401880550 confirmed disposable Kubo fixture teardown. Removed and verified absence of the temporary Git index for the exact route inventory candidate. No local builds or downloads.
 
 13 November removed and verified absence of the temporary Git index used to assemble the single-file IPFS restart candidate. No local builds or downloads.

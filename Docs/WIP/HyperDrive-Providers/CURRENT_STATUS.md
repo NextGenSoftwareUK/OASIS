@@ -18,6 +18,8 @@
 
 ## Verification log
 
+13 November Cancun time. Native restart 43402827306 confirmed that the wrong IPFS source identity cannot list or claim a pending replica and leaves the catalogue pointer unchanged. Multi-process 43402809673 passed on the same tree aa7c707a7950647a8e94d7865aeb355b1bbf9e93. Single-test-file candidate fc87e8a8b425730af5169dc3945f173a4e83ce19 supersedes the previous candidate for the next shared Development review.
+
 13 November Cancun time. Native restart 43401897171 verified route inventory discovers the pending IPFS delivery across Kubo restart and clears it after confirmed SQLite dispatch. Multi-process 43401880550 passed on the same tree 406d4f3cbd4df87e9a9ee672f3af3295ed107de4. Single-test-file candidate 62c8d9fc653eb2469b0f72aafe6141142bc8097c supersedes ccc17609fad6 for the next Development review.
 
 13 November Cancun time. Staged ccc17609fad6a439459c40520d7032648439faac directly on Development 6205d946c478. The candidate changes only IPFSRestartTests.cs and exactly reproduces the qualified native tree b36b29f6d5c5987ec6d4d02eaf6c125b4ea1e92a. WEB4 was the only pending Railway deployment at inspection. Recheck Development, Railway and COSMIC at the shared review.
