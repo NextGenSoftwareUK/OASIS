@@ -18,6 +18,8 @@
 
 ## Verification log
 
+13 November Cancun time. Native MongoDB regression run 43417731326 progressed beyond the corrected no-group search assertion in all four combinations. Both MongoDB-primary cases failed capturing the committed graph for replication after the primary acknowledged persistence. Both SQLite-primary cases failed a MongoDB multi-key metadata collection read. These failures remain open and are distinct from the passing focused RoundRobin test.
+
 13 November Cancun time. Fast-forwarded Development to 97521160d47e after the half-hour review and seven successful predecessor deployments. The two-file test and workflow batch matches the native RoundRobin-tested tree. Verified the remote ref. Hosted distribution remains open. No local build or downloads.
 
 13 November Cancun time. Native run 43415666201 passed 1/1 with no skips on candidate 1818e1d5f063 based on Development 747ac0d8d140. Six independent point-read scopes reported RoundRobin and verified the exact record, with MongoDB and SQLite serving three reads each. Hosted verification remains open.

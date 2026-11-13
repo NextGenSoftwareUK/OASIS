@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+13 November native MongoDB regression run 43417731326 completed temporary container teardown after its assertions failed. Logs were inspected in memory. The temporary candidate Git index was removed and verified absent. No local builds or runtime downloads.
+
 13 November run 43415666201 completed its temporary MongoDB container cleanup. The passing test removed its disposable database and SQLite directory. CI logs were inspected in memory. No local builds or downloads.
 
 13 November native MongoDB and SQLite run 43414762460 removed its temporary MongoDB container after the subscription-eligibility assertion failed. Removed and verified absence of the temporary Git index for corrected candidate 1818e1d5f063. No local database, build or download.
