@@ -18,6 +18,8 @@
 
 ## Verification log
 
+13 November Cancun time. Native MongoDB and SQLite replication run [43421793246](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43421793246) reached historical search in all four cases. The stack trace confirmed that versioned search rejected multiple revisions of unrelated logical version 0 before selecting the requested version. Search now uses the shared archive validator with the requested logical version for holons and avatars, preserving archive integrity validation and ambiguity rejection for the requested version. Native requalification is pending.
+
 13 November Cancun time. Development advanced to 412f230c353e with COSMIC numeric reductions and a new Core pin. The MongoDB graph and history qualification changes do not overlap the new CQL composition file. Native run 43421793246 on f403d4b7f649 is queued on the previous Development baseline. Carry forward its diagnostic result and qualify the verified scope on the new parent before integration. No local build or runtime download.
 
 13 November Cancun time. Native graph run 43419743754 advanced both MongoDB-primary modes through graph replication after hydrating committed child roles from BSON. All four cases then failed the historical metadata read on duplicate logical versions. The predictive write in the fixture changed payload without advancing its caller-owned version. Combined candidate c38fb7813289 assigns version 2 to that write and runs in 43420249445 on Development 97521160d47e. The full routing suite remains open.
