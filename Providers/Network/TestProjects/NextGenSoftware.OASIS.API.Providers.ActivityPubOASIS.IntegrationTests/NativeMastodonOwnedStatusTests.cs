@@ -65,6 +65,39 @@ public class NativeMastodonOwnedStatusTests
         Assert.Equal(sourceText, deleted.Result.MetaData["MastodonSourceText"]);
         using var after = await client.GetAsync(path);
         Assert.Equal(HttpStatusCode.NotFound, after.StatusCode);
+        if (routed)
+            await VerifyPublicObjectResolutionAsync(client, provider);
+    }
+
+    private static async Task VerifyPublicObjectResolutionAsync(HttpClient client, ActivityPubOASIS provider)
+    {
+        using var form = new FormUrlEncodedContent(new Dictionary<string, string>
+        {
+            ["status"] = $"OASIS disposable public object {Guid.NewGuid():N}",
+            ["visibility"] = "public"
+        });
+        using var created = await client.PostAsync("/api/v1/statuses", form);
+        created.EnsureSuccessStatusCode();
+        using var document = JsonDocument.Parse(await created.Content.ReadAsStringAsync());
+        var id = document.RootElement.GetProperty("id").GetString();
+        Assert.Matches("^[0-9]+$", id!);
+        var path = $"/api/v1/statuses/{id}";
+        try
+        {
+            var uri = document.RootElement.GetProperty("uri").GetString();
+            var resolved = await provider.LoadPublicStatusByObjectUriAsync(uri!);
+            Assert.False(resolved.IsError, resolved.Message);
+            Assert.True(resolved.IsLoaded);
+            Assert.Equal(uri, resolved.Result.MetaData["MastodonObjectUri"]);
+            Assert.Equal(id, resolved.Result.ProviderUniqueStorageKey[ProviderType.ActivityPubOASIS]);
+        }
+        finally
+        {
+            using var deleted = await client.DeleteAsync(path);
+            deleted.EnsureSuccessStatusCode();
+            using var absent = await client.GetAsync(path);
+            Assert.Equal(HttpStatusCode.NotFound, absent.StatusCode);
+        }
     }
 
     private static async Task<NextGenSoftware.OASIS.Common.OASISResult<IHolon>> RouteStatusAsync(
