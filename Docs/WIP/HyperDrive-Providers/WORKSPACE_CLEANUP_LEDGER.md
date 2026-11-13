@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+12 November exact audit-baseline checks 43368094591 and 43368085941 removed both disposable Kubo runtime and fixture directories. No local build or download.
+
 12 November removed the temporary index used to reproduce the IPFS tombstone and binding tree and verified it was absent. No local build or download.
 
 12 November unpublished-store runs 43366903327 and 43366901241 confirmed removal of disposable Kubo files. No local builds or downloads. C: had 32.06 GB free at inspection.

@@ -18,7 +18,7 @@
 
 ## Verification log
 
-12 November Cancun time. Prepared two-file IPFS tombstone and binding candidate 7c337ab7d8c1 on Development 2ec99009d7c8. Independently reproduced previously tested tree fb4ea5c681ab3591bb9a1cdb729099531868a531. Replacement CI 43368094591 and 43368085941 were queued at inspection. Polkadot is the coordinated follow-on after 00:17:49. No local builds or downloads.
+12 November Cancun time. Prepared two-file IPFS tombstone and binding candidate 7c337ab7d8c1 on Development 2ec99009d7c8. Independently reproduced previously tested tree fb4ea5c681ab3591bb9a1cdb729099531868a531. Replacement native restart 43368094591 and multi-process 43368085941 passed on that exact tree after CI adopted the integrated audit baseline. Both runs confirmed fixture cleanup. Polkadot is the coordinated follow-on after 00:17:49. No local builds or downloads.
 
 12 November Cancun time. Development fast-forwarded from live-verified Cosmos 23a78784f465 to the exact three-file IPFS audit and reconciliation batch 2ec99009d7c8 after the 23:45:22 shared window opened. All seven predecessor APIs were healthy. Kubo runs 43364403850 and 43364406865 matched the integrated tree and confirmed cleanup. The remote ref and Railway manifest were verified. Polkadot is the coordinated follow-on. New rollout and later IPFS binding and tombstone changes remain open.
 
