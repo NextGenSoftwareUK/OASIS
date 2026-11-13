@@ -10,13 +10,15 @@
 | ActivityPub and routing | ActivityPub has 5/5 native capability checks. GOMap passed a public OSRM driving route. Authenticated Google Routes, Mapbox and HERE checks remain open. Niantic and WRLD still have reviewed adapter gaps. |
 | Canonical HoloOASIS | Top priority. Both modes passed all 52 native core-storage-v2 checks on the official Windows conductor with the verified identity-delete hApp in [run 43178174352](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43178174352). The verified bundle is packaged on the provider branch. Hosted, multi-agent and broader capability acceptance remain open. |
 | HoloOASIS.Desktop | Obsolete in source, package metadata and repository documentation at `45d6665da989`. The six-file compatibility and documentation batch reached Development at `70d3fbb4a31c`. Published NuGet metadata and live site listings still need the obsolescence update. |
-| Development | WEB4 deployment succeeded on e247ea434af1 with the Solana signature-version and ActivityPub public URI changes. WEB4 also deployed the COSMIC relay successor ae26ea4d4fa7. All seven API deployments succeeded. Hosted HoloOASIS writes remain open. |
+| Development | 59bc51b9ba7c contains the ActivityPub deletion regression and hosted routing verifier fixes. WEB4 rollout is queued. Hosted HoloOASIS writes remain open. |
 | BootLoader startup | The shipping registration, activation and deactivation path passed against native Polkadot and TRON fixtures and the Microsoft Azure Cosmos DB emulator. [Azure Cosmos DB job 131055311882](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43180594194/job/131055311882) confirmed fixture teardown. |
 | HyperDrive | Priority-provider failover, replication and load balancing verification is active. Whole-inventory acceptance remains open. |
 
 [Provider matrix](PROVIDER_MATRIX.md) · [Evidence registry](CONFORMANCE_RESULTS.json) · [Cleanup ledger](WORKSPACE_CLEANUP_LEDGER.md)
 
 ## Verification log
+
+13 November Cancun time. Development advanced from ae26ea4d4fa7 to 59bc51b9ba7c after all seven preceding API deployments succeeded. The six scoped files add the native-verified ActivityPub deletion regression and bind hosted verifier evidence to the reviewed Railway deployment. Railway queued WEB4 deployment d5d577e5-ea86-4fc4-9e25-3714a51998af at 14:29:52 Cancun. The next shared review is after 14:59:52 Cancun. Hosted RoundRobin still needs the retained owner and shared record. No local artifacts were created.
 
 13 November 14:22 Cancun time. All seven Railway API deployments succeeded on Development ae26ea4d4fa7. The six scoped files in candidate 59bc51b9ba7c match the provider branch and include the latest deployment-bound Default routing verifier. The candidate preserves the COSMIC projection admission file inherited from Development. The shared review remains after 14:27:26 Cancun. No local builds or fixtures were created.
 
