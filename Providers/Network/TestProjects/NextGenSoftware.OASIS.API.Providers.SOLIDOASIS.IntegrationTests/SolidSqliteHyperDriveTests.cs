@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Sockets;
+using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive;
