@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. Extended the native SQLite-to-IPFS test to deliver soft and hard deletes through the same bound outbox route. It checks both receipt states and absence from the IPFS current catalogue after hard delete. This branch extension awaits native CI and does not change the staged receiver candidate. No local fixture or download.
+
 12 November Cancun time. Native SQLite outbox reopen and IPFS restart run 43355888239 passed. The source provider was disposed before dispatch. A second dispatcher reopened the outbox, completed zero deliveries and left the IPFS pointer unchanged. Multi-process run 43355872380 passed on the same tree 73bae7772ef56d40dc6fdb1322eb251a496fb178. Both jobs removed their fixtures. Keep fd9b328ac712 as the stable EOSIO follow-on while COSMIC prepares its dependent Cosmos candidate.
 
 12 November Cancun time. Prepared IPFS receiver and native SQLite delivery candidate fd9b328ac712 on qualified EOSIO 4d338173e64d. Its tree eeaa5ddc3c29ae68ea938319259fafbf537519cf changes exactly the four qualified provider and test paths. The temporary index was verified absent. All seven APIs are healthy on the current IPFS identity Development revision, with four exact live CQL presets confirmed by COSMIC. EOSIO retains the next shared window after 22:07:01. No local build or download.

@@ -231,5 +231,34 @@ public sealed class IPFSRestartTests
         Assert.False(resumed.IsError, resumed.Message);
         Assert.Equal(0, resumed.Result.CompletedCount);
         Assert.Equal(persistedAfterDelivery, await File.ReadAllTextAsync(dnaPath));
+
+        foreach (var operation in new[] { ConditionalHolonOperation.SoftDelete, ConditionalHolonOperation.HardDelete })
+        {
+            using var sqlite = new SqliteProvider(connection);
+            var activated = await sqlite.ActivateProviderAsync();
+            Assert.True(activated.Result && !activated.IsError, activated.Message);
+            var expectedRevision = CosmicConcurrency.GetProviderRevisionId(committed, route.SourceStorage.Authority);
+            Assert.NotNull(expectedRevision);
+            var write = new ConditionalHolonWrite(Guid.NewGuid(), actor, route.SourceStorage.Authority,
+                new[] { new HolonWriteCondition(replica.Id, expectedRevision) });
+            var enrollment = new HolonReplicationEnrollment(route.SourceId, new[] { route.TargetId }, route.SourceStorage,
+                new[] { route });
+            var deleted = await sqlite.ExecuteReplicatingHolonWriteAsync(
+                new ConditionalHolonWriteRequest(write, operation, new[] { committed }, saveChildren: false), enrollment);
+            Assert.False(deleted.IsError, deleted.Message);
+            committed = Assert.Single(deleted.Result);
+            Assert.True(committed.IsDeleted);
+            var delivery = await resumedWorker.DispatchOnceAsync(route.TargetId, maximumCount: 1);
+            Assert.False(delivery.IsError, delivery.Message);
+            Assert.Equal(1, delivery.Result.CompletedCount);
+            var request = new CommittedHolonReplicaRequest(write.OperationId, route.SourceId, route.SourceStorage.Authority,
+                actor, operation, new[] { committed }, false, true, 0, new[] { route });
+            var receipt = await provider.ReadCommittedHolonReplicaReceiptAsync(new(request, identity));
+            Assert.True(receipt.IsLoaded && !receipt.IsError, receipt.Message);
+            Assert.Equal(ConditionalHolonReceiptState.Committed, receipt.Result.ReceiptState);
+        }
+        var removed = await provider.LoadHolonAsync(replica.Id, loadChildren: false);
+        Assert.False(removed.IsLoaded);
+        Assert.Null(removed.Result);
     }
 }
