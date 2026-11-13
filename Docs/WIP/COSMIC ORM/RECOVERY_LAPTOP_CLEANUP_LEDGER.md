@@ -6576,3 +6576,5 @@ Track temporary tag `ci-cosmic-infura-web4-ee3a6589a6` for exact runs `432184056
 13 November Cancun time. HostedAskYourDataAcceptance retains four compact MongoDBOASIS-datetime-proof receipts for one private timestamp fixture. Conditional deletion returned 409 and cleanup remains open. Preserve the journal for reconciliation. No SQLite or Neo4j timestamp fixtures, local runtime installs, or build outputs.
 
 13 November Cancun time. MongoDB timestamp proof fixture was conditionally hard-deleted with its provider revision, and the same visitor confirmed absence by exact CQL ID lookup. Six compact intent and acknowledgement receipts remain. No local runtimes or build outputs.
+
+13 November Cancun time. HostedSourceRolloutCurrent retains the grouped-admission preview, protected before and candidate settings, and one intent and acknowledgement. Keep protected snapshots through live rollout and rollback review, then retire them according to the existing journal policy. No runtime installs, fixtures, or build outputs.
