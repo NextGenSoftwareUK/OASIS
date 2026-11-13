@@ -98,13 +98,9 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
                 await gate.WaitAsync(cancellationToken).ConfigureAwait(false);
                 try
                 {
-                    var settings = ReadPersistedCatalogueDna().OASIS.StorageProviders.IPFSOASIS;
-                    if (IPFSClient == null || string.IsNullOrWhiteSpace(settings.LookUpIPFSAddress))
-                        throw new InvalidOperationException("An active IPFS client and published catalogue are required.");
-
-                    var envelope = await ReadCqlEnvelopeAsync(settings.LookUpIPFSAddress, cancellationToken).ConfigureAwait(false);
-                    DeserializeLookup(UnprotectIndex(envelope), out var storeId);
-                    result.Result = CreateCatalogueStorageIdentity(settings.ConnectionString, storeId);
+                    var (_, _, storage) = await ReadBoundCatalogueAsync(ReadPersistedCatalogueDna(), cancellationToken)
+                        .ConfigureAwait(false);
+                    result.Result = storage;
                 }
                 finally
                 {
