@@ -6564,3 +6564,5 @@ Track temporary tag `ci-cosmic-infura-web4-ee3a6589a6` for exact runs `432184056
 13 November 15:00 UTC. Hosted CQL relationship acceptance reused the original dedicated visitor and three parents. Retained six small child intent/acknowledgement receipts under LocalState/COSMIC/HostedAskYourDataAcceptance and three private Development children for next-revision read-only verification. No local runtime, download, build output or disposable database was created.
 
 13 November UTC. Depth-two proof retained one private Development grandchild per existing native store with replication disabled and six compact intent/acknowledgement files in HostedAskYourDataAcceptance. Reused the existing visitor, parent and child fixtures. No local runtime, download, database or build output created.
+
+13 November UTC. Selected-column compiler smoke reused installed Chrome. The temporary cosmic-projection-chrome directory contained the exact parser, a minimal local page and the browser profile. TemporaryDirectory removed all three when Chrome exited. No browser install, runtime download or retained screenshot.
