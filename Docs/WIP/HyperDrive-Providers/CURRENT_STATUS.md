@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. Native graph restart 43363302327 and multi-process publication 43363293816 passed on tree 6083d3df2a9c8ea0649c03339194f25c66a8c30b. SQLite outbox delivery preserved parent and child logical revisions and the parent link in Kubo. Both jobs removed the disposable fixtures. Cosmos retains the next shared window.
+
 12 November Cancun time. Graph restart 43362838046 delivered the graph but the test used a root-only native read and found no children. Request the shipping provider-backed child projection explicitly. Multi-process 43362820146 passed. Both confirmed fixture cleanup. No local output.
 
 12 November Cancun time. Extended the native SQLite-to-IPFS route to commit and deliver a parent-child graph and compare both logical revisions and the parent link. Native CI pending. COSMIC requests the next shared window for the qualified Cosmos demo batch, so use the Cosmos-based IPFS reconciliation candidate after the actual shared parent changes. No local build or download.
