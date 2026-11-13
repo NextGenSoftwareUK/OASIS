@@ -64,6 +64,7 @@ jobs:
             "$tests/SolanaCoreStorageConformanceTests.cs" \
             "$tests/SolanaCoreStorageConformanceTests.Routing.cs" \
             'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.SOLANAOASIS/SolanaOasis.IdentityLookup.cs' \
+            'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.SOLANAOASIS/SolanaOasis.AvatarLoad2.cs' \
             'Providers/Shared/TestSupport/NativePriorityRouting.cs'; do
             current="$(git ls-tree HEAD -- "$path")"
             reviewed="$(git -C ../provider-source ls-tree "$base" -- "$path")"
