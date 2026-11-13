@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November 19:52 Cancun time. All seven Polygon deployments report success on c47edf2e3062. COSMIC has reserved the 19:56:21 shared window for its verified Arbitrum batch. HyperDrive will use the Arbitrum-based 8ac334af67c2 candidate after the next rollout review if Arbitrum lands unchanged. No Development push or local fixture in this review.
+
 12 November Cancun time. Prepared candidate 8ac334af67c2 on the proposed Arbitrum parent db5b9cf03dc3. All 30 changed path modes and object IDs match Polygon-based candidate 1c5edd702f65, including the cross-platform IPFS and atomic DNA publication scope. COSMIC proposes Arbitrum at the 19:56:21 window if the remote and preceding fleet remain healthy. No local environment or temporary index was created.
 
 12 November Cancun time. Windows active-reader 43339736537 and Linux writer-process 43339841493 passed on independently reproduced Development tree 1a5e59b287abdc3c55e0cd79ff28572a4509cc20. Prepared candidate 1c5edd702f65 with the two atomic DNA publication paths on the verified Polygon-based batch. No overlap with the pending Arbitrum scope.
