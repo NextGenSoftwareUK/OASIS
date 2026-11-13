@@ -10,13 +10,15 @@
 | ActivityPub and routing | ActivityPub has 5/5 native capability checks. GOMap passed a public OSRM driving route. Authenticated Google Routes, Mapbox and HERE checks remain open. Niantic and WRLD still have reviewed adapter gaps. |
 | Canonical HoloOASIS | Top priority. Both modes passed all 52 native core-storage-v2 checks on the official Windows conductor with the verified identity-delete hApp in [run 43178174352](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43178174352). The verified bundle is packaged on the provider branch. Hosted, multi-agent and broader capability acceptance remain open. |
 | HoloOASIS.Desktop | Obsolete in source, package metadata and repository documentation at `45d6665da989`. The six-file compatibility and documentation batch reached Development at `70d3fbb4a31c`. Published NuGet metadata and live site listings still need the obsolescence update. |
-| Development | WEB4 deployment succeeded on e247ea434af1 with the Solana signature-version and ActivityPub public URI changes. WEB4 also deployed the COSMIC relay successor ae26ea4d4fa7. WEB6 and WEB7 remained pending at the latest check. Hosted HoloOASIS writes remain open. |
+| Development | WEB4 deployment succeeded on e247ea434af1 with the Solana signature-version and ActivityPub public URI changes. WEB4 also deployed the COSMIC relay successor ae26ea4d4fa7. All seven API deployments succeeded. Hosted HoloOASIS writes remain open. |
 | BootLoader startup | The shipping registration, activation and deactivation path passed against native Polkadot and TRON fixtures and the Microsoft Azure Cosmos DB emulator. [Azure Cosmos DB job 131055311882](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43180594194/job/131055311882) confirmed fixture teardown. |
 | HyperDrive | Priority-provider failover, replication and load balancing verification is active. Whole-inventory acceptance remains open. |
 
 [Provider matrix](PROVIDER_MATRIX.md) · [Evidence registry](CONFORMANCE_RESULTS.json) · [Cleanup ledger](WORKSPACE_CLEANUP_LEDGER.md)
 
 ## Verification log
+
+13 November 14:22 Cancun time. All seven Railway API deployments succeeded on Development ae26ea4d4fa7. The six scoped files in candidate 59bc51b9ba7c match the provider branch and include the latest deployment-bound Default routing verifier. The candidate preserves the COSMIC projection admission file inherited from Development. The shared review remains after 14:27:26 Cancun. No local builds or fixtures were created.
 
 13 November Cancun time. The hosted Default candidate verifier now checks the reviewed WEB4 deployment before and after its provider reads and includes the verified deployment UUID in its report. It publishes evidence only after the complete read set passes on the same deployment. The existing 30 verifier tests passed with bytecode disabled. Hosted execution still requires the retained owner cohort. No local artifacts were created.
 
