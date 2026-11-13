@@ -6542,3 +6542,5 @@ Track temporary tag `ci-cosmic-infura-web4-ee3a6589a6` for exact runs `432184056
 12 November Cancun time. Verified the NEAR plus HyperDrive combined tree `577b7f28e14c` using a temporary Git index only. The index was removed and no matching COSMIC temporary-index directory remains. No runtime, local image, database copy or local build output was created. Development Arbitrum rollout and the EOSIO/Cosmos image jobs use hosted infrastructure.
 
 12 November Cancun time. Reused the existing Railway CLI for read-only NEAR and EOSIO catalogue preflight, with no report or credentials written. Exact builds and test jobs remain on GitHub. Temporary index for the three documentation updates is removed before push.
+
+12 November Cancun time. Retired the temporary EOSIO qualification tag ci-cosmic-eosio-ipfs-4d338173e64d after controlled admission, exact image publication and all four live WEB4 presets passed. Confirmed the revision is still reachable through Development and the remote tag is absent. No local artifacts created.
