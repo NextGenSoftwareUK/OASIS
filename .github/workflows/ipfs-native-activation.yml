@@ -64,7 +64,7 @@ jobs:
           tests='Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.IPFSOASIS.IntegrationTests'
           for path in "$provider/IPFSOASIS.Init.cs" "$provider/IPFSOASIS.IndexIdentity.cs" \
             'OASIS Architecture/NextGenSoftware.OASIS.API.DNA/OASISDNAManager.cs' \
-            "$provider/IPFSOASIS.AvatarLifecycle.cs" "$provider/IPFSOASIS.Replica.cs" "$provider/IPFSOASIS.PrivateStorage.cs" "$provider/IPFSOASIS.GraphSave.cs" \
+            "$provider/IPFSOASIS.AvatarLifecycle.cs" "$provider/IPFSOASIS.Replica.cs" "$provider/IPFSOASIS.PrivateStorage.cs" "$provider/IPFSOASIS.GraphSave.cs" "$provider/IPFSOASIS.Outbox.cs" \
             "$tests/IPFSConcurrentPublicationTests.cs" "$tests/IPFSRestartTests.cs" \
             "$tests/NextGenSoftware.OASIS.API.Providers.IPFSOASIS.IntegrationTests.csproj"; do
             current="$(git ls-tree HEAD -- "$path")"

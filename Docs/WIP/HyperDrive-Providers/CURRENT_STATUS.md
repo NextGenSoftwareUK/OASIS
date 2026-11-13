@@ -18,6 +18,8 @@
 
 ## Verification log
 
+13 November Cancun time. Work branch now exposes the IPFS atomic replication source and catalogue-backed worker outbox. Claims, renewals, outcomes and route inventory validate the bound source. Native build and real IPFS-to-target verification are pending. No local builds or downloads.
+
 13 November Cancun time. Added IPFS catalogue transaction support for bound outbound enrollment. The source is checked before receipt replay and each frozen target obligation is staged with the graph and receipt before the single pointer publication. This remains internal until the durable worker claim and dispatch path is implemented and verified. No local build or download.
 
 13 November Cancun time. IPFS now projects source receipt evidence from the same store-bound immutable catalogue snapshot used by recovery. This provides the original committed revision and portable digest for outbound reconciliation. Native restart 43393557901 and multi-process 43393544412 passed on tree d4023989ca5b96b28e2ddd192c51f380b2409221. Restart compared the source revision and portable digest to the recovered committed record. Both jobs removed their fixtures. Two-file candidate a41c57060d51e5e863ab7869c37cc3cb90e30ec4 supersedes the earlier delta candidate for the 03:41 Cancun shared review. Enqueue and delivery remain open.
