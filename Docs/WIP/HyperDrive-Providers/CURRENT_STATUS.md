@@ -18,6 +18,8 @@
 
 ## Verification log
 
+13 November Cancun time. Development advanced to 7f3331146b9d in the 09:26 shared window after all seven preceding APIs deployed successfully. The six verified files cover replica initialization authorization and read-only hosted routing evidence. The new rollout and protected hosted evidence remain open.
+
 13 November Cancun time. The read-only hosted candidate verifier now requires the retained owner session to be valid without renewal. The regression confirms an expired session stops before any routing request. All 30 sandbox HyperDrive verifier tests passed with bytecode output disabled. No hosted credentials, requests or local build artifacts were used.
 
 13 November Cancun time. Staged Development candidate 5d0768dbdaf9 containing the two exact-CI replica authorization files and the two verified hosted RoundRobin verifier files. All sandbox scripts match the tested task-branch versions. Development is d495c8fe651a, whose seven APIs have completed deployment. Review again at 09:26:02 Cancun, 30 minutes after the recorded Development push. The protected hosted cohort and original writer evidence are still open.
