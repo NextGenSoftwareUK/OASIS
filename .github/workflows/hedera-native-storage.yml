@@ -3,12 +3,20 @@ name: Hedera native storage deployment
 on:
   push:
     branches: [work/hyperdrive-provider-completion]
+    tags: ['ci-cosmic-hedera-native-*']
     paths:
-      - '.github/workflows/hedera-native-storage.yml'
       - 'Scripts/TestHosts/Deploy-HederaLocalStorage.mjs'
       - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS/HederaStorageConfiguration.cs'
       - 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.IntegrationTests/HederaLocalStorageConformanceTests.cs'
   workflow_dispatch:
+  workflow_call:
+    inputs:
+      routing:
+        type: boolean
+        default: false
+    secrets:
+      PRIVATE_SUBMODULE_PAT:
+        required: true
 
 permissions:
   contents: read
@@ -25,12 +33,54 @@ jobs:
       run:
         working-directory: OASIS
     steps:
+      - name: Resolve the Development baseline
+        if: inputs.routing
+        id: baseline
+        shell: bash
+        working-directory: ${{ github.workspace }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          revision="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/Development" --jq .object.sha)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "revision=$revision" >> "$GITHUB_OUTPUT"
+          echo "Qualifying Hedera routing on Development $revision"
+
+      - uses: actions/checkout@v7
+        if: inputs.routing
+        with:
+          path: provider-source
+          persist-credentials: false
+
       - uses: actions/checkout@v7
         with:
           token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          ref: ${{ steps.baseline.outputs.revision || github.sha }}
           path: OASIS
           submodules: recursive
           persist-credentials: false
+
+      - name: Apply the reviewed Hedera routing scope
+        if: inputs.routing
+        shell: bash
+        run: |
+          base=18f227af493af1ca26c90429343f37a0f1a2147a
+          git -C ../provider-source fetch --no-tags --depth=1 origin "$base"
+          tests='Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.IntegrationTests'
+          for path in "$tests/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.IntegrationTests.csproj" \
+            "$tests/HederaSqliteHyperDriveTests.cs" \
+            'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS/HashgraphOASIS.cs' \
+            'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS/HederaSdkClient.cs' \
+            'Providers/Shared/TestSupport/NativePriorityRouting.cs'; do
+            current="$(git ls-tree HEAD -- "$path")"
+            reviewed="$(git -C ../provider-source ls-tree "$base" -- "$path")"
+            incoming="$(git -C ../provider-source ls-tree HEAD -- "$path")"
+            [[ -n "$incoming" && ( "$current" == "$reviewed" || "$current" == "$incoming" ) ]]
+            install -m 644 "../provider-source/$path" "$path"
+            git add -- "$path"
+          done
+          echo "Qualified input tree: $(git write-tree)"
+
       - name: Read recorded dependency revisions
         id: dependencies
         run: |
@@ -98,11 +148,26 @@ jobs:
           (umask 022; cd "$fixture" && FIRING_UP_RETRY_ATTEMPTS=1200 npm exec --yes --package=@hashgraph/hedera-local@2.40.2 -- hedera start --host=127.0.0.1 --accounts=1)
           export OASIS_HEDERA_LOCAL_FIXTURE="$fixture" OASIS_HEDERA_SDK_BRIDGE="$sdk/bridge.mjs"
           export OASIS_HEDERA_LOCAL_MODE="${{ matrix.mode }}"
+          export OASIS_HEDERA_ROUTING="${{ inputs.routing && '1' || '0' }}"
           export OASIS_HEDERA_LOCAL_SIGNING_KEY=302e020100300506032b65700422042091132178e72057a1d7528025956fe39b0b847f200ab59b2fdd367017f3087137
           export OASIS_HEDERA_LOCAL_ENCRYPTION_KEY="$(openssl rand -base64 32)"
           node Scripts/TestHosts/Deploy-HederaLocalStorage.mjs "$fixture"
           export OASIS_HEDERA_LOCAL_CONTRACT_ID="$(jq -er '.contractId' "$fixture/deployment.json")"
           [[ "$OASIS_HEDERA_LOCAL_CONTRACT_ID" =~ ^0\.0\.[1-9][0-9]*$ ]]
+          if [[ "$OASIS_HEDERA_ROUTING" == 1 ]]; then
+            pwsh -NoProfile -Command '
+              ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-HederaRouting -Operation {
+                $project = "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.IntegrationTests"
+                dotnet test $project --filter "FullyQualifiedName~RoutesAcrossNativeHederaAndSqlite" /p:HederaRoutingTests=true /m:2 /nr:false /p:UseSharedCompilation=false --results-directory $env:OASIS_HEDERA_LOCAL_FIXTURE --logger "trx;LogFileName=routing.trx"
+                if ($LASTEXITCODE -ne 0) { throw "Native Hedera routing verification failed." }
+                [xml]$report = Get-Content -LiteralPath (Join-Path $env:OASIS_HEDERA_LOCAL_FIXTURE "routing.trx")
+                if ($report.TestRun.ResultSummary.Counters.passed -ne "1" -or $report.TestRun.ResultSummary.Counters.total -ne "1") {
+                  throw "The native Hedera routing case must execute and pass."
+                }
+              }'
+            echo "Verified native Hedera routing and empty contract in $OASIS_HEDERA_LOCAL_MODE mode."
+            exit 0
+          fi
           pwsh -NoProfile -Command '
             ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-HederaStorage -Operation {
               dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.IntegrationTests.csproj" --filter "FullyQualifiedName~CoreStorageSuiteAgainstHieroConsensus" /m:2 /nr:false /p:UseSharedCompilation=false --logger "console;verbosity=normal"
