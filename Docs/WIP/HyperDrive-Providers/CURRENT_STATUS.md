@@ -18,6 +18,8 @@
 
 ## Verification log
 
+13 November Cancun time. Cancellation restart 43375404293 and multi-process 43375401696 passed on tree 818b19acdb0e3422110f859cbe4ebf839c8a31f1. Cancelling while the catalogue lock was held left persisted DNA unchanged. Both runs confirmed cleanup. COSMIC is prioritizing a Polkadot BootLoader correction before TON because live CQL requires a read-only registration path. Development remains on 49f8463de927.
+
 13 November Cancun time. IPFS replica writes now pass the delivery cancellation token to the native Kubo record and encrypted catalogue uploads. Pointer publication keeps its existing cancellation check before persisting DNA. Ordinary writes retain their existing non-cancellable publication semantics. Native CI is pending. No local builds or downloads.
 
 13 November 00:51 Cancun time. At the shared review, remote Development still pointed to Polkadot 49f8463de927 and all seven Railway statuses were successful. Exact TON image 43367464873 and Hedera image 43369893169 both reported success. Preserve the coordinated TON slot. The IPFS follow-up on TON remains staged at 28752bf7b233. Dispatch native qualification once the remote confirms the actual new parent. No local builds or downloads.

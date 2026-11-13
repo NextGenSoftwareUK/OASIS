@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+13 November cancellation checks 43375404293 and 43375401696 removed both disposable Kubo runtimes, repositories and logs. No local build or download.
+
 13 November removed and verified absence of the temporary Git index used to prepare both divergence-qualified IPFS candidates. No local builds or downloads.
 
 13 November IPFS divergence jobs 43372453174, 43372448800, 43373391890 and 43373392408 confirmed removal of disposable Kubo fixtures. No local build or download.
