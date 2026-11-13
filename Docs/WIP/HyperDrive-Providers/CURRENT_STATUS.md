@@ -18,6 +18,8 @@
 
 ## Verification log
 
+13 November Cancun time. Oracle CI `43461673176` stopped before starting fixtures. Its scope guard used the original pre-integration baseline, which did not contain the routing test and had a different project file. Verified that both files on Development `fe8319aa11bd` match the provider branch immediately before the new Oracle test. Updated the reviewed baseline to that exact revision, preserving rejection of unrelated changes. The CI cleanup trap removes the owned SQLite directory and Oracle container with its volumes. No local artifacts were created.
+
 13 November Cancun time. [Exact SQLite provider-key job 132006200160](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43460607223/job/132006200160) passed both native modes with zero skips on `31e53ead6e46`. The healthy key miss returned `RecordNotFound` without a Neo4j request. The existing outage still recovered the exact Neo4j record. CI verified fixture removal and container teardown. The candidate awaits the shared review after 11:42:21 Cancun. [Oracle native CI 43461673176](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43461673176) is running. No local build or test files were created.
 
 13 November Cancun time. Added a native Oracle Free control for healthy point-read absence with automatic failover enabled. The fixture verifies that the exact holon exists only in SQLite and that Oracle's `RecordNotFound` stops the route before SQLite is queried. The existing paired outage checks remain in the same job. Native CI is pending. No local build or fixture files were created.

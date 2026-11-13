@@ -47,7 +47,7 @@ jobs:
       - name: Apply the reviewed priority Oracle routing scope
         shell: bash
         run: |
-          base=df02d6f43bfe282017cb236366c15940391a864c
+          base=fe8319aa11bdfd4c734ae4edef16ce7119e5748f
           git -C ../provider-source fetch --no-tags --depth=1 origin "$base"
           tests='Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests'
           for path in "$tests/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests.csproj" "$tests/OracleSqliteHyperDriveTests.cs"; do
