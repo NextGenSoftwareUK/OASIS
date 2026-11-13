@@ -6,8 +6,11 @@ on:
     paths:
       - '.github/workflows/activitypub-native-routing.yml'
       - '.github/workflows/activitypub-native-search.yml'
+      - 'Scripts/TestHosts/Run-ActivityPubNativeSearch.sh'
       - 'Providers/Network/NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS/**'
       - 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS.IntegrationTests/NativeMastodonOwnedStatusTests.cs'
+      - 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS.UnitTests/ActivityPubCqlTests.cs'
+      - 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS.UnitTests/ActivityPubStatusReadTests.cs'
   workflow_dispatch:
 
 permissions:
