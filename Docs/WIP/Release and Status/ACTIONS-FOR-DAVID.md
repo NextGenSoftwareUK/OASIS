@@ -711,3 +711,8 @@ Status: missing account/configuration information,2 November2026. David approved
 - **Status** Open. The shared routing adapters compile in memory. The provider test credentials are absent from the current session.
 - **David action** Identify authorized test access for Mapbox Directions v5 and HERE Routing v8. Supply restricted credentials through protected configuration as OASIS_MAPBOX_ACCESS_TOKEN and OASIS_HERE_ROUTING_API_KEY. Keep credentials out of Git and chat.
 - **Reason** The provider agent owns authenticated verification of route distance and geometry. [Mapbox Directions](https://docs.mapbox.com/api/navigation/directions/) and [HERE Routing](https://docs.here.com/routing/docs/routing-v8-route-geometry)
+
+### Hosted MongoDB and SQLite RoundRobin fixture
+
+- **Open, 2026-11-13.** Identify the Windows machine and user account that hold the protected WEB4 routing cohort, or designate an existing acknowledged test cohort with an active owner session and one reviewed holon present in both MongoDB and SQLite. Keep the protected session on its originating machine and keep credentials out of Git and chat.
+- **Reason** The read-only verifier needs the acknowledged owner and record to prove that the same deployed WEB4 revision serves three reads from each provider. The retained cohort was absent from the checked local OASIS worktrees. Engineering owns image qualification and verification. [Priority routing tracker](../HyperDrive-Providers/PRIORITY_HYPERDRIVE_ROUTING.md)
