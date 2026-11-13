@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+13 November multi-process run 43387140767 confirmed disposable Kubo fixture removal. Removed and verified absence of the temporary Git index used to prepare the test-only candidate. No local build or download.
+
 13 November integrated IPFS run 43386691309 and oversized-catalogue restart 43387168850 confirmed disposable Kubo fixture removal. No local build or download.
 
 13 November Kubo lineage runs 43384189870 and 43384206880 confirmed disposable fixture removal. Removed and verified absence of the temporary Git index used for the tested candidate. No local builds or downloads.
