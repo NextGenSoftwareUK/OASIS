@@ -10,13 +10,15 @@
 | ActivityPub and routing | ActivityPub has 5/5 native capability checks. GOMap passed a public OSRM driving route. Authenticated Google Routes, Mapbox and HERE checks remain open. Niantic and WRLD still have reviewed adapter gaps. |
 | Canonical HoloOASIS | Top priority. Both modes passed all 52 native core-storage-v2 checks on the official Windows conductor with the verified identity-delete hApp in [run 43178174352](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43178174352). The verified bundle is packaged on the provider branch. Hosted, multi-agent and broader capability acceptance remain open. |
 | HoloOASIS.Desktop | Obsolete in source, package metadata and repository documentation at `45d6665da989`. The six-file compatibility and documentation batch reached Development at `70d3fbb4a31c`. Published NuGet metadata and live site listings still need the obsolescence update. |
-| Development | 59bc51b9ba7c contains the ActivityPub deletion regression and hosted routing verifier fixes. All seven API deployments succeeded. Hosted HoloOASIS writes remain open. |
+| Development | aaf73da6d006 contains the Supabase and SQL Server native absence regressions. WEB4 rollout is queued. Hosted HoloOASIS writes remain open. |
 | BootLoader startup | The shipping registration, activation and deactivation path passed against native Polkadot and TRON fixtures and the Microsoft Azure Cosmos DB emulator. [Azure Cosmos DB job 131055311882](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43180594194/job/131055311882) confirmed fixture teardown. |
 | HyperDrive | Priority-provider failover, replication and load balancing verification is active. Whole-inventory acceptance remains open. |
 
 [Provider matrix](PROVIDER_MATRIX.md) · [Evidence registry](CONFORMANCE_RESULTS.json) · [Cleanup ledger](WORKSPACE_CLEANUP_LEDGER.md)
 
 ## Verification log
+
+13 November Cancun time. [Native Solid qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43497027376/job/132132694377) passed 2/2 on tree 7e8b259860ad9e4e0b3f1f9aa511139683f759b4. Healthy Pod absence returned RecordNotFound with no SQLite reads even when a stale replica existed. Candidate 2b31718f9e46 adds the two qualified Solid files to Development aaf73da6d006, which contains the Supabase and SQL Server regressions. Railway queued WEB4 deployment f129d091-8b2d-4018-ac03-57842b342b13 at 15:02:18 Cancun. The next shared review is after 15:32:18 Cancun. No local builds or fixtures were created.
 
 13 November Cancun time. [Native SQL Server qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43494640928) passed both modes with zero skips on tree f037295399da0fb43f105087dcb1d06f813dd566. A healthy SQL Server provider-key miss returned RecordNotFound and sent zero reads to SQLite, which held the requested holon. CI removed both fixtures. Candidate aaf73da6d006 layers the independently qualified SQL Server and Supabase tests onto Development 59bc51b9ba7c. All seven preceding API deployments succeeded. Review after 14:59:52 Cancun. No local build artifacts were created.
 

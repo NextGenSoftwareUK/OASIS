@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+13 November Cancun time. Solid job 132132694377 passed both cases and removed the owned server, Pod, SQLite files and test output. The temporary candidate index was removed. No local downloads, builds or fixtures were created.
+
 13 November Cancun time. SQL Server jobs 132124427122 and 132124427789 passed and removed their containers, volumes, SQLite databases and test outputs. Logs were inspected in memory. The temporary candidate index was removed. No local fixtures or build outputs were created.
 
 13 November Cancun time. Supabase job 132120831504 passed both native routing modes and independently confirmed all three PostgreSQL fixture tables empty. Logs were read in memory. No local artifacts were created.
