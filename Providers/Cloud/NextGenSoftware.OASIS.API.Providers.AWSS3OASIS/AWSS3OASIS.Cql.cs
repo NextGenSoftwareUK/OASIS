@@ -17,12 +17,15 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSS3OASIS;
 public partial class AWSS3OASIS : ICosmicQueryStorageProvider
 {
     public ProviderType QueryProviderType => Core.Enums.ProviderType.AWSS3OASIS;
-    public CosmicQueryCapabilities QueryCapabilities => AwsS3CqlCompiler.Capabilities;
+    public CosmicQueryCapabilities QueryCapabilities => metadata == null ? AwsS3CqlCompiler.Capabilities : PublicMetadataCapabilities;
 
     public async Task<OASISResult<IReadOnlyList<IHolon>>> ExecuteCosmicQueryAsync<T>(
         CosmicQueryPlan<T> plan, int maximumResults = 100,
         CancellationToken cancellationToken = default) where T : IHolon
     {
+        if (metadata != null)
+            return await ExecutePublicMetadataQueryAsync(plan, maximumResults, cancellationToken).ConfigureAwait(false);
+
         OASISResult<IReadOnlyList<IHolon>> Error(string code, string message, Exception cause = null)
             => new() { IsError = true, ErrorCount = 1, ErrorCode = code, Message = message, Exception = cause };
 

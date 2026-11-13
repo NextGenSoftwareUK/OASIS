@@ -6,7 +6,7 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Queries;
 using NextGenSoftware.OASIS.API.Core.Services.Subscriptions;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
-using Source = NextGenSoftware.OASIS.API.Providers.AWSS3OASIS.AwsS3PublicMetadataSource;
+using Source = NextGenSoftware.OASIS.API.Providers.AWSS3OASIS.AWSS3OASIS;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests;
 
