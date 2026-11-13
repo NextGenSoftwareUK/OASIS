@@ -5,6 +5,11 @@ on:
   push:
     branches: [Development]
   workflow_dispatch:
+    inputs:
+      source_ref:
+        description: Exact candidate revision to qualify
+        type: string
+        required: false
 permissions:
   contents: read
 jobs:
@@ -17,6 +22,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
+          ref: ${{ inputs.source_ref || github.sha }}
           submodules: recursive
           token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
       - uses: actions/setup-dotnet@v6
