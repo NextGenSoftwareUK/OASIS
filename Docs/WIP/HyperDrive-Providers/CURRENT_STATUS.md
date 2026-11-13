@@ -18,6 +18,8 @@
 
 ## Verification log
 
+13 November Cancun time. IPFS lineage decompression cancellation passed native multi-process Kubo run 43384189870 with cleanup. Candidate ccbead997a615fde3df9d10ab54da5d08e4e263b reproduces its exact four-file TON-based tree 3a5a9ba1b228eaac50471679d895f9d8ecbe84d9. Companion restart 43384206880 remained active at inspection. The previously verified batch remains available for the coordinated window.
+
 13 November Cancun time. Replica lineage reads now propagate cancellation during native current-record and tombstone decompression as well as catalogue decompression. No local build or download. The previously qualified IPFS batch remains staged while TON WEB4 is pending.
 
 13 November Cancun time. Bound IPFS catalogue reads now propagate caller cancellation into authenticated envelope decompression, before parsing the snapshot used by replica and source operations. Multi-process Kubo run 43383401532 passed on exact TON-based tree f010cb37f765d9522da988229f5dce0d8530ce14 and removed its fixture. Four-file candidate b547fc227e5e9cacb4fd16ff62f5f58b12224885 reproduces that tree. [Native restart 43383491897](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43383491897) passed both phases on the same tree and confirmed fixture cleanup. Candidate b547fc227e5e supersedes the earlier IPFS candidate for the next shared review. No local build or download.
