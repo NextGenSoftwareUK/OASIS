@@ -1,7 +1,9 @@
+using NextGenSoftware.OASIS.API.Core.Configuration;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using Xunit;
 
 namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS.IntegrationTests;
@@ -139,6 +141,7 @@ public sealed class IPFSRestartTests
             Assert.Equal(revision, CosmicConcurrency.GetProviderRevisionId(before.Result, ProviderType.IPFSOASIS));
             Assert.Equal(persistedBefore, await File.ReadAllTextAsync(dnaPath));
             await VerifyReplicaSuccessorAsync(provider, identity, replica, dnaPath);
+            await VerifyHostedReplicaTargetAsync(provider, identity);
         }
     }
 
@@ -174,5 +177,32 @@ public sealed class IPFSRestartTests
         var prior = await provider.LoadHolonAsync(original.Id, loadChildren: false, version: 1);
         Assert.True(prior.IsLoaded && !prior.IsError, prior.Message);
         Assert.Equal(original.VersionId, prior.Result.VersionId);
+    }
+
+    private static async Task VerifyHostedReplicaTargetAsync(IPFSOASIS provider, CosmicStorageIdentity identity)
+    {
+        var actor = Guid.NewGuid();
+        var policy = new HolonReplicationActorGrant(new[] { actor }, DateTime.UtcNow.AddMinutes(10));
+        var source = new CosmicStorageIdentity(ProviderType.SQLLiteDBOASIS, new string('A', 64), Guid.NewGuid());
+        var route = new HolonReplicationRouteBinding(source, identity, policy.BindingIdentity);
+        var replica = new Holon
+        {
+            Id = Guid.NewGuid(),
+            VersionId = Guid.NewGuid(),
+            Version = 1,
+            Name = "hosted replica target",
+            HolonType = HolonType.Holon
+        };
+        CosmicConcurrency.SetProviderRevisionId(replica, source.Authority, Guid.NewGuid());
+        var request = new CommittedHolonReplicaRequest(Guid.NewGuid(), route.SourceId, source.Authority, actor,
+            ConditionalHolonOperation.Save, new[] { replica }, false, false, 0, new[] { route });
+        var target = new CommittedHolonReplicaTarget(route.TargetId, provider, identity.Authority, route.SourceId,
+            source.Authority, policy, "ipfs-restart-fixture", Guid.NewGuid(), policy.BindingIdentity, identity);
+        var result = await target.ApplyReplicatedMutationAsync(CommittedHolonReplicaTarget.CaptureItem(request),
+            CancellationToken.None);
+        Assert.True(result.Result && !result.IsError, result.Message);
+        var receipt = await provider.ReadCommittedHolonReplicaReceiptAsync(new(request, identity));
+        Assert.True(receipt.IsLoaded && !receipt.IsError, receipt.Message);
+        Assert.Equal(ConditionalHolonReceiptState.Committed, receipt.Result.ReceiptState);
     }
 }
