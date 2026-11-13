@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+13 November Kubo decoder run 43383401532 removed its disposable fixture. Superseded run 43383271444 was cancelled before running the test and its cleanup step passed. Removed the temporary Git index for the four-file integration candidate and verified its absence. No local builds or downloads.
+
 13 November TON-based IPFS restart 43382340431 removed the disposable Kubo fixture. No local build or download.
 
 13 November IPFS read-limit multi-process run 43382148712 confirmed disposable Kubo fixture removal. No local builds or downloads.
