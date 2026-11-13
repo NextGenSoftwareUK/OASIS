@@ -221,6 +221,10 @@ jobs:
                 Stop-KuboDaemon $daemon
                 Write-Host "Stopped native Kubo process $($daemon.Id)"
               }
+              if ($env:IPFS_TEST_SCENARIO -eq 'restart' -and $phase -eq 'write') {
+                & $binary repo gc
+                if ($LASTEXITCODE -ne 0) { throw 'Kubo repository garbage collection failed before restart.' }
+              }
             }
           }
 
