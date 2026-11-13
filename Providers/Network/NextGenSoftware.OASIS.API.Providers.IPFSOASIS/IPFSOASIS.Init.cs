@@ -257,9 +257,9 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             {
                 if ((string)token["schema"] != "oasis-ipfs-catalogue-v2" ||
                     !Guid.TryParseExact((string)token["storeId"], "D", out storeId) || storeId == Guid.Empty ||
-                    token["records"] is not JObject records)
+                    token["records"] is not JObject recordIndex)
                     throw new InvalidDataException("IPFS catalogue metadata is invalid.");
-                token = records;
+                token = recordIndex;
             }
             var records = token.ToObject<Dictionary<string, HolonResume>>();
             foreach(var entry in records)

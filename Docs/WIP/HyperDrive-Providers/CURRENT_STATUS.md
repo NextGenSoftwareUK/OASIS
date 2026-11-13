@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. Native run 43349908192 stopped at C# compilation because the new catalogue record-index pattern variable shared a name with the deserialized dictionary. Renamed the pattern variable at the parser boundary. This failure affects receiver-branch checks that contain the same parser change. The separately qualified two-file Development identity candidate does not contain it. No local build or download.
+
 12 November Cancun time. Added the IPFS bound committed-replica receiver on the task branch. It checks the enrolled identity before replay, compares protected lineage against the native record, and publishes the updated records, heads and exact acknowledgement in one catalogue root. The disposable Kubo restart scenario now exercises apply and replay around an intervening ordinary write. Build and native acceptance are pending. Source outbox and routed delivery remain open. No local runtime, build or download was created.
 
 12 November Cancun time. IPFS ordinary catalogue writes now retain authenticated root fields alongside the record index, so later writes can preserve committed replica heads and receipts. The receiver can reuse the same storage identity derivation and cancel while waiting for the existing cross-process file lease. Native CI is pending. No local runtime, download or build output was created.
