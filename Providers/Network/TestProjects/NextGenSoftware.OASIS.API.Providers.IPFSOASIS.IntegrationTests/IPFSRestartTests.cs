@@ -3,6 +3,7 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using Xunit;
 
@@ -141,7 +142,7 @@ public sealed class IPFSRestartTests
             Assert.Equal(revision, CosmicConcurrency.GetProviderRevisionId(before.Result, ProviderType.IPFSOASIS));
             Assert.Equal(persistedBefore, await File.ReadAllTextAsync(dnaPath));
             await VerifyReplicaSuccessorAsync(provider, identity, replica, dnaPath);
-            await VerifyHostedReplicaTargetAsync(provider, identity);
+            await VerifyHostedReplicaTargetAsync(provider, identity, dnaPath);
         }
     }
 
@@ -179,30 +180,43 @@ public sealed class IPFSRestartTests
         Assert.Equal(original.VersionId, prior.Result.VersionId);
     }
 
-    private static async Task VerifyHostedReplicaTargetAsync(IPFSOASIS provider, CosmicStorageIdentity identity)
+    private static async Task VerifyHostedReplicaTargetAsync(IPFSOASIS provider, CosmicStorageIdentity identity, string dnaPath)
     {
         var actor = Guid.NewGuid();
         var policy = new HolonReplicationActorGrant(new[] { actor }, DateTime.UtcNow.AddMinutes(10));
-        var source = new CosmicStorageIdentity(ProviderType.SQLLiteDBOASIS, new string('A', 64), Guid.NewGuid());
+        var databasePath = dnaPath + ".source.sqlite";
+        Assert.False(File.Exists(databasePath));
+        var connection = $"Data Source={databasePath};Pooling=False";
+        using var sqlite = new SQLLiteDBOASIS(connection);
+        var activated = await sqlite.ActivateProviderAsync();
+        Assert.True(activated.Result && !activated.IsError, activated.Message);
+        var captured = await sqlite.CaptureStorageIdentityAsync();
+        Assert.False(captured.IsError, captured.Message);
+        var source = captured.Result;
         var route = new HolonReplicationRouteBinding(source, identity, policy.BindingIdentity);
         var replica = new Holon
         {
             Id = Guid.NewGuid(),
-            VersionId = Guid.NewGuid(),
-            Version = 1,
             Name = "hosted replica target",
             HolonType = HolonType.Holon
         };
-        CosmicConcurrency.SetProviderRevisionId(replica, source.Authority, Guid.NewGuid());
-        var request = new CommittedHolonReplicaRequest(Guid.NewGuid(), route.SourceId, source.Authority, actor,
-            ConditionalHolonOperation.Save, new[] { replica }, false, false, 0, new[] { route });
+        var operationId = Guid.NewGuid();
+        var enrollment = new HolonReplicationEnrollment(route.SourceId, new[] { route.TargetId }, source, new[] { route });
+        var write = new ConditionalHolonWrite(operationId, actor, source.Authority,
+            new[] { new HolonWriteCondition(replica.Id, null) });
+        var saved = await sqlite.ExecuteReplicatingHolonWriteAsync(
+            new ConditionalHolonWriteRequest(write, ConditionalHolonOperation.Save, new[] { replica }, saveChildren: false), enrollment);
+        Assert.True(saved.IsSaved && !saved.IsError, saved.Message);
+        var committed = Assert.Single(saved.Result);
         var target = new CommittedHolonReplicaTarget(route.TargetId, provider, identity.Authority, route.SourceId,
             source.Authority, policy, "ipfs-restart-fixture", Guid.NewGuid(), policy.BindingIdentity, identity);
-        var result = await target.ApplyReplicatedMutationAsync(CommittedHolonReplicaTarget.CaptureItem(request),
-            CancellationToken.None);
-        Assert.True(result.Result && !result.IsError, result.Message);
-        var receipt = await provider.ReadCommittedHolonReplicaReceiptAsync(new(request, identity));
-        Assert.True(receipt.IsLoaded && !receipt.IsError, receipt.Message);
-        Assert.Equal(ConditionalHolonReceiptState.Committed, receipt.Result.ReceiptState);
+        var worker = new HolonOutboxDispatcher(new SqliteHolonReplicationOutbox(connection),
+            new[] { target }, "ipfs-restart-fixture");
+        var result = await worker.DispatchOnceAsync(route.TargetId, maximumCount: 1);
+        Assert.False(result.IsError, result.Message);
+        Assert.Equal(1, result.Result.CompletedCount);
+        var copied = await provider.LoadHolonAsync(replica.Id, loadChildren: false);
+        Assert.True(copied.IsLoaded && !copied.IsError, copied.Message);
+        Assert.Equal(committed.VersionId, copied.Result.VersionId);
     }
 }

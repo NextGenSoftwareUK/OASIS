@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. Replaced the constructed source fixture with a real file-backed SQLite provider. The Kubo restart scenario now captures both native bindings, commits a conditional source write and outbox obligation in SQLite, dispatches through the shipping worker and target, and compares the native IPFS logical revision to the SQLite acknowledgement. The runner owns the database and sidecar in its existing disposable fixture directory. Native CI pending. COSMIC EOSIO image passed and has the next eligible Development window. No local runtime or build.
+
 12 November Cancun time. Extended the Kubo restart scenario to deliver a descriptor-bearing payload through the shipping hosted HyperDrive target and real actor grant, then read the committed receipt directly from IPFS. The fixture constructs its source snapshot and binding in the test. Native source outbox delivery remains a separate gate. No local fixture, download or build output.
 
 12 November Cancun time. The IPFS identity Development push workflow 43353410566 records 21:37:01 Cancun. The next shared integration review is after 22:07:01. Receiver restart 43353630378 and multi-process 43353633890 were dispatched on the shipping scope against the current Development parent. Because that parent changes only the two paths replaced by the receiver scope, the expected input tree is the previously verified 8b486e29f10b0647bd24fd6723aeb1483386124c. Verify the emitted tree and fixture cleanup before relying on either result. No local build, runtime or download.
