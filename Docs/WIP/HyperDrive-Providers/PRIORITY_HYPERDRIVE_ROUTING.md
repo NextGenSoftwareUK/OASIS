@@ -30,6 +30,10 @@
 
 Sources for this checkpoint are the [native routing archive](Archive/HYPERDRIVE_V2_PROVIDER_IO_COVERAGE.md), the [hosted routing plan and receipts](../COSMIC%20ORM/HOSTED_SANDBOX_INTEGRATION_PLAN.md), the [COSMIC handoff](../COSMIC%20ORM/CURRENT_STATUS.md), and the [provider matrix](PROVIDER_MATRIX.md). Existing scoped passes carry forward. Auto selection and RoundRobin distribution have separate assertions. Native outages, sandbox faults, replica delivery, and direct provider storage each retain their own evidence.
 
+## HoloOASIS provider-key read gap
+
+Both shipping holon provider-key reads currently call `get_holon_by_id`. The coordinator source defines a separate `get_holon_by_provider_key` index based on the saved `provider_unique_storage_key`, while the C# read response exposes the native action hash as the HoloOASIS provider key. Verify a newly saved action-hash key against the packaged hApp in both modes before changing the dispatch. A lookup against the wrong identity cannot establish authoritative absence. Retained storage and hosted outbox evidence cover separate paths.
+
 ## Oracle and SQLite point-read failover
 
 On Development `fe8319aa11bd`, the native Oracle Free fixture verified that a healthy Oracle miss returned `RecordNotFound` without querying SQLite, even when SQLite held the exact holon. The same sync and async cases retained bidirectional outage, replication and RoundRobin checks. Both passed with zero skips and fixture cleanup. CI recorded input tree `8258eabfc258c8fd27ae08501851bc1e46b9d6a7`. Hosted Oracle acceptance remains open. [Native Oracle job](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43462283164/job/132012019566)
