@@ -57,14 +57,28 @@ public sealed class HoloNativeRoutingTests
             Assert.False(collection.IsError, collection.Message);
             Assert.Equal(baselineIds.Concat(fixtures.Select(record => record.Id)).Order(),
                 collection.Result.Select(record => record.Id).Order());
+            var keyReadFailures = new List<string>();
             foreach (var record in fixtures)
             {
+                var byId = await holo.LoadHolonAsync(record.Id, loadChildren: false);
+                if (byId.Result?.ProviderUniqueStorageKey?.TryGetValue(ProviderType.HoloOASIS, out var key) == true &&
+                    !string.IsNullOrWhiteSpace(key))
+                {
+                    var byKey = sync ? holo.LoadHolon(key, loadChildren: false)
+                        : await holo.LoadHolonAsync(key, loadChildren: false);
+                    if (byKey.IsError || byKey.Result?.Id != record.Id)
+                        keyReadFailures.Add($"{record.Id}: {byKey.ErrorCode} {byKey.Message}");
+                }
+                else
+                    keyReadFailures.Add($"{record.Id}: no HoloOASIS provider key returned");
+
                 var removed = await holo.DeleteHolonAsync(record.Id);
                 Assert.True(!removed.IsError && removed.IsDeleted, removed.Message);
                 var absent = await holo.LoadHolonAsync(record.Id, loadChildren: false);
                 Assert.Null(absent.Result);
                 Assert.Equal(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound, absent.ErrorCode);
             }
+            Assert.True(keyReadFailures.Count == 0, string.Join(Environment.NewLine, keyReadFailures));
         }
         finally
         {

@@ -18,6 +18,8 @@
 
 ## Verification log
 
+13 November Cancun time. Added a canonical HoloOASIS native regression that reads the shipping action-hash key from each fixture holon, then resolves it through the sync or async provider-key method. The fixture records lookup failures and removes its holons before reporting them. The test uses the existing disposable conductor workflow. No local runtime or fixture was created.
+
 13 November 11:33 Cancun time. Both native checks for staged `0ca6397b2fce` completed successfully. [SQLite and Neo4j](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43463625099/job/132016817554) tested the full tree. [Oracle Free and SQLite](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43463631812/job/132016837461) tested the Oracle overlay on Development. Both jobs enforce zero skips and fixture cleanup. Development remains `fe8319aa11bd`; review the qualified batch after 11:42:21 Cancun. No local artifacts were created.
 
 13 November 11:30 Cancun time. Staged four-file candidate `0ca6397b2fce` on Development `fe8319aa11bd` for the 11:42:21 shared review. [Neo4j CI 43463625099](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43463625099) checks out the full candidate. [Oracle CI 43463631812](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43463631812) applies the reviewed Oracle test files to its resolved Development base, so its result qualifies that scope. The staged Oracle test reproduces the input tree from the earlier passing Oracle job before combining it with SQLite's provider-key change. The temporary Git index was removed. No local build or fixture outputs were created.
