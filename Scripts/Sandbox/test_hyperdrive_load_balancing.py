@@ -73,6 +73,15 @@ class RouteEvidenceTests(unittest.TestCase):
             response = {"result": expected, "metaData": {"hyperDriveRoute": json.dumps(route)}}
             self.assertEqual(gate.verify_response(response, expected, requested), route)
 
+    def test_round_robin_requires_the_response_to_name_the_requested_strategy(self):
+        expected = {"id": "owned", "name": "Coffee", "version": 1, "createdByAvatarId": "actor"}
+        route = {"RequestedProvider": "Default", "InitialProvider": "SQLLiteDBOASIS",
+                 "ServingProvider": "SQLLiteDBOASIS", "Succeeded": True, "RequestedStrategy": "RoundRobin"}
+        response = {"result": expected, "metaData": {"hyperDriveRoute": json.dumps(route)}}
+        self.assertEqual(gate.verify_response(response, expected, "Default", strategy="RoundRobin"), route)
+        with self.assertRaises(ValueError):
+            gate.verify_response(response, expected, "Default")
+
     def test_default_read_with_failover_disabled_cannot_change_serving_provider(self):
         expected = {"id": "owned", "name": "Coffee", "version": 1, "createdByAvatarId": "actor"}
         route = {"RequestedProvider": "Default", "InitialProvider": "MongoDBOASIS",
