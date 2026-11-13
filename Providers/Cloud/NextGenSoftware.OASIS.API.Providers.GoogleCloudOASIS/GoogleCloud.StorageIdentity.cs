@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Google.Cloud.Firestore;
 using Grpc.Core;
-using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.Common;
 
@@ -68,6 +67,6 @@ public partial class GoogleCloudOASIS : ICosmicStorageIdentityProvider
         var resource = $"firestore:projects/{database.ProjectId}/databases/{database.DatabaseId}";
         using var digest = SHA256.Create();
         var fingerprint = BitConverter.ToString(digest.ComputeHash(Encoding.UTF8.GetBytes(resource))).Replace("-", "");
-        return new(ProviderType.GoogleCloudOASIS, fingerprint, id);
+        return new(Core.Enums.ProviderType.GoogleCloudOASIS, fingerprint, id);
     }
 }
