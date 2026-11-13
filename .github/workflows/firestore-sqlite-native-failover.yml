@@ -6,6 +6,8 @@ on:
     paths:
       - '.github/workflows/firestore-sqlite-native-failover.yml'
       - 'Providers/Cloud/NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS/GoogleCloud.StorageIdentity.cs'
+      - 'Providers/Cloud/NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS/GoogleCloud.ConditionalWrites.cs'
+      - 'Providers/Cloud/NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS/GoogleCloud.OutboundPublication.cs'
       - 'Providers/Cloud/NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS/GoogleCloud.IdentityTransaction.cs'
       - 'Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.IntegrationTests/FirestoreSqliteOutageTests.cs'
   workflow_dispatch:
