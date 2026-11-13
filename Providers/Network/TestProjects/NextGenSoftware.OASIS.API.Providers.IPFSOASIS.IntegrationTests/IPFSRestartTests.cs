@@ -188,29 +188,33 @@ public sealed class IPFSRestartTests
         var databasePath = dnaPath + ".source.sqlite";
         Assert.False(File.Exists(databasePath));
         var connection = $"Data Source={databasePath};Pooling=False";
-        using var sqlite = new SqliteProvider(connection);
-        var activated = await sqlite.ActivateProviderAsync();
-        Assert.True(activated.Result && !activated.IsError, activated.Message);
-        var captured = await sqlite.CaptureStorageIdentityAsync();
-        Assert.False(captured.IsError, captured.Message);
-        var source = captured.Result;
-        var route = new HolonReplicationRouteBinding(source, identity, policy.BindingIdentity);
         var replica = new Holon
         {
             Id = Guid.NewGuid(),
             Name = "hosted replica target",
             HolonType = HolonType.Holon
         };
-        var operationId = Guid.NewGuid();
-        var enrollment = new HolonReplicationEnrollment(route.SourceId, new[] { route.TargetId }, source, new[] { route });
-        var write = new ConditionalHolonWrite(operationId, actor, source.Authority,
-            new[] { new HolonWriteCondition(replica.Id, null) });
-        var saved = await sqlite.ExecuteReplicatingHolonWriteAsync(
-            new ConditionalHolonWriteRequest(write, ConditionalHolonOperation.Save, new[] { replica }, saveChildren: false), enrollment);
-        Assert.True(saved.IsSaved && !saved.IsError, saved.Message);
-        var committed = Assert.Single(saved.Result);
+        HolonReplicationRouteBinding route;
+        IHolon committed;
+        using (var sqlite = new SqliteProvider(connection))
+        {
+            var activated = await sqlite.ActivateProviderAsync();
+            Assert.True(activated.Result && !activated.IsError, activated.Message);
+            var captured = await sqlite.CaptureStorageIdentityAsync();
+            Assert.False(captured.IsError, captured.Message);
+            var sourceStorage = captured.Result;
+            route = new HolonReplicationRouteBinding(sourceStorage, identity, policy.BindingIdentity);
+            var enrollment = new HolonReplicationEnrollment(route.SourceId, new[] { route.TargetId }, sourceStorage, new[] { route });
+            var write = new ConditionalHolonWrite(Guid.NewGuid(), actor, sourceStorage.Authority,
+                new[] { new HolonWriteCondition(replica.Id, null) });
+            var saved = await sqlite.ExecuteReplicatingHolonWriteAsync(
+                new ConditionalHolonWriteRequest(write, ConditionalHolonOperation.Save, new[] { replica }, saveChildren: false), enrollment);
+            Assert.True(saved.IsSaved && !saved.IsError, saved.Message);
+            committed = Assert.Single(saved.Result);
+        }
+
         var target = new CommittedHolonReplicaTarget(route.TargetId, provider, identity.Authority, route.SourceId,
-            source.Authority, policy, "ipfs-restart-fixture", Guid.NewGuid(), policy.BindingIdentity, identity);
+            route.SourceStorage.Authority, policy, "ipfs-restart-fixture", Guid.NewGuid(), policy.BindingIdentity, identity);
         var worker = new HolonOutboxDispatcher(new SqliteHolonReplicationOutbox(connection),
             new[] { target }, "ipfs-restart-fixture");
         var result = await worker.DispatchOnceAsync(route.TargetId, maximumCount: 1);
@@ -219,5 +223,13 @@ public sealed class IPFSRestartTests
         var copied = await provider.LoadHolonAsync(replica.Id, loadChildren: false);
         Assert.True(copied.IsLoaded && !copied.IsError, copied.Message);
         Assert.Equal(committed.VersionId, copied.Result.VersionId);
+
+        var persistedAfterDelivery = await File.ReadAllTextAsync(dnaPath);
+        var resumedWorker = new HolonOutboxDispatcher(new SqliteHolonReplicationOutbox(connection),
+            new[] { target }, "ipfs-restart-fixture-resumed");
+        var resumed = await resumedWorker.DispatchOnceAsync(route.TargetId, maximumCount: 1);
+        Assert.False(resumed.IsError, resumed.Message);
+        Assert.Equal(0, resumed.Result.CompletedCount);
+        Assert.Equal(persistedAfterDelivery, await File.ReadAllTextAsync(dnaPath));
     }
 }
