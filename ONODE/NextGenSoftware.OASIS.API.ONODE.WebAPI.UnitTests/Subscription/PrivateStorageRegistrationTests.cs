@@ -1,4 +1,5 @@
 using System.Reflection;
+using NextGenSoftware.OASIS.API.Core.Queries;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -39,7 +40,12 @@ public class PrivateStorageRegistrationTests
             Assert.False(result.IsError, result.Message);
             var provider = Assert.IsType<NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.PolkadotOASIS>(result.Result);
             Assert.Same(provider, manager.GetProvider(type));
-            Assert.NotNull(provider.QueryCapabilities.StringKeySetLookup);
+            var key = "0x" + 1.ToString("x64");
+            var query = CosmicQuery<IHolon>.Create().Where(row =>
+                CosmicQueryMetadata.Value<string>(row,
+                    NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.PolkadotPublicHeaderMetadataSource.AddressMetadata) == key);
+            Assert.False(query.IsError, query.Message);
+            Assert.True(provider.QueryCapabilities.UsesStringMetadataLookup(query.Result));
             Assert.False(provider.IsProviderActivated);
         }
         finally
