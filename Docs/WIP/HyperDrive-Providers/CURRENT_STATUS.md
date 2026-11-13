@@ -18,6 +18,8 @@
 
 ## Verification log
 
+13 November Cancun time. Exact WEB4 image run 43408972198 passed for candidate 747ac0d8d140 on Development 9a80b945db8a. Published digest sha256:6a2ad43ae98f56333f1bacb85c7029d3c027a551b6c5a2919aab6e8f9ff5f711. Six of seven predecessor Railway statuses succeeded and WEB4 was still pending. Next shared review after 10:52:41 UTC. The image was not pulled locally. Hosted RoundRobin remains open.
+
 13 November Cancun time. Shared Development Solution Integrity job 131829094543 on 9a80b945db8a identified branch declarations for STAR ODK, API Core and ONODE Core as main while the Development validator expects Development. The reported gitlinks matched their branch tips in that run. This is separate from the Railway manifest, whose synchronization job passed, and from WEB4 strategy image qualification 43408972198, which remains active. No shared dependency declarations or gitlinks were changed in this review.
 
 13 November Cancun time. Development advanced to 9a80b945db8a with COSMIC extrema and CQL test changes. The scoped WEB4 point-read candidate is now 747ac0d8d140, tree ebf3054413b0e747fdda7eacdb5a1641efa7e551, with Core 3e358637 on shared Core fcbc9248. Exact image run 43408972198 is pending. Requested cancellation of superseded run 43406649562 to release the shared image build slot. Hosted fixture verification remains open.
