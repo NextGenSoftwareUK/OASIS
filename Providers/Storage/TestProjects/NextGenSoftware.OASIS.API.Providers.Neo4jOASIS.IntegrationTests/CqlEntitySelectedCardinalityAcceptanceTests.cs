@@ -42,7 +42,14 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Assert.AreEqual(exactAmount, amounts.Sum());
         Assert.AreEqual(exactAmount, amounts.Average());
         Assert.AreEqual(0m, amounts.Take(0).Sum());
-        Passed("native integer and exact decimal Sum and Average preserve entity windows and selected predicates");
+        var longValues = root.Where(row => row.Id == rootId).OrderBy(row => row.Name).Take(1)
+            .Reverse().Select(row => CosmicQueryMetadata.Value<long?>(row, "i64"));
+        const long exactLong = 9007199254740993L;
+        Assert.AreEqual<long?>(exactLong, longValues.Sum());
+        Assert.AreEqual<double?>((double)exactLong, longValues.Average());
+        Assert.AreEqual<long?>(0L, longValues.Take(0).Sum());
+        Assert.IsNull(longValues.Take(0).Average());
+        Passed("native integer, nullable Int64 and exact decimal reductions preserve entity windows");
 
         var nullable = root.OrderBy(row => row.Name).Take(3).Reverse().Take(0)
             .Select(row => CosmicQueryMetadata.Value<int?>(row, "nullableInt"));
