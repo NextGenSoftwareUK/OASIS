@@ -18,6 +18,8 @@
 
 ## Verification log
 
+13 November Cancun time. The ActivityPub provider-key read now accepts a public HTTPS object URI through the shipping HyperDrive point-read path. The native Mastodon test exercises sync and async routing and checks serving-provider attribution, exact object identity and the instance-local status ID. Native CI is pending. Multiple independently configured instances remain a separate routing gate. No local runtime or fixture artifacts were created.
+
 13 November Cancun time. Railway queued WEB4 deployment `1821a44b-139c-454e-a752-bb8fe04c36cd` for Development `309bb68419f2` at 13:24:12 Cancun. The staged signature-version candidate `7119fcb369cd` has that exact parent and reproduces the passing Agave tree `9a29630f0fe583c114545c61e6c17ce9df0a4c55`. The next shared review is after 13:54:12 Cancun. The temporary Git index was removed and no local fixtures were created.
 
 13 November Cancun time. Development advanced to `309bb68419f2` with the verified Solana identity-miss fix and native regression. The previous seven API deployments were successful. The new rollout is pending. [Expanded Agave job 132078673640](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43481447508/job/132078673640) also passed both modes with zero skips on tree `9a29630f0fe583c114545c61e6c17ce9df0a4c55`, covering finalized signature reads and mismatched versions. That follow-up awaits reconciliation on the new Development parent. No local artifacts were created.

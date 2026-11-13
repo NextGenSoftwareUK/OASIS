@@ -39,6 +39,12 @@ public partial class ActivityPubOASIS
             if(version!=0)throw new NotSupportedException("Native status edit history is not an OASIS holon version.");
             var selected=RequireNativePathId(key);
             if(!_isActivated){var activated=await ActivateProviderAsync().ConfigureAwait(false);if(activated.IsError)return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<bool,IHolon>(activated);}
+            if (Uri.TryCreate(key, UriKind.Absolute, out var objectUri) && objectUri.Scheme == Uri.UriSchemeHttps)
+            {
+                if (children && providerChildren)
+                    throw new NotSupportedException("Public object URI reads do not include a native reply graph.");
+                return await LoadPublicStatusByObjectUriAsync(key).ConfigureAwait(false);
+            }
             using var response=await _httpClient.GetAsync("/api/v1/statuses/"+Uri.EscapeDataString(selected)).ConfigureAwait(false);response.EnsureSuccessStatusCode();
             using var document=JsonDocument.Parse(await response.Content.ReadAsStringAsync().ConfigureAwait(false));var status=document.RootElement;
             var holon=ProjectMastodonStatus(status,selected);

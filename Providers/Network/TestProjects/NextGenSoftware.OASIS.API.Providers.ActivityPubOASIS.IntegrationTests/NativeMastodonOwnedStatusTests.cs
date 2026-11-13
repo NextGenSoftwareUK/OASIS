@@ -55,7 +55,7 @@ public class NativeMastodonOwnedStatusTests
 
         using var provider = new ActivityPubOASIS(origin, token!);
         var deleted = routed
-            ? await RouteStatusAsync(provider, id!, sourceText, synchronous)
+            ? await RouteStatusAsync(client, provider, id!, sourceText, synchronous)
             : synchronous ? provider.DeleteHolon(id!) : await provider.DeleteHolonAsync(id!);
         Assert.False(deleted.IsError, deleted.Message);
         Assert.True(deleted.IsDeleted);
@@ -65,11 +65,9 @@ public class NativeMastodonOwnedStatusTests
         Assert.Equal(sourceText, deleted.Result.MetaData["MastodonSourceText"]);
         using var after = await client.GetAsync(path);
         Assert.Equal(HttpStatusCode.NotFound, after.StatusCode);
-        if (routed)
-            await VerifyPublicObjectResolutionAsync(client, provider);
     }
 
-    private static async Task VerifyPublicObjectResolutionAsync(HttpClient client, ActivityPubOASIS provider)
+    private static async Task VerifyPublicObjectResolutionAsync(HttpClient client, Func<StorageOperationRequest, Task<NextGenSoftware.OASIS.Common.OASISResult<IHolon>>> route)
     {
         using var form = new FormUrlEncodedContent(new Dictionary<string, string>
         {
@@ -85,9 +83,17 @@ public class NativeMastodonOwnedStatusTests
         try
         {
             var uri = document.RootElement.GetProperty("uri").GetString();
-            var resolved = await provider.LoadPublicStatusByObjectUriAsync(uri!);
+            var resolved = await route(new StorageOperationRequest
+            {
+                Operation = "LoadHolonByProviderKey",
+                ProviderKey = uri!,
+                PreferredProvider = ProviderType.ActivityPubOASIS,
+                LoadChildren = false
+            });
             Assert.False(resolved.IsError, resolved.Message);
             Assert.True(resolved.IsLoaded);
+            using var routeEvidence = JsonDocument.Parse(resolved.MetaData["hyperDriveRoute"]);
+            Assert.Equal("ActivityPubOASIS", routeEvidence.RootElement.GetProperty("ServingProvider").GetString());
             Assert.Equal(uri, resolved.Result.MetaData["MastodonObjectUri"]);
             Assert.Equal(id, resolved.Result.ProviderUniqueStorageKey[ProviderType.ActivityPubOASIS]);
         }
@@ -101,7 +107,7 @@ public class NativeMastodonOwnedStatusTests
     }
 
     private static async Task<NextGenSoftware.OASIS.Common.OASISResult<IHolon>> RouteStatusAsync(
-        ActivityPubOASIS provider, string id, string sourceText, bool synchronous)
+        HttpClient client, ActivityPubOASIS provider, string id, string sourceText, bool synchronous)
     {
         var dna = new OASISDNA
         {
@@ -144,6 +150,8 @@ public class NativeMastodonOwnedStatusTests
         Assert.Contains(sourceText, Assert.IsType<string>(loaded.Result.MetaData["MastodonContentHtml"]), StringComparison.Ordinal);
         using var route = JsonDocument.Parse(loaded.MetaData["hyperDriveRoute"]);
         Assert.Equal("ActivityPubOASIS", route.RootElement.GetProperty("ServingProvider").GetString());
+
+        await VerifyPublicObjectResolutionAsync(client, Route);
 
         return await Route(new StorageOperationRequest
         {
