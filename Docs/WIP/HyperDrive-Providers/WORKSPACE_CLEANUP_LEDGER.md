@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+13 November TON-based IPFS restart 43382340431 removed the disposable Kubo fixture. No local build or download.
+
 13 November IPFS read-limit multi-process run 43382148712 confirmed disposable Kubo fixture removal. No local builds or downloads.
 
 13 November removed and verified absence of the temporary Git index used for the TON-based IPFS read-limit candidate. No local builds or downloads.
