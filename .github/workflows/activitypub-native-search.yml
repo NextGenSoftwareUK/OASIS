@@ -52,6 +52,16 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
+      - name: Verify Mastodon point selector validation
+        if: inputs.routing
+        shell: pwsh
+        run: |
+          ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-ActivityPubPointValidation -Operation {
+            $project = 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS.UnitTests'
+            dotnet test $project --filter 'FullyQualifiedName~ActivityPubCqlTests|FullyQualifiedName~ActivityPubStatusReadTests' /m:2 /nr:false /p:UseSharedCompilation=false
+            if ($LASTEXITCODE) { throw 'ActivityPub point selector verification failed.' }
+          }
+
       - name: Exercise the selected native Mastodon cases
         env:
           OASIS_ACTIVITYPUB_ROUTING: ${{ inputs.routing && '1' || '0' }}
