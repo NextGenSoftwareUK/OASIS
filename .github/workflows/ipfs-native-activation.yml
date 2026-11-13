@@ -58,10 +58,8 @@ jobs:
       - name: Apply verified IPFS publication scope
         shell: bash
         run: |
-          base=2b8081b30f84d725509707fa102e13cc95a24213
-          identity=d4276e40489510fb89e544f6c118d7b89f8cd5ce
-          receiver=fd9b328ac7126ee25ed0b746cf036c4243dd5d9d
-          git -C ../provider-source fetch --no-tags --depth=1 origin "$base" "$identity" "$receiver"
+          reviewed_baseline=2ec99009d7c8b7030e4ced1d96b7e625bfda9da6
+          git -C ../provider-source fetch --no-tags --depth=1 origin "$reviewed_baseline"
           provider='Providers/Network/NextGenSoftware.OASIS.API.Providers.IPFSOASIS'
           tests='Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.IPFSOASIS.IntegrationTests'
           for path in "$provider/IPFSOASIS.Init.cs" "$provider/IPFSOASIS.IndexIdentity.cs" \
@@ -70,11 +68,9 @@ jobs:
             "$tests/IPFSConcurrentPublicationTests.cs" "$tests/IPFSRestartTests.cs" \
             "$tests/NextGenSoftware.OASIS.API.Providers.IPFSOASIS.IntegrationTests.csproj"; do
             current="$(git ls-tree HEAD -- "$path")"
-            reviewed="$(git -C ../provider-source ls-tree "$base" -- "$path")"
-            integrated="$(git -C ../provider-source ls-tree "$identity" -- "$path")"
-            integrated_receiver="$(git -C ../provider-source ls-tree "$receiver" -- "$path")"
+            reviewed="$(git -C ../provider-source ls-tree "$reviewed_baseline" -- "$path")"
             incoming="$(git -C ../provider-source ls-tree HEAD -- "$path")"
-            if [[ -z "$incoming" || ( "$current" != "$reviewed" && "$current" != "$integrated" && "$current" != "$integrated_receiver" && "$current" != "$incoming" ) ]]; then
+            if [[ -z "$incoming" || ( "$current" != "$reviewed" && "$current" != "$incoming" ) ]]; then
               echo "::error::Unreviewed Development or missing incoming file: $path"
               exit 1
             fi
