@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. Prepared the three-file IPFS replica receiver candidate ed18ed3769f2 on the proposed combined EOSIO and IPFS identity parent 4d338173e64d. Candidate tree 3ed5975645a5e9e19264a5b9d388800ae1113fc2 reuses the native-qualified source blobs. Qualify on the actual Development parent after the shared integration. Temporary indices were removed and checked absent. No local build or download.
+
 12 November Cancun time. Kubo successor restart 43351804270 and multi-process publication 43351784030 passed on exact input tree 8b486e29f10b0647bd24fd6723aeb1483386124c. Wrong lineage left the persisted DNA unchanged. Valid lineage advanced the current replica and retained the prior version through its CID. This verifies the receiver path on the branch. Development remains on NEAR 6c61e3e5c33d and the combined EOSIO and IPFS identity image is active. No local build, runtime or fixtures.
 
 12 November Cancun time. Native Kubo restart 43351574704 passed on input tree 546c089b22bde342c54fb03634e226bbdc575416. The test verified receipt absence before apply, committed receipt lookup, identical digest after an ordinary write and daemon restart, and no pointer change on wrong-store rejection or replay. COSMIC is building the combined EOSIO and IPFS image 43351408782. No local outputs.
