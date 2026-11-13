@@ -9,10 +9,10 @@ namespace NextGenSoftware.OASIS.Providers.Shared.S3;
 /// SDK transport is shared; canonical record/query/history/encryption handling is not duplicated.</summary>
 public abstract class S3StorageProviderBase : KeyValueStorageProviderBase, IDisposable
 {
-    private readonly PersistedPrivateKeyValueBackend _private;
+    private readonly IDisposable _ownedBackend;
     private readonly IAmazonS3 _client;
     private readonly bool _ownsClient;
-    private bool _disposed;
+    protected bool IsDisposed { get; private set; }
 
     protected S3StorageProviderBase(IAmazonS3 client, string bucketName, Func<byte[]> storageKeyResolver,
         string keyPrefix = "oasis/", bool ownsClient = false, IReadOnlyList<string>? legacyPrefixes = null)
@@ -22,7 +22,13 @@ public abstract class S3StorageProviderBase : KeyValueStorageProviderBase, IDisp
         : base(backend, prefix)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(prefix);
-        _client = client; _private = backend; _ownsClient = ownsClient;
+        _client = client; _ownedBackend = backend; _ownsClient = ownsClient;
+    }
+
+    protected S3StorageProviderBase(IKeyValueBackend backend, IDisposable ownedBackend, string prefix)
+        : base(backend, prefix)
+    {
+        _ownedBackend = ownedBackend;
     }
 
     protected override Task<OASISResult<IEnumerable<IAvatar>>> LoadAvatarsForCredentialSelectionAsync(int version)
@@ -33,9 +39,9 @@ public abstract class S3StorageProviderBase : KeyValueStorageProviderBase, IDisp
 
     public void Dispose()
     {
-        if (_disposed) return;
-        _disposed = true; IsProviderActivated = false;
-        _private.Dispose();
+        if (IsDisposed) return;
+        IsDisposed = true; IsProviderActivated = false;
+        _ownedBackend.Dispose();
         if (_ownsClient) _client.Dispose();
     }
 }
