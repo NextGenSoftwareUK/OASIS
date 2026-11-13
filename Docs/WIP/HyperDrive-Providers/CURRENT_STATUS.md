@@ -18,6 +18,8 @@
 
 ## Verification log
 
+13 November Cancun time. Initial native IPFS conditional create and receipt replay passed restart run 43388345691. Added a regression for an intervening ordinary save, checking its new revision against a native reload and verifying the stale conditional request leaves the pointer untouched. Targeted verification pending. No local builds or downloads.
+
 13 November Cancun time. IPFS conditional graph writes now compare native revisions under the catalogue lease and publish the graph and replay receipt under one durable pointer. Added a native stale-revision assertion for an unchanged pointer. Restart verification is pending. Outbound route enrollment, leasing and dispatch remain open. No local builds or downloads.
 
 13 November Cancun time. Prepared test-only IPFS candidate 4cd4829ee8013e7a7a26a87fd5ef89aefb49710c on current Development fe97923f2af4. Its tree 81e540d69add1716b1910b39bc4554fce781fd76 exactly matches the oversized-catalogue restart and multi-process passes. Six of seven API deployments were successful at inspection. Carry the test with the next verified batch to avoid a separate deployment for test coverage.

@@ -112,6 +112,25 @@ public sealed class IPFSRestartTests
                 Assert.True(stale.IsError);
                 Assert.Equal(CosmicConcurrencyException.Code, stale.ErrorCode);
                 Assert.Equal(conditionalPointer, await File.ReadAllTextAsync(dnaPath));
+                var priorRevision = CosmicConcurrency.GetProviderRevisionId(Assert.Single(conditional.Result), ProviderType.IPFSOASIS);
+                Assert.NotNull(priorRevision);
+                conditionalRecord.Name = "ordinary edit before conditional retry";
+                var ordinary = await provider.SaveHolonAsync(conditionalRecord, saveChildren: false);
+                Assert.True(ordinary.IsSaved && !ordinary.IsError, ordinary.Message);
+                var newRevision = CosmicConcurrency.GetProviderRevisionId(ordinary.Result, ProviderType.IPFSOASIS);
+                Assert.NotNull(newRevision);
+                Assert.NotEqual(priorRevision, newRevision);
+                var loadedAfterEdit = await provider.LoadHolonAsync(conditionalRecord.Id, loadChildren: false);
+                Assert.True(loadedAfterEdit.IsLoaded && !loadedAfterEdit.IsError, loadedAfterEdit.Message);
+                Assert.Equal(newRevision, CosmicConcurrency.GetProviderRevisionId(loadedAfterEdit.Result, ProviderType.IPFSOASIS));
+                var editedPointer = await File.ReadAllTextAsync(dnaPath);
+                var interveningCondition = new ConditionalHolonWrite(Guid.NewGuid(), RecordId, ProviderType.IPFSOASIS,
+                    new[] { new HolonWriteCondition(conditionalRecord.Id, priorRevision) });
+                var interveningRequest = new ConditionalHolonWriteRequest(interveningCondition, ConditionalHolonOperation.Save,
+                    new[] { conditionalRecord }, saveChildren: false);
+                var intervening = await provider.ExecuteConditionalHolonWriteAsync(interveningRequest);
+                Assert.Equal(CosmicConcurrencyException.Code, intervening.ErrorCode);
+                Assert.Equal(editedPointer, await File.ReadAllTextAsync(dnaPath));
                 await VerifyReplicaAsync(provider, identity.Result, dnaPath, replay: false);
                 holon.Name = "after update";
                 holon.Version = 2;
