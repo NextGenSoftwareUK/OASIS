@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+13 November Cancun time. SQLite and Oracle qualification candidates `fe8319aa11bd`, `799e39c25f60`, `31e53ead6e46` and `0ca6397b2fce` each used a temporary Git index removed in the candidate command's cleanup. Native Neo4j jobs 131997447542 and 132006200160 passed the owned fixture directory removal and service teardown. Oracle job 132012019566 passed the owned fixture directory and container-volume removal. Logs were inspected in memory. No local build, runtime, download or test fixture was created. C: had 27.75 GiB free at 11:31 Cancun time.
+
 13 November Cancun time. ActivityPub candidate 58a195605e6b used one temporary Git index and removed it. CI job 131975765609 confirmed Mastodon fixture removal. No local build, runtime or download.
 
 13 November Cancun time. ActivityPub integration candidate 7cc1f77b6ba7 used one temporary Git index, removed and verified absent. Only the README was added to the previously qualified tree. No local build, runtime or download.
