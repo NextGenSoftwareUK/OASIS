@@ -450,3 +450,5 @@ Provider-breadth milestone1November2026: [EOSIO/Vaulta hosted HTTP proof](EOSIO_
 
 
 Provider-breadth milestone1November2026: [ChainLink hosted proof](CHAINLINK_PUBLIC_SOURCE_STATUS.md) adds exact feed proxy equality/membership with signed answer/scale/round metadata, native3/2, Mongo5/4/reuse/privacy and matching SQLite/Neo4j replicas. Total45scoped hosted HTTP providers, browser5/40open. No three-database EF parity cells changed; paused deep terminals remain paused.
+
+13 November UTC. Q01f evidence: exact candidate 0af82b3208ef passed full CI 43427257541. The native fixture verified exact Decimal Sum and Average after entity windows and zero for empty Decimal Sum on MongoDB, SQLite and Neo4j. This is a test-only extension; defer Development integration to a verified batch so it does not trigger a standalone rollout. Broader numeric domains and graph composition remain open.
