@@ -78,7 +78,7 @@ def main():
         raise RuntimeError("Completed candidate gate retained; do not replay.")
     owner = json.loads((state / "owner.acknowledged.json").read_text())["id"]
     expected = routing.reviewed_record(json.loads((state / "routing-record.acknowledged.json").read_text()), owner)
-    identity, token = flow.session(state, "owner", allow_create=False)
+    identity, token = flow.session(state, "owner", allow_create=False, allow_renewal=False)
     if identity["id"] != owner or flow.call("sandbox/faults", token, method="GET")["result"]:
         raise RuntimeError("Original owner and fault-free baseline required.")
     rows = []
