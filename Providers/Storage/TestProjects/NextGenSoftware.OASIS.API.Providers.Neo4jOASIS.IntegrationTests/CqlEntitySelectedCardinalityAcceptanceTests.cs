@@ -34,7 +34,9 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Assert.IsTrue(expectedVersions.Length > 0);
         Assert.AreEqual(expectedVersions.Min(row => row.Version), versions.Min(row => row.Version));
         Assert.AreEqual(expectedVersions.Max(row => row.Version), versions.Select(row => row.Version).Max());
-        Assert.IsNull(versions.Take(0).Select(row => (int?)row.Version).Min());
+        var nullable = root.OrderBy(row => row.Name).Take(3).Reverse().Take(0)
+            .Select(row => CosmicQueryMetadata.Value<int?>(row, "nullableInt"));
+        Assert.IsNull(nullable.Min());
         Passed("native Min and Max preserve entity windows, selected predicates, reselection and empty nullable output");
 
         var first=root.OrderBy(row=>row.Name).Take(1).Where(row=>row.Version>=1)
