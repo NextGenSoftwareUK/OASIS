@@ -2,7 +2,7 @@ name: DynamoDB and SQLite native failover
 
 on:
   push:
-    branches: [work/hyperdrive-provider-completion]
+    branches: [work/hyperdrive-provider-completion, work/hyperdrive-dynamo-failover-qualification]
     paths:
       - '.github/workflows/dynamodb-sqlite-native-failover.yml'
       - 'Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.AWSOASIS.IntegrationTests/AWSSqliteOutageTests.cs'
