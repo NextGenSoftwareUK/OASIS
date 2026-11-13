@@ -126,7 +126,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 {
                     IsLoaded = holonEntities != null,
                     IsError = false,
-                    Message = "Holon Loaded successfully",
+                    ErrorCode = holonEntities == null ? OASISResultErrorCodes.RecordNotFound : null,
+                    Message = holonEntities == null ? "No Holon Found" : "Holon Loaded successfully",
                     Result = holonEntities
                 };
             }
@@ -157,7 +158,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 {
                     IsLoaded = holonEntity != null,
                     IsError = false,
-                    Message = "Holon Loaded successfully",
+                    ErrorCode = holonEntity == null ? OASISResultErrorCodes.RecordNotFound : null,
+                    Message = holonEntity == null ? "No Holon Found" : "Holon Loaded successfully",
                     Result = holonEntity
                 };
             }
