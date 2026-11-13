@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+13 November Cancun time. Exact EVM qualification candidate 35ab1d28c72a used one temporary Git index. Removed it and verified no matching index remains. Native CI job 131895565592 passed with its owned loopback chain and fixture cleanup gate. The earlier local build directory remains listed below.
+
 13 November Cancun time. Polygon and Arbitrum SQLite outage compilation produced owned build output in TestResults/PolygonArbitrumOutageOwned. Exact cleanup path resolved inside the task worktree. Automatic command policy rejected recursive cleanup. Build finished and no chain was started. Cleanup of that specific directory is still pending.
 
 13 November Cancun time. Scoped Development integration a88f960c558e used one temporary Git index in the task worktree. Removed it after forming the commit. CI job 131881181707 passed its temporary database stop step. Logs were read in memory. No local build or test environment was created.
