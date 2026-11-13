@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. If COSMIC publishes Arbitrum first, candidate 684cce6c6727 on db5b9cf03dc3 preserves all 29 reviewed routing, IPFS and Hedera paths byte for byte relative to the Polygon-based candidate 088f6817ca5a. Development remains on Polygon and the next shared review is after 19:56:21, subject to the current remote and rollout. No local build or temporary index.
+
 12 November Cancun time. Prepared Hedera routing candidate 088f6817ca5a on the Polygon-based HyperDrive batch 29c8ffa64101. Reproduced exact passing tree a9261d359af1bef6121360991dd264b43637d784 and preserved the previously qualified routing helper. COSMIC Hedera consensus qualification 43337804330 is separate. The shared Development review remains after 19:56:21.
 
 12 November Cancun time. Hedera exact Development routing run 43336838228 passed both modes with zero skips on expected tree a9261d359af1bef6121360991dd264b43637d784. Both confirmed native Hiero teardown. Funded testnet and hosted CQL remain separate verification scopes.
