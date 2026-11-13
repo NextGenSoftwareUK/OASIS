@@ -325,7 +325,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             catalogue["records"] = JObject.FromObject(records);
             var encrypted = ProtectIndex(catalogue.ToString(Formatting.None));
             cancellationToken.ThrowIfCancellationRequested();
-            var fsn = await IPFSClient.FileSystem.AddTextAsync(encrypted).ConfigureAwait(false);
+            var fsn = await IPFSClient.FileSystem.AddTextAsync(encrypted, cancel: cancellationToken).ConfigureAwait(false);
             cancellationToken.ThrowIfCancellationRequested();
             settings.LookUpIPFSAddress = fsn.Id;
             try

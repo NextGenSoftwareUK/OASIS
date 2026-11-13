@@ -18,6 +18,8 @@
 
 ## Verification log
 
+13 November Cancun time. IPFS replica writes now pass the delivery cancellation token to the native Kubo record and encrypted catalogue uploads. Pointer publication keeps its existing cancellation check before persisting DNA. Ordinary writes retain their existing non-cancellable publication semantics. Native CI is pending. No local builds or downloads.
+
 13 November 00:51 Cancun time. At the shared review, remote Development still pointed to Polkadot 49f8463de927 and all seven Railway statuses were successful. Exact TON image 43367464873 and Hedera image 43369893169 both reported success. Preserve the coordinated TON slot. The IPFS follow-up on TON remains staged at 28752bf7b233. Dispatch native qualification once the remote confirms the actual new parent. No local builds or downloads.
 
 13 November Cancun time. Prepared divergence-qualified IPFS candidate 2adfc398911e on Polkadot. Its two files reproduce passing native tree 75c146a127742742e0739ef6d341c807e550027c. Alternate 28752bf7b233 on qualified TON has tree d42362b72cd1733596ddb9d60c9c851467eebd67 and the exact same IPFS file objects. These supersede the older replay-only candidates. TON retains the proposed shared slot after 00:50:16. Verify the actual parent before further CI.

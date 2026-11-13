@@ -297,7 +297,8 @@ public partial class IPFSOASIS : IBoundCommittedHolonReplicaStorageProvider, ICo
 
         var snapshot = StoredRecordJson.Serialize<IHolon>(record);
         cancellationToken.ThrowIfCancellationRequested();
-        var native = await IPFSClient.FileSystem.AddTextAsync(ProtectRecord("holon", record.Id, snapshot)).ConfigureAwait(false);
+        var native = await IPFSClient.FileSystem.AddTextAsync(ProtectRecord("holon", record.Id, snapshot),
+            cancel: cancellationToken).ConfigureAwait(false);
         var cid = native.Id.ToString();
         record.ProviderUniqueStorageKey[ReplicaAuthority] = cid;
         var hardDeleted = plan.Operation == ConditionalHolonOperation.HardDelete;
