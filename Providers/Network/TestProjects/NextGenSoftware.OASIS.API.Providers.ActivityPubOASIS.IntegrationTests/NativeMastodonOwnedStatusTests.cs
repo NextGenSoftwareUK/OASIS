@@ -6,6 +6,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive;
 using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS.IntegrationTests;
 
@@ -67,7 +68,7 @@ public class NativeMastodonOwnedStatusTests
         Assert.Equal(HttpStatusCode.NotFound, after.StatusCode);
     }
 
-    private static async Task VerifyPublicObjectResolutionAsync(HttpClient client, Func<StorageOperationRequest, Task<NextGenSoftware.OASIS.Common.OASISResult<IHolon>>> route)
+    private static async Task VerifyPublicObjectResolutionAsync(HttpClient client, Func<StorageOperationRequest, Task<OASISResult<IHolon>>> route)
     {
         using var form = new FormUrlEncodedContent(new Dictionary<string, string>
         {
@@ -80,16 +81,19 @@ public class NativeMastodonOwnedStatusTests
         var id = document.RootElement.GetProperty("id").GetString();
         Assert.Matches("^[0-9]+$", id!);
         var path = $"/api/v1/statuses/{id}";
-        try
-        {
-            var uri = document.RootElement.GetProperty("uri").GetString();
-            var resolved = await route(new StorageOperationRequest
+        var uri = document.RootElement.GetProperty("uri").GetString();
+        Task<OASISResult<IHolon>> ReadPublicObject() =>
+            route(new StorageOperationRequest
             {
                 Operation = "LoadHolonByProviderKey",
                 ProviderKey = uri!,
                 PreferredProvider = ProviderType.ActivityPubOASIS,
                 LoadChildren = false
             });
+
+        try
+        {
+            var resolved = await ReadPublicObject();
             Assert.False(resolved.IsError, resolved.Message);
             Assert.True(resolved.IsLoaded);
             using var routeEvidence = JsonDocument.Parse(resolved.MetaData["hyperDriveRoute"]);
@@ -104,9 +108,14 @@ public class NativeMastodonOwnedStatusTests
             using var absent = await client.GetAsync(path);
             Assert.Equal(HttpStatusCode.NotFound, absent.StatusCode);
         }
+
+        var missing = await ReadPublicObject();
+        Assert.Equal(OASISResultErrorCodes.RecordNotFound, missing.ErrorCode);
+        Assert.False(missing.IsLoaded);
+        Assert.Null(missing.Result);
     }
 
-    private static async Task<NextGenSoftware.OASIS.Common.OASISResult<IHolon>> RouteStatusAsync(
+    private static async Task<OASISResult<IHolon>> RouteStatusAsync(
         HttpClient client, ActivityPubOASIS provider, string id, string sourceText, bool synchronous)
     {
         var dna = new OASISDNA
@@ -121,7 +130,7 @@ public class NativeMastodonOwnedStatusTests
         var manager = new ProviderManager(null, dna);
         manager.RegisterProvider(provider);
         var router = new OASISHyperDrive(manager);
-        Task<NextGenSoftware.OASIS.Common.OASISResult<IHolon>> Route(StorageOperationRequest request)
+        Task<OASISResult<IHolon>> Route(StorageOperationRequest request)
             => synchronous ? Task.FromResult(router.RouteRequest<IHolon>(request)) : router.RouteRequestAsync<IHolon>(request);
         foreach (var invalidKey in new[] { ".", ".." })
         {
