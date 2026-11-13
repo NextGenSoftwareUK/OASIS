@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. Restart run 43347007391 includes the unpublished-store guard and the persisted fingerprint assertion. Requested cancellation of the superseded queued restart run 43346342706 to avoid duplicate fixture provisioning. Development 2b8081b30f84 had five successful deployments, with WEB4 and WEB5 pending.
+
 12 November Cancun time. IPFS store identity capture at 77db43511a39 reads the authenticated catalogue through Kubo and derives its binding from the persisted store UUID and credential-free endpoint. The restart scenario 43346342706 checks the same fingerprint after a catalogue update and daemon restart. Multi-process CI 43346324638 checks ordinary publication. Both are pending. Binding alone does not enroll a replica route. Receiver apply and source outbox remain open.
 
 12 November Cancun time. Development fast-forwarded from db5b9cf03dc3 to verified HyperDrive batch 2b8081b30f84 after COSMIC released the shared window and all seven Arbitrum services were green. Verified ten native qualification runs, dependency pins, clean diff and the exact remote ref. The Development workflow records 20:31:04 Cancun. The next shared review is after 21:01:04 and requires rollout verification. All seven new Railway services were pending at inspection.
