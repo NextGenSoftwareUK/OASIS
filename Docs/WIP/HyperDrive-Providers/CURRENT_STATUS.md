@@ -18,6 +18,8 @@
 
 ## Verification log
 
+13 November Cancun time. [Exact Development authorization CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43440312113) passed all eight rejection cases with zero skips on candidate 50bb6ad5bf80. The verified batch contains the regression and its CI workflow. The shared review remains subject to the preceding rollout and current Development head. Hosted sequence 543 remains held pending protected writer evidence.
+
 13 November Cancun time. Reviewed WEB4 write admission and delivery logging for sequence 543. The write endpoint chooses the Wizard path from the authenticated avatar role. The delivery warning logs source, target, sequence, operation and error code, with no historical role attestation. Those fields can correlate the failure but cannot prove the original grant. Recorded the protected audit evidence request in ACTIONS-FOR-DAVID. No hosted logs, queue entries or credentials were changed.
 
 13 November Cancun time. Traced hosted HoloOASIS sequence 543 through the shared replica initializer. It admits only a lineage-conflict queue head with resolved native execution. Sequence 543 is an authorization denial, so matching V2 route IDs alone cannot make it eligible for baseline initialization. Added a focused regression asserting that this exact error never prepares an initialization intent or reaches the target queue head check. Keep the original queue intact while reviewing writer authority and the correct recovery operation. [Focused CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43439277442) passed all eight rejection cases, including authorization denial, with zero skips. This verifies the existing admission boundary. It does not recover the hosted queue.

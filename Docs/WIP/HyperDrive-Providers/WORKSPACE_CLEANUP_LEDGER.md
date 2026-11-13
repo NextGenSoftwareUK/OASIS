@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+13 November Cancun time. Replica authorization qualification candidate 50bb6ad5bf80 used one temporary Git index, removed and verified absent. CI job 131935908498 passed its fixture cleanup gate. The existing PolygonArbitrumOutageOwned directory remains present. The repository cleanup script accepts individual reports in TestResults and its default invocation also touches other locations, so it was not used for this directory.
+
 13 November Cancun time. Replica authorization CI job 131932346546 passed all eight cases and its isolated build/results cleanup gate. The local combined command was rejected before creating artifacts. No local runtime or test output was created.
 
 13 November Cancun time. Neo4j candidate d495c8fe651a used one temporary Git index, removed and verified absent. Native CI job 131923436894 passed its build/results directory cleanup and service container stop. No local builds or downloads.
