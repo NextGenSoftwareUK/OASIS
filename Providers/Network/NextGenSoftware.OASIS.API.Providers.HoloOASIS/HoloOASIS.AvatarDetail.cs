@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -66,29 +66,11 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             return _genericRepository.Load<IHolon>(HcObjectTypeEnum.Holon, "id", id.ToString(), ZOME_LOAD_HOLON_BY_ID_FUNCTION, version);
         }
 
-        public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            return await _genericRepository.LoadAsync<IHolon>(HcObjectTypeEnum.Holon, "providerKey (entryHash)", providerKey, ZOME_LOAD_HOLON_BY_ID_FUNCTION, version, new Dictionary<string, string>()
-            {
-                ["loadChildren"] = loadChildren.ToString(),
-                ["recursive"] = recursive.ToString(),
-                ["maxChildDepth"] = maxChildDepth.ToString(),
-                ["continueOnError"] = continueOnError.ToString(),
-                ["loadChildrenFromProvider"] = loadChildrenFromProvider.ToString()
-            });
-        }
+        public override Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+            => _genericRepository.LoadHolonByActionHashAsync(providerKey, version);
 
         public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            return _genericRepository.Load<IHolon>(HcObjectTypeEnum.Holon, "providerKey (entryHash)", providerKey, ZOME_LOAD_HOLON_BY_ID_FUNCTION, version, new Dictionary<string, string>()
-            {
-                ["loadChildren"] = loadChildren.ToString(),
-                ["recursive"] = recursive.ToString(),
-                ["maxChildDepth"] = maxChildDepth.ToString(),
-                ["continueOnError"] = continueOnError.ToString(),
-                ["loadChildrenFromProvider"] = loadChildrenFromProvider.ToString()
-            });
-        }
+            => Task.Run(() => LoadHolonAsync(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version)).GetAwaiter().GetResult();
 
         //public override async Task<OASISResult<IHolon>> LoadHolonByCustomKeyAsync(string customKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         //{
@@ -175,12 +157,18 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                 {
                     var entry = (object)record.EntryDataObject as HcHolon;
                     // Read the identity from the entry itself, independently of the record envelope.
+                    object nativeId = null;
+                    var hasIdentity = record.EntryKeyValuePairs?.TryGetValue("id", out nativeId) == true;
+                    var parses = Guid.TryParse(nativeId as string, out var holonId);
                     if (entry == null || string.IsNullOrWhiteSpace(record.ActionHash) ||
-                        record.EntryKeyValuePairs == null ||
-                        !record.EntryKeyValuePairs.TryGetValue("id", out var nativeId) ||
-                        !(nativeId is string id) || !Guid.TryParse(id, out var holonId) || holonId == Guid.Empty)
+                        !hasIdentity || !parses || holonId == Guid.Empty)
                     {
-                        OASISErrorHandling.HandleError(ref result, $"Holochain {function} returned an invalid holon record or identity.");
+                        OASISErrorHandling.HandleError(ref result,
+                            $"Holochain {function} returned an invalid holon record or identity " +
+                            $"(entry type: {record.EntryDataObject?.GetType().Name ?? "none"}, " +
+                            $"action hash present: {!string.IsNullOrWhiteSpace(record.ActionHash)}, " +
+                            $"identity field present: {hasIdentity}, identity type: {nativeId?.GetType().Name ?? "none"}, " +
+                            $"identity parses as GUID: {parses}, identity is empty GUID: {parses && holonId == Guid.Empty}).");
                         return result;
                     }
 

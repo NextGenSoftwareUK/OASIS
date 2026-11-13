@@ -52,7 +52,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Repositories
                         hcObject.ZomeLoadEntryFunction = zomeLoadFunctionName;
 
                     if (fieldName == "id" && version == 0 && customDataKeyValuePairs == null)
-                        return await LoadCurrentByIdAsync(hcObjectType, fieldValue, hcObject, result);
+                        return await LoadNativeRecordAsync(hcObjectType, fieldName, fieldValue, fieldValue, hcObject, result);
 
                     result = HandleLoadResponse(await hcObject.LoadByCustomFieldAsync(fieldValue, fieldName, customDataKeyValuePairs, UseReflection), hcObjectType, fieldName, fieldValue, hcObject, result, "LoadAsync");
                 }
@@ -111,18 +111,36 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Repositories
             return result;
         }
 
-        private async Task<OASISResult<T>> LoadCurrentByIdAsync<T>(HcObjectTypeEnum type, string id,
+        public async Task<OASISResult<IHolon>> LoadHolonByActionHashAsync(string providerKey, int version)
+        {
+            var result = new OASISResult<IHolon>();
+            var hash = HoloNETClientAppAgent.ConvertHoloHashToBytes(providerKey);
+            if (hash is not { Length: 39 } || hash[0] != 0x84 || hash[1] != 0x29 || hash[2] != 0x24)
+            {
+                OASISErrorHandling.HandleError(ref result, "The HoloOASIS holon provider key must be an action hash.");
+                return result;
+            }
+
+            result = await LoadNativeRecordAsync(HcObjectTypeEnum.Holon, "action hash", providerKey, hash,
+                new HcHolon(HoloNETClientAppAgent), result);
+            if (result.Result != null && version > 0 && result.Result.Version != version)
+                return new OASISResult<IHolon> { IsError = true, ErrorCode = OASISResultErrorCodes.RecordNotFound,
+                    Message = "The action hash does not identify the requested holon version." };
+            return result;
+        }
+
+        private async Task<OASISResult<T>> LoadNativeRecordAsync<T>(HcObjectTypeEnum type, string fieldName, string value, object payload,
             IHoloNETAuditEntryBase entry, OASISResult<T> result) where T : IHolonBase
         {
             var response = await HoloNETClientAppAgent.CallZomeFunctionAsync(entry.ZomeName,
-                entry.ZomeLoadEntryFunction, paramsObject: (object)id,
+                entry.ZomeLoadEntryFunction, paramsObject: payload,
                 entryDataObjectTypeReturnedFromZome: entry.GetType());
             if (response == null || response.IsError)
-                return HandleLoadResponse(response, type, "id", id, entry, result, "LoadCurrentByIdAsync");
+                return HandleLoadResponse(response, type, fieldName, value, entry, result, nameof(LoadNativeRecordAsync));
 
             if (response.ZomeReturnValue == null && response.Records.Count == 0)
             {
-                OASISErrorHandling.HandleError(ref result, $"Holochain {type} {id} was not found.");
+                OASISErrorHandling.HandleError(ref result, $"Holochain {type} with {fieldName} {value} was not found.");
                 result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
                 return result;
             }
@@ -130,13 +148,13 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Repositories
             if (response.Records.Count != 1 || !(response.Records[0].EntryDataObject is IHoloNETAuditEntryBase loaded) ||
                 string.IsNullOrWhiteSpace(response.Records[0].ActionHash))
             {
-                OASISErrorHandling.HandleError(ref result, $"Holochain returned an invalid {type} record for {id}.");
+                OASISErrorHandling.HandleError(ref result, $"Holochain returned an invalid {type} record for {fieldName} {value}.");
                 return result;
             }
 
             loaded.ActionHash = response.Records[0].ActionHash;
             loaded.EntryHash = response.Records[0].EntryHash;
-            return HandleLoadResponse(response, type, "id", id, loaded, result, "LoadCurrentByIdAsync");
+            return HandleLoadResponse(response, type, fieldName, value, loaded, result, nameof(LoadNativeRecordAsync));
         }
 
         public async Task<OASISResult<T>> SaveAsync<T>(HcObjectTypeEnum hcObjectType, T holon, Dictionary<string, string> customDataKeyValuePairs = null) where T : IHolonBase
