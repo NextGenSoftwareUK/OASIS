@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+13 November removed and verified absence of the temporary Git index used to stage the exact MongoDB and SQLite routing candidate. No local build, database or runtime download.
+
 13 November removed and verified absence of the temporary Git index used to assemble WEB4 candidate 747ac0d8d140. No local builds or runtime downloads.
 
 13 November Kubo jobs 43404048980 and 43404025348 confirmed fixture teardown. Removed and verified absence of the temporary index used to assemble the exact Development tree. No local builds or downloads.
