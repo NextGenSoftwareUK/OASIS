@@ -34,7 +34,7 @@ Sources for this checkpoint are the [native routing archive](Archive/HYPERDRIVE_
 
 The combined candidate `fe8319aa11bd` passed both sync and async against SQLite and Neo4j over Bolt. With SQLite unavailable, HyperDrive returned the exact Neo4j holon only when failover was enabled. With SQLite healthy, a holon miss by ID and avatar-detail misses by ID, username and email each returned `RecordNotFound` without sending a read to Neo4j. CI verified cleanup and container teardown. [Exact native job](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43458081690/job/131997447542)
 
-The provider-key follow-up reproduced a missing error code in both modes. The SQLite repository's string overloads have their own result construction. Both now return `RecordNotFound` for an empty lookup. Native verification of this correction remains pending. [Failing regression](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43459464160/job/132002198756)
+The provider-key follow-up reproduced a missing error code in both modes. The SQLite repository's string overloads have their own result construction. Both now return `RecordNotFound` for an empty lookup. The task-branch native job passed both modes with zero skips, verified that the healthy miss sent no read to Neo4j, and cleaned up the fixtures. Exact Development qualification is in progress. [Failing regression](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43459464160/job/132002198756) · [Passing native job](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43460156224/job/132004597491) · [Development qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43460607223)
 
 ## ActivityPub cross-instance read acceptance
 
