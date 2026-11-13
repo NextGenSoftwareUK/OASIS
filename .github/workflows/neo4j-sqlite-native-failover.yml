@@ -6,6 +6,7 @@ on:
     paths:
       - '.github/workflows/neo4j-sqlite-native-failover.yml'
       - 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/Neo4jSqliteOutageTests.cs'
+      - 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.UnitTests.csproj'
   workflow_dispatch:
 
 permissions:
@@ -69,8 +70,8 @@ jobs:
           New-Item -ItemType Directory -Path $fixture | Out-Null
           try {
             ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-Neo4jSqliteOutage -Operation {
-              $project = 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests'
-              dotnet test $project --filter 'FullyQualifiedName~Neo4jSqliteOutageTests' --artifacts-path (Join-Path $fixture build) --results-directory $fixture --logger 'trx;LogFileName=outage.trx' /m:2 /nr:false /p:UseSharedCompilation=false
+              $project = 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.UnitTests'
+              dotnet test $project --filter 'FullyQualifiedName~Neo4jSqliteOutageTests' --artifacts-path (Join-Path $fixture build) --results-directory $fixture --logger 'trx;LogFileName=outage.trx' /m:2 /nr:false /p:UseSharedCompilation=false /p:IncludeNeo4jNativeOutage=true
               if ($LASTEXITCODE) { throw 'Neo4j outage verification failed.' }
               [xml]$report = Get-Content -LiteralPath (Join-Path $fixture outage.trx)
               $counts = $report.TestRun.ResultSummary.Counters
