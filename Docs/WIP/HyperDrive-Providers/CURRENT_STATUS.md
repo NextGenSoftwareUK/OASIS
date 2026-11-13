@@ -18,6 +18,8 @@
 
 ## Verification log
 
+13 November Cancun time. Added redacted committed delta evidence to new IPFS conditional receipts, replay and read-only recovery. Existing receipts remain readable and report absent delta evidence. Native restart qualification pending. No local builds or downloads.
+
 13 November Cancun time. Fast-forwarded Development to 9da992b83968 after seven successful predecessor rollouts. The four-file batch is the exact native Kubo-tested tree 5ad0ed6e224aabc59da5414355eb5976275dd990. It adds conditional graph writes, ordinary-save revision invalidation, durable receipt replay and read-only bound recovery. Deployment verification and outbound route enrollment and dispatch remain open.
 
 13 November Cancun time. Added native conditional hard-delete coverage after Kubo restart: verify removal from the published catalogue, replay the exact receipt and require an unchanged pointer. Native restart run 43389998053 passed the hard-delete and replay assertions on tree ce4782cd62005ebc792305718f191deb3224eb46. Earlier run 43389504857 passed cross-restart receipt replay. Both removed their fixtures. Read-only bound receipt recovery passed Kubo restart 43390393387 and multi-process 43390378271 on exact tree 5ad0ed6e224aabc59da5414355eb5976275dd990. Candidate 9da992b83968b4babcc0b668e0f5c6049c0b7ea7 reproduces that tree on Development fe97923f2af4. Outbound enrollment and dispatch remain open. All seven API deployments on Development fe97923f2af4 report success. No local builds or downloads.
