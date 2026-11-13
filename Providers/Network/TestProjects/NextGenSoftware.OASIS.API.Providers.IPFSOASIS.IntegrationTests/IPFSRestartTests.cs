@@ -78,6 +78,20 @@ public sealed class IPFSRestartTests
                 invalidCatalogue.Add("invalid-cid", new HolonResume());
                 await Assert.ThrowsAsync<InvalidDataException>(() => provider.SaveLookupToFile(invalidCatalogue));
                 Assert.Equal(publishedDna, await File.ReadAllTextAsync(dnaPath));
+                var oversizedCatalogue = await provider.LoadLookupToJson();
+                var alphabet = Enumerable.Range(32, 95).Select(value => (char)value)
+                    .Where(value => value != (char)34 && value != (char)92).ToArray();
+                var random = System.Security.Cryptography.RandomNumberGenerator.GetBytes(4_150_000);
+                Assert.Single(oversizedCatalogue).Value.login = string.Create(random.Length, (random, alphabet),
+                    static (characters, state) =>
+                    {
+                        for (var i = 0; i < characters.Length; i++)
+                            characters[i] = state.alphabet[state.random[i] % state.alphabet.Length];
+                    });
+                var sizeError = await Assert.ThrowsAsync<InvalidDataException>(
+                    () => provider.SaveLookupToFile(oversizedCatalogue));
+                Assert.Contains("exceeds the native query and replica read limit", sizeError.Message);
+                Assert.Equal(publishedDna, await File.ReadAllTextAsync(dnaPath));
                 await VerifyReplicaAsync(provider, identity.Result, dnaPath, replay: false);
                 holon.Name = "after update";
                 holon.Version = 2;
