@@ -74,6 +74,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
 
         public void Dispose()
         {
+            ResetPublicQueryActivation();
             _lifecycleGate.Wait();
             try
             {
