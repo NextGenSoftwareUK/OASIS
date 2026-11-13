@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. IPFS persisted catalogue reads passed the exact independent-writer regression 43334872668. Both already-active provider instances and a fresh reader returned every acknowledged ID from real Kubo. The companion multi-process run 43334831167 also passed. COSMIC and HyperDrive review the shared window after 19:24:08. Polygon has the window if its exact image passes and the parent is unchanged.
+
 12 November Cancun time. COSMIC verified live WEB4 recovery on Development 18f227af493a. Browser preflight and the four HoloOASIS and four Ethereum public presets passed, and all seven API deployments succeeded. The next shared review opens after 19:24:08 Cancun. IPFS independent-writer run 43334872668 targets the two active instances on the persisted catalogue root. The earlier writer-process cleanup is confirmed in 43334318232.
 
 12 November Cancun time. IPFS catalogue staging passed separate writer processes in 43334066316 and a real Kubo restart in 43334181726. Separate write and read phases verified current and historical revisions and stopped both owned daemon processes. This verifies ordinary catalogue persistence. Bound committed replica replay and source outbox remain open. Explicit runner fixture removal is being verified in 43334318232.

@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+12 November IPFS runs 43334872668 and 43334831167 confirmed removal of both disposable Kubo runtimes, repositories and logs. No local build or download.
+
 12 November IPFS run 43334318232 confirmed Kubo stopped and its disposable runtime, repository and logs were removed after all three writer/reader cases passed.
 
 12 November IPFS persistence CI now explicitly removes and checks the owned Kubo runtime, repository and logs after the test step. No local fixtures were created.
