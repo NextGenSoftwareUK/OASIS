@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+13 November native IPFS delta runs 43391933961 and 43391917449 removed their disposable Kubo fixtures. No local build or download.
+
 13 November bound receipt recovery runs 43390393387 and 43390378271 confirmed fixture removal. Removed and verified absence of the temporary Git index used for the exact candidate. No local builds or downloads.
 
 13 November native IPFS restart runs 43389998053 and 43389504857 confirmed disposable Kubo fixture removal. Superseded run 43389185522 was cancelled and its cleanup step succeeded. No local build or download.
