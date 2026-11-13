@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+13 November IPFS outbound deletion jobs 43397603623 and 43397586035 removed their disposable Kubo and SQLite fixtures. Removed and verified absence of the temporary Git index for the exact candidate. No local builds or downloads. C: had 28.34 GiB free.
+
 13 November IPFS lease recovery runs 43396675271 and 43396657603 removed their disposable fixtures. Removed and verified absence of the temporary index used to stage the exact candidate. No local builds or downloads.
 
 13 November exact Development outbound runs 43395859849 and 43395841401 removed the disposable Kubo and SQLite fixture directories. No local builds or downloads.

@@ -18,6 +18,8 @@
 
 ## Verification log
 
+13 November Cancun time. Native IPFS-to-SQLite soft and hard delete delivery passed in restart 43397603623. SQLite receipts were committed and both current catalogues excluded the hard-deleted holon. Multi-process 43397586035 passed on the same tree 63bbf9fcaa521832d87d8ef73c7435dd80ac1293. Three-file candidate 9820afaa6d079a59111aa6d2dda2cd3d9de4ee7a supersedes the earlier outbound scope for the next shared review.
+
 13 November Cancun time. Added native outbox coverage for competing workers, rejected completion by the wrong owner and shipping dispatcher recovery after lease expiry. Kubo restart 43396675271 and multi-process 43396657603 passed on exact tree 02dadeb1a0d3bb2d25321bbea38f642b8e8c1481 and confirmed cleanup. Candidate 9d7675142bfe81dd80ca87c254ba56cfb30d693b supersedes the earlier outbound scope for the shared Development review. No local builds or downloads.
 
 13 November Cancun time. Prepared outbound IPFS candidate 0afae3fde6f59fb8054b0e9d262f3faf2301d5e4 on Development a41c57060d51 with expected tree 9d659f366c72ded64654fbc9b262a2750eeb5966. Only the native catalogue writer, outbox and Kubo restart fixture differ. Exact Development restart 43395859849 and multi-process 43395841401 passed on that same tree and confirmed cleanup. The restart scenario delivered an enrolled native Kubo write to SQLite through the shipping dispatcher and verified replay created no duplicate. Three of seven predecessor API deployments had succeeded at inspection.
