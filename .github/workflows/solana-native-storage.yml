@@ -57,12 +57,13 @@ jobs:
         if: inputs.routing
         shell: bash
         run: |
-          base=41f685efd3ef66f7b4226edc4e6fca0991c3876d
+          base=86c157239f29cff3edd9d4fbe2b3581f7b5be077
           git -C ../provider-source fetch --no-tags --depth=1 origin "$base"
           tests='Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.IntegrationTests'
           for path in "$tests/NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.IntegrationTests.csproj" \
             "$tests/SolanaCoreStorageConformanceTests.cs" \
             "$tests/SolanaCoreStorageConformanceTests.Routing.cs" \
+            'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.SOLANAOASIS/SolanaOasis.IdentityLookup.cs' \
             'Providers/Shared/TestSupport/NativePriorityRouting.cs'; do
             current="$(git ls-tree HEAD -- "$path")"
             reviewed="$(git -C ../provider-source ls-tree "$base" -- "$path")"
