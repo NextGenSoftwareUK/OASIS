@@ -81,6 +81,7 @@ def main():
     identity, token = flow.session(state, "owner", allow_create=False, allow_renewal=False)
     if identity["id"] != owner or flow.call("sandbox/faults", token, method="GET")["result"]:
         raise RuntimeError("Original owner and fault-free baseline required.")
+    deployment = flow.require_readiness_release()
     rows = []
     report = ROOT / "TestResults/HostedCqlIntegrationCurrent/hyperdrive-candidate-routing-v2-http.json"
     for eligible in sorted(routing.PROVIDERS):
@@ -89,9 +90,11 @@ def main():
             "autoFailOverMode": "OFF", "loadChildren": False})
         route = verify_candidate(response, expected, eligible)
         rows.append({"eligible": eligible, "route": route, "id": expected["id"]})
-        flow.verification.write(report, {"reads": rows, "newSaves": 0, "settingsChanges": 0,
-            "scoreOptimalityVerified": False, "browserAcceptance": False})
-    flow.write_new(ack, json.dumps({"reads": len(rows), "newSaves": 0, "settingsChanges": 0,
+    if flow.require_readiness_release() != deployment:
+        raise RuntimeError("The reviewed deployment changed during the candidate reads.")
+    flow.verification.write(report, {"deployment": deployment, "reads": rows, "newSaves": 0, "settingsChanges": 0,
+        "scoreOptimalityVerified": False, "browserAcceptance": False})
+    flow.write_new(ack, json.dumps({"deployment": deployment, "reads": len(rows), "newSaves": 0, "settingsChanges": 0,
         "scope": "request-scoped Default candidate routing, not scoring/fairness"}).encode())
     print(json.dumps({"reads": len(rows), "providers": sorted(routing.PROVIDERS), "newSaves": 0, "settingsChanges": 0}))
 

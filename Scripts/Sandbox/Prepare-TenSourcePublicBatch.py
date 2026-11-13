@@ -6,6 +6,7 @@ import sys
 import os
 import re
 import subprocess
+import uuid
 
 ROOT=Path(__file__).resolve().parents[2]
 PREFIX="ten-source-public"
@@ -46,15 +47,15 @@ def application_keys(before,after,include_optimism=False,include_linea_scroll=Fa
         raise ValueError("Existing source enrollment requires reconciliation")
     return apply_keys
 
-def require_matching_release(configuration):
-    """No configuration writes until this exact checked-out release is live."""
+def require_matching_release(configuration, *, release_ref="HEAD"):
+    """Return the deployment ID for the exact reviewed release."""
     expected=os.environ.get("COSMIC_CQL_EXPECTED_DEPLOYMENT_COMMIT", "")
     if not re.fullmatch("[0-9a-f]{40}", expected):
         raise RuntimeError("Set the exact reviewed release SHA in COSMIC_CQL_EXPECTED_DEPLOYMENT_COMMIT before application")
-    revision=subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT, capture_output=True, text=True)
+    revision=subprocess.run(["git", "rev-parse", "--verify", "--end-of-options", release_ref + "^{commit}"], cwd=ROOT, capture_output=True, text=True)
     if revision.returncode or revision.stdout.strip()!=expected:
-        raise RuntimeError("Checked-out release differs from the reviewed deployment SHA; no configuration mutation")
-    observed=subprocess.run([str(configuration.CLI), "deployment", "list", *configuration.COMMON,
+        raise RuntimeError("The selected release differs from the reviewed deployment SHA")
+    observed=subprocess.run([str(configuration.CLI), "deployment", "list", *configuration.DEPLOYMENT_SCOPE,
         "--limit", "1", "--json"], capture_output=True)
     if observed.returncode:
         raise RuntimeError("Deployment observation failed; output withheld and no configuration mutation")
@@ -62,7 +63,8 @@ def require_matching_release(configuration):
     if (not isinstance(deployments,list) or len(deployments)!=1
             or deployments[0].get("status")!="SUCCESS"
             or deployments[0].get("meta",{}).get("commitHash")!=expected):
-        raise RuntimeError("The exact checked-out release must be successfully deployed before configuration application")
+        raise RuntimeError("The exact reviewed release must be successfully deployed")
+    return str(uuid.UUID(deployments[0]["id"]))
 
 def apply(include_optimism=False,include_linea_scroll=False,include_zksync_abstract=False,include_monad=False,include_sei=False):
     prefix="seventeen-source-public" if include_sei else "sixteen-source-public" if include_monad else "fifteen-source-public" if include_zksync_abstract else "thirteen-source-public" if include_linea_scroll else "eleven-source-public" if include_optimism else PREFIX

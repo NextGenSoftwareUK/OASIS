@@ -20,8 +20,8 @@ DEFAULT_CLI = (Path.home() / "AppData/Local/Microsoft/WinGet/Packages/"
        "OpenJS.NodeJS.LTS_Microsoft.Winget.Source_8wekyb3d8bbwe/"
        "node-v24.19.0-win-x64/node_modules/@railway/cli/bin/railway.exe")
 CLI = Path(os.environ.get("OASIS_RAILWAY_CLI", str(DEFAULT_CLI)))
-COMMON = ["-p", "712f50f6-3b7b-46d4-b229-44b49922f16b", "-e", "dev",
-          "-s", "5123199a-43c4-4439-9921-e10e2aec7841"]
+DEPLOYMENT_SCOPE = ["-e", "dev", "-s", "5123199a-43c4-4439-9921-e10e2aec7841"]
+COMMON = ["-p", "712f50f6-3b7b-46d4-b229-44b49922f16b", *DEPLOYMENT_SCOPE]
 KEYS = ["OASIS_DNA_JSON", "PREPARED_STORAGE_ADMISSION_JSON", "CQL_HOSTED_QUERY_EXAMPLES_JSON",
         "OASIS_SOLID_STORAGE_KEY", "OASIS_SANDBOX_SOLID_BOOTSTRAP_JSON", "OASIS_SANDBOX_SOLID"]
 spec = importlib.util.spec_from_file_location("hosted_verification", ROOT / "Scripts/Sandbox/Verify-HostedCqlDemo.py")

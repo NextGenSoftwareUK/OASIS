@@ -66,7 +66,7 @@ def verify_round_robin(state, revision):
     config_spec.loader.exec_module(config)
 
     def serving_deployment():
-        result = subprocess.run([str(config.CLI), "deployment", "list", *config.COMMON,
+        result = subprocess.run([str(config.CLI), "deployment", "list", *config.DEPLOYMENT_SCOPE,
                                  "--limit", "1", "--json"], capture_output=True, check=True)
         deployments = json.loads(result.stdout)
         if len(deployments) != 1 or deployments[0].get("status") != "SUCCESS" or (
