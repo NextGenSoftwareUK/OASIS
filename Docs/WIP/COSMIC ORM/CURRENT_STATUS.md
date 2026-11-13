@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## SQL-like grouped result ordering
+
+Web4Site 9d9e46f8c927 supports a second selected sort alias for grouped results, so the grouping key can break ties before LIMIT and OFFSET. Ask your data documents the same syntax. All 171 website tests passed. Hosted browser acceptance remains open.
+
 ## Shared rollout on the subscription estimate revision
 
 Development moved to `e115e8e9102d` with the subscription estimate and Postman changes. WEB4 deployment 9948bb48-e9b2-4b09-813e-f85c6b78c46a queued at 18:21:35 Cancun. Candidate `f50b747c8329` preserves all five upstream paths and merges the existing COSMIC and Firestore batches cleanly with no added scope. The prior revision was still timing out at /api/health. Railway moved the preceding WEB4 deployment 0a67f054-84fa-43cc-81b9-db162b2335b4 to CRASHED after eleven persisted-cell readiness timeouts (240 admin replies and zero running cells each). Its successor is waiting for a build slot. The [combined protocol run on the preceding candidate](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43525404210) passed. [Exact qualification on the subscription estimate baseline](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43526891579) is queued. Coordinate one publisher after the new rollout is verified. [Managed Linux HoloOASIS restart qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43526535735) passed all nine cases on `63084fd292d5`, including persisted cell identity across an official Linux conductor restart and the shipping BootLoader reader. The HoloOASIS source and Docker configuration are identical on candidate `f50b747c8329`. This validates the disposable Linux fixture. The Railway volume remains the hosted acceptance boundary, and replacement WEB4 deployment 9948bb48-e9b2-4b09-813e-f85c6b78c46a has entered BUILDING. This created no local build output or fixtures.
