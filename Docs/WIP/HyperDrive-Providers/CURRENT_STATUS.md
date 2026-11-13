@@ -18,6 +18,8 @@
 
 ## Verification log
 
+13 November Cancun time. Canonical HoloOASIS provider-key holon reads now send the action hash returned by the provider to the native `get_entry_holon` endpoint. The shared native record decoder preserves authoritative absence and validates the response record. Both modes use the same implementation. The scoped CI overlay includes the repository change. The packaged conductor regression is pending. No local artifacts were created.
+
 13 November 11:42 Cancun time. Development advanced to `0ca6397b2fce` with the verified SQLite provider-key fix and Oracle routing test and workflow. The preceding seven API deployments were green. The new rollout is pending. HoloOASIS job `132022655812` stopped before running the conductor because the original routing scope base predates the already integrated test file. Updated that base to current Development and added the reusable workflow to the routing trigger. No local build or fixture was created.
 
 13 November Cancun time. Added a canonical HoloOASIS native regression that reads the shipping action-hash key from each fixture holon, then resolves it through the sync or async provider-key method. The fixture records lookup failures and removes its holons before reporting them. The test uses the existing disposable conductor workflow. No local runtime or fixture was created.

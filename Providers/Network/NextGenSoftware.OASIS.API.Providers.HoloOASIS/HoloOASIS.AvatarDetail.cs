@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -66,29 +66,11 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             return _genericRepository.Load<IHolon>(HcObjectTypeEnum.Holon, "id", id.ToString(), ZOME_LOAD_HOLON_BY_ID_FUNCTION, version);
         }
 
-        public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            return await _genericRepository.LoadAsync<IHolon>(HcObjectTypeEnum.Holon, "providerKey (entryHash)", providerKey, ZOME_LOAD_HOLON_BY_ID_FUNCTION, version, new Dictionary<string, string>()
-            {
-                ["loadChildren"] = loadChildren.ToString(),
-                ["recursive"] = recursive.ToString(),
-                ["maxChildDepth"] = maxChildDepth.ToString(),
-                ["continueOnError"] = continueOnError.ToString(),
-                ["loadChildrenFromProvider"] = loadChildrenFromProvider.ToString()
-            });
-        }
+        public override Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+            => _genericRepository.LoadHolonByActionHashAsync(providerKey, version);
 
         public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            return _genericRepository.Load<IHolon>(HcObjectTypeEnum.Holon, "providerKey (entryHash)", providerKey, ZOME_LOAD_HOLON_BY_ID_FUNCTION, version, new Dictionary<string, string>()
-            {
-                ["loadChildren"] = loadChildren.ToString(),
-                ["recursive"] = recursive.ToString(),
-                ["maxChildDepth"] = maxChildDepth.ToString(),
-                ["continueOnError"] = continueOnError.ToString(),
-                ["loadChildrenFromProvider"] = loadChildrenFromProvider.ToString()
-            });
-        }
+            => Task.Run(() => LoadHolonAsync(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version)).GetAwaiter().GetResult();
 
         //public override async Task<OASISResult<IHolon>> LoadHolonByCustomKeyAsync(string customKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         //{

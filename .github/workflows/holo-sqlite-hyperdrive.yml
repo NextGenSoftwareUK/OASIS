@@ -7,6 +7,7 @@ on:
       - '.github/workflows/holo-sqlite-hyperdrive.yml'
       - '.github/workflows/holo-desktop-provider-build.yml'
       - 'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/HoloOASIS.AvatarDetail.cs'
+      - 'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/Repositories/GenericRepository.cs'
       - 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests/HoloNativeRoutingTests.cs'
   workflow_dispatch:
 

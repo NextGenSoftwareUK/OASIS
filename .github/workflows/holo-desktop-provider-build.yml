@@ -108,6 +108,7 @@ jobs:
               'Scripts/test_holonet_live_release.ps1'
               'Providers/Shared/TestSupport/NativePriorityRouting.cs'
               'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/HoloOASIS.AvatarDetail.cs'
+              'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/Repositories/GenericRepository.cs'
               'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests/HoloNativeRoutingTests.cs'
               'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests.csproj'
             )
