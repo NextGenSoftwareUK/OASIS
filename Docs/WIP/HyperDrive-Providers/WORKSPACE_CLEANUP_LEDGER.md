@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+12 November both exact Development IPFS jobs removed their disposable Kubo runtimes, repositories and logs. The temporary Git index used to verify the tested tree and compose 29c8ffa64101 was removed and verified absent.
+
 12 November IPFS runs 43334872668 and 43334831167 confirmed removal of both disposable Kubo runtimes, repositories and logs. No local build or download.
 
 12 November IPFS run 43334318232 confirmed Kubo stopped and its disposable runtime, repository and logs were removed after all three writer/reader cases passed.

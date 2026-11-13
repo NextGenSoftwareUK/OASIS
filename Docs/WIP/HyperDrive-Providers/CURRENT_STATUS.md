@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. IPFS exact Development persistence 43335687633 and active-reader regression 43335780583 passed on independently reproduced tree cd6e5e90535726145af207337efdd1d436943212. Prepared four-file candidate 29c8ffa64101 on the Polygon-based routing batch. Durable replica replay and source outbox remain open.
+
 12 November Cancun time. Polygon exact WEB4 image 43332319040 passed before the shared review, and COSMIC is preparing its nine-file batch. HyperDrive prepared candidate e7bc1b483529 on Polygon c47edf2e3062 and verified the same 21 routing path modes and object IDs as candidate b53b3c603d6d. Recheck remote and deployment before any push. IPFS exact Development persistence run 43335687633 and active-reader run 43335780583 are active. No local fixture or temporary index was created.
 
 12 November Cancun time. IPFS persisted catalogue reads passed the exact independent-writer regression 43334872668. Both already-active provider instances and a fresh reader returned every acknowledged ID from real Kubo. The companion multi-process run 43334831167 also passed. COSMIC and HyperDrive review the shared window after 19:24:08. Polygon has the window if its exact image passes and the parent is unchanged.
