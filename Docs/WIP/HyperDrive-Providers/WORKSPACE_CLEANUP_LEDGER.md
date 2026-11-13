@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+13 November Cancun time. DynamoDB candidates 71a77de51ddc and 055c76579f89 each used one temporary Git index. Both indices were removed and verified absent. CI job 131910874657 passed its owned process and fixture cleanup gate. No local builds, runtimes or downloads were created.
+
 13 November Cancun time. Firestore exact Development candidate edcbacb1dcc2 used one temporary Git index. It was removed and its absence verified. CI job 131902818742 confirmed removal of the owned emulator and fixture, including build and test results.
 
 13 November Cancun time. Firestore outage CI job 131900724867 confirmed removal of its owned emulator and fixture directory, including its isolated build and test results. Logs were inspected in memory. No local Firestore artifacts were created.
