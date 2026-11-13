@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+13 November Cancun time. ActivityPub candidate 58a195605e6b used one temporary Git index and removed it. CI job 131975765609 confirmed Mastodon fixture removal. No local build, runtime or download.
+
 13 November Cancun time. ActivityPub integration candidate 7cc1f77b6ba7 used one temporary Git index, removed and verified absent. Only the README was added to the previously qualified tree. No local build, runtime or download.
 
 13 November Cancun time. Public object lookup qualification 445a2fd6045e used one temporary Git index. Removed and verified absent. Mastodon CI jobs 131966236920 and 131969194514 confirmed fixture removal. No local build, download or service.

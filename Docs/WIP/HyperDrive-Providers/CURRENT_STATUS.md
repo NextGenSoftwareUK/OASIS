@@ -18,6 +18,8 @@
 
 ## Verification log
 
+13 November Cancun time. [ActivityPub workflow CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43451857900) passed all 46 selector tests and both native Mastodon cases with fixture cleanup. Combined candidate 58a195605e6b adds only the verified workflow trigger to 7cc1f77b6ba7. The code matches exact Development CI 43449954359. The next shared review is after 10:31:05 Cancun.
+
 13 November Cancun time. Added ActivityPub workflow triggers for the native fixture runner and both point-selector test files. Changes to those inputs now select routing CI directly. This workflow change is separate from the verified public URI lookup candidate 7cc1f77b6ba7. No local build or service started.
 
 13 November Cancun time. All seven APIs completed deployment of ActivityPub Development 29c4b494895e. Public object lookup candidate 445a2fd6045e passes exact CI and its scoped diff check. Reviewed Core instance identity through registration, selection, failover, metrics and response attribution. Added the authoritative-absence requirement to the routing ledger. No local build or fixture created.
