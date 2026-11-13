@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. Native restart 43366903327 verified that bound delivery rejects an unpublished IPFS catalogue with the invalid storage binding code and creates no DNA file. Multi-process 43366901241 passed on the same tree fb4ea5c681ab3591bb9a1cdb729099531868a531. Both fixtures were removed. Verified the Polkadot candidate descends from the coordinated IPFS batch 2ec99009d7c8.
+
 12 November Cancun time. Bound IPFS delivery now classifies unpublished and legacy catalogues without a persisted identity as invalid bindings for dispatcher reconciliation. Transport failure retains the normal write failure path. The native restart fixture attempts bound delivery before first publication and requires the invalid binding code and no DNA creation. Existing qualified candidate 2ec99009d7c8 remains scoped to its tested tree.
 
 12 November Cancun time. The hosted IPFS runtime documented by COSMIC serves the protected read-only public catalogue through offline Kubo on the WEB4 loopback interface. No dedicated writable hosted IPFS route was found in the checked settings or owner ledger. Recorded fixture access in Actions for David. Native work and Development integration can continue. COSMIC verified the exact Cosmos rollout and prepared Polkadot on the qualified IPFS candidate. No local outputs.
