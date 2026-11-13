@@ -57,7 +57,7 @@ jobs:
         run: |
           ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-MongoSqlitePointReads -Operation {
             $project = 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests'
-            dotnet test $project --filter 'FullyQualifiedName~HolonReplicationUsesBothRealPriorityStores' /m:2 /nr:false /p:UseSharedCompilation=false
+            dotnet test $project --filter 'FullyQualifiedName~ScopedRoundRobinPointReadsUseBothNativeStores' /m:2 /nr:false /p:UseSharedCompilation=false
             if ($LASTEXITCODE -ne 0) { throw 'Native MongoDB and SQLite routing verification failed.' }
           }
       - name: Validate sole authority and pinned source graph
