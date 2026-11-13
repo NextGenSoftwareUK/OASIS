@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. Replica head audit restart 43358073433 and multi-process 43358055700 passed on tree 8d532a929f3146903df44c928c15e8483b23ae42 over EOSIO. A hard-deleted replica retained protected lineage, a never-seen ID had no head, and the audit left the pointer unchanged. Both fixture removals were confirmed. The separately qualified fd9b328ac712 receiver remains the coordinated Development candidate.
+
 12 November Cancun time. Added read-only IPFS replica head audit on one immutable catalogue snapshot, sharing the receiver validation for indexed native records. The Kubo test checks that a hard-deleted replica retains its protected lineage, a never-seen identity has no head, and the audit leaves the pointer unchanged. Branch CI pending. IPFS source admission still requires an atomic conditional writer and bound outbox route inventory. No local build or download.
 
 12 November Cancun time. IPFS restart 43357257220 and multi-process 43357260351 passed on exact candidate tree eeaa5ddc3c29ae68ea938319259fafbf537519cf over Development EOSIO 4d338173e64d. Both confirmed native fixture removal. Retired the temporary qualification tag. Receiver candidate fd9b328ac712 is ready for coordinated review after 22:39:53 Cancun, subject to actual shared parent and rollout.

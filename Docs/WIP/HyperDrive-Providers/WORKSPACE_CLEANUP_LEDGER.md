@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+12 November replica head audit runs 43358073433 and 43358055700 confirmed removal of the disposable runtime, repository and logs. No local build or download.
+
 12 November EOSIO-baseline IPFS checks 43357257220 and 43357260351 confirmed removal of the Kubo fixture directories. The temporary remote qualification tag was deleted and verified absent. No local build, runtime or download.
 
 12 November delete delivery runs 43356532249 and 43356511859 logged removal of their disposable Kubo runtime, repository and logs. The SQLite source database lived in the same fixture directory. No local builds or downloads.
