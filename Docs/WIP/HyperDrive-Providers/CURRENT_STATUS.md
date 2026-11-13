@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. Prepared NEAR-based candidate 4ef91b73a326 with the passing IPFS concurrent pointer test included. All 30 HyperDrive path modes and object IDs match the Arbitrum-based candidate 2b8081b30f84. Development remains on Arbitrum. Check the remote and COSMIC handoff after 20:28:33 Cancun before publishing either candidate. No local fixtures or temporary index were created.
+
 12 November Cancun time. Candidate 2b8081b30f84 includes the passing IPFS concurrent pointer test on the existing Arbitrum-based HyperDrive batch. Independently reproduced exact CI tree fe335c0dc9687933983230f929722fc9a6f3fc8d. Only the test file changes relative to 8ac334af67c2. Review the shared Development window after 20:28:33 Cancun.
 
 12 November Cancun time. Windows concurrent IPFS pointer reads passed in 43343014391 on Arbitrum-based source tree fe335c0dc9687933983230f929722fc9a6f3fc8d. Active readers saw complete DNA pointers during native Kubo writes. Linux 43342984019 passed its separate process scenario on the same tree. Both runners removed their fixtures.
