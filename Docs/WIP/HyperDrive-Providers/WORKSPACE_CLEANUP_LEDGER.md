@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+13 November Cancun time. Polygon and Arbitrum SQLite outage compilation produced owned build output in TestResults/PolygonArbitrumOutageOwned. Exact cleanup path resolved inside the task worktree. Automatic command policy rejected recursive cleanup. Build finished and no chain was started. Cleanup of that specific directory is still pending.
+
 13 November Cancun time. Scoped Development integration a88f960c558e used one temporary Git index in the task worktree. Removed it after forming the commit. CI job 131881181707 passed its temporary database stop step. Logs were read in memory. No local build or test environment was created.
 
 13 November Cancun time. MongoDB qualification candidates cc731960c128 and a539bfe26c85 each used one temporary Git index in the task worktree. Removed each index and verified no matching index remains. CI logs were read in memory. No local builds, downloads or test fixtures were created. C: had 28.73 GiB free after cleanup.
