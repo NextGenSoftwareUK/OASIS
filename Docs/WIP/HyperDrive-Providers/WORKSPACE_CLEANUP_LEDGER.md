@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+13 November Cancun time. Firestore exact Development candidate edcbacb1dcc2 used one temporary Git index. It was removed and its absence verified. CI job 131902818742 confirmed removal of the owned emulator and fixture, including build and test results.
+
 13 November Cancun time. Firestore outage CI job 131900724867 confirmed removal of its owned emulator and fixture directory, including its isolated build and test results. Logs were inspected in memory. No local Firestore artifacts were created.
 
 13 November Cancun time. Exact EVM qualification candidate 35ab1d28c72a used one temporary Git index. Removed it and verified no matching index remains. Native CI job 131895565592 passed with its owned loopback chain and fixture cleanup gate. The earlier local build directory remains listed below.
