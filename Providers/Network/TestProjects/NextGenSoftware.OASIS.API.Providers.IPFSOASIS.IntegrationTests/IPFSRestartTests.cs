@@ -452,6 +452,30 @@ public sealed class IPFSRestartTests
         Assert.False(removed.IsLoaded);
         Assert.Null(removed.Result);
         Assert.DoesNotContain(await provider.LoadLookupToJson(), entry => entry.Value.Id == record.Id);
+
+        var parent = new Holon { Id = Guid.NewGuid(), Name = "outbound parent", HolonType = HolonType.Holon };
+        var child = new Holon { Id = Guid.NewGuid(), Name = "outbound child", HolonType = HolonType.Holon,
+            ParentHolonId = parent.Id };
+        parent.Children = new List<IHolon> { child };
+        var graphWrite = new ConditionalHolonWrite(Guid.NewGuid(), actor, source.Authority,
+            new[] { new HolonWriteCondition(parent.Id, null), new HolonWriteCondition(child.Id, null) }, enrollment);
+        var graphSaved = await provider.ExecuteReplicatingHolonWriteAsync(
+            new ConditionalHolonWriteRequest(graphWrite, ConditionalHolonOperation.Save, new[] { parent },
+                saveChildren: true), enrollment);
+        Assert.True(graphSaved.IsSaved && !graphSaved.IsError, graphSaved.Message);
+        var graphDelivery = await worker.DispatchOnceAsync(route.TargetId, maximumCount: 1);
+        Assert.False(graphDelivery.IsError, graphDelivery.Message);
+        Assert.Equal(1, graphDelivery.Result.CompletedCount);
+
+        var sourceParent = Assert.Single(graphSaved.Result);
+        var sourceChild = Assert.Single(sourceParent.Children);
+        var copiedParent = await sqlite.LoadHolonAsync(parent.Id, loadChildren: true);
+        Assert.True(copiedParent.IsLoaded && !copiedParent.IsError, copiedParent.Message);
+        Assert.Equal(sourceParent.VersionId, copiedParent.Result.VersionId);
+        var copiedChild = Assert.Single(copiedParent.Result.Children);
+        Assert.Equal(child.Id, copiedChild.Id);
+        Assert.Equal(sourceChild.VersionId, copiedChild.VersionId);
+        Assert.Equal(parent.Id, copiedChild.ParentHolonId);
     }
 
     private static async Task VerifyHostedReplicaTargetAsync(IPFSOASIS provider, CosmicStorageIdentity identity, string dnaPath)
