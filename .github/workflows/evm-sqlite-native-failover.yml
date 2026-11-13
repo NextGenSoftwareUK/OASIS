@@ -5,6 +5,9 @@ on:
     branches: [work/hyperdrive-provider-completion]
     paths:
       - '.github/workflows/evm-sqlite-native-failover.yml'
+      - 'Scripts/TestHosts/compile-web3core-storage.cjs'
+      - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/Contracts/**'
+      - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/src/Web3CoreOASISBaseProviderHelper.Part1.cs'
       - 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.UnitTests/Web3NativeStorageTests.SqliteOutage.cs'
   workflow_dispatch:
 
