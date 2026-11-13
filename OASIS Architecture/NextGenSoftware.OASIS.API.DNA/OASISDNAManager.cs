@@ -588,7 +588,10 @@ namespace NextGenSoftware.OASIS.API.DNA
                     stream.Flush(flushToDisk: true);
                 }
 
-                File.Move(temporary, destination, overwrite: true);
+                if (File.Exists(destination))
+                    File.Replace(temporary, destination, destinationBackupFileName: null);
+                else
+                    File.Move(temporary, destination);
             }
             finally
             {
