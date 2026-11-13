@@ -36,7 +36,7 @@ internal sealed class HoloOasisDevelopmentConductor
               allowed_origins: "*"
         network:
           bootstrap_url: https://dev-test-bootstrap2.holochain.org
-          relay_url: https://use1-1.relay.n0.iroh-canary.iroh.link./
+          relay_url: https://use1-1.relay.n0.iroh-canary.iroh.link/
         """;
 
     private TeachingAdmin _admin;
