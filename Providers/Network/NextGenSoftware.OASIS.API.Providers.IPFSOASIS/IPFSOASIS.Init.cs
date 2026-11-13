@@ -267,16 +267,14 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
         private async Task PublishAcknowledgedRecordAsync(string recordCid, HolonResume record, OASISDNA dna)
         {
-            var previousCatalogue = _idLookup;
             try
             {
-                _idLookup = new Dictionary<string, HolonResume>(previousCatalogue);
-                ReplaceIndexEntry(recordCid, record);
-                await SaveCatalogueAsync(_idLookup, dna).ConfigureAwait(false);
+                var nextCatalogue = new Dictionary<string, HolonResume>(_idLookup);
+                ReplaceIndexEntry(nextCatalogue, recordCid, record);
+                await SaveCatalogueAsync(nextCatalogue, dna).ConfigureAwait(false);
             }
             catch (Exception cause)
             {
-                _idLookup = previousCatalogue;
                 throw new IPFSRecordPublicationException(recordCid, cause);
             }
         }

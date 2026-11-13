@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. IPFS now stages catalogue changes separately and publishes them through the existing encrypted root and persisted DNA pointer before updating the provider cache. Failed publication leaves the active catalogue untouched. This is a prerequisite for staging durable replica state with the graph. Bound replica identity, lineage, receipts and outbox remain open. The native persistence workflow will exercise the changed publication path.
+
 12 November Cancun time. Audited IPFS durable HyperDrive admission on recovery Development 18f227af493a. The native Kubo routing pass carries forward. Shipping IPFS exposes neither a bound committed replica receiver nor a bound atomic source outbox. The current writer locks native upload and publishes one encrypted catalogue root. Durable recovery needs a single publication boundary for graph, lineage and receipt, plus stable storage identity validated before receipt replay. Ordinary SaveHolon would create a separate user revision and cannot implement that receiver contract. No local runtime or test fixture was created.
 
 12 November Cancun time. Prepared TRON candidate b53b3c603d6d on the recovery-based routing stack. Its four qualified inputs match run 43332332675 and do not overlap the COSMIC stack through 52fb8c366232. The recovered Development revision 18f227af493a was still rolling out across all seven services at inspection.

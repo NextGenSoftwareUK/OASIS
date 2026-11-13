@@ -40,15 +40,15 @@ public partial class IPFSOASIS
         return matches.SingleOrDefault();
     }
 
-    private void ReplaceIndexEntry(string cid,HolonResume record)
+    private static void ReplaceIndexEntry(Dictionary<string, HolonResume> catalogue, string cid, HolonResume record)
     {
         if(string.IsNullOrWhiteSpace(cid) || record == null || record.Id==Guid.Empty
             || record.RecordKind is not ("avatar" or "avatar-detail" or "holon"))
             throw new ArgumentException("A valid CID, identity and canonical record kind are required.");
-        if(_idLookup.TryGetValue(cid,out var existing) && (existing?.Id!=record.Id || existing.RecordKind!=record.RecordKind))
+        if(catalogue.TryGetValue(cid,out var existing) && (existing?.Id!=record.Id || existing.RecordKind!=record.RecordKind))
             throw new InvalidOperationException("IPFS CID already belongs to another indexed identity/kind.");
-        foreach(var previous in _idLookup.Where(entry=>entry.Value?.RecordKind==record.RecordKind && entry.Value.Id==record.Id).Select(entry=>entry.Key).ToArray())
-            _idLookup.Remove(previous);
-        _idLookup.Add(cid,record);
+        foreach(var previous in catalogue.Where(entry=>entry.Value?.RecordKind==record.RecordKind && entry.Value.Id==record.Id).Select(entry=>entry.Key).ToArray())
+            catalogue.Remove(previous);
+        catalogue.Add(cid,record);
     }
 }
