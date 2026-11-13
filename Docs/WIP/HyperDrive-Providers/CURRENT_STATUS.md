@@ -18,6 +18,8 @@
 
 ## Verification log
 
+12 November Cancun time. Independently reproduced expected IPFS identity tree 2771413a4f0090eca8311c5140bad3b7687ceb38 on integrated Development 2b8081b30f84. The scope changes only IPFSOASIS.Init.cs and IPFSRestartTests.cs. Replacement restart 43347831988 and multi-process 43347800744 were queued. Both must report the expected tree before accepting the scope.
+
 12 November 20:44 Cancun time. Railway reports success for WEB4 through WEB10 on exact Development 2b8081b30f84. This establishes rollout, while hosted routing acceptance remains open. Both superseded IPFS identity jobs are cancelled. Replacement restart 43347007391 and process run 43346975578 remain queued. Next shared review is after 21:01:04 Cancun.
 
 12 November Cancun time. Restart run 43347007391 includes the unpublished-store guard and the persisted fingerprint assertion. Requested cancellation of the superseded queued restart run 43346342706 to avoid duplicate fixture provisioning. Development 2b8081b30f84 had five successful deployments, with WEB4 and WEB5 pending.

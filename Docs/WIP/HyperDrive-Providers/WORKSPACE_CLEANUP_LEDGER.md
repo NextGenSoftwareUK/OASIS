@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+12 November removed and verified absence of the temporary Git index used to compute the exact IPFS identity tree. The stale-baseline jobs stopped before provisioning Kubo. No local build or download.
+
 12 November removed and verified absence of the temporary Git index used to reproduce the IPFS concurrent reader tree and compose 2b8081b30f84. No local build or download.
 
 12 November Windows IPFS run 43343014391 removed its disposable Kubo runtime, repository and logs after the concurrent pointer-reader pass. No local build or download.
