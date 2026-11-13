@@ -9,6 +9,15 @@ using MongoDB.Bson.Serialization.Attributes;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
 {
+    public sealed class AppPaygSettings
+    {
+        public bool Enabled { get; set; }
+        public decimal MonthlyCapUsd { get; set; }
+        public string PricingVersion { get; set; }
+        public DateTime? ConsentAtUtc { get; set; }
+        public string ConsentBy { get; set; }
+    }
+
     /// <summary>
     /// An application (for example PIPER) that holds a plan of its own. A request that presents the app's id and key
     /// is evaluated against the more generous of the app's plan and the signed-in avatar's personal plan, so a product
