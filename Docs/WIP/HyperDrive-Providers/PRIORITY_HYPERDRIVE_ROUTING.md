@@ -55,6 +55,8 @@ The provider-key follow-up reproduced a missing error code in both modes. The SQ
 
 ## ActivityPub cross-instance read acceptance
 
+Development e247ea434af1 includes the native-qualified public URI route. A separate native regression on the provider branch verified that reading the exact URI after native deletion returns RecordNotFound in both entry points. The first Development rollout check showed all seven APIs pending. [Native absence evidence](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43486323641/job/132095639208).
+
 The shipping provider-key route resolved a public object URI on the configured Mastodon instance in both sync and async modes. Both cases confirmed exact object identity, the instance-local status ID and HyperDrive serving-provider attribution. The public and private fixture deletions were independently confirmed. [Native Mastodon job](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43484054336/job/132087695900).
 
 Mastodon status and account IDs belong to the instance that returned them. Cross-instance status reads need an explicit ActivityPub object URI and an exact match against the returned status URI. Mastodon's authenticated search can resolve an HTTPS URL. That lookup uses the configured instance and its read-scoped token. [Native ID scope](https://docs.joinmastodon.org/client/public/) · [URL resolution](https://docs.joinmastodon.org/methods/search/)

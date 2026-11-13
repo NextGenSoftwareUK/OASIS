@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+13 November Cancun time. ActivityPub absence job 132095639208 passed both native routing cases and removed its owned Mastodon fixture directory. Development integration of the earlier qualified batch used existing Git objects. Logs and deployment statuses were inspected in memory, with no local downloads, fixture data or build outputs.
+
 13 November Cancun time. ActivityPub job 132087695900 completed both native routing cases. The hosted runner removed the Mastodon web, TLS, database and Redis containers, its compose network and the owned fixture directory. Logs were read in memory. No local fixtures, downloads or build outputs were created.
 
 13 November Cancun time. Solana signature candidate `7119fcb369cd` used one temporary Git index and verified its removal. Native job 132078673640 completed disposable Agave ledger and SQLite fixture teardown. No local build, runtime download or test fixture was created.

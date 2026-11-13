@@ -10,13 +10,15 @@
 | ActivityPub and routing | ActivityPub has 5/5 native capability checks. GOMap passed a public OSRM driving route. Authenticated Google Routes, Mapbox and HERE checks remain open. Niantic and WRLD still have reviewed adapter gaps. |
 | Canonical HoloOASIS | Top priority. Both modes passed all 52 native core-storage-v2 checks on the official Windows conductor with the verified identity-delete hApp in [run 43178174352](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43178174352). The verified bundle is packaged on the provider branch. Hosted, multi-agent and broader capability acceptance remain open. |
 | HoloOASIS.Desktop | Obsolete in source, package metadata and repository documentation at `45d6665da989`. The six-file compatibility and documentation batch reached Development at `70d3fbb4a31c`. Published NuGet metadata and live site listings still need the obsolescence update. |
-| Development | `309bb68419f2` adds Solana authoritative identity misses to the deployed HoloOASIS routing revision. All seven API deployment statuses succeeded. Hosted HoloOASIS writes remain open. |
+| Development | e247ea434af1 includes the Solana signature-version and ActivityPub public URI changes. API rollout is pending. Hosted HoloOASIS writes remain open. |
 | BootLoader startup | The shipping registration, activation and deactivation path passed against native Polkadot and TRON fixtures and the Microsoft Azure Cosmos DB emulator. [Azure Cosmos DB job 131055311882](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43180594194/job/131055311882) confirmed fixture teardown. |
 | HyperDrive | Priority-provider failover, replication and load balancing verification is active. Whole-inventory acceptance remains open. |
 
 [Provider matrix](PROVIDER_MATRIX.md) · [Evidence registry](CONFORMANCE_RESULTS.json) · [Cleanup ledger](WORKSPACE_CLEANUP_LEDGER.md)
 
 ## Verification log
+
+13 November Cancun time. Development advanced to e247ea434af1 with the exact qualified ActivityPub public URI route and Solana signature-version absence batch. All seven Railway API deployments were pending at the first status check. The ActivityPub deletion regression is verified separately on the provider branch. Hosted and cross-instance acceptance remain open.
 
 13 November Cancun time. [Native ActivityPub absence regression](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43486323641/job/132095639208) passed 2/2 on d8ccfa4b017a. Both modes returned RecordNotFound for the same public object URI after an independent HTTP 404 confirmed deletion. CI removed its fixture directory. This test-only follow-up is outside the previously qualified Development candidate. No local artifacts were created.
 
