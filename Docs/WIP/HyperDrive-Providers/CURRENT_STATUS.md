@@ -18,6 +18,8 @@
 
 ## Verification log
 
+13 November 11:33 Cancun time. Both native checks for staged `0ca6397b2fce` completed successfully. [SQLite and Neo4j](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43463625099/job/132016817554) tested the full tree. [Oracle Free and SQLite](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43463631812/job/132016837461) tested the Oracle overlay on Development. Both jobs enforce zero skips and fixture cleanup. Development remains `fe8319aa11bd`; review the qualified batch after 11:42:21 Cancun. No local artifacts were created.
+
 13 November 11:30 Cancun time. Staged four-file candidate `0ca6397b2fce` on Development `fe8319aa11bd` for the 11:42:21 shared review. [Neo4j CI 43463625099](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43463625099) checks out the full candidate. [Oracle CI 43463631812](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43463631812) applies the reviewed Oracle test files to its resolved Development base, so its result qualifies that scope. The staged Oracle test reproduces the input tree from the earlier passing Oracle job before combining it with SQLite's provider-key change. The temporary Git index was removed. No local build or fixture outputs were created.
 
 13 November Cancun time. Oracle Free and SQLite native job `132012019566` passed both modes with zero skips and completed teardown. The job applied the reviewed Oracle routing scope to Development `fe8319aa11bd` and recorded tree `8258eabfc258c8fd27ae08501851bc1e46b9d6a7`. A healthy Oracle miss did not query a SQLite replica holding the exact record. No local build or fixture files were created.
