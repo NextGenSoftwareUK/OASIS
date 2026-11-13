@@ -27,13 +27,13 @@ internal static class MongoNativeHolonHistory
         return current;
     }
 
-    internal static IReadOnlyList<IHolon> Read(BsonDocument document,bool requireUniqueLogicalVersions=true)
-        =>Read(document,Current,StoredRecordJson.DeserializeStoredHolon,requireUniqueLogicalVersions);
+    internal static IReadOnlyList<IHolon> Read(BsonDocument document,bool requireUniqueLogicalVersions=true,int? selectedVersion=null)
+        =>Read(document,Current,StoredRecordJson.DeserializeStoredHolon,requireUniqueLogicalVersions,selectedVersion);
 
     // Share archive validation/staging across native families without converting
     // account records into holons (IAvatar only implements IHolonBase).
     internal static IReadOnlyList<T> Read<T>(BsonDocument document,Func<BsonDocument,T> decode,
-        Func<string,T> decodeLegacy,bool requireUniqueLogicalVersions=true) where T:IHolonBase
+        Func<string,T> decodeLegacy,bool requireUniqueLogicalVersions=true,int? selectedVersion=null) where T:IHolonBase
     {
         var current=Validate(decode(document));
         var records=new List<T>();
@@ -72,7 +72,7 @@ internal static class MongoNativeHolonHistory
         records.Add(current);
         if(!requireUniqueLogicalVersions)return records;
         var distinct=new List<T>();
-        foreach(var group in records.GroupBy(record=>record.Version))
+        foreach(var group in records.Where(record=>!selectedVersion.HasValue || record.Version==selectedVersion.Value).GroupBy(record=>record.Version))
         {
             var first=group.First();
             foreach(var candidate in group.Skip(1))
