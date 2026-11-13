@@ -18,6 +18,8 @@
 
 ## Verification log
 
+13 November Cancun time. Prepared two-file IPFS candidate 6ddf2fa3ab7fdda0ebbd076d8cb5d6c238078f5d on Development 9da992b83968. Tree 06b2656d63609293a2f1db26a349d2647078bea0 matches native restart and multi-process passes. The Development push workflow 43391220410 records 03:11 Cancun, so review the next verified batch after 03:41 Cancun. Five of seven API deployments report success.
+
 13 November Cancun time. Added native restart coverage that bound conditional recovery rejects another store before disclosing receipt or delta evidence. Existing pointer equality assertion covers both observations. Outbound enrollment and durable worker claims remain open.
 
 13 November Cancun time. Added redacted committed delta evidence to new IPFS conditional receipts, replay and read-only recovery. Existing receipts remain readable and report absent delta evidence. Native restart 43391933961 and multi-process 43391917449 passed on exact tree 0fe00c1cc140a26901f31fb46607894794e19e63. Both confirmed cleanup. Five of seven API deployments on Development 9da992b83968 report success. Wrong-store restart 43392263118 and multi-process 43392244567 passed on exact Development-based tree 06b2656d63609293a2f1db26a349d2647078bea0. Restart confirmed the mismatched identity returned no receipt evidence and left the pointer unchanged. Both removed their fixtures. No local builds or downloads.
