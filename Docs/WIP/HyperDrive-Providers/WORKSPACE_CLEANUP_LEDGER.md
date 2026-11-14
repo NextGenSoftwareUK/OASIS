@@ -1288,3 +1288,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 - 14 November Cancun time. Removed the temporary Git index for Bitcoin lifecycle candidate 5e00ac852113 and verified absence before pushing the qualification ref. No local fixture, download or build.
 
 - 14 November Cancun time. Exact Bitcoin native CI 43651403243 passed disposable backend teardown. The ordinal endpoint probe wrote no local files or downloads.
+
+- 14 November Cancun time. Native Ordinals run 43653208679 checked both release digests and verified deletion of its isolated runner directory after stopping the fixture. It contained the archives, binaries, regtest wallet and chain, ord index and transient logs. No local build or download.
