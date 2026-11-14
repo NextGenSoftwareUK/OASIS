@@ -1,5 +1,7 @@
 # COSMIC ORM / CQL current status
 
+14 November, Cancun. Railway 80264da3 reached SUCCESS at funded Bitcoin Development bc9bdab01a2e. The HoloOASIS activation timed out 61,999 ms after reaching the native cell creation marker. A read-only process count on the exact serving revision after the failure found zero conductor and zero Lair processes, consistent with managed failure cleanup. It does not establish how many cells ran before shutdown. WEB4 discovery returned 83 of 107 as catalogues warmed, and Hedera exact direct and federated 3/2 queries passed. HoloOASIS remained unavailable. No local runtime or fixture outputs.
+
 14 November, Cancun. Development bc9bdab01a2e added funded Bitcoin. The CQL constructor projection and HoloOASIS count diagnostics reconcile without overlap in 74ff7058e24e. Core gitlink and deployment manifest both pin 6240ecaa6c06. The exact image and protocol runs are 43633132932 and 43633134876. The standalone HoloOASIS count-log regression passed in 43632334465. Railway is deploying the Bitcoin base as 80264da3-904a-425d-b91c-b1dc9dbb2c65; live rollout and the new COSMIC integration remain unverified.
 
 14 November, Cancun. Combined candidate 5e3aefa1d6d0 contains the HoloOASIS count-only diagnostic and verified constructor projection pin, on Development ccd355899d3a. Exact image CI 43632141477 and protocol CI 43632143464 are running. Linux HoloOASIS CI 43631220899 passed; the follow-up typed-log regression is in CI 43632334465. The serving Development revision is unchanged.
