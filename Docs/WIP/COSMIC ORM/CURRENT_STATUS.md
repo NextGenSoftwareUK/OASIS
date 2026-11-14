@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Original WEB4 deployment recovered before the redeploy cutover
+
+Development 1c8478f7577f on fc9a82c9 began serving at 14:24:24 UTC after repeated persisted-cell startup timeouts. Health returned HTTP 200. The retained visitor observed 106/107 native and federated sources ready and matched both the HoloOASIS and Hedera public 3/2 IDs and provenance. Railway listed fc9a82c9 SUCCESS before and after the check, while recovery redeploy 25634d98 was still BUILDING. Monitor its separate cutover. Startup reliability remains open. No local build or new fixture.
+
 ## One same-revision WEB4 recovery deployment initiated
 
 Development 1c8478f7577f on Railway fc9a82c9 logged at least four persisted-cell startup timeouts and external HTTP health remained unavailable. Initiated one WEB4 redeploy, 25634d98-8489-4b45-b4c4-48ba91b768c5, of the identical verified revision. Recheck exact deployment identity, HTTP health and both providers after cutover. No source, volume, fixture, settings or local environment changes. This is availability recovery while startup diagnosis remains open.
