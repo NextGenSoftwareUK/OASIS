@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+14 November Cancun: retired ci-cosmic-hedera-59e96297ca0b after corrected run 43589062262 completed successfully, including database teardown. The original evidence remains linked in HEDERA_PUBLIC_SOURCE_STATUS.md. Keep the corrected candidate tags until the shared rollout is integrated. No local build outputs or downloads. Temporary Git index removed.
+
 14 November Cancun: removed superseded candidate tag ci-cosmic-shared-fa60e5697e56 after both associated CI runs completed. The failed cancellation case and successful authorization rejection evidence remain linked in CURRENT_STATUS.md. Retain the corrected Hedera tags while CI is active. No local builds, downloads or databases. Temporary Git index removed.
 
 14 November Cancun: retain ci-cosmic-hedera-6cb2e125bbb8 while exact CI 43589336339 is active. Prior candidate tags remain until the corrected result is durable and integrated. No local builds, downloads or test databases. Temporary Git indexes removed.
