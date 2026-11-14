@@ -259,9 +259,22 @@ internal sealed class HoloOasisDevelopmentConductor
             }
             catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
             {
+                var interfaceCount = "unavailable";
+                try
+                {
+                    var interfaces = await ListInterfacesAsync().WaitAsync(TimeSpan.FromSeconds(2), cancellationToken);
+                    if (!interfaces.IsError)
+                        interfaceCount = interfaces.AppInterfaces.Count().ToString(System.Globalization.CultureInfo.InvariantCulture);
+                }
+                catch (Exception error) when (!cancellationToken.IsCancellationRequested)
+                {
+                    interfaceCount = error.GetType().Name;
+                }
+
                 throw new TimeoutException(
                     $"The existing HoloOASIS teaching cell did not start within the conductor readiness budget. " +
-                    $"Completed cell-list replies: {completedPolls}; cells in the last reply: {lastRunningCellCount}.");
+                    $"Persisted app interfaces: {interfaceCount}; " +
+                    $"completed cell-list replies: {completedPolls}; cells in the last reply: {lastRunningCellCount}.");
             }
         }
 
