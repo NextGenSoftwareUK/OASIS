@@ -1,5 +1,7 @@
 # COSMIC ORM / CQL current status
 
+14 November, Cancun. Core f6706f056ca9 and parent 50488cf83dc9 add public field assignments to detached CQL projections. Native CI 43636085718 must verify the exact Int64 field result on MongoDB, SQLite and Neo4j. The Q11 and M17 parity rows remain open. Railway is building Development 74ff7058e24e. No local build, dependency install or fixture outputs.
+
 14 November, Cancun. Development advanced from bc9bdab01a2e to 74ff7058e24e after [exact teaching image CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43633132932) and [protocol CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43633134876) passed. The native projection gate passed on MongoDB, SQLite and Neo4j. The rollout is Railway 4d178409-de45-4982-ad2a-a48f3ef2cf30. The funded Bitcoin revision served while the rollout was queued. Check exact runtime revision, authenticated catalogue and HoloOASIS startup counts before assigning live acceptance.
 
 14 November, Cancun. Railway 80264da3 reached SUCCESS at funded Bitcoin Development bc9bdab01a2e. The HoloOASIS activation timed out 61,999 ms after reaching the native cell creation marker. A read-only process count on the exact serving revision after the failure found zero conductor and zero Lair processes, consistent with managed failure cleanup. It does not establish how many cells ran before shutdown. WEB4 discovery returned 83 of 107 as catalogues warmed, and Hedera exact direct and federated 3/2 queries passed. HoloOASIS remained unavailable. No local runtime or fixture outputs.
