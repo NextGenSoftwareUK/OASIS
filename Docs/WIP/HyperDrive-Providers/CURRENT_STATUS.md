@@ -1590,3 +1590,5 @@ Holo Desktop diagnostic run 43155153231 found that the conductor tool path was d
 13 November Cancun time. Added explicit Oracle routing identity capture through ODP.NET. It persists one schema-local identifier, derives a credential-free fingerprint from the native database, container and schema, and leaves ordinary activation independent of replication enrollment. Native coverage checks concurrent capture and reopening. This is a prerequisite for bound Oracle replication, which remains open.
 
 13 November Cancun time. The Oracle native fixture now checks read-only receipt absence, a committed conditional write and exact redacted revision evidence. A wrong physical binding must receive an explicit mismatch. Both provider modes use the real Oracle transaction, and the hosted fixture is disposable. CI is pending.
+
+13 November Cancun time. Development advanced from 72ffc86c2082 to f7815b62cee2 in the 20:29 shared window after all seven preceding API deployments succeeded. The single Azure Cosmos DB test file verifies authoritative ID-based absence without reading the stale SQLite replica. Provider-key qualification and hosted rollout remain open.
