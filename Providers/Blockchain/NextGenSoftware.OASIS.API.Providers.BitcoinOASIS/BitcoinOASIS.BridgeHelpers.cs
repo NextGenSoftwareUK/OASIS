@@ -97,55 +97,74 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                     return result;
                 }
 
-                // Get Bitcoin transactions for the address
-                var rpcRequest = new
-                {
-                    jsonrpc = "2.0",
-                    id = 1,
-                    method = "listtransactions",
-                    @params = new object[] { request.WalletAddress, 10 } // Default to 10 transactions
-                };
+                if (request.FromBlock > request.ToBlock)
+                    throw new ArgumentException("FromBlock must be at or before ToBlock.");
 
-                var response = await _httpClient.PostAsJsonAsync("", rpcRequest);
-                var content = await response.Content.ReadAsStringAsync();
-                var jsonDoc = JsonDocument.Parse(content);
-
+                var address = BitcoinAddress.Create(request.WalletAddress, SigningNetwork).ToString();
                 var transactions = new List<IWalletTransaction>();
-                if (jsonDoc.RootElement.TryGetProperty("result", out var resultElement) && resultElement.ValueKind == JsonValueKind.Array)
+                var bounded = request.FromBlock.HasValue || request.ToBlock.HasValue;
+                var endpoint = $"address/{address}/txs";
+                var path = bounded ? $"{endpoint}/chain" : endpoint;
+                var visited = new HashSet<string>(StringComparer.Ordinal);
+
+                while (true)
                 {
-                    foreach (var tx in resultElement.EnumerateArray())
+                    var page = await _httpClient.GetFromJsonAsync<JsonElement[]>(path);
+                    if (page.Length == 0)
+                        break;
+
+                    var belowRange = false;
+                    foreach (var transaction in page)
                     {
-                        // Extract transaction ID for deterministic GUID
-                        var txId = tx.TryGetProperty("txid", out var txidProp) ? txidProp.GetString() : null;
-                        Guid txGuid;
-                        if (!string.IsNullOrWhiteSpace(txId))
+                        var status = transaction.GetProperty("status");
+                        var confirmed = status.GetProperty("confirmed").GetBoolean();
+                        ulong? height = confirmed ? status.GetProperty("block_height").GetUInt64() : null;
+                        if (bounded && (!height.HasValue || height > request.ToBlock))
+                            continue;
+                        if (height < request.FromBlock)
                         {
-                            using var sha256 = System.Security.Cryptography.SHA256.Create();
-                            var hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(txId));
-                            txGuid = new Guid(hashBytes.Take(16).ToArray());
+                            belowRange = true;
+                            break;
                         }
-                        else
+
+                        var txid = uint256.Parse(transaction.GetProperty("txid").GetString()).ToString();
+                        var received = transaction.GetProperty("vout").EnumerateArray()
+                            .Where(output => PaysAddress(output, address))
+                            .Sum(output => output.GetProperty("value").GetInt64());
+                        var spent = transaction.GetProperty("vin").EnumerateArray()
+                            .Where(input => input.TryGetProperty("prevout", out var previous) &&
+                                previous.ValueKind == JsonValueKind.Object && PaysAddress(previous, address))
+                            .Sum(input => input.GetProperty("prevout").GetProperty("value").GetInt64());
+                        var net = checked(received - spent);
+
+                        transactions.Add(new WalletTransaction
                         {
-                            // Fallback: use deterministic GUID from transaction data
-                            var txData = $"{request.WalletAddress}:{tx.GetRawText()}";
-                            txGuid = CreateDeterministicGuid($"{ProviderType.Value}:tx:{txData}");
-                        }
-                        
-                        var walletTx = new WalletTransaction
-                        {
-                            TransactionId = txGuid,
-                            FromWalletAddress = tx.TryGetProperty("address", out var addr) ? addr.GetString() : string.Empty,
-                            ToWalletAddress = tx.TryGetProperty("address", out var toAddr) ? toAddr.GetString() : string.Empty,
-                            Amount = tx.TryGetProperty("amount", out var amt) ? amt.GetDouble() : 0.0,
-                            Description = txId != null ? $"Bitcoin transaction: {txId}" : "Bitcoin transaction"
-                        };
-                        transactions.Add(walletTx);
+                            TransactionId = CreateDeterministicGuid($"{ProviderType.Value}:tx:{txid}"),
+                            NativeTransactionId = txid,
+                            ProviderType = ProviderType.Value,
+                            NativeBlockNumber = height,
+                            NativeBlockHash = confirmed ? status.GetProperty("block_hash").GetString() : null,
+                            CreatedDate = confirmed ? DateTimeOffset.FromUnixTimeSeconds(status.GetProperty("block_time").GetInt64()).UtcDateTime : default,
+                            FromWalletAddress = spent > 0 ? address : null,
+                            ToWalletAddress = received > 0 ? address : null,
+                            RawAmount = net.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                            AmountUnit = "satoshi",
+                            AmountEvidence = "Matching output value minus matching previous output value",
+                            Amount = (double)Money.Satoshis(net).ToDecimal(MoneyUnit.BTC),
+                            Description = $"Bitcoin transaction: {txid}"
+                        });
                     }
+
+                    if (!bounded || belowRange || page.Length < 25)
+                        break;
+
+                    var cursor = uint256.Parse(page[^1].GetProperty("txid").GetString()).ToString();
+                    if (!visited.Add(cursor))
+                        throw new InvalidOperationException("Esplora repeated a Bitcoin history cursor.");
+                    path = $"{endpoint}/chain/{cursor}";
                 }
 
                 result.Result = transactions;
-                result.IsError = false;
-                result.Message = $"Retrieved {transactions.Count} Bitcoin transactions";
             }
             catch (Exception ex)
             {
@@ -153,6 +172,9 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             }
             return result;
         }
+
+        private static bool PaysAddress(JsonElement output, string address) =>
+            output.TryGetProperty("scriptpubkey_address", out var recipient) && recipient.GetString() == address;
 
         public OASISResult<IKeyPairAndWallet> GenerateKeyPair()
         {
