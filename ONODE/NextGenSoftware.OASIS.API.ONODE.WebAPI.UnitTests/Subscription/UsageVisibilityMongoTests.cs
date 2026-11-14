@@ -33,8 +33,17 @@ public sealed class StripeMongoFactAttribute : FactAttribute
 }
 
 /// <summary>Real-database tests for the usage visibility storage, app pool admission and app pay-as-you-go statements. Each uses its own throwaway database.</summary>
-public sealed class UsageVisibilityMongoTests
+[Collection("PooledFlag")]
+public sealed class UsageVisibilityMongoTests : IDisposable
 {
+    private readonly string _originalPooledFlag = Environment.GetEnvironmentVariable(AppAccountRules.PooledFlagName);
+
+    public UsageVisibilityMongoTests()
+        => Environment.SetEnvironmentVariable(AppAccountRules.PooledFlagName, "true");
+
+    public void Dispose()
+        => Environment.SetEnvironmentVariable(AppAccountRules.PooledFlagName, _originalPooledFlag);
+
     private sealed class Policy : ISubscriptionUsagePolicyProvider
     {
         // The app plan ("silver") is a pool of 10 requests a month; every other plan is unlimited so only the pool is under test.
