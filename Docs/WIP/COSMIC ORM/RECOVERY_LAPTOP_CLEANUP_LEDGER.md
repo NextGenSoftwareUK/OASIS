@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+14 November Cancun: bounded native conductor probes used a disposable Railway /tmp/oasis-holo-startup-* directory and loopback port 65465. Each invocation terminated its child and verified removal of its own temporary directory, including the initial rejected request. No local download or build. The relay handshake used an in-memory key and already installed dependencies.
+
 14 November Cancun: requested cancellation of superseded listener test run 43646986902 after correcting its interface assertion. The replacement 43647182217 uses an ephemeral Linux runner. No local conductor install, database copy or build output.
 
 14 November Cancun: image run 43642413195 canceled after Development advanced. Retain ci-cosmic-shared-db9432edfc02 while exact image and protocol qualification run. Retain ci-cosmic-shared-6687bf7d5ce1 as the source reference for completed protocol CI 43642415534. No local builds, installs or database copies.
