@@ -963,7 +963,9 @@ Power recovery verified on 11 November UTC: battery 21% and charging (Win32_Batt
 
 ### WEB6 Ask your data Development demo entitlement · 13 November
 
-14 November update. Development rejected the first private sign-in and issued no session. The failed local attempt was reconciled and archived, so the original command can be rerun with an existing Development subscription administrator account. The approved grant is still unapplied.
+14 November completed. The subsequent Development sign-in verified administrator access, the approved 30-minute Bronze grant was acknowledged, and live WEB6 drafting and WEB4 execution returned both requested public Hedera rows. The separate hosted browser walkthrough still needs the preview access and browser origin below.
+
+Earlier 14 November update. Development rejected the first private sign-in and issued no session. The failed local attempt was reconciled and archived, so the original command can be rerun with an existing Development subscription administrator account. The approved grant is still unapplied.
 
 Approved 13 November. David approved the 30-minute Bronze grant for the dedicated Development test visitor and agreed to sign in privately. Waiting for the separate protected Development administrator session before applying it. The Free catalogue only admits Ollama and no Ollama inference route is configured in Development. The deployed WEB4 subscription admin API supports audited plan grants with an expiry and no Stripe checkout. Proposed grant: 30 minutes, dedicated test visitor only, for one real WEB6 draft and WEB4 CQL execution. The prior Wizard sign-in was scoped to Hedera recovery. Run `python -B Scripts/Sandbox/Prepare-CqlRecoveryOperatorSession.py --subscription-admin` privately from the OASIS2 checkout with the existing Development subscription administrator account. The password is hidden and the separate session is protected locally by Windows. Report sign-in completion only. [Plan grant API](../../Devs/API%20Documentation/WEB4%20OASIS%20API/Subscription-API.md)
 

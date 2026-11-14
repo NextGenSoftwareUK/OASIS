@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Live Ask your data draft and query passed
+
+14 November. The approved 30-minute Bronze grant was acknowledged for the existing Development visitor. The exact Web4Site 0d1269d client sent a natural-language question to live WEB6 and compiled its Hedera draft. Live WEB4 returned both requested public accounts (0.0.2 and 0.0.3). MongoDB also accepted a separate WEB6 rows draft with active filter, name sort and limit, returning zero visible rows for this visitor. Verification used the exact client scripts in a Node harness. Full hosted browser verification remains open.
+
 ## HoloOASIS timed out again on Development 4645c412a8d8
 
 14 November, 12:02 Cancun. WEB4 deployment e301eab6 returned HTTP 200 while native admin reported zero running cells. Authenticated CQL reached 104/107 direct and federated sources. HoloOASIS logged activation timeout after 61,998 ms. The diagnostic candidate 747df5940450 preserves this Development parent and passed [10 Linux tests](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43618040438). Its [WEB4 image](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43618124090) and [protocol suite](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43618126368) remain active. Shared review is after 12:19:11 Cancun. No manual restart, volume modification, local builds or new fixture.
