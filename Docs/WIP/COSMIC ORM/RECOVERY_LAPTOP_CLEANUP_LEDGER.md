@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+14 November Cancun: retain ci-cosmic-shared-5c1f4c253e6a for CI 43594133859. Superseded combined candidate tag remains until its active run finishes. Admin inventory ran in memory over read-only SSH. No local fixture databases, dependency downloads or builds. Temporary Git indexes removed.
+
 14 November Cancun: retain ci-cosmic-shared-4fd56a466009 while combined run 43593587199 is active. Both earlier HoloOASIS diagnostic runs completed. Reconcile their tags after shared publication. Temporary Git indexes removed. No local dependencies, builds or fixture databases.
 
 14 November Cancun: retain ci-cosmic-holo-diagnostic-859002780fb4 and ci-cosmic-holo-diagnostic-99307f67d492 until runs 43592358287 and 43592174081 are reconciled. Live recovery smoke reused the existing visitor with read-only checks. No local builds, downloads or databases. Temporary Git indexes removed.
