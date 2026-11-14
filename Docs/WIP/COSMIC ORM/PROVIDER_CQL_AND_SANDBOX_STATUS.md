@@ -1,6 +1,6 @@
 # Provider implementation CQL COSMIC and HyperDrive status
 
-Updated 12 November 2026 from the accepted Development baseline and retained qualification evidence. The live demo is usable within its enrolled scopes; the full provider programme and EF/NHibernate parity remain incomplete.
+Updated 13 November 2026 from the accepted Development baseline and retained qualification evidence. The live demo is usable within its enrolled scopes. The full provider programme and EF/NHibernate parity remain incomplete.
 
 ## Current coverage
 
@@ -8,7 +8,7 @@ Updated 12 November 2026 from the accepted Development baseline and retained qua
 |---|---|---|
 | Provider inventory | 234 distinct shipping project paths; alternate implementations retained | Reconciled by project path with the HyperDrive provider matrix. Alternate project paths can share a provider identity. |
 | CQL breadth | 129 recorded scoped integrations | Programme checkpoint, not a new native audit of 129 providers or a universal feature percentage |
-| Development WEB4 | Latest verified serving revision `eacecc556b6d` reached 104 of 107 enrolled sources ready for native and federated CQL. Hedera, Nostr and Blockscout were unavailable. HoloOASIS native and MongoDB-federated presets matched exact IDs and provenance at 3/2. | SQLite-to-Oracle successor `08751c9824ae` is building. CouchDB, Infura, Supabase, TRON and Urbit remain absent from the last verified catalogue. See [current rollout status](CURRENT_STATUS.md). |
+| Development WEB4 | Verified serving revision `4db1dedd1a92` reached 105 of 107 enrolled sources ready for native and federated CQL. Hedera and Nostr were unavailable. HoloOASIS native and MongoDB-federated presets matched exact IDs and provenance at 3/2. | Combined successor `b4270f9cb9d2` passed exact CI and is building. CouchDB, Infura, Supabase, TRON and Urbit remain absent from the last verified catalogue. See [current rollout status](CURRENT_STATUS.md). |
 | Browser demo | Public native and original-owner paired browser results are tracked per provider below. | Recent public browser checks include Sui, Starknet, Filecoin, Stacks, Bittensor, Axelar and Connext. NEAR and Cosmos each passed the full and filtered public HTTP presets on `f4d314f7a3`. |
 | Priority demo queue | HoloOASIS, Solana, Ethereum, Polygon, Arbitrum, NEAR, EOS, SOLID, IPFS, ActivityPub, Cosmos, Polkadot, TON, TRON, Hedera, Supabase | Live public CQL presets have passed for the enrolled priorities. EOSIO, SOLID, TON and Hedera still have original-owner paired browser checks open. TRON wallet balance is deployed, and TRON CQL still requires authenticated native qualification and enrollment. Supabase local PostgREST read and native credential-isolation checks are qualified, and hosted CQL still requires the dedicated HTTPS teaching fixture and restricted reader. |
 | Full WEB4 image | Corrected immutable1c9c39904 image37e966a8 passes exact package and Docker/API/native startup42534822963 | Required TRON+Urbit readers/dependency graph, running Docker healthy gate, API/native probes, exit0/no OOM and owned cleanup verified; no deployment/live CQL acceptance. Earlier missing-curl candidate54be8845a rejected |
@@ -16,7 +16,7 @@ Updated 12 November 2026 from the accepted Development baseline and retained qua
 | Full provider implementation | Incomplete; no defensible per-provider 100% interface percentage | SDK/API source use is evidence of integration, not full native certification; existing placeholders and shipping-path gaps remain explicit |
 | Virtual and hybrid imports | Designed and on roadmap | Existing materialized import/replication exists; universal pointer/lazy/hybrid import modes are not claimed implemented |
 
-Historical sealed live HTTP acceptance is retained for deployment `9d5e9388` at `ab0e9b2c`. Railway WEB4 now serves MongoDB graph-test revision `1afe6f7923`. The SQL Server wallet successor `400b42ef36` is building. Polkadot passed both public header presets on `bbb4706313`. The TRON CQL reader requires restricted access, Supabase hosted qualification requires a dedicated HTTPS teaching fixture, and GOMap live enrollment requires a reviewed dedicated HTTPS OSRM origin. See [current status](CURRENT_STATUS.md) and [GOMap evidence](GOMAP_PUBLIC_SOURCE_STATUS.md).
+Historical sealed live HTTP acceptance is retained for deployment `9d5e9388` at `ab0e9b2c`. Polkadot passed both public header presets on `bbb4706313`. The TRON CQL reader requires restricted access, Supabase hosted qualification requires a dedicated HTTPS teaching fixture, and GOMap live enrollment requires a reviewed dedicated HTTPS OSRM origin. See [current status](CURRENT_STATUS.md) and [GOMap evidence](GOMAP_PUBLIC_SOURCE_STATUS.md).
 
 ## What the sandbox proves
 
