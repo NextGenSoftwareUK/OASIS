@@ -106,18 +106,29 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                 var endpoint = $"address/{address}/txs";
                 var path = bounded ? $"{endpoint}/chain" : endpoint;
                 var visited = new HashSet<string>(StringComparer.Ordinal);
+                var seenTransactions = new HashSet<string>(StringComparer.Ordinal);
 
                 while (true)
                 {
-                    var page = await _httpClient.GetFromJsonAsync<JsonElement[]>(path);
+                    var page = await ReadPageAsync(path);
                     if (page.Length == 0)
                         break;
 
                     var belowRange = false;
+                    var confirmedCount = 0;
+                    string lastConfirmed = null;
                     foreach (var transaction in page)
                     {
                         var status = transaction.GetProperty("status");
                         var confirmed = status.GetProperty("confirmed").GetBoolean();
+                        var txid = uint256.Parse(transaction.GetProperty("txid").GetString()).ToString();
+                        if (!seenTransactions.Add(txid))
+                            throw new InvalidOperationException("Esplora repeated a transaction in Bitcoin wallet history.");
+                        if (confirmed)
+                        {
+                            confirmedCount++;
+                            lastConfirmed = txid;
+                        }
                         ulong? height = confirmed ? status.GetProperty("block_height").GetUInt64() : null;
                         if (bounded && (!height.HasValue || height > request.ToBlock))
                             continue;
@@ -127,7 +138,6 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                             break;
                         }
 
-                        var txid = uint256.Parse(transaction.GetProperty("txid").GetString()).ToString();
                         var received = transaction.GetProperty("vout").EnumerateArray()
                             .Where(output => PaysAddress(output, address))
                             .Sum(output => output.GetProperty("value").GetInt64());
@@ -155,13 +165,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                         });
                     }
 
-                    if (!bounded || belowRange || page.Length < 25)
+                    if (belowRange || confirmedCount < 25)
                         break;
 
-                    var cursor = uint256.Parse(page[^1].GetProperty("txid").GetString()).ToString();
-                    if (!visited.Add(cursor))
-                        throw new InvalidOperationException("Esplora repeated a Bitcoin history cursor.");
-                    path = $"{endpoint}/chain/{cursor}";
+                    if (confirmedCount != 25 || !visited.Add(lastConfirmed))
+                        throw new InvalidOperationException("Esplora returned an invalid Bitcoin history cursor.");
+                    path = $"{endpoint}/chain/{lastConfirmed}";
                 }
 
                 result.Result = transactions;

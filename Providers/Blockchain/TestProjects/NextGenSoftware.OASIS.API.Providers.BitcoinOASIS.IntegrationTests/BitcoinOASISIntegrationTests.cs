@@ -724,6 +724,30 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
                 Assert.AreEqual(2, batch.SavedCount);
                 foreach (var acknowledged in batch.Result)
                     await BitcoinCliAsync("getmempoolentry", acknowledged.ProviderUniqueStorageKey[ProviderType.BitcoinOASIS]);
+
+                using var historyKey = new NBitcoin.Key();
+                var historyAddress = historyKey.PubKey.GetAddress(NBitcoin.ScriptPubKeyType.Segwit, network).ToString();
+                using var historyBlocks = System.Text.Json.JsonDocument.Parse(
+                    await BitcoinCliAsync("generatetoaddress", "26", historyAddress));
+                var historyTip = historyBlocks.RootElement[25].GetString();
+                for (var attempt = 0; attempt < 60; attempt++)
+                {
+                    if ((await http.GetStringAsync("blocks/tip/hash")).Trim() == historyTip)
+                        break;
+                    await Task.Delay(500);
+                }
+                Assert.AreEqual(historyTip, (await http.GetStringAsync("blocks/tip/hash")).Trim());
+                using var firstHistoryBlock = System.Text.Json.JsonDocument.Parse(
+                    await BitcoinCliAsync("getblock", historyBlocks.RootElement[0].GetString(), "1"));
+                var firstHistoryTx = firstHistoryBlock.RootElement.GetProperty("tx")[0].GetString();
+                var walletHistory = await recovered.GetTransactionsAsync(
+                    new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests.GetWeb3TransactionsRequest
+                    {
+                        WalletAddress = historyAddress
+                    });
+                Assert.IsFalse(walletHistory.IsError, walletHistory.Message);
+                Assert.AreEqual(26, walletHistory.Result.Count);
+                Assert.AreEqual(firstHistoryTx, walletHistory.Result.Last().NativeTransactionId);
             }
             finally
             {
