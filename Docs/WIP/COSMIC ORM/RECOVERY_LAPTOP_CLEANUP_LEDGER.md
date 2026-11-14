@@ -1,5 +1,9 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+## Mixed-version aggregate fixtures
+
+Six private Development fixtures across MongoDB, SQLite and Neo4j were conditionally deleted and verified absent. Only the compact intent and acknowledgement journals remain. No build, dependency or database artifacts were created.
+
 ## Two-record grouped arithmetic verification
 
 The retained release-smoke visitor created two scoped private records on each of MongoDB, SQLite and Neo4j. The initial MongoDB cleanup used the wrong HTTP method and got HTTP 405. The correct conditional DELETE reconciled both intents and exact reads confirmed absence. All four SQLite and Neo4j records were also deleted and verified absent. Only compact intent and acknowledgement journals remain. No local build, database or dependency artifacts were created.

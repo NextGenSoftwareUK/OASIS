@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Live mixed-version grouped arithmetic
+
+MongoDB, SQLite and Neo4j each verified COUNT 2, MIN 1, MAX 2, SUM 3 and AVG 1.5 against exact private versions 1 and 2 on Development f7815b62cee2. Raising either threshold independently excluded the group. All six fixtures were conditionally hard-deleted and verified absent. Hosted browser acceptance remains open.
+
 ## Live two-record grouped arithmetic
 
 On Development f7815b62cee2, MongoDB, SQLite and Neo4j each returned COUNT 2, MIN 1, MAX 1, SUM 2 and AVG 1 for two private version-one records. Raising either HAVING threshold independently excluded the group. All six records were conditionally hard-deleted and verified absent by exact ID. Mixed-version arithmetic and hosted browser acceptance remain open.
