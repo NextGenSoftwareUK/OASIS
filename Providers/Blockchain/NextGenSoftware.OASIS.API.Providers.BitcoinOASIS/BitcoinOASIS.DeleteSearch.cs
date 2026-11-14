@@ -188,6 +188,14 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                 using var response = await _httpClient.PostAsync("tx", body);
                 if (!response.IsSuccessStatusCode)
                 {
+                    if ((int)response.StatusCode >= 500 || response.StatusCode == System.Net.HttpStatusCode.RequestTimeout)
+                    {
+                        result.ErrorCode = BitcoinBroadcastOutcomeUnknown;
+                        OASISErrorHandling.HandleError(ref result,
+                            $"Esplora did not confirm Bitcoin transaction {expectedId}: {response.StatusCode}.");
+                        return result;
+                    }
+
                     var rejection = await response.Content.ReadAsStringAsync();
                     rejection = System.Text.RegularExpressions.Regex.Replace(rejection, "[a-fA-F0-9]{64,}", "[redacted]");
                     rejection = rejection.Replace('\r', ' ').Replace('\n', ' ').Trim();
@@ -213,7 +221,14 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Bitcoin transaction failed ({ex.GetType().Name}).");
+                if (submittedTransactionId != null)
+                {
+                    result.ErrorCode = BitcoinBroadcastOutcomeUnknown;
+                    OASISErrorHandling.HandleError(ref result,
+                        $"Esplora did not confirm Bitcoin transaction {submittedTransactionId} ({ex.GetType().Name}).");
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"Bitcoin transaction failed ({ex.GetType().Name}).");
             }
 
             return result;
