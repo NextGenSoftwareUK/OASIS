@@ -2057,3 +2057,5 @@ Supabase now reads replica receipt evidence through a service-role PostgREST RPC
 14 November Cancun time. Bitcoin avatar provider-key lookup now resolves the transaction ID from Esplora and requires a valid stored avatar payload. Raw address statistics can no longer produce synthetic avatars on this path. CI pending. Signed encrypted storage and the other identity selectors remain open. No local build or fixture.
 
 14 November Cancun time. Added public Esplora avatar lookup regression requiring RecordNotFound on Bitcoin genesis and rejection of a public wallet address as a storage key. CI pending. No local build or fixture.
+
+14 November Cancun time. Bitcoin holon reads now stamp the independently verified transaction ID onto the returned record. The native fixture mines a synthetic public holon memo and checks exact identity, provider-key attribution and authoritative absence for a different version. This exercises the real signed payment and read path. Encrypted SaveHolon and avatar storage remain open.
