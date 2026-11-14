@@ -117,11 +117,15 @@ public sealed class HolonReplicaInitializationPreparationTests
     [DataTestMethod]
     [DataRow("normal")] [DataRow("committed-response-lost")] [DataRow("submitted-no-receipt")]
     [DataRow("source-response-lost")] [DataRow("policy-revoked")] [DataRow("journal-changed")]
+    [DataRow("completed-before-submit")]
     public async Task DurableApplicationRecoversOriginalOutcomesWithoutBlindResubmission(string scenario)
     {
         var source=new Source();var policy=new Policy();var preparation=Prepare(source,policy);
         var actor=Guid.NewGuid();var operation=Guid.NewGuid();var target=new ApplicationTarget(scenario);
-        var directory=Path.GetFullPath(Path.Combine(AppContext.BaseDirectory,"../../../../../../TestResults/ReplicaInitializationApplicationCurrent"));
+        var fixtureRoot = Environment.GetEnvironmentVariable("OASIS_REPLICA_APPLICATION_TEST_ROOT");
+        var directory = fixtureRoot == null
+            ? Path.GetFullPath(Path.Combine(AppContext.BaseDirectory,"../../../../../../TestResults/ReplicaInitializationApplicationCurrent"))
+            : Path.Combine(fixtureRoot, "ReplicaInitializationApplicationCurrent");
         Directory.CreateDirectory(directory);
         var journal=Path.Combine(directory,scenario+".json");
         foreach(var file in new[]{journal,journal+".tmp",journal+".lock"})Assert.IsFalse(File.Exists(file),"Preserve previous unknown application evidence: "+file);
@@ -137,6 +141,28 @@ public sealed class HolonReplicaInitializationPreparationTests
         });
         try
         {
+            if (scenario == "completed-before-submit")
+            {
+                var approvals = 0;
+                policy.OnApproval = () =>
+                {
+                    if (++approvals != 2) return;
+                    var current = source.Observation;
+                    var inspection = current.Inspection;
+                    source.Observation = new(new HolonDeliveryInspection(inspection.Sequence, inspection.OperationId,
+                        inspection.TargetId, HolonDeliveryState.Completed, inspection.AttemptCount, inspection.ErrorCode,
+                        inspection.Message, inspection.RecoveryEvidence), current.PayloadJson, current.PayloadDigest);
+                };
+                var rejected = await application.ExecuteAsync(actor, 6, operation, journal);
+                Assert.AreEqual("COSMIC_REPLICA_INITIALIZATION_SOURCE_CHANGED", rejected.ErrorCode);
+                Assert.AreEqual(0, target.Writes);
+                Assert.AreEqual(0, completions);
+                var resumedCompleted = await application.ExecuteAsync(actor, 6, operation, journal);
+                Assert.AreEqual("COSMIC_REPLICA_INITIALIZATION_SOURCE_INVALID", resumedCompleted.ErrorCode);
+                Assert.AreEqual(0, target.Writes);
+                passed = true;
+                return;
+            }
             var first=await application.ExecuteAsync(actor,6,operation,journal);
             Assert.AreEqual(1,target.Writes);
             Assert.AreEqual(scenario is "committed-response-lost" or "submitted-no-receipt" or "source-response-lost",first.IsError,first.Message+first.Exception);
