@@ -50,6 +50,20 @@ public sealed class SqlServerSqliteHyperDriveTests
             var captures = await Task.WhenAll(sql.CaptureStorageIdentityAsync(), sql.CaptureStorageIdentityAsync());
             Assert.All(captures, capture => Assert.False(capture.IsError, capture.Message));
             var identity = captures[0].Result;
+            var conditionalHolon = new Holon { Id = Guid.NewGuid(), Name = "SQL Server conditional fixture", IsActive = true };
+            var conditionalRequest = new ConditionalHolonWriteRequest(
+                new ConditionalHolonWrite(Guid.NewGuid(), Guid.NewGuid(), ProviderType.SQLServerDBOASIS,
+                    new[] { new HolonWriteCondition(conditionalHolon.Id, null) }),
+                ConditionalHolonOperation.Save, new[] { conditionalHolon }, saveChildren: false);
+            var conditionalSaved = sync ? sql.ExecuteConditionalHolonWrite(conditionalRequest)
+                : await sql.ExecuteConditionalHolonWriteAsync(conditionalRequest);
+            Assert.True(!conditionalSaved.IsError && conditionalSaved.IsSaved,
+                $"{conditionalSaved.Message} {conditionalSaved.Exception}");
+            var conditionalReplay = await sql.ExecuteConditionalHolonWriteAsync(conditionalRequest);
+            Assert.False(conditionalReplay.IsError, conditionalReplay.Message);
+            Assert.Equal(conditionalSaved.Result.Single().VersionId, conditionalReplay.Result.Single().VersionId);
+            Assert.Equal(conditionalSaved.Result.Single().VersionId,
+                (await sql.LoadHolonAsync(conditionalHolon.Id, loadChildren: false)).Result?.VersionId);
             Assert.Equal(ProviderType.SQLServerDBOASIS, identity.Authority);
             Assert.Equal(identity.BindingFingerprint, captures[1].Result.BindingFingerprint);
             var replica = new Holon { Id = Guid.NewGuid(), Version = 1, VersionId = Guid.NewGuid() };

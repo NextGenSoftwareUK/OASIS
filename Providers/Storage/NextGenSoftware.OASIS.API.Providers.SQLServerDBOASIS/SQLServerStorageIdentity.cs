@@ -57,6 +57,12 @@ IF OBJECT_ID(N'dbo.OASISReplicaHeads', N'U') IS NULL
         RevisionId varchar(36) NOT NULL,
         HardDeleted bit NOT NULL
     );
+IF OBJECT_ID(N'dbo.OASISWriteReceipts', N'U') IS NULL
+    CREATE TABLE dbo.OASISWriteReceipts (
+        OperationId uniqueidentifier NOT NULL PRIMARY KEY,
+        RequestHash varchar(64) NOT NULL,
+        ResultJson nvarchar(max) NOT NULL
+    );
 ", connection, transaction);
             await provision.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
             var identity = await ReadSqlServerStorageIdentityAsync(connection, transaction, cancellationToken)

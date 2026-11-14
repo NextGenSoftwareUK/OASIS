@@ -104,13 +104,7 @@ FROM dbo.OASISReplicaHeads WITH (UPDLOCK,HOLDLOCK) WHERE Id=@Id;", connection, t
                 plan.ValidateAcknowledgedRecord(stored);
                 var hardDelete = plan.Operation == ConditionalHolonOperation.HardDelete;
                 if (hardDelete)
-                {
-                    await using var delete = new SqlCommand(
-                        "DELETE FROM OASISHolons WHERE Id=@Id; SELECT @@ROWCOUNT;", connection, transaction);
-                    delete.Parameters.Add("@Id", SqlDbType.UniqueIdentifier).Value = stored.Id;
-                    if (await delete.ExecuteScalarAsync(token).ConfigureAwait(false) is not 1)
-                        throw new InvalidDataException("SQL Server did not delete exactly one current replica row.");
-                }
+                    await DeleteCurrentHolonAsync(connection, transaction, stored.Id, token).ConfigureAwait(false);
                 else
                     await WriteHolonSnapshotAsync(connection, transaction, stored, token).ConfigureAwait(false);
 
@@ -181,6 +175,16 @@ VALUES (@Id,@Source,@Authority,@Json,@Digest,@Revision,@Deleted);", connection, 
     {
         if (await command.ExecuteNonQueryAsync(token).ConfigureAwait(false) != 1)
             throw new InvalidDataException("The SQL Server replica mutation did not affect exactly one row.");
+    }
+
+    private static async Task DeleteCurrentHolonAsync(SqlConnection connection, SqlTransaction transaction,
+        Guid id, CancellationToken token)
+    {
+        await using var delete = new SqlCommand(
+            "DELETE FROM OASISHolons WHERE Id=@Id; SELECT @@ROWCOUNT;", connection, transaction);
+        delete.Parameters.Add("@Id", SqlDbType.UniqueIdentifier).Value = id;
+        if (await delete.ExecuteScalarAsync(token).ConfigureAwait(false) is not 1)
+            throw new InvalidDataException("SQL Server did not delete exactly one current holon row.");
     }
 
     private static OASISResult<IEnumerable<IHolon>> ReplicaFailure(string code, string message, Exception? cause = null)
