@@ -1,5 +1,7 @@
 # COSMIC ORM / CQL current status
 
+14 November, Cancun. On the serving db9432edfc02 container, a direct official conductor start under the existing exclusive state lease reproduced zero running cells after 64 seconds. The independent inventory showed exactly one enabled app and one cell record. This separates the native persisted-state failure from the WEB4 startup wrapper and rules out another installed app blocking its startup. The first diagnostic launch used incorrect stdin framing and exited at the keystore. With the managed empty-line framing the conductor opened its state and responded to native admin requests.
+
 14 November, Cancun. On the exact serving Railway revision db9432edfc02, an isolated process using the official conductor binary, packaged teaching app and existing network URLs reached one running cell on fresh installation and again after restart. Both the unique seed and packaged default seed passed with disposable data and a newly generated agent. The existing teaching state, agent history, or its interaction with the managed process remains the distinguishing condition. This probe did not verify the existing teaching cell or its CQL records.
 
 14 November, Cancun. Linux managed conductor CI 43647182217 passed with 134 unbound listeners plus one teaching-app listener and verified the original teaching cell after restart. The listener count alone did not reproduce the Development stall on the disposable fixture. The persisted live state and Railway network environment remain candidates for the difference. No hosted state was changed.

@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+14 November Cancun: direct persisted-state observations used the installed official conductor with the existing exclusive lock and stopped the child after each probe. No cloned database, local downloads or build outputs. Railway forbids opening a separate network namespace, so no duplicated live agent was started.
+
 14 November Cancun: bounded native conductor probes used a disposable Railway /tmp/oasis-holo-startup-* directory and loopback port 65465. Each invocation terminated its child and verified removal of its own temporary directory, including the initial rejected request. No local download or build. The relay handshake used an in-memory key and already installed dependencies.
 
 14 November Cancun: requested cancellation of superseded listener test run 43646986902 after correcting its interface assertion. The replacement 43647182217 uses an ephemeral Linux runner. No local conductor install, database copy or build output.
