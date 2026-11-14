@@ -228,11 +228,16 @@ internal static class ReplicaBaselineRepairCommand
                 || held.Result.Inspection.OperationId!=request.SourceOperationId
                 || held.Result.PayloadDigest!=request.SourcePayloadDigest)
                 throw new InvalidOperationException("Reviewed source operation or payload changed.");
+            var nativeRoute = held.Result.Inspection.NativeRoute;
+            if (nativeRoute != null && (reviewedSource == null || reviewedTarget == null
+                || nativeRoute.SourceStorage.BindingFingerprint != reviewedSource.BindingFingerprint
+                || nativeRoute.TargetStorage.BindingFingerprint != reviewedTarget.BindingFingerprint))
+                throw new InvalidOperationException("The frozen route differs from the reviewed native stores.");
             var receiver=await target.ActivateProviderAsync();
             if(receiver.IsError || receiver.IsWarning)throw new InvalidOperationException("Target activation failed.");
             if(target is not ICommittedHolonReplicaInitializationRecoveryStorageProvider receiverOwner)
                 throw new InvalidOperationException("Configured target has no initialization receipt owner.");
-            var preparation=Preparation(request,sourceType,outbox,targetIdentity);
+            var preparation=Preparation(request,sourceType,outbox,targetIdentity,nativeRoute);
             var application = reviewedTarget == null
                 ? new HolonReplicaInitializationApplication(preparation,receiverOwner,complete)
                 : new HolonReplicaInitializationApplication(preparation,
@@ -260,21 +265,25 @@ internal static class ReplicaBaselineRepairCommand
             : reader;
 
     internal static HolonReplicaInitializationPreparation Preparation(Request request,ProviderType sourceType,
-        IHolonReplicationObligationReader source,string targetFile)
-        =>new("web4-demo-repair",request.CatalogVersion,HolonReplicationRoutes.SourceId(sourceType),request.SourceStoreIdentity,
-            sourceType,source,HolonReplicationRoutes.TargetId(TargetProfile(request.TargetProvider)),targetFile,TargetProfile(request.TargetProvider),
-            new Policy(request,targetFile,sourceType));
+        IHolonReplicationObligationReader source,string targetFile,HolonReplicationRouteBinding nativeRoute = null)
+    {
+        var targetType = TargetProfile(request.TargetProvider);
+        var sourceId = nativeRoute?.SourceId ?? HolonReplicationRoutes.SourceId(sourceType);
+        var targetId = nativeRoute?.TargetId ?? HolonReplicationRoutes.TargetId(targetType);
+        return new("web4-demo-repair",request.CatalogVersion,sourceId,request.SourceStoreIdentity,
+            sourceType,source,targetId,targetFile,targetType,new Policy(request,targetFile,sourceType,sourceId,targetId));
+    }
 
-    private sealed class Policy(Request request,string file,ProviderType sourceType) : IHolonReplicaInitializationPolicy
+    private sealed class Policy(Request request,string file,ProviderType sourceType,string sourceId,string targetId) : IHolonReplicaInitializationPolicy
     {
         public string BindingIdentity=>"reviewed-demo-baseline:"+Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(request))));
         public Task<OASISResult<bool>> AuthorizeAsync(HolonReplicaInitializationAuthorizationContext context,CancellationToken token)
             =>Task.FromResult(new OASISResult<bool>(context.OperatorId==request.OperatorId && context.Sequence==request.Sequence
                 && context.InitializationOperationId==request.InitializationOperationId
-                && context.SourceId==HolonReplicationRoutes.SourceId(sourceType)
+                && context.SourceId==sourceId
                 && context.SourceStoreIdentity==request.SourceStoreIdentity && context.TargetEndpointIdentity==file
                 && context.SourceAuthority==sourceType && context.TargetAuthority==TargetProfile(request.TargetProvider)
-                && context.TargetId==HolonReplicationRoutes.TargetId(TargetProfile(request.TargetProvider))
+                && context.TargetId==targetId
                 && (context.Stage == HolonReplicaInitializationAuthorizationStage.ReadHeldSource
                     || context.Stage == HolonReplicaInitializationAuthorizationStage.ApproveInitialization
                     && context.SourceOperationId == request.SourceOperationId
