@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Shared Azure, Oracle and LINQ candidate
+
+Development cdabb38aec29 adds the native-qualified Azure Cosmos DB and Oracle provider-key regressions. Candidate d744ef367819 adds only the verified native LINQ test file on that baseline. Review exact CI and verify the preceding Development rollout before integration. The protected website preview allows only a wildcard CORS response from Development; the canonical WEB4 origin receives the credentialed policy. No local builds or fixtures were created.
+
 ## Ask your data grouped draft preview
 
 Web4Site 9192a62a5aa5 gives WEB6 a complete grouped COUNT, AVG and SUM example with all HAVING aliases declared in SELECT. All 176 browser logic tests passed, including the review-to-Playground handoff. [Exact Vercel preview](https://web4-site-9yxq0sxw9-oasis-team.vercel.app/web4-sandbox.html) built successfully. Hosted browser access and live WEB6 drafting with the approved Bronze grant remain open. Temporary website test files were removed.
