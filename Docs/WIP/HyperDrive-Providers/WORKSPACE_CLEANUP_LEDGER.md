@@ -1262,3 +1262,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 - 14 November Cancun time. Native Bitcoin encrypted avatar job 43639464642 removed the owned Esplora and Kubo containers and images. No local build or database.
 
 - 14 November Cancun time. Removed the candidate index for 7409bc41952e. Native jobs 43640319427 and 43640500762 removed both Esplora and Kubo fixtures and images. No local build.
+
+- 14 November Cancun time. Native avatar-detail CI 43640863177 passed cleanup for both Bitcoin Core/Esplora and Kubo. No local build or fixture.
