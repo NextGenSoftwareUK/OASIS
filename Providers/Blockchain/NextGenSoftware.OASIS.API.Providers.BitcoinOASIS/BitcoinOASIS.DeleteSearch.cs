@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -86,6 +86,13 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                     !source.Equals(signer.GetAddress(ScriptPubKeyType.Segwit)))
                 {
                     OASISErrorHandling.HandleError(ref result, "The source address must belong to the configured signing key.");
+                    return result;
+                }
+
+                var genesis = (await _httpClient.GetStringAsync("block-height/0")).Trim();
+                if (!uint256.TryParse(genesis, out var genesisHash) || genesisHash != network.GetGenesis().GetHash())
+                {
+                    OASISErrorHandling.HandleError(ref result, "Esplora is serving a different Bitcoin network than the signing wallet.");
                     return result;
                 }
 
