@@ -6,15 +6,13 @@
         <Company>NextGen Software Ltd</Company>
         <Product>WEB4 OASIS API Niantic Lightship OASIS Provider</Product>
         <Title>WEB4 OASIS API Niantic Lightship OASIS Provider</Title>
-        <Summary>Niantic Lightship AR SDK OASIS Map Provider -- AR-native geo-spatial mapping, VPS anchors, and real-world AR overlays for OASIS avatars and holons. https://oasisomniverse.one</Summary>
-        <Description>Connects the OASIS to Niantic Lightship -- the industry-leading AR platform powering Pokemon GO and Ingress. Enables OASIS avatars and holons to be placed and experienced in the real world via AR overlays, VPS location anchors, and shared AR sessions. Part of the OASIS HOT-Swappable Provider Architecture. Ecosystem: https://oasisomniverse.one</Description>
+        <Summary>Legacy Niantic Lightship OASIS map compatibility package.</Summary>
+        <Description>Preserves the legacy Niantic Lightship map API. Map operations report unavailable because the package has no native backend adapter.</Description>
         <PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
         <PackageIcon>OASIS.jpg</PackageIcon>
         <Authors>David Ellams (NextGen Software Ltd)</Authors>
-        <PackageTags>OASIS API; Native; Integrated; WEB4; Provider; Niantic; Lightship; AR; Maps</PackageTags>
-        <PackageReleaseNotes>- Initial release as part of OASIS Omniverse ecosystem expansion.
-- Implements IOASISMapProvider for Niantic Lightship AR SDK.
-- Upgraded to .NET 10.</PackageReleaseNotes>
+        <PackageTags>OASIS API; WEB4; Maps; Legacy; Niantic Lightship</PackageTags>
+        <PackageReleaseNotes>Map operations now report unavailable when no backend is present.</PackageReleaseNotes>
         <RepositoryType>git</RepositoryType>
         <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
         <Copyright>Copyright © NextGen Software Ltd 2019 - 2026</Copyright>

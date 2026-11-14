@@ -1,18 +1,8 @@
 # NianticLightshipOASIS
 
-Niantic Lightship - AR platform for real-world spatial experiences.
+This compatibility package preserves the legacy Niantic Lightship map contract. It has no native map backend adapter. Map operation methods return `false` to report that the requested action was unavailable.
 
-Part of the [OASIS HOT-Swappable Provider Architecture](https://oasisomniverse.one).
-
-## Usage
-
-Register in your `OASIS_DNA.json`:
-
-```json
-{
-  "DefaultProviders": ["NianticLightshipOASIS"]
-}
-```
+Niantic ended the Maps SDK for Unity and announced the shutdown of its service endpoints for October 2025. [Niantic Maps SDK sunset notice](https://www.nianticspatial.com/en/products/maps-sdk-notice)
 
 ## Links
 
