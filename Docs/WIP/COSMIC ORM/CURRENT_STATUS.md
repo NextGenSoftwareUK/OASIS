@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Live SQL text matches the HoloOASIS and Hedera public presets
+
+Web4Site d0b534ba4799 generated SQL-like text from each reviewed full and subset preset and compiled it through the checked-in Playground parser. Live WEB4 deployment 8d1b591c on 2e864e1162e0 returned the same exact 3 full and 2 filtered IDs as the original typed request for HoloOASIS and Hedera. The deployment stayed the same. Browser rendering, signed-in WEB6 drafting, and intermittent conductor diagnosis remain open. HyperDrive has independently qualified f132040b216c on this parent for the next shared review after 11:13:39 Cancun.
+
 ## Live WEB4 serves during HoloOASIS warm-up
 
 Deployment 8d1b591c on Development 2e864e1162e0 returned HTTP 200 while the exact conductor admin API reported zero running cells and HoloOASIS discovery returned CQL_SOURCE_NOT_READY. Hedera passed exact native and federated 3/2 queries during warm-up. WEB4 remained healthy and HoloOASIS later passed the exact 3/2 native and federated checks. Discovery reached 106/107 in both modes. This verifies live WEB4 availability during pending conductor startup. This rollout did not reproduce the full timeout failure, which remains intermittent. Reused the retained visitor and created no local build or data fixture.
