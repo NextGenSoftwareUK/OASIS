@@ -1,5 +1,12 @@
 # COSMIC ORM / CQL current status
 
+## HoloOASIS startup diagnostics and shared rollout
+
+14 November, 11:22 Cancun. Shared Development f132040b216c is building as WEB4 deployment 0c8f0b08. The serving 2e864e1162e0 deployment still passes exact HoloOASIS and Hedera direct and federated CQL checks (3 full, 2 filtered), with 106/107 sources available in each mode. The Railway SSH admin probe timed out at transport level. No restart, database write or local fixture was needed.
+
+The deployed HoloNET pin cffe93dd captures a bounded Linux child-process output buffer and reports it when the admin port fails to open. The intermittent persisted-cell stall happens after the port opens, so that output path does not report the failing stage. [Holochain 0.7.1 startup](https://github.com/holochain/holochain/blob/holochain-0.7.1/crates/holochain/src/conductor/conductor.rs#L2749) emits separate info events after admin bind, app-interface restoration and app enablement. A bounded startup diagnostic should surface only those known markers on the persisted-cell timeout, preserving the managed process and state. Distinguish incomplete interface restoration from subsequent cell startup before changing the teaching volume or network configuration.
+
+
 ## SQL-like federation validation and preview
 
 Web4Site e94bc018d234 rejects a shared federation predicate across providers that require distinct native key fields. The observed unfiltered HoloOASIS and Hedera combination was rejected by live WEB4 with CQL_CAPABILITY_UNSUPPORTED. The same serving deployment returned exact 3/2 IDs and provenance for both MongoDB pairings with reviewed key filters. All 185 website tests passed, including the negative case and both valid pairings. [Exact preview build](https://web4-site-bgfpzusha-oasis-team.vercel.app/web4-sandbox.html) succeeded. Hosted browser sign-in and real WEB6 drafting remain open.
