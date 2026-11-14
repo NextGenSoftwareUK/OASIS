@@ -2033,3 +2033,5 @@ Supabase now reads replica receipt evidence through a service-role PostgREST RPC
 14 November Cancun time. The public Esplora wrong-network regression passed in CI 43627669952. Wallet and bridge candidate 873500557a2f contains six scoped files on Development d764ebb72bb8. Exact qualification 43628088309 is running. The workflow covers public reads, account recovery and wrong-network rejection. Funded transfer, receipt memo and signed storage remain open.
 
 14 November Cancun time. Exact Bitcoin wallet candidate 873500557a2f passed public Esplora CI 43628088309. Added on-demand native regtest CI with digest-pinned Blockstream Esplora and Bitcoin Core, chain identity and funded wallet checks, and fee-target reporting. This first run qualifies the fixture before wiring the provider transfer. No local runtime was downloaded.
+
+14 November Cancun time. Native regtest CI 43628571620 reached the matching Esplora and Bitcoin Core genesis. Bitcoin Core did not load the image bootstrap wallet after restart. The runner now creates and funds its own named wallet after the daemon and index are ready. Fee-target results and the provider transfer remain open.

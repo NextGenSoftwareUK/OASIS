@@ -43,9 +43,10 @@ jobs:
           test "$(curl -fsS "$api/block-height/0")" = "$genesis"
           test "$(bitcoin getblockchaininfo | jq -r .chain)" = regtest
 
-          miner=$(bitcoin -rpcwallet=default getnewaddress)
-          bitcoin -rpcwallet=default generatetoaddress 101 "$miner" >/dev/null
-          test "$(bitcoin -rpcwallet=default getbalance | jq '. > 0')" = true
+          bitcoin -named createwallet wallet_name=oasis-regtest >/dev/null
+          miner=$(bitcoin -rpcwallet=oasis-regtest getnewaddress)
+          bitcoin -rpcwallet=oasis-regtest generatetoaddress 101 "$miner" >/dev/null
+          test "$(bitcoin -rpcwallet=oasis-regtest getbalance | jq '. > 0')" = true
           printf 'Esplora fee targets after mining: '
           curl -fsS "$api/fee-estimates" | jq -c 'keys'
           test "$(bitcoin getblockcount)" -ge 101
