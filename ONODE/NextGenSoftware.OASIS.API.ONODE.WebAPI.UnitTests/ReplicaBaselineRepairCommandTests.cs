@@ -25,7 +25,8 @@ public sealed partial class ReplicaBaselineRepairCommandTests
     {
         const string uri="mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
         const string database="cosmic_demo_baseline_repair";
-        var root=Path.GetFullPath(Path.Combine(AppContext.BaseDirectory,"../../../../.."));
+        var root=Path.GetFullPath(Environment.GetEnvironmentVariable("COSMIC_REPLICA_REPAIR_FIXTURE_ROOT")
+            ?? Path.Combine(AppContext.BaseDirectory,"../../../../.."));
         var state=Path.Combine(root,"LocalState/COSMIC/ReplicaRepairNative");Directory.CreateDirectory(state);
         var results=Path.Combine(root,"TestResults/ReplicaRepairNativeCurrent");Directory.CreateDirectory(results);
         using var lease=File.Open(Path.Combine(state,"fixture.lock"),FileMode.OpenOrCreate,FileAccess.ReadWrite,FileShare.None);

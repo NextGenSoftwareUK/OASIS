@@ -36,10 +36,15 @@ public sealed class HolonReplicaInitializationAuthorizationContext
     public ProviderType TargetAuthority {get;}
     public string TargetEndpointIdentity {get;}
     public CommittedHolonReplicaRequest Mutation {get;}
+    public Guid? SourceOperationId {get;}
+    public string SourcePayloadDigest {get;}
+    public string SourceErrorCode {get;}
     internal HolonReplicaInitializationAuthorizationContext(HolonReplicaInitializationAuthorizationStage stage,Guid actor,long sequence,Guid operation,string route,
-        string sourceId,ProviderType sourceAuthority,string sourceStore,string targetId,ProviderType targetAuthority,string targetEndpoint,CommittedHolonReplicaRequest mutation=null)
+        string sourceId,ProviderType sourceAuthority,string sourceStore,string targetId,ProviderType targetAuthority,string targetEndpoint,
+        CommittedHolonReplicaRequest mutation=null,HolonReplicationObligation source=null)
     {Stage=stage;OperatorId=actor;Sequence=sequence;InitializationOperationId=operation;RouteBinding=route;Mutation=mutation;
-        SourceId=sourceId;SourceAuthority=sourceAuthority;SourceStoreIdentity=sourceStore;TargetId=targetId;TargetAuthority=targetAuthority;TargetEndpointIdentity=targetEndpoint;}
+        SourceId=sourceId;SourceAuthority=sourceAuthority;SourceStoreIdentity=sourceStore;TargetId=targetId;TargetAuthority=targetAuthority;TargetEndpointIdentity=targetEndpoint;
+        SourceOperationId=source?.Inspection.OperationId;SourcePayloadDigest=source?.PayloadDigest;SourceErrorCode=source?.Inspection.ErrorCode;}
 }
 
 /// <summary>Reviewable metadata only. Preparation does not initialize a target, complete a delivery or promise cutover.</summary>
@@ -156,7 +161,7 @@ public sealed class HolonReplicaInitializationPreparation
                 original.Operation,original.Roots,original.SaveChildren,original.Recursive,original.MaxChildDepth);
             var plan=CommittedHolonReplicaPlan.CreateInitialBaseline(baseline,_targetAuthority);
             var beforePolicy=CommittedHolonReplicaPayload.Capture(baseline);
-            var approval=await Authorized(Context(HolonReplicaInitializationAuthorizationStage.ApproveInitialization,operatorId,sequence,initializationOperationId,baseline),token).ConfigureAwait(false);
+            var approval=await Authorized(Context(HolonReplicaInitializationAuthorizationStage.ApproveInitialization,operatorId,sequence,initializationOperationId,baseline,frozen),token).ConfigureAwait(false);
             if(approval.IsError)return Error(approval.ErrorCode,approval.Message,approval.Exception);
             if(!approval.Result)
                 return Error("COSMIC_REPLICA_INITIALIZATION_DENIED","The host policy did not approve this exact baseline.");
@@ -167,8 +172,9 @@ public sealed class HolonReplicaInitializationPreparation
         catch(OperationCanceledException)when(token.IsCancellationRequested){throw;}
         catch(Exception cause){return Error("COSMIC_REPLICA_INITIALIZATION_PREPARATION_FAILED","Initialization preparation failed; no target or queue mutation was requested.",cause);}
     }
-    private HolonReplicaInitializationAuthorizationContext Context(HolonReplicaInitializationAuthorizationStage stage,Guid actor,long sequence,Guid operation,CommittedHolonReplicaRequest mutation=null)
-        =>new(stage,actor,sequence,operation,RouteBinding,_sourceId,_sourceAuthority,_sourceStoreIdentity,_targetId,_targetAuthority,_targetEndpointIdentity,mutation);
+    private HolonReplicaInitializationAuthorizationContext Context(HolonReplicaInitializationAuthorizationStage stage,Guid actor,long sequence,Guid operation,
+        CommittedHolonReplicaRequest mutation=null,HolonReplicationObligation source=null)
+        =>new(stage,actor,sequence,operation,RouteBinding,_sourceId,_sourceAuthority,_sourceStoreIdentity,_targetId,_targetAuthority,_targetEndpointIdentity,mutation,source);
     private async Task<OASISResult<bool>> Authorized(HolonReplicaInitializationAuthorizationContext context,CancellationToken token)
     {
         OASISResult<bool> Failed(string code,string message,Exception cause=null)=>new(){IsError=true,ErrorCount=1,ErrorCode=code,Message=message,Exception=cause};

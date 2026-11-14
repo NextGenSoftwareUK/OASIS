@@ -28,7 +28,7 @@ public sealed class HederaPublicAccountMetadataTests
             Assert.AreEqual(HttpMethod.Get, request.Method);
             var path = request.RequestUri!.AbsolutePath;
             object result;
-            Assert.AreEqual("?limit=1", request.RequestUri.Query, "No hidden transaction scan or historical fallback.");
+            Assert.AreEqual("?transactions=false", request.RequestUri.Query, "No hidden transaction scan or historical fallback.");
             Assert.IsTrue(path.StartsWith("/api/v1/accounts/", StringComparison.Ordinal));
             string key = path[17..];
             int index = Array.IndexOf(Keys, key);
@@ -44,7 +44,7 @@ public sealed class HederaPublicAccountMetadataTests
             if (Fault == "overflow") balance["balance"] = ulong.MaxValue;
             if (Fault == "timestamp") balance["timestamp"] = "1.2";
             if (Fault == "timestamp-overflow") balance["timestamp"] = "18446744073709551616.000000000";
-            if (Fault == "history") row["transactions"] = new JsonArray(new JsonObject(), new JsonObject());
+            if (Fault == "history") row["transactions"] = new JsonArray(new JsonObject());
             if (Fault == "last" && index == 2) row["account"] = "invalid";
             result = row;
             string text = JsonSerializer.Serialize(result);
