@@ -2,8 +2,10 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text.Json;
 using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core;
+using NextGenSoftware.OASIS.API.Core.Configuration;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -13,6 +15,7 @@ using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.Common;
 using SqliteProvider = NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.SQLLiteDBOASIS;
 using NextGenSoftware.OASIS.API.Providers.SupabaseOASIS;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS.IntegrationTests;
@@ -64,6 +67,106 @@ public sealed class SupabaseSqliteHyperDriveTests
             var wrongStore = await supabase.ReadCommittedHolonReplicaReceiptAsync(
                 new CommittedHolonReplicaReceiptReadRequest(receiptIntent, wrongBinding));
             Assert.AreEqual("COSMIC_REPLICA_RECEIPT_STORAGE_MISMATCH", wrongStore.ErrorCode);
+            using (var stateRequest = new HttpRequestMessage(HttpMethod.Post, $"{endpoint}/rpc/oasis_read_replica_state"))
+            {
+                stateRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", key);
+                stateRequest.Content = JsonContent.Create(new
+                {
+                    expected_store = Guid.Parse(binding.Result.StoreId),
+                    requested_ids = new[] { replica.Id }
+                });
+                using var stateResponse = await client.SendAsync(stateRequest);
+                var stateBody = await stateResponse.Content.ReadAsStringAsync();
+                Assert.IsTrue(stateResponse.IsSuccessStatusCode, stateBody);
+                using var stateDocument = JsonDocument.Parse(stateBody);
+                var state = stateDocument.RootElement;
+                Assert.AreEqual(1, state.GetArrayLength());
+                Assert.IsTrue(state[0].GetProperty("store_matches").GetBoolean());
+                Assert.AreEqual(replica.Id, state[0].GetProperty("id").GetGuid());
+                Assert.AreEqual(JsonValueKind.Null, state[0].GetProperty("current_row").ValueKind);
+                Assert.AreEqual(JsonValueKind.Null, state[0].GetProperty("replica_head").ValueKind);
+            }
+            attempted.Add(replica.Id);
+            var applied = sync ? supabase.ApplyBoundCommittedHolonReplica(receiptIntent, binding.Result)
+                : await supabase.ApplyBoundCommittedHolonReplicaAsync(receiptIntent, binding.Result);
+            Assert.IsFalse(applied.IsError, $"{applied.Message} {applied.Exception}");
+            var replay = await supabase.ApplyBoundCommittedHolonReplicaAsync(receiptIntent, binding.Result);
+            Assert.IsFalse(replay.IsError, $"{replay.Message} {replay.Exception}");
+            Assert.AreEqual(applied.Result.Single().VersionId, replay.Result.Single().VersionId);
+            Assert.AreEqual(replica.VersionId, (await supabase.LoadHolonAsync(replica.Id, loadChildren: false)).Result?.VersionId);
+            var committed = await supabase.ReadCommittedHolonReplicaReceiptAsync(
+                new CommittedHolonReplicaReceiptReadRequest(receiptIntent, binding.Result));
+            Assert.IsFalse(committed.IsError, $"{committed.Message} {committed.Exception}");
+            Assert.AreEqual(ConditionalHolonReceiptState.Committed, committed.Result.ReceiptState);
+
+            var successor = new Holon { Id = replica.Id, Version = 2, VersionId = Guid.NewGuid(),
+                PreviousVersionId = Guid.NewGuid(), Name = "Supabase replica successor", IsActive = true };
+            CosmicConcurrency.SetProviderRevisionId(successor, ProviderType.SQLLiteDBOASIS, Guid.NewGuid());
+            CommittedHolonReplicaRequest NextReplica(ConditionalHolonOperation operation, Holon snapshot)
+                => new(Guid.NewGuid(), receiptIntent.SourceId, receiptIntent.SourceAuthority, receiptIntent.ActorId,
+                    operation, new[] { snapshot }, saveChildren: false);
+            var divergent = NextReplica(ConditionalHolonOperation.Save, successor);
+            var rejectedReplica = await supabase.ApplyBoundCommittedHolonReplicaAsync(divergent, binding.Result);
+            Assert.AreEqual("COSMIC_REPLICA_LINEAGE_CONFLICT", rejectedReplica.ErrorCode,
+                $"{rejectedReplica.Message} {rejectedReplica.Exception}");
+            var rejectedReceipt = await supabase.ReadCommittedHolonReplicaReceiptAsync(
+                new CommittedHolonReplicaReceiptReadRequest(divergent, binding.Result));
+            Assert.IsFalse(rejectedReceipt.IsError, rejectedReceipt.Message);
+            Assert.AreEqual(ConditionalHolonReceiptState.Absent, rejectedReceipt.Result.ReceiptState);
+            Assert.AreEqual(replica.VersionId, (await supabase.LoadHolonAsync(replica.Id, loadChildren: false)).Result?.VersionId);
+
+            successor.PreviousVersionId = replica.VersionId;
+            var advancedReplica = await supabase.ApplyBoundCommittedHolonReplicaAsync(
+                NextReplica(ConditionalHolonOperation.Save, successor), binding.Result);
+            Assert.IsFalse(advancedReplica.IsError, $"{advancedReplica.Message} {advancedReplica.Exception}");
+            Assert.AreEqual(successor.VersionId, (await supabase.LoadHolonAsync(replica.Id, loadChildren: false)).Result?.VersionId);
+            var tombstone = new Holon { Id = replica.Id, Version = 3, VersionId = Guid.NewGuid(),
+                PreviousVersionId = successor.VersionId, Name = successor.Name, IsActive = false,
+                DeletedDate = DateTime.UtcNow, DeletedByAvatarId = receiptIntent.ActorId };
+            CosmicConcurrency.SetProviderRevisionId(tombstone, ProviderType.SQLLiteDBOASIS, Guid.NewGuid());
+            var deletion = NextReplica(ConditionalHolonOperation.HardDelete, tombstone);
+            var deletedReplica = sync ? supabase.ApplyBoundCommittedHolonReplica(deletion, binding.Result)
+                : await supabase.ApplyBoundCommittedHolonReplicaAsync(deletion, binding.Result);
+            Assert.IsTrue(!deletedReplica.IsError && deletedReplica.IsDeleted,
+                $"{deletedReplica.Message} {deletedReplica.Exception}");
+            var deletionReceipt = await supabase.ReadCommittedHolonReplicaReceiptAsync(
+                new CommittedHolonReplicaReceiptReadRequest(deletion, binding.Result));
+            Assert.IsFalse(deletionReceipt.IsError, deletionReceipt.Message);
+            Assert.AreEqual(ConditionalHolonReceiptState.Committed, deletionReceipt.Result.ReceiptState);
+            var deletedRead = await supabase.LoadHolonAsync(replica.Id, loadChildren: false);
+            Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, deletedRead.ErrorCode);
+
+            var sourceIdentity = await sqlite.CaptureStorageIdentityAsync();
+            Assert.IsFalse(sourceIdentity.IsError, sourceIdentity.Message);
+            var actor = Guid.NewGuid();
+            var grant = new HolonReplicationActorGrant(new[] { actor }, DateTime.UtcNow.AddMinutes(10));
+            var deliveryRoute = new HolonReplicationRouteBinding(sourceIdentity.Result, binding.Result, grant.BindingIdentity);
+            var enrollment = new HolonReplicationEnrollment(deliveryRoute.SourceId, new[] { deliveryRoute.TargetId },
+                sourceIdentity.Result, new[] { deliveryRoute });
+            var routedHolon = new Holon { Id = Guid.NewGuid(), Name = "SQLite-to-Supabase delivery", IsActive = true };
+            attempted.Add(routedHolon.Id);
+            var routedIntent = new ConditionalHolonWriteRequest(
+                new ConditionalHolonWrite(Guid.NewGuid(), actor, ProviderType.SQLLiteDBOASIS,
+                    new[] { new HolonWriteCondition(routedHolon.Id, null) }),
+                ConditionalHolonOperation.Save, new[] { routedHolon }, saveChildren: false);
+            var sourceWrite = await sqlite.ExecuteReplicatingHolonWriteAsync(routedIntent, enrollment);
+            Assert.IsTrue(!sourceWrite.IsError && sourceWrite.IsSaved, sourceWrite.Message);
+            var outbox = sqlite.GetBoundHolonReplicationOutbox(sourceIdentity.Result);
+            Assert.IsFalse(outbox.IsError, outbox.Message);
+            var target = new CommittedHolonReplicaTarget(deliveryRoute.TargetId, supabase, binding.Result.Authority,
+                deliveryRoute.SourceId, sourceIdentity.Result.Authority, grant, "supabase-fixture", Guid.NewGuid(),
+                grant.BindingIdentity, binding.Result);
+            var dispatcher = new HolonOutboxDispatcher(outbox.Result, new[] { target }, "supabase-fixture");
+            var delivered = await dispatcher.DispatchOnceAsync(deliveryRoute.TargetId, maximumCount: 1);
+            Assert.IsFalse(delivered.IsError, delivered.Message);
+            Assert.AreEqual(1, delivered.Result.CompletedCount);
+            Assert.AreEqual(sourceWrite.Result.Single().VersionId,
+                (await supabase.LoadHolonAsync(routedHolon.Id, loadChildren: false)).Result?.VersionId);
+            var restarted = new HolonOutboxDispatcher(outbox.Result, new[] { target }, "supabase-fixture-restarted");
+            var duplicate = await restarted.DispatchOnceAsync(deliveryRoute.TargetId, maximumCount: 1);
+            Assert.IsFalse(duplicate.IsError, duplicate.Message);
+            Assert.AreEqual(0, duplicate.Result.CompletedCount);
+
             var reopened = new SupabaseOASIS(endpoint, key!, client, "");
             try
             {
