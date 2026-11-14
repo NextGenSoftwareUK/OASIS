@@ -51,6 +51,9 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Repositories
                     if (!string.IsNullOrEmpty(zomeLoadFunctionName))
                         hcObject.ZomeLoadEntryFunction = zomeLoadFunctionName;
 
+                    if (fieldName == "id" && version == 0 && customDataKeyValuePairs == null)
+                        return await LoadNativeRecordAsync(hcObjectType, fieldName, fieldValue, fieldValue, hcObject, result);
+
                     result = HandleLoadResponse(await hcObject.LoadByCustomFieldAsync(fieldValue, fieldName, customDataKeyValuePairs, UseReflection), hcObjectType, fieldName, fieldValue, hcObject, result, "LoadAsync");
                 }
             }
@@ -64,6 +67,10 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Repositories
 
         public OASISResult<T> Load<T>(HcObjectTypeEnum hcObjectType, string fieldName, string fieldValue, string zomeLoadFunctionName = "", int version = 0, Dictionary<string, string> customDataKeyValuePairs = null) where T : IHolonBase
         {
+            if (fieldName == "id" && version == 0 && customDataKeyValuePairs == null)
+                return Task.Run(() => LoadAsync<T>(hcObjectType, fieldName, fieldValue, zomeLoadFunctionName))
+                    .GetAwaiter().GetResult();
+
             OASISResult<T> result = new OASISResult<T>();
 
             try
@@ -90,7 +97,10 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Repositories
                     if (!string.IsNullOrEmpty(zomeLoadFunctionName))
                         hcObject.ZomeLoadEntryFunction = zomeLoadFunctionName;
 
-                    result = HandleLoadResponse(hcObject.LoadByCustomField(fieldValue, fieldName, version, customDataKeyValuePairs, UseReflection), hcObjectType, fieldName, fieldValue, hcObject, result, "Load");
+                    var response = version == 0
+                        ? hcObject.LoadByCustomField(fieldValue, fieldName, customDataKeyValuePairs, UseReflection)
+                        : hcObject.LoadByCustomField(fieldValue, fieldName, version, customDataKeyValuePairs, UseReflection);
+                    result = HandleLoadResponse(response, hcObjectType, fieldName, fieldValue, hcObject, result, "Load");
                 }
             }
             catch (Exception ex)
@@ -99,6 +109,52 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Repositories
             }
 
             return result;
+        }
+
+        public async Task<OASISResult<IHolon>> LoadHolonByActionHashAsync(string providerKey, int version)
+        {
+            var result = new OASISResult<IHolon>();
+            var hash = HoloNETClientAppAgent.ConvertHoloHashToBytes(providerKey);
+            if (hash is not { Length: 39 } || hash[0] != 0x84 || hash[1] != 0x29 || hash[2] != 0x24)
+            {
+                OASISErrorHandling.HandleError(ref result, "The HoloOASIS holon provider key must be an action hash.");
+                return result;
+            }
+
+            result = await LoadNativeRecordAsync(HcObjectTypeEnum.Holon, "action hash", providerKey, hash,
+                new HcHolon(HoloNETClientAppAgent), result);
+            if (result.Result != null && version > 0 && result.Result.Version != version)
+                return new OASISResult<IHolon> { IsError = true, ErrorCode = OASISResultErrorCodes.RecordNotFound,
+                    Message = "The action hash does not identify the requested holon version." };
+            return result;
+        }
+
+        private async Task<OASISResult<T>> LoadNativeRecordAsync<T>(HcObjectTypeEnum type, string fieldName, string value, object payload,
+            IHoloNETAuditEntryBase entry, OASISResult<T> result) where T : IHolonBase
+        {
+            var response = await HoloNETClientAppAgent.CallZomeFunctionAsync(entry.ZomeName,
+                entry.ZomeLoadEntryFunction, paramsObject: payload,
+                entryDataObjectTypeReturnedFromZome: entry.GetType());
+            if (response == null || response.IsError)
+                return HandleLoadResponse(response, type, fieldName, value, entry, result, nameof(LoadNativeRecordAsync));
+
+            if (response.ZomeReturnValue == null && response.Records.Count == 0)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Holochain {type} with {fieldName} {value} was not found.");
+                result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
+                return result;
+            }
+
+            if (response.Records.Count != 1 || !(response.Records[0].EntryDataObject is IHoloNETAuditEntryBase loaded) ||
+                string.IsNullOrWhiteSpace(response.Records[0].ActionHash))
+            {
+                OASISErrorHandling.HandleError(ref result, $"Holochain returned an invalid {type} record for {fieldName} {value}.");
+                return result;
+            }
+
+            loaded.ActionHash = response.Records[0].ActionHash;
+            loaded.EntryHash = response.Records[0].EntryHash;
+            return HandleLoadResponse(response, type, fieldName, value, loaded, result, nameof(LoadNativeRecordAsync));
         }
 
         public async Task<OASISResult<T>> SaveAsync<T>(HcObjectTypeEnum hcObjectType, T holon, Dictionary<string, string> customDataKeyValuePairs = null) where T : IHolonBase
@@ -167,8 +223,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Repositories
                     response = await hcObject.SaveAsync(customDataKeyValuePairs);
                 }
 
-                if (response != null)
-                    result = HandleSaveResponse(response, hcObjectType, holon, hcObject, result, "SaveAsync");
+                result = HandleSaveResponse(response, hcObjectType, holon, hcObject, result, "SaveAsync");
             }
             catch (Exception ex)
             {
@@ -244,8 +299,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Repositories
                     response = hcObject.Save(customDataKeyValuePairs);
                 }
 
-                if (response != null)
-                    result = HandleSaveResponse(response, hcObjectType, holon, hcObject, result, "Save");
+                result = HandleSaveResponse(response, hcObjectType, holon, hcObject, result, "Save");
             }
             catch (Exception ex)
             {
@@ -284,8 +338,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Repositories
 
                 ZomeFunctionCallBackEventArgs response = await hcObject.DeleteByCustomFieldAsync(fieldValue, fieldName, customDataKeyValuePairs);
 
-                if (response != null)
-                    result = HandleDeleteResponse(response, hcObjectType, fieldName, fieldValue, hcObject, result, "DeleteAsync");
+                result = HandleDeleteResponse(response, hcObjectType, fieldName, fieldValue, hcObject, result, "DeleteAsync");
             }
             catch (Exception ex)
             {
@@ -323,8 +376,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Repositories
 
                 ZomeFunctionCallBackEventArgs response = hcObject.DeleteByCustomField(fieldValue, fieldName, customDataKeyValuePairs);
 
-                if (response != null)
-                    result = HandleDeleteResponse(response, hcObjectType, fieldName, fieldValue, hcObject, result, "Delete");
+                result = HandleDeleteResponse(response, hcObjectType, fieldName, fieldValue, hcObject, result, "Delete");
             }
             catch (Exception ex)
             {
@@ -339,7 +391,14 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Repositories
             if (response != null)
             {
                 if (!response.IsError)
+                {
                     result = DataHelper.ConvertHCResponseToOASISResult(response, hcObjectType, hcObject, result);
+                    if (result.Result != null)
+                    {
+                        result.IsLoaded = true;
+                        result.LoadedCount = 1;
+                    }
+                }
                 else
                     OASISErrorHandling.HandleError(ref result, $"Error loading {hcObjectType} with {fieldName} {fieldValue} in the {methodName} method in the GenericRepository in the HoloOASIS Provider. Reason: {response.Message}");
             }
@@ -355,13 +414,19 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Repositories
             {
                 if (!response.IsError)
                 {
+                    if (string.IsNullOrWhiteSpace(hcObject.ActionHash))
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Holochain did not return an action hash for {hcObjectType} {holon.Id} in {methodName}.");
+                        return result;
+                    }
+
                     if (holon.ProviderUniqueStorageKey == null)
                         holon.ProviderUniqueStorageKey = new Dictionary<ProviderType, string>();
 
-                    if (!string.IsNullOrWhiteSpace(hcObject.ActionHash))
-                        holon.ProviderUniqueStorageKey[ProviderType.HoloOASIS] = hcObject.ActionHash;
-
+                    holon.ProviderUniqueStorageKey[ProviderType.HoloOASIS] = hcObject.ActionHash;
                     result.Result = (T)holon;
+                    result.IsSaved = true;
+                    result.SavedCount = 1;
                 }
                 else
                     OASISErrorHandling.HandleError(ref result, $"Error saving {hcObjectType} with id {holon.Id} and name {holon.Name} in the {methodName} method in the GenericRepository in the HoloOASIS Provider. Reason: {response.Message}");
@@ -378,8 +443,14 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Repositories
             {
                 if (!response.IsError)
                 {
+                    if (response.Records?.Count != 1 || string.IsNullOrWhiteSpace(response.Records[0].ActionHash))
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Holochain did not acknowledge one deleted {hcObjectType} action in {methodName}.");
+                        return result;
+                    }
+
                     result.IsDeleted = true;
-                    result.IsError = false;
+                    result.DeletedCount = 1;
                 }
                 else
                     OASISErrorHandling.HandleError(ref result, $"Error deleting {hcObjectType} with {fieldName} {fieldValue} in the {methodName} method in the GenericRepository in the HoloOASIS Provider. Reason: {response.Message}");

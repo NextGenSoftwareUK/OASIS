@@ -41,7 +41,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 {
     public partial class HoloOASIS
     {
-
+        private bool _ownsAppClient;
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
         {
@@ -102,11 +102,13 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                                 OASIS_HAPP_ID,
                                 OASIS_HAPP_PATH,
                                 OASIS_HAPP_ROLE_NAME,
-                                CapGrantAccessType.Transferable);
+                                CapGrantAccessType.Transferable,
+                                uninstallhAppIfAlreadyInstalled: false);
 
                             if (installedAppResult != null && installedAppResult.IsSuccess && !installedAppResult.IsError)
                             {
                                 BindAppClient(installedAppResult.HoloNETClientAppAgent);
+                                _ownsAppClient = true;
                                 IsProviderActivated = true;
                                 result.Result = true;
                             }
@@ -159,20 +161,21 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
             try
             {
-                if (HoloNETClientAdmin != null && !HoloNETClientAdmin.IsDisconnecting)
-                {
-                    holoNETClientAdminResult = await HoloNETClientAdmin.DisconnectAsync();
-
-                    if (!(holoNETClientAdminResult != null && !holoNETClientAdminResult.IsError && holoNETClientAdminResult.IsDisconnected))
-                        OASISErrorHandling.HandleError(ref result, $"Error Occured In HoloOASIS Provider in DeActivateProviderAsync calling HoloNETClientAdmin.DisconnectAsync() method. Reason: {holoNETClientAdminResult.Message}");
-                }
-
+                // The admin connection owns the conductor. Close the app socket before it shuts down the process.
                 if (HoloNETClientAppAgent != null && !HoloNETClientAppAgent.IsDisconnecting)
                 {
                     holoNETClientAppAgent = await HoloNETClientAppAgent.DisconnectAsync();
 
                     if (!(holoNETClientAppAgent != null && !holoNETClientAppAgent.IsError && holoNETClientAppAgent.IsDisconnected))
-                        OASISErrorHandling.HandleError(ref result, $"Error Occured In HoloOASIS Provider in DeActivateProviderAsync calling HoloNETClientAdmin.DisconnectAsync() method. Reason: {holoNETClientAppAgent.Message}");
+                        OASISErrorHandling.HandleError(ref result, $"HoloOASIS app connection did not disconnect. {holoNETClientAppAgent?.Message}");
+                }
+
+                if (HoloNETClientAdmin != null && !HoloNETClientAdmin.IsDisconnecting)
+                {
+                    holoNETClientAdminResult = await HoloNETClientAdmin.DisconnectAsync();
+
+                    if (!(holoNETClientAdminResult != null && !holoNETClientAdminResult.IsError && holoNETClientAdminResult.IsDisconnected))
+                        OASISErrorHandling.HandleError(ref result, $"HoloOASIS admin connection did not disconnect. {holoNETClientAdminResult?.Message}");
                 }
 
                 if (HoloNETClientAdmin != null)
@@ -187,8 +190,16 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                     (holoNETClientAppAgent != null && holoNETClientAppAgent.IsDisconnected && !holoNETClientAppAgent.IsError);
                 if (adminDisconnected && appDisconnected)
                 {
-                    result.Result = true;
                     IsProviderActivated = false;
+                    if (_ownsAppClient)
+                    {
+                        var closedApp = HoloNETClientAppAgent;
+                        HoloNETClientAppAgent = null;
+                        _genericRepository = null;
+                        _ownsAppClient = false;
+                        (closedApp as IDisposable)?.Dispose();
+                    }
+                    result.Result = true;
                 }
             }
             catch (Exception e)
@@ -362,21 +373,14 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             OASISResult<bool> result = new OASISResult<bool>();
             try
             {
-                OASISResult<IAvatar> avatar = await LoadAvatarAsync(id);
-                if (avatar.IsError || avatar.Result?.ProviderUniqueStorageKey == null ||
-                    !avatar.Result.ProviderUniqueStorageKey.TryGetValue(NextGenSoftware.OASIS.API.Core.Enums.ProviderType.HoloOASIS, out string actionHash) ||
-                    string.IsNullOrWhiteSpace(actionHash))
-                {
-                    OASISErrorHandling.HandleError(ref result, avatar.Message ?? $"Avatar {id} was not found on Holochain.");
-                    return result;
-                }
-
-                OASISResult<IHolon> response = await _genericRepository.DeleteAsync(HcObjectTypeEnum.Avatar, "actionHash", actionHash, ZOME_DELETE_AVATAR_FUNCTION);
+                OASISResult<IHolon> response = await _genericRepository.DeleteAsync(
+                    HcObjectTypeEnum.Avatar, "id", id.ToString("D"), ZOME_DELETE_AVATAR_BY_ID_FUNCTION);
 
                 if (response != null && !response.IsError && response.IsDeleted)
                 {
                     result.Result = true;
-                    result.IsError = false;
+                    result.IsDeleted = true;
+                    result.DeletedCount = response.DeletedCount;
                     result.Message = "Avatar deleted successfully from Holochain";
                 }
                 else
@@ -404,7 +408,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                 if (response != null && !response.IsError && response.IsDeleted)
                 {
                     result.Result = true;
-                    result.IsError = false;
+                    result.IsDeleted = true;
+                    result.DeletedCount = response.DeletedCount;
                     result.Message = "Avatar deleted successfully from Holochain";
                 }
                 else
