@@ -308,9 +308,8 @@ public sealed class FirestoreSqliteOutageTests
             new[] { new HolonWriteCondition(record.Id, null) });
         var request = new ConditionalHolonWriteRequest(write, ConditionalHolonOperation.Save, new[] { record }, saveChildren: false);
         var sourceRecord = db.Collection("holons").Document(record.Id.ToString("D"));
-        var receiptKey = $"GoogleCloudOASIS:{write.OperationId:N}";
-        var receipt = db.Collection("cosmicWriteReceipts").Document(receiptKey);
-        var fence = db.Collection("cosmicOperationFences").Document(receiptKey);
+        var updateId = Guid.NewGuid();
+        var deleteId = Guid.NewGuid();
         try
         {
             var opened = firestore.GetBoundHolonReplicationOutbox(identity);
@@ -355,15 +354,51 @@ public sealed class FirestoreSqliteOutageTests
             var next = await outbox.PeekNextAsync(route.TargetId);
             Assert.IsFalse(next.IsError, next.Message);
             Assert.IsNull(next.Result);
+
+            var update = new ConditionalHolonWrite(updateId, actor, identity.Authority,
+                new[] { new HolonWriteCondition(record.Id, CosmicConcurrency.GetProviderRevisionId(committed, identity.Authority)) });
+            var successor = new Holon { Id = record.Id, Name = "Owned Firestore successor", IsActive = true };
+            var updated = await firestore.ExecuteReplicatingHolonWriteAsync(
+                new ConditionalHolonWriteRequest(update, ConditionalHolonOperation.Save, new[] { successor }, saveChildren: false), enrollment);
+            Assert.IsFalse(updated.IsError, updated.Message);
+            var revision = updated.Result.Single();
+            Assert.AreEqual(committed.VersionId, revision.PreviousVersionId);
+
+            var delete = new ConditionalHolonWrite(deleteId, actor, identity.Authority,
+                new[] { new HolonWriteCondition(record.Id, CosmicConcurrency.GetProviderRevisionId(revision, identity.Authority)) });
+            var deleted = await firestore.ExecuteReplicatingHolonWriteAsync(
+                new ConditionalHolonWriteRequest(delete, ConditionalHolonOperation.HardDelete, new[] { revision }, saveChildren: false), enrollment);
+            Assert.IsTrue(!deleted.IsError && deleted.IsDeleted, deleted.Message);
+            Assert.IsFalse((await sourceRecord.GetSnapshotAsync()).Exists);
+
+            var updateDelivery = await dispatcher.DispatchOnceAsync(route.TargetId, maximumCount: 1);
+            Assert.IsFalse(updateDelivery.IsError, updateDelivery.Message);
+            Assert.AreEqual(1, updateDelivery.Result.CompletedCount);
+            Assert.AreEqual(revision.VersionId, (await sqlite.LoadHolonAsync(record.Id, loadChildren: false)).Result?.VersionId);
+
+            var deleteDelivery = await dispatcher.DispatchOnceAsync(route.TargetId, maximumCount: 1);
+            Assert.IsFalse(deleteDelivery.IsError, deleteDelivery.Message);
+            Assert.AreEqual(1, deleteDelivery.Result.CompletedCount);
+            var heads = await sqlite.ReadHolonReplicaHeadsAsync(new HolonReplicaHeadReadRequest(captured.Result, new[] { record.Id }));
+            Assert.IsFalse(heads.IsError, heads.Message);
+            var tombstone = heads.Result.Records.Single();
+            Assert.IsFalse(tombstone.HasCurrentRecord);
+            Assert.IsTrue(tombstone.Head.HardDeleted);
+            Assert.AreEqual(deleted.Result.Single().VersionId, tombstone.Head.VersionId);
+
         }
         finally
         {
-            foreach (var delivery in (await db.Collection("cosmicOutboundDeliveries")
-                .WhereEqualTo("operationId", write.OperationId.ToString("D")).GetSnapshotAsync()).Documents)
-                await delivery.Reference.DeleteAsync();
+            foreach (var operationId in new[] { write.OperationId, updateId, deleteId })
+            {
+                foreach (var delivery in (await db.Collection("cosmicOutboundDeliveries")
+                    .WhereEqualTo("operationId", operationId.ToString("D")).GetSnapshotAsync()).Documents)
+                    await delivery.Reference.DeleteAsync();
+                var key = $"GoogleCloudOASIS:{operationId:N}";
+                await db.Collection("cosmicWriteReceipts").Document(key).DeleteAsync();
+                await db.Collection("cosmicOperationFences").Document(key).DeleteAsync();
+            }
             await sourceRecord.DeleteAsync();
-            await receipt.DeleteAsync();
-            await fence.DeleteAsync();
         }
     }
 
