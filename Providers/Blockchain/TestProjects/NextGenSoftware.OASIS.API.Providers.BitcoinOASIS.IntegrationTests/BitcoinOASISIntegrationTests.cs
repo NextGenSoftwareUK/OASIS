@@ -150,6 +150,14 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
 
                 Assert.IsTrue(created.Result.PublicKey == restored.Result.PublicKey, "Restored address differs.");
                 Assert.IsTrue(created.Result.PrivateKey == restored.Result.PrivateKey, "Restored signing key differs.");
+
+                var generated = await _provider.GenerateKeyPairAsync();
+                Assert.IsFalse(generated.IsError, generated.Message);
+                var signer = new NBitcoin.BitcoinSecret(generated.Result.PrivateKey, NBitcoin.Network.Main);
+                Assert.IsTrue(signer.GetAddress(NBitcoin.ScriptPubKeyType.Legacy).ToString() ==
+                    generated.Result.WalletAddressLegacy, "Generated legacy address differs from signer address.");
+                Assert.IsTrue(signer.GetAddress(NBitcoin.ScriptPubKeyType.SegwitP2SH).ToString() ==
+                    generated.Result.WalletAddressSegwitP2SH, "Generated wrapped SegWit address differs from signer address.");
             }
             finally
             {
