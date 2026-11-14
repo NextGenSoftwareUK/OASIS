@@ -15,22 +15,42 @@ using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS;
 
-public partial class DynamoDBOASIS : IConditionalHolonStorageProvider
+public partial class DynamoDBOASIS : IConditionalHolonStorageProvider, IBoundAtomicHolonReplicationStorageProvider
 {
     private const string ConditionalReceiptTable="OasisHolonWriteReceipts";
     public OASISResult<IEnumerable<IHolon>> ExecuteConditionalHolonWrite(ConditionalHolonWriteRequest request)
         =>ExecuteConditionalHolonWriteAsync(request).GetAwaiter().GetResult();
 
-    public async Task<OASISResult<IEnumerable<IHolon>>> ExecuteConditionalHolonWriteAsync(
+    public Task<OASISResult<IEnumerable<IHolon>>> ExecuteConditionalHolonWriteAsync(
         ConditionalHolonWriteRequest request,CancellationToken cancellationToken=default)
+        => ExecuteDynamoGraphWriteAsync(request, null, cancellationToken);
+
+    public OASISResult<IEnumerable<IHolon>> ExecuteReplicatingHolonWrite(
+        ConditionalHolonWriteRequest request, HolonReplicationEnrollment enrollment)
+        => ExecuteReplicatingHolonWriteAsync(request, enrollment).GetAwaiter().GetResult();
+
+    public Task<OASISResult<IEnumerable<IHolon>>> ExecuteReplicatingHolonWriteAsync(
+        ConditionalHolonWriteRequest request, HolonReplicationEnrollment enrollment, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(enrollment);
+        return ExecuteDynamoGraphWriteAsync(request, enrollment, cancellationToken);
+    }
+
+    private async Task<OASISResult<IEnumerable<IHolon>>> ExecuteDynamoGraphWriteAsync(
+        ConditionalHolonWriteRequest request, HolonReplicationEnrollment? enrollment, CancellationToken cancellationToken)
     {
         var dispatched=false;
         string? token=null;
         ConditionalHolonPlan? plan=null;
         try {
             cancellationToken.ThrowIfCancellationRequested();
-            plan=ConditionalHolonPlan.Create(request,StorageProviderType);
-            if(plan.Nodes.Count>99)throw new ArgumentException("DynamoDB atomic graph allows at most99 nodes plus its receipt.");
+            plan = enrollment == null ? ConditionalHolonPlan.Create(request, StorageProviderType)
+                : ConditionalHolonPlan.CreateReplicating(request, StorageProviderType, enrollment);
+            if (enrollment != null && (enrollment.SourceStorageIdentity == null || enrollment.NativeRoutes.Count == 0))
+                throw new ArgumentException("DynamoDB replication requires a bound source and native routes.");
+            var overhead = enrollment == null ? 1 : 3 + enrollment.NativeRoutes.Count;
+            if (plan.Nodes.Count + overhead > 100)
+                throw new ArgumentException("DynamoDB graph and replication metadata exceed the 100-item transaction limit.");
             if(_client.Config.MaxErrorRetry!=0)throw new InvalidOperationException("Atomic graph writes require single-attempt SDK configuration.");
             var receipt=await ReadGraphReceiptAsync(plan,cancellationToken);
             if(receipt!=null)return GraphAcknowledgement(receipt,request.Operation);
@@ -123,6 +143,11 @@ public partial class DynamoDBOASIS : IConditionalHolonStorageProvider
                 ["id"]=new(){S=GraphReceiptKey(plan)},["request_hash"]=new(){S=plan.Fingerprint},["result_json"]=new(){S=receiptJson}
             };
             sizes.Add(MeasureGraphItem(receiptItem));
+            if (enrollment != null)
+            {
+                actions.Add(RequireStorageIdentityAtCommit(enrollment.SourceStorageIdentity.StoreId));
+                await StageDynamoDeliveriesAsync(plan, validated, actions, sizes, cancellationToken);
+            }
             if(sizes.Sum()>4L*1024*1024)throw new ArgumentException("DynamoDB atomic graph exceeds the4MiB transaction limit.");
             actions.Add(new(){Put=new Put {TableName=ConditionalReceiptTable,Item=receiptItem,ConditionExpression="attribute_not_exists(#id)",
                 ExpressionAttributeNames=new(){{"#id","id"}}}});
@@ -148,6 +173,8 @@ public partial class DynamoDBOASIS : IConditionalHolonStorageProvider
             return GraphFailure(StorageLifecycleConflictException.ErrorCode,cause.Message,cause);
         } catch(CosmicConcurrencyException cause) {
             return GraphFailure(CosmicConcurrencyException.Code,cause.Message,cause);
+        } catch(DynamoSourceBindingException cause) {
+            return GraphFailure("COSMIC_SOURCE_STORAGE_BINDING_MISMATCH",cause.Message,cause);
         } catch(GraphOperationReuseException cause) {
             return GraphFailure("COSMIC_OPERATION_ID_REUSED",cause.Message,cause);
         } catch(Exception cause) {
@@ -161,13 +188,39 @@ public partial class DynamoDBOASIS : IConditionalHolonStorageProvider
     private async Task<IReadOnlyList<IHolon>?> ReadGraphReceiptAsync(ConditionalHolonPlan plan,CancellationToken token)
     {
         var key=GraphReceiptKey(plan);
-        var response=await _client.GetItemAsync(new GetItemRequest {TableName=ConditionalReceiptTable,
-            Key=new(){{"id",new(){S=key}}},ConsistentRead=true},token);
-        RequireItemRead(response);
-        if(response.Item.Count==0)return null;
-        if(!response.Item.TryGetValue("id",out var id)||id.S!=key
-            ||!response.Item.TryGetValue("request_hash",out var hash)||string.IsNullOrEmpty(hash.S)
-            ||!response.Item.TryGetValue("result_json",out var result)||string.IsNullOrEmpty(result.S))
+        Dictionary<string, AttributeValue> item;
+        if (plan.ReplicationEnrollment == null)
+        {
+            var response = await _client.GetItemAsync(new GetItemRequest { TableName = ConditionalReceiptTable,
+                Key = ReceiptTableGet(key).Key, ConsistentRead = true }, token);
+            RequireItemRead(response);
+            item = response.Item;
+        }
+        else
+        {
+            var fingerprint = await ReadStorageEndpointFingerprintAsync(token);
+            var response = await _client.TransactGetItemsAsync(new TransactGetItemsRequest
+            {
+                TransactItems = new()
+                {
+                    new() { Get = ReceiptTableGet(StorageIdentityKey) },
+                    new() { Get = ReceiptTableGet(key) }
+                }
+            }, token);
+            if (response.HttpStatusCode != HttpStatusCode.OK || response.Responses?.Count != 2)
+                throw new InvalidDataException("DynamoDB returned an incomplete source receipt snapshot.");
+            var identity = response.Responses[0].Item;
+            var expected = plan.ReplicationEnrollment.SourceStorageIdentity;
+            if (identity == null || !identity.TryGetValue("store_id", out var nativeStore)
+                || fingerprint != expected.EndpointFingerprint || nativeStore.S != expected.StoreId
+                || expected.Authority != StorageProviderType)
+                throw new DynamoSourceBindingException();
+            item = response.Responses[1].Item;
+        }
+        if (item == null || item.Count == 0) return null;
+        if(!item.TryGetValue("id",out var id)||id.S!=key
+            ||!item.TryGetValue("request_hash",out var hash)||string.IsNullOrEmpty(hash.S)
+            ||!item.TryGetValue("result_json",out var result)||string.IsNullOrEmpty(result.S))
             throw new InvalidDataException("DynamoDB operation receipt is incomplete or has a different native key.");
         if(hash.S!=plan.Fingerprint)throw new GraphOperationReuseException();
         return ValidateGraphReceipt(result.S,plan);
