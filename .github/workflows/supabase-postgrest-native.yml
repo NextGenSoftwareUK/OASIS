@@ -78,7 +78,7 @@ jobs:
         if: inputs.scenario == 'routing'
         shell: bash
         run: |
-          base=5ab24c31afa067bdbf807a1dfbf1dc06c70d08dc
+          base=b4f1a930b2b8dd9d509224df407e4b29ba06b484
           git -C ../provider-source fetch --no-tags --depth=1 origin "$base"
           tests='Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.SupabaseOASIS.IntegrationTests'
           provider='Providers/Cloud/NextGenSoftware.OASIS.API.Providers.SupabaseOASIS'
