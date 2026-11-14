@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Live WEB4 recovered on the Supabase revision
+
+Railway replacement 45fb02c9 recovered public HTTP 200 after earlier persisted-cell timeouts. SSH confirmed serving revision 6c36bb49f09f. The retained visitor measured 105/107 native and 105/107 federated catalogue entries ready. Native and MongoDB-federated HoloOASIS examples matched the exact three-record and two-record ID sets with HoloOASIS provenance. The selected-alias projection compiled directly from Web4Site fedb217 and was accepted by MongoDB, SQLite and Neo4j. This was an HTTP acceptance probe; populated alias ordering and browser acceptance remain open. Development 4e86752ff71f is building separately. The HoloNET bounded-interface qualification is [running](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43572907225). No local build outputs or fixture changes.
+
 ## Persisted Holochain app listeners accumulate
 
 Two live process snapshots found 131 distinct IPv4 loopback TCP listeners owned by the WEB4 teaching conductor while its persisted cell failed to start. HoloNET pin 9f897b7 attaches a new app interface without specifying a port on every installed-app provisioning. Holochain 0.7.1 restores the stored app interfaces sequentially before creating enabled cells. This is a concrete lifecycle defect and a candidate contributor to the Railway delay. Qualify interface reuse and bounded interface count across restarts. The listener count alone does not locate the precise point of the current startup wait. Keep the existing cell and data volume intact. No local build or fixture changes.
