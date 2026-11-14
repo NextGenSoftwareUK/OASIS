@@ -61,53 +61,13 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                     }
                 }
 
-                // Serialize avatar detail as separate object with type marker so we can load it without deriving from avatar
-                var wrapper = new { oasisType = "AvatarDetail", value = avatar };
-                var avatarDetailJson = JsonSerializer.Serialize(wrapper);
-                var avatarDetailBytes = Encoding.UTF8.GetBytes(avatarDetailJson);
-
-                // Create Bitcoin transaction with avatar detail data
-                var transactionRequest = new
+                if (avatar == null || avatar.Id == Guid.Empty)
                 {
-                    inputs = new[]
-                    {
-                        new
-                        {
-                            txid = "", // Will be filled by UTXO lookup
-                            vout = 0
-                        }
-                    },
-                    outputs = new[]
-                    {
-                        new
-                        {
-                            address = "", // IAvatarDetail doesn't have ProviderWallets, using empty string as fallback
-                            value = 0, // OP_RETURN transaction
-                            script = Convert.ToHexString(avatarDetailBytes) // Store avatar detail data in OP_RETURN
-                        }
-                    }
-                };
-
-                // Submit transaction to Bitcoin network
-                var jsonContent = JsonSerializer.Serialize(transactionRequest);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-
-                var submitResponse = await _httpClient.PostAsync("/tx", content);
-                if (submitResponse.IsSuccessStatusCode)
-                {
-                    var responseContent = await submitResponse.Content.ReadAsStringAsync();
-                    var responseData = JsonSerializer.Deserialize<JsonElement>(responseContent);
-
-                    // IAvatarDetail doesn't have ProviderWallets, skipping wallet assignment
-
-                    response.Result = avatar;
-                    response.IsError = false;
-                    response.Message = "Avatar detail saved successfully to Bitcoin blockchain";
+                    OASISErrorHandling.HandleError(ref response, "A nonempty avatar detail identity is required for Bitcoin storage.");
+                    return response;
                 }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to save avatar detail to Bitcoin: {submitResponse.StatusCode}");
-                }
+
+                return await CommitEncryptedRecordAsync<IAvatarDetail>(avatar, AvatarDetailRecordScope, BitcoinRecordKind.AvatarDetail);
             }
             catch (Exception ex)
             {
@@ -480,7 +440,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             return response;
         }
 
-        private async Task<OASISResult<T>> CommitEncryptedRecordAsync<T>(T record, string scope, bool avatar = false)
+        private async Task<OASISResult<T>> CommitEncryptedRecordAsync<T>(T record, string scope, BitcoinRecordKind kind = BitcoinRecordKind.Holon)
             where T : class, IHolonBase
         {
             var result = new OASISResult<T>();
@@ -489,7 +449,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             var snapshot = NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordPublicationSnapshot<T>.Capture(record);
             using var client = CreateRecordBlobClient();
             using var codec = CreateRecordCodec();
-            var store = new BitcoinRecordBlobStore(client, codec, avatar);
+            var store = new BitcoinRecordBlobStore(client, codec, kind);
             var json = NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.Serialize(snapshot.Proposal);
             var commitment = await store.PutAsync(scope, json);
             snapshot.ValidateUnchanged();
@@ -506,6 +466,68 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             stored.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
             stored.ProviderUniqueStorageKey[Core.Enums.ProviderType.BitcoinOASIS] = publication.Result.TransactionResult;
             result.Result = stored;
+            return result;
+        }
+
+        private const string AvatarDetailRecordScope = "bitcoin-oasis:avatar-detail:v1";
+
+        public async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByTransactionIdAsync(string providerKey, int version = 0)
+        {
+            var result = new OASISResult<IAvatarDetail>();
+            try
+            {
+                if (!NBitcoin.uint256.TryParse(providerKey, out var transactionId))
+                    throw new ArgumentException("A Bitcoin transaction ID is required.", nameof(providerKey));
+
+                if (!_isActivated)
+                {
+                    var activation = await ActivateProviderAsync();
+                    if (activation.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, activation.Message, activation.Exception);
+                        return result;
+                    }
+                }
+
+                var transaction = await ReadVerifiedTransactionAsync(transactionId);
+                byte[] commitment = null;
+                foreach (var output in transaction.Outputs)
+                {
+                    var pushes = new NBitcoin.TxNullDataTemplate(output.ScriptPubKey.Length)
+                        .ExtractScriptPubKeyParameters(output.ScriptPubKey);
+                    if (pushes?.Length != 1 || !BitcoinRecordBlobStore.IsCommitment(pushes[0], BitcoinRecordKind.AvatarDetail))
+                        continue;
+                    if (commitment != null)
+                        throw new InvalidOperationException("The Bitcoin transaction contains multiple avatar detail commitments.");
+                    commitment = pushes[0];
+                }
+
+                if (commitment != null)
+                {
+                    using var client = CreateRecordBlobClient();
+                    using var codec = CreateRecordCodec();
+                    var json = await new BitcoinRecordBlobStore(client, codec, BitcoinRecordKind.AvatarDetail)
+                        .GetAsync(AvatarDetailRecordScope, commitment);
+                    var detail = NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.Deserialize<AvatarDetail>(json);
+                    if (detail == null || detail.Id == Guid.Empty)
+                        throw new InvalidOperationException("The committed Bitcoin avatar detail has no valid identity.");
+                    if (version == 0 || detail.Version == version)
+                    {
+                        detail.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
+                        detail.ProviderUniqueStorageKey[Core.Enums.ProviderType.BitcoinOASIS] = transactionId.ToString();
+                        result.Result = detail;
+                        return result;
+                    }
+                }
+
+                result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
+                OASISErrorHandling.HandleError(ref result, "The Bitcoin transaction does not contain the requested avatar detail version.");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail from Bitcoin: {ex.Message}", ex);
+            }
+
             return result;
         }
 

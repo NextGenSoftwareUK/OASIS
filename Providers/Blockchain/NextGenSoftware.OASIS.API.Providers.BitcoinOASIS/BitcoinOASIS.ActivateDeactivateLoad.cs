@@ -231,11 +231,11 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                     Avatar decoded;
                     try
                     {
-                        if (BitcoinRecordBlobStore.IsCommitment(pushes[0], avatar: true))
+                        if (BitcoinRecordBlobStore.IsCommitment(pushes[0], BitcoinRecordKind.Avatar))
                         {
                             using var client = CreateRecordBlobClient();
                             using var codec = CreateRecordCodec();
-                            var json = await new BitcoinRecordBlobStore(client, codec, avatar: true)
+                            var json = await new BitcoinRecordBlobStore(client, codec, BitcoinRecordKind.Avatar)
                                 .GetAsync(AvatarRecordScope, pushes[0]);
                             decoded = NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.Deserialize<Avatar>(json);
                             if (decoded == null || decoded.Id == Guid.Empty)
@@ -447,7 +447,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                     }
                 }
 
-                return await CommitEncryptedRecordAsync<IAvatar>(avatar, AvatarRecordScope, avatar: true);
+                return await CommitEncryptedRecordAsync<IAvatar>(avatar, AvatarRecordScope, BitcoinRecordKind.Avatar);
             }
             catch (Exception ex)
             {
