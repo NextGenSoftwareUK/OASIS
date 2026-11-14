@@ -1714,3 +1714,5 @@ Supabase now reads replica receipt evidence through a service-role PostgREST RPC
 14 November Cancun time. Added the Supabase atomic replica commit RPC. It checks the enrolled database and original receipt, compares every observed row and lineage head under a native PostgreSQL lock, and commits graph changes and receipt together. Shipping client integration and native mutation qualification remain open.
 
 14 November Cancun time. Wired the shipping Supabase replica receiver to the native state and atomic commit RPCs. The client validates lineage, allocates a target revision, and verifies the exact committed receipt. CI covers initial apply, replay, direct native read and committed receipt. Outbound remains open.
+
+14 November Cancun time. Extended Supabase native receiver coverage to wrong-predecessor rejection with no receipt, valid successor application and hard delete with committed receipt. Qualification is pending.
