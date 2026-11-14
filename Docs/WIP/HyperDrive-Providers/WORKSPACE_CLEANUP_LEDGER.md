@@ -1170,3 +1170,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 14 November Cancun time. DynamoDB hard-delete qualification completed with hosted fixture teardown. Read logs in memory. No local test artifacts were created.
 
 14 November Cancun time. Bidirectional dispatcher CI completed its owned DynamoDB Local and SQLite fixture teardown. No local build, runtime download, or test artifacts were created.
+
+14 November Cancun time. Removed the temporary Git index for the outbound candidate. Native lease recovery passed the hosted cleanup gate. No local test fixtures, downloads, or build outputs were created.
