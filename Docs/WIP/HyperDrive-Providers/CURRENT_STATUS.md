@@ -1859,3 +1859,5 @@ Supabase now reads replica receipt evidence through a service-role PostgREST RPC
 
 14 November Cancun time. Added an explicitly enabled MongoDB SDK probe for one acknowledged operation. It projects delivery state and the oldest unfinished row per target, without fetching payloads. Compilation and hosted execution are pending. No credentials were retrieved and no local builds or fixtures were created.
 14 November Cancun time. All seven Railway API deployment statuses are successful for Development b0bb55e337b4, including WEB4. This rollout contains the hosted RoundRobin verifier tools. The separate hosted MongoDB-to-SQLite operation remains under read-only inspection.
+
+14 November Cancun time. The eight hosted routing fixture protocol tests passed with the MongoDB and Neo4j cohort preparation change. This check used local protocol fixtures. The previously recorded hosted six-read run supplies the live evidence. Development still points to b0bb55e337b4 at the shared review. The exact hosted SQLite delivery probe is compiling under the provider build lease.

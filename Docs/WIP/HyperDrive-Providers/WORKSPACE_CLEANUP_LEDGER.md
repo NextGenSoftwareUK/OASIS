@@ -1184,3 +1184,4 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 14 November Cancun time. Retained the compact MongoDB and Neo4j baseline acknowledgement with the protected routing-v2 journal. Python ran with bytecode disabled. No local builds or downloads were created.
 
 14 November Cancun time. Retained compact protected MongoDB and Neo4j acceptance receipts in ignored LocalState/COSMIC/HostedHyperdriveMongoNeo4j. The separate hosted sandbox fixture uses normal expiry. Original rotation journal was preserved. No builds, downloads, or bytecode artifacts were created.
+14 November Cancun time. The eight routing fixture protocol tests used disposable owned-routing-protocol directories under TestResults/HostedCqlIntegrationCurrent. Verified none remained after the run. Python bytecode was disabled. The isolated .hosted-probe-build-84005f026d03 tree remains in use by the build and is pending cleanup after the read-only probe.
