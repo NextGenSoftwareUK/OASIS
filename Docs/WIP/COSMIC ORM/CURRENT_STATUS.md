@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Shared Hedera and replica authorization qualification
+
+Hedera candidate 59e96297ca0b passed [full CI 43586946789](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43586946789). Candidate fa60e5697e56 combines its three files with HyperDrive's two replica authorization files on Development e50b5598b499. [Protocol CI 43588237501](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43588237501) and [replica rejection CI 43588513343](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43588513343) are active. The latter checks fourteen rejection cases against this exact candidate. The shared review opens after 06:11:53 Cancun. Publish only after both exact runs pass, the preceding rollout remains healthy, and the remote Development head is unchanged. If HyperDrive publishes first, preserve its changes in the next candidate.
+
 ## Hedera balance reads request no transaction history
 
 WEB4 deployment 2e765df9 logged a response-header timeout during Hedera activation. The shipping account reader requested transaction history even though its CQL record only uses account identity and balance. All three reviewed account IDs returned HTTP 200, matching identities and empty transaction arrays in a direct public mirror probe using transactions=false. The feature branch requests that mode and rejects unexpected transaction entries. Native controlled CI and hosted acceptance are pending. Nostr separately logged a premature WebSocket closure during subscription. No writes, downloads or new fixture files.
