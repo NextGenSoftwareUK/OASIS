@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## One same-revision WEB4 recovery deployment initiated
+
+Development 1c8478f7577f on Railway fc9a82c9 logged at least four persisted-cell startup timeouts and external HTTP health remained unavailable. Initiated one WEB4 redeploy, 25634d98-8489-4b45-b4c4-48ba91b768c5, of the identical verified revision. Recheck exact deployment identity, HTTP health and both providers after cutover. No source, volume, fixture, settings or local environment changes. This is availability recovery while startup diagnosis remains open.
+
 ## Hosted persisted-cell timeout reproduced with exact diagnostics
 
 Development 1c8478f7577f reached Railway SUCCESS on fc9a82c9 while HTTP health timed out. At 14:18:01 UTC the new diagnostic reported 135 persisted interfaces, 240 successful native cell-list replies and zero running cells. Read-only native admin inventory independently confirmed 135 interfaces with one app-bound. The exact Development protocol run 43603023269 passed. The rollout monitor remains active. No restart or volume change requested. The known failing scope is the native persisted-cell startup path before Kestrel listens.
