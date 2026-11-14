@@ -1720,3 +1720,5 @@ Supabase now reads replica receipt evidence through a service-role PostgREST RPC
 14 November Cancun time. Native Supabase receiver CI 43560958011 passed initial apply and exact receipt replay. Added SQLite-to-Supabase shipping dispatcher coverage for exact delivery and restart without duplicates. The expanded run is pending.
 
 14 November Cancun time. Supabase lineage CI reached hard deletion and returned HTTP 400. The shipping JSON settings omitted the explicit null current row required by the atomic commit RPC. Replica RPC serialization now retains nulls. Native requalification of hard deletion and SQLite dispatcher delivery is pending.
+
+14 November Cancun time. Supabase dispatcher CI 43561683522 stopped at compilation because the delivery route local overlapped an existing routing assertion. Renamed the fixture local. Native qualification remains pending.
