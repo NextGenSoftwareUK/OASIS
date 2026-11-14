@@ -122,7 +122,10 @@ public sealed class HolonReplicaInitializationPreparationTests
     {
         var source=new Source();var policy=new Policy();var preparation=Prepare(source,policy);
         var actor=Guid.NewGuid();var operation=Guid.NewGuid();var target=new ApplicationTarget(scenario);
-        var directory=Path.GetFullPath(Path.Combine(AppContext.BaseDirectory,"../../../../../../TestResults/ReplicaInitializationApplicationCurrent"));
+        var fixtureRoot = Environment.GetEnvironmentVariable("OASIS_REPLICA_APPLICATION_TEST_ROOT");
+        var directory = fixtureRoot == null
+            ? Path.GetFullPath(Path.Combine(AppContext.BaseDirectory,"../../../../../../TestResults/ReplicaInitializationApplicationCurrent"))
+            : Path.Combine(fixtureRoot, "ReplicaInitializationApplicationCurrent");
         Directory.CreateDirectory(directory);
         var journal=Path.Combine(directory,scenario+".json");
         foreach(var file in new[]{journal,journal+".tmp",journal+".lock"})Assert.IsFalse(File.Exists(file),"Preserve previous unknown application evidence: "+file);
