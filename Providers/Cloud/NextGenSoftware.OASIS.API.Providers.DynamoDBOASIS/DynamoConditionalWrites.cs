@@ -189,7 +189,7 @@ public partial class DynamoDBOASIS : IConditionalHolonStorageProvider
     }
     private static OASISResult<IEnumerable<IHolon>> GraphAcknowledgement(IEnumerable<IHolon> roots,ConditionalHolonOperation operation)
         =>ConditionalHolonAcknowledgement.Create(roots,operation);
-    private static OASISResult<IEnumerable<IHolon>> GraphFailure(string code,string message,Exception cause)
+    private static OASISResult<IEnumerable<IHolon>> GraphFailure(string code,string message,Exception cause = null)
         =>new(){IsError=true,ErrorCount=1,ErrorCode=code,Message=message,Exception=cause};
     private sealed class GraphOperationReuseException:Exception
     {

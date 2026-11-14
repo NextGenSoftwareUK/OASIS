@@ -27,6 +27,83 @@ public partial class AWSOASISIntegrationTests
         const string expected = "DynamoDB outage replica";
         try
         {
+            var identityProvider = (ICosmicStorageIdentityProvider)_provider;
+            var bindings = await Task.WhenAll(identityProvider.CaptureStorageIdentityAsync(),
+                identityProvider.CaptureStorageIdentityAsync());
+            foreach (var binding in bindings)
+                Assert.IsFalse(binding.IsError, $"{binding.Message} {binding.Exception}");
+            Assert.AreEqual(ProviderType.AWSOASIS, bindings[0].Result.Authority);
+            Assert.AreEqual(bindings[0].Result.BindingFingerprint, bindings[1].Result.BindingFingerprint);
+            var receiptHolon = new Holon { Id = Guid.NewGuid(), Version = 1, VersionId = Guid.NewGuid(), IsActive = true };
+            CosmicConcurrency.SetProviderRevisionId(receiptHolon, ProviderType.SQLLiteDBOASIS, Guid.NewGuid());
+            var replicaIntent = new CommittedHolonReplicaRequest(Guid.NewGuid(), "owned-sqlite",
+                ProviderType.SQLLiteDBOASIS, Guid.NewGuid(), ConditionalHolonOperation.Save, new[] { receiptHolon }, saveChildren: false);
+            var receiptProvider = (ICommittedHolonReplicaReceiptStorageProvider)_provider;
+            var receipt = await receiptProvider.ReadCommittedHolonReplicaReceiptAsync(
+                new CommittedHolonReplicaReceiptReadRequest(replicaIntent, bindings[0].Result));
+            Assert.IsFalse(receipt.IsError, $"{receipt.Message} {receipt.Exception}");
+            Assert.AreEqual(ConditionalHolonReceiptState.Absent, receipt.Result.ReceiptState);
+            var wrongStore = new CosmicStorageIdentity(ProviderType.AWSOASIS, bindings[0].Result.EndpointFingerprint, Guid.NewGuid());
+            var mismatch = await receiptProvider.ReadCommittedHolonReplicaReceiptAsync(
+                new CommittedHolonReplicaReceiptReadRequest(replicaIntent, wrongStore));
+            Assert.AreEqual("COSMIC_REPLICA_RECEIPT_STORAGE_MISMATCH", mismatch.ErrorCode);
+            var receiver = (IBoundCommittedHolonReplicaStorageProvider)_provider;
+            var applied = synchronous ? receiver.ApplyBoundCommittedHolonReplica(replicaIntent, bindings[0].Result)
+                : await receiver.ApplyBoundCommittedHolonReplicaAsync(replicaIntent, bindings[0].Result);
+            try
+            {
+                Assert.IsFalse(applied.IsError, $"{applied.Message} {applied.Exception}");
+                var replay = await receiver.ApplyBoundCommittedHolonReplicaAsync(replicaIntent, bindings[0].Result);
+                Assert.IsFalse(replay.IsError, replay.Message);
+                Assert.AreEqual(receiptHolon.VersionId, replay.Result.Single().VersionId);
+                var committedReceipt = await receiptProvider.ReadCommittedHolonReplicaReceiptAsync(
+                    new CommittedHolonReplicaReceiptReadRequest(replicaIntent, bindings[0].Result));
+                Assert.IsFalse(committedReceipt.IsError, committedReceipt.Message);
+                Assert.AreEqual(ConditionalHolonReceiptState.Committed, committedReceipt.Result.ReceiptState);
+
+                var successor = new Holon { Id = receiptHolon.Id, Version = 2, VersionId = Guid.NewGuid(),
+                    PreviousVersionId = Guid.NewGuid(), Name = "DynamoDB replica successor", IsActive = true };
+                CosmicConcurrency.SetProviderRevisionId(successor, ProviderType.SQLLiteDBOASIS, Guid.NewGuid());
+                CommittedHolonReplicaRequest NextReplica(ConditionalHolonOperation operation, Holon snapshot)
+                    => new(Guid.NewGuid(), replicaIntent.SourceId, replicaIntent.SourceAuthority, replicaIntent.ActorId,
+                        operation, new[] { snapshot }, saveChildren: false);
+                var divergent = NextReplica(ConditionalHolonOperation.Save, successor);
+                var conflict = await receiver.ApplyBoundCommittedHolonReplicaAsync(divergent, bindings[0].Result);
+                Assert.AreEqual("COSMIC_REPLICA_LINEAGE_CONFLICT", conflict.ErrorCode, $"{conflict.Message} {conflict.Exception}");
+                var rejectedReceipt = await receiptProvider.ReadCommittedHolonReplicaReceiptAsync(
+                    new CommittedHolonReplicaReceiptReadRequest(divergent, bindings[0].Result));
+                Assert.IsFalse(rejectedReceipt.IsError, rejectedReceipt.Message);
+                Assert.AreEqual(ConditionalHolonReceiptState.Absent, rejectedReceipt.Result.ReceiptState);
+                Assert.AreEqual(receiptHolon.VersionId,
+                    (await _provider.LoadHolonAsync(receiptHolon.Id, loadChildren: false)).Result?.VersionId);
+
+                successor.PreviousVersionId = receiptHolon.VersionId;
+                var advanced = await receiver.ApplyBoundCommittedHolonReplicaAsync(
+                    NextReplica(ConditionalHolonOperation.Save, successor), bindings[0].Result);
+                Assert.IsFalse(advanced.IsError, $"{advanced.Message} {advanced.Exception}");
+                Assert.AreEqual(successor.VersionId,
+                    (await _provider.LoadHolonAsync(receiptHolon.Id, loadChildren: false)).Result?.VersionId);
+                var tombstone = new Holon { Id = receiptHolon.Id, Version = 3, VersionId = Guid.NewGuid(),
+                    PreviousVersionId = successor.VersionId, Name = successor.Name, IsActive = false,
+                    DeletedDate = DateTime.UtcNow, DeletedByAvatarId = replicaIntent.ActorId };
+                CosmicConcurrency.SetProviderRevisionId(tombstone, ProviderType.SQLLiteDBOASIS, Guid.NewGuid());
+                var deletion = NextReplica(ConditionalHolonOperation.HardDelete, tombstone);
+                var deletedReplica = synchronous ? receiver.ApplyBoundCommittedHolonReplica(deletion, bindings[0].Result)
+                    : await receiver.ApplyBoundCommittedHolonReplicaAsync(deletion, bindings[0].Result);
+                Assert.IsTrue(!deletedReplica.IsError && deletedReplica.IsDeleted,
+                    $"{deletedReplica.Message} {deletedReplica.Exception}");
+                var deletionReceipt = await receiptProvider.ReadCommittedHolonReplicaReceiptAsync(
+                    new CommittedHolonReplicaReceiptReadRequest(deletion, bindings[0].Result));
+                Assert.IsFalse(deletionReceipt.IsError, deletionReceipt.Message);
+                Assert.AreEqual(ConditionalHolonReceiptState.Committed, deletionReceipt.Result.ReceiptState);
+                var afterDeletion = await _provider.LoadHolonAsync(receiptHolon.Id, loadChildren: false);
+                Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, afterDeletion.ErrorCode);
+            }
+            finally
+            {
+                await _provider.DeleteHolonAsync(receiptHolon.Id);
+            }
+
             var saved = await _provider.SaveHolonAsync(new Holon { Id = id, Name = expected, IsActive = true }, saveChildren: false);
             Assert.IsFalse(saved.IsError, saved.Message);
             var dna = new OASISDNA { OASIS = new NextGenSoftware.OASIS.API.DNA.OASIS

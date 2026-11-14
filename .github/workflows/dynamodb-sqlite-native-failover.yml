@@ -5,6 +5,8 @@ on:
     branches: [work/hyperdrive-provider-completion, work/hyperdrive-dynamo-failover-qualification]
     paths:
       - '.github/workflows/dynamodb-sqlite-native-failover.yml'
+      - 'Providers/Cloud/NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS/DynamoStorageIdentity.cs'
+      - 'Providers/Cloud/NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS/DynamoReplicaApply.cs'
       - 'Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.AWSOASIS.IntegrationTests/AWSSqliteOutageTests.cs'
   workflow_dispatch:
 
