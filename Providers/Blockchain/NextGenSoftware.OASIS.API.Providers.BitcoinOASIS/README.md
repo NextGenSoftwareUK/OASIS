@@ -28,6 +28,16 @@ Use this package for the responsibility described above, alongside its owning OA
 
 Provider adapters require their respective service configuration and credentials. Runtime libraries require the host application's lifecycle and persistent paths where applicable. Supply only the settings actually required by the owning component; do not copy production DNA into a client or public release.
 
+### Bitcoin wallet configuration
+
+- Set the endpoint to the Esplora API root for the intended chain. Preserve the API path in the URL.
+- Set the signing network to `mainnet`, `testnet`, or `regtest`. The provider compares the endpoint's genesis block with the configured network before a payment.
+- Supply the sending wallet's WIF through protected host configuration. The payment path accepts legacy, native SegWit, and wrapped SegWit addresses controlled by that key.
+- Payments use Esplora's six-block fee estimate by default. On an isolated chain with no estimate, the five-argument constructor accepts an explicit positive fee rate in satoshis per virtual byte.
+- Check the acknowledged transaction ID and query transaction status to observe confirmation. Successful broadcast indicates network acceptance of the submission. A payment memo is public on-chain and limited to 80 UTF-8 bytes.
+
+Public Esplora CI covers provider activation, balance, history, transaction status, account recovery, and network mismatch rejection. Signed holon and avatar storage have separate acceptance requirements. Keep private data and signing material out of transaction memos.
+
 ## Errors and security
 
 For APIs returning `OASISResult<T>`, check `IsError`, `ErrorCode` and `Message`; do not treat a failed result as success. Preserve useful diagnostics without logging access tokens, passwords or private keys. Keep secrets in the host's appropriate protected configuration or platform storage.
