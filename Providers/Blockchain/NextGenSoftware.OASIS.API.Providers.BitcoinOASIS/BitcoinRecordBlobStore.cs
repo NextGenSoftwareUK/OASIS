@@ -15,6 +15,8 @@ internal sealed class BitcoinRecordBlobStore(HttpClient kubo, EncryptedRecordCod
     private const int MaximumEnvelopeBytes = 6 * 1024 * 1024;
     private static ReadOnlySpan<byte> Magic => "OASBTC1"u8;
 
+    public static bool IsCommitment(ReadOnlySpan<byte> payload) => payload.StartsWith(Magic);
+
     public async Task<byte[]> PutAsync(string recordScope, string canonicalJson)
     {
         var bytes = Encoding.UTF8.GetBytes(codec.Encrypt(recordScope, canonicalJson));
