@@ -373,6 +373,18 @@ public partial class AWSOASISIntegrationTests
             Assert.IsFalse(opened.IsError, opened.Message);
             var outbox = opened.Result;
             var routeBinding = enrollment.NativeRoutes.Single();
+            var head = await outbox.PeekNextAsync(routeBinding.TargetId);
+            Assert.IsFalse(head.IsError, head.Message);
+            Assert.AreEqual(write.OperationId, head.Result?.OperationId);
+            var inventory = await outbox.ReadRouteHeadsAsync();
+            Assert.IsFalse(inventory.IsError, inventory.Message);
+            Assert.AreEqual(head.Result.Sequence, inventory.Result.Heads.Single().Sequence);
+            var wrongOutbox = ((IBoundHolonReplicationOutboxSource)_provider).GetBoundHolonReplicationOutbox(wrongIdentity);
+            Assert.IsFalse(wrongOutbox.IsError, wrongOutbox.Message);
+            var wrongHead = await wrongOutbox.Result.PeekNextAsync(routeBinding.TargetId);
+            Assert.AreEqual("COSMIC_OUTBOX_SOURCE_STORAGE_BINDING_MISMATCH", wrongHead.ErrorCode);
+            Assert.IsNull(wrongHead.Result);
+
             var replicaTarget = new CommittedHolonReplicaTarget(routeBinding.TargetId, sqlite, target.Result.Authority,
                 routeBinding.SourceId, source.Result.Authority, policy, "dynamo-source", Guid.NewGuid(),
                 policy.BindingIdentity, target.Result);
