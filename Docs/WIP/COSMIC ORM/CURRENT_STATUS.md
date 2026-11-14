@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Development browser origin verification
+
+All seven Railway API services report success at b4270f9cb9d2. A preflight against WEB4's session-renewal route returns HTTP 204 with the exact credentialed origin for web4.oasisomniverse.one. For dev.web4.oasisomniverse.one the same route returns wildcard origin without credentials. The Development-only preview flag is absent in Railway and the proposed hostname is unresolved. Prepare the hosting domain and DNS before applying the Development-only service opt-in. The private subscription admin session for the approved Bronze grant remains absent. No service settings, sessions or fixtures were changed.
+
 ## Exact combined WEB4 rollout accepted for CQL
 
 Deployment 9a9332cd served b4270f9cb9d2 before and after the authenticated smoke. Public health returned HTTP 200. Native and federated discovery both reported 106/107 ready, with NostrOASIS unavailable. HoloOASIS and HashgraphOASIS each returned identical three-record and two-record subset ID sets across native and MongoDB-federated presets. The selected federation row provenance matched the provider in both checks. One separate Development smoke visitor was created after health passed. No holon fixtures were created. The previous visitor's pending rotation journal remains sealed. The HoloOASIS cold-start issue and hosted browser acceptance remain open.
