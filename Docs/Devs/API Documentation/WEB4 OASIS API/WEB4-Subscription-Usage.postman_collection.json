@@ -1497,8 +1497,25 @@
     },
     {
       "name": "Usage visibility: series, owners, warnings, app pay-as-you-go",
-      "description": "People see only their own usage; app owners only their apps; administrators (Wizard, {{adminToken}}) everything. Defaults are in OASIS_DNA.json (OASIS.UsageVisibility); people and apps can override them. App pay-as-you-go stores consent and a cap only: nothing is charged.",
+      "description": "People see only their own usage; app owners only their apps; administrators (Wizard, {{adminToken}}) everything. Defaults are in OASIS_DNA.json (OASIS.UsageVisibility); people and apps can override them. App pay-as-you-go: owners consent to a monthly cap and extra usage is billed monthly to their Stripe account.",
       "item": [
+        {
+          "name": "My pay-as-you-go estimate (so far and projected)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bearerToken}}"
+              }
+            ],
+            "url": "{{web4BaseUrl}}/api/subscription/usage/estimate"
+          }
+        },
         {
           "name": "My usage series (daily)",
           "request": {
@@ -1697,7 +1714,7 @@
           }
         },
         {
-          "name": "Owner: app pay-as-you-go consent and cap (no charging)",
+          "name": "Owner: app pay-as-you-go consent and cap (billed monthly)",
           "request": {
             "method": "POST",
             "header": [

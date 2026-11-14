@@ -186,7 +186,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             catch (Exception) { /* a failed email never affects the page */ }
         }
 
-        /// <summary>App pool pay-as-you-go: shows the settings and whether prices exist. SETTINGS AND DISPLAY ONLY; nothing is charged or invoiced.</summary>
+        /// <summary>App pool pay-as-you-go: the price, consent and cap, this month's estimate and the statements. Owners only.</summary>
         [Authorize]
         [HttpGet("app-owner/{appId}/payg")]
         public Task<IActionResult> GetPayg(string appId) => Gate(true, "", async me =>

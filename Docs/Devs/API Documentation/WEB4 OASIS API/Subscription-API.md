@@ -175,6 +175,6 @@ Individuals get the same kind of figure at `GET /api/subscription/usage/estimate
 | WarningsEnabled | true | Usage warnings and the banner. |
 | EmailEnabled | true | Email the warnings (needs `OASIS.Email` configured). |
 | DefaultWarningPercents | [80, 100] | Thresholds used until someone chooses their own. |
-| AppPayAsYouGoEnabled | true | Settings and display for app pay-as-you-go (charging is not built). |
+| AppPayAsYouGoEnabled | true | App pay-as-you-go: owners can consent to a monthly cap and extra usage is billed monthly (also needs prices in `app-overage-prices.json`). |
 
 On Railway edit the `OASIS_DNA_JSON` variable; keep every DNA copy in sync.

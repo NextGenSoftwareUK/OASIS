@@ -16,7 +16,7 @@ namespace NextGenSoftware.OASIS.API.DNA
         public bool EmailEnabled { get; set; } = true;
         /// <summary>Warning thresholds (percent of the monthly limit) used until someone chooses their own.</summary>
         public List<int> DefaultWarningPercents { get; set; } = new List<int> { 80, 100 };
-        /// <summary>Settings and display of pay-as-you-go for app pools. Even when true, nothing is charged and an app cannot enable it: it needs prices in app-overage-prices.json, which ships empty, and the charging step is not built.</summary>
+        /// <summary>App pay-as-you-go: lets an app owner consent to a monthly cap so the pool keeps serving requests above its allowance, billed monthly to the owner\'s Stripe account. It also needs a price for the plan in app-overage-prices.json and a verified owner payment method.</summary>
         public bool AppPayAsYouGoEnabled { get; set; } = true;
     }
 }
