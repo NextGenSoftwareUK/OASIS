@@ -78,7 +78,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             _privateKey = privateKey;
             _httpClient = new HttpClient
             {
-                BaseAddress = new Uri(_rpcEndpoint)
+                BaseAddress = new Uri(_rpcEndpoint.TrimEnd('/') + "/")
             };
         }
 
