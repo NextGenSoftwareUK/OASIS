@@ -6,6 +6,7 @@ on:
     branches: [work/hyperdrive-provider-completion]
     paths:
       - '.github/workflows/bitcoin-native-regtest.yml'
+      - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS/BitcoinOASIS.DeleteSearch.cs'
 
 permissions:
   contents: read

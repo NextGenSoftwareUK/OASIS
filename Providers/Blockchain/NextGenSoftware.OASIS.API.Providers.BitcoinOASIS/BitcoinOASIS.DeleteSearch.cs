@@ -131,6 +131,8 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                 if (memo.Length > 0)
                 {
                     memoScript = TxNullDataTemplate.Instance.GenerateScriptPubKey(memo);
+                    // The builder applies a dust threshold to OP_RETURN. Final policy verification exempts it.
+                    builder.DustPrevention = false;
                     builder.Send(memoScript, Money.Zero);
                 }
 
