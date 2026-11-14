@@ -329,6 +329,16 @@ public sealed class FirestoreSqliteOutageTests
             Assert.IsFalse(replay.IsError, replay.Message);
             Assert.AreEqual(committed.VersionId, replay.Result.Single().VersionId);
 
+            var expired = await outbox.ClaimNextAsync(route.TargetId, "expired-firestore-worker", TimeSpan.FromTicks(1));
+            Assert.IsFalse(expired.IsError, expired.Message);
+            Assert.AreEqual(pending.Sequence, expired.Result?.Sequence);
+            var staleRenewal = await outbox.RenewAsync(expired.Result, TimeSpan.FromMinutes(1));
+            Assert.IsFalse(staleRenewal.IsError, staleRenewal.Message);
+            Assert.IsFalse(staleRenewal.Result);
+            var staleCompletion = await outbox.FinishAsync(expired.Result, HolonDeliveryOutcome.Completed);
+            Assert.IsFalse(staleCompletion.IsError, staleCompletion.Message);
+            Assert.IsFalse(staleCompletion.Result);
+
             var target = new CommittedHolonReplicaTarget(route.TargetId, sqlite, captured.Result.Authority,
                 route.SourceId, identity.Authority, policy, "firestore-source", Guid.NewGuid(), policy.BindingIdentity, captured.Result);
             var dispatcher = new HolonOutboxDispatcher(outbox, new[] { target }, "firestore-source");
@@ -341,6 +351,7 @@ public sealed class FirestoreSqliteOutageTests
             var finished = await outbox.InspectAsync(pending.Sequence);
             Assert.IsFalse(finished.IsError, finished.Message);
             Assert.AreEqual(HolonDeliveryState.Completed, finished.Result.State);
+            Assert.AreEqual(2, finished.Result.AttemptCount);
             var next = await outbox.PeekNextAsync(route.TargetId);
             Assert.IsFalse(next.IsError, next.Message);
             Assert.IsNull(next.Result);
