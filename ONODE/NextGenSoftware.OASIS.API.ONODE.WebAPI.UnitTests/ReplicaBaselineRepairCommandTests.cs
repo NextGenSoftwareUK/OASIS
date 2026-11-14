@@ -76,10 +76,19 @@ public sealed partial class ReplicaBaselineRepairCommandTests
                 var failed=await delivery.DispatchOnceAsync(HolonReplicationRoutes.TargetId(ProviderType.SQLLiteDBOASIS));
                 Assert.Equal(1,failed.Result.ReconciliationCount);
             }
+            CosmicStorageIdentity reviewedTarget;
+            using (var target = new SqliteProvider(connection))
+            {
+                Assert.False((await target.ActivateProviderAsync()).IsError);
+                var identity = await target.CaptureStorageIdentityAsync();
+                Assert.False(identity.IsError, identity.Message);
+                reviewedTarget = identity.Result;
+            }
             var held=(await outbox.PeekNextAsync(HolonReplicationRoutes.TargetId(ProviderType.SQLLiteDBOASIS))).Result;
             var original=(await outbox.ReadObligationAsync(held.Sequence)).Result;
             var reviewed=new ReplicaBaselineRepairCommand.Request(Guid.NewGuid(),initialization,Guid.NewGuid(),held.Sequence,
-                held.OperationId,actor,id,original.PayloadDigest,ReplicaBaselineRepairCommand.StoreIdentity(uri,database),targetPath);
+                held.OperationId,actor,id,original.PayloadDigest,ReplicaBaselineRepairCommand.StoreIdentity(uri,database),targetPath,
+                TargetEndpointFingerprint: reviewedTarget.EndpointFingerprint, TargetNativeStoreId: reviewedTarget.StoreId);
             var dna=new OASISDNA{OASIS=new OASIS{HyperDriveMode=HyperDriveModes.V2,StorageProviders=new StorageProviderSettings
             {MongoDBOASIS=new MongoDBOASISProviderSettings{ConnectionString=uri,DBName=database},SQLLiteDBOASIS=new SQLLiteDBOASISSettings{ConnectionString=connection}}}};
             await Assert.ThrowsAsync<InvalidOperationException>(()=>ReplicaBaselineRepairCommand.ExecuteAsync(dna,reviewed with{SourcePayloadDigest=new string('0',64)},journal));
