@@ -120,6 +120,18 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             initializedRecord.Result.Single());
         Passed("standard Select materializes constructor arguments before public property assignments");
 
+        var assignedFields = await rootSource.Take(1)
+            .Select(row => new NativeFieldProjection
+            {
+                Name = row.Name,
+                Precision = CosmicQueryMetadata.Value<long>(row, "i64")
+            }).ToCosmicListAsync();
+        Assert.IsFalse(assignedFields.IsError, assignedFields.Message + assignedFields.Exception);
+        var fieldRow = assignedFields.Result.Single();
+        Assert.AreEqual("protected source root", fieldRow.Name);
+        Assert.AreEqual(9007199254740993L, fieldRow.Precision);
+        Passed("standard Select materializes public fields with exact Int64 precision");
+
         desired="not-matched-on-second-read";Assert.AreEqual(0,deferred.ToArray().Length);Passed("deferred selector rebinds without application source construction or eager DTOs");
         NativeProjectionProbe.Constructors=0;
         var invalid=await rootSource.Take(1).Where(row=>row.Name=="protected source root")
@@ -127,4 +139,12 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Assert.AreEqual("CQL_DATA_INVALID",invalid.ErrorCode,invalid.Message+invalid.Exception);
         Assert.AreEqual(0,NativeProjectionProbe.Constructors);Passed("standard Select rejects invalid native cells before DTOs");
     }
+    private sealed class NativeFieldProjection
+    {
+        public NativeFieldProjection() { }
+
+        public string Name;
+        public long Precision;
+    }
+
 }

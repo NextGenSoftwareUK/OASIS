@@ -249,6 +249,7 @@ internal sealed class HoloOasisDevelopmentConductor
         var milestones = new (string Message, string Stage)[]
         {
             ("Conductor startup: apps enabled.", "apps enabled"),
+            ("network join task", "network join started"),
             ("Creating a cell", "cell creation started"),
             ("Conductor startup: app interfaces started.", "app interfaces restored"),
             ("Conductor startup: admin interface(s) added.", "admin bound"),
@@ -263,6 +264,8 @@ internal sealed class HoloOasisDevelopmentConductor
 
     private sealed class TeachingAdmin(HoloNETDNA dna) : HoloNETClientAdmin(dna)
     {
+        protected override bool CaptureTimedConductorSpans => true;
+
         public async Task WaitForPersistedCellAsync(string appId, CancellationToken cancellationToken)
         {
             using var readiness = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
