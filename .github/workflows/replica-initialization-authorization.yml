@@ -9,6 +9,8 @@ on:
       - 'Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests/HolonReplicationHostingTests.cs'
       - 'Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/CommittedHolonReplicaTarget.cs'
       - 'Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/HolonReplicaInitializationPreparation.cs'
+      - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/HyperDrive/ReplicaBaselineRepairCommand.cs'
+      - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/ReplicaBaselineRepairCommandTests.cs'
   workflow_dispatch:
 
 permissions:
@@ -80,4 +82,49 @@ jobs:
             if ($resolved -ne $fixture -or (Split-Path -Parent $resolved) -ne $env:RUNNER_TEMP) { throw 'Unexpected fixture path.' }
             Remove-Item -LiteralPath $resolved -Recurse -Force
             if (Test-Path -LiteralPath $resolved) { throw 'Fixture cleanup failed.' }
+          }
+
+      - name: Verify the repair command against MongoDB and SQLite
+        shell: pwsh
+        env:
+          COSMIC_REPLICA_REPAIR_NATIVE: owned-local-27029
+        run: |
+          $fixture = Join-Path $env:RUNNER_TEMP ('oasis-repair-command-' + [Guid]::NewGuid().ToString('N'))
+          New-Item -ItemType Directory -Path $fixture | Out-Null
+          $container = 'oasis-repair-mongo'
+          $env:COSMIC_REPLICA_REPAIR_FIXTURE_ROOT = $fixture
+          try {
+            docker run --detach --name $container --publish 127.0.0.1:27029:27029 mongo:8.0.15 --port 27029 --replSet oasisRecoveryRs --bind_ip_all
+            if ($LASTEXITCODE) { throw 'MongoDB fixture could not start.' }
+            function Wait-Mongo([string]$expression) {
+              for ($attempt = 0; $attempt -lt 30; $attempt++) {
+                docker exec $container mongosh --port 27029 --quiet --eval $expression
+                if (!$LASTEXITCODE) { return }
+                Start-Sleep -Seconds 1
+              }
+              throw 'MongoDB fixture did not become ready.'
+            }
+            Wait-Mongo 'if (db.adminCommand({ping:1}).ok !== 1) quit(1)'
+            docker exec $container mongosh --port 27029 --quiet --eval 'rs.initiate({_id:"oasisRecoveryRs",members:[{_id:0,host:"127.0.0.1:27029"}]})'
+            if ($LASTEXITCODE) { throw 'MongoDB replica set initialization failed.' }
+            Wait-Mongo 'if (!db.hello().isWritablePrimary) quit(1)'
+            ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-ReplicaRepairCommand -Operation {
+              dotnet test ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests --filter 'FullyQualifiedName~ReviewedCommandRepairsActualMongoToSqliteAndPreservesNormalNextDelivery' --artifacts-path (Join-Path $fixture build) --results-directory $fixture --logger 'trx;LogFileName=repair.trx' /m:2 /nr:false /p:UseSharedCompilation=false
+              if ($LASTEXITCODE) { throw 'Native repair command test failed.' }
+              [xml]$report = Get-Content -LiteralPath (Join-Path $fixture repair.trx)
+              $counts = $report.TestRun.ResultSummary.Counters
+              if ([int]$counts.total -ne 1 -or [int]$counts.passed -ne 1 -or [int]$counts.notExecuted -ne 0) {
+                throw 'Expected exactly one passing native repair command case.'
+              }
+            }
+          } finally {
+            docker container inspect $container *> $null
+            $containerExists = $LASTEXITCODE -eq 0
+            if ($containerExists) { docker rm --force --volumes $container }
+            $containerRemovalFailed = $containerExists -and $LASTEXITCODE -ne 0
+            $resolved = (Resolve-Path -LiteralPath $fixture).Path
+            if ($resolved -ne $fixture -or (Split-Path -Parent $resolved) -ne $env:RUNNER_TEMP) { throw 'Unexpected fixture path.' }
+            Remove-Item -LiteralPath $resolved -Recurse -Force
+            if (Test-Path -LiteralPath $resolved) { throw 'Native command fixture cleanup failed.' }
+            if ($containerRemovalFailed) { throw 'MongoDB fixture removal failed.' }
           }
