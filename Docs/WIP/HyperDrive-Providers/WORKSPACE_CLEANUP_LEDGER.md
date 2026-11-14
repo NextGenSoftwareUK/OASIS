@@ -1292,3 +1292,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 - 14 November Cancun time. Native Ordinals run 43653208679 checked both release digests and verified deletion of its isolated runner directory after stopping the fixture. It contained the archives, binaries, regtest wallet and chain, ord index and transient logs. No local build or download.
 
 - 14 November Cancun time. Removed the temporary Git index for Ordinals candidate 94400c617086 and verified absence before publishing the qualification ref. No local build, runtime or fixture.
+
+- 14 November Cancun time. Exact Ordinals 43654312113 removed its archives, executables and chain data. Native Bitcoin 43654312118 and 43654608588 removed their disposable container environments. No local build or fixture.
