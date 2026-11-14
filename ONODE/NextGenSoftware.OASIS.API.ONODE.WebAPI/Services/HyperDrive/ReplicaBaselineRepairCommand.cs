@@ -34,7 +34,9 @@ internal static class ReplicaBaselineRepairCommand
         [property:JsonIgnore(Condition=JsonIgnoreCondition.WhenWritingNull)] string TargetProvider=null,
         [property:JsonIgnore(Condition=JsonIgnoreCondition.WhenWritingNull)] string TargetStoreIdentity=null,
         [property:JsonIgnore(Condition=JsonIgnoreCondition.WhenWritingNull)] string TargetEndpointFingerprint=null,
-        [property:JsonIgnore(Condition=JsonIgnoreCondition.WhenWritingNull)] string TargetNativeStoreId=null);
+        [property:JsonIgnore(Condition=JsonIgnoreCondition.WhenWritingNull)] string TargetNativeStoreId=null,
+        [property:JsonIgnore(Condition=JsonIgnoreCondition.WhenWritingNull)] string SourceEndpointFingerprint=null,
+        [property:JsonIgnore(Condition=JsonIgnoreCondition.WhenWritingNull)] string SourceNativeStoreId=null);
 
     internal static async Task<int> RunAsync(string[] args)
     {
@@ -154,6 +156,13 @@ internal static class ReplicaBaselineRepairCommand
             throw new ArgumentException("A complete reviewed V2 repair request is required.");
         var sourceType=SourceProfile(request.SourceProvider);
         var targetType=TargetProfile(request.TargetProvider);ValidateRoute(sourceType,targetType);
+        CosmicStorageIdentity reviewedSource = null;
+        if (request.SourceEndpointFingerprint != null || request.SourceNativeStoreId != null)
+        {
+            if (sourceType != ProviderType.MongoDBOASIS)
+                throw new ArgumentException("The reviewed native identity is supported for MongoDB repair sources.");
+            reviewedSource = new CosmicStorageIdentity(sourceType, request.SourceEndpointFingerprint, request.SourceNativeStoreId);
+        }
         CosmicStorageIdentity reviewedTarget = null;
         if (request.TargetEndpointFingerprint != null || request.TargetNativeStoreId != null)
         {
@@ -203,10 +212,10 @@ internal static class ReplicaBaselineRepairCommand
         {
             var activated=await source.ActivateProviderAsync();
             if(activated.IsError || activated.IsWarning)throw new InvalidOperationException("Source activation failed.");
-            var queue=((IHolonReplicationOutboxSource)source).GetHolonReplicationOutbox();
-            if(queue.IsError || queue.Result is not IHolonReplicationObligationReader outbox)
-                throw new InvalidOperationException("Configured source outbox unavailable.");
-            Func<HolonReplicaInitializationIntent,HolonReplicaInitializationOutcome,CancellationToken,Task<OASISResult<bool>>> complete=queue.Result switch {
+            var outbox = reviewedSource == null
+                ? RequireOutbox(((IHolonReplicationOutboxSource)source).GetHolonReplicationOutbox())
+                : RequireOutbox(((MongoDBOASIS)source).GetBoundHolonReplicationOutbox(reviewedSource));
+            Func<HolonReplicaInitializationIntent,HolonReplicaInitializationOutcome,CancellationToken,Task<OASISResult<bool>>> complete=outbox switch {
                 MongoHolonReplicationOutbox mongo=>mongo.CompleteInitializedBaselineAsync,
                 NeoOutbox neo=>neo.CompleteInitializedBaselineAsync,
                 SqliteHolonReplicationOutbox sqlite=>sqlite.CompleteInitializedBaselineAsync,
@@ -244,6 +253,11 @@ internal static class ReplicaBaselineRepairCommand
             }
         }
     }
+
+    private static IHolonReplicationObligationReader RequireOutbox<T>(OASISResult<T> result) where T : class
+        => result.IsError || result.IsWarning || result.Exception != null || result.Result is not IHolonReplicationObligationReader reader
+            ? throw new InvalidOperationException("Configured source outbox unavailable.")
+            : reader;
 
     internal static HolonReplicaInitializationPreparation Preparation(Request request,ProviderType sourceType,
         IHolonReplicationObligationReader source,string targetFile)

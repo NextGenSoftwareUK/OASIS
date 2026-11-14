@@ -22,22 +22,20 @@ public sealed partial class MongoHolonReplicationOutbox : IHolonReplicationOblig
     private readonly IMongoDatabase _database;
     private readonly CosmicStorageIdentity _expectedSource;
     private readonly IMongoCollection<BsonDocument> _rows;
-    public async Task<OASISResult<HolonReplicationObligation>> ReadObligationAsync(long sequence,CancellationToken cancellationToken=default)
-    {
-        try
+    public Task<OASISResult<HolonReplicationObligation>> ReadObligationAsync(long sequence,CancellationToken cancellationToken=default)
+        =>Observe(async session=>
         {
             if(sequence<=0)throw new ArgumentOutOfRangeException(nameof(sequence));
-            var row=await _rows.WithReadPreference(ReadPreference.Primary).WithReadConcern(ReadConcern.Majority)
-                .Find(new BsonDocument("Sequence",sequence)).SingleOrDefaultAsync(cancellationToken).ConfigureAwait(false);
-            if(row==null)return new(){Message="No delivery obligation exists at this sequence."};
-            var value=ValidateRow(row);ValidatePayload(row,value.Operation);
+            var collection=_rows.WithReadPreference(ReadPreference.Primary).WithReadConcern(ReadConcern.Majority);
+            var filter=new BsonDocument("Sequence",sequence);
+            var query=session==null ? collection.Find(filter) : collection.Find(session,filter);
+            var row=await query.SingleOrDefaultAsync(cancellationToken).ConfigureAwait(false);
+            if(row==null)return new OASISResult<HolonReplicationObligation>{Message="No delivery obligation exists at this sequence."};
+            var value=ValidateRow(row);var binding=ValidatePayload(row,value.Operation);
             var inspection=new HolonDeliveryInspection(sequence,value.Operation,row["TargetId"].AsString,value.State,value.Attempts,
-                NullableString(row,"LastErrorCode"),NullableString(row,"LastErrorMessage"),value.Evidence);
-            return new(new(inspection,row["PayloadJson"].AsString,row["PayloadDigest"].AsString));
-        }
-        catch(OperationCanceledException)when(cancellationToken.IsCancellationRequested){throw;}
-        catch(Exception cause){return Failure<HolonReplicationObligation>(cause);}
-    }
+                NullableString(row,"LastErrorCode"),NullableString(row,"LastErrorMessage"),value.Evidence,binding);
+            return new OASISResult<HolonReplicationObligation>(new(inspection,row["PayloadJson"].AsString,row["PayloadDigest"].AsString));
+        },cancellationToken);
     public MongoHolonReplicationOutbox(MongoDbContext context, CosmicStorageIdentity expectedSource = null)
     {
         ArgumentNullException.ThrowIfNull(context);
