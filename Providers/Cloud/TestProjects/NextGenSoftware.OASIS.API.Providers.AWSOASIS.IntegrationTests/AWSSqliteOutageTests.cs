@@ -347,6 +347,28 @@ public partial class AWSOASISIntegrationTests
             Assert.AreEqual(write.OperationId, published.OperationId);
             Assert.AreEqual(committed.Result.Single().VersionId, published.Roots.Single().VersionId);
 
+            var revision = committed.Result.Single();
+            var deletion = new ConditionalHolonWrite(Guid.NewGuid(), actor, source.Result.Authority,
+                new[] { new HolonWriteCondition(record.Id, CosmicConcurrency.GetProviderRevisionId(revision, source.Result.Authority)) });
+            var removed = await publisher.ExecuteReplicatingHolonWriteAsync(
+                new ConditionalHolonWriteRequest(deletion, ConditionalHolonOperation.HardDelete, new[] { revision }, saveChildren: false), enrollment);
+            Assert.IsTrue(!removed.IsError && removed.IsDeleted, $"{removed.Message} {removed.Exception}");
+            Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,
+                (await _provider.LoadHolonAsync(record.Id, loadChildren: false)).ErrorCode);
+            var deletionRows = await native.ScanAsync(new ScanRequest
+            {
+                TableName = "OasisHolonWriteReceipts", ConsistentRead = true,
+                FilterExpression = "operation_id = :operation",
+                ExpressionAttributeValues = new() { [":operation"] = new() { S = deletion.OperationId.ToString("D") } }
+            });
+            Assert.IsTrue(deletionRows.LastEvaluatedKey == null || deletionRows.LastEvaluatedKey.Count == 0);
+            var deleteDelivery = deletionRows.Items.Single();
+            Assert.IsTrue(string.CompareOrdinal(delivery["id"].S, deleteDelivery["id"].S) < 0);
+            var tombstone = CommittedHolonReplicaPayload.ReadForTarget(deleteDelivery["payload"].S, enrollment.TargetIds.Single());
+            Assert.AreEqual(ConditionalHolonOperation.HardDelete, tombstone.Operation);
+            Assert.AreEqual(revision.VersionId, tombstone.Roots.Single().PreviousVersionId);
+            Assert.AreEqual(removed.Result.Single().VersionId, tombstone.Roots.Single().VersionId);
+
             var contenders = Enumerable.Range(0, 4).Select(_ =>
             {
                 var holon = new Holon { Id = Guid.NewGuid(), Name = "Concurrent DynamoDB publication" };
@@ -358,7 +380,7 @@ public partial class AWSOASISIntegrationTests
             var results = await Task.WhenAll(contenders.Select(candidate =>
                 publisher.ExecuteReplicatingHolonWriteAsync(candidate.Request, enrollment)));
             Assert.IsTrue(results.Any(result => !result.IsError && result.IsSaved));
-            var sequences = new HashSet<string> { delivery["sequence"].N };
+            var sequences = new HashSet<string> { delivery["sequence"].N, deleteDelivery["sequence"].N };
             for (var index = 0; index < contenders.Length; index++)
             {
                 var candidate = contenders[index];
