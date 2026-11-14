@@ -46,7 +46,14 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             return SendTransactionAsync(fromWalletAddress, toWalletAddress, amount, memoText).Result;
         }
 
-        public async Task<OASISResult<ITransactionResponse>> SendTransactionAsync(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
+        public Task<OASISResult<ITransactionResponse>> SendTransactionAsync(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
+        {
+            var memo = Encoding.UTF8.GetBytes(memoText ?? string.Empty);
+            return SendSignedTransactionAsync(fromWalletAddress, toWalletAddress, amount, memo, memoText, commitmentOnly: false);
+        }
+
+        private async Task<OASISResult<ITransactionResponse>> SendSignedTransactionAsync(
+            string fromWalletAddress, string toWalletAddress, decimal amount, byte[] memo, string memoText, bool commitmentOnly)
         {
             var result = new OASISResult<ITransactionResponse>();
             try
@@ -64,22 +71,21 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                 }
 
                 var satoshis = amount * 100_000_000m;
-                if (satoshis <= 0 || satoshis > 2_100_000_000_000_000m || satoshis != decimal.Truncate(satoshis))
+                if ((!commitmentOnly && satoshis <= 0) || satoshis > 2_100_000_000_000_000m || satoshis != decimal.Truncate(satoshis))
                 {
                     OASISErrorHandling.HandleError(ref result, "The Bitcoin amount must be a positive whole number of satoshis within the supply limit.");
                     return result;
                 }
 
-                var memo = Encoding.UTF8.GetBytes(memoText ?? string.Empty);
                 if (memo.Length > 80)
                 {
-                    OASISErrorHandling.HandleError(ref result, "A Bitcoin transaction memo may contain at most 80 UTF-8 bytes.");
+                    OASISErrorHandling.HandleError(ref result, "A Bitcoin transaction data output may contain at most 80 bytes.");
                     return result;
                 }
 
                 var network = SigningNetwork;
                 var source = BitcoinAddress.Create(fromWalletAddress, network);
-                var destination = BitcoinAddress.Create(toWalletAddress, network);
+                var destination = commitmentOnly ? null : BitcoinAddress.Create(toWalletAddress, network);
                 var signer = new BitcoinSecret(_privateKey, network);
                 var wrappedSegwit = source.Equals(signer.GetAddress(ScriptPubKeyType.SegwitP2SH));
                 if (!wrappedSegwit && !source.Equals(signer.GetAddress(ScriptPubKeyType.Legacy)) &&
@@ -112,9 +118,8 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                     var mature = confirmed && tip - status.GetProperty("block_height").GetInt64() + 1 >= 100;
                     if (!mature)
                     {
-                        var raw = await _httpClient.GetStringAsync($"tx/{txid}/hex");
-                        var funding = Transaction.Parse(raw.Trim(), network);
-                        if (funding.GetHash() != txid || index >= funding.Outputs.Count ||
+                        var funding = await ReadVerifiedTransactionAsync(txid);
+                        if (index >= funding.Outputs.Count ||
                             funding.Outputs[(int)index].ScriptPubKey != source.ScriptPubKey ||
                             funding.Outputs[(int)index].Value != value)
                             throw new InvalidOperationException("Esplora returned inconsistent funding output details.");
@@ -149,9 +154,11 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                 var builder = network.CreateTransactionBuilder()
                     .AddCoins(coins.ToArray())
                     .AddKeys(signer.PrivateKey)
-                    .Send(destination, payment)
                     .SetChange(source)
                     .SendEstimatedFees(new FeeRate(Money.Satoshis((long)decimal.Ceiling(feeRate * 1000m))));
+                if (destination != null)
+                    builder.Send(destination, payment);
+
                 Script memoScript = null;
                 if (memo.Length > 0)
                 {
@@ -162,7 +169,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                 }
 
                 var transaction = builder.BuildTransaction(true);
-                if (!transaction.Outputs.Any(output => output.ScriptPubKey == destination.ScriptPubKey && output.Value >= payment) ||
+                if ((destination != null && !transaction.Outputs.Any(output => output.ScriptPubKey == destination.ScriptPubKey && output.Value >= payment)) ||
                     (memoScript != null && !transaction.Outputs.Any(output => output.ScriptPubKey == memoScript && output.Value == Money.Zero)) ||
                     !builder.Verify(transaction))
                 {
@@ -414,20 +421,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                     return result;
                 }
 
-                using var response = await _httpClient.GetAsync($"tx/{transactionId}/hex");
-                if (!response.IsSuccessStatusCode)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Esplora could not retrieve Bitcoin transaction {transactionId}: {response.StatusCode}");
-                    return result;
-                }
-
-                // Bitcoin transaction serialization and txid calculation are network independent.
-                var transaction = Transaction.Parse((await response.Content.ReadAsStringAsync()).Trim(), Network.Main);
-                if (transaction.GetHash() != transactionId)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Esplora returned a transaction with a different ID.");
-                    return result;
-                }
+                var transaction = await ReadVerifiedTransactionAsync(transactionId);
 
                 Holon holon = null;
                 foreach (var output in transaction.Outputs)
@@ -436,7 +430,9 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                     if (pushes?.Length != 1)
                         continue;
 
-                    var decoded = ParseBitcoinToHolon(Encoding.UTF8.GetString(pushes[0]));
+                    var decoded = BitcoinRecordBlobStore.IsCommitment(pushes[0])
+                        ? await ReadEncryptedHolonAsync(pushes[0])
+                        : ParseBitcoinToHolon(Encoding.UTF8.GetString(pushes[0]));
                     if (decoded == null)
                         continue;
 

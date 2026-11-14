@@ -458,52 +458,38 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                     }
                 }
 
-                // Serialize holon to JSON
-                var holonJson = JsonSerializer.Serialize(holon);
-                var holonBytes = Encoding.UTF8.GetBytes(holonJson);
-
-                // Create Bitcoin transaction with holon data
-                var transactionRequest = new
+                if (holon == null || holon.Id == Guid.Empty)
                 {
-                    inputs = new[]
-                    {
-                        new
-                        {
-                            txid = "", // Will be filled by UTXO lookup
-                            vout = 0
-                        }
-                    },
-                    outputs = new[]
-                    {
-                        new
-                        {
-                            address = "", // OP_RETURN transaction
-                            value = 0,
-                            script = Convert.ToHexString(holonBytes) // Store holon data in OP_RETURN
-                        }
-                    }
-                };
-
-                // Submit transaction to Bitcoin network
-                var jsonContent = JsonSerializer.Serialize(transactionRequest);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-
-                var submitResponse = await _httpClient.PostAsync("/tx", content);
-                if (submitResponse.IsSuccessStatusCode)
-                {
-                    var responseContent = await submitResponse.Content.ReadAsStringAsync();
-                    var responseData = JsonSerializer.Deserialize<JsonElement>(responseContent);
-
-                    // IHolon doesn't have ProviderWallets, skipping wallet assignment
-
-                    response.Result = holon;
-                    response.IsError = false;
-                    response.Message = "Holon saved successfully to Bitcoin blockchain";
+                    OASISErrorHandling.HandleError(ref response, "A nonempty holon identity is required for Bitcoin storage.");
+                    return response;
                 }
-                else
+
+                if (saveChildren && saveChildrenOnProvider && holon.Children?.Count > 0)
                 {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to save holon to Bitcoin: {submitResponse.StatusCode}");
+                    OASISErrorHandling.HandleError(ref response, "Bitcoin storage requires each child to be published as its own record.");
+                    return response;
                 }
+
+                var signer = new NBitcoin.BitcoinSecret(_privateKey, SigningNetwork);
+                var source = signer.GetAddress(NBitcoin.ScriptPubKeyType.Segwit).ToString();
+                var snapshot = NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordPublicationSnapshot<Holon>.Capture(holon);
+                using var client = CreateRecordBlobClient();
+                using var codec = CreateRecordCodec();
+                var store = new BitcoinRecordBlobStore(client, codec);
+                var json = NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.Serialize(snapshot.Proposal);
+                var commitment = await store.PutAsync(HolonRecordScope, json);
+                snapshot.ValidateUnchanged();
+                var publication = await SendSignedTransactionAsync(source, null, 0m, commitment, null, commitmentOnly: true);
+                if (publication.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref response, publication.Message, publication.Exception);
+                    return response;
+                }
+
+                var stored = snapshot.Proposal;
+                stored.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
+                stored.ProviderUniqueStorageKey[Core.Enums.ProviderType.BitcoinOASIS] = publication.Result.TransactionResult;
+                response.Result = stored;
             }
             catch (Exception ex)
             {
@@ -511,6 +497,42 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             }
 
             return response;
+        }
+
+        private const string HolonRecordScope = "bitcoin-oasis:holon:v1";
+
+        private static HttpClient CreateRecordBlobClient()
+        {
+            var endpoint = Environment.GetEnvironmentVariable("OASIS_BITCOIN_KUBO_API");
+            if (!Uri.TryCreate(endpoint?.TrimEnd('/') + "/", UriKind.Absolute, out var uri) ||
+                (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
+                throw new InvalidOperationException("Configure OASIS_BITCOIN_KUBO_API with the Kubo RPC root.");
+            return new HttpClient { BaseAddress = uri };
+        }
+
+        private static NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.EncryptedRecordCodec CreateRecordCodec()
+        {
+            var key = NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PersistedPrivateKeyValueBackend
+                .ResolveEnvironmentKey("OASIS_BITCOIN_STORAGE_KEY");
+            try
+            {
+                return new NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.EncryptedRecordCodec(key, compress: true);
+            }
+            finally
+            {
+                System.Security.Cryptography.CryptographicOperations.ZeroMemory(key);
+            }
+        }
+
+        private static async Task<Holon> ReadEncryptedHolonAsync(byte[] commitment)
+        {
+            using var client = CreateRecordBlobClient();
+            using var codec = CreateRecordCodec();
+            var json = await new BitcoinRecordBlobStore(client, codec).GetAsync(HolonRecordScope, commitment);
+            var holon = NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.Deserialize<Holon>(json);
+            if (holon == null || holon.Id == Guid.Empty)
+                throw new InvalidOperationException("The committed Bitcoin holon has no valid identity.");
+            return holon;
         }
 
     }

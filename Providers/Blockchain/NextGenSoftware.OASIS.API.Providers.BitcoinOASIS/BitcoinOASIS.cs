@@ -56,6 +56,16 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             _ => throw new InvalidOperationException("The configured Bitcoin network is unsupported.")
         };
 
+        private async Task<Transaction> ReadVerifiedTransactionAsync(uint256 transactionId)
+        {
+            var hex = await _httpClient.GetStringAsync($"tx/{transactionId}/hex");
+            // The Bitcoin wire format and transaction hash are the same across Bitcoin networks.
+            var transaction = Transaction.Parse(hex.Trim(), Network.Main);
+            if (transaction.GetHash() != transactionId)
+                throw new InvalidOperationException("Esplora returned a transaction with a different ID.");
+            return transaction;
+        }
+
         public WalletManager WalletManager
         {
             get
