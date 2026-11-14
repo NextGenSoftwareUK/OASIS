@@ -1,6 +1,6 @@
 # Current provider status
 
-## Coverage checkpoint · 13 November 2026, Cancun
+## Coverage checkpoint · 14 November 2026, Cancun
 
 | Area | Recorded status |
 | --- | --- |
@@ -10,9 +10,9 @@
 | ActivityPub and routing | ActivityPub has 5/5 native capability checks. GOMap passed a public OSRM driving route. Authenticated Google Routes, Mapbox and HERE checks remain open. Niantic and WRLD still have reviewed adapter gaps. |
 | Canonical HoloOASIS | Top priority. Both modes passed all 52 native core-storage-v2 checks on the official Windows conductor with the verified identity-delete hApp in [run 43178174352](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43178174352). The verified bundle is packaged on the provider branch. Hosted, multi-agent and broader capability acceptance remain open. |
 | HoloOASIS.Desktop | Obsolete in source, package metadata and repository documentation at `45d6665da989`. The six-file compatibility and documentation batch reached Development at `70d3fbb4a31c`. Published NuGet metadata and live site listings still need the obsolescence update. |
-| Development | 72ffc86c2082 contains the combined COSMIC and qualified Firestore batch. Five of seven Railway API deployments reported success at 20:09 Cancun. The next shared review is after 20:29:14. |
+| Development | `27ed16491eb0` contains the verified IPFS route inventory change and read-only MongoDB probe. All seven APIs deployed the preceding revision after WEB4 recovered. The new rollout was pending across all seven APIs at the latest check. |
 | BootLoader startup | The shipping registration, activation and deactivation path passed against native Polkadot and TRON fixtures and the Microsoft Azure Cosmos DB emulator. [Azure Cosmos DB job 131055311882](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43180594194/job/131055311882) confirmed fixture teardown. |
-| HyperDrive | Priority-provider failover, replication and load balancing verification is active. Firestore and SQLite passed durable replication in both directions in native CI. Azure Cosmos DB passed the ID-based healthy-miss check on the exact Development candidate. Provider-key qualification is queued. Hosted and whole-inventory acceptance remain open. |
+| HyperDrive | Native failover, replication and load balancing are verified for scoped priority-provider pairs. Live WEB4 verified six exact RoundRobin reads alternating MongoDB and Neo4j. Native MongoDB inspection confirmed hosted SQLite delivery 709 is pending behind the authorization denial at sequence 543. Hosted and whole-inventory acceptance remain open. |
 
 [Provider matrix](PROVIDER_MATRIX.md) · [Evidence registry](CONFORMANCE_RESULTS.json) · [Cleanup ledger](WORKSPACE_CLEANUP_LEDGER.md)
 
