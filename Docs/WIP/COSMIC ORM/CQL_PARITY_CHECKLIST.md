@@ -131,7 +131,7 @@ older chronological roadmap is supporting history, not the source of green statu
 | Q08 | String Contains/StartsWith/EndsWith translation | [✅][O] | [✅][O] | [✅][O] | **DEMO** — Ordinal Contains/StartsWith/EndsWith: literal metacharacters, empty patterns, case/normalization sensitivity and Unicode fixture; examples 72–88. No culture/ignore-case overload claim. [All-three native gate][G]. |
 | Q09 | String length/case/substring/trim/replace functions | ❌ | ❌ | ❌ | General method translation unverified. |
 | Q10 | Native selected scalar columns / flat records | [✅][D10] | [✅][D10] | [✅][D10] | V1 example10; this is not arbitrary DTO construction. |
-| Q11 | Arbitrary constructor/record/member-init DTO materialization | ❌ | ❌ | ❌ | Common shape support needs precise provider proof. |
+| Q11 | Arbitrary constructor/record/member-init DTO materialization | ❌ | ❌ | ❌ | [Native fixture step](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43624999099/job/132538761529) passed 47 checks per store on candidate 32d5323d06b0, including public positional record projection and exact Int64 constructor binding. Wider constructor shapes remain open. |
 | Q12 | OrderBy/OrderByDescending with declared scalar domains | [✅][F] | [✅][F] | [✅][F] | Native federation order/tie cases and SDK demo. |
 | Q12b | ThenBy/ThenByDescending for multi-key entity ordering | [✅][O] | [✅][O] | [✅][O] | **DEMO** — Both secondary directions determine order when every primary stock key ties; examples 89–90. [All-three native gate][G]. |
 | Q13 | Skip/Take source paging | [✅][D1] | [✅][D1] | [✅][D1] | V1 example1; visibility enforced before page. |
