@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Live LIKE ESCAPE verification
+
+On Development 363dd7fbd23e the exact Web4Site c8caf56 parser matched literal percent and underscore characters through exact, prefix, suffix and substring patterns on MongoDB, SQLite and Neo4j. The negative control returned no rows on each. The first probe omitted the escape in its negative control. The corrected probe passed all three stores. All four private fixtures from both attempts were conditionally hard-deleted and independently verified absent by ID. Compact operation journals remain in LocalState/COSMIC/HostedCqlReleaseSmoke-b4270f9c. No local build outputs or downloads. All 178 website tests passed and Vercel built the revision. Hosted browser and general collation parity remain open.
+
 ## Supabase receipt rollout live CQL verification
 
 Railway WEB4 deployment eef96bb3 reached revision 363dd7fbd23e. The public health endpoint returned HTTP 200 after the initial startup timeout. The retained visitor observed 106/107 native and federated sources ready, with NostrOASIS unavailable. HoloOASIS native and MongoDB-federated presets returned identical three-record and two-record ID sets with HoloOASIS provenance. This verifies the shared WEB4 rollout. Hosted Supabase source admission still requires its dedicated HTTPS teaching fixture and restricted reader. HyperDrive's atomic replica receiver and expanded native tests are awaiting qualification. No holon fixtures or local build outputs.
