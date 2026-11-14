@@ -4,6 +4,8 @@ using System.Text.Json;
 using Oracle.ManagedDataAccess.Client;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core;
+using NextGenSoftware.OASIS.API.Core.Configuration;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -202,6 +204,35 @@ public sealed class OracleSqliteHyperDriveTests
             }
 
 
+
+            var actor = Guid.NewGuid();
+            var grant = new HolonReplicationActorGrant(new[] { actor }, DateTime.UtcNow.AddMinutes(10));
+            var route = new HolonReplicationRouteBinding(sqliteIdentity.Result, oracleIdentity, grant.BindingIdentity);
+            var enrollment = new HolonReplicationEnrollment(route.SourceId, new[] { route.TargetId },
+                sqliteIdentity.Result, new[] { route });
+            var routedRecord = new Holon { Id = Guid.NewGuid(), Name = "Owned SQLite-to-Oracle delivery", IsActive = true };
+            attempted.Add(routedRecord.Id);
+            var routedWrite = new ConditionalHolonWrite(Guid.NewGuid(), actor, ProviderType.SQLLiteDBOASIS,
+                new[] { new HolonWriteCondition(routedRecord.Id, null) });
+            var routedIntent = new ConditionalHolonWriteRequest(routedWrite, ConditionalHolonOperation.Save,
+                new[] { routedRecord }, saveChildren: false);
+            var routedSave = await sqlite.ExecuteReplicatingHolonWriteAsync(routedIntent, enrollment);
+            Assert.IsTrue(!routedSave.IsError && routedSave.IsSaved, routedSave.Message);
+            var outbox = sqlite.GetBoundHolonReplicationOutbox(sqliteIdentity.Result);
+            Assert.IsFalse(outbox.IsError, outbox.Message);
+            var target = new CommittedHolonReplicaTarget(route.TargetId, oracle, oracleIdentity.Authority,
+                route.SourceId, route.SourceStorage.Authority, grant, "oracle-fixture", Guid.NewGuid(), grant.BindingIdentity, oracleIdentity);
+            var dispatcher = new HolonOutboxDispatcher(outbox.Result, new[] { target }, "oracle-fixture");
+            var delivery = await dispatcher.DispatchOnceAsync(route.TargetId, maximumCount: 1);
+            Assert.IsFalse(delivery.IsError, delivery.Message);
+            Assert.AreEqual(1, delivery.Result.CompletedCount);
+            var loadedReplica = await oracle.LoadHolonAsync(routedRecord.Id, loadChildren: false);
+            Assert.IsFalse(loadedReplica.IsError, loadedReplica.Message);
+            Assert.AreEqual(routedSave.Result.Single().VersionId, loadedReplica.Result?.VersionId);
+            var restarted = new HolonOutboxDispatcher(outbox.Result, new[] { target }, "oracle-fixture-restarted");
+            var duplicateDelivery = await restarted.DispatchOnceAsync(route.TargetId, maximumCount: 1);
+            Assert.IsFalse(duplicateDelivery.IsError, duplicateDelivery.Message);
+            Assert.AreEqual(0, duplicateDelivery.Result.CompletedCount);
 
             var evidenceRequest = new ConditionalHolonReceiptEvidenceRequest(intent, oracleIdentity,
                 sqliteIdentity.Result, new[] { receiptHolon.Id });
