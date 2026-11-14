@@ -1,5 +1,11 @@
 # COSMIC ORM / CQL current status
 
+## Same-revision WEB4 redeploy completed
+
+The railway redeploy dd67790d served c84e1b5c3632 and matched 3 full and 2 subset HoloOASIS public IDs via direct and federated CQL after warm-up. Discovery recovered from 10 to 49 to 105 of 107 sources in both modes. The intermittent persisted-cell startup remains open. WEB4 browser preflight on the intended dev.web4.oasisomniverse.one origin still lacks credentialed CORS, the Development-only flag is absent, and the hostname does not resolve. The exact protected frontend preview responds with a Vercel sign-in redirect. The approved Bronze grant still awaits the private subscription-admin session.
+
+For the shared integration review, 57b2167a3533 combines the four COSMIC paths with the five independently qualified HyperDrive repair paths. Each combined blob exactly matches its source candidate. Full [combined CI 43597290726](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43597290726) is active. CI 43594133859 used the feature branch as its workflow definition and the 5c1f4c253e6a source candidate as its input.
+
 ## Live HoloOASIS recovered on the IPFS pagination revision
 
 14 November 07:44 Cancun. The retained visitor again verified matching 3 full and 2 subset public IDs and canonical HoloOASIS provenance through both direct CQL and MongoDB federation. Native and federated discovery each reported 105 of 107 sources ready. Railway still listed 4bba3b6e as SUCCESS and the same-revision redeploy dd67790d as BUILDING during the probe. The earlier failure had 135 persisted app interfaces (one app-bound) and no running cells after 240 completed native admin polls. The same interface count was present on working instances. Startup intermittency remains open. No volume or fixture change or local build output.
