@@ -45,6 +45,25 @@ public sealed class SqlServerSqliteHyperDriveTests
             Assert.True(!sqlActivation.IsError && sqlActivation.Result, sqlActivation.Message);
             Assert.True(!sqliteActivation.IsError && sqliteActivation.Result, sqliteActivation.Message);
 
+            var captures = await Task.WhenAll(sql.CaptureStorageIdentityAsync(), sql.CaptureStorageIdentityAsync());
+            Assert.All(captures, capture => Assert.False(capture.IsError, capture.Message));
+            var identity = captures[0].Result;
+            Assert.Equal(ProviderType.SQLServerDBOASIS, identity.Authority);
+            Assert.Equal(identity.BindingFingerprint, captures[1].Result.BindingFingerprint);
+            var reopened = new SQLServerDBOASIS(connection.ConnectionString);
+            try
+            {
+                var activated = await reopened.ActivateProviderAsync();
+                Assert.False(activated.IsError, activated.Message);
+                var reopenedIdentity = await reopened.CaptureStorageIdentityAsync();
+                Assert.False(reopenedIdentity.IsError, reopenedIdentity.Message);
+                Assert.Equal(identity.BindingFingerprint, reopenedIdentity.Result.BindingFingerprint);
+            }
+            finally
+            {
+                await reopened.DeActivateProviderAsync();
+            }
+
             var dna = new OASISDNA { OASIS = new NextGenSoftware.OASIS.API.DNA.OASIS
                 { HyperDriveMode = HyperDriveModes.V2, StorageProviders = new StorageProviderSettings() } };
             dna.OASIS.SubscriptionConfig.PlanType = "Gold";
