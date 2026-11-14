@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Combined COSMIC and Oracle rollout queued
+
+Development fast-forwarded from 4db1dedd1a92 to b4270f9cb9d2 after the 30-minute shared window opened. [Combined CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43552775922) passed the three-store native cases and WEB4-WEB10 publishing. [Managed Linux HoloOASIS qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43553225234) passed in disposable CI state. WEB4 was HTTP 200 before the push. Railway queued WEB4 deployment 9a9332cd-7bac-4660-8a09-7b907b855d94 at 22:56:22 Cancun. Confirm the serving SHA, health, authenticated catalogue and HoloOASIS native/federated presets on cutover. The next shared review is after 23:26:22 Cancun. No local builds or data fixtures were created.
+
 ## Live subscription documentation rollout and combined review
 
 Development WEB4 4db1dedd1a92 recovered after repeated persisted HoloOASIS cell startup timeouts. Read-only SSH confirmed the exact revision. The retained visitor proved matching HoloOASIS native and MongoDB-federated public IDs and provenance (3/2). Warmed readiness reached 105/107; Hedera and Nostr remained unavailable. No data fixtures were created.
