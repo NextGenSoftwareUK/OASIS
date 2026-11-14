@@ -4,6 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
+using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Holons;
@@ -17,6 +19,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS;
 public partial class SupabaseOASIS : IBoundCommittedHolonReplicaStorageProvider
 {
     private const Core.Enums.ProviderType ReplicaAuthority = Core.Enums.ProviderType.SupabaseOASIS;
+    private static readonly JsonSerializerOptions ReplicaRpcJson = new(_jsonOpts)
+    {
+        DefaultIgnoreCondition = JsonIgnoreCondition.Never
+    };
 
     public OASISResult<IEnumerable<IHolon>> ApplyCommittedHolonReplica(CommittedHolonReplicaRequest request)
         => ApplyCommittedHolonReplicaAsync(request).GetAwaiter().GetResult();
@@ -161,7 +167,8 @@ public partial class SupabaseOASIS : IBoundCommittedHolonReplicaStorageProvider
     private async Task<JsonDocument> ReadReplicaRpcAsync(string function, object args, CancellationToken token)
     {
         using var request = CreatePostgrestRequest(HttpMethod.Post, $"rpc/{function}");
-        request.Content = JsonContent(args);
+        // The database distinguishes an explicit null (delete or absent row) from an omitted field.
+        request.Content = new StringContent(JsonSerializer.Serialize(args, ReplicaRpcJson), Encoding.UTF8, "application/json");
         using var response = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, token).ConfigureAwait(false);
         response.EnsureSuccessStatusCode();
         await using var content = await response.Content.ReadAsStreamAsync(token).ConfigureAwait(false);
