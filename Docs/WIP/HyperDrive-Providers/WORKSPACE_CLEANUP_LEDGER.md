@@ -1084,3 +1084,5 @@ Urgent disk cleanup follow-up: leased standard project clean succeeded for AWS u
 13 November. SQL Server outbound staging used source changes and existing CI only. No local build, downloads, or fixtures were created.
 
 13 November. SQL Server reverse dispatcher coverage uses the existing disposable CI fixture. No local builds, downloads, or databases were created.
+
+13 November. SQL Server lease coverage uses the existing owned CI fixture. No local build or fixture ran.

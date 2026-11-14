@@ -211,6 +211,30 @@ public sealed class SqlServerSqliteHyperDriveTests
                 reverse.SourceId, identity.Authority, grant, "sqlite-fixture", Guid.NewGuid(),
                 grant.BindingIdentity, sourceIdentity.Result);
             var reverseDispatcher = new HolonOutboxDispatcher(sqlOutbox.Result, new[] { sqliteTarget }, "sqlserver-source");
+            var abandoned = await sqlOutbox.Result.ClaimNextAsync(reverse.TargetId, "abandoned-sqlserver-worker",
+                TimeSpan.FromMinutes(1));
+            Assert.False(abandoned.IsError, abandoned.Message);
+            Assert.NotNull(abandoned.Result);
+            Assert.Equal(head.Sequence, abandoned.Result.Sequence);
+            var renewal = await sqlOutbox.Result.RenewAsync(abandoned.Result, TimeSpan.FromMinutes(2));
+            Assert.True(!renewal.IsError && renewal.Result, renewal.Message);
+            var whileLeased = await reverseDispatcher.DispatchOnceAsync(reverse.TargetId, maximumCount: 1);
+            Assert.False(whileLeased.IsError, whileLeased.Message);
+            Assert.Equal(0, whileLeased.Result.CompletedCount);
+
+            // Expire only the fixture's owned lease to simulate a stopped worker.
+            await using (var native = new SqlConnection(connection.ConnectionString))
+            {
+                await native.OpenAsync();
+                await using var expire = new SqlCommand(@"UPDATE dbo.OASISOutboundDeliveries SET LeaseUntil=1
+WHERE DeliverySequence=@Sequence AND LeaseToken=@Lease;", native);
+                expire.Parameters.AddWithValue("@Sequence", head.Sequence);
+                expire.Parameters.AddWithValue("@Lease", abandoned.Result.LeaseToken);
+                Assert.Equal(1, await expire.ExecuteNonQueryAsync());
+            }
+            var expired = await sqlOutbox.Result.FinishAsync(abandoned.Result, HolonDeliveryOutcome.Completed);
+            Assert.False(expired.IsError, expired.Message);
+            Assert.False(expired.Result);
             var reverseDelivery = await reverseDispatcher.DispatchOnceAsync(reverse.TargetId, maximumCount: 2);
             Assert.False(reverseDelivery.IsError, reverseDelivery.Message);
             Assert.Equal(1, reverseDelivery.Result.CompletedCount);
@@ -220,6 +244,10 @@ public sealed class SqlServerSqliteHyperDriveTests
             var finished = await sqlOutbox.Result.InspectAsync(head.Sequence);
             Assert.False(finished.IsError, finished.Message);
             Assert.Equal(HolonDeliveryState.Completed, finished.Result.State);
+            Assert.Equal(2, finished.Result.AttemptCount);
+            var staleRenewal = await sqlOutbox.Result.RenewAsync(abandoned.Result, TimeSpan.FromMinutes(1));
+            Assert.False(staleRenewal.IsError, staleRenewal.Message);
+            Assert.False(staleRenewal.Result);
 
             var dna = new OASISDNA { OASIS = new NextGenSoftware.OASIS.API.DNA.OASIS
                 { HyperDriveMode = HyperDriveModes.V2, StorageProviders = new StorageProviderSettings() } };

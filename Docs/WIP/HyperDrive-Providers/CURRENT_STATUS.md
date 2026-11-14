@@ -1690,3 +1690,5 @@ Holo Desktop diagnostic run 43155153231 found that the conductor tool path was d
 13 November Cancun time. SQL Server source writes now stage bound outbound obligations inside the graph and receipt transaction. The source fingerprint is checked before receipt replay, and a native sequence row serializes publication. The enrolled path remains private pending dispatcher wiring and native end-to-end qualification.
 
 13 November Cancun time. Wired SQL Server's physically bound outbound source and outbox through the shipping interfaces. Native SQL Server transactions fence claims against database UTC, persist delivery outcomes, and use UTF-8 route key order. Native CI now covers the reverse SQL Server-to-SQLite dispatcher, exact replica revision and durable completion. Qualification is pending.
+
+13 November Cancun time. Added SQL Server lost-worker coverage to the native outbound test. It checks active lease renewal and exclusion, rejects the expired owner and verifies exact delivery on attempt two. Qualification is pending.
