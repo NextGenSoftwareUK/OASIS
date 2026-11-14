@@ -45,54 +45,22 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             return SendTokenAsync(request).Result;
         }
 
-        public async Task<OASISResult<ITransactionResponse>> SendTokenAsync(ISendWeb3TokenRequest request)
+        public Task<OASISResult<ITransactionResponse>> SendTokenAsync(ISendWeb3TokenRequest request)
         {
-            var result = new OASISResult<ITransactionResponse>(new TransactionResponse());
-            try
+            var result = new OASISResult<ITransactionResponse>();
+            if (request == null)
             {
-                if (!_isActivated || _httpClient == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Bitcoin provider is not activated");
-                    return result;
-                }
-
-                if (request == null || string.IsNullOrWhiteSpace(request.ToWalletAddress))
-                {
-                    OASISErrorHandling.HandleError(ref result, "ToWalletAddress is required");
-                    return result;
-                }
-
-                // Bitcoin doesn't natively support tokens, but we can send BTC
-                // For token support, Bitcoin would need a layer 2 solution or sidechain
-                var rpcRequest = new
-                {
-                    jsonrpc = "2.0",
-                    id = 1,
-                    method = "sendtoaddress",
-                    @params = new object[] { request.ToWalletAddress, request.Amount, "Token Transfer", "", true }
-                };
-
-                var response = await _httpClient.PostAsJsonAsync("", rpcRequest);
-                var content = await response.Content.ReadAsStringAsync();
-                var jsonDoc = JsonDocument.Parse(content);
-
-                if (jsonDoc.RootElement.TryGetProperty("result", out var resultElement))
-                {
-                    var txHash = resultElement.GetString();
-                    result.Result.TransactionResult = txHash ?? string.Empty;
-                    result.IsError = false;
-                    result.Message = "Bitcoin sent successfully (Note: Bitcoin doesn't natively support tokens, BTC was sent instead)";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, "Failed to send Bitcoin transaction");
-                }
+                OASISErrorHandling.HandleError(ref result, "A Bitcoin transfer request is required.");
+                return Task.FromResult(result);
             }
-            catch (Exception ex)
+
+            if (request.Web3TokenId != Guid.Empty || !string.IsNullOrWhiteSpace(request.FromTokenAddress))
             {
-                OASISErrorHandling.HandleError(ref result, $"Error sending token: {ex.Message}", ex);
+                OASISErrorHandling.HandleError(ref result, "This Bitcoin provider transfers native BTC. A token transfer requires its own protocol provider.");
+                return Task.FromResult(result);
             }
-            return result;
+
+            return SendTransactionAsync(request.FromWalletAddress, request.ToWalletAddress, request.Amount, request.MemoText);
         }
 
         public OASISResult<ITransactionResponse> MintToken(IMintWeb3TokenRequest request)

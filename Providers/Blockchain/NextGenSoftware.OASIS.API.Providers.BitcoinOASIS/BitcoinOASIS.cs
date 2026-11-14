@@ -38,7 +38,7 @@ using NBitcoin;
 
 namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
 {
-    public partial class BitcoinOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IOASISBlockchainStorageProvider, IOASISSmartContractProvider, IOASISNFTProvider
+    public partial class BitcoinOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IOASISBlockchainStorageProvider, IOASISSmartContractProvider, IOASISNFTProvider, IDisposable
     {
         private readonly HttpClient _httpClient;
         private readonly string _rpcEndpoint;
@@ -46,6 +46,14 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
         private readonly string _privateKey;
         private bool _isActivated;
         private WalletManager _walletManager;
+
+        private Network SigningNetwork => _network.ToLowerInvariant() switch
+        {
+            "mainnet" => Network.Main,
+            "testnet" => Network.TestNet,
+            "regtest" => Network.RegTest,
+            _ => throw new InvalidOperationException("The configured Bitcoin network is unsupported.")
+        };
 
         public WalletManager WalletManager
         {
