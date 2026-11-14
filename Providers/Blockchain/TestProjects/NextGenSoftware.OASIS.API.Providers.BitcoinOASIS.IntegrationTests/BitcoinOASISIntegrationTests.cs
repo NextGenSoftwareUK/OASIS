@@ -409,7 +409,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
             Assert.IsFalse(loadedDetail.IsError, loadedDetail.Message);
             Assert.AreEqual(avatarDetail.Id, loadedDetail.Result.Id);
             Assert.AreEqual(avatarDetail.Username, loadedDetail.Result.Username);
-            Assert.AreEqual(avatarDetail.FirstName, loadedDetail.Result.FirstName);
+            Assert.AreEqual(avatarDetail.FirstName, ((AvatarDetail)loadedDetail.Result).FirstName);
             Assert.AreEqual(4, loadedDetail.Result.Version);
             Assert.AreEqual(detailTx, loadedDetail.Result.ProviderUniqueStorageKey[ProviderType.BitcoinOASIS]);
 
