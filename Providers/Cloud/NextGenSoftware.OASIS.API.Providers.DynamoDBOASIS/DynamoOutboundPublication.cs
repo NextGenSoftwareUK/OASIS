@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Amazon.DynamoDBv2.Model;
@@ -73,25 +74,41 @@ public partial class DynamoDBOASIS
     private async Task<Dictionary<string, AttributeValue>?> ReadOutboundHeadAsync(
         string targetId, CosmicStorageIdentity expected, CancellationToken cancellationToken)
     {
-        var counter = await ReadBoundOutboundItemAsync(OutboundSequenceKey, expected, cancellationToken);
-        if (counter == null || counter.Count == 0)
-            return null;
-        var highWaterMark = ReadOutboundSequence(counter);
-
-        // The sequence counter and its deliveries commit together. Every key
-        // up to this watermark exists, including completed obligations.
-        for (long sequence = 1; ; sequence++)
-        {
-            var key = OutboundDeliveryKey(sequence);
-            var item = await ReadBoundOutboundItemAsync(key, expected, cancellationToken);
-            if (item == null || item.Count == 0 || item["id"].S != key || ReadOutboundSequence(item) != sequence)
-                throw new InvalidDataException("DynamoDB outbox sequence has a missing or inconsistent delivery.");
+        await foreach (var item in ReadOutboundDeliveriesAsync(expected, cancellationToken))
             if (item["target_id"].S == targetId && item["state"].S != nameof(HolonDeliveryState.Completed))
                 return item;
+        return null;
+    }
+
+    private async IAsyncEnumerable<Dictionary<string, AttributeValue>> ReadOutboundDeliveriesAsync(
+        CosmicStorageIdentity expected, [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        var counter = await ReadBoundOutboundItemAsync(OutboundSequenceKey, expected, cancellationToken);
+        if (counter == null || counter.Count == 0)
+            yield break;
+        var highWaterMark = ReadOutboundSequence(counter);
+        // Publication commits the watermark and every preceding delivery together.
+        for (long sequence = 1; ; sequence++)
+        {
+            var item = await ReadOutboundDeliveryAsync(sequence, expected, cancellationToken);
+            yield return item ?? throw new InvalidDataException("DynamoDB outbox sequence has a missing delivery.");
             if (sequence == highWaterMark)
-                return null;
+                yield break;
         }
     }
+
+    private async Task<Dictionary<string, AttributeValue>?> ReadOutboundDeliveryAsync(
+        long sequence, CosmicStorageIdentity expected, CancellationToken cancellationToken)
+    {
+        var key = OutboundDeliveryKey(sequence);
+        var item = await ReadBoundOutboundItemAsync(key, expected, cancellationToken);
+        if (item == null || item.Count == 0)
+            return null;
+        if (item["id"].S != key || ReadOutboundSequence(item) != sequence)
+            throw new InvalidDataException("DynamoDB outbox sequence has an inconsistent delivery.");
+        return item;
+    }
+
 
     private async Task<HolonDeliveryClaim?> ClaimOutboundHeadAsync(string targetId, string workerId,
         TimeSpan duration, CosmicStorageIdentity expected, CancellationToken cancellationToken)
@@ -109,14 +126,8 @@ public partial class DynamoDBOASIS
         if (state != nameof(HolonDeliveryState.Pending) && state != nameof(HolonDeliveryState.InFlight))
             throw new InvalidDataException("The DynamoDB delivery state cannot be claimed.");
 
+        var inspection = InspectOutboundDelivery(item, expected);
         var payload = item["payload"].S;
-        if (HolonRecoveryEvidenceJson.Digest(payload) != item["digest"].S)
-            throw new InvalidDataException("The DynamoDB delivery payload checksum differs.");
-        var request = CommittedHolonReplicaPayload.ReadForTarget(payload, targetId);
-        if (request.OperationId.ToString("D") != item["operation_id"].S
-            || !request.NativeRoutes.Any(route => route.TargetId == targetId
-                && route.SourceStorage.BindingFingerprint == expected.BindingFingerprint))
-            throw new InvalidDataException("The DynamoDB delivery differs from its enrolled source or operation.");
 
         var lease = Guid.NewGuid();
         var until = now.Add(duration);
@@ -152,7 +163,7 @@ public partial class DynamoDBOASIS
         MeasureGraphItem(replacement);
         if (!await WriteOutboundLeaseAsync(expected, write, cancellationToken))
             return null;
-        return new HolonDeliveryClaim(ReadOutboundSequence(item), request.OperationId, targetId, workerId,
+        return new HolonDeliveryClaim(inspection.Sequence, inspection.OperationId, targetId, workerId,
             lease, payload, attempts, until);
     }
 

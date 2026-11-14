@@ -369,6 +369,28 @@ public partial class AWSOASISIntegrationTests
             Assert.AreEqual(revision.VersionId, tombstone.Roots.Single().PreviousVersionId);
             Assert.AreEqual(removed.Result.Single().VersionId, tombstone.Roots.Single().VersionId);
 
+            var opened = ((IBoundHolonReplicationOutboxSource)_provider).GetBoundHolonReplicationOutbox(source.Result);
+            Assert.IsFalse(opened.IsError, opened.Message);
+            var outbox = opened.Result;
+            var routeBinding = enrollment.NativeRoutes.Single();
+            var replicaTarget = new CommittedHolonReplicaTarget(routeBinding.TargetId, sqlite, target.Result.Authority,
+                routeBinding.SourceId, source.Result.Authority, policy, "dynamo-source", Guid.NewGuid(),
+                policy.BindingIdentity, target.Result);
+            var dispatcher = new HolonOutboxDispatcher(outbox, new[] { replicaTarget }, "dynamo-source");
+            var saveDelivery = await dispatcher.DispatchOnceAsync(routeBinding.TargetId, maximumCount: 1);
+            Assert.IsFalse(saveDelivery.IsError, saveDelivery.Message);
+            Assert.AreEqual(1, saveDelivery.Result.CompletedCount);
+            Assert.AreEqual(revision.VersionId, (await sqlite.LoadHolonAsync(record.Id, loadChildren: false)).Result?.VersionId);
+            var hardDeleteDelivery = await dispatcher.DispatchOnceAsync(routeBinding.TargetId, maximumCount: 1);
+            Assert.IsFalse(hardDeleteDelivery.IsError, hardDeleteDelivery.Message);
+            Assert.AreEqual(1, hardDeleteDelivery.Result.CompletedCount);
+            Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,
+                (await sqlite.LoadHolonAsync(record.Id, loadChildren: false)).ErrorCode);
+            var restarted = new HolonOutboxDispatcher(outbox, new[] { replicaTarget }, "dynamo-source-restarted");
+            var repeated = await restarted.DispatchOnceAsync(routeBinding.TargetId, maximumCount: 1);
+            Assert.IsFalse(repeated.IsError, repeated.Message);
+            Assert.AreEqual(0, repeated.Result.CompletedCount);
+
             var contenders = Enumerable.Range(0, 4).Select(_ =>
             {
                 var holon = new Holon { Id = Guid.NewGuid(), Name = "Concurrent DynamoDB publication" };

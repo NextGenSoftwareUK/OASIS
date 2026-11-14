@@ -1806,3 +1806,5 @@ Supabase now reads replica receipt evidence through a service-role PostgREST RPC
 14 November Cancun time. Added internal DynamoDB claim logic with source binding, payload verification, expiring ownership, and a native condition on state and attempt count. Dispatcher registration, renewal, completion, and native claim qualification remain open. No local artifacts created.
 
 14 November Cancun time. Added internal DynamoDB renewal and completion transitions. The native transaction compares the store identity, claim token and lease deadline before changing state. Retry timing and reconciliation evidence are persisted with the outcome. Dispatcher wiring and native qualification remain open. No local artifacts created.
+
+14 November Cancun time. Wired DynamoDB to the bound replication outbox contract. Native CI will exercise the shipping dispatcher delivering save and hard delete to SQLite and reporting zero duplicates after restart. The reader currently traverses retained sequence records. Qualification remains open. No local test artifacts created.
