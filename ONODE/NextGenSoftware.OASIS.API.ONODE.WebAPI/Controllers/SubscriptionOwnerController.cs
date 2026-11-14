@@ -41,9 +41,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         private readonly ISubscriptionService _subscriptions;
         private readonly IUsageSeriesSource _series;
         private readonly MongoSubscriptionUsageRepository _repository;
+        private readonly IPaidOverageGateway _gateway;
 
-        public SubscriptionOwnerController(IConfiguration configuration, ISubscriptionService subscriptions, IUsageSeriesSource series, MongoSubscriptionUsageRepository repository)
-        { _configuration = configuration; _subscriptions = subscriptions; _series = series; _repository = repository; }
+        public SubscriptionOwnerController(IConfiguration configuration, ISubscriptionService subscriptions, IUsageSeriesSource series, MongoSubscriptionUsageRepository repository, IPaidOverageGateway gateway = null)
+        { _configuration = configuration; _subscriptions = subscriptions; _series = series; _repository = repository; _gateway = gateway; }
 
         /// <summary>A person's or app's own choice wins over the node default.</summary>
         public static bool Effective(bool? own, bool nodeDefault) => own ?? nodeDefault;
@@ -196,7 +197,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             var pool = await _repository.GetAppPoolUsageAsync(appId, HttpContext.RequestAborted);
             var payg = account.Payg ?? new AppPaygSettings();
             var estimate = AppOverageEstimate.Compute(pool.Usage?.MonthlyRequests ?? 0, pool.Limits?.MonthlyRequestLimit ?? 0, prices.Rate(account.PlanId), payg.MonthlyCapUsd);
-            return new { featureEnabled = Settings.AppPayAsYouGoEnabled, pricesConfigured = prices.HasPrice(account.PlanId), pricingVersion = prices.Version, ratePerRequestUsd = prices.Rate(account.PlanId), settings = payg, estimate, chargingImplemented = false };
+            return new { featureEnabled = Settings.AppPayAsYouGoEnabled, pricesConfigured = prices.HasPrice(account.PlanId), pricingVersion = prices.Version, ratePerRequestUsd = prices.Rate(account.PlanId), settings = payg, estimate, chargingImplemented = true, statements = (await _repository.GetAppStatementsAsync(appId, HttpContext.RequestAborted)).Select(x => new { x.Id, x.Month, amountUsd = x.AmountMinorUsd / 100m, x.State, x.PaymentFailed, x.HostedInvoiceUrl }).ToList() };
         });
 
         [Authorize]
@@ -211,6 +212,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             {
                 if (!prices.HasPrice(account.PlanId)) throw new InvalidOperationException("No app overage price is configured for this plan, so pay-as-you-go cannot be enabled.");
                 if (!request.Consent) throw new ArgumentException("Consent to the prices and the monthly cap is required.");
+                // The consenting owner's Stripe account is what gets invoiced: it must be a paid, active subscription with a default payment method.
+                var billing = await _repository.GetSubscriptionAsync(me, HttpContext.RequestAborted);
+                if (billing == null || string.IsNullOrWhiteSpace(billing.StripeCustomerId) || string.IsNullOrWhiteSpace(billing.StripeSubscriptionId))
+                    throw new InvalidOperationException("You need an active paid subscription with a default payment method in Manage billing before an app can pay for extra usage.");
+                if (_gateway == null) throw new InvalidOperationException("Payment collection is not available on this node.");
+                try { await _gateway.VerifyPaymentReadyAsync(billing, HttpContext.RequestAborted); }
+                catch (Exception ex) when (ex is not OperationCanceledException) { throw new InvalidOperationException(ex.Message); }
             }
             return await _repository.SetAppPaygAsync(appId, request?.Enabled ?? false, request?.MonthlyCapUsd ?? 0, prices.Version, me, HttpContext.RequestAborted);
         });

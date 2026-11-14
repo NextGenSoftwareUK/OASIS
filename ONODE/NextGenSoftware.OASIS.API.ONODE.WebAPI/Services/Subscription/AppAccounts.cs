@@ -16,6 +16,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
         public string PricingVersion { get; set; }
         public DateTime? ConsentAtUtc { get; set; }
         public string ConsentBy { get; set; }
+        /// <summary>The owner avatar whose verified Stripe account is invoiced for this app's overage.</summary>
+        public string BillingAvatarId { get; set; }
     }
 
     /// <summary>

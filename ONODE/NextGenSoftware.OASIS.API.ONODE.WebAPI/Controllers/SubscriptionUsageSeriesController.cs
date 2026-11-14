@@ -37,6 +37,25 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return await Run(() => UserSeries(userId, from, to));
         }
 
+        /// <summary>The signed-in avatar's pay-as-you-go estimate: request charges so far this month and projected to month end at the current pace, against its cap.</summary>
+        [Authorize]
+        [HttpGet("usage/estimate")]
+        public async Task<IActionResult> MyEstimate()
+        {
+            var userId = CurrentUserId();
+            if (userId == null) return Unauthorized(new OASISResult<bool> { IsError = true, Message = "User not authenticated." });
+            return await Run(async () =>
+            {
+                var karma = await SubscriptionController.GetCurrentKarmaAsync(userId, HttpContext.RequestAborted);
+                var summary = await _subscriptions.GetUsageSummaryAsync(userId, karma, HttpContext.RequestAborted);
+                var policy = SubscriptionService.GetUsagePolicy(summary.PlanId ?? "free", karma);
+                var record = await _repository.GetSubscriptionAsync(userId, HttpContext.RequestAborted);
+                var pricing = PaidOveragePricing.Load();
+                var estimate = UserOverageEstimate.Compute(summary.MonthlyRequests, Math.Max(0, policy.MonthlyRequestLimit), pricing.Rate(summary.PlanId ?? "free"), record?.MonthlyOverageLimitUsd ?? 0, DateTime.UtcNow);
+                return new { planId = summary.PlanId, estimate, payAsYouGoEnabled = PaidOveragePricing.HasConsent(record), capUsd = record?.MonthlyOverageLimitUsd ?? 0, aiNote = "AI usage above your included AI budget is billed separately at cost and is not part of this estimate." };
+            });
+        }
+
         /// <summary>Administrator: any avatar's daily usage series.</summary>
         [HttpGet("admin/users/{userId}/usage/series")]
         public Task<IActionResult> UserSeriesAdmin(string userId, [FromQuery] string from = null, [FromQuery] string to = null) =>

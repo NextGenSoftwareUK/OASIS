@@ -122,7 +122,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
             {
                 var now = _time.GetUtcNow().UtcDateTime;
                 var account = await AppAccounts.Find(session, x => x.AppId == appId).FirstOrDefaultAsync(ct) ?? throw new KeyNotFoundException("The app account was not found.");
-                account.Payg = new AppPaygSettings { Enabled = enabled, MonthlyCapUsd = enabled ? monthlyCapUsd : 0, PricingVersion = enabled ? pricingVersion : null, ConsentAtUtc = enabled ? now : (DateTime?)null, ConsentBy = enabled ? actor : null };
+                account.Payg = new AppPaygSettings { Enabled = enabled, MonthlyCapUsd = enabled ? monthlyCapUsd : 0, PricingVersion = enabled ? pricingVersion : null, ConsentAtUtc = enabled ? (account.Payg?.ConsentAtUtc ?? now) : account.Payg?.ConsentAtUtc, ConsentBy = enabled ? actor : account.Payg?.ConsentBy, BillingAvatarId = enabled ? actor : account.Payg?.BillingAvatarId };
                 account.UpdatedAtUtc = now; account.UpdatedBy = actor;
                 await AppAccounts.ReplaceOneAsync(session, x => x.AppId == appId, account, cancellationToken: ct);
                 await BillingAudit.InsertOneAsync(session, new BsonDocument

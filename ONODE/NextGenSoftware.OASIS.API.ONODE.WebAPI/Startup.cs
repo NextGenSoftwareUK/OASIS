@@ -756,6 +756,7 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             {
                 services.AddHostedService<Services.Subscription.SubscriptionUsageExpiryWorker>();
                 services.AddHostedService<Services.Subscription.PaidOverageBillingWorker>();
+                services.AddHostedService<Services.Subscription.AppOverageStatementWorker>();
                 NextGenSoftware.OASIS.API.Core.Services.Subscriptions.SubscriptionTelemetryRegistration.AddSubscriptionUsageTelemetry(services, Configuration, "WEB4");
             }
             Services.SubscriptionReconciliation.UsageReconciliationRegistration.AddUsageReconciliation(services, subscriptionUsageEnabled);

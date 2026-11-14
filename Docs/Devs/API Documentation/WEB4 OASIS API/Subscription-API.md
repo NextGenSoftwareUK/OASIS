@@ -153,9 +153,19 @@ Email reuses the existing OASIS email settings (`OASIS.Email`): one warning emai
 
 The node-wide defaults live in `OASIS_DNA.json` (below). Each person and each app account can override them for themselves, in either direction, in the portal: warnings (person and app), the owner view (app) and the access log (app). The override wins over the DNA value, `null` means follow the default.
 
-### App pay-as-you-go (settings only)
+### App pay-as-you-go (billed monthly)
 
-`GET` / `POST /api/subscription/app-owner/{appId}/payg` show and record an app owner's consent and monthly USD cap (from 0.50, whole cents). Prices come from `Configuration/app-overage-prices.json` (same per-request rates as individuals; the free plan has none). **Charging for app pools is not built**: nothing is invoiced or charged, and the response says `chargingImplemented: false`. Enabling requires a price for the plan, the cap and consent.
+`GET` / `POST /api/subscription/app-owner/{appId}/payg` show and change an app pool's pay-as-you-go. When it is on, requests above the pool's included monthly allowance keep working (instead of being refused) and are billed.
+
+**Turning it on** needs the owner's consent and a monthly USD cap (from 0.50, whole cents), a price for the app's plan in `Configuration/app-overage-prices.json` (same per-request rates as individuals; the free plan has none), and the consenting owner must have an active paid subscription with a default payment method in Stripe (checked when enabling). The Stripe account of the person who turns it on is the one invoiced.
+
+**What happens**
+- **Admission:** once the allowance is used up, each extra request is admitted only while the month's extra charge stays within the cap, the owner has no unpaid app invoice, and every other limit (daily calls, tokens, budget) still passes. Otherwise it is refused as before (`APP_MONTHLY_REQUEST_LIMIT_EXCEEDED`).
+- **Statement:** each month after it closes, the extra requests (net of any released requests) times the rate, limited to the cap, become one immutable statement. It is created once per app and month, and the existing overage worker collects it as a separate USD Stripe invoice (never part of the monthly subscription).
+- **Failure:** if payment fails, extra usage is paused until the invoice is paid.
+- **Owner view:** the GET returns the price, consent and cap, this month's estimate (`estimate`) and the statements with their invoice links. Statements and consent changes are audited.
+
+Individuals get the same kind of figure at `GET /api/subscription/usage/estimate` (request charges so far and projected to month end at the current pace, against their cap; AI cost above the included budget is billed separately and is not estimated).
 
 ### DNA settings (`OASIS.UsageVisibility`)
 
