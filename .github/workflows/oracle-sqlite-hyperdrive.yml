@@ -6,6 +6,7 @@ on:
     paths:
       - '.github/workflows/oracle-sqlite-hyperdrive.yml'
       - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS/OracleStorageIdentity.cs'
+      - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS/OracleReceiptEvidence.cs'
       - 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests/OracleSqliteHyperDriveTests.cs'
   workflow_dispatch:
 
@@ -51,7 +52,7 @@ jobs:
           base=72ffc86c208219b181ad951a367a30a4b47154cf
           git -C ../provider-source fetch --no-tags --depth=1 origin "$base"
           tests='Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests'
-          for path in "$tests/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests.csproj" "$tests/OracleSqliteHyperDriveTests.cs" 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS/OracleStorageIdentity.cs'; do
+          for path in "$tests/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests.csproj" "$tests/OracleSqliteHyperDriveTests.cs" 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS/OracleStorageIdentity.cs' 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS/OracleReceiptEvidence.cs'; do
             current="$(git ls-tree HEAD -- "$path")"
             reviewed="$(git -C ../provider-source ls-tree "$base" -- "$path")"
             incoming="$(git -C ../provider-source ls-tree HEAD -- "$path")"

@@ -1,0 +1,90 @@
+using System;
+using System.Data;
+using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
+using Oracle.ManagedDataAccess.Client;
+
+namespace NextGenSoftware.OASIS.API.Providers.OracleDBOASIS;
+
+public partial class OracleDBOASIS : IConditionalHolonReceiptEvidenceStorageProvider
+{
+    public Task<OASISResult<ConditionalHolonWriteOutcome>> ReadConditionalHolonReceiptEvidenceAsync(
+        ConditionalHolonReceiptEvidenceRequest request, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        return ReadOracleConditionalOutcomeAsync(request.Original, request.ExpectedSource, request, cancellationToken);
+    }
+
+    public Task<OASISResult<ConditionalHolonWriteOutcome>> ReadBoundConditionalHolonWriteOutcomeAsync(
+        ConditionalHolonWriteRequest original, CosmicStorageIdentity expectedSource,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(expectedSource);
+        return ReadOracleConditionalOutcomeAsync(original, expectedSource, null, cancellationToken);
+    }
+
+    public Task<OASISResult<ConditionalHolonWriteOutcome>> ReadConditionalHolonWriteOutcomeAsync(
+        ConditionalHolonWriteRequest original, CancellationToken cancellationToken = default)
+        => ReadOracleConditionalOutcomeAsync(original, original?.Write.ReplicationEnrollment?.SourceStorageIdentity,
+            null, cancellationToken);
+
+    private async Task<OASISResult<ConditionalHolonWriteOutcome>> ReadOracleConditionalOutcomeAsync(
+        ConditionalHolonWriteRequest original, CosmicStorageIdentity? expectedSource,
+        ConditionalHolonReceiptEvidenceRequest? evidenceRequest, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        try
+        {
+            ArgumentNullException.ThrowIfNull(original);
+            var authority = Core.Enums.ProviderType.OracleDBOASIS;
+            var enrollment = original.Write.ReplicationEnrollment;
+            var plan = enrollment == null ? ConditionalHolonPlan.Create(original, authority)
+                : ConditionalHolonPlan.CreateReplicating(original, authority, enrollment);
+            if (!IsProviderActivated)
+                throw new InvalidOperationException("Activate the enrolled Oracle store before reading its receipt.");
+
+            await using var connection = new OracleConnection(_connectionString);
+            await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+            await using var transaction = (OracleTransaction)await connection.BeginTransactionAsync(
+                IsolationLevel.Serializable, cancellationToken).ConfigureAwait(false);
+            if (expectedSource != null)
+            {
+                var identity = await ReadOracleStorageIdentityAsync(connection, transaction, cancellationToken).ConfigureAwait(false);
+                if (identity == null || identity.BindingFingerprint != expectedSource.BindingFingerprint
+                    || (enrollment?.SourceStorageIdentity is { } source && source.BindingFingerprint != identity.BindingFingerprint))
+                    return new() { IsError = true, ErrorCount = 1, ErrorCode = "COSMIC_SOURCE_STORAGE_BINDING_MISMATCH",
+                        Message = "The physical Oracle store differs from the requested source." };
+            }
+
+            await using var command = CreateCommand(
+                "SELECT REQUEST_HASH, RESULT_JSON FROM OASIS_WRITE_RECEIPTS WHERE OPERATION_ID=:Id", connection);
+            command.Transaction = transaction;
+            command.Parameters.Add("Id", OracleDbType.Raw).Value = plan.OperationId.ToByteArray();
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            var state = ConditionalHolonReceiptState.Absent;
+            ConditionalHolonReceiptEvidence? evidence = null;
+            if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                if (reader.GetString(0) != plan.Fingerprint || reader.IsDBNull(1))
+                    throw new InvalidDataException("The Oracle receipt differs from the original conditional write.");
+                var roots = ReadConditionalReceipt(reader.GetString(1), plan);
+                if (evidenceRequest != null)
+                    evidence = ConditionalHolonReceiptEvidenceProjection.Create(evidenceRequest, roots);
+                state = ConditionalHolonReceiptState.Committed;
+            }
+
+            return new(new ConditionalHolonWriteOutcome(plan.OperationId, plan.ActorId, authority,
+                plan.Operation, state, null, evidence)) { IsLoaded = true };
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { throw; }
+        catch (Exception cause)
+        {
+            return new() { IsError = true, ErrorCount = 1, ErrorCode = "COSMIC_CONDITIONAL_RECEIPT_READ_FAILED",
+                Message = "The Oracle conditional receipt could not be verified.", Exception = cause };
+        }
+    }
+}
