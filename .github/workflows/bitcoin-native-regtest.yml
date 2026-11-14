@@ -48,8 +48,19 @@ jobs:
           image='blockstream/esplora@sha256:1d5c64df311cce3e7ab6fd5749f8e65c20099186014c058e561cbf52085ef6db'
           fixture="oasis-bitcoin-regtest-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           cleanup() {
-            docker rm -f -v "$fixture" >/dev/null 2>&1 || true
-            docker image rm "$image" >/dev/null 2>&1 || true
+            local status=$?
+            trap - EXIT
+            if docker container inspect "$fixture" >/dev/null 2>&1; then
+              docker rm -f -v "$fixture" || status=1
+            fi
+            if docker image inspect "$image" >/dev/null 2>&1; then
+              docker image rm "$image" || status=1
+            fi
+            if docker container inspect "$fixture" >/dev/null 2>&1; then
+              echo "The disposable Bitcoin container still exists." >&2
+              status=1
+            fi
+            exit "$status"
           }
           trap cleanup EXIT
 
