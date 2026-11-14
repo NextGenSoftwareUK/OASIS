@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## HoloOASIS timed out again on Development 4645c412a8d8
+
+14 November, 12:02 Cancun. WEB4 deployment e301eab6 returned HTTP 200 while native admin reported zero running cells. Authenticated CQL reached 104/107 direct and federated sources. HoloOASIS logged activation timeout after 61,998 ms. The diagnostic candidate 747df5940450 preserves this Development parent and passed [10 Linux tests](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43618040438). Its [WEB4 image](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43618124090) and [protocol suite](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43618126368) remain active. Shared review is after 12:19:11 Cancun. No manual restart, volume modification, local builds or new fixture.
+
 ## Shared Development coordination
 
 14 November, 11:42 Cancun. Diagnostic candidate d4b90a69d816 is based on serving Development f132040b216c and keeps the HyperDrive changes. [Native qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43617041728) and [exact WEB4 image](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43617060017) are running. HyperDrive is qualifying 4645c412a8d8 on the same parent for the shared review after 11:46:23 Cancun. Recheck the shared head and exact qualified files before publishing a scoped batch.
