@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Exact UInt64 reductions passed native CI
+
+[Run 43583011537](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43583011537) passed the corrected native UInt64 assertions for MongoDB, SQLite and Neo4j. The fixture uses an explicit native Take stage before projection and verifies UInt64 maximum Sum and exact decimal Average. The exact shared Development candidate 244ed6f419c5 preserves HyperDrive's RoundRobin scripts and is building in [run 43583941386](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43583941386). The standalone floating-point candidate a21ecb4674a8 already passed full protocol CI including cleanup. Q01f remains open. Railway deployment e6d6c4d1 has reached WEB4 publish and is still building.
+
 ## Native floating-point checks passed on the RoundRobin baseline
 
 The native stage of [run 43582812040](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43582812040/job/132410961155) passed on a21ecb4674a8 for MongoDB, SQLite and Neo4j. WEB4-WEB10 publishing and cleanup were still running at this checkpoint. [Corrected UInt64 run 43583011537](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43583011537) is active. Candidate 244ed6f419c5 carries the identical corrected UInt64 diff on a21ecb4674a8, keeping HyperDrive's RoundRobin verification intact. It has not been dispatched. WEB4 Railway deployment e6d6c4d1 is building, and f1acb554 remains the preceding successful revision. Development integration requires the shared window and serving revision check.
