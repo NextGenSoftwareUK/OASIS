@@ -6688,3 +6688,5 @@ Web4Site 5fa63a71df5d used a temporary directory containing only committed websi
 14 November Cancun time. The graph-filtered decimal fixture passed on all three cloud CI stores. The stage verifies owned fixture teardown. No local build, download, runtime or database was added. Temporary scoped Git index removed before publication.
 
 14 November Cancun time. Reused the existing checkout and removed the temporary candidate Git index. Keep ci-cosmic-shared-1c8478f7577f for combined CI 43600185683. No local build, download or environment.
+
+14 November Cancun time. Exact image 43598439229 completed and the digest was checked from CI logs in memory. Exact follow-on image 43600761127 builds 1c8478f7577f with the commit-only GHCR tag. No local build or image pull. Remove old CI source tags when the corresponding candidates are superseded and recorded.
