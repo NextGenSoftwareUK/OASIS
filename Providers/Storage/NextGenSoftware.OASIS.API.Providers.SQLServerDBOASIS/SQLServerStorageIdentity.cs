@@ -63,6 +63,24 @@ IF OBJECT_ID(N'dbo.OASISWriteReceipts', N'U') IS NULL
         RequestHash varchar(64) NOT NULL,
         ResultJson nvarchar(max) NOT NULL
     );
+IF OBJECT_ID(N'dbo.OASISOutboundSequence', N'U') IS NULL
+    CREATE TABLE dbo.OASISOutboundSequence (
+        Slot tinyint NOT NULL PRIMARY KEY CHECK (Slot = 1),
+        LastSequence bigint NOT NULL CHECK (LastSequence >= 0)
+    );
+IF NOT EXISTS (SELECT 1 FROM dbo.OASISOutboundSequence WHERE Slot=1)
+    INSERT dbo.OASISOutboundSequence (Slot,LastSequence) VALUES (1,0);
+IF OBJECT_ID(N'dbo.OASISOutboundDeliveries', N'U') IS NULL
+    CREATE TABLE dbo.OASISOutboundDeliveries (
+        DeliverySequence bigint NOT NULL PRIMARY KEY,
+        OperationId uniqueidentifier NOT NULL,
+        TargetId nvarchar(256) COLLATE Latin1_General_100_BIN2 NOT NULL,
+        PayloadJson nvarchar(max) NOT NULL,
+        PayloadDigest varchar(64) NOT NULL,
+        DeliveryState varchar(32) NOT NULL DEFAULT 'Pending',
+        AttemptCount int NOT NULL DEFAULT 0,
+        UNIQUE (OperationId,TargetId)
+    );
 ", connection, transaction);
             await provision.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
             var identity = await ReadSqlServerStorageIdentityAsync(connection, transaction, cancellationToken)

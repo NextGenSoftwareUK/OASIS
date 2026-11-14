@@ -20,21 +20,34 @@ public partial class SQLServerDBOASIS : IConditionalHolonStorageProvider
     public OASISResult<IEnumerable<IHolon>> ExecuteConditionalHolonWrite(ConditionalHolonWriteRequest request)
         => ExecuteConditionalHolonWriteAsync(request).GetAwaiter().GetResult();
 
-    public async Task<OASISResult<IEnumerable<IHolon>>> ExecuteConditionalHolonWriteAsync(
+    public Task<OASISResult<IEnumerable<IHolon>>> ExecuteConditionalHolonWriteAsync(
         ConditionalHolonWriteRequest request, CancellationToken cancellationToken = default)
+        => ExecuteSqlServerConditionalWriteAsync(request, null, cancellationToken);
+
+    private async Task<OASISResult<IEnumerable<IHolon>>> ExecuteSqlServerConditionalWriteAsync(
+        ConditionalHolonWriteRequest request, HolonReplicationEnrollment? enrollment, CancellationToken cancellationToken)
     {
         var token = cancellationToken;
         var commitEntered = false;
         try
         {
             token.ThrowIfCancellationRequested();
-            var plan = ConditionalHolonPlan.Create(request, ReplicaAuthority);
+            var plan = enrollment == null ? ConditionalHolonPlan.Create(request, ReplicaAuthority)
+                : ConditionalHolonPlan.CreateReplicating(request, ReplicaAuthority, enrollment);
             if (!IsProviderActivated)
                 throw new InvalidOperationException("Activate SQL Server before committing a conditional write.");
             await using var connection = new SqlConnection(_connectionString);
             await connection.OpenAsync(token).ConfigureAwait(false);
             await using var transaction = (SqlTransaction)await connection.BeginTransactionAsync(
                 IsolationLevel.ReadCommitted, token).ConfigureAwait(false);
+            if (enrollment != null)
+            {
+                if (enrollment.SourceStorageIdentity == null || enrollment.NativeRoutes.Count == 0)
+                    throw new ArgumentException("SQL Server replication requires a physical source and bound target routes.", nameof(enrollment));
+                var identity = await ReadSqlServerStorageIdentityAsync(connection, transaction, token).ConfigureAwait(false);
+                if (identity.BindingFingerprint != enrollment.SourceStorageIdentity.BindingFingerprint)
+                    return ReplicaFailure("COSMIC_SOURCE_STORAGE_BINDING_MISMATCH", "The SQL Server database differs from the enrolled source.");
+            }
             await using (var receipt = new SqlCommand(
                 "SELECT RequestHash,ResultJson FROM dbo.OASISWriteReceipts WITH (UPDLOCK,HOLDLOCK) WHERE OperationId=@Id;",
                 connection, transaction))
@@ -119,6 +132,8 @@ public partial class SQLServerDBOASIS : IConditionalHolonStorageProvider
             insert.Parameters.Add("@Hash", SqlDbType.VarChar, 64).Value = plan.Fingerprint;
             insert.Parameters.Add("@Json", SqlDbType.NVarChar, -1).Value = json;
             await ExecuteReplicaMutationAsync(insert, token).ConfigureAwait(false);
+            if (enrollment != null)
+                await StageSqlServerOutboundAsync(connection, transaction, plan, acknowledged, token).ConfigureAwait(false);
 
             token.ThrowIfCancellationRequested();
             commitEntered = true;
@@ -134,6 +149,39 @@ public partial class SQLServerDBOASIS : IConditionalHolonStorageProvider
             return ReplicaFailure(commitEntered ? "COSMIC_CONDITIONAL_RECONCILIATION_REQUIRED" : "COSMIC_CONDITIONAL_WRITE_FAILED",
                 "SQL Server conditional write failed.", commitEntered
                     ? new SqlServerReplicaReconciliationException(request.Write.OperationId, cause) : cause);
+        }
+    }
+
+    private static async Task StageSqlServerOutboundAsync(SqlConnection connection, SqlTransaction transaction,
+        ConditionalHolonPlan plan, IReadOnlyList<IHolon> acknowledged, CancellationToken token)
+    {
+        var enrollment = plan.ReplicationEnrollment;
+        var payload = CommittedHolonReplicaPayload.Capture(new CommittedHolonReplicaRequest(plan.OperationId,
+            enrollment.SourceId, plan.Authority, plan.ActorId, plan.Operation, acknowledged,
+            plan.SaveChildren, plan.Recursive, plan.MaxChildDepth, enrollment.NativeRoutes));
+        var digest = HolonRecoveryEvidenceJson.Digest(payload);
+
+        // Keep allocation serialized until the graph, receipt and deliveries commit together.
+        await using var allocate = new SqlCommand(@"
+UPDATE dbo.OASISOutboundSequence
+SET LastSequence=LastSequence+@Count
+OUTPUT deleted.LastSequence
+WHERE Slot=1;", connection, transaction);
+        allocate.Parameters.Add("@Count", SqlDbType.Int).Value = enrollment.NativeRoutes.Count;
+        if (await allocate.ExecuteScalarAsync(token).ConfigureAwait(false) is not long sequence)
+            throw new System.IO.InvalidDataException("SQL Server did not allocate the outbound sequence.");
+
+        foreach (var route in enrollment.NativeRoutes)
+        {
+            await using var delivery = new SqlCommand(@"
+INSERT dbo.OASISOutboundDeliveries (DeliverySequence,OperationId,TargetId,PayloadJson,PayloadDigest)
+VALUES (@Sequence,@Operation,@Target,@Payload,@Digest);", connection, transaction);
+            delivery.Parameters.Add("@Sequence", SqlDbType.BigInt).Value = checked(++sequence);
+            delivery.Parameters.Add("@Operation", SqlDbType.UniqueIdentifier).Value = plan.OperationId;
+            delivery.Parameters.Add("@Target", SqlDbType.NVarChar, 256).Value = route.TargetId;
+            delivery.Parameters.Add("@Payload", SqlDbType.NVarChar, -1).Value = payload;
+            delivery.Parameters.Add("@Digest", SqlDbType.VarChar, 64).Value = digest;
+            await ExecuteReplicaMutationAsync(delivery, token).ConfigureAwait(false);
         }
     }
 }
