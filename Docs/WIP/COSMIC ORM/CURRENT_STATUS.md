@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Qualified HoloOASIS diagnostics published to Development
+
+14 November, Cancun. Development advanced from 4645c412a8d8 to 747df5940450 after Linux CI 43618040438, protocol CI 43618126368 and exact WEB4 image CI 43618124090 passed. The image build log confirms the exact commit checkout and the published teaching manifest sha256:c773b9360fcac245b6211046b17c91f350670cd1f9d828ed62f1f32650de602a. Railway WEB4 rollout a55fba44-3b16-43f4-ab64-0c6a55d2d9ba is queued. Verify the exact serving revision, health, HoloOASIS activation outcome, and matched public results if ready. A failed activation should now report its native startup milestone. The native stall remains unresolved.
+
 ## Live Ask your data draft and query passed
 
 14 November. The approved 30-minute Bronze grant was acknowledged for the existing Development visitor. The exact Web4Site 0d1269d client sent a natural-language question to live WEB6 and compiled its Hedera draft. Live WEB4 returned both requested public accounts (0.0.2 and 0.0.3). MongoDB also accepted a separate WEB6 rows draft with active filter, name sort and limit, returning zero visible rows for this visitor. Verification used the exact client scripts in a Node harness. Full hosted browser verification remains open.

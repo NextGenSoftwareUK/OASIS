@@ -6723,3 +6723,5 @@ Web4Site 5fa63a71df5d used a temporary directory containing only committed websi
 
 
 14 November, Cancun. Archived the rejected Development subscription-admin sign-in under LocalState/COSMIC/HostedSubscriptionAdminRejected-20261114-1204. It contains only the original intent and protected rejection response. No session was issued. Remove the archived attempt after the successful verification is recorded. Temporary qualification indexes were removed. No new runtime or local build outputs.
+
+14 November, Cancun. Removed the archived rejected subscription-admin sign-in after live WEB6 and WEB4 verification succeeded. The successful protected session and the minimal approved grant receipt remain in HostedSubscriptionAdminCurrent. Exact conductor and image builds ran in CI. No local builds or downloads.
