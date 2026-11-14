@@ -456,6 +456,8 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             await store.PinAsync(commitment);
 
             var publication = await SendSignedTransactionAsync(source, null, 0m, commitment, null, commitmentOnly: true);
+            result.MetaData = publication.MetaData;
+            result.ErrorCode = publication.ErrorCode;
             if (publication.IsError)
             {
                 OASISErrorHandling.HandleError(ref result, publication.Message, publication.Exception);

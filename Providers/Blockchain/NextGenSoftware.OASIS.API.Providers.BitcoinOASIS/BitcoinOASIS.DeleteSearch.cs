@@ -52,6 +52,9 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             return SendSignedTransactionAsync(fromWalletAddress, toWalletAddress, amount, memo, memoText, commitmentOnly: false);
         }
 
+        private const string BitcoinTransactionIdMetadataKey = "BitcoinTransactionId";
+        private const string BitcoinBroadcastOutcomeUnknown = "BITCOIN_BROADCAST_OUTCOME_UNKNOWN";
+
         private async Task<OASISResult<ITransactionResponse>> SendSignedTransactionAsync(
             string fromWalletAddress, string toWalletAddress, decimal amount, byte[] memo, string memoText, bool commitmentOnly)
         {
@@ -181,6 +184,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                 var expectedId = transaction.GetHash();
                 using var body = new StringContent(transaction.ToHex(), Encoding.ASCII, "text/plain");
                 submittedTransactionId = expectedId;
+                result.MetaData[BitcoinTransactionIdMetadataKey] = expectedId.ToString();
                 using var response = await _httpClient.PostAsync("tx", body);
                 if (!response.IsSuccessStatusCode)
                 {
@@ -196,6 +200,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                 var receipt = (await response.Content.ReadAsStringAsync()).Trim();
                 if (!uint256.TryParse(receipt, out var transactionId) || transactionId != expectedId)
                 {
+                    result.ErrorCode = BitcoinBroadcastOutcomeUnknown;
                     OASISErrorHandling.HandleError(ref result, $"Esplora did not acknowledge the expected Bitcoin transaction {expectedId}.");
                     return result;
                 }
