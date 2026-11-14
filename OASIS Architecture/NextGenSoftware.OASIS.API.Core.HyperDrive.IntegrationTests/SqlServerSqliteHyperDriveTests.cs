@@ -100,7 +100,7 @@ public sealed class SqlServerSqliteHyperDriveTests
             var deletion = NextReplica(ConditionalHolonOperation.HardDelete, tombstone);
             var deletedReplica = sync ? sql.ApplyBoundCommittedHolonReplica(deletion, identity)
                 : await sql.ApplyBoundCommittedHolonReplicaAsync(deletion, identity);
-            Assert.True(!deletedReplica.IsError && deletedReplica.IsDeleted, deletedReplica.Message);
+            Assert.True(!deletedReplica.IsError && deletedReplica.IsDeleted, $"{deletedReplica.Message} {deletedReplica.Exception}");
             var deletionReceipt = await sql.ReadCommittedHolonReplicaReceiptAsync(
                 new CommittedHolonReplicaReceiptReadRequest(deletion, identity));
             Assert.False(deletionReceipt.IsError, deletionReceipt.Message);

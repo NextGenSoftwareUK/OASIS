@@ -105,9 +105,11 @@ FROM dbo.OASISReplicaHeads WITH (UPDLOCK,HOLDLOCK) WHERE Id=@Id;", connection, t
                 var hardDelete = plan.Operation == ConditionalHolonOperation.HardDelete;
                 if (hardDelete)
                 {
-                    await using var delete = new SqlCommand("DELETE FROM OASISHolons WHERE Id=@Id;", connection, transaction);
+                    await using var delete = new SqlCommand(
+                        "DELETE FROM OASISHolons WHERE Id=@Id; SELECT @@ROWCOUNT;", connection, transaction);
                     delete.Parameters.Add("@Id", SqlDbType.UniqueIdentifier).Value = stored.Id;
-                    await ExecuteReplicaMutationAsync(delete, token).ConfigureAwait(false);
+                    if (await delete.ExecuteScalarAsync(token).ConfigureAwait(false) is not 1)
+                        throw new InvalidDataException("SQL Server did not delete exactly one current replica row.");
                 }
                 else
                     await WriteHolonSnapshotAsync(connection, transaction, stored, token).ConfigureAwait(false);
