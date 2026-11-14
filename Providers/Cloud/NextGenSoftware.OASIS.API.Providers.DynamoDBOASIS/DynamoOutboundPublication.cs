@@ -26,9 +26,10 @@ public partial class DynamoDBOASIS
         }, cancellationToken);
         RequireItemRead(response);
 
-        var previous = response.Item.Count == 0 ? null : response.Item["sequence"].N;
+        var hasCounter = response.Item.Count != 0;
+        var previous = hasCounter && response.Item.TryGetValue("sequence", out var stored) ? stored.N : null;
         long sequence = 0;
-        if (previous != null && (!long.TryParse(previous, NumberStyles.None, CultureInfo.InvariantCulture, out sequence) || sequence <= 0))
+        if (hasCounter && (!long.TryParse(previous, NumberStyles.None, CultureInfo.InvariantCulture, out sequence) || sequence <= 0))
             throw new InvalidDataException("The DynamoDB outbox sequence is invalid.");
 
         var enrollment = plan.ReplicationEnrollment;
