@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Corrected Hedera candidate on the replica authorization rollout
+
+HyperDrive advanced Development to eda74489d26e. WEB4 deployment 4a780e47 is queued for that revision. Corrected Hedera candidate 6cb2e125bbb8 applies the identical three-file patch on top of it. [Exact qualification 43589336339](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43589336339) is active. Earlier run 43589062262 provides independent cancellation evidence on the preceding base. The shared window and live rollout gate apply to the new head.
+
 ## Hedera cancellation regression and corrected qualification
 
 Combined protocol run 43588237501 exposed queued Hedera reads entering the HTTP path after cancellation released the three occupied slots. COSMIC 28ea5cc57921 rechecks cancellation after slot acquisition. The existing test still requires exactly three started requests, zero active requests and no partial activation. [Corrected candidate d8ccec6f299f](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43589062262) is building on Development e50b5598b499. HyperDrive's independent candidate eda74489d26e passed its fourteen authorization cases and can use the shared window while this fix qualifies. The combined failed candidate remains excluded.
