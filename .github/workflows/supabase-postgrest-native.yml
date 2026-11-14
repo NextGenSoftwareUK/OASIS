@@ -78,11 +78,11 @@ jobs:
         if: inputs.scenario == 'routing'
         shell: bash
         run: |
-          base=363dd7fbd23e28b264b7dde700f21466a93a535f
+          base=5ab24c31afa067bdbf807a1dfbf1dc06c70d08dc
           git -C ../provider-source fetch --no-tags --depth=1 origin "$base"
           tests='Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.SupabaseOASIS.IntegrationTests'
           provider='Providers/Cloud/NextGenSoftware.OASIS.API.Providers.SupabaseOASIS'
-          for path in "$tests/NextGenSoftware.OASIS.API.Providers.SupabaseOASIS.IntegrationTests.csproj" "$tests/SupabaseSqliteHyperDriveTests.cs" "$provider/SupabaseOASIS.StorageIdentity.cs" "$provider/SupabaseOASIS.ReplicaApply.cs" "$provider/supabase-replication-schema.sql"; do
+          for path in "$tests/NextGenSoftware.OASIS.API.Providers.SupabaseOASIS.IntegrationTests.csproj" "$tests/SupabaseSqliteHyperDriveTests.cs" "$provider/SupabaseOASIS.StorageIdentity.cs" "$provider/SupabaseOASIS.ReplicaApply.cs" "$provider/supabase-replication-schema.sql" "$provider/supabase-outbound-schema.sql"; do
             current="$(git ls-tree HEAD -- "$path")"
             reviewed="$(git -C ../provider-source ls-tree "$base" -- "$path")"
             incoming="$(git -C ../provider-source ls-tree HEAD -- "$path")"
@@ -154,6 +154,7 @@ jobs:
           "${psql[@]}" < Providers/Cloud/NextGenSoftware.OASIS.API.Providers.SupabaseOASIS/supabase-storage-schema.sql
           if [[ "$OASIS_SUPABASE_TEST_SCENARIO" == routing ]]; then
             "${psql[@]}" < Providers/Cloud/NextGenSoftware.OASIS.API.Providers.SupabaseOASIS/supabase-replication-schema.sql
+            "${psql[@]}" < Providers/Cloud/NextGenSoftware.OASIS.API.Providers.SupabaseOASIS/supabase-outbound-schema.sql
             "${psql[@]}" <<'SQL'
           DO $$
           BEGIN
@@ -165,7 +166,9 @@ jobs:
                   OR has_function_privilege('anon', 'public.oasis_read_replica_state(uuid,uuid[])', 'EXECUTE')
                   OR has_function_privilege('authenticated', 'public.oasis_read_replica_state(uuid,uuid[])', 'EXECUTE')
                   OR NOT has_function_privilege('service_role', 'public.oasis_read_replica_state(uuid,uuid[])', 'EXECUTE')
-                  OR has_table_privilege('service_role', 'public.oasis_replica_heads', 'INSERT') THEN
+                  OR has_table_privilege('service_role', 'public.oasis_replica_heads', 'INSERT')
+                  OR has_table_privilege('service_role', 'public.oasis_source_receipts', 'INSERT')
+                  OR has_table_privilege('service_role', 'public.oasis_outbound_deliveries', 'UPDATE') THEN
                   RAISE EXCEPTION 'Unexpected Supabase replica receipt or storage identity privileges';
               END IF;
           END
