@@ -56,6 +56,10 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
                 Assert.IsTrue(result.IsError, result.Message);
                 Assert.IsNull(result.Result);
                 Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound, result.ErrorCode, result.Message);
+
+                var status = await _provider.GetTransactionStatusAsync(transactionId);
+                Assert.IsFalse(status.IsError, status.Message);
+                Assert.AreEqual(NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums.BridgeTransactionStatus.Completed, status.Result);
             }
             finally
             {

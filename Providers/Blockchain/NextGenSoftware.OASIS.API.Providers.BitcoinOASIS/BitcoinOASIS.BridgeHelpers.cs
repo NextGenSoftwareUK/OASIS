@@ -463,50 +463,30 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                     return result;
                 }
 
-                if (string.IsNullOrWhiteSpace(transactionHash))
+                if (!uint256.TryParse(transactionHash, out var transactionId))
                 {
-                    OASISErrorHandling.HandleError(ref result, "Transaction hash is required");
+                    OASISErrorHandling.HandleError(ref result, "A Bitcoin transaction ID is required.");
                     return result;
                 }
 
-                // Query Bitcoin RPC for transaction status
-                var rpcRequest = new
-                {
-                    jsonrpc = "2.0",
-                    id = 1,
-                    method = "gettransaction",
-                    @params = new object[] { transactionHash }
-                };
-
-                var response = await _httpClient.PostAsJsonAsync("", rpcRequest, token);
-                var content = await response.Content.ReadAsStringAsync(token);
-                var jsonDoc = JsonDocument.Parse(content);
-
-                if (jsonDoc.RootElement.TryGetProperty("result", out var resultElement))
-                {
-                    if (resultElement.TryGetProperty("confirmations", out var confirmationsElement))
-                    {
-                        var confirmations = confirmationsElement.GetInt32();
-                        result.Result = confirmations > 0 ? BridgeTransactionStatus.Completed : BridgeTransactionStatus.Pending;
-                        result.IsError = false;
-                    }
-                    else
-                    {
-                        result.Result = BridgeTransactionStatus.Pending;
-                        result.IsError = false;
-                    }
-                }
-                else
+                using var response = await _httpClient.GetAsync($"tx/{transactionId}/status", token);
+                if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
                 {
                     result.Result = BridgeTransactionStatus.NotFound;
-                    result.IsError = true;
-                    result.Message = "Transaction not found";
+                    result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
+                    OASISErrorHandling.HandleError(ref result, "The Bitcoin transaction was not found by Esplora.");
+                    return result;
                 }
+
+                response.EnsureSuccessStatusCode();
+                var status = await response.Content.ReadFromJsonAsync<JsonElement>(cancellationToken: token);
+                result.Result = status.GetProperty("confirmed").GetBoolean()
+                    ? BridgeTransactionStatus.Completed
+                    : BridgeTransactionStatus.Pending;
             }
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, $"Error getting Bitcoin transaction status: {ex.Message}", ex);
-                result.Result = BridgeTransactionStatus.NotFound;
             }
             return result;
         }
