@@ -1266,3 +1266,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 - 14 November Cancun time. Native avatar-detail CI 43640863177 passed cleanup for both Bitcoin Core/Esplora and Kubo. No local build or fixture.
 
 - 14 November Cancun time. Native Bitcoin CI 43642391040 removed both disposable backends and pinned images. No local build or fixture.
+
+- 14 November Cancun time. Removed the temporary Git index for 5228d2d93880. Native CI 43643357357 passed both disposable backend teardown checks. No local build or fixture.
