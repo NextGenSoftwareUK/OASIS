@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## WEB4 recovered and Hedera candidate followed the IPFS rollout
+
+WEB4 8e5e7063 recovered on eda74489d26e and reached 105/107 ready in native and federation discovery. HoloOASIS returned the same three full and two subset IDs with shipping provider provenance. HyperDrive then advanced Development to 27ed16491eb0. WEB4 deployment ff63d062 is queued. Candidate 859002780fb4 preserves that head and reapplies the exact corrected Hedera and HoloOASIS diagnostic patch. [Exact CI 43592358287](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43592358287) is active. The conductor startup root cause and hosted browser verification remain open.
+
 ## WEB4 recovery deployment in progress
 
 Railway marked 4a780e47 crashed after repeated persisted HoloOASIS cell startup failures. The scoped Development WEB4 redeploy is 8e5e7063-6695-41ef-bd04-3836c6e43f2d on the same eda74489d26e revision and volume. Do not treat the preceding rollout as healthy based on deployment status. The active manifest had no HTTP healthcheck path. Verify public health and the exact HoloOASIS native and federation records before publishing the qualified Hedera or HyperDrive batches. No local builds or downloads.
