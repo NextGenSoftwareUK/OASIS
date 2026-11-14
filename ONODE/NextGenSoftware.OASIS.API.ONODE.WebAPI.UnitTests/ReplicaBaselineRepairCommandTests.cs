@@ -118,6 +118,12 @@ public sealed partial class ReplicaBaselineRepairCommandTests
             await Assert.ThrowsAsync<InvalidOperationException>(()=>ReplicaBaselineRepairCommand.ExecuteAsync(dna,
                 reviewed with { SourceNativeStoreId = wrongSource.StoreId }, journal));
             Assert.False(File.Exists(journal));
+            var wrongTarget = new CosmicStorageIdentity(reviewedTarget.Authority,
+                reviewedTarget.EndpointFingerprint, Guid.NewGuid());
+            var routeMismatch = await Assert.ThrowsAsync<InvalidOperationException>(()=>
+                ReplicaBaselineRepairCommand.ExecuteAsync(dna, reviewed with { TargetNativeStoreId = wrongTarget.StoreId }, journal));
+            Assert.Equal("The frozen route differs from the reviewed native stores.", routeMismatch.Message);
+            Assert.False(File.Exists(journal));
             await Assert.ThrowsAsync<InvalidOperationException>(()=>ReplicaBaselineRepairCommand.ExecuteAsync(dna,reviewed with{SourcePayloadDigest=new string('0',64)},journal));
             Assert.Equal(HolonDeliveryState.ReconciliationRequired,(await outbox.InspectAsync(held.Sequence)).Result.State);
             var wrongActor=await ReplicaBaselineRepairCommand.ExecuteAsync(dna,reviewed with{SourceActorId=actor},journal);
