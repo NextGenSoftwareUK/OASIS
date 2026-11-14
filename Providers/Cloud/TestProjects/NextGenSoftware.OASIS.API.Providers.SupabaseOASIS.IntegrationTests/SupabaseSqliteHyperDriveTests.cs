@@ -48,6 +48,35 @@ public sealed class SupabaseSqliteHyperDriveTests
             var sqliteActivation = await sqlite.ActivateProviderAsync();
             Assert.IsTrue(!supabaseActivation.IsError && supabaseActivation.Result, supabaseActivation.Message);
             Assert.IsTrue(!sqliteActivation.IsError && sqliteActivation.Result, sqliteActivation.Message);
+            var binding = await supabase.CaptureStorageIdentityAsync();
+            Assert.IsFalse(binding.IsError, binding.Message);
+            Assert.AreEqual(ProviderType.SupabaseOASIS, binding.Result.Authority);
+            var replica = new Holon { Id = Guid.NewGuid(), Version = 1, VersionId = Guid.NewGuid() };
+            CosmicConcurrency.SetProviderRevisionId(replica, ProviderType.SQLLiteDBOASIS, Guid.NewGuid());
+            var receiptIntent = new CommittedHolonReplicaRequest(Guid.NewGuid(), "owned-sqlite",
+                ProviderType.SQLLiteDBOASIS, Guid.NewGuid(), ConditionalHolonOperation.Save,
+                new[] { replica }, saveChildren: false);
+            var absentReceipt = await supabase.ReadCommittedHolonReplicaReceiptAsync(
+                new CommittedHolonReplicaReceiptReadRequest(receiptIntent, binding.Result));
+            Assert.IsFalse(absentReceipt.IsError, $"{absentReceipt.Message} {absentReceipt.Exception}");
+            Assert.AreEqual(ConditionalHolonReceiptState.Absent, absentReceipt.Result.ReceiptState);
+            var wrongBinding = new CosmicStorageIdentity(binding.Result.Authority, binding.Result.EndpointFingerprint, Guid.NewGuid());
+            var wrongStore = await supabase.ReadCommittedHolonReplicaReceiptAsync(
+                new CommittedHolonReplicaReceiptReadRequest(receiptIntent, wrongBinding));
+            Assert.AreEqual("COSMIC_REPLICA_RECEIPT_STORAGE_MISMATCH", wrongStore.ErrorCode);
+            var reopened = new SupabaseOASIS(endpoint, key!, client, "");
+            try
+            {
+                var activation = await reopened.ActivateProviderAsync();
+                Assert.IsFalse(activation.IsError, activation.Message);
+                var reopenedBinding = await reopened.CaptureStorageIdentityAsync();
+                Assert.IsFalse(reopenedBinding.IsError, reopenedBinding.Message);
+                Assert.AreEqual(binding.Result.BindingFingerprint, reopenedBinding.Result.BindingFingerprint);
+            }
+            finally
+            {
+                await reopened.DeActivateProviderAsync();
+            }
 
             var dna = new OASISDNA { OASIS = new NextGenSoftware.OASIS.API.DNA.OASIS
                 { HyperDriveMode = HyperDriveModes.V2, StorageProviders = new StorageProviderSettings() } };
