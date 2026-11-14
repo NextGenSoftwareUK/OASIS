@@ -110,20 +110,6 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
 
                 Assert.IsFalse(balance.IsError, balance.Message);
                 Assert.IsTrue(balance.Result > 1 && balance.Result < 21_000_000);
-
-                var history = await _provider.GetTransactionsAsync(
-                    new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests.GetWeb3TransactionsRequest
-                    {
-                        WalletAddress = "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa"
-                    });
-                Assert.IsFalse(history.IsError, history.Message);
-                Assert.IsTrue(history.Result.Count > 0);
-                foreach (var transaction in history.Result)
-                {
-                    Assert.AreEqual(64, transaction.NativeTransactionId.Length);
-                    Assert.AreEqual("satoshi", transaction.AmountUnit);
-                    Assert.AreEqual("1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa", transaction.ToWalletAddress);
-                }
             }
             finally
             {
@@ -152,6 +138,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
                     "fd3fed5bb1b5c3df76010d1d8c41e8bb68adb808d4c1b3b733b6da255f82271f");
                 Assert.AreEqual("1249", matching.RawAmount);
                 Assert.AreEqual("satoshi", matching.AmountUnit);
+                Assert.AreEqual("1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa", matching.ToWalletAddress);
                 Assert.AreEqual("00000000000000000001c7ee2824dea49dcb4e3ac5fd25b0619725981c439ac7", matching.NativeBlockHash);
                 Assert.IsTrue(history.Result.All(transaction => transaction.NativeBlockNumber == 975810));
             }
