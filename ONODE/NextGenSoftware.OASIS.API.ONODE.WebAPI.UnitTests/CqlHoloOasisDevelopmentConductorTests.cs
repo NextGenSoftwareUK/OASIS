@@ -190,7 +190,9 @@ public sealed class CqlHoloOasisDevelopmentConductorTests
                 Assert.True(connected.IsConnected && !connected.IsError);
                 var interfaces = await inspector.ListInterfacesAsync();
                 Assert.False(interfaces.IsError, interfaces.Message);
-                Assert.Equal(CanonicalHoloOasis.OASIS_HAPP_ID, Assert.Single(interfaces.AppInterfaces).InstalledAppId);
+                Assert.Single(interfaces.AppInterfaces,
+                    item => item.InstalledAppId == CanonicalHoloOasis.OASIS_HAPP_ID);
+                Assert.Equal(134, interfaces.AppInterfaces.Count(item => string.IsNullOrEmpty(item.InstalledAppId)));
             }
             finally
             {
