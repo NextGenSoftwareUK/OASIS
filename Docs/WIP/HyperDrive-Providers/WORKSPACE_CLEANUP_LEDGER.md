@@ -1193,3 +1193,4 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 14 November Cancun time. Both IPFS qualification jobs verified disposable Kubo fixture cleanup. No local build or download was created. The combined Development candidate used a temporary Git index, removed by the candidate command.
 14 November Cancun time. The native IPFS pagination job removed its disposable Kubo repository and both SQLite target fixtures. No local build or download was created. The candidate staging index was temporary and removed.
 14 November Cancun time. The 15-case replica authorization job passed its disposable runner fixture cleanup. No local build or fixture was created.
+14 November Cancun time. Native replica repair CI passed its MongoDB container, volumes and temporary fixture cleanup. No local downloads or builds were created.
