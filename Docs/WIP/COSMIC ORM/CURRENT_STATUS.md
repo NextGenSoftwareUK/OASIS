@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Firestore outbound rollout live verification
+
+13 November Cancun. Railway reported SUCCESS for WEB4 deployment e70edf4f-c9ca-4f32-b98d-006b1d1641a7. Read-only inspection confirmed revision 9944b532132b and the Holochain child process. Public health still timed out and logs showed the persisted HoloOASIS startup failure with 240 admin replies and zero running cells. A retained visitor refresh returned HTTP 502 with no replacement cookie. All five protected session bundles checked have unresolved rotations, including the HoloOASIS owner. Their journals are retained for reconciliation. No refresh was replayed and no new visitor was created. Candidate f587ae2ccabf remains CI-qualified. The newer HyperDrive candidate 72bd082f6613 differs from Development only in FirestoreSqliteOutageTests.cs at this review.
+
 ## Current website build
 
 Web4Site 9a409eb8e3ee refreshes the browser URLs for the parser, Playground and Ask your data scripts. Vercel built this exact revision and all 173 website tests passed on its committed files. Protected preview and real WEB6 drafting remain open. WEB4 session preflight from this preview returns wildcard origin and no credentials grant. The canonical website has the exact credentialed origin. Authenticated acceptance needs a stable trusted Development website origin or release through the canonical website workflow.
