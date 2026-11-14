@@ -1052,3 +1052,5 @@ Urgent disk cleanup follow-up: leased standard project clean succeeded for AWS u
 13 November. Oracle job 132315895272 passed both cases and removed its container, volumes, SQLite databases and test output. Logs were inspected in memory.
 
 13 November. SQL Server identity qualification uses the existing disposable CI fixture. No local downloads, databases or builds were created.
+
+13 November. The SQL Server peer database belongs to the existing disposable CI container and is removed with its volumes. No local fixtures or build outputs were created.

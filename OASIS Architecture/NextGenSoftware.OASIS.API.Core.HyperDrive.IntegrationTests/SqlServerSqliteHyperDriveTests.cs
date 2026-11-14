@@ -64,6 +64,22 @@ public sealed class SqlServerSqliteHyperDriveTests
                 await reopened.DeActivateProviderAsync();
             }
 
+            var peerConnection = new SqlConnectionStringBuilder(connection.ConnectionString)
+                { InitialCatalog = "oasis_priority_routing_peer" };
+            var peer = new SQLServerDBOASIS(peerConnection.ConnectionString);
+            try
+            {
+                var activated = await peer.ActivateProviderAsync();
+                Assert.False(activated.IsError, activated.Message);
+                var peerIdentity = await peer.CaptureStorageIdentityAsync();
+                Assert.False(peerIdentity.IsError, peerIdentity.Message);
+                Assert.NotEqual(identity.BindingFingerprint, peerIdentity.Result.BindingFingerprint);
+            }
+            finally
+            {
+                await peer.DeActivateProviderAsync();
+            }
+
             var dna = new OASISDNA { OASIS = new NextGenSoftware.OASIS.API.DNA.OASIS
                 { HyperDriveMode = HyperDriveModes.V2, StorageProviders = new StorageProviderSettings() } };
             dna.OASIS.SubscriptionConfig.PlanType = "Gold";

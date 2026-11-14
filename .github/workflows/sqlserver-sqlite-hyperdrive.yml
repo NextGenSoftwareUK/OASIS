@@ -130,7 +130,7 @@ jobs:
             [[ "$attempt" != 45 ]]
             sleep 2
           done
-          sql -Q "SET NOCOUNT ON; SELECT CONVERT(varchar(32), SERVERPROPERTY('ProductVersion')); CREATE DATABASE oasis_priority_routing;"
+          sql -Q "SET NOCOUNT ON; SELECT CONVERT(varchar(32), SERVERPROPERTY('ProductVersion')); CREATE DATABASE oasis_priority_routing; CREATE DATABASE oasis_priority_routing_peer;"
           export OASIS_PRIORITY_SQL_DIRECTORY="$fixture"
           export OASIS_PRIORITY_SQL_CONNECTION="Server=127.0.0.1,11433;Database=oasis_priority_routing;User ID=sa;Password=$password;Encrypt=True;TrustServerCertificate=True;Pooling=False"
           pwsh -NoProfile -Command '
