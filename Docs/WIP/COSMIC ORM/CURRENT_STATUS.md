@@ -1,5 +1,11 @@
 # COSMIC ORM / CQL current status
 
+## Azure Cosmos DB Development rollout accepted for CQL
+
+Railway marked e78c4819-2a7f-4797-a1ae-5113e869a32f successful and read-only SSH confirmed the exact revision f7815b62cee2. Public health initially timed out and then returned HTTP 200. After the retained smoke visitor renewed successfully, authenticated catalogue readiness rose from 49/107 through 82/107 to 105/107; Hedera and Nostr remained unavailable. The HoloOASIS full and filtered public presets returned identical native and MongoDB-federated ID sets at 3/2, with the filtered set a strict subset. No holons were created. Candidate 745b8ce505b0 still awaits the queued combined protocol CI before integration review.
+
+Web4Site 5aa960385eea passed 176 tests, including loading the exact displayed grouped SQL into the editor, focusing it for review and compiling both numeric predicates without querying WEB4. The canonical page has not picked up this build. Temporary website test files were removed.
+
 ## Shared Azure Cosmos DB and LINQ verification
 
 HyperDrive advanced Development to f7815b62cee2 with the Azure Cosmos DB ID-based healthy-miss regression. Railway queued WEB4 deployment e78c4819-2a7f-4797-a1ae-5113e869a32f at 20:31:59 Cancun. Latest review showed it building, with 72ffc86c2082 still serving. Review the next batch after 21:01:59 Cancun and verify live cutover first. Candidate 745b8ce505b0 layers only the qualified LINQ test file onto f7815b62cee2. [Exact combined protocol CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43541638153) is queued. No local builds, database fixtures or generated outputs were created.
