@@ -1274,3 +1274,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 - 14 November Cancun time. Native Bitcoin jobs 43645116244 and 43645353451 completed both disposable backend teardown checks. The receipt interruption proxy was scoped to its test. No local build, fixture, download or temporary Git index was created.
 
 - 14 November Cancun time. Native Bitcoin jobs 43645804515 and 43646078981 passed the disposable Kubo and Bitcoin backend teardown. No local build, download, runtime or fixture was created.
+
+- 14 November Cancun time. Bitcoin recovery CI 43646918886 passed and removed the disposable Bitcoin and Kubo fixtures and images. No local build, fixture or download was created.

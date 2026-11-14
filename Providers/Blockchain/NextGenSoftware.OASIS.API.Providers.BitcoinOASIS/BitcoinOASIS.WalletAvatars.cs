@@ -13,27 +13,29 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS;
 
 public partial class BitcoinOASIS
 {
-    private async Task<OASISResult<IAvatar>> LoadWalletAvatarAsync(Func<IAvatar, bool> matches, int version)
+    private async Task<OASISResult<T>> LoadWalletRecordAsync<T>(
+        Func<Transaction, Task<T>> decode, Func<T, bool> matches, int version) where T : class, IHolonBase
     {
-        var result = new OASISResult<IAvatar>();
+        var result = new OASISResult<T>();
         try
         {
-            result.Result = (await ReadWalletAvatarsAsync(version)).Where(matches).SingleOrDefault();
+            result.Result = (await ReadWalletRecordsAsync(decode, version)).Where(matches).SingleOrDefault();
             if (result.Result == null)
             {
                 result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
-                OASISErrorHandling.HandleError(ref result, "The Bitcoin wallet has no matching avatar.");
+                OASISErrorHandling.HandleError(ref result, "The Bitcoin wallet has no matching record.");
             }
         }
         catch (Exception ex)
         {
-            OASISErrorHandling.HandleError(ref result, $"Bitcoin avatar lookup failed ({ex.GetType().Name}).");
+            OASISErrorHandling.HandleError(ref result, $"Bitcoin wallet record lookup failed ({ex.GetType().Name}).");
         }
 
         return result;
     }
 
-    private async Task<IReadOnlyList<IAvatar>> ReadWalletAvatarsAsync(int version)
+    private async Task<IReadOnlyList<T>> ReadWalletRecordsAsync<T>(Func<Transaction, Task<T>> decode, int version)
+        where T : class, IHolonBase
     {
         if (version < 0)
             throw new ArgumentOutOfRangeException(nameof(version));
@@ -67,30 +69,30 @@ public partial class BitcoinOASIS
             endpoint = history + "/chain/" + cursor;
         }
 
-        var avatars = new List<IAvatar>();
+        var records = new List<T>();
         foreach (var candidate in candidates)
         {
             var transaction = await ReadVerifiedTransactionAsync(candidate);
             if (!await SpendsWalletOutputsAsync(transaction, wallet.ScriptPubKey))
                 continue;
-            var avatar = await DecodeAvatarTransactionAsync(transaction);
-            if (avatar == null || (version > 0 && avatar.Version != version))
+            var record = await decode(transaction);
+            if (record == null || (version > 0 && record.Version != version))
                 continue;
-            avatar.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
-            avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.BitcoinOASIS] = candidate.ToString();
-            avatars.Add(avatar);
+            record.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
+            record.ProviderUniqueStorageKey[Core.Enums.ProviderType.BitcoinOASIS] = candidate.ToString();
+            records.Add(record);
         }
 
         if ((await _httpClient.GetStringAsync("blocks/tip/hash")).Trim() != tip)
             throw new InvalidOperationException("The Bitcoin tip changed during wallet history lookup.");
 
-        return avatars.GroupBy(avatar => avatar.Id)
+        return records.GroupBy(record => record.Id)
             .Select(group =>
             {
-                var latestVersion = group.Max(avatar => avatar.Version);
-                return group.Single(avatar => avatar.Version == latestVersion);
+                var latestVersion = group.Max(record => record.Version);
+                return group.Single(record => record.Version == latestVersion);
             })
-            .OrderBy(avatar => avatar.Id)
+            .OrderBy(record => record.Id)
             .ToArray();
 
         void AddCandidates(JsonElement[] page)

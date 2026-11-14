@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -249,70 +249,8 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             return LoadAvatarDetailByEmailAsync(email, version).Result;
         }
 
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string email, int version = 0)
-        {
-            var result = new OASISResult<IAvatarDetail>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Bitcoin provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-                // Load avatar detail as separate object: search chain for OP_RETURN containing avatar detail with this email
-                var searchRequest = new
-                {
-                    jsonrpc = "2.0",
-                    id = 1,
-                    method = "searchrawtransactions",
-                    @params = new object[] { email ?? "", true, 0, 100 }
-                };
-                var searchContent = new StringContent(JsonSerializer.Serialize(searchRequest), Encoding.UTF8, "application/json");
-                var searchResponse = await _httpClient.PostAsync("", searchContent);
-                if (searchResponse.IsSuccessStatusCode)
-                {
-                    var searchResult = await searchResponse.Content.ReadAsStringAsync();
-                    var searchData = JsonSerializer.Deserialize<JsonElement>(searchResult);
-                    if (searchData.TryGetProperty("result", out var transactions))
-                    {
-                        foreach (var transaction in transactions.EnumerateArray())
-                        {
-                            if (!transaction.TryGetProperty("vout", out var vouts)) continue;
-                            foreach (var vout in vouts.EnumerateArray())
-                            {
-                                if (!vout.TryGetProperty("scriptPubKey", out var scriptPubKey) || !scriptPubKey.TryGetProperty("asm", out var asm)) continue;
-                                var asmString = asm.GetString();
-                                if (asmString == null || !asmString.StartsWith("OP_RETURN")) continue;
-                                try
-                                {
-                                    var detailBytes = Convert.FromHexString(asmString.Substring("OP_RETURN ".Length));
-                                    var detailJson = Encoding.UTF8.GetString(detailBytes);
-                                    var avatarDetail = ParseBitcoinToAvatarDetail(detailJson);
-                                    if (avatarDetail != null && string.Equals(avatarDetail.Email, email, StringComparison.OrdinalIgnoreCase))
-                                    {
-                                        result.Result = avatarDetail;
-                                        result.IsError = false;
-                                        result.Message = "Avatar detail loaded by email from Bitcoin blockchain successfully";
-                                        return result;
-                                    }
-                                }
-                                catch { }
-                            }
-                        }
-                    }
-                }
-                OASISErrorHandling.HandleError(ref result, "Avatar detail not found by email on Bitcoin blockchain");
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail by email from Bitcoin: {ex.Message}", ex);
-            }
-            return result;
-        }
+        public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string email, int version = 0)
+            => LoadWalletRecordAsync<IAvatarDetail>(DecodeAvatarDetailTransactionAsync, detail => string.Equals(detail.Email, email, StringComparison.OrdinalIgnoreCase), version);
 
         // LoadHolonsByMetaDataAsync (Dictionary) is already implemented above (around line 2738)
 
@@ -377,86 +315,8 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             return result;
         }
 
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
-        {
-            var result = new OASISResult<IAvatarDetail>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Bitcoin provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                // Load avatar detail as a separate object from Bitcoin OP_RETURN (same pattern as avatar, but deserialize as AvatarDetail)
-                var searchRequest = new
-                {
-                    jsonrpc = "2.0",
-                    id = 1,
-                    method = "searchrawtransactions",
-                    @params = new object[] { id.ToString(), true, 0, 100 }
-                };
-
-                var searchContent = new StringContent(JsonSerializer.Serialize(searchRequest), Encoding.UTF8, "application/json");
-                var searchResponse = await _httpClient.PostAsync("", searchContent);
-
-                if (searchResponse.IsSuccessStatusCode)
-                {
-                    var searchResult = await searchResponse.Content.ReadAsStringAsync();
-                    var searchData = JsonSerializer.Deserialize<JsonElement>(searchResult);
-
-                    if (searchData.TryGetProperty("result", out var transactions))
-                    {
-                        foreach (var transaction in transactions.EnumerateArray())
-                        {
-                            if (transaction.TryGetProperty("vout", out var vouts))
-                            {
-                                foreach (var vout in vouts.EnumerateArray())
-                                {
-                                    if (vout.TryGetProperty("scriptPubKey", out var scriptPubKey) &&
-                                        scriptPubKey.TryGetProperty("asm", out var asm))
-                                    {
-                                        var asmString = asm.GetString();
-                                        if (asmString != null && asmString.StartsWith("OP_RETURN"))
-                                        {
-                                            var opReturnData = asmString.Substring("OP_RETURN ".Length);
-                                            try
-                                            {
-                                                var detailBytes = Convert.FromHexString(opReturnData);
-                                                var detailJson = Encoding.UTF8.GetString(detailBytes);
-                                                var avatarDetail = ParseBitcoinToAvatarDetail(detailJson);
-                                                if (avatarDetail != null && avatarDetail.Id == id)
-                                                {
-                                                    result.Result = avatarDetail;
-                                                    result.IsError = false;
-                                                    result.Message = "Avatar detail loaded from Bitcoin blockchain successfully";
-                                                    return result;
-                                                }
-                                            }
-                                            catch { continue; }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        OASISErrorHandling.HandleError(ref result, "Avatar detail not found in Bitcoin blockchain");
-                    }
-                    else
-                        OASISErrorHandling.HandleError(ref result, "No transactions found for avatar detail ID");
-                }
-                else
-                    OASISErrorHandling.HandleError(ref result, $"Failed to search Bitcoin blockchain: {searchResponse.StatusCode}");
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail from Bitcoin: {ex.Message}", ex);
-            }
-            return result;
-        }
+        public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
+            => LoadWalletRecordAsync<IAvatarDetail>(DecodeAvatarDetailTransactionAsync, detail => detail.Id == id, version);
 
         public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool continueOnErrorRecursive = true, int version = 0)
         {
@@ -468,70 +328,8 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             return LoadHolonsForParentAsync(parentId, holonType, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, continueOnErrorRecursive, version).Result;
         }
 
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string username, int version = 0)
-        {
-            var result = new OASISResult<IAvatarDetail>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Bitcoin provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-                // Load avatar detail as separate object: search chain for OP_RETURN containing avatar detail with this username
-                var searchRequest = new
-                {
-                    jsonrpc = "2.0",
-                    id = 1,
-                    method = "searchrawtransactions",
-                    @params = new object[] { username ?? "", true, 0, 100 }
-                };
-                var searchContent = new StringContent(JsonSerializer.Serialize(searchRequest), Encoding.UTF8, "application/json");
-                var searchResponse = await _httpClient.PostAsync("", searchContent);
-                if (searchResponse.IsSuccessStatusCode)
-                {
-                    var searchResult = await searchResponse.Content.ReadAsStringAsync();
-                    var searchData = JsonSerializer.Deserialize<JsonElement>(searchResult);
-                    if (searchData.TryGetProperty("result", out var transactions))
-                    {
-                        foreach (var transaction in transactions.EnumerateArray())
-                        {
-                            if (!transaction.TryGetProperty("vout", out var vouts)) continue;
-                            foreach (var vout in vouts.EnumerateArray())
-                            {
-                                if (!vout.TryGetProperty("scriptPubKey", out var scriptPubKey) || !scriptPubKey.TryGetProperty("asm", out var asm)) continue;
-                                var asmString = asm.GetString();
-                                if (asmString == null || !asmString.StartsWith("OP_RETURN")) continue;
-                                try
-                                {
-                                    var detailBytes = Convert.FromHexString(asmString.Substring("OP_RETURN ".Length));
-                                    var detailJson = Encoding.UTF8.GetString(detailBytes);
-                                    var avatarDetail = ParseBitcoinToAvatarDetail(detailJson);
-                                    if (avatarDetail != null && string.Equals(avatarDetail.Username, username, StringComparison.OrdinalIgnoreCase))
-                                    {
-                                        result.Result = avatarDetail;
-                                        result.IsError = false;
-                                        result.Message = "Avatar detail loaded by username from Bitcoin blockchain successfully";
-                                        return result;
-                                    }
-                                }
-                                catch { }
-                            }
-                        }
-                    }
-                }
-                OASISErrorHandling.HandleError(ref result, "Avatar detail not found by username on Bitcoin blockchain");
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail by username from Bitcoin: {ex.Message}", ex);
-            }
-            return result;
-        }
+        public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string username, int version = 0)
+            => LoadWalletRecordAsync<IAvatarDetail>(DecodeAvatarDetailTransactionAsync, detail => string.Equals(detail.Username, username, StringComparison.OrdinalIgnoreCase), version);
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool continueOnErrorRecursive = true, int version = 0)
         {

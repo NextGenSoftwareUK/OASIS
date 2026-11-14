@@ -480,6 +480,24 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
             Assert.AreEqual(4, loadedDetail.Result.Version);
             Assert.AreEqual(detailTx, loadedDetail.Result.ProviderUniqueStorageKey[ProviderType.BitcoinOASIS]);
 
+            foreach (var lookup in new[]
+            {
+                await walletReader.LoadAvatarDetailAsync(avatarDetail.Id),
+                await walletReader.LoadAvatarDetailByEmailAsync(avatarDetail.Email.ToUpperInvariant()),
+                await walletReader.LoadAvatarDetailByUsernameAsync(avatarDetail.Username.ToUpperInvariant(), version: 4)
+            })
+            {
+                Assert.IsFalse(lookup.IsError, lookup.Message);
+                Assert.AreEqual(avatarDetail.Id, lookup.Result.Id);
+                Assert.AreEqual(detailTx, lookup.Result.ProviderUniqueStorageKey[ProviderType.BitcoinOASIS]);
+            }
+
+            var detailList = await walletReader.LoadAllAvatarDetailsAsync(version: 4);
+            Assert.IsFalse(detailList.IsError, detailList.Message);
+            Assert.AreEqual(avatarDetail.Id, detailList.Result.Single().Id);
+            var missingDetailVersion = await walletReader.LoadAvatarDetailAsync(avatarDetail.Id, version: 5);
+            Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound, missingDetailVersion.ErrorCode);
+
             var wrongDetailVersion = await reopened.LoadAvatarDetailByTransactionIdAsync(detailTx, version: 5);
             Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound, wrongDetailVersion.ErrorCode);
             var avatarAsDetail = await reopened.LoadAvatarDetailByTransactionIdAsync(avatarTx);

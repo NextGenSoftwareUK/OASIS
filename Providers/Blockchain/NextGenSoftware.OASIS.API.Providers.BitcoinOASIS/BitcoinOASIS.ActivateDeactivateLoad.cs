@@ -98,7 +98,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
         }
 
         public override Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0)
-            => LoadWalletAvatarAsync(avatar => avatar.Id == id, version);
+            => LoadWalletRecordAsync<IAvatar>(DecodeAvatarTransactionAsync, avatar => avatar.Id == id, version);
 
         public override OASISResult<IAvatar> LoadAvatar(Guid id, int version = 0)
         {
@@ -153,7 +153,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             return response;
         }
 
-        private async Task<Avatar> DecodeAvatarTransactionAsync(Transaction transaction)
+        private async Task<IAvatar> DecodeAvatarTransactionAsync(Transaction transaction)
         {
             Avatar avatar = null;
             foreach (var output in transaction.Outputs)
@@ -203,7 +203,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
         }
 
         public override Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0)
-            => LoadWalletAvatarAsync(avatar => string.Equals(avatar.Email, avatarEmail, StringComparison.OrdinalIgnoreCase), version);
+            => LoadWalletRecordAsync<IAvatar>(DecodeAvatarTransactionAsync, avatar => string.Equals(avatar.Email, avatarEmail, StringComparison.OrdinalIgnoreCase), version);
 
         public override OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail, int version = 0)
         {
@@ -211,7 +211,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
         }
 
         public override Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0)
-            => LoadWalletAvatarAsync(avatar => string.Equals(avatar.Username, avatarUsername, StringComparison.OrdinalIgnoreCase), version);
+            => LoadWalletRecordAsync<IAvatar>(DecodeAvatarTransactionAsync, avatar => string.Equals(avatar.Username, avatarUsername, StringComparison.OrdinalIgnoreCase), version);
 
         public override OASISResult<IAvatar> LoadAvatarByUsername(string avatarUsername, int version = 0)
         {

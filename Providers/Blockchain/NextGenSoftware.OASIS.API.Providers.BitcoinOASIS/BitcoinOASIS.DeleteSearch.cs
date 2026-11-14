@@ -249,92 +249,13 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             var result = new OASISResult<IEnumerable<IAvatarDetail>>();
             try
             {
-                // Load all avatar details as separate objects by scanning blocks for OP_RETURN (same approach as LoadAllHolonsAsync)
-                if (!_isActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Bitcoin provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-                var avatarDetails = new List<IAvatarDetail>();
-                var seenIds = new HashSet<Guid>();
-                var blockHeightRequest = new
-                {
-                    jsonrpc = "2.0",
-                    id = 1,
-                    method = "getblockcount",
-                    @params = new object[0]
-                };
-                var blockHeightContent = new StringContent(JsonSerializer.Serialize(blockHeightRequest), Encoding.UTF8, "application/json");
-                var blockHeightResponse = await _httpClient.PostAsync("", blockHeightContent);
-                if (blockHeightResponse.IsSuccessStatusCode)
-                {
-                    var blockHeightResult = await blockHeightResponse.Content.ReadAsStringAsync();
-                    var blockHeightData = JsonSerializer.Deserialize<JsonElement>(blockHeightResult);
-                    if (blockHeightData.TryGetProperty("result", out var currentHeight))
-                    {
-                        var startHeight = Math.Max(0, currentHeight.GetInt32() - 100);
-                        for (int height = currentHeight.GetInt32(); height >= startHeight; height--)
-                        {
-                            var blockHashRequest = new
-                            {
-                                jsonrpc = "2.0",
-                                id = 1,
-                                method = "getblockhash",
-                                @params = new object[] { height }
-                            };
-                            var blockHashContent = new StringContent(JsonSerializer.Serialize(blockHashRequest), Encoding.UTF8, "application/json");
-                            var blockHashResponse = await _httpClient.PostAsync("", blockHashContent);
-                            if (!blockHashResponse.IsSuccessStatusCode) continue;
-                            var blockHashResult = await blockHashResponse.Content.ReadAsStringAsync();
-                            var blockHashData = JsonSerializer.Deserialize<JsonElement>(blockHashResult);
-                            if (!blockHashData.TryGetProperty("result", out var blockHash)) continue;
-                            var blockRequest = new
-                            {
-                                jsonrpc = "2.0",
-                                id = 1,
-                                method = "getblock",
-                                @params = new object[] { blockHash.GetString(), 2 }
-                            };
-                            var blockContent = new StringContent(JsonSerializer.Serialize(blockRequest), Encoding.UTF8, "application/json");
-                            var blockResponse = await _httpClient.PostAsync("", blockContent);
-                            if (!blockResponse.IsSuccessStatusCode) continue;
-                            var blockResult = await blockResponse.Content.ReadAsStringAsync();
-                            var blockData = JsonSerializer.Deserialize<JsonElement>(blockResult);
-                            if (!blockData.TryGetProperty("result", out var block) || !block.TryGetProperty("tx", out var transactions)) continue;
-                            foreach (var tx in transactions.EnumerateArray())
-                            {
-                                if (!tx.TryGetProperty("vout", out var vouts)) continue;
-                                foreach (var vout in vouts.EnumerateArray())
-                                {
-                                    if (!vout.TryGetProperty("scriptPubKey", out var scriptPubKey) || !scriptPubKey.TryGetProperty("asm", out var asm)) continue;
-                                    var asmString = asm.GetString();
-                                    if (asmString == null || !asmString.StartsWith("OP_RETURN")) continue;
-                                    try
-                                    {
-                                        var detailBytes = Convert.FromHexString(asmString.Substring("OP_RETURN ".Length));
-                                        var detailJson = Encoding.UTF8.GetString(detailBytes);
-                                        var avatarDetail = ParseBitcoinToAvatarDetail(detailJson);
-                                        if (avatarDetail != null && seenIds.Add(avatarDetail.Id))
-                                            avatarDetails.Add(avatarDetail);
-                                    }
-                                    catch { }
-                                }
-                            }
-                        }
-                    }
-                }
-                result.Result = avatarDetails;
-                result.IsError = false;
-                result.Message = $"Loaded {avatarDetails.Count} avatar details from Bitcoin blockchain (scanned last 100 blocks)";
+                result.Result = await ReadWalletRecordsAsync<IAvatarDetail>(DecodeAvatarDetailTransactionAsync, version);
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error loading all avatar details from Bitcoin: {ex.Message}", ex);
+                OASISErrorHandling.HandleError(ref result, $"Bitcoin avatar detail listing failed ({ex.GetType().Name}).");
             }
+
             return result;
         }
 
@@ -514,7 +435,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             var result = new OASISResult<IEnumerable<IAvatar>>();
             try
             {
-                result.Result = await ReadWalletAvatarsAsync(version);
+                result.Result = await ReadWalletRecordsAsync<IAvatar>(DecodeAvatarTransactionAsync, version);
             }
             catch (Exception ex)
             {
