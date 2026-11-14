@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Holochain admin inventory accounts for the loopback listeners
+
+On the recovered WEB4 instance eda74489d26e, the canonical list_app_interfaces admin request returned 135 persisted app interfaces, one app-bound and 134 unbound. Together with the admin listener, the inventory accounts for the 136 loopback sockets. The first browser-style handshake failed without an Origin header. The successful local admin request used the same localhost Origin as HoloNET and a read-only protocol message. No files, configuration or data were changed. The inventory does not establish which stage caused the prior startup timeout.
+
 ## Recovered conductor retained the same listener count
 
 Read-only Railway SSH confirmed revision eda74489d26e in WEB4 recovery deployment 8e5e7063. Matching the conductor process socket inodes to listening IPv4 loopback sockets showed 136 distinct listeners, the same as the prior verified restart. This measures sockets, distinct from the persisted application-interface inventory. The pinned HoloNET client exposes ListInterfacesAsync for that inventory. The startup diagnostic is still in CI. No files, downloads or process changes were made on the container.
