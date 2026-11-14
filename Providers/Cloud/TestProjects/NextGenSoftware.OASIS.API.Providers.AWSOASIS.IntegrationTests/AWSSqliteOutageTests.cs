@@ -34,6 +34,19 @@ public partial class AWSOASISIntegrationTests
                 Assert.IsFalse(binding.IsError, $"{binding.Message} {binding.Exception}");
             Assert.AreEqual(ProviderType.AWSOASIS, bindings[0].Result.Authority);
             Assert.AreEqual(bindings[0].Result.BindingFingerprint, bindings[1].Result.BindingFingerprint);
+            var receiptHolon = new Holon { Id = Guid.NewGuid(), Version = 1, VersionId = Guid.NewGuid(), IsActive = true };
+            CosmicConcurrency.SetProviderRevisionId(receiptHolon, ProviderType.SQLLiteDBOASIS, Guid.NewGuid());
+            var replicaIntent = new CommittedHolonReplicaRequest(Guid.NewGuid(), "owned-sqlite",
+                ProviderType.SQLLiteDBOASIS, Guid.NewGuid(), ConditionalHolonOperation.Save, new[] { receiptHolon }, saveChildren: false);
+            var receiptProvider = (ICommittedHolonReplicaReceiptStorageProvider)_provider;
+            var receipt = await receiptProvider.ReadCommittedHolonReplicaReceiptAsync(
+                new CommittedHolonReplicaReceiptReadRequest(replicaIntent, bindings[0].Result));
+            Assert.IsFalse(receipt.IsError, $"{receipt.Message} {receipt.Exception}");
+            Assert.AreEqual(ConditionalHolonReceiptState.Absent, receipt.Result.ReceiptState);
+            var wrongStore = new CosmicStorageIdentity(ProviderType.AWSOASIS, bindings[0].Result.EndpointFingerprint, Guid.NewGuid());
+            var mismatch = await receiptProvider.ReadCommittedHolonReplicaReceiptAsync(
+                new CommittedHolonReplicaReceiptReadRequest(replicaIntent, wrongStore));
+            Assert.AreEqual("COSMIC_REPLICA_RECEIPT_STORAGE_MISMATCH", mismatch.ErrorCode);
 
             var saved = await _provider.SaveHolonAsync(new Holon { Id = id, Name = expected, IsActive = true }, saveChildren: false);
             Assert.IsFalse(saved.IsError, saved.Message);

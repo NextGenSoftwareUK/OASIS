@@ -1744,3 +1744,5 @@ Supabase now reads replica receipt evidence through a service-role PostgREST RPC
 14 November Cancun time. [Supabase lease recovery](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43565766064/job/132359162298) passed both native modes on tree c6cbe003050f15d06d317d7d900e2db6a56268a0, matching candidate 6c36bb49f09f. Active ownership excluded competing claims, the expired owner could not complete or renew, and attempt two delivered the exact source revision. Review after 01:44:53 Cancun. Hosted acceptance remains open.
 
 14 November Cancun time. Reviewed COSMIC status before taking AWS DynamoDB durable replication. The shipping AWS SDK now captures an identity bound to the native holon table and a conditionally persisted store UUID. Native AWS wrapper CI checks concurrent capture and authority. Bound replica apply and outbound dispatch remain open.
+
+14 November Cancun time. Added DynamoDB bound replica receipt reads using one native TransactGetItems for identity and receipt. AWS native CI covers absence and store mismatch. Replica apply remains open.
