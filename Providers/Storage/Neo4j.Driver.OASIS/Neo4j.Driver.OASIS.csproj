@@ -6,7 +6,7 @@
     <AssemblyName>Neo4j.Driver</AssemblyName>
     <RootNamespace>Neo4j.Driver</RootNamespace>
     <PackageId>NextGenSoftware.Neo4j.Driver.OASIS</PackageId>
-    <Version>4.3.2-oasis.1</Version>
+    <Version>4.3.2</Version>
     <AssemblyVersion>4.3.2.2</AssemblyVersion>
     <FileVersion>4.3.2.3</FileVersion>
     <InformationalVersion>4.3.2-oasis.1+5a40b591107331131875fbcd3d7f28fe60504d95</InformationalVersion>

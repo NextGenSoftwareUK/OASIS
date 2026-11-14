@@ -428,13 +428,20 @@ jobs:
         run: |
           $plan = Get-Content -Raw 'artifacts/global-release-plan/release-plan.json' | ConvertFrom-Json
           $edgePackages = @($plan.packages | Where-Object { $_.packageId -in $plan.edgePackageIds })
-          if ($edgePackages.Count -ne 9) { throw "Expected nine Edge packages in the reviewed plan, found $($edgePackages.Count)." }
+          # A package that an earlier NuGet publication already pushed (for example Contracts, which the
+          # bulk run publishes) is no longer a candidate, but it must really be on the registry.
+          $alreadyPublished = @($plan.edgePackageIds | Where-Object { $_ -notin @($edgePackages.packageId) })
+          foreach ($id in $alreadyPublished) {
+            $index = Invoke-RestMethod -Uri "https://api.nuget.org/v3-flatcontainer/$($id.ToLowerInvariant())/index.json"
+            if (@($index.versions).Count -eq 0) { throw "Edge package '$id' is neither in the reviewed plan nor published." }
+          }
+          if (($edgePackages.Count + $alreadyPublished.Count) -ne 9) { throw "Expected nine Edge packages (planned plus already published), found $($edgePackages.Count) planned and $($alreadyPublished.Count) published." }
           $publishCandidates = @(foreach ($package in $edgePackages) {
             $path = Join-Path 'artifacts/edge-nuget-publish-candidates' "$($package.packageId).$($package.version).nupkg"
             if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { throw "Missing reviewed Edge package: $path" }
             Get-Item -LiteralPath $path
           })
-          if ($publishCandidates.Count -ne 9) { throw "Expected exactly nine reviewed Edge NuGet candidates, found $($publishCandidates.Count)." }
+          if ($publishCandidates.Count -ne $edgePackages.Count) { throw "Expected exactly $($edgePackages.Count) reviewed Edge NuGet candidates, found $($publishCandidates.Count)." }
           Compress-Archive -LiteralPath $publishCandidates.FullName -DestinationPath 'artifacts/edge-runtime-release/nuget-publish-candidates.zip'
           ./Scripts/New-OASISReleaseNotes.ps1 -Component EdgeUnity -Version '${{ needs.plan.outputs.edge_unity_version }}' -OutputPath 'artifacts/edge-runtime-release/RELEASE_NOTES.md'
           ./Scripts/New-OASISEdgeRuntimeArchive.ps1 -EvidenceDirectory artifacts/edge-runtime-release -OutputPath 'artifacts/OASIS.Edge.Unity.v${{ needs.plan.outputs.edge_unity_version }}.zip'

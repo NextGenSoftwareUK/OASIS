@@ -30,4 +30,10 @@
     <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="9.0.23" PrivateAssets="all" Condition="'$(TargetFramework)' == 'net9.0'" />
     <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="8.0.34" PrivateAssets="all" Condition="'$(TargetFramework)' == 'net8.0'" />
   </ItemGroup>
+  <!-- Global release jobs pass -p:Version to every project, which also stamps the
+       IpfsCore project reference; ONODE.Core pins the same library by package id
+       (0.55.0), so NuGet reports a false downgrade. They are the same code. -->
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'NextGenSoftware.OASIS.API.ONODE.Core'">
+    <NoWarn>$(NoWarn);NU1605</NoWarn>
+  </PropertyGroup>
 </Project>
