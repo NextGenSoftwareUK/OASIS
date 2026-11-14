@@ -6614,3 +6614,5 @@ Track temporary tag `ci-cosmic-infura-web4-ee3a6589a6` for exact runs `432184056
 ## Playground numeric HAVING example verification
 
 Web4Site 5fa63a71df5d used a temporary directory containing only committed website JavaScript and HTML, plus a temporary Git index. The directory was automatically removed after the tests and push. No dependency downloads, database fixtures or build outputs were created.
+
+- 13 November Cancun: LocalState/COSMIC/HostedCqlReleaseSmoke-b4270f9c holds a dedicated Development smoke visitor journal and DPAPI credentials. Reuse until live acceptance work ends and retire through the normal session lifecycle. The prior renewal evidence stays sealed for reconciliation. No test databases, generated build outputs or downloads.

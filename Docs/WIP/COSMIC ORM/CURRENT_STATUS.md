@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Exact combined WEB4 rollout accepted for CQL
+
+Deployment 9a9332cd served b4270f9cb9d2 before and after the authenticated smoke. Public health returned HTTP 200. Native and federated discovery both reported 106/107 ready, with NostrOASIS unavailable. HoloOASIS and HashgraphOASIS each returned identical three-record and two-record subset ID sets across native and MongoDB-federated presets. The selected federation row provenance matched the provider in both checks. One separate Development smoke visitor was created after health passed. No holon fixtures were created. The previous visitor's pending rotation journal remains sealed. The HoloOASIS cold-start issue and hosted browser acceptance remain open.
+
 ## WEB4 public health recovered after persisted-cell timeouts
 
 Deployment 9a9332cd on b4270f9cb9d2 logged two persisted HoloOASIS cell timeouts with 240 admin replies and zero running cells. Read-only inspection then confirmed the WEB4 listener, both processes and 4.4 GiB free on the data volume. Public /api/health returned HTTP 200. The release-smoke visitor's prior 502 response is sealed, and the renewal journal remains pending. The HoloOASIS, IPFS and Polkadot readiness cohorts yielded no eligible retained read-only session. No renewal or replacement visitor was attempted during this review. Authenticated acceptance remains open. HyperDrive's SQL Server receiver candidate d64933834a96 passed exact native sync and async qualification and remains for the next shared review. No local build outputs or data fixtures were created.
