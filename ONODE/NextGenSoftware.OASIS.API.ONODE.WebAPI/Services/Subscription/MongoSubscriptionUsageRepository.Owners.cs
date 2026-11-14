@@ -21,15 +21,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
         public string UpdatedBy { get; set; }
     }
 
-    public sealed class AppPaygSettings
-    {
-        public bool Enabled { get; set; }
-        public decimal MonthlyCapUsd { get; set; }
-        public string PricingVersion { get; set; }
-        public DateTime? ConsentAtUtc { get; set; }
-        public string ConsentBy { get; set; }
-    }
-
     public sealed partial class MongoSubscriptionUsageRepository
     {
         public const int MaxAppOwners = 10;
