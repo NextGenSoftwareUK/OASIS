@@ -45,13 +45,23 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLServerDBOASIS
         {
             TypeInfoResolver = new DefaultJsonTypeInfoResolver
             {
-                Modifiers = { ConfigureWalletRecordTypes }
+                Modifiers = { ConfigureStoredRecordTypes }
             },
             Converters = { new WalletTransactionJsonConverter() }
         };
 
-        private static void ConfigureWalletRecordTypes(JsonTypeInfo typeInfo)
+        private static void ConfigureStoredRecordTypes(JsonTypeInfo typeInfo)
         {
+            if (typeof(IAuditBase).IsAssignableFrom(typeInfo.Type))
+            {
+                foreach (var property in typeInfo.Properties)
+                {
+                    // The stored audit actor is its ID. The navigation getter performs a provider lookup.
+                    if (property.Name == "deletedByAvatar")
+                        property.Get = null;
+                }
+            }
+
             // Keep the original interface-shaped JSON and materialize known wallet types
             // when reading existing records, which have no runtime type discriminator.
             if (typeInfo.Type == typeof(IProviderWallet))
