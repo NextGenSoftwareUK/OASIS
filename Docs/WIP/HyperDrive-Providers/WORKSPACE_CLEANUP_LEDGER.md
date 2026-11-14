@@ -1008,3 +1008,5 @@ Urgent disk cleanup follow-up: leased standard project clean succeeded for AWS u
 13 November. Removed the temporary Oracle provider-key qualification index. No local Oracle instance, SQLite fixture or build output was created.
 
 13 November. Superseded runs 43538654446 and 43540122809 were cancelled before runner assignment. They created no provider fixtures or test artifacts.
+
+13 November. Oracle receipt jobs 132279370813 and 132279771972 were superseded by run 43541966734. GitHub confirmed both cancellations without runner assignment. Neither job created a database, fixture or build output.
