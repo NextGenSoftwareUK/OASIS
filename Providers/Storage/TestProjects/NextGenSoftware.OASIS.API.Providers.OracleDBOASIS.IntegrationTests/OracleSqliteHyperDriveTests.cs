@@ -111,6 +111,100 @@ public sealed class OracleSqliteHyperDriveTests
             await VerifyFailoverAsync(dna, candidates, selected, sync, unavailableSqlite, oracle);
             Assert.IsFalse(File.Exists(unavailablePath));
 
+            var bindings = await Task.WhenAll(oracle.CaptureStorageIdentityAsync(), oracle.CaptureStorageIdentityAsync());
+            foreach (var binding in bindings)
+                Assert.IsFalse(binding.IsError, binding.Message);
+            Assert.AreEqual(bindings[0].Result.BindingFingerprint, bindings[1].Result.BindingFingerprint);
+            var reopened = new OracleProvider(connection.ConnectionString);
+            try
+            {
+                var activation = await reopened.ActivateProviderAsync();
+                Assert.IsFalse(activation.IsError, activation.Message);
+                var binding = await reopened.CaptureStorageIdentityAsync();
+                Assert.IsFalse(binding.IsError, binding.Message);
+                Assert.AreEqual(bindings[0].Result.BindingFingerprint, binding.Result.BindingFingerprint);
+            }
+            finally
+            {
+                await reopened.DeActivateProviderAsync();
+            }
+
+            var receiptHolon = new Holon { Id = Guid.NewGuid(), Name = "Owned Oracle receipt fixture", IsActive = true };
+            attempted.Add(receiptHolon.Id);
+            var write = new ConditionalHolonWrite(Guid.NewGuid(), Guid.NewGuid(), ProviderType.OracleDBOASIS,
+                new[] { new HolonWriteCondition(receiptHolon.Id, null) });
+            var intent = new ConditionalHolonWriteRequest(write, ConditionalHolonOperation.Save,
+                new[] { receiptHolon }, saveChildren: false);
+            var oracleIdentity = bindings[0].Result;
+            var sqliteIdentity = await sqlite.CaptureStorageIdentityAsync();
+            Assert.IsFalse(sqliteIdentity.IsError, sqliteIdentity.Message);
+            var replica = new Holon { Id = Guid.NewGuid(), Version = 1, VersionId = Guid.NewGuid() };
+            CosmicConcurrency.SetProviderRevisionId(replica, ProviderType.SQLLiteDBOASIS, Guid.NewGuid());
+            var replicaIntent = new CommittedHolonReplicaRequest(Guid.NewGuid(), "owned-sqlite", ProviderType.SQLLiteDBOASIS,
+                Guid.NewGuid(), ConditionalHolonOperation.Save, new[] { replica }, saveChildren: false);
+            var replicaEvidence = await oracle.ReadCommittedHolonReplicaReceiptAsync(
+                new CommittedHolonReplicaReceiptReadRequest(replicaIntent, oracleIdentity));
+            Assert.IsFalse(replicaEvidence.IsError, replicaEvidence.Message);
+            Assert.AreEqual(ConditionalHolonReceiptState.Absent, replicaEvidence.Result.ReceiptState);
+            attempted.Add(replica.Id);
+            var applied = sync ? oracle.ApplyBoundCommittedHolonReplica(replicaIntent, oracleIdentity)
+                : await oracle.ApplyBoundCommittedHolonReplicaAsync(replicaIntent, oracleIdentity);
+            Assert.IsFalse(applied.IsError, applied.Message);
+            var received = await oracle.ReadCommittedHolonReplicaReceiptAsync(
+                new CommittedHolonReplicaReceiptReadRequest(replicaIntent, oracleIdentity));
+            Assert.IsFalse(received.IsError, received.Message);
+            Assert.AreEqual(ConditionalHolonReceiptState.Committed, received.Result.ReceiptState);
+            var replayed = await oracle.ApplyBoundCommittedHolonReplicaAsync(replicaIntent, oracleIdentity);
+            Assert.IsFalse(replayed.IsError, replayed.Message);
+            Assert.AreEqual(applied.Result.Single().VersionId, replayed.Result.Single().VersionId);
+            Assert.AreEqual(replica.VersionId, (await oracle.LoadHolonAsync(replica.Id, loadChildren: false)).Result?.VersionId);
+
+
+            var evidenceRequest = new ConditionalHolonReceiptEvidenceRequest(intent, oracleIdentity,
+                sqliteIdentity.Result, new[] { receiptHolon.Id });
+            var absentReceipt = await oracle.ReadConditionalHolonReceiptEvidenceAsync(evidenceRequest);
+            Assert.IsFalse(absentReceipt.IsError, absentReceipt.Message);
+            Assert.AreEqual(ConditionalHolonReceiptState.Absent, absentReceipt.Result.ReceiptState);
+
+            var receiptWrite = sync ? oracle.ExecuteConditionalHolonWrite(intent) : await oracle.ExecuteConditionalHolonWriteAsync(intent);
+            Assert.IsTrue(!receiptWrite.IsError && receiptWrite.IsSaved, receiptWrite.Message);
+            var committedReceipt = await oracle.ReadConditionalHolonReceiptEvidenceAsync(evidenceRequest);
+            Assert.IsFalse(committedReceipt.IsError, committedReceipt.Message);
+            Assert.AreEqual(ConditionalHolonReceiptState.Committed, committedReceipt.Result.ReceiptState);
+            Assert.IsFalse(string.IsNullOrWhiteSpace(committedReceipt.Result.CommittedDeltaSummaryJson));
+            Assert.AreEqual(receiptWrite.Result.Single().VersionId, committedReceipt.Result.ReceiptEvidence.Records.Single().VersionId);
+            var wrongIdentity = new CosmicStorageIdentity(oracleIdentity.Authority, oracleIdentity.EndpointFingerprint, Guid.NewGuid());
+            var wrongBinding = await oracle.ReadBoundConditionalHolonWriteOutcomeAsync(intent, wrongIdentity);
+            Assert.AreEqual("COSMIC_SOURCE_STORAGE_BINDING_MISMATCH", wrongBinding.ErrorCode);
+            Assert.IsNull(wrongBinding.Result);
+
+            var peerConnection = new OracleConnectionStringBuilder(
+                Environment.GetEnvironmentVariable("OASIS_ORACLE_ROUTING_PEER_CONNECTION"));
+            Assert.AreEqual(connection.DataSource, peerConnection.DataSource);
+            Assert.AreEqual("OASIS_ROUTING_PEER", peerConnection.UserID);
+            var peer = new OracleProvider(peerConnection.ConnectionString);
+            try
+            {
+                var peerActivation = await peer.ActivateProviderAsync();
+                Assert.IsTrue(!peerActivation.IsError && peerActivation.Result, peerActivation.Message);
+                var peerIdentity = await peer.CaptureStorageIdentityAsync();
+                Assert.IsFalse(peerIdentity.IsError, peerIdentity.Message);
+                Assert.AreNotEqual(oracleIdentity.BindingFingerprint, peerIdentity.Result.BindingFingerprint);
+                Assert.AreNotEqual(oracleIdentity.StoreId, peerIdentity.Result.StoreId);
+                var peerReceipt = await peer.ReadConditionalHolonReceiptEvidenceAsync(evidenceRequest);
+                Assert.AreEqual("COSMIC_SOURCE_STORAGE_BINDING_MISMATCH", peerReceipt.ErrorCode);
+                Assert.IsNull(peerReceipt.Result);
+                var peerRequest = new ConditionalHolonReceiptEvidenceRequest(intent, peerIdentity.Result,
+                    sqliteIdentity.Result, new[] { receiptHolon.Id });
+                var absentInPeer = await peer.ReadConditionalHolonReceiptEvidenceAsync(peerRequest);
+                Assert.IsFalse(absentInPeer.IsError, absentInPeer.Message);
+                Assert.AreEqual(ConditionalHolonReceiptState.Absent, absentInPeer.Result.ReceiptState);
+            }
+            finally
+            {
+                await peer.DeActivateProviderAsync();
+            }
+
             var replicaOnly = new Holon { Id = Guid.NewGuid(), Name = "SQLite-only replica", CreatedByAvatarId = Guid.NewGuid() };
             var replicaSave = await sqlite.SaveHolonAsync(replicaOnly, saveChildren: false);
             Assert.IsTrue(!replicaSave.IsError && replicaSave.IsSaved, replicaSave.Message);
