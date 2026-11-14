@@ -85,7 +85,7 @@ public sealed class HolonReplicaInitializationApplication
                 File.Move(path+".tmp",path,true);
             }
             if(!recovering)Save("Prepared");
-            var authorized=await _preparation.ReauthorizeApplicationAsync(intent,token).ConfigureAwait(false);
+            var authorized=await _preparation.ReauthorizeApplicationAsync(intent,allowCompleted:phase!="Prepared",token).ConfigureAwait(false);
             if(!Clean(authorized) || authorized.Result==null)return Failed(authorized?.ErrorCode,authorized?.Message,authorized?.Exception);
             var mutation=authorized.Result;
             var observed=await _readOutcome(mutation,token).ConfigureAwait(false);
