@@ -996,3 +996,5 @@ Urgent disk cleanup follow-up: leased standard project clean succeeded for AWS u
 13 November. Exact Firestore physical-source job 132263332650 removed its emulator and fixture after both cases passed. Logs were read in memory. No local build or fixture was created.
 
 13 November. Azure Cosmos job 132265061989 stopped before emulator or test fixture creation. Logs were inspected in memory and no local build ran.
+
+13 November. Azure Cosmos job 132266208305 passed both native cases and removed its emulator, volumes, SQLite files and test output. Logs were inspected in memory.
