@@ -87,24 +87,39 @@ public partial class DynamoDBOASIS
         if (counter == null || counter.Count == 0)
             yield break;
         var highWaterMark = ReadOutboundSequence(counter);
-        // Publication commits the watermark and every preceding delivery together.
-        for (long sequence = 1; ; sequence++)
+        // Eight maximum-size delivery items plus the identity fit the 4 MiB transaction.
+        const int pageSize = 8;
+        for (long first = 1; ;)
         {
-            var item = await ReadOutboundDeliveryAsync(sequence, expected, cancellationToken);
-            yield return item ?? throw new InvalidDataException("DynamoDB outbox sequence has a missing delivery.");
-            if (sequence == highWaterMark)
+            var count = (int)Math.Min(pageSize, highWaterMark - first + 1);
+            var keys = Enumerable.Range(0, count).Select(offset => OutboundDeliveryKey(first + offset)).ToArray();
+            var items = await ReadBoundOutboundItemsAsync(keys, expected, cancellationToken);
+            for (var offset = 0; offset < count; offset++)
+            {
+                var item = ValidateOutboundDelivery(items[offset], first + offset);
+                yield return item ?? throw new InvalidDataException("DynamoDB outbox sequence has a missing delivery.");
+            }
+
+            if (highWaterMark - first < count)
                 yield break;
+            first += count;
         }
     }
+
 
     private async Task<Dictionary<string, AttributeValue>?> ReadOutboundDeliveryAsync(
         long sequence, CosmicStorageIdentity expected, CancellationToken cancellationToken)
     {
-        var key = OutboundDeliveryKey(sequence);
-        var item = await ReadBoundOutboundItemAsync(key, expected, cancellationToken);
+        var item = await ReadBoundOutboundItemAsync(OutboundDeliveryKey(sequence), expected, cancellationToken);
+        return ValidateOutboundDelivery(item, sequence);
+    }
+
+    private static Dictionary<string, AttributeValue>? ValidateOutboundDelivery(
+        Dictionary<string, AttributeValue>? item, long sequence)
+    {
         if (item == null || item.Count == 0)
             return null;
-        if (item["id"].S != key || ReadOutboundSequence(item) != sequence)
+        if (item["id"].S != OutboundDeliveryKey(sequence) || ReadOutboundSequence(item) != sequence)
             throw new InvalidDataException("DynamoDB outbox sequence has an inconsistent delivery.");
         return item;
     }
@@ -294,26 +309,29 @@ public partial class DynamoDBOASIS
 
     private async Task<Dictionary<string, AttributeValue>> ReadBoundOutboundItemAsync(
         string key, CosmicStorageIdentity expected, CancellationToken cancellationToken)
+        => (await ReadBoundOutboundItemsAsync(new[] { key }, expected, cancellationToken))[0];
+
+    private async Task<Dictionary<string, AttributeValue>[]> ReadBoundOutboundItemsAsync(
+        IReadOnlyList<string> keys, CosmicStorageIdentity expected, CancellationToken cancellationToken)
     {
         var fingerprint = await ReadStorageEndpointFingerprintAsync(cancellationToken);
         if (expected.Authority != StorageProviderType || fingerprint != expected.EndpointFingerprint)
             throw new DynamoSourceBindingException();
 
+        var reads = new List<TransactGetItem> { new() { Get = ReceiptTableGet(StorageIdentityKey) } };
+        reads.AddRange(keys.Select(key => new TransactGetItem { Get = ReceiptTableGet(key) }));
         var response = await _client.TransactGetItemsAsync(new TransactGetItemsRequest
         {
-            TransactItems = new()
-            {
-                new() { Get = ReceiptTableGet(StorageIdentityKey) },
-                new() { Get = ReceiptTableGet(key) }
-            }
+            TransactItems = reads
         }, cancellationToken);
-        if (response.HttpStatusCode != HttpStatusCode.OK || response.Responses?.Count != 2)
+        if (response.HttpStatusCode != HttpStatusCode.OK || response.Responses?.Count != reads.Count)
             throw new InvalidDataException("DynamoDB returned an incomplete bound outbox snapshot.");
+
 
         var identity = response.Responses[0].Item;
         if (identity == null || !identity.TryGetValue("store_id", out var nativeStore) || nativeStore.S != expected.StoreId)
             throw new DynamoSourceBindingException();
-        return response.Responses[1].Item;
+        return response.Responses.Skip(1).Select(result => result.Item).ToArray();
     }
 
     private sealed class DynamoSourceBindingException : Exception

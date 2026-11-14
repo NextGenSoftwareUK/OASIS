@@ -1820,3 +1820,5 @@ Supabase now reads replica receipt evidence through a service-role PostgREST RPC
 14 November Cancun time. [Exact DynamoDB outbound qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43577296735/job/132394226618) passed four native cases with zero skips at ba04fd322439 on Development 985cc6f58c65. Verified bidirectional dispatcher delivery, native source binding, inventory, ordered hard deletion and expired-lease recovery. Deployment 7785188855 began at 03:47:37 Cancun. Review after 04:17:37, subject to the shared head and rollout. Hosted AWS acceptance remains open.
 
 14 November Cancun time. Extended native DynamoDB lease coverage to check that an active worker blocks both a competing claim and the later tombstone on the same route. Hosted CI qualification is pending. No local artifacts were created.
+
+14 November Cancun time. DynamoDB outbox discovery now reads bounded pages of eight deliveries per native transaction with the enrolled store identity. It retains the sequence and gap checks. CI qualification is pending. No local artifacts created.
