@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## WEB4 recovery and composition admission
+
+Development b4f1a930b2b8 deployment 7abc1437 exhausted its restart attempts after eleven persisted HoloOASIS cell timeouts. The admin endpoint answered while zero live cells were reported. The container had free data volume space and the bootstrap and relay endpoints passed certificate verification. The effective Railway service manifest has no HTTP health check. The replacement deployment bd096e50 is building. Verify the serving revision and public health before authenticated CQL. The single-provider measured composition route was staged in Development settings without triggering a deployment. Check its presence on the replacement before testing native composition. No fixtures or local build outputs were created.
+
 ## Supabase bidirectional dispatcher rollout
 
 Development advanced to b4f1a930b2b8 after [native PostgREST CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43564715599) verified Supabase-to-SQLite and SQLite-to-Supabase delivery in both routing modes. Railway queued WEB4 deployment 7abc1437. Live CQL acceptance remains on 5ab24c31afa0 pending cutover. The separate native expired-lease recovery test is awaiting qualification. Hosted Supabase CQL still needs its teaching fixture and restricted reader. No local builds or data fixtures were created.
