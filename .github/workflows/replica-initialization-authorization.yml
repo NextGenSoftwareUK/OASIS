@@ -6,6 +6,8 @@ on:
     paths:
       - '.github/workflows/replica-initialization-authorization.yml'
       - 'Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests/HolonReplicaInitializationPreparationTests.cs'
+      - 'Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests/HolonReplicationHostingTests.cs'
+      - 'Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/CommittedHolonReplicaTarget.cs'
   workflow_dispatch:
 
 permissions:
@@ -64,12 +66,12 @@ jobs:
           try {
             ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-ReplicaInitializationAuthorization -Operation {
               $project = 'Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests'
-              dotnet test $project --filter 'FullyQualifiedName~UnboundOrUncertainSourceEvidenceNeverProducesAnInitializationIntent' --artifacts-path (Join-Path $fixture build) --results-directory $fixture --logger 'trx;LogFileName=authorization.trx' /m:2 /nr:false /p:UseSharedCompilation=false
+              dotnet test $project --filter 'FullyQualifiedName~UnboundOrUncertainSourceEvidenceNeverProducesAnInitializationIntent|FullyQualifiedName~PolicyCannotRepairAnOriginallyInvalidRoutingEnvelope' --artifacts-path (Join-Path $fixture build) --results-directory $fixture --logger 'trx;LogFileName=authorization.trx' /m:2 /nr:false /p:UseSharedCompilation=false
               if ($LASTEXITCODE) { throw 'Replica initialization authorization tests failed.' }
               [xml]$report = Get-Content -LiteralPath (Join-Path $fixture authorization.trx)
               $counts = $report.TestRun.ResultSummary.Counters
-              if ([int]$counts.total -ne 8 -or [int]$counts.passed -ne 8 -or [int]$counts.notExecuted -ne 0) {
-                throw 'Expected all eight rejection cases to pass with zero skips.'
+              if ([int]$counts.total -ne 14 -or [int]$counts.passed -ne 14 -or [int]$counts.notExecuted -ne 0) {
+                throw 'Expected eight initialization and six routing rejection cases to pass with zero skips.'
               }
             }
           } finally {
