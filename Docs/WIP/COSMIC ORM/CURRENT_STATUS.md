@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Shared Azure Cosmos DB and LINQ verification
+
+HyperDrive advanced Development to f7815b62cee2 with the Azure Cosmos DB ID-based healthy-miss regression. Railway queued WEB4 deployment e78c4819-2a7f-4797-a1ae-5113e869a32f at 20:31:59 Cancun. Latest review showed it building, with 72ffc86c2082 still serving. Review the next batch after 21:01:59 Cancun and verify live cutover first. Candidate 745b8ce505b0 layers only the qualified LINQ test file onto f7815b62cee2. [Exact combined protocol CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43541638153) is queued. No local builds, database fixtures or generated outputs were created.
+
 ## Playground numeric HAVING example
 
 Web4Site 5fa63a71df5d displays a grouped MongoDB example with COUNT, AVG and SUM and explicit average and total version predicates. All 175 website tests passed. The exact displayed SQL compiled to the grouped endpoint with Decimal and Int32 filter values. The earlier live three-provider fixture evidence remains the API acceptance baseline. Hosted browser acceptance remains open.
