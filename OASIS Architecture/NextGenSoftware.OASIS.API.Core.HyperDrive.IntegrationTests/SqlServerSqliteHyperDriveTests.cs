@@ -69,6 +69,47 @@ public sealed class SqlServerSqliteHyperDriveTests
             Assert.False(committed.IsError, committed.Message);
             Assert.Equal(ConditionalHolonReceiptState.Committed, committed.Result.ReceiptState);
             Assert.Equal(replica.VersionId, (await sql.LoadHolonAsync(replica.Id, loadChildren: false)).Result?.VersionId);
+
+            var successor = new Holon { Id = replica.Id, Version = 2, VersionId = Guid.NewGuid(),
+                PreviousVersionId = Guid.NewGuid(), Name = "SQL Server replica successor", IsActive = true };
+            CosmicConcurrency.SetProviderRevisionId(successor, ProviderType.SQLLiteDBOASIS, Guid.NewGuid());
+            CommittedHolonReplicaRequest NextReplica(ConditionalHolonOperation operation, Holon snapshot)
+                => new(Guid.NewGuid(), replicaIntent.SourceId, replicaIntent.SourceAuthority, replicaIntent.ActorId,
+                    operation, new[] { snapshot }, saveChildren: false);
+            var divergent = NextReplica(ConditionalHolonOperation.Save, successor);
+            var rejected = await sql.ApplyBoundCommittedHolonReplicaAsync(divergent, identity);
+            Assert.True(rejected.IsError);
+            Assert.Equal("COSMIC_REPLICA_LINEAGE_CONFLICT", rejected.ErrorCode);
+            var rejectedReceipt = await sql.ReadCommittedHolonReplicaReceiptAsync(
+                new CommittedHolonReplicaReceiptReadRequest(divergent, identity));
+            Assert.False(rejectedReceipt.IsError, rejectedReceipt.Message);
+            Assert.Equal(ConditionalHolonReceiptState.Absent, rejectedReceipt.Result.ReceiptState);
+            Assert.Equal(replica.VersionId, (await sql.LoadHolonAsync(replica.Id, loadChildren: false)).Result?.VersionId);
+
+            successor.PreviousVersionId = replica.VersionId;
+            var advanced = await sql.ApplyBoundCommittedHolonReplicaAsync(
+                NextReplica(ConditionalHolonOperation.Save, successor), identity);
+            Assert.False(advanced.IsError, advanced.Message);
+            Assert.Equal(successor.VersionId, (await sql.LoadHolonAsync(replica.Id, loadChildren: false)).Result?.VersionId);
+            var tombstone = new Holon { Id = replica.Id, Version = 3, VersionId = Guid.NewGuid(),
+                PreviousVersionId = successor.VersionId, Name = successor.Name, IsActive = false,
+                DeletedDate = DateTime.UtcNow, DeletedByAvatarId = replicaIntent.ActorId };
+            CosmicConcurrency.SetProviderRevisionId(tombstone, ProviderType.SQLLiteDBOASIS, Guid.NewGuid());
+            var deletion = NextReplica(ConditionalHolonOperation.HardDelete, tombstone);
+            var deletedReplica = sync ? sql.ApplyBoundCommittedHolonReplica(deletion, identity)
+                : await sql.ApplyBoundCommittedHolonReplicaAsync(deletion, identity);
+            Assert.True(!deletedReplica.IsError && deletedReplica.IsDeleted, deletedReplica.Message);
+            var deletionReceipt = await sql.ReadCommittedHolonReplicaReceiptAsync(
+                new CommittedHolonReplicaReceiptReadRequest(deletion, identity));
+            Assert.False(deletionReceipt.IsError, deletionReceipt.Message);
+            Assert.Equal(ConditionalHolonReceiptState.Committed, deletionReceipt.Result.ReceiptState);
+            await using (var native = new SqlConnection(connection.ConnectionString))
+            {
+                await native.OpenAsync();
+                await using var check = new SqlCommand("SELECT COUNT(*) FROM OASISHolons WHERE Id=@Id;", native);
+                check.Parameters.AddWithValue("@Id", replica.Id);
+                Assert.Equal(0, Convert.ToInt32(await check.ExecuteScalarAsync()));
+            }
             var reopened = new SQLServerDBOASIS(connection.ConnectionString);
             try
             {

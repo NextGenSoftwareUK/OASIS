@@ -1062,3 +1062,5 @@ Urgent disk cleanup follow-up: leased standard project clean succeeded for AWS u
 13 November. SQL Server jobs 132319286099 and 132319286292 removed their containers, volumes, SQLite databases and test outputs after the compile failure. No local builds or fixtures were created.
 
 13 November. SQL Server replica apply uses the existing native CI container and databases. No local build or database was created.
+
+13 November. SQL Server lineage and hard-delete qualification reuses the owned CI container and database. No local fixture or build output was created.
