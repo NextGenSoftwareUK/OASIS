@@ -82,7 +82,7 @@ jobs:
           git -C ../provider-source fetch --no-tags --depth=1 origin "$base"
           tests='Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.SupabaseOASIS.IntegrationTests'
           provider='Providers/Cloud/NextGenSoftware.OASIS.API.Providers.SupabaseOASIS'
-          for path in "$tests/NextGenSoftware.OASIS.API.Providers.SupabaseOASIS.IntegrationTests.csproj" "$tests/SupabaseSqliteHyperDriveTests.cs" "$provider/SupabaseOASIS.StorageIdentity.cs" "$provider/SupabaseOASIS.ReplicaApply.cs" "$provider/SupabaseOASIS.ConditionalWrites.cs" "$provider/supabase-replication-schema.sql" "$provider/supabase-outbound-schema.sql"; do
+          for path in "$tests/NextGenSoftware.OASIS.API.Providers.SupabaseOASIS.IntegrationTests.csproj" "$tests/SupabaseSqliteHyperDriveTests.cs" "$provider/SupabaseOASIS.StorageIdentity.cs" "$provider/SupabaseOASIS.ReplicaApply.cs" "$provider/SupabaseOASIS.ConditionalWrites.cs" "$provider/SupabaseOASIS.Outbox.cs" "$provider/supabase-replication-schema.sql" "$provider/supabase-outbound-schema.sql"; do
             current="$(git ls-tree HEAD -- "$path")"
             reviewed="$(git -C ../provider-source ls-tree "$base" -- "$path")"
             incoming="$(git -C ../provider-source ls-tree HEAD -- "$path")"

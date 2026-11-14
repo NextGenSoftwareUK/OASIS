@@ -1732,3 +1732,5 @@ Supabase now reads replica receipt evidence through a service-role PostgREST RPC
 14 November Cancun time. Supabase outbound migration now supplies service-role claim, renewal and completion RPCs. PostgreSQL locks the route head and uses its clock to fence lease ownership. The client outbox and end-to-end dispatcher verification remain open.
 
 14 November Cancun time. Added Supabase bound delivery inspection and ordered route-head pagination RPC. The service role calls the function without direct table access. Shipping outbox integration and native delivery verification remain open.
+
+14 November Cancun time. Wired the shipping Supabase outbox and enrolled source to PostgREST. Native CI now tests the reverse dispatcher, exact revision in SQLite and durable completion on Supabase. Verification is pending.

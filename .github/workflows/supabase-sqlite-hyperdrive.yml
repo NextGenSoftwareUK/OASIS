@@ -9,6 +9,7 @@ on:
       - 'Providers/Cloud/NextGenSoftware.OASIS.API.Providers.SupabaseOASIS/SupabaseOASIS.StorageIdentity.cs'
       - 'Providers/Cloud/NextGenSoftware.OASIS.API.Providers.SupabaseOASIS/SupabaseOASIS.ReplicaApply.cs'
       - 'Providers/Cloud/NextGenSoftware.OASIS.API.Providers.SupabaseOASIS/SupabaseOASIS.ConditionalWrites.cs'
+      - 'Providers/Cloud/NextGenSoftware.OASIS.API.Providers.SupabaseOASIS/SupabaseOASIS.Outbox.cs'
       - 'Providers/Cloud/NextGenSoftware.OASIS.API.Providers.SupabaseOASIS/supabase-replication-schema.sql'
       - 'Providers/Cloud/NextGenSoftware.OASIS.API.Providers.SupabaseOASIS/supabase-outbound-schema.sql'
       - 'Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.SupabaseOASIS.IntegrationTests/SupabaseSqliteHyperDriveTests.cs'
