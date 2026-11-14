@@ -283,6 +283,53 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
             var missingVersion = await provider.LoadHolonAsync(transactionId, loadChildren: false, version: 2);
             Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound, missingVersion.ErrorCode);
 
+            var storageAddress = sourceKey.PubKey.GetAddress(NBitcoin.ScriptPubKeyType.Segwit, network).ToString();
+            await BitcoinCliAsync("-rpcwallet=oasis-regtest", "-named", "sendtoaddress",
+                $"address={storageAddress}", "amount=1", "fee_rate=2");
+            await BitcoinCliAsync("generatetoaddress", "1", source);
+            var storageTip = (await BitcoinCliAsync("getblockcount")).Trim();
+            for (var attempt = 0; attempt < 60; attempt++)
+            {
+                if ((await http.GetStringAsync("blocks/tip/height")).Trim() == storageTip)
+                    break;
+                await Task.Delay(500);
+            }
+            Assert.AreEqual(storageTip, (await http.GetStringAsync("blocks/tip/height")).Trim());
+
+            var privateHolon = new Holon
+            {
+                Id = Guid.NewGuid(),
+                HolonType = HolonType.Holon,
+                Version = 3,
+                Name = "Private regtest fixture"
+            };
+            var saved = await provider.SaveHolonAsync(privateHolon, saveChildren: false);
+            Assert.IsFalse(saved.IsError, saved.Message);
+            var storageTx = saved.Result.ProviderUniqueStorageKey[ProviderType.BitcoinOASIS];
+            await BitcoinCliAsync("getmempoolentry", storageTx);
+            var storageBlockIds = await BitcoinCliAsync("generatetoaddress", "1", source);
+            using var storageBlocks = System.Text.Json.JsonDocument.Parse(storageBlockIds);
+            var storageBlockHash = storageBlocks.RootElement[0].GetString();
+            var storageBlock = await BitcoinCliAsync("getblock", storageBlockHash, "1");
+            using var storageConfirmation = System.Text.Json.JsonDocument.Parse(storageBlock);
+            Assert.IsTrue(storageConfirmation.RootElement.GetProperty("tx").EnumerateArray()
+                .Any(candidate => candidate.GetString() == storageTx));
+
+            for (var attempt = 0; attempt < 60; attempt++)
+            {
+                if ((await http.GetStringAsync("blocks/tip/hash")).Trim() == storageBlockHash)
+                    break;
+                await Task.Delay(500);
+            }
+            Assert.AreEqual(storageBlockHash, (await http.GetStringAsync("blocks/tip/hash")).Trim());
+            using var reopened = new BitcoinOASIS(api, "regtest");
+            var restored = await reopened.LoadHolonAsync(storageTx, loadChildren: false, version: 3);
+            Assert.IsFalse(restored.IsError, restored.Message);
+            Assert.AreEqual(privateHolon.Id, restored.Result.Id);
+            Assert.AreEqual(privateHolon.Name, restored.Result.Name);
+            Assert.AreEqual(3, restored.Result.Version);
+            Assert.AreEqual(storageTx, restored.Result.ProviderUniqueStorageKey[ProviderType.BitcoinOASIS]);
+
             async Task<string> BitcoinCliAsync(params string[] arguments)
             {
                 var start = new System.Diagnostics.ProcessStartInfo("docker")

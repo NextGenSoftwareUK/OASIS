@@ -1252,3 +1252,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 - 14 November Cancun time. Native Bitcoin run 43634575136 passed verified container and image teardown. No local builds or fixtures.
 
 - 14 November Cancun time. Removed the temporary Git index for candidate c03148b117a0. Exact native regtest 43635476872 passed disposable container and image teardown. No local build, download, or fixture.
+
+- 14 November Cancun time. Combined Bitcoin/Kubo CI removes the owned containers, anonymous volumes and pinned images in its exit trap. No fixtures or downloads on C:.

@@ -48,6 +48,8 @@ jobs:
           set -euo pipefail
           image='blockstream/esplora@sha256:1d5c64df311cce3e7ab6fd5749f8e65c20099186014c058e561cbf52085ef6db'
           fixture="oasis-bitcoin-regtest-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          kubo_image='ipfs/kubo@sha256:97ece99cfccea95613ab3634f761d0200e9e8b1f49294b5428e19b5b9056759d'
+          kubo_fixture="$fixture-kubo"
           cleanup() {
             local status=$?
             trap - EXIT
@@ -60,6 +62,12 @@ jobs:
             if docker container inspect "$fixture" >/dev/null 2>&1; then
               echo "The disposable Bitcoin container still exists." >&2
               status=1
+            fi
+            if docker container inspect "$kubo_fixture" >/dev/null 2>&1; then
+              docker rm -f -v "$kubo_fixture" || status=1
+            fi
+            if docker image inspect "$kubo_image" >/dev/null 2>&1; then
+              docker image rm "$kubo_image" || status=1
             fi
             exit "$status"
           }
@@ -88,6 +96,17 @@ jobs:
           printf 'Esplora fee targets after mining: '
           curl -fsS "$api/fee-estimates" | jq -c 'keys'
           test "$(bitcoin getblockcount)" -ge 101
+          docker run -d --name "$kubo_fixture" -p 127.0.0.1::5001 "$kubo_image" daemon --offline
+          kubo_port=$(docker port "$kubo_fixture" 5001/tcp | cut -d: -f2)
+          export OASIS_BITCOIN_KUBO_API="http://127.0.0.1:$kubo_port"
+          for attempt in {1..60}; do
+            if curl -fsS -X POST "$OASIS_BITCOIN_KUBO_API/api/v0/version" >/dev/null 2>&1; then
+              break
+            fi
+            sleep 1
+          done
+          curl -fsS -X POST "$OASIS_BITCOIN_KUBO_API/api/v0/version" | jq -e '.Version == "0.43.1"'
+          export OASIS_BITCOIN_STORAGE_KEY="$(openssl rand -base64 32)"
           export OASIS_BITCOIN_REGTEST_API="$api"
           export OASIS_BITCOIN_REGTEST_CONTAINER="$fixture"
           pwsh -NoProfile -File Scripts/TestHosts/Invoke-BitcoinRegtestTransfer.ps1
