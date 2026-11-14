@@ -134,6 +134,20 @@
         "maximumProviderAttempts": 512,
         "maximumNativeFeeCostUsd": 0
       }
+    },
+    {
+      "method": "POST",
+      "path": "/api/data/query-cql/composition",
+      "policy": {
+        "meterCategory": "api.request",
+        "reservedUnits": 1,
+        "estimatedCostUsd": 0,
+        "fixedCostUsd": 0,
+        "pricingCatalogueVersion": "sandbox-demo-free-v2",
+        "requiresProviderMeasurement": true,
+        "maximumProviderAttempts": 1,
+        "maximumNativeFeeCostUsd": 0
+      }
     }
   ],
   "storageTariffs": [
