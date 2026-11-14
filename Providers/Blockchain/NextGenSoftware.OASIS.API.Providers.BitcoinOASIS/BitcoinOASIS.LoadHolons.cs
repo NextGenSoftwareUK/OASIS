@@ -166,116 +166,16 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             return ExportAllDataForAvatarByIdAsync(avatarId, version).Result;
         }
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
-        {
-            var response = new OASISResult<IEnumerable<IHolon>>();
-
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Bitcoin provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
-
-                // Export all data for specific avatar from Bitcoin blockchain
-                var exportRequest = new
-                {
-                    avatarId = avatarId.ToString(),
-                    version = version,
-                    includeDeleted = false
-                };
-
-                var jsonContent = JsonSerializer.Serialize(exportRequest);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-
-                var exportResponse = await _httpClient.PostAsync("/export/avatar", content);
-                if (exportResponse.IsSuccessStatusCode)
-                {
-                    var responseContent = await exportResponse.Content.ReadAsStringAsync();
-                    var exportData = JsonSerializer.Deserialize<JsonElement>(responseContent);
-
-                    var holons = new List<IHolon>();
-                    // Parse export data and populate holons list
-
-                    response.Result = holons;
-                    response.IsError = false;
-                    response.Message = "Avatar data export completed successfully from Bitcoin blockchain";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to export avatar data from Bitcoin blockchain: {exportResponse.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref response, $"Error exporting avatar data from Bitcoin blockchain: {ex.Message}", ex);
-            }
-
-            return response;
-        }
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
+            => ExportWalletHolonsForOwnerAsync(avatarId, version);
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0)
         {
             return ExportAllDataForAvatarByUsernameAsync(avatarUsername, version).Result;
         }
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0)
-        {
-            var response = new OASISResult<IEnumerable<IHolon>>();
-
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Bitcoin provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
-
-                // Export all data for specific avatar by username from Bitcoin blockchain
-                var exportRequest = new
-                {
-                    avatarUsername = avatarUsername,
-                    version = version,
-                    includeDeleted = false
-                };
-
-                var jsonContent = JsonSerializer.Serialize(exportRequest);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-
-                var exportResponse = await _httpClient.PostAsync("/export/avatar/username", content);
-                if (exportResponse.IsSuccessStatusCode)
-                {
-                    var responseContent = await exportResponse.Content.ReadAsStringAsync();
-                    var exportData = JsonSerializer.Deserialize<JsonElement>(responseContent);
-
-                    var holons = new List<IHolon>();
-                    // Parse export data and populate holons list
-
-                    response.Result = holons;
-                    response.IsError = false;
-                    response.Message = "Avatar data export completed successfully from Bitcoin blockchain";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to export avatar data from Bitcoin blockchain: {exportResponse.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref response, $"Error exporting avatar data from Bitcoin blockchain: {ex.Message}", ex);
-            }
-
-            return response;
-        }
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0)
+            => ExportWalletHolonsForAvatarAsync(LoadAvatarByUsernameAsync(avatarUsername), version);
 
     }
 }

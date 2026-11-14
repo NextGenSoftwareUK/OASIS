@@ -330,9 +330,11 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
                 Assert.AreEqual(0, emptyInventory.Result.Count);
             }
 
+            var avatarId = Guid.NewGuid();
             var privateHolon = new Holon
             {
                 Id = Guid.NewGuid(),
+                CreatedByAvatarId = avatarId,
                 HolonType = HolonType.Holon,
                 Version = 3,
                 Name = "Private regtest fixture"
@@ -384,7 +386,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
 
             var avatarRecord = new Avatar
             {
-                Id = Guid.NewGuid(),
+                Id = avatarId,
                 Username = "regtest-avatar",
                 Email = "regtest@example.invalid",
                 Version = 2
@@ -579,6 +581,17 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
                 var retainedAvatar = await recovered.LoadAvatarAsync(avatarRecord.Id);
                 Assert.IsFalse(retainedAvatar.IsError, retainedAvatar.Message);
                 Assert.AreEqual(avatarTx, retainedAvatar.Result.ProviderUniqueStorageKey[ProviderType.BitcoinOASIS]);
+
+                foreach (var scopedExport in new[]
+                {
+                    await recovered.ExportAllDataForAvatarByIdAsync(avatarRecord.Id),
+                    await recovered.ExportAllDataForAvatarByEmailAsync(avatarRecord.Email),
+                    await recovered.ExportAllDataForAvatarByUsernameAsync(avatarRecord.Username, version: 3)
+                })
+                {
+                    Assert.IsFalse(scopedExport.IsError, scopedExport.Message);
+                    Assert.AreEqual(privateHolon.Id, scopedExport.Result.Single().Id);
+                }
 
                 var hardDelete = await recovered.DeleteAvatarAsync(avatarRecord.Id, softDelete: false);
                 Assert.IsTrue(hardDelete.IsError);

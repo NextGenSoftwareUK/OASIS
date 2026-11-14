@@ -13,6 +13,29 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS;
 
 public partial class BitcoinOASIS
 {
+    private async Task<OASISResult<IEnumerable<IHolon>>> ExportWalletHolonsForAvatarAsync(
+        Task<OASISResult<IAvatar>> resolve, int version)
+    {
+        var avatar = await resolve;
+        if (!avatar.IsError)
+            return await ExportWalletHolonsForOwnerAsync(avatar.Result.Id, version);
+
+        var result = new OASISResult<IEnumerable<IHolon>> { ErrorCode = avatar.ErrorCode };
+        OASISErrorHandling.HandleError(ref result, avatar.Message, avatar.Exception);
+        return result;
+    }
+
+    private Task<OASISResult<IEnumerable<IHolon>>> ExportWalletHolonsForOwnerAsync(Guid owner, int version)
+    {
+        if (owner != Guid.Empty)
+            return LoadWalletHolonsAsync(holon => holon.CreatedByAvatarId == owner || holon.ParentHolonId == owner,
+                loadChildren: false, recursive: false, maxDepth: 0, currentDepth: 0, version: version);
+
+        var result = new OASISResult<IEnumerable<IHolon>>();
+        OASISErrorHandling.HandleError(ref result, "A Bitcoin avatar identity is required for a scoped export.");
+        return Task.FromResult(result);
+    }
+
     private async Task<OASISResult<ISearchResults>> SearchWalletRecordsAsync(
         ISearchParams search, bool loadChildren, bool recursive, int maxDepth, int version)
     {
