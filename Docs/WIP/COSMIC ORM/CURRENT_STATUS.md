@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Live two-record grouped arithmetic
+
+On Development f7815b62cee2, MongoDB, SQLite and Neo4j each returned COUNT 2, MIN 1, MAX 1, SUM 2 and AVG 1 for two private version-one records. Raising either HAVING threshold independently excluded the group. All six records were conditionally hard-deleted and verified absent by exact ID. Mixed-version arithmetic and hosted browser acceptance remain open.
+
 ## Azure Cosmos DB Development rollout accepted for CQL
 
 Railway marked e78c4819-2a7f-4797-a1ae-5113e869a32f successful and read-only SSH confirmed the exact revision f7815b62cee2. Public health initially timed out and then returned HTTP 200. After the retained smoke visitor renewed successfully, authenticated catalogue readiness rose from 49/107 through 82/107 to 105/107; Hedera and Nostr remained unavailable. The HoloOASIS full and filtered public presets returned identical native and MongoDB-federated ID sets at 3/2, with the filtered set a strict subset. No holons were created. Candidate 745b8ce505b0 still awaits the queued combined protocol CI before integration review.

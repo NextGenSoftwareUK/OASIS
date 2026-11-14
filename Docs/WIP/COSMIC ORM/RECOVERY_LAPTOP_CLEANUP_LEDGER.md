@@ -1,5 +1,9 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+## Two-record grouped arithmetic verification
+
+The retained release-smoke visitor created two scoped private records on each of MongoDB, SQLite and Neo4j. The initial MongoDB cleanup used the wrong HTTP method and got HTTP 405. The correct conditional DELETE reconciled both intents and exact reads confirmed absence. All four SQLite and Neo4j records were also deleted and verified absent. Only compact intent and acknowledgement journals remain. No local build, database or dependency artifacts were created.
+
 13 November: all 127 Web4Site tests ran from a temporary Git snapshot using installed Node. The snapshot and temporary Git index were removed. No local packages or build artifacts were created.
 
 13 November: C: reported 28.91 GiB free. Ran three SQL-like parser tests using Node already installed and a temporary directory. The test files and temporary Git indexes were removed. WEB6 protocol qualification runs remotely in GitHub Actions. No local packages, runtimes, build outputs or fixtures were created.
