@@ -456,7 +456,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                 preparePublication: transactionId =>
                 {
                     snapshot.ValidateUnchanged();
-                    var publicationName = $"oasis-bitcoin-v1:{SigningNetwork.GetGenesis().GetHash()}:{source}:{transactionId}";
+                    var publicationName = GetPublicationPinName(SigningNetwork, source, transactionId);
                     return store.PinAsync(commitment, publicationName);
                 });
             result.MetaData = publication.MetaData;

@@ -502,6 +502,25 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
                     new[] { storageTx, avatarTx, detailTx, acceptedId }.Select(id => namePrefix + id).ToArray(),
                     namedPins.RootElement.GetProperty("Keys").EnumerateObject()
                         .Select(pin => pin.Value.GetProperty("Name").GetString()).ToArray());
+
+                using var recoveredBlocks = System.Text.Json.JsonDocument.Parse(
+                    await BitcoinCliAsync("generatetoaddress", "1", source));
+                var recoveredBlock = recoveredBlocks.RootElement[0].GetString();
+                for (var attempt = 0; attempt < 60; attempt++)
+                {
+                    if ((await http.GetStringAsync("blocks/tip/hash")).Trim() == recoveredBlock)
+                        break;
+                    await Task.Delay(500);
+                }
+                Assert.AreEqual(recoveredBlock, (await http.GetStringAsync("blocks/tip/hash")).Trim());
+
+                using var recovered = new BitcoinOASIS(api, "regtest", sourceKey.GetWif(network).ToString());
+                var reconciliation = await recovered.ReconcileRecordPublicationAsync(acceptedId);
+                Assert.IsFalse(reconciliation.IsError, reconciliation.Message);
+                Assert.IsTrue(reconciliation.Result);
+                var unknownPin = await recovered.ReconcileRecordPublicationAsync(transactionId);
+                Assert.IsTrue(unknownPin.IsError);
+                Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound, unknownPin.ErrorCode);
             }
             finally
             {

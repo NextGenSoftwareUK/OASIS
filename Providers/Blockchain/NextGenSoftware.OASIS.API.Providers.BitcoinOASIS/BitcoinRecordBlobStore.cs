@@ -65,6 +65,15 @@ internal sealed class BitcoinRecordBlobStore(HttpClient kubo, EncryptedRecordCod
         return codec.Decrypt(recordScope, Encoding.UTF8.GetString(bytes));
     }
 
+    public async Task VerifyPinnedCommitmentAsync(string cid, byte[] commitment)
+    {
+        if (commitment.Length != Magic.Length + 34 + 32 ||
+            !string.Equals(EncodeCid(commitment.AsSpan(Magic.Length, 34)), cid, StringComparison.Ordinal))
+            throw new InvalidOperationException("The Bitcoin transaction commitment differs from the publication pin.");
+
+        await ReadVerifiedEnvelopeAsync(commitment);
+    }
+
     private async Task<byte[]> ReadVerifiedEnvelopeAsync(byte[] commitment)
     {
         if (commitment.Length != Magic.Length + 34 + 32 || !commitment.AsSpan(0, Magic.Length).SequenceEqual(Magic))
