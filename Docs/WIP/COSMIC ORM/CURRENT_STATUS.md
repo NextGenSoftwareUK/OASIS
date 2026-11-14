@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Live MongoDB repair rollout passed HoloOASIS and Hedera presets
+
+WEB4 deployment bad943e3 on Development 0ec29a02fabd recovered after a persisted-cell startup timeout. External health returned HTTP 200. After warm-up, native and federated discovery each reported 106/107 ready. The real HoloOASIS and Hedera providers each returned matching 3 full and 2 subset IDs in direct and federated CQL. The same deployment served throughout. Protocol CI 43606357400 passed for the next lifecycle candidate; its exact image and timeout isolation regression remain active. No new visitor, test fixture, local build or redeploy.
+
 ## Provider timeout isolation regression in CI
 
 Source 31dae1c6fdd0 adds the discovery regression to the exact lifecycle candidate on Development 0ec29a02fabd. CI 43606904960 checks that a managed HoloOASIS provisioning timeout records CQL_SOURCE_UNAVAILABLE while another enrolled provider is available. The test does not certify native recovery or overall host startup. WEB4 bad943e3 was building and live HTTP health remained unavailable during the check.
