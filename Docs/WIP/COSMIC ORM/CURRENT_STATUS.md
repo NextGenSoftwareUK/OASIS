@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Development browser session origin candidate
+
+The WEB4 browser policy can opt in to the exact same-site Development hostname only on a recognized Development deployment. Cookie attributes are unchanged. The protected Vercel preview remains cross-site. DNS, TLS, deployment configuration and end-to-end browser acceptance remain open. Focused middleware cases cover opt-in, canonical access and look-alike origins. CI qualification is pending.
+
 ## Shared Azure, Oracle and LINQ candidate
 
 Development cdabb38aec29 adds the native-qualified Azure Cosmos DB and Oracle provider-key regressions. Candidate d744ef367819 adds only the verified native LINQ test file on that baseline. Review exact CI and verify the preceding Development rollout before integration. The protected website preview allows only a wildcard CORS response from Development; the canonical WEB4 origin receives the credentialed policy. No local builds or fixtures were created.
