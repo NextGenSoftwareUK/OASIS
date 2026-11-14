@@ -685,6 +685,18 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
                 Assert.IsFalse(exported.IsError, exported.Message);
                 Assert.IsTrue(exported.Result.Any(holon => holon.Id == privateHolon.Id));
                 Assert.IsFalse(exported.Result.Any(holon => holon.Id == childId));
+
+                var batch = await recovered.SaveHolonsAsync(new IHolon[]
+                {
+                    new Holon { Id = Guid.NewGuid(), HolonType = HolonType.Holon, Version = 1 },
+                    null,
+                    new Holon { Id = Guid.NewGuid(), HolonType = HolonType.Holon, Version = 1 }
+                }, saveChildren: false, continueOnError: true);
+                Assert.IsTrue(batch.IsError);
+                Assert.AreEqual(1, batch.ErrorCount);
+                Assert.AreEqual(2, batch.SavedCount);
+                foreach (var acknowledged in batch.Result)
+                    await BitcoinCliAsync("getmempoolentry", acknowledged.ProviderUniqueStorageKey[ProviderType.BitcoinOASIS]);
             }
             finally
             {

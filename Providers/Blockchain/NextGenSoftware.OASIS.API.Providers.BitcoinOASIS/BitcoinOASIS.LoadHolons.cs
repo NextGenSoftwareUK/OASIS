@@ -49,6 +49,8 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
         {
             var response = new OASISResult<IEnumerable<IHolon>>();
             var savedHolons = new List<IHolon>();
+            var failures = new List<string>();
+            response.Result = savedHolons;
 
             try
             {
@@ -62,23 +64,39 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                     }
                 }
 
+                ArgumentNullException.ThrowIfNull(holons);
+                var position = 0;
                 foreach (var holon in holons)
                 {
+                    position++;
                     var saveResult = await SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
-                    if (saveResult.IsError && !continueOnError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to save holon {holon.Id}: {saveResult.Message}");
-                        return response;
-                    }
-                    else if (!saveResult.IsError)
+                    if (!saveResult.IsError)
                     {
                         savedHolons.Add(saveResult.Result);
+                        response.SavedCount++;
+                        continue;
                     }
+
+                    failures.Add($"Holon at position {position}: {saveResult.Message}");
+                    if (saveResult.ErrorCode == BitcoinBroadcastOutcomeUnknown)
+                    {
+                        response.ErrorCode = saveResult.ErrorCode;
+                        response.MetaData = saveResult.MetaData;
+                        break;
+                    }
+                    if (!continueOnError)
+                        break;
                 }
 
-                response.Result = savedHolons;
-                response.IsError = false;
-                response.Message = $"Saved {savedHolons.Count} holons to Bitcoin blockchain";
+                if (failures.Count > 0)
+                {
+                    OASISErrorHandling.HandleError(ref response,
+                        $"Bitcoin acknowledged {response.SavedCount} holon publications. {failures.Count} attempts lack acknowledgement.");
+                    response.ErrorCount = failures.Count;
+                    response.InnerMessages.AddRange(failures);
+                }
+                else
+                    response.Message = $"Bitcoin acknowledged {response.SavedCount} holon publications.";
             }
             catch (Exception ex)
             {
@@ -135,15 +153,24 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
 
                 // Import holons to Bitcoin blockchain
                 var importResult = await SaveHolonsAsync(holons);
+                response.SavedCount = importResult.SavedCount;
+                response.ErrorCode = importResult.ErrorCode;
+                response.MetaData = importResult.MetaData;
+                response.InnerMessages = importResult.InnerMessages;
+                if (importResult.SavedCount > 0)
+                    response.MetaData["BitcoinAcknowledgedTransactionIds"] = string.Join(",",
+                        importResult.Result.Select(holon =>
+                            holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.BitcoinOASIS]));
                 if (importResult.IsError)
                 {
                     OASISErrorHandling.HandleError(ref response, $"Failed to import holons to Bitcoin: {importResult.Message}");
+                    response.ErrorCount = importResult.ErrorCount;
                     return response;
                 }
 
                 response.Result = true;
                 response.IsError = false;
-                response.Message = $"Successfully imported {holons.Count()} holons to Bitcoin blockchain";
+                response.Message = $"Bitcoin acknowledged {response.SavedCount} imported holons.";
             }
             catch (Exception ex)
             {
