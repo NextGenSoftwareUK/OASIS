@@ -1728,3 +1728,5 @@ Supabase now reads replica receipt evidence through a service-role PostgREST RPC
 14 November Cancun time. Supabase source commit RPC now checks the bound store and original receipt, fences ordinary writes during exact row comparison, and atomically stores graph changes and outbound obligations. The shipping conditional source client and dispatcher remain open.
 
 14 November Cancun time. Wired Supabase conditional source writes and exact receipt replay through the native PostgREST source functions. The private enrolled path stages immutable target obligations with the same commit. Native source save and replay are covered in CI. Dispatcher wiring and enrolled delivery verification remain open.
+
+14 November Cancun time. Supabase outbound migration now supplies service-role claim, renewal and completion RPCs. PostgreSQL locks the route head and uses its clock to fence lease ownership. The client outbox and end-to-end dispatcher verification remain open.

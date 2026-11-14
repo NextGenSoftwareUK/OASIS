@@ -136,4 +136,112 @@ $$;
 REVOKE ALL ON FUNCTION public.oasis_read_source_receipt(uuid, uuid) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.oasis_read_source_receipt(uuid, uuid) TO service_role;
 
+CREATE FUNCTION public.oasis_claim_outbound(
+    expected_store uuid, requested_target text, requested_worker text, lease_milliseconds bigint)
+RETURNS SETOF public.oasis_outbound_deliveries
+LANGUAGE plpgsql VOLATILE SECURITY DEFINER SET search_path = ''
+AS $$
+DECLARE
+    head public.oasis_outbound_deliveries%ROWTYPE;
+    observed_at timestamptz;
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM public.oasis_storage_identity i WHERE i.slot = 1 AND i.store_id = expected_store) THEN
+        RAISE EXCEPTION 'Supabase outbound store binding mismatch' USING ERRCODE = 'PT409';
+    END IF;
+    IF requested_target IS NULL OR length(requested_target) NOT BETWEEN 1 AND 256
+        OR requested_worker IS NULL OR length(btrim(requested_worker)) NOT BETWEEN 1 AND 256
+        OR length(requested_worker) > 256
+        OR lease_milliseconds IS NULL OR lease_milliseconds NOT BETWEEN 1 AND 3600000 THEN
+        RAISE EXCEPTION 'Invalid Supabase outbound claim' USING ERRCODE = '22023';
+    END IF;
+
+    SELECT d.* INTO head FROM public.oasis_outbound_deliveries d
+    WHERE d.target_id = requested_target COLLATE "C" AND d.delivery_state <> 'Completed'
+    ORDER BY d.delivery_sequence LIMIT 1 FOR UPDATE;
+    observed_at := clock_timestamp();
+    IF NOT FOUND OR head.delivery_state = 'ReconciliationRequired'
+        OR head.lease_until > observed_at OR head.retry_at > observed_at THEN
+        RETURN;
+    END IF;
+
+    RETURN QUERY
+    UPDATE public.oasis_outbound_deliveries d
+    SET delivery_state = 'InFlight', attempt_count = d.attempt_count + 1, worker_id = requested_worker,
+        lease_token = gen_random_uuid(), lease_until = observed_at + lease_milliseconds * interval '1 millisecond',
+        retry_at = NULL
+    WHERE d.delivery_sequence = head.delivery_sequence
+    RETURNING d.*;
+END;
+$$;
+REVOKE ALL ON FUNCTION public.oasis_claim_outbound(uuid, text, text, bigint) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.oasis_claim_outbound(uuid, text, text, bigint) TO service_role;
+
+CREATE FUNCTION public.oasis_renew_outbound(
+    expected_store uuid, requested_sequence bigint, requested_operation uuid, requested_target text,
+    requested_worker text, requested_token uuid, lease_milliseconds bigint)
+RETURNS boolean
+LANGUAGE plpgsql VOLATILE SECURITY DEFINER SET search_path = ''
+AS $$
+DECLARE
+    observed_at timestamptz;
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM public.oasis_storage_identity i WHERE i.slot = 1 AND i.store_id = expected_store) THEN
+        RAISE EXCEPTION 'Supabase outbound store binding mismatch' USING ERRCODE = 'PT409';
+    END IF;
+    IF lease_milliseconds IS NULL OR lease_milliseconds NOT BETWEEN 1 AND 3600000 THEN
+        RAISE EXCEPTION 'Invalid Supabase outbound lease duration' USING ERRCODE = '22023';
+    END IF;
+    PERFORM 1 FROM public.oasis_outbound_deliveries d WHERE d.delivery_sequence = requested_sequence FOR UPDATE;
+    observed_at := clock_timestamp();
+    UPDATE public.oasis_outbound_deliveries d
+    SET lease_until = greatest(d.lease_until, observed_at + lease_milliseconds * interval '1 millisecond')
+    WHERE d.delivery_sequence = requested_sequence AND d.operation_id = requested_operation
+        AND d.target_id = requested_target COLLATE "C" AND d.worker_id = requested_worker COLLATE "C"
+        AND d.lease_token = requested_token AND d.delivery_state = 'InFlight' AND d.lease_until > observed_at;
+    RETURN FOUND;
+END;
+$$;
+REVOKE ALL ON FUNCTION public.oasis_renew_outbound(uuid, bigint, uuid, text, text, uuid, bigint) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.oasis_renew_outbound(uuid, bigint, uuid, text, text, uuid, bigint) TO service_role;
+
+CREATE FUNCTION public.oasis_finish_outbound(
+    expected_store uuid, requested_sequence bigint, requested_operation uuid, requested_target text,
+    requested_worker text, requested_token uuid, next_state text, next_attempt timestamptz,
+    failure_code text, failure_message text, recovery text, recovery_hash text)
+RETURNS boolean
+LANGUAGE plpgsql VOLATILE SECURITY DEFINER SET search_path = ''
+AS $$
+DECLARE
+    observed_at timestamptz;
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM public.oasis_storage_identity i WHERE i.slot = 1 AND i.store_id = expected_store) THEN
+        RAISE EXCEPTION 'Supabase outbound store binding mismatch' USING ERRCODE = 'PT409';
+    END IF;
+    PERFORM 1 FROM public.oasis_outbound_deliveries d WHERE d.delivery_sequence = requested_sequence FOR UPDATE;
+    observed_at := clock_timestamp();
+    IF next_state IS NULL OR next_state NOT IN ('Completed', 'Pending', 'ReconciliationRequired')
+        OR (next_state = 'Pending' AND (next_attempt IS NULL OR next_attempt <= observed_at))
+        OR (next_state <> 'Pending' AND next_attempt IS NOT NULL)
+        OR (next_state = 'Completed' AND (failure_code IS NOT NULL OR failure_message IS NOT NULL))
+        OR (next_state <> 'Completed' AND COALESCE(length(btrim(failure_code)), 0) = 0)
+        OR length(failure_code) > 128 OR length(failure_message) > 4096
+        OR ((recovery IS NULL) <> (recovery_hash IS NULL))
+        OR length(recovery_hash) <> 64 THEN
+        RAISE EXCEPTION 'Invalid Supabase outbound completion' USING ERRCODE = '22023';
+    END IF;
+    UPDATE public.oasis_outbound_deliveries d
+    SET delivery_state = next_state, worker_id = NULL, lease_token = NULL, lease_until = NULL,
+        retry_at = next_attempt, error_code = failure_code, error_message = failure_message,
+        recovery_json = recovery, recovery_digest = recovery_hash
+    WHERE d.delivery_sequence = requested_sequence AND d.operation_id = requested_operation
+        AND d.target_id = requested_target COLLATE "C" AND d.worker_id = requested_worker COLLATE "C"
+        AND d.lease_token = requested_token AND d.delivery_state = 'InFlight' AND d.lease_until > observed_at;
+    RETURN FOUND;
+END;
+$$;
+REVOKE ALL ON FUNCTION public.oasis_finish_outbound(uuid, bigint, uuid, text, text, uuid, text, timestamptz, text, text, text, text)
+    FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.oasis_finish_outbound(uuid, bigint, uuid, text, text, uuid, text, timestamptz, text, text, text, text)
+    TO service_role;
+
 COMMIT;
