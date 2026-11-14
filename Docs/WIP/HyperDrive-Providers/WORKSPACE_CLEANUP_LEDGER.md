@@ -1246,3 +1246,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 - 14 November Cancun time. Removed both temporary indexes used to prepare Bitcoin candidate bc9bdab01a2e. Exact CI 43631339888 removed its disposable Esplora container and image. No local builds, downloads or fixtures.
 
 - 14 November Cancun time. The native Bitcoin holon-readback run 43633166370 passed the disposable container and image teardown checks. No local build or fixture.
+
+- 14 November Cancun time. Removed the temporary Git index for candidate 629c64b8452c. Both native Bitcoin CI runs 43633710714 and 43633915510 passed fixture teardown. No local builds, downloads or fixtures.

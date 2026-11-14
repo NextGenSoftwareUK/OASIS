@@ -2063,3 +2063,5 @@ Supabase now reads replica receipt evidence through a service-role PostgREST RPC
 14 November Cancun time. Native Bitcoin CI 43633166370 passed on 1f03419b62a0 with a mined synthetic holon memo, exact identity and provider key readback, and RecordNotFound for the other version. Public CI 43633166394 passed including the avatar absence and wallet-address rejection. Signed encrypted SaveHolon and avatar storage remain open. No local builds or fixtures.
 
 14 November Cancun time. Bitcoin avatar lookup, holon lookup and funding verification now use one Esplora raw transaction reader with transaction-ID verification at the boundary. Exact candidate 629c64b8452c remains in qualification. No local build or fixture.
+
+14 November Cancun time. Exact Bitcoin read candidate 629c64b8452c passed native regtest 43633710714 and public Esplora 43633726735 on Development bc9bdab01a2e. All seven Railway DEV APIs reported healthy on that parent. Next review after 14:58:25 Cancun. The follow-up shared transaction reader at 83b49b37850e separately passed native 43633915510 and public 43633915527. Signed encrypted storage remains open.
