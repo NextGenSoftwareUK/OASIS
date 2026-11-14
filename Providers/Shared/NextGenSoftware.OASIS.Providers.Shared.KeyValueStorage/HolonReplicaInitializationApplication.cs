@@ -85,11 +85,17 @@ public sealed class HolonReplicaInitializationApplication
                 File.Move(path+".tmp",path,true);
             }
             if(!recovering)Save("Prepared");
-            var authorized=await _preparation.ReauthorizeApplicationAsync(intent,token).ConfigureAwait(false);
+            var authorized=await _preparation.ReauthorizeApplicationAsync(intent,allowCompleted:phase!="Prepared",token).ConfigureAwait(false);
             if(!Clean(authorized) || authorized.Result==null)return Failed(authorized?.ErrorCode,authorized?.Message,authorized?.Exception);
             var mutation=authorized.Result;
             var observed=await _readOutcome(mutation,token).ConfigureAwait(false);
             if(!Clean(observed) || observed.Result==null)return Failed("COSMIC_REPLICA_INITIALIZATION_RECEIPT_UNAVAILABLE","An authoritative target outcome is required.",observed?.Exception);
+            bool MatchesTarget(HolonReplicaInitializationOutcome outcome) => outcome != null
+                && outcome.OperationId == intent.InitializationOperationId
+                && outcome.TargetAuthority == _preparation.TargetAuthority
+                && outcome.BaselineFingerprint == intent.BaselineFingerprint;
+            if (!MatchesTarget(observed.Result))
+                return Failed("COSMIC_REPLICA_INITIALIZATION_RECEIPT_MISMATCH", "The target outcome does not match the reviewed initialization.");
             if(observed.Result.ReceiptState==ConditionalHolonReceiptState.Absent)
             {
                 if(phase!="Prepared")return Failed("COSMIC_REPLICA_INITIALIZATION_RECONCILIATION_REQUIRED","A submitted initialization has no receipt yet; absence never permits resubmission.");
@@ -98,8 +104,7 @@ public sealed class HolonReplicaInitializationApplication
                 if(!Clean(applied))return Failed("COSMIC_REPLICA_INITIALIZATION_RECONCILIATION_REQUIRED","Submission did not finish cleanly; recover this same journal and operation.",applied?.Exception);
                 observed=await _readOutcome(mutation,token).ConfigureAwait(false);
             }
-            if(!Clean(observed) || observed.Result==null || observed.Result.ReceiptState!=ConditionalHolonReceiptState.Committed
-                || observed.Result.OperationId!=intent.InitializationOperationId || observed.Result.BaselineFingerprint!=intent.BaselineFingerprint
+            if(!Clean(observed) || !MatchesTarget(observed.Result) || observed.Result.ReceiptState!=ConditionalHolonReceiptState.Committed
                 || record.Value<string>("receiptDigest") is string savedDigest && savedDigest!=observed.Result.ReceiptDigest)
                 return Failed("COSMIC_REPLICA_INITIALIZATION_RECEIPT_MISMATCH","The exact committed target initialization receipt is required.",observed?.Exception);
             if(phase!="SourceCompleted")Save("TargetCommitted",observed.Result.ReceiptDigest);

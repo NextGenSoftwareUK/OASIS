@@ -80,6 +80,7 @@ public sealed class HolonReplicaInitializationPreparation
     private readonly IHolonReplicaInitializationPolicy _policy;
     private readonly string _sourceId,_targetId,_policyBinding,_sourceStoreIdentity,_targetEndpointIdentity;
     private readonly ProviderType _sourceAuthority,_targetAuthority;
+    internal ProviderType TargetAuthority => _targetAuthority;
     public string RouteBinding {get;}
     public HolonReplicaInitializationPreparation(string catalogId,Guid catalogVersion,string sourceId,string sourceStoreIdentity,
         ProviderType sourceAuthority,IHolonReplicationObligationReader source,string targetId,string targetEndpointIdentity,
@@ -105,13 +106,17 @@ public sealed class HolonReplicaInitializationPreparation
     /// <summary>Reauthorize an already reviewed intent before application/recovery.
     /// A completed source is admitted only for exact receipt/acknowledgement recovery;
     /// it does not grant permission to initialize an unrelated target.</summary>
-    public async Task<OASISResult<CommittedHolonReplicaRequest>> ReauthorizeApplicationAsync(
+    public Task<OASISResult<CommittedHolonReplicaRequest>> ReauthorizeApplicationAsync(
         HolonReplicaInitializationIntent intent,CancellationToken token=default)
+        => ReauthorizeApplicationAsync(intent, allowCompleted: true, token);
+
+    internal async Task<OASISResult<CommittedHolonReplicaRequest>> ReauthorizeApplicationAsync(
+        HolonReplicaInitializationIntent intent, bool allowCompleted, CancellationToken token)
     {
         ArgumentNullException.ThrowIfNull(intent);
         OASISResult<CommittedHolonReplicaRequest> Failed(string code,string message,Exception cause=null)
             =>new(){IsError=true,ErrorCount=1,ErrorCode=code,Message=message,Exception=cause};
-        var reviewed=await PrepareCoreAsync(intent.OperatorId,intent.Sequence,intent.InitializationOperationId,true,token).ConfigureAwait(false);
+        var reviewed=await PrepareCoreAsync(intent.OperatorId,intent.Sequence,intent.InitializationOperationId,allowCompleted,token).ConfigureAwait(false);
         if(reviewed.IsError)return Failed(reviewed.ErrorCode,reviewed.Message,reviewed.Exception);
         if(reviewed.Result.Fingerprint!=intent.Fingerprint)
             return Failed("COSMIC_REPLICA_INITIALIZATION_INTENT_CHANGED","The current authorized source differs from the durable reviewed intent.");
@@ -121,7 +126,8 @@ public sealed class HolonReplicaInitializationPreparation
             || source.Result.Inspection.OperationId!=intent.SourceOperationId
             || source.Result.Inspection.TargetId!=_targetId
             || source.Result.Inspection.AttemptCount!=intent.AttemptCount
-            || source.Result.Inspection.State is not (HolonDeliveryState.ReconciliationRequired or HolonDeliveryState.Completed)
+            || (source.Result.Inspection.State!=HolonDeliveryState.ReconciliationRequired
+                && !(allowCompleted && source.Result.Inspection.State==HolonDeliveryState.Completed))
             || source.Result.Inspection.ErrorCode!="COSMIC_REPLICA_LINEAGE_CONFLICT"
             || source.Result.Inspection.RecoveryEvidence?.RequiresNativeReconciliation!=false
             || source.Result.PayloadDigest!=intent.SourcePayloadDigest
