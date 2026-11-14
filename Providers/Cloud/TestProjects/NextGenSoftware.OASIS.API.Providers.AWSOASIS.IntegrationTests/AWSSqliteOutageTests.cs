@@ -101,7 +101,7 @@ public partial class AWSOASISIntegrationTests
             }
             finally
             {
-                await _provider.DeleteHolonAsync(receiptHolon.Id, softDelete: false);
+                await _provider.DeleteHolonAsync(receiptHolon.Id);
             }
 
             var saved = await _provider.SaveHolonAsync(new Holon { Id = id, Name = expected, IsActive = true }, saveChildren: false);
