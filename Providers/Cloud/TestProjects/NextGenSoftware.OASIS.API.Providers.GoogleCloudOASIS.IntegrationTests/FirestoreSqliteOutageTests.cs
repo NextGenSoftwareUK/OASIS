@@ -315,6 +315,19 @@ public sealed class FirestoreSqliteOutageTests
             var opened = firestore.GetBoundHolonReplicationOutbox(identity);
             Assert.IsFalse(opened.IsError, opened.Message);
             var outbox = opened.Result;
+            var wrongIdentity = new CosmicStorageIdentity(identity.Authority, identity.EndpointFingerprint, Guid.NewGuid());
+            var wrongRoute = new HolonReplicationRouteBinding(wrongIdentity, captured.Result, policy.BindingIdentity);
+            var wrongEnrollment = new HolonReplicationEnrollment(wrongRoute.SourceId, new[] { wrongRoute.TargetId },
+                wrongIdentity, new[] { wrongRoute });
+            var wrongWrite = await firestore.ExecuteReplicatingHolonWriteAsync(request, wrongEnrollment);
+            Assert.AreEqual("COSMIC_SOURCE_STORAGE_BINDING_MISMATCH", wrongWrite.ErrorCode);
+            Assert.IsFalse((await sourceRecord.GetSnapshotAsync()).Exists);
+            var wrongOutbox = firestore.GetBoundHolonReplicationOutbox(wrongIdentity);
+            Assert.IsFalse(wrongOutbox.IsError, wrongOutbox.Message);
+            var wrongInventory = await wrongOutbox.Result.ReadRouteHeadsAsync();
+            Assert.AreEqual("COSMIC_OUTBOX_SOURCE_STORAGE_BINDING_MISMATCH", wrongInventory.ErrorCode);
+            Assert.IsNull(wrongInventory.Result);
+
             var saved = synchronous ? firestore.ExecuteReplicatingHolonWrite(request, enrollment)
                 : await firestore.ExecuteReplicatingHolonWriteAsync(request, enrollment);
             Assert.IsTrue(!saved.IsError && saved.IsSaved, saved.Message);
@@ -327,6 +340,9 @@ public sealed class FirestoreSqliteOutageTests
             var replay = await firestore.ExecuteReplicatingHolonWriteAsync(request, enrollment);
             Assert.IsFalse(replay.IsError, replay.Message);
             Assert.AreEqual(committed.VersionId, replay.Result.Single().VersionId);
+
+            var wrongReplay = await firestore.ExecuteReplicatingHolonWriteAsync(request, wrongEnrollment);
+            Assert.AreEqual("COSMIC_SOURCE_STORAGE_BINDING_MISMATCH", wrongReplay.ErrorCode);
 
             var expired = await outbox.ClaimNextAsync(route.TargetId, "expired-firestore-worker", TimeSpan.FromTicks(1));
             Assert.IsFalse(expired.IsError, expired.Message);
