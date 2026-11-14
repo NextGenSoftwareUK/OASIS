@@ -27,6 +27,7 @@ internal sealed class HoloOasisDevelopmentConductor
     private const string StateDirectory = "/data/COSMIC/HoloOasisCql";
     private const string AdminEndpoint = "ws://127.0.0.1:65464";
     private const string ConductorConfiguration = """
+        tracing_override: "warn,holochain::conductor::conductor=info"
         data_root_path: /data/COSMIC/HoloOasisCql
         keystore:
           type: lair_server_in_proc
@@ -243,6 +244,22 @@ internal sealed class HoloOasisDevelopmentConductor
         }
     }
 
+    internal static string DescribeNativeStartup(string output)
+    {
+        var milestones = new (string Message, string Stage)[]
+        {
+            ("Conductor startup: apps enabled.", "apps enabled"),
+            ("Conductor startup: app interfaces started.", "app interfaces restored"),
+            ("Conductor startup: admin interface(s) added.", "admin bound"),
+            ("Conductor startup: Ribosomes loaded.", "ribosomes loaded")
+        };
+        foreach (var (message, stage) in milestones)
+            if (output.Contains(message, StringComparison.Ordinal))
+                return stage;
+
+        return "no startup marker retained";
+    }
+
     private sealed class TeachingAdmin(HoloNETDNA dna) : HoloNETClientAdmin(dna)
     {
         public async Task WaitForPersistedCellAsync(string appId, CancellationToken cancellationToken)
@@ -294,6 +311,7 @@ internal sealed class HoloOasisDevelopmentConductor
 
                 throw new TimeoutException(
                     $"The existing HoloOASIS teaching cell did not start within the conductor readiness budget. " +
+                    $"Last native startup milestone: {DescribeNativeStartup(GetConductorOutput())}; " +
                     $"Persisted app interfaces: {interfaceCount}; " +
                     $"completed cell-list replies: {completedPolls}; cells in the last reply: {lastRunningCellCount}.");
             }
