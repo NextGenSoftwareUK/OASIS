@@ -1,5 +1,11 @@
 # COSMIC ORM / CQL current status
 
+## Live subscription documentation rollout and combined review
+
+Development WEB4 4db1dedd1a92 recovered after repeated persisted HoloOASIS cell startup timeouts. Read-only SSH confirmed the exact revision. The retained visitor proved matching HoloOASIS native and MongoDB-federated public IDs and provenance (3/2). Warmed readiness reached 105/107; Hedera and Nostr remained unavailable. No data fixtures were created.
+
+[COSMIC-only qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43551752634) passed. The combined COSMIC and Oracle candidate b4270f9cb9d2 carries all nine COSMIC and five Oracle files without overlap. [Exact combined CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43552775922/job/132318761386) is running. [Managed Linux HoloOASIS fixture](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43553225234/job/132320166729) runs on disposable CI state using trigger tag ci-cosmic-holooasis-managed-4db1dedd1a92. The next shared review is after 22:54:48 Cancun. No local build artifacts were created.
+
 ## Latest shared Development baseline
 
 Development advanced independently to 4db1dedd1a92. Railway queued WEB4 deployment 5a8a0c27 at 22:24:46 Cancun. The preceding Oracle container reached its pinned revision, but public health timed out and logs show a repeat of the persisted HoloOASIS cell startup failure. The Oracle-baseline COSMIC qualification passed WEB4 and native three-store tests and reached final publishing. Candidate a067d9d56726 preserves the new subscription documentation and adds only the same COSMIC and billing test scope. Next shared review after 22:54:46 Cancun, subject to exact CI and live readiness. No local build or fixture outputs.
