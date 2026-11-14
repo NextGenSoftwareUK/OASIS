@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Recovered conductor retained the same listener count
+
+Read-only Railway SSH confirmed revision eda74489d26e in WEB4 recovery deployment 8e5e7063. Matching the conductor process socket inodes to listening IPv4 loopback sockets showed 136 distinct listeners, the same as the prior verified restart. This measures sockets, distinct from the persisted application-interface inventory. The pinned HoloNET client exposes ListInterfacesAsync for that inventory. The startup diagnostic is still in CI. No files, downloads or process changes were made on the container.
+
 ## WEB4 recovered and Hedera candidate followed the IPFS rollout
 
 WEB4 8e5e7063 recovered on eda74489d26e and reached 105/107 ready in native and federation discovery. HoloOASIS returned the same three full and two subset IDs with shipping provider provenance. HyperDrive then advanced Development to 27ed16491eb0. WEB4 deployment ff63d062 is queued. Candidate 859002780fb4 preserves that head and reapplies the exact corrected Hedera and HoloOASIS diagnostic patch. [Exact CI 43592358287](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43592358287) is active. The conductor startup root cause and hosted browser verification remain open.
