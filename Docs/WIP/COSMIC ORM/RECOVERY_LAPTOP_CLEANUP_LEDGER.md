@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+14 November Cancun: retain ci-cosmic-shared-4fd56a466009 while combined run 43593587199 is active. Both earlier HoloOASIS diagnostic runs completed. Reconcile their tags after shared publication. Temporary Git indexes removed. No local dependencies, builds or fixture databases.
+
 14 November Cancun: retain ci-cosmic-holo-diagnostic-859002780fb4 and ci-cosmic-holo-diagnostic-99307f67d492 until runs 43592358287 and 43592174081 are reconciled. Live recovery smoke reused the existing visitor with read-only checks. No local builds, downloads or databases. Temporary Git indexes removed.
 
 14 November Cancun: retired ci-cosmic-hedera-59e96297ca0b after corrected run 43589062262 completed successfully, including database teardown. The original evidence remains linked in HEDERA_PUBLIC_SOURCE_STATUS.md. Keep the corrected candidate tags until the shared rollout is integrated. No local build outputs or downloads. Temporary Git index removed.

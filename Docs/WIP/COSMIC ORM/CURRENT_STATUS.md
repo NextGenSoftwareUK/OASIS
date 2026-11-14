@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Shared Hedera, HoloOASIS and IPFS candidate
+
+WEB4 ff63d062 serves Development 27ed16491eb0 with public HTTP 200. HoloOASIS matched the three full and two filtered direct and federated IDs, and the warmed catalogue reached 105/107. [CI 43592358287](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43592358287) passed the Hedera fix and HoloOASIS diagnostic on this base. Candidate 4fd56a466009 adds only the HyperDrive IPFS pagination fixture qualified in run 43592825394. [Combined protocol CI 43593587199](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43593587199) is active. The shared window opens after 07:23:51 Cancun. Verify the exact run, live health and remote head before publishing.
+
 ## Holochain admin inventory accounts for the loopback listeners
 
 On the recovered WEB4 instance eda74489d26e, the canonical list_app_interfaces admin request returned 135 persisted app interfaces, one app-bound and 134 unbound. Together with the admin listener, the inventory accounts for the 136 loopback sockets. The first browser-style handshake failed without an Origin header. The successful local admin request used the same localhost Origin as HoloNET and a read-only protocol message. No files, configuration or data were changed. The inventory does not establish which stage caused the prior startup timeout.
