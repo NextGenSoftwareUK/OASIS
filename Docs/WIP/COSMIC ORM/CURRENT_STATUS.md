@@ -1,4 +1,8 @@
 # COSMIC ORM / CQL current status
+
+## Shared protocol build failure on the billing baseline
+
+[Combined run 43547703395](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43547703395/job/132302767039) failed before the CQL cases. The protocol test project links MongoSubscriptionUsageRepository.Pool.cs, whose new call to TryAdmitPoolOverageAsync is implemented by MongoSubscriptionUsageRepository.AppBilling.cs. The protocol project does not compile that partial. The [Development baseline run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43547410649/job/132301832654) also failed in the transaction qualification phase. The missing closure includes the billing policy and price catalogue dependencies; the production admission path should be shared with the protocol harness. The exact combined candidate needs requalification after the shared build is corrected. Railway is still building the billing rollout. No local builds or fixtures were created.
 ## WEB4 health and shared qualification
 
 The crashed deployment ade89d08 and billing successor 28ffb60b show no effective Railway health-check path, although the repository declares /api/health in ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/railway.json. Confirm the Railway service applies that readiness check before treating its deployment status as HTTP acceptance. The preceding crash followed repeated persisted HoloOASIS cell timeouts. The live volume had free space and the configured bootstrap and relay resolved and passed TLS. The exact cell initialization failure remains open. The billing rollout is building; no live settings or persisted state were changed.
