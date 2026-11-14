@@ -123,4 +123,17 @@ $$;
 REVOKE ALL ON FUNCTION public.oasis_commit_source(uuid, uuid, text, text, jsonb, jsonb) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.oasis_commit_source(uuid, uuid, text, text, jsonb, jsonb) TO service_role;
 
+CREATE FUNCTION public.oasis_read_source_receipt(expected_store uuid, requested_operation uuid)
+RETURNS TABLE (store_matches boolean, request_hash text, result_json text)
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path = ''
+AS $$
+    SELECT i.store_id = expected_store, r.request_hash, r.result_json
+    FROM public.oasis_storage_identity i
+    LEFT JOIN public.oasis_source_receipts r
+        ON i.store_id = expected_store AND r.operation_id = requested_operation
+    WHERE i.slot = 1;
+$$;
+REVOKE ALL ON FUNCTION public.oasis_read_source_receipt(uuid, uuid) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.oasis_read_source_receipt(uuid, uuid) TO service_role;
+
 COMMIT;

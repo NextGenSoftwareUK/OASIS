@@ -1120,3 +1120,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 14 November. Supabase receiver job 132348269934 removed PostgREST processes, SQLite files and the runner fixture. Outbound schema work created no local build or database.
 
 14 November. Supabase source RPC changes created no local builds, downloads or databases.
+
+14 November. Supabase source client changes created no local builds, downloads or databases.

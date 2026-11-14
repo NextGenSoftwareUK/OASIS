@@ -54,6 +54,21 @@ public sealed class SupabaseSqliteHyperDriveTests
             var binding = await supabase.CaptureStorageIdentityAsync();
             Assert.IsFalse(binding.IsError, binding.Message);
             Assert.AreEqual(ProviderType.SupabaseOASIS, binding.Result.Authority);
+            var conditionalHolon = new Holon { Id = Guid.NewGuid(), Name = "Supabase conditional source", IsActive = true };
+            attempted.Add(conditionalHolon.Id);
+            var conditionalIntent = new ConditionalHolonWriteRequest(
+                new ConditionalHolonWrite(Guid.NewGuid(), Guid.NewGuid(), ProviderType.SupabaseOASIS,
+                    new[] { new HolonWriteCondition(conditionalHolon.Id, null) }),
+                ConditionalHolonOperation.Save, new[] { conditionalHolon }, saveChildren: false);
+            var conditionalSave = sync ? supabase.ExecuteConditionalHolonWrite(conditionalIntent)
+                : await supabase.ExecuteConditionalHolonWriteAsync(conditionalIntent);
+            Assert.IsTrue(!conditionalSave.IsError && conditionalSave.IsSaved,
+                $"{conditionalSave.Message} {conditionalSave.Exception}");
+            var conditionalReplay = await supabase.ExecuteConditionalHolonWriteAsync(conditionalIntent);
+            Assert.IsFalse(conditionalReplay.IsError, conditionalReplay.Message);
+            Assert.AreEqual(conditionalSave.Result.Single().VersionId, conditionalReplay.Result.Single().VersionId);
+            Assert.AreEqual(conditionalSave.Result.Single().VersionId,
+                (await supabase.LoadHolonAsync(conditionalHolon.Id, loadChildren: false)).Result?.VersionId);
             var replica = new Holon { Id = Guid.NewGuid(), Version = 1, VersionId = Guid.NewGuid() };
             CosmicConcurrency.SetProviderRevisionId(replica, ProviderType.SQLLiteDBOASIS, Guid.NewGuid());
             var receiptIntent = new CommittedHolonReplicaRequest(Guid.NewGuid(), "owned-sqlite",
