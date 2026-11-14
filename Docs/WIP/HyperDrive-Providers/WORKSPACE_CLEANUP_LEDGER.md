@@ -1000,3 +1000,5 @@ Urgent disk cleanup follow-up: leased standard project clean succeeded for AWS u
 13 November. Azure Cosmos job 132266208305 passed both native cases and removed its emulator, volumes, SQLite files and test output. Logs were inspected in memory.
 
 13 November. Removed the temporary Azure candidate index. Stopped the earlier reconstruction after its partial-clone fetch stalled and checked the temporary directory for leftover indexes. No local build ran.
+
+13 November. Removed the temporary index for Azure candidate f7815b62cee2. No local build, emulator or test fixture was created.
