@@ -5,7 +5,8 @@
     {
       "provider": "GoogleMapsOASIS",
       "path": "Providers/Maps/NextGenSoftware.OASIS.API.Providers.GoogleMapsOASIS/GoogleMapsOASIS.cs",
-      "sha256": "859d4f9c98908182d468042d4a8be5d394580feb71ddc235616bf8f62a079938", "normalizeLineEndings": true,
+      "sha256": "859d4f9c98908182d468042d4a8be5d394580feb71ddc235616bf8f62a079938",
+      "normalizeLineEndings": true,
       "literalFailureReturns": 47,
       "interpretation": "source gap only; no native capability execution or pass"
     },
@@ -26,16 +27,18 @@
     {
       "provider": "NianticLightshipOASIS",
       "path": "Providers/Maps/NextGenSoftware.OASIS.API.Providers.NianticLightshipOASIS/NianticLightshipOASIS.cs",
-      "sha256": "dabf991d4235f2c43ab348adabcc41d6b5b5ad9d134afc4354ae759e60df6fdf",
-      "literalSuccessReturns": 46,
-      "interpretation": "source gap only; no native capability execution or pass"
+      "sha256": "7c5f2885f2f1179306ee2317085eae3c190eb781eb8fdca763aea81aafcbb839",
+      "literalSuccessReturns": 0,
+      "interpretation": "Legacy map operations report failure because there is no native adapter. This is source evidence only.",
+      "normalizeLineEndings": true
     },
     {
       "provider": "WRLD3DOASIS",
       "path": "Providers/Maps/NextGenSoftware.OASIS.API.Providers.WRLD3DOASIS/WRLD3DOASIS.cs",
-      "sha256": "a174637d7b06efecb6ba2343b1d3c1667a2cd0a4c0a1072449f9c409ece8d3fa",
-      "literalSuccessReturns": 47,
-      "interpretation": "source gap only; no native capability execution or pass"
+      "sha256": "7a3530b717fbd702cac4762737c34e0fc36dd9642f5310d3963d2ec29a722c8e",
+      "literalSuccessReturns": 0,
+      "interpretation": "Legacy map operations report failure because there is no native adapter. This is source evidence only.",
+      "normalizeLineEndings": true
     }
   ]
 }

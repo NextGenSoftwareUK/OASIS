@@ -7,11 +7,7 @@ using NextGenSoftware.OASIS.API.Core.Objects;
 
 namespace NextGenSoftware.OASIS.API.Providers.NianticLightshipOASIS
 {
-    /// <summary>
-    /// Niantic Lightship AR SDK OASIS Map Provider.
-    /// Provides AR-native geo-spatial mapping, VPS anchors, and real-world AR overlay
-    /// capabilities via the Niantic Lightship platform.
-    /// </summary>
+    /// <summary>Preserves the legacy map contract and reports unavailable map operations.</summary>
     public class NianticLightshipOASIS : IOASISMapProvider
     {
         public MapProviderType MapProviderType { get; set; }
@@ -22,110 +18,77 @@ namespace NextGenSoftware.OASIS.API.Providers.NianticLightshipOASIS
         {
             MapProviderType = MapProviderType.NianticLightship;
             MapProviderName = "NianticLightship";
-            MapProviderDescription = "Niantic Lightship AR SDK OASIS Map Provider";
+            MapProviderDescription = "Niantic Lightship compatibility facade. No native map backend is configured.";
         }
 
-        public bool CreateAndDrawRouteOnMapBetweenHolons(IHolon fromHolon, IHolon toHolon) => true;
+        public bool CreateAndDrawRouteOnMapBetweenHolons(IHolon fromHolon, IHolon toHolon) => false;
 
-        public bool CreateAndDrawRouteOnMapBetweenHolons(Guid fromHolonId, Guid toHolonId)
-        {
-            try { return true; } catch (Exception) { return false; }
-        }
+        public bool CreateAndDrawRouteOnMapBetweenHolons(Guid fromHolonId, Guid toHolonId) => false;
 
-        public bool CreateAndDrawRouteOnMapBeweenPoints(MapPoints points)
-        {
-            try { return true; } catch (Exception) { return false; }
-        }
+        public bool CreateAndDrawRouteOnMapBeweenPoints(MapPoints points) => false;
 
-        public bool Draw2DSpriteOnHUD(object sprite, float x, float y)
-        {
-            try { return true; } catch (Exception) { return false; }
-        }
+        public bool Draw2DSpriteOnHUD(object sprite, float x, float y) => false;
 
-        public bool Draw2DSpriteOnMap(object sprite, float x, float y)
-        {
-            try { return true; } catch (Exception) { return false; }
-        }
+        public bool Draw2DSpriteOnMap(object sprite, float x, float y) => false;
 
-        public bool Draw3DObjectOnMap(object obj, float x, float y)
-        {
-            try { return true; } catch (Exception) { return false; }
-        }
+        public bool Draw3DObjectOnMap(object obj, float x, float y) => false;
 
-        public bool DrawRouteOnMap(float startX, float startY, float endX, float endY)
-        {
-            try { return true; } catch (Exception) { return false; }
-        }
+        public bool DrawRouteOnMap(float startX, float startY, float endX, float endY) => false;
 
-        public bool DrawRouteOnMap(float startX, float startY, float endX, float endY, Color colour)
-        {
-            try { return true; } catch (Exception) { return false; }
-        }
+        public bool DrawRouteOnMap(float startX, float startY, float endX, float endY, Color colour) => false;
 
-        public bool HighlightBuildingOnMap(IBuilding building)
-        {
-            try { return true; } catch (Exception) { return false; }
-        }
+        public bool HighlightBuildingOnMap(IBuilding building) => false;
 
-        public bool PanMapDown(float value) { try { return true; } catch (Exception) { return false; } }
-        public bool PanMapLeft(float value) { try { return true; } catch (Exception) { return false; } }
-        public bool PanMapRight(float value) { try { return true; } catch (Exception) { return false; } }
-        public bool PanMapUp(float value) { try { return true; } catch (Exception) { return false; } }
+        public bool PanMapDown(float value) => false;
+        public bool PanMapLeft(float value) => false;
+        public bool PanMapRight(float value) => false;
+        public bool PanMapUp(float value) => false;
 
-        public bool SelectBuildingOnMap(IBuilding building)
-        {
-            try { return true; } catch (Exception) { return false; }
-        }
+        public bool SelectBuildingOnMap(IBuilding building) => false;
 
-        public bool SelectHolonOnMap(IHolon holon)
-        {
-            try { return true; } catch (Exception) { return false; }
-        }
+        public bool SelectHolonOnMap(IHolon holon) => false;
 
-        public bool SelectQuestOnMap(object quest)
-        {
-            try { return true; } catch (Exception) { return false; }
-        }
+        public bool SelectQuestOnMap(object quest) => false;
 
         public void SetCurrentMapProvider(MapProviderType mapProviderType)
         {
             MapProviderType = mapProviderType;
         }
 
-        public bool ZoomMapIn(float value) { try { return true; } catch (Exception) { return false; } }
-        public bool ZoomMapOut(float value) { try { return true; } catch (Exception) { return false; } }
+        public bool ZoomMapIn(float value) => false;
+        public bool ZoomMapOut(float value) => false;
 
-        public bool ZoomToHolonOnMap(IHolon holon) { try { return true; } catch (Exception) { return false; } }
-        public bool ZoomToHolonOnMap(Guid holonId) { try { return true; } catch (Exception) { return false; } }
-        public bool ZoomToQuestOnMap(IQuest quest) { try { return true; } catch (Exception) { return false; } }
-        public bool ZoomToQuestOnMap(Guid questId) { try { return true; } catch (Exception) { return false; } }
+        public bool ZoomToHolonOnMap(IHolon holon) => false;
+        public bool ZoomToHolonOnMap(Guid holonId) => false;
+        public bool ZoomToQuestOnMap(IQuest quest) => false;
+        public bool ZoomToQuestOnMap(Guid questId) => false;
 
-        public bool PlaceHolonOnMap(IHolon holon, float x, float y) { try { return true; } catch (Exception) { return false; } }
-        public bool PlaceBuildingOnMap(IBuilding building, float x, float y) { try { return true; } catch (Exception) { return false; } }
-        public bool PlaceQuestOnMap(object quest, float x, float y) { try { return true; } catch (Exception) { return false; } }
-        public bool PlaceGeoNFTOnMap(object geoNFT, float x, float y) { try { return true; } catch (Exception) { return false; } }
-        public bool PlaceGeoHotSpotOnMap(object geoHotSpot, float x, float y) { try { return true; } catch (Exception) { return false; } }
-        public bool PlaceOAPPOnMap(object oapp, float x, float y) { try { return true; } catch (Exception) { return false; } }
+        public bool PlaceHolonOnMap(IHolon holon, float x, float y) => false;
+        public bool PlaceBuildingOnMap(IBuilding building, float x, float y) => false;
+        public bool PlaceQuestOnMap(object quest, float x, float y) => false;
+        public bool PlaceGeoNFTOnMap(object geoNFT, float x, float y) => false;
+        public bool PlaceGeoHotSpotOnMap(object geoHotSpot, float x, float y) => false;
+        public bool PlaceOAPPOnMap(object oapp, float x, float y) => false;
 
-        public bool CreateAndDrawRouteOnMapBetweenQuests(object fromQuest, object toQuest) { try { return true; } catch (Exception) { return false; } }
-        public bool CreateAndDrawRouteOnMapBetweenQuests(Guid fromQuestId, Guid toQuestId) { try { return true; } catch (Exception) { return false; } }
-        public bool CreateAndDrawRouteOnMapBetweenGeoNFTs(object fromGeoNFT, object toGeoNFT) { try { return true; } catch (Exception) { return false; } }
-        public bool CreateAndDrawRouteOnMapBetweenGeoNFTs(Guid fromGeoNFTId, Guid toGeoNFTId) { try { return true; } catch (Exception) { return false; } }
-        public bool CreateAndDrawRouteOnMapBetweenGeoHotSpots(object fromGeoHotSpot, object toGeoHotSpot) { try { return true; } catch (Exception) { return false; } }
-        public bool CreateAndDrawRouteOnMapBetweenGeoHotSpots(Guid fromGeoHotSpotId, Guid toGeoHotSpotId) { try { return true; } catch (Exception) { return false; } }
-        public bool CreateAndDrawRouteOnMapBetweenOAPPs(object fromOAPP, object toOAPP) { try { return true; } catch (Exception) { return false; } }
-        public bool CreateAndDrawRouteOnMapBetweenOAPPs(Guid fromOAPPId, Guid toOAPPId) { try { return true; } catch (Exception) { return false; } }
-        public bool CreateAndDrawRouteOnMapBetweenBuildings(IBuilding fromBuilding, IBuilding toBuilding) { try { return true; } catch (Exception) { return false; } }
-        public bool CreateAndDrawRouteOnMapBetweenBuildings(Guid fromBuildingId, Guid toBuildingId) { try { return true; } catch (Exception) { return false; } }
+        public bool CreateAndDrawRouteOnMapBetweenQuests(object fromQuest, object toQuest) => false;
+        public bool CreateAndDrawRouteOnMapBetweenQuests(Guid fromQuestId, Guid toQuestId) => false;
+        public bool CreateAndDrawRouteOnMapBetweenGeoNFTs(object fromGeoNFT, object toGeoNFT) => false;
+        public bool CreateAndDrawRouteOnMapBetweenGeoNFTs(Guid fromGeoNFTId, Guid toGeoNFTId) => false;
+        public bool CreateAndDrawRouteOnMapBetweenGeoHotSpots(object fromGeoHotSpot, object toGeoHotSpot) => false;
+        public bool CreateAndDrawRouteOnMapBetweenGeoHotSpots(Guid fromGeoHotSpotId, Guid toGeoHotSpotId) => false;
+        public bool CreateAndDrawRouteOnMapBetweenOAPPs(object fromOAPP, object toOAPP) => false;
+        public bool CreateAndDrawRouteOnMapBetweenOAPPs(Guid fromOAPPId, Guid toOAPPId) => false;
+        public bool CreateAndDrawRouteOnMapBetweenBuildings(IBuilding fromBuilding, IBuilding toBuilding) => false;
+        public bool CreateAndDrawRouteOnMapBetweenBuildings(Guid fromBuildingId, Guid toBuildingId) => false;
 
-        public bool ZoomToGeoNFTOnMap(object geoNFT) { try { return true; } catch (Exception) { return false; } }
-        public bool ZoomToGeoNFTOnMap(Guid geoNFTId) { try { return true; } catch (Exception) { return false; } }
-        public bool ZoomToGeoHotSpotOnMap(object geoHotSpot) { try { return true; } catch (Exception) { return false; } }
-        public bool ZoomToGeoHotSpotOnMap(Guid geoHotSpotId) { try { return true; } catch (Exception) { return false; } }
-        public bool ZoomToOAPPOnMap(object oapp) { try { return true; } catch (Exception) { return false; } }
-        public bool ZoomToOAPPOnMap(Guid oappId) { try { return true; } catch (Exception) { return false; } }
-        public bool ZoomToBuildingOnMap(IBuilding building) { try { return true; } catch (Exception) { return false; } }
-        public bool ZoomToBuildingOnMap(Guid buildingId) { try { return true; } catch (Exception) { return false; } }
-        public bool ZoomToCoOrdsOnMap(float x, float y) { try { return true; } catch (Exception) { return false; } }
+        public bool ZoomToGeoNFTOnMap(object geoNFT) => false;
+        public bool ZoomToGeoNFTOnMap(Guid geoNFTId) => false;
+        public bool ZoomToGeoHotSpotOnMap(object geoHotSpot) => false;
+        public bool ZoomToGeoHotSpotOnMap(Guid geoHotSpotId) => false;
+        public bool ZoomToOAPPOnMap(object oapp) => false;
+        public bool ZoomToOAPPOnMap(Guid oappId) => false;
+        public bool ZoomToBuildingOnMap(IBuilding building) => false;
+        public bool ZoomToBuildingOnMap(Guid buildingId) => false;
+        public bool ZoomToCoOrdsOnMap(float x, float y) => false;
     }
 }
