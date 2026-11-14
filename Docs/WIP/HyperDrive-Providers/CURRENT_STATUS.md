@@ -1600,3 +1600,5 @@ Holo Desktop diagnostic run 43155153231 found that the conductor tool path was d
 13 November Cancun time. Aligned Oracle identity and receipt operations with the existing ODP.NET cancellation contract. ORA-01013 maps to caller cancellation only when the caller token is cancelled. Qualified the provider enum reference to avoid the inherited ProviderType property shadowing it. Native verification remains pending.
 
 13 November Cancun time. [Oracle identity and receipt CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43541966734/job/132284339548) remains queued with the caller cancellation correction. Its two superseded jobs were cancelled before runner assignment. The independent Oracle provider-key and Azure provider-key jobs remain queued. Development f7815b62cee2 contains the verified Azure ID-based test.
+
+13 November Cancun time. Oracle identity reads now validate every row in the dedicated identity table. A malformed slot, extra row or temporary table cannot supply a routing binding. Native verification is pending.

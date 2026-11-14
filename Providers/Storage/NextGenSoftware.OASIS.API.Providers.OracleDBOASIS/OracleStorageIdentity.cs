@@ -82,17 +82,18 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;", connect
     {
         await using var command = CreateCommand(@"SELECT i.STORE_ID,
     SYS_CONTEXT('USERENV','DB_UNIQUE_NAME'), SYS_CONTEXT('USERENV','CON_NAME'),
-    SYS_CONTEXT('USERENV','CURRENT_SCHEMA')
+    SYS_CONTEXT('USERENV','CURRENT_SCHEMA'), i.SLOT, t.TEMPORARY
 FROM OASIS_STORAGE_IDENTITY i
-JOIN USER_TABLES t ON t.TABLE_NAME='OASIS_STORAGE_IDENTITY' AND t.TEMPORARY='N'
-WHERE i.SLOT=1", connection);
+LEFT JOIN USER_TABLES t ON t.TABLE_NAME='OASIS_STORAGE_IDENTITY'", connection);
         command.Transaction = transaction;
         await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
         if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
             return null;
         var raw = reader.GetValue(0) as byte[];
         if (raw?.Length != 16 || new Guid(raw) == Guid.Empty
-            || reader.IsDBNull(1) || reader.IsDBNull(2) || reader.IsDBNull(3))
+            || reader.IsDBNull(1) || reader.IsDBNull(2) || reader.IsDBNull(3)
+            || reader.IsDBNull(4) || reader.GetDecimal(4) != 1
+            || reader.IsDBNull(5) || reader.GetString(5) != "N")
             throw new InvalidDataException("The Oracle store identity or native endpoint is invalid.");
 
         var resource = $"oracle:{reader.GetString(1)}:{reader.GetString(2)}:{reader.GetString(3)}";
