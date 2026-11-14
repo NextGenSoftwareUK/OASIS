@@ -53,18 +53,15 @@ jobs:
       - name: Apply the reviewed priority Oracle routing scope
         shell: bash
         run: |
-          base=cdabb38aec29c68be46bc1d40f6bde187716b183
-          inbound=08751c9824aecd9cf70a7b3bb6e17b83c4dd64e5
+          base=08751c9824aecd9cf70a7b3bb6e17b83c4dd64e5
           git -C ../provider-source fetch --no-tags --depth=1 origin "$base"
-          git -C ../provider-source fetch --no-tags --depth=1 origin "$inbound"
           tests='Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests'
           provider='Providers/Storage/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS'
           for path in "$tests/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests.csproj" "$tests/OracleSqliteHyperDriveTests.cs" "$provider"/Oracle{StorageIdentity,ReceiptEvidence,ConditionalWrites,ReplicaApply,OutboundOutbox,OutboundReads}.cs; do
             current="$(git ls-tree HEAD -- "$path")"
             reviewed="$(git -C ../provider-source ls-tree "$base" -- "$path")"
             incoming="$(git -C ../provider-source ls-tree HEAD -- "$path")"
-            qualified_inbound="$(git -C ../provider-source ls-tree "$inbound" -- "$path")"
-            [[ -n "$incoming" && ( "$current" == "$reviewed" || "$current" == "$qualified_inbound" || "$current" == "$incoming" ) ]]
+            [[ -n "$incoming" && ( "$current" == "$reviewed" || "$current" == "$incoming" ) ]]
             install -m 644 "../provider-source/$path" "$path"
             git add -- "$path"
           done

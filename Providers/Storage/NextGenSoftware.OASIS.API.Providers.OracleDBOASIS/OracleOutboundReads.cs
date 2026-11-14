@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -97,7 +98,7 @@ ORDER BY DELIVERY_SEQUENCE FETCH FIRST 1 ROW ONLY", connection);
             return await reader.ReadAsync(token).ConfigureAwait(false) ? ReadDelivery(reader) : null;
         }
 
-        private DeliveryRow ReadDelivery(OracleDataReader reader)
+        private DeliveryRow ReadDelivery(DbDataReader reader)
         {
             var sequence = reader.GetInt64(0);
             var operation = reader.GetValue(1) as byte[];
