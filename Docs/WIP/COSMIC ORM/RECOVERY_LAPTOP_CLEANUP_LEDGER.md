@@ -6714,3 +6714,5 @@ Web4Site 5fa63a71df5d used a temporary directory containing only committed websi
 14 November Cancun time. Retired the four superseded HoloOASIS candidate tags for 1ac1e85afd99, 07d8b0a7d934, 3459ec1e21d5 and 31dae1c6fdd0 after their qualification completed. The current 2e864e1162e0 tag is retained for exact Linux, protocol and image work against Development 72c90754271e. No local images or databases were created. Disk free 28.7 GiB.
 
 14 November Cancun time. Verified the exact 2e864e1162e0 image digest from CI logs in memory. Retain the source tag until rollout completes. The temporary Git index was removed. No local image or runtime downloaded.
+
+14 November Cancun time. Removed ci-cosmic-holooasis-managed-2e864e1162e0 once the exact qualified source became reachable from Development. The immutable image digest is recorded and remains in the existing registry. Temporary Git index removed. No new local build, environment, download or fixture. C: free 28.7 GiB.

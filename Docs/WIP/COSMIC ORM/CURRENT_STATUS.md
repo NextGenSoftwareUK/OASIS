@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Managed HoloOASIS activation isolation reached Development
+
+14 November 10:41 Cancun. Development advanced from 72c90754271e to exact qualified 2e864e1162e0. Railway WEB4 deployment 8d1b591c-e258-443f-a3b3-c9a278f7fec6 is queued. The previous deployment 5114a9db crashed after repeated native persisted-cell timeouts. Verify exact revision, HTTP availability, HoloOASIS and Hedera queries, and provider discovery through startup. If the conductor stalls again, verify WEB4 is still serving and HoloOASIS reports unavailable. The native stall and signed-in WEB6 browser proof remain open. HyperDrive can reconcile its frozen V2 route work onto the new parent.
+
 ## Qualified HoloOASIS lifecycle batch for 10:41:07 Cancun
 
 Exact candidate 2e864e1162e0 on Development 72c90754271e passed Linux 43608963724, protocol 43608984281 and image 43608984697. GHCR digest sha256:4ca840d34e08b54fabd2a63da947b9519479eb66d4ab760f847209d0f69b9005. The serving WEB4 deployment 5114a9db has repeatedly failed to start, with six persisted-cell timeouts through 15:30:05 UTC. COSMIC proposes the qualified lifecycle batch for the next shared window to isolate the failing provider and restore WEB4. HyperDrive can carry its separate frozen V2 route batch on the resulting parent. Verify the exact branch and rollout immediately before publication. Native cell stall diagnosis remains open.
