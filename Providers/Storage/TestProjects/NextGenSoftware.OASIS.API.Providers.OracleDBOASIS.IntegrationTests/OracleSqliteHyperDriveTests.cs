@@ -234,6 +234,41 @@ public sealed class OracleSqliteHyperDriveTests
             Assert.IsFalse(duplicateDelivery.IsError, duplicateDelivery.Message);
             Assert.AreEqual(0, duplicateDelivery.Result.CompletedCount);
 
+            var reverseRoute = new HolonReplicationRouteBinding(oracleIdentity, sqliteIdentity.Result, grant.BindingIdentity);
+            var reverseEnrollment = new HolonReplicationEnrollment(reverseRoute.SourceId, new[] { reverseRoute.TargetId },
+                oracleIdentity, new[] { reverseRoute });
+            var reverseRecord = new Holon { Id = Guid.NewGuid(), Name = "Owned Oracle-to-SQLite delivery", IsActive = true };
+            attempted.Add(reverseRecord.Id);
+            var reverseIntent = new ConditionalHolonWriteRequest(
+                new ConditionalHolonWrite(Guid.NewGuid(), actor, ProviderType.OracleDBOASIS,
+                    new[] { new HolonWriteCondition(reverseRecord.Id, null) }),
+                ConditionalHolonOperation.Save, new[] { reverseRecord }, saveChildren: false);
+            var reverseSave = sync ? oracle.ExecuteReplicatingHolonWrite(reverseIntent, reverseEnrollment)
+                : await oracle.ExecuteReplicatingHolonWriteAsync(reverseIntent, reverseEnrollment);
+            Assert.IsTrue(!reverseSave.IsError && reverseSave.IsSaved, reverseSave.Message);
+            var reverseReplay = await oracle.ExecuteReplicatingHolonWriteAsync(reverseIntent, reverseEnrollment);
+            Assert.IsFalse(reverseReplay.IsError, reverseReplay.Message);
+            Assert.AreEqual(reverseSave.Result.Single().VersionId, reverseReplay.Result.Single().VersionId);
+            var oracleOutbox = oracle.GetBoundHolonReplicationOutbox(oracleIdentity);
+            Assert.IsFalse(oracleOutbox.IsError, oracleOutbox.Message);
+            var heads = await oracleOutbox.Result.ReadRouteHeadsAsync(pageSize: 1);
+            Assert.IsFalse(heads.IsError, heads.Message);
+            var head = heads.Result.Heads.Single();
+            Assert.AreEqual(reverseRoute.TargetId, head.TargetId);
+            var sqliteTarget = new CommittedHolonReplicaTarget(reverseRoute.TargetId, sqlite, sqliteIdentity.Result.Authority,
+                reverseRoute.SourceId, reverseRoute.SourceStorage.Authority, grant, "sqlite-fixture", Guid.NewGuid(),
+                grant.BindingIdentity, sqliteIdentity.Result);
+            var oracleDispatcher = new HolonOutboxDispatcher(oracleOutbox.Result, new[] { sqliteTarget }, "oracle-source");
+            var reverseDelivery = await oracleDispatcher.DispatchOnceAsync(reverseRoute.TargetId, maximumCount: 2);
+            Assert.IsFalse(reverseDelivery.IsError, reverseDelivery.Message);
+            Assert.AreEqual(1, reverseDelivery.Result.CompletedCount);
+            var reverseReplica = await sqlite.LoadHolonAsync(reverseRecord.Id, loadChildren: false);
+            Assert.IsFalse(reverseReplica.IsError, reverseReplica.Message);
+            Assert.AreEqual(reverseSave.Result.Single().VersionId, reverseReplica.Result?.VersionId);
+            var completed = await oracleOutbox.Result.InspectAsync(head.Sequence);
+            Assert.IsFalse(completed.IsError, completed.Message);
+            Assert.AreEqual(HolonDeliveryState.Completed, completed.Result.State);
+
             var evidenceRequest = new ConditionalHolonReceiptEvidenceRequest(intent, oracleIdentity,
                 sqliteIdentity.Result, new[] { receiptHolon.Id });
             var absentReceipt = await oracle.ReadConditionalHolonReceiptEvidenceAsync(evidenceRequest);

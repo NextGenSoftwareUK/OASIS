@@ -52,6 +52,14 @@ public partial class OracleDBOASIS : ICosmicStorageIdentityProvider
     PAYLOAD_DIGEST VARCHAR2(64) NOT NULL,
     DELIVERY_STATE VARCHAR2(32) DEFAULT ''Pending'' NOT NULL,
     ATTEMPT_COUNT NUMBER(10) DEFAULT 0 NOT NULL,
+    WORKER_ID VARCHAR2(256 CHAR),
+    LEASE_TOKEN RAW(16),
+    LEASE_UNTIL NUMBER(19),
+    RETRY_AT NUMBER(19),
+    ERROR_CODE VARCHAR2(128 CHAR),
+    ERROR_MESSAGE CLOB,
+    RECOVERY_JSON CLOB,
+    RECOVERY_DIGEST VARCHAR2(64),
     UNIQUE (OPERATION_ID, TARGET_ID)", cancellationToken).ConfigureAwait(false);
 
             await using var transaction = (OracleTransaction)await connection.BeginTransactionAsync(
