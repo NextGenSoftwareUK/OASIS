@@ -514,24 +514,13 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             var result = new OASISResult<IEnumerable<IAvatar>>();
             try
             {
-                if (!_isActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Bitcoin provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-                // Bitcoin does not have a native index of avatars; return empty set (avatars are discovered via LoadAvatar by providerKey/email/username)
-                result.Result = new List<IAvatar>();
-                result.IsError = false;
-                result.Message = "Bitcoin provider does not support LoadAllAvatars; returning empty list.";
+                result.Result = await ReadWalletAvatarsAsync(version);
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error loading all avatars from Bitcoin: {ex.Message}", ex);
+                OASISErrorHandling.HandleError(ref result, $"Bitcoin avatar listing failed ({ex.GetType().Name}).");
             }
+
             return result;
         }
 

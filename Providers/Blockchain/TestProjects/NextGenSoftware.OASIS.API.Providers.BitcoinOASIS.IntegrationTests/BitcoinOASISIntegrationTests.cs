@@ -412,6 +412,25 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
             Assert.AreEqual(avatarRecord.Username, loadedAvatar.Result.Username);
             Assert.AreEqual(avatarTx, loadedAvatar.Result.ProviderUniqueStorageKey[ProviderType.BitcoinOASIS]);
 
+            using var walletReader = new BitcoinOASIS(api, "regtest", sourceKey.GetWif(network).ToString());
+            foreach (var lookup in new[]
+            {
+                await walletReader.LoadAvatarAsync(avatarRecord.Id),
+                await walletReader.LoadAvatarByEmailAsync(avatarRecord.Email.ToUpperInvariant()),
+                await walletReader.LoadAvatarByUsernameAsync(avatarRecord.Username.ToUpperInvariant(), version: 2)
+            })
+            {
+                Assert.IsFalse(lookup.IsError, lookup.Message);
+                Assert.AreEqual(avatarRecord.Id, lookup.Result.Id);
+                Assert.AreEqual(avatarTx, lookup.Result.ProviderUniqueStorageKey[ProviderType.BitcoinOASIS]);
+            }
+
+            var avatarList = await walletReader.LoadAllAvatarsAsync(version: 2);
+            Assert.IsFalse(avatarList.IsError, avatarList.Message);
+            Assert.AreEqual(avatarRecord.Id, avatarList.Result.Single().Id);
+            var missingAvatarVersion = await walletReader.LoadAvatarAsync(avatarRecord.Id, version: 3);
+            Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound, missingAvatarVersion.ErrorCode);
+
             var records = (await ReadKuboPinsAsync()).Except(initialPins, StringComparer.Ordinal).ToArray();
             Assert.AreEqual(2, records.Length, "The holon and avatar must each retain their encrypted Kubo payload.");
             foreach (var record in records)
