@@ -1746,3 +1746,5 @@ Supabase now reads replica receipt evidence through a service-role PostgREST RPC
 14 November Cancun time. Reviewed COSMIC status before taking AWS DynamoDB durable replication. The shipping AWS SDK now captures an identity bound to the native holon table and a conditionally persisted store UUID. Native AWS wrapper CI checks concurrent capture and authority. Bound replica apply and outbound dispatch remain open.
 
 14 November Cancun time. Added DynamoDB bound replica receipt reads using one native TransactGetItems for identity and receipt. AWS native CI covers absence and store mismatch. Replica apply remains open.
+
+14 November Cancun time. DynamoDB AWS-wrapper identity CI 43566832091 passed both modes. Added bound atomic receiver using a transactional native snapshot and conditional commit for graph, lineage and receipt. Native apply and replay qualification are pending.

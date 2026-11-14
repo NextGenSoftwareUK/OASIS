@@ -1140,3 +1140,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 14 November. DynamoDB identity qualification uses the existing disposable DynamoDB and SQLite CI fixture. No local build or database ran.
 
 14 November. DynamoDB receipt changes created no local build or fixture.
+
+14 November. DynamoDB receiver qualification uses the existing disposable CI fixture. No local build or database ran.

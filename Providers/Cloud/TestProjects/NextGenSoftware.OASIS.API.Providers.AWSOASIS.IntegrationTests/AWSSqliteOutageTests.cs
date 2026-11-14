@@ -47,6 +47,24 @@ public partial class AWSOASISIntegrationTests
             var mismatch = await receiptProvider.ReadCommittedHolonReplicaReceiptAsync(
                 new CommittedHolonReplicaReceiptReadRequest(replicaIntent, wrongStore));
             Assert.AreEqual("COSMIC_REPLICA_RECEIPT_STORAGE_MISMATCH", mismatch.ErrorCode);
+            var receiver = (IBoundCommittedHolonReplicaStorageProvider)_provider;
+            var applied = synchronous ? receiver.ApplyBoundCommittedHolonReplica(replicaIntent, bindings[0].Result)
+                : await receiver.ApplyBoundCommittedHolonReplicaAsync(replicaIntent, bindings[0].Result);
+            try
+            {
+                Assert.IsFalse(applied.IsError, $"{applied.Message} {applied.Exception}");
+                var replay = await receiver.ApplyBoundCommittedHolonReplicaAsync(replicaIntent, bindings[0].Result);
+                Assert.IsFalse(replay.IsError, replay.Message);
+                Assert.AreEqual(receiptHolon.VersionId, replay.Result.Single().VersionId);
+                var committedReceipt = await receiptProvider.ReadCommittedHolonReplicaReceiptAsync(
+                    new CommittedHolonReplicaReceiptReadRequest(replicaIntent, bindings[0].Result));
+                Assert.IsFalse(committedReceipt.IsError, committedReceipt.Message);
+                Assert.AreEqual(ConditionalHolonReceiptState.Committed, committedReceipt.Result.ReceiptState);
+            }
+            finally
+            {
+                await _provider.DeleteHolonAsync(receiptHolon.Id, softDelete: false);
+            }
 
             var saved = await _provider.SaveHolonAsync(new Holon { Id = id, Name = expected, IsActive = true }, saveChildren: false);
             Assert.IsFalse(saved.IsError, saved.Message);
