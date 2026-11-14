@@ -523,6 +523,11 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                 result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
                 OASISErrorHandling.HandleError(ref result, "The Bitcoin transaction does not contain the requested avatar detail version.");
             }
+            catch (BitcoinTransactionNotFoundException ex)
+            {
+                result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
+                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
+            }
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail from Bitcoin: {ex.Message}", ex);

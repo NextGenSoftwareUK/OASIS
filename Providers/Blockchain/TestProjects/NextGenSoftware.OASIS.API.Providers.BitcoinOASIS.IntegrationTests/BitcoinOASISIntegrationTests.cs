@@ -82,6 +82,15 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
             var wallet = await provider.LoadAvatarByProviderKeyAsync("1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa");
             Assert.IsTrue(wallet.IsError);
             Assert.IsNull(wallet.Result);
+
+            var missingTransaction = new string('0', 64);
+            var missingAvatar = await provider.LoadAvatarByProviderKeyAsync(missingTransaction);
+            var missingHolon = await provider.LoadHolonAsync(missingTransaction, loadChildren: false);
+            var missingDetail = await provider.LoadAvatarDetailByTransactionIdAsync(missingTransaction);
+            var notFound = NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound;
+            Assert.AreEqual(notFound, missingAvatar.ErrorCode);
+            Assert.AreEqual(notFound, missingHolon.ErrorCode);
+            Assert.AreEqual(notFound, missingDetail.ErrorCode);
         }
 
         [TestMethod]

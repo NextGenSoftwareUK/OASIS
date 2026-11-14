@@ -270,6 +270,11 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                 avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.BitcoinOASIS] = transactionId.ToString();
                 response.Result = avatar;
             }
+            catch (BitcoinTransactionNotFoundException ex)
+            {
+                response.ErrorCode = OASISResultErrorCodes.RecordNotFound;
+                OASISErrorHandling.HandleError(ref response, ex.Message, ex);
+            }
             catch (Exception ex)
             {
                 response.Exception = ex;

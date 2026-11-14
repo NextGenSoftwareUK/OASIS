@@ -58,12 +58,22 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
 
         private async Task<Transaction> ReadVerifiedTransactionAsync(uint256 transactionId)
         {
-            var hex = await _httpClient.GetStringAsync($"tx/{transactionId}/hex");
+            using var response = await _httpClient.GetAsync($"tx/{transactionId}/hex");
+            if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                throw new BitcoinTransactionNotFoundException(transactionId);
+
+            response.EnsureSuccessStatusCode();
+            var hex = await response.Content.ReadAsStringAsync();
             // The Bitcoin wire format and transaction hash are the same across Bitcoin networks.
             var transaction = Transaction.Parse(hex.Trim(), Network.Main);
             if (transaction.GetHash() != transactionId)
                 throw new InvalidOperationException("Esplora returned a transaction with a different ID.");
             return transaction;
+        }
+
+        private sealed class BitcoinTransactionNotFoundException(uint256 transactionId)
+            : Exception($"Esplora has no Bitcoin transaction with ID {transactionId}.")
+        {
         }
 
         public WalletManager WalletManager
