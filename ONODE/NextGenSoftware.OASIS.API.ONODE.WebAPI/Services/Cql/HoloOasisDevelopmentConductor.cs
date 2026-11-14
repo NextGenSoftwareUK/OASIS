@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
@@ -315,7 +316,27 @@ internal sealed class HoloOasisDevelopmentConductor
 
                 var timeout = new TimeoutException(
                     "The existing HoloOASIS teaching cell did not start within the conductor readiness budget.");
-                timeout.Data["COSMIC.NativeStage"] = DescribeNativeStartup(GetConductorOutput());
+                var stage = DescribeNativeStartup(GetConductorOutput());
+                if (stage == "network join started")
+                {
+                    try
+                    {
+                        var metrics = await DumpNetworkMetricsAsync(expectedCell[0])
+                            .WaitAsync(TimeSpan.FromSeconds(2), cancellationToken);
+                        if (!metrics.IsError && !string.IsNullOrEmpty(metrics.NetworkMetricsDumpJSON))
+                        {
+                            using var snapshot = JsonDocument.Parse(metrics.NetworkMetricsDumpJSON);
+                            if (snapshot.RootElement.ValueKind == JsonValueKind.Object
+                                && snapshot.RootElement.EnumerateObject().Any())
+                                stage = "network space observed";
+                        }
+                    }
+                    catch (Exception) when (!cancellationToken.IsCancellationRequested)
+                    {
+                        // Keep the last confirmed startup milestone if the bounded metrics read fails.
+                    }
+                }
+                timeout.Data["COSMIC.NativeStage"] = stage;
                 timeout.Data[typeof(HoloOasisStartupCounts)] = new HoloOasisStartupCounts(
                     interfaceCount, completedPolls, completedPolls == 0 ? null : lastRunningCellCount);
                 throw timeout;
