@@ -2061,3 +2061,5 @@ Supabase now reads replica receipt evidence through a service-role PostgREST RPC
 14 November Cancun time. Bitcoin holon reads now stamp the independently verified transaction ID onto the returned record. The native fixture mines a synthetic public holon memo and checks exact identity, provider-key attribution and authoritative absence for a different version. This exercises the real signed payment and read path. Encrypted SaveHolon and avatar storage remain open.
 
 14 November Cancun time. Native Bitcoin CI 43633166370 passed on 1f03419b62a0 with a mined synthetic holon memo, exact identity and provider key readback, and RecordNotFound for the other version. Public CI 43633166394 passed including the avatar absence and wallet-address rejection. Signed encrypted SaveHolon and avatar storage remain open. No local builds or fixtures.
+
+14 November Cancun time. Bitcoin avatar lookup, holon lookup and funding verification now use one Esplora raw transaction reader with transaction-ID verification at the boundary. Exact candidate 629c64b8452c remains in qualification. No local build or fixture.

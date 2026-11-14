@@ -112,9 +112,8 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                     var mature = confirmed && tip - status.GetProperty("block_height").GetInt64() + 1 >= 100;
                     if (!mature)
                     {
-                        var raw = await _httpClient.GetStringAsync($"tx/{txid}/hex");
-                        var funding = Transaction.Parse(raw.Trim(), network);
-                        if (funding.GetHash() != txid || index >= funding.Outputs.Count ||
+                        var funding = await ReadVerifiedTransactionAsync(txid);
+                        if (index >= funding.Outputs.Count ||
                             funding.Outputs[(int)index].ScriptPubKey != source.ScriptPubKey ||
                             funding.Outputs[(int)index].Value != value)
                             throw new InvalidOperationException("Esplora returned inconsistent funding output details.");
@@ -414,20 +413,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                     return result;
                 }
 
-                using var response = await _httpClient.GetAsync($"tx/{transactionId}/hex");
-                if (!response.IsSuccessStatusCode)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Esplora could not retrieve Bitcoin transaction {transactionId}: {response.StatusCode}");
-                    return result;
-                }
-
-                // Bitcoin transaction serialization and txid calculation are network independent.
-                var transaction = Transaction.Parse((await response.Content.ReadAsStringAsync()).Trim(), Network.Main);
-                if (transaction.GetHash() != transactionId)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Esplora returned a transaction with a different ID.");
-                    return result;
-                }
+                var transaction = await ReadVerifiedTransactionAsync(transactionId);
 
                 Holon holon = null;
                 foreach (var output in transaction.Outputs)
