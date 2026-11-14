@@ -150,7 +150,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                 using var response = await _httpClient.PostAsync("tx", body);
                 if (!response.IsSuccessStatusCode)
                 {
-                    OASISErrorHandling.HandleError(ref result, $"Esplora rejected Bitcoin transaction {expectedId}: {response.StatusCode}.");
+                    var rejection = await response.Content.ReadAsStringAsync();
+                    rejection = System.Text.RegularExpressions.Regex.Replace(rejection, "[a-fA-F0-9]{64,}", "[redacted]");
+                    rejection = rejection.Replace('\r', ' ').Replace('\n', ' ').Trim();
+                    if (rejection.Length > 512)
+                        rejection = rejection[..512];
+                    OASISErrorHandling.HandleError(ref result, $"Esplora rejected Bitcoin transaction {expectedId}: {response.StatusCode}. {rejection}");
                     return result;
                 }
 
