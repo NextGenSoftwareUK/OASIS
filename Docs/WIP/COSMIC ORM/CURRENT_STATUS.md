@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Persisted Holochain app listeners accumulate
+
+Two live process snapshots found 131 distinct IPv4 loopback TCP listeners owned by the WEB4 teaching conductor while its persisted cell failed to start. HoloNET pin 9f897b7 attaches a new app interface without specifying a port on every installed-app provisioning. Holochain 0.7.1 restores the stored app interfaces sequentially before creating enabled cells. This is a concrete lifecycle defect and a candidate contributor to the Railway delay. Qualify interface reuse and bounded interface count across restarts. The listener count alone does not locate the precise point of the current startup wait. Keep the existing cell and data volume intact. No local build or fixture changes.
+
 ## WEB4 replacement reproduced the persisted-cell failure
 
 Railway 45fb02c9 reported SUCCESS and SSH confirmed 6c36bb49f09f, but public health timed out and its local port 8080 refused the health request. Runtime logs reproduced the persisted teaching-cell timeout with 240 admin replies and zero live cells. HyperDrive advanced Development to qualified DynamoDB candidate 4e86752ff71f and WEB4 queued 372c916c. The earlier smoke watcher correctly exited when its target was superseded. Verify the new deployment before running authenticated checks. No local build or fixture changes.
