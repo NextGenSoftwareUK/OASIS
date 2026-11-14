@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Shared Development review candidate
+
+Candidate `72ffc86c2082` keeps the six [protocol-qualified COSMIC changes](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43533976399) and takes the exact [native-qualified Firestore test file](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43535483525/job/132263332650) from `72bd082f6613`. Relative to `f587ae2ccabf`, only FirestoreSqliteOutageTests.cs changes. Relative to the HyperDrive candidate, only the six COSMIC paths change. WEB4 health remained HTTP 200 on Development `9944b532132b`. Review after 19:56:48 Cancun with one publisher.
+
 ## Authenticated Firestore baseline accepted
 
 13 November Cancun. On WEB4 9944b532132b, a separate release-smoke visitor proved 105/107 CQL sources ready (Hedera and Nostr unavailable) and exact matching HoloOASIS native/MongoDB federation 3/2 with HoloOASIS provenance. The same deployment served throughout. The existing accepted cohorts and uncertain refreshes were untouched. The visitor performed read-only CQL. Candidate f587ae2ccabf is qualified for scoped integration when the shared window opens.
