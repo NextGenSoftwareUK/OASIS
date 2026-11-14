@@ -63,7 +63,24 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Assert.AreEqual(expectedDouble, doubles.Sum());
         Assert.AreEqual(expectedDouble, doubles.Average());
         Assert.AreEqual(0d, doubles.Take(0).Sum());
-        Passed("native integer, decimal and floating-point reductions preserve entity windows");
+        var entityWindow = source.Where(row => row.Id == rootId).Result.Compose().Result.Take(1).Result;
+        var unsigned = entityWindow.Select(row => CosmicQueryMetadata.Value<ulong>(row, "u64")).Result;
+        var target = new CosmicProjectionCompositionTarget(adapter.QueryProviderType, adapter.QueryCapabilities,
+            adapter.ProjectionCapabilities, adapter.CompositionCapabilities);
+        async Task<TValue> ReduceUnsigned<TValue>(CosmicScalarOperation operation)
+        {
+            var plan = CosmicProjectedNumericPlanner.PlanEntity<Holon, ulong, TValue>(unsigned, 0, operation,
+                adapter.QueryProviderType, target, adapter.EntityCompositionCapabilities);
+            Assert.IsFalse(plan.IsError, plan.Message);
+            var result = await NativeManager(adapter).ExecuteProjectedNumericQueryAsync(plan.Result,
+                new ICosmicQueryStorageProvider[] { adapter });
+            Assert.IsFalse(result.IsError, result.Message + result.Exception);
+            Assert.IsTrue(result.IsLoaded);
+            return result.Result.Providers.Single().Value;
+        }
+        Assert.AreEqual(ulong.MaxValue, await ReduceUnsigned<ulong>(CosmicScalarOperation.Sum));
+        Assert.AreEqual((decimal)ulong.MaxValue, await ReduceUnsigned<decimal>(CosmicScalarOperation.Average));
+        Passed("native integer, decimal, floating-point and exact UInt64 reductions preserve entity windows");
 
         var nullable = root.OrderBy(row => row.Name).Take(3).Reverse().Take(0)
             .Select(row => CosmicQueryMetadata.Value<int?>(row, "nullableInt"));
