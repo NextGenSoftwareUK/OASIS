@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Supabase bidirectional dispatcher rollout
+
+Development advanced to b4f1a930b2b8 after [native PostgREST CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43564715599) verified Supabase-to-SQLite and SQLite-to-Supabase delivery in both routing modes. Railway queued WEB4 deployment 7abc1437. Live CQL acceptance remains on 5ab24c31afa0 pending cutover. The separate native expired-lease recovery test is awaiting qualification. Hosted Supabase CQL still needs its teaching fixture and restricted reader. No local builds or data fixtures were created.
+
 ## Supabase receiver rollout live CQL verification
 
 Railway WEB4 deployment c46c40b5 served 5ab24c31afa0 and public health returned HTTP 200. Authenticated native and federated readiness warmed from 93/107 to 105/107. HoloOASIS returned matching three-record and two-record subsets with provider provenance. Hedera activation timed out waiting for response headers at 15 seconds. Nostr returned HTTP 521 during the relay WebSocket upgrade. The hosted Supabase CQL teaching fixture remains separate from the delivered receiver. No local builds or holon fixtures.
