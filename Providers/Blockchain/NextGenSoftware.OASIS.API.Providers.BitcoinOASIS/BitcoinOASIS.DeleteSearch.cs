@@ -46,7 +46,14 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             return SendTransactionAsync(fromWalletAddress, toWalletAddress, amount, memoText).Result;
         }
 
-        public async Task<OASISResult<ITransactionResponse>> SendTransactionAsync(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
+        public Task<OASISResult<ITransactionResponse>> SendTransactionAsync(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
+        {
+            var memo = Encoding.UTF8.GetBytes(memoText ?? string.Empty);
+            return SendSignedTransactionAsync(fromWalletAddress, toWalletAddress, amount, memo, memoText);
+        }
+
+        private async Task<OASISResult<ITransactionResponse>> SendSignedTransactionAsync(
+            string fromWalletAddress, string toWalletAddress, decimal amount, byte[] memo, string memoText)
         {
             var result = new OASISResult<ITransactionResponse>();
             try
@@ -70,10 +77,9 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                     return result;
                 }
 
-                var memo = Encoding.UTF8.GetBytes(memoText ?? string.Empty);
                 if (memo.Length > 80)
                 {
-                    OASISErrorHandling.HandleError(ref result, "A Bitcoin transaction memo may contain at most 80 UTF-8 bytes.");
+                    OASISErrorHandling.HandleError(ref result, "A Bitcoin transaction data output may contain at most 80 bytes.");
                     return result;
                 }
 
