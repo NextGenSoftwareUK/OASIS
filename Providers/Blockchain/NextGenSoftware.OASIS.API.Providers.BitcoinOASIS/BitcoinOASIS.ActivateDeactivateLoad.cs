@@ -129,7 +129,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                 var transaction = await ReadVerifiedTransactionAsync(transactionId);
 
                 var avatar = await DecodeAvatarTransactionAsync(transaction);
-                if (avatar == null || (version > 0 && avatar.Version != version))
+                if (avatar == null || avatar.IsDeleted || (version > 0 && avatar.Version != version))
                 {
                     response.ErrorCode = OASISResultErrorCodes.RecordNotFound;
                     OASISErrorHandling.HandleError(ref response, "The Bitcoin transaction does not contain the requested avatar version.");

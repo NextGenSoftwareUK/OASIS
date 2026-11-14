@@ -259,92 +259,8 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             return result;
         }
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid parentId, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool continueOnErrorRecursive = true, int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Bitcoin provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                // Search for holons with ParentHolonId in OP_RETURN transactions
-                // Bitcoin doesn't natively support queries, so we search transactions containing the parent ID
-                var searchRequest = new
-                {
-                    jsonrpc = "2.0",
-                    id = 1,
-                    method = "searchrawtransactions",
-                    @params = new object[] { parentId.ToString(), true, 0, 1000 }
-                };
-
-                var searchContent = new StringContent(JsonSerializer.Serialize(searchRequest), Encoding.UTF8, "application/json");
-                var searchResponse = await _httpClient.PostAsync("", searchContent);
-
-                if (searchResponse.IsSuccessStatusCode)
-                {
-                    var searchResult = await searchResponse.Content.ReadAsStringAsync();
-                    var searchData = JsonSerializer.Deserialize<JsonElement>(searchResult);
-
-                    var holons = new List<IHolon>();
-                    if (searchData.TryGetProperty("result", out var transactions))
-                    {
-                        foreach (var transaction in transactions.EnumerateArray())
-                        {
-                            if (transaction.TryGetProperty("vout", out var vouts))
-                            {
-                                foreach (var vout in vouts.EnumerateArray())
-                                {
-                                    if (vout.TryGetProperty("scriptPubKey", out var scriptPubKey) &&
-                                        scriptPubKey.TryGetProperty("asm", out var asm))
-                                    {
-                                        var asmString = asm.GetString();
-                                        if (asmString != null && asmString.StartsWith("OP_RETURN"))
-                                        {
-                                            try
-                                            {
-                                                var opReturnData = asmString.Substring("OP_RETURN ".Length);
-                                                var holonBytes = Convert.FromHexString(opReturnData);
-                                                var holonJson = Encoding.UTF8.GetString(holonBytes);
-                                                var holon = ParseBitcoinToHolon(holonJson);
-                                                if (holon != null && holon.ParentHolonId == parentId &&
-                                                    (holonType == HolonType.All || holon.HolonType == holonType))
-                                                {
-                                                    holons.Add(holon);
-                                                }
-                                            }
-                                            catch
-                                            {
-                                                continue;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    result.Result = holons;
-                    result.IsError = false;
-                    result.Message = $"Loaded {holons.Count} holons for parent from Bitcoin blockchain";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to search Bitcoin blockchain: {searchResponse.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading holons for parent from Bitcoin: {ex.Message}", ex);
-            }
-            return result;
-        }
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid parentId, HolonType holonType = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool continueOnErrorRecursive = true, int version = 0)
+            => LoadWalletHolonsAsync(holon => holon.ParentHolonId == parentId && (holonType == HolonType.All || holon.HolonType == holonType), loadChildren, recursive, maxChildDepth, curentChildDepth, version);
 
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool continueOnErrorRecursive = true, int version = 0)
         {
@@ -369,35 +285,15 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
 
                 var transaction = await ReadVerifiedTransactionAsync(transactionId);
 
-                Holon holon = null;
-                foreach (var output in transaction.Outputs)
-                {
-                    var pushes = new TxNullDataTemplate(output.ScriptPubKey.Length).ExtractScriptPubKeyParameters(output.ScriptPubKey);
-                    if (pushes?.Length != 1)
-                        continue;
-
-                    var decoded = BitcoinRecordBlobStore.IsCommitment(pushes[0])
-                        ? await ReadEncryptedHolonAsync(pushes[0])
-                        : ParseBitcoinToHolon(Encoding.UTF8.GetString(pushes[0]));
-                    if (decoded == null)
-                        continue;
-
-                    if (holon != null)
-                    {
-                        OASISErrorHandling.HandleError(ref result, "The Bitcoin transaction contains multiple holon records.");
-                        return result;
-                    }
-                    holon = decoded;
-                }
-
-                if (holon == null || (version > 0 && holon.Version != version))
+                var holon = await DecodeHolonTransactionAsync(transaction);
+                if (holon == null || holon.IsDeleted || (version > 0 && holon.Version != version))
                 {
                     result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
                     OASISErrorHandling.HandleError(ref result, "The Bitcoin transaction does not contain the requested holon version.");
                     return result;
                 }
 
-                if (loadChildren && (recursive || maxChildDepth > 0))
+                if (loadChildren)
                 {
                     var children = await LoadHolonsForParentAsync(holon.Id, HolonType.All, loadChildren, recursive, maxChildDepth, 0, continueOnError, continueOnErrorRecursive, version);
                     if (children.IsError)
@@ -423,6 +319,29 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                 OASISErrorHandling.HandleError(ref result, $"Error loading holon from Bitcoin: {ex.Message}", ex);
             }
             return result;
+        }
+
+        private async Task<IHolon> DecodeHolonTransactionAsync(Transaction transaction)
+        {
+            Holon holon = null;
+            foreach (var output in transaction.Outputs)
+            {
+                var pushes = new TxNullDataTemplate(output.ScriptPubKey.Length).ExtractScriptPubKeyParameters(output.ScriptPubKey);
+                if (pushes?.Length != 1)
+                    continue;
+
+                var decoded = BitcoinRecordBlobStore.IsCommitment(pushes[0])
+                    ? await ReadEncryptedHolonAsync(pushes[0])
+                    : ParseBitcoinToHolon(Encoding.UTF8.GetString(pushes[0]));
+                if (decoded == null)
+                    continue;
+
+                if (holon != null)
+                    throw new InvalidOperationException("The Bitcoin transaction contains multiple holon records.");
+                holon = decoded;
+            }
+
+            return holon;
         }
 
         public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0)

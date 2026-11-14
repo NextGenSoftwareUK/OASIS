@@ -87,6 +87,7 @@ public partial class BitcoinOASIS
             throw new InvalidOperationException("The Bitcoin tip changed during wallet history lookup.");
 
         return records.GroupBy(record => record.Id)
+            .Where(group => !group.Any(record => record.IsDeleted))
             .Select(group =>
             {
                 var latestVersion = group.Max(record => record.Version);
