@@ -27,6 +27,14 @@ public partial class AWSOASISIntegrationTests
         const string expected = "DynamoDB outage replica";
         try
         {
+            var identityProvider = (ICosmicStorageIdentityProvider)_provider;
+            var bindings = await Task.WhenAll(identityProvider.CaptureStorageIdentityAsync(),
+                identityProvider.CaptureStorageIdentityAsync());
+            foreach (var binding in bindings)
+                Assert.IsFalse(binding.IsError, $"{binding.Message} {binding.Exception}");
+            Assert.AreEqual(ProviderType.AWSOASIS, bindings[0].Result.Authority);
+            Assert.AreEqual(bindings[0].Result.BindingFingerprint, bindings[1].Result.BindingFingerprint);
+
             var saved = await _provider.SaveHolonAsync(new Holon { Id = id, Name = expected, IsActive = true }, saveChildren: false);
             Assert.IsFalse(saved.IsError, saved.Message);
             var dna = new OASISDNA { OASIS = new NextGenSoftware.OASIS.API.DNA.OASIS
