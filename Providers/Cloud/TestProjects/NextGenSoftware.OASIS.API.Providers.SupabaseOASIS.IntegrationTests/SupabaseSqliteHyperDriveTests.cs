@@ -51,6 +51,19 @@ public sealed class SupabaseSqliteHyperDriveTests
             var binding = await supabase.CaptureStorageIdentityAsync();
             Assert.IsFalse(binding.IsError, binding.Message);
             Assert.AreEqual(ProviderType.SupabaseOASIS, binding.Result.Authority);
+            var replica = new Holon { Id = Guid.NewGuid(), Version = 1, VersionId = Guid.NewGuid() };
+            CosmicConcurrency.SetProviderRevisionId(replica, ProviderType.SQLLiteDBOASIS, Guid.NewGuid());
+            var receiptIntent = new CommittedHolonReplicaRequest(Guid.NewGuid(), "owned-sqlite",
+                ProviderType.SQLLiteDBOASIS, Guid.NewGuid(), ConditionalHolonOperation.Save,
+                new[] { replica }, saveChildren: false);
+            var absent = await supabase.ReadCommittedHolonReplicaReceiptAsync(
+                new CommittedHolonReplicaReceiptReadRequest(receiptIntent, binding.Result));
+            Assert.IsFalse(absent.IsError, $"{absent.Message} {absent.Exception}");
+            Assert.AreEqual(ConditionalHolonReceiptState.Absent, absent.Result.ReceiptState);
+            var wrongBinding = new CosmicStorageIdentity(binding.Result.Authority, binding.Result.EndpointFingerprint, Guid.NewGuid());
+            var wrongStore = await supabase.ReadCommittedHolonReplicaReceiptAsync(
+                new CommittedHolonReplicaReceiptReadRequest(receiptIntent, wrongBinding));
+            Assert.AreEqual("COSMIC_REPLICA_RECEIPT_STORAGE_MISMATCH", wrongStore.ErrorCode);
             var reopened = new SupabaseOASIS(endpoint, key!, client, "");
             try
             {

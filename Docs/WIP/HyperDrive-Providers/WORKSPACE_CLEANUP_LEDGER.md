@@ -1092,3 +1092,5 @@ Urgent disk cleanup follow-up: leased standard project clean succeeded for AWS u
 13 November. SQL Server Development integration created no local builds, fixtures, downloads or reports. C: had 31.76 GiB free at the rollout check.
 
 13 November. Supabase identity uses the existing disposable PostgREST and PostgreSQL CI fixtures. No local build, database, or downloads were created.
+
+Supabase receipt qualification reuses the disposable PostgREST fixture. No local build, downloads, or database were created.
