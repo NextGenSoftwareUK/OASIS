@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Qualified HoloOASIS lifecycle batch for 10:41:07 Cancun
+
+Exact candidate 2e864e1162e0 on Development 72c90754271e passed Linux 43608963724, protocol 43608984281 and image 43608984697. GHCR digest sha256:4ca840d34e08b54fabd2a63da947b9519479eb66d4ab760f847209d0f69b9005. The serving WEB4 deployment 5114a9db has repeatedly failed to start, with six persisted-cell timeouts through 15:30:05 UTC. COSMIC proposes the qualified lifecycle batch for the next shared window to isolate the failing provider and restore WEB4. HyperDrive can carry its separate frozen V2 route batch on the resulting parent. Verify the exact branch and rollout immediately before publication. Native cell stall diagnosis remains open.
+
 ## WEB4 timeout recurred on the authorization regression rollout
 
 On 72c90754271e, Railway reports 5114a9db SUCCESS while external HTTP health times out. The serving deployment log records repeated persisted-cell timeouts at 15:23:54, 15:25:08 and 15:26:22 UTC. The read-only admin inventory still reports 135 persisted app interfaces, one app-bound. The deployment monitor remains active. Candidate 2e864e1162e0 passed Linux and full protocol CI on the exact parent. Its image build remains active. Coordinate the 10:41:07 Cancun review with HyperDrive, whose separate frozen V2 route candidate is in exact native CI. No additional restart or local build.
