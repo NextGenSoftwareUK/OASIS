@@ -1660,3 +1660,5 @@ Holo Desktop diagnostic run 43155153231 found that the conductor tool path was d
 13 November Cancun time. Extended the SQL Server native enrollment check to a second database on the same owned SQL Server instance. Reopening the first store must preserve its fingerprint, and the peer must produce a different one. Native verification remains pending.
 
 13 November Cancun time. The first SQL Server identity run stopped at the reviewed overlay because the prior provider-key regression had since reached Development. Updated the guard to the published Development preimage. Native identity verification remains open.
+
+13 November Cancun time. Added SQL Server's bound replica receipt lookup using one serializable SqlClient transaction. The native test checks authoritative absence in the enrolled database and rejection of the same receipt request on its peer. Atomic replica application remains open.

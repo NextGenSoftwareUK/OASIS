@@ -1056,3 +1056,5 @@ Urgent disk cleanup follow-up: leased standard project clean succeeded for AWS u
 13 November. The SQL Server peer database belongs to the existing disposable CI container and is removed with its volumes. No local fixtures or build outputs were created.
 
 13 November. SQL Server identity CI 43552570091 stopped before fixture provisioning. No local artifacts were created.
+
+13 November. SQL Server replica receipt verification uses the existing CI container and two owned databases. No local build or fixtures were created.

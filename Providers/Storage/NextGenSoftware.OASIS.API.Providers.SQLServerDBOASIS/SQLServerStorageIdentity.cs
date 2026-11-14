@@ -9,10 +9,11 @@ using Microsoft.Data.SqlClient;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLServerDBOASIS;
 
-public partial class SQLServerDBOASIS : ICosmicStorageIdentityProvider
+public partial class SQLServerDBOASIS : ICosmicStorageIdentityProvider, ICommittedHolonReplicaReceiptStorageProvider
 {
     public async Task<OASISResult<CosmicStorageIdentity>> CaptureStorageIdentityAsync(
         CancellationToken cancellationToken = default)
@@ -41,6 +42,12 @@ IF OBJECT_ID(N'dbo.OASISStorageIdentity', N'U') IS NULL
     );
 IF NOT EXISTS (SELECT 1 FROM dbo.OASISStorageIdentity WHERE Slot=1)
     INSERT INTO dbo.OASISStorageIdentity (Slot, StoreId) VALUES (1, NEWID());
+IF OBJECT_ID(N'dbo.OASISReplicaReceipts', N'U') IS NULL
+    CREATE TABLE dbo.OASISReplicaReceipts (
+        OperationId uniqueidentifier NOT NULL PRIMARY KEY,
+        RequestHash varchar(64) NOT NULL,
+        ResultJson nvarchar(max) NOT NULL
+    );
 ", connection, transaction);
             await provision.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
             var identity = await ReadSqlServerStorageIdentityAsync(connection, transaction, cancellationToken)
@@ -54,6 +61,49 @@ IF NOT EXISTS (SELECT 1 FROM dbo.OASISStorageIdentity WHERE Slot=1)
         {
             return new() { IsError = true, ErrorCount = 1, ErrorCode = "COSMIC_STORAGE_IDENTITY_CAPTURE_FAILED",
                 Exception = cause, Message = "The SQL Server store identity could not be captured." };
+        }
+    }
+
+    public async Task<OASISResult<CommittedHolonReplicaReceiptEvidence>> ReadCommittedHolonReplicaReceiptAsync(
+        CommittedHolonReplicaReceiptReadRequest request, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        if (request == null || request.ExpectedStorage.Authority != ProviderType.SQLServerDBOASIS)
+            return new() { IsError = true, ErrorCount = 1, ErrorCode = "COSMIC_REPLICA_RECEIPT_OPTIONS_INVALID",
+                Message = "An exact SQL Server replica receipt intent and binding are required." };
+
+        try
+        {
+            if (!IsProviderActivated)
+                throw new InvalidOperationException("Activate SQL Server before reading replica receipts.");
+            var plan = CommittedHolonReplicaReceiptProjection.Prepare(request);
+            await using var connection = new SqlConnection(_connectionString);
+            await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+            await using var transaction = (SqlTransaction)await connection.BeginTransactionAsync(
+                IsolationLevel.Serializable, cancellationToken).ConfigureAwait(false);
+            var identity = await ReadSqlServerStorageIdentityAsync(connection, transaction, cancellationToken)
+                .ConfigureAwait(false);
+            if (identity.BindingFingerprint != request.ExpectedStorage.BindingFingerprint)
+                return new() { IsError = true, ErrorCount = 1, ErrorCode = "COSMIC_REPLICA_RECEIPT_STORAGE_MISMATCH",
+                    Message = "The physical SQL Server database differs from the reviewed replica store." };
+
+            await using var command = new SqlCommand(
+                "SELECT RequestHash, ResultJson FROM dbo.OASISReplicaReceipts WHERE OperationId=@Id;",
+                connection, transaction);
+            command.Parameters.Add("@Id", SqlDbType.UniqueIdentifier).Value = plan.OperationId;
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            var found = await reader.ReadAsync(cancellationToken).ConfigureAwait(false);
+            var evidence = CommittedHolonReplicaReceiptProjection.Project(request, plan,
+                found ? reader.GetString(0) : null, found ? reader.GetString(1) : null,
+                HolonReplicaHeadReadConsistency.NativeSnapshot);
+            return new(evidence) { IsLoaded = true };
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { throw; }
+        catch (Exception cause)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            return new() { IsError = true, ErrorCount = 1, ErrorCode = "COSMIC_REPLICA_RECEIPT_UNVERIFIED",
+                Exception = cause, Message = "The SQL Server replica receipt could not be verified." };
         }
     }
 

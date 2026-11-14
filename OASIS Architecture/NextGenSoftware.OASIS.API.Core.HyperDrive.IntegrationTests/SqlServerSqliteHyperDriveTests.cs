@@ -50,6 +50,15 @@ public sealed class SqlServerSqliteHyperDriveTests
             var identity = captures[0].Result;
             Assert.Equal(ProviderType.SQLServerDBOASIS, identity.Authority);
             Assert.Equal(identity.BindingFingerprint, captures[1].Result.BindingFingerprint);
+            var replica = new Holon { Id = Guid.NewGuid(), Version = 1, VersionId = Guid.NewGuid() };
+            CosmicConcurrency.SetProviderRevisionId(replica, ProviderType.SQLLiteDBOASIS, Guid.NewGuid());
+            var replicaIntent = new CommittedHolonReplicaRequest(Guid.NewGuid(), "owned-sqlite",
+                ProviderType.SQLLiteDBOASIS, Guid.NewGuid(), ConditionalHolonOperation.Save,
+                new[] { replica }, saveChildren: false);
+            var receiptRequest = new CommittedHolonReplicaReceiptReadRequest(replicaIntent, identity);
+            var receipt = await sql.ReadCommittedHolonReplicaReceiptAsync(receiptRequest);
+            Assert.False(receipt.IsError, receipt.Message);
+            Assert.Equal(ConditionalHolonReceiptState.Absent, receipt.Result.ReceiptState);
             var reopened = new SQLServerDBOASIS(connection.ConnectionString);
             try
             {
@@ -74,6 +83,9 @@ public sealed class SqlServerSqliteHyperDriveTests
                 var peerIdentity = await peer.CaptureStorageIdentityAsync();
                 Assert.False(peerIdentity.IsError, peerIdentity.Message);
                 Assert.NotEqual(identity.BindingFingerprint, peerIdentity.Result.BindingFingerprint);
+                var wrongReceipt = await peer.ReadCommittedHolonReplicaReceiptAsync(receiptRequest);
+                Assert.True(wrongReceipt.IsError);
+                Assert.Equal("COSMIC_REPLICA_RECEIPT_STORAGE_MISMATCH", wrongReceipt.ErrorCode);
             }
             finally
             {
