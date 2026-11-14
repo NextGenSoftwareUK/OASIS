@@ -28,7 +28,8 @@ public class CqlReadSourceActivationRecoveryTests
                 case "get_ProviderType": return new EnumValue<ProviderType>(ProviderType.BlockscoutOASIS);
                 case "get_QueryProviderType": return ProviderType.BlockscoutOASIS;
                 case "get_QueryCapabilities": return CosmicQueryCapabilities.ForStringMetadataKeyLookup("BlockscoutAddress",42,8);
-                case "get_IsProviderActivated": return Active;
+                case "get_IsProviderActivated": return false;
+                case "get_IsQuerySourceActivated": return Active;
                 case "ActivateQuerySourceAsync":
                     var token = (CancellationToken)arguments![0]!;
                     token.ThrowIfCancellationRequested(); Assert.True(token.CanBeCanceled);
