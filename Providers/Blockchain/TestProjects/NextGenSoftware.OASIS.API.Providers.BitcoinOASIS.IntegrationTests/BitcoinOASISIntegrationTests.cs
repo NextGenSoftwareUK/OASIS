@@ -69,6 +69,22 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
         }
 
         [TestMethod]
+        public async Task EsploraOrdinaryTransactionDoesNotProduceAnAvatar()
+        {
+            using var provider = new BitcoinOASIS();
+            const string genesisTransaction = "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b";
+
+            var avatar = await provider.LoadAvatarByProviderKeyAsync(genesisTransaction);
+            Assert.IsTrue(avatar.IsError);
+            Assert.IsNull(avatar.Result);
+            Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound, avatar.ErrorCode);
+
+            var wallet = await provider.LoadAvatarByProviderKeyAsync("1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa");
+            Assert.IsTrue(wallet.IsError);
+            Assert.IsNull(wallet.Result);
+        }
+
+        [TestMethod]
         public async Task EsploraReportsFundedAddressBalance()
         {
             try
@@ -224,7 +240,8 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
 
             var activation = await provider.ActivateProviderAsync();
             Assert.IsFalse(activation.IsError, activation.Message);
-            const string memo = "OASIS regtest payment";
+            var holonId = Guid.NewGuid();
+            var memo = System.Text.Json.JsonSerializer.Serialize(new { Id = holonId, HolonType = HolonType.Holon, Version = 1 });
             var payment = await provider.SendTransactionAsync(source, destination, 0.001m, memo);
             Assert.IsFalse(payment.IsError, payment.Message);
             var transactionId = payment.Result.TransactionResult;
@@ -249,6 +266,22 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
                 .GenerateScriptPubKey(System.Text.Encoding.UTF8.GetBytes(memo)).ToHex();
             Assert.IsTrue(outputs.Any(output => output.GetProperty("value").GetDecimal() == 0m &&
                 output.GetProperty("scriptPubKey").GetProperty("hex").GetString() == script));
+
+            var minedHeight = confirmation.RootElement.GetProperty("height").GetInt32().ToString();
+            for (var attempt = 0; attempt < 60; attempt++)
+            {
+                if ((await http.GetStringAsync("blocks/tip/height")).Trim() == minedHeight)
+                    break;
+                await Task.Delay(500);
+            }
+            Assert.AreEqual(minedHeight, (await http.GetStringAsync("blocks/tip/height")).Trim());
+            var stored = await provider.LoadHolonAsync(transactionId, loadChildren: false, version: 1);
+            Assert.IsFalse(stored.IsError, stored.Message);
+            Assert.AreEqual(holonId, stored.Result.Id);
+            Assert.AreEqual(transactionId, stored.Result.ProviderUniqueStorageKey[ProviderType.BitcoinOASIS]);
+
+            var missingVersion = await provider.LoadHolonAsync(transactionId, loadChildren: false, version: 2);
+            Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound, missingVersion.ErrorCode);
 
             async Task<string> BitcoinCliAsync(params string[] arguments)
             {

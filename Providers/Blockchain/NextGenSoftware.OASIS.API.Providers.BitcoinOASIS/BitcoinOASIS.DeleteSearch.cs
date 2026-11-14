@@ -467,6 +467,8 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                     holon.Children = children.Result.ToList();
                 }
 
+                holon.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
+                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.BitcoinOASIS] = transactionId.ToString();
                 result.Result = holon;
             }
             catch (Exception ex)
