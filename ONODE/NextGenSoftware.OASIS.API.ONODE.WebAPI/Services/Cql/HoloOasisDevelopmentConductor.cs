@@ -240,11 +240,6 @@ internal sealed class HoloOasisDevelopmentConductor
             if (expectedCell is not { Length: 2 })
                 throw new InvalidOperationException("The enabled HoloOASIS teaching app has no provisioned cell.");
 
-            var interfaces = await ListInterfacesAsync().WaitAsync(readiness.Token);
-            if (interfaces.IsError)
-                throw new InvalidOperationException("The conductor could not list persisted app interfaces.");
-            var configuredInterfaceCount = interfaces.AppInterfaces.Count();
-
             var completedPolls = 0;
             var lastRunningCellCount = 0;
             try
@@ -264,9 +259,21 @@ internal sealed class HoloOasisDevelopmentConductor
             }
             catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
             {
+                var interfaceCount = "unavailable";
+                try
+                {
+                    var interfaces = await ListInterfacesAsync().WaitAsync(TimeSpan.FromSeconds(2), cancellationToken);
+                    if (!interfaces.IsError)
+                        interfaceCount = interfaces.AppInterfaces.Count().ToString(System.Globalization.CultureInfo.InvariantCulture);
+                }
+                catch (Exception error) when (!cancellationToken.IsCancellationRequested)
+                {
+                    interfaceCount = error.GetType().Name;
+                }
+
                 throw new TimeoutException(
                     $"The existing HoloOASIS teaching cell did not start within the conductor readiness budget. " +
-                    $"Persisted app interfaces: {configuredInterfaceCount}; " +
+                    $"Persisted app interfaces: {interfaceCount}; " +
                     $"completed cell-list replies: {completedPolls}; cells in the last reply: {lastRunningCellCount}.");
             }
         }
