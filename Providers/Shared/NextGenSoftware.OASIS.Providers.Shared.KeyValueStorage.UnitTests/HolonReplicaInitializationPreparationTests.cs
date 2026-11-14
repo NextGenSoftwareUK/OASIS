@@ -118,6 +118,7 @@ public sealed class HolonReplicaInitializationPreparationTests
     [DataRow("normal")] [DataRow("committed-response-lost")] [DataRow("submitted-no-receipt")]
     [DataRow("source-response-lost")] [DataRow("policy-revoked")] [DataRow("journal-changed")]
     [DataRow("completed-before-submit")]
+    [DataRow("wrong-target-receipt")]
     public async Task DurableApplicationRecoversOriginalOutcomesWithoutBlindResubmission(string scenario)
     {
         var source=new Source();var policy=new Policy();var preparation=Prepare(source,policy);
@@ -164,6 +165,14 @@ public sealed class HolonReplicaInitializationPreparationTests
                 return;
             }
             var first=await application.ExecuteAsync(actor,6,operation,journal);
+            if (scenario == "wrong-target-receipt")
+            {
+                Assert.AreEqual("COSMIC_REPLICA_INITIALIZATION_RECEIPT_MISMATCH", first.ErrorCode);
+                Assert.AreEqual(0, target.Writes);
+                Assert.AreEqual(0, completions);
+                passed = true;
+                return;
+            }
             Assert.AreEqual(1,target.Writes);
             Assert.AreEqual(scenario is "committed-response-lost" or "submitted-no-receipt" or "source-response-lost",first.IsError,first.Message+first.Exception);
             if(scenario=="policy-revoked")policy.Deny="approval";
@@ -209,7 +218,8 @@ public sealed class HolonReplicaInitializationPreparationTests
         public Task<OASISResult<HolonReplicaInitializationOutcome>> ReadReplicaInitializationOutcomeAsync(CommittedHolonReplicaRequest request,CancellationToken token=default)
         {
             var plan=CommittedHolonReplicaPlan.CreateInitialBaseline(request,ProviderType.SQLLiteDBOASIS);
-            return Task.FromResult(new OASISResult<HolonReplicaInitializationOutcome>(new(request.OperationId,ProviderType.SQLLiteDBOASIS,
+            var authority = scenario == "wrong-target-receipt" ? ProviderType.MongoDBOASIS : ProviderType.SQLLiteDBOASIS;
+            return Task.FromResult(new OASISResult<HolonReplicaInitializationOutcome>(new(request.OperationId,authority,
                 committed ? ConditionalHolonReceiptState.Committed:ConditionalHolonReceiptState.Absent,plan.Fingerprint,committed ? new string('A',64):null)));
         }
     }

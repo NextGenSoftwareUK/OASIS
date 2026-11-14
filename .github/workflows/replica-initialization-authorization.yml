@@ -77,8 +77,8 @@ jobs:
               if ($LASTEXITCODE) { throw 'Replica initialization authorization tests failed.' }
               [xml]$report = Get-Content -LiteralPath (Join-Path $fixture authorization.trx)
               $counts = $report.TestRun.ResultSummary.Counters
-              if ([int]$counts.total -ne 23 -or [int]$counts.passed -ne 23 -or [int]$counts.notExecuted -ne 0) {
-                throw 'Expected all 23 authorization and application cases to pass with zero skips.'
+              if ([int]$counts.total -ne 24 -or [int]$counts.passed -ne 24 -or [int]$counts.notExecuted -ne 0) {
+                throw 'Expected all 24 authorization and application cases to pass with zero skips.'
               }
             }
           } finally {

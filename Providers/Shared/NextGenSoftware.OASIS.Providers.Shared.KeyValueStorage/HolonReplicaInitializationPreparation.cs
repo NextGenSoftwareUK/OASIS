@@ -80,6 +80,7 @@ public sealed class HolonReplicaInitializationPreparation
     private readonly IHolonReplicaInitializationPolicy _policy;
     private readonly string _sourceId,_targetId,_policyBinding,_sourceStoreIdentity,_targetEndpointIdentity;
     private readonly ProviderType _sourceAuthority,_targetAuthority;
+    internal ProviderType TargetAuthority => _targetAuthority;
     public string RouteBinding {get;}
     public HolonReplicaInitializationPreparation(string catalogId,Guid catalogVersion,string sourceId,string sourceStoreIdentity,
         ProviderType sourceAuthority,IHolonReplicationObligationReader source,string targetId,string targetEndpointIdentity,
