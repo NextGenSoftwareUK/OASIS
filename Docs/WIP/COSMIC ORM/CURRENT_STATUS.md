@@ -1,4 +1,9 @@
 # COSMIC ORM / CQL current status
+## WEB4 health and shared qualification
+
+The crashed deployment ade89d08 and billing successor 28ffb60b show no effective Railway health-check path, although the repository declares /api/health in ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/railway.json. Confirm the Railway service applies that readiness check before treating its deployment status as HTTP acceptance. The preceding crash followed repeated persisted HoloOASIS cell timeouts. The live volume had free space and the configured bootstrap and relay resolved and passed TLS. The exact cell initialization failure remains open. The billing rollout is building; no live settings or persisted state were changed.
+
+[Preview-policy CI on cdabb38aec29](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43546464470) passed. [Combined qualification on the billing baseline](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43547703395/job/132302767039) is compiling WEB4. No local build or fixture outputs were created.
 
 ## Shared billing rollout and COSMIC qualification
 
