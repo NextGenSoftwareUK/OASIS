@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## HoloOASIS startup narrowed to native cell creation or network join
+
+On WEB4 deployment 3d7dd4ca the configured bootstrap and relay names resolve in the container. Certificate- and hostname-verified HTTPS from that container returned HTTP 404 at the bootstrap root and HTTP 200 at the relay root. This confirms basic HTTPS reachability, while the Holochain protocol exchange remains unverified. The Holochain 0.7.1 conductor initializes its admin interface before restoring enabled cells. It publishes the cells to its running registry only after cell creation and awaited network joins complete. The current evidence narrows the failure to that startup path. At the exact HoloNET dependency pin 9f897b7ace60, the child output buffer is private and is only reported when the admin listener fails to open. The next qualification should capture native startup diagnostics beyond admin connection, then reproduce a restart against persistent teaching state. No local builds, downloads or fixture changes.
+
 ## WEB4 Development crash loop confirmed
 
 Railway deployment 3d7dd4ca reports SUCCESS on 6c36bb49f09f, while public health times out. Runtime logs captured three consecutive unhandled provisioning failures, each after 240 successful conductor admin replies and zero live cells. SSH process snapshots show the same deployment cycling through container startup. The failure is in the persisted HoloOASIS teaching cell startup before WEB4 can serve HTTP. HoloNET redirects conductor stdout and stderr, and WEB4 currently disables its console and file logging; inspect how to expose bounded native startup diagnostics without logging request payloads. Keep the persisted volume and three public fixture IDs intact. No local builds, downloads or fixture changes.
