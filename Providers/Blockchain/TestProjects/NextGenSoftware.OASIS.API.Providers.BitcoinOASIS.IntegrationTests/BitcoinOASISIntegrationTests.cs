@@ -748,6 +748,25 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
                 Assert.IsFalse(walletHistory.IsError, walletHistory.Message);
                 Assert.AreEqual(26, walletHistory.Result.Count);
                 Assert.AreEqual(firstHistoryTx, walletHistory.Result.Last().NativeTransactionId);
+
+                var rootRecord = new Holon { Id = Guid.NewGuid(), HolonType = HolonType.Holon, Version = 1 };
+                var childRecord = new Holon { Id = Guid.NewGuid(), HolonType = HolonType.Holon, Version = 1 };
+                rootRecord.Children = new[] { (IHolon)childRecord }.ToList();
+                var invalidGraph = await recovered.SaveHolonAsync(rootRecord, saveChildrenOnProvider: true);
+                Assert.IsTrue(invalidGraph.IsError);
+                Assert.AreEqual(0, invalidGraph.SavedCount);
+                Assert.IsFalse(invalidGraph.MetaData.ContainsKey("BitcoinAcknowledgedTransactionIds"));
+
+                childRecord.ParentHolonId = rootRecord.Id;
+                var savedGraph = await recovered.SaveHolonAsync(rootRecord, saveChildrenOnProvider: true);
+                Assert.IsFalse(savedGraph.IsError, savedGraph.Message);
+                Assert.AreEqual(2, savedGraph.SavedCount);
+                Assert.AreEqual(childRecord.Id, savedGraph.Result.Children.Single().Id);
+                var rootReceipt = savedGraph.Result.ProviderUniqueStorageKey[ProviderType.BitcoinOASIS];
+                var childReceipt = savedGraph.Result.Children.Single().ProviderUniqueStorageKey[ProviderType.BitcoinOASIS];
+                Assert.AreEqual($"{rootReceipt},{childReceipt}", savedGraph.MetaData["BitcoinAcknowledgedTransactionIds"]);
+                await BitcoinCliAsync("getmempoolentry", rootReceipt);
+                await BitcoinCliAsync("getmempoolentry", childReceipt);
             }
             finally
             {

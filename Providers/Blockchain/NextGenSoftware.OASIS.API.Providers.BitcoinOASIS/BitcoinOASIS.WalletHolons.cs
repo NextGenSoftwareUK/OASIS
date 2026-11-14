@@ -13,6 +13,83 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS;
 
 public partial class BitcoinOASIS
 {
+    private async Task<OASISResult<IHolon>> SaveWalletHolonGraphAsync(
+        IHolon root, bool recursive, int maxDepth, bool continueOnError)
+    {
+        if (maxDepth < 0)
+            throw new ArgumentOutOfRangeException(nameof(maxDepth));
+
+        var plan = new List<(IHolon Record, Guid Id, Guid Parent)>();
+        var identities = new HashSet<Guid>();
+        AddToPlan(root, Guid.Empty, 0);
+
+        var result = new OASISResult<IHolon>();
+        var acknowledged = new Dictionary<Guid, IHolon>();
+        var receipts = new List<string>();
+        var failures = new List<string>();
+        foreach (var entry in plan)
+        {
+            if (entry.Parent != Guid.Empty && !acknowledged.ContainsKey(entry.Parent))
+                continue;
+
+            if (entry.Record.Id != entry.Id || (entry.Parent != Guid.Empty && entry.Record.ParentHolonId != entry.Parent))
+            {
+                failures.Add("A Bitcoin holon graph identity or parent changed after validation.");
+                break;
+            }
+
+            var next = await SaveHolonAsync(entry.Record, saveChildren: false);
+            if (next.IsError)
+            {
+                failures.Add(next.Message);
+                if (next.ErrorCode == BitcoinBroadcastOutcomeUnknown)
+                {
+                    result.ErrorCode = next.ErrorCode;
+                    result.MetaData = next.MetaData;
+                    break;
+                }
+                if (!continueOnError || entry.Parent == Guid.Empty)
+                    break;
+                continue;
+            }
+
+            var stored = next.Result;
+            stored.Children = new List<IHolon>();
+            acknowledged.Add(stored.Id, stored);
+            receipts.Add(stored.ProviderUniqueStorageKey[Core.Enums.ProviderType.BitcoinOASIS]);
+            if (entry.Parent != Guid.Empty)
+                acknowledged[entry.Parent].Children.Add(stored);
+            else
+                result.Result = stored;
+        }
+
+        result.SavedCount = receipts.Count;
+        if (receipts.Count > 0)
+            result.MetaData["BitcoinAcknowledgedTransactionIds"] = string.Join(",", receipts);
+        if (failures.Count > 0)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Bitcoin acknowledged {receipts.Count} graph records before the graph save reported an error.");
+            result.ErrorCount = failures.Count;
+            result.InnerMessages.AddRange(failures);
+        }
+
+        return result;
+
+        void AddToPlan(IHolon record, Guid parent, int depth)
+        {
+            if (record == null || record.Id == Guid.Empty || !identities.Add(record.Id))
+                throw new ArgumentException("The Bitcoin holon graph contains an invalid or repeated identity.");
+            if (parent != Guid.Empty && record.ParentHolonId != parent)
+                throw new ArgumentException("Every Bitcoin graph child must identify its parent holon.");
+
+            plan.Add((record, record.Id, parent));
+            if (record.Children == null || (maxDepth > 0 && depth >= maxDepth) || (!recursive && depth > 0))
+                return;
+            foreach (var child in record.Children)
+                AddToPlan(child, record.Id, depth + 1);
+        }
+    }
+
     private async Task<OASISResult<IEnumerable<IHolon>>> ExportWalletHolonsForAvatarAsync(
         Task<OASISResult<IAvatar>> resolve, int version)
     {
