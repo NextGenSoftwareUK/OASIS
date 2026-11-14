@@ -36,7 +36,7 @@ public partial class OracleDBOASIS : IConditionalHolonStorageProvider
                 await using var reader=await receipt.ExecuteReaderAsync(cancellationToken);
                 if(!await reader.ReadAsync(cancellationToken)||reader.IsDBNull(1))throw new InvalidDataException("Oracle original operation receipt is absent or incomplete.");
                 if(reader.GetString(0)!=plan.Fingerprint)return ConditionalFailure("COSMIC_OPERATION_ID_REUSED","Operation ID is bound to different request content.");
-                return ConditionalAcknowledgement(ReadConditionalReceipt(reader.GetString(1),plan),request.Operation);
+                return ConditionalAcknowledgement(ReadConditionalReceipt(reader.GetString(1),plan,out _),request.Operation);
             }
             var previous=new Dictionary<Guid,Holon?>();var originals=new Dictionary<Guid,string?>();var conflicts=new List<CosmicConcurrencyConflict>();
             var conditions=request.Write.Conditions.ToDictionary(c=>c.HolonId);
@@ -55,6 +55,7 @@ public partial class OracleDBOASIS : IConditionalHolonStorageProvider
             }
             if(conflicts.Count>0)throw new CosmicConcurrencyException(conflicts);
             var acknowledged=new Dictionary<Guid,IHolon>();
+            var committedAt=DateTime.UtcNow;
             foreach(var node in plan.Nodes){
                 cancellationToken.ThrowIfCancellationRequested();var old=previous[node.Snapshot.Id];
                 var proposal=request.Operation==ConditionalHolonOperation.Save?node.Snapshot:Core.Serialization.StoredRecordJson.Project<Holon>(old!);
@@ -62,7 +63,7 @@ public partial class OracleDBOASIS : IConditionalHolonStorageProvider
                     request.Operation==ConditionalHolonOperation.Save?HolonChildRoleWriteKind.SourceSave:HolonChildRoleWriteKind.SourceDelete,
                     old!=null,old?.ChildRoleManifestJson);
                 proposal.Version=old==null?1:checked(old.Version+1);proposal.PreviousVersionId=old?.VersionId??Guid.Empty;proposal.VersionId=Guid.NewGuid();
-                var now=DateTime.UtcNow;
+                var now=committedAt;
                 if(old==null){proposal.CreatedDate=now;proposal.CreatedByAvatarId=request.Write.ActorId;proposal.CreatedProviderType=new NextGenSoftware.Utilities.EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.OracleDBOASIS);proposal.ModifiedDate=DateTime.MinValue;proposal.ModifiedByAvatarId=Guid.Empty;}
                 else{proposal.CreatedDate=old.CreatedDate;proposal.CreatedByAvatarId=old.CreatedByAvatarId;proposal.CreatedProviderType=old.CreatedProviderType;proposal.ModifiedDate=now;proposal.ModifiedByAvatarId=request.Write.ActorId;}
                 proposal.InstanceSavedOnProviderType=new NextGenSoftware.Utilities.EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.OracleDBOASIS);
@@ -84,8 +85,11 @@ public partial class OracleDBOASIS : IConditionalHolonStorageProvider
                 acknowledged.Add(staged.Id,staged);
             }
             foreach(var pair in plan.ChildIds)acknowledged[pair.Key].Children=pair.Value.Select(id=>acknowledged[id]).ToList();
-            var roots=plan.RootIds.Select(id=>acknowledged[id]).ToList();var receiptJson=ConditionalHolonReceipt.Write(roots,plan);
-            var validated=ReadConditionalReceipt(receiptJson,plan);
+            var roots=plan.RootIds.Select(id=>acknowledged[id]).ToList();
+            var delta=HolonCommittedDelta.Capture(plan.OperationId,plan.ActorId,plan.Authority,plan.Operation,
+                committedAt,previous.Values.OfType<Holon>(),acknowledged.Values,retainStoredValues:false);
+            var receiptJson=ConditionalHolonReceipt.Write(roots,plan,delta);
+            var validated=ReadConditionalReceipt(receiptJson,plan,out _);
             await using(var receipt=CreateCommand("UPDATE OASIS_WRITE_RECEIPTS SET RESULT_JSON=:Json,COMMITTED_AT=SYSTIMESTAMP WHERE OPERATION_ID=:Id AND REQUEST_HASH=:Hash",connection)){
                 receipt.Transaction=transaction;receipt.Parameters.Add("Json",OracleDbType.Clob).Value=receiptJson;receipt.Parameters.Add("Id",OracleDbType.Raw).Value=request.Write.OperationId.ToByteArray();receipt.Parameters.Add("Hash",OracleDbType.Varchar2).Value=plan.Fingerprint;
                 if(await receipt.ExecuteNonQueryAsync(cancellationToken)!=1)throw new InvalidDataException("Oracle conditional receipt claim changed unexpectedly.");
@@ -107,9 +111,9 @@ public partial class OracleDBOASIS : IConditionalHolonStorageProvider
         }
         catch(Exception cause){return ConditionalFailure(commitEntered?"COSMIC_CONDITIONAL_RECONCILIATION_REQUIRED":"COSMIC_CONDITIONAL_WRITE_FAILED","Oracle conditional operation failed.",commitEntered?new OracleConditionalReconciliationException(request.Write.OperationId,cause):cause);}
     }
-    private static IReadOnlyList<IHolon> ReadConditionalReceipt(string json,ConditionalHolonPlan plan)
+    private static IReadOnlyList<IHolon> ReadConditionalReceipt(string json,ConditionalHolonPlan plan,out HolonCommittedDelta? delta)
     {
-        var roots=ConditionalHolonReceipt.Read(json,plan);var graph=HolonGraphWritePlan.Create(roots,true,true,0,0);
+        var roots=ConditionalHolonReceipt.Read(json,plan,out delta);var graph=HolonGraphWritePlan.Create(roots,true,true,0,0);
         foreach(var node in graph.Nodes)if(node.Source.ProviderUniqueStorageKey==null||!node.Source.ProviderUniqueStorageKey.TryGetValue(Core.Enums.ProviderType.OracleDBOASIS,out var key)||key!=node.Source.Id.ToString())
             throw new InvalidDataException("Oracle receipt provider key differs from acknowledged identity.");
         return roots;

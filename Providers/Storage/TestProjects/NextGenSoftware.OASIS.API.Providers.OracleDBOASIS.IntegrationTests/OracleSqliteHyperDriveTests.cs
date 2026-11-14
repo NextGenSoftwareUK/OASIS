@@ -149,6 +149,7 @@ public sealed class OracleSqliteHyperDriveTests
             var committedReceipt = await oracle.ReadConditionalHolonReceiptEvidenceAsync(evidenceRequest);
             Assert.IsFalse(committedReceipt.IsError, committedReceipt.Message);
             Assert.AreEqual(ConditionalHolonReceiptState.Committed, committedReceipt.Result.ReceiptState);
+            Assert.IsFalse(string.IsNullOrWhiteSpace(committedReceipt.Result.CommittedDeltaSummaryJson));
             Assert.AreEqual(receiptWrite.Result.Single().VersionId, committedReceipt.Result.ReceiptEvidence.Records.Single().VersionId);
             var wrongIdentity = new CosmicStorageIdentity(oracleIdentity.Authority, oracleIdentity.EndpointFingerprint, Guid.NewGuid());
             var wrongBinding = await oracle.ReadBoundConditionalHolonWriteOutcomeAsync(intent, wrongIdentity);

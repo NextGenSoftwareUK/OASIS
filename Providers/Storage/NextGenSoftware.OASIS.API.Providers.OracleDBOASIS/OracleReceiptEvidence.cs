@@ -3,6 +3,7 @@ using System.Data;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
@@ -67,18 +68,19 @@ public partial class OracleDBOASIS : IConditionalHolonReceiptEvidenceStorageProv
             await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
             var state = ConditionalHolonReceiptState.Absent;
             ConditionalHolonReceiptEvidence? evidence = null;
+            HolonCommittedDelta? delta = null;
             if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
             {
                 if (reader.GetString(0) != plan.Fingerprint || reader.IsDBNull(1))
                     throw new InvalidDataException("The Oracle receipt differs from the original conditional write.");
-                var roots = ReadConditionalReceipt(reader.GetString(1), plan);
+                var roots = ReadConditionalReceipt(reader.GetString(1), plan, out delta);
                 if (evidenceRequest != null)
                     evidence = ConditionalHolonReceiptEvidenceProjection.Create(evidenceRequest, roots);
                 state = ConditionalHolonReceiptState.Committed;
             }
 
             return new(new ConditionalHolonWriteOutcome(plan.OperationId, plan.ActorId, authority,
-                plan.Operation, state, null, evidence)) { IsLoaded = true };
+                plan.Operation, state, delta?.SummaryJson, evidence)) { IsLoaded = true };
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { throw; }
         catch (OracleException cause) when (cause.Number == 1013 && cancellationToken.IsCancellationRequested)
