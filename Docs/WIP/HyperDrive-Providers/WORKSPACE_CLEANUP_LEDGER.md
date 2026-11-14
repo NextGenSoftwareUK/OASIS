@@ -1180,3 +1180,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 14 November Cancun time. Batched-read native CI completed its hosted teardown. No local build output, download, or fixture was created.
 
 14 November Cancun time. Retained the small protected routing-v2 session and original save journal under ignored LocalState/COSMIC/HostedHyperdriveRoutingV2Current for replica recovery. No local build, download, or runtime environment was created.
+
+14 November Cancun time. Retained the compact MongoDB and Neo4j baseline acknowledgement with the protected routing-v2 journal. Python ran with bytecode disabled. No local builds or downloads were created.
