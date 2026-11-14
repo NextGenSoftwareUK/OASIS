@@ -1,5 +1,9 @@
 # Nostr public event qualification
 
+## Live WEB4 activation evidence, 13 November 2026
+
+On Development b4270f9cb9d2 (Railway 9a9332cd), authenticated discovery reported 106/107 ready for native and federated CQL. NostrOASIS was the only unavailable source. The shipping provider logged HTTP 520 at WebSocket connect (NotAWebSocket, 323 ms). The upgrade failed before event selection. The earlier HTTP 503 and current HTTP 520 establish recurring relay upgrade failure. The upstream cause remains unknown. Existing catalogue, signed public event IDs and accepted cohorts were preserved. No relay configuration, persisted records or local test artifacts changed.
+
 ## Live WEB4 activation evidence, 11 November 2026
 
 Railway deployment 80081e54 (214462362b) logged Nostr activation failure at WebSocket connect at 21:38:10 UTC. HTTP 503, NotAWebSocket, elapsed 184 ms. Discovery reached 105/106 ready with Nostr unavailable. The failure occurred before event selection. Preserve the signed catalogue and accepted cohorts. Operator recovery remains pending. Read the deployment log in memory with no local artifact or native replay.
