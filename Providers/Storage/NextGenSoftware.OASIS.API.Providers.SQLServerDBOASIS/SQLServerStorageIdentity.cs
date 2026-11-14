@@ -6,7 +6,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
-using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
@@ -68,7 +67,7 @@ IF OBJECT_ID(N'dbo.OASISReplicaReceipts', N'U') IS NULL
         CommittedHolonReplicaReceiptReadRequest request, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        if (request == null || request.ExpectedStorage.Authority != ProviderType.SQLServerDBOASIS)
+        if (request == null || request.ExpectedStorage.Authority != Core.Enums.ProviderType.SQLServerDBOASIS)
             return new() { IsError = true, ErrorCount = 1, ErrorCode = "COSMIC_REPLICA_RECEIPT_OPTIONS_INVALID",
                 Message = "An exact SQL Server replica receipt intent and binding are required." };
 
@@ -125,7 +124,7 @@ WHERE Slot=1;", connection, transaction);
             throw new InvalidDataException("The SQL Server store identity is empty.");
         var resource = string.Concat(reader.GetString(1).Length, ":", reader.GetString(1),
             reader.GetString(2).Length, ":", reader.GetString(2), reader.GetString(3));
-        return new CosmicStorageIdentity(ProviderType.SQLServerDBOASIS,
+        return new CosmicStorageIdentity(Core.Enums.ProviderType.SQLServerDBOASIS,
             Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(resource))), storeId);
     }
 }

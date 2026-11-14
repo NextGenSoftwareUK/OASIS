@@ -1662,3 +1662,5 @@ Holo Desktop diagnostic run 43155153231 found that the conductor tool path was d
 13 November Cancun time. The first SQL Server identity run stopped at the reviewed overlay because the prior provider-key regression had since reached Development. Updated the guard to the published Development preimage. Native identity verification remains open.
 
 13 November Cancun time. Added SQL Server's bound replica receipt lookup using one serializable SqlClient transaction. The native test checks authoritative absence in the enrolled database and rejection of the same receipt request on its peer. Atomic replica application remains open.
+
+13 November Cancun time. SQL Server identity CI caught the inherited ProviderType property shadowing the enum in the static identity reader. Qualified the enum in both identity and receipt checks. Extracted the existing snapshot and history write into a transaction-scoped routine for reuse by replica apply. The upsert holds its key lock through the transaction. Replacement native verification is pending.

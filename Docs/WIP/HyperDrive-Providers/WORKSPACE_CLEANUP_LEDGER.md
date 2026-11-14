@@ -1058,3 +1058,5 @@ Urgent disk cleanup follow-up: leased standard project clean succeeded for AWS u
 13 November. SQL Server identity CI 43552570091 stopped before fixture provisioning. No local artifacts were created.
 
 13 November. SQL Server replica receipt verification uses the existing CI container and two owned databases. No local build or fixtures were created.
+
+13 November. SQL Server jobs 132319286099 and 132319286292 removed their containers, volumes, SQLite databases and test outputs after the compile failure. No local builds or fixtures were created.
