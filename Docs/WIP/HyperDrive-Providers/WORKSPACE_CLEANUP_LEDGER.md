@@ -1006,3 +1006,5 @@ Urgent disk cleanup follow-up: leased standard project clean succeeded for AWS u
 13 November. Exact Azure Cosmos DB job 132271317912 removed its emulator, volumes, SQLite files and test output after both native cases passed. Logs were reviewed in memory.
 
 13 November. Removed the temporary Oracle provider-key qualification index. No local Oracle instance, SQLite fixture or build output was created.
+
+13 November. Superseded runs 43538654446 and 43540122809 were cancelled before runner assignment. They created no provider fixtures or test artifacts.
