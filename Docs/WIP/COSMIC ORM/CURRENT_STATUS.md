@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Supabase receiver rollout live CQL verification
+
+Railway WEB4 deployment c46c40b5 served 5ab24c31afa0 and public health returned HTTP 200. Authenticated native and federated readiness warmed from 93/107 to 105/107. HoloOASIS returned matching three-record and two-record subsets with provider provenance. Hedera activation timed out waiting for response headers at 15 seconds. Nostr returned HTTP 521 during the relay WebSocket upgrade. The hosted Supabase CQL teaching fixture remains separate from the delivered receiver. No local builds or holon fixtures.
+
 ## Public exact-key Playground and Ask your data presets
 
 Web4Site 0a8371a preserves equality when opening a single-key public preset and uses that key in Ask your data. All 179 website tests passed and [Vercel built the exact revision](https://vercel.com/oasis-team/web4-site/BaPs4f3rAH7WEfmbg7gY9NVZiWKJ). The live catalogue advertised no equality presets at review. A read-only HoloOASIS probe took a key from the existing public subset and confirmed the exact parser produced the same filter and selected the same public record as the direct typed request. No fixtures or local build outputs. Hosted browser and real WEB6 draft acceptance remain open.
