@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## SQL-like public presets matched live WEB4 results
+
+Compiled the exact Web4Site 4cde8ee public SQL-like presets from the authenticated Development catalogue. 26 requests across 13 providers retained their posted filters, limits, metadata and timeout values and returned the same nonempty ID sets and row counts as the native preset requests. ActivityPub, IPFS, SOLID, Solana, Ethereum, Polygon, Arbitrum, Cosmos, Polkadot, NEAR, TON, EOSIO and HoloOASIS each passed full and filtered requests with three and two rows. The comparison treats omitted and explicitly null optional request fields alike. This is parser-to-live-API verification. The hosted browser walkthrough and real WEB6 draft remain open. Used the existing read-only visitor and installed Node. No test fixtures, dependencies or build outputs.
+
 ## Numeric window batch reached Development
 
 Development fast-forwarded to 244ed6f419c5 after [exact CI 43583941386](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43583941386) passed native MongoDB, SQLite and Neo4j, the WEB4-WEB10 source publish and temporary database teardown. The commit preserves HyperDrive's RoundRobin work. Railway WEB4 deployment 2e765df9 was queued for this exact revision. Hosted smoke and broader graph composition remain open. The next shared review is at least 30 minutes after this Development push.
