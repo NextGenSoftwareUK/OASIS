@@ -6602,3 +6602,7 @@ Track temporary tag `ci-cosmic-infura-web4-ee3a6589a6` for exact runs `432184056
 - 13 November Cancun: Three private numeric-group fixtures were conditionally hard-deleted and confirmed absent on MongoDB, SQLite and Neo4j. The twelve compact intent/ack files remain in LocalState/COSMIC/HostedCqlReleaseSmoke-9944b532. No local build output or downloads.
 
 - 13 November Cancun: Three numeric-HAVING fixtures were conditionally hard-deleted and confirmed absent across MongoDB, SQLite and Neo4j. Twelve compact intent/ack files remain in LocalState/COSMIC/HostedCqlReleaseSmoke-9944b532. No local build output or downloads.
+
+## Playground numeric HAVING example verification
+
+Web4Site 5fa63a71df5d used a temporary directory containing only committed website JavaScript and HTML, plus a temporary Git index. The directory was automatically removed after the tests and push. No dependency downloads, database fixtures or build outputs were created.
