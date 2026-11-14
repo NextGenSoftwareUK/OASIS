@@ -30,14 +30,6 @@ if ($LASTEXITCODE -ne 0 -or $linked.id -ne '712f50f6-3b7b-46d4-b229-44b49922f16b
 $configText = railway variables -s 'WEB4 OASIS API' -e dev --json 2>$null
 if ($LASTEXITCODE -ne 0) { throw 'Dev configuration read failed.' }
 $configurationValues = $configText | ConvertFrom-Json
-$authorityUri = [string]$configurationValues.SUBSCRIPTION_MONGODB_CONNECTION_STRING
-if ([string]::IsNullOrWhiteSpace($authorityUri)) {
-    $dnaValues = $configurationValues.OASIS_DNA_JSON | ConvertFrom-Json
-    $authorityUri = [string]$dnaValues.OASIS.StorageProviders.MongoDBOASIS.ConnectionString
-}
-if ([string]::IsNullOrWhiteSpace($authorityUri)) { throw 'Configured accounting authority could not be resolved.' }
-$authorityDatabase = [string]$configurationValues.SUBSCRIPTION_MONGODB_DATABASE
-if ([string]::IsNullOrWhiteSpace($authorityDatabase)) { $authorityDatabase = 'oasis_subscription_accounting' }
 if ($Replication -or $exactOperation) {
     $dnaValues = $configurationValues.OASIS_DNA_JSON | ConvertFrom-Json
     $authorityUri = [string]$dnaValues.OASIS.StorageProviders.MongoDBOASIS.ConnectionString
@@ -45,6 +37,15 @@ if ($Replication -or $exactOperation) {
     if ([string]::IsNullOrWhiteSpace($authorityUri) -or [string]::IsNullOrWhiteSpace($authorityDatabase)) {
         throw 'Configured source authority could not be resolved.'
     }
+} else {
+    $authorityUri = [string]$configurationValues.SUBSCRIPTION_MONGODB_CONNECTION_STRING
+    if ([string]::IsNullOrWhiteSpace($authorityUri)) {
+        $dnaValues = $configurationValues.OASIS_DNA_JSON | ConvertFrom-Json
+        $authorityUri = [string]$dnaValues.OASIS.StorageProviders.MongoDBOASIS.ConnectionString
+    }
+    if ([string]::IsNullOrWhiteSpace($authorityUri)) { throw 'Configured accounting authority could not be resolved.' }
+    $authorityDatabase = [string]$configurationValues.SUBSCRIPTION_MONGODB_DATABASE
+    if ([string]::IsNullOrWhiteSpace($authorityDatabase)) { $authorityDatabase = 'oasis_subscription_accounting' }
 }
 $probeEnvironment = @('COSMIC_HOSTED_ACCOUNTING_PROBE','COSMIC_HOSTED_ACCOUNTING_URI','COSMIC_HOSTED_ACCOUNTING_DATABASE','OASIS_HOSTED_ROUTING_OPERATION')
 foreach ($probeName in $probeEnvironment) {
