@@ -249,6 +249,7 @@ internal sealed class HoloOasisDevelopmentConductor
         var milestones = new (string Message, string Stage)[]
         {
             ("Conductor startup: apps enabled.", "apps enabled"),
+            ("Creating a cell", "cell creation started"),
             ("Conductor startup: app interfaces started.", "app interfaces restored"),
             ("Conductor startup: admin interface(s) added.", "admin bound"),
             ("Conductor startup: Ribosomes loaded.", "ribosomes loaded")
