@@ -1,5 +1,11 @@
 # COSMIC ORM / CQL current status
 
+## DynamoDB rollout passed hosted CQL and interface reuse passed exact CI
+
+WEB4 deployment 372c916c served Development 4e86752ff71f with HTTP 200. Authenticated readiness reached 105/107 for both catalogues, with HashgraphOASIS and NostrOASIS unavailable. Native and MongoDB-federated HoloOASIS returned the same three-record and two-record subsets with HoloOASIS provenance. MongoDB, SQLite and Neo4j accepted the selected-alias SQL-like projection request. Populated alias ordering, hosted browser and real WEB6 draft acceptance remain open.
+
+The [exact interface-reuse candidate](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43573144864) passed on 3f641d337fb5, based on Development 4e86752ff71f. Review integration after 03:12:13 Cancun, preserving any newer HyperDrive changes. Existing Railway listeners remain pending diagnosis and recovery. The COSMIC branch had a missing Polkadot reference and then a circular reference during restore. The two project edges now match the Development dependency direction. This commit's CI tag reruns the managed test on the corrected branch.
+
 ## Live WEB4 recovered on the Supabase revision
 
 Railway replacement 45fb02c9 recovered public HTTP 200 after earlier persisted-cell timeouts. SSH confirmed serving revision 6c36bb49f09f. The retained visitor measured 105/107 native and 105/107 federated catalogue entries ready. Native and MongoDB-federated HoloOASIS examples matched the exact three-record and two-record ID sets with HoloOASIS provenance. The selected-alias projection compiled directly from Web4Site fedb217 and was accepted by MongoDB, SQLite and Neo4j. This was an HTTP acceptance probe; populated alias ordering and browser acceptance remain open. Development 4e86752ff71f is building separately. The HoloNET bounded-interface qualification is [running](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43572907225). No local build outputs or fixture changes.
