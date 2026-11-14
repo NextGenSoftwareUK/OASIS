@@ -44,6 +44,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
         private readonly string _rpcEndpoint;
         private readonly string _network;
         private readonly string _privateKey;
+        private readonly decimal? _paymentFeeRateSatPerVByte;
         private bool _isActivated;
         private WalletManager _walletManager;
 
@@ -74,6 +75,11 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
         /// <param name="privateKey">Private key for signing transactions</param>
         /// <param name="walletManager">WalletManager for wallet operations</param>
         public BitcoinOASIS(string rpcEndpoint = "https://blockstream.info/api", string network = "mainnet", string privateKey = "", WalletManager walletManager = null)
+            : this(rpcEndpoint, network, privateKey, walletManager, null)
+        {
+        }
+
+        public BitcoinOASIS(string rpcEndpoint, string network, string privateKey, WalletManager walletManager, decimal? paymentFeeRateSatPerVByte)
         {
             _walletManager = walletManager;
             this.ProviderName = "BitcoinOASIS";
@@ -84,6 +90,9 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             _rpcEndpoint = rpcEndpoint ?? throw new ArgumentNullException(nameof(rpcEndpoint));
             _network = network ?? throw new ArgumentNullException(nameof(network));
             _privateKey = privateKey;
+            if (paymentFeeRateSatPerVByte is <= 0)
+                throw new ArgumentOutOfRangeException(nameof(paymentFeeRateSatPerVByte), "The fee rate must be positive.");
+            _paymentFeeRateSatPerVByte = paymentFeeRateSatPerVByte;
             _httpClient = new HttpClient
             {
                 BaseAddress = new Uri(_rpcEndpoint.TrimEnd('/') + "/")

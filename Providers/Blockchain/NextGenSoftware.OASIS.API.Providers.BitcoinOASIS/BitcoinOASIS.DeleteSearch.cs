@@ -105,11 +105,19 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                         ? new ScriptCoin(outpoint, output, signer.PrivateKey.PubKey.WitHash.ScriptPubKey)
                         : new Coin(outpoint, output);
                 }).ToArray();
-                var feeEstimates = await _httpClient.GetFromJsonAsync<Dictionary<string, decimal>>("fee-estimates");
-                if (!feeEstimates.TryGetValue("6", out var feeRate) || feeRate <= 0)
+                decimal feeRate;
+                if (_paymentFeeRateSatPerVByte is decimal configuredFeeRate)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Esplora did not provide a fee estimate for six confirmations.");
-                    return result;
+                    feeRate = configuredFeeRate;
+                }
+                else
+                {
+                    var estimates = await _httpClient.GetFromJsonAsync<Dictionary<string, decimal>>("fee-estimates");
+                    if (!estimates.TryGetValue("6", out feeRate) || feeRate <= 0)
+                    {
+                        OASISErrorHandling.HandleError(ref result, "Esplora did not provide a fee estimate for six confirmations.");
+                        return result;
+                    }
                 }
 
                 var payment = Money.Satoshis((long)satoshis);
