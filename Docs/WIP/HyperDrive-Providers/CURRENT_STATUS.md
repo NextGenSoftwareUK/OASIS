@@ -1668,3 +1668,5 @@ Holo Desktop diagnostic run 43155153231 found that the conductor tool path was d
 13 November Cancun time. SQL Server now has a bound replica receiver. One SqlClient transaction checks the database binding, locks the receipt and graph keys, validates predecessor evidence, and commits the snapshot or hard delete with its lineage and receipt. Native CI checks initial apply, exact replay and committed receipt. Outbound delivery remains open.
 
 13 November Cancun time. Extended SQL Server native replica coverage to wrong-predecessor rejection with no receipt, exact successor application and hard deletion confirmed directly through SqlClient. Qualification is pending. No local build or fixture ran.
+
+13 November Cancun time. Added a native SQLite-to-SQL Server check using the shipping dispatcher, physically bound SQLite outbox and enrolled SQL Server receiver. It requires exact target revision and zero repeat deliveries after dispatcher restart. Native qualification is pending.

@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text.Json;
 using Microsoft.Data.SqlClient;
+using NextGenSoftware.OASIS.API.Core.Configuration;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -11,6 +12,7 @@ using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 using NextGenSoftware.OASIS.API.Providers.SQLServerDBOASIS;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using NextGenSoftware.Utilities;
 using Xunit;
 
@@ -142,6 +144,37 @@ public sealed class SqlServerSqliteHyperDriveTests
             {
                 await peer.DeActivateProviderAsync();
             }
+
+            var sourceIdentity = await sqlite.CaptureStorageIdentityAsync();
+            Assert.False(sourceIdentity.IsError, sourceIdentity.Message);
+            var actor = Guid.NewGuid();
+            var grant = new HolonReplicationActorGrant(new[] { actor }, DateTime.UtcNow.AddMinutes(10));
+            var binding = new HolonReplicationRouteBinding(sourceIdentity.Result, identity, grant.BindingIdentity);
+            var enrollment = new HolonReplicationEnrollment(binding.SourceId, new[] { binding.TargetId },
+                sourceIdentity.Result, new[] { binding });
+            var dispatchedHolon = new Holon { Id = Guid.NewGuid(), Name = "SQLite-to-SQL Server dispatcher fixture", IsActive = true };
+            var write = new ConditionalHolonWrite(Guid.NewGuid(), actor, ProviderType.SQLLiteDBOASIS,
+                new[] { new HolonWriteCondition(dispatchedHolon.Id, null) });
+            var intent = new ConditionalHolonWriteRequest(write, ConditionalHolonOperation.Save,
+                new[] { dispatchedHolon }, saveChildren: false);
+            var sourceSave = await sqlite.ExecuteReplicatingHolonWriteAsync(intent, enrollment);
+            Assert.True(!sourceSave.IsError && sourceSave.IsSaved, sourceSave.Message);
+            var outbox = sqlite.GetBoundHolonReplicationOutbox(sourceIdentity.Result);
+            Assert.False(outbox.IsError, outbox.Message);
+            var target = new CommittedHolonReplicaTarget(binding.TargetId, sql, identity.Authority,
+                binding.SourceId, sourceIdentity.Result.Authority, grant, "sqlserver-fixture", Guid.NewGuid(),
+                grant.BindingIdentity, identity);
+            var dispatcher = new HolonOutboxDispatcher(outbox.Result, new[] { target }, "sqlserver-fixture");
+            var delivery = await dispatcher.DispatchOnceAsync(binding.TargetId, maximumCount: 1);
+            Assert.False(delivery.IsError, delivery.Message);
+            Assert.Equal(1, delivery.Result.CompletedCount);
+            var dispatchedReplica = await sql.LoadHolonAsync(dispatchedHolon.Id, loadChildren: false);
+            Assert.False(dispatchedReplica.IsError, dispatchedReplica.Message);
+            Assert.Equal(sourceSave.Result.Single().VersionId, dispatchedReplica.Result?.VersionId);
+            var restarted = new HolonOutboxDispatcher(outbox.Result, new[] { target }, "sqlserver-fixture-restarted");
+            var replayDelivery = await restarted.DispatchOnceAsync(binding.TargetId, maximumCount: 1);
+            Assert.False(replayDelivery.IsError, replayDelivery.Message);
+            Assert.Equal(0, replayDelivery.Result.CompletedCount);
 
             var dna = new OASISDNA { OASIS = new NextGenSoftware.OASIS.API.DNA.OASIS
                 { HyperDriveMode = HyperDriveModes.V2, StorageProviders = new StorageProviderSettings() } };
