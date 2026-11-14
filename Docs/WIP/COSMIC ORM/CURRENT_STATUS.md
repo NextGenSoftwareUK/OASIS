@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Supabase replica delivery rollout
+
+Development advanced to 5ab24c31afa0 with the bound Supabase receiver and SQLite-to-Supabase dispatcher. GitHub deployment 7783283350 began at 00:39:58 Cancun. Railway queued WEB4 deployment c46c40b5. The next shared review is after 01:09:58 Cancun, subject to current parent and live rollout. Live WEB4 CQL acceptance remains on 363dd7fbd23e pending cutover. Supabase outbound source commit and dispatcher work are separate and still in progress. No local builds or test fixtures were created.
+
 ## Live LIKE ESCAPE verification
 
 On Development 363dd7fbd23e the exact Web4Site c8caf56 parser matched literal percent and underscore characters through exact, prefix, suffix and substring patterns on MongoDB, SQLite and Neo4j. The negative control returned no rows on each. The first probe omitted the escape in its negative control. The corrected probe passed all three stores. All four private fixtures from both attempts were conditionally hard-deleted and independently verified absent by ID. Compact operation journals remain in LocalState/COSMIC/HostedCqlReleaseSmoke-b4270f9c. No local build outputs or downloads. All 178 website tests passed and Vercel built the revision. Hosted browser and general collation parity remain open.
