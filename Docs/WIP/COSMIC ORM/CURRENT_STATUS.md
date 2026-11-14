@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Native graph-filtered decimal projection passed
+
+CI 43598904791 passed the native entity-selected stage on SQLite, MongoDB and Neo4j for source a16757978d5c. The added case applies a descendant predicate after a source window, projects the exact decimal value, and checks Sum, Average and empty Sum. The same run passed the Hedera cancellation and response contract. Publishing remains in progress. Exact image 43598439229 remains active. No Development change.
+
 ## Live 106-source result and HoloOASIS network observations
 
 On WEB4 Development 854066dc931a, the retained visitor observed 106 of 107 sources ready for both native and federated queries. Nostr alone was unavailable. Deployment logs pinpoint its WebSocket upgrade failure at HTTP 520 after 605 ms. HoloOASIS matched all three full and two subset IDs with real-provider provenance. The recovered container reached the configured Holochain bootstrap and Iroh relay hosts over DNS, TLS and HTTPS, receiving HTTP 404 at both root paths. Those root responses establish reachability only. Native startup and peer handshakes remain to diagnose. Exact image 43598439229 and graph parity CI 43598904791 remain in progress.
