@@ -1,5 +1,11 @@
 # COSMIC ORM / CQL current status
 
+## Development qualification after the release merge-back
+
+14 November, Cancun. The first cell-creation diagnostic candidate passed Linux, image, and protocol CI on 747df5940450. Development moved to 9a2e2339279c, so candidate e27b32a1eabc reapplies only those three files on the current parent. [Linux](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43625198500), [image](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43625219329), and [protocol](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43625221047) are active. Railway is still processing the preceding releases.
+
+The positional-record assertions ran successfully on all three native providers before older feature-branch provider implementations threw at the separate cardinality fixture. Candidate 32d5323d06b0 uses the current Development provider implementations, the same Core projection change, and all 47 fixture assertions per store. [Exact source qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43624999099) is active. Q11 remains open. The Development demo visitor was restored to Free after Bronze expired and then returned the exact Hedera 3/2 direct and federated rows. No local build or provider fixtures were added.
+
 ## Live timeout occurs after app interface restoration
 
 14 November, Cancun. Railway deployment a55fba44 on 747df5940450 logged HoloOASIS activation timeout at 62,268 ms with stage app interfaces restored. This establishes that listener restoration finished on that attempt. The pinned conductor creates cells and awaits network join before registering running cells. The branch now recognizes the native cell creation marker without logging cell IDs. [Linux diagnostic CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43622589492) is running. The native stall remains open.
