@@ -42,10 +42,10 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
-      - name: Verify activation through public Esplora
+      - name: Verify provider lifecycle and transaction reads through public Esplora
         shell: pwsh
         run: |
           ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-BitcoinPublicActivation -Operation {
-            dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests" --filter "FullyQualifiedName~EsploraActivationSurvivesDeactivation" /m:2 /nr:false /p:UseSharedCompilation=false --logger "console;verbosity=normal"
+            dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests" --filter "FullyQualifiedName~EsploraActivationSurvivesDeactivation|FullyQualifiedName~EsploraOrdinaryTransactionDoesNotProduceAHolon" /m:2 /nr:false /p:UseSharedCompilation=false --logger "console;verbosity=normal"
             if ($LASTEXITCODE -ne 0) { throw "Bitcoin public activation verification failed." }
           }
