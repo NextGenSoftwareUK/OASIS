@@ -25,6 +25,10 @@ internal sealed class HoloOasisDevelopmentConductor
     private static readonly Guid DevelopmentEnvironmentId = new("a31011a2-d047-4057-b5e8-57d52ebcfefe");
     private static readonly Guid Web4ServiceId = new("5123199a-43c4-4439-9921-e10e2aec7841");
 
+    // The retained Development DHT took 73 seconds to initialize before its cell ran.
+    // Keep this readiness budget separate from the HoloNET admin bind timeout.
+    private static readonly TimeSpan PersistedCellReadinessBudget = TimeSpan.FromSeconds(120);
+
     private const string StateDirectory = "/data/COSMIC/HoloOasisCql";
     private const string AdminEndpoint = "ws://127.0.0.1:65464";
     private const string ConductorConfiguration = """
@@ -270,7 +274,7 @@ internal sealed class HoloOasisDevelopmentConductor
         public async Task WaitForPersistedCellAsync(string appId, CancellationToken cancellationToken)
         {
             using var readiness = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            readiness.CancelAfter(TimeSpan.FromSeconds(dna.SecondsToWaitForHolochainConductorToStart));
+            readiness.CancelAfter(PersistedCellReadinessBudget);
             var apps = await ListAppsAsync(AppStatusFilter.All).WaitAsync(readiness.Token);
             if (apps.IsError)
                 throw new InvalidOperationException($"The conductor could not list installed apps. {apps.Message}");
