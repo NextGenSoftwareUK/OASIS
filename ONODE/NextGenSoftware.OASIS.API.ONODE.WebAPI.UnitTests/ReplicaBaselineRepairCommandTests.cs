@@ -40,6 +40,7 @@ public sealed partial class ReplicaBaselineRepairCommandTests
         if(File.Exists(ownership))Assert.True(JsonDocument.Parse(await File.ReadAllTextAsync(ownership)).RootElement.GetProperty("cleaned").GetBoolean());
         var client=new MongoClient(uri);using(var names=await client.ListDatabaseNamesAsync())Assert.DoesNotContain(database,await names.ToListAsync());
         var actor=Guid.NewGuid();var creator=Guid.NewGuid();var id=Guid.NewGuid();var initialization=Guid.NewGuid();var owner=Guid.NewGuid().ToString("D");
+        var catalogVersion = Guid.NewGuid();
         void Record(bool cleaned)
         {
             using(var file=new FileStream(ownership+".tmp",FileMode.CreateNew,FileAccess.Write,FileShare.None))
@@ -74,7 +75,7 @@ public sealed partial class ReplicaBaselineRepairCommandTests
             IHolon current=new Holon{Id=id,Name="late demo baseline"};
             async Task Save(int version)
             {
-                var request=new ConditionalHolonWriteRequest(new ConditionalHolonWrite(Guid.NewGuid(),version==1 ? creator:actor,ProviderType.MongoDBOASIS,
+                var request=new ConditionalHolonWriteRequest(new ConditionalHolonWrite(Guid.NewGuid(),version==6 ? actor:creator,ProviderType.MongoDBOASIS,
                     new[]{new HolonWriteCondition(id,CosmicConcurrency.GetProviderRevisionId(current,ProviderType.MongoDBOASIS))}),
                     ConditionalHolonOperation.Save,new[]{current},saveChildren:false);
                 var result=version<4 ? await source.ExecuteConditionalHolonWriteAsync(request)
@@ -87,7 +88,8 @@ public sealed partial class ReplicaBaselineRepairCommandTests
             {
                 Assert.False((await target.ActivateProviderAsync()).IsError);
                 var delivery=new HolonOutboxDispatcher(outbox,new[]{new CommittedHolonReplicaTarget(route.TargetId,target,
-                    ProviderType.SQLLiteDBOASIS,route.SourceId,ProviderType.MongoDBOASIS)},"owned-command-test");
+                    ProviderType.SQLLiteDBOASIS,route.SourceId,ProviderType.MongoDBOASIS,new CommittedOwnerReplicationPolicy(),
+                    "owned-command-test",catalogVersion,route.PolicyBinding,reviewedTarget)},"owned-command-test");
                 var failed=await delivery.DispatchOnceAsync(route.TargetId);
                 Assert.Equal(1,failed.Result.ReconciliationCount);
             }
@@ -107,8 +109,8 @@ public sealed partial class ReplicaBaselineRepairCommandTests
                 .ReadObligationAsync(held.Sequence);
             Assert.Equal("COSMIC_OUTBOX_SOURCE_STORAGE_BINDING_MISMATCH", rejectedRead.ErrorCode);
             Assert.Null(rejectedRead.Result);
-            var reviewed=new ReplicaBaselineRepairCommand.Request(Guid.NewGuid(),initialization,Guid.NewGuid(),held.Sequence,
-                held.OperationId,actor,id,original.PayloadDigest,ReplicaBaselineRepairCommand.StoreIdentity(uri,database),targetPath,
+            var reviewed=new ReplicaBaselineRepairCommand.Request(Guid.NewGuid(),initialization,catalogVersion,held.Sequence,
+                held.OperationId,creator,id,original.PayloadDigest,ReplicaBaselineRepairCommand.StoreIdentity(uri,database),targetPath,
                 TargetEndpointFingerprint: reviewedTarget.EndpointFingerprint, TargetNativeStoreId: reviewedTarget.StoreId,
                 SourceEndpointFingerprint: sourceIdentity.Result.EndpointFingerprint, SourceNativeStoreId: sourceIdentity.Result.StoreId);
             var dna=new OASISDNA{OASIS=new OASIS{HyperDriveMode=HyperDriveModes.V2,StorageProviders=new StorageProviderSettings
@@ -118,7 +120,7 @@ public sealed partial class ReplicaBaselineRepairCommandTests
             Assert.False(File.Exists(journal));
             await Assert.ThrowsAsync<InvalidOperationException>(()=>ReplicaBaselineRepairCommand.ExecuteAsync(dna,reviewed with{SourcePayloadDigest=new string('0',64)},journal));
             Assert.Equal(HolonDeliveryState.ReconciliationRequired,(await outbox.InspectAsync(held.Sequence)).Result.State);
-            var wrongActor=await ReplicaBaselineRepairCommand.ExecuteAsync(dna,reviewed with{SourceActorId=creator},journal);
+            var wrongActor=await ReplicaBaselineRepairCommand.ExecuteAsync(dna,reviewed with{SourceActorId=actor},journal);
             Assert.Equal("COSMIC_REPLICA_INITIALIZATION_DENIED",wrongActor.ErrorCode);
             Assert.False(File.Exists(journal),"A creator/writer mismatch must refuse before submission intent is published.");
             var repaired=await ReplicaBaselineRepairCommand.ExecuteAsync(dna,reviewed,journal);
@@ -131,7 +133,8 @@ public sealed partial class ReplicaBaselineRepairCommandTests
             {
                 Assert.False((await target.ActivateProviderAsync()).IsError);
                 var delivery=new HolonOutboxDispatcher(outbox,new[]{new CommittedHolonReplicaTarget(route.TargetId,target,
-                    ProviderType.SQLLiteDBOASIS,route.SourceId,ProviderType.MongoDBOASIS)},"owned-command-test");
+                    ProviderType.SQLLiteDBOASIS,route.SourceId,ProviderType.MongoDBOASIS,new CommittedOwnerReplicationPolicy(),
+                    "owned-command-test",catalogVersion,route.PolicyBinding,reviewedTarget)},"owned-command-test");
                 var next=await delivery.DispatchOnceAsync(route.TargetId);
                 Assert.Equal(1,next.Result.CompletedCount);
                 var copied=(await target.LoadHolonAsync(id,loadChildren:false)).Result;
@@ -148,7 +151,7 @@ public sealed partial class ReplicaBaselineRepairCommandTests
                 var delivery = new HolonOutboxDispatcher(outbox, new[] {
                     new CommittedHolonReplicaTarget(targetId, target, ProviderType.SQLLiteDBOASIS,
                         sourceId, ProviderType.MongoDBOASIS, new CommittedOwnerReplicationPolicy(),
-                        "owned-command-test", reviewed.CatalogVersion)
+                        "owned-command-test", catalogVersion, route.PolicyBinding, reviewedTarget)
                 }, "owned-command-test");
                 var denied = await delivery.DispatchOnceAsync(targetId);
                 Assert.Equal(1, denied.Result.ReconciliationCount);
@@ -159,6 +162,7 @@ public sealed partial class ReplicaBaselineRepairCommandTests
                 var deniedRequest = reviewed with {
                     Sequence = deniedHead.Sequence,
                     SourceOperationId = deniedHead.OperationId,
+                    SourceActorId = actor,
                     SourcePayloadDigest = deniedObligation.PayloadDigest,
                     InitializationOperationId = Guid.NewGuid()
                 };
