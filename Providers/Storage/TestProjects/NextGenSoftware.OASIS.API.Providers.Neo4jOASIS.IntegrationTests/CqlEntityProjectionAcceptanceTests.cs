@@ -17,7 +17,10 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         public ulong Unsigned {get;set;}
         public decimal Amount {get;set;}
     }
-    private sealed record NativeProjectionRecord(string Name, long Precision);
+    private sealed record NativeProjectionRecord(string Name, long Precision)
+    {
+        public int Revision { get; init; }
+    }
 
     private static Holon CreateEntityProjectionFixture(Guid[] ids,Guid actor,Guid other)
     {
@@ -106,6 +109,16 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Assert.AreEqual(new NativeProjectionRecord("protected source root", 9007199254740993L),
             recordResult.Result.Single());
         Passed("standard Select binds positional record constructor arguments without losing Int64 precision");
+
+        var initializedRecord = await rootSource.Take(1)
+            .Select(row => new NativeProjectionRecord(row.Name, CosmicQueryMetadata.Value<long>(row, "i64"))
+            {
+                Revision = row.Version
+            }).ToCosmicListAsync();
+        Assert.IsFalse(initializedRecord.IsError, initializedRecord.Message + initializedRecord.Exception);
+        Assert.AreEqual(new NativeProjectionRecord("protected source root", 9007199254740993L) { Revision = 1 },
+            initializedRecord.Result.Single());
+        Passed("standard Select materializes constructor arguments before public property assignments");
 
         desired="not-matched-on-second-read";Assert.AreEqual(0,deferred.ToArray().Length);Passed("deferred selector rebinds without application source construction or eager DTOs");
         NativeProjectionProbe.Constructors=0;
