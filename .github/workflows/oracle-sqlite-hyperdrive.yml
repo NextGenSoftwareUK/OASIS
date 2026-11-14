@@ -8,6 +8,7 @@ on:
       - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS/OracleStorageIdentity.cs'
       - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS/OracleReceiptEvidence.cs'
       - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS/OracleConditionalWrites.cs'
+      - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS/OracleReplicaApply.cs'
       - 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests/OracleSqliteHyperDriveTests.cs'
   workflow_dispatch:
 
@@ -53,7 +54,7 @@ jobs:
           base=cdabb38aec29c68be46bc1d40f6bde187716b183
           git -C ../provider-source fetch --no-tags --depth=1 origin "$base"
           tests='Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests'
-          for path in "$tests/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests.csproj" "$tests/OracleSqliteHyperDriveTests.cs" 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS/OracleStorageIdentity.cs' 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS/OracleReceiptEvidence.cs' 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS/OracleConditionalWrites.cs'; do
+          for path in "$tests/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.IntegrationTests.csproj" "$tests/OracleSqliteHyperDriveTests.cs" 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS/OracleStorageIdentity.cs' 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS/OracleReceiptEvidence.cs' 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS/OracleConditionalWrites.cs' 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS/OracleReplicaApply.cs'; do
             current="$(git ls-tree HEAD -- "$path")"
             reviewed="$(git -C ../provider-source ls-tree "$base" -- "$path")"
             incoming="$(git -C ../provider-source ls-tree HEAD -- "$path")"

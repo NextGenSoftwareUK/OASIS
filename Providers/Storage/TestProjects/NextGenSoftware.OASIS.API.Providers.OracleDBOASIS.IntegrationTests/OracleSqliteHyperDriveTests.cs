@@ -146,6 +146,19 @@ public sealed class OracleSqliteHyperDriveTests
                 new CommittedHolonReplicaReceiptReadRequest(replicaIntent, oracleIdentity));
             Assert.IsFalse(replicaEvidence.IsError, replicaEvidence.Message);
             Assert.AreEqual(ConditionalHolonReceiptState.Absent, replicaEvidence.Result.ReceiptState);
+            attempted.Add(replica.Id);
+            var applied = sync ? oracle.ApplyBoundCommittedHolonReplica(replicaIntent, oracleIdentity)
+                : await oracle.ApplyBoundCommittedHolonReplicaAsync(replicaIntent, oracleIdentity);
+            Assert.IsFalse(applied.IsError, applied.Message);
+            var received = await oracle.ReadCommittedHolonReplicaReceiptAsync(
+                new CommittedHolonReplicaReceiptReadRequest(replicaIntent, oracleIdentity));
+            Assert.IsFalse(received.IsError, received.Message);
+            Assert.AreEqual(ConditionalHolonReceiptState.Committed, received.Result.ReceiptState);
+            var replayed = await oracle.ApplyBoundCommittedHolonReplicaAsync(replicaIntent, oracleIdentity);
+            Assert.IsFalse(replayed.IsError, replayed.Message);
+            Assert.AreEqual(applied.Result.Single().VersionId, replayed.Result.Single().VersionId);
+            Assert.AreEqual(replica.VersionId, (await oracle.LoadHolonAsync(replica.Id, loadChildren: false)).Result?.VersionId);
+
 
             var evidenceRequest = new ConditionalHolonReceiptEvidenceRequest(intent, oracleIdentity,
                 sqliteIdentity.Result, new[] { receiptHolon.Id });

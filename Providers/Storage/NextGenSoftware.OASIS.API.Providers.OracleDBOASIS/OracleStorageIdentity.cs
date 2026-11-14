@@ -32,6 +32,15 @@ public partial class OracleDBOASIS : ICosmicStorageIdentityProvider
     REQUEST_HASH VARCHAR2(64) NOT NULL,
     RESULT_JSON CLOB NOT NULL", cancellationToken).ConfigureAwait(false);
 
+            await EnsureOracleReplicationTableAsync(connection, "OASIS_REPLICA_HEADS", @"
+    ID RAW(16) NOT NULL PRIMARY KEY,
+    SOURCE_ID VARCHAR2(256 CHAR) NOT NULL,
+    SOURCE_AUTHORITY VARCHAR2(64) NOT NULL,
+    SNAPSHOT_JSON CLOB NOT NULL,
+    SNAPSHOT_DIGEST VARCHAR2(64) NOT NULL,
+    REVISION_ID VARCHAR2(36) NOT NULL,
+    HARD_DELETED NUMBER(1) NOT NULL CHECK (HARD_DELETED IN (0,1))", cancellationToken).ConfigureAwait(false);
+
             await using var transaction = (OracleTransaction)await connection.BeginTransactionAsync(
                 System.Data.IsolationLevel.ReadCommitted, cancellationToken).ConfigureAwait(false);
             var identity = await ReadOracleStorageIdentityAsync(connection, transaction, cancellationToken).ConfigureAwait(false);
