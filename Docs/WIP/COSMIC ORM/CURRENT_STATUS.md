@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## HoloOASIS interface-reuse rollout passed live CQL
+
+WEB4 deployment da8ddb70 served 3f641d337fb5 and returned HTTP 200. Authenticated native and federated readiness measured 104/107. Native and MongoDB-federated HoloOASIS presets returned matching three-record and two-record ID sets with HoloOASIS provenance. MongoDB, SQLite and Neo4j accepted selected-alias HTTP requests. The conductor owned 136 distinct loopback TCP listeners at cutover, versus 135 previously. A subsequent restart must confirm reuse holds; legacy cleanup and intermittent startup reliability remain open. Existing WEB4 browser origin returned credentialed HTTP 204 preflight; the Development preview origin returned wildcard without credentials.
+
 ## Live populated single-alias sorting passed on three stores
 
 WEB4 on 4e86752ff71f accepted Web4Site 714bb26 SQL-like projection queries ordering Name AS SortKey ascending and descending. MongoDB, SQLite and Neo4j returned the expected two IDs in both orders. All six private fixtures were hard-deleted and verified absent by exact ID. The initial MongoDB cleanup used the logical version and was rejected. Reloading each fixture provided the native token from providerMetaData for the accepted delete. The hosted browser walkthrough and real WEB6 draft are still open.
