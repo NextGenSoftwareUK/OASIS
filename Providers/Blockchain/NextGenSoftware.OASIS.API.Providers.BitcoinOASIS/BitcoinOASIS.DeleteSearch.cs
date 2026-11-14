@@ -119,11 +119,16 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                     .Send(destination, payment)
                     .SetChange(source)
                     .SendEstimatedFees(new FeeRate(Money.Satoshis((long)decimal.Ceiling(feeRate * 1000m))));
+                Script memoScript = null;
                 if (memo.Length > 0)
-                    builder.Send(TxNullDataTemplate.Instance.GenerateScriptPubKey(memo), Money.Zero);
+                {
+                    memoScript = TxNullDataTemplate.Instance.GenerateScriptPubKey(memo);
+                    builder.Send(memoScript, Money.Zero);
+                }
 
                 var transaction = builder.BuildTransaction(true);
                 if (!transaction.Outputs.Any(output => output.ScriptPubKey == destination.ScriptPubKey && output.Value >= payment) ||
+                    (memoScript != null && !transaction.Outputs.Any(output => output.ScriptPubKey == memoScript && output.Value == Money.Zero)) ||
                     !builder.Verify(transaction))
                 {
                     OASISErrorHandling.HandleError(ref result, "The signed transaction failed payment or policy validation.");

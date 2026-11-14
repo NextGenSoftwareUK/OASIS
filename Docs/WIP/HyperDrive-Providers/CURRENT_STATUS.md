@@ -2027,3 +2027,5 @@ Supabase now reads replica receipt evidence through a service-role PostgREST RPC
 14 November Cancun time. Corrected wallet generation passed CI 43626964881, including the WIF and returned address derivation checks. The payment path now verifies Esplora's genesis block against NBitcoin's configured signing network before retrieving funding inputs. Funded transfer and signed storage verification remain open. No local build or payment.
 
 14 November Cancun time. Added a live Esplora payment-network regression using disposable regtest keys against public mainnet. The test requires the genesis mismatch to fail before UTXO selection or broadcast. BitcoinOASIS now declares IDisposable for the existing disposal method. No funded wallet, local build or fixture.
+
+14 November Cancun time. The signed Bitcoin payment path now requires the built transaction to contain the exact requested zero-value OP_RETURN memo before broadcast. This prevents returning the requested memo in the receipt when the signed transaction omitted it. Funded verification remains open. No local build or payment.
