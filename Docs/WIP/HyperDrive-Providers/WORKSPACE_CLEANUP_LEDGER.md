@@ -1016,3 +1016,5 @@ Urgent disk cleanup follow-up: leased standard project clean succeeded for AWS u
 13 November. Cancelled superseded Oracle runs 43541966734, 43542492696 and 43542656574 while queued. The staging index for candidate 69222f6cba3d was removed. No local build or fixture ran.
 
 13 November. Jobs 132276668079 and 132282707295 removed their containers, volumes, SQLite files and test output. Removed both temporary comparison indexes. No local build ran.
+
+13 November. Oracle job 132289235826 passed both cases and removed its container, volumes, SQLite databases and test output. Logs were reviewed in memory.
