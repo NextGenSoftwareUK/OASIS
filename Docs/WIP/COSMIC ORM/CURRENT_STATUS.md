@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Exact WEB4 image passed on the serving Development parent
+
+14 November 08:51 Cancun. Exact image CI 43600761127 passed for 1c8478f7577f and published sha256:d141ab7b798c125bd556f5f7124436a952d50da5bc3700b2ea5f2b36de61e10d. Protocol CI 43600185683 passed. Linux managed conductor CI 43601381396 remains active. For the shared window after 09:02:57 Cancun, review the COSMIC candidate against the serving Development head and coordinate with the separately qualified HyperDrive MongoDB batch 7838a4f572c0. Both candidates use 1b91024a6318 as their direct parent. No Development push or local image pull.
+
 ## SQLite repair revision serves canonical HoloOASIS
 
 WEB4 deployment e820c7f2 on Development 1b91024a6318 returned HTTP 200 after startup, and the retained visitor matched the exact HoloOASIS 3/2 direct and federated IDs. The same conductor retained 135 persisted interfaces and 136 loopback listeners. A health request during cutover timed out. No persisted-cell timeout appeared in the sampled startup log. Combined protocol CI 43600185683 passed for 1c8478f7577f. Exact image 43600761127 and Linux managed HoloOASIS CI 43601381396 remain active. Vercel still denies OASIS team domain access and the protected subscription-admin session is absent.
