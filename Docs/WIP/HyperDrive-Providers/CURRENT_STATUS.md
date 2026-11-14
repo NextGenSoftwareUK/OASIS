@@ -1708,3 +1708,5 @@ Supabase now reads replica receipt evidence through a service-role PostgREST RPC
 13 November Cancun time. Native PostgREST receipt qualification 43558660677 passed both routing modes on exact tree 65dcf82b57423651bc0674d09b9e6fd7e5f93224. Candidate 363dd7fbd23e remains scheduled for the 00:01:03 review. Added a PostgreSQL privilege check for the receipt RPC, immutable identity and read-only receipt table. The new privilege check is pending CI.
 
 14 November Cancun time. Added the Supabase replica-state RPC and protected lineage table. The RPC reads current records and lineage in one PostgreSQL snapshot and binds both to the enrolled store. CI checks access restrictions. The receiver still needs to consume these observations and atomically compare and commit the graph and receipt.
+
+14 November Cancun time. Supabase receipt privilege check 43559406199 passed. Development contains the qualified receipt and identity batch at 363dd7fbd23e. Updated the native overlay guard to that published baseline and added an authenticated PostgREST replica-state assertion for an absent key. Replica mutation and outbound delivery remain open.

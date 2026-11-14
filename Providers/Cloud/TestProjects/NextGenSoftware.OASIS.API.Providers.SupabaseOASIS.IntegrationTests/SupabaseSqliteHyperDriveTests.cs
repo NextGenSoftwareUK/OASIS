@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text.Json;
 using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -64,6 +65,25 @@ public sealed class SupabaseSqliteHyperDriveTests
             var wrongStore = await supabase.ReadCommittedHolonReplicaReceiptAsync(
                 new CommittedHolonReplicaReceiptReadRequest(receiptIntent, wrongBinding));
             Assert.AreEqual("COSMIC_REPLICA_RECEIPT_STORAGE_MISMATCH", wrongStore.ErrorCode);
+            using (var stateRequest = new HttpRequestMessage(HttpMethod.Post, $"{endpoint}/rpc/oasis_read_replica_state"))
+            {
+                stateRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", key);
+                stateRequest.Content = JsonContent.Create(new
+                {
+                    expected_store = Guid.Parse(binding.Result.StoreId),
+                    requested_ids = new[] { replica.Id }
+                });
+                using var stateResponse = await client.SendAsync(stateRequest);
+                var stateBody = await stateResponse.Content.ReadAsStringAsync();
+                Assert.IsTrue(stateResponse.IsSuccessStatusCode, stateBody);
+                using var stateDocument = JsonDocument.Parse(stateBody);
+                var state = stateDocument.RootElement;
+                Assert.AreEqual(1, state.GetArrayLength());
+                Assert.IsTrue(state[0].GetProperty("store_matches").GetBoolean());
+                Assert.AreEqual(replica.Id, state[0].GetProperty("id").GetGuid());
+                Assert.AreEqual(JsonValueKind.Null, state[0].GetProperty("current_row").ValueKind);
+                Assert.AreEqual(JsonValueKind.Null, state[0].GetProperty("replica_head").ValueKind);
+            }
             var reopened = new SupabaseOASIS(endpoint, key!, client, "");
             try
             {
