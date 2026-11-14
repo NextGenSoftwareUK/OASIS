@@ -10,12 +10,19 @@ using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS;
 
 /// <summary>Stores encrypted record bytes in Kubo and verifies readback against a Bitcoin commitment.</summary>
-internal sealed class BitcoinRecordBlobStore(HttpClient kubo, EncryptedRecordCodec codec)
+internal sealed class BitcoinRecordBlobStore(HttpClient kubo, EncryptedRecordCodec codec, BitcoinRecordKind kind = BitcoinRecordKind.Holon)
 {
     private const int MaximumEnvelopeBytes = 6 * 1024 * 1024;
-    private static ReadOnlySpan<byte> Magic => "OASBTC1"u8;
+    private ReadOnlySpan<byte> Magic => Prefix(kind);
+    private static ReadOnlySpan<byte> Prefix(BitcoinRecordKind kind) => kind switch
+    {
+        BitcoinRecordKind.Holon => "OASBTC1"u8,
+        BitcoinRecordKind.Avatar => "OASBTA1"u8,
+        BitcoinRecordKind.AvatarDetail => "OASBTD1"u8,
+        _ => throw new ArgumentOutOfRangeException(nameof(kind))
+    };
 
-    public static bool IsCommitment(ReadOnlySpan<byte> payload) => payload.StartsWith(Magic);
+    public static bool IsCommitment(ReadOnlySpan<byte> payload, BitcoinRecordKind kind = BitcoinRecordKind.Holon) => payload.StartsWith(Prefix(kind));
 
     public async Task<byte[]> PutAsync(string recordScope, string canonicalJson)
     {
@@ -25,7 +32,7 @@ internal sealed class BitcoinRecordBlobStore(HttpClient kubo, EncryptedRecordCod
 
         using var form = new MultipartFormDataContent();
         form.Add(new ByteArrayContent(bytes), "file", "record");
-        using var response = await kubo.PostAsync("api/v0/add?cid-version=0&pin=true", form);
+        using var response = await kubo.PostAsync("api/v0/add?cid-version=0&pin=false", form);
         response.EnsureSuccessStatusCode();
         using var acknowledgement = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
         var cid = acknowledgement.RootElement.GetProperty("Hash").GetString();
@@ -36,6 +43,19 @@ internal sealed class BitcoinRecordBlobStore(HttpClient kubo, EncryptedRecordCod
         SHA256.HashData(bytes, commitment.AsSpan(Magic.Length + 34));
         await ReadVerifiedEnvelopeAsync(commitment);
         return commitment;
+    }
+
+    public async Task PinAsync(byte[] commitment)
+    {
+        var cid = EncodeCid(commitment.AsSpan(Magic.Length, 34));
+        using var response = await kubo.PostAsync($"api/v0/pin/add?arg={cid}&recursive=true", null);
+        response.EnsureSuccessStatusCode();
+        using var acknowledgement = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        foreach (var pin in acknowledgement.RootElement.GetProperty("Pins").EnumerateArray())
+            if (string.Equals(pin.GetString(), cid, StringComparison.Ordinal))
+                return;
+
+        throw new InvalidOperationException("Kubo did not acknowledge the exact encrypted record pin.");
     }
 
     public async Task<string> GetAsync(string recordScope, byte[] commitment)
@@ -99,4 +119,11 @@ internal sealed class BitcoinRecordBlobStore(HttpClient kubo, EncryptedRecordCod
 
         return new string(result);
     }
+}
+
+internal enum BitcoinRecordKind
+{
+    Holon,
+    Avatar,
+    AvatarDetail
 }
