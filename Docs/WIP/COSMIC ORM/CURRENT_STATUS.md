@@ -2,7 +2,7 @@
 
 ## Current website build
 
-Web4Site 9a409eb8e3ee refreshes the browser URLs for the parser, Playground and Ask your data scripts. Vercel built this exact revision and all 173 website tests passed on its committed files. Protected preview and real WEB6 drafting remain open.
+Web4Site 9a409eb8e3ee refreshes the browser URLs for the parser, Playground and Ask your data scripts. Vercel built this exact revision and all 173 website tests passed on its committed files. Protected preview and real WEB6 drafting remain open. WEB4 session preflight from this preview returns wildcard origin and no credentials grant. The canonical website has the exact credentialed origin. Authenticated acceptance needs a stable trusted Development website origin or release through the canonical website workflow.
 
 ## Coordination with Firestore outbound delivery
 
