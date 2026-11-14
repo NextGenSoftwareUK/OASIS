@@ -40,6 +40,31 @@ public sealed class HolonReplicaInitializationPreparationTests
         Assert.AreNotEqual(result.Result.Fingerprint,(await prepare.PrepareAsync(Guid.NewGuid(),6,operation)).Result.Fingerprint);
     }
 
+    [TestMethod]
+    public async Task AuthorizationDenialAfterReviewBlocksExecutionWithTheSamePayload()
+    {
+        var source = new Source();
+        var policy = new Policy();
+        var preparation = Prepare(source, policy);
+        var reviewed = await preparation.PrepareAsync(Guid.NewGuid(), 6, Guid.NewGuid());
+        Assert.IsFalse(reviewed.IsError, reviewed.Message);
+        policy.OnApproval = () =>
+        {
+            var original = source.Observation;
+            var inspection = original.Inspection;
+            source.Observation = new(new HolonDeliveryInspection(inspection.Sequence, inspection.OperationId,
+                inspection.TargetId, inspection.State, inspection.AttemptCount, "COSMIC_REPLICA_AUTHORIZATION_DENIED",
+                null, inspection.RecoveryEvidence), original.PayloadJson, original.PayloadDigest);
+        };
+
+        var result = await preparation.ReauthorizeApplicationAsync(reviewed.Result);
+
+        Assert.AreEqual("COSMIC_REPLICA_INITIALIZATION_SOURCE_CHANGED", result.ErrorCode);
+        Assert.IsNull(result.Result);
+        Assert.AreEqual(3, source.Reads);
+        Assert.AreEqual(0, source.Mutations);
+    }
+
     [DataTestMethod]
     [DataRow("read")] [DataRow("approval")] [DataRow("binding")] [DataRow("error")] [DataRow("warning")] [DataRow("null")]
     public async Task AuthorizationIsExplicitAtBothStagesAndBindingChangesInvalidatePreparation(string deny)
@@ -167,6 +192,7 @@ public sealed class HolonReplicaInitializationPreparationTests
     {
         public string BindingIdentity {get;private set;}="policy-v1";
         public string Deny;public int Calls;
+        public Action OnApproval;
         public HolonReplicaInitializationAuthorizationContext ReadContext;
         public HolonReplicaInitializationAuthorizationContext ApprovalContext;
         public Task<OASISResult<bool>> AuthorizeAsync(HolonReplicaInitializationAuthorizationContext context,CancellationToken token)
@@ -178,6 +204,7 @@ public sealed class HolonReplicaInitializationPreparationTests
             if(Deny is "error" or "warning")return Task.FromResult(new OASISResult<bool>(true){IsError=Deny=="error",IsWarning=Deny=="warning",Exception=new InvalidOperationException("Controlled authorization failure")});
             if(!read && Deny=="binding")BindingIdentity="policy-v2";
             if(!read && Deny=="mutate")context.Mutation.Roots[0].Name="policy must not replace this";
+            if (!read) OnApproval?.Invoke();
             return Task.FromResult(new OASISResult<bool>(!(read && Deny=="read" || !read && Deny=="approval")));
         }
     }
