@@ -185,7 +185,7 @@ older chronological roadmap is supporting history, not the source of green statu
 | Q54 | Except | ❌ | ❌ | ❌ | No complete native operator proof. |
 | Q55 | Conditional/case/coalesce projection expressions | ❌ | ❌ | ❌ | No general translation proof. |
 | Q56 | User-defined functions and extensible method translation | ❌ | ❌ | ❌ | No complete public extension contract. |
-| Q57 | Collations, explicit case/culture comparison and LIKE escaping | ❌ | ❌ | ❌ | Existing ordinal subset is not general collation parity. |
+| Q57 | Collations, explicit case/culture comparison and LIKE escaping | ❌ | ❌ | ❌ | [Live Playground verification](CURRENT_STATUS.md) covers exact, prefix, suffix and substring patterns on MongoDB, SQLite and Neo4j, with an independently excluded nonmatch. Explicit escaping, collation and case/culture selection remain open. |
 | Q58 | Raw SQL/native query with parameter binding and mapped results | ❌ | ❌ | ❌ | Provider methods do not prove safe shared API parity. |
 | Q59 | Stored procedures/functions including returned/out values | ❌ | ❌ | ❌ | No portable/shared contract and provider evidence. |
 | Q60 | NHibernate HQL language compatibility | ❌ | ❌ | ❌ | CQL DTO/fluent syntax is not HQL. |
