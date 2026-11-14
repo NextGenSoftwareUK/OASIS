@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Latest shared Development baseline
+
+Development advanced independently to 4db1dedd1a92. Railway queued WEB4 deployment 5a8a0c27 at 22:24:46 Cancun. The preceding Oracle container reached its pinned revision, but public health timed out and logs show a repeat of the persisted HoloOASIS cell startup failure. The Oracle-baseline COSMIC qualification passed WEB4 and native three-store tests and reached final publishing. Candidate a067d9d56726 preserves the new subscription documentation and adds only the same COSMIC and billing test scope. Next shared review after 22:54:46 Cancun, subject to exact CI and live readiness. No local build or fixture outputs.
+
 ## Oracle rollout and COSMIC candidate
 
 Development advanced to 08751c9824ae with the native-qualified SQLite-to-Oracle dispatcher. Candidate 52adcb3a47d8 preserves that batch and applies the same COSMIC and billing files as 664a84b0b040. The isolated billing fixture CI is running on the preceding baseline. Review that result before qualifying the successor. No local build or fixtures were created.
