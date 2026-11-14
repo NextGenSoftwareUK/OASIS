@@ -59,8 +59,8 @@ jobs:
         shell: bash
         run: |
           reviewed_baseline=6205d946c47811e394aa6b2de812814118813118
-          reviewed_outbox_baseline=eda74489d26eac78ec0dfc00712485732c022a9c
-          git -C ../provider-source fetch --no-tags --depth=1 origin "$reviewed_baseline" "$reviewed_outbox_baseline"
+          reviewed_route_inventory_baseline=27ed16491eb0167ed0c915c8c5781d41966266cd
+          git -C ../provider-source fetch --no-tags --depth=1 origin "$reviewed_baseline" "$reviewed_route_inventory_baseline"
           provider='Providers/Network/NextGenSoftware.OASIS.API.Providers.IPFSOASIS'
           tests='Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.IPFSOASIS.IntegrationTests'
           for path in "$provider/IPFSOASIS.Init.cs" "$provider/IPFSOASIS.IndexIdentity.cs" \
@@ -70,8 +70,8 @@ jobs:
             "$tests/NextGenSoftware.OASIS.API.Providers.IPFSOASIS.IntegrationTests.csproj"; do
             current="$(git ls-tree HEAD -- "$path")"
             baseline="$reviewed_baseline"
-            if [[ "$path" == "$provider/IPFSOASIS.Outbox.cs" ]]; then
-              baseline="$reviewed_outbox_baseline"
+            if [[ "$path" == "$provider/IPFSOASIS.Outbox.cs" || "$path" == "$tests/IPFSRestartTests.cs" ]]; then
+              baseline="$reviewed_route_inventory_baseline"
             fi
             reviewed="$(git -C ../provider-source ls-tree "$baseline" -- "$path")"
             incoming="$(git -C ../provider-source ls-tree HEAD -- "$path")"
