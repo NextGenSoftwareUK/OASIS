@@ -46,6 +46,24 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
         }
 
         [TestMethod]
+        public async Task EsploraOrdinaryTransactionDoesNotProduceAHolon()
+        {
+            const string transactionId = "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b";
+
+            try
+            {
+                var result = await _provider.LoadHolonAsync(transactionId, loadChildren: false);
+                Assert.IsTrue(result.IsError, result.Message);
+                Assert.IsNull(result.Result);
+                Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound, result.ErrorCode, result.Message);
+            }
+            finally
+            {
+                _provider.Dispose();
+            }
+        }
+
+        [TestMethod]
         public async Task SaveAvatar_ShouldReturnSuccessResult()
         {
             // Arrange

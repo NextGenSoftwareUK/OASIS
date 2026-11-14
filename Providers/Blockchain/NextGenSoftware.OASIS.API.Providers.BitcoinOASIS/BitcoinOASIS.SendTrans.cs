@@ -143,16 +143,10 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                                                                     var opReturnData = asmString.Substring("OP_RETURN ".Length);
                                                                     var holonBytes = Convert.FromHexString(opReturnData);
                                                                     var holonJson = Encoding.UTF8.GetString(holonBytes);
-                                                                    var holonData = JsonSerializer.Deserialize<JsonElement>(holonJson);
-                                                                    
-                                                                    // Check if this is a holon (has holon_type field)
-                                                                    if (holonData.TryGetProperty("holon_type", out var holonTypeProp))
+                                                                    var holon = ParseBitcoinToHolon(holonJson);
+                                                                    if (holon != null && (holonType == HolonType.All || holon.HolonType == holonType))
                                                                     {
-                                                                        var holon = ParseBitcoinToHolon(holonJson);
-                                                                        if (holon != null && (holonType == HolonType.All || holon.HolonType == holonType))
-                                                                        {
-                                                                            holons.Add(holon);
-                                                                        }
+                                                                        holons.Add(holon);
                                                                     }
                                                                 }
                                                                 catch

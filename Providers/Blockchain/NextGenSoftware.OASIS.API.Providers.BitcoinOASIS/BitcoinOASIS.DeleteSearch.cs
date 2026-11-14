@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using NBitcoin;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -40,36 +41,6 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
 {
     public partial class BitcoinOASIS
     {
-        /// <summary>
-        /// Create Holon from Bitcoin response when JSON deserialization fails
-        /// </summary>
-        private Holon CreateHolonFromBitcoin(string bitcoinJson)
-        {
-            try
-            {
-                // Extract basic information from Bitcoin JSON response
-                var holon = new Holon
-                {
-                    Id = CreateDeterministicGuid($"{ProviderType.Value}:{ExtractBitcoinProperty(bitcoinJson, "name") ?? "bitcoin_holon"}"),
-                    Name = ExtractBitcoinProperty(bitcoinJson, "name") ?? "Bitcoin Holon",
-                    Description = ExtractBitcoinProperty(bitcoinJson, "description") ?? "",
-                    HolonType = HolonType.Holon,
-                    CreatedDate = DateTime.UtcNow,
-                    ModifiedDate = DateTime.UtcNow,
-                    Version = 1,
-                    IsActive = true
-                };
-
-                return holon;
-            }
-            catch (Exception)
-            {
-                return null;
-            }
-        }
-
-
-
         public OASISResult<ITransactionResponse> SendTransaction(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
         {
             return SendTransactionAsync(fromWalletAddress, toWalletAddress, amount, memoText).Result;
@@ -352,17 +323,11 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                                                 var opReturnData = asmString.Substring("OP_RETURN ".Length);
                                                 var holonBytes = Convert.FromHexString(opReturnData);
                                                 var holonJson = Encoding.UTF8.GetString(holonBytes);
-                                                var holonData = JsonSerializer.Deserialize<JsonElement>(holonJson);
-                                                
-                                                // Check if this holon has the matching parent ID
-                                                if (holonData.TryGetProperty("parent_holon_id", out var parentIdProp) &&
-                                                    parentIdProp.GetString() == parentId.ToString())
+                                                var holon = ParseBitcoinToHolon(holonJson);
+                                                if (holon != null && holon.ParentHolonId == parentId &&
+                                                    (holonType == HolonType.All || holon.HolonType == holonType))
                                                 {
-                                                    var holon = ParseBitcoinToHolon(holonJson);
-                                                    if (holon != null && (holonType == HolonType.All || holon.HolonType == holonType))
-                                                    {
-                                                        holons.Add(holon);
-                                                    }
+                                                    holons.Add(holon);
                                                 }
                                             }
                                             catch
@@ -407,82 +372,66 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                     }
                 }
 
-                if (string.IsNullOrWhiteSpace(providerKey))
+                if (!uint256.TryParse(providerKey, out var transactionId))
                 {
-                    OASISErrorHandling.HandleError(ref result, "Provider key cannot be null or empty");
+                    OASISErrorHandling.HandleError(ref result, "A Bitcoin transaction ID is required.");
                     return result;
                 }
 
-                // Search for holon by provider key (transaction hash) in OP_RETURN transactions
-                var searchRequest = new
+                using var response = await _httpClient.GetAsync($"tx/{transactionId}/hex");
+                if (!response.IsSuccessStatusCode)
                 {
-                    jsonrpc = "2.0",
-                    id = 1,
-                    method = "getrawtransaction",
-                    @params = new object[] { providerKey, true }
-                };
+                    OASISErrorHandling.HandleError(ref result, $"Esplora could not retrieve Bitcoin transaction {transactionId}: {response.StatusCode}");
+                    return result;
+                }
 
-                var searchContent = new StringContent(JsonSerializer.Serialize(searchRequest), Encoding.UTF8, "application/json");
-                var searchResponse = await _httpClient.PostAsync("", searchContent);
-
-                if (searchResponse.IsSuccessStatusCode)
+                // Bitcoin transaction serialization and txid calculation are network independent.
+                var transaction = Transaction.Parse((await response.Content.ReadAsStringAsync()).Trim(), Network.Main);
+                if (transaction.GetHash() != transactionId)
                 {
-                    var searchResult = await searchResponse.Content.ReadAsStringAsync();
-                    var searchData = JsonSerializer.Deserialize<JsonElement>(searchResult);
+                    OASISErrorHandling.HandleError(ref result, "Esplora returned a transaction with a different ID.");
+                    return result;
+                }
 
-                    if (searchData.TryGetProperty("result", out var transaction))
+                Holon holon = null;
+                foreach (var output in transaction.Outputs)
+                {
+                    var pushes = new TxNullDataTemplate(output.ScriptPubKey.Length).ExtractScriptPubKeyParameters(output.ScriptPubKey);
+                    if (pushes?.Length != 1)
+                        continue;
+
+                    var decoded = ParseBitcoinToHolon(Encoding.UTF8.GetString(pushes[0]));
+                    if (decoded == null)
+                        continue;
+
+                    if (holon != null)
                     {
-                        if (transaction.TryGetProperty("vout", out var vouts))
-                        {
-                            foreach (var vout in vouts.EnumerateArray())
-                            {
-                                if (vout.TryGetProperty("scriptPubKey", out var scriptPubKey) &&
-                                    scriptPubKey.TryGetProperty("asm", out var asm))
-                                {
-                                    var asmString = asm.GetString();
-                                    if (asmString != null && asmString.StartsWith("OP_RETURN"))
-                                    {
-                                        try
-                                        {
-                                            var opReturnData = asmString.Substring("OP_RETURN ".Length);
-                                            var holonBytes = Convert.FromHexString(opReturnData);
-                                            var holonJson = Encoding.UTF8.GetString(holonBytes);
-                                            var holon = ParseBitcoinToHolon(holonJson);
-                                            
-                                            if (holon != null)
-                                            {
-                                                // Load children if requested
-                                                if (loadChildren && (recursive || maxChildDepth > 0))
-                                                {
-                                                    var childrenResult = await LoadHolonsForParentAsync(holon.Id, HolonType.All, loadChildren, recursive, maxChildDepth, 0, continueOnError, continueOnErrorRecursive, version);
-                                                    if (!childrenResult.IsError && childrenResult.Result != null)
-                                                    {
-                                                        holon.Children = childrenResult.Result.ToList();
-                                                    }
-                                                }
-                                                
-                                                result.Result = holon;
-                                                result.IsError = false;
-                                                result.Message = "Holon loaded from Bitcoin blockchain successfully";
-                                                return result;
-                                            }
-                                        }
-                                        catch
-                                        {
-                                            continue;
-                                        }
-                                    }
-                                }
-                            }
-                        }
+                        OASISErrorHandling.HandleError(ref result, "The Bitcoin transaction contains multiple holon records.");
+                        return result;
                     }
-                    
-                    OASISErrorHandling.HandleError(ref result, "Holon not found in Bitcoin blockchain");
+                    holon = decoded;
                 }
-                else
+
+                if (holon == null || (version > 0 && holon.Version != version))
                 {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to load holon from Bitcoin: {searchResponse.StatusCode}");
+                    result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
+                    OASISErrorHandling.HandleError(ref result, "The Bitcoin transaction does not contain the requested holon version.");
+                    return result;
                 }
+
+                if (loadChildren && (recursive || maxChildDepth > 0))
+                {
+                    var children = await LoadHolonsForParentAsync(holon.Id, HolonType.All, loadChildren, recursive, maxChildDepth, 0, continueOnError, continueOnErrorRecursive, version);
+                    if (children.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, children.Message, children.Exception);
+                        return result;
+                    }
+
+                    holon.Children = children.Result.ToList();
+                }
+
+                result.Result = holon;
             }
             catch (Exception ex)
             {
