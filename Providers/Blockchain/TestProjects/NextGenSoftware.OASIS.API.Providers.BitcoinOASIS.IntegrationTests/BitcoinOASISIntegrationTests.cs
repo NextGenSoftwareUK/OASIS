@@ -191,6 +191,77 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
         }
 
         [TestMethod]
+        public async Task RegtestBroadcastsAndConfirmsSignedPayment()
+        {
+            var api = Environment.GetEnvironmentVariable("OASIS_BITCOIN_REGTEST_API");
+            var container = Environment.GetEnvironmentVariable("OASIS_BITCOIN_REGTEST_CONTAINER");
+            Assert.IsTrue(Uri.TryCreate(api, UriKind.Absolute, out var uri) && uri.IsLoopback);
+            Assert.IsFalse(string.IsNullOrWhiteSpace(container));
+
+            var network = NBitcoin.Network.RegTest;
+            using var sourceKey = new NBitcoin.Key();
+            using var destinationKey = new NBitcoin.Key();
+            var source = sourceKey.PubKey.GetAddress(NBitcoin.ScriptPubKeyType.SegwitP2SH, network).ToString();
+            var destination = destinationKey.PubKey.GetAddress(NBitcoin.ScriptPubKeyType.Segwit, network).ToString();
+            using var provider = new BitcoinOASIS(api, "regtest", sourceKey.GetWif(network).ToString(), null, 2m);
+            using var http = new System.Net.Http.HttpClient { BaseAddress = new Uri(api + "/") };
+
+            await BitcoinCliAsync("generatetoaddress", "101", source);
+            var tip = (await BitcoinCliAsync("getblockcount")).Trim();
+            for (var attempt = 0; attempt < 60; attempt++)
+            {
+                if ((await http.GetStringAsync("blocks/tip/height")).Trim() == tip)
+                    break;
+                await Task.Delay(500);
+            }
+            Assert.AreEqual(tip, (await http.GetStringAsync("blocks/tip/height")).Trim());
+
+            var activation = await provider.ActivateProviderAsync();
+            Assert.IsFalse(activation.IsError, activation.Message);
+            const string memo = "OASIS regtest payment";
+            var payment = await provider.SendTransactionAsync(source, destination, 0.001m, memo);
+            Assert.IsFalse(payment.IsError, payment.Message);
+            var transactionId = payment.Result.TransactionResult;
+            var mempool = await BitcoinCliAsync("getmempoolentry", transactionId);
+            using var entry = System.Text.Json.JsonDocument.Parse(mempool);
+            Assert.IsTrue(entry.RootElement.GetProperty("fees").GetProperty("base").GetDecimal() > 0m);
+
+            var blocks = await BitcoinCliAsync("generatetoaddress", "1", destination);
+            using var mined = System.Text.Json.JsonDocument.Parse(blocks);
+            var block = await BitcoinCliAsync("getblock", mined.RootElement[0].GetString(), "2");
+            using var confirmation = System.Text.Json.JsonDocument.Parse(block);
+            var transaction = confirmation.RootElement.GetProperty("tx").EnumerateArray()
+                .Single(candidate => candidate.GetProperty("txid").GetString() == transactionId);
+            var outputs = transaction.GetProperty("vout").EnumerateArray().ToArray();
+            Assert.IsTrue(outputs.Any(output => output.GetProperty("value").GetDecimal() == 0.001m &&
+                output.GetProperty("scriptPubKey").TryGetProperty("address", out var address) &&
+                address.GetString() == destination));
+            var script = NBitcoin.TxNullDataTemplate.Instance
+                .GenerateScriptPubKey(System.Text.Encoding.UTF8.GetBytes(memo)).ToHex();
+            Assert.IsTrue(outputs.Any(output => output.GetProperty("value").GetDecimal() == 0m &&
+                output.GetProperty("scriptPubKey").GetProperty("hex").GetString() == script));
+
+            async Task<string> BitcoinCliAsync(params string[] arguments)
+            {
+                var start = new System.Diagnostics.ProcessStartInfo("docker")
+                {
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true
+                };
+                foreach (var argument in new[] { "exec", container, "/srv/explorer/bitcoin/bin/bitcoin-cli",
+                    "-conf=/data/.bitcoin.conf", "-datadir=/data/bitcoin", "-regtest" }.Concat(arguments))
+                    start.ArgumentList.Add(argument);
+
+                using var process = System.Diagnostics.Process.Start(start);
+                var output = process.StandardOutput.ReadToEndAsync();
+                var error = process.StandardError.ReadToEndAsync();
+                await process.WaitForExitAsync();
+                Assert.AreEqual(0, process.ExitCode, await error);
+                return await output;
+            }
+        }
+
+        [TestMethod]
         public async Task SaveAvatar_ShouldReturnSuccessResult()
         {
             // Arrange

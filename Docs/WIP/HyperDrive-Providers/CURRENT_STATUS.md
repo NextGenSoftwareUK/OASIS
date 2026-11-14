@@ -2037,3 +2037,5 @@ Supabase now reads replica receipt evidence through a service-role PostgREST RPC
 14 November Cancun time. Native regtest CI 43628571620 reached the matching Esplora and Bitcoin Core genesis. Bitcoin Core did not load the image bootstrap wallet after restart. The runner now creates and funds its own named wallet after the daemon and index are ready. Fee-target results and the provider transfer remain open.
 
 14 November Cancun time. Bitcoin Core and Esplora regtest fixture passed in CI 43628739734 with a funded wallet and matching chain genesis. Esplora reported an empty fee table. The provider now accepts an explicit positive sat/vB fee policy via a constructor overload, retaining the existing six-block estimator when no explicit rate is supplied. Funded provider transfer remains open. No local downloads or fixtures.
+
+14 November Cancun time. Wired the shipping wrapped SegWit Bitcoin payment into disposable regtest CI. It funds a generated address, broadcasts through Esplora, checks Bitcoin Core mempool acceptance and mines the exact transaction, recipient amount and memo. Execution is pending. No local fixture or payment.
