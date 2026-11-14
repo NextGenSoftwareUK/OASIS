@@ -161,7 +161,11 @@ jobs:
                   OR has_function_privilege('authenticated', 'public.oasis_read_replica_receipt(uuid,uuid)', 'EXECUTE')
                   OR NOT has_function_privilege('service_role', 'public.oasis_read_replica_receipt(uuid,uuid)', 'EXECUTE')
                   OR has_table_privilege('service_role', 'public.oasis_storage_identity', 'UPDATE')
-                  OR has_table_privilege('service_role', 'public.oasis_replica_receipts', 'INSERT') THEN
+                  OR has_table_privilege('service_role', 'public.oasis_replica_receipts', 'INSERT')
+                  OR has_function_privilege('anon', 'public.oasis_read_replica_state(uuid,uuid[])', 'EXECUTE')
+                  OR has_function_privilege('authenticated', 'public.oasis_read_replica_state(uuid,uuid[])', 'EXECUTE')
+                  OR NOT has_function_privilege('service_role', 'public.oasis_read_replica_state(uuid,uuid[])', 'EXECUTE')
+                  OR has_table_privilege('service_role', 'public.oasis_replica_heads', 'INSERT') THEN
                   RAISE EXCEPTION 'Unexpected Supabase replica receipt or storage identity privileges';
               END IF;
           END
