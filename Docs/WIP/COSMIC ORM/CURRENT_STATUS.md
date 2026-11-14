@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Supabase receipt rollout live CQL verification
+
+Railway WEB4 deployment eef96bb3 reached revision 363dd7fbd23e. The public health endpoint returned HTTP 200 after the initial startup timeout. The retained visitor observed 106/107 native and federated sources ready, with NostrOASIS unavailable. HoloOASIS native and MongoDB-federated presets returned identical three-record and two-record ID sets with HoloOASIS provenance. This verifies the shared WEB4 rollout. Hosted Supabase source admission still requires its dedicated HTTPS teaching fixture and restricted reader. HyperDrive's atomic replica receiver and expanded native tests are awaiting qualification. No holon fixtures or local build outputs.
+
 ## CQL Playground and WEB6 draft preview
 
 Web4Site b60275e adds keyboard focus when a reviewed WEB6 draft opens in the Playground and includes bounded LIKE examples in the editor help. All 177 website tests passed and [Vercel built the exact revision](https://vercel.com/oasis-team/web4-site/3nSpEEgg9W4vwrd5LfzdJ2jvNvj2). A Chromium fixture ran the exact parser. The full browser probe timed out and the temporary browser folders were removed. The Development WEB6 completion endpoint returned HTTP 204 to preflight with Authorization, Content-Type and Idempotency-Key. Hosted browser and real WEB6 draft acceptance remain open. WEB4 deployment eef96bb3 is publishing the Supabase receipt revision.
