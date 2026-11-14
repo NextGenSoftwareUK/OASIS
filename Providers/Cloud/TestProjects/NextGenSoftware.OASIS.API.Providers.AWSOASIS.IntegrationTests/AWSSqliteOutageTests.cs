@@ -346,6 +346,44 @@ public partial class AWSOASISIntegrationTests
             var published = CommittedHolonReplicaPayload.ReadForTarget(payload, enrollment.TargetIds.Single());
             Assert.AreEqual(write.OperationId, published.OperationId);
             Assert.AreEqual(committed.Result.Single().VersionId, published.Roots.Single().VersionId);
+
+            var contenders = Enumerable.Range(0, 4).Select(_ =>
+            {
+                var holon = new Holon { Id = Guid.NewGuid(), Name = "Concurrent DynamoDB publication" };
+                var intent = new ConditionalHolonWrite(Guid.NewGuid(), actor, source.Result.Authority,
+                    new[] { new HolonWriteCondition(holon.Id, null) });
+                return (HolonId: holon.Id, Intent: intent, Request: new ConditionalHolonWriteRequest(
+                    intent, ConditionalHolonOperation.Save, new[] { holon }, saveChildren: false));
+            }).ToArray();
+            var results = await Task.WhenAll(contenders.Select(candidate =>
+                publisher.ExecuteReplicatingHolonWriteAsync(candidate.Request, enrollment)));
+            Assert.IsTrue(results.Any(result => !result.IsError && result.IsSaved));
+            var sequences = new HashSet<string> { delivery["sequence"].N };
+            for (var index = 0; index < contenders.Length; index++)
+            {
+                var candidate = contenders[index];
+                var observed = await _provider.LoadHolonAsync(candidate.HolonId, loadChildren: false);
+                var obligations = await native.ScanAsync(new ScanRequest
+                {
+                    TableName = "OasisHolonWriteReceipts", ConsistentRead = true,
+                    FilterExpression = "operation_id = :operation",
+                    ExpressionAttributeValues = new() { [":operation"] = new() { S = candidate.Intent.OperationId.ToString("D") } }
+                });
+                Assert.IsTrue(obligations.LastEvaluatedKey == null || obligations.LastEvaluatedKey.Count == 0);
+                if (observed.ErrorCode == OASISResultErrorCodes.RecordNotFound)
+                {
+                    Assert.IsTrue(results[index].IsError);
+                    Assert.AreEqual(0, obligations.Items.Count);
+                    continue;
+                }
+
+                Assert.IsFalse(observed.IsError, observed.Message);
+                var obligation = obligations.Items.Single();
+                Assert.IsTrue(sequences.Add(obligation["sequence"].N), "Committed deliveries must use distinct sequences.");
+                var observedPayload = CommittedHolonReplicaPayload.ReadForTarget(
+                    obligation["payload"].S, enrollment.TargetIds.Single());
+                Assert.AreEqual(observed.Result.VersionId, observedPayload.Roots.Single().VersionId);
+            }
         }
         finally
         {
