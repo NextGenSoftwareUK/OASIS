@@ -48,6 +48,22 @@ public sealed class SupabaseSqliteHyperDriveTests
             var sqliteActivation = await sqlite.ActivateProviderAsync();
             Assert.IsTrue(!supabaseActivation.IsError && supabaseActivation.Result, supabaseActivation.Message);
             Assert.IsTrue(!sqliteActivation.IsError && sqliteActivation.Result, sqliteActivation.Message);
+            var binding = await supabase.CaptureStorageIdentityAsync();
+            Assert.IsFalse(binding.IsError, binding.Message);
+            Assert.AreEqual(ProviderType.SupabaseOASIS, binding.Result.Authority);
+            var reopened = new SupabaseOASIS(endpoint, key!, client, "");
+            try
+            {
+                var activation = await reopened.ActivateProviderAsync();
+                Assert.IsFalse(activation.IsError, activation.Message);
+                var reopenedBinding = await reopened.CaptureStorageIdentityAsync();
+                Assert.IsFalse(reopenedBinding.IsError, reopenedBinding.Message);
+                Assert.AreEqual(binding.Result.BindingFingerprint, reopenedBinding.Result.BindingFingerprint);
+            }
+            finally
+            {
+                await reopened.DeActivateProviderAsync();
+            }
 
             var dna = new OASISDNA { OASIS = new NextGenSoftware.OASIS.API.DNA.OASIS
                 { HyperDriveMode = HyperDriveModes.V2, StorageProviders = new StorageProviderSettings() } };

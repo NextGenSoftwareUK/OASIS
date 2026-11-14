@@ -78,10 +78,11 @@ jobs:
         if: inputs.scenario == 'routing'
         shell: bash
         run: |
-          base=59bc51b9ba7cad3ec933300d38ea94b9f7359d32
+          base=383a335006d2fa73b1acdb90ec267381f59f996e
           git -C ../provider-source fetch --no-tags --depth=1 origin "$base"
           tests='Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.SupabaseOASIS.IntegrationTests'
-          for path in "$tests/NextGenSoftware.OASIS.API.Providers.SupabaseOASIS.IntegrationTests.csproj" "$tests/SupabaseSqliteHyperDriveTests.cs"; do
+          provider='Providers/Cloud/NextGenSoftware.OASIS.API.Providers.SupabaseOASIS'
+          for path in "$tests/NextGenSoftware.OASIS.API.Providers.SupabaseOASIS.IntegrationTests.csproj" "$tests/SupabaseSqliteHyperDriveTests.cs" "$provider/SupabaseOASIS.StorageIdentity.cs" "$provider/supabase-replication-schema.sql"; do
             current="$(git ls-tree HEAD -- "$path")"
             reviewed="$(git -C ../provider-source ls-tree "$base" -- "$path")"
             incoming="$(git -C ../provider-source ls-tree HEAD -- "$path")"
@@ -151,6 +152,9 @@ jobs:
           CREATE ROLE service_role NOLOGIN BYPASSRLS;
           SQL
           "${psql[@]}" < Providers/Cloud/NextGenSoftware.OASIS.API.Providers.SupabaseOASIS/supabase-storage-schema.sql
+          if [[ "$OASIS_SUPABASE_TEST_SCENARIO" == routing ]]; then
+            "${psql[@]}" < Providers/Cloud/NextGenSoftware.OASIS.API.Providers.SupabaseOASIS/supabase-replication-schema.sql
+          fi
           if [[ "$OASIS_SUPABASE_TEST_SCENARIO" == pagination ]]; then
             "${psql[@]}" <<'SQL'
           INSERT INTO oasis_avatars (id, username, email, data_json)

@@ -6,6 +6,8 @@ on:
     paths:
       - '.github/workflows/supabase-sqlite-hyperdrive.yml'
       - '.github/workflows/supabase-postgrest-native.yml'
+      - 'Providers/Cloud/NextGenSoftware.OASIS.API.Providers.SupabaseOASIS/SupabaseOASIS.StorageIdentity.cs'
+      - 'Providers/Cloud/NextGenSoftware.OASIS.API.Providers.SupabaseOASIS/supabase-replication-schema.sql'
       - 'Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.SupabaseOASIS.IntegrationTests/SupabaseSqliteHyperDriveTests.cs'
   workflow_dispatch:
 

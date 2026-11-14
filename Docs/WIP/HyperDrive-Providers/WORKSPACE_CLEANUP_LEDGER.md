@@ -1090,3 +1090,5 @@ Urgent disk cleanup follow-up: leased standard project clean succeeded for AWS u
 13 November. Native SQL Server jobs 132329288520 and 132329288747 removed their containers, volumes, SQLite databases and outputs. Both temporary candidate indexes were removed and verified absent. No local build ran.
 
 13 November. SQL Server Development integration created no local builds, fixtures, downloads or reports. C: had 31.76 GiB free at the rollout check.
+
+13 November. Supabase identity uses the existing disposable PostgREST and PostgreSQL CI fixtures. No local build, database, or downloads were created.
