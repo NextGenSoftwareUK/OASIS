@@ -2029,3 +2029,5 @@ Supabase now reads replica receipt evidence through a service-role PostgREST RPC
 14 November Cancun time. Added a live Esplora payment-network regression using disposable regtest keys against public mainnet. The test requires the genesis mismatch to fail before UTXO selection or broadcast. BitcoinOASIS now declares IDisposable for the existing disposal method. No funded wallet, local build or fixture.
 
 14 November Cancun time. The signed Bitcoin payment path now requires the built transaction to contain the exact requested zero-value OP_RETURN memo before broadcast. This prevents returning the requested memo in the receipt when the signed transaction omitted it. Funded verification remains open. No local build or payment.
+
+14 November Cancun time. The public Esplora wrong-network regression passed in CI 43627669952. Wallet and bridge candidate 873500557a2f contains six scoped files on Development d764ebb72bb8. Exact qualification 43628088309 is running. The workflow covers public reads, account recovery and wrong-network rejection. Funded transfer, receipt memo and signed storage remain open.
