@@ -206,7 +206,10 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
             using var provider = new BitcoinOASIS(api, "regtest", sourceKey.GetWif(network).ToString(), null, 2m);
             using var http = new System.Net.Http.HttpClient { BaseAddress = new Uri(api + "/") };
 
-            await BitcoinCliAsync("generatetoaddress", "101", source);
+            await BitcoinCliAsync("-rpcwallet=oasis-regtest", "-named", "sendtoaddress",
+                $"address={source}", "amount=1", "fee_rate=2");
+            var miner = (await BitcoinCliAsync("-rpcwallet=oasis-regtest", "getnewaddress")).Trim();
+            await BitcoinCliAsync("generatetoaddress", "1", miner);
             var tip = (await BitcoinCliAsync("getblockcount")).Trim();
             for (var attempt = 0; attempt < 60; attempt++)
             {
