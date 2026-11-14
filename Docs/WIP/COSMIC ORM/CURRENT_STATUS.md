@@ -1,5 +1,11 @@
 # COSMIC ORM / CQL current status
 
+## Native multi-column Playground sorting
+
+Web4Site 5be78a1 compiled selected-column ORDER BY into the existing composition route. On Development b4f1a930b2b8 MongoDB, SQLite and Neo4j accepted the exact parser request. Earlier populated tests on the same deployment verified that Name breaks equal Version ties before Skip and Take. All six private fixtures were hard-deleted using native revision tokens and independently verified absent by ID. Compact operation journals remain in LocalState/COSMIC/HostedCqlReleaseSmoke-b4270f9c. No local runtime or build output. All 182 website tests passed and [Vercel built the preview](https://vercel.com/oasis-team/web4-site/HH9Y7xkBqxDc2FzYPhZ3xszFjCwG). The editor documents the 100-row source window. Hosted browser acceptance remains open.
+
+Development advanced separately to 6c36bb49f09f with the qualified Supabase expired-lease regression. Railway queued WEB4 deployment 3d7dd4ca. Confirm its serving revision and HTTP readiness before authenticated checks.
+
 ## WEB4 recovery and composition admission
 
 Development b4f1a930b2b8 deployment 7abc1437 exhausted its restart attempts after eleven persisted HoloOASIS cell timeouts. The admin endpoint answered while zero live cells were reported. The container had free data volume space and the bootstrap and relay endpoints passed certificate verification. The effective Railway service manifest has no HTTP health check. The replacement deployment bd096e50 is building. Verify the serving revision and public health before authenticated CQL. The single-provider measured composition route was staged in Development settings without triggering a deployment. Check its presence on the replacement before testing native composition. No fixtures or local build outputs were created.
