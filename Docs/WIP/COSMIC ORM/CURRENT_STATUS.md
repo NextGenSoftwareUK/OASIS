@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Numeric HAVING and WEB4 cutover
+
+Web4Site 5444ebcc49ef passed 175 tests and compiles HAVING comparisons using exact Int64, Decimal and Int32 literals. On WEB4 9944b532132b, MongoDB, SQLite and Neo4j accepted COUNT, AVG and SUM filters in the same request and returned the expected column types. The retained visitor returned no groups. This read-only probe created no fixtures and does not prove populated filtering. Railway then marked c17c2598-65d9-457a-96ac-dc3063770fdf successful and read-only SSH confirmed revision 72ffc86c2082. Public HTTP health still timed out, so live CQL acceptance on that revision remains open.
+
 ## Grouped numeric aggregates
 
 Web4Site f1d6cd34500b adds grouped COUNT, MIN, MAX, SUM and AVG with ordered output aliases. All 174 website tests passed. Using that parser, live WEB4 9944b532132b returned the same Boolean, Int64, Int32, Int32, Int32 and Decimal columns on MongoDB, SQLite and Neo4j. All returned zero rows for the retained smoke visitor. A follow-up verified COUNT, MIN, MAX, SUM and AVG against one private persisted record per store, with all aggregate values checked against the observed Version. Each record was conditionally hard-deleted and verified absent. Multi-row grouped arithmetic and hosted browser execution remain open. WEB4 72ffc86c2082 is still building.
