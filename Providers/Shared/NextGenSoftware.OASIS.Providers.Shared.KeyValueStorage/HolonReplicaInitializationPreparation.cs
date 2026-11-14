@@ -117,9 +117,16 @@ public sealed class HolonReplicaInitializationPreparation
             return Failed("COSMIC_REPLICA_INITIALIZATION_INTENT_CHANGED","The current authorized source differs from the durable reviewed intent.");
         var source=await _source.ReadObligationAsync(intent.Sequence,token).ConfigureAwait(false);
         if(source==null || source.IsError || source.IsWarning || source.Exception!=null || source.Result==null
+            || source.Result.Inspection.Sequence!=intent.Sequence
+            || source.Result.Inspection.OperationId!=intent.SourceOperationId
+            || source.Result.Inspection.TargetId!=_targetId
+            || source.Result.Inspection.AttemptCount!=intent.AttemptCount
+            || source.Result.Inspection.State is not (HolonDeliveryState.ReconciliationRequired or HolonDeliveryState.Completed)
+            || source.Result.Inspection.ErrorCode!="COSMIC_REPLICA_LINEAGE_CONFLICT"
+            || source.Result.Inspection.RecoveryEvidence?.RequiresNativeReconciliation!=false
             || source.Result.PayloadDigest!=intent.SourcePayloadDigest
             || Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(source.Result.PayloadJson)))!=intent.SourcePayloadDigest)
-            return Failed("COSMIC_REPLICA_INITIALIZATION_SOURCE_CHANGED","A second authoritative source read must match the reviewed frozen payload.",source?.Exception);
+            return Failed("COSMIC_REPLICA_INITIALIZATION_SOURCE_CHANGED","The source obligation changed after the repair was authorized.",source?.Exception);
         var original=CommittedHolonReplicaPayload.Read(source.Result.PayloadJson);
         return new(new CommittedHolonReplicaRequest(intent.InitializationOperationId,original.SourceId,original.SourceAuthority,
             original.ActorId,original.Operation,original.Roots,original.SaveChildren,original.Recursive,original.MaxChildDepth));
