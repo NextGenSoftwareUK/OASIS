@@ -385,6 +385,19 @@ public partial class AWSOASISIntegrationTests
             Assert.AreEqual("COSMIC_OUTBOX_SOURCE_STORAGE_BINDING_MISMATCH", wrongHead.ErrorCode);
             Assert.IsNull(wrongHead.Result);
 
+            var firstClaim = await outbox.ClaimNextAsync(routeBinding.TargetId, "expiring-worker", TimeSpan.FromSeconds(1));
+            Assert.IsFalse(firstClaim.IsError, firstClaim.Message);
+            Assert.IsNotNull(firstClaim.Result);
+            var wait = firstClaim.Result.LeaseUntilUtc - DateTime.UtcNow;
+            if (wait > TimeSpan.Zero)
+                await Task.Delay(wait + TimeSpan.FromMilliseconds(20));
+            var staleRenewal = await outbox.RenewAsync(firstClaim.Result, TimeSpan.FromMinutes(1));
+            Assert.IsFalse(staleRenewal.IsError, staleRenewal.Message);
+            Assert.IsFalse(staleRenewal.Result);
+            var staleCompletion = await outbox.FinishAsync(firstClaim.Result, HolonDeliveryOutcome.Completed);
+            Assert.IsFalse(staleCompletion.IsError, staleCompletion.Message);
+            Assert.IsFalse(staleCompletion.Result);
+
             var replicaTarget = new CommittedHolonReplicaTarget(routeBinding.TargetId, sqlite, target.Result.Authority,
                 routeBinding.SourceId, source.Result.Authority, policy, "dynamo-source", Guid.NewGuid(),
                 policy.BindingIdentity, target.Result);
@@ -392,6 +405,10 @@ public partial class AWSOASISIntegrationTests
             var saveDelivery = await dispatcher.DispatchOnceAsync(routeBinding.TargetId, maximumCount: 1);
             Assert.IsFalse(saveDelivery.IsError, saveDelivery.Message);
             Assert.AreEqual(1, saveDelivery.Result.CompletedCount);
+            var recoveredLease = await outbox.InspectAsync(firstClaim.Result.Sequence);
+            Assert.IsFalse(recoveredLease.IsError, recoveredLease.Message);
+            Assert.AreEqual(HolonDeliveryState.Completed, recoveredLease.Result.State);
+            Assert.AreEqual(2, recoveredLease.Result.AttemptCount);
             Assert.AreEqual(revision.VersionId, (await sqlite.LoadHolonAsync(record.Id, loadChildren: false)).Result?.VersionId);
             var hardDeleteDelivery = await dispatcher.DispatchOnceAsync(routeBinding.TargetId, maximumCount: 1);
             Assert.IsFalse(hardDeleteDelivery.IsError, hardDeleteDelivery.Message);
