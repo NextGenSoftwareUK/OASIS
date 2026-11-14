@@ -1804,3 +1804,5 @@ Supabase now reads replica receipt evidence through a service-role PostgREST RPC
 14 November Cancun time. Added the internal DynamoDB ordered head read. It uses the committed sequence watermark, reads each delivery with the enrolled store in a native transaction, and rejects a missing or inconsistent sequence. This first implementation reads retained sequence entries and still needs dispatcher wiring, lease handling, and qualification. No local artifacts created.
 
 14 November Cancun time. Added internal DynamoDB claim logic with source binding, payload verification, expiring ownership, and a native condition on state and attempt count. Dispatcher registration, renewal, completion, and native claim qualification remain open. No local artifacts created.
+
+14 November Cancun time. Added internal DynamoDB renewal and completion transitions. The native transaction compares the store identity, claim token and lease deadline before changing state. Retry timing and reconciliation evidence are persisted with the outcome. Dispatcher wiring and native qualification remain open. No local artifacts created.

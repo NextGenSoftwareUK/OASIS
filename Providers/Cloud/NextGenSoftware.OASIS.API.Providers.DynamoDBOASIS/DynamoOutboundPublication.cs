@@ -150,6 +150,101 @@ public partial class DynamoDBOASIS
             }
         };
         MeasureGraphItem(replacement);
+        if (!await WriteOutboundLeaseAsync(expected, write, cancellationToken))
+            return null;
+        return new HolonDeliveryClaim(ReadOutboundSequence(item), request.OperationId, targetId, workerId,
+            lease, payload, attempts, until);
+    }
+
+    private Task<bool> RenewOutboundLeaseAsync(HolonDeliveryClaim claim, TimeSpan duration,
+        CosmicStorageIdentity expected, CancellationToken cancellationToken)
+        => UpdateOwnedOutboundDeliveryAsync(claim, expected, (item, now) =>
+        {
+            var until = Math.Max(ReadOutboundTicks(item, "lease_until"), now.Add(duration).Ticks);
+            item["lease_until"] = new() { N = until.ToString(CultureInfo.InvariantCulture) };
+        }, cancellationToken);
+
+    private Task<bool> FinishOutboundDeliveryAsync(HolonDeliveryClaim claim, HolonDeliveryOutcome outcome,
+        HolonDeliveryRecoveryEvidence? evidence, string? errorCode, string? message, DateTime? retryAt,
+        CosmicStorageIdentity expected, CancellationToken cancellationToken)
+    {
+        var state = outcome switch
+        {
+            HolonDeliveryOutcome.Completed => HolonDeliveryState.Completed,
+            HolonDeliveryOutcome.Retry => HolonDeliveryState.Pending,
+            HolonDeliveryOutcome.ReconciliationRequired => HolonDeliveryState.ReconciliationRequired,
+            _ => throw new ArgumentOutOfRangeException(nameof(outcome))
+        };
+        if ((outcome == HolonDeliveryOutcome.Completed ? errorCode != null || message != null
+                : string.IsNullOrWhiteSpace(errorCode) || errorCode.Length > 128 || message?.Length > 4096)
+            || (outcome == HolonDeliveryOutcome.Retry ? retryAt?.Kind != DateTimeKind.Utc : retryAt != null)
+            || (evidence?.RequiresNativeReconciliation == true && state != HolonDeliveryState.ReconciliationRequired))
+            throw new ArgumentException("Delivery diagnostics and retry time must match the outcome.");
+
+        return UpdateOwnedOutboundDeliveryAsync(claim, expected, (item, now) =>
+        {
+            if (retryAt <= now)
+                throw new ArgumentException("The next delivery attempt must be in the future.", nameof(retryAt));
+            item["state"] = new() { S = state.ToString() };
+            foreach (var field in new[] { "worker", "lease", "lease_until", "retry_at", "error", "message", "recovery", "recovery_digest" })
+                item.Remove(field);
+            if (retryAt.HasValue)
+                item["retry_at"] = new() { N = retryAt.Value.Ticks.ToString(CultureInfo.InvariantCulture) };
+            if (errorCode != null)
+                item["error"] = new() { S = errorCode };
+            if (message != null)
+                item["message"] = new() { S = message };
+            if (evidence != null)
+            {
+                var json = HolonRecoveryEvidenceJson.Write(evidence);
+                item["recovery"] = new() { S = json };
+                item["recovery_digest"] = new() { S = HolonRecoveryEvidenceJson.Digest(json) };
+            }
+        }, cancellationToken);
+    }
+
+    private async Task<bool> UpdateOwnedOutboundDeliveryAsync(HolonDeliveryClaim claim, CosmicStorageIdentity expected,
+        Action<Dictionary<string, AttributeValue>, DateTime> update, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(claim);
+        if (claim.Sequence <= 0 || claim.OperationId == Guid.Empty || claim.LeaseToken == Guid.Empty
+            || string.IsNullOrWhiteSpace(claim.WorkerId) || string.IsNullOrWhiteSpace(claim.TargetId))
+            throw new ArgumentException("A valid DynamoDB delivery claim is required.", nameof(claim));
+
+        var item = await ReadBoundOutboundItemAsync(OutboundDeliveryKey(claim.Sequence), expected, cancellationToken);
+        var now = DateTime.UtcNow;
+        var observedUntil = item?.Count > 0 ? ReadOutboundTicks(item, "lease_until") : 0;
+        if (observedUntil <= now.Ticks || item!["state"].S != nameof(HolonDeliveryState.InFlight)
+            || item["target_id"].S != claim.TargetId || item["operation_id"].S != claim.OperationId.ToString("D")
+            || item["worker"].S != claim.WorkerId || item["lease"].S != claim.LeaseToken.ToString("D"))
+            return false;
+
+        var previousUntil = item["lease_until"];
+        update(item, now);
+        MeasureGraphItem(item);
+        var write = new TransactWriteItem
+        {
+            Put = new Put
+            {
+                TableName = ConditionalReceiptTable,
+                Item = item,
+                ConditionExpression = "#state = :inflight AND lease = :lease AND lease_until = :until AND lease_until > :now",
+                ExpressionAttributeNames = new() { ["#state"] = "state" },
+                ExpressionAttributeValues = new()
+                {
+                    [":inflight"] = new() { S = nameof(HolonDeliveryState.InFlight) },
+                    [":lease"] = new() { S = claim.LeaseToken.ToString("D") },
+                    [":until"] = previousUntil,
+                    [":now"] = new() { N = DateTime.UtcNow.Ticks.ToString(CultureInfo.InvariantCulture) }
+                }
+            }
+        };
+        return await WriteOutboundLeaseAsync(expected, write, cancellationToken);
+    }
+
+    private async Task<bool> WriteOutboundLeaseAsync(CosmicStorageIdentity expected, TransactWriteItem write,
+        CancellationToken cancellationToken)
+    {
         try
         {
             var response = await _client.TransactWriteItemsAsync(new TransactWriteItemsRequest
@@ -157,16 +252,15 @@ public partial class DynamoDBOASIS
                 TransactItems = new() { RequireStorageIdentityAtCommit(expected.StoreId), write }
             }, cancellationToken);
             if (response.HttpStatusCode != HttpStatusCode.OK)
-                throw new InvalidDataException("DynamoDB did not acknowledge the delivery claim.");
+                throw new InvalidDataException("DynamoDB did not acknowledge the delivery lease mutation.");
+            return true;
         }
         catch (TransactionCanceledException cause) when (cause.CancellationReasons?.Count == 2
             && cause.CancellationReasons[0].Code == "None"
             && cause.CancellationReasons[1].Code == "ConditionalCheckFailed")
         {
-            return null;
+            return false;
         }
-        return new HolonDeliveryClaim(ReadOutboundSequence(item), request.OperationId, targetId, workerId,
-            lease, payload, attempts, until);
     }
 
     private static long ReadOutboundTicks(Dictionary<string, AttributeValue> item, string field)
