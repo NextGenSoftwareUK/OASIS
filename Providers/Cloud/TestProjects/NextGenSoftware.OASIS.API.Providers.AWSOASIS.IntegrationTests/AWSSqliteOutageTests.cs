@@ -1,4 +1,7 @@
 using System.Text.Json;
+using Amazon.DynamoDBv2;
+using Amazon.DynamoDBv2.Model;
+using Amazon.Runtime;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Configuration;
@@ -247,6 +250,74 @@ public partial class AWSOASISIntegrationTests
             var replay = await restarted.DispatchOnceAsync(route.TargetId, maximumCount: 1);
             Assert.IsFalse(replay.IsError, replay.Message);
             Assert.AreEqual(0, replay.Result.CompletedCount);
+        }
+        finally
+        {
+            await sqlite.DeActivateProviderAsync();
+        }
+    }
+
+    [TestMethod]
+    public async Task DynamoDbPublishesBoundOutboundDelivery()
+    {
+        var fixture = Environment.GetEnvironmentVariable("OASIS_DYNAMO_OUTAGE_FIXTURE");
+        Assert.IsFalse(string.IsNullOrWhiteSpace(fixture), "The owned DynamoDB fixture is required.");
+        var endpoint = Environment.GetEnvironmentVariable("DYNAMODB_SERVICE_URL");
+        Assert.AreEqual("http://127.0.0.1:18000", endpoint);
+        using var native = new AmazonDynamoDBClient(new BasicAWSCredentials("OwnedOutbound", "local-fixture"),
+            new AmazonDynamoDBConfig { ServiceURL = endpoint, AuthenticationRegion = "us-east-1", MaxErrorRetry = 0 });
+        using var sqlite = new SqliteProvider($"Data Source={Path.Combine(fixture!, $"{Guid.NewGuid():N}.outbound.db")};Pooling=False");
+        var activated = await sqlite.ActivateProviderAsync();
+        Assert.IsTrue(!activated.IsError && activated.Result, activated.Message);
+        try
+        {
+            var identityProvider = (ICosmicStorageIdentityProvider)_provider;
+            var source = await identityProvider.CaptureStorageIdentityAsync();
+            var target = await sqlite.CaptureStorageIdentityAsync();
+            Assert.IsFalse(source.IsError, source.Message);
+            Assert.IsFalse(target.IsError, target.Message);
+            var actor = Guid.NewGuid();
+            var policy = new HolonReplicationActorGrant(new[] { actor }, DateTime.UtcNow.AddMinutes(10));
+            HolonReplicationEnrollment Enroll(CosmicStorageIdentity identity)
+            {
+                var route = new HolonReplicationRouteBinding(identity, target.Result, policy.BindingIdentity);
+                return new(route.SourceId, new[] { route.TargetId }, identity, new[] { route });
+            }
+
+            var record = new Holon { Id = Guid.NewGuid(), Name = "DynamoDB outbound publication" };
+            var write = new ConditionalHolonWrite(Guid.NewGuid(), actor, source.Result.Authority,
+                new[] { new HolonWriteCondition(record.Id, null) });
+            var request = new ConditionalHolonWriteRequest(write, ConditionalHolonOperation.Save, new[] { record }, saveChildren: false);
+            var publisher = (IBoundAtomicHolonReplicationStorageProvider)_provider;
+            var wrongIdentity = new CosmicStorageIdentity(source.Result.Authority, source.Result.EndpointFingerprint, Guid.NewGuid());
+            var rejected = await publisher.ExecuteReplicatingHolonWriteAsync(request, Enroll(wrongIdentity));
+            Assert.AreEqual("COSMIC_SOURCE_STORAGE_BINDING_MISMATCH", rejected.ErrorCode);
+            Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,
+                (await _provider.LoadHolonAsync(record.Id, loadChildren: false)).ErrorCode);
+
+            var enrollment = Enroll(source.Result);
+            var committed = await publisher.ExecuteReplicatingHolonWriteAsync(request, enrollment);
+            Assert.IsTrue(!committed.IsError && committed.IsSaved, $"{committed.Message} {committed.Exception}");
+            var replay = publisher.ExecuteReplicatingHolonWrite(request, enrollment);
+            Assert.IsTrue(!replay.IsError && replay.IsSaved, replay.Message);
+            Assert.AreEqual(committed.Result.Single().VersionId, replay.Result.Single().VersionId);
+
+            var rows = await native.ScanAsync(new ScanRequest
+            {
+                TableName = "OasisHolonWriteReceipts", ConsistentRead = true,
+                FilterExpression = "operation_id = :operation",
+                ExpressionAttributeValues = new() { [":operation"] = new() { S = write.OperationId.ToString("D") } }
+            });
+            Assert.IsTrue(rows.LastEvaluatedKey == null || rows.LastEvaluatedKey.Count == 0);
+            var delivery = rows.Items.Single();
+            Assert.AreEqual("Pending", delivery["state"].S);
+            Assert.AreEqual("0", delivery["attempt_count"].N);
+            Assert.AreEqual(enrollment.TargetIds.Single(), delivery["target_id"].S);
+            var payload = delivery["payload"].S;
+            Assert.AreEqual(HolonRecoveryEvidenceJson.Digest(payload), delivery["digest"].S);
+            var published = CommittedHolonReplicaPayload.ReadForTarget(payload, enrollment.TargetIds.Single());
+            Assert.AreEqual(write.OperationId, published.OperationId);
+            Assert.AreEqual(committed.Result.Single().VersionId, published.Roots.Single().VersionId);
         }
         finally
         {
