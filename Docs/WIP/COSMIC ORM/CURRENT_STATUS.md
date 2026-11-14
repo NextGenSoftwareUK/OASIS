@@ -1,5 +1,7 @@
 # COSMIC ORM / CQL current status
 
+14 November, Cancun. Development 7409bc41952e adds Bitcoin storage changes. HoloOASIS network-space candidate db9432edfc02 reconciles the same two diagnostics files on that base. Its exact WEB4 image CI 43643232133 and protocol CI 43643234209 are active. Linux CI 43642190044 and previous-base protocol CI 43642415534 passed. Railway queued the Bitcoin revision as 999ab662-f444-43fa-b159-b777a80a139b. Live HoloOASIS recovery remains open.
+
 14 November, Cancun. Candidate 6687bf7d5ce1 adds a two-second native metrics read for the exact teaching DNA after a network-join timeout. It reports an observed space only on a successful nonempty response. Missing or unparseable metrics retain the last confirmed stage. Exact WEB4 image CI 43642413195, protocol CI 43642415534 and Linux CI 43642190044 are active. Development dc3d613de96a remains the serving base.
 
 14 November, Cancun. Development dc3d613de96a reached Railway SUCCESS on deployment 95fe27a1-57aa-4594-adbf-ef23f9df0bce. HoloOASIS reached network join started and timed out at 62,269 ms. Its admin endpoint answered 240 cell-list requests, with zero running cells in the last reply, and reported 135 persisted interfaces. This narrows the native stall to Kitsune space creation or local agent join. No relay fault has been established. Authenticated discovery sampled 83 of 107 sources during warm-up, HoloOASIS reported CQL_SOURCE_UNAVAILABLE, and Hedera passed exact 3/2 direct and federated queries. Reused the protected visitor session with no new local build or fixture.
