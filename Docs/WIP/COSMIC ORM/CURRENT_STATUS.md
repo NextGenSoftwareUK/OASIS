@@ -1,4 +1,8 @@
 # COSMIC ORM / CQL current status
+
+## Oracle rollout and COSMIC candidate
+
+Development advanced to 08751c9824ae with the native-qualified SQLite-to-Oracle dispatcher. Candidate 52adcb3a47d8 preserves that batch and applies the same COSMIC and billing files as 664a84b0b040. The isolated billing fixture CI is running on the preceding baseline. Review that result before qualifying the successor. No local build or fixtures were created.
 ## Billing rollout live CQL and protocol qualification
 
 Railway deployment 28ffb60b succeeded and SSH confirmed Development revision eacecc556b6d. Public WEB4 health returned 200. The retained release-smoke visitor verified identical HoloOASIS native and MongoDB-federated 3/2 preset IDs and HoloOASIS provenance. Authenticated readiness reached 104/107, with Hedera, Nostr and Blockscout unavailable. No holons were created.
