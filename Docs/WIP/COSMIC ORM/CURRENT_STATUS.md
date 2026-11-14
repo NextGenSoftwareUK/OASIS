@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Hedera balance reads request no transaction history
+
+WEB4 deployment 2e765df9 logged a response-header timeout during Hedera activation. The shipping account reader requested transaction history even though its CQL record only uses account identity and balance. All three reviewed account IDs returned HTTP 200, matching identities and empty transaction arrays in a direct public mirror probe using transactions=false. The feature branch requests that mode and rejects unexpected transaction entries. Native controlled CI and hosted acceptance are pending. Nostr separately logged a premature WebSocket closure during subscription. No writes, downloads or new fixture files.
+
 ## Numeric Development rollout passed the live HoloOASIS check
 
 Railway WEB4 deployment 2e765df9 succeeded for exact Development 244ed6f419c5. The authenticated catalogue reached 105/107 ready after startup, with HashgraphOASIS and NostrOASIS unavailable. HoloOASIS direct CQL and federation matched the same three full and two filtered IDs with shipping provider provenance. Numeric evidence for this exact revision is from native CI; the hosted check verifies public catalogue and HoloOASIS regression coverage. No local fixtures, build outputs or downloads.

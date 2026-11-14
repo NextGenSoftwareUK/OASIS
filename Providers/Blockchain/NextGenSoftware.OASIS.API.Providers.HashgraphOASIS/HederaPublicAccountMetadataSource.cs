@@ -247,7 +247,7 @@ public sealed class HederaPublicAccountMetadataSource : KeyValueStorageProviderB
             var snapshots = await Task.WhenAll(keys.Select(async key =>
             {
                 await gate.WaitAsync(token);
-                try { return await GetNativeAsync("accounts/" + key + "?limit=1", token); }
+                try { return await GetNativeAsync("accounts/" + key + "?transactions=false", token); }
                 finally { gate.Release(); }
             }));
             var rows = new List<IHolon>();
@@ -260,7 +260,7 @@ public sealed class HederaPublicAccountMetadataSource : KeyValueStorageProviderB
                 if (ValidateAddress(native.GetProperty("account").GetString()) != key ||
                     native.GetProperty("deleted").GetBoolean() ||
                     native.GetProperty("transactions").ValueKind != JsonValueKind.Array ||
-                    native.GetProperty("transactions").GetArrayLength() > 1)
+                    native.GetProperty("transactions").GetArrayLength() != 0)
                     throw new InvalidDataException("Account identity/deleted state or response bound differs.");
                 var balance = native.GetProperty("balance");
                 long tinybars = balance.GetProperty("balance").GetInt64();
