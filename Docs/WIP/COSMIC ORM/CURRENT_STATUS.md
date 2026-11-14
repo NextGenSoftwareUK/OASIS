@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Shared billing rollout and COSMIC qualification
+
+Development advanced independently to eacecc556b6d for subscription billing. Railway deployment 28ffb60b-d031-4236-8aa0-07e7b15c1ad7 was queued at 21:38:17 Cancun; the preceding WEB4 deployment crashed after repeated HoloOASIS teaching-cell timeouts. Review the new rollout before the next integration, no sooner than 22:08:17. Candidate 112bc9d32d84 applies only the LINQ regression and two WEB4 preview-policy files while preserving the new billing changes. Exact CI is required. No local builds or fixtures were created.
+
 ## Development browser session origin candidate
 
 The WEB4 browser policy can opt in to the exact same-site Development hostname only on a recognized Development deployment. Cookie attributes are unchanged. The protected Vercel preview remains cross-site. DNS, TLS, deployment configuration and end-to-end browser acceptance remain open. Focused middleware cases cover opt-in, canonical access and look-alike origins. CI qualification is pending.
