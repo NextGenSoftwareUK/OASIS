@@ -39,7 +39,7 @@ internal static class CqlNativeFailureDiagnostics
             startup ??= error.Data[typeof(HoloOasisStartupCounts)] as HoloOasisStartupCounts;
             if (!categories.Contains(category)) categories.Add(category);
             if (error.Data["COSMIC.NativeStage"] is string declared && declared is "connect" or "subscription" or "event_verification" or "response_headers" or "response_body"
-                or "apps enabled" or "network join started" or "cell creation started" or "app interfaces restored" or "admin bound" or "ribosomes loaded" or "no startup marker retained")
+                or "apps enabled" or "network space observed" or "network join started" or "cell creation started" or "app interfaces restored" or "admin bound" or "ribosomes loaded" or "no startup marker retained")
                 stage = declared;
             if (error is HttpRequestException request && request.StatusCode.HasValue && (int)request.StatusCode.Value is >= 100 and <= 599)
                 status ??= (int)request.StatusCode.Value;
