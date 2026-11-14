@@ -1,5 +1,7 @@
 # COSMIC ORM / CQL current status
 
+14 November, Cancun. Development advanced from 7409bc41952e to db9432edfc02 following [exact teaching image CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43643232133) and [protocol CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43643234209). Railway queued deployment 95c46e73-1821-4535-8a1d-c47e7c3e2c6e. The serving Bitcoin revision showed 105 of 107 sources available in both modes, HoloOASIS unavailable and Hedera exact 3/2 direct and federated results. Check the new deployment for the exact persisted DNA space observation before attributing the network join stall.
+
 14 November, Cancun. Development 7409bc41952e adds Bitcoin storage changes. HoloOASIS network-space candidate db9432edfc02 reconciles the same two diagnostics files on that base. Its exact WEB4 image CI 43643232133 and protocol CI 43643234209 are active. Linux CI 43642190044 and previous-base protocol CI 43642415534 passed. Railway queued the Bitcoin revision as 999ab662-f444-43fa-b159-b777a80a139b. Live HoloOASIS recovery remains open.
 
 14 November, Cancun. Candidate 6687bf7d5ce1 adds a two-second native metrics read for the exact teaching DNA after a network-join timeout. It reports an observed space only on a successful nonempty response. Missing or unparseable metrics retain the last confirmed stage. Exact WEB4 image CI 43642413195, protocol CI 43642415534 and Linux CI 43642190044 are active. Development dc3d613de96a remains the serving base.
