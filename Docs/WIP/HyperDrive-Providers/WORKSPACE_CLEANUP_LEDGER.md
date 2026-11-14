@@ -1230,3 +1230,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 14 November Cancun time. Bitcoin public activation ran on an ephemeral CI runner. No local build, backend, downloads or test artifacts were created.
 
 14 November Cancun time. Staging Bitcoin activation candidate 391a04f07f4a removed its temporary Git index. No local build, downloads or backend fixtures were created.
+
+- 14 November Cancun time. Removed the temporary Git index used to assemble Bitcoin read qualification candidate d764ebb72bb89. No local build output, backend fixture, download, or test report was created.
