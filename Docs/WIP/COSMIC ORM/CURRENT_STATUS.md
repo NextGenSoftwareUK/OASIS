@@ -1,5 +1,11 @@
 # COSMIC ORM / CQL current status
 
+## Shared Development coordination
+
+14 November, 11:42 Cancun. Diagnostic candidate d4b90a69d816 is based on serving Development f132040b216c and keeps the HyperDrive changes. [Native qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43617041728) and [exact WEB4 image](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43617060017) are running. HyperDrive is qualifying 4645c412a8d8 on the same parent for the shared review after 11:46:23 Cancun. Recheck the shared head and exact qualified files before publishing a scoped batch.
+
+Live authenticated discovery reports 104/107 native and federated sources. Hedera returned the exact 3 full and 2 filtered IDs with native provenance in both modes. HoloOASIS, Cardano and Nostr report unavailable. Cardano's activation failed after 26 seconds, with no recorded upstream HTTP status for this attempt. The earlier Cardano hosted acceptance remains historical evidence. No fixtures, builds or downloads were created.
+
 ## Shared rollout reproduced HoloOASIS activation timeout
 
 Development f132040b216c deployment 0c8f0b08 served HTTP 200 and catalogue readiness rose to 87/107 while HoloOASIS remained pending. The same deployment logged a typed HoloOASIS activation timeout at roughly 62 seconds. Native admin refused connections after the timeout. This verifies that WEB4 stays available when HoloOASIS hits the timeout. The candidate reports only allowlisted startup milestones through operator diagnostics. The raw conductor output is kept private. Native stall diagnosis remains open.
