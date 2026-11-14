@@ -103,6 +103,19 @@ public sealed class CqlHoloOasisDevelopmentConductorTests
                 Assert.True(connection.IsConnected && !connection.IsError);
                 var listed = await inspector.ListAppsAsync(AppStatusFilter.All);
                 Assert.False(listed.IsError);
+                if (managed)
+                {
+                    // The Development volume has 134 unbound listeners plus the teaching interface.
+                    // Exercise restoration with comparable state on the disposable native CI conductor.
+                    for (var index = 0; index < 134; index++)
+                    {
+                        var attached = await inspector.AttachAppInterfaceAsync().WaitAsync(TimeSpan.FromSeconds(5));
+                        Assert.False(attached.IsError);
+                    }
+                    var interfaces = await inspector.ListInterfacesAsync().WaitAsync(TimeSpan.FromSeconds(5));
+                    Assert.False(interfaces.IsError);
+                    Assert.Equal(134, interfaces.AppInterfaces.Count());
+                }
             }
             finally
             {
