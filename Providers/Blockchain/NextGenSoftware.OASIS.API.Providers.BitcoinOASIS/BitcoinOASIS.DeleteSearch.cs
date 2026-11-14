@@ -467,6 +467,11 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                 holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.BitcoinOASIS] = transactionId.ToString();
                 result.Result = holon;
             }
+            catch (BitcoinTransactionNotFoundException ex)
+            {
+                result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
+                OASISErrorHandling.HandleError(ref result, ex.Message, ex);
+            }
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, $"Error loading holon from Bitcoin: {ex.Message}", ex);

@@ -3,7 +3,7 @@ name: Bitcoin native regtest
 on:
   workflow_dispatch:
   push:
-    branches: [work/hyperdrive-provider-completion, work/hyperdrive-bitcoin-storage-qualification]
+    branches: [work/hyperdrive-provider-completion, work/hyperdrive-bitcoin-avatar-qualification]
     paths:
       - '.github/workflows/bitcoin-native-regtest.yml'
       - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS/**'

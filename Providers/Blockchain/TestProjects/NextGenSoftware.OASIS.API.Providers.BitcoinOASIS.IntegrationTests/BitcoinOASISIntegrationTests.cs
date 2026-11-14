@@ -82,6 +82,15 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
             var wallet = await provider.LoadAvatarByProviderKeyAsync("1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa");
             Assert.IsTrue(wallet.IsError);
             Assert.IsNull(wallet.Result);
+
+            var missingTransaction = new string('0', 64);
+            var missingAvatar = await provider.LoadAvatarByProviderKeyAsync(missingTransaction);
+            var missingHolon = await provider.LoadHolonAsync(missingTransaction, loadChildren: false);
+            var missingDetail = await provider.LoadAvatarDetailByTransactionIdAsync(missingTransaction);
+            var notFound = NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound;
+            Assert.AreEqual(notFound, missingAvatar.ErrorCode);
+            Assert.AreEqual(notFound, missingHolon.ErrorCode);
+            Assert.AreEqual(notFound, missingDetail.ErrorCode);
         }
 
         [TestMethod]
@@ -297,6 +306,11 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
             }
             Assert.AreEqual(storageTip, (await http.GetStringAsync("blocks/tip/height")).Trim());
 
+            var kuboApi = Environment.GetEnvironmentVariable("OASIS_BITCOIN_KUBO_API");
+            Assert.IsTrue(Uri.TryCreate(kuboApi, UriKind.Absolute, out var kuboUri) && kuboUri.IsLoopback);
+            using var kubo = new System.Net.Http.HttpClient { BaseAddress = new Uri(kuboApi.TrimEnd('/') + "/") };
+            var initialPins = await ReadKuboPinsAsync();
+
             var privateHolon = new Holon
             {
                 Id = Guid.NewGuid(),
@@ -346,6 +360,96 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
             {
                 Environment.SetEnvironmentVariable(storageKeyVariable, originalKey);
                 System.Security.Cryptography.CryptographicOperations.ZeroMemory(wrongKey);
+            }
+
+            var avatarRecord = new Avatar
+            {
+                Id = Guid.NewGuid(),
+                Username = "regtest-avatar",
+                Email = "regtest@example.invalid",
+                Version = 2
+            };
+            var savedAvatar = await provider.SaveAvatarAsync(avatarRecord);
+            Assert.IsFalse(savedAvatar.IsError, savedAvatar.Message);
+            var avatarTx = savedAvatar.Result.ProviderUniqueStorageKey[ProviderType.BitcoinOASIS];
+            await BitcoinCliAsync("getmempoolentry", avatarTx);
+            var avatarBlocks = await BitcoinCliAsync("generatetoaddress", "1", source);
+            using var avatarBlock = System.Text.Json.JsonDocument.Parse(avatarBlocks);
+            var avatarBlockHash = avatarBlock.RootElement[0].GetString();
+            for (var attempt = 0; attempt < 60; attempt++)
+            {
+                if ((await http.GetStringAsync("blocks/tip/hash")).Trim() == avatarBlockHash)
+                    break;
+                await Task.Delay(500);
+            }
+            Assert.AreEqual(avatarBlockHash, (await http.GetStringAsync("blocks/tip/hash")).Trim());
+
+            var loadedAvatar = await reopened.LoadAvatarByProviderKeyAsync(avatarTx, version: 2);
+            Assert.IsFalse(loadedAvatar.IsError, loadedAvatar.Message);
+            Assert.AreEqual(avatarRecord.Id, loadedAvatar.Result.Id);
+            Assert.AreEqual(avatarRecord.Email, loadedAvatar.Result.Email);
+            Assert.AreEqual(avatarRecord.Username, loadedAvatar.Result.Username);
+            Assert.AreEqual(avatarTx, loadedAvatar.Result.ProviderUniqueStorageKey[ProviderType.BitcoinOASIS]);
+
+            var records = (await ReadKuboPinsAsync()).Except(initialPins, StringComparer.Ordinal).ToArray();
+            Assert.AreEqual(2, records.Length, "The holon and avatar must each retain their encrypted Kubo payload.");
+            foreach (var record in records)
+            {
+                using var blob = await kubo.PostAsync($"api/v0/cat?arg={Uri.EscapeDataString(record)}", null);
+                blob.EnsureSuccessStatusCode();
+                var envelope = await blob.Content.ReadAsStringAsync();
+                Assert.IsTrue(envelope.StartsWith("oasis-aes256gcm-gzip-v2:", StringComparison.Ordinal));
+                Assert.IsFalse(envelope.Contains(avatarRecord.Email, StringComparison.Ordinal));
+                Assert.IsFalse(envelope.Contains(privateHolon.Name, StringComparison.Ordinal));
+            }
+
+            var avatarAsHolon = await reopened.LoadHolonAsync(avatarTx, loadChildren: false);
+            Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound, avatarAsHolon.ErrorCode);
+
+            var avatarDetail = new AvatarDetail
+            {
+                Id = avatarRecord.Id,
+                Username = avatarRecord.Username,
+                Email = avatarRecord.Email,
+                FirstName = "Regtest",
+                LastName = "Detail",
+                Version = 4
+            };
+            var savedDetail = await provider.SaveAvatarDetailAsync(avatarDetail);
+            Assert.IsFalse(savedDetail.IsError, savedDetail.Message);
+            var detailTx = savedDetail.Result.ProviderUniqueStorageKey[ProviderType.BitcoinOASIS];
+            await BitcoinCliAsync("getmempoolentry", detailTx);
+
+            using var detailBlocks = System.Text.Json.JsonDocument.Parse(
+                await BitcoinCliAsync("generatetoaddress", "1", source));
+            var detailBlockHash = detailBlocks.RootElement[0].GetString();
+            for (var attempt = 0; attempt < 60; attempt++)
+            {
+                if ((await http.GetStringAsync("blocks/tip/hash")).Trim() == detailBlockHash)
+                    break;
+                await Task.Delay(500);
+            }
+            Assert.AreEqual(detailBlockHash, (await http.GetStringAsync("blocks/tip/hash")).Trim());
+
+            var loadedDetail = await reopened.LoadAvatarDetailByTransactionIdAsync(detailTx, version: 4);
+            Assert.IsFalse(loadedDetail.IsError, loadedDetail.Message);
+            Assert.AreEqual(avatarDetail.Id, loadedDetail.Result.Id);
+            Assert.AreEqual(avatarDetail.Username, loadedDetail.Result.Username);
+            Assert.AreEqual(avatarDetail.FirstName, ((AvatarDetail)loadedDetail.Result).FirstName);
+            Assert.AreEqual(4, loadedDetail.Result.Version);
+            Assert.AreEqual(detailTx, loadedDetail.Result.ProviderUniqueStorageKey[ProviderType.BitcoinOASIS]);
+
+            var wrongDetailVersion = await reopened.LoadAvatarDetailByTransactionIdAsync(detailTx, version: 5);
+            Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound, wrongDetailVersion.ErrorCode);
+            var avatarAsDetail = await reopened.LoadAvatarDetailByTransactionIdAsync(avatarTx);
+            Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound, avatarAsDetail.ErrorCode);
+
+            async Task<string[]> ReadKuboPinsAsync()
+            {
+                using var response = await kubo.PostAsync("api/v0/pin/ls?type=recursive", null);
+                response.EnsureSuccessStatusCode();
+                using var pins = System.Text.Json.JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+                return pins.RootElement.GetProperty("Keys").EnumerateObject().Select(pin => pin.Name).ToArray();
             }
 
             async Task<string> BitcoinCliAsync(params string[] arguments)
