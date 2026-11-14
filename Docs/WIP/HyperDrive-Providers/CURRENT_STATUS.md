@@ -1907,3 +1907,5 @@ Supabase now reads replica receipt evidence through a service-role PostgREST RPC
 14 November Cancun time. Development advanced from 27ed16491eb0 to c84e1b5c3632 after the preceding seven APIs deployed. The only changed path is the verified IPFS restart fixture for two physically bound SQLite targets. The candidate tree matches the native-tested tree 565e327a7a01459580ba8e7e9c62bebdce4993b2. The new rollout is pending. The native MongoDB-to-SQLite repair command job remains active.
 
 14 November Cancun time. Native repair command job 132445816045 passed the real MongoDB-to-SQLite lineage repair case with zero skips, including the following normal delivery. The revised policy rechecks source operation and digest at approval. This evidence does not authorize hosted sequence 543.
+
+14 November Cancun time. All seven API deployments succeeded for Development c84e1b5c3632, including WEB4. This revision adds the native two-target IPFS pagination regression. The next coordinated review is after 07:57:12 Cancun. Exact repair candidate 854066dc931a passed authorization and is running native MongoDB-to-SQLite qualification.
