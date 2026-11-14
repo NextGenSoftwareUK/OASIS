@@ -385,9 +385,12 @@ public partial class AWSOASISIntegrationTests
             Assert.AreEqual("COSMIC_OUTBOX_SOURCE_STORAGE_BINDING_MISMATCH", wrongHead.ErrorCode);
             Assert.IsNull(wrongHead.Result);
 
-            var firstClaim = await outbox.ClaimNextAsync(routeBinding.TargetId, "expiring-worker", TimeSpan.FromSeconds(1));
+            var firstClaim = await outbox.ClaimNextAsync(routeBinding.TargetId, "expiring-worker", TimeSpan.FromSeconds(5));
             Assert.IsFalse(firstClaim.IsError, firstClaim.Message);
             Assert.IsNotNull(firstClaim.Result);
+            var competingClaim = await outbox.ClaimNextAsync(routeBinding.TargetId, "competing-worker", TimeSpan.FromMinutes(1));
+            Assert.IsFalse(competingClaim.IsError, competingClaim.Message);
+            Assert.IsNull(competingClaim.Result, "An active lease must block the target queue, including the later tombstone.");
             var wait = firstClaim.Result.LeaseUntilUtc - DateTime.UtcNow;
             if (wait > TimeSpan.Zero)
                 await Task.Delay(wait + TimeSpan.FromMilliseconds(20));
@@ -419,6 +422,29 @@ public partial class AWSOASISIntegrationTests
             var repeated = await restarted.DispatchOnceAsync(routeBinding.TargetId, maximumCount: 1);
             Assert.IsFalse(repeated.IsError, repeated.Message);
             Assert.AreEqual(0, repeated.Result.CompletedCount);
+
+            var pageOperations = new List<Guid>();
+            for (var index = 0; index < 7; index++)
+            {
+                var pageRecord = new Holon { Id = Guid.NewGuid(), Name = "DynamoDB outbox page boundary" };
+                var pageWrite = new ConditionalHolonWrite(Guid.NewGuid(), actor, source.Result.Authority,
+                    new[] { new HolonWriteCondition(pageRecord.Id, null) });
+                var pageSaved = await publisher.ExecuteReplicatingHolonWriteAsync(
+                    new ConditionalHolonWriteRequest(pageWrite, ConditionalHolonOperation.Save,
+                        new[] { pageRecord }, saveChildren: false), enrollment);
+                Assert.IsTrue(!pageSaved.IsError && pageSaved.IsSaved, pageSaved.Message);
+                pageOperations.Add(pageWrite.OperationId);
+            }
+            var firstPage = await restarted.DispatchOnceAsync(routeBinding.TargetId, maximumCount: 6);
+            Assert.IsFalse(firstPage.IsError, firstPage.Message);
+            Assert.AreEqual(6, firstPage.Result.CompletedCount);
+            var nextPage = await outbox.PeekNextAsync(routeBinding.TargetId);
+            Assert.IsFalse(nextPage.IsError, nextPage.Message);
+            Assert.AreEqual(pageOperations.Last(), nextPage.Result?.OperationId);
+            Assert.IsTrue(nextPage.Result.Sequence >= 9);
+            var finalDelivery = await restarted.DispatchOnceAsync(routeBinding.TargetId, maximumCount: 1);
+            Assert.IsFalse(finalDelivery.IsError, finalDelivery.Message);
+            Assert.AreEqual(1, finalDelivery.Result.CompletedCount);
 
             var contenders = Enumerable.Range(0, 4).Select(_ =>
             {
