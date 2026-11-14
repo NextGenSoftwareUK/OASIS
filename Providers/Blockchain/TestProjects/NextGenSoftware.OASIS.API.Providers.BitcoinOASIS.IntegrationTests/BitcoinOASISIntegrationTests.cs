@@ -312,6 +312,21 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
             using var kubo = new System.Net.Http.HttpClient { BaseAddress = new Uri(kuboApi.TrimEnd('/') + "/") };
             var initialPins = await ReadKuboPinsAsync();
 
+            using (var unfundedKey = new NBitcoin.Key())
+            using (var unfunded = new BitcoinOASIS(api, "regtest", unfundedKey.GetWif(network).ToString(), null, 2m))
+            {
+                var failed = await unfunded.SaveHolonAsync(new Holon
+                {
+                    Id = Guid.NewGuid(),
+                    HolonType = HolonType.Holon,
+                    Name = "Unfunded regtest fixture",
+                    Version = 1
+                }, saveChildren: false);
+                Assert.IsTrue(failed.IsError);
+                Assert.IsFalse(failed.MetaData.ContainsKey("BitcoinTransactionId"));
+                CollectionAssert.AreEquivalent(initialPins, await ReadKuboPinsAsync());
+            }
+
             var privateHolon = new Holon
             {
                 Id = Guid.NewGuid(),
