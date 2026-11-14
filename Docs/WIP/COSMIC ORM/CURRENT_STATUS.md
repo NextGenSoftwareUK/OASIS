@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## COSMIC follow-on to the qualified SQLite repair
+
+14 November 08:29 Cancun. The shared 08:30:19 window has a ready HyperDrive SQLite identity candidate 1b91024a6318. COSMIC follow-on 1c8478f7577f preserves its tree plus the byte-identical four Hedera and HoloOASIS changes from 23051874d247. [Combined protocol CI 43600185683](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43600185683) is active. Standalone exact image 43598439229 is still building. The graph-filtered numeric qualification 43598904791 completed successfully. Development was healthy on 854066dc931a during review.
+
 ## Native graph-filtered decimal projection passed
 
 CI 43598904791 passed the native entity-selected stage on SQLite, MongoDB and Neo4j for source a16757978d5c. The added case applies a descendant predicate after a source window, projects the exact decimal value, and checks Sum, Average and empty Sum. The same run passed the Hedera cancellation and response contract. Publishing remains in progress. Exact image 43598439229 remains active. No Development change.

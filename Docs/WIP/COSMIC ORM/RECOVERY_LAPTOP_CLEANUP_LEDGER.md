@@ -6686,3 +6686,5 @@ Web4Site 5fa63a71df5d used a temporary directory containing only committed websi
 14 November Cancun time. Retired ci-cosmic-shared-a5d86933bc39 and ci-cosmic-shared-5c1f4c253e6a after their standalone candidate was superseded by the combined qualified tree. Keep ci-cosmic-shared-57b2167a3533 as the combined CI input, and ci-cosmic-shared-23051874d247 for the exact image. HoloOASIS network reachability and Nostr log checks reused existing Railway access. No persistent local outputs.
 
 14 November Cancun time. The graph-filtered decimal fixture passed on all three cloud CI stores. The stage verifies owned fixture teardown. No local build, download, runtime or database was added. Temporary scoped Git index removed before publication.
+
+14 November Cancun time. Reused the existing checkout and removed the temporary candidate Git index. Keep ci-cosmic-shared-1c8478f7577f for combined CI 43600185683. No local build, download or environment.
