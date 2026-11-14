@@ -37,22 +37,26 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
 
         internal const string SessionCookieOrigin = "https://web4.oasisomniverse.one";
 
-        internal static void ConfigureSessionCookieCorsPolicy(CorsPolicyBuilder policy)
+        internal static CorsPolicyBuilder ConfigureSessionCookieCorsPolicy(CorsPolicyBuilder policy)
             => policy.WithOrigins(SessionCookieOrigin).AllowCredentials().AllowAnyMethod().AllowAnyHeader()
                 .WithExposedHeaders("X-OASIS-Operation-Id");
 
-        internal static void ConfigureBrowserCors(IApplicationBuilder app)
+        internal const string DevelopmentSessionCookieOrigin = "https://dev.web4.oasisomniverse.one";
+
+        internal static void ConfigureBrowserCors(IApplicationBuilder app, bool allowDevelopmentPreview = false)
         {
-            // Cookie access requires an explicit trusted origin. Other applications
-            // retain the existing public bearer-token policy, with no cookie grant.
-            static bool CookieOrigin(HttpContext context)
-                => context.Request.Headers.Origin.ToString() == SessionCookieOrigin;
+            var cookieOrigins = allowDevelopmentPreview
+                ? new[] { SessionCookieOrigin, DevelopmentSessionCookieOrigin }
+                : new[] { SessionCookieOrigin };
+
+            bool CookieOrigin(HttpContext context)
+                => Array.IndexOf(cookieOrigins, context.Request.Headers.Origin.ToString()) >= 0;
             app.Use(async (context, next) =>
             {
                 context.Response.Headers.AppendCommaSeparatedValues("Vary", "Origin");
                 await next();
             });
-            app.UseWhen(CookieOrigin, branch => branch.UseCors(ConfigureSessionCookieCorsPolicy));
+            app.UseWhen(CookieOrigin, branch => branch.UseCors(policy => ConfigureSessionCookieCorsPolicy(policy).WithOrigins(cookieOrigins)));
             app.UseWhen(context => !CookieOrigin(context), branch => branch.UseCors(ConfigureCorsPolicy));
         }
 
@@ -977,7 +981,10 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             //app.UseSession();
 
             // global cors policy — open to any origin so OASIS APIs are pluggable everywhere
-            ConfigureBrowserCors(app);
+            ConfigureBrowserCors(app,
+                Configuration.GetValue<bool>("OASIS:EnableDevelopmentWeb4Preview")
+                && NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.ProgrammaticVerificationPolicy
+                    .IsDevelopmentEnvironment(Environment.GetEnvironmentVariable));
 
             //TODO: Was this, check later...
             //app.UseCors(MyAllowSpecificOrigins);
