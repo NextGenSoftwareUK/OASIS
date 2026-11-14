@@ -990,3 +990,5 @@ Urgent disk cleanup follow-up: leased standard project clean succeeded for AWS u
 13 November. Exact Firestore job 132255761628 passed both native cases and removed its emulator and fixture. Logs were reviewed in memory. No local build ran.
 
 13 November. Firestore job 132260140194 removed its emulator and fixture after both ordered delivery cases passed. The temporary candidate index was removed and logs were reviewed in memory.
+
+13 November. Jobs 132261364720 and 132262583746 each passed both cases and removed their emulator and fixture. The physical-source candidate index was removed. Logs were reviewed in memory.
