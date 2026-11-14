@@ -48,122 +48,106 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
 
         public async Task<OASISResult<ITransactionResponse>> SendTransactionAsync(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
         {
-            var result = new OASISResult<ITransactionResponse>(new TransactionResponse());
-
+            var result = new OASISResult<ITransactionResponse>();
             try
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Bitcoin provider is not activated");
+                    OASISErrorHandling.HandleError(ref result, "Bitcoin provider is not activated.");
                     return result;
                 }
 
-                // Convert decimal amount to satoshis (1 BTC = 100,000,000 satoshis)
-                var amountInSatoshis = (long)(amount * 100000000);
-
-                // Create Bitcoin transaction using Blockstream API
-                var transactionRequest = new
+                if (string.IsNullOrWhiteSpace(_privateKey))
                 {
-                    inputs = new[]
-                    {
-                        new
-                        {
-                            txid = "", // Will be filled by UTXO lookup
-                            vout = 0
-                        }
-                    },
-                    outputs = new[]
-                    {
-                        new
-                        {
-                            address = toWalletAddress,
-                            value = amountInSatoshis
-                        }
-                    }
+                    OASISErrorHandling.HandleError(ref result, "A Bitcoin wallet signing key is required.");
+                    return result;
+                }
+
+                var satoshis = amount * 100_000_000m;
+                if (satoshis <= 0 || satoshis > 2_100_000_000_000_000m || satoshis != decimal.Truncate(satoshis))
+                {
+                    OASISErrorHandling.HandleError(ref result, "The Bitcoin amount must be a positive whole number of satoshis within the supply limit.");
+                    return result;
+                }
+
+                var memo = Encoding.UTF8.GetBytes(memoText ?? string.Empty);
+                if (memo.Length > 80)
+                {
+                    OASISErrorHandling.HandleError(ref result, "A Bitcoin transaction memo may contain at most 80 UTF-8 bytes.");
+                    return result;
+                }
+
+                var network = _network.ToLowerInvariant() switch
+                {
+                    "mainnet" => Network.Main,
+                    "testnet" => Network.TestNet,
+                    "regtest" => Network.RegTest,
+                    _ => throw new InvalidOperationException("The configured Bitcoin network is unsupported.")
                 };
-
-                // First, get UTXOs for the from address
-                var utxoResponse = await _httpClient.GetAsync($"/address/{fromWalletAddress}/utxo");
-                if (!utxoResponse.IsSuccessStatusCode)
+                var source = BitcoinAddress.Create(fromWalletAddress, network);
+                var destination = BitcoinAddress.Create(toWalletAddress, network);
+                var signer = new BitcoinSecret(_privateKey, network);
+                if (!source.Equals(signer.GetAddress(ScriptPubKeyType.Legacy)) &&
+                    !source.Equals(signer.GetAddress(ScriptPubKeyType.Segwit)))
                 {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to get UTXOs for address {fromWalletAddress}: {utxoResponse.StatusCode}");
+                    OASISErrorHandling.HandleError(ref result, "The source address must belong to the configured signing key.");
                     return result;
                 }
 
-                var utxoContent = await utxoResponse.Content.ReadAsStringAsync();
-                var utxos = JsonSerializer.Deserialize<JsonElement[]>(utxoContent);
-
-                if (utxos == null || utxos.Length == 0)
+                var utxos = await _httpClient.GetFromJsonAsync<JsonElement[]>($"address/{source}/utxo");
+                var coins = utxos.Select(utxo => new Coin(
+                    new OutPoint(uint256.Parse(utxo.GetProperty("txid").GetString()), utxo.GetProperty("vout").GetUInt32()),
+                    new TxOut(Money.Satoshis(utxo.GetProperty("value").GetInt64()), source.ScriptPubKey))).ToArray();
+                var feeEstimates = await _httpClient.GetFromJsonAsync<Dictionary<string, decimal>>("fee-estimates");
+                if (!feeEstimates.TryGetValue("6", out var feeRate) || feeRate <= 0)
                 {
-                    OASISErrorHandling.HandleError(ref result, $"No UTXOs found for address {fromWalletAddress}");
+                    OASISErrorHandling.HandleError(ref result, "Esplora did not provide a fee estimate for six confirmations.");
                     return result;
                 }
 
-                // Find sufficient UTXOs
-                long totalValue = 0;
-                var selectedUtxos = new List<object>();
+                var payment = Money.Satoshis((long)satoshis);
+                var builder = network.CreateTransactionBuilder()
+                    .AddCoins(coins)
+                    .AddKeys(signer.PrivateKey)
+                    .Send(destination, payment)
+                    .SetChange(source)
+                    .SendEstimatedFees(new FeeRate(Money.Satoshis((long)decimal.Ceiling(feeRate * 1000m))));
+                if (memo.Length > 0)
+                    builder.Send(TxNullDataTemplate.Instance.GenerateScriptPubKey(memo), Money.Zero);
 
-                foreach (var utxo in utxos)
+                var transaction = builder.BuildTransaction(true);
+                if (!transaction.Outputs.Any(output => output.ScriptPubKey == destination.ScriptPubKey && output.Value >= payment) ||
+                    !builder.Verify(transaction))
                 {
-                    var value = utxo.GetProperty("value").GetInt64();
-                    totalValue += value;
-                    selectedUtxos.Add(new
-                    {
-                        txid = utxo.GetProperty("txid").GetString(),
-                        vout = utxo.GetProperty("vout").GetInt32()
-                    });
-
-                    if (totalValue >= amountInSatoshis)
-                        break;
-                }
-
-                if (totalValue < amountInSatoshis)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Insufficient funds. Available: {totalValue} satoshis, Required: {amountInSatoshis} satoshis");
+                    OASISErrorHandling.HandleError(ref result, "The signed transaction failed payment or policy validation.");
                     return result;
                 }
 
-                // Create transaction with selected UTXOs
-                var finalTransaction = new
+                var expectedId = transaction.GetHash();
+                using var body = new StringContent(transaction.ToHex(), Encoding.ASCII, "text/plain");
+                using var response = await _httpClient.PostAsync("tx", body);
+                if (!response.IsSuccessStatusCode)
                 {
-                    inputs = selectedUtxos,
-                    outputs = new[]
-                    {
-                        new
-                        {
-                            address = toWalletAddress,
-                            value = amountInSatoshis
-                        }
-                    }
+                    OASISErrorHandling.HandleError(ref result, $"Esplora rejected Bitcoin transaction {expectedId}: {response.StatusCode}.");
+                    return result;
+                }
+
+                var receipt = (await response.Content.ReadAsStringAsync()).Trim();
+                if (!uint256.TryParse(receipt, out var transactionId) || transactionId != expectedId)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Esplora did not acknowledge the expected Bitcoin transaction {expectedId}.");
+                    return result;
+                }
+
+                result.Result = new BitcoinTransactionResponse
+                {
+                    TransactionResult = transactionId.ToString(),
+                    MemoText = memoText
                 };
-
-                // Broadcast transaction
-                var jsonContent = JsonSerializer.Serialize(finalTransaction);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-
-                var broadcastResponse = await _httpClient.PostAsync("/tx", content);
-                if (broadcastResponse.IsSuccessStatusCode)
-                {
-                    var responseContent = await broadcastResponse.Content.ReadAsStringAsync();
-                    var responseData = JsonSerializer.Deserialize<JsonElement>(responseContent);
-
-                    result.Result = new BitcoinTransactionResponse
-                    {
-                        TransactionResult = responseData.GetProperty("txid").GetString(),
-                        MemoText = memoText
-                    };
-                    result.IsError = false;
-                    result.Message = $"Bitcoin transaction sent successfully. TXID: {result.Result.TransactionResult}";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to broadcast Bitcoin transaction: {broadcastResponse.StatusCode}");
-                }
             }
             catch (Exception ex)
             {
-                result.Exception = ex;
-                OASISErrorHandling.HandleError(ref result, $"Error sending Bitcoin transaction: {ex.Message}");
+                OASISErrorHandling.HandleError(ref result, $"Bitcoin transaction failed ({ex.GetType().Name}).");
             }
 
             return result;
