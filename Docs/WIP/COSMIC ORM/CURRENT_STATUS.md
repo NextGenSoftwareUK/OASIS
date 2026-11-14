@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Development recovered within deployment 96c78a7c
+
+On 854066dc931a, Railway marked the deployment SUCCESS before WEB4 was serving. Logs show a persisted-cell timeout at 13:12:47 UTC and Kestrel listening at 13:13:58 UTC. WEB4 recovered without an agent restart or data change. Read-only SSH observed 136 conductor loopback sockets during the outage and after recovery. The real provider then matched the same 3 full and 2 subset public IDs on direct and federated CQL. Combined CI 43597290726 passed. Exact image 43598439229 remains active. Parity CI 43598050460 stopped in the unrelated Hedera cancellation test on the base lacking the post-semaphore check. Run 43598904791 qualifies the identical graph parity test with the qualified Hedera change included.
+
 ## Exact follow-on image and Railway health check
 
 14 November Cancun time. The exact 23051874d247 WEB4 image is building in CI 43598439229 with a commit-only tag. The currently serving WEB4 returned HTTP 200 from /api/health. Railway deployment metadata for both the serving and building Development revisions has a null healthcheck path and timeout. The Docker image probes /api/health and the older nested Nixpacks profile declares the same endpoint. The active Railway Docker deployment currently reports container startup without HTTP readiness verification. A Railway readiness check addresses that reporting contract. The HoloOASIS cold-start cause is still open, and the persistent volume prevents overlapping service instances. No hosting settings changed during inspection.
