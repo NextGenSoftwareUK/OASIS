@@ -55,7 +55,7 @@ internal sealed class BitcoinRecordBlobStore(HttpClient kubo, EncryptedRecordCod
         response.EnsureSuccessStatusCode();
         using var stream = await response.Content.ReadAsStreamAsync();
         var bytes = new byte[MaximumEnvelopeBytes + 1];
-        var length = await stream.ReadAtLeastAsync(bytes, bytes.Length, throwIfEndOfStream: false);
+        var length = await stream.ReadAtLeastAsync(bytes, bytes.Length, false);
         if (length > MaximumEnvelopeBytes ||
             !CryptographicOperations.FixedTimeEquals(SHA256.HashData(bytes.AsSpan(0, length)), commitment.AsSpan(Magic.Length + 34)))
             throw new CryptographicException("The encrypted record does not match the Bitcoin commitment.");
