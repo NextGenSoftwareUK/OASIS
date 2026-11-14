@@ -121,6 +121,27 @@ class RoutingFixtureTests(unittest.TestCase):
             with self.assertRaises(RuntimeError): setup.prepare(self.state)
             session.assert_not_called()
 
+    def test_mongo_neo4j_cohort_only_publishes_its_own_baseline(self):
+        providers = []
+
+        def request(route, token, body=None, **kwargs):
+            if route == "sandbox/faults":
+                return {"result": []}
+            if route == "data/save-holon":
+                return self.saved(route, token, body, **kwargs)
+            self.assertEqual(route, "data/load-holon")
+            providers.append(body["providerType"])
+            ack = json.loads((self.state / "record-save.acknowledged.json").read_text())
+            intent = json.loads((self.state / "record-save.intent.json").read_text())
+            return {"result": {**ack["expected"], "description": intent["holon"]["description"], "isPublic": False}}
+
+        with patch.object(setup.flow, "session", return_value=({"id": OWNER}, "controlled-token")), \
+                patch.object(setup.flow, "call", side_effect=request):
+            self.assertEqual(setup.prepare(self.state, "Neo4jOASIS")["replicas"], 2)
+        self.assertEqual(providers, ["MongoDBOASIS", "Neo4jOASIS"])
+        self.assertTrue((self.state / "routing-record-Neo4jOASIS.acknowledged.json").is_file())
+        self.assertFalse((self.state / "routing-record.acknowledged.json").exists())
+
     def test_completed_setup_never_creates_another_avatar(self):
         (self.state / "routing-record.acknowledged.json").write_text("{}")
         with patch.object(setup.flow, "session") as session:
