@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text.Json;
 using Microsoft.Data.SqlClient;
+using NextGenSoftware.OASIS.API.Core.Configuration;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -11,6 +12,7 @@ using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 using NextGenSoftware.OASIS.API.Providers.SQLServerDBOASIS;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using NextGenSoftware.Utilities;
 using Xunit;
 
@@ -44,6 +46,208 @@ public sealed class SqlServerSqliteHyperDriveTests
             var sqliteActivation = await sqlite.ActivateProviderAsync();
             Assert.True(!sqlActivation.IsError && sqlActivation.Result, sqlActivation.Message);
             Assert.True(!sqliteActivation.IsError && sqliteActivation.Result, sqliteActivation.Message);
+
+            var captures = await Task.WhenAll(sql.CaptureStorageIdentityAsync(), sql.CaptureStorageIdentityAsync());
+            Assert.All(captures, capture => Assert.False(capture.IsError, capture.Message));
+            var identity = captures[0].Result;
+            var conditionalHolon = new Holon { Id = Guid.NewGuid(), Name = "SQL Server conditional fixture", IsActive = true };
+            var conditionalRequest = new ConditionalHolonWriteRequest(
+                new ConditionalHolonWrite(Guid.NewGuid(), Guid.NewGuid(), ProviderType.SQLServerDBOASIS,
+                    new[] { new HolonWriteCondition(conditionalHolon.Id, null) }),
+                ConditionalHolonOperation.Save, new[] { conditionalHolon }, saveChildren: false);
+            var conditionalSaved = sync ? sql.ExecuteConditionalHolonWrite(conditionalRequest)
+                : await sql.ExecuteConditionalHolonWriteAsync(conditionalRequest);
+            Assert.True(!conditionalSaved.IsError && conditionalSaved.IsSaved,
+                $"{conditionalSaved.Message} {conditionalSaved.Exception}");
+            var conditionalReplay = await sql.ExecuteConditionalHolonWriteAsync(conditionalRequest);
+            Assert.False(conditionalReplay.IsError, conditionalReplay.Message);
+            Assert.Equal(conditionalSaved.Result.Single().VersionId, conditionalReplay.Result.Single().VersionId);
+            Assert.Equal(conditionalSaved.Result.Single().VersionId,
+                (await sql.LoadHolonAsync(conditionalHolon.Id, loadChildren: false)).Result?.VersionId);
+            Assert.Equal(ProviderType.SQLServerDBOASIS, identity.Authority);
+            Assert.Equal(identity.BindingFingerprint, captures[1].Result.BindingFingerprint);
+            var replica = new Holon { Id = Guid.NewGuid(), Version = 1, VersionId = Guid.NewGuid() };
+            CosmicConcurrency.SetProviderRevisionId(replica, ProviderType.SQLLiteDBOASIS, Guid.NewGuid());
+            var replicaIntent = new CommittedHolonReplicaRequest(Guid.NewGuid(), "owned-sqlite",
+                ProviderType.SQLLiteDBOASIS, Guid.NewGuid(), ConditionalHolonOperation.Save,
+                new[] { replica }, saveChildren: false);
+            var receiptRequest = new CommittedHolonReplicaReceiptReadRequest(replicaIntent, identity);
+            var receipt = await sql.ReadCommittedHolonReplicaReceiptAsync(receiptRequest);
+            Assert.False(receipt.IsError, receipt.Message);
+            Assert.Equal(ConditionalHolonReceiptState.Absent, receipt.Result.ReceiptState);
+            var applied = sync ? sql.ApplyBoundCommittedHolonReplica(replicaIntent, identity)
+                : await sql.ApplyBoundCommittedHolonReplicaAsync(replicaIntent, identity);
+            Assert.False(applied.IsError, $"{applied.Message} {applied.Exception}");
+            var replay = await sql.ApplyBoundCommittedHolonReplicaAsync(replicaIntent, identity);
+            Assert.False(replay.IsError, replay.Message);
+            Assert.Equal(replica.VersionId, replay.Result.Single().VersionId);
+            var committed = await sql.ReadCommittedHolonReplicaReceiptAsync(receiptRequest);
+            Assert.False(committed.IsError, committed.Message);
+            Assert.Equal(ConditionalHolonReceiptState.Committed, committed.Result.ReceiptState);
+            Assert.Equal(replica.VersionId, (await sql.LoadHolonAsync(replica.Id, loadChildren: false)).Result?.VersionId);
+
+            var successor = new Holon { Id = replica.Id, Version = 2, VersionId = Guid.NewGuid(),
+                PreviousVersionId = Guid.NewGuid(), Name = "SQL Server replica successor", IsActive = true };
+            CosmicConcurrency.SetProviderRevisionId(successor, ProviderType.SQLLiteDBOASIS, Guid.NewGuid());
+            CommittedHolonReplicaRequest NextReplica(ConditionalHolonOperation operation, Holon snapshot)
+                => new(Guid.NewGuid(), replicaIntent.SourceId, replicaIntent.SourceAuthority, replicaIntent.ActorId,
+                    operation, new[] { snapshot }, saveChildren: false);
+            var divergent = NextReplica(ConditionalHolonOperation.Save, successor);
+            var rejected = await sql.ApplyBoundCommittedHolonReplicaAsync(divergent, identity);
+            Assert.True(rejected.IsError);
+            Assert.Equal("COSMIC_REPLICA_LINEAGE_CONFLICT", rejected.ErrorCode);
+            var rejectedReceipt = await sql.ReadCommittedHolonReplicaReceiptAsync(
+                new CommittedHolonReplicaReceiptReadRequest(divergent, identity));
+            Assert.False(rejectedReceipt.IsError, rejectedReceipt.Message);
+            Assert.Equal(ConditionalHolonReceiptState.Absent, rejectedReceipt.Result.ReceiptState);
+            Assert.Equal(replica.VersionId, (await sql.LoadHolonAsync(replica.Id, loadChildren: false)).Result?.VersionId);
+
+            successor.PreviousVersionId = replica.VersionId;
+            var advanced = await sql.ApplyBoundCommittedHolonReplicaAsync(
+                NextReplica(ConditionalHolonOperation.Save, successor), identity);
+            Assert.False(advanced.IsError, advanced.Message);
+            Assert.Equal(successor.VersionId, (await sql.LoadHolonAsync(replica.Id, loadChildren: false)).Result?.VersionId);
+            var tombstone = new Holon { Id = replica.Id, Version = 3, VersionId = Guid.NewGuid(),
+                PreviousVersionId = successor.VersionId, Name = successor.Name, IsActive = false,
+                DeletedDate = DateTime.UtcNow, DeletedByAvatarId = replicaIntent.ActorId };
+            CosmicConcurrency.SetProviderRevisionId(tombstone, ProviderType.SQLLiteDBOASIS, Guid.NewGuid());
+            var deletion = NextReplica(ConditionalHolonOperation.HardDelete, tombstone);
+            var deletedReplica = sync ? sql.ApplyBoundCommittedHolonReplica(deletion, identity)
+                : await sql.ApplyBoundCommittedHolonReplicaAsync(deletion, identity);
+            Assert.True(!deletedReplica.IsError && deletedReplica.IsDeleted, $"{deletedReplica.Message} {deletedReplica.Exception}");
+            var deletionReceipt = await sql.ReadCommittedHolonReplicaReceiptAsync(
+                new CommittedHolonReplicaReceiptReadRequest(deletion, identity));
+            Assert.False(deletionReceipt.IsError, deletionReceipt.Message);
+            Assert.Equal(ConditionalHolonReceiptState.Committed, deletionReceipt.Result.ReceiptState);
+            await using (var native = new SqlConnection(connection.ConnectionString))
+            {
+                await native.OpenAsync();
+                await using var check = new SqlCommand("SELECT COUNT(*) FROM OASISHolons WHERE Id=@Id;", native);
+                check.Parameters.AddWithValue("@Id", replica.Id);
+                Assert.Equal(0, Convert.ToInt32(await check.ExecuteScalarAsync()));
+            }
+            var reopened = new SQLServerDBOASIS(connection.ConnectionString);
+            try
+            {
+                var activated = await reopened.ActivateProviderAsync();
+                Assert.False(activated.IsError, activated.Message);
+                var reopenedIdentity = await reopened.CaptureStorageIdentityAsync();
+                Assert.False(reopenedIdentity.IsError, reopenedIdentity.Message);
+                Assert.Equal(identity.BindingFingerprint, reopenedIdentity.Result.BindingFingerprint);
+            }
+            finally
+            {
+                await reopened.DeActivateProviderAsync();
+            }
+
+            var peerConnection = new SqlConnectionStringBuilder(connection.ConnectionString)
+                { InitialCatalog = "oasis_priority_routing_peer" };
+            var peer = new SQLServerDBOASIS(peerConnection.ConnectionString);
+            try
+            {
+                var activated = await peer.ActivateProviderAsync();
+                Assert.False(activated.IsError, activated.Message);
+                var peerIdentity = await peer.CaptureStorageIdentityAsync();
+                Assert.False(peerIdentity.IsError, peerIdentity.Message);
+                Assert.NotEqual(identity.BindingFingerprint, peerIdentity.Result.BindingFingerprint);
+                var wrongReceipt = await peer.ReadCommittedHolonReplicaReceiptAsync(receiptRequest);
+                Assert.True(wrongReceipt.IsError);
+                Assert.Equal("COSMIC_REPLICA_RECEIPT_STORAGE_MISMATCH", wrongReceipt.ErrorCode);
+            }
+            finally
+            {
+                await peer.DeActivateProviderAsync();
+            }
+
+            var sourceIdentity = await sqlite.CaptureStorageIdentityAsync();
+            Assert.False(sourceIdentity.IsError, sourceIdentity.Message);
+            var actor = Guid.NewGuid();
+            var grant = new HolonReplicationActorGrant(new[] { actor }, DateTime.UtcNow.AddMinutes(10));
+            var binding = new HolonReplicationRouteBinding(sourceIdentity.Result, identity, grant.BindingIdentity);
+            var enrollment = new HolonReplicationEnrollment(binding.SourceId, new[] { binding.TargetId },
+                sourceIdentity.Result, new[] { binding });
+            var dispatchedHolon = new Holon { Id = Guid.NewGuid(), Name = "SQLite-to-SQL Server dispatcher fixture", IsActive = true };
+            var write = new ConditionalHolonWrite(Guid.NewGuid(), actor, ProviderType.SQLLiteDBOASIS,
+                new[] { new HolonWriteCondition(dispatchedHolon.Id, null) });
+            var intent = new ConditionalHolonWriteRequest(write, ConditionalHolonOperation.Save,
+                new[] { dispatchedHolon }, saveChildren: false);
+            var sourceSave = await sqlite.ExecuteReplicatingHolonWriteAsync(intent, enrollment);
+            Assert.True(!sourceSave.IsError && sourceSave.IsSaved, sourceSave.Message);
+            var outbox = sqlite.GetBoundHolonReplicationOutbox(sourceIdentity.Result);
+            Assert.False(outbox.IsError, outbox.Message);
+            var target = new CommittedHolonReplicaTarget(binding.TargetId, sql, identity.Authority,
+                binding.SourceId, sourceIdentity.Result.Authority, grant, "sqlserver-fixture", Guid.NewGuid(),
+                grant.BindingIdentity, identity);
+            var dispatcher = new HolonOutboxDispatcher(outbox.Result, new[] { target }, "sqlserver-fixture");
+            var delivery = await dispatcher.DispatchOnceAsync(binding.TargetId, maximumCount: 1);
+            Assert.False(delivery.IsError, delivery.Message);
+            Assert.Equal(1, delivery.Result.CompletedCount);
+            var dispatchedReplica = await sql.LoadHolonAsync(dispatchedHolon.Id, loadChildren: false);
+            Assert.False(dispatchedReplica.IsError, dispatchedReplica.Message);
+            Assert.Equal(sourceSave.Result.Single().VersionId, dispatchedReplica.Result?.VersionId);
+            var restarted = new HolonOutboxDispatcher(outbox.Result, new[] { target }, "sqlserver-fixture-restarted");
+            var replayDelivery = await restarted.DispatchOnceAsync(binding.TargetId, maximumCount: 1);
+            Assert.False(replayDelivery.IsError, replayDelivery.Message);
+            Assert.Equal(0, replayDelivery.Result.CompletedCount);
+
+            var reverse = new HolonReplicationRouteBinding(identity, sourceIdentity.Result, grant.BindingIdentity);
+            var reverseEnrollment = new HolonReplicationEnrollment(reverse.SourceId, new[] { reverse.TargetId },
+                identity, new[] { reverse });
+            var reverseHolon = new Holon { Id = Guid.NewGuid(), Name = "SQL Server outbound fixture", IsActive = true };
+            var reverseIntent = new ConditionalHolonWriteRequest(
+                new ConditionalHolonWrite(Guid.NewGuid(), actor, ProviderType.SQLServerDBOASIS,
+                    new[] { new HolonWriteCondition(reverseHolon.Id, null) }),
+                ConditionalHolonOperation.Save, new[] { reverseHolon }, saveChildren: false);
+            var reverseSave = sync ? sql.ExecuteReplicatingHolonWrite(reverseIntent, reverseEnrollment)
+                : await sql.ExecuteReplicatingHolonWriteAsync(reverseIntent, reverseEnrollment);
+            Assert.True(!reverseSave.IsError && reverseSave.IsSaved, $"{reverseSave.Message} {reverseSave.Exception}");
+            var sqlOutbox = sql.GetBoundHolonReplicationOutbox(identity);
+            Assert.False(sqlOutbox.IsError, sqlOutbox.Message);
+            var heads = await sqlOutbox.Result.ReadRouteHeadsAsync(pageSize: 1);
+            Assert.False(heads.IsError, heads.Message);
+            var head = Assert.Single(heads.Result.Heads);
+            Assert.Equal(reverse.TargetId, head.TargetId);
+            var sqliteTarget = new CommittedHolonReplicaTarget(reverse.TargetId, sqlite, sourceIdentity.Result.Authority,
+                reverse.SourceId, identity.Authority, grant, "sqlite-fixture", Guid.NewGuid(),
+                grant.BindingIdentity, sourceIdentity.Result);
+            var reverseDispatcher = new HolonOutboxDispatcher(sqlOutbox.Result, new[] { sqliteTarget }, "sqlserver-source");
+            var abandoned = await sqlOutbox.Result.ClaimNextAsync(reverse.TargetId, "abandoned-sqlserver-worker",
+                TimeSpan.FromMinutes(1));
+            Assert.False(abandoned.IsError, abandoned.Message);
+            Assert.NotNull(abandoned.Result);
+            Assert.Equal(head.Sequence, abandoned.Result.Sequence);
+            var renewal = await sqlOutbox.Result.RenewAsync(abandoned.Result, TimeSpan.FromMinutes(2));
+            Assert.True(!renewal.IsError && renewal.Result, renewal.Message);
+            var whileLeased = await reverseDispatcher.DispatchOnceAsync(reverse.TargetId, maximumCount: 1);
+            Assert.False(whileLeased.IsError, whileLeased.Message);
+            Assert.Equal(0, whileLeased.Result.CompletedCount);
+
+            // Expire only the fixture's owned lease to simulate a stopped worker.
+            await using (var native = new SqlConnection(connection.ConnectionString))
+            {
+                await native.OpenAsync();
+                await using var expire = new SqlCommand(@"UPDATE dbo.OASISOutboundDeliveries SET LeaseUntil=1
+WHERE DeliverySequence=@Sequence AND LeaseToken=@Lease;", native);
+                expire.Parameters.AddWithValue("@Sequence", head.Sequence);
+                expire.Parameters.AddWithValue("@Lease", abandoned.Result.LeaseToken);
+                Assert.Equal(1, await expire.ExecuteNonQueryAsync());
+            }
+            var expired = await sqlOutbox.Result.FinishAsync(abandoned.Result, HolonDeliveryOutcome.Completed);
+            Assert.False(expired.IsError, expired.Message);
+            Assert.False(expired.Result);
+            var reverseDelivery = await reverseDispatcher.DispatchOnceAsync(reverse.TargetId, maximumCount: 2);
+            Assert.False(reverseDelivery.IsError, reverseDelivery.Message);
+            Assert.Equal(1, reverseDelivery.Result.CompletedCount);
+            var reverseReplica = await sqlite.LoadHolonAsync(reverseHolon.Id, loadChildren: false);
+            Assert.False(reverseReplica.IsError, reverseReplica.Message);
+            Assert.Equal(reverseSave.Result.Single().VersionId, reverseReplica.Result?.VersionId);
+            var finished = await sqlOutbox.Result.InspectAsync(head.Sequence);
+            Assert.False(finished.IsError, finished.Message);
+            Assert.Equal(HolonDeliveryState.Completed, finished.Result.State);
+            Assert.Equal(2, finished.Result.AttemptCount);
+            var staleRenewal = await sqlOutbox.Result.RenewAsync(abandoned.Result, TimeSpan.FromMinutes(1));
+            Assert.False(staleRenewal.IsError, staleRenewal.Message);
+            Assert.False(staleRenewal.Result);
 
             var dna = new OASISDNA { OASIS = new NextGenSoftware.OASIS.API.DNA.OASIS
                 { HyperDriveMode = HyperDriveModes.V2, StorageProviders = new StorageProviderSettings() } };
