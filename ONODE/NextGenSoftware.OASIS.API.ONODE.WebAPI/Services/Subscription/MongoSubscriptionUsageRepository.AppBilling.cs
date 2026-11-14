@@ -56,12 +56,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
         {
             try
             {
-                if (!(OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.UsageVisibility?.AppPayAsYouGoEnabled ?? true)) return false;
+                if (!_appPayAsYouGoEnabled()) return false;
                 var appId = usageEvent.PooledAppId;
                 var account = await AppAccounts.Find(session, x => x.AppId == appId).FirstOrDefaultAsync(ct);
                 var payg = account?.Payg;
                 if (account == null || payg == null || !payg.Enabled || string.IsNullOrWhiteSpace(payg.BillingAvatarId) || payg.MonthlyCapUsd <= 0) return false;
-                var rate = NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers.AppOveragePrices.Load().Rate(account.PlanId);
+                var rate = AppOveragePrices.Load().Rate(account.PlanId);
                 if (rate <= 0) return false;
                 if (await OverageStatements.Find(session, x => x.UserId == AppStatementUser(appId) && x.PaymentFailed && x.State != "paid").AnyAsync(ct)) return false;
                 var owner = await Subscriptions.Find(session, x => x.UserId == payg.BillingAvatarId).FirstOrDefaultAsync(ct);
@@ -109,7 +109,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
                 var start = MonthStart(month);
                 var pool = await LoadPoolAggregateAsync(session, appId, start, ct);
                 var policy = _policyProvider.GetPolicy(account.PlanId, 0);
-                var rate = NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers.AppOveragePrices.Load().Rate(account.PlanId);
+                var rate = AppOveragePrices.Load().Rate(account.PlanId);
                 var (over, charged, cents) = AppOverageStatementMath.Compute(pool.MonthlyRequests, policy.MonthlyRequestLimit, rate, payg.MonthlyCapUsd);
                 if (cents <= 0) return false;
                 var owner = await Subscriptions.Find(session, x => x.UserId == payg.BillingAvatarId).FirstOrDefaultAsync(ct)

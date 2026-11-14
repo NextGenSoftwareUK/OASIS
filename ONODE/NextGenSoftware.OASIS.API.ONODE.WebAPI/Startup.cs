@@ -470,7 +470,9 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             services.AddSingleton<Services.Places.WorldscapePlaceCatalogue>();
             services.AddSingleton<Services.Gardens.GardenService>();
             services.AddHostedService<Services.Gardens.GardenRewardWorker>();
-            services.AddSingleton<Services.Subscription.MongoSubscriptionUsageRepository>();
+            services.AddSingleton(provider => new Services.Subscription.MongoSubscriptionUsageRepository(
+                provider.GetRequiredService<IConfiguration>(),
+                () => OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.UsageVisibility?.AppPayAsYouGoEnabled ?? true));
             services.AddSingleton<Services.Subscription.ISubscriptionUsageRepository>(provider => provider.GetRequiredService<Services.Subscription.MongoSubscriptionUsageRepository>());
             services.AddSingleton<Services.Subscription.ISubscriptionBillingRepository>(provider => provider.GetRequiredService<Services.Subscription.MongoSubscriptionUsageRepository>());
             services.AddSingleton<Services.Subscription.IUsageSeriesSource>(provider => provider.GetRequiredService<Services.Subscription.MongoSubscriptionUsageRepository>());
