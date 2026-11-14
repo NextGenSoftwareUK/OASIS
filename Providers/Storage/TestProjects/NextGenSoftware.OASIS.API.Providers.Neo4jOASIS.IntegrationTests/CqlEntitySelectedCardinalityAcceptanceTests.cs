@@ -63,7 +63,7 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Assert.AreEqual(expectedDouble, doubles.Sum());
         Assert.AreEqual(expectedDouble, doubles.Average());
         Assert.AreEqual(0d, doubles.Take(0).Sum());
-        var entityWindow = source.Where(row => row.Id == rootId).Take(1).Result.Compose().Result;
+        var entityWindow = source.Where(row => row.Id == rootId).Result.Compose().Result.Take(1).Result;
         var unsigned = entityWindow.Select(row => CosmicQueryMetadata.Value<ulong>(row, "u64")).Result;
         var target = new CosmicProjectionCompositionTarget(adapter.QueryProviderType, adapter.QueryCapabilities,
             adapter.ProjectionCapabilities, adapter.CompositionCapabilities);
