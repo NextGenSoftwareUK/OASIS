@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Live 106-source result and HoloOASIS network observations
+
+On WEB4 Development 854066dc931a, the retained visitor observed 106 of 107 sources ready for both native and federated queries. Nostr alone was unavailable. Deployment logs pinpoint its WebSocket upgrade failure at HTTP 520 after 605 ms. HoloOASIS matched all three full and two subset IDs with real-provider provenance. The recovered container reached the configured Holochain bootstrap and Iroh relay hosts over DNS, TLS and HTTPS, receiving HTTP 404 at both root paths. Those root responses establish reachability only. Native startup and peer handshakes remain to diagnose. Exact image 43598439229 and graph parity CI 43598904791 remain in progress.
+
 ## Development recovered within deployment 96c78a7c
 
 On 854066dc931a, Railway marked the deployment SUCCESS before WEB4 was serving. Logs show a persisted-cell timeout at 13:12:47 UTC and Kestrel listening at 13:13:58 UTC. WEB4 recovered without an agent restart or data change. Read-only SSH observed 136 conductor loopback sockets during the outage and after recovery. The real provider then matched the same 3 full and 2 subset public IDs on direct and federated CQL. Combined CI 43597290726 passed. Exact image 43598439229 remains active. Parity CI 43598050460 stopped in the unrelated Hedera cancellation test on the base lacking the post-semaphore check. Run 43598904791 qualifies the identical graph parity test with the qualified Hedera change included.
