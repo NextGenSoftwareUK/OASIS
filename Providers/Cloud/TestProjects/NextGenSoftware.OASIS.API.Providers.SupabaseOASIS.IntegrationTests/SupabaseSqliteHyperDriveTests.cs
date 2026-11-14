@@ -84,6 +84,19 @@ public sealed class SupabaseSqliteHyperDriveTests
                 Assert.AreEqual(JsonValueKind.Null, state[0].GetProperty("current_row").ValueKind);
                 Assert.AreEqual(JsonValueKind.Null, state[0].GetProperty("replica_head").ValueKind);
             }
+            attempted.Add(replica.Id);
+            var applied = sync ? supabase.ApplyBoundCommittedHolonReplica(receiptIntent, binding.Result)
+                : await supabase.ApplyBoundCommittedHolonReplicaAsync(receiptIntent, binding.Result);
+            Assert.IsFalse(applied.IsError, $"{applied.Message} {applied.Exception}");
+            var replay = await supabase.ApplyBoundCommittedHolonReplicaAsync(receiptIntent, binding.Result);
+            Assert.IsFalse(replay.IsError, $"{replay.Message} {replay.Exception}");
+            Assert.AreEqual(applied.Result.Single().VersionId, replay.Result.Single().VersionId);
+            Assert.AreEqual(replica.VersionId, (await supabase.LoadHolonAsync(replica.Id, loadChildren: false)).Result?.VersionId);
+            var committed = await supabase.ReadCommittedHolonReplicaReceiptAsync(
+                new CommittedHolonReplicaReceiptReadRequest(receiptIntent, binding.Result));
+            Assert.IsFalse(committed.IsError, $"{committed.Message} {committed.Exception}");
+            Assert.AreEqual(ConditionalHolonReceiptState.Committed, committed.Result.ReceiptState);
+
             var reopened = new SupabaseOASIS(endpoint, key!, client, "");
             try
             {

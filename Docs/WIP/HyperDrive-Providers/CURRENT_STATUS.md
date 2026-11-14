@@ -1712,3 +1712,5 @@ Supabase now reads replica receipt evidence through a service-role PostgREST RPC
 14 November Cancun time. Supabase receipt privilege check 43559406199 passed. Development contains the qualified receipt and identity batch at 363dd7fbd23e. Updated the native overlay guard to that published baseline and added an authenticated PostgREST replica-state assertion for an absent key. Replica mutation and outbound delivery remain open.
 
 14 November Cancun time. Added the Supabase atomic replica commit RPC. It checks the enrolled database and original receipt, compares every observed row and lineage head under a native PostgreSQL lock, and commits graph changes and receipt together. Shipping client integration and native mutation qualification remain open.
+
+14 November Cancun time. Wired the shipping Supabase replica receiver to the native state and atomic commit RPCs. The client validates lineage, allocates a target revision, and verifies the exact committed receipt. CI covers initial apply, replay, direct native read and committed receipt. Outbound remains open.
