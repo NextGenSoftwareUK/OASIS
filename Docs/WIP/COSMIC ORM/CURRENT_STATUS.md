@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Retained session refresh reconciliation
+
+The original Polkadot visitor refresh 502 matched the sealed Railway request ID and all 45 upstream connection refusals. A later refresh reached WEB4 and returned 200, but an existing local response file prevented credential capture. The helper now rejects existing rotation artifacts before dispatch. The original visitor still requires reconciliation. No further live refresh was attempted. The isolated Python test files and fixture outputs were removed.
+
 ## Firestore outbound rollout live verification
 
 13 November Cancun. Railway reported SUCCESS for WEB4 deployment e70edf4f-c9ca-4f32-b98d-006b1d1641a7. Read-only inspection confirmed revision 9944b532132b and the Holochain child process. Public health still timed out and logs showed the persisted HoloOASIS startup failure with 240 admin replies and zero running cells. A retained visitor refresh returned HTTP 502 with no replacement cookie. All five protected session bundles checked have unresolved rotations, including the HoloOASIS owner. Their journals are retained for reconciliation. WEB4 subsequently returned HTTP 200 on both public and loopback health and HTTP 401 on anonymous catalogue access. Read-only SSH confirmed the exact serving revision 9944b532132b. Two uncached GitHub Date probes and the container clock put the laptop about 114 seconds behind. Adjusting for that offset aligns the Polkadot visitor 502 with the Railway refresh trace at 00:39:04 UTC, where all 45 upstream attempts were refused. The journal has no shared request ID, so the correlation is strong but does not independently attest the other four sessions. Authenticated catalogue and HoloOASIS acceptance remain open. No refresh was replayed and no new visitor was created. Candidate f587ae2ccabf remains CI-qualified. The newer HyperDrive candidate 72bd082f6613 differs from Development only in FirestoreSqliteOutageTests.cs at this review.

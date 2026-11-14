@@ -78,13 +78,16 @@ def rotate(state, label, original, transport, protect, write_new):
     credential_digest = hashlib.sha256(json.dumps(original, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
     prefix = label + "-refresh-" + credential_digest[:16]
     intent = state / (prefix + ".intent.json")
-    if intent.exists():
+    response = state / (prefix + ".response.dpapi")
+    before = state / (prefix + ".before.dpapi")
+    ready = state / (prefix + ".ready.dpapi")
+    if any(path.exists() for path in (intent, response, before, ready)):
         raise RuntimeError("Original rotation already has an outcome; reconcile rather than replay.")
     write_new(intent, json.dumps({"ownerId": original["ownerId"], "route": "avatar/refresh-token",
                                  "originalJwtSha256": digest, "originalCredentialSha256": credential_digest}).encode())
 
     def capture(status, raw, cookies):
-        write_new(state / (prefix + ".response.dpapi"), protect(json.dumps({"status": status,
+        write_new(response, protect(json.dumps({"status": status,
             "bodyBase64": base64.b64encode(raw).decode(), "cookies": cookies}).encode()))
         captured.append((status, cookies))
 
@@ -99,8 +102,7 @@ def rotate(state, label, original, transport, protect, write_new):
     updated = bundle(original["ownerId"], avatar["jwtToken"], captured[0][1], requested_at=requested_at)
     if updated["cookieHeader"] == original["cookieHeader"]:
         raise RuntimeError("Refresh credential was not rotated.")
-    write_new(state / (prefix + ".before.dpapi"), protect(json.dumps(original).encode()))
-    ready = state / (prefix + ".ready.dpapi")
+    write_new(before, protect(json.dumps(original).encode()))
     write_new(ready, protect(json.dumps(updated).encode()))
     # One atomic file replacement is the local access/refresh ownership boundary.
     os.replace(ready, state / (label + ".session.dpapi"))

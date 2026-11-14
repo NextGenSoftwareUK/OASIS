@@ -105,6 +105,18 @@ class SessionCredentialTests(unittest.TestCase):
         self.assertNotEqual(first["cookieHeader"], second["cookieHeader"])
         credentials.no_pending_rotation(self.state, "same-jwt")
 
+    def test_existing_rotation_response_blocks_dispatch_even_without_intent(self):
+        original = credentials.bundle(OWNER, token(), [COOKIE])
+        digest = credentials.hashlib.sha256(json.dumps(
+            original, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+        response = self.state / ("response-only-refresh-" + digest[:16] + ".response.dpapi")
+        write_new(response, seal(b"existing response"))
+        with self.assertRaisesRegex(RuntimeError, "reconcile rather than replay"):
+            credentials.rotate(self.state, "response-only", original,
+                               lambda *args, **kwargs: self.fail("Unexpected dispatch"),
+                               seal, write_new)
+        self.assertEqual(seal(b"existing response"), response.read_bytes())
+
     def test_unknown_outcome_blocks_a_second_refresh_attempt(self):
         original = credentials.bundle(OWNER, token(), [COOKIE]); calls = []
         def transport(*args, **kwargs):
