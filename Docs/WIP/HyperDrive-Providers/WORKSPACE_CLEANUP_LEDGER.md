@@ -1070,3 +1070,5 @@ Urgent disk cleanup follow-up: leased standard project clean succeeded for AWS u
 13 November. SQL Server receiver CI 43553571340 used the disposable runner fixture. No local build or database ran for the correction.
 
 13 November. SQL Server job 132322733806 confirmed removal of its container, volumes, database and test output after the hard-delete failure. No local fixtures were created.
+
+13 November. Removed the temporary SQL Server receiver candidate index and confirmed absence. No local builds, downloads, or databases were created.
