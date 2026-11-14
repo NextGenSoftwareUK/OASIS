@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## CQL Playground and WEB6 draft preview
+
+Web4Site b60275e adds keyboard focus when a reviewed WEB6 draft opens in the Playground and includes bounded LIKE examples in the editor help. All 177 website tests passed and [Vercel built the exact revision](https://vercel.com/oasis-team/web4-site/3nSpEEgg9W4vwrd5LfzdJ2jvNvj2). A Chromium fixture ran the exact parser. The full browser probe timed out and the temporary browser folders were removed. The Development WEB6 completion endpoint returned HTTP 204 to preflight with Authorization, Content-Type and Idempotency-Key. Hosted browser and real WEB6 draft acceptance remain open. WEB4 deployment eef96bb3 is publishing the Supabase receipt revision.
+
 ## Supabase native receipt rollout
 
 Development advanced to 363dd7fbd23e with the scoped PostgREST database identity and receipt RPC batch. [Native CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43558660677) passed sync and async. Railway queued WEB4 deployment eef96bb3. Verify the serving revision and authenticated CQL after cutover. Hosted Supabase catalogue admission still requires the dedicated HTTPS teaching fixture and restricted reader. HyperDrive is separately implementing atomic replica application. No local build or fixture outputs.
