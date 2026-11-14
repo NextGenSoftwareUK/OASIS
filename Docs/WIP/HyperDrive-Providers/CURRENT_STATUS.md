@@ -1734,3 +1734,5 @@ Supabase now reads replica receipt evidence through a service-role PostgREST RPC
 14 November Cancun time. Added Supabase bound delivery inspection and ordered route-head pagination RPC. The service role calls the function without direct table access. Shipping outbox integration and native delivery verification remain open.
 
 14 November Cancun time. Wired the shipping Supabase outbox and enrolled source to PostgREST. Native CI now tests the reverse dispatcher, exact revision in SQLite and durable completion on Supabase. Verification is pending.
+
+14 November Cancun time. Supabase-to-SQLite shipping dispatcher and reverse SQLite-to-Supabase delivery passed both native PostgREST modes in [run 43564715599](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43564715599). The exact candidate is b4f1a930b2b8 on Development 5ab24c31afa0, with expected tree a6822398498db7f1bd7fd1d7d96be203c45d8756. Hosted acceptance and native expired-lease recovery remain open.
