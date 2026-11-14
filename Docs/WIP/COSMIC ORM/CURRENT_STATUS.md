@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Provider timeout isolation regression in CI
+
+Source 31dae1c6fdd0 adds the discovery regression to the exact lifecycle candidate on Development 0ec29a02fabd. CI 43606904960 checks that a managed HoloOASIS provisioning timeout records CQL_SOURCE_UNAVAILABLE while another enrolled provider is available. The test does not certify native recovery or overall host startup. WEB4 bad943e3 was building and live HTTP health remained unavailable during the check.
+
 ## Exact WEB4 image and protocol checks on the MongoDB repair parent
 
 For lifecycle candidate 3459ec1e21d5, exact WEB4 image CI 43606325623 and protocol CI 43606357400 have been dispatched in addition to Linux managed conductor CI 43606134406. The previous Linux run already passed the activation regression. WEB4 bad943e3 was queued for current Development 0ec29a02fabd. Review the next shared window after 10:08:06 Cancun and confirm serving health and qualification before publication.
