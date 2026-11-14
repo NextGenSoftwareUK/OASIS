@@ -1124,3 +1124,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 14 November. Supabase source client changes created no local builds, downloads or databases.
 
 14 November. Supabase outbound lease RPC changes created no local builds, downloads or databases.
+
+14 November. Supabase outbox read SQL created no local builds, downloads or databases.

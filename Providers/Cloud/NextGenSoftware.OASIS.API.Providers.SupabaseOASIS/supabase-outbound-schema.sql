@@ -244,4 +244,37 @@ REVOKE ALL ON FUNCTION public.oasis_finish_outbound(uuid, bigint, uuid, text, te
 GRANT EXECUTE ON FUNCTION public.oasis_finish_outbound(uuid, bigint, uuid, text, text, uuid, text, timestamptz, text, text, text, text)
     TO service_role;
 
+CREATE FUNCTION public.oasis_read_outbound(
+    expected_store uuid, requested_sequence bigint, requested_target text, after_target text, page_limit integer)
+RETURNS SETOF public.oasis_outbound_deliveries
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path = ''
+AS $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM public.oasis_storage_identity i WHERE i.slot = 1 AND i.store_id = expected_store) THEN
+        RAISE EXCEPTION 'Supabase outbound store binding mismatch' USING ERRCODE = 'PT409';
+    END IF;
+    IF page_limit IS NULL OR page_limit NOT BETWEEN 1 AND 257
+        OR (requested_sequence IS NOT NULL AND (requested_sequence <= 0 OR requested_target IS NOT NULL))
+        OR (requested_target IS NOT NULL AND length(requested_target) NOT BETWEEN 1 AND 256)
+        OR (after_target IS NOT NULL AND (length(after_target) NOT BETWEEN 1 AND 256
+            OR requested_sequence IS NOT NULL OR requested_target IS NOT NULL)) THEN
+        RAISE EXCEPTION 'Invalid Supabase outbound read selector' USING ERRCODE = '22023';
+    END IF;
+    IF requested_sequence IS NOT NULL THEN
+        RETURN QUERY SELECT d.* FROM public.oasis_outbound_deliveries d
+            WHERE d.delivery_sequence = requested_sequence;
+    ELSIF requested_target IS NOT NULL THEN
+        RETURN QUERY SELECT d.* FROM public.oasis_outbound_deliveries d
+            WHERE d.target_id = requested_target COLLATE "C" AND d.delivery_state <> 'Completed'
+            ORDER BY d.delivery_sequence LIMIT 1;
+    ELSE
+        RETURN QUERY SELECT DISTINCT ON (d.target_id) d.* FROM public.oasis_outbound_deliveries d
+            WHERE d.delivery_state <> 'Completed' AND (after_target IS NULL OR d.target_id > after_target COLLATE "C")
+            ORDER BY d.target_id, d.delivery_sequence LIMIT page_limit;
+    END IF;
+END;
+$$;
+REVOKE ALL ON FUNCTION public.oasis_read_outbound(uuid, bigint, text, text, integer) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.oasis_read_outbound(uuid, bigint, text, text, integer) TO service_role;
+
 COMMIT;
