@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## SQL Server native replication rollout
+
+Development advanced to 383a335006d2 after exact [SQL Server CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43556135649) passed sync and async bidirectional dispatcher delivery and lost-worker lease recovery. The scoped seven-file batch leaves dependency pins intact. Railway queued WEB4 deployment eab12a1a at 23:31 Cancun. Retain b4270f9cb9d2 as the last live CQL acceptance baseline until the new serving revision passes public health and authenticated catalogue and provider checks. Review the next shared batch after 00:01 Cancun. No local build or fixture output.
+
 ## Development browser origin verification
 
 All seven Railway API services report success at b4270f9cb9d2. A preflight against WEB4's session-renewal route returns HTTP 204 with the exact credentialed origin for web4.oasisomniverse.one. For dev.web4.oasisomniverse.one the same route returns wildcard origin without credentials. The Development-only preview flag is absent in Railway and the proposed hostname is unresolved. Prepare the hosting domain and DNS before applying the Development-only service opt-in. The private subscription admin session for the approved Bronze grant remains absent. No service settings, sessions or fixtures were changed.
