@@ -64,6 +64,29 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
         }
 
         [TestMethod]
+        public async Task EsploraReportsFundedAddressBalance()
+        {
+            try
+            {
+                var activation = await _provider.ActivateProviderAsync();
+                Assert.IsFalse(activation.IsError, activation.Message);
+
+                var balance = await _provider.GetBalanceAsync(
+                    new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests.GetWeb3WalletBalanceRequest
+                    {
+                        WalletAddress = "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa"
+                    });
+
+                Assert.IsFalse(balance.IsError, balance.Message);
+                Assert.IsTrue(balance.Result > 1 && balance.Result < 21_000_000);
+            }
+            finally
+            {
+                _provider.Dispose();
+            }
+        }
+
+        [TestMethod]
         public async Task SaveAvatar_ShouldReturnSuccessResult()
         {
             // Arrange

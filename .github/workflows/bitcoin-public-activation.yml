@@ -46,6 +46,6 @@ jobs:
         shell: pwsh
         run: |
           ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-BitcoinPublicActivation -Operation {
-            dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests" --filter "FullyQualifiedName~EsploraActivationSurvivesDeactivation|FullyQualifiedName~EsploraOrdinaryTransactionDoesNotProduceAHolon" /m:2 /nr:false /p:UseSharedCompilation=false --logger "console;verbosity=normal"
+            dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests" --filter "FullyQualifiedName~EsploraActivationSurvivesDeactivation|FullyQualifiedName~EsploraOrdinaryTransactionDoesNotProduceAHolon|FullyQualifiedName~EsploraReportsFundedAddressBalance" /m:2 /nr:false /p:UseSharedCompilation=false --logger "console;verbosity=normal"
             if ($LASTEXITCODE -ne 0) { throw "Bitcoin public activation verification failed." }
           }

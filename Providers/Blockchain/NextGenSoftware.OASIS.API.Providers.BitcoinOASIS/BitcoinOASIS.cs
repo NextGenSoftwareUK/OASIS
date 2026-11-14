@@ -47,6 +47,14 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
         private bool _isActivated;
         private WalletManager _walletManager;
 
+        private Network SigningNetwork => _network.ToLowerInvariant() switch
+        {
+            "mainnet" => Network.Main,
+            "testnet" => Network.TestNet,
+            "regtest" => Network.RegTest,
+            _ => throw new InvalidOperationException("The configured Bitcoin network is unsupported.")
+        };
+
         public WalletManager WalletManager
         {
             get

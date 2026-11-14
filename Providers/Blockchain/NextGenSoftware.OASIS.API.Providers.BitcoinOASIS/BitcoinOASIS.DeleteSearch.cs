@@ -77,13 +77,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                     return result;
                 }
 
-                var network = _network.ToLowerInvariant() switch
-                {
-                    "mainnet" => Network.Main,
-                    "testnet" => Network.TestNet,
-                    "regtest" => Network.RegTest,
-                    _ => throw new InvalidOperationException("The configured Bitcoin network is unsupported.")
-                };
+                var network = SigningNetwork;
                 var source = BitcoinAddress.Create(fromWalletAddress, network);
                 var destination = BitcoinAddress.Create(toWalletAddress, network);
                 var signer = new BitcoinSecret(_privateKey, network);

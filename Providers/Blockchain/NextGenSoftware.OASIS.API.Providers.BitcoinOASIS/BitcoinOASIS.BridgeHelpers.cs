@@ -62,32 +62,19 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                     return result;
                 }
 
-                // Get Bitcoin balance for the address
-                var rpcRequest = new
-                {
-                    jsonrpc = "2.0",
-                    id = 1,
-                    method = "getreceivedbyaddress",
-                    @params = new object[] { request.WalletAddress, 0 }
-                };
+                var address = BitcoinAddress.Create(request.WalletAddress, SigningNetwork);
+                var stats = await _httpClient.GetFromJsonAsync<JsonElement>($"address/{address}");
+                var confirmed = stats.GetProperty("chain_stats");
+                var pending = stats.GetProperty("mempool_stats");
+                var satoshis = checked(confirmed.GetProperty("funded_txo_sum").GetInt64()
+                    - confirmed.GetProperty("spent_txo_sum").GetInt64()
+                    + pending.GetProperty("funded_txo_sum").GetInt64()
+                    - pending.GetProperty("spent_txo_sum").GetInt64());
 
-                var response = await _httpClient.PostAsJsonAsync("", rpcRequest);
-                var content = await response.Content.ReadAsStringAsync();
-                var jsonDoc = JsonDocument.Parse(content);
+                if (satoshis < 0)
+                    throw new InvalidOperationException("Esplora returned a negative Bitcoin balance.");
 
-                if (jsonDoc.RootElement.TryGetProperty("result", out var resultElement))
-                {
-                    var balance = resultElement.GetDouble();
-                    result.Result = balance;
-                    result.IsError = false;
-                    result.Message = "Bitcoin balance retrieved successfully";
-                }
-                else
-                {
-                    result.Result = 0.0;
-                    result.IsError = false;
-                    result.Message = "Address not found or has zero balance";
-                }
+                result.Result = (double)Money.Satoshis(satoshis).ToDecimal(MoneyUnit.BTC);
             }
             catch (Exception ex)
             {
