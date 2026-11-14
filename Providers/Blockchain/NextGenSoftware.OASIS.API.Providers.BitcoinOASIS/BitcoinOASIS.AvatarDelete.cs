@@ -11,14 +11,21 @@ public partial class BitcoinOASIS
     private async Task<OASISResult<IAvatar>> ResolveWalletAvatarForDeleteAsync(string providerKey)
     {
         var referenced = await LoadAvatarByProviderKeyAsync(providerKey);
+        return await ResolveCurrentWalletRecordAsync(referenced, providerKey, id => LoadAvatarAsync(id));
+    }
+
+    private static async Task<OASISResult<T>> ResolveCurrentWalletRecordAsync<T>(
+        OASISResult<T> referenced, string providerKey, Func<Guid, Task<OASISResult<T>>> loadCurrent)
+        where T : class, IHolonBase
+    {
         if (referenced.IsError)
             return referenced;
 
-        var current = await LoadAvatarAsync(referenced.Result.Id);
+        var current = await loadCurrent(referenced.Result.Id);
         if (!current.IsError &&
             !string.Equals(current.Result.ProviderUniqueStorageKey[Core.Enums.ProviderType.BitcoinOASIS],
                 providerKey, StringComparison.OrdinalIgnoreCase))
-            OASISErrorHandling.HandleError(ref current, "Bitcoin avatar deletion requires the current wallet record key.");
+            OASISErrorHandling.HandleError(ref current, "Bitcoin deletion requires the current wallet record key.");
 
         return current;
     }

@@ -637,6 +637,28 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
                 var graph = await recovered.LoadHolonAsync(privateHolon.Id, loadChildren: true, recursive: false);
                 Assert.IsFalse(graph.IsError, graph.Message);
                 Assert.AreEqual(childId, graph.Result.Children.Single().Id);
+
+                var deletedChild = await recovered.DeleteHolonAsync(childTx);
+                Assert.IsFalse(deletedChild.IsError, deletedChild.Message);
+                Assert.IsTrue(deletedChild.Result.IsDeleted);
+                Assert.AreEqual(childId, deletedChild.Result.Id);
+                var deletedChildTx = deletedChild.MetaData["BitcoinTransactionId"];
+                await BitcoinCliAsync("getmempoolentry", deletedChildTx);
+                for (var attempt = 0; attempt < 60; attempt++)
+                {
+                    var pool = await http.GetStringAsync($"address/{storageAddress}/txs/mempool");
+                    if (pool.Contains(deletedChildTx, StringComparison.Ordinal))
+                        break;
+                    await Task.Delay(500);
+                }
+                var missingChild = await recovered.LoadHolonAsync(childId, loadChildren: false);
+                Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound, missingChild.ErrorCode);
+                var prunedGraph = await recovered.LoadHolonAsync(privateHolon.Id, loadChildren: true, recursive: false);
+                Assert.IsFalse(prunedGraph.IsError, prunedGraph.Message);
+                Assert.AreEqual(0, prunedGraph.Result.Children.Count);
+                var oldChild = await recovered.LoadHolonAsync(childId, loadChildren: false, version: 1);
+                Assert.IsFalse(oldChild.IsError, oldChild.Message);
+                Assert.AreEqual(childTx, oldChild.Result.ProviderUniqueStorageKey[ProviderType.BitcoinOASIS]);
             }
             finally
             {

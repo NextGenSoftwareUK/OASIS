@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.Common;
 
@@ -9,6 +10,37 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS;
 
 public partial class BitcoinOASIS
 {
+    private async Task<OASISResult<IHolon>> ResolveWalletHolonForDeleteAsync(string providerKey)
+    {
+        var referenced = await LoadHolonAsync(providerKey, loadChildren: false);
+        return await ResolveCurrentWalletRecordAsync(referenced, providerKey,
+            id => LoadHolonAsync(id, loadChildren: false));
+    }
+
+    private async Task<OASISResult<IHolon>> DeleteWalletHolonAsync(Func<Task<OASISResult<IHolon>>> resolve)
+    {
+        var current = await resolve();
+        if (current.IsError)
+            return current;
+
+        if (current.Result.Version == int.MaxValue)
+        {
+            var error = new OASISResult<IHolon>();
+            OASISErrorHandling.HandleError(ref error, "The Bitcoin holon version has reached its limit.");
+            return error;
+        }
+
+        var tombstone = new Holon
+        {
+            Id = current.Result.Id,
+            HolonType = current.Result.HolonType,
+            Version = current.Result.Version + 1,
+            IsActive = false,
+            DeletedDate = DateTime.UtcNow
+        };
+        return await SaveHolonAsync(tombstone, saveChildren: false);
+    }
+
     private async Task<OASISResult<IHolon>> LoadWalletHolonAsync(
         Guid id, bool loadChildren, bool recursive, int maxDepth, int version)
     {
