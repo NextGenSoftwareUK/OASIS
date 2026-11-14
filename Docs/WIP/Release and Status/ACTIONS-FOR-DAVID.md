@@ -967,4 +967,6 @@ Approved 13 November. David approved the 30-minute Bronze grant for the dedicate
 
 ## COSMIC Web4Site preview access
 
+13 November update. Vercel denied access to the OASIS team when checking the Development preview hostname. A fresh one-time Vercel approval request was sent privately in chat. Once approved, verify the existing preview and inspect the project domain configuration for dev.web4.oasisomniverse.one. The approval link expires after ten minutes and is intentionally omitted here.
+
 Open 13 November. Approve the Vercel OASIS team access request when a fresh one-time consent link is provided, so engineering can open and verify the protected Development demo preview in a browser. No production change is requested. The latest preview build succeeded for Web4Site 9a409eb8e3ee. Its URL was confirmed from GitHub deployment 7779813286. The connected Vercel account still needs OASIS team authorization. Team authorization allows preview inspection. The preview hostname separately lacks the WEB4 credentialed session origin required for a live browser run. [Protected preview](https://web4-site-ar0u9t9wb-oasis-team.vercel.app/web4-sandbox.html).
