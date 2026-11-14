@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Native floating-point reductions passed on three stores
+
+The native step in [run 43579121652](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43579121652/job/132399850126) passed for exact candidate cdc49070d2a7 on Development 985cc6f58c65. MongoDB, SQLite and Neo4j passed Single and Double Sum and Average after entity windows and the applicable empty-input cases. The two changed files are fixture and assertion code. Q01f remains incomplete. Recheck the shared head and coordinate with the qualified HyperDrive DynamoDB batch before Development integration. No local builds or fixtures.
+
 ## HoloOASIS hosted restart retained 136 listeners
 
 Deployment 8267b3ec served exact Development 985cc6f58c65 with public HTTP 200. The conductor had 136 loopback listeners, matching the previous deployment. After the existing smoke visitor was renewed through the browser-origin contract, authenticated discovery reported 105/107 native and federated sources ready. Blockscout recovered through normal startup activation. HashgraphOASIS and NostrOASIS remain unavailable. Native and MongoDB-federated HoloOASIS subsets matched three and two exact record IDs with provider provenance. Legacy interface cleanup remains open. No new visitors, fixtures, local builds or downloads.
