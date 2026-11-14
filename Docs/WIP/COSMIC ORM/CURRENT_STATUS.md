@@ -2,7 +2,7 @@
 
 ## Shared Development review candidate
 
-Candidate `72ffc86c2082` keeps the six [protocol-qualified COSMIC changes](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43533976399) and takes the exact [native-qualified Firestore test file](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43535483525/job/132263332650) from `72bd082f6613`. Relative to `f587ae2ccabf`, only FirestoreSqliteOutageTests.cs changes. Relative to the HyperDrive candidate, only the six COSMIC paths change. WEB4 health remained HTTP 200 on Development `9944b532132b`. Review after 19:56:48 Cancun with one publisher.
+Candidate `72ffc86c2082` keeps the six [protocol-qualified COSMIC changes](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43533976399) and takes the exact [native-qualified Firestore test file](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43535483525/job/132263332650) from `72bd082f6613`. Relative to `f587ae2ccabf`, only FirestoreSqliteOutageTests.cs changes. Relative to the HyperDrive candidate, only the six COSMIC paths change. WEB4 health remained HTTP 200 on Development `9944b532132b`. Development fast-forwarded to 72ffc86c2082 in this window. Railway queued WEB4 deployment c17c2598-65d9-457a-96ac-dc3063770fdf at 19:59:11 Cancun. Live cutover and authenticated CQL checks are pending. Reuse the retained release-smoke visitor after HTTP health and the serving revision are confirmed. Next shared review is after 20:29:11 Cancun. The Azure Cosmos healthy-miss test is separate.
 
 ## Authenticated Firestore baseline accepted
 
