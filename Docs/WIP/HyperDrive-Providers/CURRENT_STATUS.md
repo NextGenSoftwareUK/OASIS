@@ -1985,3 +1985,5 @@ Supabase now reads replica receipt evidence through a service-role PostgREST RPC
 14 November Cancun time. Bitcoin explorer activation now reads the configured Esplora chain tip under its API path and preserves the client across deactivation. A direct public Esplora probe returned HTTP 200 and a numeric height. Provider build and lifecycle verification remain open. Native storage signing and readback remain open. No local artifacts were created.
 
 14 November Cancun time. WEB4 through WEB10 successfully deployed 4645c412a8d8. [Bitcoin public activation lifecycle CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43619315045) is running on 4c0ebfc51ff8. No hosted queue changes or local build artifacts.
+
+14 November Cancun time. [Bitcoin native public activation](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43619846306/job/132522812690) passed on f876126130b2 after correcting the legacy integration project compile errors. The shipping provider activated, deactivated and reactivated with public Esplora. Native Bitcoin storage and signed transactions remain open.
