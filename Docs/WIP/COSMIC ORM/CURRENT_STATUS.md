@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Verified compound grouping example
+
+Web4Site 16faa50cc22f now displays the live API-verified compound grouping example in the Playground. The exact displayed markup compiles to two grouping fields, two HAVING comparisons and three sort keys. All 173 website tests passed. Hosted browser rollout remains open.
+
 ## Positive live complex grouped query
 
 The exact Web4Site parser 777f7a127bd0 ran a two-field GROUP BY with compound HAVING, three sort keys and LIMIT on live WEB4. Each of MongoDB, SQLite and Neo4j returned [1, true, "1"] for one private fixture and no group when the upper bound excluded one. All three fixtures and the initial MongoDB setup record were conditionally hard-deleted and confirmed absent. Browser rollout and real WEB6 drafting remain open.
