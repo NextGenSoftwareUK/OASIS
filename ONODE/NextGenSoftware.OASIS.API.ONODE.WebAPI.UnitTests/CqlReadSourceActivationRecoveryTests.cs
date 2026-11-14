@@ -56,6 +56,32 @@ public class CqlReadSourceActivationRecoveryTests
     }
 
     [Fact]
+    public async Task ManagedHoloOasisTimeoutKeepsOtherReadSourcesAvailable()
+    {
+        var (adapter, state) = Create();
+        using var profile = new CqlReadSourceProfile(adapter, CqlReadSourceActivationPolicy.TransientServerErrorOnce);
+        var registry = new CqlHostedSourceRegistry(new[] { profile }, new CaptureLogger(),
+            provisionManagedHoloOasis: _ => Task.FromException(new TimeoutException("Native cell did not become ready")));
+        var admission = new PricedStorageAdmissionFactory(null, Array.Empty<NativeStorageAdmissionBinding>(),
+            Array.Empty<ProviderType>(), new[]
+            {
+                new StorageQueryTariff(ProviderType.BlockscoutOASIS, 0, "test-v1"),
+                new StorageQueryTariff(ProviderType.HoloOASIS, 0, "test-v1")
+            }, null, new[] { ProviderType.BlockscoutOASIS, ProviderType.HoloOASIS });
+        using var hosted = new CqlHostedSources(admission, registry,
+            Microsoft.Extensions.Logging.Abstractions.NullLogger<CqlHostedSources>.Instance);
+
+        await hosted.StartAsync(default);
+        await hosted.ExecuteTask!.WaitAsync(TimeSpan.FromSeconds(10));
+
+        var sources = hosted.Describe().ToDictionary(source => source.Provider);
+        Assert.True(sources[nameof(ProviderType.BlockscoutOASIS)].Available);
+        Assert.Equal(2, state.Attempts);
+        Assert.False(sources[nameof(ProviderType.HoloOASIS)].Available);
+        Assert.Equal("CQL_SOURCE_UNAVAILABLE", sources[nameof(ProviderType.HoloOASIS)].ErrorCode);
+    }
+
+    [Fact]
     public async Task ExplicitRecoveryPublishesAvailabilityOnlyAfterSecondAwaitedHealthCheck()
     {
         var (adapter,state) = Create(); var log = new CaptureLogger();
