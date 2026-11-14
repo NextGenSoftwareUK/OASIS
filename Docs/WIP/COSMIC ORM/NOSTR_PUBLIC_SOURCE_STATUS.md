@@ -1,5 +1,9 @@
 # Nostr public event qualification
 
+## Development activation and relay transport, 14 November 2026
+
+WEB4 revision 1ebcb3b772c5 reached 106/107 native and federated readiness, with NostrOASIS alone unavailable. The shipping provider reported HTTP 521 during activation at WebSocket connect after 251 ms, before any event selection. A later bounded anonymous WebSocket upgrade from the same Railway container to the configured relay received HTTP 101 and closed immediately. This establishes that the upgrade was reachable at the time of the later check. Signed event selection and provider recovery remain unverified on this deployment. No event subscription, fixture replay, endpoint change, or local artifact.
+
 ## Live WEB4 activation evidence, 13 November 2026
 
 On Development b4270f9cb9d2 (Railway 9a9332cd), authenticated discovery reported 106/107 ready for native and federated CQL. NostrOASIS was the only unavailable source. The shipping provider logged HTTP 520 at WebSocket connect (NotAWebSocket, 323 ms). The upgrade failed before event selection. The earlier HTTP 503 and current HTTP 520 establish recurring relay upgrade failure. The upstream cause remains unknown. Existing catalogue, signed public event IDs and accepted cohorts were preserved. No relay configuration, persisted records or local test artifacts changed.
