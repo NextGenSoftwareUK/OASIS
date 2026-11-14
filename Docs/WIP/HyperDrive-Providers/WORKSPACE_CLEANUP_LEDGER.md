@@ -1096,3 +1096,5 @@ Urgent disk cleanup follow-up: leased standard project clean succeeded for AWS u
 Supabase receipt qualification reuses the disposable PostgREST fixture. No local build, downloads, or database were created.
 
 13 November. Supabase jobs 132334570501 and 132335719964 confirmed removal of their PostgREST processes, SQLite files and owned runner fixture. Logs were read in memory.
+
+13 November. Removed and verified absence of the Supabase receipt candidate index. No local build, database, or download was created.

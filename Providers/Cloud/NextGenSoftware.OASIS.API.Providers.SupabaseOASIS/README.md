@@ -32,6 +32,8 @@ Provider adapters require their respective service configuration and credentials
 
 For a new dedicated hosted Supabase database, apply [the storage schema](supabase-storage-schema.sql) as the database owner. The schema grants table access to the Supabase service role and enables row-level security with no client policies. Keep the provider credential server-side.
 
+Apply [the replication schema](supabase-replication-schema.sql) once, after the storage schema, to enroll a database for replication. Keep the persisted storage identity with the database. The service role can read that identity and look up replica receipts through PostgREST. A receipt lookup checks the enrolled identity in the same database statement and rejects requests for a different store.
+
 Save the avatar before its detail record. A hard delete of the avatar removes its detail in the same database transaction. This schema is for new databases. Existing databases require a reviewed migration that preserves their records and checks for orphaned details before adding the foreign key.
 
 ## Errors and security
