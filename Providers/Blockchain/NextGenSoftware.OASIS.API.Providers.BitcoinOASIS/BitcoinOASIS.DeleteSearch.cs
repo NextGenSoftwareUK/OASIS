@@ -97,14 +97,39 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                 }
 
                 var utxos = await _httpClient.GetFromJsonAsync<JsonElement[]>($"address/{source}/utxo");
-                var coins = utxos.Select(utxo =>
+                var tipText = await _httpClient.GetStringAsync("blocks/tip/height");
+                var tip = long.Parse(tipText, System.Globalization.CultureInfo.InvariantCulture);
+                var coins = new List<Coin>();
+                foreach (var utxo in utxos)
                 {
-                    var outpoint = new OutPoint(uint256.Parse(utxo.GetProperty("txid").GetString()), utxo.GetProperty("vout").GetUInt32());
-                    var output = new TxOut(Money.Satoshis(utxo.GetProperty("value").GetInt64()), source.ScriptPubKey);
-                    return wrappedSegwit
+                    var txid = uint256.Parse(utxo.GetProperty("txid").GetString());
+                    var index = utxo.GetProperty("vout").GetUInt32();
+                    var value = Money.Satoshis(utxo.GetProperty("value").GetInt64());
+                    var status = utxo.GetProperty("status");
+                    var confirmed = status.GetProperty("confirmed").GetBoolean();
+
+                    // Old confirmed outputs are mature regardless of whether they came from mining.
+                    var mature = confirmed && tip - status.GetProperty("block_height").GetInt64() + 1 >= 100;
+                    if (!mature)
+                    {
+                        var raw = await _httpClient.GetStringAsync($"tx/{txid}/hex");
+                        var funding = Transaction.Parse(raw.Trim(), network);
+                        if (funding.GetHash() != txid || index >= funding.Outputs.Count ||
+                            funding.Outputs[(int)index].ScriptPubKey != source.ScriptPubKey ||
+                            funding.Outputs[(int)index].Value != value)
+                            throw new InvalidOperationException("Esplora returned inconsistent funding output details.");
+
+                        if (funding.IsCoinBase)
+                            continue;
+                    }
+
+                    var outpoint = new OutPoint(txid, index);
+                    var output = new TxOut(value, source.ScriptPubKey);
+                    coins.Add(wrappedSegwit
                         ? new ScriptCoin(outpoint, output, signer.PrivateKey.PubKey.WitHash.ScriptPubKey)
-                        : new Coin(outpoint, output);
-                }).ToArray();
+                        : new Coin(outpoint, output));
+                }
+
                 decimal feeRate;
                 if (_paymentFeeRateSatPerVByte is decimal configuredFeeRate)
                 {
@@ -122,7 +147,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
 
                 var payment = Money.Satoshis((long)satoshis);
                 var builder = network.CreateTransactionBuilder()
-                    .AddCoins(coins)
+                    .AddCoins(coins.ToArray())
                     .AddKeys(signer.PrivateKey)
                     .Send(destination, payment)
                     .SetChange(source)

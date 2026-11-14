@@ -208,8 +208,11 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
 
             await BitcoinCliAsync("-rpcwallet=oasis-regtest", "-named", "sendtoaddress",
                 $"address={source}", "amount=1", "fee_rate=2");
-            var miner = (await BitcoinCliAsync("-rpcwallet=oasis-regtest", "getnewaddress")).Trim();
-            await BitcoinCliAsync("generatetoaddress", "1", miner);
+            var fundingBlocks = await BitcoinCliAsync("generatetoaddress", "1", source);
+            using var fundingBlock = System.Text.Json.JsonDocument.Parse(fundingBlocks);
+            var immatureReward = await BitcoinCliAsync("getblock", fundingBlock.RootElement[0].GetString(), "1");
+            using var rewardBlock = System.Text.Json.JsonDocument.Parse(immatureReward);
+            var rewardId = rewardBlock.RootElement.GetProperty("tx")[0].GetString();
             var tip = (await BitcoinCliAsync("getblockcount")).Trim();
             for (var attempt = 0; attempt < 60; attempt++)
             {
@@ -235,6 +238,9 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
             using var confirmation = System.Text.Json.JsonDocument.Parse(block);
             var transaction = confirmation.RootElement.GetProperty("tx").EnumerateArray()
                 .Single(candidate => candidate.GetProperty("txid").GetString() == transactionId);
+            Assert.IsTrue(transaction.GetProperty("vin").EnumerateArray()
+                .All(input => input.GetProperty("txid").GetString() != rewardId),
+                "Payment must exclude the immature mining reward.");
             var outputs = transaction.GetProperty("vout").EnumerateArray().ToArray();
             Assert.IsTrue(outputs.Any(output => output.GetProperty("value").GetDecimal() == 0.001m &&
                 output.GetProperty("scriptPubKey").TryGetProperty("address", out var address) &&
