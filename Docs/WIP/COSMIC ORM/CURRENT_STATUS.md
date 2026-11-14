@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Shared rollout reproduced HoloOASIS activation timeout
+
+Development f132040b216c deployment 0c8f0b08 served HTTP 200 and catalogue readiness rose to 87/107 while HoloOASIS remained pending. The same deployment logged a typed HoloOASIS activation timeout at roughly 62 seconds. Native admin refused connections after the timeout. This verifies that WEB4 stays available when HoloOASIS hits the timeout. The candidate reports only allowlisted startup milestones through operator diagnostics. The raw conductor output is kept private. Native stall diagnosis remains open.
+
 ## HoloOASIS relay reachability by address family
 
 14 November, 11:25 Cancun. On serving Development 2e864e1162e0, an in-container HTTPS probe to the configured bootstrap host got an HTTP response in 465 ms. The configured dual-stack relay timed out on an initial default request. Forced IPv4 reached HTTP 200 in 107 ms and forced IPv6 returned ENETUNREACH in 4 ms. Native admin reported one running cell on that same revision. This isolates an address-family reachability difference in the container. The HTTP samples do not establish how the native iroh connection selected addresses during the failed startup. Correlate the native startup markers and relay errors before changing its network configuration. No volume changes, downloads, new services or local artifacts.

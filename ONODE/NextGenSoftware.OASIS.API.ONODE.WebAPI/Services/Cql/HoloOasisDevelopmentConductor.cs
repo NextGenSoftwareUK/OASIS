@@ -309,11 +309,12 @@ internal sealed class HoloOasisDevelopmentConductor
                     interfaceCount = error.GetType().Name;
                 }
 
-                throw new TimeoutException(
+                var timeout = new TimeoutException(
                     $"The existing HoloOASIS teaching cell did not start within the conductor readiness budget. " +
-                    $"Last native startup milestone: {DescribeNativeStartup(GetConductorOutput())}; " +
                     $"Persisted app interfaces: {interfaceCount}; " +
                     $"completed cell-list replies: {completedPolls}; cells in the last reply: {lastRunningCellCount}.");
+                timeout.Data["COSMIC.NativeStage"] = DescribeNativeStartup(GetConductorOutput());
+                throw timeout;
             }
         }
 
