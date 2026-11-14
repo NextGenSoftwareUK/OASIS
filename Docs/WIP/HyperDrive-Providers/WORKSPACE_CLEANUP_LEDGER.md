@@ -1160,3 +1160,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 14 November Cancun time. The DynamoDB provider-key test uses hosted CI and its owned fixture cleanup. No local build output, download, or test fixture was created.
 
 14 November Cancun time. The hosted DynamoDB job passed its fixture cleanup gate. Removed the temporary Git index for exact provider-key qualification. No local builds, downloads, or test fixtures were created.
+
+14 November Cancun time. The DynamoDB Local invalid-counter run passed the hosted teardown gate. The test restored the original counter before continuing. CI logs were read in memory. No local downloads, fixtures, or build outputs were created.
