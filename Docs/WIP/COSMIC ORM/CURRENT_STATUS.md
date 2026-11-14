@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Direct UInt64 entity-window qualification
+
+COSMIC a59115939edf pins Core a85f3b7c in the deployment manifest and gitlink together. The Core change exposes the existing entity-window numeric planner and preserves Development authentication. The three-store fixture asserts exact UInt64 maximum Sum and decimal Average after an entity window. [Native CI 43581084683](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43581084683) is queued. The [prior floating-point-only candidate](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43580421972) checks the new DynamoDB Development base independently. Q01f remains incomplete. Development WEB4 f1acb554 is building; live verification waits for 2e0b02a9d4c8. No local builds or fixtures.
+
 ## Native floating-point reductions passed on three stores
 
 The native step in [run 43579121652](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43579121652/job/132399850126) passed for exact candidate cdc49070d2a7 on Development 985cc6f58c65. MongoDB, SQLite and Neo4j passed Single and Double Sum and Average after entity windows and the applicable empty-input cases. The two changed files are fixture and assertion code. Q01f remains incomplete. Recheck the shared head and coordinate with the qualified HyperDrive DynamoDB batch before Development integration. No local builds or fixtures.
