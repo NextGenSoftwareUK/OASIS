@@ -6676,3 +6676,5 @@ Web4Site 5fa63a71df5d used a temporary directory containing only committed websi
 14 November Cancun: retain ci-cosmic-hedera-59e96297ca0b during exact CI 43586946789. Public mirror responses and Railway diagnostics were inspected in memory. No local builds, dependencies, test databases or downloaded logs. Temporary Git indexes removed.
 
 14 November Cancun time. HoloOASIS live checks reused the retained visitor. The temporary Git indexes for the scoped status commit and candidate 57b2167a3533 were removed. Remote tag ci-cosmic-shared-57b2167a3533 retains the combined qualification input for CI 43597290726. Remove once that candidate is integrated or superseded. No local build, downloads, new runtime or provider fixture. C: had 29.2 GiB free.
+
+14 November Cancun time. Temporary Git indexes for the graph-numeric parity fixture were removed. ci-cosmic-graph-numeric-065deaed092d is the retained CI input for 43598050460. ci-cosmic-shared-23051874d247 preserves the verified-tree follow-on to the peer deployment. Remove both tags once their work is integrated or superseded. No local build or new runtimes, downloads, or data fixtures. Free disk 29.2 GiB.

@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Next live and parity qualification
+
+HyperDrive published its verified repair at Development 854066dc931a. WEB4 deployment 96c78a7c is building. COSMIC follow-on 23051874d247 preserves the full tree of combined candidate 57b2167a3533 and now changes only the four Hedera and HoloOASIS paths relative to Development. Combined CI 43597290726 passed the Hedera stage and is still running. Feature be16de2f396c adds an exact native parity case for decimal Sum and Average after a paged graph predicate, including empty Sum. CI 43598050460 runs source candidate 065deaed092d across the three providers. The Q01f checklist stays open until its remaining cases are proven.
+
 ## Same-revision WEB4 redeploy completed
 
 The railway redeploy dd67790d served c84e1b5c3632 and matched 3 full and 2 subset HoloOASIS public IDs via direct and federated CQL after warm-up. Discovery recovered from 10 to 49 to 105 of 107 sources in both modes. The intermittent persisted-cell startup remains open. WEB4 browser preflight on the intended dev.web4.oasisomniverse.one origin still lacks credentialed CORS, the Development-only flag is absent, and the hostname does not resolve. The exact protected frontend preview responds with a Vercel sign-in redirect. The approved Bronze grant still awaits the private subscription-admin session.
