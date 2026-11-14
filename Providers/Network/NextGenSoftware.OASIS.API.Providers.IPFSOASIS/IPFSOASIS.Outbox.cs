@@ -114,13 +114,20 @@ public partial class IPFSOASIS : IBoundAtomicHolonReplicationStorageProvider, IB
             => ExecuteAsync(rows =>
             {
                 HolonReplicationRoutePage.ValidateRequest(pageSize, afterTargetId);
-                var targets = rows.Properties().Where(entry => State(entry.Value) != HolonDeliveryState.Completed)
-                    .Select(entry => ReplicaText(entry.Value["target"])).Distinct(StringComparer.Ordinal)
-                    .Where(target => afterTargetId == null || HolonReplicationRoutePage.CompareTargetIds(target, afterTargetId) > 0)
-                    .OrderBy(target => target, System.Collections.Generic.Comparer<string>.Create(HolonReplicationRoutePage.CompareTargetIds))
-                    .Take(pageSize + 1).ToArray();
-                return (new HolonReplicationRoutePage(targets.Take(pageSize).Select(target => Inspect(Head(rows, target))),
-                    targets.Length > pageSize), false);
+                var heads = new System.Collections.Generic.SortedDictionary<string, JProperty>(
+                    System.Collections.Generic.Comparer<string>.Create(HolonReplicationRoutePage.CompareTargetIds));
+                foreach (var entry in rows.Properties())
+                {
+                    if (State(entry.Value) == HolonDeliveryState.Completed)
+                        continue;
+                    var target = ReplicaText(entry.Value["target"]);
+                    if (afterTargetId != null && HolonReplicationRoutePage.CompareTargetIds(target, afterTargetId) <= 0)
+                        continue;
+                    if (!heads.TryGetValue(target, out var current) || Sequence(entry) < Sequence(current))
+                        heads[target] = entry;
+                }
+                return (new HolonReplicationRoutePage(heads.Values.Take(pageSize).Select(Inspect),
+                    heads.Count > pageSize), false);
             }, cancellationToken);
 
         public Task<OASISResult<HolonDeliveryClaim>> ClaimNextAsync(string targetId, string workerId, TimeSpan leaseDuration,
