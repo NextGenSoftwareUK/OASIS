@@ -1212,3 +1212,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 14 November Cancun time. The corrected V2 qualification passed its native fixture cleanup. Candidate f03919cf8c33 used a temporary Git index that was removed. No local build or download ran.
 
 14 November Cancun time. The native V2 wrong-target job completed both fixture cleanup steps. It created no local build or download.
+
+14 November Cancun time. Exact V2 repair qualification completed the native fixture teardown. No local build or downloads were created.
