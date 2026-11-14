@@ -2,7 +2,7 @@
 
 ## Grouped numeric aggregates
 
-Web4Site f1d6cd34500b adds grouped COUNT, MIN, MAX, SUM and AVG with ordered output aliases. All 174 website tests passed. Using that parser, live WEB4 9944b532132b returned the same Boolean, Int64, Int32, Int32, Int32 and Decimal columns on MongoDB, SQLite and Neo4j. All returned zero rows for the retained smoke visitor. Populated results and hosted browser execution remain open. WEB4 72ffc86c2082 is still building.
+Web4Site f1d6cd34500b adds grouped COUNT, MIN, MAX, SUM and AVG with ordered output aliases. All 174 website tests passed. Using that parser, live WEB4 9944b532132b returned the same Boolean, Int64, Int32, Int32, Int32 and Decimal columns on MongoDB, SQLite and Neo4j. All returned zero rows for the retained smoke visitor. A follow-up verified COUNT, MIN, MAX, SUM and AVG against one private persisted record per store, with all aggregate values checked against the observed Version. Each record was conditionally hard-deleted and verified absent. Multi-row grouped arithmetic and hosted browser execution remain open. WEB4 72ffc86c2082 is still building.
 
 ## Shared Development review candidate
 
