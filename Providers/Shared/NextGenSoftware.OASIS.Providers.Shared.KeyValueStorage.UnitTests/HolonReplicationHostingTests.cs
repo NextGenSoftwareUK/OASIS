@@ -194,6 +194,7 @@ public partial class HolonReplicationHostingTests
         var receiver=new Receiver();var route=Catalog(new Store(),receiver,policy).Targets.Single();
         var result=await route.ApplyReplicatedMutationAsync(item,default);
         Assert.IsTrue(result.IsError);Assert.AreEqual("COSMIC_REPLICA_PAYLOAD_INVALID",result.ErrorCode);
+        Assert.AreEqual(0,policy.Calls,"Invalid routing assertions must be rejected before authorization.");
         Assert.AreEqual(0,receiver.Calls,"Policy cannot replace the original routing assertions.");
     }
     [DataTestMethod]
