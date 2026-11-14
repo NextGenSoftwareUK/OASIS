@@ -120,6 +120,14 @@ public sealed class AzureCosmosSqliteHyperDriveTests
         var result = sync ? router.RouteRequest<IHolon>(request) : await router.RouteRequestAsync<IHolon>(request);
         Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, result.ErrorCode, result.Message);
         Assert.IsNull(result.Result);
+        var byProviderKey = new StorageOperationRequest
+        {
+            Operation = "LoadHolonByProviderKey", ProviderKey = id.ToString("D"),
+            PreferredProvider = source, LoadChildren = false
+        };
+        var keyedResult = sync ? router.RouteRequest<IHolon>(byProviderKey) : await router.RouteRequestAsync<IHolon>(byProviderKey);
+        Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, keyedResult.ErrorCode, keyedResult.Message);
+        Assert.IsNull(keyedResult.Result);
         Assert.AreEqual(0L, manager.PerformanceMonitor.GetMetrics(target)?.TotalRequests ?? 0);
     }
 
