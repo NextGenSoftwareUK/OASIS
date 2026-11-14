@@ -94,9 +94,12 @@ jobs:
           test "$(curl -fsS "$OASIS_BITCOIN_ORD_API/r/blockhash/0" | jq -er .)" = "$genesis"
           recipient="$(wallet receive | jq -er '.addresses[0]')"
           printf 'OASIS Ordinals native qualification\n' > "$owned/record.txt"
-          inscription="$(wallet inscribe --fee-rate 2 --file "$owned/record.txt" --destination "$recipient" |
-            jq -ers '[.[] | .inscriptions[]? | .id | select(type == "string" and test("^[0-9a-f]{64}i[0-9]+$"))]
-              | unique | if length == 1 then .[0] else error("Expected one inscription ID") end')"
+          # The disposable wallet and its chain are deleted after this read test.
+          receipt="$(wallet inscribe --no-backup --fee-rate 2 --file "$owned/record.txt" --destination "$recipient")"
+          inscription="$(jq -er '
+            select(.reveal_broadcast == true and (.inscriptions | length) == 1)
+            | .inscriptions[0].id | select(type == "string" and test("^[0-9a-f]{64}i[0-9]+$"))
+          ' <<< "$receipt")"
           export OASIS_BITCOIN_ORD_INSCRIPTION="$inscription"
           bitcoin getmempoolentry "${inscription%i*}" >/dev/null
           bitcoin generatetoaddress 1 "$recipient" >/dev/null
