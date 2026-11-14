@@ -296,6 +296,31 @@ public partial class AWSOASISIntegrationTests
                 (await _provider.LoadHolonAsync(record.Id, loadChildren: false)).ErrorCode);
 
             var enrollment = Enroll(source.Result);
+            var counterKey = new Dictionary<string, AttributeValue> { ["id"] = new() { S = "outbound:sequence" } };
+            var counter = await native.GetItemAsync(new GetItemRequest
+            {
+                TableName = "OasisHolonWriteReceipts", Key = counterKey, ConsistentRead = true
+            });
+            try
+            {
+                await native.PutItemAsync(new PutItemRequest
+                {
+                    TableName = "OasisHolonWriteReceipts",
+                    Item = new(counterKey) { ["sequence"] = new() { S = "invalid" } }
+                });
+                var invalidCounter = await publisher.ExecuteReplicatingHolonWriteAsync(request, enrollment);
+                Assert.AreEqual("COSMIC_CONDITIONAL_WRITE_FAILED", invalidCounter.ErrorCode);
+                Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,
+                    (await _provider.LoadHolonAsync(record.Id, loadChildren: false)).ErrorCode);
+            }
+            finally
+            {
+                if (counter.Item?.Count > 0)
+                    await native.PutItemAsync(new PutItemRequest { TableName = "OasisHolonWriteReceipts", Item = counter.Item });
+                else
+                    await native.DeleteItemAsync(new DeleteItemRequest { TableName = "OasisHolonWriteReceipts", Key = counterKey });
+            }
+
             var committed = await publisher.ExecuteReplicatingHolonWriteAsync(request, enrollment);
             Assert.IsTrue(!committed.IsError && committed.IsSaved, $"{committed.Message} {committed.Exception}");
             var replay = publisher.ExecuteReplicatingHolonWrite(request, enrollment);
