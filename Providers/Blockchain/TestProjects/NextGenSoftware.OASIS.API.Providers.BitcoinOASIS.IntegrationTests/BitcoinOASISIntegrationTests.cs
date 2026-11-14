@@ -20,6 +20,32 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
         }
 
         [TestMethod]
+        public async Task EsploraActivationSurvivesDeactivation()
+        {
+            try
+            {
+                var active = await _provider.ActivateProviderAsync();
+                Assert.IsFalse(active.IsError, active.Message);
+                Assert.IsTrue(active.Result);
+                Assert.IsTrue(_provider.IsProviderActivated);
+
+                var inactive = await _provider.DeActivateProviderAsync();
+                Assert.IsTrue(inactive.Result);
+                Assert.IsFalse(_provider.IsProviderActivated);
+
+                var reactivated = await _provider.ActivateProviderAsync();
+                Assert.IsFalse(reactivated.IsError, reactivated.Message);
+                Assert.IsTrue(reactivated.Result);
+                Assert.IsTrue(_provider.IsProviderActivated);
+            }
+            finally
+            {
+                _provider.DeActivateProvider();
+                _provider.Dispose();
+            }
+        }
+
+        [TestMethod]
         public async Task SaveAvatar_ShouldReturnSuccessResult()
         {
             // Arrange
