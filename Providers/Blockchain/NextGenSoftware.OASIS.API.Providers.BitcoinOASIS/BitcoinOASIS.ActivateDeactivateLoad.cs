@@ -212,31 +212,53 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                     }
                 }
 
-                // Query Bitcoin blockchain for avatar by address
-                var queryUrl = $"/address/{providerKey}";
-
-                var httpResponse = await _httpClient.GetAsync(queryUrl);
-                if (httpResponse.IsSuccessStatusCode)
+                if (!uint256.TryParse(providerKey, out var transactionId))
                 {
-                    var content = await httpResponse.Content.ReadAsStringAsync();
-                    var addressData = JsonSerializer.Deserialize<JsonElement>(content);
+                    OASISErrorHandling.HandleError(ref response, "A Bitcoin transaction ID is required to load an avatar.");
+                    return response;
+                }
 
-                    var avatar = ParseBitcoinToAvatar(addressData, providerKey);
+                using var lookup = await _httpClient.GetAsync($"tx/{transactionId}/hex");
+                lookup.EnsureSuccessStatusCode();
+                var transaction = Transaction.Parse((await lookup.Content.ReadAsStringAsync()).Trim(), Network.Main);
+                if (transaction.GetHash() != transactionId)
+                    throw new InvalidOperationException("Esplora returned a transaction with a different ID.");
+
+                Avatar avatar = null;
+                foreach (var output in transaction.Outputs)
+                {
+                    var pushes = new TxNullDataTemplate(output.ScriptPubKey.Length)
+                        .ExtractScriptPubKeyParameters(output.ScriptPubKey);
+                    if (pushes?.Length != 1)
+                        continue;
+
+                    Avatar decoded;
+                    try
+                    {
+                        decoded = ParseBitcoinToAvatar(Encoding.UTF8.GetString(pushes[0]));
+                    }
+                    catch (JsonException)
+                    {
+                        // Arbitrary data outputs are valid Bitcoin transactions.
+                        continue;
+                    }
+
+                    if (decoded == null)
+                        continue;
                     if (avatar != null)
-                    {
-                        response.Result = avatar;
-                        response.IsError = false;
-                        response.Message = "Avatar loaded from Bitcoin successfully";
-                    }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref response, "Failed to parse Bitcoin address data");
-                    }
+                        throw new InvalidOperationException("The Bitcoin transaction contains multiple avatar records.");
+                    avatar = decoded;
                 }
-                else
+
+                if (avatar == null || (version > 0 && avatar.Version != version))
                 {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to load avatar from Bitcoin: {httpResponse.StatusCode}");
+                    response.ErrorCode = OASISResultErrorCodes.RecordNotFound;
+                    OASISErrorHandling.HandleError(ref response, "The Bitcoin transaction does not contain the requested avatar version.");
+                    return response;
                 }
+
+                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.BitcoinOASIS] = transactionId.ToString();
+                response.Result = avatar;
             }
             catch (Exception ex)
             {
