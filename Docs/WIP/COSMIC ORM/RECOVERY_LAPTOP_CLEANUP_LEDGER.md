@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+14 November Cancun: retain LocalState/COSMIC/HostedSandboxCqlCurrent and TestResults/Web4SandboxCqlCurrent for the interrupted hosted replication fixture. Three private Development records were acknowledged. The read-only alias probe did not replay writes. The temporary Web4Site compiler was removed automatically. No runtime installs or local builds.
+
 14 November Cancun: prior smoke visitor files were absent after cleanup. Created one Development sandbox visitor using the existing session endpoint and retained its protected session under LocalState/COSMIC/HostedCqlPostCleanupSmoke-74ff7058 for the pending live acceptance. Reuse this visitor for subsequent probes and remove its disposable local evidence when no longer needed. No local dependencies or runtime installs.
 
 14 November Cancun: canceled superseded image CI 43638171354. Retain ci-cosmic-shared-dc3d613de96a for active combined image and protocol CI, and ci-cosmic-projection-8b0bcbeb15ab for verified projection evidence. No local builds, runtime downloads or fixture databases. Temporary Git index removed automatically.

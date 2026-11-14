@@ -1,5 +1,7 @@
 # COSMIC ORM / CQL current status
 
+14 November, Cancun. Live Development c03148b117a0 returned all three private fixture rows in the expected descending Label order on MongoDB and Neo4j through the Web4Site 2cad857 SQL-like compiler. SQLite returned zero matching rows. Railway logs show MongoDB to SQLite blocked at sequence 535 and Neo4j to SQLite blocked at sequence 14 with COSMIC_REPLICA_LINEAGE_CONFLICT. The original hosted fixture stopped before alias assertions because replication had not delivered all records. The read-only alias probe reused its three acknowledged saves. Preserve the original journal and replica queues while investigating. Combined candidate dc3d613de96a passed protocol CI 43638464652. Image CI 43638462645 remains active.
+
 14 November, Cancun. Authenticated WEB4 verification on the serving revision returned 104 of 107 sources in both modes. HoloOASIS returned CQL_SOURCE_UNAVAILABLE. Hedera returned its exact 3/2 direct and federated results with matching provenance. Linux network join milestone regression CI 43637875691 passed. Combined protocol and image builds remain active.
 
 14 November, Cancun. Detached public field projections passed 49 native assertions per store with fixture cleanup on MongoDB, SQLite and Neo4j in CI 43637315553. Timed HoloOASIS conductor startup passed Linux CI 43637661644. The combined candidate dc3d613de96a reconciles both with Development c03148b117a0. Exact image CI 43638462645 and protocol CI 43638464652 are active. The live conductor stall remains unresolved.
