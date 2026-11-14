@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## WEB4 public health recovered after persisted-cell timeouts
+
+Deployment 9a9332cd on b4270f9cb9d2 logged two persisted HoloOASIS cell timeouts with 240 admin replies and zero running cells. Read-only inspection then confirmed the WEB4 listener, both processes and 4.4 GiB free on the data volume. Public /api/health returned HTTP 200. The release-smoke visitor's prior 502 response is sealed, and the renewal journal remains pending. The HoloOASIS, IPFS and Polkadot readiness cohorts yielded no eligible retained read-only session. No renewal or replacement visitor was attempted during this review. Authenticated acceptance remains open. HyperDrive's SQL Server receiver candidate d64933834a96 passed exact native sync and async qualification and remains for the next shared review. No local build outputs or data fixtures were created.
+
 ## Combined rollout container reached its pinned revision
 
 Railway marked deployment 9a9332cd successful and read-only SSH confirmed b4270f9cb9d2. Independent public health requests timed out. The PowerShell probe treated the health exception as nonterminating and attempted a retained visitor renewal prematurely. The exact Railway HTTP trace Fy1oovLEReWARTp4o3UVLg records a 502 with exclusively upstream connection refusals. The rotation journal is preserved for reconciliation. Do not replay this renewal. The next live probe must treat health exceptions as terminating. Authenticated catalogue and HoloOASIS verification remain open. No new visitor, test records or build outputs were created.
