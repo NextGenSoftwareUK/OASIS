@@ -8,6 +8,55 @@ using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HyperDrive;
 /// <summary>Read-only reconciliation of the retained, acknowledged demo cohort; never creates providers or replays writes.</summary>
 public sealed class SandboxHostedReplicationProbe
 {
+    [HostedRoutingOperationProbeFact]
+    public async Task ObserveExactRoutingOperationWithoutPayloads()
+    {
+        var operation = Guid.ParseExact(Environment.GetEnvironmentVariable("OASIS_HOSTED_ROUTING_OPERATION")
+            ?? throw new InvalidOperationException("An acknowledged routing operation is required."), "D");
+        Assert.NotEqual(Guid.Empty, operation);
+        using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+        try
+        {
+            var settings = MongoClientSettings.FromConnectionString(Environment.GetEnvironmentVariable("COSMIC_HOSTED_ACCOUNTING_URI"));
+            settings.ApplicationName = "hyperdrive-read-only-routing-operation";
+            settings.MaxConnectionPoolSize = 1;
+            settings.ServerSelectionTimeout = TimeSpan.FromSeconds(10);
+            var outbox = new MongoClient(settings)
+                .GetDatabase(Environment.GetEnvironmentVariable("COSMIC_HOSTED_ACCOUNTING_DATABASE"))
+                .GetCollection<BsonDocument>("CosmicHolonOutbox");
+            var projection = new BsonDocument { { "_id", 0 }, { "Sequence", 1 }, { "TargetId", 1 },
+                { "DeliveryState", 1 }, { "AttemptCount", 1 }, { "LastErrorCode", 1 } };
+            var deliveries = await outbox.Find(new BsonDocument("OperationId", operation.ToString("D")))
+                .Project(projection).Limit(257).ToListAsync(deadline.Token);
+            Assert.True(deliveries.Count <= 256, "Operation exceeds the supported target count.");
+            foreach (var delivery in deliveries)
+            {
+                var target = delivery["TargetId"].AsString;
+                var head = await outbox.Find(new BsonDocument { { "TargetId", target },
+                        { "DeliveryState", new BsonDocument("$ne", "Completed") } })
+                    .Sort(new BsonDocument("Sequence", 1)).Project(projection)
+                    .Limit(1).SingleOrDefaultAsync(deadline.Token);
+                var provider = target.Split(':').ElementAtOrDefault(1);
+                Console.WriteLine(JsonSerializer.Serialize(new
+                {
+                    provider,
+                    sequence = delivery["Sequence"].ToInt64(),
+                    state = delivery["DeliveryState"].AsString,
+                    headSequence = head?["Sequence"].ToInt64(),
+                    headState = head?["DeliveryState"].AsString,
+                    headErrorCode = head?.GetValue("LastErrorCode", BsonNull.Value).ToString()
+                }));
+            }
+
+            Console.WriteLine($"Exact operation obligations: {deliveries.Count}.");
+        }
+        catch (Exception error)
+        {
+            throw new InvalidOperationException("Read-only operation inspection failed: " + error.GetType().Name);
+        }
+    }
+
+
     [SandboxHostedAccountingProbeFact]
     public async Task ObserveRetainedSourceAndDeliveryObligations()
     {
@@ -121,5 +170,15 @@ public sealed class SandboxHostedReplicationProbe
         {
             throw new InvalidOperationException("Read-only replication observation failed: " + error.GetType().Name + ". No mutation attempted.");
         }
+    }
+}
+
+public sealed class HostedRoutingOperationProbeFactAttribute : Xunit.FactAttribute
+{
+    public HostedRoutingOperationProbeFactAttribute()
+    {
+        if (Environment.GetEnvironmentVariable("COSMIC_HOSTED_ACCOUNTING_PROBE") != "oasis-dev-web4-read-only"
+            || string.IsNullOrEmpty(Environment.GetEnvironmentVariable("OASIS_HOSTED_ROUTING_OPERATION")))
+            Skip = "Requires an explicitly selected hosted routing operation.";
     }
 }
