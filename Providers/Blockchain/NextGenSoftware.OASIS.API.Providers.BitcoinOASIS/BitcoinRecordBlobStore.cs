@@ -10,12 +10,13 @@ using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS;
 
 /// <summary>Stores encrypted record bytes in Kubo and verifies readback against a Bitcoin commitment.</summary>
-internal sealed class BitcoinRecordBlobStore(HttpClient kubo, EncryptedRecordCodec codec)
+internal sealed class BitcoinRecordBlobStore(HttpClient kubo, EncryptedRecordCodec codec, bool avatar = false)
 {
     private const int MaximumEnvelopeBytes = 6 * 1024 * 1024;
-    private static ReadOnlySpan<byte> Magic => "OASBTC1"u8;
+    private ReadOnlySpan<byte> Magic => Prefix(avatar);
+    private static ReadOnlySpan<byte> Prefix(bool avatar) => avatar ? "OASBTA1"u8 : "OASBTC1"u8;
 
-    public static bool IsCommitment(ReadOnlySpan<byte> payload) => payload.StartsWith(Magic);
+    public static bool IsCommitment(ReadOnlySpan<byte> payload, bool avatar = false) => payload.StartsWith(Prefix(avatar));
 
     public async Task<byte[]> PutAsync(string recordScope, string canonicalJson)
     {

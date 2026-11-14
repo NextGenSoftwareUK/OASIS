@@ -480,7 +480,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             return response;
         }
 
-        private async Task<OASISResult<T>> CommitEncryptedRecordAsync<T, TRecord>(T record, string scope)
+        private async Task<OASISResult<T>> CommitEncryptedRecordAsync<T, TRecord>(T record, string scope, bool avatar = false)
             where T : class, IHolonBase
             where TRecord : T
         {
@@ -490,7 +490,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             var snapshot = NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordPublicationSnapshot<TRecord>.Capture(record);
             using var client = CreateRecordBlobClient();
             using var codec = CreateRecordCodec();
-            var store = new BitcoinRecordBlobStore(client, codec);
+            var store = new BitcoinRecordBlobStore(client, codec, avatar);
             var json = NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.Serialize(snapshot.Proposal);
             var commitment = await store.PutAsync(scope, json);
             snapshot.ValidateUnchanged();
