@@ -1130,3 +1130,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 14 November. Supabase dispatcher changes created no local builds, downloads or databases.
 
 14 November. Supabase job 132355907240 removed PostgREST processes, SQLite files and its runner fixture. The candidate index was removed and verified absent. No local build ran.
+
+14 November. Supabase lease coverage reuses the disposable native CI fixture. No local build, download or database was created.
