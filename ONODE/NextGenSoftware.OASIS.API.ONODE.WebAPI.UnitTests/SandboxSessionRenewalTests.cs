@@ -125,16 +125,20 @@ public sealed class SandboxSessionRenewalTests
     }
 
     [Theory]
-    [InlineData("https://web4.oasisomniverse.one", true)]
-    [InlineData("https://third-party.example", false)]
-    [InlineData("https://web4.oasisomniverse.one.attacker.example", false)]
-    public async Task ActualPreflightAllowsCredentialCookiesOnlyForTheExactFirstParty(string origin, bool credentialed)
+    [InlineData("https://web4.oasisomniverse.one", false, true)]
+    [InlineData("https://web4.oasisomniverse.one", true, true)]
+    [InlineData("https://dev.web4.oasisomniverse.one", false, false)]
+    [InlineData("https://dev.web4.oasisomniverse.one", true, true)]
+    [InlineData("https://dev.web4.oasisomniverse.one.attacker.example", true, false)]
+    [InlineData("https://third-party.example", true, false)]
+    [InlineData("https://web4.oasisomniverse.one.attacker.example", false, false)]
+    public async Task ActualPreflightAllowsCredentialCookiesOnlyForTheExactFirstParty(string origin, bool allowDevelopmentPreview, bool credentialed)
     {
         var services = new ServiceCollection();
         services.AddLogging(); services.AddCors();
         await using var provider = services.BuildServiceProvider();
         var app = new ApplicationBuilder(provider);
-        Startup.ConfigureBrowserCors(app);
+        Startup.ConfigureBrowserCors(app, allowDevelopmentPreview);
         var invoked = false;
         app.Run(context => { invoked = true; return Task.CompletedTask; });
         var context = new DefaultHttpContext { RequestServices = provider };
@@ -154,7 +158,7 @@ public sealed class SandboxSessionRenewalTests
     public void BothBrowserPoliciesExposeTheOriginalOperationIdentity()
     {
         foreach (var configure in new Action<CorsPolicyBuilder>[] {
-            Startup.ConfigureCorsPolicy, Startup.ConfigureSessionCookieCorsPolicy })
+            Startup.ConfigureCorsPolicy, policy => Startup.ConfigureSessionCookieCorsPolicy(policy) })
         {
             var builder = new CorsPolicyBuilder(); configure(builder);
             Assert.Contains("X-OASIS-Operation-Id", builder.Build().ExposedHeaders);
