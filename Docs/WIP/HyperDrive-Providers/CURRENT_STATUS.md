@@ -1716,3 +1716,5 @@ Supabase now reads replica receipt evidence through a service-role PostgREST RPC
 14 November Cancun time. Wired the shipping Supabase replica receiver to the native state and atomic commit RPCs. The client validates lineage, allocates a target revision, and verifies the exact committed receipt. CI covers initial apply, replay, direct native read and committed receipt. Outbound remains open.
 
 14 November Cancun time. Extended Supabase native receiver coverage to wrong-predecessor rejection with no receipt, valid successor application and hard delete with committed receipt. Qualification is pending.
+
+14 November Cancun time. Native Supabase receiver CI 43560958011 passed initial apply and exact receipt replay. Added SQLite-to-Supabase shipping dispatcher coverage for exact delivery and restart without duplicates. The expanded run is pending.

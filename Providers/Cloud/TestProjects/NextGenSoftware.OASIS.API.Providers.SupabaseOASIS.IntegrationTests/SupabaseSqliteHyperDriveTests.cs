@@ -5,6 +5,7 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core;
+using NextGenSoftware.OASIS.API.Core.Configuration;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -14,6 +15,7 @@ using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.Common;
 using SqliteProvider = NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.SQLLiteDBOASIS;
 using NextGenSoftware.OASIS.API.Providers.SupabaseOASIS;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Providers.SupabaseOASIS.IntegrationTests;
@@ -133,6 +135,37 @@ public sealed class SupabaseSqliteHyperDriveTests
             Assert.AreEqual(ConditionalHolonReceiptState.Committed, deletionReceipt.Result.ReceiptState);
             var deletedRead = await supabase.LoadHolonAsync(replica.Id, loadChildren: false);
             Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, deletedRead.ErrorCode);
+
+            var sourceIdentity = await sqlite.CaptureStorageIdentityAsync();
+            Assert.IsFalse(sourceIdentity.IsError, sourceIdentity.Message);
+            var actor = Guid.NewGuid();
+            var grant = new HolonReplicationActorGrant(new[] { actor }, DateTime.UtcNow.AddMinutes(10));
+            var route = new HolonReplicationRouteBinding(sourceIdentity.Result, binding.Result, grant.BindingIdentity);
+            var enrollment = new HolonReplicationEnrollment(route.SourceId, new[] { route.TargetId },
+                sourceIdentity.Result, new[] { route });
+            var routedHolon = new Holon { Id = Guid.NewGuid(), Name = "SQLite-to-Supabase delivery", IsActive = true };
+            attempted.Add(routedHolon.Id);
+            var routedIntent = new ConditionalHolonWriteRequest(
+                new ConditionalHolonWrite(Guid.NewGuid(), actor, ProviderType.SQLLiteDBOASIS,
+                    new[] { new HolonWriteCondition(routedHolon.Id, null) }),
+                ConditionalHolonOperation.Save, new[] { routedHolon }, saveChildren: false);
+            var sourceWrite = await sqlite.ExecuteReplicatingHolonWriteAsync(routedIntent, enrollment);
+            Assert.IsTrue(!sourceWrite.IsError && sourceWrite.IsSaved, sourceWrite.Message);
+            var outbox = sqlite.GetBoundHolonReplicationOutbox(sourceIdentity.Result);
+            Assert.IsFalse(outbox.IsError, outbox.Message);
+            var target = new CommittedHolonReplicaTarget(route.TargetId, supabase, binding.Result.Authority,
+                route.SourceId, sourceIdentity.Result.Authority, grant, "supabase-fixture", Guid.NewGuid(),
+                grant.BindingIdentity, binding.Result);
+            var dispatcher = new HolonOutboxDispatcher(outbox.Result, new[] { target }, "supabase-fixture");
+            var delivered = await dispatcher.DispatchOnceAsync(route.TargetId, maximumCount: 1);
+            Assert.IsFalse(delivered.IsError, delivered.Message);
+            Assert.AreEqual(1, delivered.Result.CompletedCount);
+            Assert.AreEqual(sourceWrite.Result.Single().VersionId,
+                (await supabase.LoadHolonAsync(routedHolon.Id, loadChildren: false)).Result?.VersionId);
+            var restarted = new HolonOutboxDispatcher(outbox.Result, new[] { target }, "supabase-fixture-restarted");
+            var duplicate = await restarted.DispatchOnceAsync(route.TargetId, maximumCount: 1);
+            Assert.IsFalse(duplicate.IsError, duplicate.Message);
+            Assert.AreEqual(0, duplicate.Result.CompletedCount);
 
             var reopened = new SupabaseOASIS(endpoint, key!, client, "");
             try
