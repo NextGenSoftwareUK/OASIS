@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+14 November Cancun: canceled the superseded projection-only image run 43631388182 to release the shared image runner for combined CI 43632141477. Retain ci-cosmic-shared-5e3aefa1d6d0 during image and protocol qualification. Retain the projection-only tag as the source reference for the successful native protocol run 43630156412. No newly installed dependencies, local builds or databases. Temporary Git index removed automatically.
+
 14 November Cancun: retain ci-cosmic-projection-d50db224b886 while teaching image CI 43631388182 is active. Protocol CI 43630156412 finished successfully. HoloOASIS CI 43631220899 runs from the feature branch. Temporary Git indexes are removed automatically. No new local downloads, builds or test databases.
 
 14 November Cancun: removed ci-cosmic-shared-4fd56a466009 after CI 43593587199 completed. Its HoloOASIS diagnostic is superseded by the timeout-only version. Retain the active validation and integration tags. No local builds, logs or test databases. Temporary Git index removed.
