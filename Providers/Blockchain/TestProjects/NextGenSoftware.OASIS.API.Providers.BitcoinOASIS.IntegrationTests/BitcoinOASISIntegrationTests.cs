@@ -564,6 +564,21 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
                 var unknownPin = await recovered.ReconcileRecordPublicationAsync(transactionId);
                 Assert.IsTrue(unknownPin.IsError);
                 Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound, unknownPin.ErrorCode);
+
+                // The original encrypted format used unnamed recursive pins.
+                var retainedAvatarCid = namedPins.RootElement.GetProperty("Keys").EnumerateObject()
+                    .Single(pin => pin.Value.GetProperty("Name").GetString() == namePrefix + avatarTx).Name;
+                using var removeNamedPin = await kubo.PostAsync($"api/v0/pin/rm?arg={retainedAvatarCid}", null);
+                removeNamedPin.EnsureSuccessStatusCode();
+                using var retainWithoutName = await kubo.PostAsync($"api/v0/pin/add?arg={retainedAvatarCid}", null);
+                retainWithoutName.EnsureSuccessStatusCode();
+
+                var retainedInventory = await recovered.ListRecordPublicationsAsync();
+                Assert.IsFalse(retainedInventory.IsError, retainedInventory.Message);
+                CollectionAssert.AreEquivalent(new[] { storageTx, detailTx, acceptedId }, retainedInventory.Result.ToArray());
+                var retainedAvatar = await recovered.LoadAvatarAsync(avatarRecord.Id);
+                Assert.IsFalse(retainedAvatar.IsError, retainedAvatar.Message);
+                Assert.AreEqual(avatarTx, retainedAvatar.Result.ProviderUniqueStorageKey[ProviderType.BitcoinOASIS]);
             }
             finally
             {
