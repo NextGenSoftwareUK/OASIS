@@ -98,6 +98,7 @@ FROM dbo.OASISReplicaHeads WITH (UPDLOCK,HOLDLOCK) WHERE Id=@Id;", connection, t
                 record.ProviderUniqueStorageKey[ReplicaAuthority] = record.Id.ToString("D");
                 record.PreviousVersionProviderUniqueStorageKey?.Remove(ReplicaAuthority);
                 record.ProviderMetaData?.Remove(ReplicaAuthority);
+                CosmicConcurrency.SetProviderRevisionId(record, ReplicaAuthority, Guid.NewGuid());
                 record.InstanceSavedOnProviderType = new NextGenSoftware.Utilities.EnumValue<Core.Enums.ProviderType>(ReplicaAuthority);
                 var stored = ReadHolonSnapshot(record.Id, Serialize(record), record.Version);
                 plan.ValidateAcknowledgedRecord(stored);

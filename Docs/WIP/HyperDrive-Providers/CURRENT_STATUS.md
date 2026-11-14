@@ -1670,3 +1670,5 @@ Holo Desktop diagnostic run 43155153231 found that the conductor tool path was d
 13 November Cancun time. Extended SQL Server native replica coverage to wrong-predecessor rejection with no receipt, exact successor application and hard deletion confirmed directly through SqlClient. Qualification is pending. No local build or fixture ran.
 
 13 November Cancun time. Added a native SQLite-to-SQL Server check using the shipping dispatcher, physically bound SQLite outbox and enrolled SQL Server receiver. It requires exact target revision and zero repeat deliveries after dispatcher restart. Native qualification is pending.
+
+13 November Cancun time. Initial SQL Server replica CI reached the receiver but failed before commit. Review found that target metadata was cleared before validation without assigning the new SQL Server-owned revision required by the shared replica contract. The receiver now sets it before the snapshot round trip. Replacement native qualification includes lineage, hard delete and shipping dispatcher delivery.

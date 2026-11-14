@@ -63,7 +63,7 @@ public sealed class SqlServerSqliteHyperDriveTests
             Assert.Equal(ConditionalHolonReceiptState.Absent, receipt.Result.ReceiptState);
             var applied = sync ? sql.ApplyBoundCommittedHolonReplica(replicaIntent, identity)
                 : await sql.ApplyBoundCommittedHolonReplicaAsync(replicaIntent, identity);
-            Assert.False(applied.IsError, applied.Message);
+            Assert.False(applied.IsError, $"{applied.Message} {applied.Exception}");
             var replay = await sql.ApplyBoundCommittedHolonReplicaAsync(replicaIntent, identity);
             Assert.False(replay.IsError, replay.Message);
             Assert.Equal(replica.VersionId, replay.Result.Single().VersionId);
