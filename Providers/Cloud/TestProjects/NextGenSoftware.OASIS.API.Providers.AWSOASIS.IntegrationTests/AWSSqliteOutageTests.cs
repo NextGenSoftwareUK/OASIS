@@ -176,6 +176,17 @@ public partial class AWSOASISIntegrationTests
             Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, missing.ErrorCode, missing.Message);
             Assert.IsNull(missing.Result);
             Assert.AreEqual(0L, healthy.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS)?.TotalRequests ?? 0);
+
+            var readByKey = new StorageOperationRequest
+            {
+                Operation = "LoadHolonByProviderKey", ProviderKey = id.ToString("D"), LoadChildren = false,
+                PreferredProvider = ProviderType.AWSOASIS
+            };
+            var missingByKey = synchronous ? healthyRouter.RouteRequest<IHolon>(readByKey)
+                : await healthyRouter.RouteRequestAsync<IHolon>(readByKey);
+            Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, missingByKey.ErrorCode, missingByKey.Message);
+            Assert.IsNull(missingByKey.Result);
+            Assert.AreEqual(0L, healthy.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS)?.TotalRequests ?? 0);
         }
         finally
         {
