@@ -386,9 +386,16 @@ public sealed class IPFSRestartTests
         var expiry = new DateTime(2100, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         var policy = new HolonReplicationActorGrant(new[] { RecordId }, expiry);
         var route = new HolonReplicationRouteBinding(source, captured.Result, policy.BindingIdentity);
+        using var secondSqlite = new SqliteProvider($"Data Source={databasePath}.second;Pooling=False");
+        var secondActivation = await secondSqlite.ActivateProviderAsync();
+        Assert.True(secondActivation.Result && !secondActivation.IsError, secondActivation.Message);
+        var secondIdentity = await secondSqlite.CaptureStorageIdentityAsync();
+        Assert.False(secondIdentity.IsError, secondIdentity.Message);
+        var secondRoute = new HolonReplicationRouteBinding(source, secondIdentity.Result, policy.BindingIdentity);
+        var routes = new[] { route, secondRoute };
         if (publish)
         {
-            var enrollment = new HolonReplicationEnrollment(route.SourceId, new[] { route.TargetId }, source, new[] { route });
+            var enrollment = new HolonReplicationEnrollment(route.SourceId, routes.Select(binding => binding.TargetId), source, routes);
             var record = new Holon { Id = recordId, Name = "pending across restart", HolonType = HolonType.Holon };
             var write = new ConditionalHolonWrite(operationId, RecordId, source.Authority,
                 new[] { new HolonWriteCondition(recordId, null) }, enrollment);
@@ -404,11 +411,20 @@ public sealed class IPFSRestartTests
         Assert.False(pending.IsError, pending.Message);
         Assert.NotNull(pending.Result);
         Assert.Equal(operationId, pending.Result.OperationId);
-        var inventory = await store.Result.ReadRouteHeadsAsync();
+        var inventory = await store.Result.ReadRouteHeadsAsync(pageSize: 1);
         Assert.False(inventory.IsError, inventory.Message);
         var head = Assert.Single(inventory.Result.Heads);
-        Assert.Equal(pending.Result.Sequence, head.Sequence);
+        var ordered = routes.Select(binding => binding.TargetId).OrderBy(id => id, StringComparer.Ordinal).ToArray();
+        Assert.Equal(ordered[0], head.TargetId);
         Assert.Equal(operationId, head.OperationId);
+        Assert.Equal(head.TargetId, inventory.Result.NextAfterTargetId);
+        var continuation = await store.Result.ReadRouteHeadsAsync(pageSize: 1, afterTargetId: inventory.Result.NextAfterTargetId);
+        Assert.False(continuation.IsError, continuation.Message);
+        var secondHead = Assert.Single(continuation.Result.Heads);
+        Assert.Equal(ordered[1], secondHead.TargetId);
+        Assert.Equal(operationId, secondHead.OperationId);
+        Assert.Null(continuation.Result.NextAfterTargetId);
+        Assert.Equal(pending.Result.Sequence, (head.TargetId == route.TargetId ? head : secondHead).Sequence);
 
         var wrongSource = new CosmicStorageIdentity(source.Authority, source.EndpointFingerprint, Guid.NewGuid());
         var wrongStore = provider.GetBoundHolonReplicationOutbox(wrongSource);
@@ -431,6 +447,12 @@ public sealed class IPFSRestartTests
         var delivery = await worker.DispatchOnceAsync(route.TargetId, maximumCount: 1);
         Assert.False(delivery.IsError, delivery.Message);
         Assert.Equal(1, delivery.Result.CompletedCount);
+        var otherTarget = new CommittedHolonReplicaTarget(secondRoute.TargetId, secondSqlite, secondIdentity.Result.Authority,
+            secondRoute.SourceId, source.Authority, policy, "ipfs-restarted-worker", Guid.NewGuid(), policy.BindingIdentity, secondIdentity.Result);
+        var otherWorker = new HolonOutboxDispatcher(store.Result, new[] { otherTarget }, "ipfs-restarted-worker");
+        var otherDelivery = await otherWorker.DispatchOnceAsync(secondRoute.TargetId, maximumCount: 1);
+        Assert.False(otherDelivery.IsError, otherDelivery.Message);
+        Assert.Equal(1, otherDelivery.Result.CompletedCount);
 
         var original = await provider.LoadHolonAsync(recordId, loadChildren: false);
         Assert.True(original.IsLoaded && !original.IsError, original.Message);
