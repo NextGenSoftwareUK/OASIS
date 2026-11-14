@@ -59,3 +59,11 @@ Target-framework compatibility is not proof that every native dependency or exte
 
 Published NuGet versions are immutable. Updated documentation ships with a new unpublished package version after checked promotion and publication. This metadata-backed guide does not replace product-specific API examples or claim unverified platform tests.
 
+
+### Encrypted holon storage
+
+Set `OASIS_BITCOIN_KUBO_API` to the trusted Kubo RPC root and `OASIS_BITCOIN_STORAGE_KEY` to a separately managed, canonical Base64 encoding of 32 random bytes. Keep that encryption key available to every reader of the same store. A Bitcoin wallet key controls spending and serves a different purpose.
+
+Fund the signing key's native SegWit address for storage transaction fees. `SaveHolonAsync` stores the encrypted payload in Kubo and returns the acknowledged Bitcoin transaction ID in the holon's provider storage key. Use that ID for exact transaction-key reads. Retaining access to the encrypted Kubo payload and its encryption key is required for readback.
+
+Native regtest verified save, mined commitment, and readback through a fresh provider instance. Identity lookup, deletion, pin reconciliation, and avatar storage remain open. [Native verification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43636836181)

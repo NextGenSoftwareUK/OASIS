@@ -218,11 +218,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                     return response;
                 }
 
-                using var lookup = await _httpClient.GetAsync($"tx/{transactionId}/hex");
-                lookup.EnsureSuccessStatusCode();
-                var transaction = Transaction.Parse((await lookup.Content.ReadAsStringAsync()).Trim(), Network.Main);
-                if (transaction.GetHash() != transactionId)
-                    throw new InvalidOperationException("Esplora returned a transaction with a different ID.");
+                var transaction = await ReadVerifiedTransactionAsync(transactionId);
 
                 Avatar avatar = null;
                 foreach (var output in transaction.Outputs)
