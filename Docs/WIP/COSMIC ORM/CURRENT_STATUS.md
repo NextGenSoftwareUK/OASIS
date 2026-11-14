@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## WEB4 recovery deployment in progress
+
+Railway marked 4a780e47 crashed after repeated persisted HoloOASIS cell startup failures. The scoped Development WEB4 redeploy is 8e5e7063-6695-41ef-bd04-3836c6e43f2d on the same eda74489d26e revision and volume. Do not treat the preceding rollout as healthy based on deployment status. The active manifest had no HTTP healthcheck path. Verify public health and the exact HoloOASIS native and federation records before publishing the qualified Hedera or HyperDrive batches. No local builds or downloads.
+
 ## WEB4 startup blocked by the persisted HoloOASIS cell
 
 Railway deployment 4a780e47 on eda74489d26e reports success but live health times out. Runtime logs record three startup failures after 240 successful conductor responses with zero running cells. Railway SSH timed out. Holochain 0.7.1 starts the admin listener, restores persisted app interfaces, creates enabled cells and awaits their network joins before exposing them as running. [Pinned conductor source](https://github.com/holochain/holochain/blob/holochain-0.7.1/crates/holochain/src/conductor/conductor.rs). The successful admin responses alone cannot identify which pre-running stage stalled. Native diagnostics are needed before changing the persisted app, interfaces, or network configuration. The corrected Hedera candidate passed full CI 43589336339. Hold its integration pending WEB4 health. No local builds or downloaded files.
