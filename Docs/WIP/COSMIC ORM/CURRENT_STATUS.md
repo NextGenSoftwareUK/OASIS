@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Live populated single-alias sorting passed on three stores
+
+WEB4 on 4e86752ff71f accepted Web4Site 714bb26 SQL-like projection queries ordering Name AS SortKey ascending and descending. MongoDB, SQLite and Neo4j returned the expected two IDs in both orders. All six private fixtures were hard-deleted and verified absent by exact ID. The initial MongoDB cleanup used the logical version and was rejected. Reloading each fixture provided the native token from providerMetaData for the accepted delete. The hosted browser walkthrough and real WEB6 draft are still open.
+
 ## HoloOASIS interface reuse reached Development
 
 Development advanced to the [qualified revision 3f641d337fb5](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43573144864) after the shared 03:12 Cancun window. WEB4 deployment da8ddb70 queued. Its health-gated smoke will verify the exact serving revision, native and federated HoloOASIS presets, and selected-alias requests for MongoDB, SQLite and Neo4j. The previous live container held 135 distinct Holochain loopback listeners. The change bounds future app-bound interface creation; legacy interface cleanup and startup reliability remain open. The Development registration-policy files were restored byte-for-byte on COSMIC at 777e6fce354c and its independent branch CI is running. No new local build outputs or fixtures.
