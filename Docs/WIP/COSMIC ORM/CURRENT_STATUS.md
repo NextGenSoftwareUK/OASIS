@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## SQL-like federation validation and preview
+
+Web4Site e94bc018d234 rejects a shared federation predicate across providers that require distinct native key fields. The observed unfiltered HoloOASIS and Hedera combination was rejected by live WEB4 with CQL_CAPABILITY_UNSUPPORTED. The same serving deployment returned exact 3/2 IDs and provenance for both MongoDB pairings with reviewed key filters. All 185 website tests passed, including the negative case and both valid pairings. [Exact preview build](https://web4-site-bgfpzusha-oasis-team.vercel.app/web4-sandbox.html) succeeded. Hosted browser sign-in and real WEB6 drafting remain open.
+
 ## Live SQL text matches the HoloOASIS and Hedera public presets
 
 Web4Site d0b534ba4799 generated SQL-like text from each reviewed full and subset preset and compiled it through the checked-in Playground parser. Live WEB4 deployment 8d1b591c on 2e864e1162e0 returned the same exact 3 full and 2 filtered IDs as the original typed request for HoloOASIS and Hedera. The deployment stayed the same. Browser rendering, signed-in WEB6 drafting, and intermittent conductor diagnosis remain open. HyperDrive has independently qualified f132040b216c on this parent for the next shared review after 11:13:39 Cancun.
