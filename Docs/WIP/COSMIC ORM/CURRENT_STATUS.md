@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Numeric Development rollout passed the live HoloOASIS check
+
+Railway WEB4 deployment 2e765df9 succeeded for exact Development 244ed6f419c5. The authenticated catalogue reached 105/107 ready after startup, with HashgraphOASIS and NostrOASIS unavailable. HoloOASIS direct CQL and federation matched the same three full and two filtered IDs with shipping provider provenance. Numeric evidence for this exact revision is from native CI; the hosted check verifies public catalogue and HoloOASIS regression coverage. No local fixtures, build outputs or downloads.
+
 ## Grouped editor example verified in Chrome and accepted by WEB4
 
 Chrome opened the committed Web4Site 4cde8ee CQL tab and loaded the grouped editor example. Its compiler produced the expected projected columns, two HAVING comparisons and two ordering keys. The exact compiler's request was accepted by live Development for MongoDB, SQLite and Neo4j using the retained visitor. This verifies local browser interaction and live API acceptance. Hosted signed-in browser and real WEB6 draft verification remain open.
