@@ -1802,3 +1802,5 @@ Supabase now reads replica receipt evidence through a service-role PostgREST RPC
 14 November Cancun time. The DynamoDB outbound counter and source receipt now share a native item read that verifies the enrolled store in the same transaction. CI qualification is pending. Ordered worker discovery and fenced lease operations remain open. No local artifacts created.
 
 14 November Cancun time. Added the internal DynamoDB ordered head read. It uses the committed sequence watermark, reads each delivery with the enrolled store in a native transaction, and rejects a missing or inconsistent sequence. This first implementation reads retained sequence entries and still needs dispatcher wiring, lease handling, and qualification. No local artifacts created.
+
+14 November Cancun time. Added internal DynamoDB claim logic with source binding, payload verification, expiring ownership, and a native condition on state and attempt count. Dispatcher registration, renewal, completion, and native claim qualification remain open. No local artifacts created.

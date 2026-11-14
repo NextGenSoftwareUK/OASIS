@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
@@ -90,6 +91,91 @@ public partial class DynamoDBOASIS
             if (sequence == highWaterMark)
                 return null;
         }
+    }
+
+    private async Task<HolonDeliveryClaim?> ClaimOutboundHeadAsync(string targetId, string workerId,
+        TimeSpan duration, CosmicStorageIdentity expected, CancellationToken cancellationToken)
+    {
+        var item = await ReadOutboundHeadAsync(targetId, expected, cancellationToken);
+        if (item == null)
+            return null;
+
+        var state = item["state"].S;
+        var now = DateTime.UtcNow;
+        if (state == nameof(HolonDeliveryState.ReconciliationRequired)
+            || ReadOutboundTicks(item, "lease_until") > now.Ticks
+            || ReadOutboundTicks(item, "retry_at") > now.Ticks)
+            return null;
+        if (state != nameof(HolonDeliveryState.Pending) && state != nameof(HolonDeliveryState.InFlight))
+            throw new InvalidDataException("The DynamoDB delivery state cannot be claimed.");
+
+        var payload = item["payload"].S;
+        if (HolonRecoveryEvidenceJson.Digest(payload) != item["digest"].S)
+            throw new InvalidDataException("The DynamoDB delivery payload checksum differs.");
+        var request = CommittedHolonReplicaPayload.ReadForTarget(payload, targetId);
+        if (request.OperationId.ToString("D") != item["operation_id"].S
+            || !request.NativeRoutes.Any(route => route.TargetId == targetId
+                && route.SourceStorage.BindingFingerprint == expected.BindingFingerprint))
+            throw new InvalidDataException("The DynamoDB delivery differs from its enrolled source or operation.");
+
+        var lease = Guid.NewGuid();
+        var until = now.Add(duration);
+        var attempts = checked((int)ReadOutboundTicks(item, "attempt_count") + 1);
+        var replacement = new Dictionary<string, AttributeValue>(item)
+        {
+            ["state"] = new() { S = nameof(HolonDeliveryState.InFlight) },
+            ["worker"] = new() { S = workerId },
+            ["lease"] = new() { S = lease.ToString("D") },
+            ["lease_until"] = new() { N = until.Ticks.ToString(CultureInfo.InvariantCulture) },
+            ["attempt_count"] = new() { N = attempts.ToString(CultureInfo.InvariantCulture) }
+        };
+        replacement.Remove("retry_at");
+        var write = new TransactWriteItem
+        {
+            Put = new Put
+            {
+                TableName = ConditionalReceiptTable,
+                Item = replacement,
+                ConditionExpression = "#state = :state AND attempt_count = :attempt AND " +
+                    (state == nameof(HolonDeliveryState.Pending)
+                        ? "(attribute_not_exists(retry_at) OR retry_at <= :now)"
+                        : "lease_until <= :now"),
+                ExpressionAttributeNames = new() { ["#state"] = "state" },
+                ExpressionAttributeValues = new()
+                {
+                    [":state"] = item["state"],
+                    [":attempt"] = item["attempt_count"],
+                    [":now"] = new() { N = now.Ticks.ToString(CultureInfo.InvariantCulture) }
+                }
+            }
+        };
+        MeasureGraphItem(replacement);
+        try
+        {
+            var response = await _client.TransactWriteItemsAsync(new TransactWriteItemsRequest
+            {
+                TransactItems = new() { RequireStorageIdentityAtCommit(expected.StoreId), write }
+            }, cancellationToken);
+            if (response.HttpStatusCode != HttpStatusCode.OK)
+                throw new InvalidDataException("DynamoDB did not acknowledge the delivery claim.");
+        }
+        catch (TransactionCanceledException cause) when (cause.CancellationReasons?.Count == 2
+            && cause.CancellationReasons[0].Code == "None"
+            && cause.CancellationReasons[1].Code == "ConditionalCheckFailed")
+        {
+            return null;
+        }
+        return new HolonDeliveryClaim(ReadOutboundSequence(item), request.OperationId, targetId, workerId,
+            lease, payload, attempts, until);
+    }
+
+    private static long ReadOutboundTicks(Dictionary<string, AttributeValue> item, string field)
+    {
+        if (!item.TryGetValue(field, out var stored))
+            return 0;
+        if (!long.TryParse(stored.N, NumberStyles.None, CultureInfo.InvariantCulture, out var value) || value < 0)
+            throw new InvalidDataException($"The DynamoDB delivery contains invalid {field}.");
+        return value;
     }
 
     private static long ReadOutboundSequence(Dictionary<string, AttributeValue> item)
