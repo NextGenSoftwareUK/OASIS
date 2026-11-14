@@ -82,6 +82,13 @@ jobs:
         run: dotnet test Scripts/SubscriptionLedger.OutboxAdmin.Tests/SubscriptionLedger.OutboxAdmin.Tests.csproj -m:1 --logger trx --results-directory TestResults/operator
       - name: Private operator publish
         run: dotnet publish Scripts/SubscriptionLedger.OutboxAdmin/SubscriptionLedger.OutboxAdmin.csproj -c Release -m:1
+      - name: Verify shipping Hedera public account response contract
+        shell: pwsh
+        run: |
+          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner hedera-cql-ci -Operation {
+            dotnet test Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.UnitTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~HederaPublicAccountMetadataTests|FullyQualifiedName~HederaPublicReadSchedulingTests'
+            if ($LASTEXITCODE) { throw 'Hedera public account qualification failed.' }
+          }
       - name: Verify native entity-selected All on three stores
         if: ${{ inputs.source_ref != '' }}
         shell: pwsh
