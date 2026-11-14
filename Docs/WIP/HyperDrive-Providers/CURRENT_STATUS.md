@@ -1740,3 +1740,5 @@ Supabase now reads replica receipt evidence through a service-role PostgREST RPC
 14 November Cancun time. Added Supabase native lease recovery coverage. The original worker renews its lease, a competing worker is excluded, expired completion is rejected, and the shipping dispatcher must deliver the exact revision on attempt two. Qualification is pending.
 
 14 November Cancun time. Development b4f1a930b2b8 contains the exact native-qualified Supabase bidirectional dispatch batch. Deployment 7783622406 began at 01:14:53 Cancun, so the next coordinated review is after 01:44:53. Refreshed the native overlay preimage to this published baseline for the expired-lease follow-up.
+
+14 November Cancun time. [Supabase lease recovery](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43565766064/job/132359162298) passed both native modes on tree c6cbe003050f15d06d317d7d900e2db6a56268a0, matching candidate 6c36bb49f09f. Active ownership excluded competing claims, the expired owner could not complete or renew, and attempt two delivered the exact source revision. Review after 01:44:53 Cancun. Hosted acceptance remains open.
