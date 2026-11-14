@@ -6596,3 +6596,5 @@ Track temporary tag `ci-cosmic-infura-web4-ee3a6589a6` for exact runs `432184056
 - 13 November Cancun: Ran 173 Node tests against Web4Site 9a409eb8e3ee using a temporary exact-source directory and removed it. No downloads or local build output.
 
 - 13 November Cancun: LocalState/COSMIC/HostedCqlReleaseSmoke-9944b532 contains the compact release-smoke visitor journal and DPAPI session. Keep until rollout verification is complete. One new sandbox visitor, no provider holon writes, build output or downloads.
+
+- 13 November Cancun: Removed the temporary exact-source directory used for 174 Web4Site tests on f1d6cd34500b. The live aggregate schema probe reused the existing release-smoke visitor and created no provider holons, local build output or downloads.
