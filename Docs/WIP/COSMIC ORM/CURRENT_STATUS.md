@@ -1,5 +1,7 @@
 # COSMIC ORM / CQL current status
 
+14 November, Cancun. Development bc9bdab01a2e added funded Bitcoin. The CQL constructor projection and HoloOASIS count diagnostics reconcile without overlap in 74ff7058e24e. Core gitlink and deployment manifest both pin 6240ecaa6c06. The exact image and protocol runs are 43633132932 and 43633134876. The standalone HoloOASIS count-log regression passed in 43632334465. Railway is deploying the Bitcoin base as 80264da3-904a-425d-b91c-b1dc9dbb2c65; live rollout and the new COSMIC integration remain unverified.
+
 14 November, Cancun. Combined candidate 5e3aefa1d6d0 contains the HoloOASIS count-only diagnostic and verified constructor projection pin, on Development ccd355899d3a. Exact image CI 43632141477 and protocol CI 43632143464 are running. Linux HoloOASIS CI 43631220899 passed; the follow-up typed-log regression is in CI 43632334465. The serving Development revision is unchanged.
 
 14 November, Cancun. Exact constructor-and-initializer candidate d50db224b886 passed protocol CI 43630156412 including the native checks for MongoDB, SQLite and Neo4j. The candidate is based directly on the current Development revision ccd355899d3a. Exact teaching image CI 43631388182 is running. HoloOASIS diagnostic commit 342957387f9d exposes count-only conductor readiness evidence through operator logs. Linux CI 43631220899 is running. Until a native cell starts and the direct and federated examples pass, HoloOASIS remains unavailable.
