@@ -40,36 +40,6 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
 {
     public partial class BitcoinOASIS
     {
-        /// <summary>
-        /// Create Holon from Bitcoin response when JSON deserialization fails
-        /// </summary>
-        private Holon CreateHolonFromBitcoin(string bitcoinJson)
-        {
-            try
-            {
-                // Extract basic information from Bitcoin JSON response
-                var holon = new Holon
-                {
-                    Id = CreateDeterministicGuid($"{ProviderType.Value}:{ExtractBitcoinProperty(bitcoinJson, "name") ?? "bitcoin_holon"}"),
-                    Name = ExtractBitcoinProperty(bitcoinJson, "name") ?? "Bitcoin Holon",
-                    Description = ExtractBitcoinProperty(bitcoinJson, "description") ?? "",
-                    HolonType = HolonType.Holon,
-                    CreatedDate = DateTime.UtcNow,
-                    ModifiedDate = DateTime.UtcNow,
-                    Version = 1,
-                    IsActive = true
-                };
-
-                return holon;
-            }
-            catch (Exception)
-            {
-                return null;
-            }
-        }
-
-
-
         public OASISResult<ITransactionResponse> SendTransaction(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
         {
             return SendTransactionAsync(fromWalletAddress, toWalletAddress, amount, memoText).Result;
@@ -352,17 +322,11 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                                                 var opReturnData = asmString.Substring("OP_RETURN ".Length);
                                                 var holonBytes = Convert.FromHexString(opReturnData);
                                                 var holonJson = Encoding.UTF8.GetString(holonBytes);
-                                                var holonData = JsonSerializer.Deserialize<JsonElement>(holonJson);
-                                                
-                                                // Check if this holon has the matching parent ID
-                                                if (holonData.TryGetProperty("parent_holon_id", out var parentIdProp) &&
-                                                    parentIdProp.GetString() == parentId.ToString())
+                                                var holon = ParseBitcoinToHolon(holonJson);
+                                                if (holon != null && holon.ParentHolonId == parentId &&
+                                                    (holonType == HolonType.All || holon.HolonType == holonType))
                                                 {
-                                                    var holon = ParseBitcoinToHolon(holonJson);
-                                                    if (holon != null && (holonType == HolonType.All || holon.HolonType == holonType))
-                                                    {
-                                                        holons.Add(holon);
-                                                    }
+                                                    holons.Add(holon);
                                                 }
                                             }
                                             catch

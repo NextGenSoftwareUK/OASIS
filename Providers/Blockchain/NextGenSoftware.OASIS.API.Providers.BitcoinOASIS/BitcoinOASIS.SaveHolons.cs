@@ -283,24 +283,6 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
         }
 
         /// <summary>
-        /// Extract property value from Bitcoin JSON response
-        /// </summary>
-        private string ExtractBitcoinProperty(string bitcoinJson, string propertyName)
-        {
-            try
-            {
-                // Simple regex-based extraction for Bitcoin properties
-                var pattern = $"\"{propertyName}\"\\s*:\\s*\"([^\"]+)\"";
-                var match = System.Text.RegularExpressions.Regex.Match(bitcoinJson, pattern);
-                return match.Success ? match.Groups[1].Value : null;
-            }
-            catch (Exception)
-            {
-                return null;
-            }
-        }
-
-        /// <summary>
         /// Convert Avatar to Bitcoin blockchain format
         /// </summary>
         private string ConvertAvatarToBitcoin(IAvatar avatar)
@@ -334,43 +316,6 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                 });
             }
         }
-
-        /// <summary>
-        /// Convert Holon to Bitcoin blockchain format
-        /// </summary>
-        private string ConvertHolonToBitcoin(IHolon holon)
-        {
-            try
-            {
-                // Serialize Holon to JSON with Bitcoin blockchain structure
-                var bitcoinData = new
-                {
-                    id = holon.Id.ToString(),
-                    type = holon.HolonType.ToString(),
-                    name = holon.Name,
-                    description = holon.Description,
-                    created = holon.CreatedDate.ToString("yyyy-MM-ddTHH:mm:ssZ"),
-                    modified = holon.ModifiedDate.ToString("yyyy-MM-ddTHH:mm:ssZ")
-                };
-
-                return System.Text.Json.JsonSerializer.Serialize(bitcoinData, new JsonSerializerOptions
-                {
-                    WriteIndented = true,
-                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
-                });
-            }
-            catch (Exception)
-            {
-                // Fallback to basic JSON serialization
-                return System.Text.Json.JsonSerializer.Serialize(holon, new JsonSerializerOptions
-                {
-                    WriteIndented = true,
-                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
-                });
-            }
-        }
-
-
 
         public void Dispose()
         {
@@ -427,72 +372,30 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             }
         }
 
-        /// <summary>
-        /// Parse Bitcoin blockchain response to Holon object
-        /// </summary>
-        private Holon ParseBitcoinToHolon(string bitcoinJson)
+        private static Holon ParseBitcoinToHolon(string bitcoinJson)
         {
             try
             {
-                // Parse real Bitcoin OP_RETURN data
-                var bitcoinData = JsonSerializer.Deserialize<JsonElement>(bitcoinJson);
-                
-                // Extract holon data from Bitcoin OP_RETURN transaction
-                var holon = new Holon
+                using var document = JsonDocument.Parse(bitcoinJson);
+                var payload = document.RootElement;
+                if (payload.ValueKind != JsonValueKind.Object ||
+                    !payload.TryGetProperty(nameof(IHolon.Id), out var id) ||
+                    id.ValueKind != JsonValueKind.String ||
+                    !id.TryGetGuid(out var holonId) || holonId == Guid.Empty ||
+                    !payload.TryGetProperty(nameof(IHolon.HolonType), out var type) ||
+                    type.ValueKind != JsonValueKind.Number ||
+                    !type.TryGetInt32(out var holonType) ||
+                    !Enum.IsDefined((HolonType)holonType))
                 {
-                    Id = Guid.TryParse(bitcoinData.TryGetProperty("id", out var id) ? id.GetString() : null, out var guid) ? guid : CreateDeterministicGuid($"{ProviderType.Value}:{(bitcoinData.TryGetProperty("name", out var name) ? name.GetString() : "bitcoin_holon")}"),
-                    Name = bitcoinData.TryGetProperty("name", out var nameProp) ? nameProp.GetString() : "Bitcoin Holon",
-                    Description = bitcoinData.TryGetProperty("description", out var desc) ? desc.GetString() : "",
-                    HolonType = Enum.TryParse<HolonType>(bitcoinData.TryGetProperty("type", out var type) ? type.GetString() : "Holon", out var holonType) ? holonType : HolonType.Holon,
-                    CreatedDate = DateTime.TryParse(bitcoinData.TryGetProperty("created", out var createdDate) ? createdDate.GetString() : DateTime.UtcNow.ToString("O"), out var created) ? created : DateTime.UtcNow,
-                    ModifiedDate = DateTime.TryParse(bitcoinData.TryGetProperty("modified", out var modifiedDate) ? modifiedDate.GetString() : DateTime.UtcNow.ToString("O"), out var modified) ? modified : DateTime.UtcNow,
-                    Version = 1,
-                    IsActive = true
-                };
-
-                // Parse parent holon ID if available
-                if (bitcoinData.TryGetProperty("parent_holon_id", out var parentId) && Guid.TryParse(parentId.GetString(), out var parentGuid))
-                {
-                    holon.ParentHolonId = parentGuid;
+                    return null;
                 }
 
-                // Parse metadata if available
-                if (bitcoinData.TryGetProperty("metadata", out var metadata))
-                {
-                    try
-                    {
-                        var metadataStr = metadata.GetString();
-                        if (!string.IsNullOrWhiteSpace(metadataStr))
-                        {
-                            var metadataDict = JsonSerializer.Deserialize<Dictionary<string, object>>(metadataStr);
-                            if (metadataDict != null)
-                            {
-                                holon.MetaData = metadataDict;
-                            }
-                        }
-                    }
-                    catch
-                    {
-                        // If metadata parsing fails, store raw string
-                        holon.MetaData = new Dictionary<string, object>
-                        {
-                            ["RawMetadata"] = metadata.GetString()
-                        };
-                    }
-                }
-
-                // Add Bitcoin-specific metadata
-                holon.MetaData = holon.MetaData ?? new Dictionary<string, object>();
-                holon.MetaData["BitcoinData"] = bitcoinJson;
-                holon.MetaData["ParsedAt"] = DateTime.UtcNow;
-                holon.MetaData["Provider"] = "BitcoinOASIS";
-
-                return holon;
+                return payload.Deserialize<Holon>();
             }
-            catch (Exception)
+            catch (JsonException)
             {
-                // If JSON deserialization fails, try to extract basic info
-                return CreateHolonFromBitcoin(bitcoinJson);
+                // OP_RETURN can contain arbitrary bytes from unrelated transactions.
+                return null;
             }
         }
 
