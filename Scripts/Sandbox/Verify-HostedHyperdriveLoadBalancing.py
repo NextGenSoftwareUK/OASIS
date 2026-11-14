@@ -57,7 +57,8 @@ def reviewed_record(document, owner):
     return dict(expected)
 
 
-def verify_round_robin(state, revision):
+def verify_round_robin(state, revision, peer="SQLLiteDBOASIS"):
+    providers = {"MongoDBOASIS", peer}
     if len(revision) != 40 or any(c not in "0123456789abcdef" for c in revision):
         raise ValueError("An exact lowercase WEB4 release SHA is required.")
     config_spec = importlib.util.spec_from_file_location(
@@ -76,19 +77,22 @@ def verify_round_robin(state, revision):
 
     state = state.resolve(strict=True)
     deployment = serving_deployment()
-    attempt = state / f"hyperdrive-round-robin-{deployment}.started.json"
-    acknowledgement = state / f"hyperdrive-round-robin-{deployment}.acknowledged.json"
+    evidence_name = f"hyperdrive-round-robin-{deployment}"
+    if peer != "SQLLiteDBOASIS":
+        evidence_name += f"-{peer}"
+    attempt = state / f"{evidence_name}.started.json"
+    acknowledgement = state / f"{evidence_name}.acknowledged.json"
     if attempt.exists() or acknowledgement.exists():
         raise RuntimeError("A completed or uncertain RoundRobin attempt is retained.")
     owner = json.loads((state / "owner.acknowledged.json").read_text())["id"]
-    expected = reviewed_record(json.loads((state / "routing-record.acknowledged.json").read_text()), owner)
+    record_file = "routing-record.acknowledged.json" if peer == "SQLLiteDBOASIS" else f"routing-record-{peer}.acknowledged.json"
+    expected = reviewed_record(json.loads((state / record_file).read_text()), owner)
     identity, token = flow.session(state, "owner", allow_create=False, allow_renewal=False)
     if identity["id"] != owner or flow.call("sandbox/faults", token, method="GET")["result"]:
         raise RuntimeError("The acknowledged owner and a fault-free baseline are required.")
     remaining = flow.call("subscription/usage/current", token, method="GET").get("dailyCallsRemaining")
     if type(remaining) is not int or (remaining != -1 and remaining < 6):
         raise RuntimeError("The acknowledged owner needs six remaining daily calls for this read gate.")
-    providers = {"MongoDBOASIS", "SQLLiteDBOASIS"}
     flow.write_new(attempt, json.dumps({"deployment": deployment, "revision": revision}).encode())
     selected = Counter()
     serving_order = []
@@ -102,7 +106,7 @@ def verify_round_robin(state, revision):
         provider = route["ServingProvider"]
         selected[provider] += 1
         serving_order.append(provider)
-        receipt = state / f"hyperdrive-round-robin-{deployment}.read-{read_number}.json"
+        receipt = state / f"{evidence_name}.read-{read_number}.json"
         flow.write_new(receipt, json.dumps({"read": read_number, "servingProvider": provider,
                                            "strategy": route["RequestedStrategy"]}).encode())
     if serving_deployment() != deployment:
@@ -119,11 +123,12 @@ def main():
     parser.add_argument("--cohort", choices=["original-solana", "routing-v1", "routing-v2"], default="original-solana")
     parser.add_argument("--round-robin-state", type=Path, help="Existing acknowledged owner and shared record.")
     parser.add_argument("--expected-web4-revision", help="Exact deployed WEB4 release SHA for RoundRobin.")
+    parser.add_argument("--round-robin-peer", choices=["SQLLiteDBOASIS", "Neo4jOASIS"], default="SQLLiteDBOASIS")
     options = parser.parse_args()
     if options.round_robin_state is not None:
         if not options.expected_web4_revision:
             parser.error("--expected-web4-revision is required for RoundRobin")
-        verify_round_robin(options.round_robin_state, options.expected_web4_revision)
+        verify_round_robin(options.round_robin_state, options.expected_web4_revision, options.round_robin_peer)
         return
     if options.expected_web4_revision:
         parser.error("--expected-web4-revision requires --round-robin-state")
