@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Exact Development qualification for numeric windows
+
+The floating-point batch 4e27c2212126 is based on Development 2e0b02a9d4c8. Native checks on MongoDB, SQLite and Neo4j, the WEB4 application suite and the workflow cleanup gate all passed in [run 43580421972](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43580421972). The earlier UInt64 feature-branch run failed in WEB4 source activation tests before reaching native acceptance. Candidate 988e930df866 carries the UInt64 fixture and paired Core manifest/gitlink update on top of the qualified floating-point batch. [Run 43582124789](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43582124789) is active. Q01f remains incomplete.
+
 ## HoloOASIS confirmed on Development 2e0b02a9d4c8
 
 WEB4 deployment f1acb554 passed authenticated live discovery after startup. Native and federated readiness both reached 105/107. HoloOASIS direct CQL and federation returned the same three full records and two subset records with shipping provider provenance. HashgraphOASIS and NostrOASIS remain unavailable. Hosted browser acceptance and legacy conductor interface cleanup remain open. The existing visitor was reused. No local builds or test fixtures were created.

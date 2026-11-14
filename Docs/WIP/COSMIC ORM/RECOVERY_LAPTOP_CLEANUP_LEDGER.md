@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+14 November Cancun: retained remote qualification tag ci-cosmic-uint64-988e930df866 for GitHub run 43582124789 and the existing floating-point candidate tags until integration. The prior floating-point CI job completed its temporary database teardown. Local checks used an existing visitor, in-memory logs and temporary Git indexes removed after creating the scoped commits. No local test databases, dependency downloads or build outputs. C: last measured 29.9 GiB free.
+
 ## Mixed-version aggregate fixtures
 
 Six private Development fixtures across MongoDB, SQLite and Neo4j were conditionally deleted and verified absent. Only the compact intent and acknowledgement journals remain. No build, dependency or database artifacts were created.
