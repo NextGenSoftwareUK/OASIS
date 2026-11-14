@@ -126,11 +126,28 @@ public sealed class CqlHoloOasisDevelopmentConductorTests
         configuration["CQL_HOLOOASIS_LOCAL_DEMO:UseBootLoader"] = "true";
         var hosted = Assert.IsType<HoloOasisDevelopmentConductor>(
             HoloOasisDevelopmentConductor.CreateIfEnabled(configuration));
-        await hosted.StartAsync(default);
         CanonicalHoloOasis? provider = null;
         try
         {
-            Assert.Empty(await hosted.ProvisionAsync(configuration, default));
+            var dna = CqlHoloOasisConductorTests.CreateFixtureDna(new Uri("ws://127.0.0.1:65464"));
+            var boot = await BootLoader.BootOASISForAdmittedStorageAsync(dna);
+            Assert.True(boot.Result && !boot.IsError, boot.Message);
+            provider = Assert.IsType<CanonicalHoloOasis>(
+                ProviderManager.Instance.GetStorageProvider(ProviderType.HoloOASIS));
+            var services = new ServiceCollection();
+            CqlPublicReadCatalogue.Enroll(services, configuration);
+            using var container = services.BuildServiceProvider();
+            var catalogues = container.GetServices<CqlPublicReadCatalogue>().ToArray();
+            var provisions = 0;
+            var registry = new CqlHostedSourceRegistry([], NullLogger<CqlHostedSourceRegistry>.Instance, catalogues,
+                provisionManagedHoloOasis: token =>
+                {
+                    provisions++;
+                    return hosted.StartAndProvisionAsync(configuration, token);
+                });
+            Assert.Equal(0, provisions);
+            await registry.ActivateReadSourceAsync(ProviderType.HoloOASIS, default);
+            Assert.Equal(1, provisions);
             var inspector = new HoloNETClientAdmin(new HoloNETDNA
             {
                 HolochainConductorAdminURI = "ws://127.0.0.1:65464",
@@ -151,17 +168,6 @@ public sealed class CqlHoloOasisDevelopmentConductorTests
             {
                 await inspector.DisconnectAsync();
             }
-            var dna = CqlHoloOasisConductorTests.CreateFixtureDna(new Uri("ws://127.0.0.1:65464"));
-            var boot = await BootLoader.BootOASISForAdmittedStorageAsync(dna);
-            Assert.True(boot.Result && !boot.IsError, boot.Message);
-            provider = Assert.IsType<CanonicalHoloOasis>(
-                ProviderManager.Instance.GetStorageProvider(ProviderType.HoloOASIS));
-            var services = new ServiceCollection();
-            CqlPublicReadCatalogue.Enroll(services, configuration);
-            using var container = services.BuildServiceProvider();
-            var catalogues = container.GetServices<CqlPublicReadCatalogue>().ToArray();
-            var registry = new CqlHostedSourceRegistry([], NullLogger<CqlHostedSourceRegistry>.Instance, catalogues);
-            await registry.ActivateReadSourceAsync(ProviderType.HoloOASIS, default);
             Assert.Same(provider, registry.Find(ProviderType.HoloOASIS));
             var catalogue = Assert.Single(catalogues);
             await VerifyCatalogueAsync(provider, catalogue, ids);

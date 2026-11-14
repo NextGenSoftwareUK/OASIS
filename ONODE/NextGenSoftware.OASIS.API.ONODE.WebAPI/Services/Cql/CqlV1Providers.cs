@@ -67,6 +67,7 @@ public sealed class CqlHostedSourceRegistry : ICqlHostedSourceRegistry
 {
     private readonly IReadOnlyDictionary<ProviderType, CqlReadSourceProfile> profiles;
     private readonly CqlPublicReadCatalogue holoOasisCatalogue;
+    private readonly HoloOasisProvisioning provisionManagedHoloOasis;
     private readonly string solanaPublicAccountConfiguration;
     private readonly string ethereumPublicAccountConfiguration;
     private readonly string polygonPublicAccountConfiguration;
@@ -84,11 +85,13 @@ public sealed class CqlHostedSourceRegistry : ICqlHostedSourceRegistry
         : this(profiles, NullLogger<CqlHostedSourceRegistry>.Instance) { }
 
     public CqlHostedSourceRegistry(IEnumerable<CqlReadSourceProfile> profiles, ILogger<CqlHostedSourceRegistry> logger,
-        IEnumerable<CqlPublicReadCatalogue> publicCatalogues = null, IConfiguration configuration = null)
+        IEnumerable<CqlPublicReadCatalogue> publicCatalogues = null, IConfiguration configuration = null,
+        HoloOasisProvisioning provisionManagedHoloOasis = null)
     {
         this.profiles = (profiles ?? Array.Empty<CqlReadSourceProfile>())
             .ToDictionary(profile => profile.Storage.ProviderType.Value);
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        this.provisionManagedHoloOasis = provisionManagedHoloOasis;
         holoOasisCatalogue = publicCatalogues?.SingleOrDefault(catalogue => catalogue.Provider == ProviderType.HoloOASIS);
         solanaPublicAccountConfiguration = configuration?["CQL_SOLANA_PUBLIC_SOURCE_JSON"];
         ethereumPublicAccountConfiguration = configuration?["CQL_ETHEREUM_PUBLIC_SOURCE_JSON"];
@@ -113,6 +116,10 @@ public sealed class CqlHostedSourceRegistry : ICqlHostedSourceRegistry
         if (profiles.TryGetValue(provider, out var profile)) storage = profile.Storage;
         else
         {
+            // Provision through the serialized HoloOASIS activation path.
+            if (provider == ProviderType.HoloOASIS && provisionManagedHoloOasis != null)
+                await provisionManagedHoloOasis(cancellationToken);
+
             var registration = provider == ProviderType.PolkadotOASIS && polkadotPublicHeaderConfiguration != null
                 ? await OASISBootLoader.OASISBootLoader.RegisterPolkadotPublicReaderAsync(polkadotPublicHeaderConfiguration)
                 : await OASISBootLoader.OASISBootLoader.RegisterProviderAsync(provider,

@@ -2,6 +2,8 @@ using System;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.DependencyInjection;
+using System.Threading;
 using NextGenSoftware.OASIS.API.Core.Events;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Helpers;
@@ -125,7 +127,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
             try
             {
                 var builder = CreateHostBuilder(args);
-                if (conductor != null)
+                if (conductor?.UsesBootLoader == true)
+                {
+                    builder.ConfigureServices((_, services) =>
+                        services.AddSingleton<Services.Cql.HoloOasisProvisioning>(
+                            _ => token => conductor.StartAndProvisionAsync(configuration, token)));
+                }
+                else if (conductor != null)
                 {
                     await conductor.StartAsync(default);
                     var sourceSettings = await conductor.ProvisionAsync(configuration, default);
