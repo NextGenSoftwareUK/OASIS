@@ -56,10 +56,10 @@ public sealed class SupabaseSqliteHyperDriveTests
             var receiptIntent = new CommittedHolonReplicaRequest(Guid.NewGuid(), "owned-sqlite",
                 ProviderType.SQLLiteDBOASIS, Guid.NewGuid(), ConditionalHolonOperation.Save,
                 new[] { replica }, saveChildren: false);
-            var absent = await supabase.ReadCommittedHolonReplicaReceiptAsync(
+            var absentReceipt = await supabase.ReadCommittedHolonReplicaReceiptAsync(
                 new CommittedHolonReplicaReceiptReadRequest(receiptIntent, binding.Result));
-            Assert.IsFalse(absent.IsError, $"{absent.Message} {absent.Exception}");
-            Assert.AreEqual(ConditionalHolonReceiptState.Absent, absent.Result.ReceiptState);
+            Assert.IsFalse(absentReceipt.IsError, $"{absentReceipt.Message} {absentReceipt.Exception}");
+            Assert.AreEqual(ConditionalHolonReceiptState.Absent, absentReceipt.Result.ReceiptState);
             var wrongBinding = new CosmicStorageIdentity(binding.Result.Authority, binding.Result.EndpointFingerprint, Guid.NewGuid());
             var wrongStore = await supabase.ReadCommittedHolonReplicaReceiptAsync(
                 new CommittedHolonReplicaReceiptReadRequest(receiptIntent, wrongBinding));
