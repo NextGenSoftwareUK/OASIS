@@ -94,14 +94,22 @@ jobs:
           test "$(curl -fsS "$OASIS_BITCOIN_ORD_API/r/blockhash/0" | jq -er .)" = "$genesis"
           recipient="$(wallet receive | jq -er '.addresses[0]')"
           printf 'OASIS Ordinals native qualification\n' > "$owned/record.txt"
-          export OASIS_BITCOIN_ORD_INSCRIPTION="$(wallet inscribe --fee-rate 2 --file "$owned/record.txt" --destination "$recipient" | jq -er '.inscriptions[0].id')"
+          inscription="$(wallet inscribe --fee-rate 2 --file "$owned/record.txt" --destination "$recipient" |
+            jq -ers '[.[] | .inscriptions[]? | .id | select(type == "string" and test("^[0-9a-f]{64}i[0-9]+$"))]
+              | unique | if length == 1 then .[0] else error("Expected one inscription ID") end')"
+          export OASIS_BITCOIN_ORD_INSCRIPTION="$inscription"
+          bitcoin getmempoolentry "${inscription%i*}" >/dev/null
           bitcoin generatetoaddress 1 "$recipient" >/dev/null
+          indexed=false
           for attempt in {1..60}; do
-            if curl -fsS -H 'Accept: application/json' "$OASIS_BITCOIN_ORD_API/inscription/$OASIS_BITCOIN_ORD_INSCRIPTION" +              | jq -e --arg id "$OASIS_BITCOIN_ORD_INSCRIPTION" --arg owner "$recipient" '.id == $id and .address == $owner' >/dev/null; then
+            if curl -fsS -H 'Accept: application/json' "$OASIS_BITCOIN_ORD_API/inscription/$inscription" |
+              jq -e --arg id "$inscription" --arg owner "$recipient" '.id == $id and .address == $owner' >/dev/null; then
+              indexed=true
               break
             fi
             sleep 1
           done
+          test "$indexed" = true
           export OASIS_BITCOIN_ORD_OWNER="$recipient"
           pwsh -NoProfile -Command '
             ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-BitcoinOrdinals -Operation {
