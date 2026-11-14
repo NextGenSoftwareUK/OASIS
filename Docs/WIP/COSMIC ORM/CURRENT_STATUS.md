@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## SQLite repair revision serves canonical HoloOASIS
+
+WEB4 deployment e820c7f2 on Development 1b91024a6318 returned HTTP 200 after startup, and the retained visitor matched the exact HoloOASIS 3/2 direct and federated IDs. The same conductor retained 135 persisted interfaces and 136 loopback listeners. A health request during cutover timed out. No persisted-cell timeout appeared in the sampled startup log. Combined protocol CI 43600185683 passed for 1c8478f7577f. Exact image 43600761127 and Linux managed HoloOASIS CI 43601381396 remain active. Vercel still denies OASIS team domain access and the protected subscription-admin session is absent.
+
 ## Exact image qualification follows SQLite repair into Development
 
 14 November Cancun time. HyperDrive advanced Development to 1b91024a6318. Railway WEB4 e820c7f2 is building and the previous Development deployment is serving. The exact 23051874d247 WEB4 image passed CI 43598439229 with digest sha256:b32abfcda4d950fa80ff9d1e94b8f086744a2f6946cbc3a69824d48f59ecf6b7. That image qualifies the earlier parent. Exact image CI 43600761127 now builds the four-file follow-on 1c8478f7577f on the actual Development head, alongside protocol CI 43600185683. Review the next shared window after the predecessor rollout and both CI results.
