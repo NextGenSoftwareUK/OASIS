@@ -192,31 +192,15 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                     return result;
                 }
 
-                //// Generate Bitcoin key pair using NBitcoin SDK (chain-specific)
-                //var network = _network == "mainnet" ? Network.Main : Network.TestNet;
-                
-                //// Generate mnemonic seed phrase
-                //var mnemonic = new Mnemonic(Wordlist.English, WordCount.Twelve);
-                //var seedPhrase = mnemonic.ToString();
-                
-                //// Derive Bitcoin key from mnemonic
-                //var extKey = mnemonic.DeriveExtKey();
-                //var key = extKey.PrivateKey;
-                
-                //// Get Bitcoin address (public key)
-                //var privateKey = key.GetWif(network).ToString();
-                //var publicKey = key.PubKey.GetAddress(ScriptPubKeyType.Legacy, network).ToString();
-                
-                // Create KeyPairAndWallet using KeyHelper but override with Bitcoin-specific values from NBitcoin SDK
-                var keyPair = KeyHelper.GenerateKeyValuePairAndWalletAddress(); //KeyHelper generates in Bitcoin format by default
-                //if (keyPair != null)
-                //{
-                //    keyPair.PrivateKey = privateKey;
-                //    keyPair.PublicKey = publicKey;
-                //    keyPair.WalletAddressLegacy = publicKey; // Bitcoin address
-                //}
-
-                result.Result = keyPair;
+                var network = SigningNetwork;
+                using var key = new Key();
+                result.Result = new KeyHelper.KeyPairAndWallet
+                {
+                    PrivateKey = key.GetWif(network).ToString(),
+                    PublicKey = key.PubKey.ToHex(),
+                    WalletAddressLegacy = key.PubKey.GetAddress(ScriptPubKeyType.Legacy, network).ToString(),
+                    WalletAddressSegwitP2SH = key.PubKey.GetAddress(ScriptPubKeyType.SegwitP2SH, network).ToString()
+                };
                 result.IsError = false;
                 result.Message = "Bitcoin key pair generated successfully";
             }

@@ -81,7 +81,8 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                 var source = BitcoinAddress.Create(fromWalletAddress, network);
                 var destination = BitcoinAddress.Create(toWalletAddress, network);
                 var signer = new BitcoinSecret(_privateKey, network);
-                if (!source.Equals(signer.GetAddress(ScriptPubKeyType.Legacy)) &&
+                var wrappedSegwit = source.Equals(signer.GetAddress(ScriptPubKeyType.SegwitP2SH));
+                if (!wrappedSegwit && !source.Equals(signer.GetAddress(ScriptPubKeyType.Legacy)) &&
                     !source.Equals(signer.GetAddress(ScriptPubKeyType.Segwit)))
                 {
                     OASISErrorHandling.HandleError(ref result, "The source address must belong to the configured signing key.");
@@ -89,9 +90,14 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                 }
 
                 var utxos = await _httpClient.GetFromJsonAsync<JsonElement[]>($"address/{source}/utxo");
-                var coins = utxos.Select(utxo => new Coin(
-                    new OutPoint(uint256.Parse(utxo.GetProperty("txid").GetString()), utxo.GetProperty("vout").GetUInt32()),
-                    new TxOut(Money.Satoshis(utxo.GetProperty("value").GetInt64()), source.ScriptPubKey))).ToArray();
+                var coins = utxos.Select(utxo =>
+                {
+                    var outpoint = new OutPoint(uint256.Parse(utxo.GetProperty("txid").GetString()), utxo.GetProperty("vout").GetUInt32());
+                    var output = new TxOut(Money.Satoshis(utxo.GetProperty("value").GetInt64()), source.ScriptPubKey);
+                    return wrappedSegwit
+                        ? new ScriptCoin(outpoint, output, signer.PrivateKey.PubKey.WitHash.ScriptPubKey)
+                        : new Coin(outpoint, output);
+                }).ToArray();
                 var feeEstimates = await _httpClient.GetFromJsonAsync<Dictionary<string, decimal>>("fee-estimates");
                 if (!feeEstimates.TryGetValue("6", out var feeRate) || feeRate <= 0)
                 {
