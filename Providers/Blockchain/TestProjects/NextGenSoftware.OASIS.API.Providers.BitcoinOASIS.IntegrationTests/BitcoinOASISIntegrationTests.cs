@@ -69,6 +69,22 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
         }
 
         [TestMethod]
+        public async Task EsploraOrdinaryTransactionDoesNotProduceAnAvatar()
+        {
+            using var provider = new BitcoinOASIS();
+            const string genesisTransaction = "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b";
+
+            var avatar = await provider.LoadAvatarByProviderKeyAsync(genesisTransaction);
+            Assert.IsTrue(avatar.IsError);
+            Assert.IsNull(avatar.Result);
+            Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound, avatar.ErrorCode);
+
+            var wallet = await provider.LoadAvatarByProviderKeyAsync("1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa");
+            Assert.IsTrue(wallet.IsError);
+            Assert.IsNull(wallet.Result);
+        }
+
+        [TestMethod]
         public async Task EsploraReportsFundedAddressBalance()
         {
             try

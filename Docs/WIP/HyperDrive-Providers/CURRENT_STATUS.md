@@ -2055,3 +2055,5 @@ Supabase now reads replica receipt evidence through a service-role PostgREST RPC
 14 November Cancun time. Development fast-forwarded from ccd355899d3a to Bitcoin wallet and payment candidate bc9bdab01a2e after exact native qualification and seven successful predecessor deployments. Railway queued WEB4 rollout 80264da3-904a-425d-b91c-b1dc9dbb2c65 at 14:28:25 Cancun. Signed storage and hosted provider verification remain open. No local builds or fixtures.
 
 14 November Cancun time. Bitcoin avatar provider-key lookup now resolves the transaction ID from Esplora and requires a valid stored avatar payload. Raw address statistics can no longer produce synthetic avatars on this path. CI pending. Signed encrypted storage and the other identity selectors remain open. No local build or fixture.
+
+14 November Cancun time. Added public Esplora avatar lookup regression requiring RecordNotFound on Bitcoin genesis and rejection of a public wallet address as a storage key. CI pending. No local build or fixture.
