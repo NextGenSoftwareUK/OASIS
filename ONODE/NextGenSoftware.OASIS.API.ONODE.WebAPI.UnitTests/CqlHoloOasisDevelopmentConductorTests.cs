@@ -131,6 +131,26 @@ public sealed class CqlHoloOasisDevelopmentConductorTests
         try
         {
             Assert.Empty(await hosted.ProvisionAsync(configuration, default));
+            var inspector = new HoloNETClientAdmin(new HoloNETDNA
+            {
+                HolochainConductorAdminURI = "ws://127.0.0.1:65464",
+                AutoStartHolochainConductor = false,
+                AutoShutdownHolochainConductor = false,
+                LogToConsole = false,
+                LogToFile = false
+            });
+            try
+            {
+                var connected = await inspector.ConnectAsync("ws://127.0.0.1:65464");
+                Assert.True(connected.IsConnected && !connected.IsError);
+                var interfaces = await inspector.ListInterfacesAsync();
+                Assert.False(interfaces.IsError, interfaces.Message);
+                Assert.Equal(CanonicalHoloOasis.OASIS_HAPP_ID, Assert.Single(interfaces.AppInterfaces).InstalledAppId);
+            }
+            finally
+            {
+                await inspector.DisconnectAsync();
+            }
             var dna = CqlHoloOasisConductorTests.CreateFixtureDna(new Uri("ws://127.0.0.1:65464"));
             var boot = await BootLoader.BootOASISForAdmittedStorageAsync(dna);
             Assert.True(boot.Result && !boot.IsError, boot.Message);
