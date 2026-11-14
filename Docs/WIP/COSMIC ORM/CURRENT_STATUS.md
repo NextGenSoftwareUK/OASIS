@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Combined rollout container reached its pinned revision
+
+Railway marked deployment 9a9332cd successful and read-only SSH confirmed b4270f9cb9d2. Independent public health requests timed out. The PowerShell probe treated the health exception as nonterminating and attempted a retained visitor renewal prematurely. The exact Railway HTTP trace Fy1oovLEReWARTp4o3UVLg records a 502 with exclusively upstream connection refusals. The rotation journal is preserved for reconciliation. Do not replay this renewal. The next live probe must treat health exceptions as terminating. Authenticated catalogue and HoloOASIS verification remain open. No new visitor, test records or build outputs were created.
+
 ## Combined COSMIC and Oracle rollout queued
 
 Development fast-forwarded from 4db1dedd1a92 to b4270f9cb9d2 after the 30-minute shared window opened. [Combined CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43552775922) passed the three-store native cases and WEB4-WEB10 publishing. [Managed Linux HoloOASIS qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43553225234) passed in disposable CI state. WEB4 was HTTP 200 before the push. Railway queued WEB4 deployment 9a9332cd-7bac-4660-8a09-7b907b855d94 at 22:56:22 Cancun. Confirm the serving SHA, health, authenticated catalogue and HoloOASIS native/federated presets on cutover. The next shared review is after 23:26:22 Cancun. No local builds or data fixtures were created.
