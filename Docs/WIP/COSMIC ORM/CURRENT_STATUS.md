@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Native floating-point checks passed on the RoundRobin baseline
+
+The native stage of [run 43582812040](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43582812040/job/132410961155) passed on a21ecb4674a8 for MongoDB, SQLite and Neo4j. WEB4-WEB10 publishing and cleanup were still running at this checkpoint. [Corrected UInt64 run 43583011537](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43583011537) is active. Candidate 244ed6f419c5 carries the identical corrected UInt64 diff on a21ecb4674a8, keeping HyperDrive's RoundRobin verification intact. It has not been dispatched. WEB4 Railway deployment e6d6c4d1 is building, and f1acb554 remains the preceding successful revision. Development integration requires the shared window and serving revision check.
+
 ## RoundRobin baseline and UInt64 fixture correction
 
 Development advanced to b0bb55e337b4 with HyperDrive's two hosted RoundRobin verification script changes. Git rejected the concurrent COSMIC fast-forward. The floating-point batch is rebased as a21ecb4674a8 and [CI 43582812040](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43582812040) is active. Wait for this rollout and the shared window before the next integration.
