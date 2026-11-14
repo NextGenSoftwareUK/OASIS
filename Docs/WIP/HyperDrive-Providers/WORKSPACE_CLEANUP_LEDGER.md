@@ -1256,3 +1256,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 - 14 November Cancun time. Combined Bitcoin/Kubo CI removes the owned containers, anonymous volumes and pinned images in its exit trap. No fixtures or downloads on C:.
 
 - 14 November Cancun time. Combined Bitcoin Core and Kubo CI 43636836181 passed the exit trap that removes both owned containers, anonymous volumes and pinned images. No local runtime or database.
+
+- 14 November Cancun time. Bitcoin and Kubo wrong-key CI 43637562572 passed disposable fixture teardown. No local builds, downloads, or fixtures.

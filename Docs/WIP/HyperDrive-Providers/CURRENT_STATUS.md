@@ -2087,3 +2087,5 @@ Supabase now reads replica receipt evidence through a service-role PostgREST RPC
 14 November Cancun time. Extended the native encrypted Bitcoin holon case to verify that a different storage key cannot recover the same mined record. The test isolates environment mutation, restores the original key, and clears the replacement key buffer. Verification pending. No local builds or fixtures.
 
 14 November Cancun time. Fixed the CryptographicException type name in the wrong-key regression after compile failure in 43637338308. Bitcoin read candidate c03148b117a0 is independently qualified. All seven APIs succeeded on 74ff7058e24e. Next review after 15:29:17 Cancun. No local build.
+
+14 November Cancun time. Development advanced from 74ff7058e24e to native- and public-qualified Bitcoin record-read revision c03148b117a0 after all seven predecessor APIs succeeded. WEB4 rollout c4bccd37-244b-4f7d-a5e4-c7c132ce9d5e queued at 15:32:27 Cancun. Next review after 16:02:27. The separate encrypted holon native regression 43637562572 passed wrong-key rejection. The storage changes remain on the provider branch.
