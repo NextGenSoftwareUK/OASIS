@@ -63,7 +63,7 @@ jobs:
             if ($LASTEXITCODE) { throw 'HoloOASIS CQL signing or conductor qualification failed' }
             [xml]$report = Get-Content TestResults/HoloOasisCql/signing.trx
             $counts = $report.TestRun.ResultSummary.Counters
-            if ($counts.passed -ne '9' -or $counts.total -ne '9' -or $counts.executed -ne '9') {
-              throw 'All nine HoloOASIS signing, visibility and startup cases must execute and pass'
+            if ($counts.passed -ne '10' -or $counts.total -ne '10' -or $counts.executed -ne '10') {
+              throw 'All ten HoloOASIS signing, visibility and startup cases must execute and pass'
             }
           }

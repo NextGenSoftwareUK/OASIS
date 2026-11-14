@@ -32,6 +32,17 @@ public sealed class CqlHoloOasisDevelopmentConductorTests
         Assert.Null(HoloOasisDevelopmentConductor.CreateIfEnabled(new ConfigurationBuilder().Build()));
     }
 
+    [Fact]
+    public void StartupMilestoneReportsTheFurthestKnownStageWithoutCopyingNativeOutput()
+    {
+        Assert.Equal("no startup marker retained",
+            HoloOasisDevelopmentConductor.DescribeNativeStartup("private native error details"));
+        Assert.Equal("app interfaces restored", HoloOasisDevelopmentConductor.DescribeNativeStartup(
+            "INFO Conductor startup: app interfaces started.\nINFO Conductor startup: admin interface(s) added."));
+        Assert.Equal("apps enabled",
+            HoloOasisDevelopmentConductor.DescribeNativeStartup("INFO Conductor startup: apps enabled."));
+    }
+
     [HoloOasisLinuxConductorFact]
     public async Task StartsAnOfficialLoopbackConductorAndReleasesTheStateLease()
     {
