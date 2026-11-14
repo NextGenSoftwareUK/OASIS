@@ -1750,3 +1750,5 @@ Supabase now reads replica receipt evidence through a service-role PostgREST RPC
 14 November Cancun time. DynamoDB AWS-wrapper identity CI 43566832091 passed both modes. Added bound atomic receiver using a transactional native snapshot and conditional commit for graph, lineage and receipt. Native apply and replay qualification are pending.
 
 14 November Cancun time. DynamoDB receipt CI 43567184250 passed both modes with zero skips, including wrong-store rejection. Added native receiver coverage for wrong predecessor without receipt, valid successor and hard deletion with a committed receipt. Qualification is pending.
+
+14 November Cancun time. The qualified Supabase expired-lease regression reached Development at `6c36bb49f09f` after all seven APIs completed the preceding rollout. The new rollout remains open. The DynamoDB lineage and hard-delete [run 43568028753](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43568028753) stopped at compilation. Commit `d819ce40a586` allows the existing result helper to represent validation failures without an exception. Fresh native receiver qualification remains open.
