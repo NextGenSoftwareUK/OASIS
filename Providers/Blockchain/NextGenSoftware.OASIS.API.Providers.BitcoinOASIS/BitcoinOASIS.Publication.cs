@@ -29,7 +29,7 @@ public partial class BitcoinOASIS
             using var kubo = CreateRecordBlobClient();
             using var pins = await ReadPublicationPinsAsync(kubo, prefix);
             var identifiers = new HashSet<string>(StringComparer.Ordinal);
-            foreach (var pin in pins.RootElement.GetProperty("Keys").EnumerateObject())
+            foreach (var pin in EnumeratePublicationPins(pins))
             {
                 var name = pin.Value.GetProperty("Name").GetString();
                 if (!name.StartsWith(prefix, StringComparison.Ordinal))
@@ -56,6 +56,14 @@ public partial class BitcoinOASIS
         return JsonDocument.Parse(await response.Content.ReadAsStringAsync());
     }
 
+    private static IEnumerable<JsonProperty> EnumeratePublicationPins(JsonDocument pins)
+    {
+        // Kubo omits Keys when the matching pin set is empty.
+        if (pins.RootElement.TryGetProperty("Keys", out var keys))
+            foreach (var pin in keys.EnumerateObject())
+                yield return pin;
+    }
+
     /// <summary>Checks a recorded publication against the configured Kubo and Bitcoin backends.</summary>
     public async Task<OASISResult<bool>> ReconcileRecordPublicationAsync(string providerKey)
     {
@@ -71,7 +79,7 @@ public partial class BitcoinOASIS
             var name = GetPublicationPinName(network, source, transactionId);
             using var kubo = CreateRecordBlobClient();
             using var pins = await ReadPublicationPinsAsync(kubo, name);
-            var cid = pins.RootElement.GetProperty("Keys").EnumerateObject()
+            var cid = EnumeratePublicationPins(pins)
                 .Where(pin => pin.Value.GetProperty("Name").GetString() == name)
                 .Select(pin => pin.Name).SingleOrDefault();
             if (cid == null)

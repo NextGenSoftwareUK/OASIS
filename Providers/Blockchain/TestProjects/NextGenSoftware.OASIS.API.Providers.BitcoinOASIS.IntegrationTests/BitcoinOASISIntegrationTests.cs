@@ -325,6 +325,9 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
                 Assert.IsTrue(failed.IsError);
                 Assert.IsFalse(failed.MetaData.ContainsKey("BitcoinTransactionId"));
                 CollectionAssert.AreEquivalent(initialPins, await ReadKuboPinsAsync());
+                var emptyInventory = await unfunded.ListRecordPublicationsAsync();
+                Assert.IsFalse(emptyInventory.IsError, emptyInventory.Message);
+                Assert.AreEqual(0, emptyInventory.Result.Count);
             }
 
             var privateHolon = new Holon
