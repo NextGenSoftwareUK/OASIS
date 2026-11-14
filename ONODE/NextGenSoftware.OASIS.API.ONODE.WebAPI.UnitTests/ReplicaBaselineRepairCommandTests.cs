@@ -57,28 +57,6 @@ public sealed partial class ReplicaBaselineRepairCommandTests
             Assert.False((await source.ActivateProviderAsync()).IsError);
             // Establish the owned test target schema; the operator command must
             // subsequently open this file and may never replace a missing store.
-            using(var target=new SqliteProvider(connection))Assert.False((await target.ActivateProviderAsync()).IsError);
-            IHolon current=new Holon{Id=id,Name="late demo baseline"};
-            async Task Save(int version)
-            {
-                var request=new ConditionalHolonWriteRequest(new ConditionalHolonWrite(Guid.NewGuid(),version==1 ? creator:actor,ProviderType.MongoDBOASIS,
-                    new[]{new HolonWriteCondition(id,CosmicConcurrency.GetProviderRevisionId(current,ProviderType.MongoDBOASIS))}),
-                    ConditionalHolonOperation.Save,new[]{current},saveChildren:false);
-                var result=version<4 ? await source.ExecuteConditionalHolonWriteAsync(request)
-                    :await source.ExecuteReplicatingHolonWriteAsync(request,new HolonReplicationEnrollment(HolonReplicationRoutes.SourceId(ProviderType.MongoDBOASIS),
-                        new[]{HolonReplicationRoutes.TargetId(ProviderType.SQLLiteDBOASIS)}));
-                Assert.False(result.IsError,result.Message+result.Exception);current=Assert.Single(result.Result);Assert.Equal(version,current.Version);
-            }
-            for(var version=1;version<=4;version++)await Save(version);
-            var outbox=(IHolonReplicationObligationReader)source.GetHolonReplicationOutbox().Result;
-            using(var target=new SqliteProvider(connection))
-            {
-                Assert.False((await target.ActivateProviderAsync()).IsError);
-                var delivery=new HolonOutboxDispatcher(outbox,new[]{new CommittedHolonReplicaTarget(HolonReplicationRoutes.TargetId(ProviderType.SQLLiteDBOASIS),target,
-                    ProviderType.SQLLiteDBOASIS,HolonReplicationRoutes.SourceId(ProviderType.MongoDBOASIS),ProviderType.MongoDBOASIS)},"owned-command-test");
-                var failed=await delivery.DispatchOnceAsync(HolonReplicationRoutes.TargetId(ProviderType.SQLLiteDBOASIS));
-                Assert.Equal(1,failed.Result.ReconciliationCount);
-            }
             CosmicStorageIdentity reviewedTarget;
             using (var target = new SqliteProvider(connection))
             {
@@ -87,10 +65,34 @@ public sealed partial class ReplicaBaselineRepairCommandTests
                 Assert.False(identity.IsError, identity.Message);
                 reviewedTarget = identity.Result;
             }
-            var held=(await outbox.PeekNextAsync(HolonReplicationRoutes.TargetId(ProviderType.SQLLiteDBOASIS))).Result;
-            var original=(await outbox.ReadObligationAsync(held.Sequence)).Result;
             var sourceIdentity = await source.CaptureStorageIdentityAsync();
             Assert.False(sourceIdentity.IsError, sourceIdentity.Message);
+            var route = new HolonReplicationRouteBinding(sourceIdentity.Result, reviewedTarget,
+                HolonReplicationRoutes.DefaultPolicyBinding);
+            var enrollment = new HolonReplicationEnrollment(route.SourceId, new[] { route.TargetId },
+                sourceIdentity.Result, new[] { route });
+            IHolon current=new Holon{Id=id,Name="late demo baseline"};
+            async Task Save(int version)
+            {
+                var request=new ConditionalHolonWriteRequest(new ConditionalHolonWrite(Guid.NewGuid(),version==1 ? creator:actor,ProviderType.MongoDBOASIS,
+                    new[]{new HolonWriteCondition(id,CosmicConcurrency.GetProviderRevisionId(current,ProviderType.MongoDBOASIS))}),
+                    ConditionalHolonOperation.Save,new[]{current},saveChildren:false);
+                var result=version<4 ? await source.ExecuteConditionalHolonWriteAsync(request)
+                    :await source.ExecuteReplicatingHolonWriteAsync(request,enrollment);
+                Assert.False(result.IsError,result.Message+result.Exception);current=Assert.Single(result.Result);Assert.Equal(version,current.Version);
+            }
+            for(var version=1;version<=4;version++)await Save(version);
+            var outbox=(IHolonReplicationObligationReader)source.GetHolonReplicationOutbox().Result;
+            using(var target=new SqliteProvider(connection))
+            {
+                Assert.False((await target.ActivateProviderAsync()).IsError);
+                var delivery=new HolonOutboxDispatcher(outbox,new[]{new CommittedHolonReplicaTarget(route.TargetId,target,
+                    ProviderType.SQLLiteDBOASIS,route.SourceId,ProviderType.MongoDBOASIS)},"owned-command-test");
+                var failed=await delivery.DispatchOnceAsync(route.TargetId);
+                Assert.Equal(1,failed.Result.ReconciliationCount);
+            }
+            var held=(await outbox.PeekNextAsync(route.TargetId)).Result;
+            var original=(await outbox.ReadObligationAsync(held.Sequence)).Result;
             var boundOutbox = source.GetBoundHolonReplicationOutbox(sourceIdentity.Result);
             Assert.False(boundOutbox.IsError, boundOutbox.Message);
             var boundRead = await Assert.IsAssignableFrom<IHolonReplicationObligationReader>(boundOutbox.Result)
@@ -128,9 +130,9 @@ public sealed partial class ReplicaBaselineRepairCommandTests
             using(var target=new SqliteProvider(connection))
             {
                 Assert.False((await target.ActivateProviderAsync()).IsError);
-                var delivery=new HolonOutboxDispatcher(outbox,new[]{new CommittedHolonReplicaTarget(HolonReplicationRoutes.TargetId(ProviderType.SQLLiteDBOASIS),target,
-                    ProviderType.SQLLiteDBOASIS,HolonReplicationRoutes.SourceId(ProviderType.MongoDBOASIS),ProviderType.MongoDBOASIS)},"owned-command-test");
-                var next=await delivery.DispatchOnceAsync(HolonReplicationRoutes.TargetId(ProviderType.SQLLiteDBOASIS));
+                var delivery=new HolonOutboxDispatcher(outbox,new[]{new CommittedHolonReplicaTarget(route.TargetId,target,
+                    ProviderType.SQLLiteDBOASIS,route.SourceId,ProviderType.MongoDBOASIS)},"owned-command-test");
+                var next=await delivery.DispatchOnceAsync(route.TargetId);
                 Assert.Equal(1,next.Result.CompletedCount);
                 var copied=(await target.LoadHolonAsync(id,loadChildren:false)).Result;
                 Assert.Equal(5,copied.Version);Assert.Equal(creator,copied.CreatedByAvatarId);
@@ -138,8 +140,8 @@ public sealed partial class ReplicaBaselineRepairCommandTests
 
             current.Name = "cross-owner update";
             await Save(6);
-            var targetId = HolonReplicationRoutes.TargetId(ProviderType.SQLLiteDBOASIS);
-            var sourceId = HolonReplicationRoutes.SourceId(ProviderType.MongoDBOASIS);
+            var targetId = route.TargetId;
+            var sourceId = route.SourceId;
             using (var target = new SqliteProvider(connection))
             {
                 Assert.False((await target.ActivateProviderAsync()).IsError);
