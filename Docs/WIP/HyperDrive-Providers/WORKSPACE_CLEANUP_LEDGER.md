@@ -1042,3 +1042,5 @@ Urgent disk cleanup follow-up: leased standard project clean succeeded for AWS u
 13 November. Removed and checked the temporary Oracle outbound candidate index. CI logs were inspected in memory. No local build or fixture was created.
 
 13 November. Oracle job 132311553075 removed its container, volumes, SQLite databases and test output after both cases passed. Logs were inspected in memory.
+
+13 November. The Oracle lost-worker test reuses the existing owned CI fixture and requires no additional local runtime, build or database.

@@ -259,6 +259,30 @@ public sealed class OracleSqliteHyperDriveTests
                 reverseRoute.SourceId, reverseRoute.SourceStorage.Authority, grant, "sqlite-fixture", Guid.NewGuid(),
                 grant.BindingIdentity, sqliteIdentity.Result);
             var oracleDispatcher = new HolonOutboxDispatcher(oracleOutbox.Result, new[] { sqliteTarget }, "oracle-source");
+            var claimed = await oracleOutbox.Result.ClaimNextAsync(reverseRoute.TargetId, "lost-oracle-worker",
+                TimeSpan.FromMinutes(1));
+            Assert.IsFalse(claimed.IsError, claimed.Message);
+            Assert.IsNotNull(claimed.Result);
+            Assert.AreEqual(head.Sequence, claimed.Result.Sequence);
+            var renewed = await oracleOutbox.Result.RenewAsync(claimed.Result, TimeSpan.FromMinutes(2));
+            Assert.IsTrue(!renewed.IsError && renewed.Result, renewed.Message);
+            var whileLeased = await oracleDispatcher.DispatchOnceAsync(reverseRoute.TargetId, maximumCount: 1);
+            Assert.IsFalse(whileLeased.IsError, whileLeased.Message);
+            Assert.AreEqual(0, whileLeased.Result.CompletedCount);
+
+            // Move only the owned fixture lease into the past to simulate a lost worker without waiting on wall time.
+            await using (var native = new OracleConnection(connection.ConnectionString))
+            {
+                await native.OpenAsync();
+                await using var expire = native.CreateCommand();
+                expire.CommandText = "UPDATE OASIS_OUTBOUND_DELIVERIES SET LEASE_UNTIL=1 WHERE DELIVERY_SEQUENCE=:Sequence AND LEASE_TOKEN=:Lease";
+                expire.Parameters.Add("Sequence", OracleDbType.Int64).Value = claimed.Result.Sequence;
+                expire.Parameters.Add("Lease", OracleDbType.Raw).Value = claimed.Result.LeaseToken.ToByteArray();
+                Assert.AreEqual(1, await expire.ExecuteNonQueryAsync());
+            }
+            var expiredFinish = await oracleOutbox.Result.FinishAsync(claimed.Result, HolonDeliveryOutcome.Completed);
+            Assert.IsFalse(expiredFinish.IsError, expiredFinish.Message);
+            Assert.IsFalse(expiredFinish.Result);
             var reverseDelivery = await oracleDispatcher.DispatchOnceAsync(reverseRoute.TargetId, maximumCount: 2);
             Assert.IsFalse(reverseDelivery.IsError, reverseDelivery.Message);
             Assert.AreEqual(1, reverseDelivery.Result.CompletedCount);
@@ -268,6 +292,10 @@ public sealed class OracleSqliteHyperDriveTests
             var completed = await oracleOutbox.Result.InspectAsync(head.Sequence);
             Assert.IsFalse(completed.IsError, completed.Message);
             Assert.AreEqual(HolonDeliveryState.Completed, completed.Result.State);
+            Assert.AreEqual(2, completed.Result.AttemptCount);
+            var staleRenewal = await oracleOutbox.Result.RenewAsync(claimed.Result, TimeSpan.FromMinutes(1));
+            Assert.IsFalse(staleRenewal.IsError, staleRenewal.Message);
+            Assert.IsFalse(staleRenewal.Result);
 
             var evidenceRequest = new ConditionalHolonReceiptEvidenceRequest(intent, oracleIdentity,
                 sqliteIdentity.Result, new[] { receiptHolon.Id });
