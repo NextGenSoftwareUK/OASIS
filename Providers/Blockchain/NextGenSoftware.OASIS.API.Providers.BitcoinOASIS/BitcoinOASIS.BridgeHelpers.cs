@@ -62,19 +62,11 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                     return result;
                 }
 
-                var address = BitcoinAddress.Create(request.WalletAddress, SigningNetwork);
-                var stats = await _httpClient.GetFromJsonAsync<JsonElement>($"address/{address}");
-                var confirmed = stats.GetProperty("chain_stats");
-                var pending = stats.GetProperty("mempool_stats");
-                var satoshis = checked(confirmed.GetProperty("funded_txo_sum").GetInt64()
-                    - confirmed.GetProperty("spent_txo_sum").GetInt64()
-                    + pending.GetProperty("funded_txo_sum").GetInt64()
-                    - pending.GetProperty("spent_txo_sum").GetInt64());
-
-                if (satoshis < 0)
-                    throw new InvalidOperationException("Esplora returned a negative Bitcoin balance.");
-
-                result.Result = (double)Money.Satoshis(satoshis).ToDecimal(MoneyUnit.BTC);
+                var balance = await GetAccountBalanceAsync(request.WalletAddress);
+                if (balance.IsError)
+                    OASISErrorHandling.HandleError(ref result, balance.Message, balance.Exception);
+                else
+                    result.Result = (double)balance.Result;
             }
             catch (Exception ex)
             {
@@ -232,30 +224,19 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                     return result;
                 }
 
-                // Call Bitcoin RPC API to get address balance
-                var rpcRequest = new
-                {
-                    jsonrpc = "2.0",
-                    id = 1,
-                    method = "getreceivedbyaddress",
-                    @params = new object[] { accountAddress, 0 } // 0 = minimum confirmations
-                };
+                var address = BitcoinAddress.Create(accountAddress, SigningNetwork);
+                var stats = await _httpClient.GetFromJsonAsync<JsonElement>($"address/{address}", token);
+                var confirmed = stats.GetProperty("chain_stats");
+                var pending = stats.GetProperty("mempool_stats");
+                var satoshis = checked(confirmed.GetProperty("funded_txo_sum").GetInt64()
+                    - confirmed.GetProperty("spent_txo_sum").GetInt64()
+                    + pending.GetProperty("funded_txo_sum").GetInt64()
+                    - pending.GetProperty("spent_txo_sum").GetInt64());
 
-                var response = await _httpClient.PostAsJsonAsync("", rpcRequest, token);
-                var content = await response.Content.ReadAsStringAsync(token);
-                var jsonDoc = JsonDocument.Parse(content);
+                if (satoshis < 0)
+                    throw new InvalidOperationException("Esplora returned a negative Bitcoin balance.");
 
-                if (jsonDoc.RootElement.TryGetProperty("result", out var resultElement))
-                {
-                    var balance = resultElement.GetDecimal();
-                    result.Result = balance;
-                    result.IsError = false;
-                }
-                else
-                {
-                    result.Result = 0m;
-                    result.IsError = false;
-                }
+                result.Result = Money.Satoshis(satoshis).ToDecimal(MoneyUnit.BTC);
             }
             catch (Exception ex)
             {
@@ -275,17 +256,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                     return result;
                 }
 
-                // Generate Bitcoin key pair using NBitcoin
-                var network = _network == "mainnet" ? Network.Main : Network.TestNet;
-                var key = new NBitcoin.Key();
-                var privateKey = key.GetWif(network).ToString();
-                var publicKey = key.PubKey.GetAddress(ScriptPubKeyType.Legacy, network).ToString();
-
-                // Generate seed phrase
+                token.ThrowIfCancellationRequested();
                 var mnemonic = new Mnemonic(Wordlist.English, WordCount.Twelve);
-                var seedPhrase = mnemonic.ToString();
-
-                result.Result = (publicKey, privateKey, seedPhrase);
+                var key = mnemonic.DeriveExtKey().PrivateKey;
+                var network = SigningNetwork;
+                var address = key.PubKey.GetAddress(ScriptPubKeyType.Legacy, network);
+                result.Result = (address.ToString(), key.GetWif(network).ToString(), mnemonic.ToString());
                 result.IsError = false;
                 result.Message = "Bitcoin account created successfully.";
             }
@@ -307,8 +283,8 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                     return result;
                 }
 
-                // Restore Bitcoin key pair from seed phrase using NBitcoin
-                var network = _network == "mainnet" ? Network.Main : Network.TestNet;
+                token.ThrowIfCancellationRequested();
+                var network = SigningNetwork;
                 var mnemonic = new Mnemonic(seedPhrase);
                 var extKey = mnemonic.DeriveExtKey();
                 var key = extKey.PrivateKey;

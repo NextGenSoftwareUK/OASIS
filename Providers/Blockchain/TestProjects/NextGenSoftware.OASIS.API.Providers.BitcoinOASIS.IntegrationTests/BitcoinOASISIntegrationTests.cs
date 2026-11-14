@@ -87,6 +87,28 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
         }
 
         [TestMethod]
+        public async Task EsploraActivatedAccountRestoresItsOriginalKeys()
+        {
+            try
+            {
+                var activation = await _provider.ActivateProviderAsync();
+                Assert.IsFalse(activation.IsError, activation.Message);
+
+                var created = await _provider.CreateAccountAsync();
+                Assert.IsFalse(created.IsError, created.Message);
+                var restored = await _provider.RestoreAccountAsync(created.Result.SeedPhrase);
+                Assert.IsFalse(restored.IsError, restored.Message);
+
+                Assert.IsTrue(created.Result.PublicKey == restored.Result.PublicKey, "Restored address differs.");
+                Assert.IsTrue(created.Result.PrivateKey == restored.Result.PrivateKey, "Restored signing key differs.");
+            }
+            finally
+            {
+                _provider.Dispose();
+            }
+        }
+
+        [TestMethod]
         public async Task SaveAvatar_ShouldReturnSuccessResult()
         {
             // Arrange
