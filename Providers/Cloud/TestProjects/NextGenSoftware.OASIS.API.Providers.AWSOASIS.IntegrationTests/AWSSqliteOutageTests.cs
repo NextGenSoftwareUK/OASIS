@@ -10,6 +10,7 @@ using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using NextGenSoftware.Utilities;
 using SqliteProvider = NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.SQLLiteDBOASIS;
 
