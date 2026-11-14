@@ -80,7 +80,14 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         }
         Assert.AreEqual(ulong.MaxValue, await ReduceUnsigned<ulong>(CosmicScalarOperation.Sum));
         Assert.AreEqual((decimal)ulong.MaxValue, await ReduceUnsigned<decimal>(CosmicScalarOperation.Average));
-        Passed("native integer, decimal, floating-point and exact UInt64 reductions preserve entity windows");
+        var traversal = CosmicQueryTraversalOptions.Create(2, 8).Result;
+        var graphAmounts = root.OrderBy(row => row.Name).Take(3)
+            .Where(row => CosmicQueryRelations.AnyDescendant(row, child => child.Name == "visible match", traversal))
+            .Select(row => CosmicQueryMetadata.Value<decimal>(row, "decimal"));
+        Assert.AreEqual(exactAmount, graphAmounts.Sum());
+        Assert.AreEqual(exactAmount, graphAmounts.Average());
+        Assert.AreEqual(0m, graphAmounts.Take(0).Sum());
+        Passed("native integer, decimal, floating-point and exact UInt64 reductions preserve entity windows and graph filters");
 
         var nullable = root.OrderBy(row => row.Name).Take(3).Reverse().Take(0)
             .Select(row => CosmicQueryMetadata.Value<int?>(row, "nullableInt"));
