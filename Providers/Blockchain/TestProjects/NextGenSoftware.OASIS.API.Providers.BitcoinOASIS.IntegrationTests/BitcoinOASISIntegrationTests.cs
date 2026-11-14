@@ -4,6 +4,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using System.Threading.Tasks;
+using System.Linq;
 using System;
 
 namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
@@ -97,6 +98,36 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
                     Assert.AreEqual("satoshi", transaction.AmountUnit);
                     Assert.AreEqual("1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa", transaction.ToWalletAddress);
                 }
+            }
+            finally
+            {
+                _provider.Dispose();
+            }
+        }
+
+        [TestMethod]
+        public async Task EsploraBoundedHistoryPreservesExactBitcoinAmount()
+        {
+            try
+            {
+                var activation = await _provider.ActivateProviderAsync();
+                Assert.IsFalse(activation.IsError, activation.Message);
+
+                var history = await _provider.GetTransactionsAsync(
+                    new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests.GetWeb3TransactionsRequest
+                    {
+                        WalletAddress = "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",
+                        FromBlock = 975810,
+                        ToBlock = 975810
+                    });
+                Assert.IsFalse(history.IsError, history.Message);
+
+                var matching = history.Result.Single(transaction => transaction.NativeTransactionId ==
+                    "fd3fed5bb1b5c3df76010d1d8c41e8bb68adb808d4c1b3b733b6da255f82271f");
+                Assert.AreEqual("1249", matching.RawAmount);
+                Assert.AreEqual("satoshi", matching.AmountUnit);
+                Assert.AreEqual("00000000000000000001c7ee2824dea49dcb4e3ac5fd25b0619725981c439ac7", matching.NativeBlockHash);
+                Assert.IsTrue(history.Result.All(transaction => transaction.NativeBlockNumber == 975810));
             }
             finally
             {
