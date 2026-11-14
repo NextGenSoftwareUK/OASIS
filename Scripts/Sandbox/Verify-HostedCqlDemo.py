@@ -146,10 +146,20 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--deployment', required=True, type=lambda value: str(uuid.UUID(value)))
     parser.add_argument('--commit', required=True)
+    parser.add_argument('--cql-text', type=Path, help='Use this Web4Site cql-text.js to verify populated alias sorting.')
     parser.add_argument('--resume', action='store_true', help='Read/query the original acknowledged cohort; never resave it.')
     options = parser.parse_args()
     if not re.fullmatch('[0-9a-f]{40}', options.commit):
         parser.error('--commit must be the exact full published SHA')
+    text_sources = {}
+    if options.cql_text:
+        compiler = options.cql_text.resolve(strict=True)
+        node = shutil.which('node')
+        if not node:
+            parser.error('--cql-text requires the installed Node runtime')
+        for provider in PROVIDERS:
+            query = f"SELECT Name AS Label FROM {provider} WHERE metadata.demoTag = @tag ORDER BY Label DESC LIMIT 3"
+            text_sources[provider] = (node, compiler, query)
     deployment_id, commit = options.deployment, options.commit
     journal_path = STATE / 'fixture.json'
     if options.resume:
@@ -275,7 +285,22 @@ def main():
     own = [meta('demoTag', tag)]
     for provider in PROVIDERS:
         for label, filters, expected, arguments in query_cases(tag):
-            check(label, actor, provider, filters, expected, **arguments)
+            if label == 'name' and provider in text_sources:
+                node, compiler, query = text_sources[provider]
+                assert re.fullmatch('[0-9a-f]{32}', tag), 'Fixture tag must be a hexadecimal UUID.'
+                compiled = json.loads(subprocess.check_output([
+                    node, '-e', 'process.stdout.write(JSON.stringify(require(process.argv[1]).compile(process.argv[2])))',
+                    str(compiler), query.replace('@tag', "'" + tag + "'")], text=True, timeout=15))
+                status, response = call(compiled['path'], body=compiled['body'], token=actor)
+                payload = response.get('result') or {}
+                expected_rows = [['Tea'], ['Flat White'], ['Espresso']]
+                if (status != 200 or response.get('isError') or payload.get('rows') != expected_rows
+                        or [column.get('alias') for column in payload.get('columns', [])] != ['Label']):
+                    report['failures'].append({'label': 'populated-alias-sort', 'provider': provider,
+                        'status': status, 'errorCode': response.get('errorCode'),
+                        'actual': payload.get('rows'), 'expected': expected_rows})
+            else:
+                check(label, actor, provider, filters, expected, **arguments)
 
     status, result = call('data/query-cql/federation', body={'scope': 'Named', 'providers': PROVIDERS,
         'source': {'filters': own + [meta('category', 'coffee')], 'orderBy': 'Name', 'take': 10},
