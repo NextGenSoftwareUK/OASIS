@@ -348,6 +348,38 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
                 System.Security.Cryptography.CryptographicOperations.ZeroMemory(wrongKey);
             }
 
+            var avatarRecord = new Avatar
+            {
+                Id = Guid.NewGuid(),
+                Username = "regtest-avatar",
+                Email = "regtest@example.invalid",
+                Version = 2
+            };
+            var savedAvatar = await provider.SaveAvatarAsync(avatarRecord);
+            Assert.IsFalse(savedAvatar.IsError, savedAvatar.Message);
+            var avatarTx = savedAvatar.Result.ProviderUniqueStorageKey[ProviderType.BitcoinOASIS];
+            await BitcoinCliAsync("getmempoolentry", avatarTx);
+            var avatarBlocks = await BitcoinCliAsync("generatetoaddress", "1", source);
+            using var avatarBlock = System.Text.Json.JsonDocument.Parse(avatarBlocks);
+            var avatarBlockHash = avatarBlock.RootElement[0].GetString();
+            for (var attempt = 0; attempt < 60; attempt++)
+            {
+                if ((await http.GetStringAsync("blocks/tip/hash")).Trim() == avatarBlockHash)
+                    break;
+                await Task.Delay(500);
+            }
+            Assert.AreEqual(avatarBlockHash, (await http.GetStringAsync("blocks/tip/hash")).Trim());
+
+            var loadedAvatar = await reopened.LoadAvatarByProviderKeyAsync(avatarTx, version: 2);
+            Assert.IsFalse(loadedAvatar.IsError, loadedAvatar.Message);
+            Assert.AreEqual(avatarRecord.Id, loadedAvatar.Result.Id);
+            Assert.AreEqual(avatarRecord.Email, loadedAvatar.Result.Email);
+            Assert.AreEqual(avatarRecord.Username, loadedAvatar.Result.Username);
+            Assert.AreEqual(avatarTx, loadedAvatar.Result.ProviderUniqueStorageKey[ProviderType.BitcoinOASIS]);
+
+            var avatarAsHolon = await reopened.LoadHolonAsync(avatarTx, loadChildren: false);
+            Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound, avatarAsHolon.ErrorCode);
+
             async Task<string> BitcoinCliAsync(params string[] arguments)
             {
                 var start = new System.Diagnostics.ProcessStartInfo("docker")
