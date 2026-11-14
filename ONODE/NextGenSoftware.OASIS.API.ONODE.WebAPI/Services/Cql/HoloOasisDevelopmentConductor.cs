@@ -298,23 +298,23 @@ internal sealed class HoloOasisDevelopmentConductor
             }
             catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
             {
-                var interfaceCount = "unavailable";
+                int? interfaceCount = null;
                 try
                 {
                     var interfaces = await ListInterfacesAsync().WaitAsync(TimeSpan.FromSeconds(2), cancellationToken);
                     if (!interfaces.IsError)
-                        interfaceCount = interfaces.AppInterfaces.Count().ToString(System.Globalization.CultureInfo.InvariantCulture);
+                        interfaceCount = interfaces.AppInterfaces.Count();
                 }
-                catch (Exception error) when (!cancellationToken.IsCancellationRequested)
+                catch (Exception) when (!cancellationToken.IsCancellationRequested)
                 {
-                    interfaceCount = error.GetType().Name;
+                    // The supplemental interface count has its own observation budget.
                 }
 
                 var timeout = new TimeoutException(
-                    $"The existing HoloOASIS teaching cell did not start within the conductor readiness budget. " +
-                    $"Persisted app interfaces: {interfaceCount}; " +
-                    $"completed cell-list replies: {completedPolls}; cells in the last reply: {lastRunningCellCount}.");
+                    "The existing HoloOASIS teaching cell did not start within the conductor readiness budget.");
                 timeout.Data["COSMIC.NativeStage"] = DescribeNativeStartup(GetConductorOutput());
+                timeout.Data[typeof(HoloOasisStartupCounts)] = new HoloOasisStartupCounts(
+                    interfaceCount, completedPolls, completedPolls == 0 ? null : lastRunningCellCount);
                 throw timeout;
             }
         }
