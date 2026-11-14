@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core;
+using NextGenSoftware.OASIS.API.Core.Configuration;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -8,6 +9,8 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using NextGenSoftware.Utilities;
 using SqliteProvider = NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.SQLLiteDBOASIS;
 
@@ -185,6 +188,58 @@ public partial class AWSOASISIntegrationTests
             }
             var absent = await _provider.LoadHolonAsync(id, loadChildren: false);
             Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound, absent.ErrorCode);
+        }
+    }
+
+    [TestMethod]
+    public async Task SqliteDispatcherReplicatesToDynamoDb()
+    {
+        var fixture = Environment.GetEnvironmentVariable("OASIS_DYNAMO_OUTAGE_FIXTURE");
+        Assert.IsFalse(string.IsNullOrWhiteSpace(fixture), "The owned DynamoDB fixture is required.");
+        var connection = $"Data Source={Path.Combine(fixture!, $"{Guid.NewGuid():N}.outbox.db")};Pooling=False";
+        using var sqlite = new SqliteProvider(connection);
+        var activated = await sqlite.ActivateProviderAsync();
+        Assert.IsTrue(!activated.IsError && activated.Result, activated.Message);
+        try
+        {
+            var source = await sqlite.CaptureStorageIdentityAsync();
+            var destination = await ((ICosmicStorageIdentityProvider)_provider).CaptureStorageIdentityAsync();
+            Assert.IsFalse(source.IsError, source.Message);
+            Assert.IsFalse(destination.IsError, destination.Message);
+            var actor = Guid.NewGuid();
+            var policy = new HolonReplicationActorGrant(new[] { actor }, DateTime.UtcNow.AddMinutes(10));
+            var route = new HolonReplicationRouteBinding(source.Result, destination.Result, policy.BindingIdentity);
+            var enrollment = new HolonReplicationEnrollment(route.SourceId, new[] { route.TargetId }, source.Result, new[] { route });
+            var record = new Holon { Id = Guid.NewGuid(), Name = "Owned DynamoDB dispatcher fixture" };
+            var write = new ConditionalHolonWrite(Guid.NewGuid(), actor, source.Result.Authority,
+                new[] { new HolonWriteCondition(record.Id, null) });
+            var saved = await sqlite.ExecuteReplicatingHolonWriteAsync(
+                new ConditionalHolonWriteRequest(write, ConditionalHolonOperation.Save, new[] { record }, saveChildren: false), enrollment);
+            Assert.IsTrue(!saved.IsError && saved.IsSaved, saved.Message);
+            var committed = saved.Result.Single();
+            var target = new CommittedHolonReplicaTarget(route.TargetId, _provider, destination.Result.Authority,
+                route.SourceId, source.Result.Authority, policy, "dynamo-fixture", Guid.NewGuid(), policy.BindingIdentity, destination.Result);
+            var dispatcher = new HolonOutboxDispatcher(new SqliteHolonReplicationOutbox(connection), new[] { target }, "dynamo-fixture");
+            var delivered = await dispatcher.DispatchOnceAsync(route.TargetId, maximumCount: 1);
+            Assert.IsFalse(delivered.IsError, delivered.Message);
+            Assert.AreEqual(1, delivered.Result.CompletedCount);
+            var loaded = await _provider.LoadHolonAsync(record.Id, loadChildren: false);
+            Assert.IsFalse(loaded.IsError, loaded.Message);
+            Assert.AreEqual(committed.VersionId, loaded.Result?.VersionId);
+            var request = new CommittedHolonReplicaRequest(write.OperationId, route.SourceId, source.Result.Authority,
+                actor, ConditionalHolonOperation.Save, new[] { committed }, false, true, 0, new[] { route });
+            var receipt = await ((ICommittedHolonReplicaReceiptStorageProvider)_provider)
+                .ReadCommittedHolonReplicaReceiptAsync(new(request, destination.Result));
+            Assert.IsFalse(receipt.IsError, receipt.Message);
+            Assert.AreEqual(ConditionalHolonReceiptState.Committed, receipt.Result.ReceiptState);
+            var restarted = new HolonOutboxDispatcher(new SqliteHolonReplicationOutbox(connection), new[] { target }, "dynamo-restarted");
+            var replay = await restarted.DispatchOnceAsync(route.TargetId, maximumCount: 1);
+            Assert.IsFalse(replay.IsError, replay.Message);
+            Assert.AreEqual(0, replay.Result.CompletedCount);
+        }
+        finally
+        {
+            await sqlite.DeActivateProviderAsync();
         }
     }
 }
