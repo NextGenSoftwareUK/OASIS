@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Public exact-key Playground and Ask your data presets
+
+Web4Site 0a8371a preserves equality when opening a single-key public preset and uses that key in Ask your data. All 179 website tests passed and [Vercel built the exact revision](https://vercel.com/oasis-team/web4-site/BaPs4f3rAH7WEfmbg7gY9NVZiWKJ). The live catalogue advertised no equality presets at review. A read-only HoloOASIS probe took a key from the existing public subset and confirmed the exact parser produced the same filter and selected the same public record as the direct typed request. No fixtures or local build outputs. Hosted browser and real WEB6 draft acceptance remain open.
+
 ## Supabase replica delivery rollout
 
 Development advanced to 5ab24c31afa0 with the bound Supabase receiver and SQLite-to-Supabase dispatcher. GitHub deployment 7783283350 began at 00:39:58 Cancun. Railway queued WEB4 deployment c46c40b5. The next shared review is after 01:09:58 Cancun, subject to current parent and live rollout. Live WEB4 CQL acceptance remains on 363dd7fbd23e pending cutover. Supabase outbound source commit and dispatcher work are separate and still in progress. No local builds or test fixtures were created.
