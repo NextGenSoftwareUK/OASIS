@@ -447,7 +447,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                     }
                 }
 
-                return await CommitEncryptedRecordAsync<IAvatar, Avatar>(avatar, AvatarRecordScope, avatar: true);
+                return await CommitEncryptedRecordAsync<IAvatar>(avatar, AvatarRecordScope, avatar: true);
             }
             catch (Exception ex)
             {

@@ -2097,3 +2097,5 @@ Supabase now reads replica receipt evidence through a service-role PostgREST RPC
 14 November Cancun time. Bitcoin avatar saves now publish encrypted Kubo records using the shared signer and an avatar-specific commitment prefix and encryption scope. Transaction-key reads recover the encrypted avatar and verify its stored identity and requested version. Exact holon storage candidate 57a21840f864 passed native qualification 43638481457. Avatar lifecycle verification remains open.
 
 14 November Cancun time. Extended native Bitcoin/Kubo CI to save an encrypted avatar, confirm its transaction, reopen with no signing key, check exact identity and private fields, and reject reading that commitment as a holon. CI pending. No local build or fixtures.
+
+14 November Cancun time. Bitcoin public CI 43639207691 caught a reference-type constraint error in the shared publication refactor. The shared snapshot already projects IHolon and IAvatar to their concrete record types, so the helper now uses that supported interface contract. Native avatar rerun pending. No local build or fixture.

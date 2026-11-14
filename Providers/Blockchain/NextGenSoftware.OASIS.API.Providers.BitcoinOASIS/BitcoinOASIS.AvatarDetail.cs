@@ -470,7 +470,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                     return response;
                 }
 
-                response = await CommitEncryptedRecordAsync<IHolon, Holon>(holon, HolonRecordScope);
+                response = await CommitEncryptedRecordAsync<IHolon>(holon, HolonRecordScope);
             }
             catch (Exception ex)
             {
@@ -480,14 +480,13 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             return response;
         }
 
-        private async Task<OASISResult<T>> CommitEncryptedRecordAsync<T, TRecord>(T record, string scope, bool avatar = false)
+        private async Task<OASISResult<T>> CommitEncryptedRecordAsync<T>(T record, string scope, bool avatar = false)
             where T : class, IHolonBase
-            where TRecord : T
         {
             var result = new OASISResult<T>();
             var signer = new NBitcoin.BitcoinSecret(_privateKey, SigningNetwork);
             var source = signer.GetAddress(NBitcoin.ScriptPubKeyType.Segwit).ToString();
-            var snapshot = NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordPublicationSnapshot<TRecord>.Capture(record);
+            var snapshot = NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordPublicationSnapshot<T>.Capture(record);
             using var client = CreateRecordBlobClient();
             using var codec = CreateRecordCodec();
             var store = new BitcoinRecordBlobStore(client, codec, avatar);
