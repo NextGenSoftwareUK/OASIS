@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+14 November Cancun: retain ci-cosmic-shared-6687bf7d5ce1 while exact image and protocol CI verify the HoloOASIS metrics probe. Remote database inspection used existing binaries in read-only mode. No local database copies, runtime installations or build outputs. Temporary Git indexes removed automatically.
+
 14 November Cancun: retain LocalState/COSMIC/HostedSandboxCqlCurrent and TestResults/Web4SandboxCqlCurrent for the interrupted hosted replication fixture. Three private Development records were acknowledged. The read-only alias probe did not replay writes. The temporary Web4Site compiler was removed automatically. No runtime installs or local builds.
 
 14 November Cancun: prior smoke visitor files were absent after cleanup. Created one Development sandbox visitor using the existing session endpoint and retained its protected session under LocalState/COSMIC/HostedCqlPostCleanupSmoke-74ff7058 for the pending live acceptance. Reuse this visitor for subsequent probes and remove its disposable local evidence when no longer needed. No local dependencies or runtime installs.
