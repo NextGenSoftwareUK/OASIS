@@ -71,3 +71,5 @@ New encrypted record pins carry the name `oasis-bitcoin-v1:<genesis hash>:<signi
 Native regtest verified save, mined commitment, and readback through a fresh provider instance. Identity lookup, deletion, pin reconciliation, and avatar storage remain open. [Native verification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43636836181)
 
 Bitcoin avatar soft deletion publishes an encrypted tombstone signed by the configured storage wallet. Current avatar selectors and lists exclude the tombstoned identity. Explicit historical-version reads and the original transaction key retain access to the earlier committed record. Requests for physical deletion return an error.
+
+For Bitcoin NFT lookup, set OASIS_BITCOIN_ORD_API to a trusted HTTPS ord server or a loopback ord server with JSON responses enabled. Pass an inscription ID consisting of the reveal transaction ID, i, and the inscription index. The reader verifies the server's Bitcoin network before requesting the inscription.

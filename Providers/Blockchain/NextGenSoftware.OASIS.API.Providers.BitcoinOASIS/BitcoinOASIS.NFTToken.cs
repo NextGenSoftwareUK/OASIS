@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -318,117 +318,8 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             return LoadOnChainNFTDataAsync(nftTokenAddress).Result;
         }
 
-        public async Task<OASISResult<IWeb3NFT>> LoadOnChainNFTDataAsync(string nftTokenAddress)
-        {
-            var result = new OASISResult<IWeb3NFT>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Bitcoin provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                if (string.IsNullOrWhiteSpace(nftTokenAddress))
-                {
-                    OASISErrorHandling.HandleError(ref result, "NFT token address is required");
-                    return result;
-                }
-
-                // Search for NFT data in OP_RETURN transactions
-                var searchRequest = new
-                {
-                    jsonrpc = "2.0",
-                    id = 1,
-                    method = "searchrawtransactions",
-                    @params = new object[] { nftTokenAddress, true, 0, 100 }
-                };
-
-                var searchContent = new StringContent(JsonSerializer.Serialize(searchRequest), Encoding.UTF8, "application/json");
-                var searchResponse = await _httpClient.PostAsync("", searchContent);
-
-                if (searchResponse.IsSuccessStatusCode)
-                {
-                    var searchResult = await searchResponse.Content.ReadAsStringAsync();
-                    var searchData = JsonSerializer.Deserialize<JsonElement>(searchResult);
-
-                    if (searchData.TryGetProperty("result", out var transactions))
-                    {
-                        foreach (var transaction in transactions.EnumerateArray())
-                        {
-                            if (transaction.TryGetProperty("vout", out var vouts))
-                            {
-                                foreach (var vout in vouts.EnumerateArray())
-                                {
-                                    if (vout.TryGetProperty("scriptPubKey", out var scriptPubKey) &&
-                                        scriptPubKey.TryGetProperty("asm", out var asm))
-                                    {
-                                        var asmString = asm.GetString();
-                                        if (asmString != null && asmString.StartsWith("OP_RETURN"))
-                                        {
-                                            try
-                                            {
-                                                var opReturnData = asmString.Substring("OP_RETURN ".Length);
-                                                var nftBytes = Convert.FromHexString(opReturnData);
-                                                var nftJson = Encoding.UTF8.GetString(nftBytes);
-                                                var nftData = JsonSerializer.Deserialize<JsonElement>(nftJson);
-                                                
-                                                // Check if this is NFT data
-                                                if (nftData.TryGetProperty("type", out var type) && 
-                                                    (type.GetString() == "nft_mint" || type.GetString() == "nft_transfer"))
-                                                {
-                                                    var txHash = transaction.TryGetProperty("txid", out var txid) ? txid.GetString() : "";
-                                                    var nft = new Web3NFT
-                                                    {
-                                                        NFTTokenAddress = nftTokenAddress,
-                                                        MintTransactionHash = type.GetString() == "nft_mint" ? txHash : "",
-                                                        SendNFTTransactionHash = type.GetString() == "nft_transfer" ? txHash : "",
-                                                        OnChainProvider = new EnumValue<ProviderType>(Core.Enums.ProviderType.BitcoinOASIS)
-                                                    };
-
-                                                    // Extract NFT metadata
-                                                    if (nftData.TryGetProperty("metadata", out var metadata))
-                                                    {
-                                                        nft.MetaData = new Dictionary<string, string>
-                                                        {
-                                                            ["RawMetadata"] = metadata.GetString() ?? ""
-                                                        };
-                                                    }
-
-                                                    result.Result = nft;
-                                                    result.IsError = false;
-                                                    result.Message = "NFT data loaded successfully from Bitcoin blockchain";
-                                                    return result;
-                                                }
-                                            }
-                                            catch
-                                            {
-                                                continue;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    
-                    OASISErrorHandling.HandleError(ref result, "NFT not found in Bitcoin blockchain");
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to search Bitcoin blockchain: {searchResponse.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading NFT data from Bitcoin: {ex.Message}", ex);
-            }
-            return result;
-        }
+        public Task<OASISResult<IWeb3NFT>> LoadOnChainNFTDataAsync(string nftTokenAddress)
+            => ReadOrdinalInscriptionAsync(nftTokenAddress);
 
 
 

@@ -1286,3 +1286,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 - 14 November Cancun time. Native Bitcoin jobs 43650028394, 43650281292 and 43650527225 cleaned the disposable Esplora, Bitcoin Core and Kubo environment. The Development integration used an existing qualified commit. No local build or temporary index.
 
 - 14 November Cancun time. Removed the temporary Git index for Bitcoin lifecycle candidate 5e00ac852113 and verified absence before pushing the qualification ref. No local fixture, download or build.
+
+- 14 November Cancun time. Exact Bitcoin native CI 43651403243 passed disposable backend teardown. The ordinal endpoint probe wrote no local files or downloads.
