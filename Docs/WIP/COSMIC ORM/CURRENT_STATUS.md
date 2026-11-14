@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## SQL Server rollout live CQL verification
+
+Railway WEB4 deployment eab12a1a served 383a335006d2 before and after the authenticated smoke. Public health returned HTTP 200. HoloOASIS native and MongoDB-federated presets returned identical three-record and two-record subsets with HoloOASIS provenance. The two catalogues reached 105/107 ready. Hedera timed out waiting for upstream response headers after 15 seconds and Nostr received HTTP 521 during WebSocket upgrade. The earlier successful Hedera preset proof remains recorded at b4270f9cb9d2. No settings or fixtures were changed. HyperDrive is qualifying Supabase PostgREST identity and receipt work separately.
+
 ## Live SQL LIKE matching and fixture cleanup
 
 Web4Site 3874f26 compiled exact, prefix, suffix and substring matches on all three canonical stores. MongoDB on b4270f9cb9d2 and SQLite and Neo4j on 383a335006d2 each returned the expected private record for all four patterns and no record for the negative pattern. SQL Server rollout eab12a1a served 383a335006d2 with public health HTTP 200. The MongoDB cleanup initially supplied the logical VersionId where the write contract requires COSMIC.ProviderRevisionId from the selected provider's metadata. Reloaded the same owned fixture, used its provider revision, and confirmed exact absence after hard deletion. SQLite and Neo4j fixtures also hard-deleted and verified absent. Compact operation journals remain with the retained smoke visitor. No build outputs or downloads.
