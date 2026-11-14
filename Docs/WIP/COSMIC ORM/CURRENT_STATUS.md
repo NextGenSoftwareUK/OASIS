@@ -10,7 +10,7 @@ The exact Web4Site parser 777f7a127bd0 ran a two-field GROUP BY with compound HA
 
 ## COSMIC integration after Firestore replica-head qualification
 
-Candidate `a00d91f29672` keeps the exact five Firestore files from `bdd6b945e3fd` and changes only the six scoped COSMIC paths relative to that candidate. Firestore passed [native qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43529260559). Exact combined protocol CI is pending. The Firestore candidate is the first parent so the verified COSMIC batch can follow if HyperDrive publishes first. WEB4 health remained HTTP 200 on the previous serving revision. No local build or test fixtures.
+Candidate `a00d91f29672` keeps the exact five Firestore files from `bdd6b945e3fd` and changes only the six scoped COSMIC paths relative to that candidate. Firestore passed [native qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43529260559). [Exact combined protocol CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43530396996) passed. Firestore landed at bdd6b945e3fd and remains the exact fast-forward parent. WEB4 deployment 46ae0f12-5c86-41c2-a635-d1654bf7445d was still building at 19:04 Cancun. Review after 19:24:07 and verify WEB4 HTTP and catalogue before the next push. The Firestore candidate is the first parent so the verified COSMIC batch can follow if HyperDrive publishes first. WEB4 health remained HTTP 200 on the previous serving revision. No local build or test fixtures.
 
 ## Live complex grouped CQL
 
