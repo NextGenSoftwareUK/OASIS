@@ -247,14 +247,18 @@ public sealed class HederaPublicAccountMetadataSource : KeyValueStorageProviderB
             var snapshots = await Task.WhenAll(keys.Select(async key =>
             {
                 await gate.WaitAsync(token);
-                try { return await GetNativeAsync("accounts/" + key + "?transactions=false", token); }
+                try
+                {
+                    token.ThrowIfCancellationRequested();
+                    return await GetNativeAsync("accounts/" + key + "?transactions=false", token);
+                }
                 finally { gate.Release(); }
             }));
             var rows = new List<IHolon>();
             for (int index = 0; index < keys.Count; index++)
             {
                 string key = keys[index];
-                // Limit the incidental history payload, never follow its links.
+                // This balance query requests an empty transaction history.
                 // This profile maps the account observation, not transactions.
                 var native = snapshots[index];
                 if (ValidateAddress(native.GetProperty("account").GetString()) != key ||
