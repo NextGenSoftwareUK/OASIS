@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -229,37 +229,35 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
         /// </summary>
         private Avatar ParseBitcoinToAvatar(string bitcoinJson)
         {
-            try
-            {
-                // Parse real Bitcoin OP_RETURN data
-                var bitcoinData = JsonSerializer.Deserialize<JsonElement>(bitcoinJson);
-                
-                // Extract avatar data from Bitcoin OP_RETURN transaction
-                var avatar = new Avatar
-                {
-                    Id = Guid.TryParse(bitcoinData.TryGetProperty("id", out var id) ? id.GetString() : null, out var guid) ? guid : CreateDeterministicGuid($"{ProviderType.Value}:{(bitcoinData.TryGetProperty("address", out var addr) ? addr.GetString() : "bitcoin_user")}"),
-                    Username = bitcoinData.TryGetProperty("username", out var username) ? username.GetString() : "bitcoin_user",
-                    Email = bitcoinData.TryGetProperty("email", out var email) ? email.GetString() : "user@bitcoin.example",
-                    FirstName = bitcoinData.TryGetProperty("first_name", out var firstName) ? firstName.GetString() : "Bitcoin",
-                    LastName = bitcoinData.TryGetProperty("last_name", out var lastName) ? lastName.GetString() : "User",
-                    AvatarType = new EnumValue<AvatarType>(Enum.TryParse<AvatarType>(bitcoinData.TryGetProperty("avatar_type", out var avatarType) ? avatarType.GetString() : "User", out var type) ? type : AvatarType.User),
-                    CreatedDate = DateTime.TryParse(bitcoinData.TryGetProperty("created_date", out var createdDate) ? createdDate.GetString() : DateTime.UtcNow.ToString("O"), out var created) ? created : DateTime.UtcNow,
-                    ModifiedDate = DateTime.TryParse(bitcoinData.TryGetProperty("modified_date", out var modifiedDate) ? modifiedDate.GetString() : DateTime.UtcNow.ToString("O"), out var modified) ? modified : DateTime.UtcNow,
-                    MetaData = new Dictionary<string, object>
-                    {
-                        ["BitcoinData"] = bitcoinJson,
-                        ["ParsedAt"] = DateTime.UtcNow,
-                        ["Provider"] = "BitcoinOASIS"
-                    }
-                };
+            using var document = JsonDocument.Parse(bitcoinJson);
+            var data = document.RootElement;
+            string ReadString(string name) => data.TryGetProperty(name, out var value)
+                && value.ValueKind == JsonValueKind.String ? value.GetString() : null;
 
-                return avatar;
-            }
-            catch (Exception)
+            if (data.ValueKind != JsonValueKind.Object
+                || !Guid.TryParse(ReadString("id"), out var id) || id == Guid.Empty
+                || string.IsNullOrWhiteSpace(ReadString("username"))
+                || string.IsNullOrWhiteSpace(ReadString("email"))
+                || !Enum.TryParse<AvatarType>(ReadString("avatar_type"), out var type)
+                || !Enum.IsDefined(typeof(AvatarType), type)
+                || !DateTime.TryParse(ReadString("created_date"), null, System.Globalization.DateTimeStyles.RoundtripKind, out var created)
+                || !DateTime.TryParse(ReadString("modified_date"), null, System.Globalization.DateTimeStyles.RoundtripKind, out var modified))
+                return null;
+
+            return new Avatar
             {
-                // If JSON deserialization fails, try to extract basic info
-                return CreateAvatarFromBitcoin(bitcoinJson);
-            }
+                Id = id,
+                Username = ReadString("username"),
+                Email = ReadString("email"),
+                FirstName = ReadString("first_name"),
+                LastName = ReadString("last_name"),
+                AvatarType = new EnumValue<AvatarType>(type),
+                CreatedDate = created,
+                ModifiedDate = modified,
+                MetaData = ReadString("metadata") is string metadata
+                    ? JsonSerializer.Deserialize<Dictionary<string, object>>(metadata)
+                    : new Dictionary<string, object>()
+            };
         }
 
         /// <summary>
@@ -282,33 +280,6 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             }
             catch { }
             return null;
-        }
-
-        /// <summary>
-        /// Create Avatar from Bitcoin response when JSON deserialization fails
-        /// </summary>
-        private Avatar CreateAvatarFromBitcoin(string bitcoinJson)
-        {
-            try
-            {
-                // Extract basic information from Bitcoin JSON response
-                var avatar = new Avatar
-                {
-                    Id = CreateDeterministicGuid($"{ProviderType.Value}:{ExtractBitcoinProperty(bitcoinJson, "address") ?? "bitcoin_user"}"),
-                    Username = ExtractBitcoinProperty(bitcoinJson, "address") ?? "bitcoin_user",
-                    Email = ExtractBitcoinProperty(bitcoinJson, "email") ?? "user@bitcoin.example",
-                    FirstName = ExtractBitcoinProperty(bitcoinJson, "first_name"),
-                    LastName = ExtractBitcoinProperty(bitcoinJson, "last_name"),
-                    CreatedDate = DateTime.UtcNow,
-                    ModifiedDate = DateTime.UtcNow
-                };
-
-                return avatar;
-            }
-            catch (Exception)
-            {
-                return null;
-            }
         }
 
         /// <summary>
