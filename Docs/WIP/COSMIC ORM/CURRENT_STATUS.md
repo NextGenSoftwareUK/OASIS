@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Native LINQ query comprehension
+
+Candidate `4b1f8f0eb28e` adds a C# query-comprehension case to the existing MongoDB, SQLite and Neo4j native suite. It exercises a bound filter, two order keys and an anonymous projection through the shipping query path. Exact native CI is pending. This test-only candidate is separate from the already qualified Development rollout. No local builds or databases were created.
+
 ## Verified compound grouping example
 
 Web4Site 16faa50cc22f now displays the live API-verified compound grouping example in the Playground. The exact displayed markup compiles to two grouping fields, two HAVING comparisons and three sort keys. All 173 website tests passed. Hosted browser rollout remains open.
