@@ -554,7 +554,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
                 }
                 Assert.AreEqual(recoveredBlock, (await http.GetStringAsync("blocks/tip/hash")).Trim());
 
-                using var recovered = new BitcoinOASIS(api, "regtest", sourceKey.GetWif(network).ToString());
+                using var recovered = new BitcoinOASIS(api, "regtest", sourceKey.GetWif(network).ToString(), null, 2m);
                 var inventory = await recovered.ListRecordPublicationsAsync();
                 Assert.IsFalse(inventory.IsError, inventory.Message);
                 CollectionAssert.AreEquivalent(new[] { storageTx, avatarTx, detailTx, acceptedId }, inventory.Result.ToArray());
@@ -607,6 +607,36 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
                 var historical = await walletReader.LoadAvatarAsync(avatarRecord.Id, version: 2);
                 Assert.IsFalse(historical.IsError, historical.Message);
                 Assert.AreEqual(avatarTx, historical.Result.ProviderUniqueStorageKey[ProviderType.BitcoinOASIS]);
+
+                var byHolonId = await recovered.LoadHolonAsync(privateHolon.Id, loadChildren: false, version: 3);
+                Assert.IsFalse(byHolonId.IsError, byHolonId.Message);
+                Assert.AreEqual(storageTx, byHolonId.Result.ProviderUniqueStorageKey[ProviderType.BitcoinOASIS]);
+                var holonList = await recovered.LoadAllHolonsAsync(HolonType.Holon, loadChildren: false);
+                Assert.IsFalse(holonList.IsError, holonList.Message);
+                Assert.IsTrue(holonList.Result.Any(holon => holon.Id == privateHolon.Id));
+
+                var childId = Guid.NewGuid();
+                var savedChild = await recovered.SaveHolonAsync(new Holon
+                {
+                    Id = childId,
+                    HolonType = HolonType.Holon,
+                    ParentHolonId = privateHolon.Id,
+                    Name = "Private regtest child",
+                    Version = 1
+                }, saveChildren: false);
+                Assert.IsFalse(savedChild.IsError, savedChild.Message);
+                var childTx = savedChild.Result.ProviderUniqueStorageKey[ProviderType.BitcoinOASIS];
+                await BitcoinCliAsync("getmempoolentry", childTx);
+                for (var attempt = 0; attempt < 60; attempt++)
+                {
+                    var pool = await http.GetStringAsync($"address/{storageAddress}/txs/mempool");
+                    if (pool.Contains(childTx, StringComparison.Ordinal))
+                        break;
+                    await Task.Delay(500);
+                }
+                var graph = await recovered.LoadHolonAsync(privateHolon.Id, loadChildren: true, recursive: false);
+                Assert.IsFalse(graph.IsError, graph.Message);
+                Assert.AreEqual(childId, graph.Result.Children.Single().Id);
             }
             finally
             {
