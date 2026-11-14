@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Qualified Hedera and HoloOASIS batch on Development
+
+14 November 09:03 Cancun. Development fast-forwarded to exact 1c8478f7577f from 1b91024a6318. Railway WEB4 fc9a82c9 is queued; the SQLite revision remains serving until cutover. The previous fleet had seven successful services and HoloOASIS matched 3/2 on the serving revision. Verify exact HTTP health, Hedera and HoloOASIS presets on the new deployment. HyperDrive can qualify the MongoDB batch on this new parent. Next Development integration review at least 30 minutes after this push and subject to live acceptance.
+
 ## 09:02:57 Cancun shared Development window
 
 COSMIC proposes the already image-qualified follow-on 1c8478f7577f for the next shared window, subject to the current remote head, serving fleet and absence of a competing publication. Linux managed conductor CI 43601381396 completed with all nine checks passing. HyperDrive has a separate three-file MongoDB candidate 7748eda97e0d in exact CI 43602024708. If COSMIC publishes first, rebase that candidate on the verified serving follow-on before its next rollout. No simultaneous Development push. The hosted intermittent HoloOASIS startup defect remains open.
