@@ -45,10 +45,11 @@ internal sealed class BitcoinRecordBlobStore(HttpClient kubo, EncryptedRecordCod
         return commitment;
     }
 
-    public async Task PinAsync(byte[] commitment)
+    public async Task PinAsync(byte[] commitment, string publicationName)
     {
         var cid = EncodeCid(commitment.AsSpan(Magic.Length, 34));
-        using var response = await kubo.PostAsync($"api/v0/pin/add?arg={cid}&recursive=true", null);
+        var name = Uri.EscapeDataString(publicationName);
+        using var response = await kubo.PostAsync($"api/v0/pin/add?arg={cid}&recursive=true&name={name}", null);
         response.EnsureSuccessStatusCode();
         using var acknowledgement = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
         foreach (var pin in acknowledgement.RootElement.GetProperty("Pins").EnumerateArray())

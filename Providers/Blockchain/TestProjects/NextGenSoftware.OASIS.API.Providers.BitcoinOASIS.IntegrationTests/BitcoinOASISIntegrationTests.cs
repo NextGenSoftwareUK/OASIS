@@ -478,7 +478,13 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
                 using var interrupted = new BitcoinOASIS(proxyAddress, "regtest", sourceKey.GetWif(network).ToString(), null, 2m);
                 var interruptedActivation = await interrupted.ActivateProviderAsync();
                 Assert.IsFalse(interruptedActivation.IsError, interruptedActivation.Message);
-                var uncertain = await interrupted.SendTransactionAsync(source, destination, 0.001m, null);
+                var uncertain = await interrupted.SaveHolonAsync(new Holon
+                {
+                    Id = Guid.NewGuid(),
+                    HolonType = HolonType.Holon,
+                    Name = "Interrupted regtest fixture",
+                    Version = 1
+                }, saveChildren: false);
                 var acceptedId = await nativeAcknowledgement;
                 Assert.IsTrue(uncertain.IsError, uncertain.Message);
                 Assert.IsNull(uncertain.Result);
@@ -486,6 +492,16 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
                 Assert.AreEqual(acceptedId, uncertain.MetaData["BitcoinTransactionId"]);
                 StringAssert.Contains(uncertain.Message, "Esplora did not confirm Bitcoin transaction");
                 await BitcoinCliAsync("getmempoolentry", acceptedId);
+
+                var namePrefix = $"oasis-bitcoin-v1:{network.GetGenesis().GetHash()}:{storageAddress}:";
+                using var storedPins = await kubo.PostAsync(
+                    $"api/v0/pin/ls?type=recursive&name={Uri.EscapeDataString(namePrefix)}", null);
+                storedPins.EnsureSuccessStatusCode();
+                using var namedPins = System.Text.Json.JsonDocument.Parse(await storedPins.Content.ReadAsStringAsync());
+                CollectionAssert.AreEquivalent(
+                    new[] { storageTx, avatarTx, detailTx, acceptedId }.Select(id => namePrefix + id).ToArray(),
+                    namedPins.RootElement.GetProperty("Keys").EnumerateObject()
+                        .Select(pin => pin.Value.GetProperty("Name").GetString()).ToArray());
             }
             finally
             {

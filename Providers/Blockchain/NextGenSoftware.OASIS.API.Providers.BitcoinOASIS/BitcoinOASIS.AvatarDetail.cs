@@ -453,10 +453,11 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             var json = NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.Serialize(snapshot.Proposal);
             var commitment = await store.PutAsync(scope, json);
             var publication = await SendSignedTransactionAsync(source, null, 0m, commitment, null, commitmentOnly: true,
-                preparePublication: () =>
+                preparePublication: transactionId =>
                 {
                     snapshot.ValidateUnchanged();
-                    return store.PinAsync(commitment);
+                    var publicationName = $"oasis-bitcoin-v1:{SigningNetwork.GetGenesis().GetHash()}:{source}:{transactionId}";
+                    return store.PinAsync(commitment, publicationName);
                 });
             result.MetaData = publication.MetaData;
             result.ErrorCode = publication.ErrorCode;

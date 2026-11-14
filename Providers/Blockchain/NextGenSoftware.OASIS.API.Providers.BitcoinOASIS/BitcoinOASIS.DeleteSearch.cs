@@ -57,7 +57,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
 
         private async Task<OASISResult<ITransactionResponse>> SendSignedTransactionAsync(
             string fromWalletAddress, string toWalletAddress, decimal amount, byte[] memo, string memoText, bool commitmentOnly,
-            Func<Task> preparePublication = null)
+            Func<uint256, Task> preparePublication = null)
         {
             var result = new OASISResult<ITransactionResponse>();
             uint256 submittedTransactionId = null;
@@ -185,7 +185,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                 var expectedId = transaction.GetHash();
                 using var body = new StringContent(transaction.ToHex(), Encoding.ASCII, "text/plain");
                 if (preparePublication != null)
-                    await preparePublication();
+                    await preparePublication(expectedId);
                 submittedTransactionId = expectedId;
                 result.MetaData[BitcoinTransactionIdMetadataKey] = expectedId.ToString();
                 using var response = await _httpClient.PostAsync("tx", body);
