@@ -177,7 +177,7 @@ def call(route, token=None, body=None, method="POST", operation=None, *, cookie_
             raise RuntimeError("HTTP proof exceeds its response budget.")
         if (response.headers.get("Access-Control-Allow-Origin") != BROWSER_ORIGIN
                 or response.headers.get("Access-Control-Allow-Credentials") != "true"):
-            raise RuntimeError("The exact hosted browser credential origin was not acknowledged.")
+            raise RuntimeError(f"HTTP {response.status}: the exact hosted browser credential origin was not acknowledged.")
         if not raw:
             raise RuntimeError("HTTP acceptance failed with an empty response: " + str(response.status))
         data = json.loads(raw)
