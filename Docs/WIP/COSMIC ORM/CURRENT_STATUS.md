@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## HoloOASIS relay reachability by address family
+
+14 November, 11:25 Cancun. On serving Development 2e864e1162e0, an in-container HTTPS probe to the configured bootstrap host got an HTTP response in 465 ms. The configured dual-stack relay timed out on an initial default request. Forced IPv4 reached HTTP 200 in 107 ms and forced IPv6 returned ENETUNREACH in 4 ms. Native admin reported one running cell on that same revision. This isolates an address-family reachability difference in the container. The HTTP samples do not establish how the native iroh connection selected addresses during the failed startup. Correlate the native startup markers and relay errors before changing its network configuration. No volume changes, downloads, new services or local artifacts.
+
 ## HoloOASIS startup diagnostics and shared rollout
 
 14 November, 11:22 Cancun. Shared Development f132040b216c is building as WEB4 deployment 0c8f0b08. The serving 2e864e1162e0 deployment still passes exact HoloOASIS and Hedera direct and federated CQL checks (3 full, 2 filtered), with 106/107 sources available in each mode. The Railway SSH admin probe timed out at transport level. No restart, database write or local fixture was needed.
