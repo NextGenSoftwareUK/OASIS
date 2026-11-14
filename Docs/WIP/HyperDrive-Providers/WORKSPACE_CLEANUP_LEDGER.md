@@ -1026,3 +1026,5 @@ Urgent disk cleanup follow-up: leased standard project clean succeeded for AWS u
 13 November. Oracle job 132297220305 removed the container, volumes, SQLite databases and test output after both cases passed. Removed the temporary candidate index. Logs were read in memory.
 
 13 November. Oracle job 132299688773 removed its container, volumes, SQLite databases and test output after both cases passed. Removed the temporary qualification index. No local build ran.
+
+13 November. Removed the temporary Oracle reconciliation index. No local build or database fixture ran.
