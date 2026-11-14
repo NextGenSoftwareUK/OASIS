@@ -168,8 +168,12 @@ def main():
         require_new_fixture(journal_path)  # Stop before even querying hosted state if an intent exists.
     cli = shutil.which('railway.exe') or shutil.which('railway.cmd') or shutil.which('railway')
     assert cli, 'Reuse the installed Railway CLI; do not install another environment.'
-    deployments = json.loads(subprocess.check_output([cli, 'deployment', 'list', '-p',
-        '712f50f6-3b7b-46d4-b229-44b49922f16b', '-s', 'WEB4 OASIS API', '-e', 'dev', '--limit', '10', '--json'], text=True))
+    linked = json.loads(subprocess.check_output([cli, 'status', '--json'], cwd=ROOT, text=True))
+    if linked.get('id') != '712f50f6-3b7b-46d4-b229-44b49922f16b':
+        raise RuntimeError('Link the existing OASIS Railway project before verifying Development.')
+    deployments = json.loads(subprocess.check_output([
+        cli, 'deployment', 'list', '--service', 'WEB4 OASIS API', '--environment', 'dev',
+        '--limit', '10', '--json'], cwd=ROOT, text=True))
     deployment = next(item for item in deployments if item['id'] == deployment_id)
     assert deployment['status'] == 'SUCCESS' and deployment['meta']['commitHash'] == commit, 'Wait for the exact verified deployment; do not create a replacement.'
     STATE.mkdir(parents=True, exist_ok=True)
