@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Hedera and HoloOASIS candidate preserves the pagination rollout
+
+HyperDrive advanced Development to c84e1b5c3632 with its qualified IPFS pagination test. WEB4 deployment 4bba3b6e is queued. COSMIC candidate a5d86933bc39 uses the exact tree 8b8beb73045181beca883c2af8d82c3b6dc5ed27 from 5c1f4c253e6a and fast-forwards the current Development head. The four changed files are the Hedera provider and tests and the timeout-only HoloOASIS diagnostic. [CI 43594133859](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43594133859) passed the focused Hedera and three-store native stages. Publishing and teardown are pending. Confirm the exact CI result and the serving rollout before integrating.
+
 ## HoloOASIS interface diagnostics run after readiness failure
 
 COSMIC 1c56c167f59c keeps the normal conductor readiness path unchanged. The interface inventory request runs only after an internal startup timeout, with a two-second budget. Candidate 5c1f4c253e6a retains the Hedera fix and IPFS pagination test. [Exact CI 43594133859](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43594133859) is active. The earlier shared candidate 4fd56a466009 is superseded for deployment. Current Development 27ed16491eb0 has 135 persisted Holochain app interfaces, one app-bound, matching the recovery instance. No native startup cause has been established.
