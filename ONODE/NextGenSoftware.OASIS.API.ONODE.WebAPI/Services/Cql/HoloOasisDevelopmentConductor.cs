@@ -240,6 +240,11 @@ internal sealed class HoloOasisDevelopmentConductor
             if (expectedCell is not { Length: 2 })
                 throw new InvalidOperationException("The enabled HoloOASIS teaching app has no provisioned cell.");
 
+            var interfaces = await ListInterfacesAsync().WaitAsync(readiness.Token);
+            if (interfaces.IsError)
+                throw new InvalidOperationException("The conductor could not list persisted app interfaces.");
+            var configuredInterfaceCount = interfaces.AppInterfaces.Count();
+
             var completedPolls = 0;
             var lastRunningCellCount = 0;
             try
@@ -261,7 +266,8 @@ internal sealed class HoloOasisDevelopmentConductor
             {
                 throw new TimeoutException(
                     $"The existing HoloOASIS teaching cell did not start within the conductor readiness budget. " +
-                    $"Completed cell-list replies: {completedPolls}; cells in the last reply: {lastRunningCellCount}.");
+                    $"Persisted app interfaces: {configuredInterfaceCount}; " +
+                    $"completed cell-list replies: {completedPolls}; cells in the last reply: {lastRunningCellCount}.");
             }
         }
 
