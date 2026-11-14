@@ -6704,3 +6704,5 @@ Web4Site 5fa63a71df5d used a temporary directory containing only committed websi
 14 November Cancun time. Managed activation and regression candidates use temporary remote tags ci-cosmic-holooasis-managed-1ac1e85afd99 and ci-cosmic-holooasis-managed-07d8b0a7d934. Keep while active qualifications use them. Exact image 43605726307 is built in GitHub CI. Temporary Git indexes were removed. No local native runtime, build, image or data fixture added.
 
 14 November Cancun time. ci-cosmic-holooasis-managed-3459ec1e21d5 is the exact Linux CI input on the MongoDB repair parent. The temporary reconciliation and documentation indexes were removed. No local build, download, runtime or fixture. C: had 29.1 GiB free.
+
+14 November Cancun time. Exact image 43606325623 and protocol 43606357400 use source 3459ec1e21d5. Both use cloud runners. Keep the exact source tag while qualification is active. No local image or build output. Temporary documentation index removed.
