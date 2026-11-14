@@ -66,4 +66,6 @@ Set `OASIS_BITCOIN_KUBO_API` to the trusted Kubo RPC root and `OASIS_BITCOIN_STO
 
 Fund the signing key's native SegWit address for storage transaction fees. `SaveHolonAsync` stores the encrypted payload in Kubo and returns the acknowledged Bitcoin transaction ID in the holon's provider storage key. Use that ID for exact transaction-key reads. Retaining access to the encrypted Kubo payload and its encryption key is required for readback.
 
+New encrypted record pins carry the name `oasis-bitcoin-v1:<genesis hash>:<signing address>:<transaction ID>`. The provider assigns the name before submitting the signed transaction. Trusted Kubo operators can use the recursive pin list to recover the transaction ID after a lost acknowledgement or process restart. Call ListRecordPublicationsAsync to discover recorded attempts for that wallet. Call ReconcileRecordPublicationAsync with the transaction ID and the same signing wallet to verify the recorded pin against the configured network and encrypted payload. Reconciliation does not broadcast, delete pins, or establish confirmation depth.
+
 Native regtest verified save, mined commitment, and readback through a fresh provider instance. Identity lookup, deletion, pin reconciliation, and avatar storage remain open. [Native verification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43636836181)
