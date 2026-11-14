@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## HoloOASIS interface reuse reached Development
+
+Development advanced to the [qualified revision 3f641d337fb5](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43573144864) after the shared 03:12 Cancun window. WEB4 deployment da8ddb70 queued. Its health-gated smoke will verify the exact serving revision, native and federated HoloOASIS presets, and selected-alias requests for MongoDB, SQLite and Neo4j. The previous live container held 135 distinct Holochain loopback listeners. The change bounds future app-bound interface creation; legacy interface cleanup and startup reliability remain open. The Development registration-policy files were restored byte-for-byte on COSMIC at 777e6fce354c and its independent branch CI is running. No new local build outputs or fixtures.
+
 ## DynamoDB rollout passed hosted CQL and interface reuse passed exact CI
 
 WEB4 deployment 372c916c served Development 4e86752ff71f with HTTP 200. Authenticated readiness reached 105/107 for both catalogues, with HashgraphOASIS and NostrOASIS unavailable. Native and MongoDB-federated HoloOASIS returned the same three-record and two-record subsets with HoloOASIS provenance. MongoDB, SQLite and Neo4j accepted the selected-alias SQL-like projection request. Populated alias ordering, hosted browser and real WEB6 draft acceptance remain open.
