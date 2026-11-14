@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Live WEB4 serves during HoloOASIS warm-up
+
+Deployment 8d1b591c on Development 2e864e1162e0 returned HTTP 200 while the exact conductor admin API reported zero running cells and HoloOASIS discovery returned CQL_SOURCE_NOT_READY. Hedera passed exact native and federated 3/2 queries during warm-up. WEB4 remained healthy and HoloOASIS later passed the exact 3/2 native and federated checks. Discovery reached 106/107 in both modes. This verifies live WEB4 availability during pending conductor startup. This rollout did not reproduce the full timeout failure, which remains intermittent. Reused the retained visitor and created no local build or data fixture.
+
 ## Managed HoloOASIS activation isolation reached Development
 
 14 November 10:41 Cancun. Development advanced from 72c90754271e to exact qualified 2e864e1162e0. Railway WEB4 deployment 8d1b591c-e258-443f-a3b3-c9a278f7fec6 is queued. The previous deployment 5114a9db crashed after repeated native persisted-cell timeouts. Verify exact revision, HTTP availability, HoloOASIS and Hedera queries, and provider discovery through startup. If the conductor stalls again, verify WEB4 is still serving and HoloOASIS reports unavailable. The native stall and signed-in WEB6 browser proof remain open. HyperDrive can reconcile its frozen V2 route work onto the new parent.
