@@ -32,7 +32,9 @@ internal static class ReplicaBaselineRepairCommand
         string SourcePayloadDigest, string SourceStoreIdentity, string TargetFile,
         [property:JsonIgnore(Condition=JsonIgnoreCondition.WhenWritingNull)] string SourceProvider=null,
         [property:JsonIgnore(Condition=JsonIgnoreCondition.WhenWritingNull)] string TargetProvider=null,
-        [property:JsonIgnore(Condition=JsonIgnoreCondition.WhenWritingNull)] string TargetStoreIdentity=null);
+        [property:JsonIgnore(Condition=JsonIgnoreCondition.WhenWritingNull)] string TargetStoreIdentity=null,
+        [property:JsonIgnore(Condition=JsonIgnoreCondition.WhenWritingNull)] string TargetEndpointFingerprint=null,
+        [property:JsonIgnore(Condition=JsonIgnoreCondition.WhenWritingNull)] string TargetNativeStoreId=null);
 
     internal static async Task<int> RunAsync(string[] args)
     {
@@ -152,6 +154,13 @@ internal static class ReplicaBaselineRepairCommand
             throw new ArgumentException("A complete reviewed V2 repair request is required.");
         var sourceType=SourceProfile(request.SourceProvider);
         var targetType=TargetProfile(request.TargetProvider);ValidateRoute(sourceType,targetType);
+        CosmicStorageIdentity reviewedTarget = null;
+        if (request.TargetEndpointFingerprint != null || request.TargetNativeStoreId != null)
+        {
+            if (targetType != ProviderType.SQLLiteDBOASIS)
+                throw new ArgumentException("The reviewed native identity is supported for SQLite repair targets.");
+            reviewedTarget = new CosmicStorageIdentity(targetType, request.TargetEndpointFingerprint, request.TargetNativeStoreId);
+        }
         var settings=dna.OASIS.StorageProviders;
         var configuredSource=sourceType switch {
             ProviderType.MongoDBOASIS=>StoreIdentity(settings.MongoDBOASIS.ConnectionString,settings.MongoDBOASIS.DBName),
@@ -215,7 +224,10 @@ internal static class ReplicaBaselineRepairCommand
             if(target is not ICommittedHolonReplicaInitializationRecoveryStorageProvider receiverOwner)
                 throw new InvalidOperationException("Configured target has no initialization receipt owner.");
             var preparation=Preparation(request,sourceType,outbox,targetIdentity);
-            var application=new HolonReplicaInitializationApplication(preparation,receiverOwner,complete);
+            var application = reviewedTarget == null
+                ? new HolonReplicaInitializationApplication(preparation,receiverOwner,complete)
+                : new HolonReplicaInitializationApplication(preparation,
+                    (IBoundCommittedHolonReplicaInitializationRecoveryStorageProvider)receiverOwner,reviewedTarget,complete);
             return await application.ExecuteAsync(request.OperatorId,request.Sequence,request.InitializationOperationId,protectedJournal,deadline.Token);
         }
         finally
