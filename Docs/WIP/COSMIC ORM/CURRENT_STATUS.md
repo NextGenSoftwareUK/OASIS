@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Live SQL LIKE matching and fixture cleanup
+
+Web4Site 3874f26 compiled exact, prefix, suffix and substring matches on all three canonical stores. MongoDB on b4270f9cb9d2 and SQLite and Neo4j on 383a335006d2 each returned the expected private record for all four patterns and no record for the negative pattern. SQL Server rollout eab12a1a served 383a335006d2 with public health HTTP 200. The MongoDB cleanup initially supplied the logical VersionId where the write contract requires COSMIC.ProviderRevisionId from the selected provider's metadata. Reloaded the same owned fixture, used its provider revision, and confirmed exact absence after hard deletion. SQLite and Neo4j fixtures also hard-deleted and verified absent. Compact operation journals remain with the retained smoke visitor. No build outputs or downloads.
+
 ## SQL Server native replication rollout
 
 Development advanced to 383a335006d2 after exact [SQL Server CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43556135649) passed sync and async bidirectional dispatcher delivery and lost-worker lease recovery. The scoped seven-file batch leaves dependency pins intact. Railway queued WEB4 deployment eab12a1a at 23:31 Cancun. Retain b4270f9cb9d2 as the last live CQL acceptance baseline until the new serving revision passes public health and authenticated catalogue and provider checks. Review the next shared batch after 00:01 Cancun. No local build or fixture output.
