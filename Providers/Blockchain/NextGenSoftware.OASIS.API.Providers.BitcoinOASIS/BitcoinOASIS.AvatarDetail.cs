@@ -470,27 +470,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                     return response;
                 }
 
-                var signer = new NBitcoin.BitcoinSecret(_privateKey, SigningNetwork);
-                var source = signer.GetAddress(NBitcoin.ScriptPubKeyType.Segwit).ToString();
-                var snapshot = NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordPublicationSnapshot<Holon>.Capture(holon);
-                using var client = CreateRecordBlobClient();
-                using var codec = CreateRecordCodec();
-                var store = new BitcoinRecordBlobStore(client, codec);
-                var json = NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.Serialize(snapshot.Proposal);
-                var commitment = await store.PutAsync(HolonRecordScope, json);
-                snapshot.ValidateUnchanged();
-                await store.PinAsync(commitment);
-                var publication = await SendSignedTransactionAsync(source, null, 0m, commitment, null, commitmentOnly: true);
-                if (publication.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref response, publication.Message, publication.Exception);
-                    return response;
-                }
-
-                var stored = snapshot.Proposal;
-                stored.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
-                stored.ProviderUniqueStorageKey[Core.Enums.ProviderType.BitcoinOASIS] = publication.Result.TransactionResult;
-                response.Result = stored;
+                response = await CommitEncryptedRecordAsync<IHolon, Holon>(holon, HolonRecordScope);
             }
             catch (Exception ex)
             {
@@ -498,6 +478,36 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             }
 
             return response;
+        }
+
+        private async Task<OASISResult<T>> CommitEncryptedRecordAsync<T, TRecord>(T record, string scope)
+            where T : class, IHolonBase
+            where TRecord : T
+        {
+            var result = new OASISResult<T>();
+            var signer = new NBitcoin.BitcoinSecret(_privateKey, SigningNetwork);
+            var source = signer.GetAddress(NBitcoin.ScriptPubKeyType.Segwit).ToString();
+            var snapshot = NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordPublicationSnapshot<TRecord>.Capture(record);
+            using var client = CreateRecordBlobClient();
+            using var codec = CreateRecordCodec();
+            var store = new BitcoinRecordBlobStore(client, codec);
+            var json = NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.Serialize(snapshot.Proposal);
+            var commitment = await store.PutAsync(scope, json);
+            snapshot.ValidateUnchanged();
+            await store.PinAsync(commitment);
+
+            var publication = await SendSignedTransactionAsync(source, null, 0m, commitment, null, commitmentOnly: true);
+            if (publication.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, publication.Message, publication.Exception);
+                return result;
+            }
+
+            var stored = snapshot.Proposal;
+            stored.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
+            stored.ProviderUniqueStorageKey[Core.Enums.ProviderType.BitcoinOASIS] = publication.Result.TransactionResult;
+            result.Result = stored;
+            return result;
         }
 
         private const string HolonRecordScope = "bitcoin-oasis:holon:v1";
