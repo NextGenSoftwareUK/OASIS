@@ -1208,3 +1208,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 14 November Cancun time. Native authorization denial qualification completed the MongoDB and SQLite fixture cleanup steps. No local build or downloads were created.
 
 14 November Cancun time. Exact native denial qualification passed the MongoDB and SQLite fixture cleanup steps. No local build output or download was created.
+
+14 November Cancun time. The corrected V2 qualification passed its native fixture cleanup. Candidate f03919cf8c33 used a temporary Git index that was removed. No local build or download ran.
