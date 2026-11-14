@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Combined Development candidate in qualification
+
+14 November, Cancun. Candidate a86e324cb739 combines cell-creation diagnostics and positional-record projection on Development 9a2e2339279c. The separate projection run 43624999099 passed 47 assertions per store and the full protocol suite. The diagnostic's separate Linux and protocol runs also passed. The combined source passed the seven-service dependency manifest and gitlink validation. [Combined Linux CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43626450644), [combined native and protocol CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43626473340), and [exact WEB4 image](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43626471165) must finish before a shared Development publication. The existing Railway rollout remains active. No local build or fixture was created.
+
 ## Development qualification after the release merge-back
 
 14 November, Cancun. The first cell-creation diagnostic candidate passed Linux, image, and protocol CI on 747df5940450. Development moved to 9a2e2339279c, so candidate e27b32a1eabc reapplies only those three files on the current parent. [Linux](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43625198500), [image](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43625219329), and [protocol](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43625221047) are active. Railway is still processing the preceding releases.
