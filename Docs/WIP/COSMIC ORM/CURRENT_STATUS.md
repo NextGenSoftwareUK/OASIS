@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Current website build
+
+Web4Site 9a409eb8e3ee refreshes the browser URLs for the parser, Playground and Ask your data scripts. Vercel built this exact revision and all 173 website tests passed on its committed files. Protected preview and real WEB6 drafting remain open.
+
 ## Coordination with Firestore outbound delivery
 
 Candidate `f587ae2ccabf` combines the six [protocol-qualified COSMIC paths](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43530396996) with five non-overlapping [native-qualified Firestore outbound paths](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43533215323) from `9944b532132b`. Both scoped diffs are preserved. HyperDrive advanced Development to 9944b532132b. Railway queued WEB4 deployment e70edf4f-c9ca-4f32-b98d-006b1d1641a7. The [exact combined protocol run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43533976399) is active. The combined candidate can fast-forward from the current Development parent once CI and the preceding live rollout are verified. WEB4 health was HTTP 200 at review. No local build or test fixture created.

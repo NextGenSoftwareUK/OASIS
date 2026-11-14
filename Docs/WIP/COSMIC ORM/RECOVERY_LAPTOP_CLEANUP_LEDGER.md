@@ -6592,3 +6592,5 @@ Track temporary tag `ci-cosmic-infura-web4-ee3a6589a6` for exact runs `432184056
 - 13 November Cancun: Four private complex-group fixtures were conditionally hard-deleted and each absence verified through named-provider CQL. Sixteen compact intent/ack receipts remain in LocalState/COSMIC/HostedCqlReadiness-Polkadot. No local builds or downloads.
 
 - 13 November Cancun: Removed the temporary exact-source directory and index after checking the displayed compound grouping example and running 173 Web4Site tests at 16faa50cc22f. No runtime download, local build output, or hosted fixture.
+
+- 13 November Cancun: Ran 173 Node tests against Web4Site 9a409eb8e3ee using a temporary exact-source directory and removed it. No downloads or local build output.
