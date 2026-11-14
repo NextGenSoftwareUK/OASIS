@@ -189,6 +189,7 @@ public sealed class FirestoreSqliteOutageTests
             }
             var avatarDocument = db.Collection("avatars").Document(id.ToString());
             await VerifySqliteDeliveryAsync(firestore, db, bindings[0].Result, fixture);
+            await VerifyFirestoreDeliveryAsync(firestore, db, bindings[0].Result, fixture, synchronous);
             try
             {
                 var avatar = await firestore.SaveAvatarAsync(new Avatar { Id = id, IsActive = true });
@@ -286,6 +287,72 @@ public sealed class FirestoreSqliteOutageTests
             {
                 await firestore.DeActivateProviderAsync();
             }
+        }
+    }
+
+    private static async Task VerifyFirestoreDeliveryAsync(GoogleCloudOASIS firestore, FirestoreDb db,
+        CosmicStorageIdentity identity, string fixture, bool synchronous)
+    {
+        using var sqlite = new SqliteProvider($"Data Source={Path.Combine(fixture, $"{Guid.NewGuid():N}.firestore-source.db")};Pooling=False");
+        var activation = await sqlite.ActivateProviderAsync();
+        Assert.IsFalse(activation.IsError, activation.Message);
+        var captured = await sqlite.CaptureStorageIdentityAsync();
+        Assert.IsFalse(captured.IsError, captured.Message);
+
+        var actor = Guid.NewGuid();
+        var policy = new HolonReplicationActorGrant(new[] { actor }, DateTime.UtcNow.AddMinutes(10));
+        var route = new HolonReplicationRouteBinding(identity, captured.Result, policy.BindingIdentity);
+        var enrollment = new HolonReplicationEnrollment(route.SourceId, new[] { route.TargetId }, identity, new[] { route });
+        var record = new Holon { Id = Guid.NewGuid(), Name = "Owned Firestore source fixture", IsActive = true };
+        var write = new ConditionalHolonWrite(Guid.NewGuid(), actor, identity.Authority,
+            new[] { new HolonWriteCondition(record.Id, null) });
+        var request = new ConditionalHolonWriteRequest(write, ConditionalHolonOperation.Save, new[] { record }, saveChildren: false);
+        var sourceRecord = db.Collection("holons").Document(record.Id.ToString("D"));
+        var receiptKey = $"GoogleCloudOASIS:{write.OperationId:N}";
+        var receipt = db.Collection("cosmicWriteReceipts").Document(receiptKey);
+        var fence = db.Collection("cosmicOperationFences").Document(receiptKey);
+        try
+        {
+            var opened = firestore.GetBoundHolonReplicationOutbox(identity);
+            Assert.IsFalse(opened.IsError, opened.Message);
+            var outbox = opened.Result;
+            var saved = synchronous ? firestore.ExecuteReplicatingHolonWrite(request, enrollment)
+                : await firestore.ExecuteReplicatingHolonWriteAsync(request, enrollment);
+            Assert.IsTrue(!saved.IsError && saved.IsSaved, saved.Message);
+            var committed = saved.Result.Single();
+            var page = await outbox.ReadRouteHeadsAsync();
+            Assert.IsFalse(page.IsError, page.Message);
+            var pending = page.Result.Heads.Single(head => head.TargetId == route.TargetId);
+            Assert.AreEqual(write.OperationId, pending.OperationId);
+            Assert.AreEqual(HolonDeliveryState.Pending, pending.State);
+            var replay = await firestore.ExecuteReplicatingHolonWriteAsync(request, enrollment);
+            Assert.IsFalse(replay.IsError, replay.Message);
+            Assert.AreEqual(committed.VersionId, replay.Result.Single().VersionId);
+
+            var target = new CommittedHolonReplicaTarget(route.TargetId, sqlite, captured.Result.Authority,
+                route.SourceId, identity.Authority, policy, "firestore-source", Guid.NewGuid(), policy.BindingIdentity, captured.Result);
+            var dispatcher = new HolonOutboxDispatcher(outbox, new[] { target }, "firestore-source");
+            var delivered = await dispatcher.DispatchOnceAsync(route.TargetId, maximumCount: 2);
+            Assert.IsFalse(delivered.IsError, delivered.Message);
+            Assert.AreEqual(1, delivered.Result.CompletedCount);
+            var loaded = await sqlite.LoadHolonAsync(record.Id, loadChildren: false);
+            Assert.IsFalse(loaded.IsError, loaded.Message);
+            Assert.AreEqual(committed.VersionId, loaded.Result?.VersionId);
+            var finished = await outbox.InspectAsync(pending.Sequence);
+            Assert.IsFalse(finished.IsError, finished.Message);
+            Assert.AreEqual(HolonDeliveryState.Completed, finished.Result.State);
+            var next = await outbox.PeekNextAsync(route.TargetId);
+            Assert.IsFalse(next.IsError, next.Message);
+            Assert.IsNull(next.Result);
+        }
+        finally
+        {
+            foreach (var delivery in (await db.Collection("cosmicOutboundDeliveries")
+                .WhereEqualTo("operationId", write.OperationId.ToString("D")).GetSnapshotAsync()).Documents)
+                await delivery.Reference.DeleteAsync();
+            await sourceRecord.DeleteAsync();
+            await receipt.DeleteAsync();
+            await fence.DeleteAsync();
         }
     }
 

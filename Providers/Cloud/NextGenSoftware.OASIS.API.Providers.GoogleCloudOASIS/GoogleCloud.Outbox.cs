@@ -14,9 +14,36 @@ using QueryParts = Google.Cloud.Firestore.V1.StructuredQuery.Types;
 
 namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS;
 
-public partial class GoogleCloudOASIS
+public partial class GoogleCloudOASIS : IBoundHolonReplicationOutboxSource, IBoundAtomicHolonReplicationStorageProvider
 {
-    private sealed partial class FirestoreOutbox(GoogleCloudOASIS provider, CosmicStorageIdentity expectedSource)
+    public OASISResult<IEnumerable<IHolon>> ExecuteReplicatingHolonWrite(ConditionalHolonWriteRequest request,
+        HolonReplicationEnrollment enrollment)
+        => ExecuteReplicatingHolonWriteAsync(request, enrollment).GetAwaiter().GetResult();
+
+    public Task<OASISResult<IEnumerable<IHolon>>> ExecuteReplicatingHolonWriteAsync(ConditionalHolonWriteRequest request,
+        HolonReplicationEnrollment enrollment, CancellationToken cancellationToken = default)
+        => ExecuteFirestoreEnrolledWriteAsync(request, enrollment, cancellationToken);
+
+    public OASISResult<IHolonReplicationRouteInventoryOutbox> GetBoundHolonReplicationOutbox(CosmicStorageIdentity expectedSource)
+    {
+        ArgumentNullException.ThrowIfNull(expectedSource);
+        return IsProviderActivated && _enableFirestore && _firestoreDb != null && expectedSource.Authority == FirestoreReplicaAuthority
+            ? new(new FirestoreOutbox(this, expectedSource))
+            : new() { IsError = true, ErrorCount = 1, ErrorCode = "COSMIC_OUTBOX_SOURCE_UNAVAILABLE",
+                Message = "An active Firestore provider and an exact Firestore source binding are required." };
+    }
+
+    public OASISResult<IHolonReplicationReadinessOutbox> GetHolonReplicationOutbox()
+    {
+        var captured = CaptureStorageIdentityAsync().GetAwaiter().GetResult();
+        return captured.IsError
+            ? new() { IsError = true, ErrorCount = 1, ErrorCode = captured.ErrorCode,
+                Message = captured.Message, Exception = captured.Exception }
+            : new(new FirestoreOutbox(this, captured.Result));
+    }
+
+    private sealed class FirestoreOutbox(GoogleCloudOASIS provider, CosmicStorageIdentity expectedSource)
+        : IHolonReplicationRouteInventoryOutbox
     {
         private async Task<OASISResult<T>> ExecuteAsync<T>(
             Func<FirestoreDb, ByteString, Task<(T Result, IReadOnlyList<Native.Write> Writes)>> operation,
@@ -208,25 +235,68 @@ public partial class GoogleCloudOASIS
         private async Task<(HolonDeliveryInspection Inspection, Native.Document Document)?> ReadHeadAsync(
             FirestoreDb database, ByteString transaction, string targetId, CancellationToken cancellationToken)
         {
-            var query = new Native.StructuredQuery
+            await foreach (var document in ReadDeliveriesAsync(database, transaction, targetId,
+                QueryParts.FieldFilter.Types.Operator.Equal, cancellationToken))
             {
-                Where = new QueryParts.Filter
+                if (ReadReplicaReceiptField(document, "targetId") != targetId)
+                    throw new InvalidDataException("Firestore returned a delivery for another target.");
+                if (ReadReplicaReceiptField(document, "state") != nameof(HolonDeliveryState.Completed))
+                    return (Inspect(database, document), document);
+            }
+
+            return null;
+        }
+
+        public Task<OASISResult<HolonReplicationRoutePage>> ReadRouteHeadsAsync(int pageSize = 64,
+            string afterTargetId = null, CancellationToken cancellationToken = default)
+        {
+            HolonReplicationRoutePage.ValidateRequest(pageSize, afterTargetId);
+            return ExecuteAsync<HolonReplicationRoutePage>(async (database, transaction) =>
+            {
+                var heads = new List<HolonDeliveryInspection>(pageSize + 1);
+                var lastTarget = afterTargetId;
+                await foreach (var document in ReadDeliveriesAsync(database, transaction, afterTargetId,
+                    QueryParts.FieldFilter.Types.Operator.GreaterThan, cancellationToken))
+                {
+                    var target = ReadReplicaReceiptField(document, "targetId");
+                    if (lastTarget != null && HolonReplicationRoutePage.CompareTargetIds(target, lastTarget) < 0)
+                        throw new InvalidDataException("Firestore returned deliveries out of route order.");
+                    if (target == lastTarget || ReadReplicaReceiptField(document, "state") == nameof(HolonDeliveryState.Completed))
+                        continue;
+                    heads.Add(Inspect(database, document));
+                    lastTarget = target;
+                    if (heads.Count > pageSize)
+                        break;
+                }
+
+                return (new HolonReplicationRoutePage(heads.Take(pageSize), heads.Count > pageSize),
+                    Array.Empty<Native.Write>());
+            }, cancellationToken);
+        }
+
+        private static async IAsyncEnumerable<Native.Document> ReadDeliveriesAsync(FirestoreDb database,
+            ByteString transaction, string targetId, QueryParts.FieldFilter.Types.Operator comparison,
+            [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken)
+        {
+            var query = new Native.StructuredQuery();
+            if (targetId != null)
+                query.Where = new QueryParts.Filter
                 {
                     FieldFilter = new QueryParts.FieldFilter
                     {
                         Field = new QueryParts.FieldReference { FieldPath = "targetId" },
-                        Op = QueryParts.FieldFilter.Types.Operator.Equal,
+                        Op = comparison,
                         Value = new Native.Value { StringValue = targetId }
                     }
-                }
-            };
+                };
             query.From.Add(new QueryParts.CollectionSelector { CollectionId = FirestoreOutboxCollection });
             query.OrderBy.Add(new QueryParts.Order
             {
-                Field = new QueryParts.FieldReference { FieldPath = "__name__" },
+                Field = new QueryParts.FieldReference { FieldPath = "targetId" },
                 Direction = QueryParts.Direction.Ascending
             });
 
+            // Firestore appends document name in the final sort direction. Padded names order by sequence.
             using var call = database.Client.RunQuery(new Native.RunQueryRequest
             {
                 Parent = $"projects/{database.ProjectId}/databases/{database.DatabaseId}/documents",
@@ -237,15 +307,9 @@ public partial class GoogleCloudOASIS
             while (await stream.MoveNextAsync(cancellationToken).ConfigureAwait(false))
             {
                 var document = stream.Current.Document;
-                if (document == null)
-                    continue;
-                if (ReadReplicaReceiptField(document, "targetId") != targetId)
-                    throw new InvalidDataException("Firestore returned a delivery for another target.");
-                if (ReadReplicaReceiptField(document, "state") != nameof(HolonDeliveryState.Completed))
-                    return (Inspect(database, document), document);
+                if (document != null)
+                    yield return document;
             }
-
-            return null;
         }
 
         private static long ReadDeliveryTicks(Dictionary<string, object> fields, string name)
