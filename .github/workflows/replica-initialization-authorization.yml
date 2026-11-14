@@ -11,6 +11,8 @@ on:
       - 'Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/HolonReplicaInitializationPreparation.cs'
       - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/HyperDrive/ReplicaBaselineRepairCommand.cs'
       - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/ReplicaBaselineRepairCommandTests.cs'
+      - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/**'
+      - 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.IntegrationTests/BoundReplicaTests.cs'
   workflow_dispatch:
 
 permissions:
@@ -127,4 +129,27 @@ jobs:
             Remove-Item -LiteralPath $resolved -Recurse -Force
             if (Test-Path -LiteralPath $resolved) { throw 'Native command fixture cleanup failed.' }
             if ($containerRemovalFailed) { throw 'MongoDB fixture removal failed.' }
+          }
+
+      - name: Verify SQLite baseline initialization binding
+        shell: pwsh
+        run: |
+          $fixture = Join-Path $env:RUNNER_TEMP ('oasis-bound-initialization-' + [Guid]::NewGuid().ToString('N'))
+          New-Item -ItemType Directory -Path $fixture | Out-Null
+          try {
+            ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-SqliteBoundInitialization -Operation {
+              $project = 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.IntegrationTests'
+              dotnet test $project --filter 'FullyQualifiedName~BoundInitializationRejectsWrongStoreBeforeWriteAndReceiptRead' --artifacts-path (Join-Path $fixture build) --results-directory $fixture --logger 'trx;LogFileName=binding.trx' /m:2 /nr:false /p:UseSharedCompilation=false
+              if ($LASTEXITCODE) { throw 'SQLite baseline binding test failed.' }
+              [xml]$report = Get-Content -LiteralPath (Join-Path $fixture binding.trx)
+              $counts = $report.TestRun.ResultSummary.Counters
+              if ([int]$counts.total -ne 1 -or [int]$counts.passed -ne 1 -or [int]$counts.notExecuted -ne 0) {
+                throw 'Expected exactly one passing SQLite baseline binding case.'
+              }
+            }
+          } finally {
+            $resolved = (Resolve-Path -LiteralPath $fixture).Path
+            if ($resolved -ne $fixture -or (Split-Path -Parent $resolved) -ne $env:RUNNER_TEMP) { throw 'Unexpected fixture path.' }
+            Remove-Item -LiteralPath $resolved -Recurse -Force
+            if (Test-Path -LiteralPath $resolved) { throw 'SQLite binding fixture cleanup failed.' }
           }
