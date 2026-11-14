@@ -33,6 +33,9 @@
     <Compile Include="../../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/AppAccounts.cs" Link="Production/AppAccounts.cs" />
     <Compile Include="../../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.AppAccounts.cs" Link="Production/MongoSubscriptionUsageRepository.AppAccounts.cs" />
     <Compile Include="../../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.Pool.cs" Link="Production/MongoSubscriptionUsageRepository.Pool.cs" />
+    <Compile Include="../../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.AppBilling.cs" Link="Production/MongoSubscriptionUsageRepository.AppBilling.cs" />
+    <Compile Include="../../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/AppOverageEstimate.cs" Link="Production/AppOverageEstimate.cs" />
+    <Compile Include="../../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/AppOveragePrices.cs" Link="Production/AppOveragePrices.cs" />
     <Compile Include="../../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/MongoSubscriptionUsageRepository.Grants.cs" Link="Production/MongoSubscriptionUsageRepository.Grants.cs" />
     <Compile Include="../../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/DelegatedUsageGrants.cs" Link="Production/DelegatedUsageGrants.cs" />
     <Compile Include="../../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/SubscriptionMongoConfiguration.cs" Link="Production/SubscriptionMongoConfiguration.cs" />

@@ -36,19 +36,23 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
         private static readonly TransactionOptions TransactionOptions = new(
             readConcern: ReadConcern.Snapshot, readPreference: ReadPreference.Primary, writeConcern: WriteConcern.WMajority.With(journal: true));
 
-        public MongoSubscriptionUsageRepository(IConfiguration configuration) : this(
+        private readonly Func<bool> _appPayAsYouGoEnabled;
+
+        public MongoSubscriptionUsageRepository(IConfiguration configuration, Func<bool> appPayAsYouGoEnabled = null) : this(
             new MongoClient(SubscriptionMongoConfiguration.ConnectionString(configuration)),
             SubscriptionMongoConfiguration.DatabaseName(configuration), TimeProvider.System,
-            initializeEmptyLedger: SubscriptionMongoConfiguration.InitializeEmptyLedger(configuration)) { }
+            initializeEmptyLedger: SubscriptionMongoConfiguration.InitializeEmptyLedger(configuration),
+            appPayAsYouGoEnabled: appPayAsYouGoEnabled) { }
 
         public MongoSubscriptionUsageRepository(IMongoClient client, string databaseName, TimeProvider time,
-            ISubscriptionUsagePolicyProvider policyProvider = null, bool initializeEmptyLedger = false, PaidOveragePricing overagePricing = null)
+            ISubscriptionUsagePolicyProvider policyProvider = null, bool initializeEmptyLedger = false, PaidOveragePricing overagePricing = null, Func<bool> appPayAsYouGoEnabled = null)
         {
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _time = time ?? throw new ArgumentNullException(nameof(time));
             _policyProvider = policyProvider ?? new SubscriptionUsagePolicyProvider();
             _initializeEmptyLedger = initializeEmptyLedger;
             _overagePricing = overagePricing;
+            _appPayAsYouGoEnabled = appPayAsYouGoEnabled ?? (() => true);
             var database = client.GetDatabase(databaseName);
             _database = database;
             InitializeBillingIndexes();
