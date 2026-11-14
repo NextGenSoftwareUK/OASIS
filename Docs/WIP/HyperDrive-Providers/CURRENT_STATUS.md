@@ -2129,3 +2129,5 @@ Supabase now reads replica receipt evidence through a service-role PostgREST RPC
 14 November Cancun time. Bitcoin broadcast attempts now carry the locally computed BitcoinTransactionId in result metadata. Incomplete acknowledgements and post-submission transport exceptions carry BITCOIN_BROADCAST_OUTCOME_UNKNOWN. Encrypted storage preserves both fields for read-only reconciliation. Durable publication journaling remains open. No local build or fixture.
 
 14 November Cancun time. Native Bitcoin CI now verifies structured transaction metadata against independently checked transaction IDs for the wallet payment and each encrypted record type. Transport-failure reconciliation still needs durable journal coverage. No local build or fixture.
+
+14 November Cancun time. Native Bitcoin CI 43644142586 passed on 2ba9560451e8 and confirmed structured BitcoinTransactionId metadata for the wallet payment and encrypted holon, avatar and avatar-detail commits against native receipts. Public Esplora 43644142486 also passed. Durable outcome reconciliation remains open.
