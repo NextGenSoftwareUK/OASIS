@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## WEB4 preview documents the live-proven projected sort
+
+Web4Site 4cde8ee adds the tested Description AS Detail example and the 100-row source window to the editor help and WEB6 system prompt. The website suite passed 184/184 and [Vercel built this revision](https://vercel.com/oasis-team/web4-site/J95r6yrhbjFZsvp3aaMM4eEPCFff). The existing Development API proof uses populated MongoDB, SQLite and Neo4j results. The signed-in WEB6 walkthrough still awaits the approved entitlement and preview-origin configuration. The next shared development review is after 03:42 Cancun; HyperDrive has separate native DynamoDB outbound evidence and owns that batch. No local build outputs or new fixtures.
+
 ## Projected description sorting passed on live WEB4
 
 Web4Site c681dbd projected Description AS Detail and sorted it ascending and descending through the bounded composition route. On Development 3f641d337fb5, MongoDB, SQLite and Neo4j returned the expected private fixture IDs and description values in both directions. All six fixtures were hard-deleted and verified absent by ID. The [exact preview](https://vercel.com/oasis-team/web4-site/8oMTA3pgwgwfKqrPacjGZdQMcV5p) built successfully. Hosted browser and signed-in WEB6 acceptance remain open.
