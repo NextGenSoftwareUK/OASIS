@@ -130,6 +130,15 @@ public sealed class OracleSqliteHyperDriveTests
                 : await router.RouteRequestAsync<IHolon>(readMissing);
             Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound, missing.ErrorCode);
             Assert.IsNull(missing.Result);
+            var readMissingKey = new StorageOperationRequest
+            {
+                Operation = "LoadHolonByProviderKey", ProviderKey = replicaOnly.Id.ToString("D"),
+                LoadChildren = false, PreferredProvider = ProviderType.OracleDBOASIS
+            };
+            var missingKey = sync ? router.RouteRequest<IHolon>(readMissingKey)
+                : await router.RouteRequestAsync<IHolon>(readMissingKey);
+            Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound, missingKey.ErrorCode);
+            Assert.IsNull(missingKey.Result);
             Assert.AreEqual(0L, healthy.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS)?.TotalRequests ?? 0);
         }
         finally
