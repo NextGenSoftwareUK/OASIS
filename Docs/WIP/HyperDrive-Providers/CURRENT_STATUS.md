@@ -1548,3 +1548,5 @@ Holo Desktop diagnostic run 43155153231 found that the conductor tool path was d
 13 November Cancun time. Firestore enrolled source write preparation now binds the physical identity before receipt replay and stages source records, receipt, fence, delivery rows and sequence in one native transaction. The path remains internal until the bound dispatcher is implemented. CI will compile the provider and run the existing native fixture. Outbound delivery acceptance remains open.
 
 13 November Cancun time. Firestore outbound outbox now has native exact-sequence inspection with a physical identity check in the same transaction. Inspection validates the stored delivery identity, payload digest, route binding and recovery evidence. Route-head selection and fenced dispatcher claims remain in progress. The capability is still internal.
+
+13 November Cancun time. The internal Firestore outbox selects the oldest unfinished delivery from the bound native store, claims it with an update-time fence and a new lease token, and checks the lease before renewal or completion. Route inventory, provider registration and Firestore-to-SQLite dispatcher acceptance remain open.
