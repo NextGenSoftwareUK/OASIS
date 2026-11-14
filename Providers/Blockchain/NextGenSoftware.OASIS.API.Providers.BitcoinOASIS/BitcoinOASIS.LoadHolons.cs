@@ -109,62 +109,8 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             return SearchAsync(searchParams, loadChildren, recursive, maxChildDepth, continueOnError, version).Result;
         }
 
-        public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
-        {
-            var response = new OASISResult<ISearchResults>();
-
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Bitcoin provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
-
-                // Search Bitcoin blockchain for transactions matching search criteria
-                var searchRequest = new
-                {
-                    query = "", // ISearchParams doesn't have SearchQuery, using empty string
-                    filters = new
-                    {
-                        fromDate = DateTime.MinValue, // ISearchParams doesn't have FromDate, using MinValue
-                        toDate = DateTime.MaxValue, // ISearchParams doesn't have ToDate, using MaxValue
-                        version = version
-                    }
-                };
-
-                var jsonContent = JsonSerializer.Serialize(searchRequest);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-
-                var searchResponse = await _httpClient.PostAsync("/search", content);
-                if (searchResponse.IsSuccessStatusCode)
-                {
-                    var responseContent = await searchResponse.Content.ReadAsStringAsync();
-                    var searchData = JsonSerializer.Deserialize<JsonElement>(responseContent);
-
-                    var results = new SearchResults();
-                    // Parse search results and populate results object
-
-                    response.Result = results;
-                    response.IsError = false;
-                    response.Message = "Search completed successfully on Bitcoin blockchain";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to search Bitcoin blockchain: {searchResponse.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref response, $"Error searching Bitcoin blockchain: {ex.Message}", ex);
-            }
-
-            return response;
-        }
+        public override Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+            => SearchWalletRecordsAsync(searchParams, loadChildren, recursive, maxChildDepth, version);
 
         public override OASISResult<bool> Import(IEnumerable<IHolon> holons)
         {
@@ -212,57 +158,8 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             return ExportAllAsync(version).Result;
         }
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
-        {
-            var response = new OASISResult<IEnumerable<IHolon>>();
-
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Bitcoin provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
-
-                // Export all data from Bitcoin blockchain
-                var exportRequest = new
-                {
-                    version = version,
-                    includeDeleted = false
-                };
-
-                var jsonContent = JsonSerializer.Serialize(exportRequest);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-
-                var exportResponse = await _httpClient.PostAsync("/export", content);
-                if (exportResponse.IsSuccessStatusCode)
-                {
-                    var responseContent = await exportResponse.Content.ReadAsStringAsync();
-                    var exportData = JsonSerializer.Deserialize<JsonElement>(responseContent);
-
-                    var holons = new List<IHolon>();
-                    // Parse export data and populate holons list
-
-                    response.Result = holons;
-                    response.IsError = false;
-                    response.Message = "Export completed successfully from Bitcoin blockchain";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to export from Bitcoin blockchain: {exportResponse.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref response, $"Error exporting from Bitcoin blockchain: {ex.Message}", ex);
-            }
-
-            return response;
-        }
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
+            => LoadAllHolonsAsync(loadChildren: false, version: version);
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0)
         {

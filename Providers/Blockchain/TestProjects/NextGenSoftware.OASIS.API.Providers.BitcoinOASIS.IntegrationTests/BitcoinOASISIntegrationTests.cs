@@ -637,6 +637,15 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
                 var graph = await recovered.LoadHolonAsync(privateHolon.Id, loadChildren: true, recursive: false);
                 Assert.IsFalse(graph.IsError, graph.Message);
                 Assert.AreEqual(childId, graph.Result.Children.Single().Id);
+                var graphSearch = await recovered.SearchAsync(new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchParams
+                {
+                    ParentId = privateHolon.Id,
+                    Recursive = false,
+                    SearchOnlyForCurrentAvatar = false
+                }, loadChildren: false);
+                Assert.IsFalse(graphSearch.IsError, graphSearch.Message);
+                Assert.AreEqual(1, graphSearch.Result.NumberOfResults);
+                Assert.AreEqual(childId, graphSearch.Result.SearchResultHolons.Single().Id);
 
                 var deletedChild = await recovered.DeleteHolonAsync(childTx);
                 Assert.IsFalse(deletedChild.IsError, deletedChild.Message);
@@ -659,6 +668,10 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
                 var oldChild = await recovered.LoadHolonAsync(childId, loadChildren: false, version: 1);
                 Assert.IsFalse(oldChild.IsError, oldChild.Message);
                 Assert.AreEqual(childTx, oldChild.Result.ProviderUniqueStorageKey[ProviderType.BitcoinOASIS]);
+                var exported = await recovered.ExportAllAsync();
+                Assert.IsFalse(exported.IsError, exported.Message);
+                Assert.IsTrue(exported.Result.Any(holon => holon.Id == privateHolon.Id));
+                Assert.IsFalse(exported.Result.Any(holon => holon.Id == childId));
             }
             finally
             {

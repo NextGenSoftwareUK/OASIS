@@ -1280,3 +1280,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 - 14 November Cancun time. Bitcoin wallet avatar CI 43647252712 removed both disposable backend containers and pinned images. No local fixture, build or download was created.
 
 - 14 November Cancun time. Native Bitcoin runs 43647615471 and 43647910158 removed both disposable backend containers and pinned images. Both temporary indexes for Bitcoin wallet candidate 34c4526c6681 were removed and verified absent. No local build, download or fixture was created.
+
+- 14 November Cancun time. Native Bitcoin runs 43648556170, 43649394293 and 43649613039 passed disposable backend teardown. No local build, download or fixture was created.

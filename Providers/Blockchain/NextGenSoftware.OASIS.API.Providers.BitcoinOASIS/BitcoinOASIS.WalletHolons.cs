@@ -4,12 +4,73 @@ using System.Linq;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
+using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS;
 
 public partial class BitcoinOASIS
 {
+    private async Task<OASISResult<ISearchResults>> SearchWalletRecordsAsync(
+        ISearchParams search, bool loadChildren, bool recursive, int maxDepth, int version)
+    {
+        var result = new OASISResult<ISearchResults>();
+        try
+        {
+            StoredRecordSearch.Validate(search, version, maxDepth, supportsHistory: true);
+            var groups = search.SearchGroups ?? new List<ISearchGroupBase>();
+            var wantsAvatars = groups.Count == 0 || groups.Any(group => group.SearchAvatars || !group.SearchHolons);
+            var wantsHolons = groups.Count == 0 || groups.Any(group => group.SearchHolons || !group.SearchAvatars);
+            var holons = wantsHolons || search.ParentId != Guid.Empty
+                ? await ReadWalletRecordsAsync<IHolon>(DecodeHolonTransactionAsync, version)
+                : Array.Empty<IHolon>();
+            var found = new SearchResults();
+            if (wantsAvatars)
+            {
+                var avatars = await ReadWalletRecordsAsync<IAvatar>(DecodeAvatarTransactionAsync, version);
+                found.SearchResultAvatars.AddRange(avatars.Where(avatar => StoredRecordSearch.Matches(avatar, true, search, holons)));
+            }
+
+            if (wantsHolons)
+            {
+                found.SearchResultHolons.AddRange(holons.Where(holon => StoredRecordSearch.Matches(holon, false, search, holons)));
+                if (loadChildren)
+                {
+                    var children = holons.Where(holon => holon.ParentHolonId != Guid.Empty)
+                        .ToLookup(holon => holon.ParentHolonId);
+                    foreach (var holon in found.SearchResultHolons)
+                        AttachChildren(holon, children, new HashSet<Guid>(), recursive, maxDepth, 0);
+                }
+
+                if (search.SearchOnlyForCurrentAvatar)
+                {
+                    var visible = IOASISStorageProvider.ProjectVisibleHolons(
+                        new OASISResult<IEnumerable<IHolon>> { Result = found.SearchResultHolons, IsLoaded = true },
+                        search.AvatarId, false);
+                    if (visible.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, visible.Message, visible.Exception);
+                        return result;
+                    }
+                    found.SearchResultHolons = visible.Result.ToList();
+                }
+            }
+
+            found.NumberOfResults = found.SearchResultAvatars.Count + found.SearchResultHolons.Count;
+            result.Result = found;
+            result.LoadedCount = found.NumberOfResults;
+            result.IsLoaded = true;
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Bitcoin wallet search failed ({ex.GetType().Name}).");
+        }
+
+        return result;
+    }
+
     private async Task<OASISResult<IHolon>> ResolveWalletHolonForDeleteAsync(string providerKey)
     {
         var referenced = await LoadHolonAsync(providerKey, loadChildren: false);
