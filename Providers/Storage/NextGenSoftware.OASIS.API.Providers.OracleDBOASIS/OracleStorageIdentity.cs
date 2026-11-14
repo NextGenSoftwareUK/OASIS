@@ -4,7 +4,6 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.Common;
 using Oracle.ManagedDataAccess.Client;
@@ -67,6 +66,10 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;", connect
             return new(identity);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { throw; }
+        catch (OracleException cause) when (cause.Number == 1013 && cancellationToken.IsCancellationRequested)
+        {
+            throw new OperationCanceledException("Oracle cancelled the requested storage operation.", cause, cancellationToken);
+        }
         catch (Exception cause)
         {
             return new() { IsError = true, ErrorCount = 1, ErrorCode = "COSMIC_STORAGE_IDENTITY_CAPTURE_FAILED",
@@ -93,7 +96,7 @@ WHERE i.SLOT=1", connection);
             throw new InvalidDataException("The Oracle store identity or native endpoint is invalid.");
 
         var resource = $"oracle:{reader.GetString(1)}:{reader.GetString(2)}:{reader.GetString(3)}";
-        var identity = new CosmicStorageIdentity(ProviderType.OracleDBOASIS,
+        var identity = new CosmicStorageIdentity(Core.Enums.ProviderType.OracleDBOASIS,
             Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(resource))), new Guid(raw));
         if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
             throw new InvalidDataException("The Oracle store has multiple routing identities.");

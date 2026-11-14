@@ -1596,3 +1596,5 @@ Holo Desktop diagnostic run 43155153231 found that the conductor tool path was d
 13 November Cancun time. Refreshed the Azure overlay guard to Development f7815b62cee2, which already includes the verified ID-only regression. The previously queued provider-key workflow predates this baseline and may reject the integrated test before starting its emulator. The updated workflow qualifies the provider-key change on the new shared revision.
 
 13 November Cancun time. Cancelled the queued Azure provider-key run 43538654446 after its baseline changed and the queued Oracle identity-only run 43540122809 after the receipt suite superseded it. The replacement Azure run 43541450527 and Oracle receipt run 43540526946 remain queued. Oracle provider-key-only run 43539563461 remains available to qualify that test independently.
+
+13 November Cancun time. Aligned Oracle identity and receipt operations with the existing ODP.NET cancellation contract. ORA-01013 maps to caller cancellation only when the caller token is cancelled. Qualified the provider enum reference to avoid the inherited ProviderType property shadowing it. Native verification remains pending.

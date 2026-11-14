@@ -81,6 +81,10 @@ public partial class OracleDBOASIS : IConditionalHolonReceiptEvidenceStorageProv
                 plan.Operation, state, null, evidence)) { IsLoaded = true };
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { throw; }
+        catch (OracleException cause) when (cause.Number == 1013 && cancellationToken.IsCancellationRequested)
+        {
+            throw new OperationCanceledException("Oracle cancelled the requested storage operation.", cause, cancellationToken);
+        }
         catch (Exception cause)
         {
             return new() { IsError = true, ErrorCount = 1, ErrorCode = "COSMIC_CONDITIONAL_RECEIPT_READ_FAILED",
