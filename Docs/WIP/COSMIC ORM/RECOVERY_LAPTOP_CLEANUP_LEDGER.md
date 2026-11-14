@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+14 November Cancun: retain ci-cosmic-hedera-d8ccec6f299f during corrected CI 43589062262. Earlier Hedera and combined tags remain until qualification evidence and integration are reconciled. The temporary indexes used for code and status commits were removed. No local builds, packages or databases.
+
 14 November Cancun: retain ci-cosmic-shared-fa60e5697e56 for both exact CI runs and ci-cosmic-hedera-59e96297ca0b until integration. Standalone Hedera CI completed its database teardown. Temporary documentation index removed. No local builds, downloads or test databases.
 
 14 November Cancun: all temporary Chrome profiles and the extracted demo HTML/script assets were removed. An independent scan found no cosmic-browser temporary directories. Live grouped requests used the retained visitor and did not create fixtures. C: measured 30.5 GiB free. No new dependencies or local builds.

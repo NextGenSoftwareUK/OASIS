@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Hedera cancellation regression and corrected qualification
+
+Combined protocol run 43588237501 exposed queued Hedera reads entering the HTTP path after cancellation released the three occupied slots. COSMIC 28ea5cc57921 rechecks cancellation after slot acquisition. The existing test still requires exactly three started requests, zero active requests and no partial activation. [Corrected candidate d8ccec6f299f](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43589062262) is building on Development e50b5598b499. HyperDrive's independent candidate eda74489d26e passed its fourteen authorization cases and can use the shared window while this fix qualifies. The combined failed candidate remains excluded.
+
 ## Shared Hedera and replica authorization qualification
 
 Hedera candidate 59e96297ca0b passed [full CI 43586946789](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43586946789). Candidate fa60e5697e56 combines its three files with HyperDrive's two replica authorization files on Development e50b5598b499. [Protocol CI 43588237501](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43588237501) and [replica rejection CI 43588513343](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43588513343) are active. The latter checks fourteen rejection cases against this exact candidate. The shared review opens after 06:11:53 Cancun. Publish only after both exact runs pass, the preceding rollout remains healthy, and the remote Development head is unchanged. If HyperDrive publishes first, preserve its changes in the next candidate.
