@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Managed HoloOASIS activation isolation in exact CI
+
+The same-revision redeploy 25634d98 logged repeated persisted-cell timeouts and HTTP health remained unavailable at the check. Candidate 07d8b0a7d934 moves managed BootLoader provisioning from the WEB4 startup path to the serialized HoloOASIS CQL activation path. The native regression now exercises that path. Linux conductor CI 43605674416, exact WEB4 image 43605726307 and protocol CI 43605815624 are active. This candidate addresses WEB4 availability during a provider failure. Diagnosis of the native stall is still open. The existing MongoDB peer batch is separate. Preserve exact qualification and coordinate after the current rollout and head are confirmed.
+
 ## Original WEB4 deployment recovered before the redeploy cutover
 
 Development 1c8478f7577f on fc9a82c9 began serving at 14:24:24 UTC after repeated persisted-cell startup timeouts. Health returned HTTP 200. The retained visitor observed 106/107 native and federated sources ready and matched both the HoloOASIS and Hedera public 3/2 IDs and provenance. Railway listed fc9a82c9 SUCCESS before and after the check, while recovery redeploy 25634d98 was still BUILDING. Monitor its separate cutover. Startup reliability remains open. No local build or new fixture.

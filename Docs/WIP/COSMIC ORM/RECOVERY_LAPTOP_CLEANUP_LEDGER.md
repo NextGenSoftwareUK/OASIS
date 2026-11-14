@@ -6700,3 +6700,5 @@ Web4Site 5fa63a71df5d used a temporary directory containing only committed websi
 14 November Cancun time. Retain ci-cosmic-graph-numeric-0f9038eafa10 for CI 43603521232. Removed the temporary Git indexes for the fixture and documentation. The rollout monitor uses the existing Railway CLI and retained visitor. No new local runtime, build output or database.
 
 14 November Cancun time. Native graph numeric CI 43603521232 passed, including the owned fixture cleanup check. The superseded decimal-only qualification source tag ci-cosmic-graph-numeric-a16757978d5c was retired. Keep ci-cosmic-graph-numeric-0f9038eafa10 for the latest exact result. No local build or download. Temporary documentation Git index removed.
+
+14 November Cancun time. Managed activation and regression candidates use temporary remote tags ci-cosmic-holooasis-managed-1ac1e85afd99 and ci-cosmic-holooasis-managed-07d8b0a7d934. Keep while active qualifications use them. Exact image 43605726307 is built in GitHub CI. Temporary Git indexes were removed. No local native runtime, build, image or data fixture added.
