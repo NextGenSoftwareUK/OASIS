@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Graph numeric parity extends beyond decimal
+
+CI 43603521232 qualifies source 0f9038eafa10 on Development 1c8478f7577f. It adds nullable Int64, nullable Single and Double Sum/Average after a paged descendant predicate, and a negative control that excludes the matching parent before the predicate runs. SQLite, MongoDB and Neo4j must all pass before recording coverage. WEB4 fc9a82c9 is building and the exact deployment monitor is active.
+
 ## Qualified Hedera and HoloOASIS batch on Development
 
 14 November 09:03 Cancun. Development fast-forwarded to exact 1c8478f7577f from 1b91024a6318. Railway WEB4 fc9a82c9 is queued; the SQLite revision remains serving until cutover. The previous fleet had seven successful services and HoloOASIS matched 3/2 on the serving revision. Verify exact HTTP health, Hedera and HoloOASIS presets on the new deployment. HyperDrive can qualify the MongoDB batch on this new parent. Next Development integration review at least 30 minutes after this push and subject to live acceptance.

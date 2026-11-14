@@ -6696,3 +6696,5 @@ Web4Site 5fa63a71df5d used a temporary directory containing only committed websi
 14 November Cancun time. Retired ci-cosmic-shared-57b2167a3533 and ci-cosmic-shared-23051874d247 after their completed qualifications were superseded on 1b91024a6318. Keep the active source tags for 1c8478f7577f. The bounded relay check and retained visitor smoke created no local build outputs, downloads or test fixtures. Temporary Git index removed.
 
 14 November Cancun time. Development now permanently references 1c8478f7577f. Removed its temporary combined CI and Linux managed qualification tags after both completed. Exact GHCR image digest remains recorded under existing registry retention. No local build, image pull or new environment. Temporary Git index removed.
+
+14 November Cancun time. Retain ci-cosmic-graph-numeric-0f9038eafa10 for CI 43603521232. Removed the temporary Git indexes for the fixture and documentation. The rollout monitor uses the existing Railway CLI and retained visitor. No new local runtime, build output or database.
