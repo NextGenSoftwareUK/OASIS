@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+14 November Cancun: Development now preserves the active floating-point and UInt64 candidates. Removed the three completed qualification tags ci-cosmic-floating-a21ecb4674a8, ci-cosmic-uint64-244ed6f419c5 and ci-cosmic-uint64-89b6de6ec253. Exact CI 43583941386 completed temporary database teardown. No local builds, fixture databases or downloads. Temporary Git index removed.
+
 14 November Cancun: removed the superseded ci-cosmic-uint64-988e930df866 tag after the corrected run succeeded. Live HoloOASIS used the retained visitor with read-only requests. No local databases, builds or downloads. Temporary Git index removed.
 
 14 November Cancun: retain ci-cosmic-uint64-244ed6f419c5 for exact shared candidate run 43583941386. Logs and CI metadata were inspected in memory. No local dependencies, databases, or builds. Temporary Git index removed.
