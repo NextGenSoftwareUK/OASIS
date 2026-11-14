@@ -24,20 +24,13 @@ public partial class OracleDBOASIS : ICosmicStorageIdentityProvider
         {
             await using var connection = new OracleConnection(_connectionString);
             await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
-            await using (var exists = CreateCommand(
-                "SELECT COUNT(*) FROM USER_TABLES WHERE TABLE_NAME='OASIS_STORAGE_IDENTITY'", connection))
-            {
-                if (Convert.ToInt32(await exists.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false)) == 0)
-                {
-                    await using var provision = CreateCommand(@"BEGIN
-  EXECUTE IMMEDIATE 'CREATE TABLE OASIS_STORAGE_IDENTITY (
+            await EnsureOracleReplicationTableAsync(connection, "OASIS_STORAGE_IDENTITY", @"
     SLOT NUMBER(1) NOT NULL PRIMARY KEY CHECK (SLOT = 1),
-    STORE_ID RAW(16) NOT NULL
-  )';
-EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;", connection);
-                    await provision.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
-                }
-            }
+    STORE_ID RAW(16) NOT NULL", cancellationToken).ConfigureAwait(false);
+            await EnsureOracleReplicationTableAsync(connection, "OASIS_REPLICA_RECEIPTS", @"
+    OPERATION_ID RAW(16) NOT NULL PRIMARY KEY,
+    REQUEST_HASH VARCHAR2(64) NOT NULL,
+    RESULT_JSON CLOB NOT NULL", cancellationToken).ConfigureAwait(false);
 
             await using var transaction = (OracleTransaction)await connection.BeginTransactionAsync(
                 System.Data.IsolationLevel.ReadCommitted, cancellationToken).ConfigureAwait(false);
@@ -75,6 +68,21 @@ EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;", connect
             return new() { IsError = true, ErrorCount = 1, ErrorCode = "COSMIC_STORAGE_IDENTITY_CAPTURE_FAILED",
                 Exception = cause, Message = "The Oracle store identity could not be captured." };
         }
+    }
+
+    // Table names and definitions are fixed provider schema, never supplied by a caller.
+    private static async Task EnsureOracleReplicationTableAsync(OracleConnection connection, string table,
+        string columns, CancellationToken cancellationToken)
+    {
+        await using var exists = CreateCommand("SELECT COUNT(*) FROM USER_TABLES WHERE TABLE_NAME=:TableName AND TEMPORARY='N'", connection);
+        exists.Parameters.Add("TableName", OracleDbType.Varchar2).Value = table;
+        if (Convert.ToInt32(await exists.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false)) != 0)
+            return;
+
+        await using var provision = CreateCommand($@"BEGIN
+  EXECUTE IMMEDIATE 'CREATE TABLE {table} ({columns})';
+EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;", connection);
+        await provision.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
     }
 
     private static async Task<CosmicStorageIdentity?> ReadOracleStorageIdentityAsync(

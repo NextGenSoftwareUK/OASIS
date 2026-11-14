@@ -138,6 +138,15 @@ public sealed class OracleSqliteHyperDriveTests
             var oracleIdentity = bindings[0].Result;
             var sqliteIdentity = await sqlite.CaptureStorageIdentityAsync();
             Assert.IsFalse(sqliteIdentity.IsError, sqliteIdentity.Message);
+            var replica = new Holon { Id = Guid.NewGuid(), Version = 1, VersionId = Guid.NewGuid() };
+            CosmicConcurrency.SetProviderRevisionId(replica, ProviderType.SQLLiteDBOASIS, Guid.NewGuid());
+            var replicaIntent = new CommittedHolonReplicaRequest(Guid.NewGuid(), "owned-sqlite", ProviderType.SQLLiteDBOASIS,
+                Guid.NewGuid(), ConditionalHolonOperation.Save, new[] { replica }, saveChildren: false);
+            var replicaEvidence = await oracle.ReadCommittedHolonReplicaReceiptAsync(
+                new CommittedHolonReplicaReceiptReadRequest(replicaIntent, oracleIdentity));
+            Assert.IsFalse(replicaEvidence.IsError, replicaEvidence.Message);
+            Assert.AreEqual(ConditionalHolonReceiptState.Absent, replicaEvidence.Result.ReceiptState);
+
             var evidenceRequest = new ConditionalHolonReceiptEvidenceRequest(intent, oracleIdentity,
                 sqliteIdentity.Result, new[] { receiptHolon.Id });
             var absentReceipt = await oracle.ReadConditionalHolonReceiptEvidenceAsync(evidenceRequest);
