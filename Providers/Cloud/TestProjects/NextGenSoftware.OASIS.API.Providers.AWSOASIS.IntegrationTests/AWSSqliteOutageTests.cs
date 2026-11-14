@@ -323,6 +323,9 @@ public partial class AWSOASISIntegrationTests
 
             var committed = await publisher.ExecuteReplicatingHolonWriteAsync(request, enrollment);
             Assert.IsTrue(!committed.IsError && committed.IsSaved, $"{committed.Message} {committed.Exception}");
+            var wrongReplay = publisher.ExecuteReplicatingHolonWrite(request, Enroll(wrongIdentity));
+            Assert.AreEqual("COSMIC_SOURCE_STORAGE_BINDING_MISMATCH", wrongReplay.ErrorCode);
+            Assert.IsNull(wrongReplay.Result);
             var replay = publisher.ExecuteReplicatingHolonWrite(request, enrollment);
             Assert.IsTrue(!replay.IsError && replay.IsSaved, replay.Message);
             Assert.AreEqual(committed.Result.Single().VersionId, replay.Result.Single().VersionId);
