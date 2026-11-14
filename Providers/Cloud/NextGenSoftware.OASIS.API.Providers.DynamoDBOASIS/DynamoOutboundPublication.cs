@@ -21,13 +21,9 @@ public partial class DynamoDBOASIS
     {
         var enrollment = plan.ReplicationEnrollment;
         var observed = await ReadBoundOutboundItemAsync(OutboundSequenceKey, enrollment.SourceStorageIdentity, cancellationToken);
-        var hasCounter = observed?.Count > 0;
-        var previous = hasCounter && observed.TryGetValue("sequence", out var stored) ? stored.N : null;
-        long sequence = 0;
-        if (hasCounter && (!long.TryParse(previous, NumberStyles.None, CultureInfo.InvariantCulture, out sequence) || sequence <= 0))
-            throw new InvalidDataException("The DynamoDB outbox sequence is invalid.");
+        var sequence = observed?.Count > 0 ? ReadOutboundSequence(observed) : 0;
+        var previous = sequence == 0 ? null : observed["sequence"].N;
 
-        var enrollment = plan.ReplicationEnrollment;
         var payload = CommittedHolonReplicaPayload.Capture(new CommittedHolonReplicaRequest(
             plan.OperationId, enrollment.SourceId, plan.Authority, plan.ActorId, plan.Operation,
             acknowledged, plan.SaveChildren, plan.Recursive, plan.MaxChildDepth, enrollment.NativeRoutes));
@@ -38,7 +34,7 @@ public partial class DynamoDBOASIS
             sequence = checked(sequence + 1);
             var item = new Dictionary<string, AttributeValue>
             {
-                ["id"] = new() { S = "outbound:delivery:" + sequence.ToString("D19", CultureInfo.InvariantCulture) },
+                ["id"] = new() { S = OutboundDeliveryKey(sequence) },
                 ["sequence"] = new() { N = sequence.ToString(CultureInfo.InvariantCulture) },
                 ["operation_id"] = new() { S = plan.OperationId.ToString("D") },
                 ["target_id"] = new() { S = route.TargetId },
@@ -68,6 +64,41 @@ public partial class DynamoDBOASIS
                 ExpressionAttributeValues = new() { [":previous"] = new() { N = previous } }
             }
         });
+    }
+
+    private static string OutboundDeliveryKey(long sequence)
+        => "outbound:delivery:" + sequence.ToString("D19", CultureInfo.InvariantCulture);
+
+    private async Task<Dictionary<string, AttributeValue>?> ReadOutboundHeadAsync(
+        string targetId, CosmicStorageIdentity expected, CancellationToken cancellationToken)
+    {
+        var counter = await ReadBoundOutboundItemAsync(OutboundSequenceKey, expected, cancellationToken);
+        if (counter == null || counter.Count == 0)
+            return null;
+        var highWaterMark = ReadOutboundSequence(counter);
+
+        // The sequence counter and its deliveries commit together. Every key
+        // up to this watermark exists, including completed obligations.
+        for (long sequence = 1; ; sequence++)
+        {
+            var key = OutboundDeliveryKey(sequence);
+            var item = await ReadBoundOutboundItemAsync(key, expected, cancellationToken);
+            if (item == null || item.Count == 0 || item["id"].S != key || ReadOutboundSequence(item) != sequence)
+                throw new InvalidDataException("DynamoDB outbox sequence has a missing or inconsistent delivery.");
+            if (item["target_id"].S == targetId && item["state"].S != nameof(HolonDeliveryState.Completed))
+                return item;
+            if (sequence == highWaterMark)
+                return null;
+        }
+    }
+
+    private static long ReadOutboundSequence(Dictionary<string, AttributeValue> item)
+    {
+        if (!item.TryGetValue("sequence", out var stored)
+            || !long.TryParse(stored.N, NumberStyles.None, CultureInfo.InvariantCulture, out var sequence)
+            || sequence <= 0)
+            throw new InvalidDataException("The DynamoDB outbox sequence is invalid.");
+        return sequence;
     }
 
     private async Task<Dictionary<string, AttributeValue>> ReadBoundOutboundItemAsync(
