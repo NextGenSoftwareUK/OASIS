@@ -21,14 +21,15 @@ public sealed class SandboxHostedReplicationProbe
             settings.ApplicationName = "hyperdrive-read-only-routing-operation";
             settings.MaxConnectionPoolSize = 1;
             settings.ServerSelectionTimeout = TimeSpan.FromSeconds(10);
+            settings.ReadConcern = ReadConcern.Majority;
             var outbox = new MongoClient(settings)
                 .GetDatabase(Environment.GetEnvironmentVariable("COSMIC_HOSTED_ACCOUNTING_DATABASE"))
                 .GetCollection<BsonDocument>("CosmicHolonOutbox");
             var projection = new BsonDocument { { "_id", 0 }, { "Sequence", 1 }, { "TargetId", 1 },
                 { "DeliveryState", 1 }, { "AttemptCount", 1 }, { "LastErrorCode", 1 } };
             var deliveries = await outbox.Find(new BsonDocument("OperationId", operation.ToString("D")))
-                .Project(projection).Limit(257).ToListAsync(deadline.Token);
-            Assert.True(deliveries.Count <= 256, "Operation exceeds the supported target count.");
+                .Sort(new BsonDocument("Sequence", 1)).Project(projection).Limit(257).ToListAsync(deadline.Token);
+            Assert.InRange(deliveries.Count, 1, 256);
             foreach (var delivery in deliveries)
             {
                 var target = delivery["TargetId"].AsString;
