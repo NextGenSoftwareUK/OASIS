@@ -1,5 +1,11 @@
 # COSMIC ORM / CQL current status
 
+## Three-store floating-point qualification and hosted restart
+
+COSMIC f395a0a5 added Single and Double Sum and Average assertions after entity windows. The initial CI run was cancelled because the branch did not invoke the shared test from its three native fixtures. [Corrected CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43578266830) checks out candidate 6b224354c5b3 on Development 985cc6f58c65, which includes the MongoDB, SQLite and Neo4j fixture calls. Retain temporary tag ci-cosmic-floating-6b224354c5b3 until qualification and integration conclude. No parity row promotion or local builds.
+
+HyperDrive integrated qualified DynamoDB provider-key coverage on 985cc6f58c65. WEB4 deployment 8267b3ec is the first hosted restart verification for HoloOASIS interface reuse. Compare the serving conductor to the 136-listener baseline and verify native and federated presets. Blockscout's previous activation logged a timeout at 15.004 seconds. All three configured addresses later returned valid HTTP responses from the same container in 12.147 seconds total. The next readiness result is pending.
+
 ## WEB4 preview documents the live-proven projected sort
 
 Web4Site 4cde8ee adds the tested Description AS Detail example and the 100-row source window to the editor help and WEB6 system prompt. The website suite passed 184/184 and [Vercel built this revision](https://vercel.com/oasis-team/web4-site/J95r6yrhbjFZsvp3aaMM4eEPCFff). The existing Development API proof uses populated MongoDB, SQLite and Neo4j results. The signed-in WEB6 walkthrough still awaits the approved entitlement and preview-origin configuration. The next shared development review is after 03:42 Cancun; HyperDrive has separate native DynamoDB outbound evidence and owns that batch. No local build outputs or new fixtures.
