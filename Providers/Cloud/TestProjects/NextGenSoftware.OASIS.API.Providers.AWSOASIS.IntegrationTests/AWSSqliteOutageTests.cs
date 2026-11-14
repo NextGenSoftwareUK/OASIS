@@ -385,9 +385,12 @@ public partial class AWSOASISIntegrationTests
             Assert.AreEqual("COSMIC_OUTBOX_SOURCE_STORAGE_BINDING_MISMATCH", wrongHead.ErrorCode);
             Assert.IsNull(wrongHead.Result);
 
-            var firstClaim = await outbox.ClaimNextAsync(routeBinding.TargetId, "expiring-worker", TimeSpan.FromSeconds(1));
+            var firstClaim = await outbox.ClaimNextAsync(routeBinding.TargetId, "expiring-worker", TimeSpan.FromSeconds(5));
             Assert.IsFalse(firstClaim.IsError, firstClaim.Message);
             Assert.IsNotNull(firstClaim.Result);
+            var competingClaim = await outbox.ClaimNextAsync(routeBinding.TargetId, "competing-worker", TimeSpan.FromMinutes(1));
+            Assert.IsFalse(competingClaim.IsError, competingClaim.Message);
+            Assert.IsNull(competingClaim.Result, "An active lease must block the target queue, including the later tombstone.");
             var wait = firstClaim.Result.LeaseUntilUtc - DateTime.UtcNow;
             if (wait > TimeSpan.Zero)
                 await Task.Delay(wait + TimeSpan.FromMilliseconds(20));
