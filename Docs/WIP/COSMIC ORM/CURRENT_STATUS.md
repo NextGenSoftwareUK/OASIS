@@ -1,5 +1,11 @@
 # COSMIC ORM / CQL current status
 
+## RoundRobin baseline and UInt64 fixture correction
+
+Development advanced to b0bb55e337b4 with HyperDrive's two hosted RoundRobin verification script changes. Git rejected the concurrent COSMIC fast-forward. The floating-point batch is rebased as a21ecb4674a8 and [CI 43582812040](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43582812040) is active. Wait for this rollout and the shared window before the next integration.
+
+[UInt64 run 43582124789](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43582124789) cleared the WEB4 suite. All three native tests then failed at query admission because the fixture put Take before Compose, leaving zero entity stages. COSMIC adf7e4f2c012 explicitly applies Take after Compose and retains the exact UInt64 maximum assertions. Corrected candidate 89b6de6ec253 qualifies that change against the original baseline before combining it with the new Development head. Q01f remains open.
+
 ## Exact Development qualification for numeric windows
 
 The floating-point batch 4e27c2212126 is based on Development 2e0b02a9d4c8. Native checks on MongoDB, SQLite and Neo4j, the WEB4 application suite and the workflow cleanup gate all passed in [run 43580421972](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43580421972). The earlier UInt64 feature-branch run failed in WEB4 source activation tests before reaching native acceptance. Candidate 988e930df866 carries the UInt64 fixture and paired Core manifest/gitlink update on top of the qualified floating-point batch. [Run 43582124789](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43582124789) is active. Q01f remains incomplete.

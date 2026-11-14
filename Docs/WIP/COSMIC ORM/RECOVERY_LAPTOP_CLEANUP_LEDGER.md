@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+14 November Cancun: qualification retained ci-cosmic-floating-a21ecb4674a8 and ci-cosmic-uint64-89b6de6ec253. Older tags stay until evidence and integration are reconciled. No installs, local builds, test databases or downloaded logs. Disposable Git indexes removed.
+
 14 November Cancun: retained remote qualification tag ci-cosmic-uint64-988e930df866 for GitHub run 43582124789 and the existing floating-point candidate tags until integration. The prior floating-point CI job completed its temporary database teardown. Local checks used an existing visitor, in-memory logs and temporary Git indexes removed after creating the scoped commits. No local test databases, dependency downloads or build outputs. C: last measured 29.9 GiB free.
 
 ## Mixed-version aggregate fixtures
