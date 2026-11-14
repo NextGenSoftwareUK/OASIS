@@ -1220,3 +1220,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 14 November Cancun time. Combined V2 repair verification completed both native fixture teardown steps. No local build or downloads were created.
 
 14 November Cancun time. Replay candidate preparation removed its temporary Git index. The expanded task-branch run completed its guarded CI fixture cleanup. No local build or downloads were created.
+
+14 November Cancun time. The combined replay and target authority candidate used a temporary Git index that was removed. No local build or downloads ran.
