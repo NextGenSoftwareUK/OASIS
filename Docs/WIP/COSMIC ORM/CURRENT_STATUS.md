@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## HoloOASIS lifecycle candidate reconciled with MongoDB repair
+
+HyperDrive advanced Development to 0ec29a02fabd. WEB4 deployment bad943e3 supersedes the same-revision recovery watcher. HTTP health on the outgoing deployment timed out. Candidate 3459ec1e21d5 preserves the byte-identical four-file HoloOASIS lifecycle and regression patch on the new parent. The three MongoDB repair paths are disjoint. Exact Linux CI 43606134406 is queued. Original qualification on 07d8b0a7d934 is still useful for the isolated patch. No additional Development push.
+
 ## Managed HoloOASIS activation isolation in exact CI
 
 The same-revision redeploy 25634d98 logged repeated persisted-cell timeouts and HTTP health remained unavailable at the check. Candidate 07d8b0a7d934 moves managed BootLoader provisioning from the WEB4 startup path to the serialized HoloOASIS CQL activation path. The native regression now exercises that path. Linux conductor CI 43605674416, exact WEB4 image 43605726307 and protocol CI 43605815624 are active. This candidate addresses WEB4 availability during a provider failure. Diagnosis of the native stall is still open. The existing MongoDB peer batch is separate. Preserve exact qualification and coordinate after the current rollout and head are confirmed.

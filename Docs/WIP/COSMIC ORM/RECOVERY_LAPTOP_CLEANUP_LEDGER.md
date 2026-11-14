@@ -6702,3 +6702,5 @@ Web4Site 5fa63a71df5d used a temporary directory containing only committed websi
 14 November Cancun time. Native graph numeric CI 43603521232 passed, including the owned fixture cleanup check. The superseded decimal-only qualification source tag ci-cosmic-graph-numeric-a16757978d5c was retired. Keep ci-cosmic-graph-numeric-0f9038eafa10 for the latest exact result. No local build or download. Temporary documentation Git index removed.
 
 14 November Cancun time. Managed activation and regression candidates use temporary remote tags ci-cosmic-holooasis-managed-1ac1e85afd99 and ci-cosmic-holooasis-managed-07d8b0a7d934. Keep while active qualifications use them. Exact image 43605726307 is built in GitHub CI. Temporary Git indexes were removed. No local native runtime, build, image or data fixture added.
+
+14 November Cancun time. ci-cosmic-holooasis-managed-3459ec1e21d5 is the exact Linux CI input on the MongoDB repair parent. The temporary reconciliation and documentation indexes were removed. No local build, download, runtime or fixture. C: had 29.1 GiB free.
