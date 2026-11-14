@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Exact native restart passed and WEB4 recovery started
+
+The [exact 6c36bb49f09f Linux run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43571017501) passed the nine-case qualification including managed persisted-cell restart and BootLoader-backed canonically sourced queries. Railway had exhausted its restart policy and marked WEB4 3d7dd4ca CRASHED. A same-revision Development WEB4 redeploy started as 45fb02c9. Confirm public health and the container SHA, then verify authenticated CQL before recording hosted acceptance. The Linux success leaves the Railway persisted-state failure unexplained. No local build outputs or fixture changes.
+
 ## WEB4 deployment exhausted its restart policy
 
 Railway now reports CRASHED for WEB4 deployment 3d7dd4ca on Development 6c36bb49f09f and public health continues to time out. The [exact-revision native Linux qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43571017501) is executing managed restart and BootLoader-backed reads using disposable state on GitHub Actions. The CI-only tag does not deploy WEB4. HyperDrive's DynamoDB candidate 617d53c420c3 passed exact native qualification in run 43569539156. Coordinate any Development rollout with the provider worktree. No local build outputs or fixture changes.
