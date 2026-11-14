@@ -2117,3 +2117,5 @@ Supabase now reads replica receipt evidence through a service-role PostgREST RPC
 14 November Cancun time. The Bitcoin native fixture now independently checks Kubo pin inventory and ciphertext envelopes after holon and avatar publication. It requires two recursive record pins and verifies the stored bytes use the encrypted format without the fixture private fields. Native verification pending. No local build or fixture.
 
 14 November Cancun time. Native job 43642033994 found three recursive Kubo pins after two saves. The test now snapshots the initial inventory and checks exactly two new encrypted pins, preserving fixture baseline pins. Both disposable images were removed. Corrected CI pending.
+
+14 November Cancun time. Bitcoin native CI 43642391040 passed on d498489f1223. The independent Kubo inventory found exactly two new recursive pins from the holon and avatar saves and both stored payloads were encrypted. Public Esplora CI 43642390996 passed. The exact encrypted holon candidate remains staged for the 16:26:02 Cancun shared review.
