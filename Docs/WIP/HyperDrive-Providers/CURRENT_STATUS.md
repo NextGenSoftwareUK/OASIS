@@ -2123,3 +2123,5 @@ Supabase now reads replica receipt evidence through a service-role PostgREST RPC
 14 November Cancun time. Development advanced from dc3d613de96a to 7409bc41952e after both exact Bitcoin holon CI runs and seven healthy predecessor APIs. Railway queued WEB4 deployment 999ab662-f444-43fa-b159-b777a80a139b at 16:28:57 Cancun. Next shared review after 16:58:57. Avatar and avatar-detail storage remain on the provider branch. No local builds or fixtures.
 
 14 November Cancun time. Bitcoin encrypted avatar and avatar-detail candidate 5228d2d93880 passed exact native 43643357357 and public 43643373615 on Development 7409bc41952e. The next shared review is after 16:58:57 Cancun, subject to current remote head and fleet health. Transaction-key readback is verified. GUID, email and username index, deletion and pin reconciliation remain open.
+
+14 November Cancun time. Bitcoin broadcast transport exceptions now identify the locally computed transaction ID once submission begins. This allows read-only outcome reconciliation after timeout without exposing signing material or claiming success. Durable pin reconciliation remains open. CI pending.

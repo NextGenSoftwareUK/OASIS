@@ -56,6 +56,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             string fromWalletAddress, string toWalletAddress, decimal amount, byte[] memo, string memoText, bool commitmentOnly)
         {
             var result = new OASISResult<ITransactionResponse>();
+            uint256 submittedTransactionId = null;
             try
             {
                 if (!_isActivated)
@@ -179,6 +180,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
 
                 var expectedId = transaction.GetHash();
                 using var body = new StringContent(transaction.ToHex(), Encoding.ASCII, "text/plain");
+                submittedTransactionId = expectedId;
                 using var response = await _httpClient.PostAsync("tx", body);
                 if (!response.IsSuccessStatusCode)
                 {
