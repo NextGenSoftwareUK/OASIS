@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Ask your data grouped draft preview
+
+Web4Site 9192a62a5aa5 gives WEB6 a complete grouped COUNT, AVG and SUM example with all HAVING aliases declared in SELECT. All 176 browser logic tests passed, including the review-to-Playground handoff. [Exact Vercel preview](https://web4-site-9yxq0sxw9-oasis-team.vercel.app/web4-sandbox.html) built successfully. Hosted browser access and live WEB6 drafting with the approved Bronze grant remain open. Temporary website test files were removed.
+
 ## Live mixed-version grouped arithmetic
 
 MongoDB, SQLite and Neo4j each verified COUNT 2, MIN 1, MAX 2, SUM 3 and AVG 1.5 against exact private versions 1 and 2 on Development f7815b62cee2. Raising either threshold independently excluded the group. All six fixtures were conditionally hard-deleted and verified absent. Hosted browser acceptance remains open.
