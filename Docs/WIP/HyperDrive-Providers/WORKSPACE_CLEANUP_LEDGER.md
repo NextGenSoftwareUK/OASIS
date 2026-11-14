@@ -1156,3 +1156,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 14 November Cancun time. Dispatcher qualification completed on hosted CI with the fixture cleanup gate. Read CI logs in memory. No local builds, downloads or fixtures were created.
 
 14 November Cancun time. Removed the temporary Git index used to prepare the combined DynamoDB candidate. No local runtime, download, fixture, or build output was created.
+
+14 November Cancun time. The DynamoDB provider-key test uses hosted CI and its owned fixture cleanup. No local build output, download, or test fixture was created.
