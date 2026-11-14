@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## WEB4 replacement reproduced the persisted-cell failure
+
+Railway 45fb02c9 reported SUCCESS and SSH confirmed 6c36bb49f09f, but public health timed out and its local port 8080 refused the health request. Runtime logs reproduced the persisted teaching-cell timeout with 240 admin replies and zero live cells. HyperDrive advanced Development to qualified DynamoDB candidate 4e86752ff71f and WEB4 queued 372c916c. The earlier smoke watcher correctly exited when its target was superseded. Verify the new deployment before running authenticated checks. No local build or fixture changes.
+
 ## Ask your data preserves public preset equality
 
 Web4Site 714bb26 asks WEB6 for exact equality when starting from a single-key Equal preset and quotes the public key explicitly. IN presets retain their list semantics. All 11 focused tests passed and [Vercel built the exact revision](https://vercel.com/oasis-team/web4-site/WZCAWKMTVqxMuEjQD9QyE9Ud21No). Hosted browser and real WEB6 draft verification remain open. The disposable Node test staging folder was removed automatically. WEB4 replacement 45fb02c9 on Development 6c36bb49f09f reached dotnet publish on Railway; the health-gated hosted smoke is pending.
