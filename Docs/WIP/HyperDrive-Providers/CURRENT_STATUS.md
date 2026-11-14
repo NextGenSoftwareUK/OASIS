@@ -1824,3 +1824,5 @@ Supabase now reads replica receipt evidence through a service-role PostgREST RPC
 14 November Cancun time. DynamoDB outbox discovery now reads bounded pages of eight deliveries per native transaction with the enrolled store identity. It retains the sequence and gap checks. CI qualification is pending. No local artifacts created.
 
 14 November Cancun time. Native DynamoDB active-lease exclusion passed in run 43578148742. Added a separate assertion that the dispatcher completes deliveries through the first eight retained records and discovers and delivers the remaining operation from the next transactional page. Native qualification is pending. No local test artifacts created.
+
+14 November Cancun time. [Bound DynamoDB batched reads](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43578386016/job/132397617362) passed four native cases with zero skips. [The additional page-boundary regression](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43578533944) is running. WEB4 successfully deployed Development 985cc6f58c65. WEB8 remained pending at review.
