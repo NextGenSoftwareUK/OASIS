@@ -1,5 +1,11 @@
 # COSMIC ORM / CQL current status
 
+## Live HoloOASIS recovered on the IPFS pagination revision
+
+14 November 07:44 Cancun. The retained visitor again verified matching 3 full and 2 subset public IDs and canonical HoloOASIS provenance through both direct CQL and MongoDB federation. Native and federated discovery each reported 105 of 107 sources ready. Railway still listed 4bba3b6e as SUCCESS and the same-revision redeploy dd67790d as BUILDING during the probe. The earlier failure had 135 persisted app interfaces (one app-bound) and no running cells after 240 completed native admin polls. The same interface count was present on working instances. Startup intermittency remains open. No volume or fixture change or local build output.
+
+CI 43594133859 passed on the tree shared with a5d86933bc39. HyperDrive has a separately qualified five-file repair on the same Development parent. Coordinate one scoped integration after 07:57:12 Cancun, subject to the serving revision and exact qualification. Prior populated single-alias ordering is already verified on MongoDB, SQLite and Neo4j (be38002d91c7). Hosted browser and real WEB6 drafting remain open.
+
 ## Hedera and HoloOASIS candidate preserves the pagination rollout
 
 HyperDrive advanced Development to c84e1b5c3632 with its qualified IPFS pagination test. WEB4 deployment 4bba3b6e is queued. COSMIC candidate a5d86933bc39 uses the exact tree 8b8beb73045181beca883c2af8d82c3b6dc5ed27 from 5c1f4c253e6a and fast-forwards the current Development head. The four changed files are the Hedera provider and tests and the timeout-only HoloOASIS diagnostic. [CI 43594133859](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43594133859) passed the focused Hedera and three-store native stages. Publishing and teardown are pending. Confirm the exact CI result and the serving rollout before integrating.
