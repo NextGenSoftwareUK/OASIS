@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## WEB4 timeout recurred on the authorization regression rollout
+
+On 72c90754271e, Railway reports 5114a9db SUCCESS while external HTTP health times out. The serving deployment log records repeated persisted-cell timeouts at 15:23:54, 15:25:08 and 15:26:22 UTC. The read-only admin inventory still reports 135 persisted app interfaces, one app-bound. The deployment monitor remains active. Candidate 2e864e1162e0 passed Linux and full protocol CI on the exact parent. Its image build remains active. Coordinate the 10:41:07 Cancun review with HyperDrive, whose separate frozen V2 route candidate is in exact native CI. No additional restart or local build.
+
 ## HoloOASIS activation batch on the current Development parent
 
 HyperDrive published 72c90754271e and WEB4 deployment 5114a9db is queued. Candidate 2e864e1162e0 preserves the verified lifecycle patch and timeout regression byte for byte on this new parent. Exact Linux 43608963724, image 43608984697 and protocol 43608984281 are queued or pending. The preceding timeout regression passed in the CI report. The next shared Development review is after 10:41:07 Cancun, subject to qualification and the serving fleet. No Development push from COSMIC in this window.
