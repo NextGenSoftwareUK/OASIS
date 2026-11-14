@@ -6618,3 +6618,5 @@ Web4Site 5fa63a71df5d used a temporary directory containing only committed websi
 - 13 November Cancun: LocalState/COSMIC/HostedCqlReleaseSmoke-b4270f9c holds a dedicated Development smoke visitor journal and DPAPI credentials. Reuse until live acceptance work ends and retire through the normal session lifecycle. The prior renewal evidence stays sealed for reconciliation. No test databases, generated build outputs or downloads.
 
 - November 13 Cancun: The three private LIKE fixtures were hard-deleted using their native provider revision tokens and verified absent by ID. Compact operation journals remain in LocalState/COSMIC/HostedCqlReleaseSmoke-b4270f9c. Temporary Web4Site test copies were removed. No runtime installs or build outputs.
+
+- 14 November Cancun: The six multi-column composition fixtures in MongoDB, SQLite and Neo4j were hard-deleted using native revision tokens and verified absent by ID. Retain the compact operation journals in LocalState/COSMIC/HostedCqlReleaseSmoke-b4270f9c with the active smoke visitor. The Web4Site test copy was removed. No local build, test database or runtime download.
