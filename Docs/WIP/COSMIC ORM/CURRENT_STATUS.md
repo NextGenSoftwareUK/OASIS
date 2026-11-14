@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## HoloOASIS hosted restart retained 136 listeners
+
+Deployment 8267b3ec served exact Development 985cc6f58c65 with public HTTP 200. The conductor had 136 loopback listeners, matching the previous deployment. After the existing smoke visitor was renewed through the browser-origin contract, authenticated discovery reported 105/107 native and federated sources ready. Blockscout recovered through normal startup activation. HashgraphOASIS and NostrOASIS remain unavailable. Native and MongoDB-federated HoloOASIS subsets matched three and two exact record IDs with provider provenance. Legacy interface cleanup remains open. No new visitors, fixtures, local builds or downloads.
+
 ## Three-store floating-point qualification and hosted restart
 
 COSMIC f395a0a5 added Single and Double Sum and Average assertions after entity windows. The initial CI run was cancelled because the branch did not invoke the shared test from its three native fixtures. [Corrected CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43578266830) checks out candidate 6b224354c5b3 on Development 985cc6f58c65, which includes the MongoDB, SQLite and Neo4j fixture calls. Retain temporary tag ci-cosmic-floating-6b224354c5b3 until qualification and integration conclude. No parity row promotion or local builds.
