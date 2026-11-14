@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Hosted persisted-cell timeout reproduced with exact diagnostics
+
+Development 1c8478f7577f reached Railway SUCCESS on fc9a82c9 while HTTP health timed out. At 14:18:01 UTC the new diagnostic reported 135 persisted interfaces, 240 successful native cell-list replies and zero running cells. Read-only native admin inventory independently confirmed 135 interfaces with one app-bound. The exact Development protocol run 43603023269 passed. The rollout monitor remains active. No restart or volume change requested. The known failing scope is the native persisted-cell startup path before Kestrel listens.
+
 ## Graph numeric parity extends beyond decimal
 
 CI 43603521232 qualifies source 0f9038eafa10 on Development 1c8478f7577f. It adds nullable Int64, nullable Single and Double Sum/Average after a paged descendant predicate, and a negative control that excludes the matching parent before the predicate runs. SQLite, MongoDB and Neo4j must all pass before recording coverage. WEB4 fc9a82c9 is building and the exact deployment monitor is active.
