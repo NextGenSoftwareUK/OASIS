@@ -2,7 +2,7 @@
 
 ## Numeric HAVING and WEB4 cutover
 
-Web4Site 5444ebcc49ef passed 175 tests and compiles HAVING comparisons using exact Int64, Decimal and Int32 literals. On WEB4 9944b532132b, MongoDB, SQLite and Neo4j accepted COUNT, AVG and SUM filters in the same request and returned the expected column types. The retained visitor returned no groups. This read-only probe created no fixtures and does not prove populated filtering. Railway then marked c17c2598-65d9-457a-96ac-dc3063770fdf successful and read-only SSH confirmed revision 72ffc86c2082. Public HTTP health still timed out, so live CQL acceptance on that revision remains open.
+Web4Site 5444ebcc49ef passed 175 tests and compiles HAVING comparisons using exact Int64, Decimal and Int32 literals. On WEB4 9944b532132b, MongoDB, SQLite and Neo4j accepted COUNT, AVG and SUM filters in the same request and returned the expected column types. The retained visitor returned no groups. This read-only probe created no fixtures and does not prove populated filtering. Railway then marked c17c2598-65d9-457a-96ac-dc3063770fdf successful and read-only SSH confirmed revision 72ffc86c2082. After two persisted teaching-cell timeouts, WEB4 began listening and public health returned 200. Authenticated discovery warmed from 49/107 to 105/107. The retained visitor confirmed matching native and MongoDB-federated HoloOASIS public results at 3/2. Hedera and Nostr remain unavailable. The deployed logs report a Hedera activation timeout and a Nostr WebSocket failure. [Exact Development protocol CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43537716888) passed, and all seven API deployments reported success. The recurring cold-start delay remains open.
 
 ## Grouped numeric aggregates
 
