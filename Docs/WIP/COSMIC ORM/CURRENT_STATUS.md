@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Coordination with Firestore outbound delivery
+
+Candidate `f587ae2ccabf` combines the six [protocol-qualified COSMIC paths](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43530396996) with five non-overlapping [native-qualified Firestore outbound paths](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43533215323) from `9944b532132b`. Both scoped diffs are preserved. Exact combined protocol qualification is pending. The Firestore candidate is the first parent so COSMIC can follow if HyperDrive publishes first. WEB4 health was HTTP 200 at review. No local build or test fixture created.
+
 ## Firestore WEB4 rollout serving
 
 13 November Cancun. WEB4 deployment 46ae0f12-5c86-41c2-a635-d1654bf7445d is serving bdd6b945e3fd, confirmed by read-only container inspection and public HTTP 200. The retained visitor verified matching HoloOASIS native and MongoDB-federated public results at 3/2 rows. The first catalogue check during warmup reported 97/107 ready. The follow-up returned 105/107 native and federated sources ready, with only Hedera and Nostr unavailable. The same deployment served before and after the check. Candidate a00d91f29672 is the exact protocol-qualified fast-forward from this baseline. The LINQ test-only candidate and Firestore outbound work are separate from this rollout. All seven Railway services reported success. The next shared Development review is after 19:24:07 Cancun. No new test records or local build outputs.
