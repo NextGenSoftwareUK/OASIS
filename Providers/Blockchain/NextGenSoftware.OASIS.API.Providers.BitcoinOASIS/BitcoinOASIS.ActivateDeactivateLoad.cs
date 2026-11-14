@@ -53,17 +53,24 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                     return response;
                 }
 
-                // Test connection to Bitcoin RPC endpoint
-                var testResponse = await _httpClient.GetAsync("/");
+                using var testResponse = await _httpClient.GetAsync("blocks/tip/height").ConfigureAwait(false);
                 if (testResponse.IsSuccessStatusCode)
                 {
+                    var body = await testResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
+                    if (!int.TryParse(body.Trim(), System.Globalization.NumberStyles.None,
+                        System.Globalization.CultureInfo.InvariantCulture, out _))
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Bitcoin explorer returned an invalid chain tip height.");
+                        return response;
+                    }
                     _isActivated = true;
+                    IsProviderActivated = true;
                     response.Result = true;
                     response.Message = "Bitcoin provider activated successfully";
                 }
                 else
                 {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to connect to Bitcoin RPC endpoint: {testResponse.StatusCode}");
+                    OASISErrorHandling.HandleError(ref response, $"Failed to read Bitcoin explorer chain tip: {testResponse.StatusCode}");
                 }
             }
             catch (Exception ex)
@@ -80,29 +87,14 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             return ActivateProviderAsync().Result;
         }
 
-        public override async Task<OASISResult<bool>> DeActivateProviderAsync()
-        {
-            var response = new OASISResult<bool>();
-
-            try
-            {
-                _isActivated = false;
-                _httpClient?.Dispose();
-                response.Result = true;
-                response.Message = "Bitcoin provider deactivated successfully";
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error deactivating Bitcoin provider: {ex.Message}");
-            }
-
-            return response;
-        }
+        public override Task<OASISResult<bool>> DeActivateProviderAsync()
+            => Task.FromResult(DeActivateProvider());
 
         public override OASISResult<bool> DeActivateProvider()
         {
-            return DeActivateProviderAsync().Result;
+            _isActivated = false;
+            IsProviderActivated = false;
+            return new OASISResult<bool>(true) { Message = "Bitcoin provider deactivated successfully" };
         }
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0)

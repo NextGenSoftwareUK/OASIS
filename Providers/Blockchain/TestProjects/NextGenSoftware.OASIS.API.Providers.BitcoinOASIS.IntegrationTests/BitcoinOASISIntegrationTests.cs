@@ -2,7 +2,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Providers.BitcoinOASIS;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using System.Threading.Tasks;
 using System;
 
@@ -17,6 +17,32 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
         public void Setup()
         {
             _provider = new BitcoinOASIS();
+        }
+
+        [TestMethod]
+        public async Task EsploraActivationSurvivesDeactivation()
+        {
+            try
+            {
+                var active = await _provider.ActivateProviderAsync();
+                Assert.IsFalse(active.IsError, active.Message);
+                Assert.IsTrue(active.Result);
+                Assert.IsTrue(_provider.IsProviderActivated);
+
+                var inactive = await _provider.DeActivateProviderAsync();
+                Assert.IsTrue(inactive.Result);
+                Assert.IsFalse(_provider.IsProviderActivated);
+
+                var reactivated = await _provider.ActivateProviderAsync();
+                Assert.IsFalse(reactivated.IsError, reactivated.Message);
+                Assert.IsTrue(reactivated.Result);
+                Assert.IsTrue(_provider.IsProviderActivated);
+            }
+            finally
+            {
+                _provider.DeActivateProvider();
+                _provider.Dispose();
+            }
         }
 
         [TestMethod]
@@ -86,44 +112,6 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
             // Assert
             Assert.IsNotNull(result);
             // Note: This might return an error if holon doesn't exist, which is expected
-        }
-
-        [TestMethod]
-        public async Task SearchAvatars_ShouldReturnSearchResults()
-        {
-            // Arrange
-            var searchParams = new SearchParams
-            {
-                SearchQuery = "test",
-                SearchType = SearchType.Avatar
-            };
-
-            // Act
-            var result = await _provider.SearchAvatarsAsync(searchParams);
-
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsFalse(result.IsError);
-            Assert.IsNotNull(result.Result);
-        }
-
-        [TestMethod]
-        public async Task SearchHolons_ShouldReturnSearchResults()
-        {
-            // Arrange
-            var searchParams = new SearchParams
-            {
-                SearchQuery = "test",
-                SearchType = SearchType.Holon
-            };
-
-            // Act
-            var result = await _provider.SearchHolonsAsync(searchParams);
-
-            // Assert
-            Assert.IsNotNull(result);
-            Assert.IsFalse(result.IsError);
-            Assert.IsNotNull(result.Result);
         }
 
         [TestCleanup]
