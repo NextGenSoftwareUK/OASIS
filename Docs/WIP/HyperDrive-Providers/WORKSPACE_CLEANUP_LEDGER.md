@@ -1188,3 +1188,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 14 November Cancun time. The isolated probe build and test have exited. Verified the exact ignored .hosted-probe-build-84005f026d03 path and found no reparse points. Automatic command policy rejected recursive removal before launch. This build tree remains pending cleanup. The probe wrote no test report and the credential environment exited with its process.
 14 November Cancun time. The focused MongoDB and Neo4j fixture protocol test ran with bytecode disabled. Verified no owned-routing-protocol temporary directories remained.
 14 November Cancun time. Replica authorization CI completed its isolated fixture and test artifact cleanup gate. No local outputs were created by that CI run.
+
+14 November Cancun time. Reused .hosted-probe-build-84005f026d03 for the completed majority-read probe rebuild. The owned build directory contains 12,522 files totaling 3,768,319,600 bytes. It remains pending removal after the recorded execution-policy denial. No replacement build directory or environment was created.
