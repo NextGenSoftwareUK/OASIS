@@ -174,11 +174,12 @@ WHERE Slot=1;", connection, transaction);
         foreach (var route in enrollment.NativeRoutes)
         {
             await using var delivery = new SqlCommand(@"
-INSERT dbo.OASISOutboundDeliveries (DeliverySequence,OperationId,TargetId,PayloadJson,PayloadDigest)
-VALUES (@Sequence,@Operation,@Target,@Payload,@Digest);", connection, transaction);
+INSERT dbo.OASISOutboundDeliveries (DeliverySequence,OperationId,TargetId,TargetKey,PayloadJson,PayloadDigest)
+VALUES (@Sequence,@Operation,@Target,@TargetKey,@Payload,@Digest);", connection, transaction);
             delivery.Parameters.Add("@Sequence", SqlDbType.BigInt).Value = checked(++sequence);
             delivery.Parameters.Add("@Operation", SqlDbType.UniqueIdentifier).Value = plan.OperationId;
             delivery.Parameters.Add("@Target", SqlDbType.NVarChar, 256).Value = route.TargetId;
+            delivery.Parameters.Add("@TargetKey", SqlDbType.VarBinary, 1024).Value = OutboundTargetKey(route.TargetId);
             delivery.Parameters.Add("@Payload", SqlDbType.NVarChar, -1).Value = payload;
             delivery.Parameters.Add("@Digest", SqlDbType.VarChar, 64).Value = digest;
             await ExecuteReplicaMutationAsync(delivery, token).ConfigureAwait(false);

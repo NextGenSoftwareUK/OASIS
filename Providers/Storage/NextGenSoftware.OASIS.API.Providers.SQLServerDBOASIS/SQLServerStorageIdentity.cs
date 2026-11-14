@@ -75,11 +75,20 @@ IF OBJECT_ID(N'dbo.OASISOutboundDeliveries', N'U') IS NULL
         DeliverySequence bigint NOT NULL PRIMARY KEY,
         OperationId uniqueidentifier NOT NULL,
         TargetId nvarchar(256) COLLATE Latin1_General_100_BIN2 NOT NULL,
+        TargetKey varbinary(1024) NOT NULL,
         PayloadJson nvarchar(max) NOT NULL,
         PayloadDigest varchar(64) NOT NULL,
         DeliveryState varchar(32) NOT NULL DEFAULT 'Pending',
         AttemptCount int NOT NULL DEFAULT 0,
-        UNIQUE (OperationId,TargetId)
+        WorkerId nvarchar(256) NULL,
+        LeaseToken uniqueidentifier NULL,
+        LeaseUntil bigint NULL,
+        RetryAt bigint NULL,
+        ErrorCode nvarchar(128) NULL,
+        ErrorMessage nvarchar(max) NULL,
+        RecoveryJson nvarchar(max) NULL,
+        RecoveryDigest varchar(64) NULL,
+        UNIQUE NONCLUSTERED (OperationId,TargetKey)
     );
 ", connection, transaction);
             await provision.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);

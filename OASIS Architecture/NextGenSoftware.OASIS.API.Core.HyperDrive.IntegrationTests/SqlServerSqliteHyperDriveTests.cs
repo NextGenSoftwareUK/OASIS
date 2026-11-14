@@ -190,6 +190,37 @@ public sealed class SqlServerSqliteHyperDriveTests
             Assert.False(replayDelivery.IsError, replayDelivery.Message);
             Assert.Equal(0, replayDelivery.Result.CompletedCount);
 
+            var reverse = new HolonReplicationRouteBinding(identity, sourceIdentity.Result, grant.BindingIdentity);
+            var reverseEnrollment = new HolonReplicationEnrollment(reverse.SourceId, new[] { reverse.TargetId },
+                identity, new[] { reverse });
+            var reverseHolon = new Holon { Id = Guid.NewGuid(), Name = "SQL Server outbound fixture", IsActive = true };
+            var reverseIntent = new ConditionalHolonWriteRequest(
+                new ConditionalHolonWrite(Guid.NewGuid(), actor, ProviderType.SQLServerDBOASIS,
+                    new[] { new HolonWriteCondition(reverseHolon.Id, null) }),
+                ConditionalHolonOperation.Save, new[] { reverseHolon }, saveChildren: false);
+            var reverseSave = sync ? sql.ExecuteReplicatingHolonWrite(reverseIntent, reverseEnrollment)
+                : await sql.ExecuteReplicatingHolonWriteAsync(reverseIntent, reverseEnrollment);
+            Assert.True(!reverseSave.IsError && reverseSave.IsSaved, $"{reverseSave.Message} {reverseSave.Exception}");
+            var sqlOutbox = sql.GetBoundHolonReplicationOutbox(identity);
+            Assert.False(sqlOutbox.IsError, sqlOutbox.Message);
+            var heads = await sqlOutbox.Result.ReadRouteHeadsAsync(pageSize: 1);
+            Assert.False(heads.IsError, heads.Message);
+            var head = Assert.Single(heads.Result.Heads);
+            Assert.Equal(reverse.TargetId, head.TargetId);
+            var sqliteTarget = new CommittedHolonReplicaTarget(reverse.TargetId, sqlite, sourceIdentity.Result.Authority,
+                reverse.SourceId, identity.Authority, grant, "sqlite-fixture", Guid.NewGuid(),
+                grant.BindingIdentity, sourceIdentity.Result);
+            var reverseDispatcher = new HolonOutboxDispatcher(sqlOutbox.Result, new[] { sqliteTarget }, "sqlserver-source");
+            var reverseDelivery = await reverseDispatcher.DispatchOnceAsync(reverse.TargetId, maximumCount: 2);
+            Assert.False(reverseDelivery.IsError, reverseDelivery.Message);
+            Assert.Equal(1, reverseDelivery.Result.CompletedCount);
+            var reverseReplica = await sqlite.LoadHolonAsync(reverseHolon.Id, loadChildren: false);
+            Assert.False(reverseReplica.IsError, reverseReplica.Message);
+            Assert.Equal(reverseSave.Result.Single().VersionId, reverseReplica.Result?.VersionId);
+            var finished = await sqlOutbox.Result.InspectAsync(head.Sequence);
+            Assert.False(finished.IsError, finished.Message);
+            Assert.Equal(HolonDeliveryState.Completed, finished.Result.State);
+
             var dna = new OASISDNA { OASIS = new NextGenSoftware.OASIS.API.DNA.OASIS
                 { HyperDriveMode = HyperDriveModes.V2, StorageProviders = new StorageProviderSettings() } };
             dna.OASIS.SubscriptionConfig.PlanType = "Gold";

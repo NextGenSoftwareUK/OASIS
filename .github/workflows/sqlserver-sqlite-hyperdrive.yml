@@ -9,6 +9,8 @@ on:
       - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLServerDBOASIS/SQLServerDBOASIS.cs'
       - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLServerDBOASIS/SQLServerReplicaApply.cs'
       - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLServerDBOASIS/SQLServerConditionalWrites.cs'
+      - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLServerDBOASIS/SQLServerOutboundOutbox.cs'
+      - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLServerDBOASIS/SQLServerOutboundReads.cs'
       - 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests/SqlServerSqliteHyperDriveTests.cs'
   workflow_dispatch:
 
@@ -59,7 +61,7 @@ jobs:
           git -C ../provider-source fetch --no-tags --depth=1 origin "$base"
           tests='OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests'
           provider='Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLServerDBOASIS'
-          for path in "$tests/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests.csproj" "$tests/SqlServerSqliteHyperDriveTests.cs" "$provider"/{SQLServerStorageIdentity,SQLServerDBOASIS,SQLServerReplicaApply,SQLServerConditionalWrites}.cs; do
+          for path in "$tests/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests.csproj" "$tests/SqlServerSqliteHyperDriveTests.cs" "$provider"/{SQLServerStorageIdentity,SQLServerDBOASIS,SQLServerReplicaApply,SQLServerConditionalWrites,SQLServerOutboundOutbox,SQLServerOutboundReads}.cs; do
             current="$(git ls-tree HEAD -- "$path")"
             reviewed="$(git -C ../provider-source ls-tree "$base" -- "$path")"
             incoming="$(git -C ../provider-source ls-tree HEAD -- "$path")"
