@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Exact follow-on image and Railway health check
+
+14 November Cancun time. The exact 23051874d247 WEB4 image is building in CI 43598439229 with a commit-only tag. The currently serving WEB4 returned HTTP 200 from /api/health. Railway deployment metadata for both the serving and building Development revisions has a null healthcheck path and timeout. The Docker image probes /api/health and the older nested Nixpacks profile declares the same endpoint. The active Railway Docker deployment currently reports container startup without HTTP readiness verification. A Railway readiness check addresses that reporting contract. The HoloOASIS cold-start cause is still open, and the persistent volume prevents overlapping service instances. No hosting settings changed during inspection.
+
 ## Next live and parity qualification
 
 HyperDrive published its verified repair at Development 854066dc931a. WEB4 deployment 96c78a7c is building. COSMIC follow-on 23051874d247 preserves the full tree of combined candidate 57b2167a3533 and now changes only the four Hedera and HoloOASIS paths relative to Development. Combined CI 43597290726 passed the Hedera stage and is still running. Feature be16de2f396c adds an exact native parity case for decimal Sum and Average after a paged graph predicate, including empty Sum. CI 43598050460 runs source candidate 065deaed092d across the three providers. The Q01f checklist stays open until its remaining cases are proven.
