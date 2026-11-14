@@ -1,0 +1,110 @@
+name: Bitcoin native Ordinals
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [work/hyperdrive-provider-completion]
+    paths:
+      - '.github/workflows/bitcoin-native-ord.yml'
+      - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS/BitcoinOASIS.Ordinals.cs'
+      - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS/BitcoinOASIS.NFTToken.cs'
+      - 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests/BitcoinOASISIntegrationTests.cs'
+
+permissions:
+  contents: read
+
+jobs:
+  ord-regtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: OASIS
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          path: OASIS
+          submodules: recursive
+          persist-credentials: false
+      - name: Read the recorded Libraries revision
+        id: dependencies
+        run: |
+          revision="$(sed -n 's/^LIBRARIES_COMMIT=//p' Docker/oasis-dependency-versions.env)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "libraries=$revision" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependencies.outputs.libraries }}
+          path: NextGenSoftware-Libraries
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Verify a real ord inscription on Bitcoin regtest
+        shell: bash
+        run: |
+          set -euo pipefail
+          owned="$(mktemp -d "$RUNNER_TEMP/oasis-bitcoin-ord.XXXXXXXX")"
+          fixture_pid=
+          cleanup() {
+            local status=$?
+            trap - EXIT
+            if [[ -n "$fixture_pid" ]]; then
+              if kill -0 -- "-$fixture_pid" 2>/dev/null; then
+                kill -TERM -- "-$fixture_pid" || status=1
+              fi
+              wait "$fixture_pid" || true
+            fi
+            rm -rf -- "$owned" || status=1
+            test ! -e "$owned" || status=1
+            exit "$status"
+          }
+          trap cleanup EXIT
+          ord_archive=ord-0.29.1-x86_64-unknown-linux-gnu.tar.gz
+          core_archive=bitcoin-30.4-x86_64-linux-gnu.tar.gz
+          curl -fsSL "https://github.com/ordinals/ord/releases/download/0.29.1/$ord_archive" -o "$owned/$ord_archive"
+          curl -fsSL "https://bitcoincore.org/bin/bitcoin-core-30.4/$core_archive" -o "$owned/$core_archive"
+          (
+            cd "$owned"
+            printf '%s  %s\n' 9c25c1cf4ab508c0b80648611827448737a09b5b39c39413b097136b22ba31ce "$ord_archive" \
+                               051a18c595d9a27df23cb7187ff9fb343e90943cb142af751e12787806500c3d "$core_archive" |
+              sha256sum --check
+            tar --strip-components=1 -xzf "$ord_archive"
+            tar -xzf "$core_archive" bitcoin-30.4/bin/bitcoind bitcoin-30.4/bin/bitcoin-cli
+          )
+          export PATH="$owned:$owned/bitcoin-30.4/bin:$PATH"
+          setsid ord env "$owned/chain" > "$owned/fixture.log" 2>&1 &
+          fixture_pid=$!
+          for attempt in {1..60}; do
+            if jq -e '.ord_port > 0' "$owned/chain/env.json" >/dev/null 2>&1; then break; fi
+            if ! kill -0 "$fixture_pid" 2>/dev/null; then
+              tail -n 15 "$owned/fixture.log"
+              exit 1
+            fi
+            sleep 1
+          done
+          port="$(jq -er '.ord_port' "$owned/chain/env.json")"
+          export OASIS_BITCOIN_ORD_API="http://127.0.0.1:$port"
+          wallet() { ord --datadir "$owned/chain" wallet "$@"; }
+          bitcoin() { bitcoin-cli -datadir="$owned/chain" "$@"; }
+          genesis="$(bitcoin getblockhash 0)"
+          test "$(curl -fsS "$OASIS_BITCOIN_ORD_API/r/blockhash/0" | jq -er .)" = "$genesis"
+          recipient="$(wallet receive | jq -er '.addresses[0]')"
+          printf 'OASIS Ordinals native qualification\n' > "$owned/record.txt"
+          export OASIS_BITCOIN_ORD_INSCRIPTION="$(wallet inscribe --fee-rate 2 --file "$owned/record.txt" --destination "$recipient" | jq -er '.inscriptions[0].id')"
+          bitcoin generatetoaddress 1 "$recipient" >/dev/null
+          for attempt in {1..60}; do
+            if curl -fsS -H 'Accept: application/json' "$OASIS_BITCOIN_ORD_API/inscription/$OASIS_BITCOIN_ORD_INSCRIPTION" +              | jq -e --arg id "$OASIS_BITCOIN_ORD_INSCRIPTION" --arg owner "$recipient" '.id == $id and .address == $owner' >/dev/null; then
+              break
+            fi
+            sleep 1
+          done
+          export OASIS_BITCOIN_ORD_OWNER="$recipient"
+          pwsh -NoProfile -Command '
+            ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-BitcoinOrdinals -Operation {
+              dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests" --filter "FullyQualifiedName~OrdRegtestReadsIndexedInscription" /m:2 /nr:false /p:UseSharedCompilation=false
+              if ($LASTEXITCODE -ne 0) { throw "Native Ordinals verification failed." }
+            }'
