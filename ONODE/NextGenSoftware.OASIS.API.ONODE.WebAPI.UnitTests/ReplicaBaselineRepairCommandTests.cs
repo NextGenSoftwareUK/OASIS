@@ -86,6 +86,22 @@ public sealed partial class ReplicaBaselineRepairCommandTests
             }
             var held=(await outbox.PeekNextAsync(HolonReplicationRoutes.TargetId(ProviderType.SQLLiteDBOASIS))).Result;
             var original=(await outbox.ReadObligationAsync(held.Sequence)).Result;
+            var sourceIdentity = await source.CaptureStorageIdentityAsync();
+            Assert.False(sourceIdentity.IsError, sourceIdentity.Message);
+            var boundOutbox = source.GetBoundHolonReplicationOutbox(sourceIdentity.Result);
+            Assert.False(boundOutbox.IsError, boundOutbox.Message);
+            var boundRead = await Assert.IsAssignableFrom<IHolonReplicationObligationReader>(boundOutbox.Result)
+                .ReadObligationAsync(held.Sequence);
+            Assert.False(boundRead.IsError, boundRead.Message);
+            Assert.Equal(original.PayloadDigest, boundRead.Result.PayloadDigest);
+            var wrongSource = new CosmicStorageIdentity(sourceIdentity.Result.Authority,
+                sourceIdentity.Result.EndpointFingerprint, Guid.NewGuid());
+            var wrongOutbox = source.GetBoundHolonReplicationOutbox(wrongSource);
+            Assert.False(wrongOutbox.IsError, wrongOutbox.Message);
+            var rejectedRead = await Assert.IsAssignableFrom<IHolonReplicationObligationReader>(wrongOutbox.Result)
+                .ReadObligationAsync(held.Sequence);
+            Assert.Equal("COSMIC_OUTBOX_SOURCE_STORAGE_BINDING_MISMATCH", rejectedRead.ErrorCode);
+            Assert.Null(rejectedRead.Result);
             var reviewed=new ReplicaBaselineRepairCommand.Request(Guid.NewGuid(),initialization,Guid.NewGuid(),held.Sequence,
                 held.OperationId,actor,id,original.PayloadDigest,ReplicaBaselineRepairCommand.StoreIdentity(uri,database),targetPath,
                 TargetEndpointFingerprint: reviewedTarget.EndpointFingerprint, TargetNativeStoreId: reviewedTarget.StoreId);
