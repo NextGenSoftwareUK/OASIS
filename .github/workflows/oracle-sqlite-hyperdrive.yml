@@ -123,6 +123,14 @@ jobs:
             if [[ "$attempt" == 60 ]]; then docker logs --tail 20 "$container"; exit 1; fi
             sleep 3
           done
+          docker exec -i "$container" sqlplus -s / as sysdba <<SQL
+          WHENEVER SQLERROR EXIT SQL.SQLCODE
+          ALTER SESSION SET CONTAINER=FREEPDB1;
+          CREATE USER OASIS_ROUTING_PEER IDENTIFIED BY "$APP_USER_PASSWORD" DEFAULT TABLESPACE USERS QUOTA UNLIMITED ON USERS;
+          GRANT CREATE SESSION, CREATE TABLE TO OASIS_ROUTING_PEER;
+          EXIT
+          SQL
+          export OASIS_ORACLE_ROUTING_PEER_CONNECTION="Data Source=127.0.0.1:11521/FREEPDB1;User Id=OASIS_ROUTING_PEER;Password=$APP_USER_PASSWORD;Pooling=False"
           export OASIS_ORACLE_ROUTING_DIRECTORY="$fixture"
           export OASIS_ORACLE_ROUTING_CONNECTION="Data Source=127.0.0.1:11521/FREEPDB1;User Id=OASIS_ROUTING;Password=$APP_USER_PASSWORD;Pooling=False"
           pwsh -NoProfile -Command '

@@ -155,6 +155,33 @@ public sealed class OracleSqliteHyperDriveTests
             Assert.AreEqual("COSMIC_SOURCE_STORAGE_BINDING_MISMATCH", wrongBinding.ErrorCode);
             Assert.IsNull(wrongBinding.Result);
 
+            var peerConnection = new OracleConnectionStringBuilder(
+                Environment.GetEnvironmentVariable("OASIS_ORACLE_ROUTING_PEER_CONNECTION"));
+            Assert.AreEqual(connection.DataSource, peerConnection.DataSource);
+            Assert.AreEqual("OASIS_ROUTING_PEER", peerConnection.UserID);
+            var peer = new OracleProvider(peerConnection.ConnectionString);
+            try
+            {
+                var peerActivation = await peer.ActivateProviderAsync();
+                Assert.IsTrue(!peerActivation.IsError && peerActivation.Result, peerActivation.Message);
+                var peerIdentity = await peer.CaptureStorageIdentityAsync();
+                Assert.IsFalse(peerIdentity.IsError, peerIdentity.Message);
+                Assert.AreNotEqual(oracleIdentity.BindingFingerprint, peerIdentity.Result.BindingFingerprint);
+                Assert.AreNotEqual(oracleIdentity.StoreId, peerIdentity.Result.StoreId);
+                var peerReceipt = await peer.ReadConditionalHolonReceiptEvidenceAsync(evidenceRequest);
+                Assert.AreEqual("COSMIC_SOURCE_STORAGE_BINDING_MISMATCH", peerReceipt.ErrorCode);
+                Assert.IsNull(peerReceipt.Result);
+                var peerRequest = new ConditionalHolonReceiptEvidenceRequest(intent, peerIdentity.Result,
+                    sqliteIdentity.Result, new[] { receiptHolon.Id });
+                var absentInPeer = await peer.ReadConditionalHolonReceiptEvidenceAsync(peerRequest);
+                Assert.IsFalse(absentInPeer.IsError, absentInPeer.Message);
+                Assert.AreEqual(ConditionalHolonReceiptState.Absent, absentInPeer.Result.ReceiptState);
+            }
+            finally
+            {
+                await peer.DeActivateProviderAsync();
+            }
+
             var replicaOnly = new Holon { Id = Guid.NewGuid(), Name = "SQLite-only replica", CreatedByAvatarId = Guid.NewGuid() };
             var replicaSave = await sqlite.SaveHolonAsync(replicaOnly, saveChildren: false);
             Assert.IsTrue(!replicaSave.IsError && replicaSave.IsSaved, replicaSave.Message);
