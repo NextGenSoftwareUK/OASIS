@@ -6708,3 +6708,5 @@ Web4Site 5fa63a71df5d used a temporary directory containing only committed websi
 14 November Cancun time. Exact image 43606325623 and protocol 43606357400 use source 3459ec1e21d5. Both use cloud runners. Keep the exact source tag while qualification is active. No local image or build output. Temporary documentation index removed.
 
 14 November Cancun time. Retain ci-cosmic-holo-failure-31dae1c6fdd0 for exact regression CI 43606904960. Temporary Git indexes removed. No local build, runtime, download or fixture.
+
+14 November Cancun time. Retain ci-cosmic-holooasis-managed-2e864e1162e0 for the exact Linux, image and protocol checks on Development 72c90754271e. CI report inspected in memory. Temporary Git indexes removed. No local build, runtime or image pull.

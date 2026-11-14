@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## HoloOASIS activation batch on the current Development parent
+
+HyperDrive published 72c90754271e and WEB4 deployment 5114a9db is queued. Candidate 2e864e1162e0 preserves the verified lifecycle patch and timeout regression byte for byte on this new parent. Exact Linux 43608963724, image 43608984697 and protocol 43608984281 are queued or pending. The preceding timeout regression passed in the CI report. The next shared Development review is after 10:41:07 Cancun, subject to qualification and the serving fleet. No Development push from COSMIC in this window.
+
 ## Shared Development review after 10:08:06 Cancun
 
 All seven API deployments report success on the MongoDB repair rollout. The WEB4 live query check passed on bad943e3. COSMIC proposes lifecycle candidate 3459ec1e21d5 for the shared window if exact image CI 43606325623 passes, the current Development head still matches, and the serving fleet remains healthy. Managed Linux and protocol qualification passed. The added discovery timeout regression passed the WEB4 unit-test stage of CI 43606904960; the workflow remains active. The separately qualified HyperDrive denial regression 72c90754271e changes a disjoint test path. Coordinate a single Development publication. No Development push or local build.
