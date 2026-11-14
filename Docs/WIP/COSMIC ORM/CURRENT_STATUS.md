@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Authenticated Firestore baseline accepted
+
+13 November Cancun. On WEB4 9944b532132b, a separate release-smoke visitor proved 105/107 CQL sources ready (Hedera and Nostr unavailable) and exact matching HoloOASIS native/MongoDB federation 3/2 with HoloOASIS provenance. The same deployment served throughout. The existing accepted cohorts and uncertain refreshes were untouched. The visitor performed read-only CQL. Candidate f587ae2ccabf is qualified for scoped integration when the shared window opens.
+
 ## Retained session refresh reconciliation
 
 The original Polkadot visitor refresh 502 matched the sealed Railway request ID and all 45 upstream connection refusals. A later refresh reached WEB4 and returned 200, but an existing local response file prevented credential capture. The helper now rejects existing rotation artifacts before dispatch. The original visitor still requires reconciliation. No further live refresh was attempted. The isolated Python test files and fixture outputs were removed.
