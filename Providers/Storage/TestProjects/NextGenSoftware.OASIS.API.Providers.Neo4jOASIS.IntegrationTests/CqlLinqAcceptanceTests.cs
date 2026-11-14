@@ -73,6 +73,17 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Assert.IsTrue(root.All(row => row.Children.Any(child => child.Name == "visible match")));
         Passed("native All child scope");
 
+        var comprehension =
+            from row in root
+            where row.Name == name
+            orderby row.Name descending, row.Version
+            select new { Label = row.Name, row.Version };
+        var comprehensionRows = await comprehension.Take(1).ToCosmicListAsync();
+        Assert.IsFalse(comprehensionRows.IsError, comprehensionRows.Message + comprehensionRows.Exception);
+        Assert.AreEqual(name, comprehensionRows.Result.Single().Label);
+        Assert.AreEqual(read.Result.Single().Version, comprehensionRows.Result.Single().Version);
+        Passed("native query comprehension filtering, ordering and projection");
+
         var names = root.Select(row => row.Name);
         var nativeNames = await names.ToCosmicListAsync();
         Assert.IsFalse(nativeNames.IsError, nativeNames.Message + nativeNames.Exception);
