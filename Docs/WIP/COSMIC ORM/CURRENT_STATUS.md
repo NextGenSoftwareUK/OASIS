@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## 09:02:57 Cancun shared Development window
+
+COSMIC proposes the already image-qualified follow-on 1c8478f7577f for the next shared window, subject to the current remote head, serving fleet and absence of a competing publication. Linux managed conductor CI 43601381396 completed with all nine checks passing. HyperDrive has a separate three-file MongoDB candidate 7748eda97e0d in exact CI 43602024708. If COSMIC publishes first, rebase that candidate on the verified serving follow-on before its next rollout. No simultaneous Development push. The hosted intermittent HoloOASIS startup defect remains open.
+
 ## Exact WEB4 image passed on the serving Development parent
 
 14 November 08:51 Cancun. Exact image CI 43600761127 passed for 1c8478f7577f and published sha256:d141ab7b798c125bd556f5f7124436a952d50da5bc3700b2ea5f2b36de61e10d. Protocol CI 43600185683 passed. Linux managed conductor CI 43601381396 remains active. For the shared window after 09:02:57 Cancun, review the COSMIC candidate against the serving Development head and coordinate with the separately qualified HyperDrive MongoDB batch 7838a4f572c0. Both candidates use 1b91024a6318 as their direct parent. No Development push or local image pull.
