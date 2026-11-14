@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## WEB4 deployment exhausted its restart policy
+
+Railway now reports CRASHED for WEB4 deployment 3d7dd4ca on Development 6c36bb49f09f and public health continues to time out. The [exact-revision native Linux qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43571017501) is executing managed restart and BootLoader-backed reads using disposable state on GitHub Actions. The CI-only tag does not deploy WEB4. HyperDrive's DynamoDB candidate 617d53c420c3 passed exact native qualification in run 43569539156. Coordinate any Development rollout with the provider worktree. No local build outputs or fixture changes.
+
 ## HoloOASIS startup narrowed to native cell creation or network join
 
 On WEB4 deployment 3d7dd4ca the configured bootstrap and relay names resolve in the container. Certificate- and hostname-verified HTTPS from that container returned HTTP 404 at the bootstrap root and HTTP 200 at the relay root. This confirms basic HTTPS reachability, while the Holochain protocol exchange remains unverified. The Holochain 0.7.1 conductor initializes its admin interface before restoring enabled cells. It publishes the cells to its running registry only after cell creation and awaited network joins complete. The current evidence narrows the failure to that startup path. At the exact HoloNET dependency pin 9f897b7ace60, the child output buffer is private and is only reported when the admin listener fails to open. The next qualification should capture native startup diagnostics beyond admin connection, then reproduce a restart against persistent teaching state. No local builds, downloads or fixture changes.
