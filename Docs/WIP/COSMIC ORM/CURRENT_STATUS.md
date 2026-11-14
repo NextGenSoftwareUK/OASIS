@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Shared Development review after 10:08:06 Cancun
+
+All seven API deployments report success on the MongoDB repair rollout. The WEB4 live query check passed on bad943e3. COSMIC proposes lifecycle candidate 3459ec1e21d5 for the shared window if exact image CI 43606325623 passes, the current Development head still matches, and the serving fleet remains healthy. Managed Linux and protocol qualification passed. The added discovery timeout regression passed the WEB4 unit-test stage of CI 43606904960; the workflow remains active. The separately qualified HyperDrive denial regression 72c90754271e changes a disjoint test path. Coordinate a single Development publication. No Development push or local build.
+
 ## Live MongoDB repair rollout passed HoloOASIS and Hedera presets
 
 WEB4 deployment bad943e3 on Development 0ec29a02fabd recovered after a persisted-cell startup timeout. External health returned HTTP 200. After warm-up, native and federated discovery each reported 106/107 ready. The real HoloOASIS and Hedera providers each returned matching 3 full and 2 subset IDs in direct and federated CQL. The same deployment served throughout. Protocol CI 43606357400 passed for the next lifecycle candidate; its exact image and timeout isolation regression remain active. No new visitor, test fixture, local build or redeploy.
