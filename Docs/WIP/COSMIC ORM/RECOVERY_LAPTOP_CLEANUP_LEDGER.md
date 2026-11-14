@@ -6616,3 +6616,5 @@ Track temporary tag `ci-cosmic-infura-web4-ee3a6589a6` for exact runs `432184056
 Web4Site 5fa63a71df5d used a temporary directory containing only committed website JavaScript and HTML, plus a temporary Git index. The directory was automatically removed after the tests and push. No dependency downloads, database fixtures or build outputs were created.
 
 - 13 November Cancun: LocalState/COSMIC/HostedCqlReleaseSmoke-b4270f9c holds a dedicated Development smoke visitor journal and DPAPI credentials. Reuse until live acceptance work ends and retire through the normal session lifecycle. The prior renewal evidence stays sealed for reconciliation. No test databases, generated build outputs or downloads.
+
+- November 13 Cancun: The three private LIKE fixtures were hard-deleted using their native provider revision tokens and verified absent by ID. Compact operation journals remain in LocalState/COSMIC/HostedCqlReleaseSmoke-b4270f9c. Temporary Web4Site test copies were removed. No runtime installs or build outputs.

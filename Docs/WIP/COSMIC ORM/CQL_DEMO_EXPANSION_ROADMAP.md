@@ -1,5 +1,9 @@
 # Hosted CQL demo expansion
 
+## SQL-like text matching
+
+The Playground supports exact, prefix, suffix and substring matches using bounded SQL LIKE patterns. The Ask your data prompt teaches that syntax from Web4Site 44aaa7f. Vercel built that revision and all 177 website tests passed. The exact Playground parser returned the expected rows on live MongoDB, SQLite and Neo4j for each pattern and excluded the negative control. Hosted browser acceptance and a real WEB6 draft remain open.
+
 Updated 1 November 2026. User priority: broader hosted demo before full EF/NHibernate parity.
 The original full roadmap remains active; defer depth the demo does not need.
 Current release state/counts: [CURRENT_STATUS](CURRENT_STATUS.md). Detailed dated checkpoints below are historical.
