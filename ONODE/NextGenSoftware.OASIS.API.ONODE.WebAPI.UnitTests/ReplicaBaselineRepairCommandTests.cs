@@ -104,9 +104,13 @@ public sealed partial class ReplicaBaselineRepairCommandTests
             Assert.Null(rejectedRead.Result);
             var reviewed=new ReplicaBaselineRepairCommand.Request(Guid.NewGuid(),initialization,Guid.NewGuid(),held.Sequence,
                 held.OperationId,actor,id,original.PayloadDigest,ReplicaBaselineRepairCommand.StoreIdentity(uri,database),targetPath,
-                TargetEndpointFingerprint: reviewedTarget.EndpointFingerprint, TargetNativeStoreId: reviewedTarget.StoreId);
+                TargetEndpointFingerprint: reviewedTarget.EndpointFingerprint, TargetNativeStoreId: reviewedTarget.StoreId,
+                SourceEndpointFingerprint: sourceIdentity.Result.EndpointFingerprint, SourceNativeStoreId: sourceIdentity.Result.StoreId);
             var dna=new OASISDNA{OASIS=new OASIS{HyperDriveMode=HyperDriveModes.V2,StorageProviders=new StorageProviderSettings
             {MongoDBOASIS=new MongoDBOASISProviderSettings{ConnectionString=uri,DBName=database},SQLLiteDBOASIS=new SQLLiteDBOASISSettings{ConnectionString=connection}}}};
+            await Assert.ThrowsAsync<InvalidOperationException>(()=>ReplicaBaselineRepairCommand.ExecuteAsync(dna,
+                reviewed with { SourceNativeStoreId = wrongSource.StoreId }, journal));
+            Assert.False(File.Exists(journal));
             await Assert.ThrowsAsync<InvalidOperationException>(()=>ReplicaBaselineRepairCommand.ExecuteAsync(dna,reviewed with{SourcePayloadDigest=new string('0',64)},journal));
             Assert.Equal(HolonDeliveryState.ReconciliationRequired,(await outbox.InspectAsync(held.Sequence)).Result.State);
             var wrongActor=await ReplicaBaselineRepairCommand.ExecuteAsync(dna,reviewed with{SourceActorId=creator},journal);
