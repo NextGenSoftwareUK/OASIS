@@ -31,7 +31,10 @@ public sealed partial class ReplicaBaselineRepairCommandTests
         var results=Path.Combine(root,"TestResults/ReplicaRepairNativeCurrent");Directory.CreateDirectory(results);
         using var lease=File.Open(Path.Combine(state,"fixture.lock"),FileMode.OpenOrCreate,FileAccess.ReadWrite,FileShare.None);
         var targetPath=Path.Combine(results,"target.db");var journal=Path.Combine(state,"initialization.json");
-        foreach(var path in new[]{targetPath,targetPath+"-wal",targetPath+"-shm",journal,journal+".tmp",journal+".lock"})
+        var deniedJournal = Path.Combine(state, "denied-initialization.json");
+        var fixturePaths = new[]{targetPath,targetPath+"-wal",targetPath+"-shm",journal,journal+".tmp",journal+".lock",
+            deniedJournal,deniedJournal+".tmp",deniedJournal+".lock"};
+        foreach(var path in fixturePaths)
             Assert.False(File.Exists(path),"Preserve original fixture: "+path);
         var ownership=Path.Combine(state,"fixture.json");
         if(File.Exists(ownership))Assert.True(JsonDocument.Parse(await File.ReadAllTextAsync(ownership)).RootElement.GetProperty("cleaned").GetBoolean());
@@ -132,6 +135,41 @@ public sealed partial class ReplicaBaselineRepairCommandTests
                 var copied=(await target.LoadHolonAsync(id,loadChildren:false)).Result;
                 Assert.Equal(5,copied.Version);Assert.Equal(creator,copied.CreatedByAvatarId);
             }
+
+            current.Name = "cross-owner update";
+            await Save(6);
+            var targetId = HolonReplicationRoutes.TargetId(ProviderType.SQLLiteDBOASIS);
+            var sourceId = HolonReplicationRoutes.SourceId(ProviderType.MongoDBOASIS);
+            using (var target = new SqliteProvider(connection))
+            {
+                Assert.False((await target.ActivateProviderAsync()).IsError);
+                var delivery = new HolonOutboxDispatcher(outbox, new[] {
+                    new CommittedHolonReplicaTarget(targetId, target, ProviderType.SQLLiteDBOASIS,
+                        sourceId, ProviderType.MongoDBOASIS, new CommittedOwnerReplicationPolicy(),
+                        "owned-command-test", reviewed.CatalogVersion)
+                }, "owned-command-test");
+                var denied = await delivery.DispatchOnceAsync(targetId);
+                Assert.Equal(1, denied.Result.ReconciliationCount);
+
+                var deniedHead = (await outbox.PeekNextAsync(targetId)).Result;
+                Assert.Equal("COSMIC_REPLICA_AUTHORIZATION_DENIED", deniedHead.ErrorCode);
+                var deniedObligation = (await outbox.ReadObligationAsync(deniedHead.Sequence)).Result;
+                var deniedRequest = reviewed with {
+                    Sequence = deniedHead.Sequence,
+                    SourceOperationId = deniedHead.OperationId,
+                    SourcePayloadDigest = deniedObligation.PayloadDigest,
+                    InitializationOperationId = Guid.NewGuid()
+                };
+
+                var refused = await ReplicaBaselineRepairCommand.ExecuteAsync(dna, deniedRequest, deniedJournal);
+                Assert.Equal("COSMIC_REPLICA_INITIALIZATION_SOURCE_INVALID", refused.ErrorCode);
+                Assert.False(File.Exists(deniedJournal));
+                Assert.Equal(acknowledged, await File.ReadAllBytesAsync(journal));
+                var heldAfterRepair = (await outbox.PeekNextAsync(targetId)).Result;
+                Assert.Equal(deniedHead.Sequence, heldAfterRepair.Sequence);
+                Assert.Equal(deniedHead.ErrorCode, heldAfterRepair.ErrorCode);
+                Assert.Equal(5, (await target.LoadHolonAsync(id, loadChildren: false)).Result.Version);
+            }
             complete=true;
         }
         finally
@@ -142,7 +180,7 @@ public sealed partial class ReplicaBaselineRepairCommandTests
                 var marker=await client.GetDatabase(database).GetCollection<BsonDocument>("CosmicOwnedFixture").Find(new BsonDocument("_id","demo-repair-v1")).SingleAsync();
                 Assert.Equal(owner,marker["owner"].AsString);await client.DropDatabaseAsync(database);
                 using(var names=await client.ListDatabaseNamesAsync())Assert.DoesNotContain(database,await names.ToListAsync());
-                foreach(var path in new[]{targetPath,targetPath+"-wal",targetPath+"-shm",journal,journal+".tmp",journal+".lock"})if(File.Exists(path))File.Delete(path);
+                foreach(var path in fixturePaths)if(File.Exists(path))File.Delete(path);
                 Record(true);
             }
         }
