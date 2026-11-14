@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+14 November Cancun: native floating-point run 43582812040 completed successfully, including source graph publishing and temporary database teardown. Removed and verified absence of the two superseded remote tags ci-cosmic-floating-4e27c2212126 and ci-cosmic-floating-cdc49070d2a7. Retain ci-cosmic-floating-a21ecb4674a8 for the verified Development candidate. No local artifacts were created. The temporary documentation index was removed.
+
 14 November Cancun: C: measured 34.7 GiB free. Prepared candidate 244ed6f419c5 using a temporary Git index that was removed immediately. The two active native CI runs use remote fixtures. No local builds, dependencies, downloaded logs or databases.
 
 14 November Cancun: qualification retained ci-cosmic-floating-a21ecb4674a8 and ci-cosmic-uint64-89b6de6ec253. Older tags stay until evidence and integration are reconciled. No installs, local builds, test databases or downloaded logs. Disposable Git indexes removed.
