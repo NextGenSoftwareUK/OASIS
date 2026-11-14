@@ -448,6 +448,73 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
             var avatarAsDetail = await reopened.LoadAvatarDetailByTransactionIdAsync(avatarTx);
             Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound, avatarAsDetail.ErrorCode);
 
+            // Forward the signed transaction to real Esplora, then truncate its acknowledgement.
+            using var reservation = new System.Net.Sockets.TcpListener(System.Net.IPAddress.Loopback, 0);
+            reservation.Start();
+            var proxyAddress = $"http://127.0.0.1:{((System.Net.IPEndPoint)reservation.LocalEndpoint).Port}/";
+            reservation.Stop();
+            using var proxy = new System.Net.HttpListener();
+            proxy.Prefixes.Add(proxyAddress);
+            proxy.Start();
+            using var proxyDeadline = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(30));
+            var nativeAcknowledgement = ForwardUntilBroadcastAsync();
+            try
+            {
+                using var interrupted = new BitcoinOASIS(proxyAddress, "regtest", sourceKey.GetWif(network).ToString(), null, 2m);
+                var interruptedActivation = await interrupted.ActivateProviderAsync();
+                Assert.IsFalse(interruptedActivation.IsError, interruptedActivation.Message);
+                var uncertain = await interrupted.SendTransactionAsync(source, destination, 0.001m, null);
+                var acceptedId = await nativeAcknowledgement;
+                Assert.IsTrue(uncertain.IsError, uncertain.Message);
+                Assert.IsNull(uncertain.Result);
+                Assert.AreEqual("BITCOIN_BROADCAST_OUTCOME_UNKNOWN", uncertain.ErrorCode);
+                Assert.AreEqual(acceptedId, uncertain.MetaData["BitcoinTransactionId"]);
+                StringAssert.Contains(uncertain.Message, "Esplora did not confirm Bitcoin transaction");
+                await BitcoinCliAsync("getmempoolentry", acceptedId);
+            }
+            finally
+            {
+                proxyDeadline.Cancel();
+                try { await nativeAcknowledgement; }
+                catch (OperationCanceledException) when (proxyDeadline.IsCancellationRequested) { }
+            }
+
+            async Task<string> ForwardUntilBroadcastAsync()
+            {
+                var cancellation = proxyDeadline.Token;
+                while (true)
+                {
+                    var request = await proxy.GetContextAsync().WaitAsync(cancellation);
+                    using var response = request.Response;
+                    var path = request.Request.Url.PathAndQuery.TrimStart('/');
+                    var isBroadcast = request.Request.HttpMethod == "POST" && path == "tx";
+                    using var forward = new System.Net.Http.HttpRequestMessage(
+                        new System.Net.Http.HttpMethod(request.Request.HttpMethod), path);
+                    if (isBroadcast)
+                    {
+                        using var body = new System.IO.StreamReader(request.Request.InputStream);
+                        forward.Content = new System.Net.Http.StringContent(
+                            await body.ReadToEndAsync(cancellation), System.Text.Encoding.ASCII, "text/plain");
+                    }
+
+                    using var upstream = await http.SendAsync(forward, cancellation);
+                    var payload = await upstream.Content.ReadAsByteArrayAsync(cancellation);
+                    response.StatusCode = (int)upstream.StatusCode;
+                    response.ContentType = upstream.Content.Headers.ContentType?.ToString() ?? "text/plain";
+                    response.ContentLength64 = payload.Length;
+                    if (isBroadcast)
+                    {
+                        upstream.EnsureSuccessStatusCode();
+                        await response.OutputStream.WriteAsync(payload.AsMemory(0, 1), cancellation);
+                        await response.OutputStream.FlushAsync(cancellation);
+                        response.Abort();
+                        return System.Text.Encoding.ASCII.GetString(payload).Trim();
+                    }
+
+                    await response.OutputStream.WriteAsync(payload.AsMemory(), cancellation);
+                }
+            }
+
             async Task<string[]> ReadKuboPinsAsync()
             {
                 using var response = await kubo.PostAsync("api/v0/pin/ls?type=recursive", null);
