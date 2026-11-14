@@ -6692,3 +6692,5 @@ Web4Site 5fa63a71df5d used a temporary directory containing only committed websi
 14 November Cancun time. Exact image 43598439229 completed and the digest was checked from CI logs in memory. Exact follow-on image 43600761127 builds 1c8478f7577f with the commit-only GHCR tag. No local build or image pull. Remove old CI source tags when the corresponding candidates are superseded and recorded.
 
 14 November Cancun time. Linux managed HoloOASIS CI 43601381396 uses ci-cosmic-holooasis-managed-1c8478f7577f. Retain until qualification settles. Live checks reused Railway access and the retained visitor. No local build, download or fixture; temporary Git index removed.
+
+14 November Cancun time. Retired ci-cosmic-shared-57b2167a3533 and ci-cosmic-shared-23051874d247 after their completed qualifications were superseded on 1b91024a6318. Keep the active source tags for 1c8478f7577f. The bounded relay check and retained visitor smoke created no local build outputs, downloads or test fixtures. Temporary Git index removed.
