@@ -380,6 +380,44 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
             var avatarAsHolon = await reopened.LoadHolonAsync(avatarTx, loadChildren: false);
             Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound, avatarAsHolon.ErrorCode);
 
+            var avatarDetail = new AvatarDetail
+            {
+                Id = avatarRecord.Id,
+                Username = avatarRecord.Username,
+                Email = avatarRecord.Email,
+                FirstName = "Regtest",
+                LastName = "Detail",
+                Version = 4
+            };
+            var savedDetail = await provider.SaveAvatarDetailAsync(avatarDetail);
+            Assert.IsFalse(savedDetail.IsError, savedDetail.Message);
+            var detailTx = savedDetail.Result.ProviderUniqueStorageKey[ProviderType.BitcoinOASIS];
+            await BitcoinCliAsync("getmempoolentry", detailTx);
+
+            using var detailBlocks = System.Text.Json.JsonDocument.Parse(
+                await BitcoinCliAsync("generatetoaddress", "1", source));
+            var detailBlockHash = detailBlocks.RootElement[0].GetString();
+            for (var attempt = 0; attempt < 60; attempt++)
+            {
+                if ((await http.GetStringAsync("blocks/tip/hash")).Trim() == detailBlockHash)
+                    break;
+                await Task.Delay(500);
+            }
+            Assert.AreEqual(detailBlockHash, (await http.GetStringAsync("blocks/tip/hash")).Trim());
+
+            var loadedDetail = await reopened.LoadAvatarDetailByTransactionIdAsync(detailTx, version: 4);
+            Assert.IsFalse(loadedDetail.IsError, loadedDetail.Message);
+            Assert.AreEqual(avatarDetail.Id, loadedDetail.Result.Id);
+            Assert.AreEqual(avatarDetail.Username, loadedDetail.Result.Username);
+            Assert.AreEqual(avatarDetail.FirstName, loadedDetail.Result.FirstName);
+            Assert.AreEqual(4, loadedDetail.Result.Version);
+            Assert.AreEqual(detailTx, loadedDetail.Result.ProviderUniqueStorageKey[ProviderType.BitcoinOASIS]);
+
+            var wrongDetailVersion = await reopened.LoadAvatarDetailByTransactionIdAsync(detailTx, version: 5);
+            Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound, wrongDetailVersion.ErrorCode);
+            var avatarAsDetail = await reopened.LoadAvatarDetailByTransactionIdAsync(avatarTx);
+            Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound, avatarAsDetail.ErrorCode);
+
             async Task<string> BitcoinCliAsync(params string[] arguments)
             {
                 var start = new System.Diagnostics.ProcessStartInfo("docker")
