@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Ask your data preserves public preset equality
+
+Web4Site 714bb26 asks WEB6 for exact equality when starting from a single-key Equal preset and quotes the public key explicitly. IN presets retain their list semantics. All 11 focused tests passed and [Vercel built the exact revision](https://vercel.com/oasis-team/web4-site/WZCAWKMTVqxMuEjQD9QyE9Ud21No). Hosted browser and real WEB6 draft verification remain open. The disposable Node test staging folder was removed automatically. WEB4 replacement 45fb02c9 on Development 6c36bb49f09f reached dotnet publish on Railway; the health-gated hosted smoke is pending.
+
 ## Exact native restart passed and WEB4 recovery started
 
 The [exact 6c36bb49f09f Linux run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43571017501) passed the nine-case qualification including managed persisted-cell restart and BootLoader-backed canonically sourced queries. Railway had exhausted its restart policy and marked WEB4 3d7dd4ca CRASHED. A same-revision Development WEB4 redeploy started as 45fb02c9. Confirm public health and the container SHA, then verify authenticated CQL before recording hosted acceptance. The Linux success leaves the Railway persisted-state failure unexplained. No local build outputs or fixture changes.
