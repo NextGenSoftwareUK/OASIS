@@ -207,6 +207,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
         }
 
         [TestMethod]
+        [DoNotParallelize]
         public async Task RegtestBroadcastsAndConfirmsSignedPayment()
         {
             var api = Environment.GetEnvironmentVariable("OASIS_BITCOIN_REGTEST_API");
@@ -329,6 +330,23 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
             Assert.AreEqual(privateHolon.Name, restored.Result.Name);
             Assert.AreEqual(3, restored.Result.Version);
             Assert.AreEqual(storageTx, restored.Result.ProviderUniqueStorageKey[ProviderType.BitcoinOASIS]);
+
+            const string storageKeyVariable = "OASIS_BITCOIN_STORAGE_KEY";
+            var originalKey = Environment.GetEnvironmentVariable(storageKeyVariable);
+            var wrongKey = System.Security.Cryptography.RandomNumberGenerator.GetBytes(32);
+            try
+            {
+                Environment.SetEnvironmentVariable(storageKeyVariable, Convert.ToBase64String(wrongKey));
+                var rejected = await reopened.LoadHolonAsync(storageTx, loadChildren: false, version: 3);
+                Assert.IsTrue(rejected.IsError);
+                Assert.IsNull(rejected.Result);
+                Assert.IsInstanceOfType(rejected.Exception, typeof(System.Security.Cryptography.CryptographyException));
+            }
+            finally
+            {
+                Environment.SetEnvironmentVariable(storageKeyVariable, originalKey);
+                System.Security.Cryptography.CryptographicOperations.ZeroMemory(wrongKey);
+            }
 
             async Task<string> BitcoinCliAsync(params string[] arguments)
             {
