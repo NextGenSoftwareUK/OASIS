@@ -2127,3 +2127,5 @@ Supabase now reads replica receipt evidence through a service-role PostgREST RPC
 14 November Cancun time. Bitcoin broadcast transport exceptions now identify the locally computed transaction ID once submission begins. This allows read-only outcome reconciliation after timeout without exposing signing material or claiming success. Durable pin reconciliation remains open. CI pending.
 
 14 November Cancun time. Bitcoin broadcast attempts now carry the locally computed BitcoinTransactionId in result metadata. Incomplete acknowledgements and post-submission transport exceptions carry BITCOIN_BROADCAST_OUTCOME_UNKNOWN. Encrypted storage preserves both fields for read-only reconciliation. Durable publication journaling remains open. No local build or fixture.
+
+14 November Cancun time. Native Bitcoin CI now verifies structured transaction metadata against independently checked transaction IDs for the wallet payment and each encrypted record type. Transport-failure reconciliation still needs durable journal coverage. No local build or fixture.

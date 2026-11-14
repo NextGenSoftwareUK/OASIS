@@ -255,6 +255,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
             var payment = await provider.SendTransactionAsync(source, destination, 0.001m, memo);
             Assert.IsFalse(payment.IsError, payment.Message);
             var transactionId = payment.Result.TransactionResult;
+            Assert.AreEqual(transactionId, payment.MetaData["BitcoinTransactionId"]);
             var mempool = await BitcoinCliAsync("getmempoolentry", transactionId);
             using var entry = System.Text.Json.JsonDocument.Parse(mempool);
             Assert.IsTrue(entry.RootElement.GetProperty("fees").GetProperty("base").GetDecimal() > 0m);
@@ -321,6 +322,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
             var saved = await provider.SaveHolonAsync(privateHolon, saveChildren: false);
             Assert.IsFalse(saved.IsError, saved.Message);
             var storageTx = saved.Result.ProviderUniqueStorageKey[ProviderType.BitcoinOASIS];
+            Assert.AreEqual(storageTx, saved.MetaData["BitcoinTransactionId"]);
             await BitcoinCliAsync("getmempoolentry", storageTx);
             var storageBlockIds = await BitcoinCliAsync("generatetoaddress", "1", source);
             using var storageBlocks = System.Text.Json.JsonDocument.Parse(storageBlockIds);
@@ -372,6 +374,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
             var savedAvatar = await provider.SaveAvatarAsync(avatarRecord);
             Assert.IsFalse(savedAvatar.IsError, savedAvatar.Message);
             var avatarTx = savedAvatar.Result.ProviderUniqueStorageKey[ProviderType.BitcoinOASIS];
+            Assert.AreEqual(avatarTx, savedAvatar.MetaData["BitcoinTransactionId"]);
             await BitcoinCliAsync("getmempoolentry", avatarTx);
             var avatarBlocks = await BitcoinCliAsync("generatetoaddress", "1", source);
             using var avatarBlock = System.Text.Json.JsonDocument.Parse(avatarBlocks);
@@ -418,6 +421,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
             var savedDetail = await provider.SaveAvatarDetailAsync(avatarDetail);
             Assert.IsFalse(savedDetail.IsError, savedDetail.Message);
             var detailTx = savedDetail.Result.ProviderUniqueStorageKey[ProviderType.BitcoinOASIS];
+            Assert.AreEqual(detailTx, savedDetail.MetaData["BitcoinTransactionId"]);
             await BitcoinCliAsync("getmempoolentry", detailTx);
 
             using var detailBlocks = System.Text.Json.JsonDocument.Parse(
