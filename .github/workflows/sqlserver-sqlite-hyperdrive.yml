@@ -7,6 +7,7 @@ on:
       - '.github/workflows/sqlserver-sqlite-hyperdrive.yml'
       - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLServerDBOASIS/SQLServerStorageIdentity.cs'
       - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLServerDBOASIS/SQLServerDBOASIS.cs'
+      - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLServerDBOASIS/SQLServerReplicaApply.cs'
       - 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests/SqlServerSqliteHyperDriveTests.cs'
   workflow_dispatch:
 
@@ -57,7 +58,7 @@ jobs:
           git -C ../provider-source fetch --no-tags --depth=1 origin "$base"
           tests='OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests'
           provider='Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLServerDBOASIS'
-          for path in "$tests/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests.csproj" "$tests/SqlServerSqliteHyperDriveTests.cs" "$provider"/{SQLServerStorageIdentity,SQLServerDBOASIS}.cs; do
+          for path in "$tests/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests.csproj" "$tests/SqlServerSqliteHyperDriveTests.cs" "$provider"/{SQLServerStorageIdentity,SQLServerDBOASIS,SQLServerReplicaApply}.cs; do
             current="$(git ls-tree HEAD -- "$path")"
             reviewed="$(git -C ../provider-source ls-tree "$base" -- "$path")"
             incoming="$(git -C ../provider-source ls-tree HEAD -- "$path")"

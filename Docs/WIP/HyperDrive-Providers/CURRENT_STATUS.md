@@ -1664,3 +1664,5 @@ Holo Desktop diagnostic run 43155153231 found that the conductor tool path was d
 13 November Cancun time. Added SQL Server's bound replica receipt lookup using one serializable SqlClient transaction. The native test checks authoritative absence in the enrolled database and rejection of the same receipt request on its peer. Atomic replica application remains open.
 
 13 November Cancun time. SQL Server identity CI caught the inherited ProviderType property shadowing the enum in the static identity reader. Qualified the enum in both identity and receipt checks. Extracted the existing snapshot and history write into a transaction-scoped routine for reuse by replica apply. The upsert holds its key lock through the transaction. Replacement native verification is pending.
+
+13 November Cancun time. SQL Server now has a bound replica receiver. One SqlClient transaction checks the database binding, locks the receipt and graph keys, validates predecessor evidence, and commits the snapshot or hard delete with its lineage and receipt. Native CI checks initial apply, exact replay and committed receipt. Outbound delivery remains open.
