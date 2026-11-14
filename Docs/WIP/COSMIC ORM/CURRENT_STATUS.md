@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## WEB4 Development crash loop confirmed
+
+Railway deployment 3d7dd4ca reports SUCCESS on 6c36bb49f09f, while public health times out. Runtime logs captured three consecutive unhandled provisioning failures, each after 240 successful conductor admin replies and zero live cells. SSH process snapshots show the same deployment cycling through container startup. The failure is in the persisted HoloOASIS teaching cell startup before WEB4 can serve HTTP. HoloNET redirects conductor stdout and stderr, and WEB4 currently disables its console and file logging; inspect how to expose bounded native startup diagnostics without logging request payloads. Keep the persisted volume and three public fixture IDs intact. No local builds, downloads or fixture changes.
+
 ## Native multi-column Playground sorting
 
 Web4Site 5be78a1 compiled selected-column ORDER BY into the existing composition route. On Development b4f1a930b2b8 MongoDB, SQLite and Neo4j accepted the exact parser request. Earlier populated tests on the same deployment verified that Name breaks equal Version ties before Skip and Take. All six private fixtures were hard-deleted using native revision tokens and independently verified absent by ID. Compact operation journals remain in LocalState/COSMIC/HostedCqlReleaseSmoke-b4270f9c. No local runtime or build output. All 182 website tests passed and [Vercel built the preview](https://vercel.com/oasis-team/web4-site/HH9Y7xkBqxDc2FzYPhZ3xszFjCwG). The editor documents the 100-row source window. Hosted browser acceptance remains open.
