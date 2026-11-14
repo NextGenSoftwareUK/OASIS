@@ -1202,3 +1202,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 14 November Cancun time. Exact MongoDB source qualification completed the native MongoDB and SQLite checks, including workflow fixture teardown. No local build, download or test artifacts were created by this run.
 
 14 November Cancun time. The MongoDB command qualification completed native fixture cleanup. Preparing combined candidate `7748eda97e0d` removed its temporary Git index. No local build or download was created.
+
+14 November Cancun time. Exact MongoDB qualification on 0ec29a02fabd completed both native fixture checks on the hosted runner. No local build, fixture or download was created. The temporary index from the first candidate preparation attempt was removed by its cleanup block.
