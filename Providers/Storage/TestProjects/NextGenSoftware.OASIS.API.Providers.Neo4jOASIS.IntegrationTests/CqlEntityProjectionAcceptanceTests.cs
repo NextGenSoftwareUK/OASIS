@@ -17,6 +17,8 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         public ulong Unsigned {get;set;}
         public decimal Amount {get;set;}
     }
+    private sealed record NativeProjectionRecord(string Name, long Precision);
+
     private static Holon CreateEntityProjectionFixture(Guid[] ids,Guid actor,Guid other)
     {
         var root=new Holon{Id=ids[0],Name="protected source root",CreatedByAvatarId=actor,IsPublic=true,Version=1,
@@ -97,6 +99,14 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Assert.AreEqual(0,NativeProjectionProbe.Constructors);desired="protected source root";
         var selected=await deferred.ToCosmicListAsync();Assert.IsFalse(selected.IsError,selected.Message+selected.Exception);
         Assert.AreEqual(9007199254740993L,selected.Result.Single().Precision);Assert.AreEqual(1,NativeProjectionProbe.Constructors);
+        var recordResult = await rootSource.Take(1)
+            .Select(row => new NativeProjectionRecord(row.Name, CosmicQueryMetadata.Value<long>(row, "i64")))
+            .ToCosmicListAsync();
+        Assert.IsFalse(recordResult.IsError, recordResult.Message + recordResult.Exception);
+        Assert.AreEqual(new NativeProjectionRecord("protected source root", 9007199254740993L),
+            recordResult.Result.Single());
+        Passed("standard Select binds positional record constructor arguments without losing Int64 precision");
+
         desired="not-matched-on-second-read";Assert.AreEqual(0,deferred.ToArray().Length);Passed("deferred selector rebinds without application source construction or eager DTOs");
         NativeProjectionProbe.Constructors=0;
         var invalid=await rootSource.Take(1).Where(row=>row.Name=="protected source root")
