@@ -330,9 +330,11 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
                 Assert.AreEqual(0, emptyInventory.Result.Count);
             }
 
+            var avatarId = Guid.NewGuid();
             var privateHolon = new Holon
             {
                 Id = Guid.NewGuid(),
+                CreatedByAvatarId = avatarId,
                 HolonType = HolonType.Holon,
                 Version = 3,
                 Name = "Private regtest fixture"
@@ -384,7 +386,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
 
             var avatarRecord = new Avatar
             {
-                Id = Guid.NewGuid(),
+                Id = avatarId,
                 Username = "regtest-avatar",
                 Email = "regtest@example.invalid",
                 Version = 2
@@ -554,7 +556,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
                 }
                 Assert.AreEqual(recoveredBlock, (await http.GetStringAsync("blocks/tip/hash")).Trim());
 
-                using var recovered = new BitcoinOASIS(api, "regtest", sourceKey.GetWif(network).ToString());
+                using var recovered = new BitcoinOASIS(api, "regtest", sourceKey.GetWif(network).ToString(), null, 2m);
                 var inventory = await recovered.ListRecordPublicationsAsync();
                 Assert.IsFalse(inventory.IsError, inventory.Message);
                 CollectionAssert.AreEquivalent(new[] { storageTx, avatarTx, detailTx, acceptedId }, inventory.Result.ToArray());
@@ -579,6 +581,122 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
                 var retainedAvatar = await recovered.LoadAvatarAsync(avatarRecord.Id);
                 Assert.IsFalse(retainedAvatar.IsError, retainedAvatar.Message);
                 Assert.AreEqual(avatarTx, retainedAvatar.Result.ProviderUniqueStorageKey[ProviderType.BitcoinOASIS]);
+
+                foreach (var scopedExport in new[]
+                {
+                    await recovered.ExportAllDataForAvatarByIdAsync(avatarRecord.Id),
+                    await recovered.ExportAllDataForAvatarByEmailAsync(avatarRecord.Email),
+                    await recovered.ExportAllDataForAvatarByUsernameAsync(avatarRecord.Username, version: 3)
+                })
+                {
+                    Assert.IsFalse(scopedExport.IsError, scopedExport.Message);
+                    Assert.AreEqual(privateHolon.Id, scopedExport.Result.Single().Id);
+                }
+
+                var hardDelete = await recovered.DeleteAvatarAsync(avatarRecord.Id, softDelete: false);
+                Assert.IsTrue(hardDelete.IsError);
+                Assert.IsFalse(hardDelete.MetaData.ContainsKey("BitcoinTransactionId"));
+                var deleted = await recovered.DeleteAvatarByEmailAsync(avatarRecord.Email);
+                Assert.IsFalse(deleted.IsError, deleted.Message);
+                Assert.IsTrue(deleted.Result);
+                var deletionTx = deleted.MetaData["BitcoinTransactionId"];
+                await BitcoinCliAsync("getmempoolentry", deletionTx);
+
+                using var deletionBlocks = System.Text.Json.JsonDocument.Parse(
+                    await BitcoinCliAsync("generatetoaddress", "1", source));
+                var deletionBlock = deletionBlocks.RootElement[0].GetString();
+                for (var attempt = 0; attempt < 60; attempt++)
+                {
+                    if ((await http.GetStringAsync("blocks/tip/hash")).Trim() == deletionBlock)
+                        break;
+                    await Task.Delay(500);
+                }
+                Assert.AreEqual(deletionBlock, (await http.GetStringAsync("blocks/tip/hash")).Trim());
+                var deletedLookup = await walletReader.LoadAvatarByUsernameAsync(avatarRecord.Username);
+                Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound, deletedLookup.ErrorCode);
+                var deletedList = await walletReader.LoadAllAvatarsAsync();
+                Assert.IsFalse(deletedList.IsError, deletedList.Message);
+                Assert.AreEqual(0, deletedList.Result.Count());
+                var historical = await walletReader.LoadAvatarAsync(avatarRecord.Id, version: 2);
+                Assert.IsFalse(historical.IsError, historical.Message);
+                Assert.AreEqual(avatarTx, historical.Result.ProviderUniqueStorageKey[ProviderType.BitcoinOASIS]);
+
+                var byHolonId = await recovered.LoadHolonAsync(privateHolon.Id, loadChildren: false, version: 3);
+                Assert.IsFalse(byHolonId.IsError, byHolonId.Message);
+                Assert.AreEqual(storageTx, byHolonId.Result.ProviderUniqueStorageKey[ProviderType.BitcoinOASIS]);
+                var holonList = await recovered.LoadAllHolonsAsync(HolonType.Holon, loadChildren: false);
+                Assert.IsFalse(holonList.IsError, holonList.Message);
+                Assert.IsTrue(holonList.Result.Any(holon => holon.Id == privateHolon.Id));
+
+                var childId = Guid.NewGuid();
+                var savedChild = await recovered.SaveHolonAsync(new Holon
+                {
+                    Id = childId,
+                    HolonType = HolonType.Holon,
+                    ParentHolonId = privateHolon.Id,
+                    Name = "Private regtest child",
+                    Version = 1
+                }, saveChildren: false);
+                Assert.IsFalse(savedChild.IsError, savedChild.Message);
+                var childTx = savedChild.Result.ProviderUniqueStorageKey[ProviderType.BitcoinOASIS];
+                await BitcoinCliAsync("getmempoolentry", childTx);
+                for (var attempt = 0; attempt < 60; attempt++)
+                {
+                    var pool = await http.GetStringAsync($"address/{storageAddress}/txs/mempool");
+                    if (pool.Contains(childTx, StringComparison.Ordinal))
+                        break;
+                    await Task.Delay(500);
+                }
+                var graph = await recovered.LoadHolonAsync(privateHolon.Id, loadChildren: true, recursive: false);
+                Assert.IsFalse(graph.IsError, graph.Message);
+                Assert.AreEqual(childId, graph.Result.Children.Single().Id);
+                var graphSearch = await recovered.SearchAsync(new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchParams
+                {
+                    ParentId = privateHolon.Id,
+                    Recursive = false,
+                    SearchOnlyForCurrentAvatar = false
+                }, loadChildren: false);
+                Assert.IsFalse(graphSearch.IsError, graphSearch.Message);
+                Assert.AreEqual(1, graphSearch.Result.NumberOfResults);
+                Assert.AreEqual(childId, graphSearch.Result.SearchResultHolons.Single().Id);
+
+                var deletedChild = await recovered.DeleteHolonAsync(childTx);
+                Assert.IsFalse(deletedChild.IsError, deletedChild.Message);
+                Assert.IsTrue(deletedChild.Result.IsDeleted);
+                Assert.AreEqual(childId, deletedChild.Result.Id);
+                var deletedChildTx = deletedChild.MetaData["BitcoinTransactionId"];
+                await BitcoinCliAsync("getmempoolentry", deletedChildTx);
+                for (var attempt = 0; attempt < 60; attempt++)
+                {
+                    var pool = await http.GetStringAsync($"address/{storageAddress}/txs/mempool");
+                    if (pool.Contains(deletedChildTx, StringComparison.Ordinal))
+                        break;
+                    await Task.Delay(500);
+                }
+                var missingChild = await recovered.LoadHolonAsync(childId, loadChildren: false);
+                Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound, missingChild.ErrorCode);
+                var prunedGraph = await recovered.LoadHolonAsync(privateHolon.Id, loadChildren: true, recursive: false);
+                Assert.IsFalse(prunedGraph.IsError, prunedGraph.Message);
+                Assert.AreEqual(0, prunedGraph.Result.Children.Count);
+                var oldChild = await recovered.LoadHolonAsync(childId, loadChildren: false, version: 1);
+                Assert.IsFalse(oldChild.IsError, oldChild.Message);
+                Assert.AreEqual(childTx, oldChild.Result.ProviderUniqueStorageKey[ProviderType.BitcoinOASIS]);
+                var exported = await recovered.ExportAllAsync();
+                Assert.IsFalse(exported.IsError, exported.Message);
+                Assert.IsTrue(exported.Result.Any(holon => holon.Id == privateHolon.Id));
+                Assert.IsFalse(exported.Result.Any(holon => holon.Id == childId));
+
+                var batch = await recovered.SaveHolonsAsync(new IHolon[]
+                {
+                    new Holon { Id = Guid.NewGuid(), HolonType = HolonType.Holon, Version = 1 },
+                    null,
+                    new Holon { Id = Guid.NewGuid(), HolonType = HolonType.Holon, Version = 1 }
+                }, saveChildren: false, continueOnError: true);
+                Assert.IsTrue(batch.IsError);
+                Assert.AreEqual(1, batch.ErrorCount);
+                Assert.AreEqual(2, batch.SavedCount);
+                foreach (var acknowledged in batch.Result)
+                    await BitcoinCliAsync("getmempoolentry", acknowledged.ProviderUniqueStorageKey[ProviderType.BitcoinOASIS]);
             }
             finally
             {
