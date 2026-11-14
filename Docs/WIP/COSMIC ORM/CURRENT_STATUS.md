@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Supabase native receipt rollout
+
+Development advanced to 363dd7fbd23e with the scoped PostgREST database identity and receipt RPC batch. [Native CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43558660677) passed sync and async. Railway queued WEB4 deployment eef96bb3. Verify the serving revision and authenticated CQL after cutover. Hosted Supabase catalogue admission still requires the dedicated HTTPS teaching fixture and restricted reader. HyperDrive is separately implementing atomic replica application. No local build or fixture outputs.
+
 ## SQL Server rollout live CQL verification
 
 Railway WEB4 deployment eab12a1a served 383a335006d2 before and after the authenticated smoke. Public health returned HTTP 200. HoloOASIS native and MongoDB-federated presets returned identical three-record and two-record subsets with HoloOASIS provenance. The two catalogues reached 105/107 ready. Hedera timed out waiting for upstream response headers after 15 seconds and Nostr received HTTP 521 during WebSocket upgrade. The earlier successful Hedera preset proof remains recorded at b4270f9cb9d2. No settings or fixtures were changed. HyperDrive is qualifying Supabase PostgREST identity and receipt work separately.
