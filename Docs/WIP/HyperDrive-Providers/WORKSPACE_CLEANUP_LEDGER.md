@@ -1150,3 +1150,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 14 November Cancun time. DynamoDB test compilation was diagnosed from hosted CI logs read in memory. No local build, fixture, download or test output was created.
 
 14 November Cancun time. DynamoDB Local CI passed both native cases and completed hosted cleanup. Read logs in memory and removed the temporary Git index after assembling the Development candidate. No local test environments, downloads or build outputs were created.
+
+14 November Cancun time. The SQLite-to-DynamoDB dispatcher test runs on hosted CI. Its workflow owns the temporary DynamoDB Local download, process, SQLite database and build outputs. No local fixtures or build outputs were created.
