@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## HoloOASIS confirmed on Development 2e0b02a9d4c8
+
+WEB4 deployment f1acb554 passed authenticated live discovery after startup. Native and federated readiness both reached 105/107. HoloOASIS direct CQL and federation returned the same three full records and two subset records with shipping provider provenance. HashgraphOASIS and NostrOASIS remain unavailable. Hosted browser acceptance and legacy conductor interface cleanup remain open. The existing visitor was reused. No local builds or test fixtures were created.
+
 ## Direct UInt64 entity-window qualification
 
 COSMIC a59115939edf pins Core a85f3b7c in the deployment manifest and gitlink together. The Core change exposes the existing entity-window numeric planner and preserves Development authentication. The three-store fixture asserts exact UInt64 maximum Sum and decimal Average after an entity window. [Native CI 43581084683](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43581084683) is queued. The [prior floating-point-only candidate](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43580421972) checks the new DynamoDB Development base independently. Q01f remains incomplete. Development WEB4 f1acb554 is building; live verification waits for 2e0b02a9d4c8. No local builds or fixtures.
