@@ -1,4 +1,9 @@
 # COSMIC ORM / CQL current status
+## Billing rollout live CQL and protocol qualification
+
+Railway deployment 28ffb60b succeeded and SSH confirmed Development revision eacecc556b6d. Public WEB4 health returned 200. The retained release-smoke visitor verified identical HoloOASIS native and MongoDB-federated 3/2 preset IDs and HoloOASIS provenance. Authenticated readiness reached 104/107, with Hedera, Nostr and Blockscout unavailable. No holons were created.
+
+Candidate 2bdb509e2175 links the production app billing partial and dependencies into the protocol test project. CI passed the prior compile point, then the WEB4 application fixtures failed because pooled quotas were disabled. Workflow 9b9fd0c1e1dd enables pooled quotas only during the application test step. [Exact replacement qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43549493439/job/132308405613) is running. The native-qualified SQLite-to-Oracle batch 08751c9824ae remains independently staged on the same billing baseline. No local build or test data was created.
 
 ## Shared protocol build failure on the billing baseline
 
