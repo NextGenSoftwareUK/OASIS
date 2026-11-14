@@ -1724,3 +1724,5 @@ Supabase now reads replica receipt evidence through a service-role PostgREST RPC
 14 November Cancun time. Supabase dispatcher CI 43561683522 stopped at compilation because the delivery route local overlapped an existing routing assertion. Renamed the fixture local. Native qualification remains pending.
 
 14 November Cancun time. Supabase receiver and SQLite dispatcher reached Development 5ab24c31afa0. Deployment 7783283350 began at 00:39:58 Cancun. The next coordinated review is after 01:09:58, subject to the current parent and rollout. Added a separate outbound migration with protected source receipts, ordered deliveries and lease constraints. The source commit RPC and dispatcher still need wiring and native qualification.
+
+14 November Cancun time. Supabase source commit RPC now checks the bound store and original receipt, fences ordinary writes during exact row comparison, and atomically stores graph changes and outbound obligations. The shipping conditional source client and dispatcher remain open.
