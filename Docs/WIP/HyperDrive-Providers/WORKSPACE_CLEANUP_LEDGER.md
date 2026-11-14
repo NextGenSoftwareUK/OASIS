@@ -1240,3 +1240,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 - 14 November Cancun time. Removed the temporary Git index for candidate aae4a0e64e3d. Native Bitcoin regtest ran on the disposable CI runner. No local builds, databases or images.
 
 - 14 November Cancun time. Native Bitcoin CI now preserves the test exit status and fails if the owned disposable container or pinned image cannot be removed. No local Docker image, database or generated output.
+
+- 14 November Cancun time. Bitcoin native CI 43630568410 passed its explicit teardown and removed the owned Esplora image and disposable container. No local build or fixture. C: measured 27.3 GiB free.
