@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+14 November Cancun: removed the superseded ci-cosmic-uint64-988e930df866 tag after the corrected run succeeded. Live HoloOASIS used the retained visitor with read-only requests. No local databases, builds or downloads. Temporary Git index removed.
+
 14 November Cancun: retain ci-cosmic-uint64-244ed6f419c5 for exact shared candidate run 43583941386. Logs and CI metadata were inspected in memory. No local dependencies, databases, or builds. Temporary Git index removed.
 
 14 November Cancun: native floating-point run 43582812040 completed successfully, including source graph publishing and temporary database teardown. Removed and verified absence of the two superseded remote tags ci-cosmic-floating-4e27c2212126 and ci-cosmic-floating-cdc49070d2a7. Retain ci-cosmic-floating-a21ecb4674a8 for the verified Development candidate. No local artifacts were created. The temporary documentation index was removed.

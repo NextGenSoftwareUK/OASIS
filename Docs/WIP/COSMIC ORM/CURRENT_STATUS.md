@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## HoloOASIS passed on the RoundRobin Development rollout
+
+Railway WEB4 e6d6c4d1 succeeded on exact Development b0bb55e337b4. Authenticated catalogue readiness climbed from 12 to 105 of 107 during startup. The shipping HoloOASIS provider returned matching direct and federated record IDs for the three-record full preset and two-record subset. Railway SSH timed out, so no new interface count was measured. The corrected UInt64 baseline run completed full protocol CI. The exact combined Development candidate remains in qualification.
+
 ## Exact UInt64 reductions passed native CI
 
 [Run 43583011537](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43583011537) passed the corrected native UInt64 assertions for MongoDB, SQLite and Neo4j. The fixture uses an explicit native Take stage before projection and verifies UInt64 maximum Sum and exact decimal Average. The exact shared Development candidate 244ed6f419c5 preserves HyperDrive's RoundRobin scripts and is building in [run 43583941386](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43583941386). The standalone floating-point candidate a21ecb4674a8 already passed full protocol CI including cleanup. Q01f remains open. Railway deployment e6d6c4d1 has reached WEB4 publish and is still building.
