@@ -142,6 +142,18 @@ public partial class DynamoDBOASIS : ICosmicStorageIdentityProvider, ICommittedH
         }
     }
 
+    private static TransactWriteItem RequireStorageIdentityAtCommit(string storeId) => new()
+    {
+        ConditionCheck = new ConditionCheck
+        {
+            TableName = ConditionalReceiptTable,
+            Key = ReceiptTableGet(StorageIdentityKey).Key,
+            ConditionExpression = "#value = :expected",
+            ExpressionAttributeNames = new() { ["#value"] = "store_id" },
+            ExpressionAttributeValues = new() { [":expected"] = new() { S = storeId } }
+        }
+    };
+
     private static Get ReceiptTableGet(string key) => new()
     {
         TableName = ConditionalReceiptTable,

@@ -7,6 +7,9 @@ on:
       - '.github/workflows/dynamodb-sqlite-native-failover.yml'
       - 'Providers/Cloud/NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS/DynamoStorageIdentity.cs'
       - 'Providers/Cloud/NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS/DynamoReplicaApply.cs'
+      - 'Providers/Cloud/NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS/DynamoConditionalWrites.cs'
+      - 'Providers/Cloud/NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS/DynamoOutboundPublication.cs'
+      - 'Providers/Cloud/NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS/DynamoOutboundOutbox.cs'
       - 'Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.AWSOASIS.IntegrationTests/AWSSqliteOutageTests.cs'
   workflow_dispatch:
 
@@ -92,11 +95,11 @@ jobs:
             ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-DynamoSqliteFailover -Operation {
               $project = "Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.AWSOASIS.IntegrationTests"
               $fixture = $env:OASIS_DYNAMO_OUTAGE_FIXTURE
-              dotnet test $project --filter "FullyQualifiedName~SqliteOutageRoutesToDynamoDb|FullyQualifiedName~SqliteDispatcherReplicatesToDynamoDb" --artifacts-path (Join-Path $fixture build) --results-directory $fixture --logger "trx;LogFileName=failover.trx" /m:2 /nr:false /p:UseSharedCompilation=false
+              dotnet test $project --filter "FullyQualifiedName~SqliteOutageRoutesToDynamoDb|FullyQualifiedName~SqliteDispatcherReplicatesToDynamoDb|FullyQualifiedName~DynamoDbPublishesBoundOutboundDelivery" --artifacts-path (Join-Path $fixture build) --results-directory $fixture --logger "trx;LogFileName=failover.trx" /m:2 /nr:false /p:UseSharedCompilation=false
               if ($LASTEXITCODE) { throw "Native DynamoDB failover failed." }
               [xml]$report = Get-Content -LiteralPath (Join-Path $fixture failover.trx)
               $counts = $report.TestRun.ResultSummary.Counters
-              if ([int]$counts.total -ne 3 -or [int]$counts.passed -ne 3 -or [int]$counts.notExecuted -ne 0) {
-                throw "Expected both native failover modes and dispatcher delivery to pass with zero skips."
+              if ([int]$counts.total -ne 4 -or [int]$counts.passed -ne 4 -or [int]$counts.notExecuted -ne 0) {
+                throw "Expected both native failover modes, dispatcher delivery and outbound publication to pass with zero skips."
               }
             }'

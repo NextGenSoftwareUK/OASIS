@@ -1,4 +1,7 @@
 using System.Text.Json;
+using Amazon.DynamoDBv2;
+using Amazon.DynamoDBv2.Model;
+using Amazon.Runtime;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Configuration;
@@ -247,6 +250,213 @@ public partial class AWSOASISIntegrationTests
             var replay = await restarted.DispatchOnceAsync(route.TargetId, maximumCount: 1);
             Assert.IsFalse(replay.IsError, replay.Message);
             Assert.AreEqual(0, replay.Result.CompletedCount);
+        }
+        finally
+        {
+            await sqlite.DeActivateProviderAsync();
+        }
+    }
+
+    [TestMethod]
+    public async Task DynamoDbPublishesBoundOutboundDelivery()
+    {
+        var fixture = Environment.GetEnvironmentVariable("OASIS_DYNAMO_OUTAGE_FIXTURE");
+        Assert.IsFalse(string.IsNullOrWhiteSpace(fixture), "The owned DynamoDB fixture is required.");
+        var endpoint = Environment.GetEnvironmentVariable("DYNAMODB_SERVICE_URL");
+        Assert.AreEqual("http://127.0.0.1:18000", endpoint);
+        using var native = new AmazonDynamoDBClient(new BasicAWSCredentials("OwnedOutbound", "local-fixture"),
+            new AmazonDynamoDBConfig { ServiceURL = endpoint, AuthenticationRegion = "us-east-1", MaxErrorRetry = 0 });
+        using var sqlite = new SqliteProvider($"Data Source={Path.Combine(fixture!, $"{Guid.NewGuid():N}.outbound.db")};Pooling=False");
+        var activated = await sqlite.ActivateProviderAsync();
+        Assert.IsTrue(!activated.IsError && activated.Result, activated.Message);
+        try
+        {
+            var identityProvider = (ICosmicStorageIdentityProvider)_provider;
+            var source = await identityProvider.CaptureStorageIdentityAsync();
+            var target = await sqlite.CaptureStorageIdentityAsync();
+            Assert.IsFalse(source.IsError, source.Message);
+            Assert.IsFalse(target.IsError, target.Message);
+            var actor = Guid.NewGuid();
+            var policy = new HolonReplicationActorGrant(new[] { actor }, DateTime.UtcNow.AddMinutes(10));
+            HolonReplicationEnrollment Enroll(CosmicStorageIdentity identity)
+            {
+                var route = new HolonReplicationRouteBinding(identity, target.Result, policy.BindingIdentity);
+                return new(route.SourceId, new[] { route.TargetId }, identity, new[] { route });
+            }
+
+            var record = new Holon { Id = Guid.NewGuid(), Name = "DynamoDB outbound publication" };
+            var write = new ConditionalHolonWrite(Guid.NewGuid(), actor, source.Result.Authority,
+                new[] { new HolonWriteCondition(record.Id, null) });
+            var request = new ConditionalHolonWriteRequest(write, ConditionalHolonOperation.Save, new[] { record }, saveChildren: false);
+            var publisher = (IBoundAtomicHolonReplicationStorageProvider)_provider;
+            var wrongIdentity = new CosmicStorageIdentity(source.Result.Authority, source.Result.EndpointFingerprint, Guid.NewGuid());
+            var rejected = await publisher.ExecuteReplicatingHolonWriteAsync(request, Enroll(wrongIdentity));
+            Assert.AreEqual("COSMIC_SOURCE_STORAGE_BINDING_MISMATCH", rejected.ErrorCode);
+            Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,
+                (await _provider.LoadHolonAsync(record.Id, loadChildren: false)).ErrorCode);
+
+            var enrollment = Enroll(source.Result);
+            var counterKey = new Dictionary<string, AttributeValue> { ["id"] = new() { S = "outbound:sequence" } };
+            var counter = await native.GetItemAsync(new GetItemRequest
+            {
+                TableName = "OasisHolonWriteReceipts", Key = counterKey, ConsistentRead = true
+            });
+            try
+            {
+                await native.PutItemAsync(new PutItemRequest
+                {
+                    TableName = "OasisHolonWriteReceipts",
+                    Item = new(counterKey) { ["sequence"] = new() { S = "invalid" } }
+                });
+                var invalidCounter = await publisher.ExecuteReplicatingHolonWriteAsync(request, enrollment);
+                Assert.AreEqual("COSMIC_CONDITIONAL_WRITE_FAILED", invalidCounter.ErrorCode);
+                Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,
+                    (await _provider.LoadHolonAsync(record.Id, loadChildren: false)).ErrorCode);
+            }
+            finally
+            {
+                if (counter.Item?.Count > 0)
+                    await native.PutItemAsync(new PutItemRequest { TableName = "OasisHolonWriteReceipts", Item = counter.Item });
+                else
+                    await native.DeleteItemAsync(new DeleteItemRequest { TableName = "OasisHolonWriteReceipts", Key = counterKey });
+            }
+
+            var committed = await publisher.ExecuteReplicatingHolonWriteAsync(request, enrollment);
+            Assert.IsTrue(!committed.IsError && committed.IsSaved, $"{committed.Message} {committed.Exception}");
+            var wrongReplay = publisher.ExecuteReplicatingHolonWrite(request, Enroll(wrongIdentity));
+            Assert.AreEqual("COSMIC_SOURCE_STORAGE_BINDING_MISMATCH", wrongReplay.ErrorCode);
+            Assert.IsNull(wrongReplay.Result);
+            var replay = publisher.ExecuteReplicatingHolonWrite(request, enrollment);
+            Assert.IsTrue(!replay.IsError && replay.IsSaved, replay.Message);
+            Assert.AreEqual(committed.Result.Single().VersionId, replay.Result.Single().VersionId);
+
+            var rows = await native.ScanAsync(new ScanRequest
+            {
+                TableName = "OasisHolonWriteReceipts", ConsistentRead = true,
+                FilterExpression = "operation_id = :operation",
+                ExpressionAttributeValues = new() { [":operation"] = new() { S = write.OperationId.ToString("D") } }
+            });
+            Assert.IsTrue(rows.LastEvaluatedKey == null || rows.LastEvaluatedKey.Count == 0);
+            var delivery = rows.Items.Single();
+            Assert.AreEqual("Pending", delivery["state"].S);
+            Assert.AreEqual("0", delivery["attempt_count"].N);
+            Assert.AreEqual(enrollment.TargetIds.Single(), delivery["target_id"].S);
+            var payload = delivery["payload"].S;
+            Assert.AreEqual(HolonRecoveryEvidenceJson.Digest(payload), delivery["digest"].S);
+            var published = CommittedHolonReplicaPayload.ReadForTarget(payload, enrollment.TargetIds.Single());
+            Assert.AreEqual(write.OperationId, published.OperationId);
+            Assert.AreEqual(committed.Result.Single().VersionId, published.Roots.Single().VersionId);
+
+            var revision = committed.Result.Single();
+            var deletion = new ConditionalHolonWrite(Guid.NewGuid(), actor, source.Result.Authority,
+                new[] { new HolonWriteCondition(record.Id, CosmicConcurrency.GetProviderRevisionId(revision, source.Result.Authority)) });
+            var removed = await publisher.ExecuteReplicatingHolonWriteAsync(
+                new ConditionalHolonWriteRequest(deletion, ConditionalHolonOperation.HardDelete, new[] { revision }, saveChildren: false), enrollment);
+            Assert.IsTrue(!removed.IsError && removed.IsDeleted, $"{removed.Message} {removed.Exception}");
+            Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,
+                (await _provider.LoadHolonAsync(record.Id, loadChildren: false)).ErrorCode);
+            var deletionRows = await native.ScanAsync(new ScanRequest
+            {
+                TableName = "OasisHolonWriteReceipts", ConsistentRead = true,
+                FilterExpression = "operation_id = :operation",
+                ExpressionAttributeValues = new() { [":operation"] = new() { S = deletion.OperationId.ToString("D") } }
+            });
+            Assert.IsTrue(deletionRows.LastEvaluatedKey == null || deletionRows.LastEvaluatedKey.Count == 0);
+            var deleteDelivery = deletionRows.Items.Single();
+            Assert.IsTrue(string.CompareOrdinal(delivery["id"].S, deleteDelivery["id"].S) < 0);
+            var tombstone = CommittedHolonReplicaPayload.ReadForTarget(deleteDelivery["payload"].S, enrollment.TargetIds.Single());
+            Assert.AreEqual(ConditionalHolonOperation.HardDelete, tombstone.Operation);
+            Assert.AreEqual(revision.VersionId, tombstone.Roots.Single().PreviousVersionId);
+            Assert.AreEqual(removed.Result.Single().VersionId, tombstone.Roots.Single().VersionId);
+
+            var opened = ((IBoundHolonReplicationOutboxSource)_provider).GetBoundHolonReplicationOutbox(source.Result);
+            Assert.IsFalse(opened.IsError, opened.Message);
+            var outbox = opened.Result;
+            var routeBinding = enrollment.NativeRoutes.Single();
+            var head = await outbox.PeekNextAsync(routeBinding.TargetId);
+            Assert.IsFalse(head.IsError, head.Message);
+            Assert.AreEqual(write.OperationId, head.Result?.OperationId);
+            var inventory = await outbox.ReadRouteHeadsAsync();
+            Assert.IsFalse(inventory.IsError, inventory.Message);
+            Assert.AreEqual(head.Result.Sequence, inventory.Result.Heads.Single().Sequence);
+            var wrongOutbox = ((IBoundHolonReplicationOutboxSource)_provider).GetBoundHolonReplicationOutbox(wrongIdentity);
+            Assert.IsFalse(wrongOutbox.IsError, wrongOutbox.Message);
+            var wrongHead = await wrongOutbox.Result.PeekNextAsync(routeBinding.TargetId);
+            Assert.AreEqual("COSMIC_OUTBOX_SOURCE_STORAGE_BINDING_MISMATCH", wrongHead.ErrorCode);
+            Assert.IsNull(wrongHead.Result);
+
+            var firstClaim = await outbox.ClaimNextAsync(routeBinding.TargetId, "expiring-worker", TimeSpan.FromSeconds(1));
+            Assert.IsFalse(firstClaim.IsError, firstClaim.Message);
+            Assert.IsNotNull(firstClaim.Result);
+            var wait = firstClaim.Result.LeaseUntilUtc - DateTime.UtcNow;
+            if (wait > TimeSpan.Zero)
+                await Task.Delay(wait + TimeSpan.FromMilliseconds(20));
+            var staleRenewal = await outbox.RenewAsync(firstClaim.Result, TimeSpan.FromMinutes(1));
+            Assert.IsFalse(staleRenewal.IsError, staleRenewal.Message);
+            Assert.IsFalse(staleRenewal.Result);
+            var staleCompletion = await outbox.FinishAsync(firstClaim.Result, HolonDeliveryOutcome.Completed);
+            Assert.IsFalse(staleCompletion.IsError, staleCompletion.Message);
+            Assert.IsFalse(staleCompletion.Result);
+
+            var replicaTarget = new CommittedHolonReplicaTarget(routeBinding.TargetId, sqlite, target.Result.Authority,
+                routeBinding.SourceId, source.Result.Authority, policy, "dynamo-source", Guid.NewGuid(),
+                policy.BindingIdentity, target.Result);
+            var dispatcher = new HolonOutboxDispatcher(outbox, new[] { replicaTarget }, "dynamo-source");
+            var saveDelivery = await dispatcher.DispatchOnceAsync(routeBinding.TargetId, maximumCount: 1);
+            Assert.IsFalse(saveDelivery.IsError, saveDelivery.Message);
+            Assert.AreEqual(1, saveDelivery.Result.CompletedCount);
+            var recoveredLease = await outbox.InspectAsync(firstClaim.Result.Sequence);
+            Assert.IsFalse(recoveredLease.IsError, recoveredLease.Message);
+            Assert.AreEqual(HolonDeliveryState.Completed, recoveredLease.Result.State);
+            Assert.AreEqual(2, recoveredLease.Result.AttemptCount);
+            Assert.AreEqual(revision.VersionId, (await sqlite.LoadHolonAsync(record.Id, loadChildren: false)).Result?.VersionId);
+            var hardDeleteDelivery = await dispatcher.DispatchOnceAsync(routeBinding.TargetId, maximumCount: 1);
+            Assert.IsFalse(hardDeleteDelivery.IsError, hardDeleteDelivery.Message);
+            Assert.AreEqual(1, hardDeleteDelivery.Result.CompletedCount);
+            Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,
+                (await sqlite.LoadHolonAsync(record.Id, loadChildren: false)).ErrorCode);
+            var restarted = new HolonOutboxDispatcher(outbox, new[] { replicaTarget }, "dynamo-source-restarted");
+            var repeated = await restarted.DispatchOnceAsync(routeBinding.TargetId, maximumCount: 1);
+            Assert.IsFalse(repeated.IsError, repeated.Message);
+            Assert.AreEqual(0, repeated.Result.CompletedCount);
+
+            var contenders = Enumerable.Range(0, 4).Select(_ =>
+            {
+                var holon = new Holon { Id = Guid.NewGuid(), Name = "Concurrent DynamoDB publication" };
+                var intent = new ConditionalHolonWrite(Guid.NewGuid(), actor, source.Result.Authority,
+                    new[] { new HolonWriteCondition(holon.Id, null) });
+                return (HolonId: holon.Id, Intent: intent, Request: new ConditionalHolonWriteRequest(
+                    intent, ConditionalHolonOperation.Save, new[] { holon }, saveChildren: false));
+            }).ToArray();
+            var results = await Task.WhenAll(contenders.Select(candidate =>
+                publisher.ExecuteReplicatingHolonWriteAsync(candidate.Request, enrollment)));
+            Assert.IsTrue(results.Any(result => !result.IsError && result.IsSaved));
+            var sequences = new HashSet<string> { delivery["sequence"].N, deleteDelivery["sequence"].N };
+            for (var index = 0; index < contenders.Length; index++)
+            {
+                var candidate = contenders[index];
+                var observed = await _provider.LoadHolonAsync(candidate.HolonId, loadChildren: false);
+                var obligations = await native.ScanAsync(new ScanRequest
+                {
+                    TableName = "OasisHolonWriteReceipts", ConsistentRead = true,
+                    FilterExpression = "operation_id = :operation",
+                    ExpressionAttributeValues = new() { [":operation"] = new() { S = candidate.Intent.OperationId.ToString("D") } }
+                });
+                Assert.IsTrue(obligations.LastEvaluatedKey == null || obligations.LastEvaluatedKey.Count == 0);
+                if (observed.ErrorCode == OASISResultErrorCodes.RecordNotFound)
+                {
+                    Assert.IsTrue(results[index].IsError);
+                    Assert.AreEqual(0, obligations.Items.Count);
+                    continue;
+                }
+
+                Assert.IsFalse(observed.IsError, observed.Message);
+                var obligation = obligations.Items.Single();
+                Assert.IsTrue(sequences.Add(obligation["sequence"].N), "Committed deliveries must use distinct sequences.");
+                var observedPayload = CommittedHolonReplicaPayload.ReadForTarget(
+                    obligation["payload"].S, enrollment.TargetIds.Single());
+                Assert.AreEqual(observed.Result.VersionId, observedPayload.Roots.Single().VersionId);
+            }
         }
         finally
         {
