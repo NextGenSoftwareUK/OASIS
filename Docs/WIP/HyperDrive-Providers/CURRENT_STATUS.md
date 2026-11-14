@@ -2111,3 +2111,5 @@ Supabase now reads replica receipt evidence through a service-role PostgREST RPC
 14 November Cancun time. Native Bitcoin/Kubo CI 43640863177 passed encrypted avatar-detail publication, exact identity and private field readback, requested version and record-kind rejection with zero skips. Standard GUID, email and username lookups still use an incompatible RPC search and need an encrypted identity index tied to the committed record. Deletion and pin reconciliation remain open.
 
 14 November Cancun time. Bitcoin transaction-key reads now classify an Esplora 404 as authoritative record absence across holon, avatar and avatar-detail. Kubo failures and corrupt or unverifiable transactions remain errors. Public Esplora CI now checks all three selectors against an absent transaction ID. WEB4 reports success on dc3d613de96a. No local build or fixture.
+
+14 November Cancun time. Bitcoin avatar reads now only skip malformed JSON for unrelated public data outputs. A malformed Kubo response while resolving a recognized encrypted avatar commitment remains a provider error and cannot be classified as authoritative absence. CI pending. No local build or fixture.

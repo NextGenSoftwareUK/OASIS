@@ -229,27 +229,27 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                         continue;
 
                     Avatar decoded;
-                    try
+                    if (BitcoinRecordBlobStore.IsCommitment(pushes[0], BitcoinRecordKind.Avatar))
                     {
-                        if (BitcoinRecordBlobStore.IsCommitment(pushes[0], BitcoinRecordKind.Avatar))
-                        {
-                            using var client = CreateRecordBlobClient();
-                            using var codec = CreateRecordCodec();
-                            var json = await new BitcoinRecordBlobStore(client, codec, BitcoinRecordKind.Avatar)
-                                .GetAsync(AvatarRecordScope, pushes[0]);
-                            decoded = NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.Deserialize<Avatar>(json);
-                            if (decoded == null || decoded.Id == Guid.Empty)
-                                throw new InvalidOperationException("The committed Bitcoin avatar has no valid identity.");
-                        }
-                        else
+                        using var client = CreateRecordBlobClient();
+                        using var codec = CreateRecordCodec();
+                        var json = await new BitcoinRecordBlobStore(client, codec, BitcoinRecordKind.Avatar)
+                            .GetAsync(AvatarRecordScope, pushes[0]);
+                        decoded = NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.Deserialize<Avatar>(json);
+                        if (decoded == null || decoded.Id == Guid.Empty)
+                            throw new InvalidOperationException("The committed Bitcoin avatar has no valid identity.");
+                    }
+                    else
+                    {
+                        try
                         {
                             decoded = ParseBitcoinToAvatar(Encoding.UTF8.GetString(pushes[0]));
                         }
-                    }
-                    catch (JsonException)
-                    {
-                        // Arbitrary data outputs are valid Bitcoin transactions.
-                        continue;
+                        catch (JsonException)
+                        {
+                            // Arbitrary data outputs are valid Bitcoin transactions.
+                            continue;
+                        }
                     }
 
                     if (decoded == null)
