@@ -86,16 +86,7 @@ public partial class SupabaseOASIS : IBoundCommittedHolonReplicaStorageProvider
 
                 var currentRow = observed.GetProperty("current_row");
                 var observedHead = observed.GetProperty("replica_head");
-                Holon? current = null;
-                if (currentRow.ValueKind != JsonValueKind.Null)
-                {
-                    current = Deserialize<Holon>(currentRow.GetProperty("data_json").GetString()!);
-                    var parent = currentRow.GetProperty("parent_holon_id");
-                    if (current == null || current.Id != record.Id || current.IsDeleted != currentRow.GetProperty("is_deleted").GetBoolean()
-                        || (int)current.HolonType != currentRow.GetProperty("holon_type").GetInt32()
-                        || current.ParentHolonId != (parent.ValueKind == JsonValueKind.Null ? Guid.Empty : parent.GetGuid()))
-                        throw new InvalidDataException("The Supabase native row differs from its holon snapshot.");
-                }
+                var current = ReadCurrentHolon(record.Id, currentRow);
                 if (observedHead.ValueKind != JsonValueKind.Null)
                 {
                     var head = HolonReplicaHeadRecord.Read(record.Id, ReplicaAuthority,
@@ -128,9 +119,7 @@ public partial class SupabaseOASIS : IBoundCommittedHolonReplicaStorageProvider
                     id = stored.Id,
                     expected_current = currentRow,
                     expected_head = observedHead,
-                    current = hardDelete ? null : new { id = stored.Id,
-                        parent_holon_id = stored.ParentHolonId == Guid.Empty ? (Guid?)null : stored.ParentHolonId,
-                        holon_type = (int)stored.HolonType, is_deleted = stored.IsDeleted, data_json = Serialize(stored) },
+                    current = hardDelete ? null : CreateCurrentHolonRow(stored),
                     head = new { id = stored.Id, source_id = plan.SourceId, source_authority = plan.SourceAuthority.ToString(),
                         snapshot_json = snapshot, snapshot_digest = HolonRecoveryEvidenceJson.Digest(snapshot),
                         revision_id = revision, hard_deleted = hardDelete }
@@ -163,6 +152,28 @@ public partial class SupabaseOASIS : IBoundCommittedHolonReplicaStorageProvider
                 "Supabase replica apply failed.", commitEntered ? new SupabaseReplicaReconciliationException(request.OperationId, cause) : cause);
         }
     }
+
+    private static Holon? ReadCurrentHolon(Guid id, JsonElement row)
+    {
+        if (row.ValueKind == JsonValueKind.Null)
+            return null;
+        var current = Deserialize<Holon>(row.GetProperty("data_json").GetString()!);
+        var parent = row.GetProperty("parent_holon_id");
+        if (current == null || current.Id != id || current.IsDeleted != row.GetProperty("is_deleted").GetBoolean()
+            || (int)current.HolonType != row.GetProperty("holon_type").GetInt32()
+            || current.ParentHolonId != (parent.ValueKind == JsonValueKind.Null ? Guid.Empty : parent.GetGuid()))
+            throw new InvalidDataException("The Supabase native row differs from its holon snapshot.");
+        return current;
+    }
+
+    private static object CreateCurrentHolonRow(IHolon record) => new
+    {
+        id = record.Id,
+        parent_holon_id = record.ParentHolonId == Guid.Empty ? (Guid?)null : record.ParentHolonId,
+        holon_type = (int)record.HolonType,
+        is_deleted = record.IsDeleted,
+        data_json = Serialize(record)
+    };
 
     private async Task<JsonDocument> ReadReplicaRpcAsync(string function, object args, CancellationToken token)
     {
