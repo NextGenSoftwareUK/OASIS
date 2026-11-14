@@ -136,6 +136,7 @@ jobs:
         run: |
           $fixture = Join-Path $env:RUNNER_TEMP ('oasis-bound-initialization-' + [Guid]::NewGuid().ToString('N'))
           New-Item -ItemType Directory -Path $fixture | Out-Null
+          $env:OASIS_SQLITE_TEST_FIXTURE_DIRECTORY = Join-Path $fixture database
           try {
             ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-SqliteBoundInitialization -Operation {
               $project = 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.IntegrationTests'
