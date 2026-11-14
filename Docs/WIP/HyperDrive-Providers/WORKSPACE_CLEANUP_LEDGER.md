@@ -1234,3 +1234,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 - 14 November Cancun time. Removed the temporary Git index used to assemble Bitcoin read qualification candidate d764ebb72bb89. No local build output, backend fixture, download, or test report was created.
 
 - 14 November Cancun time. Removed the temporary Git index for Bitcoin wallet candidate 873500557a2f. No local builds, downloads or fixtures.
+
+- 14 November Cancun time. Bitcoin native regtest CI uses a disposable runner and trap to remove the named container, anonymous volumes and pinned image. No local Docker installation, image or database was created.

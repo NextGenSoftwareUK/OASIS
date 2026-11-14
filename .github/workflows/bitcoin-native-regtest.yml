@@ -1,0 +1,47 @@
+name: Bitcoin native regtest
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  esplora-regtest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Start and verify disposable Bitcoin Core and Esplora
+        shell: bash
+        run: |
+          set -euo pipefail
+          image='blockstream/esplora@sha256:1d5c64df311cce3e7ab6fd5749f8e65c20099186014c058e561cbf52085ef6db'
+          fixture="oasis-bitcoin-regtest-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          cleanup() {
+            docker rm -f -v "$fixture" >/dev/null 2>&1 || true
+            docker image rm "$image" >/dev/null 2>&1 || true
+          }
+          trap cleanup EXIT
+
+          docker run -d --name "$fixture" -p 127.0.0.1::80 "$image" bash -c '/srv/explorer/run.sh bitcoin-regtest explorer'
+          port=$(docker port "$fixture" 80/tcp | cut -d: -f2)
+          api="http://127.0.0.1:$port/regtest/api"
+          bitcoin() {
+            docker exec "$fixture" /srv/explorer/bitcoin/bin/bitcoin-cli -conf=/data/.bitcoin.conf -datadir=/data/bitcoin -regtest "$@"
+          }
+          for attempt in {1..60}; do
+            if curl -fsS "$api/blocks/tip/height" >/dev/null 2>&1; then
+              break
+            fi
+            sleep 2
+          done
+          genesis=$(bitcoin getblockhash 0)
+          test "$(curl -fsS "$api/block-height/0")" = "$genesis"
+          test "$(bitcoin getblockchaininfo | jq -r .chain)" = regtest
+
+          miner=$(bitcoin -rpcwallet=default getnewaddress)
+          bitcoin -rpcwallet=default generatetoaddress 101 "$miner" >/dev/null
+          test "$(bitcoin -rpcwallet=default getbalance | jq '. > 0')" = true
+          printf 'Esplora fee targets after mining: '
+          curl -fsS "$api/fee-estimates" | jq -c 'keys'
+          test "$(bitcoin getblockcount)" -ge 101

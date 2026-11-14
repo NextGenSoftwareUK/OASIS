@@ -2031,3 +2031,5 @@ Supabase now reads replica receipt evidence through a service-role PostgREST RPC
 14 November Cancun time. The signed Bitcoin payment path now requires the built transaction to contain the exact requested zero-value OP_RETURN memo before broadcast. This prevents returning the requested memo in the receipt when the signed transaction omitted it. Funded verification remains open. No local build or payment.
 
 14 November Cancun time. The public Esplora wrong-network regression passed in CI 43627669952. Wallet and bridge candidate 873500557a2f contains six scoped files on Development d764ebb72bb8. Exact qualification 43628088309 is running. The workflow covers public reads, account recovery and wrong-network rejection. Funded transfer, receipt memo and signed storage remain open.
+
+14 November Cancun time. Exact Bitcoin wallet candidate 873500557a2f passed public Esplora CI 43628088309. Added on-demand native regtest CI with digest-pinned Blockstream Esplora and Bitcoin Core, chain identity and funded wallet checks, and fee-target reporting. This first run qualifies the fixture before wiring the provider transfer. No local runtime was downloaded.
