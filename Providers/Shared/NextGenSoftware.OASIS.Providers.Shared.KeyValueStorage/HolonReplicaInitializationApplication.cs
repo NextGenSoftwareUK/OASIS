@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
@@ -20,7 +21,8 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 public sealed class HolonReplicaInitializationApplication
 {
     private readonly HolonReplicaInitializationPreparation _preparation;
-    private readonly ICommittedHolonReplicaInitializationRecoveryStorageProvider _target;
+    private readonly Func<CommittedHolonReplicaRequest,CancellationToken,Task<OASISResult<HolonReplicaInitializationOutcome>>> _readOutcome;
+    private readonly Func<CommittedHolonReplicaRequest,CancellationToken,Task<OASISResult<IEnumerable<IHolon>>>> _initialize;
     private readonly Func<HolonReplicaInitializationIntent,HolonReplicaInitializationOutcome,CancellationToken,Task<OASISResult<bool>>> _complete;
 
     public HolonReplicaInitializationApplication(HolonReplicaInitializationPreparation preparation,
@@ -28,7 +30,21 @@ public sealed class HolonReplicaInitializationApplication
         Func<HolonReplicaInitializationIntent,HolonReplicaInitializationOutcome,CancellationToken,Task<OASISResult<bool>>> fencedSourceCompletion)
     {
         _preparation=preparation ?? throw new ArgumentNullException(nameof(preparation));
-        _target=configuredTarget ?? throw new ArgumentNullException(nameof(configuredTarget));
+        ArgumentNullException.ThrowIfNull(configuredTarget);
+        _readOutcome=configuredTarget.ReadReplicaInitializationOutcomeAsync;
+        _initialize=configuredTarget.InitializeCommittedHolonReplicaAsync;
+        _complete=fencedSourceCompletion ?? throw new ArgumentNullException(nameof(fencedSourceCompletion));
+    }
+
+    public HolonReplicaInitializationApplication(HolonReplicaInitializationPreparation preparation,
+        IBoundCommittedHolonReplicaInitializationRecoveryStorageProvider configuredTarget, CosmicStorageIdentity expectedTarget,
+        Func<HolonReplicaInitializationIntent,HolonReplicaInitializationOutcome,CancellationToken,Task<OASISResult<bool>>> fencedSourceCompletion)
+    {
+        _preparation=preparation ?? throw new ArgumentNullException(nameof(preparation));
+        ArgumentNullException.ThrowIfNull(configuredTarget);
+        ArgumentNullException.ThrowIfNull(expectedTarget);
+        _readOutcome=(request,token)=>configuredTarget.ReadBoundReplicaInitializationOutcomeAsync(request,expectedTarget,token);
+        _initialize=(request,token)=>configuredTarget.InitializeBoundCommittedHolonReplicaAsync(request,expectedTarget,token);
         _complete=fencedSourceCompletion ?? throw new ArgumentNullException(nameof(fencedSourceCompletion));
     }
 
@@ -72,15 +88,15 @@ public sealed class HolonReplicaInitializationApplication
             var authorized=await _preparation.ReauthorizeApplicationAsync(intent,token).ConfigureAwait(false);
             if(!Clean(authorized) || authorized.Result==null)return Failed(authorized?.ErrorCode,authorized?.Message,authorized?.Exception);
             var mutation=authorized.Result;
-            var observed=await _target.ReadReplicaInitializationOutcomeAsync(mutation,token).ConfigureAwait(false);
+            var observed=await _readOutcome(mutation,token).ConfigureAwait(false);
             if(!Clean(observed) || observed.Result==null)return Failed("COSMIC_REPLICA_INITIALIZATION_RECEIPT_UNAVAILABLE","An authoritative target outcome is required.",observed?.Exception);
             if(observed.Result.ReceiptState==ConditionalHolonReceiptState.Absent)
             {
                 if(phase!="Prepared")return Failed("COSMIC_REPLICA_INITIALIZATION_RECONCILIATION_REQUIRED","A submitted initialization has no receipt yet; absence never permits resubmission.");
                 Save("Submitted");
-                var applied=await _target.InitializeCommittedHolonReplicaAsync(mutation,token).ConfigureAwait(false);
+                var applied=await _initialize(mutation,token).ConfigureAwait(false);
                 if(!Clean(applied))return Failed("COSMIC_REPLICA_INITIALIZATION_RECONCILIATION_REQUIRED","Submission did not finish cleanly; recover this same journal and operation.",applied?.Exception);
-                observed=await _target.ReadReplicaInitializationOutcomeAsync(mutation,token).ConfigureAwait(false);
+                observed=await _readOutcome(mutation,token).ConfigureAwait(false);
             }
             if(!Clean(observed) || observed.Result==null || observed.Result.ReceiptState!=ConditionalHolonReceiptState.Committed
                 || observed.Result.OperationId!=intent.InitializationOperationId || observed.Result.BaselineFingerprint!=intent.BaselineFingerprint
