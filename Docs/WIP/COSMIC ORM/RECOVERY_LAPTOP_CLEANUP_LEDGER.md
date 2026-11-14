@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+14 November Cancun: prior smoke visitor files were absent after cleanup. Created one Development sandbox visitor using the existing session endpoint and retained its protected session under LocalState/COSMIC/HostedCqlPostCleanupSmoke-74ff7058 for the pending live acceptance. Reuse this visitor for subsequent probes and remove its disposable local evidence when no longer needed. No local dependencies or runtime installs.
+
 14 November Cancun: canceled superseded image CI 43638171354. Retain ci-cosmic-shared-dc3d613de96a for active combined image and protocol CI, and ci-cosmic-projection-8b0bcbeb15ab for verified projection evidence. No local builds, runtime downloads or fixture databases. Temporary Git index removed automatically.
 
 14 November Cancun: retain ci-cosmic-projection-8b0bcbeb15ab for active protocol CI 43637315553. Temporary Git indexes removed automatically. Reused installed Railway CLI after the task-local copy was removed. No local builds, runtime downloads or test databases.

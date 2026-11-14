@@ -1,5 +1,7 @@
 # COSMIC ORM / CQL current status
 
+14 November, Cancun. Authenticated WEB4 verification on the serving revision returned 104 of 107 sources in both modes. HoloOASIS returned CQL_SOURCE_UNAVAILABLE. Hedera returned its exact 3/2 direct and federated results with matching provenance. Linux network join milestone regression CI 43637875691 passed. Combined protocol and image builds remain active.
+
 14 November, Cancun. Detached public field projections passed 49 native assertions per store with fixture cleanup on MongoDB, SQLite and Neo4j in CI 43637315553. Timed HoloOASIS conductor startup passed Linux CI 43637661644. The combined candidate dc3d613de96a reconciles both with Development c03148b117a0. Exact image CI 43638462645 and protocol CI 43638464652 are active. The live conductor stall remains unresolved.
 
 14 November, Cancun. HoloNET 3a319b2a4fa8 enables timed spans for the managed Linux teaching conductor only. Parent 21dd0a39ba63 reports an allowlisted network-join stage and is running Linux CI 43637661644. HoloOASIS remains unavailable. Field projection CI 43636085718 failed before the new assertions because the feature parent lacked the three native provider interfaces. Requalified candidate 8b0bcbeb15ab uses current Development provider code and runs in CI 43637315553.
