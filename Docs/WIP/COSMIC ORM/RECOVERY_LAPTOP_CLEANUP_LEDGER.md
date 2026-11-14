@@ -6600,3 +6600,5 @@ Track temporary tag `ci-cosmic-infura-web4-ee3a6589a6` for exact runs `432184056
 - 13 November Cancun: Removed the temporary exact-source directory used for 174 Web4Site tests on f1d6cd34500b. The live aggregate schema probe reused the existing release-smoke visitor and created no provider holons, local build output or downloads.
 
 - 13 November Cancun: Three private numeric-group fixtures were conditionally hard-deleted and confirmed absent on MongoDB, SQLite and Neo4j. The twelve compact intent/ack files remain in LocalState/COSMIC/HostedCqlReleaseSmoke-9944b532. No local build output or downloads.
+
+- 13 November Cancun: Three numeric-HAVING fixtures were conditionally hard-deleted and confirmed absent across MongoDB, SQLite and Neo4j. Twelve compact intent/ack files remain in LocalState/COSMIC/HostedCqlReleaseSmoke-9944b532. No local build output or downloads.
