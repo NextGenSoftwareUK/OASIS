@@ -78,10 +78,7 @@ public partial class DynamoDBOASIS : IBoundCommittedHolonReplicaStorageProvider
 
             var writes = new List<TransactWriteItem>
             {
-                new() { ConditionCheck = new ConditionCheck { TableName = ConditionalReceiptTable,
-                    Key = ReceiptTableGet(StorageIdentityKey).Key, ConditionExpression = "#value = :expected",
-                    ExpressionAttributeNames = new() { ["#value"] = "store_id" },
-                    ExpressionAttributeValues = new() { [":expected"] = new() { S = nativeStore.S } } } }
+                RequireStorageIdentityAtCommit(nativeStore.S)
             };
             var records = new Dictionary<Guid, IHolon>();
             long bytes = 0;
