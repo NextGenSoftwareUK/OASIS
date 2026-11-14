@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+14 November Cancun: retain ci-cosmic-projection-d50db224b886 while teaching image CI 43631388182 is active. Protocol CI 43630156412 finished successfully. HoloOASIS CI 43631220899 runs from the feature branch. Temporary Git indexes are removed automatically. No new local downloads, builds or test databases.
+
 14 November Cancun: removed ci-cosmic-shared-4fd56a466009 after CI 43593587199 completed. Its HoloOASIS diagnostic is superseded by the timeout-only version. Retain the active validation and integration tags. No local builds, logs or test databases. Temporary Git index removed.
 
 14 November Cancun: retained ci-cosmic-shared-a5d86933bc39 for the verified-tree integration candidate. The new candidate reuses the exact tree from run 43594133859. Temporary documentation index removed. No new dependencies, local builds or databases.
