@@ -1704,3 +1704,5 @@ Supabase now reads replica receipt evidence through a service-role PostgREST RPC
 13 November Cancun time. Supabase PostgREST identity CI 43557824511 passed on exact tree 4a2a0ee629be4a20557a6026a6a929a67b8ff85f, candidate 580ce76a62ad on Development 383a335006d2. Receipt job 132335719964 stopped at compilation because the new receipt local shadowed the existing routing miss local. Renamed it. Native receipt qualification is pending.
 
 13 November Cancun time. Staged Supabase receipt candidate 363dd7fbd23e on Development 383a335006d2, expected tree 65dcf82b57423651bc0674d09b9e6fd7e5f93224. Native job 132337173075 is active. All seven APIs on the preceding Development deployment reported success. Added the database owner enrollment step to the provider README.
+
+13 November Cancun time. Native PostgREST receipt qualification 43558660677 passed both routing modes on exact tree 65dcf82b57423651bc0674d09b9e6fd7e5f93224. Candidate 363dd7fbd23e remains scheduled for the 00:01:03 review. Added a PostgreSQL privilege check for the receipt RPC, immutable identity and read-only receipt table. The new privilege check is pending CI.

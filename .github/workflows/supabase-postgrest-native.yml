@@ -154,6 +154,19 @@ jobs:
           "${psql[@]}" < Providers/Cloud/NextGenSoftware.OASIS.API.Providers.SupabaseOASIS/supabase-storage-schema.sql
           if [[ "$OASIS_SUPABASE_TEST_SCENARIO" == routing ]]; then
             "${psql[@]}" < Providers/Cloud/NextGenSoftware.OASIS.API.Providers.SupabaseOASIS/supabase-replication-schema.sql
+            "${psql[@]}" <<'SQL'
+          DO $$
+          BEGIN
+              IF has_function_privilege('anon', 'public.oasis_read_replica_receipt(uuid,uuid)', 'EXECUTE')
+                  OR has_function_privilege('authenticated', 'public.oasis_read_replica_receipt(uuid,uuid)', 'EXECUTE')
+                  OR NOT has_function_privilege('service_role', 'public.oasis_read_replica_receipt(uuid,uuid)', 'EXECUTE')
+                  OR has_table_privilege('service_role', 'public.oasis_storage_identity', 'UPDATE')
+                  OR has_table_privilege('service_role', 'public.oasis_replica_receipts', 'INSERT') THEN
+                  RAISE EXCEPTION 'Unexpected Supabase replica receipt or storage identity privileges';
+              END IF;
+          END
+          $$;
+          SQL
           fi
           if [[ "$OASIS_SUPABASE_TEST_SCENARIO" == pagination ]]; then
             "${psql[@]}" <<'SQL'
