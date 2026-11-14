@@ -17,6 +17,8 @@ using IoFile = System.IO.File;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 
+public delegate Task HoloOasisProvisioning(CancellationToken cancellationToken);
+
 internal sealed class HoloOasisDevelopmentConductor
 {
     private static readonly Guid DevelopmentEnvironmentId = new("a31011a2-d047-4057-b5e8-57d52ebcfefe");
@@ -61,6 +63,25 @@ internal sealed class HoloOasisDevelopmentConductor
         if (useBootLoader)
             ValidateBootLoaderConfiguration(configuration);
         return new HoloOasisDevelopmentConductor(useBootLoader);
+    }
+
+    public bool UsesBootLoader => _useBootLoader;
+
+    public async Task StartAndProvisionAsync(IConfiguration configuration, CancellationToken cancellationToken)
+    {
+        if (_admin != null)
+            return;
+
+        await StartAsync(cancellationToken);
+        try
+        {
+            await ProvisionAsync(configuration, cancellationToken);
+        }
+        catch
+        {
+            await StopAsync();
+            throw;
+        }
     }
 
     public async Task StartAsync(CancellationToken cancellationToken)
