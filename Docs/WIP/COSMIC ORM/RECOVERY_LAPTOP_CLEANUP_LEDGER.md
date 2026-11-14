@@ -6720,3 +6720,6 @@ Web4Site 5fa63a71df5d used a temporary directory containing only committed websi
 14 November Cancun time. The SQL predicate evidence runs the exact Web4Site parser in the existing Node runtime with source streamed from Git. The retained visitor queried existing provider fixtures. No new data, downloaded packages or local output. Temporary documentation index removed.
 
 14 November Cancun time. Ran 185 website tests using a disposable exact-source archive and the existing Node runtime. The archive and temporary Git indexes were removed before publication. Vercel deployment 7790165481 is retained remotely. Live federation used the retained visitor and existing provider fixtures. No local packages, build outputs, databases or fixtures added.
+
+
+14 November, Cancun. Archived the rejected Development subscription-admin sign-in under LocalState/COSMIC/HostedSubscriptionAdminRejected-20261114-1204. It contains only the original intent and protected rejection response. No session was issued. Remove the archived attempt after the successful verification is recorded. Temporary qualification indexes were removed. No new runtime or local build outputs.
