@@ -166,6 +166,31 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
         }
 
         [TestMethod]
+        public async Task EsploraMainnetRejectsRegtestSigningWallet()
+        {
+            var network = NBitcoin.Network.RegTest;
+            using var source = new NBitcoin.Key();
+            using var destination = new NBitcoin.Key();
+            using var provider = new BitcoinOASIS(
+                rpcEndpoint: "https://blockstream.info/api",
+                network: "regtest",
+                privateKey: source.GetWif(network).ToString());
+
+            var activation = await provider.ActivateProviderAsync();
+            Assert.IsFalse(activation.IsError, activation.Message);
+
+            var transfer = await provider.SendTransactionAsync(
+                source.PubKey.GetAddress(NBitcoin.ScriptPubKeyType.Segwit, network).ToString(),
+                destination.PubKey.GetAddress(NBitcoin.ScriptPubKeyType.Segwit, network).ToString(),
+                0.001m,
+                null);
+
+            Assert.IsTrue(transfer.IsError);
+            Assert.IsNull(transfer.Result);
+            Assert.IsTrue(transfer.Message.Contains("different Bitcoin network"), transfer.Message);
+        }
+
+        [TestMethod]
         public async Task SaveAvatar_ShouldReturnSuccessResult()
         {
             // Arrange

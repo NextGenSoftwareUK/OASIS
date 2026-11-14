@@ -38,7 +38,7 @@ using NBitcoin;
 
 namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
 {
-    public partial class BitcoinOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IOASISBlockchainStorageProvider, IOASISSmartContractProvider, IOASISNFTProvider
+    public partial class BitcoinOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IOASISBlockchainStorageProvider, IOASISSmartContractProvider, IOASISNFTProvider, IDisposable
     {
         private readonly HttpClient _httpClient;
         private readonly string _rpcEndpoint;
