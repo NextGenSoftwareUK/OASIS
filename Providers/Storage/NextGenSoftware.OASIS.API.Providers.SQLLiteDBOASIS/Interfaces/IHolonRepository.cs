@@ -17,8 +17,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Interfaces
         OASISResult<IEnumerable<IHolon>> ApplyBoundCommittedHolonReplica(CommittedHolonReplicaRequest request,
             CosmicStorageIdentity expectedStorage, System.Threading.CancellationToken cancellationToken);
         OASISResult<IEnumerable<IHolon>> ApplyCommittedHolonReplica(CommittedHolonReplicaRequest request,System.Threading.CancellationToken cancellationToken);
-        OASISResult<IEnumerable<IHolon>> InitializeCommittedHolonReplica(CommittedHolonReplicaRequest request,System.Threading.CancellationToken cancellationToken);
-        Task<OASISResult<HolonReplicaInitializationOutcome>> ReadReplicaInitializationOutcomeAsync(CommittedHolonReplicaRequest original,System.Threading.CancellationToken cancellationToken);
+        OASISResult<IEnumerable<IHolon>> InitializeCommittedHolonReplica(CommittedHolonReplicaRequest request,System.Threading.CancellationToken cancellationToken,CosmicStorageIdentity expectedStorage=null);
+        Task<OASISResult<HolonReplicaInitializationOutcome>> ReadReplicaInitializationOutcomeAsync(CommittedHolonReplicaRequest original,System.Threading.CancellationToken cancellationToken,CosmicStorageIdentity expectedStorage=null);
         OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0);
 
         Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0);
