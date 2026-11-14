@@ -27,6 +27,12 @@ public sealed class HolonReplicaInitializationPreparationTests
         Assert.AreEqual(actor,result.Result.OperatorId);Assert.AreEqual(operation,result.Result.InitializationOperationId);
         Assert.AreEqual(source.Observation.Inspection.OperationId,result.Result.SourceOperationId);
         Assert.AreEqual(source.Observation.PayloadDigest,result.Result.SourcePayloadDigest);
+        Assert.IsNull(policy.ReadContext.SourceOperationId);
+        Assert.IsNull(policy.ReadContext.SourcePayloadDigest);
+        Assert.IsNull(policy.ReadContext.SourceErrorCode);
+        Assert.AreEqual<Guid?>(source.Observation.Inspection.OperationId, policy.ApprovalContext.SourceOperationId);
+        Assert.AreEqual(source.Observation.PayloadDigest, policy.ApprovalContext.SourcePayloadDigest);
+        Assert.AreEqual(source.Observation.Inspection.ErrorCode, policy.ApprovalContext.SourceErrorCode);
         Assert.AreEqual(2,policy.Calls);Assert.AreEqual(1,source.Reads);Assert.AreEqual(1,source.Peeks);Assert.AreEqual(0,source.Mutations);
         Assert.AreEqual(result.Result.Fingerprint,(await prepare.PrepareAsync(actor,6,operation)).Result.Fingerprint);
         var metadata=System.Text.Json.JsonSerializer.Serialize(result.Result);
@@ -161,9 +167,13 @@ public sealed class HolonReplicaInitializationPreparationTests
     {
         public string BindingIdentity {get;private set;}="policy-v1";
         public string Deny;public int Calls;
+        public HolonReplicaInitializationAuthorizationContext ReadContext;
+        public HolonReplicaInitializationAuthorizationContext ApprovalContext;
         public Task<OASISResult<bool>> AuthorizeAsync(HolonReplicaInitializationAuthorizationContext context,CancellationToken token)
         {
             Calls++;var read=context.Stage==HolonReplicaInitializationAuthorizationStage.ReadHeldSource;
+            if (read) ReadContext = context;
+            else ApprovalContext = context;
             if(Deny=="null")return Task.FromResult<OASISResult<bool>>(null);
             if(Deny is "error" or "warning")return Task.FromResult(new OASISResult<bool>(true){IsError=Deny=="error",IsWarning=Deny=="warning",Exception=new InvalidOperationException("Controlled authorization failure")});
             if(!read && Deny=="binding")BindingIdentity="policy-v2";

@@ -249,7 +249,12 @@ internal static class ReplicaBaselineRepairCommand
                 && context.SourceStoreIdentity==request.SourceStoreIdentity && context.TargetEndpointIdentity==file
                 && context.SourceAuthority==sourceType && context.TargetAuthority==TargetProfile(request.TargetProvider)
                 && context.TargetId==HolonReplicationRoutes.TargetId(TargetProfile(request.TargetProvider))
-                && (context.Mutation==null || context.Mutation.ActorId==request.SourceActorId
-                    && context.Mutation.Roots.Count==1 && context.Mutation.Roots[0].Id==request.RootId)));
+                && (context.Stage == HolonReplicaInitializationAuthorizationStage.ReadHeldSource
+                    || context.Stage == HolonReplicaInitializationAuthorizationStage.ApproveInitialization
+                    && context.SourceOperationId == request.SourceOperationId
+                    && context.SourcePayloadDigest == request.SourcePayloadDigest
+                    && context.SourceErrorCode == "COSMIC_REPLICA_LINEAGE_CONFLICT"
+                    && context.Mutation != null && context.Mutation.ActorId == request.SourceActorId
+                    && context.Mutation.Roots.Count == 1 && context.Mutation.Roots[0].Id == request.RootId)));
     }
 }
