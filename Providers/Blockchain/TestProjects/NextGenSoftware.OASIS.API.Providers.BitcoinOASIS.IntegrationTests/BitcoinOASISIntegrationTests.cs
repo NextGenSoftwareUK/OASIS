@@ -579,6 +579,34 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
                 var retainedAvatar = await recovered.LoadAvatarAsync(avatarRecord.Id);
                 Assert.IsFalse(retainedAvatar.IsError, retainedAvatar.Message);
                 Assert.AreEqual(avatarTx, retainedAvatar.Result.ProviderUniqueStorageKey[ProviderType.BitcoinOASIS]);
+
+                var hardDelete = await recovered.DeleteAvatarAsync(avatarRecord.Id, softDelete: false);
+                Assert.IsTrue(hardDelete.IsError);
+                Assert.IsFalse(hardDelete.MetaData.ContainsKey("BitcoinTransactionId"));
+                var deleted = await recovered.DeleteAvatarByEmailAsync(avatarRecord.Email);
+                Assert.IsFalse(deleted.IsError, deleted.Message);
+                Assert.IsTrue(deleted.Result);
+                var deletionTx = deleted.MetaData["BitcoinTransactionId"];
+                await BitcoinCliAsync("getmempoolentry", deletionTx);
+
+                using var deletionBlocks = System.Text.Json.JsonDocument.Parse(
+                    await BitcoinCliAsync("generatetoaddress", "1", source));
+                var deletionBlock = deletionBlocks.RootElement[0].GetString();
+                for (var attempt = 0; attempt < 60; attempt++)
+                {
+                    if ((await http.GetStringAsync("blocks/tip/hash")).Trim() == deletionBlock)
+                        break;
+                    await Task.Delay(500);
+                }
+                Assert.AreEqual(deletionBlock, (await http.GetStringAsync("blocks/tip/hash")).Trim());
+                var deletedLookup = await walletReader.LoadAvatarByUsernameAsync(avatarRecord.Username);
+                Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound, deletedLookup.ErrorCode);
+                var deletedList = await walletReader.LoadAllAvatarsAsync();
+                Assert.IsFalse(deletedList.IsError, deletedList.Message);
+                Assert.AreEqual(0, deletedList.Result.Count());
+                var historical = await walletReader.LoadAvatarAsync(avatarRecord.Id, version: 2);
+                Assert.IsFalse(historical.IsError, historical.Message);
+                Assert.AreEqual(avatarTx, historical.Result.ProviderUniqueStorageKey[ProviderType.BitcoinOASIS]);
             }
             finally
             {
