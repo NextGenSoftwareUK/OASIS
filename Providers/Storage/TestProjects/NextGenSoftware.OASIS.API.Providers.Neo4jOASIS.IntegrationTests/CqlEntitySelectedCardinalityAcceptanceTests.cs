@@ -49,7 +49,21 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Assert.AreEqual<double?>((double)exactLong, longValues.Average());
         Assert.AreEqual<long?>(0L, longValues.Take(0).Sum());
         Assert.IsNull(longValues.Take(0).Average());
-        Passed("native integer, nullable Int64 and exact decimal reductions preserve entity windows");
+
+        var floatingRoot = root.Where(row => row.Id == rootId).OrderBy(row => row.Name).Take(1).Reverse();
+        var singles = floatingRoot.Select(row => CosmicQueryMetadata.Value<float?>(row, "float"));
+        const float expectedSingle = 1f + 1.1920929e-7f;
+        Assert.AreEqual<float?>(expectedSingle, singles.Sum());
+        Assert.AreEqual<float?>(expectedSingle, singles.Average());
+        Assert.AreEqual<float?>(0f, singles.Take(0).Sum());
+        Assert.IsNull(singles.Take(0).Average());
+
+        var doubles = floatingRoot.Select(row => CosmicQueryMetadata.Value<double>(row, "double"));
+        const double expectedDouble = 1d + 2.220446049250313e-16d;
+        Assert.AreEqual(expectedDouble, doubles.Sum());
+        Assert.AreEqual(expectedDouble, doubles.Average());
+        Assert.AreEqual(0d, doubles.Take(0).Sum());
+        Passed("native integer, decimal and floating-point reductions preserve entity windows");
 
         var nullable = root.OrderBy(row => row.Name).Take(3).Reverse().Take(0)
             .Select(row => CosmicQueryMetadata.Value<int?>(row, "nullableInt"));
