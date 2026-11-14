@@ -207,9 +207,9 @@ public sealed class OracleSqliteHyperDriveTests
 
             var actor = Guid.NewGuid();
             var grant = new HolonReplicationActorGrant(new[] { actor }, DateTime.UtcNow.AddMinutes(10));
-            var route = new HolonReplicationRouteBinding(sqliteIdentity.Result, oracleIdentity, grant.BindingIdentity);
-            var enrollment = new HolonReplicationEnrollment(route.SourceId, new[] { route.TargetId },
-                sqliteIdentity.Result, new[] { route });
+            var deliveryRoute = new HolonReplicationRouteBinding(sqliteIdentity.Result, oracleIdentity, grant.BindingIdentity);
+            var enrollment = new HolonReplicationEnrollment(deliveryRoute.SourceId, new[] { deliveryRoute.TargetId },
+                sqliteIdentity.Result, new[] { deliveryRoute });
             var routedRecord = new Holon { Id = Guid.NewGuid(), Name = "Owned SQLite-to-Oracle delivery", IsActive = true };
             attempted.Add(routedRecord.Id);
             var routedWrite = new ConditionalHolonWrite(Guid.NewGuid(), actor, ProviderType.SQLLiteDBOASIS,
@@ -220,17 +220,17 @@ public sealed class OracleSqliteHyperDriveTests
             Assert.IsTrue(!routedSave.IsError && routedSave.IsSaved, routedSave.Message);
             var outbox = sqlite.GetBoundHolonReplicationOutbox(sqliteIdentity.Result);
             Assert.IsFalse(outbox.IsError, outbox.Message);
-            var target = new CommittedHolonReplicaTarget(route.TargetId, oracle, oracleIdentity.Authority,
-                route.SourceId, route.SourceStorage.Authority, grant, "oracle-fixture", Guid.NewGuid(), grant.BindingIdentity, oracleIdentity);
+            var target = new CommittedHolonReplicaTarget(deliveryRoute.TargetId, oracle, oracleIdentity.Authority,
+                deliveryRoute.SourceId, deliveryRoute.SourceStorage.Authority, grant, "oracle-fixture", Guid.NewGuid(), grant.BindingIdentity, oracleIdentity);
             var dispatcher = new HolonOutboxDispatcher(outbox.Result, new[] { target }, "oracle-fixture");
-            var delivery = await dispatcher.DispatchOnceAsync(route.TargetId, maximumCount: 1);
+            var delivery = await dispatcher.DispatchOnceAsync(deliveryRoute.TargetId, maximumCount: 1);
             Assert.IsFalse(delivery.IsError, delivery.Message);
             Assert.AreEqual(1, delivery.Result.CompletedCount);
             var loadedReplica = await oracle.LoadHolonAsync(routedRecord.Id, loadChildren: false);
             Assert.IsFalse(loadedReplica.IsError, loadedReplica.Message);
             Assert.AreEqual(routedSave.Result.Single().VersionId, loadedReplica.Result?.VersionId);
             var restarted = new HolonOutboxDispatcher(outbox.Result, new[] { target }, "oracle-fixture-restarted");
-            var duplicateDelivery = await restarted.DispatchOnceAsync(route.TargetId, maximumCount: 1);
+            var duplicateDelivery = await restarted.DispatchOnceAsync(deliveryRoute.TargetId, maximumCount: 1);
             Assert.IsFalse(duplicateDelivery.IsError, duplicateDelivery.Message);
             Assert.AreEqual(0, duplicateDelivery.Result.CompletedCount);
 
