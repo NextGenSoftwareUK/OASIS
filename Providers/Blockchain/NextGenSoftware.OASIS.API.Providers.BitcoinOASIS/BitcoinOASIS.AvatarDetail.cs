@@ -479,6 +479,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                 var json = NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.Serialize(snapshot.Proposal);
                 var commitment = await store.PutAsync(HolonRecordScope, json);
                 snapshot.ValidateUnchanged();
+                await store.PinAsync(commitment);
                 var publication = await SendSignedTransactionAsync(source, null, 0m, commitment, null, commitmentOnly: true);
                 if (publication.IsError)
                 {
