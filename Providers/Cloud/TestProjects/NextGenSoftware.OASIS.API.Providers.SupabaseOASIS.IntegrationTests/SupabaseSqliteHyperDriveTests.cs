@@ -204,6 +204,25 @@ public sealed class SupabaseSqliteHyperDriveTests
                 reverseRoute.SourceId, binding.Result.Authority, grant, "sqlite-fixture", Guid.NewGuid(),
                 grant.BindingIdentity, sourceIdentity.Result);
             var reverseDispatcher = new HolonOutboxDispatcher(sourceOutbox.Result, new[] { sqliteTarget }, "supabase-source");
+            var originalClaim = await sourceOutbox.Result.ClaimNextAsync(reverseRoute.TargetId,
+                "supabase-original-worker", TimeSpan.FromSeconds(3));
+            Assert.IsFalse(originalClaim.IsError, originalClaim.Message);
+            Assert.IsNotNull(originalClaim.Result);
+            var renewedClaim = await sourceOutbox.Result.RenewAsync(originalClaim.Result, TimeSpan.FromSeconds(3));
+            Assert.IsTrue(!renewedClaim.IsError && renewedClaim.Result, renewedClaim.Message);
+            var heldClaim = await sourceOutbox.Result.PeekNextAsync(reverseRoute.TargetId);
+            Assert.IsFalse(heldClaim.IsError, heldClaim.Message);
+            Assert.AreEqual(HolonDeliveryState.InFlight, heldClaim.Result.State);
+            var competingClaim = await sourceOutbox.Result.ClaimNextAsync(reverseRoute.TargetId,
+                "supabase-competing-worker", TimeSpan.FromSeconds(3));
+            Assert.IsFalse(competingClaim.IsError, competingClaim.Message);
+            Assert.IsNull(competingClaim.Result);
+
+            // Wait past the renewed lease using elapsed time independent of the runner's wall clock.
+            await Task.Delay(TimeSpan.FromMilliseconds(3100));
+            var expiredFinish = await sourceOutbox.Result.FinishAsync(originalClaim.Result, HolonDeliveryOutcome.Completed);
+            Assert.IsFalse(expiredFinish.IsError, expiredFinish.Message);
+            Assert.IsFalse(expiredFinish.Result);
             var reverseDelivery = await reverseDispatcher.DispatchOnceAsync(reverseRoute.TargetId, maximumCount: 2);
             Assert.IsFalse(reverseDelivery.IsError, $"{reverseDelivery.Message} {reverseDelivery.Exception}");
             Assert.AreEqual(1, reverseDelivery.Result.CompletedCount);
@@ -213,6 +232,10 @@ public sealed class SupabaseSqliteHyperDriveTests
             var finished = await sourceOutbox.Result.InspectAsync(head.Sequence);
             Assert.IsFalse(finished.IsError, finished.Message);
             Assert.AreEqual(HolonDeliveryState.Completed, finished.Result.State);
+            Assert.AreEqual(2, finished.Result.AttemptCount);
+            var expiredRenewal = await sourceOutbox.Result.RenewAsync(originalClaim.Result, TimeSpan.FromSeconds(3));
+            Assert.IsFalse(expiredRenewal.IsError, expiredRenewal.Message);
+            Assert.IsFalse(expiredRenewal.Result);
 
             var reopened = new SupabaseOASIS(endpoint, key!, client, "");
             try
