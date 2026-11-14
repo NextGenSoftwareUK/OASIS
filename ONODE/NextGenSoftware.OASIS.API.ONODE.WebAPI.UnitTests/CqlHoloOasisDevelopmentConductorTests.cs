@@ -41,6 +41,8 @@ public sealed class CqlHoloOasisDevelopmentConductorTests
             "INFO Conductor startup: app interfaces started.\nINFO Conductor startup: admin interface(s) added."));
         Assert.Equal("cell creation started", HoloOasisDevelopmentConductor.DescribeNativeStartup(
             "Conductor startup: app interfaces started.\nCreating a cell cell_id=private"));
+        Assert.Equal("network join started", HoloOasisDevelopmentConductor.DescribeNativeStartup(
+            "Creating a cell cell_id=private\nINFO network join task{i=0}: enter"));
         Assert.Equal("apps enabled",
             HoloOasisDevelopmentConductor.DescribeNativeStartup("INFO Conductor startup: apps enabled."));
     }

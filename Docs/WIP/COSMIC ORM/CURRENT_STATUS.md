@@ -1,5 +1,7 @@
 # COSMIC ORM / CQL current status
 
+14 November, Cancun. HoloNET 3a319b2a4fa8 enables timed spans for the managed Linux teaching conductor only. Parent 21dd0a39ba63 reports an allowlisted network-join stage and is running Linux CI 43637661644. HoloOASIS remains unavailable. Field projection CI 43636085718 failed before the new assertions because the feature parent lacked the three native provider interfaces. Requalified candidate 8b0bcbeb15ab uses current Development provider code and runs in CI 43637315553.
+
 14 November, Cancun. Development 74ff7058e24e served on Railway 4d178409-de45-4982-ad2a-a48f3ef2cf30. Native HoloOASIS activation timed out at 62,262 ms at cell creation started. The admin endpoint returned 240 ListCellIds responses, with zero running cells in the last reply, and responded to app interface inventory with 135. This rules out an unresponsive admin endpoint and identifies the outstanding path as native cell startup before running-cell registration. The underlying local initialization or network join cause remains open. Authenticated query verification awaits recovery of the test visitor session.
 
 14 November, Cancun. Core f6706f056ca9 and parent 50488cf83dc9 add public field assignments to detached CQL projections. Native CI 43636085718 must verify the exact Int64 field result on MongoDB, SQLite and Neo4j. The Q11 and M17 parity rows remain open. Railway is building Development 74ff7058e24e. No local build, dependency install or fixture outputs.
