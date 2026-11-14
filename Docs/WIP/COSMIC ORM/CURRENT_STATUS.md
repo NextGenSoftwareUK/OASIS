@@ -6,7 +6,7 @@
 
 ## Native LINQ query comprehension
 
-Candidate `4b1f8f0eb28e` adds a C# query-comprehension case to the existing MongoDB, SQLite and Neo4j native suite. It exercises a bound filter, two order keys and an anonymous projection through the shipping query path. Exact native CI is pending. This test-only candidate is separate from the already qualified Development rollout. No local builds or databases were created.
+Candidate `4b1f8f0eb28e` adds a C# query-comprehension case to the existing MongoDB, SQLite and Neo4j native suite. It exercises a bound filter, two order keys and an anonymous projection through the shipping query path. The [native three-store step](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43532380441/job/132253005870) passed, including the query-comprehension case. Full protocol publishing is still in progress. Q02 records the verified operators and stays open for broader query-provider coverage. This test-only candidate is separate from the already qualified Development rollout. No local builds or databases were created.
 
 ## Verified compound grouping example
 
