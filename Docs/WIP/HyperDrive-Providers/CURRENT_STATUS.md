@@ -1658,3 +1658,5 @@ Holo Desktop diagnostic run 43155153231 found that the conductor tool path was d
 13 November Cancun time. SQL Server now captures a persisted native database identity through Microsoft.Data.SqlClient, serializing first enrollment with a database transaction lock. The existing SQL Server 2022 fixture checks concurrent enrollment and reopening. Qualification is pending. The bound receiver and outbox remain open.
 
 13 November Cancun time. Extended the SQL Server native enrollment check to a second database on the same owned SQL Server instance. Reopening the first store must preserve its fingerprint, and the peer must produce a different one. Native verification remains pending.
+
+13 November Cancun time. The first SQL Server identity run stopped at the reviewed overlay because the prior provider-key regression had since reached Development. Updated the guard to the published Development preimage. Native identity verification remains open.

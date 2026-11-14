@@ -52,7 +52,7 @@ jobs:
       - name: Apply the reviewed priority SQL routing scope
         shell: bash
         run: |
-          base=59bc51b9ba7cad3ec933300d38ea94b9f7359d32
+          base=4db1dedd1a92ea68c59d0c763f3b437dbf17bd65
           git -C ../provider-source fetch --no-tags --depth=1 origin "$base"
           tests='OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests'
           for path in "$tests/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests.csproj" "$tests/SqlServerSqliteHyperDriveTests.cs" 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLServerDBOASIS/SQLServerStorageIdentity.cs'; do
