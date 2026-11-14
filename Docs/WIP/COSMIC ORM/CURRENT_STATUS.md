@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Projected description sorting passed on live WEB4
+
+Web4Site c681dbd projected Description AS Detail and sorted it ascending and descending through the bounded composition route. On Development 3f641d337fb5, MongoDB, SQLite and Neo4j returned the expected private fixture IDs and description values in both directions. All six fixtures were hard-deleted and verified absent by ID. The [exact preview](https://vercel.com/oasis-team/web4-site/8oMTA3pgwgwfKqrPacjGZdQMcV5p) built successfully. Hosted browser and signed-in WEB6 acceptance remain open.
+
 ## HoloOASIS interface-reuse rollout passed live CQL
 
 WEB4 deployment da8ddb70 served 3f641d337fb5 and returned HTTP 200. Authenticated native and federated readiness measured 104/107. Native and MongoDB-federated HoloOASIS presets returned matching three-record and two-record ID sets with HoloOASIS provenance. MongoDB, SQLite and Neo4j accepted selected-alias HTTP requests. The conductor owned 136 distinct loopback TCP listeners at cutover, versus 135 previously. A subsequent restart must confirm reuse holds; legacy cleanup and intermittent startup reliability remain open. Existing WEB4 browser origin returned credentialed HTTP 204 preflight; the Development preview origin returned wildcard without credentials.
