@@ -340,7 +340,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
                 var rejected = await reopened.LoadHolonAsync(storageTx, loadChildren: false, version: 3);
                 Assert.IsTrue(rejected.IsError);
                 Assert.IsNull(rejected.Result);
-                Assert.IsInstanceOfType(rejected.Exception, typeof(System.Security.Cryptography.CryptographyException));
+                Assert.IsInstanceOfType(rejected.Exception, typeof(System.Security.Cryptography.CryptographicException));
             }
             finally
             {
