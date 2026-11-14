@@ -111,6 +111,24 @@ public sealed class OracleSqliteHyperDriveTests
             await VerifyFailoverAsync(dna, candidates, selected, sync, unavailableSqlite, oracle);
             Assert.IsFalse(File.Exists(unavailablePath));
 
+            var bindings = await Task.WhenAll(oracle.CaptureStorageIdentityAsync(), oracle.CaptureStorageIdentityAsync());
+            foreach (var binding in bindings)
+                Assert.IsFalse(binding.IsError, binding.Message);
+            Assert.AreEqual(bindings[0].Result.BindingFingerprint, bindings[1].Result.BindingFingerprint);
+            var reopened = new OracleProvider(connection.ConnectionString);
+            try
+            {
+                var activation = await reopened.ActivateProviderAsync();
+                Assert.IsFalse(activation.IsError, activation.Message);
+                var binding = await reopened.CaptureStorageIdentityAsync();
+                Assert.IsFalse(binding.IsError, binding.Message);
+                Assert.AreEqual(bindings[0].Result.BindingFingerprint, binding.Result.BindingFingerprint);
+            }
+            finally
+            {
+                await reopened.DeActivateProviderAsync();
+            }
+
             var replicaOnly = new Holon { Id = Guid.NewGuid(), Name = "SQLite-only replica", CreatedByAvatarId = Guid.NewGuid() };
             var replicaSave = await sqlite.SaveHolonAsync(replicaOnly, saveChildren: false);
             Assert.IsTrue(!replicaSave.IsError && replicaSave.IsSaved, replicaSave.Message);
