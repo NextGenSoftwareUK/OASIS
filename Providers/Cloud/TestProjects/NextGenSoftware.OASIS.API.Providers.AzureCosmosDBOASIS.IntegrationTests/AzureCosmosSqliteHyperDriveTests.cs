@@ -3,6 +3,15 @@ using System.Net.Sockets;
 using Microsoft.Azure.Cosmos;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.Providers.TestSupport;
+using NextGenSoftware.OASIS.API.Core;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive;
+using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.Utilities;
 using SqliteProvider = NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.SQLLiteDBOASIS;
 
 namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.IntegrationTests;
@@ -59,6 +68,7 @@ public sealed class AzureCosmosSqliteHyperDriveTests
 
             await NativePriorityRouting.VerifyAsync(cosmos, sqlite, unavailableCosmos, unavailableSqlite, sync);
             Assert.IsFalse(File.Exists(missingPath));
+            await VerifyHealthyMissAsync(cosmos, sqlite, sync);
         }
         finally
         {
@@ -80,6 +90,37 @@ public sealed class AzureCosmosSqliteHyperDriveTests
                 await AssertDatabaseAbsentAsync(database);
             }
         }
+    }
+
+    private static async Task VerifyHealthyMissAsync(AzureCosmosDBOASIS cosmos, SqliteProvider sqlite, bool sync)
+    {
+        var id = Guid.NewGuid();
+        var saved = await sqlite.SaveHolonAsync(new Holon { Id = id, Name = "Owned stale SQLite replica" }, saveChildren: false);
+        Assert.IsFalse(saved.IsError, saved.Message);
+        Assert.AreEqual(id, (await sqlite.LoadHolonAsync(id, loadChildren: false)).Result?.Id);
+
+        var dna = new OASISDNA { OASIS = new NextGenSoftware.OASIS.API.DNA.OASIS
+            { HyperDriveMode = HyperDriveModes.V2, StorageProviders = new StorageProviderSettings() } };
+        dna.OASIS.SubscriptionConfig.PlanType = "Gold";
+        var manager = new ProviderManager(null, dna) { IsAutoFailOverEnabled = true };
+        manager.RegisterProvider(cosmos);
+        manager.RegisterProvider(sqlite);
+        var source = cosmos.ProviderType.Value;
+        var target = sqlite.ProviderType.Value;
+        Assert.IsFalse(manager.SetAndReplaceAutoFailOverListForProviders(new[]
+        {
+            new EnumValue<ProviderType>(source), new EnumValue<ProviderType>(target)
+        }).IsError);
+
+        var router = new OASISHyperDrive(manager);
+        var request = new StorageOperationRequest
+        {
+            Operation = "LoadHolon", HolonId = id, PreferredProvider = source, LoadChildren = false
+        };
+        var result = sync ? router.RouteRequest<IHolon>(request) : await router.RouteRequestAsync<IHolon>(request);
+        Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, result.ErrorCode, result.Message);
+        Assert.IsNull(result.Result);
+        Assert.AreEqual(0L, manager.PerformanceMonitor.GetMetrics(target)?.TotalRequests ?? 0);
     }
 
     private static async Task AssertDatabaseAbsentAsync(Database database)
