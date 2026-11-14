@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
 using NBitcoin;
@@ -9,8 +11,50 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS;
 
 public partial class BitcoinOASIS
 {
+    private static string GetPublicationPinPrefix(Network network, string address) =>
+        $"oasis-bitcoin-v1:{network.GetGenesis().GetHash()}:{address}:";
+
     private static string GetPublicationPinName(Network network, string address, uint256 transactionId) =>
-        $"oasis-bitcoin-v1:{network.GetGenesis().GetHash()}:{address}:{transactionId}";
+        GetPublicationPinPrefix(network, address) + transactionId;
+
+    /// <summary>Lists transaction IDs recorded by the configured wallet before broadcast.</summary>
+    public async Task<OASISResult<IReadOnlyList<string>>> ListRecordPublicationsAsync()
+    {
+        var result = new OASISResult<IReadOnlyList<string>>();
+        try
+        {
+            var network = SigningNetwork;
+            var signer = new BitcoinSecret(_privateKey, network);
+            var prefix = GetPublicationPinPrefix(network, signer.GetAddress(ScriptPubKeyType.Segwit).ToString());
+            using var kubo = CreateRecordBlobClient();
+            using var pins = await ReadPublicationPinsAsync(kubo, prefix);
+            var identifiers = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var pin in pins.RootElement.GetProperty("Keys").EnumerateObject())
+            {
+                var name = pin.Value.GetProperty("Name").GetString();
+                if (!name.StartsWith(prefix, StringComparison.Ordinal))
+                    continue;
+                if (!uint256.TryParse(name[prefix.Length..], out var transactionId) ||
+                    !identifiers.Add(transactionId.ToString()))
+                    throw new InvalidOperationException("The Bitcoin publication pin has an invalid or duplicate transaction ID.");
+            }
+
+            result.Result = identifiers.OrderBy(id => id, StringComparer.Ordinal).ToArray();
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Bitcoin publication listing failed ({ex.GetType().Name}).");
+        }
+
+        return result;
+    }
+
+    private static async Task<JsonDocument> ReadPublicationPinsAsync(HttpClient kubo, string name)
+    {
+        using var response = await kubo.PostAsync($"api/v0/pin/ls?type=recursive&name={Uri.EscapeDataString(name)}", null);
+        response.EnsureSuccessStatusCode();
+        return JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+    }
 
     /// <summary>Checks a recorded publication against the configured Kubo and Bitcoin backends.</summary>
     public async Task<OASISResult<bool>> ReconcileRecordPublicationAsync(string providerKey)
@@ -26,9 +70,7 @@ public partial class BitcoinOASIS
             var source = signer.GetAddress(ScriptPubKeyType.Segwit).ToString();
             var name = GetPublicationPinName(network, source, transactionId);
             using var kubo = CreateRecordBlobClient();
-            using var response = await kubo.PostAsync($"api/v0/pin/ls?type=recursive&name={Uri.EscapeDataString(name)}", null);
-            response.EnsureSuccessStatusCode();
-            using var pins = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+            using var pins = await ReadPublicationPinsAsync(kubo, name);
             var cid = pins.RootElement.GetProperty("Keys").EnumerateObject()
                 .Where(pin => pin.Value.GetProperty("Name").GetString() == name)
                 .Select(pin => pin.Name).SingleOrDefault();

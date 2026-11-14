@@ -515,6 +515,9 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
                 Assert.AreEqual(recoveredBlock, (await http.GetStringAsync("blocks/tip/hash")).Trim());
 
                 using var recovered = new BitcoinOASIS(api, "regtest", sourceKey.GetWif(network).ToString());
+                var inventory = await recovered.ListRecordPublicationsAsync();
+                Assert.IsFalse(inventory.IsError, inventory.Message);
+                CollectionAssert.AreEquivalent(new[] { storageTx, avatarTx, detailTx, acceptedId }, inventory.Result.ToArray());
                 var reconciliation = await recovered.ReconcileRecordPublicationAsync(acceptedId);
                 Assert.IsFalse(reconciliation.IsError, reconciliation.Message);
                 Assert.IsTrue(reconciliation.Result);
