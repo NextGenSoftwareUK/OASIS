@@ -1,5 +1,11 @@
 # COSMIC ORM / CQL current status
 
+## Combined cell diagnostic and positional projection published
+
+14 November, Cancun. Development advanced from d764ebb72bb8 to ccd355899d3a after [Linux](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43627434492), [protocol and native projections](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43627482011), and [WEB4 image](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43627479909) passed. The exact teaching image digest is sha256:a1d8e72b9ba3145fc7a02df205c8f4e8eb0d1e5c62d42b6fb5b0432212738e38. Railway queued 01864008-a6fb-4175-a050-4bd9b5581e07. The preceding revision served 105/107 sources and recorded the HoloOASIS timeout after app interface restoration at 62,526 ms. Verify the new serving revision, WEB4 health and the last conductor milestone if activation times out. The native startup stall remains open.
+
+The separate constructor-plus-initializer candidate 712f05c9703e remains in [native CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43628972019) and is outside this rollout. No local build, fixture or download was added.
+
 ## Combined Development candidate in qualification
 
 14 November, Cancun. Candidate a86e324cb739 combines cell-creation diagnostics and positional-record projection on Development 9a2e2339279c. The separate projection run 43624999099 passed 47 assertions per store and the full protocol suite. The diagnostic's separate Linux and protocol runs also passed. The combined source passed the seven-service dependency manifest and gitlink validation. [Combined Linux CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43626450644), [combined native and protocol CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43626473340), and [exact WEB4 image](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43626471165) must finish before a shared Development publication. The existing Railway rollout remains active. No local build or fixture was created.
