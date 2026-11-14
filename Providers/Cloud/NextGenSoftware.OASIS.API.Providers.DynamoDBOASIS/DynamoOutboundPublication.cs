@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Amazon.DynamoDBv2.Model;
@@ -18,16 +19,10 @@ public partial class DynamoDBOASIS
     private async Task StageDynamoDeliveriesAsync(ConditionalHolonPlan plan, IEnumerable<IHolon> acknowledged,
         List<TransactWriteItem> actions, List<long> sizes, CancellationToken cancellationToken)
     {
-        var response = await _client.GetItemAsync(new GetItemRequest
-        {
-            TableName = ConditionalReceiptTable,
-            Key = ReceiptTableGet(OutboundSequenceKey).Key,
-            ConsistentRead = true
-        }, cancellationToken);
-        RequireItemRead(response);
-
-        var hasCounter = response.Item.Count != 0;
-        var previous = hasCounter && response.Item.TryGetValue("sequence", out var stored) ? stored.N : null;
+        var enrollment = plan.ReplicationEnrollment;
+        var observed = await ReadBoundOutboundItemAsync(OutboundSequenceKey, enrollment.SourceStorageIdentity, cancellationToken);
+        var hasCounter = observed?.Count > 0;
+        var previous = hasCounter && observed.TryGetValue("sequence", out var stored) ? stored.N : null;
         long sequence = 0;
         if (hasCounter && (!long.TryParse(previous, NumberStyles.None, CultureInfo.InvariantCulture, out sequence) || sequence <= 0))
             throw new InvalidDataException("The DynamoDB outbox sequence is invalid.");
@@ -73,6 +68,30 @@ public partial class DynamoDBOASIS
                 ExpressionAttributeValues = new() { [":previous"] = new() { N = previous } }
             }
         });
+    }
+
+    private async Task<Dictionary<string, AttributeValue>> ReadBoundOutboundItemAsync(
+        string key, CosmicStorageIdentity expected, CancellationToken cancellationToken)
+    {
+        var fingerprint = await ReadStorageEndpointFingerprintAsync(cancellationToken);
+        if (expected.Authority != StorageProviderType || fingerprint != expected.EndpointFingerprint)
+            throw new DynamoSourceBindingException();
+
+        var response = await _client.TransactGetItemsAsync(new TransactGetItemsRequest
+        {
+            TransactItems = new()
+            {
+                new() { Get = ReceiptTableGet(StorageIdentityKey) },
+                new() { Get = ReceiptTableGet(key) }
+            }
+        }, cancellationToken);
+        if (response.HttpStatusCode != HttpStatusCode.OK || response.Responses?.Count != 2)
+            throw new InvalidDataException("DynamoDB returned an incomplete bound outbox snapshot.");
+
+        var identity = response.Responses[0].Item;
+        if (identity == null || !identity.TryGetValue("store_id", out var nativeStore) || nativeStore.S != expected.StoreId)
+            throw new DynamoSourceBindingException();
+        return response.Responses[1].Item;
     }
 
     private sealed class DynamoSourceBindingException : Exception

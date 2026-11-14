@@ -1798,3 +1798,5 @@ Supabase now reads replica receipt evidence through a service-role PostgREST RPC
 14 November Cancun time. Added native DynamoDB source hard-delete coverage. It checks that the native graph is absent after commit, the persisted tombstone follows the save obligation in sequence order, and its predecessor and acknowledged revision match the exact write. CI qualification remains open. No local artifacts were created.
 
 14 November Cancun time. [Native DynamoDB hard-delete publication](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43575578699/job/132388951836) passed four tests with zero skips at d01857c36db9. DynamoDB no longer held the current source record, and the ordered tombstone carried the exact committed revision and predecessor. Dispatcher claims and SQLite delivery remain open.
+
+14 November Cancun time. The DynamoDB outbound counter and source receipt now share a native item read that verifies the enrolled store in the same transaction. CI qualification is pending. Ordered worker discovery and fenced lease operations remain open. No local artifacts created.

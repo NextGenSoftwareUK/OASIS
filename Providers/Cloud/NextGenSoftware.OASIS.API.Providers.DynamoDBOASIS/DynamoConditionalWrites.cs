@@ -198,24 +198,7 @@ public partial class DynamoDBOASIS : IConditionalHolonStorageProvider, IBoundAto
         }
         else
         {
-            var fingerprint = await ReadStorageEndpointFingerprintAsync(token);
-            var response = await _client.TransactGetItemsAsync(new TransactGetItemsRequest
-            {
-                TransactItems = new()
-                {
-                    new() { Get = ReceiptTableGet(StorageIdentityKey) },
-                    new() { Get = ReceiptTableGet(key) }
-                }
-            }, token);
-            if (response.HttpStatusCode != HttpStatusCode.OK || response.Responses?.Count != 2)
-                throw new InvalidDataException("DynamoDB returned an incomplete source receipt snapshot.");
-            var identity = response.Responses[0].Item;
-            var expected = plan.ReplicationEnrollment.SourceStorageIdentity;
-            if (identity == null || !identity.TryGetValue("store_id", out var nativeStore)
-                || fingerprint != expected.EndpointFingerprint || nativeStore.S != expected.StoreId
-                || expected.Authority != StorageProviderType)
-                throw new DynamoSourceBindingException();
-            item = response.Responses[1].Item;
+            item = await ReadBoundOutboundItemAsync(key, plan.ReplicationEnrollment.SourceStorageIdentity, token);
         }
         if (item == null || item.Count == 0) return null;
         if(!item.TryGetValue("id",out var id)||id.S!=key
