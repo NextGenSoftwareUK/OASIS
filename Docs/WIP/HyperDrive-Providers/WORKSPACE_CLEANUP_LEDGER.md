@@ -1012,3 +1012,5 @@ Urgent disk cleanup follow-up: leased standard project clean succeeded for AWS u
 13 November. Oracle receipt jobs 132279370813 and 132279771972 were superseded by run 43541966734. GitHub confirmed both cancellations without runner assignment. Neither job created a database, fixture or build output.
 
 13 November. The temporary staging index for Oracle candidate c658755dc19c was removed. No local database, build or test output was created.
+
+13 November. Cancelled superseded Oracle runs 43541966734, 43542492696 and 43542656574 while queued. The staging index for candidate 69222f6cba3d was removed. No local build or fixture ran.
