@@ -2115,3 +2115,5 @@ Supabase now reads replica receipt evidence through a service-role PostgREST RPC
 14 November Cancun time. Bitcoin avatar reads now only skip malformed JSON for unrelated public data outputs. A malformed Kubo response while resolving a recognized encrypted avatar commitment remains a provider error and cannot be classified as authoritative absence. CI pending. No local build or fixture.
 
 14 November Cancun time. The Bitcoin native fixture now independently checks Kubo pin inventory and ciphertext envelopes after holon and avatar publication. It requires two recursive record pins and verifies the stored bytes use the encrypted format without the fixture private fields. Native verification pending. No local build or fixture.
+
+14 November Cancun time. Native job 43642033994 found three recursive Kubo pins after two saves. The test now snapshots the initial inventory and checks exactly two new encrypted pins, preserving fixture baseline pins. Both disposable images were removed. Corrected CI pending.

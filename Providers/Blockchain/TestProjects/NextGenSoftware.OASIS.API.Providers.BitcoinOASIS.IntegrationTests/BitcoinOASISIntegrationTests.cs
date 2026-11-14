@@ -306,6 +306,11 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
             }
             Assert.AreEqual(storageTip, (await http.GetStringAsync("blocks/tip/height")).Trim());
 
+            var kuboApi = Environment.GetEnvironmentVariable("OASIS_BITCOIN_KUBO_API");
+            Assert.IsTrue(Uri.TryCreate(kuboApi, UriKind.Absolute, out var kuboUri) && kuboUri.IsLoopback);
+            using var kubo = new System.Net.Http.HttpClient { BaseAddress = new Uri(kuboApi.TrimEnd('/') + "/") };
+            var initialPins = await ReadKuboPinsAsync();
+
             var privateHolon = new Holon
             {
                 Id = Guid.NewGuid(),
@@ -386,17 +391,11 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
             Assert.AreEqual(avatarRecord.Username, loadedAvatar.Result.Username);
             Assert.AreEqual(avatarTx, loadedAvatar.Result.ProviderUniqueStorageKey[ProviderType.BitcoinOASIS]);
 
-            var kuboApi = Environment.GetEnvironmentVariable("OASIS_BITCOIN_KUBO_API");
-            Assert.IsTrue(Uri.TryCreate(kuboApi, UriKind.Absolute, out var kuboUri) && kuboUri.IsLoopback);
-            using var kubo = new System.Net.Http.HttpClient { BaseAddress = new Uri(kuboApi.TrimEnd('/') + "/") };
-            using var pinsResponse = await kubo.PostAsync("api/v0/pin/ls?type=recursive", null);
-            pinsResponse.EnsureSuccessStatusCode();
-            using var pins = System.Text.Json.JsonDocument.Parse(await pinsResponse.Content.ReadAsStringAsync());
-            var records = pins.RootElement.GetProperty("Keys").EnumerateObject().ToArray();
+            var records = (await ReadKuboPinsAsync()).Except(initialPins, StringComparer.Ordinal).ToArray();
             Assert.AreEqual(2, records.Length, "The holon and avatar must each retain their encrypted Kubo payload.");
             foreach (var record in records)
             {
-                using var blob = await kubo.PostAsync($"api/v0/cat?arg={Uri.EscapeDataString(record.Name)}", null);
+                using var blob = await kubo.PostAsync($"api/v0/cat?arg={Uri.EscapeDataString(record)}", null);
                 blob.EnsureSuccessStatusCode();
                 var envelope = await blob.Content.ReadAsStringAsync();
                 Assert.IsTrue(envelope.StartsWith("oasis-aes256gcm-gzip-v2:", StringComparison.Ordinal));
@@ -444,6 +443,14 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
             Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound, wrongDetailVersion.ErrorCode);
             var avatarAsDetail = await reopened.LoadAvatarDetailByTransactionIdAsync(avatarTx);
             Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound, avatarAsDetail.ErrorCode);
+
+            async Task<string[]> ReadKuboPinsAsync()
+            {
+                using var response = await kubo.PostAsync("api/v0/pin/ls?type=recursive", null);
+                response.EnsureSuccessStatusCode();
+                using var pins = System.Text.Json.JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+                return pins.RootElement.GetProperty("Keys").EnumerateObject().Select(pin => pin.Name).ToArray();
+            }
 
             async Task<string> BitcoinCliAsync(params string[] arguments)
             {
