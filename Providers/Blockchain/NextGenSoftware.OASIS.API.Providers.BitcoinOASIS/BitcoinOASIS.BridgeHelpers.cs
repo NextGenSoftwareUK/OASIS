@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -193,7 +193,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                 }
 
                 var network = SigningNetwork;
-                using var key = new Key();
+                using var key = new NBitcoin.Key();
                 result.Result = new KeyHelper.KeyPairAndWallet
                 {
                     PrivateKey = key.GetWif(network).ToString(),

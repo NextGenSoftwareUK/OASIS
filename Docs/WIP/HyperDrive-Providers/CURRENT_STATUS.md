@@ -2019,3 +2019,5 @@ Supabase now reads replica receipt evidence through a service-role PostgREST RPC
 14 November Cancun time. Bitcoin wallet key generation now returns actual network-specific addresses and a WIF that the signer accepts. The signer handles the generated wrapped SegWit address with its matching redeem script. The previous shared helper returned mainnet locking-script hex as wallet addresses. CI and funded spend verification remain open. No local setup or funds used.
 
 14 November Cancun time. Added regression assertions that the shipping Bitcoin key generator's returned WIF derives both of its returned addresses through NBitcoin. The verified Esplora activation fixture runs those assertions without funding a wallet. Development 9a2e2339279c was still building in Railway WEB4 deployment 1701e277-2200-455b-9d2b-c4916e389d67 at 13:25. No local artifact or payment.
+
+14 November Cancun time. Bitcoin CI 43626641602 stopped at compilation because Key is shared by OASIS Core and NBitcoin. The wallet generator now references NBitcoin.Key explicitly. The address derivation assertions remain pending. No local build or fixture.
