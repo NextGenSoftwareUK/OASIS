@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. Verified STARNET destination anchors in memory. Restored the portal sparse checkout and removed the temporary release index. No local installations, downloads, browser profiles or test output files were retained.
+
 15 November Cancun time. Restored the existing portal sparse-checkout patterns after editing the Karma modal. Ran Node syntax and UI checks in memory. No local SDK, packages, build outputs or test result files were created.
 
 15 November Cancun time. Native delivery qualification 43770608847 confirmed removal of the disposable MongoDB database, container and volumes. Read hosted logs in memory. The portal polling test ran in memory and left no build products, packages, downloads or test artifacts.
