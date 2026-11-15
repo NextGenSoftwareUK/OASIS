@@ -27,7 +27,7 @@ using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 using NextGenSoftware.OASIS.Common;
-using NostrSource = NextGenSoftware.OASIS.API.Providers.NostrOASIS.NostrPublicEventMetadataSource;
+using NostrSource = NextGenSoftware.OASIS.API.Providers.NostrOASIS.NostrOASIS;
 using MongoSource = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.MongoDBOASIS;
 using IoFile = System.IO.File;
 
@@ -128,7 +128,7 @@ public sealed class CqlNostrMongoNativeTests
                 file.Flush(true);
             }
 
-        using var nostrSource = NostrSource.FromJson(configJson);
+        using var nostrSource = NostrSource.FromPublicQueryConfiguration(configJson);
         Assert.False((await nostrSource.ActivateQuerySourceAsync(default)).IsError);
         var nativeQuery = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(ProviderType.NostrOASIS).Result)
             .WithReadAccess(CosmicQueryReadAccess.OwnerOrPublic(actor).Result)

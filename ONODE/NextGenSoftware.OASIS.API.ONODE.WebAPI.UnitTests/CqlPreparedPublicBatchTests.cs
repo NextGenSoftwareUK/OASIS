@@ -231,7 +231,7 @@ public sealed class CqlPreparedPublicBatchTests
                     ProviderType.WormholeOASIS => Providers.WormholeOASIS.WormholePublicOperationMetadataSource.FromJson(profile.Value.GetRawText()),
                     ProviderType.BlockStackOASIS => Providers.BlockStackOASIS.StacksPublicPrincipalMetadataSource.FromJson(profile.Value.GetRawText()),
                     ProviderType.MatrixOASIS => Providers.MatrixOASIS.MatrixPublicRoomMetadataSource.FromJson(profile.Value.GetRawText()),
-                    ProviderType.NostrOASIS => Providers.NostrOASIS.NostrPublicEventMetadataSource.FromJson(profile.Value.GetRawText()),
+                    ProviderType.NostrOASIS => Providers.NostrOASIS.NostrOASIS.FromPublicQueryConfiguration(profile.Value.GetRawText()),
                     ProviderType.BlueSkyOASIS => Providers.BlueSkyOASIS.BlueSkyPublicProfileMetadataSource.FromJson(profile.Value.GetRawText()),
                     ProviderType.ChainLinkOASIS => Providers.ChainLinkOASIS.ChainLinkPublicFeedMetadataSource.FromJson(profile.Value.GetRawText()),
                     ProviderType.EOSIOOASIS => Providers.EOSIOOASIS.EosioPublicAccountMetadataSource.FromJson(profile.Value.GetRawText()),

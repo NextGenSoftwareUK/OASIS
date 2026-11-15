@@ -36,7 +36,7 @@ namespace NextGenSoftware.OASIS.API.Providers.NostrOASIS
     /// Provide nsecHex (64-char lowercase hex of the 32-byte private key scalar) to enable
     /// PublishNoteAsync. Convert nsec1... bech32 keys with: nak decode &lt;nsec&gt; | jq -r .sec
     /// </summary>
-    public class NostrOASIS : OASISStorageProviderBase, IOASISStorageProvider
+    public partial class NostrOASIS : OASISStorageProviderBase, IOASISStorageProvider
     {
         private readonly string[] _relayUrls;
         private readonly string? _nsecHex;
@@ -112,6 +112,9 @@ namespace NextGenSoftware.OASIS.API.Providers.NostrOASIS
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
         {
+            if (publicEvents != null)
+                return await ActivateQuerySourceAsync(CancellationToken.None);
+
             var result = new OASISResult<bool>();
             try
             {
@@ -145,6 +148,9 @@ namespace NextGenSoftware.OASIS.API.Providers.NostrOASIS
 
         public override async Task<OASISResult<bool>> DeActivateProviderAsync()
         {
+            if (publicEvents != null)
+                IsProviderActivated = false;
+
             return await Task.FromResult(new OASISResult<bool>
             {
                 Result = true,

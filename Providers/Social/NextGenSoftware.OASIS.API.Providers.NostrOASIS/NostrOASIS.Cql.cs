@@ -11,10 +11,7 @@ using System.Text.RegularExpressions;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Objects.NativeData;
 using NextGenSoftware.OASIS.API.Core.Queries;
-using NextGenSoftware.OASIS.API.Core.Serialization;
 using NextGenSoftware.OASIS.Common;
-using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
-using NextGenSoftware.Utilities;
 using PType = NextGenSoftware.OASIS.API.Core.Enums.ProviderType;
 
 namespace NextGenSoftware.OASIS.API.Providers.NostrOASIS;
@@ -23,36 +20,29 @@ namespace NextGenSoftware.OASIS.API.Providers.NostrOASIS;
 /// Verified immutable public kind-1 events selected by captured event IDs.
 /// No login, publication, relay search, real-world identity or completeness claim.
 /// </summary>
-public sealed class NostrPublicEventMetadataSource : KeyValueStorageProviderBase,
-    ICosmicQueryStorageProvider, ICosmicReadOnlyQueryActivation, IDisposable
+public partial class NostrOASIS : ICosmicQueryStorageProvider, ICosmicReadOnlyQueryActivation, IDisposable
 {
     public const string AddressMetadata = "NostrEventId";
-    private readonly EventsBackend events;
+    private readonly PublicEvents? publicEvents;
     private bool disposed;
 
-    public NostrPublicEventMetadataSource(Uri relay, IEnumerable<string> eventIds, Guid sourceOwner)
-        : this(new EventsBackend(relay, eventIds, sourceOwner)) { }
+    private static readonly CosmicQueryCapabilities PublicEventCapabilities =
+        CosmicQueryCapabilities.ForStringMetadataKeyLookup(AddressMetadata, 64, 8);
 
-    internal NostrPublicEventMetadataSource(Uri relay, IEnumerable<string> eventIds, Guid sourceOwner,
-        Func<IReadOnlyList<string>, CancellationToken, Task<IReadOnlyList<string>>> reader)
-        : this(new EventsBackend(relay, eventIds, sourceOwner, reader)) { }
-
-    private NostrPublicEventMetadataSource(EventsBackend backend) : base(backend, backend.Prefix)
+    internal NostrOASIS(Uri relay, IEnumerable<string> eventIds, Guid sourceOwner,
+        Func<IReadOnlyList<string>, CancellationToken, Task<IReadOnlyList<string>>>? reader = null)
+        : this(new[] { relay.AbsoluteUri })
     {
-        events = backend;
-        ProviderName = PType.NostrOASIS.ToString();
-        ProviderDescription = "Verified public Nostr kind-1 event observations";
-        ProviderType = new EnumValue<PType>(PType.NostrOASIS);
-        ProviderCategory = new EnumValue<Core.Enums.ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
-        QueryCapabilities = CosmicQueryCapabilities.ForStringMetadataKeyLookup(AddressMetadata, 64, 8);
+        publicEvents = new PublicEvents(relay, eventIds, sourceOwner, reader);
+        QueryCapabilities = PublicEventCapabilities;
     }
 
     public PType QueryProviderType => PType.NostrOASIS;
-    public CosmicQueryCapabilities QueryCapabilities { get; }
+    public CosmicQueryCapabilities QueryCapabilities { get; } = new(CosmicQueryFeatures.None);
 
     /// <summary>Separate host query-profile configuration, never the existing
     /// signed Nostr storage settings. Reject unknown fields rather than ignore keys.</summary>
-    public static NostrPublicEventMetadataSource FromJson(string json)
+    public static NostrOASIS FromPublicQueryConfiguration(string json)
     {
         if (json == null || Encoding.UTF8.GetByteCount(json) > 8192)
             throw new ArgumentException("Bounded explicit Nostr public source required.");
@@ -67,17 +57,20 @@ public sealed class NostrPublicEventMetadataSource : KeyValueStorageProviderBase
             root.GetProperty("sourceOwner").ValueKind != JsonValueKind.String || root.GetProperty("eventIds").ValueKind != JsonValueKind.Array ||
             root.GetProperty("eventIds").GetArrayLength() is < 1 or > 8)
             throw new ArgumentException("Exact anonymous Nostr source schema required; signer/billing fields forbidden.");
-        return new NostrPublicEventMetadataSource(new Uri(root.GetProperty("relayUrl").GetString()!, UriKind.Absolute),
+        return new NostrOASIS(new Uri(root.GetProperty("relayUrl").GetString()!, UriKind.Absolute),
             root.GetProperty("eventIds").EnumerateArray().Select(value => value.GetString()!),
             root.GetProperty("sourceOwner").GetGuid());
     }
 
     public async Task<OASISResult<bool>> ActivateQuerySourceAsync(CancellationToken cancellationToken)
     {
+        if (publicEvents == null)
+            return new() { IsError = true, ErrorCount = 1, ErrorCode = "CQL_SOURCE_UNAVAILABLE",
+                Message = "Configure the public event catalogue before activating Nostr queries." };
         try
         {
             ObjectDisposedException.ThrowIf(disposed, this);
-            await events.VerifyAsync(cancellationToken);
+            await publicEvents.VerifyAsync(cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
             IsProviderActivated = true;
             return new(true);
@@ -96,6 +89,8 @@ public sealed class NostrPublicEventMetadataSource : KeyValueStorageProviderBase
         try
         {
             ObjectDisposedException.ThrowIf(disposed, this);
+            if (publicEvents == null)
+                return Failure("CQL_SOURCE_UNAVAILABLE", "Configure the public event catalogue before querying Nostr.");
             if (plan == null || plan.Targets.Count != 1 || plan.Targets[0].Provider != QueryProviderType)
                 return Failure("CQL_PLAN_TARGET_UNAVAILABLE", "One explicitly admitted public Nostr source is required.");
             if (maximumResults is < 1 or > 10000) return Failure("CQL_QUERY_LIMIT", "A bounded result budget is required.");
@@ -114,11 +109,11 @@ public sealed class NostrPublicEventMetadataSource : KeyValueStorageProviderBase
                 if (selected.IsError) return Failure(selected.ErrorCode, selected.Message);
                 keys = new[] { selected.Result };
             }
-            if (keys.Any(key => !events.Addresses.Contains(key, StringComparer.Ordinal)))
+            if (keys.Any(key => !publicEvents.Addresses.Contains(key, StringComparer.Ordinal)))
                 return Failure("CQL_INVALID_SOURCE_KEY", "Select event IDs from the configured catalogue.");
             cancellationToken.ThrowIfCancellationRequested();
             if (!IsProviderActivated) return Failure("CQL_PROVIDER_INACTIVE", "Activate the configured public source first.");
-            var native = await events.ReadAsync(keys, cancellationToken);
+            var native = await publicEvents.ReadAsync(keys, cancellationToken);
             var rows = native.Where(row => plan.Query.ReadAccess == null || plan.Query.ReadAccess.CanRead(row))
                 .Skip(plan.Query.Offset).Take(plan.Query.Limit ?? native.Count).ToArray();
             if (rows.Length > maximumResults) return Failure("CQL_QUERY_LIMIT", "The complete source page exceeds the result budget.");
@@ -156,16 +151,14 @@ public sealed class NostrPublicEventMetadataSource : KeyValueStorageProviderBase
 
 
 
-    private sealed class EventsBackend : IKeyValueBackend
+    private sealed class PublicEvents
     {
         private const string SourceName = "nostr-public-events";
         private readonly Guid owner;
         private readonly Func<IReadOnlyList<string>, CancellationToken, Task<IReadOnlyList<string>>> read;
-        private readonly Dictionary<string, string> records;
         public IReadOnlyList<string> Addresses { get; }
-        public string Prefix => "nostr-public-events/";
 
-        public EventsBackend(Uri relay, IEnumerable<string> ids, Guid owner,
+        public PublicEvents(Uri relay, IEnumerable<string> ids, Guid owner,
             Func<IReadOnlyList<string>, CancellationToken, Task<IReadOnlyList<string>>>? reader = null)
         {
             if (relay == null || !relay.IsAbsoluteUri || relay.Scheme != "wss" || relay.AbsolutePath != "/" ||
@@ -179,8 +172,6 @@ public sealed class NostrPublicEventMetadataSource : KeyValueStorageProviderBase
             this.owner = owner;
             read = reader ?? ((keys, token) => NostrPublicRelayRead.ReadAsync(relay, keys, token));
             Addresses = Array.AsReadOnly(keys);
-            records = keys.ToDictionary(key => Prefix + "holon/" +
-                NativeRecordHolonMapper.StableHolonId(owner, PType.NostrOASIS, SourceName, key).ToString("N"), key => key);
         }
 
         public async Task<IReadOnlyList<IHolon>> ReadAsync(IReadOnlyList<string> keys, CancellationToken token)
@@ -220,20 +211,5 @@ public sealed class NostrPublicEventMetadataSource : KeyValueStorageProviderBase
             var rows = await ReadAsync(Addresses, token);
             if (rows.Count != Addresses.Count) throw new InvalidDataException("Configured events missing.");
         }
-        public async Task<string?> GetAsync(string key, CancellationToken token = default)
-        {
-            if (!records.TryGetValue(key, out var id)) return null;
-            var rows = await ReadAsync(new[] { id }, token);
-            return StoredRecordJson.Serialize<IHolon>(rows[0]);
-        }
-        public Task<IReadOnlyList<string>> ListKeysAsync(string prefix, CancellationToken token = default)
-        {
-            token.ThrowIfCancellationRequested();
-            return Task.FromResult<IReadOnlyList<string>>(Array.AsReadOnly(records.Keys.Where(key => key.StartsWith(prefix, StringComparison.Ordinal)).ToArray()));
-        }
-        public Task PutAsync(string key, string value, CancellationToken token = default)
-            => Task.FromException(new NotSupportedException("Public Nostr event source is read-only."));
-        public Task DeleteAsync(string key, CancellationToken token = default)
-            => Task.FromException(new NotSupportedException("Public Nostr event source is read-only."));
     }
 }
