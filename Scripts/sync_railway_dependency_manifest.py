@@ -23,14 +23,14 @@ GITLINKS = {
 }
 
 
-def gitlink_commit(path: str, source: str) -> str:
+def gitlink_commit(path: str, source: str, commit_ref: str | None = None) -> str:
     # HEAD/index modes resolve the parent gitlink and are safe for uninitialized
     # submodules. Working-tree mode is explicit and is only used after a workflow
     # has initialized and advanced every submodule checkout.
     if source == "working-tree":
         command = ["git", "-C", path, "rev-parse", "HEAD"]
     else:
-        tree = "HEAD" if source == "head" else ""
+        tree = commit_ref or ("HEAD" if source == "head" else "")
         command = ["git", "rev-parse", f"{tree}:{path}"]
 
     result = subprocess.run(
@@ -61,15 +61,31 @@ def main() -> int:
         help=("where to resolve gitlinks: committed HEAD, the staged index, or "
               "initialized submodule working trees"),
     )
+    parser.add_argument(
+        "--check-ref",
+        metavar="COMMIT",
+        help="verify the manifest and gitlinks stored in a commit without touching the checkout",
+    )
     args = parser.parse_args()
+    if args.check_ref and not re.fullmatch(r"[0-9a-f]{40}", args.check_ref):
+        parser.error("--check-ref requires a full commit SHA")
+    if args.check_ref and args.source != "head":
+        parser.error("--check-ref cannot be combined with an index or working-tree source")
 
-    original = MANIFEST.read_text(encoding="utf-8")
-    updated = original
     changes: list[str] = []
 
     try:
+        if args.check_ref:
+            entry = f"{args.check_ref}:{MANIFEST.relative_to(ROOT).as_posix()}"
+            result = subprocess.run(["git", "show", entry], cwd=ROOT, encoding="utf-8", capture_output=True)
+            if result.returncode:
+                raise RuntimeError(f"Cannot read the candidate Railway manifest: {result.stderr.strip()}")
+            updated = result.stdout
+        else:
+            updated = MANIFEST.read_text(encoding="utf-8")
+
         for key, path in GITLINKS.items():
-            commit = gitlink_commit(path, args.source)
+            commit = gitlink_commit(path, args.source, args.check_ref)
             pattern = re.compile(rf"(?m)^{re.escape(key)}=([0-9a-f]{{40}})$")
             match = pattern.search(updated)
             if not match:
@@ -89,7 +105,7 @@ def main() -> int:
     for change in changes:
         print(f"  - {change}")
 
-    if args.check:
+    if args.check or args.check_ref:
         return 1
 
     MANIFEST.write_text(updated, encoding="utf-8")
