@@ -261,9 +261,10 @@ public sealed partial class CqlProjectedAllAcceptanceTests
                 Field = "Id", Operator = CqlOperator.In, Value = JsonSerializer.SerializeToElement(inputs)
             } }
         };
+        var visibleRightIds = new[] { ids[0], ids[1], ids[3] };
         var crossRequest = new CqlJoinRequest
         {
-            Provider = provider.ToString(), Kind = "Cross", Left = CrossSource(leftIds), Right = CrossSource(rightIds),
+            Provider = provider.ToString(), Kind = "Cross", Left = CrossSource(leftIds), Right = CrossSource(visibleRightIds),
             MaximumLeftRows = 2, MaximumRightRows = 3, MaximumPairs = 6, MaximumResults = 6,
             Columns = new[]
             {
@@ -285,11 +286,22 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Assert.IsFalse(crossPlan.IsError, crossPlan.Message);
         var crossRows = await CosmicJoinExecutor.ExecuteAsync(crossPlan.Result, new[] { joinAdapter });
         Assert.IsFalse(crossRows.IsError, crossRows.Message + crossRows.Exception);
-        var expectedCross = leftIds.SelectMany(l => rightIds.Select(r => (l, r))).ToArray();
+        var expectedCross = leftIds.SelectMany(l => visibleRightIds.Select(r => (l, r))).ToArray();
         var actualCross = crossRows.Result.Providers.Single().Rows
             .Select(row => ((Guid)row.Value["LeftId"], (Guid)row.Value["RightId"])).ToArray();
         CollectionAssert.AreEquivalent(expectedCross, actualCross);
 
+        crossRequest.Right = CrossSource(rightIds);
+        var protectedCross = CosmicJoinPlanner.Plan(CqlCompiler.CompileJoin(crossRequest, actor, provider), provider, joinTargets);
+        Assert.IsFalse(protectedCross.IsError, protectedCross.Message);
+        var protectedRows = await CosmicJoinExecutor.ExecuteAsync(protectedCross.Result, new[] { joinAdapter });
+        Assert.IsFalse(protectedRows.IsError, protectedRows.Message + protectedRows.Exception);
+        var expectedVisible = leftIds.SelectMany(l => new[] { ids[1], ids[3] }.Select(r => (l, r))).ToArray();
+        var actualVisible = protectedRows.Result.Providers.Single().Rows
+            .Select(row => ((Guid)row.Value["LeftId"], (Guid)row.Value["RightId"])).ToArray();
+        CollectionAssert.AreEquivalent(expectedVisible, actualVisible);
+
+        crossRequest.Right = CrossSource(visibleRightIds);
         crossRequest.MaximumPairs = 5;
         var boundedCross = CosmicJoinPlanner.Plan(CqlCompiler.CompileJoin(crossRequest, actor, provider), provider, joinTargets);
         Assert.IsFalse(boundedCross.IsError, boundedCross.Message);
