@@ -1,5 +1,9 @@
 # Current provider status
 
+15 November Cancun time. The Solid diagnostic confirmed a native 404 on the fresh Pod's unprovisioned collection. d74e131f197c distinguishes a missing collection from an unreadable listed collection using native parent membership. The [native qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43733703704) checks the empty collection and populated read after a real write. The prior diagnostic runner confirmed teardown.
+
+15 November Cancun time. OPORTAL production candidate a84c07eae2ae incorporates the usage-section errors and stale chart fix on the production asset graph. Its subscription suite passed. Production WEB4's current release lacks the usage-series controller and estimate services used by this portal batch. The portal change remains staged until those routes are released through the Development snapshot workflow.
+
 15 November Cancun time. WEB4 42561325fd6c is serving in Railway dev. A signed disposable Free avatar received HTTP 200 in 351 ms, a 30,000-request allowance and zero charge. WEB4 confirmed fixture deletion. The separate excess-request candidate remains staged for the 16:17:16 UTC review.
 
 15 November Cancun time. OPORTAL 0bcf4c9 keeps daily chart responses scoped to the usage summary that requested them and displays failures for the affected sections. Exact dev candidate 1a76acecebd0 passed the full subscription suite, including a late chart response and a failed estimate. It remains staged for the backend excess-request rollout.
