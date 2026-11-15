@@ -1,5 +1,7 @@
 # COSMIC ORM / CQL current status
 
+15 November. Web4Site 6f9bd0fe4b3f accepts standard OFFSET ROWS and FETCH FIRST/NEXT syntax for rows, projections, grouped queries and bounded join inputs. It compiles to the existing LIMIT/OFFSET request fields. All 235 website tests passed, and the [protected preview](https://web4-site-8rmruota8-oasis-team.vercel.app/web4-sandbox.html) built. The combined SQL changes remain pending populated live verification.
+
 15 November. Development fast-forwarded to qualified SQL release 17df815c84f1. Railway queued beea79e1-0032-4864-9f0f-1d29cfed8ab8 at 22:53:15 UTC, 30 minutes and 42 seconds after the prior WEB4 deployment. The populated verifier is waiting for that exact revision to serve. The website draft adds standard OFFSET ROWS and FETCH pagination using the existing bounded request fields for rows, projections, groups and joined inputs. All 239 website tests passed in the combined snapshot. Website publication is pending the populated API checks.
 
 15 November. The [corrected three-store test step](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43770634568) passed the SQLite, MongoDB and Neo4j shipping-provider fixtures, each with 58 assertions. The two new cases per provider verify independent and direct exact-key correlated LINQ SelectMany, including captured source rebinding, empty input, cancellation, exact composite matching and rejection of an arbitrary source callback. Feature c0855aaa3c21. Q45 remains open for general correlated selectors, navigation flattening and joined-result composition.
