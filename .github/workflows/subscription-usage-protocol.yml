@@ -89,12 +89,12 @@ jobs:
             dotnet test 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~BlockscoutPublicAddressMetadataTests'
             if ($LASTEXITCODE) { throw 'Blockscout bounded address verification failed.' }
           }
-      - name: Verify bounded Axelar header reads
+      - name: Verify bounded Axelar headers and Connext origin reads
         shell: pwsh
         run: |
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner axelar-cql-ci -Operation {
-            dotnet test 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.CrossChain.ProtocolTests' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~AxelarProtocolTests'
-            if ($LASTEXITCODE) { throw 'Axelar native protocol verification failed.' }
+            dotnet test 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.CrossChain.ProtocolTests' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~AxelarProtocolTests|FullyQualifiedName~ConnextPublicOriginMetadataTests.ExactKeyQueryReturnsCompleteOrderedRowsOrFails'
+            if ($LASTEXITCODE) { throw 'Axelar and Connext native protocol verification failed.' }
           }
       - name: Verify shipping Hedera public account response contract
         shell: pwsh
