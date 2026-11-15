@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+15 November Cancun. Removed the temporary combined website-test snapshot and stopped the superseded full-only rollout and verifier before any fixture writes. Exact candidate staging used a disposable Git index. Combined native and image qualification run in GitHub CI.
+
 15 November Cancun. The exact MongoDB SINGLE release probe removed both private fixtures and independently verified absence. The compact journal remains in HostedCqlFloatingMetadata-56d45431. The projection state and depth investigations used read-only Atlas commands with synthetic documents and disposable compiler outputs. The temporary outputs were removed.
 
 15 November Cancun. Full join qualification uses GitHub CI. The local SQLite controls used an in-memory database and the Atlas snapshot union probe was read-only. Exact Core and parent staging directories, the temporary manifest copy and the website test snapshot were removed. No shared build output, new runtime installs or database copies. C: measured 23.89 GiB free.
