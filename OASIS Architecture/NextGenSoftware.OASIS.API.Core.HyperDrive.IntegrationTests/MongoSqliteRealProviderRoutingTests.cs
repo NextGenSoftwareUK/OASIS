@@ -74,7 +74,7 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
                 Assert.False(selectedReader.IsError, selectedReader.Message);
                 var stored = new FilesManager(provider, dna, reader);
                 var download = await stored.DownloadFileAsync(actor, upload.Result.Id);
-                Assert.False(download.IsError, download.Message);
+                Assert.False(download.IsError, $"{provider.ProviderType.Value}: {download.Message}");
                 Assert.Equal(bytes, download.Result.Data);
                 var list = await stored.GetAllFilesForAvatarAsync(actor);
                 Assert.False(list.IsError, list.Message);

@@ -1,5 +1,7 @@
 # OPORTAL and HyperDrive performance audit
 
+15 November Cancun time. Native run 43694161825 reached the download assertion after the upload succeeded, then rejected the persisted data representation. Files now writes the Base64 representation already supported by its reader. The targeted replay adds provider names to download failures. Exact bytes, replica and list parity are still unverified.
+
 15 November Cancun time. Added an isolated native MongoDB-to-SQLite file upload case to verify exact binary bytes, avatar ownership, populated list/count parity and unrelated-avatar count. The owned databases are removed in the test finally block. Hosted workflow is the proof gate for this candidate.
 
 15 November Cancun time. The diagnostic Files upload on Railway dev confirmed that HyperDrive reported a primary acknowledgement followed by failure to capture the committed replication payload. Files uploads now explicitly save a single holon and preserve the downstream error code. The candidate still needs an exact native upload and populated parity check.
