@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. WEB4 confirmed deletion of the Provider activity sandbox avatar with HTTP 200. Restored the portal sparse checkout and removed both scoped staging indexes. No local dependencies, runtime downloads, build outputs or test artifacts were retained.
+
 15 November Cancun time. Ran the subscription badge UI test in memory. Both release staging indexes were removed. No local SDK, downloads, build output or test result files were retained.
 
 15 November Cancun time. Removed the combined portal release index after staging. Ran syntax and scope verification in memory. The recent staging-file scan found zero owned leftovers, and C: had 29.76 GiB free.

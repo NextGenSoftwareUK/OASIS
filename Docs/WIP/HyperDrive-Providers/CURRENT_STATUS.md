@@ -1,5 +1,7 @@
 # Current provider status
 
+15 November Cancun time. OPORTAL 50095e7 replaced fabricated Chain Explorer rows with signed avatar-scoped provider activity. The view shows the latest fifty Karma records and derives its provider filter from the response. Both active navigation layouts expose Provider activity. The controlled UI called real WEB4 once, displayed the actual empty result, and confirmed fixture cleanup. Populated activity and separate on-chain transaction history remain open. Scoped portal candidates 4c75fa6a373b and 3cdcc07e73e5 add this view. Exact Railway WEB4 deployment 2871af5b-aaa1-4df9-8653-0b8907678148 is now BUILDING.
+
 15 November Cancun time. Railway WEB4 deployment 2871af5b-aaa1-4df9-8653-0b8907678148 remained queued at the first rollout check for e39c38c1db71. The single Development push queued the complete WEB4 to WEB10 dev fleet. WEB6, WEB7 and WEB9 were building while WEB4, WEB5, WEB8 and WEB10 were queued. The previous WEB4 deployment remained healthy. Signed endpoint verification is still pending.
 
 15 November Cancun time. [Combined WEB4 build 43774037156](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43774037156) passed for e39c38c1db71. Development fast-forwarded from 17df815c84f1 with the hosted delivery history, Karma catalog, and inventory count. Railway WEB4 dev deployment 2871af5b-aaa1-4df9-8653-0b8907678148 queued at 23:44:08 UTC, so the next shared WEB4 review begins after 00:14:08 UTC. Signed endpoint checks and the related portal deployment remain pending the exact WEB4 rollout.
