@@ -738,6 +738,12 @@ Status: missing account/configuration information,2 November2026. David approved
 - **David action** Sign in to OPORTAL dev with a disposable avatar, choose Bronze, confirm the Stripe page is in test mode, and finish payment with a Stripe test card. After it returns to OPORTAL, confirm that My subscriptions displays Bronze as active and the payment confirmation appears. Share the result and approximate test time only.
 - **Reason** The manual browser step verifies hosted payment and return together on the deployed sandbox. Engineering owns follow-up and cleanup of the disposable subscription. [OPORTAL dev](https://dev.oportal.oasisomniverse.one/subscription) · [Stripe test cards](https://docs.stripe.com/testing#cards) · [Current status](../HyperDrive-Providers/CURRENT_STATUS.md)
 
+### OPORTAL ONET operator acceptance
+
+- **Open, 15 November 2026.** WEB4 correctly denied all four ONET operator reads to an ordinary signed sandbox avatar. The portal carries the actual peer fields and explains the Wizard requirement.
+- **David action** Identify an authorized OASIS Wizard operator and an isolated disposable ONET node pair for a live connect, topology and disconnect check. Share the operator contact or protected environment location only. Engineering can run the check in the authorized environment.
+- **Reason** These controls modify active network membership. Acceptance requires an operator and disposable peers, without changing shared or production membership. [Current status](../HyperDrive-Providers/CURRENT_STATUS.md)
+
 ### Algorand signed public TestNet acceptance
 
 - **Open, 15 November 2026.** The native LocalNet signed payment has passed. The public TestNet write needs a dedicated funded TestNet-only signing account.

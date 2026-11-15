@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. Signed OPORTAL database checks ran through the served SDK in memory. WEB4 confirmed hard deletion and a not-found read for each successful MongoDB and SQLite fixture. It confirmed self-deletion for the test avatars, including rejected-write probes and the ONET authorization probe. Candidate verification removed the temporary Git patch and index. No local runtime, dependency, download or test output was retained. C: had 24.51 GiB free after the Railway check.
+
 15 November Cancun time. The OPORTAL Data form and avatar checks used the existing Node runtime and read the combined release tree through Git. Candidate staging removed its temporary patch and Git index after each attempt. No disposable database, downloads, dependency installation or build output was created. C: had 24.50 GiB free at the final check.
 
 15 November Cancun time. OPORTAL Stripe return qualification read the exact release tree directly from Git. Removed the temporary index and patch and reapplied the existing sparse checkout after the task-branch suite. No dependencies, downloaded payloads, build outputs or test results were retained. C: had 24.71 GiB free after verification.
