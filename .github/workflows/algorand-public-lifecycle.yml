@@ -20,7 +20,7 @@ on:
       localnet_case:
         description: Focused signed LocalNet verification
         type: choice
-        options: [batch, indexed_search, storage_contract, storage_provider, storage_writer, storage_delete, storage_hard_delete, storage_hard_resume, storage_bootloader, storage_avatar_detail, storage_avatar]
+        options: [batch, indexed_search, storage_contract, storage_grouped_contract, storage_provider, storage_writer, storage_delete, storage_hard_delete, storage_hard_resume, storage_bootloader, storage_avatar_detail, storage_avatar]
         default: batch
       public_case:
         description: Focused public Indexer verification
@@ -136,7 +136,10 @@ jobs:
           "$owned/venv/bin/pip" install --no-cache-dir algokit==2.10.2 py-algorand-sdk==2.12.0
           mkdir "$owned/localnet"
           "$owned/venv/bin/algokit" localnet start --config-dir "$owned/localnet"
-          if [[ "$ALGORAND_LOCALNET_CASE" == storage_contract ]]; then
+          if [[ "$ALGORAND_LOCALNET_CASE" == storage_contract || "$ALGORAND_LOCALNET_CASE" == storage_grouped_contract ]]; then
+            if [[ "$ALGORAND_LOCALNET_CASE" == storage_grouped_contract ]]; then
+              export OASIS_ALGORAND_GROUPED_CONTRACT_TEST=true
+            fi
             "$owned/venv/bin/python" -B Scripts/TestHosts/Test-AlgorandRecordBoxes.py
             exit
           fi

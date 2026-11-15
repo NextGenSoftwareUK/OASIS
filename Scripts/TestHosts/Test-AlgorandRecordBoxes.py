@@ -85,14 +85,16 @@ def run(node, wallet, handle, writer, outsider):
         assert base64.b64decode(box["name"], validate=True) == name
         return base64.b64decode(box["value"], validate=True)
 
-    def publication(sender, key, predecessor, revision, chunks, descriptor, hashes=None):
+    def publication(sender, key, predecessor, revision, chunks, descriptor, hashes=None, start=None):
         head = b"h" + key
         names = [chunk_name(key, revision, index) for index in range(len(chunks))]
-        stages = [call(sender, [b"stage", key, revision, index.to_bytes(8, "big"), chunk], [head, name])
+        target = [] if start is None else [(start + len(chunks)).to_bytes(8, "big")]
+        block = [] if start is None else [start.to_bytes(8, "big")]
+        stages = [call(sender, [b"stage", key, revision, index.to_bytes(8, "big"), chunk, *target], [head, name])
                   for index, (name, chunk) in enumerate(zip(names, chunks, strict=True))]
         if hashes is None:
             hashes = b"".join(digest(chunk) for chunk in chunks)
-        publish = call(writer, [b"publish", key, predecessor, revision, hashes, descriptor],
+        publish = call(writer, [b"publish", key, predecessor, revision, hashes, descriptor, *block],
                        [head, manifest_name(key, revision), b"d" + key, *names])
         return stages + [publish]
 
@@ -179,6 +181,75 @@ def run(node, wallet, handle, writer, outsider):
                 raise
         else:
             raise AssertionError("The application accepted a disallowed publication group")
+
+    if os.environ.get("OASIS_ALGORAND_GROUPED_CONTRACT_TEST") == "true":
+        other_key = secrets.token_bytes(32)
+        other_revision = secrets.token_bytes(32)
+        other_chunk = secrets.token_bytes(173)
+        other_descriptor = secrets.token_bytes(95)
+        legacy_key = secrets.token_bytes(32)
+        legacy_revision = secrets.token_bytes(32)
+        submit_group(publication(writer, legacy_key, absent, legacy_revision, [other_chunk], other_descriptor))
+        assert read(b"h" + legacy_key) == legacy_revision + absent + absent + digest(other_chunk)
+
+        def snapshot():
+            listed = node.application_boxes(app)["boxes"]
+            names = [base64.b64decode(box["name"], validate=True) for box in listed]
+            assert len(names) == len(set(names)), "Algod returned duplicate box names"
+            return {name: read(name) for name in names}
+
+        before = snapshot()
+
+        def grouped(other_predecessor):
+            left = publication(writer, key, absent, first_revision, chunks, descriptor, start=0)
+            right = publication(writer, other_key, other_predecessor, other_revision, [other_chunk],
+                                other_descriptor, start=len(left))
+            return left + right
+
+        misdirected = grouped(absent)
+        misdirected[0].app_args[-1] = (len(misdirected) - 1).to_bytes(8, "big")
+        reject_group(misdirected)
+        assert snapshot() == before, "A rejected group changed the application boxes"
+        reject_group(grouped(secrets.token_bytes(32)))
+        assert snapshot() == before, "A rejected group changed the application boxes"
+        submit_group(grouped(absent))
+        assert read(head) == first_revision + absent + absent + hashes
+        assert read(b"h" + other_key) == other_revision + absent + absent + digest(other_chunk)
+        assert read(descriptor_name) == descriptor
+        assert read(b"d" + other_key) == other_descriptor
+        print("Native grouped publication committed both records and rolled back both when the later predecessor failed.")
+
+        alias = secrets.token_bytes(32)
+        alias_name = b"a" + alias
+
+        def alias_call(sender, expected, next_owner):
+            refs = [alias_name]
+            if next_owner != absent:
+                refs.append(b"h" + next_owner)
+            return call(sender, [b"set_alias", alias, expected, next_owner], refs)
+
+        reject_group([alias_call(outsider, absent, key)])
+        reject_group([alias_call(writer, absent, secrets.token_bytes(32))])
+
+        indexed_key = secrets.token_bytes(32)
+        indexed_revision = secrets.token_bytes(32)
+        write = publication(writer, indexed_key, absent, indexed_revision, [other_chunk], other_descriptor, start=0)
+        submit_group(write + [alias_call(writer, absent, indexed_key)])
+        assert read(alias_name) == indexed_key
+
+        before_collision = snapshot()
+        collision_key = secrets.token_bytes(32)
+        collision_revision = secrets.token_bytes(32)
+        collision = publication(writer, collision_key, absent, collision_revision, [other_chunk], other_descriptor, start=0)
+        reject_group(collision + [alias_call(writer, absent, collision_key)])
+        assert snapshot() == before_collision, "A colliding alias changed its owner or published the losing record"
+        reject_group([alias_call(writer, key, absent)])
+        assert read(alias_name) == indexed_key
+
+        submit_group([alias_call(writer, indexed_key, absent), alias_call(writer, absent, other_key)])
+        assert read(alias_name) == other_key
+        print("Native alias compare-and-set protected ownership and rolled back a colliding publication.")
+        return
 
     reject_group(publication(outsider, key, absent, first_revision, chunks, descriptor))
     reject_group(publication(writer, key, absent, first_revision, chunks, descriptor, bytes(len(hashes))))

@@ -31,6 +31,10 @@ byte "purge"
 ==
 bnz purge
 txna ApplicationArgs 0
+byte "set_alias"
+==
+bnz set_alias
+txna ApplicationArgs 0
 byte "publish"
 ==
 assert
@@ -42,8 +46,12 @@ int 0
 ==
 return
 
-// stage(key, revision, index, encryptedChunk)
+// stage(key, revision, index, encryptedChunk[, publishIndex])
 stage:
+txn NumAppArgs
+int 6
+==
+bnz explicit_stage_target
 txn NumAppArgs
 int 5
 ==
@@ -52,6 +60,39 @@ global GroupSize
 int 1
 -
 store 9
+load 9
+gtxns NumAppArgs
+int 6
+==
+assert
+int 0
+store 8
+b check_stage_target
+
+explicit_stage_target:
+txna ApplicationArgs 5
+len
+int 8
+==
+assert
+txna ApplicationArgs 5
+btoi
+dup
+global GroupSize
+<
+assert
+store 9
+load 9
+gtxns NumAppArgs
+int 7
+==
+assert
+load 9
+gtxnsa ApplicationArgs 6
+btoi
+store 8
+
+check_stage_target:
 txn GroupIndex
 load 9
 <
@@ -110,6 +151,8 @@ int 8
 assert
 txna ApplicationArgs 3
 btoi
+load 8
++
 txn GroupIndex
 ==
 assert
@@ -137,12 +180,41 @@ box_put
 int 1
 return
 
-// publish(key, expected head digest, revision, chunk digests, encrypted identity)
+// publish(key, expected head digest, revision, chunk digests, encrypted identity[, firstStageIndex])
 publish:
+txn NumAppArgs
+int 7
+==
+bnz explicit_publish_block
 txn NumAppArgs
 int 6
 ==
 assert
+txn GroupIndex
+int 1
++
+global GroupSize
+==
+assert
+int 0
+store 8
+b check_publish_block
+
+explicit_publish_block:
+txna ApplicationArgs 6
+len
+int 8
+==
+assert
+txna ApplicationArgs 6
+btoi
+dup
+txn GroupIndex
+<
+assert
+store 8
+
+check_publish_block:
 txna ApplicationArgs 2
 len
 int 32
@@ -172,13 +244,9 @@ int 5
 <=
 assert
 dup
-txn GroupIndex
-==
-assert
-txn GroupIndex
-int 1
+load 8
 +
-global GroupSize
+txn GroupIndex
 ==
 assert
 store 2
@@ -315,7 +383,7 @@ concat
 store 3
 load 3
 box_get
-assert
+bz freeze_absent
 dup
 len
 int 128
@@ -340,6 +408,28 @@ concat
 box_del
 assert
 b save_checkpoint
+
+// An absent record receives the completed purge marker and cannot be created later.
+freeze_absent:
+pop
+txna ApplicationArgs 2
+int 32
+bzero
+==
+assert
+byte "d"
+txna ApplicationArgs 1
+concat
+box_len
+!
+assert
+pop
+load 3
+int 64
+bzero
+box_put
+int 1
+return
 
 // Purge one exact revision and advance to its authenticated predecessor.
 purge:
@@ -433,6 +523,62 @@ load 3
 load 6
 box_put
 int 1
+return
+
+// Compare and set an opaque alias. Zero expected owner is absent; zero next owner removes it.
+set_alias:
+txn NumAppArgs
+int 4
+==
+assert
+txna ApplicationArgs 2
+len
+int 32
+==
+assert
+txna ApplicationArgs 3
+len
+int 32
+==
+assert
+byte "a"
+txna ApplicationArgs 1
+concat
+store 3
+load 3
+box_get
+bnz alias_exists
+pop
+int 32
+bzero
+alias_exists:
+txna ApplicationArgs 2
+==
+assert
+txna ApplicationArgs 3
+int 32
+bzero
+==
+bnz remove_alias
+
+// A new owner must have a published and unfrozen head.
+byte "h"
+txna ApplicationArgs 3
+concat
+box_len
+assert
+int 128
+>=
+assert
+load 3
+txna ApplicationArgs 3
+box_put
+int 1
+return
+
+remove_alias:
+load 3
+box_del
 return
 
 // The fixed-width components give each immutable chunk a unique opaque name.
