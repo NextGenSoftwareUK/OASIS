@@ -68,10 +68,18 @@ Fund the signing key's native SegWit address for storage transaction fees. `Save
 
 New encrypted record pins carry the name `oasis-bitcoin-v1:<genesis hash>:<signing address>:<transaction ID>`. The provider assigns the name before submitting the signed transaction. Trusted Kubo operators can use the recursive pin list to recover the transaction ID after a lost acknowledgement or process restart. Call ListRecordPublicationsAsync to discover recorded attempts for that wallet. Call ReconcileRecordPublicationAsync with the transaction ID and the same signing wallet to verify the recorded pin against the configured network and encrypted payload. Reconciliation does not broadcast, delete pins, or establish confirmation depth.
 
-Native regtest verified save, mined commitment, and readback through a fresh provider instance. Identity lookup, deletion, pin reconciliation, and avatar storage remain open. [Native verification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43636836181)
+Native regtest verified encrypted holon and avatar storage, wallet-scoped identity lookup, pin reconciliation, signed tombstones, and historical readback through a fresh provider. See the current provider matrix for evidence by operation. [Provider matrix](../../../Docs/WIP/HyperDrive-Providers/PROVIDER_MATRIX.md)
 
 Bitcoin avatar soft deletion publishes an encrypted tombstone signed by the configured storage wallet. Current avatar selectors and lists exclude the tombstoned identity. Explicit historical-version reads and the original transaction key retain access to the earlier committed record. Requests for physical deletion return an error.
 
-For Bitcoin NFT lookup, set OASIS_BITCOIN_ORD_API to a trusted HTTPS ord server or a loopback ord server with JSON responses enabled. Pass an inscription ID consisting of the reveal transaction ID, i, and the inscription index. The reader verifies the server's Bitcoin network before requesting the inscription.
+### Bitcoin Ordinals
+
+Set `OASIS_BITCOIN_ORD_API` to a trusted HTTPS ord server or a loopback ord server with JSON responses enabled. Pass an inscription ID consisting of the reveal transaction ID, `i`, and the inscription index. The reader verifies the server's Bitcoin network before requesting the inscription.
+
+To send an inscription, use the current owner's Bitcoin address and signing key, the recipient address, and the inscription ID. The ord server must index Runes and agree with Esplora on the chain tip. Fund the source with a separate confirmed output free of inscriptions and Runes to pay fees. The transfer preserves the full inscription output value. Check the transaction ID and use the inscription lookup after confirmation to verify ownership. Native regtest verified both a confirmed transfer and rejection of a mismatched signer. [Native verification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43658729525/job/132643032791)
+
+To burn an inscription, provide the inscription ID and its owner's signing key. Configure `OASIS_BITCOIN_CORE_RPC_URL` with a protected HTTPS endpoint or a loopback Bitcoin Core RPC endpoint. Set `OASIS_BITCOIN_CORE_RPC_AUTH` to a protected `username:password` value or `cookiefile=<path>` for a readable Core authentication cookie. Core, Esplora, and ord must agree on the chain tip. The native transaction burns one satoshi and returns the remaining funds after fees. When you request confirmation, the provider waits for ord to index that exact burn transaction. If confirmation is still pending at the deadline, retain the returned `BitcoinTransactionId` and check the original inscription.
+
+### Bridge payments
 
 Native Bitcoin bridge payments require OASIS_BITCOIN_BRIDGE_POOL_ADDRESS. The address must belong to the configured Bitcoin network. Withdrawals send from the supplied wallet signer to the pool. Deposits spend from the pool using its configured provider signer. A pending response identifies an acknowledged Bitcoin broadcast.

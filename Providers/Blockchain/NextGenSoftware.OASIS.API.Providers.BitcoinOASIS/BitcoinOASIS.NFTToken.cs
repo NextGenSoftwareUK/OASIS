@@ -66,89 +66,9 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             return MintNFTAsync(request).Result;
         }
 
-        public async Task<OASISResult<IWeb3NFTTransactionResponse>> MintNFTAsync(IMintWeb3NFTRequest request)
+        public Task<OASISResult<IWeb3NFTTransactionResponse>> MintNFTAsync(IMintWeb3NFTRequest request)
         {
-            var result = new OASISResult<IWeb3NFTTransactionResponse>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Bitcoin provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                if (request == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Invalid NFT mint request");
-                    return result;
-                }
-
-                // Bitcoin NFT minting using Ordinals protocol or OP_RETURN
-                // Store NFT mint data in OP_RETURN transaction
-                var metadataJson = request.MetaData != null && request.MetaData.Count > 0
-                    ? System.Text.Json.JsonSerializer.Serialize(request.MetaData)
-                    : request.JSONMetaData ?? "";
-                var nftMintData = new
-                {
-                    type = "nft_mint",
-                    nft_id = Guid.NewGuid().ToString(),
-                    mint_to = request.MintedByAvatarId.ToString(),
-                    token_address = "",
-                    metadata = metadataJson,
-                    timestamp = DateTime.UtcNow.ToString("O")
-                };
-
-                var nftJson = JsonSerializer.Serialize(nftMintData);
-                var nftBytes = Encoding.UTF8.GetBytes(nftJson);
-
-                // Create Bitcoin transaction with OP_RETURN containing NFT mint data
-                var rpcRequest = new
-                {
-                    jsonrpc = "2.0",
-                    id = 1,
-                    method = "createrawtransaction",
-                    @params = new object[]
-                    {
-                        new object[0],
-                        new Dictionary<string, object>
-                        {
-                            ["data"] = Convert.ToHexString(nftBytes)
-                        }
-                    }
-                };
-
-                var content = new StringContent(JsonSerializer.Serialize(rpcRequest), Encoding.UTF8, "application/json");
-                var response = await _httpClient.PostAsync("", content);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var responseContent = await response.Content.ReadAsStringAsync();
-                    var txData = JsonSerializer.Deserialize<JsonElement>(responseContent);
-                    
-                    var txHash = txData.TryGetProperty("result", out var txResult) ? txResult.GetString() : "";
-
-                    result.Result = new Web3NFTTransactionResponse
-                    {
-                        TransactionResult = txHash ?? "",
-                        Web3NFT = new Web3NFT { MintTransactionHash = txHash }
-                    };
-                    result.IsError = false;
-                    result.Message = "NFT minted successfully via Bitcoin OP_RETURN";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to create NFT mint transaction: {response.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error minting NFT via Bitcoin: {ex.Message}", ex);
-            }
-            return result;
+            return MintOrdinalInscriptionAsync(request);
         }
 
         public OASISResult<IWeb3NFTTransactionResponse> BurnNFT(IBurnWeb3NFTRequest request)
@@ -158,81 +78,46 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
 
         public async Task<OASISResult<IWeb3NFTTransactionResponse>> BurnNFTAsync(IBurnWeb3NFTRequest request)
         {
-            var result = new OASISResult<IWeb3NFTTransactionResponse>();
+            if (request?.WaitTillNFTBurnt == true &&
+                (request.WaitForNFTToBurnInSeconds <= 0 || request.AttemptToBurnEveryXSeconds <= 0))
+            {
+                var invalid = new OASISResult<IWeb3NFTTransactionResponse>();
+                OASISErrorHandling.HandleError(ref invalid, "Bitcoin burn confirmation requires a positive timeout and polling interval.");
+                return invalid;
+            }
+
+            var identifier = string.IsNullOrWhiteSpace(request?.TokenId) ? request?.NFTTokenAddress : request.TokenId;
+            var result = await MoveOrdinalInscriptionAsync(identifier, null, null, request?.OwnerPrivateKey, request?.OwnerSeedPhrase,
+                null, burn: true);
+            if (result.IsError || request?.WaitTillNFTBurnt != true)
+                return result;
+
+            var transactionId = result.Result.TransactionResult;
+            using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(request.WaitForNFTToBurnInSeconds));
             try
             {
-                if (!_isActivated)
+                while (!timeout.IsCancellationRequested)
                 {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
+                    var observed = await ReadOrdinalInscriptionAsync(identifier).WaitAsync(timeout.Token);
+                    if (!observed.IsError &&
+                        observed.Result.MetaData.TryGetValue("Burned", out var burned) && burned == "true" &&
+                        observed.Result.MetaData["Satpoint"].StartsWith(transactionId + ":", StringComparison.Ordinal))
                     {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Bitcoin provider: {activateResult.Message}");
+                        observed.Result.MetaData["BurnTransactionId"] = transactionId;
+                        result.Result.Web3NFT = observed.Result;
                         return result;
                     }
-                }
 
-                if (request == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Invalid NFT burn request");
-                    return result;
-                }
-
-                // Bitcoin NFT burning using OP_RETURN
-                // Store NFT burn data in OP_RETURN transaction
-                var nftBurnData = new
-                {
-                    type = "nft_burn",
-                    nft_id = request.Web3NFTId.ToString(),
-                    token_address = request.NFTTokenAddress ?? "",
-                    timestamp = DateTime.UtcNow.ToString("O")
-                };
-
-                var nftJson = JsonSerializer.Serialize(nftBurnData);
-                var nftBytes = Encoding.UTF8.GetBytes(nftJson);
-
-                // Create Bitcoin transaction with OP_RETURN containing NFT burn data
-                var rpcRequest = new
-                {
-                    jsonrpc = "2.0",
-                    id = 1,
-                    method = "createrawtransaction",
-                    @params = new object[]
-                    {
-                        new object[0],
-                        new Dictionary<string, object>
-                        {
-                            ["data"] = Convert.ToHexString(nftBytes)
-                        }
-                    }
-                };
-
-                var content = new StringContent(JsonSerializer.Serialize(rpcRequest), Encoding.UTF8, "application/json");
-                var response = await _httpClient.PostAsync("", content);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var responseContent = await response.Content.ReadAsStringAsync();
-                    var txData = JsonSerializer.Deserialize<JsonElement>(responseContent);
-                    
-                    var txHash = txData.TryGetProperty("result", out var txResult) ? txResult.GetString() : "";
-
-                    result.Result = new Web3NFTTransactionResponse
-                    {
-                        TransactionResult = txHash ?? "",
-                        Web3NFT = new Web3NFT { MintTransactionHash = txHash }
-                    };
-                    result.IsError = false;
-                    result.Message = "NFT burned successfully via Bitcoin OP_RETURN";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to create NFT burn transaction: {response.StatusCode}");
+                    await Task.Delay(TimeSpan.FromSeconds(request.AttemptToBurnEveryXSeconds), timeout.Token);
                 }
             }
-            catch (Exception ex)
+            catch (OperationCanceledException) when (timeout.IsCancellationRequested)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error burning NFT via Bitcoin: {ex.Message}", ex);
+                // The acknowledged transaction ID remains available for subsequent confirmation.
             }
+
+            result.ErrorCode = "BITCOIN_CONFIRMATION_PENDING";
+            OASISErrorHandling.HandleError(ref result, $"Bitcoin Core acknowledged burn {transactionId}. Its confirmation is still pending.");
             return result;
         }
 
@@ -243,219 +128,5 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
 
         public Task<OASISResult<IWeb3NFT>> LoadOnChainNFTDataAsync(string nftTokenAddress)
             => ReadOrdinalInscriptionAsync(nftTokenAddress);
-
-
-
-    // NFT-specific lock/unlock methods
-    public OASISResult<IWeb3NFTTransactionResponse> LockNFT(ILockWeb3NFTRequest request)
-    {
-        return LockNFTAsync(request).Result;
-    }
-
-    public async Task<OASISResult<IWeb3NFTTransactionResponse>> LockNFTAsync(ILockWeb3NFTRequest request)
-    {
-        var result = new OASISResult<IWeb3NFTTransactionResponse>(new Web3NFTTransactionResponse());
-        try
-        {
-            if (!_isActivated)
-            {
-                OASISErrorHandling.HandleError(ref result, "Bitcoin provider is not activated");
-                return result;
-            }
-
-            // Bitcoin uses OP_RETURN for NFT locking (simplified)
-            var bridgePoolAddress = "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh"; // Bridge pool address
-            var sendRequest = new SendWeb3NFTRequest
-            {
-                FromNFTTokenAddress = request.NFTTokenAddress,
-                FromWalletAddress = string.Empty,
-                ToWalletAddress = bridgePoolAddress,
-                TokenAddress = request.NFTTokenAddress,
-                TokenId = request.Web3NFTId.ToString(),
-                Amount = 1
-            };
-
-            var sendResult = await SendNFTAsync(sendRequest);
-            if (sendResult.IsError || sendResult.Result == null)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Failed to lock NFT: {sendResult.Message}", sendResult.Exception);
-                return result;
-            }
-
-            result.IsError = false;
-            result.Result.TransactionResult = sendResult.Result.TransactionResult;
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error locking NFT: {ex.Message}", ex);
-        }
-        return result;
-    }
-
-    public OASISResult<IWeb3NFTTransactionResponse> UnlockNFT(IUnlockWeb3NFTRequest request)
-    {
-        return UnlockNFTAsync(request).Result;
-    }
-
-    public async Task<OASISResult<IWeb3NFTTransactionResponse>> UnlockNFTAsync(IUnlockWeb3NFTRequest request)
-    {
-        var result = new OASISResult<IWeb3NFTTransactionResponse>(new Web3NFTTransactionResponse());
-        try
-        {
-            if (!_isActivated)
-            {
-                OASISErrorHandling.HandleError(ref result, "Bitcoin provider is not activated");
-                return result;
-            }
-
-            var bridgePoolAddress = "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh"; // Bridge pool address
-            var sendRequest = new SendWeb3NFTRequest
-            {
-                FromNFTTokenAddress = request.NFTTokenAddress,
-                FromWalletAddress = bridgePoolAddress,
-                ToWalletAddress = string.Empty,
-                TokenAddress = request.NFTTokenAddress,
-                TokenId = request.Web3NFTId.ToString(),
-                Amount = 1
-            };
-
-            var sendResult = await SendNFTAsync(sendRequest);
-            if (sendResult.IsError || sendResult.Result == null)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Failed to unlock NFT: {sendResult.Message}", sendResult.Exception);
-                return result;
-            }
-
-            result.IsError = false;
-            result.Result.TransactionResult = sendResult.Result.TransactionResult;
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error unlocking NFT: {ex.Message}", ex);
-        }
-        return result;
-    }
-
-    // NFT Bridge Methods
-    public async Task<OASISResult<BridgeTransactionResponse>> WithdrawNFTAsync(string nftTokenAddress, string tokenId, string senderAccountAddress, string senderPrivateKey)
-    {
-        var result = new OASISResult<BridgeTransactionResponse>();
-        try
-        {
-            if (!_isActivated)
-            {
-                OASISErrorHandling.HandleError(ref result, "Bitcoin provider is not activated");
-                return result;
-            }
-
-            if (string.IsNullOrWhiteSpace(nftTokenAddress) || string.IsNullOrWhiteSpace(tokenId) || 
-                string.IsNullOrWhiteSpace(senderAccountAddress) || string.IsNullOrWhiteSpace(senderPrivateKey))
-            {
-                OASISErrorHandling.HandleError(ref result, "NFT token address, token ID, sender address, and private key are required");
-                return result;
-            }
-
-            var lockRequest = new LockWeb3NFTRequest
-            {
-                NFTTokenAddress = nftTokenAddress,
-                Web3NFTId = Guid.TryParse(tokenId, out var guid) ? guid : CreateDeterministicGuid($"{ProviderType.Value}:nft:{nftTokenAddress}"),
-                LockedByAvatarId = Guid.Empty
-            };
-
-            var lockResult = await LockNFTAsync(lockRequest);
-            if (lockResult.IsError || lockResult.Result == null)
-            {
-                result.Result = new BridgeTransactionResponse
-                {
-                    TransactionId = string.Empty,
-                    IsSuccessful = false,
-                    ErrorMessage = lockResult.Message,
-                    Status = BridgeTransactionStatus.Canceled
-                };
-                OASISErrorHandling.HandleError(ref result, $"Failed to lock NFT: {lockResult.Message}");
-                return result;
-            }
-
-            result.Result = new BridgeTransactionResponse
-            {
-                TransactionId = lockResult.Result.TransactionResult ?? string.Empty,
-                IsSuccessful = !lockResult.IsError,
-                Status = BridgeTransactionStatus.Pending
-            };
-            result.IsError = false;
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error withdrawing NFT: {ex.Message}", ex);
-            result.Result = new BridgeTransactionResponse
-            {
-                TransactionId = string.Empty,
-                IsSuccessful = false,
-                ErrorMessage = ex.Message,
-                Status = BridgeTransactionStatus.Canceled
-            };
-        }
-        return result;
-    }
-
-    public async Task<OASISResult<BridgeTransactionResponse>> DepositNFTAsync(string nftTokenAddress, string tokenId, string receiverAccountAddress, string sourceTransactionHash = null)
-    {
-        var result = new OASISResult<BridgeTransactionResponse>();
-        try
-        {
-            if (!_isActivated)
-            {
-                OASISErrorHandling.HandleError(ref result, "Bitcoin provider is not activated");
-                return result;
-            }
-
-            if (string.IsNullOrWhiteSpace(nftTokenAddress) || string.IsNullOrWhiteSpace(receiverAccountAddress))
-            {
-                OASISErrorHandling.HandleError(ref result, "NFT token address and receiver address are required");
-                return result;
-            }
-
-            var mintRequest = new MintWeb3NFTRequest
-            {
-                SendToAddressAfterMinting = receiverAccountAddress,
-            };
-
-            var mintResult = await MintNFTAsync(mintRequest);
-            if (mintResult.IsError || mintResult.Result == null)
-            {
-                result.Result = new BridgeTransactionResponse
-                {
-                    TransactionId = string.Empty,
-                    IsSuccessful = false,
-                    ErrorMessage = mintResult.Message,
-                    Status = BridgeTransactionStatus.Canceled
-                };
-                OASISErrorHandling.HandleError(ref result, $"Failed to deposit/mint NFT: {mintResult.Message}");
-                return result;
-            }
-
-            result.Result = new BridgeTransactionResponse
-            {
-                TransactionId = mintResult.Result.TransactionResult ?? string.Empty,
-                IsSuccessful = !mintResult.IsError,
-                Status = BridgeTransactionStatus.Pending
-            };
-            result.IsError = false;
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error depositing NFT: {ex.Message}", ex);
-            result.Result = new BridgeTransactionResponse
-            {
-                TransactionId = string.Empty,
-                IsSuccessful = false,
-                ErrorMessage = ex.Message,
-                Status = BridgeTransactionStatus.Canceled
-            };
-        }
-        return result;
-    }
-
-
     }
 }
