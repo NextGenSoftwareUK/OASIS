@@ -353,12 +353,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string avatarEmail, int version = 0) =>
             LoadAvatarDetailByEmailAsync(avatarEmail, version).Result;
 
-        public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IAvatarDetail>>();
-            OASISErrorHandling.HandleError(ref result, "AlgorandOASIS: LoadAllAvatarDetails is not supported.");
-            return await Task.FromResult(result);
-        }
+        public override Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
+            => LoadEnrolledAvatarDetailsAsync(version);
 
         public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0) =>
             LoadAllAvatarDetailsAsync(version).Result;

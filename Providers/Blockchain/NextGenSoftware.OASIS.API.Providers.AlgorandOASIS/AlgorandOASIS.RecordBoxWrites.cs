@@ -88,7 +88,7 @@ public partial class AlgorandOASIS
             var head = await ReadBoxAsync(settings, headName, token).ConfigureAwait(false);
             if (head?.Length == PurgeCheckpointLength)
                 throw new InvalidOperationException("The Algorand record is fenced for permanent deletion.");
-            using var codec = new EncryptedRecordCodec(settings.StorageKey);
+            using var codec = new EncryptedRecordCodec(settings.StorageKey, compress: kind == "avatar-detail");
             var current = head == null ? null : (await ReadStoredRecordAsync<TRecord>(settings, id, key,
                 head, codec, kind, token).ConfigureAwait(false)).Record;
             if ((current?.Version ?? 0) != expectedVersion)
