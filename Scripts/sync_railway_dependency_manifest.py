@@ -23,14 +23,14 @@ GITLINKS = {
 }
 
 
-def gitlink_commit(path: str, source: str, commit_ref: str | None = None) -> str:
+def gitlink_commit(path: str, source: str) -> str:
     # HEAD/index modes resolve the parent gitlink and are safe for uninitialized
     # submodules. Working-tree mode is explicit and is only used after a workflow
     # has initialized and advanced every submodule checkout.
     if source == "working-tree":
         command = ["git", "-C", path, "rev-parse", "HEAD"]
     else:
-        tree = commit_ref or ("HEAD" if source == "head" else "")
+        tree = "HEAD" if source == "head" else ""
         command = ["git", "rev-parse", f"{tree}:{path}"]
 
     result = subprocess.run(
@@ -45,6 +45,31 @@ def gitlink_commit(path: str, source: str, commit_ref: str | None = None) -> str
     if not re.fullmatch(r"[0-9a-f]{40}", commit):
         raise RuntimeError(f"Gitlink {path} returned an invalid commit: {commit}")
     return commit
+
+
+def candidate_gitlinks(commit_ref: str) -> dict[str, str]:
+    result = subprocess.run(
+        ["git", "ls-tree", "-z", "--full-tree", commit_ref, "--", *GITLINKS.values()],
+        cwd=ROOT,
+        encoding="utf-8",
+        capture_output=True,
+    )
+    if result.returncode:
+        raise RuntimeError(f"Cannot read candidate gitlinks: {result.stderr.strip()}")
+
+    pins = {}
+    for entry in result.stdout.split("\0"):
+        if not entry:
+            continue
+        fields, path = entry.split("\t", 1)
+        mode, object_type, object_id = fields.split()
+        if mode != "160000" or object_type != "commit" or not re.fullmatch(r"[0-9a-f]{40}", object_id):
+            raise RuntimeError(f"Candidate path {path} is not a valid gitlink")
+        pins[path] = object_id
+    missing = set(GITLINKS.values()) - pins.keys()
+    if missing:
+        raise RuntimeError(f"Candidate missing gitlinks: {', '.join(sorted(missing))}")
+    return pins
 
 
 def main() -> int:
@@ -84,8 +109,9 @@ def main() -> int:
         else:
             updated = MANIFEST.read_text(encoding="utf-8")
 
+        pins = candidate_gitlinks(args.check_ref) if args.check_ref else None
         for key, path in GITLINKS.items():
-            commit = gitlink_commit(path, args.source, args.check_ref)
+            commit = pins[path] if pins is not None else gitlink_commit(path, args.source)
             pattern = re.compile(rf"(?m)^{re.escape(key)}=([0-9a-f]{{40}})$")
             match = pattern.search(updated)
             if not match:
