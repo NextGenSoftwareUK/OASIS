@@ -99,6 +99,29 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         var selected = await CosmicGroupedExecutor.ExecuteAsync(distinct.Result, new[] { adapter });
         Assert.IsFalse(selected.IsError, selected.Message + selected.Exception);
         CollectionAssert.AreEqual(new object[] { 1 }, selected.Result.Providers.Single().Rows.Single().Values.ToArray());
+        request.Filters[0].Value = JsonSerializer.SerializeToElement(new[] { ids[0], ids[1], ids[3] });
+        request.Keys = new[]
+        {
+            new CqlProjectionColumn { MetadataPath = new[] { "i64" }, ValueType = "Int64", Nullable = true, Alias = "ExactValue" }
+        };
+        request.Columns = new[] { new CqlGroupedColumn { Alias = "ExactValue", KeyAlias = "ExactValue" } };
+        request.ResultTake = 5;
+        var metadataDistinct = CosmicGroupedPlanner.Plan(CqlCompiler.CompileGrouped(request, actor, provider), provider, target);
+        Assert.IsFalse(metadataDistinct.IsError, metadataDistinct.Message);
+        var metadataRows = await CosmicGroupedExecutor.ExecuteAsync(metadataDistinct.Result, new[] { adapter });
+        Assert.IsFalse(metadataRows.IsError, metadataRows.Message + metadataRows.Exception);
+        CollectionAssert.AreEquivalent(new object[] { 9007199254740992L, 9007199254740993L },
+            metadataRows.Result.Providers.Single().Rows.Select(row => row.Values.Single()).ToArray());
+
+        request.OrderBy = "Name";
+        request.Columns = new[] { new CqlGroupedColumn { Alias = "Count", Operation = "LongCount" } };
+        var metadataCount = CosmicGroupedPlanner.Plan(CqlCompiler.CompileGrouped(request, actor, provider), provider, target);
+        Assert.IsFalse(metadataCount.IsError, metadataCount.Message);
+        var metadataCounts = await CosmicGroupedExecutor.ExecuteAsync(metadataCount.Result, new[] { adapter });
+        Assert.IsFalse(metadataCounts.IsError, metadataCounts.Message + metadataCounts.Exception);
+        CollectionAssert.AreEquivalent(new object[] { 1L, 2L },
+            metadataCounts.Result.Providers.Single().Rows.Select(row => row.Values.Single()).ToArray());
+
         var first = ids[0];
         var second = ids[1];
         var source = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(provider).Result)
@@ -131,9 +154,34 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Assert.IsFalse(exactIntegers.IsError, exactIntegers.Message + exactIntegers.Exception);
         CollectionAssert.AreEqual(new long?[] { 9007199254740993L, null, 9007199254740992L },
             exactIntegers.Result.ToArray());
+        var exactTimes = await fixtureRows.OrderBy(row => row.Name)
+            .Select(row => CosmicQueryMetadata.Value<DateTime?>(row, "distinctUtc"))
+            .Distinct().ToCosmicListAsync();
+        Assert.IsFalse(exactTimes.IsError, exactTimes.Message + exactTimes.Exception);
+        CollectionAssert.AreEqual(new DateTime?[]
+        {
+            new DateTime(638700000000000001L, DateTimeKind.Utc),
+            null,
+            new DateTime(638700000000000002L, DateTimeKind.Utc)
+        }, exactTimes.Result.ToArray());
+        Assert.IsTrue(exactTimes.Result.Where(value => value.HasValue)
+            .All(value => value.Value.Kind == DateTimeKind.Utc));
+        var unsignedIntegers = await fixtureRows.OrderBy(row => row.Name)
+            .Select(row => CosmicQueryMetadata.Value<ulong?>(row, "u64"))
+            .Distinct().ToCosmicListAsync();
+        Assert.IsFalse(unsignedIntegers.IsError, unsignedIntegers.Message + unsignedIntegers.Exception);
+        CollectionAssert.AreEqual(new ulong?[] { ulong.MaxValue, null, ulong.MaxValue - 1 },
+            unsignedIntegers.Result.ToArray());
+
+        var decimals = await fixtureRows.OrderBy(row => row.Name)
+            .Select(row => CosmicQueryMetadata.Value<decimal?>(row, "decimal"))
+            .Distinct().ToCosmicListAsync();
+        Assert.IsFalse(decimals.IsError, decimals.Message + decimals.Exception);
+        CollectionAssert.AreEqual(new decimal?[] { 1.0000000000000000000000000001m, 1m, null },
+            decimals.Result.ToArray());
         Assert.IsFalse(labels.IsError, labels.Message + labels.Exception);
         CollectionAssert.AreEqual(new string?[] { "case", null, "Case" }, labels.Result.ToArray());
 
-        checks.Add(new { provider = provider.ToString(), distinctWire = "native SQL and LINQ Int32, Boolean, Guid and ordinal nullable String" });
+        checks.Add(new { provider = provider.ToString(), distinctWire = "native SQL and LINQ Int32, nullable Int64, Boolean, Guid, ordinal nullable String exact nullable UTC timestamps, nullable UInt64 and exact nullable Decimal" });
     }
 }
