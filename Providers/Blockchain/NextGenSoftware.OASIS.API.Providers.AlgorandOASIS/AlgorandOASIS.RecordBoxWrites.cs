@@ -112,6 +112,8 @@ public partial class AlgorandOASIS
                     ?? throw new InvalidDataException("The Algorand record is missing its discovery descriptor.");
             if (DecodeDiscoveredId(settings, codec, key, descriptor, token) != id)
                 throw new InvalidDataException("The Algorand discovery descriptor identifies a different record.");
+            await EnsureRecordApplicationFundingAsync(settings, head?.Length, envelope.Length,
+                count, descriptor.Length, token).ConfigureAwait(false);
             var digests = new byte[count * HashLength];
             for (var index = 0; index < count; index++)
             {
@@ -160,7 +162,15 @@ public partial class AlgorandOASIS
         using var content = new ByteArrayContent(signed);
         content.Headers.ContentType = new MediaTypeHeaderValue("application/x-binary");
         using var response = await _algod.PostAsync("/v2/transactions", content, cancellationToken).ConfigureAwait(false);
-        response.EnsureSuccessStatusCode();
+        if (!response.IsSuccessStatusCode)
+        {
+            using var rejectedStream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+            using var rejection = await JsonDocument.ParseAsync(rejectedStream, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var reason = rejection.RootElement.GetProperty("message").GetString();
+            if (reason?.Length > 240)
+                reason = reason[..240];
+            throw new HttpRequestException($"Algod rejected record transaction {id}: {reason}", null, response.StatusCode);
+        }
         using var body = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
         using var receipt = await JsonDocument.ParseAsync(body, cancellationToken: cancellationToken).ConfigureAwait(false);
         if (receipt.RootElement.GetProperty("txId").GetString() != id)
@@ -180,6 +190,28 @@ public partial class AlgorandOASIS
                 cancellationToken).ConfigureAwait(false);
         }
         throw new InvalidOperationException($"Confirmation is unresolved for Algorand record transaction {id}.");
+    }
+
+    private async Task EnsureRecordApplicationFundingAsync(AlgorandRecordBoxSettings settings, int? previousHeadLength,
+        int encryptedLength, int chunks, int descriptorLength, CancellationToken cancellationToken)
+    {
+        const int nameLength = 33;
+        const int boxBaseCost = 2500;
+        const int byteCost = 400;
+        const int namedBoxCost = boxBaseCost + byteCost * nameLength;
+        var manifestLength = checked(ManifestHeaderLength + chunks * HashLength);
+        var stagingCost = checked(chunks * namedBoxCost + encryptedLength * byteCost);
+        var publicationCost = checked(namedBoxCost + manifestLength * byteCost +
+            (previousHeadLength.HasValue ? (manifestLength - previousHeadLength.Value) * byteCost :
+                2 * namedBoxCost + (manifestLength + descriptorLength) * byteCost));
+        var required = (ulong)checked(stagingCost + Math.Max(0, publicationCost));
+        var address = AlgorandBoxTransaction.ApplicationAddress(settings.ApplicationId);
+        using var account = await ReadBoxTransactionJsonAsync($"/v2/accounts/{address}?exclude=all",
+            cancellationToken).ConfigureAwait(false);
+        var amount = account.RootElement.GetProperty("amount").GetUInt64();
+        var minimum = account.RootElement.GetProperty("min-balance").GetUInt64();
+        if (amount < minimum || amount - minimum < required)
+            throw new InvalidOperationException("The Algorand application lacks the balance required to publish the encrypted record.");
     }
 
     private async Task<JsonDocument> ReadBoxTransactionJsonAsync(string path, CancellationToken cancellationToken)

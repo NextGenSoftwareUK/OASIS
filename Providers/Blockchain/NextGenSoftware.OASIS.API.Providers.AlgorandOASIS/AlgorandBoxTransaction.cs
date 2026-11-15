@@ -12,6 +12,15 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS;
 
 internal static class AlgorandBoxTransaction
 {
+    internal static string ApplicationAddress(ulong applicationId)
+    {
+        var material = new byte[13];
+        "appID"u8.CopyTo(material);
+        BinaryPrimitives.WriteUInt64BigEndian(material.AsSpan(5), applicationId);
+        var address = Digest(material);
+        return Base32([..address, ..Digest(address).AsSpan(28)]);
+    }
+
     internal static (byte[] Signed, string Id) Sign(
         AlgorandRecordBoxSettings settings, string genesisId, ulong round,
         ulong minimumFee, ulong feePerByte, byte[][] arguments, byte[][] boxes)
