@@ -25,7 +25,7 @@ internal sealed class AxelarPublicBlockClient : IDisposable
         handler.UseProxy = false;
         _client = new HttpClient(handler)
         {
-            BaseAddress = new Uri("https://axelar-rest.publicnode.com/cosmos/base/tendermint/v1beta1/blocks/")
+            BaseAddress = new Uri("https://rest.axelar.posthuman.digital/cosmos/base/tendermint/v1beta1/blocks/")
         };
         _client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
     }
