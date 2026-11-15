@@ -1340,3 +1340,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 - 14 November Cancun time. Native priority latency run 43666138520 passed and removed the temporary SQLite fixture and MongoDB container and volume. Only aggregate timing output was retained in hosted logs. No local builds or artifacts.
 
 - 14 November Cancun time. Native parent-collection latency job removed its temporary SQLite database and MongoDB container and volumes. The hosted dashboard sample used a single sandbox avatar under the existing retirement lifecycle, with credentials and responses only in memory and aggregate timings retained. Development integration required no local build, download, temporary index or extra checkout.
+
+14 November Cancun time. The exact Rune candidate used a temporary Git index that the staging script removed. The hosted error probe used one short-lived sandbox avatar subject to normal expiry. No local build outputs, downloads, fixture files or response captures were created.
