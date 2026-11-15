@@ -30,6 +30,32 @@ public partial class AlgorandOASIS
         return SaveStoredHolonAsync(holon, Math.Max(0, holon.Version - 1));
     }
 
+    public async Task<OASISResult<IHolon>> SoftDeleteStoredHolonAsync(Guid id, Guid deletedByAvatarId,
+        CancellationToken cancellationToken = default)
+    {
+        if (deletedByAvatarId == Guid.Empty)
+            return new OASISResult<IHolon> { IsError = true, Message = "An Algorand deletion requires an avatar ID." };
+        var current = await LoadStoredHolonAsync(id, cancellationToken: cancellationToken).ConfigureAwait(false);
+        if (current.IsError || current.Result == null)
+            return current;
+        if (current.Result.IsDeleted)
+            return new OASISResult<IHolon>(current.Result) { IsDeleted = true, DeletedCount = 0 };
+
+        var version = current.Result.Version;
+        current.Result.DeletedByAvatarId = deletedByAvatarId;
+        current.Result.DeletedDate = DateTime.UtcNow;
+        current.Result.IsActive = false;
+        var published = await SaveStoredHolonAsync(current.Result, version, cancellationToken).ConfigureAwait(false);
+        if (!published.IsError && published.Result != null)
+        {
+            published.IsSaved = false;
+            published.SavedCount = 0;
+            published.IsDeleted = true;
+            published.DeletedCount = 1;
+        }
+        return published;
+    }
+
     public async Task<OASISResult<IHolon>> SaveStoredHolonAsync(IHolon holon, int expectedVersion,
         CancellationToken cancellationToken = default)
     {

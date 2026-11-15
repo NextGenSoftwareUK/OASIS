@@ -11,6 +11,59 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS.IntegrationTests;
 public sealed class AlgorandRecordBoxTests
 {
     [TestMethod]
+    public async Task SoftDeletesStoredHolonWithDurableAuditAndHistory()
+    {
+        var id = Guid.Parse(Required("ID"));
+        var actor = Guid.NewGuid();
+        var storageKey = Convert.FromBase64String(Required("KEY"));
+        var provider = Create(Required("PROGRAM"), storageKey, Convert.FromBase64String(Required("WRITER_SEED")));
+        var active = await provider.ActivateProviderAsync();
+        Assert.IsFalse(active.IsError, active.Message);
+        try
+        {
+            var first = await provider.SaveStoredHolonAsync(new Holon { Id = id, Name = "Owned soft delete", IsActive = true }, 0);
+            Assert.IsFalse(first.IsError, first.Exception?.ToString() ?? first.Message);
+            Assert.IsTrue((await provider.SoftDeleteStoredHolonAsync(id, Guid.Empty)).IsError);
+
+            var deleted = await provider.SoftDeleteStoredHolonAsync(id, actor);
+            Assert.IsFalse(deleted.IsError, deleted.Exception?.ToString() ?? deleted.Message);
+            Assert.IsTrue(deleted.IsDeleted);
+            Assert.AreEqual(1, deleted.DeletedCount);
+            Assert.AreEqual(2, deleted.Result.Version);
+            Assert.AreEqual(first.Result.VersionId, deleted.Result.PreviousVersionId);
+
+            var repeated = await provider.SoftDeleteStoredHolonAsync(id, Guid.NewGuid());
+            Assert.IsFalse(repeated.IsError, repeated.Message);
+            Assert.AreEqual(0, repeated.DeletedCount);
+            Assert.AreEqual(actor, repeated.Result.DeletedByAvatarId);
+            Assert.AreEqual(deleted.Result.VersionId, repeated.Result.VersionId);
+
+            var reader = Create(Required("PROGRAM"), storageKey);
+            Assert.IsFalse((await reader.ActivateProviderAsync()).IsError);
+            try
+            {
+                var current = await reader.LoadStoredHolonAsync(id);
+                Assert.IsFalse(current.IsError, current.Message);
+                Assert.IsTrue(current.Result.IsDeleted);
+                Assert.IsFalse(current.Result.IsActive);
+                Assert.AreEqual(actor, current.Result.DeletedByAvatarId);
+                var original = await reader.LoadStoredHolonAsync(id, version: 1);
+                Assert.IsFalse(original.IsError, original.Message);
+                Assert.IsFalse(original.Result.IsDeleted);
+                Assert.IsTrue(original.Result.IsActive);
+            }
+            finally
+            {
+                await reader.DeActivateProviderAsync();
+            }
+        }
+        finally
+        {
+            await provider.DeActivateProviderAsync();
+        }
+    }
+
+    [TestMethod]
     public async Task PublishesSignedEncryptedRevisionsThroughNativeBoxes()
     {
         var id = Guid.Parse(Required("ID"));

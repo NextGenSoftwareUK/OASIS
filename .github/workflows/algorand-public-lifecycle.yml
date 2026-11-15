@@ -20,7 +20,7 @@ on:
       localnet_case:
         description: Focused signed LocalNet verification
         type: choice
-        options: [batch, indexed_search, storage_contract, storage_provider, storage_writer]
+        options: [batch, indexed_search, storage_contract, storage_provider, storage_writer, storage_delete]
         default: batch
       public_case:
         description: Focused public Indexer verification
@@ -128,10 +128,10 @@ jobs:
             "$owned/venv/bin/python" -B Scripts/TestHosts/Test-AlgorandRecordBoxes.py
             exit
           fi
-          if [[ "$ALGORAND_LOCALNET_CASE" == storage_provider || "$ALGORAND_LOCALNET_CASE" == storage_writer ]]; then
+          if [[ "$ALGORAND_LOCALNET_CASE" == storage_provider || "$ALGORAND_LOCALNET_CASE" == storage_writer || "$ALGORAND_LOCALNET_CASE" == storage_delete ]]; then
             umask 077
             fixture_env="$owned/record-fixture.env"
-            if [[ "$ALGORAND_LOCALNET_CASE" == storage_writer ]]; then
+            if [[ "$ALGORAND_LOCALNET_CASE" != storage_provider ]]; then
               export OASIS_ALGORAND_RECORD_WRITE_TEST=true
             fi
             OASIS_ALGORAND_ENROLLED_FIXTURE_ENV="$fixture_env" "$owned/venv/bin/python" -B Scripts/TestHosts/Test-AlgorandRecordBoxes.py
@@ -140,7 +140,11 @@ jobs:
             set +a
             pwsh -NoProfile -Command '
               ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-AlgorandNativeRecordRead -Operation {
-                $test = if ($env:OASIS_ALGORAND_RECORD_WRITE_TEST -eq "true") { "PublishesSignedEncryptedRevisionsThroughNativeBoxes" } else { "ReadsEncryptedCurrentAndHistoricalRecordsFromNativeBoxes" }
+                $test = switch ($env:ALGORAND_LOCALNET_CASE) {
+                  "storage_writer" { "PublishesSignedEncryptedRevisionsThroughNativeBoxes" }
+                  "storage_delete" { "SoftDeletesStoredHolonWithDurableAuditAndHistory" }
+                  default { "ReadsEncryptedCurrentAndHistoricalRecordsFromNativeBoxes" }
+                }
                 dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.AlgorandOASIS.IntegrationTests" --filter "FullyQualifiedName~$test" /m:2 /nr:false /p:UseSharedCompilation=false
                 if ($LASTEXITCODE -ne 0) { throw "Native record provider verification failed." }
               }'
