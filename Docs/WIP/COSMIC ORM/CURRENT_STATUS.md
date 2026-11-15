@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Live join admission and Atlas Decimal depth confirmed
+
+15 November. Development 807623f716cd accepted exact sandbox-compiled INNER and LEFT queries on MongoDB, SQLite and Neo4j. The read-only demo visitor saw zero visible rows. Populated native joins were previously proved in CI. A direct read-only probe on the Development Atlas database accepted a shallow control and rejected both exact grouped Decimal aggregate expressions with server code 8000 and a nesting-depth indication. Both original expressions reached 56 BSON levels. The proposed preparation, rounding and publication stages measured 36, 37 and 20 levels and Atlas accepted the combined command on the same empty ID scope. Populated numeric regression CI and rollout remain open. The probe reused cached assemblies and created no repository build outputs or downloads.
+
 ## Development join configuration staged
 
 15 November. Railway deployed 232e68a7f98b successfully. The exact join admission CI passed and the Development service configuration now has the metered one-attempt join route. Observed all settings after the scoped write and recorded encrypted local snapshots and a key-only acknowledgment. The installed Railway CLI uses the linked project and plural variables command. No deployment was triggered by staging. The exact join integration candidate a441d6f14902 retains all six peer Free estimate and SOLID paths byte-for-byte. Native protocol and WEB4 image CI were dispatched on that candidate. Live join acceptance awaits the next qualified rollout. The MongoDB grouped Decimal SUM and AVG requests both reproduced 503/CQL_QUERY_FAILED with native server code 8000. The error code alone does not establish the rejected operation.

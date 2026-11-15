@@ -130,20 +130,38 @@ internal sealed partial class MongoCqlTranslator
             page.Add(new("$unset", floatingFields));
         }
         var means = new BsonDocument();
+        var decimalPreparation = new BsonDocument();
+        var decimalRounding = new BsonDocument();
+        var decimalPublication = new BsonDocument();
         for (var index = 0; index < query.Columns.Count; index++)
         {
             var column = query.Columns[index];
             var inputType = column.Selector == null ? null : Nullable.GetUnderlyingType(column.Selector.ValueType) ?? column.Selector.ValueType;
             var decimalInput = inputType == typeof(decimal);
             var floating = inputType == typeof(float) || inputType == typeof(double);
-            if (column.Operation == CosmicScalarOperation.Average)
+            if (decimalInput && column.Operation is CosmicScalarOperation.Sum or CosmicScalarOperation.Average)
+            {
+                var average = column.Operation == CosmicScalarOperation.Average;
+                var output = (average ? "cqlGroupAverage" : "cqlDecimalSum") + index;
+                var parts = new BsonArray(Enumerable.Range(0, CosmicDecimalScalarResults.LimbCount)
+                    .Select(part => (BsonValue)("$a" + index + "d" + part)));
+                AddDecimalAggregate(decimalPreparation, decimalRounding, decimalPublication,
+                    output, parts, "$a" + index + "present", average);
+            }
+            else if (column.Operation == CosmicScalarOperation.Average)
                 means.Add("cqlGroupAverage" + index, floating
                     ? FloatingAggregateValue("$a" + index + "parts", "$a" + index + "present", true, inputType == typeof(float))
-                    : decimalInput ? GroupedDecimalValue(index, average: true) : GroupedAverageValue(index));
+                    : GroupedAverageValue(index));
             else if (column.Operation == CosmicScalarOperation.Sum && floating)
                 means.Add("cqlFloatingSum" + index, FloatingAggregateValue("$a" + index + "parts", "$a" + index + "present", false, inputType == typeof(float)));
-            else if (column.Operation == CosmicScalarOperation.Sum && decimalInput)
-                means.Add("cqlDecimalSum" + index, GroupedDecimalValue(index, average: false));
+        }
+        // Keep the Decimal expressions below hosted BSON nesting limits.
+        if (decimalPublication.ElementCount != 0)
+        {
+            page.Add(new("$set", decimalPreparation));
+            page.Add(new("$set", decimalRounding));
+            page.Add(new("$set", decimalPublication));
+            page.Add(new("$unset", new BsonArray(decimalPreparation.Names.Concat(decimalRounding.Names))));
         }
         if (means.ElementCount != 0) page.Add(new("$set", means));
         // Compute global participation before the group output sentinel. Neither
@@ -199,7 +217,7 @@ internal sealed partial class MongoCqlTranslator
                 : Literal(true)))));
         page.Add(new("$sort", sort));
         page.Add(new("$limit", maximumGroups + 1));
-        page.Add(new("$unset", new BsonArray(sortFields.Names.Concat(means.Names).Concat(new[] { "cqlGroupPosition", "cqlGroupFilter" }))));
+        page.Add(new("$unset", new BsonArray(sortFields.Names.Concat(means.Names).Concat(decimalPublication.Names).Concat(new[] { "cqlGroupPosition", "cqlGroupFilter" }))));
         if (traverses) FinishDescendantEnvelope(source, page); else source.AddRange(page);
         ValidatePipeline(source);
         var membership = query.Source.Predicates.Any(p => p is CosmicQueryAnyChild || p is CosmicQueryAnyDescendant);
