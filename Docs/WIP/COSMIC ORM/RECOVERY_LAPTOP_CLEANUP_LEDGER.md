@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+15 November Cancun. Populated grouped LIKE acceptance deleted all six private fixture records and verified exact CQL absence. Compact local journal at LocalState/COSMIC/HostedCqlPopulatedLike-fdd9df3e/operations.jsonl. Reused installed runtimes and retained session. No local builds, downloads, database copies or results bundle.
+
 15 November Cancun. Six private grouped HAVING fixture rows were hard-deleted and verified absent by exact ID through live CQL. The compact local acknowledgement journal is LocalState/COSMIC/HostedCqlPopulatedHaving-fdd9df3e/operations.jsonl. This reused the existing Development visitor and installed runtimes. No downloads, temporary runtime directories, database copies, repository build output or local results bundle.
 
 15 November Cancun. Populated WEB4 join acceptance used the retained Development test visitor. Six private native fixture rows were hard-deleted and independently checked absent by exact CQL ID. The compact LocalState/COSMIC/HostedCqlPopulatedJoins-807623f7/operations.jsonl journal records acknowledgments and stays local. The verifier ran from memory with installed Node and Python. No downloads, runtime, database copies, build output or test-result bundles. Retain the protected visitor for pending acceptance.

@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Populated grouped LIKE verified
+
+15 November. Web4Site 80ecfac3cb77 compiled escaped LIKE on a text grouping alias. Development fdd9df3ee6e8 distinguished the percent-sign record from the near-match on MongoDB, SQLite and Neo4j. The complementary prefix query selected the near-match. The six client-to-HTTP samples were 538, 802, 766, 818, 758 and 657 ms across the three stores, with one sample per query. All six owned records were deleted and verified absent through exact CQL IDs. [Protected preview](https://web4-site-prykceoik-oasis-team.vercel.app/web4-sandbox.html)
+
 ## Verified Decimal revision queued on Development
 
 15 November. Development advanced from fdd9df3ee6e8 to dc24072806f6 after the exact protocol and WEB4 image checks passed. Railway queued deployment 8ca9ad1d at 17:54:16 UTC, 31 minutes and 20 seconds after the previous WEB4 deployment was created. The exact empty-scope and populated MongoDB Decimal checks are waiting for successful cutover. The separate native three-store regression completed successfully.
