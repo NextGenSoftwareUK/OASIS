@@ -23,9 +23,14 @@ public interface ICqlHostedSourceRegistry
     Task ActivateReadSourceAsync(ProviderType provider, CancellationToken cancellationToken);
 }
 
+public sealed record CqlHostedTextKeyProfile(string MetadataKey, int MaximumKeyCharacters, int MaximumSetKeys);
+
 public sealed record CqlHostedSourceDescription(string Provider, bool QueryOnly, bool Available,
     bool FederationAvailable, string Features, string ErrorCode, IReadOnlyList<CqlHostedQueryExample> Examples = null,
-    long ActivationGeneration = 0, Guid ActivationHostInstance = default);
+    long ActivationGeneration = 0, Guid ActivationHostInstance = default)
+{
+    public CqlHostedTextKeyProfile TextKeyProfile { get; init; }
+}
 
 public sealed record CqlSourceRecoveryResult(string Provider, Guid OperationId,
     long Generation, bool Available, string ErrorCode, Guid HostInstanceId);
@@ -201,9 +206,15 @@ public sealed class CqlHostedSources : BackgroundService
                         false, null, "CQL_DEMO_EXAMPLE_UNSUPPORTED");
                 }
             }
+            var capabilities = adapter?.QueryCapabilities;
+            var point = capabilities?.StringPointLookup;
+            var textKeyProfile = queryOnly.Contains(type) && point != null
+                ? new CqlHostedTextKeyProfile(point.MetadataKey, Math.Min(point.MaximumKeyCharacters, 512),
+                    capabilities.StringKeySetLookup?.MaximumKeys ?? 0)
+                : null;
             return new CqlHostedSourceDescription(type.ToString(), queryOnly.Contains(type), available,
-                available && CqlV1Compiler.SupportedReadProfile(type), available ? adapter.QueryCapabilities.Features.ToString() : null,
-                available ? null : "CQL_SOURCE_NOT_READY", selected);
+                available && CqlV1Compiler.SupportedReadProfile(type), capabilities?.Features.ToString(),
+                available ? null : "CQL_SOURCE_NOT_READY", selected) { TextKeyProfile = textKeyProfile };
         }).Select(row => row with { ActivationHostInstance = HostInstanceId, ActivationGeneration =
             Enum.TryParse<ProviderType>(row.Provider, out var type) && activationStates.TryGetValue(type, out var state)
                 ? Interlocked.Read(ref state.Generation) : 0 }).ToArray();
