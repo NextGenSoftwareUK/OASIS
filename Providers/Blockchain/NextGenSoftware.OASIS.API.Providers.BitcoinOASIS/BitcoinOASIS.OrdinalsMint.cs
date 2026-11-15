@@ -213,20 +213,24 @@ public partial class BitcoinOASIS
 
     private static TapScript CreateOrdinalTapScript(TaprootInternalPubKey publicKey, byte[] content)
     {
-        var operations = new List<Op>
-        {
+        var envelope = new Script(
             Op.GetPushOp(publicKey.ToBytes()),
             OpcodeType.OP_CHECKSIG,
             OpcodeType.OP_0,
             OpcodeType.OP_IF,
-            Op.GetPushOp(Encoding.ASCII.GetBytes("ord")),
-            new Op { Code = (OpcodeType)1, PushData = new byte[] { 1 } },
+            Op.GetPushOp(Encoding.ASCII.GetBytes("ord")));
+        var fields = new List<Op>
+        {
             Op.GetPushOp(Encoding.ASCII.GetBytes("application/json")),
             OpcodeType.OP_0
         };
         foreach (var chunk in content.Chunk(520))
-            operations.Add(Op.GetPushOp(chunk));
-        operations.Add(OpcodeType.OP_ENDIF);
-        return new TapScript(new Script(operations), TapLeafVersion.C0);
+            fields.Add(Op.GetPushOp(chunk));
+        fields.Add(OpcodeType.OP_ENDIF);
+
+        // The content-type tag is a byte push, as in ord's canonical inscription envelope.
+        byte[] contentTypeTag = [0x01, 0x01];
+        byte[] scriptBytes = [.. envelope.ToBytes(), .. contentTypeTag, .. new Script(fields).ToBytes()];
+        return new TapScript(new Script(scriptBytes), TapLeafVersion.C0);
     }
 }
