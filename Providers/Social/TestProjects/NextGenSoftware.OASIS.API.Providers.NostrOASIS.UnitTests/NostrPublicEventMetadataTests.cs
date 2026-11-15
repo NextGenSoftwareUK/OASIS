@@ -25,7 +25,7 @@ public sealed class NostrPublicEventMetadataTests
     [DataRow("all")] [DataRow("subset")] [DataRow("point")] [DataRow("page")]
     [DataRow("missing")] [DataRow("duplicate")] [DataRow("unexpected")] [DataRow("tampered")]
     [DataRow("cancel")] [DataRow("budget")] [DataRow("unknown")] [DataRow("inactive")]
-    [DataRow("empty-page-tampered")]
+    [DataRow("empty-page-tampered")] [DataRow("tampered-signature")]
     public async Task ControlledQueryRequiresCompleteVerifiedSelection(string scenario)
     {
         var native = Events(); var keys = native.Select(Id).ToArray(); string fault = ""; int calls = 0;
@@ -39,6 +39,13 @@ public sealed class NostrPublicEventMetadataTests
             if (fault is "tampered" or "empty-page-tampered")
             {
                 var value = JsonNode.Parse(rows[0])!; value["content"] = "tampered"; rows[0] = value.ToJsonString();
+            }
+            if (fault == "tampered-signature")
+            {
+                var value = JsonNode.Parse(rows[0])!;
+                var signature = value["sig"]!.GetValue<string>();
+                value["sig"] = (signature[0] == '0' ? "1" : "0") + signature[1..];
+                rows[0] = value.ToJsonString();
             }
             return Task.FromResult<IReadOnlyList<string>>(rows);
         }
@@ -65,6 +72,7 @@ public sealed class NostrPublicEventMetadataTests
         var result = await source.ExecuteCosmicQueryAsync(plan.Result, scenario == "budget" ? 2 : 100, cancellation.Token);
         if (scenario is "all" or "subset" or "point" or "page")
         {
+            Assert.AreEqual(1, calls, "Warm queries must still read the current relay response.");
             Assert.IsFalse(result.IsError, result.Exception?.ToString());
             Assert.AreEqual(scenario is "point" or "page" ? 1 : scenario == "subset" ? 2 : 3, result.Result.Count);
             Assert.AreEqual(scenario == "page" ? keys[1] : keys[0], result.Result[0].MetaData["NostrEventId"]);

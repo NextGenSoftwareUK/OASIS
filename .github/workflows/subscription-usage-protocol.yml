@@ -96,6 +96,13 @@ jobs:
             dotnet test 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.CrossChain.ProtocolTests' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~AxelarProtocolTests|FullyQualifiedName~ConnextPublicOriginMetadataTests.ExactKeyQueryReturnsCompleteOrderedRowsOrFails'
             if ($LASTEXITCODE) { throw 'Axelar and Connext native protocol verification failed.' }
           }
+      - name: Verify Nostr cached signature integrity and live-reader contract
+        shell: pwsh
+        run: |
+          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner nostr-cql-ci -Operation {
+            dotnet test 'Providers/Social/TestProjects/NextGenSoftware.OASIS.API.Providers.NostrOASIS.UnitTests' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~NostrPublicEventMetadataTests'
+            if ($LASTEXITCODE) { throw 'Nostr public event verification failed.' }
+          }
       - name: Verify shipping Hedera public account response contract
         shell: pwsh
         run: |
