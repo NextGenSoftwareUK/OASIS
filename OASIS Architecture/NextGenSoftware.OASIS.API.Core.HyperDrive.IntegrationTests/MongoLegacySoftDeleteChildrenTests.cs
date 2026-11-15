@@ -54,7 +54,7 @@ public sealed class MongoLegacySoftDeleteChildrenTests
                     : byKey ? await manager.DeleteHolonAsync(key, actor) : await manager.DeleteHolonAsync(root.Id, actor);
                 Assert.False(deleted.IsError, deleted.Message);
                 var stored = await records.Find(row => row.HolonId == root.Id).SingleAsync();
-                Assert.Equal(actor, stored.DeletedByAvatarId);
+                Assert.Equal(actor.ToString(), stored.DeletedByAvatarId);
                 Assert.Equal(child.Id, Assert.Single(stored.Children).Id);
             }
         }
