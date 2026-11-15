@@ -981,3 +981,9 @@ Open 13 November. Approve the Vercel OASIS team access request when a fresh one-
 
 - File: ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/wallets.jsonwallets_83dfa5f8-7e19-4937-a09b-ed70d84fb160.json
 - Status: open. Scope limited to identifying the tracked export.
+
+### Blockscout Universal API credential for Development CQL
+
+- Status on 15 November 2026 UTC. Open. Current Development settings and this laptop have no dedicated Blockscout key in the checked locations.
+- Use the [Blockscout developer portal](https://dev.blockscout.com/) to create or identify a dedicated Universal API key on the free plan. Set it privately in the Development WEB4 OASIS API service as CQL_BLOCKSCOUT_API_KEY. Please stage the setting without deploying and share only completion or the location of existing private configuration. Keep the key out of chat and source control.
+- Reason. [Blockscout deprecated per-instance API support](https://docs.blockscout.com/devs/apis). The monitored address and Connext log readers need the supported authenticated route. Engineering owns migration, identity preservation, exact live verification and performance checks.
