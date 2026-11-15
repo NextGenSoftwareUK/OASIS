@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Axelar SQL and Ask Your Data coverage
+
+Web4Site 2d9cd171a41d adds Axelar block heights to the text editor and discovery-scoped WEB6 drafting instructions. One equality or IN filter is required and a set may contain up to eight distinct quoted positive Int64 keys. All 195 frontend tests passed and [preview 7802928244](https://web4-site-auxpu7x0r-oasis-team.vercel.app/web4-sandbox.html) built. Against the serving Development catalogue, the exact editor compiled matching provider, key filter, order, metadata flag and limit for the three-record and two-record preset. This comparison made no Axelar query requests. Railway 1899923d is building CQL 55c1c2056c55; its direct/federated results and timing are still pending. The latest preview also has the metadata-presence editor and needs its matching WEB4 API before that syntax is live.
+
 ## Shared Development coordination with HyperDrive Gifts
 
 The 55c1c2056c55 image run 43707323885 passed exact qualification. After the shared window elapsed, Development advanced from 78eae0988824 to 55c1c2056c55. Railway WEB4 deployment 1899923d was queued. The exact live verifier is watching its rollout for direct and federated Axelar, signed Int64 bounds on all three priority stores, and source readiness. HyperDrive is qualifying 2d616be42746 for Gifts and Checkout redirects. The two parent batches overlap only on the API Core gitlink and dependency manifest. Their Core revisions 8ea1efdce998 and 24cd4d4383c7 have disjoint source paths. A local merge-tree check produced abfcce3ee177 and verified its exact diff against both owners. Integrate against whichever revision actually reaches Development first and qualify the resulting pins before the next deployment. No combined Core ref or shared deployment was published by this check.
