@@ -1,10 +1,15 @@
 import base64
 import hashlib
+import hmac
+import json
+import os
 import secrets
+import uuid
 from pathlib import Path
 
 from algosdk import error, kmd, logic, transaction
 from algosdk.v2client import algod
+from Cryptodome.Cipher import AES
 
 
 TOKEN = "a" * 64
@@ -72,6 +77,48 @@ def run(node, wallet, handle, writer, outsider):
         box = node.application_box_by_name(app, name)
         assert base64.b64decode(box["name"], validate=True) == name
         return base64.b64decode(box["value"], validate=True)
+
+    if destination := os.environ.get("OASIS_ALGORAND_ENROLLED_FIXTURE_ENV"):
+        fixture = uuid.uuid4()
+        storage_key = secrets.token_bytes(32)
+        key = hmac.digest(storage_key, f"oasis:algorand:box:v1:holon:{fixture}".encode(), "sha256")
+        genesis = node.suggested_params().gh
+        head = b"h" + key
+        predecessor = bytes(32)
+        for version in (1, 2):
+            revision = secrets.token_bytes(32)
+            format_name = "oasis-aes256gcm-v1:"
+            context = f"oasis:algorand:v1:{genesis}:{app}:holon:{fixture}:{revision.hex().upper()}"
+            nonce = secrets.token_bytes(12)
+            cipher = AES.new(storage_key, AES.MODE_GCM, nonce=nonce)
+            cipher.update((format_name + context).encode("utf-8"))
+            payload = json.dumps({
+                "Id": str(fixture), "Version": version, "Name": f"Native version {version}",
+                "Description": "native fixture " * 62,
+            }).encode("utf-8")
+            ciphertext, tag = cipher.encrypt_and_digest(payload)
+            envelope = format_name.encode("ascii") + base64.b64encode(nonce + tag + ciphertext)
+            chunks = [envelope[index:index + 896] for index in range(0, len(envelope), 896)]
+            names = [chunk_name(key, revision, index) for index in range(len(chunks))]
+            for index, (name, chunk) in enumerate(zip(names, chunks, strict=True)):
+                submit(call(writer, [b"stage", key, revision, index.to_bytes(8, "big"), chunk], [name]))
+            hashes = b"".join(digest(chunk) for chunk in chunks)
+            submit(call(writer, [b"publish", key, predecessor, revision, hashes],
+                        [head, manifest_name(key, revision), *names]))
+            predecessor = digest(read(head))
+
+        with open(destination, "w", encoding="utf-8") as output:
+            for name, value in {
+                "OASIS_ALGORAND_RECORD_APP": app,
+                "OASIS_ALGORAND_RECORD_GENESIS": genesis,
+                "OASIS_ALGORAND_RECORD_WRITER": writer,
+                "OASIS_ALGORAND_RECORD_PROGRAM": digest(approval).hex(),
+                "OASIS_ALGORAND_RECORD_KEY": base64.b64encode(storage_key).decode("ascii"),
+                "OASIS_ALGORAND_RECORD_ID": fixture,
+            }.items():
+                output.write(f"{name}={value}\n")
+        print("Published two encrypted revisions in the owned LocalNet application.")
+        return
 
     key = secrets.token_bytes(32)
     first_revision = secrets.token_bytes(32)

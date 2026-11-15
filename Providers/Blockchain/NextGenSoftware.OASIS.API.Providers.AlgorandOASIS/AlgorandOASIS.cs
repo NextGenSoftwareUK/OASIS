@@ -30,7 +30,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
     /// Avatar provider key = Algorand account address (58-char Base32 string).
     /// Holon provider key  = transaction ID (Base32 string).
     /// </summary>
-    public class AlgorandOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider
+    public partial class AlgorandOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider
     {
         private readonly HttpClient _algod;
         private readonly HttpClient _indexer;
@@ -48,11 +48,18 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
         }
 
         public AlgorandOASIS(string algodUrl, string indexerUrl, string algodApiToken, string indexerApiToken)
+            : this(algodUrl, indexerUrl, algodApiToken, indexerApiToken, null)
+        {
+        }
+
+        public AlgorandOASIS(string algodUrl, string indexerUrl, string algodApiToken, string indexerApiToken,
+            AlgorandRecordBoxSettings? recordBoxes)
         {
             _algodUrl = (algodUrl ?? "https://mainnet-api.algonode.cloud").TrimEnd('/');
             _indexerUrl = (indexerUrl ?? "https://mainnet-idx.algonode.cloud").TrimEnd('/');
             _algod = CreateClient(_algodUrl, "X-Algo-API-Token", algodApiToken);
             _indexer = CreateClient(_indexerUrl, "X-Indexer-API-Token", indexerApiToken);
+            _recordBoxes = recordBoxes;
 
             ProviderName = "AlgorandOASIS";
             ProviderDescription = "Algorand pure-PoS blockchain provider";
@@ -93,6 +100,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
                 var index = await indexer.ConfigureAwait(false);
                 if (algodNetwork.Id != index.GenesisId || algodNetwork.Hash != index.GenesisHash)
                     throw new InvalidOperationException("Algod and Indexer identify different Algorand networks.");
+                if (_recordBoxes != null)
+                    await VerifyRecordApplicationAsync(_recordBoxes, algodNetwork.Hash).ConfigureAwait(false);
                 IsProviderActivated = true;
                 result.Result = true;
                 result.Message = $"AlgorandOASIS activated. Algod round {algodRound} at {_algodUrl}. Indexed round {index.Round} at {_indexerUrl}.";
