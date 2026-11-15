@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Shared Development candidate with HyperDrive changes
+
+15 November. Scalar Distinct candidate a0ceae1c6941 is based on HyperDrive 12b4c2a109c4, which includes the Stripe plan catalogue and native Gifts statistics. The ten CQL files and five peer files are disjoint. Each side matches its original candidate byte-for-byte. Exact [combined protocol CI 43721215988](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43721215988) is in progress. HyperDrive also has monthly usage candidate c0ad75596857 qualifying on the same peer base. Reconcile the serving Development revision before any integration. Discovery deployment c9b576a1 is exporting its image in Railway; the read-only live discovery verifier is active.
+
 ## SQL grouped aggregate aliases
 
 15 November. Web4Site dfc77ca9be37 allows implicit grouped aggregate labels. All 59 focused editor tests passed. Development WEB4 6ef92492c26e accepted the exact compiled COUNT and AVG with HAVING and ORDER BY on MongoDB, SQLite and Neo4j. The implicit form compiled identically to the explicit labels. The retained visitor returned zero rows. [Protected preview 7804323125](https://web4-site-cbjomzo3y-oasis-team.vercel.app/web4-sandbox.html) built. Signed-in browser acceptance and populated live coverage remain open. The disposable parser test snapshot was removed.
