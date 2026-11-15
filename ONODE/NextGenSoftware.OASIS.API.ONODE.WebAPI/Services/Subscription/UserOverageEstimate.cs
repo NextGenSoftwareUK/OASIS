@@ -19,6 +19,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
     /// <summary>Pure maths for the Usage and billing estimate. Request charges only: AI cost above the included budget is not estimated.</summary>
     public static class UserOverageEstimate
     {
+        public static UserOverageEstimateResult ComputeForPlan(string planId, long monthRequests, long includedLimit,
+            decimal monthlyCapUsd, DateTime nowUtc)
+        {
+            var rate = planId == "free" ? 0m : PaidOveragePricing.Load().Rate(planId);
+            return Compute(monthRequests, includedLimit, rate, monthlyCapUsd, nowUtc);
+        }
+
         public static UserOverageEstimateResult Compute(long monthRequests, long includedLimit, decimal ratePerRequestUsd, decimal monthlyCapUsd, DateTime nowUtc)
         {
             var days = DateTime.DaysInMonth(nowUtc.Year, nowUtc.Month);

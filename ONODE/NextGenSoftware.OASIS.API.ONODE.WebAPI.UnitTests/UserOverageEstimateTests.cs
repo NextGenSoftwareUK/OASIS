@@ -30,6 +30,26 @@ public sealed class UserOverageEstimateTests
     }
 
     [Fact]
+    public void FreePlanProjectsUsageWithoutRequiringAPaidRate()
+    {
+        var result = UserOverageEstimate.ComputeForPlan("free", 12_000, 30_000, 0m,
+            new DateTime(2026, 11, 10, 9, 0, 0, DateTimeKind.Utc));
+        Assert.Equal(36_000, result.ProjectedMonthRequests);
+        Assert.Equal(0m, result.RatePerRequestUsd);
+        Assert.Equal(0m, result.Projected.ChargedUsd);
+    }
+
+    [Fact]
+    public void PaidPlanEstimateUsesThePublishedRate()
+    {
+        var result = UserOverageEstimate.ComputeForPlan("bronze", 12_000, 30_000, 50m,
+            new DateTime(2026, 11, 10, 9, 0, 0, DateTimeKind.Utc));
+        var rate = PaidOveragePricing.Load().Rate("bronze");
+        Assert.Equal(rate, result.RatePerRequestUsd);
+        Assert.Equal(6_000 * rate, result.Projected.ChargedUsd);
+    }
+
+    [Fact]
     public void NoPriceOrUnlimitedPlanMeansNothingOwed()
     {
         Assert.Equal(0m, UserOverageEstimate.Compute(999_999, 30_000, 0m, 50m, DateTime.UtcNow).Projected.ChargedUsd);

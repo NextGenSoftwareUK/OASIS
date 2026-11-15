@@ -50,8 +50,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 var summary = await _subscriptions.GetUsageSummaryAsync(userId, karma, HttpContext.RequestAborted);
                 var policy = SubscriptionService.GetUsagePolicy(summary.PlanId ?? "free", karma);
                 var record = await _repository.GetSubscriptionAsync(userId, HttpContext.RequestAborted);
-                var pricing = PaidOveragePricing.Load();
-                var estimate = UserOverageEstimate.Compute(summary.MonthlyRequests, Math.Max(0, policy.MonthlyRequestLimit), pricing.Rate(summary.PlanId ?? "free"), record?.MonthlyOverageLimitUsd ?? 0, DateTime.UtcNow);
+                var estimate = UserOverageEstimate.ComputeForPlan(summary.PlanId ?? "free", summary.MonthlyRequests,
+                    Math.Max(0, policy.MonthlyRequestLimit), record?.MonthlyOverageLimitUsd ?? 0, DateTime.UtcNow);
                 return new { planId = summary.PlanId, estimate, payAsYouGoEnabled = PaidOveragePricing.HasConsent(record), capUsd = record?.MonthlyOverageLimitUsd ?? 0, aiNote = "AI usage above your included AI budget is billed separately at cost and is not part of this estimate." };
             });
         }
