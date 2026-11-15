@@ -1,5 +1,7 @@
 # Current provider status
 
+15 November Cancun time. Gifts summary authorization passed WEB4 HTTP run 43700638886. The Files image remains in progress. The NFT transfer API now binds a token address and the exact owned sender wallet, with recipient lookup on the same provider. Focused request verification and native NFT transfer acceptance remain open.
+
 15 November Cancun time. OPORTAL f8148ae connects the NFT mint form to the bundled WEB4 SDK. The server already enforces the Wizard role and the task branch now names that requirement accurately. Loopback verified request, role rejection and receipt rendering. Funded chain acceptance and NFT transfer wiring remain open.
 
 15 November Cancun time. Native Files job 132769873632 passed description persistence in both MongoDB and SQLite with one test and no skips. Gifts summary HTTP authorization is queued in run 43700638886. Hosted description binding awaits a deployment containing the controller change.

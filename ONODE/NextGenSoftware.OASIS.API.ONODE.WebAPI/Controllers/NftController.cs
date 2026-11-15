@@ -12,6 +12,8 @@ using NextGenSoftware.OASIS.API.Core.Objects.NFT.Request;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
+using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers;
 using NextGenSoftware.OASIS.Common;
@@ -354,40 +356,66 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public async Task<OASISResult<ISendWeb4NFTResponse>> SendNFTAsync(Models.NFT.NFTWalletTransactionRequest request)
         {
             if (Avatar?.AvatarType.Value != AvatarType.Wizard)
-                return new OASISResult<ISendWeb4NFTResponse>() { IsError = true, Message = "NFT sending requires an active subscription. Please upgrade to a paid plan to use this feature." };
+                return NFTTransferError("NFT sending requires the Wizard avatar role.");
+            if (request == null || string.IsNullOrWhiteSpace(request.TokenAddress) ||
+                string.IsNullOrWhiteSpace(request.FromWalletAddress) || request.Amount <= 0 ||
+                string.IsNullOrWhiteSpace(request.ToWalletAddress) == string.IsNullOrWhiteSpace(request.ToAvatarUsername))
+                return NFTTransferError("Specify the NFT token address, sending wallet, positive amount and one recipient.");
+            if (!Enum.TryParse<ProviderType>(request.FromProvider, out var fromProvider) ||
+                !Enum.IsDefined(typeof(ProviderType), fromProvider) ||
+                fromProvider is ProviderType.None or ProviderType.Default or ProviderType.All ||
+                !Enum.TryParse<ProviderType>(request.ToProvider, out var toProvider) || fromProvider != toProvider)
+                return NFTTransferError("Choose the same concrete blockchain provider for both wallets.");
 
-            ProviderType fromProviderType = ProviderType.None;
-            ProviderType toProviderType = ProviderType.None;
-            Object fromProviderTypeObject = null;
-            Object toProviderTypeObject = null;
+            var walletManager = WalletManager.Instance;
+            var owned = await walletManager.LoadProviderWalletsForAvatarByIdAsync(AvatarId,
+                providerTypeToShowWalletsFor: fromProvider);
+            if (owned.IsError)
+                return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<Dictionary<ProviderType, List<IProviderWallet>>, ISendWeb4NFTResponse>(owned);
+            var sender = WalletsFor(owned.Result, fromProvider)
+                .Where(wallet => wallet != null && string.Equals(wallet.WalletAddress, request.FromWalletAddress.Trim(), StringComparison.Ordinal))
+                .Take(2).ToArray();
+            if (sender.Length != 1)
+                return NFTTransferError("The sending wallet must belong to the current avatar.");
 
-            if (Enum.TryParse(typeof(ProviderType), request.FromProvider, out fromProviderTypeObject))
-                fromProviderType = (ProviderType)fromProviderTypeObject;
-            else
-                return new OASISResult<ISendWeb4NFTResponse>() { IsError = true, Message = $"The FromProvider is not a valid OASIS NFT Provider. It must be one of the following:  {EnumHelper.GetEnumValues(typeof(ProviderType), EnumHelperListType.ItemsSeperatedByComma)}" };
-
-
-            if (Enum.TryParse(typeof(ProviderType), request.ToProvider, out toProviderTypeObject))
-                toProviderType = (ProviderType)toProviderTypeObject;
-            else
-                return new OASISResult<ISendWeb4NFTResponse>() { IsError = true, Message = $"The ToProvider is not a valid OASIS Storage Provider. It must be one of the following:  {EnumHelper.GetEnumValues(typeof(ProviderType), EnumHelperListType.ItemsSeperatedByComma)}" };
-
-            API.Core.Objects.NFT.Requests.SendWeb4NFTRequest nftRequest = new API.Core.Objects.NFT.Requests.SendWeb4NFTRequest()
+            var recipientAddress = request.ToWalletAddress?.Trim();
+            if (!string.IsNullOrWhiteSpace(request.ToAvatarUsername))
             {
-                 //MintWalletAddress = request.MintWalletAddress,
-                 FromWalletAddress = request.FromWalletAddress,
-                 ToWalletAddress = request.ToWalletAddress,
-                 FromProvider = new EnumValue<ProviderType>(fromProviderType),
-                 ToProvider = new EnumValue<ProviderType>(toProviderType),
-                 Amount = request.Amount,
-                 MemoText = request.MemoText,
-                 WaitTillNFTSent = request.WaitTillNFTSent,
-                 WaitForNFTToSendInSeconds = request.WaitForNFTToSendInSeconds,
-                 AttemptToSendNFTEveryXSeconds = request.AttemptToSendEveryXSeconds
-            };
+                var resolved = await walletManager.LoadProviderWalletsForAvatarByUsernameAsync(request.ToAvatarUsername.Trim(),
+                    providerTypeToShowWalletsFor: toProvider);
+                if (resolved.IsError)
+                    return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<Dictionary<ProviderType, List<IProviderWallet>>, ISendWeb4NFTResponse>(resolved);
+                var wallets = WalletsFor(resolved.Result, toProvider)
+                    .Where(wallet => wallet != null && !string.IsNullOrWhiteSpace(wallet.WalletAddress)).ToArray();
+                var candidates = wallets.Length == 1 ? wallets : wallets.Where(wallet => wallet.IsDefaultWallet).Take(2).ToArray();
+                if (candidates.Length != 1)
+                    return NFTTransferError("The recipient needs one wallet or a unique default wallet for this provider.");
+                recipientAddress = candidates[0].WalletAddress;
+            }
 
-            return await NFTManager.SendNFTAsync(AvatarId, nftRequest);
+            var tokenAddress = request.TokenAddress.Trim();
+            var submitted = await sender[0].SendNFTAsync(new SendWeb3NFTRequest
+            {
+                FromWalletAddress = sender[0].WalletAddress,
+                ToWalletAddress = recipientAddress,
+                FromNFTTokenAddress = tokenAddress,
+                TokenAddress = tokenAddress,
+                TokenId = request.TokenId?.Trim(),
+                Amount = request.Amount,
+                MemoText = request.MemoText
+            });
+            var result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IWeb3NFTTransactionResponse, ISendWeb4NFTResponse>(submitted);
+            if (!result.IsError)
+                result.Result = new SendWeb4NFTResponse { SendTransactionResult = submitted.Result.TransactionResult };
+            return result;
         }
+
+        private static IEnumerable<IProviderWallet> WalletsFor(Dictionary<ProviderType, List<IProviderWallet>> wallets,
+            ProviderType provider) => wallets != null && wallets.TryGetValue(provider, out var group) && group != null
+                ? group : Enumerable.Empty<IProviderWallet>();
+
+        private static OASISResult<ISendWeb4NFTResponse> NFTTransferError(string message) =>
+            new OASISResult<ISendWeb4NFTResponse> { IsError = true, Message = message };
 
         [Authorize]
         [HttpPost]

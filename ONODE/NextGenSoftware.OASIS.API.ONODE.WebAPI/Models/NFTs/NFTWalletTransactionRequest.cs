@@ -5,9 +5,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.NFT
 {
     public class NFTWalletTransactionRequest
     {
-        //public string MintWalletAddress { get; set; }
         public string FromWalletAddress { get; set; }
         public string ToWalletAddress { get; set; }
+        public string ToAvatarUsername { get; set; }
+        public string TokenAddress { get; set; }
+        public string TokenId { get; set; }
         //public string FromToken { get; set; }
         //public string ToToken { get; set; }
         public string FromProvider { get; set; }
