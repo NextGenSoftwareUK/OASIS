@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+15 November. Correlated flattening and the corrected three-store fixture used disposable Git indexes. No local build outputs, fixtures, downloads or runtimes were created. GitHub qualification is recorded in [CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43770634568).
+
 15 November. Reconciled combined WEB4 candidate 17df815c84f1 against the concurrent Development update using one disposable Git index, removed at command exit. The superseded rollout guard and hosted verifier exited before any fixtures were created. The replacement build runs in GitHub and uses no local SDK installs, databases or build output.
 
 15 November. Independent LINQ `SelectMany` publication used two disposable Git indexes, both removed after writing the commits. Qualification runs in [CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43768973583). This change used no local runtime installs, downloads, databases, or build outputs.
