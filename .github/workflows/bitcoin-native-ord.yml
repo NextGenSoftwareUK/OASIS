@@ -8,6 +8,7 @@ on:
       - '.github/workflows/bitcoin-native-ord.yml'
       - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS/BitcoinOASIS.Ordinals.cs'
       - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS/BitcoinOASIS.OrdinalsMint.cs'
+      - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS/BitcoinOASIS.OrdinalsCustody.cs'
       - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS/BitcoinOASIS.NFTToken.cs'
       - 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests/BitcoinOASISOrdinalsIntegrationTests.cs'
 
@@ -128,6 +129,7 @@ jobs:
           export OASIS_BITCOIN_REGTEST_API=http://127.0.0.1:3002
           export OASIS_BITCOIN_ORD_INSCRIPTION="$inscription"
           export OASIS_BITCOIN_ORD_OWNER="$source"
+          export OASIS_BITCOIN_BRIDGE_POOL_ADDRESS="$source"
           export OASIS_BITCOIN_ORD_RECIPIENT="$recipient"
           export OASIS_BITCOIN_CORE_RPC_URL="http://127.0.0.1:$rpc_port"
           export OASIS_BITCOIN_CORE_RPC_AUTH="cookiefile=$owned/chain/regtest/.cookie"

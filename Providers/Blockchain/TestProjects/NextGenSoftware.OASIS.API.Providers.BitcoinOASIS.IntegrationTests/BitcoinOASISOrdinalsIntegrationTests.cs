@@ -193,5 +193,43 @@ public class BitcoinOASISOrdinalsIntegrationTests
         using var body = JsonDocument.Parse(await reader.GetStringAsync(minted.Result.Web3NFT.MetaData["ContentUrl"]));
         Assert.AreEqual(request.Title, body.RootElement.GetProperty("title").GetString());
         Assert.AreEqual(request.Description, body.RootElement.GetProperty("description").GetString());
+
+        var tip = (await core.GetBestBlockHashAsync()).ToString();
+        for (var attempt = 0; attempt < 30; attempt++)
+        {
+            if ((await reader.GetStringAsync(api + "/blocks/tip/hash")).Trim() == tip)
+                break;
+            await Task.Delay(TimeSpan.FromSeconds(1));
+        }
+
+        var poolAddress = signer.GetAddress(ScriptPubKeyType.TaprootBIP86, Network.RegTest).ToString();
+        Assert.AreEqual(poolAddress, Environment.GetEnvironmentVariable("OASIS_BITCOIN_BRIDGE_POOL_ADDRESS"));
+        var identifier = minted.Result.Web3NFT.TokenId;
+        var denied = await provider.WithdrawNFTAsync(identifier, identifier, recipient, signer.GetWif(Network.RegTest).ToString());
+        Assert.IsTrue(denied.IsError);
+        StringAssert.Contains(denied.Message, "must belong to the signing key");
+
+        privateScalar[31] = 2;
+        using var ownerSigner = new Key(privateScalar);
+        var custody = await provider.WithdrawNFTAsync(identifier, identifier, recipient, ownerSigner.GetWif(Network.RegTest).ToString());
+        Assert.IsFalse(custody.IsError, custody.Message);
+        var locked = await core.GetRawTransactionAsync(uint256.Parse(custody.Result.TransactionId));
+        Assert.AreEqual(reveal.GetHash(), locked.Inputs[0].PrevOut.Hash);
+        Assert.AreEqual(BitcoinAddress.Create(poolAddress, Network.RegTest).ScriptPubKey, locked.Outputs[0].ScriptPubKey);
+        Assert.AreEqual(reveal.Outputs[0].Value, locked.Outputs[0].Value);
+        await core.SendCommandAsync("generatetoaddress", 1, miner);
+
+        for (var attempt = 0; attempt < 30; attempt++)
+        {
+            var lookup = await provider.LoadOnChainNFTDataAsync(identifier);
+            if (!lookup.IsError && lookup.Result.MetaData.TryGetValue("CurrentOwnerAddress", out var owner) && owner == poolAddress)
+            {
+                Assert.AreEqual(custody.Result.TransactionId + ":0:0", lookup.Result.MetaData["Satpoint"]);
+                return;
+            }
+            await Task.Delay(TimeSpan.FromSeconds(1));
+        }
+
+        Assert.Fail("The ord index did not confirm the inscription under bridge custody.");
     }
 }

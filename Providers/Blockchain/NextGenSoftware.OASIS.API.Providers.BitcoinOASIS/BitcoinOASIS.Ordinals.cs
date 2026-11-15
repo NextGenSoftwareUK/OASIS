@@ -115,7 +115,8 @@ public partial class BitcoinOASIS
     }
 
     private async Task<OASISResult<IWeb3NFTTransactionResponse>> MoveOrdinalInscriptionAsync(string identifier,
-        string sourceAddress, string recipientAddress, string privateKey, string seedPhrase, string memo, bool burn)
+        string sourceAddress, string recipientAddress, string privateKey, string seedPhrase, string memo, bool burn,
+        OutPoint expectedSource = null)
     {
         var result = new OASISResult<IWeb3NFTTransactionResponse>();
         try
@@ -169,6 +170,8 @@ public partial class BitcoinOASIS
                 throw new InvalidOperationException("The inscription has no spendable indexed satpoint.");
 
             var inscribedOutpoint = new OutPoint(txid, vout);
+            if (expectedSource != null && !expectedSource.Equals(inscribedOutpoint))
+                throw new InvalidOperationException("The inscription no longer occupies the reviewed custody output.");
             var inscribedCoin = await ReadOrdinalCoinAsync(ord, inscribedOutpoint, source, signer, wrappedSegwit, inscription.Result.TokenId);
             if (inscribedCoin == null || offset >= inscribedCoin.TxOut.Value.Satoshi)
                 throw new InvalidOperationException("The source output cannot move this inscription independently.");
