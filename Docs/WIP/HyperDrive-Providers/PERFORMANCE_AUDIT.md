@@ -1,5 +1,7 @@
 # OPORTAL and HyperDrive performance audit
 
+15 November Cancun time. OPORTAL 0e66a19 coalesces plan catalog reads when the router and cancellation handler open the same tab. Plan highlighting follows the catalog response instead of a fixed delay. The combined shipping-script regression observed one catalog request during a pending cancellation return, and the updated script is live on OPORTAL dev.
+
 15 November Cancun time. The serving WEB4 checkout-scope revision created a real owned Stripe sandbox Checkout session in 858 ms and read its status in 506 ms. The native £9 Bronze metadata and return URLs matched the OPORTAL contract. An otherwise owned session with a different ledger returned HTTP 403. These are individual request measurements.
 
 15 November Cancun time. On the Checkout return, lazy modal mounting and router initialization both opened My subscriptions. The router's open triggered a list read before payment confirmation, and the confirmation handler read it again. OPORTAL 66a4d22 makes the confirmation handler the sole source of the automatic refresh. The regression exercised both shipping scripts and observed one Checkout status read and one subscription list read on immediate activation. The isolated startup test used controlled responses. Hosted timing remains open.

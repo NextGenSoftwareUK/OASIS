@@ -1,5 +1,7 @@
 # Current provider status
 
+15 November Cancun time. Native SQLite Gifts lifecycle run 43710560660 passed send, receive, open, authorization denials and independently read back the final durable status. The verified Development candidate 093064cd58ad contains the Core save fix and preserves peer revision 55c1c2056c55. The latter is still building on Railway, so the queued WEB4 batch awaits the next Development window. The Checkout return regression passed all three cases in 43709927045. OPORTAL dev 174be35dabb3 serves the cancel-return fix, with one plan request and highlighting after the catalog renders.
+
 15 November Cancun time. The real SQLite Gifts lifecycle test in 43709559073 found a durable receive failure. Gift updates loaded one metadata record but requested a child-selecting save, which the shipping router rejected because no child roles had been loaded. Core 670c5085 explicitly saves only the gift record and keeps child traversal out of send, receive and open. The isolated lifecycle rerun is pending.
 
 15 November Cancun time. The combined Gifts and Checkout candidate passed three redirect tests in run 43709075351. While it was in CI, COSMIC advanced Development to 55c1c2056c55 with a new Core pin. The new candidate d9e0325afbb7 preserves that peer source and applies only the seven Gifts and Checkout paths with matching Core gitlink and manifest. Focused SQLite and WEB4 checks 43709925389 and 43709927045 are queued against that graph. The prior candidate was not promoted.
