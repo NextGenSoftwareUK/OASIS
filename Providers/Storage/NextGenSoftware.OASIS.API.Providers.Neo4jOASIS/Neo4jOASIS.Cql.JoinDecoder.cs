@@ -43,23 +43,27 @@ public partial class Neo4jOASIS
             }
             else
             {
-                if(proof!=null || lp<0 || lp>=left.Count || rp< -1 || rp>=right.Count)
+                var missingLeft = lp == left.Count && query.Join.Kind == CosmicJoinKind.Full;
+                if (proof != null || lp < 0 || lp > left.Count || lp == left.Count && !missingLeft
+                    || rp < -1 || rp >= right.Count || missingLeft && rp < 0)
                     throw Invalid("Native join pair refers outside its captured source.");
                 if(count>limits.MaximumPairs || count>limits.MaximumResults || pairs.Count>=limits.MaximumPairs || pairs.Count>=limits.MaximumResults)
                     throw new NeoCqlLimitException("Native join exceeds remaining pair/output work.");
                 if(pairs.Count>0 && pairCount!=count)throw Invalid("Native join pair count changed.");
                 pairCount=count;
-                var l=left[(int)lp];var r=rp<0?null:right[(int)rp];var li=0;var ri=0;
+                var l = missingLeft ? null : left[(int)lp];
+                var r = rp < 0 ? null : right[(int)rp];
+                var li = 0; var ri = 0;
                 var values=new object[query.Columns.Count];outputBytes=checked(outputBytes+48);
                 for(var index=0;index<values.Length;index++)
                 {
                     var column=query.Columns[index];
-                    if(column.Source==CosmicJoinColumnSource.Left)values[index]=l.Values[li++];
+                    if (column.Source == CosmicJoinColumnSource.Left) { values[index] = l?.Values[li]; li++; }
                     else if(column.Source==CosmicJoinColumnSource.Right){values[index]=r==null?null:r.Values[ri];ri++;}
                     else values[index]=column.PresenceWhenMissing?r==null:r!=null;
                     Reserve(values[index],ref outputBytes,limits.MaximumPayloadBytes);
                 }
-                pairs.Add(new CosmicJoinRow(l.Id,r?.Id,values));
+                pairs.Add(new CosmicJoinRow(l?.Id ?? Guid.Empty, r?.Id, values));
             }
         }
 

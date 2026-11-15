@@ -44,7 +44,9 @@ public partial class HolonRepository
         {
             CosmicJoinKind.Left => " LEFT JOIN r ON " + string.Join(" AND ", equality.Select(value => "(" + value + ")")),
             CosmicJoinKind.Inner => " INNER JOIN r ON " + string.Join(" AND ", equality.Select(value => "(" + value + ")")),
-            _ => " CROSS JOIN r"
+            CosmicJoinKind.Full => " FULL OUTER JOIN r ON " + string.Join(" AND ", equality.Select(value => "(" + value + ")")),
+            CosmicJoinKind.Cross => " CROSS JOIN r",
+            _ => throw new NotSupportedException("Unknown native SQLite join kind.")
         };
         var cap = Math.Min(limits.MaximumPairs, (long)limits.MaximumResults) + 1;
         var pairLimit = left.Bind(cap);
@@ -55,7 +57,7 @@ public partial class HolonRepository
             HasRelationship = left.HasRelationship || right.HasRelationship,
             Pairs = "WITH l AS MATERIALIZED (" + ls + "),r AS MATERIALIZED (" + rs
                 + ") SELECT l.position,r.position FROM l" + join
-                + " ORDER BY l.position,r.position LIMIT " + pairLimit
+                + " ORDER BY l.position NULLS LAST,r.position LIMIT " + pairLimit
         };
 
         static string Predicate<T>(CqlSqlTranslator translator, CosmicQuery<T> query) where T : IHolon
