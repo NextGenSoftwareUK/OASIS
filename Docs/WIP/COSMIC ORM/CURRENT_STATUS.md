@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Axelar hosted activation flag
+
+The 242d120b6a2f registry reads ICosmicReadOnlyQueryActivation.IsQuerySourceActivated. Its default recognizes IOASISStorageProvider, so the shipping Axelar network provider is rejected even after the native header check succeeds. The provider now implements the flag for its configured public-query profile and the bounded activation test asserts the interface before and after the native catalogue check. Exact CI and live acceptance are pending.
+
 ## Connext cutover and Axelar probe baseline
 
 On Development 242d120b6a2f, the same Connext serial two-record test had one HTTP 503 per route out of five attempts, compared with two per route before rollout. Three of four warm requests succeeded on each route. Successful warm direct median/max were 3427/3744 ms and federated median/max were 2588/3249 ms. The sample failed overall, so timings characterize successful responses only. During Axelar diagnosis all three configured headers returned HTTP 200 both serially and with three workers from the recovery laptop, passed chain, height, timestamp and 32-byte hash checks, and returned JSON below the response limit. That direct probe does not explain the unclassified Railway activation error.
