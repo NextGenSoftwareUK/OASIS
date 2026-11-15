@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Typed grouping-key filters in SQL HAVING
+
+15 November. Web4Site dc53b278c35d accepts comparisons on selected key aliases in HAVING alongside existing aggregate filters. It shares the exact type parser and excludes NULL from ordinary inequality while admitting explicit IS NULL and IS NOT NULL. All 224 website tests passed and [protected preview 7807290661](https://web4-site-q859b845g-oasis-team.vercel.app/web4-sandbox.html) built. The exact compiler sent a numeric range, Boolean equality, aggregate threshold and independent nullable text query to MongoDB, SQLite and Neo4j. Live WEB4 accepted all six requests with the exact deleted-ID scope and returned zero rows. Populated key-filter results and signed-in hosted browser acceptance remain open. No fixtures or local builds. The test snapshot was removed.
+
 ## SQL HAVING ranges in the WEB4 sandbox
 
 15 November. Web4Site 83c7fd0eaff6 accepts inclusive HAVING BETWEEN on selected aggregate aliases and teaches that form to Ask your data. The same typed threshold parser handles both bounds and retains exact Int64 and Decimal values. All 223 website tests passed. The exact frontend compiled the range to the same two native comparisons as the expanded form, and live Development accepted it on MongoDB, SQLite and Neo4j with zero matching rows for the exact deleted ID scope. [Protected preview 7807232794](https://web4-site-ozcw4go9m-oasis-team.vercel.app/web4-sandbox.html) built. Hosted signed-in browser acceptance remains open. No new fixtures or local build outputs.
