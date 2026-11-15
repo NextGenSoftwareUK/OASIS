@@ -1,5 +1,7 @@
 # Current provider status
 
+15 November Cancun time. [Algorand shipping provider LocalNet](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43739866052) passed one test with zero skips in 131 ms. Application enrollment rejected an incorrect program digest. The provider read the exact encrypted current and historical revisions and returned RecordNotFound for an absent ID and version. The runner verified teardown.
+
 15 November Cancun time. [Algorand historical manifests](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43739225328) passed native writer admission, immutable manifests, retention of older chunks and lineage checks, and verified teardown. Provider 9513612cd4df adds explicit application enrollment and authenticated current and historical reads. Its [shipping provider native case](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43739866052) is running. Generic writes, deletion, discovery and routing remain open.
 
 15 November Cancun time. Algorand c8bded270ce0 publishes a historical manifest and the current head atomically and prevents reuse of a published revision. [Native LocalNet qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43739225328) is running. [Exact WEB5 cold search startup](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43738248485) passed on candidate fdd9df3ee6e8 over serving Development 807623f716cd. The next Development review opens at 17:20:12 UTC.
