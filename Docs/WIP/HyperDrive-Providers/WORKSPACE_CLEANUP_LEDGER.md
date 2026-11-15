@@ -1382,3 +1382,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 15 November Cancun time. Preparing compact dashboard candidates 468d43c91f2a and 2a9d2348544c used temporary Git indices and patches. Confirmed the owned summary paths were gone. No local build, database or runtime download was created. C: had 25.49 GiB free.
 
 15 November Cancun time. The OPORTAL dashboard SDK check ran in memory against an owned loopback HTTP listener and shut down the listener after assertions. The combined WEB4 candidate used Git tree objects only. No local downloads, databases, build outputs or test files were created.
+
+15 November Cancun time. Shallow projection verification 43683969960 uses hosted disposable MongoDB and SQLite fixtures. No local build outputs or test databases were created.
