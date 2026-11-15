@@ -13,7 +13,7 @@ on:
       mongo_point_read_case:
         description: Focused test selected with the native point-read runner
         type: choice
-        options: [round_robin, legacy_soft_delete, legacy_child_writes]
+        options: [round_robin, legacy_soft_delete, legacy_child_writes, replicated_file_upload]
         default: round_robin
       mongo_sqlite_latency:
         description: Measure real MongoDB, SQLite and request-scoped HyperDrive latency only
@@ -93,6 +93,8 @@ jobs:
               'FullyQualifiedName~TypedLegacyWritesRetainEmbeddedChildren|FullyQualifiedName~FileMetadataUpdateRetainsEmbeddedChildren'
             } elseif ($env:MONGO_POINT_READ_CASE -eq 'legacy_soft_delete') {
               'FullyQualifiedName~LegacySoftDeleteRetainsEmbeddedChildren'
+            } elseif ($env:MONGO_POINT_READ_CASE -eq 'replicated_file_upload') {
+              'FullyQualifiedName~UploadedFileCanBeReadFromNativeMongoAndSqlite'
             } else {
               'FullyQualifiedName~ScopedRoundRobinPointReadsUseBothNativeStores'
             }

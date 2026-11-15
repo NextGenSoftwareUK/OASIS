@@ -28,6 +28,72 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
         "web3TokenId", "NFT.MintedByAvatarId", "NFT.MintWalletAddress", "NFT.ParentWeb4NFTId", "GEONFT.PlacedByAvatarId",
         "GEONFT.MintedByAvatarId", "GEONFT.OriginalOASISNFT.MintWalletAddress", "GEONFT.LatLong", "Status", "ActiveQuestId",
         "ActiveObjectiveId", "ParentMissionId", "Avatar", "AppRegion" };
+
+    [Fact]
+    public async Task UploadedFileCanBeReadFromNativeMongoAndSqlite()
+    {
+        const string uri = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
+        if (Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI") != uri)
+            throw new InvalidOperationException("Owned reusable Mongo runner required; refusing other databases.");
+
+        var database = "hyperdrive_file_upload_" + Guid.NewGuid().ToString("N");
+        var directory = Directory.CreateTempSubdirectory("oasis-file-upload-");
+        var client = new MongoClient(uri);
+        var mongo = new MongoDBOASIS(uri, database);
+        try
+        {
+            using var sqlite = new SQLLiteDBOASIS($"Data Source={Path.Combine(directory.FullName, "files.db")};Pooling=False");
+            var dna = new OASISDNA { OASIS = new NextGenSoftware.OASIS.API.DNA.OASIS
+                { HyperDriveMode = HyperDriveModes.V2, StorageProviders = new StorageProviderSettings(), SubscriptionConfig = new() { PlanType = "Gold" } } };
+            var manager = new ProviderManager(null, dna)
+                { IsAutoFailOverEnabled = false, IsAutoLoadBalanceEnabled = false, IsAutoReplicationEnabled = true };
+            manager.RegisterProvider(mongo);
+            manager.RegisterProvider(sqlite);
+            var selected = manager.SetAndActivateCurrentStorageProvider(mongo);
+            Assert.False(selected.IsError, selected.Message);
+            var replicas = manager.SetAndReplaceAutoReplicationListForProviders(
+                new[] { new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS) });
+            Assert.False(replicas.IsError, replicas.Message);
+            var activation = await sqlite.ActivateProviderAsync();
+            Assert.False(activation.IsError, activation.Message);
+
+            var actor = Guid.NewGuid();
+            var bytes = Enumerable.Range(0, 4096).Select(index => (byte)(index % 251)).ToArray();
+            var files = new FilesManager(mongo, dna, manager);
+            var upload = await files.UploadFileAsync(actor, "dashboard-fixture.bin", bytes, "application/octet-stream");
+            Assert.False(upload.IsError, $"{upload.ErrorCode}: {upload.Message}");
+            Assert.Equal(actor, upload.Result.AvatarId);
+            Assert.Equal((long)bytes.Length, upload.Result.Size);
+
+            foreach (var provider in new IOASISStorageProvider[] { mongo, sqlite })
+            {
+                var reader = new ProviderManager(null, dna)
+                    { IsAutoFailOverEnabled = false, IsAutoLoadBalanceEnabled = false, IsAutoReplicationEnabled = false };
+                reader.RegisterProvider(provider);
+                var selectedReader = reader.SetAndActivateCurrentStorageProvider(provider);
+                Assert.False(selectedReader.IsError, selectedReader.Message);
+                var stored = new FilesManager(provider, dna, reader);
+                var download = await stored.DownloadFileAsync(actor, upload.Result.Id);
+                Assert.False(download.IsError, download.Message);
+                Assert.Equal(bytes, download.Result.Data);
+                var list = await stored.GetAllFilesForAvatarAsync(actor);
+                Assert.False(list.IsError, list.Message);
+                Assert.Equal(upload.Result.Id, Assert.Single(list.Result).Id);
+                var count = await stored.GetFileCountForAvatarAsync(actor);
+                Assert.False(count.IsError, count.Message);
+                Assert.Equal(1, count.Result);
+                var unrelated = await stored.GetFileCountForAvatarAsync(Guid.NewGuid());
+                Assert.False(unrelated.IsError, unrelated.Message);
+                Assert.Equal(0, unrelated.Result);
+            }
+        }
+        finally
+        {
+            try { await client.DropDatabaseAsync(database); }
+            finally { directory.Delete(recursive: true); }
+        }
+    }
+
     [Fact]
     public async Task ScopedRoundRobinPointReadsUseBothNativeStores()
     {
