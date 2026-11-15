@@ -16,4 +16,10 @@
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.AlgorandOASIS\NextGenSoftware.OASIS.API.Providers.AlgorandOASIS.csproj" />
     <ProjectReference Include="..\..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
   </ItemGroup>
+  <ItemGroup Condition="'$(WithAlgorandBootLoader)' == 'true'">
+    <ProjectReference Include="..\..\..\..\OASIS Architecture\NextGenSoftware.OASIS.OASISBootLoader\NextGenSoftware.OASIS.OASISBootLoader.csproj" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(WithAlgorandBootLoader)' != 'true'">
+    <Compile Remove="AlgorandBootLoaderTests.cs" />
+  </ItemGroup>
 </Project>

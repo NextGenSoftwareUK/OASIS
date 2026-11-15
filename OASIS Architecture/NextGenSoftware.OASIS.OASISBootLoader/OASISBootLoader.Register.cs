@@ -363,6 +363,14 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                         //    }
                         //    break;
 
+                        case ProviderType.AlgorandOASIS:
+                        {
+                            var provider = CreateAlgorandProvider(OASISDNA?.OASIS?.StorageProviders?.AlgorandOASIS, overrideConnectionString);
+                            provider.OnStorageProviderError += (_, error) => HandleProviderError("AlgorandOASIS", error);
+                            result.Result = provider;
+                            break;
+                        }
+
                         case ProviderType.PolkadotOASIS:
                         {
                             if (polkadotPublicHeaderConfiguration != null)
