@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## SQL grouping with unselected field keys
+
+15 November. Web4Site 264d1d028b9d compiles grouping keys independently from selected outputs. Counts per Version can now return only the count. The exact compiler generated the grouped request and the live Development b9808ae777b8 API accepted it on MongoDB, SQLite and Neo4j, returning only the Count column with no visible rows for that visitor. Web4Site fa8dea47ee3e also teaches Ask your data this syntax and proves the draft review handoff with a controlled WEB6 response. All 208 website tests passed. [Protected preview 7804886364](https://web4-site-pf2acnjnk-oasis-team.vercel.app/web4-sandbox.html) built. Populated live results, a real WEB6 draft for this new syntax, and signed-in hosted browser acceptance remain open. Temporary test snapshots were removed.
+
 ## Native Distinct on exact nullable UTC timestamps
 
 15 November. Core f4e3929e3197 and parent feature e45c945b1219 admit nullable UTC DateTime values for selected native Distinct. The existing three-store fixture now uses adjacent 100 ns timestamps, repeated timestamps, and missing nullable values. Exact [native protocol CI 43724444186](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43724444186) qualifies fecb66e43741 after the Int64 candidate. This is pending native acceptance. HyperDrive b9808ae777b8 is serving, and the [Int64 image 43723982906](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43723982906) is building. The deployment check requires the exact successful image and the shared 30-minute window, and aborts if another Development commit appears.
