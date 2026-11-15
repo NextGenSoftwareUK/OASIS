@@ -1,5 +1,7 @@
 # Current provider status
 
+15 November Cancun time. Subscriptions are now the highest OPORTAL priority. Portal 8270ec4 returns checkout and billing to the relevant subscription tabs, verifies persisted activation, waits for session refresh and eliminates duplicate subscription reads in the confirmation handler. Dev and production public catalogs both returned five plans. Paid Stripe and signed hosted browser flows remain open. Files candidate 49e4ba65a783 reached Development after exact qualification and was queued on Railway.
+
 15 November Cancun time. OPORTAL 0584a7d sends a selected chain token identity, uses a wallet address or avatar username, and renders native acknowledgement or an uncertain outcome. The first focused WEB4 run 43701671260 found a missing Core Helpers import. The branch corrects it and needs a rerun. Native chain transfer remains open.
 
 15 November Cancun time. Gifts summary authorization passed WEB4 HTTP run 43700638886. The Files image remains in progress. The NFT transfer API now binds a token address and the exact owned sender wallet, with recipient lookup on the same provider. Focused request verification and native NFT transfer acceptance remain open.

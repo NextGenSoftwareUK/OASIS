@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. Subscription HTTP loopback ran from Node standard input and closed its listener. Public catalog checks and CI reviews ran in memory. No payment, download, local database or build output was created. Last C: check was 26.7 GiB free.
+
 15 November Cancun time. The NFT transfer loopback used Node standard input and closed its listener. No local chain, funding, installation, build or persistent results were created.
 
 15 November Cancun time. NFT mint loopback ran via standard input and closed its listener. No token, funded mint, SDK download, browser installation or persistent result file was created.
