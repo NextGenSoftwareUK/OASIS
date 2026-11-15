@@ -84,6 +84,28 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Assert.AreEqual(read.Result.Single().Version, comprehensionRows.Result.Single().Version);
         Passed("native query comprehension filtering, ordering and projection");
 
+        var rightSource = root.OrderBy(row => row.Id).Take(1);
+        var flattened = root.Take(1).SelectMany(_ => rightSource,
+            (leftRow, rightRow) => new { LeftId = leftRow.Id, RightId = rightRow.Id });
+        var flattenedRows = await flattened.ToCosmicListAsync();
+        Assert.IsFalse(flattenedRows.IsError, flattenedRows.Message + flattenedRows.Exception);
+        Assert.AreEqual(rootId, flattenedRows.Result.Single().LeftId);
+        Assert.AreEqual(rootId, flattenedRows.Result.Single().RightId);
+        Assert.AreEqual(rootId, flattened.ToList().Single().RightId);
+
+        rightSource = root.OrderBy(row => row.Id).Take(0);
+        var flattenedAgain = await flattened.ToCosmicListAsync();
+        Assert.IsFalse(flattenedAgain.IsError, flattenedAgain.Message + flattenedAgain.Exception);
+        Assert.AreEqual(0, flattenedAgain.Result.Count);
+        var cancelledFlatten = await flattened.ToCosmicListAsync(cancellation.Token);
+        Assert.AreEqual("CQL_QUERY_CANCELLED", cancelledFlatten.ErrorCode);
+
+        var attemptedCallbacks = 0;
+        Func<IQueryable<Holon>> callback = () => { attemptedCallbacks++; return root; };
+        Assert.ThrowsException<CosmicLinqException>(() => root.SelectMany(_ => callback(),
+            (leftRow, rightRow) => new { LeftId = leftRow.Id, RightId = rightRow.Id }));
+        Assert.AreEqual(0, attemptedCallbacks);
+
         var names = root.Select(row => row.Name);
         var nativeNames = await names.ToCosmicListAsync();
         Assert.IsFalse(nativeNames.IsError, nativeNames.Message + nativeNames.Exception);
