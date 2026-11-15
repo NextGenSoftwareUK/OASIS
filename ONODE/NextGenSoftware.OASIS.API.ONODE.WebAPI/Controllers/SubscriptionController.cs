@@ -666,21 +666,25 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 return Unauthorized(new { IsError = true, Message = "User not authenticated." });
 
             var now = DateTime.UtcNow;
-            var usage = await _subscriptionService.GetUsageAsync(userId, now.Year, now.Month);
-            var record = await _subscriptionService.GetSubscriptionAsync(userId);
+            var month = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+            var ledgerTask = _usageRepository.GetAggregateForPeriodAsync(userId, month, HttpContext.RequestAborted);
+            var recordTask = _subscriptionService.GetSubscriptionAsync(userId);
+            await Task.WhenAll(ledgerTask, recordTask);
+            var ledger = await ledgerTask;
+            var record = await recordTask;
+            var requests = ledger.MonthlyRequests;
             var planId = record?.PlanId ?? "free";
             var plan = Plans.FirstOrDefault(p => p.Id == planId);
             var limit = plan?.MaxRequestsPerMonth ?? 1000;
-            var ledger = _usageRepository == null ? null : await _usageRepository.GetAggregateForPeriodAsync(userId,new DateTime(now.Year,now.Month,1,0,0,0,DateTimeKind.Utc),HttpContext.RequestAborted);
 
             return Ok(new
             {
                 currentMonth = new
                 {
-                    requests = usage.RequestCount,
+                    requests,
                     limit,
-                    remaining = limit < 0 ? -1 : Math.Max(0, limit - usage.RequestCount),
-                    overage = limit < 0 ? 0 : Math.Max(0, usage.RequestCount - limit)
+                    remaining = limit < 0 ? -1 : Math.Max(0, limit - requests),
+                    overage = limit < 0 ? 0 : Math.Max(0, requests - limit)
                 },
                 payAsYouGoEnabled = OASISSub.PaidOveragePricing.HasConsent(record),
                 payAsYouGoAvailable = record?.StripeSubscriptionId != null && record.Status is "active" or "trialing",
@@ -690,8 +694,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 includedAiBudgetUsd = OASISSub.SubscriptionService.GetUsagePolicy(planId,0).MonthlyBudgetUsd,
                 overageCharges = new
                 {
-                    currentMonth = ledger?.SettledOverageUsd ?? 0,
-                    reservedUsd = ledger?.ReservedOverageUsd ?? 0,
+                    currentMonth = ledger.SettledOverageUsd,
+                    reservedUsd = ledger.ReservedOverageUsd,
                     isSupported = true,
                     currency = "USD"
                 },
