@@ -1304,3 +1304,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 - 14 November Cancun time. The first signed transfer qualification used hosted runners and failed compilation. The revised native workflow removes the Esplora container, its anonymous volumes and image, stops the ord environment process group, and removes the downloaded binaries and chain directory. No local outputs or temporary indices were created.
 
 - 14 November Cancun time. Hosted native Ordinals 43658729525 passed including removal of the temporary Bitcoin Core and ord downloads, chain data, Esplora container, anonymous volumes and image. Native storage and custody 43658729545 also completed its disposable backend teardown. The Development fast-forward reused the qualified commit with no new local worktree, index, build or download.
+
+- 14 November Cancun time. Constructed exact custody and Ordinals candidate 5a96fc73528f directly from the reviewed Git objects. No temporary index, new checkout, local runtime, build outputs or downloaded artifacts were created. C drive reported 29.28 GiB free.
