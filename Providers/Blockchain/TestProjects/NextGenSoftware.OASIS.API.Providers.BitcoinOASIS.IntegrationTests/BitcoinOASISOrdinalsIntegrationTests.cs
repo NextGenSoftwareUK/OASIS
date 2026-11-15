@@ -376,11 +376,79 @@ public class BitcoinOASISOrdinalsIntegrationTests
                     indexed.RootElement.GetProperty("runes").TryGetProperty("OASISTESTMINT", out var balance))
                 {
                     Assert.AreEqual(725, balance.GetProperty("amount").GetInt32());
+                    await VerifyRuneSendAndBurnAsync(provider, core, client, api, ord, runeId, recipient, miner, signer);
                     return;
                 }
             }
             await Task.Delay(TimeSpan.FromSeconds(1));
         }
         Assert.Fail("The Rune index did not confirm the exact mint tranche at the recipient output.");
+    }
+
+    private static async Task VerifyRuneSendAndBurnAsync(BitcoinOASIS provider, RPCClient core, HttpClient client,
+        string api, string ord, string runeId, string recipient, string miner, Key signer)
+    {
+        async Task WaitForEsploraAsync()
+        {
+            var tip = (await core.GetBestBlockHashAsync()).ToString();
+            for (var attempt = 0; attempt < 30; attempt++)
+            {
+                if ((await client.GetStringAsync(api + "/blocks/tip/hash")).Trim() == tip)
+                    return;
+                await Task.Delay(TimeSpan.FromSeconds(1));
+            }
+            Assert.Fail("Esplora did not index the Bitcoin Core chain tip.");
+        }
+
+        async Task AssertRuneOutputAsync(string transactionId, int output, int units)
+        {
+            for (var attempt = 0; attempt < 30; attempt++)
+            {
+                using var response = await client.GetAsync($"{ord}/output/{transactionId}:{output}");
+                if (response.IsSuccessStatusCode)
+                {
+                    using var indexed = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+                    if (indexed.RootElement.GetProperty("runes").ValueKind == JsonValueKind.Object &&
+                        indexed.RootElement.GetProperty("runes").TryGetProperty("OASISTESTMINT", out var balance))
+                    {
+                        Assert.AreEqual(units, balance.GetProperty("amount").GetInt32());
+                        return;
+                    }
+                }
+                await Task.Delay(TimeSpan.FromSeconds(1));
+            }
+            Assert.Fail("The Rune index did not confirm the expected native output allocation.");
+        }
+
+        await WaitForEsploraAsync();
+        var privateScalar = new byte[32];
+        privateScalar[31] = 2;
+        using var sender = new Key(privateScalar);
+        var destination = signer.GetAddress(ScriptPubKeyType.TaprootBIP86, Network.RegTest).ToString();
+        var sent = await provider.SendTokenAsync(new SendWeb3TokenRequest
+        {
+            FromTokenAddress = runeId, FromWalletAddress = recipient, ToWalletAddress = destination,
+            OwnerPrivateKey = sender.GetWif(Network.RegTest).ToString(), Amount = 0.25m
+        });
+        Assert.IsFalse(sent.IsError, sent.Message);
+        Assert.AreEqual("25", sent.MetaData["BitcoinRuneUnits"]);
+        await core.SendCommandAsync("generatetoaddress", 1, miner);
+        await AssertRuneOutputAsync(sent.Result.TransactionResult, 0, 700);
+        await AssertRuneOutputAsync(sent.Result.TransactionResult, 1, 25);
+
+        await WaitForEsploraAsync();
+        var burn = await provider.BurnTokenAsync(new BurnWeb3TokenRequest
+        {
+            TokenAddress = runeId, Amount = 0.15m, OwnerPublicKey = "", OwnerSeedPhrase = "",
+            OwnerPrivateKey = signer.GetWif(Network.RegTest).ToString()
+        });
+        Assert.IsFalse(burn.IsError, burn.Message);
+        Assert.AreEqual("15", burn.MetaData["BitcoinRuneUnits"]);
+        var burned = await core.GetRawTransactionAsync(uint256.Parse(burn.Result.TransactionResult));
+        Assert.AreEqual(Money.Zero, burned.Outputs.Single(output => output.ScriptPubKey.IsUnspendable).Value);
+        await core.SendCommandAsync("generatetoaddress", 1, miner);
+        await AssertRuneOutputAsync(burn.Result.TransactionResult, 0, 10);
+        using var definition = JsonDocument.Parse(await client.GetStringAsync($"{ord}/rune/{runeId}"));
+        Assert.AreEqual(15, definition.RootElement.GetProperty("entry").GetProperty("burned").GetInt32());
     }
 }

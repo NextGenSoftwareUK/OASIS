@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Net;
+using System.Numerics;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -339,31 +340,46 @@ public partial class BitcoinOASIS
     private async Task<Coin> ReadOrdinalCoinAsync(HttpClient ord, OutPoint outpoint, BitcoinAddress source,
         BitcoinSecret signer, bool wrappedSegwit, string inscriptionId)
     {
+        var funding = await ReadOrdinalFundingAsync(ord, outpoint, source, signer, wrappedSegwit, inscriptionId);
+        return funding.Coin;
+    }
+
+    private async Task<(Coin Coin, BigInteger RuneUnits)> ReadOrdinalFundingAsync(HttpClient ord, OutPoint outpoint, BitcoinAddress source,
+        BitcoinSecret signer, bool wrappedSegwit, string inscriptionId, string expectedRune = null)
+    {
         var expectedOutpoint = outpoint.Hash + ":" + outpoint.N.ToString(CultureInfo.InvariantCulture);
         using var data = JsonDocument.Parse(await ord.GetStringAsync("output/" + expectedOutpoint));
         var output = data.RootElement;
         var inscriptions = output.GetProperty("inscriptions");
-        if (output.GetProperty("outpoint").GetString() != expectedOutpoint ||
+        var runes = output.GetProperty("runes");
+        if (runes.ValueKind != JsonValueKind.Object ||
+            output.GetProperty("outpoint").GetString() != expectedOutpoint ||
             !output.GetProperty("indexed").GetBoolean() || output.GetProperty("spent").GetBoolean() ||
-            output.GetProperty("runes").EnumerateObject().MoveNext() ||
+            (expectedRune == null && runes.EnumerateObject().MoveNext()) ||
             (inscriptionId == null ? inscriptions.GetArrayLength() != 0 :
                 inscriptions.GetArrayLength() != 1 || inscriptions[0].GetString() != inscriptionId))
-            return null;
+            return default;
 
         var transaction = await ReadVerifiedTransactionAsync(outpoint.Hash);
         if (transaction.IsCoinBase || outpoint.N >= transaction.Outputs.Count)
-            return null;
+            return default;
 
         var previous = transaction.Outputs[(int)outpoint.N];
         if (previous.ScriptPubKey != source.ScriptPubKey || previous.Value.Satoshi != output.GetProperty("value").GetInt64())
-            return null;
+            return default;
 
         using var spent = JsonDocument.Parse(await _httpClient.GetStringAsync($"tx/{outpoint.Hash}/outspend/{outpoint.N}"));
         if (spent.RootElement.GetProperty("spent").GetBoolean())
-            return null;
+            return default;
 
-        return wrappedSegwit
+        var coin = wrappedSegwit
             ? new ScriptCoin(outpoint, previous, signer.PrivateKey.PubKey.WitHash.ScriptPubKey)
             : new Coin(outpoint, previous);
+        var units = expectedRune != null && runes.TryGetProperty(expectedRune, out var balance)
+            ? BigInteger.Parse(balance.GetProperty("amount").GetRawText(), CultureInfo.InvariantCulture)
+            : BigInteger.Zero;
+        if (units < BigInteger.Zero || units > UInt128.MaxValue)
+            throw new InvalidOperationException("The indexed Rune balance is outside the protocol range.");
+        return (coin, units);
     }
 }

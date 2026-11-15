@@ -54,9 +54,13 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                 return Task.FromResult(result);
             }
 
-            if (request.Web3TokenId != Guid.Empty || !string.IsNullOrWhiteSpace(request.FromTokenAddress))
+            if (!string.IsNullOrWhiteSpace(request.FromTokenAddress))
+                return MoveBitcoinRuneAsync(request.FromTokenAddress, request.FromWalletAddress, request.ToWalletAddress,
+                    request.OwnerPrivateKey, request.OwnerSeedPhrase, request.Amount, burn: false);
+
+            if (request.Web3TokenId != Guid.Empty)
             {
-                OASISErrorHandling.HandleError(ref result, "This Bitcoin provider transfers native BTC. A token transfer requires its own protocol provider.");
+                OASISErrorHandling.HandleError(ref result, "Provide the existing Rune ID in block:index form for a Bitcoin token transfer.");
                 return Task.FromResult(result);
             }
 
@@ -109,6 +113,9 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
 
         public Task<OASISResult<ITransactionResponse>> BurnTokenAsync(IBurnWeb3TokenRequest request)
         {
+            if (!string.IsNullOrWhiteSpace(request?.TokenAddress) && !string.Equals(request.TokenAddress, "BTC", StringComparison.OrdinalIgnoreCase))
+                return MoveBitcoinRuneAsync(request.TokenAddress, null, null, request.OwnerPrivateKey,
+                    request.OwnerSeedPhrase, request.Amount, burn: true);
             return BurnNativeBitcoinAsync(request);
         }
 

@@ -212,6 +212,7 @@ jobs:
             premine: 0
             supply: 21.75
             symbol: O
+            turbo: false
             terms:
               amount: 7.25
               cap: 3
