@@ -1,12 +1,19 @@
 using System;
 using System.Linq;
 using System.Net.Http;
+using System.Reflection;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NBitcoin;
 using NBitcoin.RPC;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
+using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.API.Providers.LocalFileOASIS;
 
 namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests;
 
@@ -219,17 +226,81 @@ public class BitcoinOASISOrdinalsIntegrationTests
         Assert.AreEqual(reveal.Outputs[0].Value, locked.Outputs[0].Value);
         await core.SendCommandAsync("generatetoaddress", 1, miner);
 
+        await VerifyIndexedOwnerAsync(provider, identifier, poolAddress, custody.Result.TransactionId);
+        await VerifyAvatarReleaseAsync(provider, core, reader, api, identifier, recipient, miner);
+    }
+
+    private static async Task VerifyAvatarReleaseAsync(BitcoinOASIS provider, RPCClient core, HttpClient reader,
+        string api, string identifier, string depositor, string miner)
+    {
+        var storageDirectory = Environment.GetEnvironmentVariable("OASIS_BITCOIN_ORD_WALLET_FIXTURE");
+        Assert.IsFalse(string.IsNullOrWhiteSpace(storageDirectory));
+        var local = new LocalFileOASIS(storageDirectory: storageDirectory);
+        Assert.IsFalse((await local.ActivateProviderAsync()).IsError);
+        var depositorAvatar = Guid.NewGuid();
+        var otherAvatar = Guid.NewGuid();
+        foreach (var (id, address) in new[] { (depositorAvatar, depositor), (otherAvatar, miner) })
+        {
+            var wallet = new ProviderWallet
+            {
+                Id = Guid.NewGuid(), AvatarId = id, IsDefaultWallet = true,
+                WalletAddress = address, ProviderType = ProviderType.BitcoinOASIS
+            };
+            var saved = await local.SaveProviderWalletsForAvatarByIdAsync(id,
+                new() { [ProviderType.BitcoinOASIS] = new List<IProviderWallet> { wallet } });
+            Assert.IsFalse(saved.IsError, saved.Message);
+        }
+
+        var dna = new OASISDNA();
+        dna.OASIS.HyperDriveMode = HyperDriveModes.V2;
+        dna.OASIS.StorageProviders = new StorageProviderSettings { LogSwitchingProviders = false };
+        var providers = new ProviderManager(null, dna);
+        providers.RegisterProvider(local);
+        Assert.IsFalse(providers.SetAndActivateCurrentStorageProvider(local).IsError);
+        var constructor = typeof(WalletManager).GetConstructors(BindingFlags.NonPublic | BindingFlags.Instance)
+            .Single(candidate => candidate.GetParameters().Length == 4);
+        provider.WalletManager = (WalletManager)constructor.Invoke(new object?[] { local, dna, providers, null });
+
+        var tip = (await core.GetBestBlockHashAsync()).ToString();
+        for (var attempt = 0; attempt < 30; attempt++)
+        {
+            if ((await reader.GetStringAsync(api + "/blocks/tip/hash")).Trim() == tip)
+                break;
+            await Task.Delay(TimeSpan.FromSeconds(1));
+        }
+
+        var rejected = await provider.UnlockNFTAsync(new UnlockWeb3NFTRequest
+        {
+            NFTTokenAddress = identifier, UnlockedByAvatarId = otherAvatar
+        });
+        Assert.IsTrue(rejected.IsError);
+        StringAssert.Contains(rejected.Message, "does not own the original custody inputs");
+        Assert.AreEqual(0, (await core.GetRawMempoolAsync()).Length);
+
+        var released = await provider.UnlockNFTAsync(new UnlockWeb3NFTRequest
+        {
+            NFTTokenAddress = identifier, UnlockedByAvatarId = depositorAvatar
+        });
+        Assert.IsFalse(released.IsError, released.Message);
+        Assert.IsTrue(uint256.TryParse(released.Result.TransactionResult, out var transactionId));
+        Assert.IsTrue((await core.GetRawMempoolAsync()).Contains(transactionId));
+        await core.SendCommandAsync("generatetoaddress", 1, miner);
+        await VerifyIndexedOwnerAsync(provider, identifier, depositor, transactionId.ToString());
+        await local.DeActivateProviderAsync();
+    }
+
+    private static async Task VerifyIndexedOwnerAsync(BitcoinOASIS provider, string identifier, string walletAddress, string transactionId)
+    {
         for (var attempt = 0; attempt < 30; attempt++)
         {
             var lookup = await provider.LoadOnChainNFTDataAsync(identifier);
-            if (!lookup.IsError && lookup.Result.MetaData.TryGetValue("CurrentOwnerAddress", out var owner) && owner == poolAddress)
+            if (!lookup.IsError && lookup.Result.MetaData.TryGetValue("CurrentOwnerAddress", out var owner) && owner == walletAddress)
             {
-                Assert.AreEqual(custody.Result.TransactionId + ":0:0", lookup.Result.MetaData["Satpoint"]);
+                Assert.AreEqual(transactionId + ":0:0", lookup.Result.MetaData["Satpoint"]);
                 return;
             }
             await Task.Delay(TimeSpan.FromSeconds(1));
         }
-
-        Assert.Fail("The ord index did not confirm the inscription under bridge custody.");
+        Assert.Fail("The ord index did not confirm the exact transaction and wallet owner.");
     }
 }

@@ -134,6 +134,7 @@ jobs:
           export OASIS_BITCOIN_CORE_RPC_URL="http://127.0.0.1:$rpc_port"
           export OASIS_BITCOIN_CORE_RPC_AUTH="cookiefile=$owned/chain/regtest/.cookie"
           export OASIS_BITCOIN_ORD_MINER="$miner"
+          export OASIS_BITCOIN_ORD_WALLET_FIXTURE="$owned/avatar-wallets"
           tip="$(bitcoin getbestblockhash)"
           ready=false
           for attempt in {1..60}; do
