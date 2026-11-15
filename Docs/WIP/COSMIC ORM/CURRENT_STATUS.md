@@ -1,5 +1,12 @@
 # COSMIC ORM / CQL current status
 
+## Verified Decimal revision queued on Development
+
+15 November. Development advanced from fdd9df3ee6e8 to dc24072806f6 after the exact protocol and WEB4 image checks passed. Railway queued deployment 8ca9ad1d at 17:54:16 UTC, 31 minutes and 20 seconds after the previous WEB4 deployment was created. The exact empty-scope and populated MongoDB Decimal checks are waiting for successful cutover. The separate native three-store regression completed successfully.
+
+Web4Site 8e366e6022b5 lets Ask your data load a ready public question directly. All 224 website tests passed. The signed-in browser walkthrough remains open. [Protected WEB4 preview](https://web4-site-290746kyw-oasis-team.vercel.app/web4-sandbox.html)
+
+
 ## Populated typed HAVING proved on live WEB4
 
 15 November. Exact Web4Site dc53b278c35d compiled three populated HAVING cases on each of MongoDB, SQLite and Neo4j while Development fdd9df3ee6e8 was serving. Nullable text inequality returned the non-null Green group only. IS NULL returned the null group only. An inclusive range on the selected Version alias combined with a count threshold returned the expected group with count two. All six private rows were hard-deleted with their native revision tokens and verified absent by exact CQL ID. No local builds or database copies.
