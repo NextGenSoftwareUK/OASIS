@@ -1,5 +1,7 @@
 # Current provider status
 
+15 November Cancun time. HyperDrive contract job 132759326753 passed all 993 behavioral checks, zero failures and zero skips, on the exact rerun with corrected shallow/eager fixtures. This is controlled suite evidence. Native provider acceptance and hosted routing coverage remain tracked separately. Algorand mainnet account-history verification is run 43698006454.
+
 15 November Cancun time. The changed Files selector passed focused MongoDB-to-SQLite and SQLite fixture runs 43697509783 and 43697512256. The SQLite provider mapped 3 candidates instead of 95 owner-key matches before persisted-owner validation. Algorand account-history pagination now surfaces Indexer failures and continuation limits. Exact public native verification is pending.
 
 15 November Cancun time. The Files owner/type predicate change is on 6a42ddbf09f8. Focused native runs 43697509783 and 43697512256 cover the changed MongoDB-to-SQLite upload/list path and SQLite materialization. The separate Files byte and ownership image run 43697065571 is still pending. No local builds or databases were used for these dispatches.
