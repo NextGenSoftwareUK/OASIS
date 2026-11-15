@@ -71,29 +71,28 @@ public sealed class CqlHostedSources : BackgroundService
         var started = Stopwatch.GetTimestamp();
         const int maximumConcurrentReaders = 3;
         var ordered = queryOnly.OrderBy(type => type.ToString(), StringComparer.Ordinal).ToArray();
-        for (var index = 0; index < ordered.Length;)
+        // Only registered, independently owned profiles may use the parallel
+        // lane. Shared BootLoader registrations still run in a single sequence.
+        var independent = ordered.Where(registry.HasIndependentActivation).ToHashSet();
+        var options = new ParallelOptions
         {
-            stoppingToken.ThrowIfCancellationRequested();
-            if (!registry.HasIndependentActivation(ordered[index]))
-            {
-                await ActivateInitialAsync(ordered[index++], stoppingToken);
-                continue;
-            }
-
-            // Independently owned profiles never use the shared BootLoader
-            // registration path. Drain their batch before a canonical activation.
-            var batch = new List<Task>(maximumConcurrentReaders);
-            do
-            {
-                batch.Add(ActivateInitialAsync(ordered[index++], stoppingToken));
-            }
-            while (batch.Count < maximumConcurrentReaders && index < ordered.Length
-                && registry.HasIndependentActivation(ordered[index]));
-            await Task.WhenAll(batch);
-        }
+            MaxDegreeOfParallelism = maximumConcurrentReaders,
+            CancellationToken = stoppingToken
+        };
+        await Task.WhenAll(
+            ActivateCanonicalAsync(ordered.Where(provider => !independent.Contains(provider)), stoppingToken),
+            Parallel.ForEachAsync(ordered.Where(independent.Contains), options,
+                (provider, token) => new ValueTask(ActivateInitialAsync(provider, token))));
 
         logger.LogInformation("CQL startup completed readers={Enrolled} verified={Verified} elapsedMilliseconds={ElapsedMilliseconds}",
             ordered.Length, verified.Count, (long)Stopwatch.GetElapsedTime(started).TotalMilliseconds);
+    }
+
+    private async Task ActivateCanonicalAsync(IEnumerable<ProviderType> canonicalProviders,
+        CancellationToken stoppingToken)
+    {
+        foreach (var provider in canonicalProviders)
+            await ActivateInitialAsync(provider, stoppingToken);
     }
 
     private async Task ActivateInitialAsync(ProviderType provider, CancellationToken stoppingToken)
