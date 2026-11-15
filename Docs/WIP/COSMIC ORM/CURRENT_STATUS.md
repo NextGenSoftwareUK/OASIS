@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Exact metadata aggregates and MongoDB Decimal failure
+
+15 November. Web4Site fa0e1354440d compiles exact numeric metadata aggregates and preserves Int64, UInt64 and Decimal HAVING literals. All 64 focused editor tests passed. Live Development 4437cc9e119f accepted MIN, MAX, SUM and AVG probes on SQLite and Neo4j with no visible rows. MongoDB accepted Int64 SUM, UInt64 MIN, Int64 AVG and Decimal MAX. It returned 503/CQL_QUERY_FAILED for both Decimal SUM and AVG, even without HAVING. The underlying error is still being isolated. Feature 2bd3daeb549b uses the corrected scalar wire selection model for a populated repro. Exact native candidate 52a3c228a84a contains only the repro fixture on the last passed integral graph. HyperDrive NFT 318d7369abd0 is on Development. The populated grouping candidate 98713f7505b5 passed native protocol CI and its [exact image 43728692470](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43728692470) is building. The gate checks the serving revision and shared deployment window.
+
 ## Remaining integral domains for selected Distinct
 
 15 November. Core b9d1445c5085 and feature ff43a1c0adf9 admit Byte, SByte, Int16, UInt16 and UInt32 to selected native Distinct. Exact [native CI 43728126676](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43728126676) qualifies d12c98ebc66f on the combined NFT and metadata-wire graph. It checks duplicates, missing nullable cells and adjacent values near UInt32.MaxValue on all three stores. Acceptance remains pending and no checklist row was closed.
