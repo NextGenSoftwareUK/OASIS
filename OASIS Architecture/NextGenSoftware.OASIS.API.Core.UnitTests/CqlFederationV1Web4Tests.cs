@@ -24,8 +24,8 @@ public partial class CqlV1Web4Tests
     {
         internal readonly Dictionary<ProviderType, Source> Items = FederationProviders.ToDictionary(type => type, type => new Source(type));
         internal ProviderType Default = FederationProviders[0];
-        public IOASISStorageProvider Resolve(ProviderType? requested) => Items[requested ?? Default].Resolve(requested);
-        public HolonManager CreateManager(IOASISStorageProvider provider) => Items[provider.ProviderType.Value].CreateManager(provider);
+        public IOASISProvider Resolve(ProviderType? requested) => Items[requested ?? Default].Resolve(requested);
+        public HolonManager CreateManager(IOASISProvider provider) => Items[provider.ProviderType.Value].CreateManager(provider);
         internal void NeverRead()
         {
             foreach (var source in Items.Values)

@@ -38,7 +38,7 @@ public sealed class CqlV1Providers : ICqlV1Providers
     private readonly ICqlHostedSourceRegistry sources;
     public CqlV1Providers(ICqlHostedSourceRegistry sources = null) => this.sources = sources;
 
-    public IOASISStorageProvider Resolve(ProviderType? requested)
+    public IOASISProvider Resolve(ProviderType? requested)
     {
         var registry = ProviderManager.Instance;
         var provider = requested.HasValue
@@ -50,7 +50,7 @@ public sealed class CqlV1Providers : ICqlV1Providers
         return provider;
     }
 
-    public HolonManager CreateManager(IOASISStorageProvider provider)
+    public HolonManager CreateManager(IOASISProvider provider)
         => CreateQueryManager(OASISBootLoader.OASISBootLoader.OASISDNA, ProviderManager.Instance);
 
     internal static HolonManager CreateQueryManager(NextGenSoftware.OASIS.API.DNA.OASISDNA dna, ProviderManager registry)
@@ -98,7 +98,7 @@ public sealed class CqlHostedSourceRegistry : ICqlHostedSourceRegistry
         HoloOasisProvisioning provisionManagedHoloOasis = null)
     {
         this.profiles = (profiles ?? Array.Empty<CqlReadSourceProfile>())
-            .ToDictionary(profile => profile.Storage.ProviderType.Value);
+            .ToDictionary(profile => profile.Provider.ProviderType.Value);
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         this.tronPublicConfiguration = tronPublicConfiguration;
         this.provisionManagedHoloOasis = provisionManagedHoloOasis;
@@ -115,15 +115,15 @@ public sealed class CqlHostedSourceRegistry : ICqlHostedSourceRegistry
         tonPublicHeaderConfiguration = configuration?["CQL_TON_PUBLIC_SOURCE_JSON"];
     }
 
-    public IOASISStorageProvider Find(ProviderType provider)
-        => profiles.TryGetValue(provider, out var profile) ? profile.Storage
+    public IOASISProvider Find(ProviderType provider)
+        => profiles.TryGetValue(provider, out var profile) ? profile.Provider
             : ProviderManager.Instance.GetStorageProvider(provider);
 
     public async Task ActivateReadSourceAsync(ProviderType provider, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        IOASISStorageProvider storage;
-        if (profiles.TryGetValue(provider, out var profile)) storage = profile.Storage;
+        IOASISProvider storage;
+        if (profiles.TryGetValue(provider, out var profile)) storage = profile.Provider;
         else
         {
             // Provision through the serialized HoloOASIS activation path.

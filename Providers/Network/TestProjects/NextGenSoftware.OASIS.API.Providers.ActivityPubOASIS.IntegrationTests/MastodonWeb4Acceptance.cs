@@ -28,7 +28,7 @@ internal static class MastodonWeb4Acceptance
     private sealed class Providers(ActivityPubOASIS provider,HolonManager manager) : ICqlV1Providers
     {
         public int Lookups;
-        public IOASISStorageProvider Resolve(ProviderType? requested)
+        public IOASISProvider Resolve(ProviderType? requested)
         {
             Lookups++;
             if(requested!=ProviderType.ActivityPubOASIS||!provider.IsProviderActivated)throw new InvalidOperationException("Only the already active public Mastodon adapter is eligible.");

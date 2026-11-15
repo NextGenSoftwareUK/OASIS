@@ -59,14 +59,14 @@ public sealed class CqlPolygonMongoNativeTests
     private sealed class Sources(IOASISStorageProvider mongo, IOASISStorageProvider polygon, ProviderType provider,
         OASISDNA dna, ProviderManager registry) : ICqlV1Providers
     {
-        public IOASISStorageProvider Resolve(ProviderType? requested)
+        public IOASISProvider Resolve(ProviderType? requested)
         {
             if (requested is null or ProviderType.MongoDBOASIS) return mongo;
             if (requested == provider) return polygon;
             throw new InvalidOperationException("Only the two explicitly enrolled native fixture providers are available.");
         }
 
-        public HolonManager CreateManager(IOASISStorageProvider provider) => new(null, dna, registry);
+        public HolonManager CreateManager(IOASISProvider provider) => new(null, dna, registry);
     }
 
     private static string RepositoryRoot => Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../../"));

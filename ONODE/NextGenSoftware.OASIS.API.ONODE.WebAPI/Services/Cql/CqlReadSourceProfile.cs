@@ -6,26 +6,26 @@ using NextGenSoftware.OASIS.API.Core.Queries;
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 
 /// <summary>An explicitly configured query-only representation. Its lifetime and
-/// activation are independent of the canonical wallet/storage provider registry.</summary>
+/// activation are independent of the canonical wallet/provider provider registry.</summary>
 public sealed class CqlReadSourceProfile : IDisposable
 {
-    public IOASISStorageProvider Storage { get; }
+    public IOASISProvider Provider { get; }
     public CqlReadSourceActivationPolicy ActivationPolicy { get; }
 
-    public CqlReadSourceProfile(IOASISStorageProvider storage)
-        : this(storage, CqlReadSourceActivationPolicy.None) { }
+    public CqlReadSourceProfile(IOASISProvider provider)
+        : this(provider, CqlReadSourceActivationPolicy.None) { }
 
-    public CqlReadSourceProfile(IOASISStorageProvider storage, CqlReadSourceActivationPolicy activationPolicy)
+    public CqlReadSourceProfile(IOASISProvider provider, CqlReadSourceActivationPolicy activationPolicy)
     {
-        if (storage?.ProviderType == null || storage is not ICosmicQueryStorageProvider query
-            || query.QueryProviderType != storage.ProviderType.Value || query.QueryCapabilities == null
-            || storage is not ICosmicReadOnlyQueryActivation)
-            throw new ArgumentException("An explicit read-only query adapter is required.", nameof(storage));
-        Storage = storage;
+        if (provider?.ProviderType == null || provider is not ICosmicQueryStorageProvider query
+            || query.QueryProviderType != provider.ProviderType.Value || query.QueryCapabilities == null
+            || provider is not ICosmicReadOnlyQueryActivation)
+            throw new ArgumentException("An explicit read-only query adapter is required.", nameof(provider));
+        Provider = provider;
         ActivationPolicy = activationPolicy ?? throw new ArgumentNullException(nameof(activationPolicy));
     }
 
-    public void Dispose() => (Storage as IDisposable)?.Dispose();
+    public void Dispose() => (Provider as IDisposable)?.Dispose();
 }
 
 /// <summary>Host-owned health-check recovery only. Never retries a user query,

@@ -61,7 +61,7 @@ public sealed partial class CqlV1Web4NativeTests
 
     private sealed class Sources(Dictionary<ProviderType, IOASISStorageProvider> providers) : ICqlV1Providers
     {
-        public IOASISStorageProvider Resolve(ProviderType? requested) => providers[requested ?? ProviderType.SQLLiteDBOASIS];
+        public IOASISProvider Resolve(ProviderType? requested) => providers[requested ?? ProviderType.SQLLiteDBOASIS];
 
         public HolonManager CreateManager(IOASISStorageProvider storage)
         {

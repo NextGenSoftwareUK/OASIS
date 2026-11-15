@@ -18,7 +18,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 
 public interface ICqlHostedSourceRegistry
 {
-    IOASISStorageProvider Find(ProviderType provider);
+    IOASISProvider Find(ProviderType provider);
     Task ActivateReadSourceAsync(ProviderType provider, CancellationToken cancellationToken);
 }
 

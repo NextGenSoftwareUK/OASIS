@@ -30,7 +30,7 @@ internal static class CqlNativeHttpAcceptance
     private sealed class Providers(AzureCosmosDBOASIS provider, HolonManager manager) : ICqlV1Providers
     {
         internal int Lookups;
-        public IOASISStorageProvider Resolve(ProviderType? requested)
+        public IOASISProvider Resolve(ProviderType? requested)
         {
             Interlocked.Increment(ref Lookups);
             if (requested.HasValue && requested != ProviderType.AzureCosmosDBOASIS || !provider.IsProviderActivated)
