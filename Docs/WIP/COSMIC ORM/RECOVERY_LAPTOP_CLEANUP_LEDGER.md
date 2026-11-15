@@ -6777,3 +6777,5 @@ Web4Site 5fa63a71df5d used a temporary directory containing only committed websi
 - Nostr relay discovery and signature checks ran in memory on the serving Railway container. The scoped relay URL update used the existing CLI installation and created no local credentials, builds or test result files.
 
 - Nostr live smoke and latency checks reused the existing Development visitor. No account, runtime install, local report, or fixture database was created.
+
+- Shared provider candidate assembly reused the existing Git checkout and a temporary index. No local build or runtime download. The superseded Axelar-only remote image was cancelled.

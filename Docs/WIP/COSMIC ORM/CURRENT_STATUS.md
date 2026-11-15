@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Shared provider candidate
+
+Development advanced to f99947f0e20b. Candidate 433731c6aa94 layers the shipping Axelar and Connext providers, bounded Axelar header reads and exact-body Nostr signature reuse on that shared revision. The provider change paths do not intersect the peer integration. Both Development gitlinks and the dependency manifest are inherited from the shared base. [Exact protocol](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43688294760) is active. The Axelar-only image 43687061422 on the superseded base was cancelled. The combined candidate still needs the exact image and live query and timing comparisons.
+
 ## Connext shipping provider qualification
 
 The feature branch moves the bounded Connext origin-read catalogue into ConnextOASIS. The hosted profile retains exact anonymous Ethereum origin reads and rejects storage writes. The legacy constructor continues to supply the existing PostgREST operations. CI and live qualification are pending.
