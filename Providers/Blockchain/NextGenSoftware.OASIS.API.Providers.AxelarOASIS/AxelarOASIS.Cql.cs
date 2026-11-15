@@ -25,6 +25,10 @@ public partial class AxelarOASIS : ICosmicQueryStorageProvider, ICosmicReadOnlyQ
     private readonly PublicHeaders? publicHeaders;
     private bool disposed;
 
+    internal AxelarOASIS(IEnumerable<long> heights, Guid owner,
+        Func<long, CancellationToken, Task<AxelarPublicBlockClient.Header>> readHeader)
+        : this(new PublicHeaders(heights, owner, readHeader)) { }
+
     private AxelarOASIS(PublicHeaders headers) : this()
     {
         publicHeaders = headers;
@@ -130,12 +134,14 @@ public partial class AxelarOASIS : ICosmicQueryStorageProvider, ICosmicReadOnlyQ
     private sealed class PublicHeaders : IDisposable
     {
         private const string SourceName = "axelar-mainnet-headers";
-        private readonly AxelarPublicBlockClient client;
+        private readonly AxelarPublicBlockClient? client;
+        private readonly Func<long, CancellationToken, Task<AxelarPublicBlockClient.Header>> readHeader;
         private readonly Dictionary<string, long> catalogue;
         private readonly Guid owner;
         public IReadOnlyList<string> HeightKeys { get; }
 
-        public PublicHeaders(IEnumerable<long> heights, Guid owner)
+        public PublicHeaders(IEnumerable<long> heights, Guid owner,
+            Func<long, CancellationToken, Task<AxelarPublicBlockClient.Header>>? readHeader = null)
         {
             ArgumentNullException.ThrowIfNull(heights);
             var captured = heights.Take(9).ToArray();
@@ -145,7 +151,12 @@ public partial class AxelarOASIS : ICosmicQueryStorageProvider, ICosmicReadOnlyQ
             catalogue = captured.ToDictionary(height => height.ToString(CultureInfo.InvariantCulture));
             this.owner = owner;
             HeightKeys = Array.AsReadOnly(catalogue.Keys.ToArray());
-            client = new AxelarPublicBlockClient();
+            if (readHeader == null)
+            {
+                client = new AxelarPublicBlockClient();
+                readHeader = client.ReadAsync;
+            }
+            this.readHeader = readHeader;
         }
 
         public async Task<IReadOnlyList<IHolon>> ReadAsync(IReadOnlyList<string> keys, CancellationToken token)
@@ -153,9 +164,15 @@ public partial class AxelarOASIS : ICosmicQueryStorageProvider, ICosmicReadOnlyQ
             using var deadline = CancellationTokenSource.CreateLinkedTokenSource(token);
             deadline.CancelAfter(TimeSpan.FromSeconds(15));
             var rows = new List<IHolon>(keys.Count);
-            foreach (var id in keys)
+            const int maximumConcurrentReads = 3;
+            foreach (var batch in keys.Chunk(maximumConcurrentReads))
+                rows.AddRange(await Task.WhenAll(batch.Select(ReadHeaderAsync)));
+            deadline.Token.ThrowIfCancellationRequested();
+            return rows.AsReadOnly();
+
+            async Task<IHolon> ReadHeaderAsync(string id)
             {
-                var header = await client.ReadAsync(catalogue[id], deadline.Token);
+                var header = await readHeader(catalogue[id], deadline.Token);
                 var fields = new Dictionary<string, object>
                 {
                     [HeightMetadata] = id,
@@ -174,17 +191,15 @@ public partial class AxelarOASIS : ICosmicQueryStorageProvider, ICosmicReadOnlyQ
                 row.IsActive = true;
                 row.Children = Array.Empty<IHolon>();
                 row.ProviderUniqueStorageKey[PType.AxelarOASIS] = id;
-                rows.Add(row);
+                return row;
             }
-            deadline.Token.ThrowIfCancellationRequested();
-            return rows.AsReadOnly();
         }
 
         public async Task VerifyAsync(CancellationToken token) => await ReadAsync(HeightKeys, token);
 
         public void Dispose()
         {
-            client.Dispose();
+            client?.Dispose();
         }
     }
 }
