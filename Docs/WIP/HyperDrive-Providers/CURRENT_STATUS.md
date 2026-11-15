@@ -1,5 +1,7 @@
 # Current provider status
 
+15 November Cancun time. Algorand now pushes asset ID and note searches to the native Indexer and validates exact projected metadata. This excludes non-transfer asset matches and longer transaction notes that share a prefix. Read-only mainnet probes verified the selected transfer and the native note-prefix behavior. Provider-level verification is pending. [Algorand Indexer transaction search](https://dev.algorand.co/reference/rest-api/indexer/operations/searchfortransactions/)
+
 15 November Cancun time. The published OPORTAL dev dashboard and SDK rendered one file for a disposable signed-in avatar after a real 4096-byte upload. The old full Files list contained exactly the same record. The dashboard made one compact count request and no list request for its Files card. Wallet and Messages remained empty for this fixture. WEB4 confirmed file deletion, a zero count, and avatar deletion.
 
 15 November Cancun time. Stripe catalogue candidate 6b471158bf1e contains only the price reader and its regression test on Development 4c842fc2ceba. Qualification 43715074477 is queued against the current dependency graph. The preceding Railway Gifts and Checkout deployment is still pending and its live checks are prepared.

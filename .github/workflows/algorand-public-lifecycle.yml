@@ -21,8 +21,8 @@ on:
       public_case:
         description: Focused public Indexer verification
         type: choice
-        options: [compact_account, participant_metadata, transaction_metadata, account_history]
-        default: compact_account
+        options: [asset_note_metadata, compact_account, participant_metadata, transaction_metadata, account_history]
+        default: asset_note_metadata
 
 permissions:
   contents: read
@@ -68,7 +68,8 @@ jobs:
               'account_history' { 'PublicIndexerPaginatesAccountHistoryAndRejectsInvalidAddress' }
               'transaction_metadata' { 'PublicIndexerQueriesTransactionMetadataUsingNativeFilters' }
               'participant_metadata' { 'PublicIndexerMatchesExactTransactionParticipants' }
-              default { 'PublicAlgodLifecycleAndAccountRead' }
+              'compact_account' { 'PublicAlgodLifecycleAndAccountRead' }
+              default { 'PublicIndexerMatchesAssetIdAndExactNoteMetadata' }
             }
             dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.AlgorandOASIS.IntegrationTests" --filter "FullyQualifiedName~$test" /m:2 /nr:false /p:UseSharedCompilation=false --logger "console;verbosity=normal"
             if ($LASTEXITCODE -ne 0) { throw "Algorand public lifecycle verification failed." }

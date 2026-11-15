@@ -11,6 +11,33 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS.IntegrationTests;
 public sealed class AlgorandPublicLifecycleTests
 {
     [TestMethod]
+    public async Task PublicIndexerMatchesAssetIdAndExactNoteMetadata()
+    {
+        const string transferId = "7VHTBCU3DDI64UOA7QOEUHVZ4JM6RGSE2H64RB5RHOQJFDEIMXTA";
+        const string paymentId = "7MK6WLKFBPC323ATSEKNEKUTQZ23TCCM75SJNSFAHEM65GYJ5ANQ";
+        var provider = new AlgorandOASIS("https://mainnet-api.algonode.cloud", "https://mainnet-idx.algonode.cloud");
+
+        var asset = new Dictionary<string, string> { ["tx_id"] = transferId, ["asa_id"] = "31566704" };
+        var transfer = await provider.LoadHolonsByMetaDataAsync(asset, MetaKeyValuePairMatchMode.All, loadChildren: false);
+        Assert.IsFalse(transfer.IsError, transfer.Message);
+        Assert.AreEqual(transferId, transfer.Result.Single().ProviderUniqueStorageKey[ProviderType.AlgorandOASIS]);
+
+        var payment = await provider.LoadHolonAsync(paymentId, loadChildren: false);
+        Assert.IsFalse(payment.IsError, payment.Message);
+        string note = payment.Result.ProviderMetaData[ProviderType.AlgorandOASIS]["note"];
+        Assert.IsTrue(note.Length > 24);
+        var filters = new Dictionary<string, string> { ["tx_id"] = paymentId, ["note"] = note };
+        var exact = await provider.LoadHolonsByMetaDataAsync(filters, MetaKeyValuePairMatchMode.All, loadChildren: false);
+        Assert.IsFalse(exact.IsError, exact.Message);
+        Assert.AreEqual(paymentId, exact.Result.Single().ProviderUniqueStorageKey[ProviderType.AlgorandOASIS]);
+
+        filters["note"] = note[..24];
+        var prefixOnly = await provider.LoadHolonsByMetaDataAsync(filters, MetaKeyValuePairMatchMode.All, loadChildren: false);
+        Assert.IsFalse(prefixOnly.IsError, prefixOnly.Message);
+        Assert.AreEqual(0, prefixOnly.LoadedCount);
+    }
+
+    [TestMethod]
     public async Task PublicIndexerMatchesExactTransactionParticipants()
     {
         const string id = "7MK6WLKFBPC323ATSEKNEKUTQZ23TCCM75SJNSFAHEM65GYJ5ANQ";

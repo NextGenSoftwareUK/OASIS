@@ -505,8 +505,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
                 var pages = await Task.WhenAll(queries.Select(async query =>
                 {
                     var page = await ReadIndexedTransactionsAsync($"/v2/transactions?{query.Query}&").ConfigureAwait(false);
-                    var participantMatches = page.Transactions.Where(holon => MatchesAlgorandParticipants(holon, query.Fields)).ToList();
-                    return (Transactions: participantMatches, page.HasMore);
+                    var exactMatches = page.Transactions.Where(holon => MatchesProjectedMetadata(holon, query.Fields)).ToList();
+                    return (Transactions: exactMatches, page.HasMore);
                 })).ConfigureAwait(false);
                 var matches = pages.SelectMany(page => page.Transactions)
                     .DistinctBy(holon => holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.AlgorandOASIS])
@@ -540,14 +540,16 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
                 "confirmed_round" => $"round={encoded}",
                 "sender" => $"address={encoded}&address-role=sender",
                 "receiver" => $"address={encoded}&address-role=receiver&exclude-close-to=true",
+                "asa_id" => $"asset-id={encoded}",
+                "note" => $"note-prefix={Uri.EscapeDataString(Convert.ToBase64String(Encoding.UTF8.GetBytes(value)))}",
                 _ => throw new ArgumentException($"The metadata field '{key}' is not indexed by this provider.")
             };
         }
 
-        private static bool MatchesAlgorandParticipants(IHolon holon, IEnumerable<KeyValuePair<string, string>> fields)
+        private static bool MatchesProjectedMetadata(IHolon holon, IEnumerable<KeyValuePair<string, string>> fields)
         {
             var metadata = holon.ProviderMetaData[Core.Enums.ProviderType.AlgorandOASIS];
-            return fields.Where(field => field.Key is "sender" or "receiver").All(field =>
+            return fields.Where(field => field.Key is "sender" or "receiver" or "asa_id" or "note").All(field =>
                 metadata.TryGetValue(field.Key, out var value) && StringComparer.Ordinal.Equals(value, field.Value));
         }
 
