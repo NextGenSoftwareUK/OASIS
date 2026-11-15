@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. The Algorand alias qualification runs on one disposable hosted LocalNet fixture. Python syntax validation ran in memory. No local SDK, packages, build folders or test results were created. Hosted teardown awaits run 43767516866.
+
 15 November Cancun time. The signed STARNET game-list check used the shipped SDK in memory and WEB4 confirmed deletion of the sandbox avatar. Restored the existing sparse portal checkout and removed candidate staging index and patch files. No local downloads, builds or test artifacts were retained.
 
 15 November Cancun time. The signed inventory item and both disposable sandbox avatars were removed. Restored the existing sparse portal checkout. Removed the candidate temporary Git index and patch. No local runtime, dependencies, build artifacts or test result files were created. C: had 23.88 GiB free.
