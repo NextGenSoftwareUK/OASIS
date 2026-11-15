@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. Algorand writer qualification runs on the existing disposable hosted LocalNet fixture and keeps its ephemeral signing material inside the owned fixture directory. Canceled the redundant public check. No local build, runtime, credentials or fixture was created.
+
 15 November Cancun time. The live OPORTAL subscription checks held assets and responses in memory. WEB4 confirmed deletion of the temporary avatar. No local browser profile, runtime, build or report was retained.
 
 15 November Cancun time. Algorand shipping-provider qualification confirmed removal of the disposable LocalNet containers, network, volumes and fixture directory. No local build or fixture was created.
