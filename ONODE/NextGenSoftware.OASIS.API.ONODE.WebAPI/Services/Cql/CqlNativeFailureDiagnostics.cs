@@ -8,6 +8,7 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using MongoDB.Driver;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Objects.NativeData;
 
@@ -18,24 +19,26 @@ internal sealed record HoloOasisStartupCounts(int? AppInterfaces, int CellListRe
 /// <summary>Operator-only typed failure evidence. No raw exception object/text or native values are logged.</summary>
 internal static class CqlNativeFailureDiagnostics
 {
-    internal sealed record Summary(string Categories, string Stage, int? HttpStatus, string WebSocketError, HoloOasisStartupCounts HoloOasisStartup);
+    internal sealed record Summary(string Categories, string Stage, int? HttpStatus, string WebSocketError, HoloOasisStartupCounts HoloOasisStartup, int? MongoCommandCode);
 
     internal static Summary Capture(Exception error)
     {
         var categories = new List<string>();
         string stage = "unclassified", socketError = "none";
-        int? status = null;
+        int? status = null, mongoCommandCode = null;
         HoloOasisStartupCounts startup = null;
         for (int depth = 0; error != null && depth < 8; depth++, error = error.InnerException)
         {
             string category = error switch
             {
                 HttpRequestException => "http", WebSocketException => "websocket",
+                MongoCommandException => "mongo_command", MongoConnectionException => "mongo_connection",
                 NativeConnectionRefusedException => "connection_refused", OperationCanceledException => "cancelled",
                 TimeoutException => "timeout",
                 InvalidDataException => "invalid_data", JsonException => "invalid_json",
                 DecoderFallbackException => "invalid_utf8", _ => "other"
             };
+            if (error is MongoCommandException command && command.Code > 0) mongoCommandCode ??= command.Code;
             startup ??= error.Data[typeof(HoloOasisStartupCounts)] as HoloOasisStartupCounts;
             if (!categories.Contains(category)) categories.Add(category);
             if (error.Data["COSMIC.NativeStage"] is string declared && declared is "connect" or "subscription" or "event_verification" or "response_headers" or "response_body"
@@ -46,7 +49,7 @@ internal static class CqlNativeFailureDiagnostics
             if (error is WebSocketException socket)
                 socketError = Enum.IsDefined(typeof(WebSocketError), socket.WebSocketErrorCode) ? socket.WebSocketErrorCode.ToString() : "unknown";
         }
-        return new(categories.Count == 0 ? "none" : string.Join("/", categories), stage, status, socketError, startup);
+        return new(categories.Count == 0 ? "none" : string.Join("/", categories), stage, status, socketError, startup, mongoCommandCode);
     }
 
     internal static void Record(ILogger logger, ProviderType provider, bool activation, Exception error,
@@ -54,9 +57,9 @@ internal static class CqlNativeFailureDiagnostics
     {
         var summary = Capture(error);
         logger.LogWarning(new EventId(4831, "CqlNativeFailure"),
-            "CQL native failure provider={Provider} phase={Phase} stage={Stage} category={Category} httpStatus={HttpStatus} websocket={WebSocketError} elapsedMilliseconds={ElapsedMilliseconds} persistedAppInterfaces={PersistedAppInterfaces} cellListReplies={CellListReplies} runningCells={RunningCells}",
+            "CQL native failure provider={Provider} phase={Phase} stage={Stage} category={Category} httpStatus={HttpStatus} websocket={WebSocketError} elapsedMilliseconds={ElapsedMilliseconds} persistedAppInterfaces={PersistedAppInterfaces} cellListReplies={CellListReplies} runningCells={RunningCells} mongoCommandCode={MongoCommandCode}",
             provider, activation ? "activation" : "query", summary.Stage, summary.Categories, summary.HttpStatus, summary.WebSocketError, elapsedMilliseconds,
-            summary.HoloOasisStartup?.AppInterfaces, summary.HoloOasisStartup?.CellListReplies, summary.HoloOasisStartup?.RunningCells);
+            summary.HoloOasisStartup?.AppInterfaces, summary.HoloOasisStartup?.CellListReplies, summary.HoloOasisStartup?.RunningCells, summary.MongoCommandCode);
     }
 
     internal static void Query(HttpContext context, ProviderType provider, Exception error)

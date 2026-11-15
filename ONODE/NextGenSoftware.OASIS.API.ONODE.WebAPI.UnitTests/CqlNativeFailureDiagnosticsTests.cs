@@ -8,6 +8,11 @@ using NextGenSoftware.OASIS.API.Core.Queries;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 using Moq;
+using MongoDB.Bson;
+using MongoDB.Driver;
+using MongoDB.Driver.Core.Clusters;
+using MongoDB.Driver.Core.Connections;
+using MongoDB.Driver.Core.Servers;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests;
 
@@ -31,6 +36,25 @@ public sealed class CqlNativeFailureDiagnosticsTests
         Assert.Same(cause, result.InnerException);
         Assert.Equal(503, CqlNativeFailureDiagnostics.Capture(result).HttpStatus);
         activation.Verify(value => value.ActivateQuerySourceAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public void MongoCommandFailureLogsItsCodeWithoutTheCommandOrServerMessage()
+    {
+        var connection = new ConnectionId(new ServerId(new ClusterId(), new DnsEndPoint("private-host.example", 27017)));
+        var command = new MongoCommandException(connection, "private message",
+            new BsonDocument("find", "private collection"),
+            new BsonDocument { { "ok", 0 }, { "code", 17280 }, { "errmsg", "private result" } });
+        var logger = new CaptureLogger();
+
+        CqlNativeFailureDiagnostics.Record(logger, ProviderType.MongoDBOASIS, false,
+            new InvalidOperationException("wrapped", command));
+
+        var entry = Assert.Single(logger.Entries);
+        Assert.Null(entry.Exception);
+        Assert.Contains("category=other/mongo_command", entry.Text);
+        Assert.Contains("mongoCommandCode=17280", entry.Text);
+        Assert.DoesNotContain("private", entry.Text);
     }
 
     [Fact]
