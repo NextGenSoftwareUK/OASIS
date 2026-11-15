@@ -18,6 +18,11 @@ on:
         type: choice
         options: [batch, indexed_search]
         default: batch
+      public_case:
+        description: Focused public Indexer verification
+        type: choice
+        options: [transaction_metadata, account_history]
+        default: transaction_metadata
 
 permissions:
   contents: read
@@ -52,12 +57,15 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
-      - name: Verify shipping account history against Algorand mainnet
+      - name: Verify shipping Indexer queries against Algorand mainnet
         if: ${{ !inputs.signed_localnet }}
+        env:
+          ALGORAND_PUBLIC_CASE: ${{ inputs.public_case }}
         shell: pwsh
         run: |
           ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-AlgorandPublicLifecycle -Operation {
-            dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.AlgorandOASIS.IntegrationTests" --filter "FullyQualifiedName~PublicIndexerPaginatesAccountHistoryAndRejectsInvalidAddress" /m:2 /nr:false /p:UseSharedCompilation=false --logger "console;verbosity=normal"
+            $test = if ($env:ALGORAND_PUBLIC_CASE -eq 'account_history') { 'PublicIndexerPaginatesAccountHistoryAndRejectsInvalidAddress' } else { 'PublicIndexerQueriesTransactionMetadataUsingNativeFilters' }
+            dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.AlgorandOASIS.IntegrationTests" --filter "FullyQualifiedName~$test" /m:2 /nr:false /p:UseSharedCompilation=false --logger "console;verbosity=normal"
             if ($LASTEXITCODE -ne 0) { throw "Algorand public lifecycle verification failed." }
           }
       - uses: actions/setup-python@v5

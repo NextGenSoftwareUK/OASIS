@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text;
@@ -417,16 +418,17 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
             return result;
         }
 
+        private const int IndexerTransactionLimit = 2000;
+
         private async Task<(List<IHolon> Transactions, bool HasMore)> ReadIndexedTransactionsAsync(string query)
         {
-            const int maximumTransactions = 2000;
             var holons = new List<IHolon>();
             var transactionIds = new HashSet<string>(StringComparer.Ordinal);
             var pageTokens = new HashSet<string>(StringComparer.Ordinal);
             string nextToken = null;
             do
             {
-                var pageSize = Math.Min(100, maximumTransactions - holons.Count);
+                var pageSize = Math.Min(100, IndexerTransactionLimit - holons.Count);
                 var url = query + $"limit={pageSize}" + (nextToken == null ? "" : $"&next={Uri.EscapeDataString(nextToken)}");
                 using var response = await _indexer.GetAsync(url).ConfigureAwait(false);
                 response.EnsureSuccessStatusCode();
@@ -443,7 +445,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
                 if (!string.IsNullOrEmpty(nextToken) && !pageTokens.Add(nextToken))
                     throw new InvalidOperationException("The indexer repeated the transaction page token.");
             }
-            while (!string.IsNullOrEmpty(nextToken) && holons.Count < maximumTransactions);
+            while (!string.IsNullOrEmpty(nextToken) && holons.Count < IndexerTransactionLimit);
             return (holons, !string.IsNullOrEmpty(nextToken));
         }
 
@@ -454,15 +456,13 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
             LoadHolonsForParentAsync(providerKey, type, loadChildren, recursive, maxChildDepth,
                 curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey,
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey,
             string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true,
             int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true,
-            bool loadChildrenFromProvider = false, int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref result, "AlgorandOASIS: LoadHolonsByMetaData is not supported.");
-            return await Task.FromResult(result);
-        }
+            bool loadChildrenFromProvider = false, int version = 0) =>
+            LoadHolonsByMetaDataAsync(new Dictionary<string, string> { [metaKey ?? string.Empty] = metaValue },
+                MetaKeyValuePairMatchMode.All, type, loadChildren, recursive, maxChildDepth, curentChildDepth,
+                continueOnError, loadChildrenFromProvider, version);
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue,
             HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true,
@@ -478,8 +478,54 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
             bool loadChildrenFromProvider = false, int version = 0)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
-            OASISErrorHandling.HandleError(ref result, "AlgorandOASIS: LoadHolonsByMetaData is not supported.");
-            return await Task.FromResult(result);
+            try
+            {
+                if (metaKeyValuePairs == null || metaKeyValuePairs.Count == 0)
+                    throw new ArgumentException("At least one indexed Algorand transaction field is required.");
+                if (!Enum.IsDefined(typeof(MetaKeyValuePairMatchMode), metaKeyValuePairMatchMode))
+                    throw new ArgumentOutOfRangeException(nameof(metaKeyValuePairMatchMode));
+
+                var filters = metaKeyValuePairs.Select(pair => AlgorandTransactionFilter(pair.Key, pair.Value)).ToArray();
+                var queries = metaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.All
+                    ? new[] { string.Join("&", filters) }
+                    : filters;
+                if (type != HolonType.All && type != HolonType.Holon)
+                    queries = Array.Empty<string>();
+
+                var pages = await Task.WhenAll(queries.Select(query =>
+                    ReadIndexedTransactionsAsync($"/v2/transactions?{query}&"))).ConfigureAwait(false);
+                var matches = pages.SelectMany(page => page.Transactions)
+                    .DistinctBy(holon => holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.AlgorandOASIS])
+                    .Take(IndexerTransactionLimit + 1).ToList();
+                result.IsWarning = matches.Count > IndexerTransactionLimit || pages.Any(page => page.HasMore);
+                result.WarningCount = result.IsWarning ? 1 : 0;
+                result.Result = matches.Take(IndexerTransactionLimit).ToList();
+                result.IsLoaded = true;
+                result.LoadedCount = Math.Min(matches.Count, IndexerTransactionLimit);
+                result.Message = result.IsWarning
+                    ? $"AlgorandOASIS: Returned {result.LoadedCount} matches. More indexed results are available."
+                    : $"AlgorandOASIS: Returned {result.LoadedCount} matches.";
+            }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                OASISErrorHandling.HandleError(ref result, $"AlgorandOASIS: Transaction metadata lookup failed: {ex.Message}");
+            }
+            return result;
+        }
+
+        private static string AlgorandTransactionFilter(string key, string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+                throw new ArgumentException($"The metadata field '{key}' requires a value.");
+            string parameter = key switch
+            {
+                "tx_id" => "txid",
+                "tx_type" => "tx-type",
+                "confirmed_round" => "round",
+                _ => throw new ArgumentException($"The metadata field '{key}' is not indexed by this provider.")
+            };
+            return $"{parameter}={Uri.EscapeDataString(value)}";
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(

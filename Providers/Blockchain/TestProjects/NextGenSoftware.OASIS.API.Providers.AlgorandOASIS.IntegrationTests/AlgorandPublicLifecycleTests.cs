@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -9,6 +10,35 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS.IntegrationTests;
 [TestClass]
 public sealed class AlgorandPublicLifecycleTests
 {
+    [TestMethod]
+    public async Task PublicIndexerQueriesTransactionMetadataUsingNativeFilters()
+    {
+        const string id = "7MK6WLKFBPC323ATSEKNEKUTQZ23TCCM75SJNSFAHEM65GYJ5ANQ";
+        var provider = new AlgorandOASIS("https://mainnet-api.algonode.cloud", "https://mainnet-idx.algonode.cloud");
+        var exact = provider.LoadHolonsByMetaData("tx_id", id, loadChildren: false);
+        Assert.IsFalse(exact.IsError, exact.Message);
+        Assert.AreEqual(id, exact.Result.Single().ProviderUniqueStorageKey[ProviderType.AlgorandOASIS]);
+
+        var filters = new Dictionary<string, string> { ["tx_id"] = id, ["tx_type"] = "pay", ["confirmed_round"] = "62440" };
+        var intersection = await provider.LoadHolonsByMetaDataAsync(filters, MetaKeyValuePairMatchMode.All, loadChildren: false);
+        Assert.IsFalse(intersection.IsError, intersection.Message);
+        Assert.AreEqual(id, intersection.Result.Single().ProviderUniqueStorageKey[ProviderType.AlgorandOASIS]);
+        filters["confirmed_round"] = "62441";
+        var miss = await provider.LoadHolonsByMetaDataAsync(filters, MetaKeyValuePairMatchMode.All, loadChildren: false);
+        Assert.IsFalse(miss.IsError, miss.Message);
+        Assert.AreEqual(0, miss.LoadedCount);
+        Assert.IsFalse(miss.Result.Any());
+
+        filters.Remove("tx_type");
+        filters["confirmed_round"] = "62440";
+        var union = await provider.LoadHolonsByMetaDataAsync(filters, MetaKeyValuePairMatchMode.Any, loadChildren: false);
+        Assert.IsFalse(union.IsError, union.Message);
+        var ids = union.Result.Select(holon => holon.ProviderUniqueStorageKey[ProviderType.AlgorandOASIS]).ToArray();
+        Assert.AreEqual(1, ids.Count(key => key == id));
+        Assert.AreEqual(ids.Length, ids.Distinct().Count());
+        Assert.IsTrue(union.Result.All(holon => holon.ProviderMetaData[ProviderType.AlgorandOASIS]["confirmed_round"] == "62440"));
+    }
+
     [TestMethod]
     public async Task PublicIndexerPaginatesAccountHistoryAndRejectsInvalidAddress()
     {

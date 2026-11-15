@@ -1,5 +1,7 @@
 # Current provider status
 
+15 November Cancun time. Algorand metadata lookups now use the shipping Indexer client for transaction ID, type and confirmed round. All combines native filters in one search, and Any merges distinct native transaction IDs with the existing result limit. A read-only mainnet probe found the exact known payment in round 62440 and zero results in 62441. The provider-level regression is pending. [Algorand Indexer transaction search](https://dev.algorand.co/reference/rest-api/indexer/operations/searchfortransactions/)
+
 15 November Cancun time. OPORTAL dev candidate be551234c06b is staged against serving portal revision 174be35dabb3. It changes three files to use the already available Files, Wallets and Messages summaries and independently render Map counts, retaining the existing Gifts read until that compact API is serving. JavaScript compiled and the exact candidate passed endpoint contract checking. Promotion awaits the next portal dev window.
 
 15 November Cancun time. OPORTAL production 01957699fe7c passed the scoped subscription regression and Vercel deployment. The live production cancel-return route serves the single-catalog request and response-driven plan highlight. Railway dev now reports COSMIC/CQL revision 55c1c2056c55 successful. The Gifts and Checkout batch 093064cd58ad remains ready for the next shared Development window.

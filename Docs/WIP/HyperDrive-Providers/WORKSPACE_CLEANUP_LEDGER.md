@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. Algorand filter validation used two public read-only mainnet Indexer calls with no local chain runtime, packages or retained output. The provider test runs on hosted CI.
+
 15 November Cancun time. Prepared the three-file dashboard candidate from Git objects, checked JavaScript and endpoint references in memory, and removed its isolated temporary Git index.
 
 15 November Cancun time. The production Checkout cancel update used the already qualified three-file tree. Public verification ran in memory and Vercel built remotely. No payment, local build, download or results were created.
