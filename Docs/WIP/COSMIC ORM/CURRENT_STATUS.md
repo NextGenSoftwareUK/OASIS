@@ -1,5 +1,11 @@
 # COSMIC ORM / CQL current status
 
+## Browser-policy rollout and cross join access proof
+
+15 November. Exact browser-policy image 43746781696 and protocol 43746779526 passed. Development advanced to ea42fa05130f and Railway queued 56dbe407 at 19:08:51 UTC, 32 minutes and 15 seconds after the prior deployment. Read-only browser preflight checks wait for the exact serving revision. The dedicated hostname and protected preview access remain open.
+
+Cross join runtime CI 43749225426 passed the native store step. Request-boundary CI 43749629256 expected six pairs and observed four because its right input included one private fixture row. The WEB4 compiler correctly applied caller visibility. Feature 94b808c69aff and exact source 2a50ca34dc95 now check six visible pairs, four when a private row is excluded, and rejection when the independent pair cap is five. [Corrected CI 43751065875](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43751065875) is queued. Cancellation was requested for the superseded protocol 43750112229 and image 43750550207. Temporary indexes were removed. No local builds.
+
 ## Reconciled cross join on the browser-policy graph
 
 15 November. Exact source d032e5b61051 preserves all three browser-policy files from ea42fa05130f and adds the native cross join plus request and pair-budget tests. The pinned Core gitlink matches the Railway manifest. [Combined native CI 43750112229](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43750112229) runs that source. Development serves the Algorand revision b4fb83823a9b. The browser-policy guard remains active for ea42fa05130f. Temporary index removed.
