@@ -6,7 +6,7 @@ The subscription protocol workflow now validates report identity, case completen
 
 15 November. Exact Web4Site 2d9cd171a41d CQL text compiled and executed on live 55c1c2056c55 for Axelar direct and MongoDB federation. Both returned the same two Axelar IDs and federation carried selected-source provenance. No browser claim. Web4Site 106e198439e8 adds SELECT DISTINCT for canonical selected fields over an existing native key-only reduction, before alias sorting and result paging, and teaches it to WEB6. All 196 frontend tests passed; [preview 7803064305](https://web4-site-5axnzypco-oasis-team.vercel.app/web4-sandbox.html) built. Compiled requests for DISTINCT Version, IsActive were accepted by all three live priority stores on the same exact WEB4 revision, with an empty visible cohort. Feature f83ac5fa02ab adds populated native checks for reducing two records to one equal scalar key. That protocol run is pending.
 
-The exact metadata presence image 43709826621 passed. Its rollout guard is waiting for the shared Development window and will exit if another qualified batch changes the branch or Railway predecessor first.
+The exact metadata presence image 43709826621 passed. Development advanced from 55c1c2056c55 to d79168a14607 in the next shared window. Railway deployment 4c4043ee queued and the exact live verifier is waiting for it. The source-scoped CI report guard accepted complete 55 and 56 case reports and rejected inconsistent counts and absent external-store cleanup in a local PowerShell test.
 
 ## Axelar live Development acceptance
 
