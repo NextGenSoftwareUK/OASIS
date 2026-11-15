@@ -2,7 +2,7 @@
 
 15 November Cancun time. Railway WEB5 fdd9df3ee6e8 serves. A signed portal SDK search sent before the owned-list read returned HTTP 200 in 1,183 ms and an empty result. The owned-list read returned HTTP 200 in 338 ms. WEB4 confirmed deletion of the sandbox avatar.
 
-15 November Cancun time. [Algorand signed native writer](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43741404640) passed in 300 ms with zero skips, confirming two encrypted revisions, stale write rejection, separate-reader readback and teardown. Commit ba5827cb2c6f connects the enrolled store to standard provider root saves and point reads. [Native entry-point qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43741947058) is active.
+15 November Cancun time. [Algorand signed native writer](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43741404640) passed in 300 ms with zero skips, confirming two encrypted revisions, stale write rejection, separate-reader readback and teardown. Commit ba5827cb2c6f connects the enrolled store to standard provider root saves and point reads. [Native entry-point qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43741947058) passed one case with zero skips in 426 ms and verified teardown.
 
 15 November Cancun time. Algorand 6e517752bb8c adds signed encrypted record publication through native box calls, including signer identity, fee ceiling, predecessor checks and confirmed manifest verification. [Native writer qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43741404640) is running. The exact WEB5 Development revision is still rolling out.
 
