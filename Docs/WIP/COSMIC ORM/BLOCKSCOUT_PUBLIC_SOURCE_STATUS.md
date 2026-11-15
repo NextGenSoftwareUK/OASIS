@@ -1,5 +1,9 @@
 # Blockscout public address CQL — native qualification
 
+## Live shipping provider verification
+
+Railway deployment 4c4f2819-8e3b-419a-96ed-3bdc57eb72ed serves Development f35d4a037e53. The shipping BlockscoutOASIS class returned matching native and MongoDB-federated three-record and two-record subsets with Blockscout provenance. Two latency sampling runs encountered HTTP 503/CQL_QUERY_FAILED, once on the first read and once during warm sampling. Railway logged Blockscout native query HTTP 500 failures. The latency comparison remains unverified. The warmed catalogue reported 106/107 native and federated sources available, with Nostr the sole unavailable source. Axelar and Connext were available on this deployment before the proposed activation policy change.
+
 2 November 2026. Native and local CQL/C# verified; HTTP/hosted/card remain red.
 Counts57integrated/52hosted/5browser47open. Original read timeout cause unresolved.
 

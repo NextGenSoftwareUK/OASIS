@@ -6759,3 +6759,5 @@ Web4Site 5fa63a71df5d used a temporary directory containing only committed websi
 14 November Cancun time. Archived the rejected Development Wizard sign-in as LocalState/COSMIC/HostedSourceRecoveryOperatorRejected-20261114-203016. The 1,606-byte DPAPI response and 116-byte intent record the application rejection. No access or refresh token was issued and no password was saved. This small archive can be removed after a successful sign-in and outcome are recorded. The Railway and Windows bounded Nostr subscription probes used installed runtimes and created no artifacts.
 
 14 November Cancun time. Blockscout candidate qualification used temporary Git indexes removed at exit and GitHub-hosted builds. Read-only baseline probes reused the existing Development visitor and emitted timings to stdout. No local fixture, build output, package download or result file was created.
+
+- Blockscout live query and timing checks reused the existing Development visitor and public records. No downloads, build outputs, or timing files were created. The documentation-only Git index was temporary.
