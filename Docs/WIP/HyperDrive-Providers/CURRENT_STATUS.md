@@ -1,5 +1,7 @@
 # Current provider status
 
+15 November Cancun time. Development advanced from serving 318d7369abd0 to qualified Free estimate revision 42561325fd6c after the shared window. Railway queued WEB4 deployment 2dd0e884-0a24-44dd-ae39-553cb9886631. Live Free estimate verification is pending. Qualified portal dev and production candidates remain staged until their backend is available.
+
 15 November Cancun time. OPORTAL production candidate bf7f79b6f8a1 preserves the serving production assets outside the subscription changes and passed the exact subscription suite. Backend serving remains the prerequisite for promotion. Before the next Development window, WEB4 candidate 42561325fd6c passed a clean three-path diff and exact dependency manifest check on serving 318d7369abd0.
 
 15 November Cancun time. OPORTAL accb3fc guards against an older dashboard subscription response overwriting a newer checkout-confirmed plan for the same avatar. The controlled race kept Bronze after a late Free response. Exact dev candidate 777c25ee964f includes this guard, the avatar-switch protections, and the Free estimate UI. Its subscription and Gifts regressions passed. A signed sandbox check is prepared to verify the serving Free estimate HTTP 200, allowance, projection and zero payable charge after the WEB4 rollout.

@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. The production portal candidate test used tracked blobs and removed its transient Git index. WEB4 release checks used read-only Git and Railway queries. No local archives, runtimes, databases, builds or results were retained.
+
 15 November Cancun time. Subscription response-order tests ran in memory. The temporary portal candidate index was removed. No SDK download, browser profile, database or generated results were retained.
 
 15 November Cancun time. Algorand TestNet evidence came from a public read and hosted native CI. No signer, write, local install, database, build or report was created.
