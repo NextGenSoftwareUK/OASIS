@@ -16,48 +16,6 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS.IntegrationTests;
 public sealed class AlgorandRecordBoxTests
 {
     [TestMethod]
-    public async Task ListsOnlyEnrolledAvatarDetailsAtTheRequestedVersion()
-    {
-        var storageKey = Convert.FromBase64String(Required("KEY"));
-        var provider = Create(Required("PROGRAM"), storageKey, Convert.FromBase64String(Required("WRITER_SEED")));
-        var active = await provider.ActivateProviderAsync();
-        Assert.IsFalse(active.IsError, active.Message);
-        try
-        {
-            var empty = await provider.LoadAllAvatarDetailsAsync();
-            Assert.IsFalse(empty.IsError, empty.Message);
-            Assert.AreEqual(0, empty.LoadedCount);
-            var ordinary = await provider.SaveStoredHolonAsync(new Holon { Id = Guid.NewGuid(), Name = "Ordinary" }, 0);
-            Assert.IsFalse(ordinary.IsError, ordinary.Exception?.ToString() ?? ordinary.Message);
-            var detail = new AvatarDetail { Id = Guid.NewGuid(), Version = 1, VersionId = Guid.NewGuid(), Username = "First version" };
-            var first = await provider.SaveAvatarDetailAsync(detail);
-            Assert.IsFalse(first.IsError, first.Exception?.ToString() ?? first.Message);
-            detail.Version = 2;
-            detail.VersionId = Guid.NewGuid();
-            detail.PreviousVersionId = first.Result.VersionId;
-            detail.Username = "Current version";
-            var second = await provider.SaveAvatarDetailAsync(detail);
-            Assert.IsFalse(second.IsError, second.Exception?.ToString() ?? second.Message);
-
-            var latest = await provider.LoadAllAvatarDetailsAsync();
-            var historical = await provider.LoadAllAvatarDetailsAsync(version: 1);
-            var absent = await provider.LoadAllAvatarDetailsAsync(version: 3);
-            Assert.IsFalse(latest.IsError, latest.Message);
-            Assert.IsFalse(historical.IsError, historical.Message);
-            Assert.IsFalse(absent.IsError, absent.Message);
-            Assert.AreEqual(1, latest.LoadedCount);
-            Assert.AreEqual(detail.Id, latest.Result.Single().Id);
-            Assert.AreEqual("Current version", latest.Result.Single().Username);
-            Assert.AreEqual("First version", historical.Result.Single().Username);
-            Assert.AreEqual(0, absent.LoadedCount);
-        }
-        finally
-        {
-            await provider.DeActivateProviderAsync();
-        }
-    }
-
-    [TestMethod]
     public async Task PublishesTypedAvatarDetailHistoryWithoutReplacingTheHolon()
     {
         var storageKey = Convert.FromBase64String(Required("KEY"));
@@ -67,6 +25,9 @@ public sealed class AlgorandRecordBoxTests
         Assert.IsFalse(active.IsError, active.Message);
         try
         {
+            var empty = await writer.LoadAllAvatarDetailsAsync();
+            Assert.IsFalse(empty.IsError, empty.Message);
+            Assert.AreEqual(0, empty.LoadedCount);
             var id = Guid.NewGuid();
             var ordinary = await writer.SaveStoredHolonAsync(new Holon { Id = id, Name = "Ordinary holon" }, 0);
             Assert.IsFalse(ordinary.IsError, ordinary.Exception?.ToString() ?? ordinary.Message);
@@ -100,6 +61,17 @@ public sealed class AlgorandRecordBoxTests
             var discovered = await reader.DiscoverStoredHolonIdsAsync();
             Assert.IsFalse(discovered.IsError, discovered.Message);
             CollectionAssert.AreEqual(new[] { id }, discovered.Result.ToArray());
+
+            var latestDetails = await reader.LoadAllAvatarDetailsAsync();
+            var historicalDetails = await reader.LoadAllAvatarDetailsAsync(version: 1);
+            var missingDetails = await reader.LoadAllAvatarDetailsAsync(version: 3);
+            Assert.IsFalse(latestDetails.IsError, latestDetails.Message);
+            Assert.IsFalse(historicalDetails.IsError, historicalDetails.Message);
+            Assert.IsFalse(missingDetails.IsError, missingDetails.Message);
+            Assert.AreEqual(id, latestDetails.Result.Single().Id);
+            Assert.AreEqual(latest.Result.Username, latestDetails.Result.Single().Username);
+            Assert.AreEqual(historical.Result.Username, historicalDetails.Result.Single().Username);
+            Assert.AreEqual(0, missingDetails.LoadedCount);
         }
         finally
         {

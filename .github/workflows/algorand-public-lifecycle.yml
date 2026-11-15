@@ -164,7 +164,7 @@ jobs:
                   "storage_hard_delete" { "PurgesPublishedRevisionsAndFencesRepublishing" }
                   "storage_hard_resume" { "ResumesPurgingFromTheNativeCheckpoint" }
                   "storage_bootloader" { "RegistersAndUsesTheEnrolledAlgorandProviderOnLocalNet" }
-                  "storage_avatar_detail" { "AvatarDetail" }
+                  "storage_avatar_detail" { "PublishesTypedAvatarDetailHistoryWithoutReplacingTheHolon" }
                   default { "ReadsEncryptedCurrentAndHistoricalRecordsFromNativeBoxes" }
                 }
                 $withBootLoader = $env:ALGORAND_LOCALNET_CASE -eq "storage_bootloader"
