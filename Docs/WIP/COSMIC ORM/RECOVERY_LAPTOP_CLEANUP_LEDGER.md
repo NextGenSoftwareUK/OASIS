@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+15 November Cancun. The exact MongoDB SINGLE release probe removed both private fixtures and independently verified absence. The compact journal remains in HostedCqlFloatingMetadata-56d45431. The projection state and depth investigations used read-only Atlas commands with synthetic documents and disposable compiler outputs. The temporary outputs were removed.
+
 15 November Cancun. Full join qualification uses GitHub CI. The local SQLite controls used an in-memory database and the Atlas snapshot union probe was read-only. Exact Core and parent staging directories, the temporary manifest copy and the website test snapshot were removed. No shared build output, new runtime installs or database copies. C: measured 23.89 GiB free.
 
 15 November Cancun. Live floating-point acceptance and diagnostics created 12 synthetic private records across MongoDB, SQLite and Neo4j. All 12 were hard-deleted and independently confirmed absent. Retained only the acknowledgement journals in the HostedCqlFloating* and HostedCqlMixedFloatingDiagnose directories for revision f480b33d. Atlas depth and midpoint checks used synthetic input with no writes. All probe directories and their isolated outputs were removed. C: measured 23.88 GiB free.
