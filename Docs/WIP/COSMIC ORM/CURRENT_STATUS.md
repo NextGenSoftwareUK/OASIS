@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Independent OFFSET for SQL join inputs
+
+15 November. Web4Site 261bd75bcf10 accepts an independent OFFSET after each bounded join input LIMIT. It submits native source Skip and retains the original input, pair and result bounds. All 227 website tests passed. On Development dc24072806f6, MongoDB, SQLite and Neo4j independently selected the expected left and right windows in nine populated checks. The six private records were deleted and verified absent by exact CQL ID. HyperDrive Algorand b4fb83823a9b queued its WEB4 deployment at 18:36:36 UTC. The combined browser-policy release awaits that serving revision, exact CI and the shared interval. [Protected preview](https://web4-site-quv1kc1lc-oasis-team.vercel.app/web4-sandbox.html)
+
 ## Populated exact Int64 metadata joins on live WEB4
 
 15 November. Development dc24072806f6 and the Web4Site f512a3327c6d compiler verified populated INNER and LEFT joins on MongoDB, SQLite and Neo4j. Both sources joined on typed metadata Int64 and Version. The left values 9007199254740992 and 9007199254740993 remained distinct. Only the matching value paired, the other left row preserved null right fields, and the selected Int64 values were exact decimal strings on the wire. The initial probe omitted its expected projection columns, then the corrected probe passed. All eight private fixtures from both probes were deleted and verified absent by exact CQL ID.
