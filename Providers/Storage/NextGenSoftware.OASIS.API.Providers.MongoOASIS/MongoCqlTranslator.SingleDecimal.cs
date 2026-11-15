@@ -53,30 +53,45 @@ internal sealed partial class MongoCqlTranslator
         // Emit the first nonzero limb without padding. Pad later limbs so their place values remain exact.
         var digits = new BsonDocument("$reduce", new BsonDocument
         {
-            { "input", new BsonDocument("$reverseArray", Op("$concatArrays", "$$cqlmidproduct.limbs",
-                new BsonArray { "$$cqlmidproduct.carry" })) },
-            { "initialValue", Literal("") },
-            { "in", Choose(Op("$eq", "$$value", Literal("")),
-                Choose(Op("$eq", "$$this", Literal(0L)), Literal(""), new BsonDocument("$toString", "$$this")),
+            { "input", new BsonDocument("$reverseArray", "$$cqlmidproduct.limbs") },
+            { "initialValue", Choose(Op("$eq", "$$cqlmidproduct.carry", Literal(0L)), Literal(""),
+                new BsonDocument("$toString", "$$cqlmidproduct.carry")) },
+            { "in", Choose(Op("$eq", "$$value", Literal("")), new BsonDocument("$toString", "$$this"),
                 Op("$concat", "$$value", SinglePaddedLimb("$$this"))) }
         });
         var prefix = Op("$substrBytes", "$$cqlmiddigits", Literal(0), "$$cqlmidkeep");
         var tail = Op("$substrBytes", "$$cqlmiddigits", "$$cqlmidkeep", Op("$subtract", "$$cqlmidlength", "$$cqlmidkeep"));
-        var scale = Op("$add", Choose(Op("$lt", "$$cqlmidexponent", Literal(0L)), "$$cqlmidexponent", Literal(0L)),
-            Op("$subtract", "$$cqlmidlength", "$$cqlmidkeep"));
+        var scale = Op("$add", Op("$min", "$$cqlmidexponent", Literal(0L)),
+            Op("$max", Literal(0), Op("$subtract", "$$cqlmidlength", Literal(34))));
         var boundary = new BsonDocument
         {
-            { "floor", new BsonDocument("$toDecimal", Op("$concat", prefix, Literal("E"), new BsonDocument("$toString", scale))) },
+            { "floor", new BsonDocument("$toDecimal", Op("$concat", prefix, Literal("E"), new BsonDocument("$toString", "$$cqlmidscale"))) },
             { "exact", new BsonDocument("$regexMatch", new BsonDocument { { "input", tail }, { "regex", Literal("^0*$") } }) }
         };
         return SingleLet("cqlmidbinaryexponent", SingleFloorInteger(Op("$divide", bits, Literal(8388608L))),
-            SingleLet("cqlmidexponent", Choose(Op("$eq", "$$cqlmidbinaryexponent", Literal(0L)), Literal(-150L),
-                Op("$subtract", "$$cqlmidbinaryexponent", Literal(151L))),
-                SingleLet("cqlmidcoefficient", coefficient,
-                    SingleLet("cqlmidproduct", multiply,
-                        SingleLet("cqlmiddigits", digits,
-                            SingleLet("cqlmidlength", new BsonDocument("$strLenBytes", "$$cqlmiddigits"),
-                                SingleLet("cqlmidkeep", Choose(Op("$gt", "$$cqlmidlength", Literal(34)), Literal(34), "$$cqlmidlength"), boundary)))))));
+            new BsonDocument("$let", new BsonDocument
+            {
+                { "vars", new BsonDocument
+                    {
+                        { "cqlmidexponent", Choose(Op("$eq", "$$cqlmidbinaryexponent", Literal(0L)), Literal(-150L),
+                            Op("$subtract", "$$cqlmidbinaryexponent", Literal(151L))) },
+                        { "cqlmidcoefficient", coefficient }
+                    }
+                },
+                { "in", SingleLet("cqlmidproduct", multiply,
+                    SingleLet("cqlmiddigits", digits,
+                        SingleLet("cqlmidlength", new BsonDocument("$strLenBytes", "$$cqlmiddigits"),
+                            new BsonDocument("$let", new BsonDocument
+                            {
+                                { "vars", new BsonDocument
+                                    {
+                                        { "cqlmidkeep", Op("$min", "$$cqlmidlength", Literal(34)) },
+                                        { "cqlmidscale", scale }
+                                    }
+                                },
+                                { "in", boundary }
+                            })))) }
+            }));
     }
 
     private static BsonValue SingleValueFromPositiveBits(BsonValue bits)
@@ -90,6 +105,9 @@ internal sealed partial class MongoCqlTranslator
     }
 
     internal static BsonValue SingleFromNativeDecimal(BsonValue input)
+        => Choose(Op("$eq", Type(input), Literal("decimal")), NormalizeSingleDecimal(input), Literal(new BsonDocument()));
+
+    private static BsonValue NormalizeSingleDecimal(BsonValue input)
     {
         var invalid = Literal(new BsonDocument());
         var boundary = SingleDecimalMidpoint("$$cqldecimalmid", SingleDecimalFactors());
@@ -97,13 +115,12 @@ internal sealed partial class MongoCqlTranslator
             Op("$or", Op("$gt", "$$cqldecimalabs", "$$cqldecimalboundary.floor"),
                 Op("$and", Op("$eq", "$$cqldecimalabs", "$$cqldecimalboundary.floor"), "$$cqldecimalboundary.exact",
                     Op("$eq", Op("$mod", "$$cqldecimalmid", Literal(2L)), Literal(1L)))));
-        var step = SingleLet("cqldecimallo", "$$value.low", SingleLet("cqldecimalhi", "$$value.high",
-            Choose(Op("$lt", "$$cqldecimallo", "$$cqldecimalhi"),
-                SingleLet("cqldecimalmid", SingleFloorInteger(Op("$divide", Op("$add", "$$cqldecimallo", "$$cqldecimalhi"), Literal(2L))),
-                    Choose(above,
-                        new BsonDocument { { "low", Op("$add", "$$cqldecimalmid", Literal(1L)) }, { "high", "$$cqldecimalhi" } },
-                        new BsonDocument { { "low", "$$cqldecimallo" }, { "high", "$$cqldecimalmid" } })),
-                new BsonDocument { { "low", "$$cqldecimallo" }, { "high", "$$cqldecimalhi" } })));
+        var step = Choose(Op("$lt", "$$value.low", "$$value.high"),
+            SingleLet("cqldecimalmid", SingleFloorInteger(Op("$divide", Op("$add", "$$value.low", "$$value.high"), Literal(2L))),
+                Choose(above,
+                    new BsonDocument { { "low", Op("$add", "$$cqldecimalmid", Literal(1L)) }, { "high", "$$value.high" } },
+                    new BsonDocument { { "low", "$$value.low" }, { "high", "$$cqldecimalmid" } })),
+            "$$value");
         var search = new BsonDocument("$reduce", new BsonDocument
         {
             { "input", Op("$range", Literal(0), Literal(31)) },
@@ -113,12 +130,10 @@ internal sealed partial class MongoCqlTranslator
         var publish = SingleLet("cqldecimalfinished", search,
             Choose(Op("$and", Op("$gt", "$$cqldecimalfinished.low", Literal(0L)),
                 Op("$lt", "$$cqldecimalfinished.low", Literal(0x7f800000L))),
-                Choose(Op("$lt", "$$cqldecimalinput", Literal(new BsonDecimal128(0m))), Op("$multiply", value, Literal(-1d)), value), invalid));
-        var normalize = SingleLet("cqldecimalabs", new BsonDocument("$abs", "$$cqldecimalinput"),
+                Choose(Op("$lt", input, Literal(new BsonDecimal128(0m))), Op("$multiply", value, Literal(-1d)), value), invalid));
+        return SingleLet("cqldecimalabs", new BsonDocument("$abs", input),
             Choose(Op("$eq", "$$cqldecimalabs", Literal(new BsonDecimal128(0m))), Literal(0d),
                 Choose(Op("$and", Op("$gte", "$$cqldecimalabs", Literal(new BsonDecimal128(0m))),
                     Op("$lte", "$$cqldecimalabs", Literal(new BsonDecimal128(Decimal128.Parse("3.4028236E38"))))), publish, invalid)));
-        return SingleLet("cqldecimalinput", input,
-            Choose(Op("$eq", Type("$$cqldecimalinput"), Literal("decimal")), normalize, invalid));
     }
 }
