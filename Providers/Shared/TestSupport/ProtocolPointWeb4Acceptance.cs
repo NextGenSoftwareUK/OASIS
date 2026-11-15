@@ -96,7 +96,7 @@ internal static class ProtocolPointWeb4Acceptance
             if(requested!=authority||!provider.IsProviderActivated)throw new InvalidOperationException("Only the explicitly selected active protocol adapter is eligible.");
             return provider;
         }
-        public HolonManager CreateManager(IOASISStorageProvider selected)
+        public HolonManager CreateManager(IOASISProvider selected)
             =>ReferenceEquals(provider,selected)?manager:throw new InvalidOperationException("Provider substitution rejected.");
     }
     private sealed class Catalogue(Guid actor,Guid record,ProviderType selected) : ICqlReadAccessPolicy

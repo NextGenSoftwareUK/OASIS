@@ -34,7 +34,7 @@ internal static class MastodonWeb4Acceptance
             if(requested!=ProviderType.ActivityPubOASIS||!provider.IsProviderActivated)throw new InvalidOperationException("Only the already active public Mastodon adapter is eligible.");
             return provider;
         }
-        public HolonManager CreateManager(IOASISStorageProvider selected)
+        public HolonManager CreateManager(IOASISProvider selected)
             =>ReferenceEquals(provider,selected)?manager:throw new InvalidOperationException("Provider substitution rejected.");
     }
     private sealed class Catalogue(Guid actor,Guid record) : ICqlReadAccessPolicy

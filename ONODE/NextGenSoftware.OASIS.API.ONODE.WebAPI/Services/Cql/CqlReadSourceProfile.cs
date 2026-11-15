@@ -9,7 +9,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 /// activation are independent of the canonical wallet and storage provider registry.</summary>
 public sealed class CqlReadSourceProfile : IDisposable
 {
-    public IOASISProvider Provider { get; }
+    public IOASISProvider Storage { get; }
     public CqlReadSourceActivationPolicy ActivationPolicy { get; }
 
     public CqlReadSourceProfile(IOASISProvider provider)
@@ -21,11 +21,11 @@ public sealed class CqlReadSourceProfile : IDisposable
             || query.QueryProviderType != provider.ProviderType.Value || query.QueryCapabilities == null
             || provider is not ICosmicReadOnlyQueryActivation)
             throw new ArgumentException("An explicit read-only query adapter is required.", nameof(provider));
-        Provider = provider;
+        Storage = provider;
         ActivationPolicy = activationPolicy ?? throw new ArgumentNullException(nameof(activationPolicy));
     }
 
-    public void Dispose() => (Provider as IDisposable)?.Dispose();
+    public void Dispose() => (Storage as IDisposable)?.Dispose();
 }
 
 /// <summary>Host-owned health-check recovery only. Never retries a user query,

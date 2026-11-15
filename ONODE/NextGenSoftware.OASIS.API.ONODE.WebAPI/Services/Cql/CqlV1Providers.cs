@@ -98,7 +98,7 @@ public sealed class CqlHostedSourceRegistry : ICqlHostedSourceRegistry
         HoloOasisProvisioning provisionManagedHoloOasis = null)
     {
         this.profiles = (profiles ?? Array.Empty<CqlReadSourceProfile>())
-            .ToDictionary(profile => profile.Provider.ProviderType.Value);
+            .ToDictionary(profile => profile.Storage.ProviderType.Value);
         this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         this.tronPublicConfiguration = tronPublicConfiguration;
         this.provisionManagedHoloOasis = provisionManagedHoloOasis;
@@ -116,14 +116,14 @@ public sealed class CqlHostedSourceRegistry : ICqlHostedSourceRegistry
     }
 
     public IOASISProvider Find(ProviderType provider)
-        => profiles.TryGetValue(provider, out var profile) ? profile.Provider
+        => profiles.TryGetValue(provider, out var profile) ? profile.Storage
             : ProviderManager.Instance.GetStorageProvider(provider);
 
     public async Task ActivateReadSourceAsync(ProviderType provider, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
         IOASISProvider storage;
-        if (profiles.TryGetValue(provider, out var profile)) storage = profile.Provider;
+        if (profiles.TryGetValue(provider, out var profile)) storage = profile.Storage;
         else
         {
             // Provision through the serialized HoloOASIS activation path.

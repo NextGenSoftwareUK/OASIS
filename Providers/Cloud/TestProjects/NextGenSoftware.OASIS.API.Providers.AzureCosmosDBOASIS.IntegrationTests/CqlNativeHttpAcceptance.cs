@@ -37,7 +37,7 @@ internal static class CqlNativeHttpAcceptance
                 throw new InvalidOperationException("Only the already active owned Cosmos fixture is eligible.");
             return provider;
         }
-        public HolonManager CreateManager(IOASISStorageProvider selected)
+        public HolonManager CreateManager(IOASISProvider selected)
             => ReferenceEquals(provider, selected) ? manager : throw new InvalidOperationException("Provider substitution rejected.");
     }
 

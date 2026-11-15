@@ -50,7 +50,7 @@ public sealed partial class CqlV1Web4NativeTests
             Assert.IsTrue(requested == null || requested == selected);
             return providers[selected];
         }
-        public HolonManager CreateManager(IOASISStorageProvider storage) => new Sources(providers).CreateManager(storage);
+        public HolonManager CreateManager(IOASISProvider storage) => new Sources(providers).CreateManager(storage);
     }
 
     private sealed class ShippingReadPolicy(Guid expectedActor, ProviderType expectedAuthority, Guid[] ids) : ShippingPolicy
