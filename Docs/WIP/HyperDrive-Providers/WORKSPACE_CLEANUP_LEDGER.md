@@ -1328,3 +1328,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 - 14 November Cancun time. The first Rune mint CI stopped at official ord etching validation and removed its disposable wallet and chain. Rune send and burn changes created no local outputs or downloads.
 
 - 14 November Cancun time. OPORTAL timing reused installed Chrome with fresh task-owned profiles and retained only aggregate timings. All temporary profiles were removed; the baseline Chrome process wait timed out after sampling, and absence of its exact profile was independently checked. Portal edits use a sparse worktree at C:/Source/OPORTAL-JS-performance with no new dependencies, downloads or builds.
+
+- 14 November Cancun time. Both OPORTAL dashboard benchmark profiles were removed after capture. Endpoint generation streamed the OpenAPI specs and retained only the checked-in generated map. The rebased Ordinals qualification used Git objects without a temporary index. No local dependencies, restore or build outputs.
