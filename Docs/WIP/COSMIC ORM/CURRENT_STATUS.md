@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Native composite joins verified and hosted SQL admission pending
+
+15 November. Exact native [CI 43734236170](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43734236170) passed composite and nullable join keys on SQLite, MongoDB and Neo4j. The native parity checklist is now 50 of 164 rows per store. Web4Site c785ff6694d5 passed 218 tests, including the SQL left join result display for matched nulls and unmatched right rows. [Protected preview 7806362819](https://web4-site-pypvof5ib-oasis-team.vercel.app/web4-sandbox.html) built. Live WEB4 first returned CQL_ADMISSION_REQUIRED because the active configuration lacked the join route. Feature 70955eba5300 adds the one-attempt metered policy and the exact [admission CI 43735576692](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43735576692) is building. We reviewed the additive hosted route against all nine existing policies. No live policy mutation or join acceptance has occurred.
+
 ## Composite nullable native join qualification
 
 15 November. Feature 1893446cea46 adds populated inner and left composite-join assertions to the existing self-cleaning three-store fixture. The null component must never match, ordinal text distinguishes Case from case, and an unmatched left row retains its identity. Exact [native CI 43734236170](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43734236170) qualifies 5de84925741a on the shared CQL and estimate graph. HyperDrive also has a qualified SOLID native candidate touching three independent files. Reconcile the actual Development head before advancing either combined batch.

@@ -170,7 +170,7 @@ older chronological roadmap is supporting history, not the source of green statu
 | Q40 | Materialize complete IGrouping collections | ❌ | ❌ | ❌ | Aggregate group records are not IGrouping parity. |
 | Q41 | Same-provider inner equijoin with exact keys | [✅][D30] | [✅][D30] | [✅][D30] | V1 example31; source/output bounds explicit. |
 | Q42 | Same-provider left join with independent right-presence result | [✅][D30] | [✅][D30] | [✅][D30] | V1 example30. |
-| Q43 | Composite/nullable join-key parity | ❌ | ❌ | ❌ | Native contract support requires exact row-specific test links. |
+| Q43 | Composite/nullable join keys for native inner and left equijoins | ✅ | ✅ | ✅ | [Exact native CI 43734236170](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43734236170) proves a composite Version/Description key, exact ordinal case, null-component exclusion and retention of the unmatched left row on SQLite, MongoDB and Neo4j. |
 | Q44 | GroupJoin / grouped right collections | ❌ | ❌ | ❌ | No complete operator proof. |
 | Q45 | SelectMany / cross join / navigation flattening | ❌ | ❌ | ❌ | No complete operator proof. |
 | Q46 | Non-equijoin / arbitrary join predicates | ❌ | ❌ | ❌ | Exact equijoin support is narrower. |
