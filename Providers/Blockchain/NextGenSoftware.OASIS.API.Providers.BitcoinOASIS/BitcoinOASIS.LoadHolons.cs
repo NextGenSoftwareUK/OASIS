@@ -50,6 +50,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             var response = new OASISResult<IEnumerable<IHolon>>();
             var savedHolons = new List<IHolon>();
             var failures = new List<string>();
+            var receipts = new List<string>();
             response.Result = savedHolons;
 
             try
@@ -70,12 +71,21 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                 {
                     position++;
                     var saveResult = await SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
-                    if (!saveResult.IsError)
-                    {
+                    if (saveResult.Result != null)
                         savedHolons.Add(saveResult.Result);
-                        response.SavedCount++;
-                        continue;
+                    if (saveResult.MetaData.TryGetValue("BitcoinAcknowledgedTransactionIds", out var graphReceipts))
+                    {
+                        receipts.AddRange(graphReceipts.Split(','));
+                        response.SavedCount += saveResult.SavedCount;
                     }
+                    else if (!saveResult.IsError)
+                    {
+                        receipts.Add(saveResult.Result.ProviderUniqueStorageKey[Core.Enums.ProviderType.BitcoinOASIS]);
+                        response.SavedCount++;
+                    }
+
+                    if (!saveResult.IsError)
+                        continue;
 
                     failures.Add($"Holon at position {position}: {saveResult.Message}");
                     if (saveResult.ErrorCode == BitcoinBroadcastOutcomeUnknown)
@@ -103,6 +113,8 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                 OASISErrorHandling.HandleError(ref response, $"Error saving holons to Bitcoin: {ex.Message}", ex);
             }
 
+            if (receipts.Count > 0)
+                response.MetaData["BitcoinAcknowledgedTransactionIds"] = string.Join(",", receipts);
             return response;
         }
 
@@ -157,10 +169,6 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                 response.ErrorCode = importResult.ErrorCode;
                 response.MetaData = importResult.MetaData;
                 response.InnerMessages = importResult.InnerMessages;
-                if (importResult.SavedCount > 0)
-                    response.MetaData["BitcoinAcknowledgedTransactionIds"] = string.Join(",",
-                        importResult.Result.Select(holon =>
-                            holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.BitcoinOASIS]));
                 if (importResult.IsError)
                 {
                     OASISErrorHandling.HandleError(ref response, $"Failed to import holons to Bitcoin: {importResult.Message}");

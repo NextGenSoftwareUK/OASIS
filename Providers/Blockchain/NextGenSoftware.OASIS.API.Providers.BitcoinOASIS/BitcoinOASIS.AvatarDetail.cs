@@ -137,10 +137,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                 }
 
                 if (saveChildren && saveChildrenOnProvider && holon.Children?.Count > 0)
-                {
-                    OASISErrorHandling.HandleError(ref response, "Bitcoin storage requires each child to be published as its own record.");
-                    return response;
-                }
+                    return await SaveWalletHolonGraphAsync(holon, recursive, maxChildDepth, continueOnError);
 
                 response = await CommitEncryptedRecordAsync<IHolon>(holon, HolonRecordScope);
             }

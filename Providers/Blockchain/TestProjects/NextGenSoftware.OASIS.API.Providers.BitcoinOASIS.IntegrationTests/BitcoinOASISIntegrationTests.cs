@@ -14,32 +14,6 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
     {
         private BitcoinOASIS _provider;
 
-        [TestMethod]
-        public async Task OrdRegtestReadsIndexedInscription()
-        {
-            var server = Environment.GetEnvironmentVariable("OASIS_BITCOIN_ORD_API");
-            var inscription = Environment.GetEnvironmentVariable("OASIS_BITCOIN_ORD_INSCRIPTION");
-            var owner = Environment.GetEnvironmentVariable("OASIS_BITCOIN_ORD_OWNER");
-            Assert.IsTrue(Uri.TryCreate(server, UriKind.Absolute, out var endpoint) && endpoint.IsLoopback);
-            Assert.IsFalse(string.IsNullOrWhiteSpace(inscription));
-            Assert.IsFalse(string.IsNullOrWhiteSpace(owner));
-
-            using var provider = new BitcoinOASIS(network: "regtest");
-            var read = await provider.LoadOnChainNFTDataAsync(inscription);
-            Assert.IsFalse(read.IsError, read.Message);
-            Assert.AreEqual(inscription, read.Result.TokenId);
-            Assert.AreEqual(inscription[..64], read.Result.MintTransactionHash);
-            Assert.AreEqual(owner, read.Result.MetaData["CurrentOwnerAddress"]);
-            StringAssert.StartsWith(read.Result.MetaData["ContentType"], "text/plain");
-
-            var missing = await provider.LoadOnChainNFTDataAsync(new string('0', 64) + "i0");
-            Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound, missing.ErrorCode);
-
-            using var wrongNetwork = new BitcoinOASIS(network: "mainnet");
-            var mismatch = await wrongNetwork.LoadOnChainNFTDataAsync(inscription);
-            Assert.IsTrue(mismatch.IsError);
-            StringAssert.Contains(mismatch.Message, "different Bitcoin network");
-        }
 
         [TestInitialize]
         public void Setup()
@@ -136,20 +110,6 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
 
                 Assert.IsFalse(balance.IsError, balance.Message);
                 Assert.IsTrue(balance.Result > 1 && balance.Result < 21_000_000);
-
-                var history = await _provider.GetTransactionsAsync(
-                    new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests.GetWeb3TransactionsRequest
-                    {
-                        WalletAddress = "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa"
-                    });
-                Assert.IsFalse(history.IsError, history.Message);
-                Assert.IsTrue(history.Result.Count > 0);
-                foreach (var transaction in history.Result)
-                {
-                    Assert.AreEqual(64, transaction.NativeTransactionId.Length);
-                    Assert.AreEqual("satoshi", transaction.AmountUnit);
-                    Assert.AreEqual("1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa", transaction.ToWalletAddress);
-                }
             }
             finally
             {
@@ -178,6 +138,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
                     "fd3fed5bb1b5c3df76010d1d8c41e8bb68adb808d4c1b3b733b6da255f82271f");
                 Assert.AreEqual("1249", matching.RawAmount);
                 Assert.AreEqual("satoshi", matching.AmountUnit);
+                Assert.AreEqual("1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa", matching.ToWalletAddress);
                 Assert.AreEqual("00000000000000000001c7ee2824dea49dcb4e3ac5fd25b0619725981c439ac7", matching.NativeBlockHash);
                 Assert.IsTrue(history.Result.All(transaction => transaction.NativeBlockNumber == 975810));
             }
@@ -724,6 +685,49 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
                 Assert.AreEqual(2, batch.SavedCount);
                 foreach (var acknowledged in batch.Result)
                     await BitcoinCliAsync("getmempoolentry", acknowledged.ProviderUniqueStorageKey[ProviderType.BitcoinOASIS]);
+
+                using var historyKey = new NBitcoin.Key();
+                var historyAddress = historyKey.PubKey.GetAddress(NBitcoin.ScriptPubKeyType.Segwit, network).ToString();
+                using var historyBlocks = System.Text.Json.JsonDocument.Parse(
+                    await BitcoinCliAsync("generatetoaddress", "26", historyAddress));
+                var historyTip = historyBlocks.RootElement[25].GetString();
+                for (var attempt = 0; attempt < 60; attempt++)
+                {
+                    if ((await http.GetStringAsync("blocks/tip/hash")).Trim() == historyTip)
+                        break;
+                    await Task.Delay(500);
+                }
+                Assert.AreEqual(historyTip, (await http.GetStringAsync("blocks/tip/hash")).Trim());
+                using var firstHistoryBlock = System.Text.Json.JsonDocument.Parse(
+                    await BitcoinCliAsync("getblock", historyBlocks.RootElement[0].GetString(), "1"));
+                var firstHistoryTx = firstHistoryBlock.RootElement.GetProperty("tx")[0].GetString();
+                var walletHistory = await recovered.GetTransactionsAsync(
+                    new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests.GetWeb3TransactionsRequest
+                    {
+                        WalletAddress = historyAddress
+                    });
+                Assert.IsFalse(walletHistory.IsError, walletHistory.Message);
+                Assert.AreEqual(26, walletHistory.Result.Count);
+                Assert.AreEqual(firstHistoryTx, walletHistory.Result.Last().NativeTransactionId);
+
+                var rootRecord = new Holon { Id = Guid.NewGuid(), HolonType = HolonType.Holon, Version = 1 };
+                var childRecord = new Holon { Id = Guid.NewGuid(), HolonType = HolonType.Holon, Version = 1 };
+                rootRecord.Children = new[] { (IHolon)childRecord }.ToList();
+                var invalidGraph = await recovered.SaveHolonAsync(rootRecord, saveChildrenOnProvider: true);
+                Assert.IsTrue(invalidGraph.IsError);
+                Assert.AreEqual(0, invalidGraph.SavedCount);
+                Assert.IsFalse(invalidGraph.MetaData.ContainsKey("BitcoinAcknowledgedTransactionIds"));
+
+                childRecord.ParentHolonId = rootRecord.Id;
+                var savedGraph = await recovered.SaveHolonAsync(rootRecord, saveChildrenOnProvider: true);
+                Assert.IsFalse(savedGraph.IsError, savedGraph.Message);
+                Assert.AreEqual(2, savedGraph.SavedCount);
+                Assert.AreEqual(childRecord.Id, savedGraph.Result.Children.Single().Id);
+                var rootReceipt = savedGraph.Result.ProviderUniqueStorageKey[ProviderType.BitcoinOASIS];
+                var childReceipt = savedGraph.Result.Children.Single().ProviderUniqueStorageKey[ProviderType.BitcoinOASIS];
+                Assert.AreEqual($"{rootReceipt},{childReceipt}", savedGraph.MetaData["BitcoinAcknowledgedTransactionIds"]);
+                await BitcoinCliAsync("getmempoolentry", rootReceipt);
+                await BitcoinCliAsync("getmempoolentry", childReceipt);
             }
             finally
             {
