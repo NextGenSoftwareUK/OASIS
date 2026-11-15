@@ -1,5 +1,7 @@
 # Current provider status
 
+15 November Cancun time. The shipping Algorand account projection requests Algod's compact account response, validates the returned address and status, and records the native round instead of treating the lookup time as an account timestamp. A direct mainnet sample returned 405 bytes with holdings excluded and 477 bytes with the default response. The focused provider rerun is pending. [Algod account information](https://dev.algorand.co/reference/rest-api/algod/operations/accountinformation/)
+
 15 November Cancun time. Algorand transaction metadata lookup now includes sender and receiver. The provider uses native address roles, excludes close-to addresses from receiver lookups, and checks both projected participants when the Indexer can accept only one address. A focused mainnet regression is pending. [Algorand Indexer address filters](https://dev.algorand.co/reference/rest-api/indexer/operations/searchfortransactions/)
 
 15 November Cancun time. COSMIC/CQL published d79168a14607 in the shared Development window. The carry-forward candidate 4c842fc2ceba has the same seven passed Gifts and Checkout file hashes and the same Core dependency as 093064cd58ad. The manifest check passed. The earliest next shared integration is 30 minutes after the peer deployment was queued, subject to its serving revision and current remote parent. Algorand provider-level mainnet Indexer metadata verification passed in 43711939861 with one test and zero skips.

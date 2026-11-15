@@ -98,11 +98,20 @@ public sealed class AlgorandPublicLifecycleTests
 
         var loaded = await provider.LoadAvatarByProviderKeyAsync(address);
         Assert.IsFalse(loaded.IsError, loaded.Message);
+        Assert.IsTrue(loaded.IsLoaded);
+        Assert.AreEqual(1, loaded.LoadedCount);
         Assert.IsNotNull(loaded.Result);
         Assert.AreEqual(address, loaded.Result.ProviderUniqueStorageKey[ProviderType.AlgorandOASIS]);
         var metadata = loaded.Result.ProviderMetaData[ProviderType.AlgorandOASIS];
         Assert.AreEqual(address, metadata["address"]);
         Assert.IsTrue(ulong.TryParse(metadata["balance_microALGO"], out _));
+        Assert.IsTrue(ulong.TryParse(metadata["round"], out var round) && round > 0);
+        Assert.IsTrue(metadata["status"] is "Online" or "Offline" or "NotParticipating");
+
+        var synchronous = provider.LoadAvatarByProviderKey(address);
+        Assert.IsFalse(synchronous.IsError, synchronous.Message);
+        Assert.AreEqual(loaded.Result.Id, synchronous.Result.Id);
+        Assert.AreEqual(loaded.Result.CreatedDate, synchronous.Result.CreatedDate);
 
         Assert.IsTrue((await provider.DeActivateProviderAsync()).Result);
         Assert.IsFalse(provider.IsProviderActivated);

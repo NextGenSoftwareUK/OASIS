@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
@@ -129,32 +130,37 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
             var result = new OASISResult<IAvatar>();
             try
             {
-                var resp = await _algod.GetAsync($"/v2/accounts/{Uri.EscapeDataString(providerKey)}");
+                using var resp = await _algod.GetAsync($"/v2/accounts/{Uri.EscapeDataString(providerKey)}?exclude=all",
+                    HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false);
                 resp.EnsureSuccessStatusCode();
-                using var doc = await JsonDocument.ParseAsync(await resp.Content.ReadAsStreamAsync());
-                var acct = doc.RootElement.TryGetProperty("account", out var a) ? a : doc.RootElement;
+                using var stream = await resp.Content.ReadAsStreamAsync().ConfigureAwait(false);
+                using var doc = await JsonDocument.ParseAsync(stream).ConfigureAwait(false);
+                var account = doc.RootElement;
+                string address = account.GetProperty("address").GetString();
+                if (!string.Equals(address, providerKey, StringComparison.Ordinal))
+                    throw new InvalidOperationException("Algod returned a different account address.");
+                string status = account.GetProperty("status").GetString();
+                if (status is not ("Online" or "Offline" or "NotParticipating"))
+                    throw new InvalidOperationException("Algod returned an unrecognized account status.");
 
                 var avatar = new Avatar
                 {
-                    Id = DeriveGuid(providerKey),
-                    Username = providerKey,
-                    Description = $"Algorand account {providerKey}",
-                    CreatedDate = DateTime.UtcNow,
-                    ModifiedDate = DateTime.UtcNow,
+                    Id = DeriveGuid(address),
+                    Username = address,
+                    Description = $"Algorand account {address}"
                 };
-                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.AlgorandOASIS] = providerKey;
+                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.AlgorandOASIS] = address;
                 var metadata = GetAlgorandMetadata(avatar);
-                metadata["address"] = providerKey;
-                if (acct.TryGetProperty("amount", out var bal))
-                    metadata["balance_microALGO"] = bal.GetUInt64().ToString();
-                if (acct.TryGetProperty("amount-without-pending-rewards", out var nb))
-                    metadata["balance_without_rewards_microALGO"] = nb.GetUInt64().ToString();
-                if (acct.TryGetProperty("status", out var st))
-                    metadata["status"] = st.GetString() ?? string.Empty;
-                if (acct.TryGetProperty("total-assets-opted-in", out var asas))
-                    metadata["total_assets_opted_in"] = asas.GetUInt32().ToString();
+                metadata["address"] = address;
+                metadata["balance_microALGO"] = account.GetProperty("amount").GetUInt64().ToString(CultureInfo.InvariantCulture);
+                metadata["balance_without_rewards_microALGO"] = account.GetProperty("amount-without-pending-rewards").GetUInt64().ToString(CultureInfo.InvariantCulture);
+                metadata["status"] = status;
+                metadata["total_assets_opted_in"] = account.GetProperty("total-assets-opted-in").GetUInt64().ToString(CultureInfo.InvariantCulture);
+                metadata["round"] = account.GetProperty("round").GetUInt64().ToString(CultureInfo.InvariantCulture);
                 result.Result = avatar;
-                result.Message = $"AlgorandOASIS: Loaded account '{providerKey}'.";
+                result.IsLoaded = true;
+                result.LoadedCount = 1;
+                result.Message = $"AlgorandOASIS: Loaded account '{address}'.";
             }
             catch (Exception ex)
             {
