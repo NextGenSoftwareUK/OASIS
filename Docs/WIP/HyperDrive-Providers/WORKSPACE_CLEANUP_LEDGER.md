@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. The global Avatar filter used one disposable signed sandbox avatar and WEB4 confirmed deletion with HTTP 200. Compared all seven live portal files in memory. Removed the combined WEB4 candidate alternate index. No local installations, packages, databases or build outputs were retained. C: had 30.10 GiB free before the portal push.
+
 15 November Cancun time. Verified STARNET destination anchors in memory. Restored the portal sparse checkout and removed the temporary release index. No local installations, downloads, browser profiles or test output files were retained.
 
 15 November Cancun time. Restored the existing portal sparse-checkout patterns after editing the Karma modal. Ran Node syntax and UI checks in memory. No local SDK, packages, build outputs or test result files were created.
