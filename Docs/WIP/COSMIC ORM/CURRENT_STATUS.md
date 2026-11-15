@@ -1,5 +1,11 @@
 # COSMIC ORM / CQL current status
 
+## Development Axelar admission and native nested projections · 15 November
+
+Railway 665fe506 serves Development 2526b8c8a0e8 and reached 107/107 direct and federated sources ready 91.7 seconds after the first readiness probe. Axelar direct and MongoDB-federated presets still return HTTP 503 HYPERDRIVE_PREPARED_EXECUTION_REJECTED. Its standalone exact-key profile passed capability admission, but the shared metering classifier only recognized a lookup composed into a separate canonical profile. Core 8ea1efdce998 uses the admitted exact-key classifier for both types and both execution paths. Parent feature ee3dc81b0910 adds direct and federated receipt regression tests. Combined candidate 9ceb41a6edda awaits qualification. No measurement of successful live Axelar queries yet.
+
+[Exact candidate 40c410687c39 passed protocol CI 43705396868](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43705396868), including the fixed Int64 wire assertions and 54 native checks per store with fixture cleanup for nested anonymous projection composition. The signed-only candidate passed its focused wire step and all three test bodies but the dispatch expected the newer 54-assertion fixture while that candidate contained 53. The combined candidate includes the verified 54-case fixture. The hosted browser walkthrough remains open.
+
 ## Plain OR in the SQL-like editor · 15 November
 
 Web4Site f86d9242d47b now accepts a plain WHERE OR list and compiles it to the same typed request as a parenthesized OR group. Mixed AND and OR still require the parentheses supported by the existing bounded WEB4 grammar. Ask Your Data advertises the same syntax. The exact full client suite passed 193 tests. [Preview 7802284428](https://web4-site-a2i9orgxy-oasis-team.vercel.app/web4-sandbox.html) built successfully. The retained signed-in visitor ran the same compiled projection on live WEB4 2526b8c8a0e8 for MongoDB, SQLite and Neo4j, with an empty visible cohort. The exact deployment matched before and after. Protected browser verification remains open.
