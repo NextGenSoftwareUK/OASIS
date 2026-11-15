@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Default-comparer selected scalar Distinct meets Q52
+
+15 November. The native three-store step in [CI 43728756756](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43728756756) passed Single, Double, HolonType and ProviderType. Together with earlier evidence this covers every registered scalar key domain, and Q52 is marked verified on SQLite, MongoDB and Neo4j. Each provider now has 49 of 164 verified parity rows. The feature uses the existing native scalar domain registry. The exact all-domain build and live rollout are separate gates. MongoDB grouped Decimal SUM and AVG remain under investigation in [CI 43729435801](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43729435801).
+
 ## Exact metadata aggregates and MongoDB Decimal failure
 
 15 November. Web4Site fa0e1354440d compiles exact numeric metadata aggregates and preserves Int64, UInt64 and Decimal HAVING literals. All 64 focused editor tests passed. Live Development 4437cc9e119f accepted MIN, MAX, SUM and AVG probes on SQLite and Neo4j with no visible rows. MongoDB accepted Int64 SUM, UInt64 MIN, Int64 AVG and Decimal MAX. It returned 503/CQL_QUERY_FAILED for both Decimal SUM and AVG, even without HAVING. The underlying error is still being isolated. Feature 2bd3daeb549b uses the corrected scalar wire selection model for a populated repro. Exact native candidate 52a3c228a84a contains only the repro fixture on the last passed integral graph. HyperDrive NFT 318d7369abd0 is on Development. The populated grouping candidate 98713f7505b5 passed native protocol CI and its [exact image 43728692470](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43728692470) is building. The gate checks the serving revision and shared deployment window.
