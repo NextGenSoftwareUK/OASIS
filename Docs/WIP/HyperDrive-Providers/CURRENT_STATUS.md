@@ -1,5 +1,7 @@
 # Current provider status
 
+15 November Cancun time. Algorand account history and note-prefix search now share one validated Indexer paging path with HTTP error reporting and an explicit bounded result. The signed LocalNet fixture supplies a unique payment note so the new search check can verify the exact payment against the native Indexer.
+
 15 November Cancun time. HyperDrive contract job 132759326753 passed all 993 behavioral checks, zero failures and zero skips, on the exact rerun with corrected shallow/eager fixtures. This is controlled suite evidence. Native provider acceptance and hosted routing coverage remain tracked separately. Algorand mainnet account-history verification is run 43698006454.
 
 15 November Cancun time. The changed Files selector passed focused MongoDB-to-SQLite and SQLite fixture runs 43697509783 and 43697512256. The SQLite provider mapped 3 candidates instead of 95 owner-key matches before persisted-owner validation. Algorand account-history pagination now surfaces Indexer failures and continuation limits. Exact public native verification is pending.

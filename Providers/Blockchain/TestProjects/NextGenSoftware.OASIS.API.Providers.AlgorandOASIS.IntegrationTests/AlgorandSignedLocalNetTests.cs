@@ -1,11 +1,13 @@
 using System;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Objects.Search;
 
 namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS.IntegrationTests;
 
@@ -18,7 +20,10 @@ public sealed class AlgorandSignedLocalNetTests
     [TestMethod]
     public Task PreservesPartialBatchReceiptsOnAuthenticatedLocalNet() => VerifySignedSubmission(true);
 
-    private static async Task VerifySignedSubmission(bool batch)
+    [TestMethod]
+    public Task FindsSignedPaymentNoteOnNativeIndexer() => VerifySignedSubmission(batch: false, verifySearch: true);
+
+    private static async Task VerifySignedSubmission(bool batch, bool verifySearch = false)
     {
         string Required(string name) => Environment.GetEnvironmentVariable(name)
             ?? throw new InvalidOperationException($"Missing owned LocalNet fixture variable {name}.");
@@ -75,6 +80,27 @@ public sealed class AlgorandSignedLocalNetTests
             var loaded = await provider.LoadAvatarByProviderKeyAsync(receiver);
             Assert.IsFalse(loaded.IsError, loaded.Message);
             Assert.AreEqual("200000", loaded.Result.ProviderMetaData[ProviderType.AlgorandOASIS]["balance_microALGO"]);
+
+            if (verifySearch)
+            {
+                var indexed = await provider.LoadHolonAsync(txId, loadChildren: false);
+                for (var attempt = 0; attempt < 40 && indexed.Exception is HttpRequestException
+                    { StatusCode: HttpStatusCode.NotFound }; attempt++)
+                {
+                    await Task.Delay(250);
+                    indexed = await provider.LoadHolonAsync(txId, loadChildren: false);
+                }
+                Assert.IsFalse(indexed.IsError, indexed.Message);
+                var search = await provider.SearchAsync(new SearchParams
+                {
+                    SearchGroups = new() { new SearchTextGroup { SearchQuery = Required("OASIS_ALGORAND_LOCALNET_NOTE") } }
+                }, loadChildren: false);
+                Assert.IsFalse(search.IsError, search.Message);
+                Assert.IsTrue(search.IsLoaded);
+                Assert.IsFalse(search.IsWarning);
+                Assert.AreEqual(1, search.LoadedCount);
+                Assert.AreEqual(txId, search.Result.SearchResultHolons.Single().ProviderUniqueStorageKey[ProviderType.AlgorandOASIS]);
+            }
         }
         finally
         {

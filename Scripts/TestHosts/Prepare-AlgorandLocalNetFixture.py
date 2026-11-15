@@ -23,7 +23,8 @@ def main():
         sender = next(address for address in wallets.list_keys(handle)
                       if node.account_info(address)["amount"] > 2 * AMOUNT)
         _, recipient = account.generate_account()
-        payment = transaction.PaymentTxn(sender, parameters, recipient, AMOUNT)
+        note = f"oasis-owned-indexer-test:{recipient}"
+        payment = transaction.PaymentTxn(sender, parameters, recipient, AMOUNT, note=note.encode("utf-8"))
         signed = wallets.sign_transaction(handle, "", payment)
     finally:
         wallets.release_wallet_handle(handle)
@@ -32,6 +33,7 @@ def main():
         env.write(f"OASIS_ALGORAND_LOCALNET_SIGNED={encoding.msgpack_encode(signed)}\n")
         env.write(f"OASIS_ALGORAND_LOCALNET_TX={payment.get_txid()}\n")
         env.write(f"OASIS_ALGORAND_LOCALNET_RECEIVER={recipient}\n")
+        env.write(f"OASIS_ALGORAND_LOCALNET_NOTE={note}\n")
 
 
 if __name__ == "__main__":

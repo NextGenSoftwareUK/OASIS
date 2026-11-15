@@ -13,6 +13,11 @@ on:
         description: Verify a signed payment on disposable authenticated LocalNet
         type: boolean
         default: false
+      localnet_case:
+        description: Focused signed LocalNet verification
+        type: choice
+        options: [batch, indexed_search]
+        default: batch
 
 permissions:
   contents: read
@@ -61,6 +66,8 @@ jobs:
           python-version: '3.12'
       - name: Verify signed payment with authenticated Algorand LocalNet
         if: inputs.signed_localnet
+        env:
+          ALGORAND_LOCALNET_CASE: ${{ inputs.localnet_case }}
         shell: bash
         run: |
           set -euo pipefail
@@ -98,6 +105,7 @@ jobs:
           set +a
           pwsh -NoProfile -Command '
             ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-AlgorandSignedLocalNet -Operation {
-              dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.AlgorandOASIS.IntegrationTests" --filter "FullyQualifiedName~PreservesPartialBatchReceiptsOnAuthenticatedLocalNet" /m:2 /nr:false /p:UseSharedCompilation=false
+              $test = if ($env:ALGORAND_LOCALNET_CASE -eq "indexed_search") { "FindsSignedPaymentNoteOnNativeIndexer" } else { "PreservesPartialBatchReceiptsOnAuthenticatedLocalNet" }
+              dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.AlgorandOASIS.IntegrationTests" --filter "FullyQualifiedName~$test" /m:2 /nr:false /p:UseSharedCompilation=false
               if ($LASTEXITCODE -ne 0) { throw "Native Algorand signed payment failed." }
             }'
