@@ -1,5 +1,7 @@
 # Current provider status
 
+15 November Cancun time. Stripe catalogue candidate 6b471158bf1e contains only the price reader and its regression test on Development 4c842fc2ceba. Qualification 43715074477 is queued against the current dependency graph. The preceding Railway Gifts and Checkout deployment is still pending and its live checks are prepared.
+
 15 November Cancun time. Development advanced from serving d79168a14607 to 4c842fc2ceba after the 30-minute window. Railway queued WEB4 deployment 09e65c7d-46c2-4d3e-90a3-13e4916b2ba8 for the verified Gifts lifecycle, compact Gifts summary, and Checkout fragment fixes. The hosted checks remain open. Separate Stripe catalogue cache regression 43714069040 passed one test with no skips and remains on the task branch.
 
 15 November Cancun time. The WEB4 subscription plan price reader now shares validated Stripe price reads for 30 seconds per configured price and Stripe account. Concurrent catalogue opens share a refresh. Changing the configured price ID or Stripe account invalidates the cached value immediately. Checkout uses the native Stripe path. Focused cache verification and serving timing are pending.
