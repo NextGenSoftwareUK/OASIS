@@ -1,5 +1,7 @@
 # Current provider status
 
+15 November Cancun time. OPORTAL accb3fc guards against an older dashboard subscription response overwriting a newer checkout-confirmed plan for the same avatar. The controlled race kept Bronze after a late Free response. Exact dev candidate 777c25ee964f includes this guard, the avatar-switch protections, and the Free estimate UI. Its subscription and Gifts regressions passed. A signed sandbox check is prepared to verify the serving Free estimate HTTP 200, allowance, projection and zero payable charge after the WEB4 rollout.
+
 15 November Cancun time. OPORTAL f550607 and 4a13834 guard dashboard and modal subscription responses against an avatar switch. A focused controlled-DOM regression confirmed that a late previous-avatar response and a late error leave the new plan and subscription list intact. Exact dev candidate 1e3c46cde844 includes the staged Free-estimate UI and passed the full subscription suite. The batch awaits the backend estimate rollout.
 
 15 November Cancun time. Public Algorand TestNet native run 43730181763 passed activation on the matching chain, exact payment ID, round, sender, receiver, amount, timestamp and deactivation in one case. Its reported elapsed time was 458 ms. This is a read-only provider check. The signed TestNet payment awaits the funded test fixture. Development still serves 318d7369abd0 and the qualified estimate batch awaits the next window.
