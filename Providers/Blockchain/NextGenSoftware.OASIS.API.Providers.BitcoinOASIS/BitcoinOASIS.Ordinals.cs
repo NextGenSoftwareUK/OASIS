@@ -345,7 +345,7 @@ public partial class BitcoinOASIS
     }
 
     private async Task<(Coin Coin, BigInteger RuneUnits)> ReadOrdinalFundingAsync(HttpClient ord, OutPoint outpoint, BitcoinAddress source,
-        BitcoinSecret signer, bool wrappedSegwit, string inscriptionId, string expectedRune = null)
+        BitcoinSecret signer, bool wrappedSegwit, string inscriptionId, string expectedRune = null, bool requireOnlyRune = false)
     {
         var expectedOutpoint = outpoint.Hash + ":" + outpoint.N.ToString(CultureInfo.InvariantCulture);
         using var data = JsonDocument.Parse(await ord.GetStringAsync("output/" + expectedOutpoint));
@@ -356,6 +356,7 @@ public partial class BitcoinOASIS
             output.GetProperty("outpoint").GetString() != expectedOutpoint ||
             !output.GetProperty("indexed").GetBoolean() || output.GetProperty("spent").GetBoolean() ||
             (expectedRune == null && runes.EnumerateObject().MoveNext()) ||
+            (requireOnlyRune && runes.EnumerateObject().Any(balance => balance.Name != expectedRune)) ||
             (inscriptionId == null ? inscriptions.GetArrayLength() != 0 :
                 inscriptions.GetArrayLength() != 1 || inscriptions[0].GetString() != inscriptionId))
             return default;

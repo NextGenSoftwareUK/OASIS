@@ -1352,3 +1352,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 14 November Cancun time. Exact dashboard candidate staging removed its temporary Git index. Map job 132674174860 reached fixture teardown after the provider registration failure. Logs were read in memory. There were no local test databases, build outputs or downloads.
 
 14 November Cancun time. The corrected map CI case 132676922790 completed its owned SQLite directory teardown, removed the runner MongoDB container, and uploaded no test artifacts. The temporary Git index used for the corrected map projection was removed. The BTC escrow work created no local runtime downloads or test databases.
+
+14 November Cancun time. Escrow job 132679763870 removed its Esplora container and image and ran the owned regtest fixture cleanup after compilation failed. Logs were inspected in memory. No local test databases, downloads or builds were created.

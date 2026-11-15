@@ -1,5 +1,6 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NBitcoin;
+using Key = NBitcoin.Key;
 using NBitcoin.RPC;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -7,6 +8,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests;
 using NextGenSoftware.OASIS.API.Core.Objects;
+using System.Text.Json;
 using NextGenSoftware.OASIS.API.DNA;
 using System.Reflection;
 using SqliteProvider = NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.SQLLiteDBOASIS;
@@ -18,14 +20,21 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests;
 public sealed class BitcoinTokenEscrowIntegrationTests
 {
     [TestMethod]
-    public async Task NativeBitcoinEscrowConsumesOnlyTheAuthorizedDepositAndReturnsExactAmount()
+    public Task NativeBitcoinEscrowConsumesOnlyTheAuthorizedDepositAndReturnsExactAmount() =>
+        VerifyEscrowLifecycleAsync("BTC");
+
+    [TestMethod]
+    public Task NativeRuneEscrowConsumesOnlyTheAuthorizedDepositAndReturnsExactUnits() =>
+        VerifyEscrowLifecycleAsync(Required("OASIS_BITCOIN_RUNE_ID"));
+
+    private static async Task VerifyEscrowLifecycleAsync(string token)
     {
         var api = Required("OASIS_BITCOIN_REGTEST_API");
         var ord = Required("OASIS_BITCOIN_ORD_API");
         var miner = Required("OASIS_BITCOIN_ORD_MINER");
         var pool = Required("OASIS_BITCOIN_BRIDGE_POOL_ADDRESS");
         var source = Required("OASIS_BITCOIN_ORD_RECIPIENT");
-        var core = new RPCClient(RPCCredentialString.Parse(Required("OASIS_BITCOIN_CORE_RPC_AUTH")),
+        var core = new RPCClient(Required("OASIS_BITCOIN_CORE_RPC_AUTH"),
             new Uri(Required("OASIS_BITCOIN_CORE_RPC_URL")), Network.RegTest);
         using var reader = new HttpClient();
         var fixture = Required("OASIS_BITCOIN_ORD_WALLET_FIXTURE");
@@ -68,40 +77,48 @@ public sealed class BitcoinTokenEscrowIntegrationTests
         var active = await provider.ActivateProviderAsync();
         Assert.IsFalse(active.IsError, active.Message);
 
+        var rune = token != "BTC";
+        if (rune)
+        {
+            var minted = await provider.MintTokenAsync(new MintWeb3TokenRequest
+            {
+                TokenAddress = token, Amount = 7.25m, ToWalletAddress = source
+            });
+            Assert.IsFalse(minted.IsError, minted.Message);
+            await MineAndWaitAsync(core, reader, miner, api, ord);
+        }
+
         var asset = Guid.NewGuid();
         var lockId = Guid.NewGuid();
+        var amount = rune ? 2.5m : 0.00025m;
+        var depositOutput = rune ? 1 : 0;
         var locking = new LockWeb3TokenRequest
         {
             LockId = lockId, Web3TokenId = asset, LockedByAvatarId = avatar,
-            TokenAddress = "BTC", Amount = 0.00025m, EscrowContractAddress = pool,
+            TokenAddress = token, Amount = amount, EscrowContractAddress = pool,
             FromWalletAddress = source, FromWalletPrivateKey = sourceKey.GetWif(Network.RegTest).ToString()
         };
         var deposit = await provider.LockTokenAsync(locking);
         Assert.IsFalse(deposit.IsError, deposit.Message);
         var depositId = uint256.Parse(deposit.Result.TransactionResult);
         var onChainDeposit = await core.GetRawTransactionAsync(depositId);
-        Assert.AreEqual(25_000L, onChainDeposit.Outputs[0].Value.Satoshi);
+        if (!rune)
+            Assert.AreEqual(25_000L, onChainDeposit.Outputs[depositOutput].Value.Satoshi);
         var lockRetry = await provider.LockTokenAsync(locking);
         Assert.IsFalse(lockRetry.IsError, lockRetry.Message);
         Assert.AreEqual(depositId.ToString(), lockRetry.Result.TransactionResult);
-        locking.Amount = 0.00026m;
+        locking.Amount = amount + 0.01m;
         Assert.IsTrue((await provider.LockTokenAsync(locking)).IsError);
 
         var unlocking = new UnlockWeb3TokenRequest
         {
             LockId = lockId, Web3TokenId = asset, UnlockedByAvatarId = avatar,
-            TokenAddress = "BTC", EscrowContractAddress = pool
+            TokenAddress = token, EscrowContractAddress = pool
         };
         Assert.IsTrue((await provider.UnlockTokenAsync(unlocking)).IsError);
-        await core.SendCommandAsync("generatetoaddress", 1, miner);
-        var tip = (await core.GetBestBlockHashAsync()).ToString();
-        for (var attempt = 0; attempt < 30; attempt++)
-        {
-            if ((await reader.GetStringAsync(api + "/blocks/tip/hash")).Trim() == tip &&
-                (await reader.GetStringAsync(ord + "/r/blockhash")).Trim().Trim('"') == tip)
-                break;
-            await Task.Delay(TimeSpan.FromSeconds(1));
-        }
+        await MineAndWaitAsync(core, reader, miner, api, ord);
+        if (rune)
+            await AssertRuneOutputAsync(reader, ord, depositId, depositOutput, 250);
 
         unlocking.UnlockedByAvatarId = Guid.NewGuid();
         Assert.IsTrue((await provider.UnlockTokenAsync(unlocking)).IsError);
@@ -111,13 +128,41 @@ public sealed class BitcoinTokenEscrowIntegrationTests
         Assert.IsFalse(released.IsError, released.Message);
         var releaseId = uint256.Parse(released.Result.TransactionResult);
         var payout = await core.GetRawTransactionAsync(releaseId);
-        Assert.AreEqual(new OutPoint(depositId, 0), payout.Inputs[0].PrevOut);
-        Assert.AreEqual(25_000L, payout.Outputs[0].Value.Satoshi);
+        Assert.AreEqual(new OutPoint(depositId, (uint)depositOutput), payout.Inputs[0].PrevOut);
+        Assert.AreEqual(onChainDeposit.Outputs[depositOutput].Value.Satoshi, payout.Outputs[0].Value.Satoshi);
         Assert.AreEqual(BitcoinAddress.Create(source, Network.RegTest).ScriptPubKey, payout.Outputs[0].ScriptPubKey);
         var releaseRetry = await provider.UnlockTokenAsync(unlocking);
         Assert.IsFalse(releaseRetry.IsError, releaseRetry.Message);
         Assert.AreEqual(releaseId.ToString(), releaseRetry.Result.TransactionResult);
+        await MineAndWaitAsync(core, reader, miner, api, ord);
+        if (rune)
+            await AssertRuneOutputAsync(reader, ord, releaseId, 0, 250);
+    }
+
+    private static async Task MineAndWaitAsync(RPCClient core, HttpClient reader, string miner, string api, string ord)
+    {
         await core.SendCommandAsync("generatetoaddress", 1, miner);
+        var tip = (await core.GetBestBlockHashAsync()).ToString();
+        for (var attempt = 0; attempt < 30; attempt++)
+        {
+            if ((await reader.GetStringAsync(api + "/blocks/tip/hash")).Trim() == tip &&
+                (await reader.GetStringAsync(ord + "/r/blockhash")).Trim().Trim('"') == tip)
+                return;
+            await Task.Delay(TimeSpan.FromSeconds(1));
+        }
+        Assert.Fail("Bitcoin Core, Esplora and ord did not converge on the expected chain tip.");
+    }
+
+    private static async Task AssertRuneOutputAsync(HttpClient reader, string ord, uint256 txId, int output, int units)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Get, $"{ord}/output/{txId}:{output}");
+        request.Headers.Accept.ParseAdd("application/json");
+        using var response = await reader.SendAsync(request);
+        response.EnsureSuccessStatusCode();
+        using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        var entries = document.RootElement.GetProperty("runes").EnumerateObject().ToArray();
+        Assert.AreEqual(1, entries.Length);
+        Assert.AreEqual(units, entries[0].Value.GetProperty("amount").GetInt32());
     }
 
     private static string Required(string name) => Environment.GetEnvironmentVariable(name)

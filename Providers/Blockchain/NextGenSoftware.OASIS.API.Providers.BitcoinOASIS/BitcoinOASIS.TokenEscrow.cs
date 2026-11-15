@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using NBitcoin;
+using Key = NBitcoin.Key;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -25,7 +27,7 @@ public partial class BitcoinOASIS : IOASISIdBoundTokenEscrowProvider
     private const string BitcoinEscrowRecordType = "OASIS.BitcoinEscrow.v1";
 
     private sealed record BitcoinEscrowReceipt(Guid LockId, Guid AssetId, Guid AvatarId,
-        string Source, long Satoshis, string SignedTransaction);
+        string Source, string Token, decimal Amount, uint OutputIndex, long Satoshis, string RuneUnits, string SignedTransaction);
 
     public OASISResult<ITransactionResponse> LockToken(ILockWeb3TokenRequest request) =>
         LockTokenAsync(request).GetAwaiter().GetResult();
@@ -38,18 +40,18 @@ public partial class BitcoinOASIS : IOASISIdBoundTokenEscrowProvider
                 throw new ArgumentException("A Bitcoin escrow lock request is required.");
 
             var (authority, receiptActor, pool, poolSigner) = ReadBitcoinEscrowConfiguration(request.LockId,
-                request.Web3TokenId, request.LockedByAvatarId, request.TokenAddress, request.EscrowContractAddress);
+                request.Web3TokenId, request.LockedByAvatarId, request.EscrowContractAddress);
+            var token = CanonicalBitcoinEscrowToken(request.TokenAddress);
             await VerifyBitcoinEscrowNetworkAsync();
-            var satoshis = request.Amount * 100_000_000m;
-            if (satoshis <= 0 || satoshis > 2_100_000_000_000_000m || satoshis != decimal.Truncate(satoshis))
-                throw new ArgumentException("The lock amount must be a positive exact number of satoshis.");
+            if (request.Amount <= 0)
+                throw new ArgumentException("The Bitcoin escrow amount must be positive.");
 
             var recordId = BitcoinEscrowRecordId(pool, request.LockId, "deposit");
             var previous = await ReadBitcoinEscrowReceiptAsync(recordId, receiptActor, authority, poolSigner);
             if (previous != null)
             {
-                ValidateBitcoinEscrowReceipt(previous, request.LockId, request.Web3TokenId, request.LockedByAvatarId);
-                if (previous.Satoshis != (long)satoshis ||
+                ValidateBitcoinEscrowReceipt(previous, request.LockId, request.Web3TokenId, request.LockedByAvatarId, token);
+                if (previous.Amount != request.Amount ||
                     (!string.IsNullOrWhiteSpace(request.FromWalletAddress) &&
                         !BitcoinAddress.Create(previous.Source, SigningNetwork).Equals(
                             BitcoinAddress.Create(request.FromWalletAddress, SigningNetwork))))
@@ -78,6 +80,22 @@ public partial class BitcoinOASIS : IOASISIdBoundTokenEscrowProvider
 
             using var escrowKey = DeriveBitcoinEscrowKey(poolSigner, recordId);
             var escrowAddress = escrowKey.PubKey.GetAddress(ScriptPubKeyType.Segwit, SigningNetwork);
+            if (token != "BTC")
+            {
+                return await MoveBitcoinRuneAsync(token, source.ToString(), escrowAddress.ToString(), privateKey,
+                    null, request.Amount, burn: false, reservePublication: async (transaction, rune, units) =>
+                    {
+                        var prepared = new BitcoinEscrowReceipt(request.LockId, request.Web3TokenId,
+                            request.LockedByAvatarId, source.ToString(), rune, request.Amount, 1,
+                            transaction.Outputs[1].Value.Satoshi, units.ToString(CultureInfo.InvariantCulture), transaction.ToHex());
+                        await ReserveBitcoinEscrowReceiptAsync(recordId, prepared, receiptActor, authority, poolSigner);
+                    });
+            }
+
+            var satoshis = request.Amount * 100_000_000m;
+            if (satoshis > 2_100_000_000_000_000m || satoshis != decimal.Truncate(satoshis))
+                throw new ArgumentException("The lock amount must be an exact number of satoshis within Bitcoin's supply.");
+
             using var ord = CreateOrdClient();
             var tip = await ReadSharedOrdinalTipAsync(ord);
             var feeRate = await ReadBitcoinPaymentFeeRateAsync();
@@ -89,7 +107,7 @@ public partial class BitcoinOASIS : IOASISIdBoundTokenEscrowProvider
                 throw new InvalidOperationException("The indexed Bitcoin chain changed while preparing the deposit.");
 
             var receipt = new BitcoinEscrowReceipt(request.LockId, request.Web3TokenId, request.LockedByAvatarId,
-                source.ToString(), (long)satoshis, deposit.ToHex());
+                source.ToString(), token, request.Amount, 0, (long)satoshis, null, deposit.ToHex());
             await ReserveBitcoinEscrowReceiptAsync(recordId, receipt, receiptActor, authority, poolSigner);
             return await PublishBitcoinEscrowReceiptAsync(receipt);
         }
@@ -110,7 +128,8 @@ public partial class BitcoinOASIS : IOASISIdBoundTokenEscrowProvider
                 throw new ArgumentException("A Bitcoin escrow unlock request is required.");
 
             var (authority, receiptActor, pool, poolSigner) = ReadBitcoinEscrowConfiguration(request.LockId,
-                request.Web3TokenId, request.UnlockedByAvatarId, request.TokenAddress, request.EscrowContractAddress);
+                request.Web3TokenId, request.UnlockedByAvatarId, request.EscrowContractAddress);
+            var token = CanonicalBitcoinEscrowToken(request.TokenAddress);
             await VerifyBitcoinEscrowNetworkAsync();
             var depositId = BitcoinEscrowRecordId(pool, request.LockId, "deposit");
             var releaseId = BitcoinEscrowRecordId(pool, request.LockId, "release");
@@ -119,11 +138,11 @@ public partial class BitcoinOASIS : IOASISIdBoundTokenEscrowProvider
                 return new OASISResult<ITransactionResponse> { IsError = true, ErrorCode = OASISResultErrorCodes.RecordNotFound,
                     Message = "No matching Bitcoin escrow deposit was found." };
 
-            ValidateBitcoinEscrowReceipt(deposit, request.LockId, request.Web3TokenId, request.UnlockedByAvatarId);
+            ValidateBitcoinEscrowReceipt(deposit, request.LockId, request.Web3TokenId, request.UnlockedByAvatarId, token);
             var release = await ReadBitcoinEscrowReceiptAsync(releaseId, receiptActor, authority, poolSigner);
             if (release != null)
             {
-                ValidateBitcoinEscrowReceipt(release, request.LockId, request.Web3TokenId, request.UnlockedByAvatarId);
+                ValidateBitcoinEscrowReceipt(release, request.LockId, request.Web3TokenId, request.UnlockedByAvatarId, token);
                 return await PublishBitcoinEscrowReceiptAsync(release);
             }
 
@@ -137,15 +156,40 @@ public partial class BitcoinOASIS : IOASISIdBoundTokenEscrowProvider
             var escrowAddress = escrowSigner.GetAddress(ScriptPubKeyType.Segwit);
             using var ord = CreateOrdClient();
             var tip = await ReadSharedOrdinalTipAsync(ord);
-            var lockedCoin = await ReadOrdinalCoinAsync(ord, new OutPoint(transaction.GetHash(), 0),
-                escrowAddress, escrowSigner, wrappedSegwit: false, inscriptionId: null);
+            var outpoint = new OutPoint(transaction.GetHash(), deposit.OutputIndex);
+            var destination = BitcoinAddress.Create(deposit.Source, SigningNetwork);
+            Coin lockedCoin;
+            TxOut[] outputs;
+            if (token == "BTC")
+            {
+                lockedCoin = await ReadOrdinalCoinAsync(ord, outpoint, escrowAddress, escrowSigner,
+                    wrappedSegwit: false, inscriptionId: null);
+                outputs = [new TxOut(Money.Satoshis(deposit.Satoshis), destination.ScriptPubKey)];
+            }
+            else
+            {
+                var (_, block, index) = ParseBitcoinRuneId(token);
+                var (name, divisibility) = await ReadBitcoinRuneDefinitionAsync(ord, token);
+                var units = ConvertRuneAmount(deposit.Amount, divisibility);
+                var funding = await ReadOrdinalFundingAsync(ord, outpoint, escrowAddress, escrowSigner,
+                    wrappedSegwit: false, inscriptionId: null, expectedRune: name, requireOnlyRune: true);
+                if (funding.RuneUnits != units || units.ToString(CultureInfo.InvariantCulture) != deposit.RuneUnits)
+                    throw new InvalidOperationException("The exact Bitcoin Rune amount does not match its deposit receipt.");
+
+                lockedCoin = funding.Coin;
+                outputs =
+                [
+                    new TxOut(Money.Satoshis(deposit.Satoshis), destination.ScriptPubKey),
+                    new TxOut(Money.Zero, CreateBitcoinRuneAllocation(block, index, units, 0))
+                ];
+            }
+
             if (lockedCoin == null || lockedCoin.Amount.Satoshi != deposit.Satoshis)
                 throw new InvalidOperationException("The exact Bitcoin escrow output is unavailable, spent or differs from its deposit receipt.");
 
-            var destination = BitcoinAddress.Create(deposit.Source, SigningNetwork);
             var feeRate = await ReadBitcoinPaymentFeeRateAsync();
             var payment = await CreateSignedCardinalPaymentAsync(ord, poolSigner, pool, feeRate, lockedCoin,
-                escrowKey, new TxOut(lockedCoin.Amount, destination.ScriptPubKey));
+                escrowKey, outputs);
             if (payment == null)
                 throw new InvalidOperationException("The Bitcoin escrow pool lacks confirmed cardinal BTC for the release fee.");
             if (await ReadSharedOrdinalTipAsync(ord) != tip)
@@ -162,14 +206,12 @@ public partial class BitcoinOASIS : IOASISIdBoundTokenEscrowProvider
     }
 
     private (ProviderType Authority, Guid ReceiptActor, BitcoinAddress Pool, BitcoinSecret Signer) ReadBitcoinEscrowConfiguration(
-        Guid lockId, Guid assetId, Guid avatarId, string token, string requestedPool)
+        Guid lockId, Guid assetId, Guid avatarId, string requestedPool)
     {
         if (!_isActivated)
             throw new InvalidOperationException("Bitcoin provider is not activated.");
         if (lockId == Guid.Empty || assetId == Guid.Empty || avatarId == Guid.Empty)
             throw new ArgumentException("Bitcoin escrow requires an explicit lock ID, asset ID and avatar.");
-        if (!string.Equals(token, "BTC", StringComparison.OrdinalIgnoreCase))
-            throw new ArgumentException("Bitcoin escrow currently requires the BTC asset.");
 
         var pool = ReadOrdinalCustodyPool();
         if (!string.Equals(requestedPool, pool.ToString(), StringComparison.Ordinal))
@@ -186,6 +228,9 @@ public partial class BitcoinOASIS : IOASISIdBoundTokenEscrowProvider
 
         return (authority, receiptActor, pool, new BitcoinSecret(_privateKey, SigningNetwork));
     }
+
+    private static string CanonicalBitcoinEscrowToken(string token) =>
+        string.Equals(token, "BTC", StringComparison.OrdinalIgnoreCase) ? "BTC" : ParseBitcoinRuneId(token).Id;
 
     private async Task VerifyBitcoinEscrowNetworkAsync()
     {
@@ -234,9 +279,9 @@ public partial class BitcoinOASIS : IOASISIdBoundTokenEscrowProvider
             ?? throw new InvalidOperationException("The Bitcoin escrow receipt could not be decoded.");
     }
 
-    private static void ValidateBitcoinEscrowReceipt(BitcoinEscrowReceipt receipt, Guid lockId, Guid assetId, Guid avatarId)
+    private static void ValidateBitcoinEscrowReceipt(BitcoinEscrowReceipt receipt, Guid lockId, Guid assetId, Guid avatarId, string token)
     {
-        if (receipt.LockId != lockId || receipt.AssetId != assetId || receipt.AvatarId != avatarId)
+        if (receipt.LockId != lockId || receipt.AssetId != assetId || receipt.AvatarId != avatarId || receipt.Token != token)
             throw new InvalidOperationException("The Bitcoin escrow receipt does not match the requested deposit.");
     }
 
