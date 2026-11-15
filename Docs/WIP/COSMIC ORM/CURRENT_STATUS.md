@@ -2,6 +2,8 @@
 
 ## WEB4 sandbox demo publication
 
+Web4Site 3a93bb25abdd adds typed inclusive BETWEEN ranges to the SQL-like parser and WEB6 prompt. All 59 focused tests passed. With the retained Development visitor, the exact parser produced requests identical to explicit >= and <= predicates, and WEB4 accepted the projection on SQLite, MongoDB and Neo4j. This check validates the request and API response, without a populated fixture claim. GitHub deployment 7801374887 confirms the [range preview](https://web4-site-e6h9zc34o-oasis-team.vercel.app/web4-sandbox.html) built. Hosted browser verification remains open. Nested projection CI 43697608045 succeeded but skipped the native three-store step because source_ref was absent. A new dispatch pins source_ref to 7b6ba94ca86f.
+
 The public WEB4 sandbox still serves the JSON-only editor and labels Ask Your Data as Soon. Web4Site feature revision 2cad8572beb7 includes the SQL-like editor and enabled Ask Your Data tab. GitHub deployment 7791128690 confirmed the [exact preview](https://web4-site-nl2ge9ag1-oasis-team.vercel.app/web4-sandbox.html) built successfully. The intended Development hostname did not resolve from this laptop. The priority demo gap is the hosted browser walkthrough for both modes. Existing parser-to-WEB4 and WEB6-to-WEB4 results remain verified at their recorded scope. Public release remains pending.
 
 ## Native nested DTO projections
