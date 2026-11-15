@@ -178,6 +178,27 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         var source = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(provider).Result)
             .Where(row => row.Id == first || row.Id == second).Result;
         var root = CosmicLinq.Create(NativeManager(adapter), adapter, source).Result;
+        var distinctCountSource = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(provider).Result)
+            .WithReadAccess(CosmicQueryReadAccess.OwnerOrPublic(actor).Result)
+            .Where(row => ids.Contains(row.Id)).Result;
+        var countAdapter = (ICosmicQueryProjectionCompositionStorageProvider)adapter;
+        var countTarget = new CosmicProjectionCompositionTarget(provider, countAdapter.QueryCapabilities,
+            countAdapter.ProjectionCapabilities, countAdapter.CompositionCapabilities);
+        var countSelection = new CqlJoinScalar { Field = "Description" };
+        async Task<long> DistinctCount(CosmicQuery<Holon> selectedSource)
+        {
+            var query = CqlCompiler.CompileDistinctCount(selectedSource, countSelection);
+            var plan = CosmicProjectedCardinalityPlanner.Plan<Holon, CosmicProjectionRecord, long>(query,
+                CosmicScalarOperation.LongCount, provider, new[] { countTarget });
+            Assert.IsFalse(plan.IsError, plan.Message);
+            var result = await CosmicProjectedCardinalityExecutor.ExecuteAsync(plan.Result,
+                new ICosmicQueryStorageProvider[] { countAdapter });
+            Assert.IsFalse(result.IsError, result.Message + result.Exception);
+            return result.Result.Providers.Single().Value;
+        }
+        Assert.AreEqual(2L, await DistinctCount(distinctCountSource));
+        Assert.AreEqual(0L, await DistinctCount(distinctCountSource.Take(0).Result));
+
         var versions = root.OrderBy(row => row.Id).Select(row => row.Version);
         Assert.AreEqual(2, versions.Count());
         var reduced = await versions.Distinct().Where(version => version >= 1).Take(2).ToCosmicListAsync();

@@ -1,5 +1,7 @@
 using System;
 using System.Linq.Expressions;
+using System.Text.Json;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Queries;
 using NextGenSoftware.OASIS.Common;
@@ -8,6 +10,26 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 
 public static partial class CqlV1Compiler
 {
+    public static CosmicProjectionQuery<Holon, CosmicProjectionRecord> CompileDistinctCount(
+        CosmicQuery<Holon> source, CqlScalarV1Selection selection)
+    {
+        if (source == null || selection == null)
+            throw new ArgumentException("Distinct count requires a source and one exact selection.");
+
+        const string alias = "Value";
+        var column = ProjectionColumn(new CqlProjectionV1Column
+        {
+            Alias = alias, Field = selection.Field, MetadataPath = selection.MetadataPath,
+            ValueType = selection.ValueType, Nullable = selection.Nullable
+        });
+        var query = RequiredComposition(source.SelectColumns(new[] { column }));
+        var type = query.Columns[0].Path.ValueType;
+        if (!type.IsValueType || Nullable.GetUnderlyingType(type) != null)
+            query = RequiredComposition(query.Where(CompileSelectedFilter(type, alias, CqlV1Operator.NotEqual,
+                JsonSerializer.SerializeToElement<object>(null))));
+        return RequiredComposition(query.Distinct());
+    }
+
     internal interface IScalarConsumer<TResult>
     {
         TResult Consume<TValue>(OASISResult<CosmicScalarQuery<Holon, TValue>> intent);

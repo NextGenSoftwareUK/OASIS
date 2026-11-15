@@ -24,28 +24,36 @@ public static partial class CqlV1Endpoint
         try
         {
             http.RequestAborted.ThrowIfCancellationRequested();
+            var distinctCount = request?.Operation == "CountDistinct";
             var operation = request?.Operation switch
             {
                 "Count" => CosmicScalarOperation.Count,
-                "LongCount" => CosmicScalarOperation.LongCount,
+                "LongCount" or "CountDistinct" => CosmicScalarOperation.LongCount,
                 "Any" => CosmicScalarOperation.Any,
                 "Min" => CosmicScalarOperation.Min,
                 "Max" => CosmicScalarOperation.Max,
                 "Sum" => CosmicScalarOperation.Sum,
                 "Average" => CosmicScalarOperation.Average,
-                _ => throw new ArgumentException("Select Count, LongCount, Any, Min, Max, Sum or Average.")
+                _ => throw new ArgumentException("Select Count, LongCount, CountDistinct, Any, Min, Max, Sum or Average.")
             };
-            var selecting = operation is CosmicScalarOperation.Min or CosmicScalarOperation.Max or CosmicScalarOperation.Sum or CosmicScalarOperation.Average;
+            var selecting = distinctCount || operation is CosmicScalarOperation.Min or CosmicScalarOperation.Max or CosmicScalarOperation.Sum or CosmicScalarOperation.Average;
             if (selecting != (request.Selection != null))
-                throw new ArgumentException("Min/Max/Sum/Average require one selection; count/existence operations do not accept it.");
+                throw new ArgumentException("Selected aggregates require one selection; Count, LongCount and Any do not accept it.");
             var requested = CqlV1Compiler.RequestedProvider(request.Provider, includeCloudReadProfile: true);
             var policy=CaptureReadPolicy(http,actor,requested,providers,admission,includeCloudReadProfile:true);
             var source = CqlV1Compiler.CompileScalarSource(request, actor, policy?.Selected??requested,policy?.Access);
             if (!TryResolveEligible(providers, requested, admission, out var storage, out var adapter, out var selected,policy,includeCloudReadProfile:true))
                 return Failure(403, "CQL_PROVIDER_NOT_ELIGIBLE", "The selected provider is not eligible for this admitted scalar query.");
+            source = source.WithScope(CosmicQueryScope.Named(selected).Result);
+            if (distinctCount)
+            {
+                if (adapter is not ICosmicQueryProjectionCompositionStorageProvider composition)
+                    return Failure(400, "CQL_CAPABILITY_UNSUPPORTED", "The selected provider cannot execute native distinct counts.");
+                return await ExecuteDistinctCount(http, providers, storage, composition,
+                    CqlV1Compiler.CompileDistinctCount(source, request.Selection));
+            }
             if (adapter is not ICosmicQueryScalarStorageProvider scalar)
                 return Failure(400, "CQL_CAPABILITY_UNSUPPORTED", "The selected provider does not implement native scalar queries.");
-            source = source.WithScope(CosmicQueryScope.Named(selected).Result);
             if (selecting)
             {
                 var selection = request.Selection;
@@ -71,6 +79,36 @@ public static partial class CqlV1Endpoint
         catch (ResponseLimitException) { return Failure(413, "CQL_RESPONSE_LIMIT", "Scalar response exceeds the public output limit."); }
         catch (OperationCanceledException) { return Failure(http.RequestAborted.IsCancellationRequested ? 499 : 504, "CQL_QUERY_CANCELLED", "The scalar query was cancelled."); }
         catch (Exception) { return Failure(503, "CQL_EXECUTION_FAILED", "The scalar query did not complete. Retain the usage operation ID for reconciliation."); }
+    }
+
+    private static async Task<IActionResult> ExecuteDistinctCount(HttpContext http, ICqlV1Providers providers,
+        IOASISProvider storage, ICosmicQueryProjectionCompositionStorageProvider adapter,
+        CosmicProjectionQuery<Holon, CosmicProjectionRecord> intent)
+    {
+        var selected = adapter.QueryProviderType;
+        var plan = CosmicProjectedCardinalityPlanner.Plan<Holon, CosmicProjectionRecord, long>(intent,
+            CosmicScalarOperation.LongCount, selected,
+            new[] { new CosmicProjectionCompositionTarget(selected, adapter.QueryCapabilities,
+                adapter.ProjectionCapabilities, adapter.CompositionCapabilities) });
+        if (plan.IsError) return Failure(400, plan.ErrorCode, "The selected provider does not support this distinct count.");
+
+        using var deadline = CancellationTokenSource.CreateLinkedTokenSource(http.RequestAborted);
+        deadline.CancelAfter(TimeSpan.FromSeconds(5));
+        var manager = providers.CreateManager(storage);
+        http.Items[CqlV1ResourceFilter.DispatchedKey] = true;
+        var result = await manager.ExecuteProjectedCardinalityQueryAsync(plan.Result,
+            new ICosmicQueryStorageProvider[] { adapter }, deadline.Token);
+        if (result.IsError) return QueryFailure(http, result.ErrorCode);
+        deadline.Token.ThrowIfCancellationRequested();
+
+        var count = result.Result.Providers.Single();
+        if (count.Provider != selected)
+            return Failure(503, "CQL_PROVIDER_RESULT_INVALID", "Distinct count provenance differs from the admitted provider.");
+        return JsonResponse(new OASISResult<object>(new
+        {
+            version = "cql-scalar-v1", provider = selected.ToString(), operation = "CountDistinct",
+            valueType = "Int64", value = ProjectionWireValue(count.Value)
+        }) { IsLoaded = true });
     }
 
     private static async Task<IActionResult> ExecuteScalar<TResult>(HttpContext http, ICqlV1Providers providers,
