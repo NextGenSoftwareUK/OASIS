@@ -131,9 +131,21 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Assert.IsFalse(exactIntegers.IsError, exactIntegers.Message + exactIntegers.Exception);
         CollectionAssert.AreEqual(new long?[] { 9007199254740993L, null, 9007199254740992L },
             exactIntegers.Result.ToArray());
+        var exactTimes = await fixtureRows.OrderBy(row => row.Name)
+            .Select(row => CosmicQueryMetadata.Value<DateTime?>(row, "distinctUtc"))
+            .Distinct().ToCosmicListAsync();
+        Assert.IsFalse(exactTimes.IsError, exactTimes.Message + exactTimes.Exception);
+        CollectionAssert.AreEqual(new DateTime?[]
+        {
+            new DateTime(638700000000000001L, DateTimeKind.Utc),
+            null,
+            new DateTime(638700000000000002L, DateTimeKind.Utc)
+        }, exactTimes.Result.ToArray());
+        Assert.IsTrue(exactTimes.Result.Where(value => value.HasValue)
+            .All(value => value.Value.Kind == DateTimeKind.Utc));
         Assert.IsFalse(labels.IsError, labels.Message + labels.Exception);
         CollectionAssert.AreEqual(new string?[] { "case", null, "Case" }, labels.Result.ToArray());
 
-        checks.Add(new { provider = provider.ToString(), distinctWire = "native SQL and LINQ Int32, Boolean, Guid and ordinal nullable String" });
+        checks.Add(new { provider = provider.ToString(), distinctWire = "native SQL and LINQ Int32, nullable Int64, Boolean, Guid, ordinal nullable String and exact nullable UTC timestamps" });
     }
 }
