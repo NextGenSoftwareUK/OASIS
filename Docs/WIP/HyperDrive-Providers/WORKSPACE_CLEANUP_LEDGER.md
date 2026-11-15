@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. The shallow NFT candidate used one temporary Git index, which was removed after manifest verification. Native SQLite qualification runs on hosted CI and owns its disposable database cleanup. No local build, database, install or test outputs were created. C: had 25.63 GiB available.
+
 15 November Cancun time. Stripe error classification used one read-only native sandbox API request. The exact WEB4 compile candidate used a temporary Git index that was removed. Qualification and Algorand native tests run on hosted CI. No local builds, downloads, databases or result files were retained.
 
 15 November Cancun time. Signed usage timing and unknown Stripe session checks used real WEB4 dev on disposable avatars. Both avatar deletions returned HTTP 200. The temporary Git index for exact qualification was removed. No local builds, installs, database or test outputs were retained.
