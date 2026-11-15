@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. The signed Railway subscription test avatar self-delete returned HTTP 200 and true. The unknown-plan checkout was rejected and no payment or subscription was created. Loopback and API checks ran in memory and created no local results, builds or environments.
+
 15 November Cancun time. Subscription HTTP loopback ran from Node standard input and closed its listener. Public catalog checks and CI reviews ran in memory. No payment, download, local database or build output was created. Last C: check was 26.7 GiB free.
 
 15 November Cancun time. The NFT transfer loopback used Node standard input and closed its listener. No local chain, funding, installation, build or persistent results were created.

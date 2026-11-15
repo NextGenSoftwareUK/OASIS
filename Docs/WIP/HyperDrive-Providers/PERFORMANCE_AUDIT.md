@@ -1,5 +1,7 @@
 # OPORTAL and HyperDrive performance audit
 
+15 November Cancun time. A signed disposable Railway dev avatar returned HTTP 200 for subscriptions 411 ms / 65 bytes, usage 456 ms / 365 bytes, orders 510 ms / 56 bytes, and owner apps 647 ms / 285 bytes. These are single API samples on an empty account. Unknown checkout plan returned 400. The SDK loopback verified renewal/end dates, current plan propagation and errors for failed order reads.
+
 15 November Cancun time. Bundled SDK checkout/billing loopback verified correct return URLs, persisted free activation before success, single reload on verified checkout, cancellation and billing portal redirects. Failed subscription loads now render an error. The browser return uses the existing authenticated SDK transport and preserves the route history. End-to-end Stripe and hosted session checks remain open.
 
 15 November Cancun time. OPORTAL NFT transfer is wired through the bundled SDK with explicit token selection for multi-token NFTs. The loopback confirmed the selected chain identity, both recipient forms, rejection, acknowledgement and prevention of immediate repeat submission after an uncertain response. The WEB4 API requires an owned sender and same-provider recipient. Signed hosted and native funded acceptance remain open.
