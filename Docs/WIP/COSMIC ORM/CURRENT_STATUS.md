@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Connext upstream HTTP failures baseline
+
+Railway deployment logs on f99947f0e20b captured multiple Connext native query failures with category http and upstream HTTP 500 during the serial probe. WEB4 surfaced HTTP 503 CQL_QUERY_FAILED. Logs confirm upstream HTTP failure for the sampled events and leave the upstream cause open. Repeat the same direct and federated workload after cutover.
+
 ## Connext serial baseline
 
 On Development f99947f0e20b (Railway 519e39f9-d2af-433f-bf6c-6b0f783dfdb7), a serial Connext two-record probe returned matching native and MongoDB-federated IDs on successful requests. The sampler failed overall: each route returned two HTTP 503 CQL_QUERY_FAILED responses across five attempts. Three of four warm native requests succeeded (median 3,356 ms, max 3,364 ms), as did two of four warm federated requests (median 3,708.5 ms, max 4,338 ms). These timings describe successful responses only. Capture the same workload after shipping-provider cutover and investigate any recurrent 503s using server evidence.
