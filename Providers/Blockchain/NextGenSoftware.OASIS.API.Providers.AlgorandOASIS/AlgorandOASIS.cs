@@ -376,6 +376,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
             bool recursive = true, int maxChildDepth = 0, bool continueOnError = true,
             bool loadChildrenFromProvider = false, int version = 0)
         {
+            if (_recordBoxes != null)
+                return await LoadEnrolledHolonAsync(id, loadChildren, recursive, maxChildDepth,
+                    loadChildrenFromProvider, version).ConfigureAwait(false);
             var result = new OASISResult<IHolon>();
             OASISErrorHandling.HandleError(ref result,
                 "AlgorandOASIS: Use LoadHolonAsync(transactionId) to load an Algorand transaction.");
@@ -392,6 +395,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
             bool recursive = true, int maxChildDepth = 0, bool continueOnError = true,
             bool loadChildrenFromProvider = false, int version = 0)
         {
+            if (_recordBoxes != null && Guid.TryParseExact(providerKey, "D", out var storedId))
+                return await LoadEnrolledHolonAsync(storedId, loadChildren, recursive, maxChildDepth,
+                    loadChildrenFromProvider, version).ConfigureAwait(false);
             var result = new OASISResult<IHolon>();
             try
             {
@@ -641,6 +647,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
             bool recursive = true, int maxChildDepth = 0, bool continueOnError = true,
             bool saveChildrenOnProvider = false)
         {
+            if (_recordBoxes != null)
+                return await SaveEnrolledHolonAsync(holon, saveChildren).ConfigureAwait(false);
             // Submit the caller-signed transaction. A submission receipt does not establish confirmation.
             var result = new OASISResult<IHolon>();
             try

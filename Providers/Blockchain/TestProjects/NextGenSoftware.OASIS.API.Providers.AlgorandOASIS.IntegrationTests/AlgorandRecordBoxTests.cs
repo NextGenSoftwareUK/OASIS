@@ -20,26 +20,29 @@ public sealed class AlgorandRecordBoxTests
         Assert.IsFalse(active.IsError, active.Message);
         try
         {
-            var holon = new Holon { Id = id, Name = "Signed native version one", Description = new string('b', 950) };
-            var initial = await provider.SaveStoredHolonAsync(holon, expectedVersion: 0);
+            var holon = new Holon { Id = id, Version = 1, Name = "Signed native version one", Description = new string('b', 950) };
+            var initial = await provider.SaveHolonAsync(holon, saveChildren: false);
             Assert.IsFalse(initial.IsError, initial.Exception?.ToString() ?? initial.Message);
             Assert.AreEqual(1, initial.Result.Version);
 
             holon.Name = "Signed native version two";
-            Assert.IsTrue((await provider.SaveStoredHolonAsync(holon, expectedVersion: 0)).IsError);
-            var update = await provider.SaveStoredHolonAsync(holon, expectedVersion: 1);
+            Assert.IsTrue((await provider.SaveHolonAsync(holon, saveChildren: false)).IsError);
+            holon.Version = 2;
+            var update = await provider.SaveHolonAsync(holon, saveChildren: false);
             Assert.IsFalse(update.IsError, update.Exception?.ToString() ?? update.Message);
             Assert.AreEqual(2, update.Result.Version);
+            Assert.AreEqual(initial.Result.VersionId, update.Result.PreviousVersionId);
+            Assert.AreNotEqual(initial.Result.VersionId, update.Result.VersionId);
 
             var separateReader = Create(Required("PROGRAM"), storageKey);
             Assert.IsFalse((await separateReader.ActivateProviderAsync()).IsError);
             try
             {
-                var latest = await separateReader.LoadStoredHolonAsync(id);
+                var latest = await separateReader.LoadHolonAsync(id, loadChildren: false);
                 Assert.IsFalse(latest.IsError, latest.Exception?.ToString() ?? latest.Message);
                 Assert.AreEqual("Signed native version two", latest.Result.Name);
                 Assert.AreEqual(950, latest.Result.Description.Length);
-                var original = await separateReader.LoadStoredHolonAsync(id, version: 1);
+                var original = separateReader.LoadHolon(id.ToString("D"), loadChildren: false, version: 1);
                 Assert.IsFalse(original.IsError, original.Exception?.ToString() ?? original.Message);
                 Assert.AreEqual("Signed native version one", original.Result.Name);
             }

@@ -95,6 +95,32 @@ public partial class AlgorandOASIS
         return result;
     }
 
+    private async Task<OASISResult<IHolon>> LoadEnrolledHolonAsync(Guid id, bool loadChildren, bool recursive,
+        int maxChildDepth, bool loadChildrenFromProvider, int version)
+    {
+        if (loadChildren && loadChildrenFromProvider)
+            return new OASISResult<IHolon> { IsError = true, Message = "Independent Algorand child queries are unavailable." };
+        var result = await LoadStoredHolonAsync(id, version).ConfigureAwait(false);
+        if (result.IsError || result.Result == null)
+            return result;
+        try
+        {
+            if (!loadChildren)
+                result.Result.Children = [];
+            else if (result.Result.Children is { Count: > 0 })
+                result.Result = HolonGraphProjection.Create([], true, recursive, maxChildDepth, 0, false,
+                    record => OasisJson.DeserializeStored<Holon>(OasisJson.Serialize(record)))(result.Result);
+        }
+        catch (Exception exception)
+        {
+            OASISErrorHandling.HandleError(ref result, "Could not project the Algorand holon.", exception);
+            result.Result = null;
+            result.IsLoaded = false;
+            result.LoadedCount = 0;
+        }
+        return result;
+    }
+
     private async Task<(Holon Record, byte[] PreviousRevision, byte[] PreviousDigest)> ReadStoredHolonAsync(
         AlgorandRecordBoxSettings settings, Guid id, byte[] key, byte[] manifest, EncryptedRecordCodec codec,
         CancellationToken cancellationToken)

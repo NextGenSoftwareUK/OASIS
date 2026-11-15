@@ -18,6 +18,18 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS;
 
 public partial class AlgorandOASIS
 {
+    private Task<OASISResult<IHolon>> SaveEnrolledHolonAsync(IHolon holon, bool saveChildren)
+    {
+        if (holon == null || holon.Version < 0 || saveChildren && holon.Children is { Count: > 0 })
+            return Task.FromResult(new OASISResult<IHolon>
+            {
+                IsError = true,
+                Message = "An Algorand root save requires a valid holon version and a single record."
+            });
+        // HolonManager stamps the proposed revision before invoking the provider.
+        return SaveStoredHolonAsync(holon, Math.Max(0, holon.Version - 1));
+    }
+
     public async Task<OASISResult<IHolon>> SaveStoredHolonAsync(IHolon holon, int expectedVersion,
         CancellationToken cancellationToken = default)
     {
@@ -36,7 +48,6 @@ public partial class AlgorandOASIS
             var proposal = OasisJson.DeserializeStored<Holon>(OasisJson.Serialize(holon));
             if (proposal == null || proposal.Id != id)
                 throw new InvalidDataException("Could not snapshot the proposed record identity.");
-            proposal.Version = checked(expectedVersion + 1);
             using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             deadline.CancelAfter(_algod.Timeout);
             var token = deadline.Token;
@@ -44,10 +55,19 @@ public partial class AlgorandOASIS
             byte[] headName = [(byte)'h', ..key];
             var head = await ReadBoxAsync(settings, headName, token).ConfigureAwait(false);
             using var codec = new EncryptedRecordCodec(settings.StorageKey);
-            var currentVersion = head == null ? 0 : (await ReadStoredHolonAsync(settings, id, key,
-                head, codec, token).ConfigureAwait(false)).Record.Version;
-            if (currentVersion != expectedVersion)
+            var current = head == null ? null : (await ReadStoredHolonAsync(settings, id, key,
+                head, codec, token).ConfigureAwait(false)).Record;
+            if ((current?.Version ?? 0) != expectedVersion)
                 throw new InvalidOperationException("The requested Algorand predecessor version is no longer current.");
+            var version = checked(expectedVersion + 1);
+            if (proposal.VersionId == Guid.Empty || proposal.Version != version || proposal.VersionId == current?.VersionId)
+                proposal.VersionId = Guid.NewGuid();
+            proposal.PreviousVersionId = current?.VersionId ?? Guid.Empty;
+            proposal.Version = version;
+            proposal.Children = [];
+            proposal.IsNewHolon = false;
+            proposal.ProviderUniqueStorageKey ??= [];
+            proposal.ProviderUniqueStorageKey[Core.Enums.ProviderType.AlgorandOASIS] = id.ToString("D");
 
             var revision = RandomNumberGenerator.GetBytes(HashLength);
             var envelope = StrictUtf8.GetBytes(codec.Encrypt(StoredHolonContext(settings, id, revision),
