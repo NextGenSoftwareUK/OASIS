@@ -62,6 +62,20 @@ public sealed class AlgorandPublicLifecycleTests
     }
 
     [TestMethod]
+    public async Task PublicIndexerPreservesNativeTransactionTimestamp()
+    {
+        const string id = "7MK6WLKFBPC323ATSEKNEKUTQZ23TCCM75SJNSFAHEM65GYJ5ANQ";
+        var provider = new AlgorandOASIS("https://mainnet-api.algonode.cloud", "https://mainnet-idx.algonode.cloud");
+        var result = await provider.LoadHolonAsync(id, loadChildren: false);
+        Assert.IsFalse(result.IsError, result.Message);
+        Assert.AreEqual(id, result.Result.ProviderUniqueStorageKey[ProviderType.AlgorandOASIS]);
+        Assert.AreEqual("62440", result.Result.ProviderMetaData[ProviderType.AlgorandOASIS]["confirmed_round"]);
+        var expected = System.DateTimeOffset.FromUnixTimeSeconds(1560614017).UtcDateTime;
+        Assert.AreEqual(expected, result.Result.CreatedDate);
+        Assert.AreEqual(expected, result.Result.ModifiedDate);
+    }
+
+    [TestMethod]
     public async Task PublicIndexerQueriesTransactionMetadataUsingNativeFilters()
     {
         const string id = "7MK6WLKFBPC323ATSEKNEKUTQZ23TCCM75SJNSFAHEM65GYJ5ANQ";

@@ -817,8 +817,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
         {
             string sender = t.TryGetProperty("sender", out var s) ? s.GetString() ?? string.Empty : string.Empty;
             string txType = t.TryGetProperty("tx-type", out var tt) ? tt.GetString() ?? "unknown" : "unknown";
-            ulong roundTime = t.TryGetProperty("round-time", out var rt) ? rt.GetUInt64() : 0;
-            DateTime ts = roundTime > 0 ? DateTimeOffset.FromUnixTimeSeconds((long)roundTime).UtcDateTime : DateTime.UtcNow;
+            DateTime timestamp = t.TryGetProperty("round-time", out var roundTime)
+                ? DateTimeOffset.FromUnixTimeSeconds(roundTime.GetInt64()).UtcDateTime
+                : default;
 
             // Note field is base64-encoded bytes
             string note = string.Empty;
@@ -831,8 +832,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
                 Id = DeriveGuid(txId),
                 Name = string.IsNullOrEmpty(note) ? $"Algorand {txType} tx {txId[..Math.Min(8, txId.Length)]}..." : note,
                 HolonType = HolonType.Holon,
-                CreatedDate = ts,
-                ModifiedDate = ts,
+                CreatedDate = timestamp,
+                ModifiedDate = timestamp,
             };
             h.ProviderUniqueStorageKey[Core.Enums.ProviderType.AlgorandOASIS] = txId;
             var metadata = GetAlgorandMetadata(h);
