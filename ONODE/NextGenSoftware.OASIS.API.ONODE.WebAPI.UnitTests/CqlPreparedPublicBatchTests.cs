@@ -225,7 +225,7 @@ public sealed class CqlPreparedPublicBatchTests
                     ProviderType.AkashOASIS => Providers.AkashOASIS.AkashPublicProviderMetadataSource.FromJson(profile.Value.GetRawText()),
                     ProviderType.EclipseOASIS => Providers.EclipseOASIS.EclipsePublicAccountMetadataSource.FromJson(profile.Value.GetRawText()),
                     ProviderType.ENSOASIS => Providers.ENSOASIS.EnsPublicNameMetadataSource.FromJson(profile.Value.GetRawText()),
-                    ProviderType.BlockscoutOASIS => Providers.BlockscoutOASIS.BlockscoutPublicAddressMetadataSource.FromJson(profile.Value.GetRawText()),
+                    ProviderType.BlockscoutOASIS => Providers.BlockscoutOASIS.BlockscoutOASIS.FromPublicQueryConfiguration(profile.Value.GetRawText()),
                     ProviderType.CelestiaOASIS => Providers.CelestiaOASIS.CelestiaPublicHeaderMetadataSource.FromJson(profile.Value.GetRawText()),
                     ProviderType.ChainflipOASIS => Providers.ChainflipOASIS.ChainflipPublicSwapMetadataSource.FromJson(profile.Value.GetRawText()),
                     ProviderType.WormholeOASIS => Providers.WormholeOASIS.WormholePublicOperationMetadataSource.FromJson(profile.Value.GetRawText()),
