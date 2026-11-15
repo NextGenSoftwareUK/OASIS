@@ -19,10 +19,16 @@ if [ -z "$PY" ]; then
   echo "pre-push: a working Python 3.9+ interpreter is required to validate Railway pins." >&2
   exit 1
 fi
-if ! "$PY" Scripts/sync_railway_dependency_manifest.py --check; then
-  echo "pre-push: Docker/oasis-dependency-versions.env does not match the submodule gitlinks." >&2
-  echo "Railway builds the pinned commits, so this change would not ship. Run:" >&2
-  echo "  python Scripts/sync_railway_dependency_manifest.py && git commit -am 'sync Railway pins'" >&2
-  exit 1
-fi
+while read -r local_ref local_oid remote_ref remote_oid; do
+  # Git supplies a zero local object ID for ref deletions, which deploy nothing.
+  [ "$local_oid" = 0000000000000000000000000000000000000000 ] && continue
+  commit=$(git rev-parse --verify "${local_oid}^{commit}" 2>/dev/null) || continue
+  # Legacy branches can predate the Railway WEB4 Dockerfile.
+  git cat-file -e "$commit:Docker/Dockerfile.web4" 2>/dev/null || continue
+  if ! "$PY" Scripts/sync_railway_dependency_manifest.py --check-ref "$commit"; then
+    echo "pre-push: Railway dependency pins do not match gitlinks in $commit ($local_ref -> $remote_ref)." >&2
+    echo "Synchronize and commit the Railway manifest on the revision being pushed." >&2
+    exit 1
+  fi
+done
 exit 0

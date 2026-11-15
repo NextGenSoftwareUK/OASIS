@@ -43,6 +43,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return await MessagingManager.Instance.SendMessageToAvatarAsync(Avatar.Id, toAvatarId, content, messageType);
         }
 
+        /// <summary>Get total messages and unread received messages for the authenticated avatar.</summary>
+        [Authorize]
+        [HttpGet("current-avatar/summary")]
+        public Task<OASISResult<MessageSummary>> GetCurrentAvatarMessageSummary() =>
+            MessagingManager.Instance.GetMessageSummaryAsync(AvatarId);
+
         /// <summary>
         /// Get messages for the current avatar
         /// </summary>
