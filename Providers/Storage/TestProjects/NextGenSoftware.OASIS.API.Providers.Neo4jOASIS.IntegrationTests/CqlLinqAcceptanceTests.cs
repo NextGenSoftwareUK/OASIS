@@ -28,7 +28,8 @@ public sealed partial class CqlProjectedAllAcceptanceTests
     {
         var source = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(adapter.QueryProviderType).Result)
             .Where(row => row.Id == rootId).Result;
-        var captured = CosmicLinq.Create(NativeManager(adapter), adapter, source, maximumResults: 10);
+        var manager = NativeManager(adapter);
+        var captured = CosmicLinq.Create(manager, adapter, source, maximumResults: 10);
         Assert.IsFalse(captured.IsError, captured.Message);
         var root = captured.Result;
         var name = "protected source root";
@@ -157,7 +158,21 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         var actor = read.Result.Single().CreatedByAvatarId;
         var multiSource = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(adapter.QueryProviderType).Result)
             .Where(row=>row.CreatedByAvatarId==actor).Result;
-        var multi = CosmicLinq.Create(NativeManager(adapter),adapter,multiSource).Result;
+        var multi = CosmicLinq.Create(manager,adapter,multiSource).Result;
+        var correlated = root.SelectMany(left => multi.Where(right =>
+                right.Id == left.Id && left.CreatedByAvatarId == right.CreatedByAvatarId),
+            (left, right) => new { LeftId = left.Id, RightId = right.Id });
+        var correlatedRows = await correlated.ToCosmicListAsync();
+        Assert.IsFalse(correlatedRows.IsError, correlatedRows.Message + correlatedRows.Exception);
+        Assert.AreEqual(rootId, correlatedRows.Result.Single().LeftId);
+        Assert.AreEqual(rootId, correlatedRows.Result.Single().RightId);
+
+        var reordered = root.SelectMany(left => multi.Where(right => left.Id == right.Id),
+            (left, right) => right.Id);
+        CollectionAssert.AreEqual(new[] { rootId }, reordered.ToArray());
+        Assert.ThrowsException<CosmicLinqException>(() => root.SelectMany(left =>
+            multi.Where(right => left.Name == right.Name), (left, right) => right.Id));
+        Passed("native correlated SelectMany exact key matches");
         Assert.AreEqual("CQL_SEQUENCE_MULTIPLE",Assert.ThrowsException<CosmicLinqException>(()=>multi.Single()).Code);
         Passed("Single multiple error");
         Assert.AreEqual("CQL_SEQUENCE_MULTIPLE",Assert.ThrowsException<CosmicLinqException>(()=>multi.SingleOrDefault(supplied)).Code);
