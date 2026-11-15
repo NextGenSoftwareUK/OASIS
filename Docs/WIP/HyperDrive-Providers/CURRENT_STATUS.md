@@ -1,5 +1,7 @@
 # Current provider status
 
+15 November Cancun time. Algorand 48f6ac1f0685 adds the positive public TestNet check after the previously verified wrong-chain rejection. A real Indexer read supplied a confirmed round-one payment. Native run 43730181763 verifies activation against a matching TestNet Algod and Indexer, the immutable transaction ID, sender, receiver, amount and timestamp through the shipping provider, and deactivation. The test performs no write and needs no signer.
+
 15 November Cancun time. WEB4 318d7369abd0 serves on Railway dev deployment 30f83fb7-278e-42d8-b93b-57aa138da654. Signed NFT and GeoNFT routes returned HTTP 200 with empty results in 635 ms and 557 ms. The disposable avatar was deleted. Nonempty native SQLite verification remains the record-level proof. Free estimate candidate 42561325fd6c passed all six tests in hosted run 43729233174, including the new Free and paid-price cases. Next WEB4 integration window is 15:44:52.096 UTC. Live estimate acceptance is pending.
 
 15 November Cancun time. OPORTAL production 8dcd515bbaf7 passed the exact subscription suite and Vercel deployment. Production serves both qualified 20261115i scripts, so current Free subscriptions are recognized and expired subscriptions are excluded. No production billing write was made. Portal estimate candidate 3f26ffc2639b preserves the current dev asset graph and passed the subscription suite. Its promotion awaits the WEB4 estimate fix.
