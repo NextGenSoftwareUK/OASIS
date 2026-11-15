@@ -68,11 +68,22 @@ jobs:
           cleanup() {
             status=$?
             trap - EXIT
-            compose=$(rg --files --hidden "$owned/localnet" -g 'compose.yml' -g 'docker-compose.yml' | head -n 1 || true)
-            if [[ -n "$compose" ]]; then
+            compose="$owned/localnet/sandbox/docker-compose.yml"
+            project_label="com.docker.compose.project=algokit_sandbox"
+            if [[ -f "$compose" ]]; then
               docker compose -f "$compose" down --volumes --remove-orphans || status=1
             fi
-            rm -rf -- "$owned"
+            containers=$(docker ps -aq --filter "label=$project_label") || status=1
+            networks=$(docker network ls -q --filter "label=$project_label") || status=1
+            volumes=$(docker volume ls -q --filter "label=$project_label") || status=1
+            if [[ -n "$containers$networks$volumes" ]]; then
+              echo "Owned Algorand LocalNet resources remain after teardown." >&2
+              status=1
+            fi
+            rm -rf -- "$owned" || status=1
+            if [[ "$status" == 0 ]]; then
+              echo "Verified removal of the LocalNet containers, network, volumes and fixture directory."
+            fi
             exit "$status"
           }
           trap cleanup EXIT

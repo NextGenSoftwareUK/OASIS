@@ -1405,4 +1405,4 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 
 15 November Cancun time. Algorand mainnet job 132739950045 used read-only Indexer requests. No local runtime, build output, fixture database or test result file was created. Logs were inspected in memory.
 
-15 November Cancun time. The Algorand signed LocalNet run uses a hosted disposable runtime, virtual environment and compose fixture. The workflow owns their teardown. No local download, build output, credential file or test database was created.
+15 November Cancun time. The Algorand signed LocalNet run uses a hosted disposable runtime, virtual environment and compose fixture. Job 132741788285 passed the signed payment. Its cleanup directory was removed, but the missing rg executable skipped Compose down. The disposable GitHub runner contained the fixture. Cleanup now uses the exact generated Compose path and verifies container, network and volume removal. No local download, build output, credential file or test database was created.
