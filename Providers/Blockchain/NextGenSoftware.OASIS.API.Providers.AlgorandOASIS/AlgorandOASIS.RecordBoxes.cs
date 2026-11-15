@@ -58,6 +58,8 @@ public partial class AlgorandOASIS
             var settings = _recordBoxes;
             var key = StoredHolonBoxKey(settings, id);
             var manifest = await ReadBoxAsync(settings, [(byte)'h', ..key], deadline.Token).ConfigureAwait(false);
+            if (manifest?.Length == PurgeCheckpointLength)
+                manifest = null;
             using var codec = new EncryptedRecordCodec(settings.StorageKey);
             int? lastVersion = null;
             for (var depth = 0; manifest != null; depth++)

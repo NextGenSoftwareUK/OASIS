@@ -108,7 +108,7 @@ def run(node, wallet, handle, writer, outsider):
             chunks = [envelope[index:index + 896] for index in range(0, len(envelope), 896)]
             names = [chunk_name(key, revision, index) for index in range(len(chunks))]
             for index, (name, chunk) in enumerate(zip(names, chunks, strict=True)):
-                submit(call(writer, [b"stage", key, revision, index.to_bytes(8, "big"), chunk], [name]))
+                submit(call(writer, [b"stage", key, revision, index.to_bytes(8, "big"), chunk], [head, name]))
             hashes = b"".join(digest(chunk) for chunk in chunks)
             submit(call(writer, [b"publish", key, predecessor, revision, hashes, descriptor],
                         [head, manifest_name(key, revision), descriptor_name, *names]))
@@ -146,12 +146,12 @@ def run(node, wallet, handle, writer, outsider):
     first_refs = [head, first_manifest, descriptor_name, *first_names]
     hashes = b"".join(digest(chunk) for chunk in chunks)
     stage_args = [b"stage", key, first_revision, bytes(8), chunks[0]]
-    reject(call(outsider, stage_args, first_names[:1]))
-    submit(call(writer, stage_args, first_names[:1]))
-    reject(call(writer, stage_args, first_names[:1]))
+    reject(call(outsider, stage_args, [head, first_names[0]]))
+    submit(call(writer, stage_args, [head, first_names[0]]))
+    reject(call(writer, stage_args, [head, first_names[0]]))
     publish_args = [b"publish", key, absent, first_revision, hashes, descriptor]
     reject(call(writer, publish_args, first_refs))
-    submit(call(writer, [b"stage", key, first_revision, (1).to_bytes(8, "big"), chunks[1]], first_names[1:]))
+    submit(call(writer, [b"stage", key, first_revision, (1).to_bytes(8, "big"), chunks[1]], [head, first_names[1]]))
     reject(call(writer, [*publish_args[:4], bytes(len(hashes)), descriptor], first_refs))
     submit(call(writer, publish_args, first_refs))
     first_head = first_revision + absent + absent + hashes
@@ -164,7 +164,7 @@ def run(node, wallet, handle, writer, outsider):
     second_name = chunk_name(key, second_revision, 0)
     second_manifest = manifest_name(key, second_revision)
     second_refs = [head, second_manifest, descriptor_name, second_name]
-    submit(call(writer, [b"stage", key, second_revision, bytes(8), replacement], [second_name]))
+    submit(call(writer, [b"stage", key, second_revision, bytes(8), replacement], [head, second_name]))
     reject(call(writer, [b"publish", key, absent, second_revision, digest(replacement), descriptor], second_refs))
     assert read(head) == first_head
     predecessor = digest(first_head)

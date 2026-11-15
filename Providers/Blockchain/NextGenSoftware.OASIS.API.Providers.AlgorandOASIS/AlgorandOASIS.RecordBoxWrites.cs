@@ -80,6 +80,8 @@ public partial class AlgorandOASIS
             var key = StoredHolonBoxKey(settings, id);
             byte[] headName = [(byte)'h', ..key];
             var head = await ReadBoxAsync(settings, headName, token).ConfigureAwait(false);
+            if (head?.Length == PurgeCheckpointLength)
+                throw new InvalidOperationException("The Algorand record is fenced for permanent deletion.");
             using var codec = new EncryptedRecordCodec(settings.StorageKey);
             var current = head == null ? null : (await ReadStoredHolonAsync(settings, id, key,
                 head, codec, token).ConfigureAwait(false)).Record;
@@ -125,7 +127,7 @@ public partial class AlgorandOASIS
                 names[index + 3] = name;
                 SHA256.HashData(payload).CopyTo(digests, index * HashLength);
                 await SubmitBoxCallAsync(settings, ["stage"u8.ToArray(), key, revision, indexBytes, payload],
-                    [name], token).ConfigureAwait(false);
+                    [headName, name], token).ConfigureAwait(false);
             }
 
             var predecessor = head == null ? EmptyHash : SHA256.HashData(head);

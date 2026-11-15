@@ -1,5 +1,10 @@
 using System;
 using System.Globalization;
+using System.Linq;
+using System.Net.Http;
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Holons;
@@ -10,6 +15,65 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS.IntegrationTests;
 [TestClass]
 public sealed class AlgorandRecordBoxTests
 {
+    [TestMethod]
+    public async Task PurgesPublishedRevisionsAndFencesRepublishing()
+    {
+        var id = Guid.Parse(Required("ID"));
+        var storageKey = Convert.FromBase64String(Required("KEY"));
+        var provider = Create(Required("PROGRAM"), storageKey, Convert.FromBase64String(Required("WRITER_SEED")));
+        var active = await provider.ActivateProviderAsync();
+        Assert.IsFalse(active.IsError, active.Message);
+        try
+        {
+            using var node = new HttpClient { BaseAddress = new Uri("http://127.0.0.1:4001") };
+            node.DefaultRequestHeaders.Add("X-Algo-API-Token", new string('a', 64));
+            var appId = ulong.Parse(Required("APP"), CultureInfo.InvariantCulture);
+            async Task<string[]> NativeBoxNames()
+            {
+                var response = await node.GetStringAsync($"/v2/applications/{appId}/boxes");
+                using var document = JsonDocument.Parse(response);
+                return document.RootElement.GetProperty("boxes").EnumerateArray()
+                    .Select(box => box.GetProperty("name").GetString()!).ToArray();
+            }
+
+            var unrelatedId = Guid.NewGuid();
+            var unrelated = await provider.SaveStoredHolonAsync(new Holon { Id = unrelatedId, Name = "Keep this record" }, 0);
+            Assert.IsFalse(unrelated.IsError, unrelated.Exception?.ToString() ?? unrelated.Message);
+            var unrelatedBoxes = await NativeBoxNames();
+
+            var record = new Holon { Id = id, Name = "First", Description = new string('x', 850) };
+            var first = await provider.SaveStoredHolonAsync(record, 0);
+            Assert.IsFalse(first.IsError, first.Exception?.ToString() ?? first.Message);
+            record.Name = "Second";
+            var second = await provider.SaveStoredHolonAsync(record, 1);
+            Assert.IsFalse(second.IsError, second.Exception?.ToString() ?? second.Message);
+            Assert.IsTrue((await NativeBoxNames()).Length > unrelatedBoxes.Length + 1);
+
+            var deleted = await provider.DeleteHolonAsync(id.ToString("D"));
+            Assert.IsFalse(deleted.IsError, deleted.Exception?.ToString() ?? deleted.Message);
+            Assert.IsTrue(deleted.IsDeleted);
+            Assert.AreEqual(1, deleted.DeletedCount);
+            Assert.AreEqual("Second", deleted.Result.Name);
+            var opaqueKey = HMACSHA256.HashData(storageKey, Encoding.UTF8.GetBytes($"oasis:algorand:box:v1:holon:{id:D}"));
+            var fenceName = Convert.ToBase64String([(byte)'h', ..opaqueKey]);
+            CollectionAssert.AreEquivalent(unrelatedBoxes.Append(fenceName).ToArray(), await NativeBoxNames());
+            Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, (await provider.LoadStoredHolonAsync(id)).ErrorCode);
+            Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,
+                (await provider.LoadStoredHolonAsync(id, version: 1)).ErrorCode);
+            Assert.AreEqual(unrelatedId, (await provider.DiscoverStoredHolonIdsAsync()).Result.Single());
+            Assert.IsTrue((await provider.SaveStoredHolonAsync(record, 0)).IsError);
+            var repeated = await provider.DeleteHolonAsync(id);
+            Assert.IsFalse(repeated.IsError, repeated.Message);
+            Assert.IsTrue(repeated.IsDeleted);
+            Assert.AreEqual(0, repeated.DeletedCount);
+            CollectionAssert.AreEquivalent(unrelatedBoxes.Append(fenceName).ToArray(), await NativeBoxNames());
+        }
+        finally
+        {
+            await provider.DeActivateProviderAsync();
+        }
+    }
+
     [TestMethod]
     public async Task SoftDeletesStoredHolonWithDurableAuditAndHistory()
     {

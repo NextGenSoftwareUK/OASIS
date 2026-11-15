@@ -764,6 +764,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
 
         public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
         {
+            if (_recordBoxes != null)
+                return await DeleteStoredHolonAsync(id).ConfigureAwait(false);
             var result = new OASISResult<IHolon>();
             OASISErrorHandling.HandleError(ref result, "AlgorandOASIS: Blockchain transactions are immutable and cannot be deleted.");
             return await Task.FromResult(result);
@@ -773,6 +775,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
 
         public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
         {
+            if (_recordBoxes != null && Guid.TryParseExact(providerKey, "D", out var id))
+                return await DeleteStoredHolonAsync(id).ConfigureAwait(false);
             var result = new OASISResult<IHolon>();
             OASISErrorHandling.HandleError(ref result, "AlgorandOASIS: Blockchain transactions are immutable and cannot be deleted.");
             return await Task.FromResult(result);

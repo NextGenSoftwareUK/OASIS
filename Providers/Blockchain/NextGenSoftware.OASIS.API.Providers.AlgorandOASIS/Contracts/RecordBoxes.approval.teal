@@ -23,6 +23,14 @@ byte "stage"
 ==
 bnz stage
 txna ApplicationArgs 0
+byte "freeze"
+==
+bnz freeze
+txna ApplicationArgs 0
+byte "purge"
+==
+bnz purge
+txna ApplicationArgs 0
 byte "publish"
 ==
 assert
@@ -40,6 +48,18 @@ txn NumAppArgs
 int 5
 ==
 assert
+byte "h"
+txna ApplicationArgs 1
+concat
+box_get
+bz stage_head_checked
+dup
+len
+int 128
+>=
+assert
+stage_head_checked:
+pop
 txna ApplicationArgs 2
 len
 int 32
@@ -135,6 +155,11 @@ b check_head
 
 has_head:
 dup
+len
+int 128
+>=
+assert
+dup
 int 0
 int 32
 extract3
@@ -229,6 +254,138 @@ box_put
 load 3
 box_del
 pop
+load 3
+load 6
+box_put
+int 1
+return
+
+// Freeze the exact current head and remove its discovery descriptor atomically.
+freeze:
+txn NumAppArgs
+int 3
+==
+assert
+byte "h"
+txna ApplicationArgs 1
+concat
+store 3
+load 3
+box_get
+assert
+dup
+len
+int 128
+>=
+assert
+dup
+sha256
+dup
+txna ApplicationArgs 2
+==
+assert
+store 7
+int 0
+int 32
+extract3
+load 7
+concat
+store 6
+byte "d"
+txna ApplicationArgs 1
+concat
+box_del
+assert
+b save_checkpoint
+
+// Purge one exact revision and advance to its authenticated predecessor.
+purge:
+txn NumAppArgs
+int 3
+==
+assert
+byte "h"
+txna ApplicationArgs 1
+concat
+store 3
+load 3
+box_get
+assert
+dup
+len
+int 64
+==
+assert
+dup
+txna ApplicationArgs 2
+==
+assert
+dup
+int 64
+bzero
+!=
+assert
+dup
+int 0
+int 32
+extract3
+store 0
+int 32
+int 32
+extract3
+store 7
+byte "m"
+txna ApplicationArgs 1
+load 0
+concat
+sha256
+concat
+dup
+store 8
+box_get
+assert
+dup
+sha256
+load 7
+==
+assert
+dup
+int 32
+int 64
+extract3
+store 6
+len
+int 96
+-
+int 32
+/
+store 2
+int 0
+store 4
+
+purge_chunk:
+load 4
+itob
+store 1
+callsub chunk_name
+box_del
+assert
+load 4
+int 1
++
+dup
+store 4
+load 2
+<
+bnz purge_chunk
+load 8
+box_del
+assert
+
+save_checkpoint:
+load 3
+box_del
+assert
 load 3
 load 6
 box_put
