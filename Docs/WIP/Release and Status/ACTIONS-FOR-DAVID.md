@@ -2,6 +2,8 @@
 
 ### WEB4 COSMIC demo preview access · 13 November
 
+15 November. A fresh one-time OASIS team consent link was shared privately in chat after the connector returned a team-scoped 403. Approval is pending. After approval, engineering will inspect the current preview, verify the Development website domain and credentialed WEB4 origin, and run the signed-in walkthrough.
+
 Open. Authorize the existing Vercel connection for the OASIS team with a current Vercel consent link. The earlier link was time-limited. The connector currently returns HTTP 403 for the team and the installed CLI has no active credentials. This access is for the existing [protected preview of Web4Site `c39ec275186f`](https://web4-site-ncqjps645-oasis-team.vercel.app/web4-sandbox.html) for authenticated browser acceptance. The public site still serves the previous frontend. [Web4Site feature branch](https://github.com/NextGenSoftwareUK/Web4Site/tree/work/cosmic-cql)
 
 15 November browser check. The latest protected preview is recorded above. The dedicated hostname dev.web4.oasisomniverse.one still does not resolve. After Vercel access is available, verify that the Development domain can be assigned to the WEB4 website project and provisioned in DNS. The DNA policy first served on Development ea42fa05130f and remains in the serving cbd8383d12bf revision. After the Development hostname is assigned, engineering will enable OASIS.Sandbox.EnableDevelopmentWeb4Preview in Development OASISDNA and verify the credentialed session before a browser run. WEB6 uses bearer authentication and accepted the requested preflight headers.

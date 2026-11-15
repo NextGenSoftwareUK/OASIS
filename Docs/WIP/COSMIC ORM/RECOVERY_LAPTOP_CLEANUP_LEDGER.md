@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+15 November. SQL FETCH and OFFSET ROWS verification used one disposable website test snapshot, removed at process exit. No local runtime installation, outputs or database fixtures were retained.
+
 15 November. [Three-store CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43770634568) completed the native LINQ flattening step. The CI job validated each exact fixture cleanup or in-memory disposal and removed the Neo4j test container. No local fixtures, downloads or build outputs were created.
 
 15 November. Ask Your Data session-reset verification and combined SQL website checks used temporary frontend snapshots and one disposable Git index, all removed when the commands exited. No local runtime installation, test database or build output was retained.
