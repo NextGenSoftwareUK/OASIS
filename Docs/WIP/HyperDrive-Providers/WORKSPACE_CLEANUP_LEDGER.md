@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. OPORTAL production integration checked Git objects and deleted its temporary index. Hosted deployment built on Vercel. Public API and asset checks ran in memory. No production billing fixture, local build, download or test result was created.
+
 15 November Cancun time. Both task-owned temporary Git indexes used to compose the Gifts candidate were removed. The SQLite and hosted authorization tests run on remote CI. No local build, package download, database or test output was created.
 
 15 November Cancun time. Removed the isolated Git index after preparing the two-file WEB4 subscription candidate. Qualification runs remotely on the immutable checkout-scope tag. No local builds, downloads, test data or result files were created.

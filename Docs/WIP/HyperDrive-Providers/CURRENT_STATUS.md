@@ -1,5 +1,7 @@
 # Current provider status
 
+15 November Cancun time. OPORTAL production 97b458c669e1 passed endpoint and subscription checks and Vercel deployment. Production WEB4 OpenAPI advertises all six required subscription methods. The public production /subscription route returned HTTP 200 and served the versions containing the Stripe return URL and authenticated confirmation fixes. No production payment was created. The hosted browser payment and return still need verification. On the pending Gifts batch, exact-graph native SQLite run 43706925779 passed one case with no skips.
+
 15 November Cancun time. WEB4 Stripe Checkout scope regression passed on the exact Development dependency graph in run 43706441690 with one test and no skips. Development advanced to 78eae0988824. The serving WEB4 revision and hosted browser payment remain to be confirmed. Gifts candidate 6b93605f44da adds the compact route on top of 78eae0988824. It preserves shared Core changes with a one-file Gifts manager commit, 24cd4d4383c7, pinned in both the manifest and gitlink. Exact-graph native SQLite and WEB4 authorization runs 43706925779 and 43706928149 are in progress.
 
 15 November Cancun time. Prepared WEB4 checkout-scope integration 78eae0988824 on Development 2526b8c8a0e8. The candidate changes only the Stripe controller and its regression test. Development and the task branch carry different WEB4 project and subscription service files, so hosted run 43706441690 is testing the same two changed files against the actual Development dependency graph before promotion.
