@@ -1,5 +1,9 @@
 # Current provider status
 
+15 November Cancun time. OPORTAL dev e5b39b7b24f7 is serving the qualified shared subscription requests, progressive pricing and statements, dashboard counts and revision-bound deletion. Public checks verified the exact served configuration, subscription, dashboard and Data scripts and the three retained modal fragments. Hosted Stripe payment and return and the production WEB4 rollout remain open.
+
+15 November Cancun time. Algorand BootLoader run 43751932661 reached the full dependency build and failed because the runner lacked the pinned sibling that supplies HoloNET and Chaos.NaCl. cdbf0a155ebc makes the BootLoader fixture consume the deployment manifest's exact sibling revision. [Replacement native validation](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43752566427) is in progress. Algorand shipping registration has not entered Development.
+
 15 November Cancun time. Algorand 07e57c8a358e adds the normal OASIS BootLoader registration, same-ledger Algod and Indexer configuration, and explicit named secrets for node tokens and enrolled encrypted storage. Warm boot stays passive. [Native LocalNet BootLoader qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43751932661) is running for activation and a signed standard save and read. The earlier direct-provider acceptance remains recorded separately.
 
 15 November Cancun time. OPORTAL 4ae0247 renders subscription pricing and statements as each request completes. A pricing failure stays in its own section. Exact combined dev candidate e5b39b7b24f7 passed the subscription, Data and ONET checks and supersedes 9f3fdccf5bd0. The candidate's modal and shipped SDK rendered actual WEB4 summary and pricing guidance while the signed statement response was held. Pricing returned HTTP 200 in 346 ms to headers and statements returned HTTP 200 in 463 ms. WEB4 confirmed avatar deletion. The combined release awaits the dev interval.
