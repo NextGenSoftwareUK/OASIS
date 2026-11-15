@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+15 November Cancun. NOT BETWEEN acceptance hard-deleted all 15 private fixtures and independently confirmed absence. The earlier denied save was reconciled by an exact Atlas name read that found zero records. Compact local journals are in HostedCqlNotBetween-cbd8383d and HostedCqlNotBetween-Recovered-cbd8383d. The standard CQL Development visitor credential bundle remains encrypted in HostedCqlDevelopmentSqlAcceptance-f480b33d for reuse. The original expired bundle and response remain sealed for audit. Temporary native probe and website test outputs were removed.
+
 15 November Cancun. Join input OR acceptance hard-deleted all 12 private fixtures and confirmed they were absent by independent provider reads. Retained the compact journal LocalState/COSMIC/HostedCqlJoinOrInputs-cbd8383d/operations.jsonl. The temporary website test snapshot and index were removed. No local installs, downloads, database copies or build output.
 
 15 November Cancun. Live CROSS JOIN acceptance hard-deleted all nine private fixtures and confirmed their exact absence through independent provider reads. Retained only the compact operation journal at LocalState/COSMIC/HostedCqlCrossJoin-cbd8383d/operations.jsonl. The website test snapshot and temporary index were removed. No local builds, downloads or database copies.
