@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Grouped Decimal regression runs against three native stores
+
+15 November. Feature be0a61a587a2 adds an exact Decimal AVG assertion beside the existing populated SUM on the native WEB4 compiler and execution fixture. Both columns must return 1.0000000000000000000000000001 for the same visible input. The test-only candidate 7d96ec8d801b directly extends the reconciled dc24072806f6 backend tree and changes only the regression assertion. [Three-store qualification 43741759215](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43741759215) uses that source_ref. The runtime release candidate continues through its exact protocol and image gates. No local build outputs, database copies or downloads were created. The temporary indexes were removed.
+
 ## SQL COUNT(1) and shared Development integration
 
 15 November. Web4Site c260c497e66d accepts COUNT(1) in scalar and grouped SQL and tells Ask your data that it is equivalent to COUNT(*). All 222 website tests passed. Exact c260c497e66d generated identical request bodies for both count spellings. Development 807623f716cd accepted the scalar and grouped forms on MongoDB, SQLite and Neo4j, returning zero or no groups for the six already-cleaned exact IDs. [Protected preview 7807060233](https://web4-site-p42kg2y1e-oasis-team.vercel.app/web4-sandbox.html) built. The new browser walkthrough remains open. Temporary website test snapshots and indexes were removed.
