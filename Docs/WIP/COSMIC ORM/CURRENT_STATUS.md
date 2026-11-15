@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## SQL comments in the sandbox editor
+
+15 November. Web4Site bb5e3ec82a5b supports line and block comments in a single SQL-like statement. All 206 website tests passed. On live Development the exact editor produced the same Fhenix request with comments as without them, and the native and MongoDB-federated queries matched three IDs. [Protected preview 7804644764](https://web4-site-qn8lpcq1u-oasis-team.vercel.app/web4-sandbox.html) built. Signed-in hosted browser acceptance remains open. The temporary parser and full suite snapshots were removed.
+
 ## Exact nullable Int64 Distinct and current peer scope
 
 15 November. Feature 30b4fdf44f33 and Core 99bb82ccc332 admit signed Int64 for selected native Distinct. The test fixture uses repeated values, missing cells and adjacent values above JavaScript safe-integer precision. Exact [native protocol CI 43722762847](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43722762847) runs candidate 4437cc9e119f atop HyperDrive b9808ae777b8, preserving its qualified Stripe and Gifts changes. The preceding combined CI 43721215988 and the standalone four-domain image 43720025865 succeeded. The Int64 extension is unverified and no additional parity row is closed. Disposable Git indexes were removed.
