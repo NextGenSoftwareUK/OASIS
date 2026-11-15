@@ -39,6 +39,21 @@ public class HyperDriveWalletTokenBindingTests
     }
 
     [Fact]
+    public async Task TransferWithoutExplicitProvidersReturnsErrorWithoutReceipt()
+    {
+        var response = await new WalletController().TransferBetweenWalletsAsync(new SendWeb4TokenRequest
+        {
+            FromWalletAddress = "fixture-sender",
+            ToWalletAddress = "fixture-recipient",
+            Amount = 1m
+        });
+
+        Assert.True(response.IsError);
+        Assert.Null(response.Result);
+        Assert.False(response.IsSaved);
+    }
+
+    [Fact]
     public void SendJsonPreservesSignerAssetAndAvatarFields()
     {
         var source=new SendWeb4TokenRequest {FromAvatarId=Guid.NewGuid(),ToAvatarId=Guid.NewGuid(),Amount=0.001m,

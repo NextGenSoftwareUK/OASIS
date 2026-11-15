@@ -71,6 +71,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
         public async Task<OASISResult<ISendWeb4TokenResponse>> SendTokenAsync([FromBody] SendWeb4TokenRequest request)
         {
+            if (request == null)
+                return new OASISResult<ISendWeb4TokenResponse> { IsError = true, Message = "A token transfer request is required." };
+
             if ((request.FromAvatarId != Guid.Empty && request.FromAvatarId != AvatarId)
                 || (!string.IsNullOrWhiteSpace(request.FromAvatarUsername) && !string.Equals(request.FromAvatarUsername, Avatar?.Username, StringComparison.OrdinalIgnoreCase))
                 || (!string.IsNullOrWhiteSpace(request.FromAvatarEmail) && !string.Equals(request.FromAvatarEmail, Avatar?.Email, StringComparison.OrdinalIgnoreCase)))
@@ -79,6 +82,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 return new OASISResult<ISendWeb4TokenResponse> { IsError = true, ErrorCode = "AVATAR_OPERATION_FORBIDDEN",
                     Message = "Forbidden. All requested sender avatar selectors must match the authenticated avatar." };
             }
+            if (request.FromProvider == null || request.ToProvider == null)
+                return new OASISResult<ISendWeb4TokenResponse>
+                {
+                    IsError = true,
+                    Message = "Explicit sender and recipient providers are required for token transfer."
+                };
             return await WalletManager.SendTokenAsync(AvatarId, request);
         }
 
@@ -621,27 +630,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <response code="401">Unauthorized - authentication required</response>
         [Authorize]
         [HttpPost("transfer")]
-        [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<ISendWeb4TokenResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<ISendWeb4TokenResponse>), StatusCodes.Status403Forbidden)]
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
-        public async Task<OASISResult<object>> TransferBetweenWalletsAsync([FromBody] object request)
-        {
-            if (request == null)
-                return new OASISResult<object> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with transfer details (e.g. fromWalletId, toWalletId, amount)." };
-            // This would need to be implemented in WalletManager
-            // For now, return a demo response
-            return new OASISResult<object>
-            {
-                Result = new
-                {
-                    transactionId = Guid.NewGuid().ToString(),
-                    status = "pending",
-                    timestamp = DateTime.UtcNow.ToString("O")
-                },
-                IsSaved = true,
-                Message = "Transfer initiated successfully"
-            };
-        }
+        public Task<OASISResult<ISendWeb4TokenResponse>> TransferBetweenWalletsAsync([FromBody] SendWeb4TokenRequest request) =>
+            SendTokenAsync(request);
 
         /// <summary>
         ///     Get wallet analytics for an avatar.
