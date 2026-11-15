@@ -2,7 +2,7 @@
 
 ## SQL comments in the sandbox editor
 
-15 November. Web4Site bb5e3ec82a5b supports line and block comments in a single SQL-like statement. All 206 website tests passed. On live Development the exact editor produced the same Fhenix request with comments as without them, and the native and MongoDB-federated queries matched three IDs. [Protected preview 7804644764](https://web4-site-qn8lpcq1u-oasis-team.vercel.app/web4-sandbox.html) built. Signed-in hosted browser acceptance remains open. The temporary parser and full suite snapshots were removed.
+15 November. Web4Site bb5e3ec82a5b supports line and block comments in a single SQL-like statement. All 206 website tests passed. On live Development the exact editor produced the same Fhenix request with comments as without them, and the native and MongoDB-federated queries matched three IDs. [Protected preview 7804644764](https://web4-site-qn8lpcq1u-oasis-team.vercel.app/web4-sandbox.html) built. Signed-in hosted browser acceptance remains open. The temporary parser and full suite snapshots were removed. A read-only Fhenix sample of three requests per route on serving revision 3c52429ba542 measured client-to-HTTP medians of 1,532 ms native (1,532, 1,559, 1,486) and 1,680 ms MongoDB-federated (1,680, 1,711, 1,639). Every request returned three rows. These timings are a baseline for this cohort.
 
 ## Exact nullable Int64 Distinct and current peer scope
 
