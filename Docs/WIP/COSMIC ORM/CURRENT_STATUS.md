@@ -1,5 +1,13 @@
 # COSMIC ORM / CQL current status
 
+## Populated floating-point acceptance and MongoDB BSON depth
+
+15 November. Development f480b33d6865 served the first MongoDB SINGLE fix. Atlas accepted the raw expression, but real WEB4 entity, projection and DISTINCT requests still failed. The native diagnostics reported MongoDB code 8000. Read-only controls reproduced the depth rejection once metadata traversal and query predicates enclosed the expression. The two original MongoDB fixture rows were removed and verified absent.
+
+Feature bf429d28db09 separates metadata path resolution from scalar conversion, keeps original query budget accounting while flattening associative predicates, and simplifies the native decimal search. Atlas accepted the four-level compound predicate and projection at BSON depths 59 and 55. All 252 synthetic signed Decimal128 midpoint cases returned the expected bits through the four-level projection. Exact Development candidate 861d5a831fca is in [protocol CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43762205383) and [image CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43762207744). The guarded rollout and live MongoDB verifier are active.
+
+SQLite and Neo4j passed populated SINGLE membership, DOUBLE ranges, mixed projections and DISTINCT through the exact SQL editor draft on Development f480b33d6865. SQLite initially returned CQL_QUERY_FAILED on the combined projection. Isolated diagnostic queries and a second populated two-row test with the original SQL passed. Combined query, projection and DISTINCT wall times were 1,426 ms on SQLite and 1,501 ms on Neo4j. All 12 records across the MongoDB, SQLite and Neo4j acceptance and diagnostic runs were hard-deleted and independently verified absent. The floating-point editor and prompt changes await MongoDB acceptance.
+
 ## SQL NOT BETWEEN on three Development providers
 
 15 November. Web4Site b36c408b51f8 compiles NOT BETWEEN to strict lower and upper comparisons in one OR group. All 231 website tests passed and Vercel built the [protected preview](https://web4-site-1t8mlgryy-oasis-team.vercel.app/web4-sandbox.html). On Development cbd8383d12bf the same SQL returned values 1 and 6 outside the interval 2 to 5 on MongoDB, SQLite and Neo4j. It excluded both endpoints and the missing value. Wall times were 838 ms, 514 ms and 644 ms respectively. All 15 owned fixture rows were hard-deleted and independently verified absent.
