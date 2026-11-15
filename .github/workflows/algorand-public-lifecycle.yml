@@ -109,23 +109,25 @@ jobs:
           owned=$(mktemp -d "${RUNNER_TEMP}/oasis-algorand.XXXXXX")
           cleanup() {
             status=$?
+            cleanup_status=0
             trap - EXIT
             compose="$owned/localnet/sandbox/docker-compose.yml"
             project_label="com.docker.compose.project=algokit_sandbox"
             if [[ -f "$compose" ]]; then
-              docker compose -f "$compose" down --volumes --remove-orphans || status=1
+              docker compose -f "$compose" down --volumes --remove-orphans || cleanup_status=1
             fi
-            containers=$(docker ps -aq --filter "label=$project_label") || status=1
-            networks=$(docker network ls -q --filter "label=$project_label") || status=1
-            volumes=$(docker volume ls -q --filter "label=$project_label") || status=1
+            containers=$(docker ps -aq --filter "label=$project_label") || cleanup_status=1
+            networks=$(docker network ls -q --filter "label=$project_label") || cleanup_status=1
+            volumes=$(docker volume ls -q --filter "label=$project_label") || cleanup_status=1
             if [[ -n "$containers$networks$volumes" ]]; then
               echo "Owned Algorand LocalNet resources remain after teardown." >&2
-              status=1
+              cleanup_status=1
             fi
-            if ! rm -rf -- "$owned"; then
-              status=1
-            elif [[ -z "$containers$networks$volumes" ]]; then
+            rm -rf -- "$owned" || cleanup_status=1
+            if [[ "$cleanup_status" == 0 ]]; then
               echo "Verified removal of the LocalNet containers, network, volumes and fixture directory."
+            else
+              status=1
             fi
             exit "$status"
           }
