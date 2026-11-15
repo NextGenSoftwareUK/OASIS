@@ -1,5 +1,7 @@
 # OPORTAL and HyperDrive performance audit
 
+15 November Cancun time. The serving WEB4 checkout-scope revision created a real owned Stripe sandbox Checkout session in 858 ms and read its status in 506 ms. The native £9 Bronze metadata and return URLs matched the OPORTAL contract. An otherwise owned session with a different ledger returned HTTP 403. These are individual request measurements.
+
 15 November Cancun time. On the Checkout return, lazy modal mounting and router initialization both opened My subscriptions. The router's open triggered a list read before payment confirmation, and the confirmation handler read it again. OPORTAL 66a4d22 makes the confirmation handler the sole source of the automatic refresh. The regression exercised both shipping scripts and observed one Checkout status read and one subscription list read on immediate activation. The isolated startup test used controlled responses. Hosted timing remains open.
 
 15 November Cancun time. Signed Railway dev observed Stripe sandbox webhook activation in 3078 ms after the independent Stripe API created an active subscription. It returned the GBP 9 paid order and a valid authenticated Stripe billing portal session. This check used the actual Stripe webhook and WEB4 ledger. The earlier Stripe Checkout test covers session creation and expiry. A single browser journey tying Checkout submission, webhook and return together remains open.

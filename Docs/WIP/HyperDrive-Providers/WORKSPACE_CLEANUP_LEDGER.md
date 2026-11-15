@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. Stripe confirmed expiry for both owned Checkout test sessions. WEB4 confirmed deletion of the test avatar. The verification used sandbox sessions and in-memory HTTP calls, and created no local artifacts.
+
 15 November Cancun time. The combined router and subscription modal test ran from Node standard input, reading the sparse checkout's tracked fixtures from Git. No packages, browser profile, local build or test outputs were created.
 
 15 November Cancun time. OPORTAL production integration checked Git objects and deleted its temporary index. Hosted deployment built on Vercel. Public API and asset checks ran in memory. No production billing fixture, local build, download or test result was created.
