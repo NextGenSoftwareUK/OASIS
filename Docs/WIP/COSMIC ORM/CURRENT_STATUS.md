@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## CROSS JOIN request and independent pair-budget qualification
+
+15 November. Feature 16fbab0fcde8 adds native integration coverage through the WEB4 join compiler. The fixture requires six exact Cartesian pairs, rejects an empty-key equijoin and a keyed cross join, and rejects a pair budget below the product. Exact test source cc6595d4b5fb is running in [CI 43749629256](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43749629256). The separate draft SQL editor and Ask your data instructions passed all 229 website tests in a temporary snapshot. Website publication and live cross join acceptance await the qualified backend. The snapshot and indexes were removed.
+
 ## Native bounded cross join qualification
 
 15 November. Core 2687a4374c7b and parent feature d0e6618f640e introduce keyless Cross capture, WEB4 CQL intent admission, and native Cartesian execution in MongoDB, SQLite and Neo4j. The existing source, pair and output proofs apply. The regression asserts all six distinct pairs from bounded two-row and three-row inputs. The Core gitlink and Railway dependency manifest advance together. Exact source f98bf485017e is queued in [three-store qualification 43749225426](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43749225426). SQL editor syntax and live WEB4 verification remain open. No local builds or downloads. Temporary indexes were removed.
