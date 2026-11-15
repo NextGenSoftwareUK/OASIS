@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Live SQL metadata presence on Development
+
+15 November. Railway WEB4 deployment 4c4043ee serves d79168a14607. Exact Web4Site de0155e92296 compiled IS MISSING and IS NOT NULL; both requests were accepted by MongoDB, SQLite and Neo4j during the same serving deployment. The existing visitor had no populated demo-tag rows, so this is live transport and query-shape proof. Populated true and false cases remain separately proven by the [55-check native fixture run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43708842227). Current [protected preview 7803064305](https://web4-site-5axnzypco-oasis-team.vercel.app/web4-sandbox.html) also includes Axelar and DISTINCT. Vercel reported no accessible team for the connected account. Hosted signed-in Ask Your Data walkthrough is still open. Unordered key-only grouping is in [exact CI 43712775037](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43712775037).
+
 ## Populated native DISTINCT and source ordering
 
 The [native step in 43711813889](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43711813889) passed 56 assertions and fixture cleanup per store, including reduction of two visible rows to one Version key via the shipping WEB4 compiler and native MongoDB, SQLite and Neo4j. The existing frontend uses an ordered source, and the Development API rejected OrderBy None for a key-only group. Feature 20a014aaf402 admits an unordered full input for key-only groups with no source paging or graph. Exact candidate 999156055e94 is dispatched for native verification, which checks that duplicate reduction still works, and that unordered source windows and aggregates are rejected. The frontend continues using the verified source order until the new API is qualified and serving. Metadata presence deployment 4c4043ee is building.
