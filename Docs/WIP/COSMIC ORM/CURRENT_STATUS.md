@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Algorand, Filecoin, Zcash and Radix in the SQL editor
+
+15 November. Web4Site 5c6282410bca extends the SQL key profile and discovery-scoped Ask Your Data guidance to Algorand addresses, Filecoin EVM account addresses, Zcash block hashes and Radix Mainnet resources. The text compiler recognizes 36 named sources. All 200 client tests passed and [preview 7803519574](https://web4-site-ra2uiib6p-oasis-team.vercel.app/web4-sandbox.html) built. All four exact preview-compiled two-key queries returned matching direct and MongoDB-federated IDs and selected-source provenance on the same live d79168a14607. Native provider validation still owns catalogue membership and checksum rules. Scope is limited to Web4Site; HyperDrive owns separate Algorand provider changes. The signed-in hosted walkthrough remains open.
+
 ## Sui, Aptos, Starknet and Fantom in the SQL editor
 
 15 November. Web4Site f170ee0d730a adds four more public-key profiles and the discovery-scoped Ask Your Data instructions. The text compiler now recognizes 32 named sources. All 199 client tests passed and [preview 7803476449](https://web4-site-4jug63za3-oasis-team.vercel.app/web4-sandbox.html) built. Each preview-compiled two-key source query ran against exact live WEB4 d79168a14607 and returned matching two IDs directly and through MongoDB federation, with selected provider provenance. Sui and Aptos retain exact 32-byte lowercase domains, Starknet enforces its canonical field-element bound, and Fantom uses its enrolled EVM account key. The signed-in hosted walkthrough remains open.
