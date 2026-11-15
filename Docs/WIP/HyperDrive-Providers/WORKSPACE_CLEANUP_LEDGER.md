@@ -1314,3 +1314,7 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 - 14 November Cancun time. The Ordinals mint implementation and shell syntax check created no local build, test fixture, downloads or runtime environment. Qualification uses the existing disposable hosted Bitcoin Core, ord and Esplora fixture.
 
 - 14 November Cancun time. Ordinals custody edits and validation did not create local builds, downloads, or test databases. Qualification uses the existing hosted regtest fixture.
+
+- 14 November Cancun time. Native mint 43661359322 passed with its hosted Bitcoin Core, ord and Esplora chain, container and archive teardown. No local builds or downloads. C drive reported 26.81 GiB free.
+
+- 14 November Cancun time. The Development fast-forward reused exact qualified 5a96fc73528f. No local checkout switch, temporary index, builds or downloads.
