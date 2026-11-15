@@ -18,6 +18,10 @@ on:
         description: Verify native read-only karma on MongoDB and SQLite
         type: boolean
         default: false
+      sqlite_map_visits:
+        description: Verify map visit persistence and avatar scoping against native SQLite
+        type: boolean
+        default: false
 permissions:
   contents: read
 jobs:
@@ -75,51 +79,61 @@ jobs:
             dotnet test $project --filter $filter --logger 'console;verbosity=detailed' /m:2 /nr:false /p:UseSharedCompilation=false
             if ($LASTEXITCODE -ne 0) { throw 'Native MongoDB and SQLite routing verification failed.' }
           }
+      - name: Verify durable map visits against native SQLite
+        if: inputs.sqlite_map_visits
+        env:
+          OASIS_NATIVE_MAP_VISITS: owned-ci
+        shell: pwsh
+        run: |
+          ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-NativeMapVisits -Operation {
+            dotnet test ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests --filter 'FullyQualifiedName~NativeMapVisitSurvivesNewManagersAndKeepsAvatarHistoryPrivate' --logger 'console;verbosity=detailed' /m:2 /nr:false /p:UseSharedCompilation=false
+            if ($LASTEXITCODE -ne 0) { throw 'Native map visit verification failed.' }
+          }
       - name: Validate sole authority and pinned source graph
-        if: ${{ !inputs.mongo_sqlite_point_reads && !inputs.mongo_sqlite_latency && !inputs.mongo_sqlite_karma }}
+        if: ${{ !inputs.mongo_sqlite_point_reads && !inputs.mongo_sqlite_latency && !inputs.mongo_sqlite_karma && !inputs.sqlite_map_visits }}
         run: |
           python3 Scripts/validate_web4_subscription_authority.py
           python3 Scripts/validate_railway_dependency_manifest.py --require-gitlinks
           python3 Scripts/validate_subscription_rollout_gate.py
           pwsh -File Scripts/validate_web6_web4_metering_cutover.ps1
       - name: Build WEB4 for compiled-controller protocol tests
-        if: ${{ !inputs.mongo_sqlite_point_reads && !inputs.mongo_sqlite_latency && !inputs.mongo_sqlite_karma }}
+        if: ${{ !inputs.mongo_sqlite_point_reads && !inputs.mongo_sqlite_latency && !inputs.mongo_sqlite_karma && !inputs.sqlite_map_visits }}
         run: dotnet build ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj -c Debug -m:1
       - name: WEB4 transactions, ownership, migration and failure injection
-        if: ${{ !inputs.mongo_sqlite_point_reads && !inputs.mongo_sqlite_latency && !inputs.mongo_sqlite_karma }}
+        if: ${{ !inputs.mongo_sqlite_point_reads && !inputs.mongo_sqlite_latency && !inputs.mongo_sqlite_karma && !inputs.sqlite_map_visits }}
         run: dotnet test ONODE/Tests/SubscriptionLedger.ProtocolTests/SubscriptionLedger.ProtocolTests.csproj -m:1 --logger trx --results-directory TestResults/authority
       - name: WEB4 application unit tests
-        if: ${{ !inputs.mongo_sqlite_point_reads && !inputs.mongo_sqlite_latency && !inputs.mongo_sqlite_karma }}
+        if: ${{ !inputs.mongo_sqlite_point_reads && !inputs.mongo_sqlite_latency && !inputs.mongo_sqlite_karma && !inputs.sqlite_map_visits }}
         run: dotnet test ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.csproj -m:1 --filter "Category!=LocalMongoSoak" --logger trx --results-directory TestResults/web4
       - name: Shared SDK, durable outbox and HTTP lifecycle
-        if: ${{ !inputs.mongo_sqlite_point_reads && !inputs.mongo_sqlite_latency && !inputs.mongo_sqlite_karma }}
+        if: ${{ !inputs.mongo_sqlite_point_reads && !inputs.mongo_sqlite_latency && !inputs.mongo_sqlite_karma && !inputs.sqlite_map_visits }}
         run: dotnet test "OASIS Architecture/NextGenSoftware.OASIS.API.Core/Tests/SubscriptionUsage/SubscriptionUsage.Tests.csproj" -m:1 --logger trx --results-directory TestResults/sdk
       - name: Independent provider and Stripe reconciliation
-        if: ${{ !inputs.mongo_sqlite_point_reads && !inputs.mongo_sqlite_latency && !inputs.mongo_sqlite_karma }}
+        if: ${{ !inputs.mongo_sqlite_point_reads && !inputs.mongo_sqlite_latency && !inputs.mongo_sqlite_karma && !inputs.sqlite_map_visits }}
         run: dotnet test ONODE/SubscriptionReconciliation.Tests/SubscriptionReconciliation.Tests.csproj -m:1 --logger trx --results-directory TestResults/reconciliation
       - name: WEB6 provider measurement and bounds
-        if: ${{ !inputs.mongo_sqlite_point_reads && !inputs.mongo_sqlite_latency && !inputs.mongo_sqlite_karma }}
+        if: ${{ !inputs.mongo_sqlite_point_reads && !inputs.mongo_sqlite_latency && !inputs.mongo_sqlite_karma && !inputs.sqlite_map_visits }}
         run: dotnet run --project WEB6/NextGenSoftware.OASIS.Web6.UsageProtocol.Tests/NextGenSoftware.OASIS.Web6.UsageProtocol.Tests.csproj
       - name: WEB6 provider recovery and failure injection
-        if: ${{ !inputs.mongo_sqlite_point_reads && !inputs.mongo_sqlite_latency && !inputs.mongo_sqlite_karma }}
+        if: ${{ !inputs.mongo_sqlite_point_reads && !inputs.mongo_sqlite_latency && !inputs.mongo_sqlite_karma && !inputs.sqlite_map_visits }}
         run: dotnet run --project WEB6/NextGenSoftware.OASIS.Web6.UsageRecovery.Tests/NextGenSoftware.OASIS.Web6.UsageRecovery.Tests.csproj
       - name: WEB5 and WEB7-WEB10 transport policy integration
-        if: ${{ !inputs.mongo_sqlite_point_reads && !inputs.mongo_sqlite_latency && !inputs.mongo_sqlite_karma }}
+        if: ${{ !inputs.mongo_sqlite_point_reads && !inputs.mongo_sqlite_latency && !inputs.mongo_sqlite_karma && !inputs.sqlite_map_visits }}
         run: dotnet test Tests/SubscriptionServiceAdapters/SubscriptionServiceAdapters.csproj -m:1 --logger trx --results-directory TestResults/services
       - name: Live runner transport security
-        if: ${{ !inputs.mongo_sqlite_point_reads && !inputs.mongo_sqlite_latency && !inputs.mongo_sqlite_karma }}
+        if: ${{ !inputs.mongo_sqlite_point_reads && !inputs.mongo_sqlite_latency && !inputs.mongo_sqlite_karma && !inputs.sqlite_map_visits }}
         run: python3 -m unittest discover -s Scripts -p test_subscription_usage_live_runner.py
       - name: Signer builds
-        if: ${{ !inputs.mongo_sqlite_point_reads && !inputs.mongo_sqlite_latency && !inputs.mongo_sqlite_karma }}
+        if: ${{ !inputs.mongo_sqlite_point_reads && !inputs.mongo_sqlite_latency && !inputs.mongo_sqlite_karma && !inputs.sqlite_map_visits }}
         run: dotnet build Scripts/SubscriptionLedger.Migration/SubscriptionLedger.Migration.csproj -c Release
       - name: Private operator authentication and audited requeue
-        if: ${{ !inputs.mongo_sqlite_point_reads && !inputs.mongo_sqlite_latency && !inputs.mongo_sqlite_karma }}
+        if: ${{ !inputs.mongo_sqlite_point_reads && !inputs.mongo_sqlite_latency && !inputs.mongo_sqlite_karma && !inputs.sqlite_map_visits }}
         run: dotnet test Scripts/SubscriptionLedger.OutboxAdmin.Tests/SubscriptionLedger.OutboxAdmin.Tests.csproj -m:1 --logger trx --results-directory TestResults/operator
       - name: Private operator publish
-        if: ${{ !inputs.mongo_sqlite_point_reads && !inputs.mongo_sqlite_latency && !inputs.mongo_sqlite_karma }}
+        if: ${{ !inputs.mongo_sqlite_point_reads && !inputs.mongo_sqlite_latency && !inputs.mongo_sqlite_karma && !inputs.sqlite_map_visits }}
         run: dotnet publish Scripts/SubscriptionLedger.OutboxAdmin/SubscriptionLedger.OutboxAdmin.csproj -c Release -m:1
       - name: Publish the exact WEB4-WEB10 source graph
-        if: ${{ !inputs.mongo_sqlite_point_reads && !inputs.mongo_sqlite_latency && !inputs.mongo_sqlite_karma }}
+        if: ${{ !inputs.mongo_sqlite_point_reads && !inputs.mongo_sqlite_latency && !inputs.mongo_sqlite_karma && !inputs.sqlite_map_visits }}
         shell: bash
         run: |
           set -euo pipefail
@@ -140,7 +154,7 @@ jobs:
             dotnet publish "$project" -c Release -m:1 /p:UseAppHost=false
           done
       - uses: actions/upload-artifact@v7
-        if: ${{ always() && !inputs.mongo_sqlite_point_reads && !inputs.mongo_sqlite_latency && !inputs.mongo_sqlite_karma }}
+        if: ${{ always() && !inputs.mongo_sqlite_point_reads && !inputs.mongo_sqlite_latency && !inputs.mongo_sqlite_karma && !inputs.sqlite_map_visits }}
         with:
           name: subscription-protocol-test-results
           path: TestResults
