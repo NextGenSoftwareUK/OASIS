@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. Removed the isolated Git index after preparing the two-file WEB4 subscription candidate. Qualification runs remotely on the immutable checkout-scope tag. No local builds, downloads, test data or result files were created.
+
 15 November Cancun time. Verified the scoped OPORTAL dev tree from Git objects. Removed its isolated temporary index after constructing the tree. Vercel ran the deployment build remotely. Live HTTP checks and OpenAPI refresh used memory and kept only the tracked generated endpoint map. C: had 26.7 GiB free.
 
 15 November Cancun time. Portal route regression ran in memory. Two fixtures excluded by the sparse worktree were read from Git during the full test suite. No dependency installation, generated assets, test reports or temporary files were created.

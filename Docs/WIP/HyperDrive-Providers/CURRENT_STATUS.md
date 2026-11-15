@@ -1,5 +1,7 @@
 # Current provider status
 
+15 November Cancun time. Prepared WEB4 checkout-scope integration 78eae0988824 on Development 2526b8c8a0e8. The candidate changes only the Stripe controller and its regression test. Development and the task branch carry different WEB4 project and subscription service files, so hosted run 43706441690 is testing the same two changed files against the actual Development dependency graph before promotion.
+
 15 November Cancun time. OPORTAL dev d4543ffcca9a passed its endpoint check, subscription configuration suite and Vercel deployment. The public dev /subscription route returned HTTP 200 and served both the versioned router that preserves Stripe return parameters and the modal that checks the authenticated Checkout session. The dev batch contains four paths and leaves the pending Gifts dashboard change on the task branch. WEB4 run 43705322012 passed the signed cross-ledger Checkout event regression, one test, zero skips. WEB4 Development integration and a hosted browser payment and return remain open.
 
 15 November Cancun time. OPORTAL 8166074 fixes the router rewriting Stripe success and cancel links without their query parameters. The portal configuration suite verified that lazy mounting and a repeated modal open preserve the return URL. The running portal still needs the fix deployed and a hosted browser checkout. The first checkout ledger test fixture omitted Stripe's request envelope. Corrected rerun 43705322012 is in progress.
