@@ -34,7 +34,7 @@ on:
       sqlite_performance_case:
         description: Focused case selected when sqlite_metadata_only is enabled
         type: choice
-        options: [metadata, wallet_summary, message_summary, summary_http, message_summary_http]
+        options: [metadata, wallet_summary, message_summary, summary_http, message_summary_http, shallow_contract]
         default: metadata
 permissions:
   contents: read
@@ -117,9 +117,9 @@ jobs:
         shell: pwsh
         run: |
           ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-SqliteMetadata -Operation {
-            if ($env:SQLITE_PERFORMANCE_CASE -in "summary_http", "message_summary_http") {
+            if ($env:SQLITE_PERFORMANCE_CASE -in "summary_http", "message_summary_http", "shallow_contract") {
               $project = "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests"
-              $test = if ($env:SQLITE_PERFORMANCE_CASE -eq "message_summary_http") { "DashboardMessageSummaryRejectsAnonymousHttpRequests" } else { "DashboardSummaryRoutesRejectAnonymousHttpRequests" }
+              $test = switch ($env:SQLITE_PERFORMANCE_CASE) { "message_summary_http" { "DashboardMessageSummaryRejectsAnonymousHttpRequests" } "shallow_contract" { "Web4ShallowReadContractTests" } default { "DashboardSummaryRoutesRejectAnonymousHttpRequests" } }
             } else {
               $project = "OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests"
               $test = switch ($env:SQLITE_PERFORMANCE_CASE) { "wallet_summary" { "ReadsWalletSummaryFromNativeSqlite" } "message_summary" { "CountsAllMessagesAndOnlyUnreadIncomingMessages" } default { "NativeSqliteFiltersMetadataBeforeHolonMapping" } }
