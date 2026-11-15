@@ -2338,6 +2338,6 @@ Performance follow-up. WEB4 wallet summary is implemented on the task branch and
 
 15 November Cancun time. Development advanced to d7807ff87c7c with COSMIC entity projection changes. The dashboard projection at 7e001a2e9c16 retains the current Core changes and adds only the prior dashboard paths. Matching Core pin aa025bb58dab was pushed before the parent. [Exact WEB4 build](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43685844579) is queued.
 
-15 November Cancun time. Earlier combined OPORTAL image 43683617189 passed. The current Development graph image 43685844579 is building. All seven preceding Railway dev deployments were successful at d7807ff87c7c. The separate Messages summary at a834a9b83e07 passed native SQLite verification and now awaits HTTP verification.
+15 November Cancun time. Earlier combined OPORTAL image 43683617189 passed. The current Development graph image 43685844579 is building. All seven preceding Railway dev deployments were successful at d7807ff87c7c. The separate Messages summary at a834a9b83e07 passed native SQLite verification and the [WEB4 loopback HTTP authorization check](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43687104758/job/132729769921). Hosted signed-in verification remains open.
 
 15 November Cancun time. OPORTAL branch commit c72b0ba uses the compact Messages summary and remains off production. The Files and Wallets production candidate remains daae6c6. Messages requires its separate backend rollout and signed-in hosted verification.

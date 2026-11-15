@@ -1394,3 +1394,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 15 November Cancun time. Messages summary job 132728770627 passed and removed its disposable hosted SQLite database directory in the test finally block. No local build, download, test database or test result file was created.
 
 15 November Cancun time. The OPORTAL Messages SDK check used an in-memory loopback listener and closed it after verification. No local builds, downloads, test files or databases were created.
+
+15 November Cancun time. Hosted WEB4 Messages authorization job 132729769921 passed. The loopback application used an async disposal scope and disposed its listener. Logs were read in memory. No local build or test artifacts were created.
