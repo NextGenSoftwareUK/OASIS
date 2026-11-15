@@ -1,5 +1,11 @@
 # COSMIC ORM / CQL current status
 
+## SQL metadata presence filters
+
+Feature WEB4 06ace698be4e extends CQL wire operations with IsMissing and IsNotNull. IS NOT NULL requires presence and a non-null value. The new operations reuse the established native metadata predicates. Web4Site de0155e92296 exposes both forms in typed SQL and the WEB6 draft instructions. All 194 frontend tests passed, and [preview 7802579954](https://web4-site-jo8gv1x9x-oasis-team.vercel.app/web4-sandbox.html) built. The preview feature requires the new WEB4 API; the earlier OR preview remains the browser verification target until metadata-presence deployment. No live presence-filter acceptance yet.
+
+The earlier 55c1c2056c55 candidate passed the focused signed literal, projection binding and standalone direct/federated metering tests in 43707321881. Remaining protocol steps, image and rollout are pending.
+
 ## Exact Qualification after Stripe Development integration
 
 Candidate 9ceb41a6edda was rejected by dependency validation in CI 43706675367. Copying the feature manifest had advanced six unrelated pins without matching gitlinks. Development advanced independently to 78eae0988824 for the Stripe ledger scope. Its two changed files do not overlap the COSMIC batch. Candidate 55c1c2056c55 starts at that Development revision, retains the six shared pins, and advances only the API Core dependency for CQL. All seven candidate gitlinks match their manifest pins before remote qualification. [Protocol CI 43707321881](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43707321881) and [WEB4 image CI 43707323885](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43707323885) use that exact candidate. Railway cddc8e09 was queued for the Stripe revision. Protected browser walkthrough and live signed bounds, Axelar results and timings remain open.
