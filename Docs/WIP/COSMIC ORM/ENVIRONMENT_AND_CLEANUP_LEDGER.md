@@ -5264,3 +5264,5 @@ COSMIC session reused the existing worktree, Python and GitHub CLI; no restore, 
 15 November Cancun time. Sui, Aptos, Starknet and Fantom evidence used one disposable frontend extraction and Git indexes, removed after push. Existing signed visitor and two concurrent providers at most for live read-only proof. No new installations, downloads, local build outputs or retained fixture data. Preview 7803476449 uses the existing hosted project lifecycle.
 
 15 November Cancun time. Algorand, Filecoin, Zcash and Radix editor verification used one disposable frontend extraction and Git indexes, removed after push. The live proof reused the retained visitor and queried at most two providers concurrently; no fixture writes, installations, downloads, local build output or retained test files. Preview 7803519574 uses the existing hosted lifecycle.
+
+15 November Cancun time. Discovery-key work used disposable Git indexes and committed-file client test extractions. All were removed after use. No local runtime installation, build outputs, downloads, fixtures or retained local results. Preview 7803600015 and exact backend CI 43715310725 use existing hosted resources.

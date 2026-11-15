@@ -1,5 +1,11 @@
 # COSMIC ORM / CQL current status
 
+## Discovery-driven native key queries
+
+15 November. WEB4 feature 097c9e212207 exposes the native metadata key name, character limit and optional IN bound only for ready enrolled query-only sources with standalone native key capabilities. It uses the actual provider capability and changes no tariffs or permissions. Exact backend 3c52429ba542 is in [protocol CI 43715310725](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43715310725). Web4Site a29c176e24bc recognizes these profiles in the editor and WEB6 prompt, clears them on sign-out, and retains the 36 existing explicit profiles. All 203 frontend tests passed, including the signed-in discovered-profile entry points. [Preview 7803600015](https://web4-site-mt1qibde4-oasis-team.vercel.app/web4-sandbox.html) built. Newly discovered profiles require the matching WEB4 deployment; live expanded coverage and hosted browser verification remain open.
+
+The exact unordered DISTINCT candidate 6ef92492c26e passed protocol CI 43713966430 on the Gifts dependency graph. The image and exact shared rollout are still pending. Railway is building Gifts revision 4c842fc2ceba in deployment 09e65c7d.
+
 ## Algorand, Filecoin, Zcash and Radix in the SQL editor
 
 15 November. Web4Site 5c6282410bca extends the SQL key profile and discovery-scoped Ask Your Data guidance to Algorand addresses, Filecoin EVM account addresses, Zcash block hashes and Radix Mainnet resources. The text compiler recognizes 36 named sources. All 200 client tests passed and [preview 7803519574](https://web4-site-ra2uiib6p-oasis-team.vercel.app/web4-sandbox.html) built. All four exact preview-compiled two-key queries returned matching direct and MongoDB-federated IDs and selected-source provenance on the same live d79168a14607. Native provider validation still owns catalogue membership and checksum rules. Scope is limited to Web4Site; HyperDrive owns separate Algorand provider changes. The signed-in hosted walkthrough remains open.
