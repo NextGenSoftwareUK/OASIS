@@ -1,5 +1,7 @@
 # Current provider status
 
+15 November Cancun time. OPORTAL dev 8391e3d3f18b is live and serves the exact qualified Free-plan and expiry scripts. After the shared window, Development advanced from 4437cc9e119f to native SQLite-qualified 318d7369abd0. Railway WEB4 deployment 30f83fb7-278e-42d8-b93b-57aa138da654 is building. Live NFT acceptance, the Free estimate fix and the hosted Stripe payment return remain open.
+
 15 November Cancun time. OPORTAL a0b04d9 recognizes the native free status and excludes subscriptions whose period has ended. A real temporary sandbox avatar returned free:free and the changed modal displayed Free. WEB4 confirmed avatar deletion. Portal dev candidate 8391e3d3f18b passed the exact subscription suite and awaits the shared portal update. The signed Free usage estimate returned HTTP 500. The Development estimate controller asks PaidOveragePricing.Rate for free, but the contract only contains paid plans. The estimate source is currently on Development and needs a scoped backend fix there. The Algorand workflow passed hosted run 43727777223. The new public TestNet submission step awaits its funded test signer.
 
 15 November Cancun time. The opt-in Algorand signed TestNet job prepares one native SDK zero-value self-payment, verifies TestNet genesis and caps the fee at 1,000 microALGO. The provider must return the exact transaction ID and then read the confirmed sender, receiver and amount through the native Indexer. The job is ready for a protected funded TestNet signer. No signed public write has run.

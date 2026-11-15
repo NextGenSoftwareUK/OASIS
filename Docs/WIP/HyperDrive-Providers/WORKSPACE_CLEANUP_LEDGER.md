@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. WEB4 confirmed each temporary Free sandbox test avatar self-delete. Its issued plan is managed by the normal sandbox retirement policy. Exact portal candidate preparation removed its transient Git index. Tests and served-asset comparisons ran in memory or hosted CI. No local archives, databases, builds or results were retained.
+
 15 November Cancun time. Algorand readiness used public native reads and hosted CI. NFT manifest normalization and the refreshed candidate used transient indexes, which were removed. No local test database, downloads, builds or result files were retained.
 
 15 November Cancun time. The live Plans timing and signed OPORTAL dev check ran in memory against the public scripts and bundled SDK. WEB4 confirmed the disposable test avatar was deleted. The Algorand check used hosted CI. No local browser profiles, builds, downloads or test results were retained.
