@@ -1,5 +1,9 @@
 # Current provider status
 
+15 November Cancun time. Railway WEB5 fdd9df3ee6e8 serves. A signed portal SDK search sent before the owned-list read returned HTTP 200 in 1,183 ms and an empty result. The owned-list read returned HTTP 200 in 338 ms. WEB4 confirmed deletion of the sandbox avatar.
+
+15 November Cancun time. [Algorand signed native writer](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43741404640) passed in 300 ms with zero skips, confirming two encrypted revisions, stale write rejection, separate-reader readback and teardown. Commit ba5827cb2c6f connects the enrolled store to standard provider root saves and point reads. [Native entry-point qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43741947058) is active.
+
 15 November Cancun time. Algorand 6e517752bb8c adds signed encrypted record publication through native box calls, including signer identity, fee ceiling, predecessor checks and confirmed manifest verification. [Native writer qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43741404640) is running. The exact WEB5 Development revision is still rolling out.
 
 15 November Cancun time. Development advanced from serving 807623f716cd to exact-qualified fdd9df3ee6e8 after the shared interval. It changes the STAR-ODK dependency manifest and gitlink together. Railway queued WEB5 deployment 40ac6e79-e709-4f7e-b0f9-e1e4a8546ca7 and WEB4 deployment 888c1af0-6b01-4e25-a202-f6caefad86d4 at 17:22:56 UTC. The signed search-first check awaits the exact WEB5 deployment. The next shared review starts after 17:52:56 UTC.
