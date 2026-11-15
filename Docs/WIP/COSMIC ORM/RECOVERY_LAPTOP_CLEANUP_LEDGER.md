@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+15 November Cancun. Full join qualification uses GitHub CI. The local SQLite controls used an in-memory database and the Atlas snapshot union probe was read-only. Exact Core and parent staging directories, the temporary manifest copy and the website test snapshot were removed. No shared build output, new runtime installs or database copies. C: measured 23.89 GiB free.
+
 15 November Cancun. Live floating-point acceptance and diagnostics created 12 synthetic private records across MongoDB, SQLite and Neo4j. All 12 were hard-deleted and independently confirmed absent. Retained only the acknowledgement journals in the HostedCqlFloating* and HostedCqlMixedFloatingDiagnose directories for revision f480b33d. Atlas depth and midpoint checks used synthetic input with no writes. All probe directories and their isolated outputs were removed. C: measured 23.88 GiB free.
 
 15 November Cancun. NOT BETWEEN acceptance hard-deleted all 15 private fixtures and independently confirmed absence. The earlier denied save was reconciled by an exact Atlas name read that found zero records. Compact local journals are in HostedCqlNotBetween-cbd8383d and HostedCqlNotBetween-Recovered-cbd8383d. The standard CQL Development visitor credential bundle remains encrypted in HostedCqlDevelopmentSqlAcceptance-f480b33d for reuse. The original expired bundle and response remain sealed for audit. Temporary native probe and website test outputs were removed.

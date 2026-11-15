@@ -1,5 +1,11 @@
 # COSMIC ORM / CQL current status
 
+## FULL OUTER JOIN and reconciled MongoDB qualification
+
+15 November. Core 598819587040 and parent feature 9e0f7c4bba5f add bounded FULL OUTER JOIN through WEB4 and the native SQLite, MongoDB and Neo4j execution paths. Core validates both optional source identities, nullable cells, deterministic source order and the complete pair budget. SQLite uses FULL OUTER JOIN, MongoDB adds only the unmatched native right stream inside its existing snapshot, and Neo4j keeps both native branches in its single statement. The Core gitlink and Railway manifest match. [Three-store qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43764612779) is running and covers matched rows, both unmatched sides, a private row, an empty left input and atomic budget rejection. Separately, SQLite controls passed duplicate, null and empty-input cases, and Atlas accepted a read-only union inside the snapshot session. The website draft passed 232 tests. Live backend acceptance and website publication remain pending.
+
+The MongoDB SINGLE depth fix was reconciled as 56d45431fda0 after Development advanced to Algorand avatar persistence 863931898136. All seven Algorand changes and the three scoped MongoDB changes are preserved. [Exact protocol CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43763722532) and [exact WEB4 image](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43763724540) are in flight. The previous rollout guard stopped cleanly and cancellation was requested for the obsolete image 43762207744. Current guards require the exact reconciled candidate and the shared 30-minute interval before publishing and running populated MongoDB acceptance.
+
 ## Populated floating-point acceptance and MongoDB BSON depth
 
 15 November. Development f480b33d6865 served the first MongoDB SINGLE fix. Atlas accepted the raw expression, but real WEB4 entity, projection and DISTINCT requests still failed. The native diagnostics reported MongoDB code 8000. Read-only controls reproduced the depth rejection once metadata traversal and query predicates enclosed the expression. The two original MongoDB fixture rows were removed and verified absent.
