@@ -35,7 +35,8 @@ public sealed class SqliteGiftSummaryTests
                     IsOpened = opened, SentAt = DateTime.UtcNow, Message = "Owned gift fixture" };
                 var saved = await provider.SaveHolonAsync(new Holon
                 {
-                    Id = gift.Id, IsActive = true, IsDeleted = deleted,
+                    Id = gift.Id, IsActive = !deleted,
+                    DeletedDate = deleted ? DateTime.UtcNow : DateTime.MinValue,
                     MetaData = new Dictionary<string, object>
                     {
                         ["oasisEntityType"] = "gift",
