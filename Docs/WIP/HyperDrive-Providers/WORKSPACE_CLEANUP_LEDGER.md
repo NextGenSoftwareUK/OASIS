@@ -1348,3 +1348,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 14 November Cancun time. Cold-karma job 132672112770 cleaned up its runner MongoDB container after the compile failure. Its logs were inspected in memory. No local build output, fixture databases, downloads or logs were created for the karma or map changes.
 
 14 November Cancun time. Native karma job 132673173154 deleted the fixture MongoDB database, SQLite directory and runner MongoDB container. The two temporary Git indexes used for the scoped dashboard projections were removed. No local builds or downloads were created.
+
+14 November Cancun time. Exact dashboard candidate staging removed its temporary Git index. Map job 132674174860 reached fixture teardown after the provider registration failure. Logs were read in memory. There were no local test databases, build outputs or downloads.
