@@ -130,6 +130,8 @@ internal sealed partial class MongoCqlTranslator
             page.Add(new("$unset", floatingFields));
         }
         var means = new BsonDocument();
+        var floatingPreparation = new BsonDocument();
+        var floatingShifts = new BsonDocument();
         var decimalPreparation = new BsonDocument();
         var decimalRounding = new BsonDocument();
         var decimalPublication = new BsonDocument();
@@ -148,12 +150,15 @@ internal sealed partial class MongoCqlTranslator
                 AddDecimalAggregate(decimalPreparation, decimalRounding, decimalPublication,
                     output, parts, "$a" + index + "present", average);
             }
+            else if (floating && column.Operation is CosmicScalarOperation.Sum or CosmicScalarOperation.Average)
+            {
+                var average = column.Operation == CosmicScalarOperation.Average;
+                var output = (average ? "cqlGroupAverage" : "cqlFloatingSum") + index;
+                AddFloatingAggregate(floatingPreparation, floatingShifts, means, output,
+                    "$a" + index + "parts", "$a" + index + "present", average, inputType == typeof(float));
+            }
             else if (column.Operation == CosmicScalarOperation.Average)
-                means.Add("cqlGroupAverage" + index, floating
-                    ? FloatingAggregateValue("$a" + index + "parts", "$a" + index + "present", true, inputType == typeof(float))
-                    : GroupedAverageValue(index));
-            else if (column.Operation == CosmicScalarOperation.Sum && floating)
-                means.Add("cqlFloatingSum" + index, FloatingAggregateValue("$a" + index + "parts", "$a" + index + "present", false, inputType == typeof(float)));
+                means.Add("cqlGroupAverage" + index, GroupedAverageValue(index));
         }
         // Keep the Decimal expressions below hosted BSON nesting limits.
         if (decimalPublication.ElementCount != 0)
@@ -163,7 +168,15 @@ internal sealed partial class MongoCqlTranslator
             page.Add(new("$set", decimalPublication));
             page.Add(new("$unset", new BsonArray(decimalPreparation.Names.Concat(decimalRounding.Names))));
         }
+        if (floatingPreparation.ElementCount != 0)
+        {
+            // Bound expression nesting by materializing the exact arithmetic and bit shift as separate native stages.
+            page.Add(new("$set", floatingPreparation));
+            page.Add(new("$set", floatingShifts));
+        }
         if (means.ElementCount != 0) page.Add(new("$set", means));
+        if (floatingPreparation.ElementCount != 0)
+            page.Add(new("$unset", new BsonArray(floatingPreparation.Names.Concat(floatingShifts.Names))));
         // Compute global participation before the group output sentinel. Neither
         // excess work nor excess groups can silently become a partial success.
         page.Add(new("$setWindowFields", new BsonDocument("output", new BsonDocument("work", new BsonDocument
