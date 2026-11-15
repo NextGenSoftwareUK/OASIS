@@ -303,14 +303,18 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 if (string.IsNullOrWhiteSpace(secretKey))
                     return StatusCode(500, new { IsError = true, Message = "Stripe not configured. Set STRIPE_SECRET_KEY environment variable." });
 
-                StripeConfiguration.ApiKey = secretKey;
-
                 var avatarId = GetCurrentUserId();
                 if (!Guid.TryParseExact(avatarId, "D", out _)) return Unauthorized(new { IsError = true, Message = "An authenticated avatar is required for checkout." });
                 var priceId = GetStripePriceId(plan.Id);
                 if (string.IsNullOrWhiteSpace(priceId))
                     return StatusCode(500, new { IsError = true, Message = $"No Stripe Price ID configured for plan '{plan.Id}'. Set STRIPE_PRICE_{plan.Id.ToUpper()} environment variable." });
 
+                var metadata = new Dictionary<string, string>
+                {
+                    ["avatar_id"] = avatarId,
+                    ["plan_id"] = plan.Id,
+                    ["oasis_ledger_scope"] = OASISSub.SubscriptionMongoConfiguration.DatabaseName(_configuration)
+                };
                 var options = new Stripe.Checkout.SessionCreateOptions
                 {
                     PaymentMethodTypes = new List<string> { "card" },
@@ -323,16 +327,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     CancelUrl = request.CancelUrl ?? "https://oasisomniverse.one/checkout/cancel",
                     Customer = existing?.StripeCustomerId,
                     CustomerEmail = string.IsNullOrEmpty(existing?.StripeCustomerId) ? request.CustomerEmail : null,
-                    SubscriptionData = new Stripe.Checkout.SessionSubscriptionDataOptions { Metadata = new Dictionary<string, string> { { "avatar_id", avatarId }, { "plan_id", plan.Id } } },
-                    Metadata = new Dictionary<string, string>
-                    {
-                        { "avatar_id", avatarId },
-                        { "plan_id", plan.Id }
-                    }
+                    SubscriptionData = new Stripe.Checkout.SessionSubscriptionDataOptions { Metadata = metadata },
+                    Metadata = metadata
                 };
 
                 var service = new Stripe.Checkout.SessionService(StripeClient());
-                var session = await service.CreateAsync(options);
+                var session = await service.CreateAsync(options, cancellationToken: HttpContext.RequestAborted);
 
                 return Ok(new CreateCheckoutSessionResponse
                 {
@@ -383,7 +383,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (string.IsNullOrWhiteSpace(sessionId) || !sessionId.StartsWith("cs_", StringComparison.Ordinal))
                 return BadRequest(new { IsError=true, Message="A Stripe checkout session ID is required." });
             var session = await new Stripe.Checkout.SessionService(StripeClient()).GetAsync(sessionId, cancellationToken: HttpContext.RequestAborted);
-            if (session.Metadata?.GetValueOrDefault("avatar_id") != userId) return Forbid();
+            if (IsOtherLedger(session.Metadata) || session.Metadata?.GetValueOrDefault("avatar_id") != userId) return Forbid();
             var record = await _subscriptionService.GetSubscriptionAsync(userId);
             bool activated = session.Status == "complete" && (session.PaymentStatus is "paid" or "no_payment_required") &&
                 record != null && record.StripeSubscriptionId == session.SubscriptionId && (record.Status is "active" or "trialing");
@@ -433,6 +433,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             {
                 case "checkout.session.completed":
                     var checkout = RequireStripeObject<Stripe.Checkout.Session>(stripeEvent);
+                    if (IsOtherLedger(checkout.Metadata)) return "other_ledger_checkout";
                     subscriptionId = checkout.SubscriptionId;
                     userId = checkout.Metadata?.GetValueOrDefault("avatar_id");
                     break;
@@ -440,8 +441,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 case "customer.subscription.updated":
                 case "customer.subscription.deleted":
                     var subscription = RequireStripeObject<Stripe.Subscription>(stripeEvent);
-                    var sourceScope=subscription.Metadata?.GetValueOrDefault("oasis_ledger_scope");
-                    if(!string.IsNullOrEmpty(sourceScope) && sourceScope!=OASISSub.SubscriptionMongoConfiguration.DatabaseName(_configuration))return "other_ledger_subscription";
+                    if (IsOtherLedger(subscription.Metadata)) return "other_ledger_subscription";
                     subscriptionId = subscription.Id;
                     userId = subscription.Metadata?.GetValueOrDefault("avatar_id");
                     if (string.IsNullOrEmpty(userId))
@@ -468,8 +468,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     if (string.IsNullOrEmpty(userId))
                     {
                         var invoiceSubscription = await new Stripe.SubscriptionService(StripeClient()).GetAsync(subscriptionId, cancellationToken: HttpContext.RequestAborted);
-                        var invoiceScope=invoiceSubscription.Metadata?.GetValueOrDefault("oasis_ledger_scope");
-                        if(!string.IsNullOrEmpty(invoiceScope) && invoiceScope!=OASISSub.SubscriptionMongoConfiguration.DatabaseName(_configuration))return "other_ledger_subscription_invoice";
+                        if (IsOtherLedger(invoiceSubscription.Metadata)) return "other_ledger_subscription_invoice";
                         userId = invoiceSubscription.Metadata?.GetValueOrDefault("avatar_id");
                     }
                     break;
@@ -490,6 +489,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             bool applied = await _billingRepository.ApplyStripeEventAsync(stripeEvent.Id, fingerprint, userId, stripeEvent.Created, async ct =>
             {
                 var canonical = await new Stripe.SubscriptionService(StripeClient()).GetAsync(subscriptionId, cancellationToken: ct);
+                if (IsOtherLedger(canonical.Metadata))
+                    throw new InvalidOperationException("Canonical Stripe subscription belongs to a different billing ledger.");
                 var matchingPlans = Plans.Where(plan => canonical.Items?.Data?.Any(item => item.Price?.Id == GetStripePriceId(plan.Id) && !string.IsNullOrEmpty(item.Price?.Id)) == true).ToList();
                 if (matchingPlans.Count != 1) throw new InvalidOperationException("Canonical Stripe subscription must match exactly one configured OASIS plan price.");
                 var canonicalOwner = canonical.Metadata?.GetValueOrDefault("avatar_id");
@@ -501,6 +502,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     CurrentPeriodStart = canonical.CurrentPeriodStart, CurrentPeriodEnd = canonical.CurrentPeriodEnd, CancelAtPeriodEnd=canonical.CancelAtPeriodEnd, CreatedAt = canonical.Created };
             }, order, HttpContext.RequestAborted);
             return applied ? "applied" : "already_applied";
+        }
+
+        private bool IsOtherLedger(Dictionary<string, string> metadata)
+        {
+            var scope = metadata?.GetValueOrDefault("oasis_ledger_scope");
+            return !string.IsNullOrEmpty(scope) && scope != OASISSub.SubscriptionMongoConfiguration.DatabaseName(_configuration);
         }
 
         private static T RequireStripeObject<T>(Event stripeEvent) where T : class =>
