@@ -1,5 +1,11 @@
 # COSMIC ORM / CQL current status
 
+## Live Nostr recovery and Axelar performance candidate
+
+Railway 0bd54a93-e9ce-48df-9dff-dc94bbc9407f serves Development d7807ff87c7c and confirms the Primal WSS relay with the original three-event catalogue. Native CQL and MongoDB federation returned matching exact three-event and two-event subsets with Nostr provenance. Four warm requests per route for the same two-event subset all succeeded. Direct first/median/max were 2,031/1,984.5/2,018 ms. Federated first/median/max were 2,524/2,192.5/2,254 ms. Those are the first timings after relay recovery. Warm discovery reached 107/107 enrolled profiles ready for both native CQL and federation.
+
+Axelar candidate 5ebf9ac66ccd combines the corrected WEB4 query registry with shipping-provider registration and a three-request bound on header reads. The [exact protocol](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43686465734) is active. Compare live rows and latency against the established serial Axelar baseline after qualification and rollout.
+
 ## Nostr relay recovery and DTO rollout
 
 On Development 991bda31479a, the original Nostr relay failed to connect. The public Primal relay completed the same bounded three-ID kind-1 subscription with all original events and EOSE in 472 ms. A second probe independently validated all three canonical event digests and BIP-340 signatures and reached EOSE in 1,225 ms. Pareto returned zero matching events. The existing Development profile kept its owner, exact event IDs, tariff and presets. Only its relay URL changed to wss://relay.primal.net/. The setting was staged without a separate rebuild and read back before publishing the exact DTO revision d7807ff87c7c. Railway queued 0bd54a93-e9ce-48df-9dff-dc94bbc9407f at 06:25:29 UTC. Verify native and federated Nostr full/subset presets and warm latency on the new serving revision. Review the next shared Development rollout no earlier than 06:55:29 UTC.

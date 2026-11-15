@@ -6775,3 +6775,5 @@ Web4Site 5fa63a71df5d used a temporary directory containing only committed websi
 - Axelar query verification and timing used the existing Development visitor and public fixtures. No test result files or local runtime downloads. Temporary Git indexes and batch blob inputs were removed automatically after use.
 
 - Nostr relay discovery and signature checks ran in memory on the serving Railway container. The scoped relay URL update used the existing CLI installation and created no local credentials, builds or test result files.
+
+- Nostr live smoke and latency checks reused the existing Development visitor. No account, runtime install, local report, or fixture database was created.
