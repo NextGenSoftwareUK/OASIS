@@ -56,7 +56,7 @@ public partial class AlgorandOASIS
             using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             deadline.CancelAfter(_algod.Timeout);
             var settings = _recordBoxes;
-            var key = HMACSHA256.HashData(settings.StorageKey, StrictUtf8.GetBytes($"oasis:algorand:box:v1:holon:{id:D}"));
+            var key = StoredHolonBoxKey(settings, id);
             var manifest = await ReadBoxAsync(settings, [(byte)'h', ..key], deadline.Token).ConfigureAwait(false);
             using var codec = new EncryptedRecordCodec(settings.StorageKey);
             int? lastVersion = null;
@@ -129,9 +129,8 @@ public partial class AlgorandOASIS
                 throw new InvalidDataException("An Algorand chunk does not match the committed digest.");
             encrypted.Write(chunk);
         }
-        var context = FormattableString.Invariant(
-            $"oasis:algorand:v1:{settings.GenesisHash}:{settings.ApplicationId}:holon:{id:D}:{Convert.ToHexString(revision)}");
-        var json = codec.Decrypt(context, StrictUtf8.GetString(encrypted.ToArray()), cancellationToken);
+        var json = codec.Decrypt(StoredHolonContext(settings, id, revision),
+            StrictUtf8.GetString(encrypted.ToArray()), cancellationToken);
         var record = OasisJson.DeserializeStored<Holon>(json);
         if (record == null || record.Id != id)
             throw new InvalidDataException("The Algorand record does not match the requested holon identity.");
@@ -160,4 +159,11 @@ public partial class AlgorandOASIS
 
     private static byte[] BoxName(char prefix, byte[] material)
         => [(byte)prefix, ..SHA256.HashData(material)];
+
+    private static byte[] StoredHolonBoxKey(AlgorandRecordBoxSettings settings, Guid id)
+        => HMACSHA256.HashData(settings.StorageKey, StrictUtf8.GetBytes($"oasis:algorand:box:v1:holon:{id:D}"));
+
+    private static string StoredHolonContext(AlgorandRecordBoxSettings settings, Guid id, byte[] revision)
+        => FormattableString.Invariant(
+            $"oasis:algorand:v1:{settings.GenesisHash}:{settings.ApplicationId}:holon:{id:D}:{Convert.ToHexString(revision)}");
 }

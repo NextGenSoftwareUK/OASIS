@@ -2,6 +2,7 @@ using System;
 using System.Globalization;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS.IntegrationTests;
@@ -10,15 +11,55 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS.IntegrationTests;
 public sealed class AlgorandRecordBoxTests
 {
     [TestMethod]
+    public async Task PublishesSignedEncryptedRevisionsThroughNativeBoxes()
+    {
+        var id = Guid.Parse(Required("ID"));
+        var storageKey = Convert.FromBase64String(Required("KEY"));
+        var provider = Create(Required("PROGRAM"), storageKey, Convert.FromBase64String(Required("WRITER_SEED")));
+        var active = await provider.ActivateProviderAsync();
+        Assert.IsFalse(active.IsError, active.Message);
+        try
+        {
+            var holon = new Holon { Id = id, Name = "Signed native version one", Description = new string('b', 950) };
+            var initial = await provider.SaveStoredHolonAsync(holon, expectedVersion: 0);
+            Assert.IsFalse(initial.IsError, initial.Exception?.ToString() ?? initial.Message);
+            Assert.AreEqual(1, initial.Result.Version);
+
+            holon.Name = "Signed native version two";
+            Assert.IsTrue((await provider.SaveStoredHolonAsync(holon, expectedVersion: 0)).IsError);
+            var update = await provider.SaveStoredHolonAsync(holon, expectedVersion: 1);
+            Assert.IsFalse(update.IsError, update.Exception?.ToString() ?? update.Message);
+            Assert.AreEqual(2, update.Result.Version);
+
+            var separateReader = Create(Required("PROGRAM"), storageKey);
+            Assert.IsFalse((await separateReader.ActivateProviderAsync()).IsError);
+            try
+            {
+                var latest = await separateReader.LoadStoredHolonAsync(id);
+                Assert.IsFalse(latest.IsError, latest.Exception?.ToString() ?? latest.Message);
+                Assert.AreEqual("Signed native version two", latest.Result.Name);
+                Assert.AreEqual(950, latest.Result.Description.Length);
+                var original = await separateReader.LoadStoredHolonAsync(id, version: 1);
+                Assert.IsFalse(original.IsError, original.Exception?.ToString() ?? original.Message);
+                Assert.AreEqual("Signed native version one", original.Result.Name);
+            }
+            finally
+            {
+                await separateReader.DeActivateProviderAsync();
+            }
+        }
+        finally
+        {
+            await provider.DeActivateProviderAsync();
+        }
+    }
+
+    [TestMethod]
     public async Task ReadsEncryptedCurrentAndHistoricalRecordsFromNativeBoxes()
     {
         var id = Guid.Parse(Required("ID"));
-        var appId = ulong.Parse(Required("APP"), CultureInfo.InvariantCulture);
         var key = Convert.FromBase64String(Required("KEY"));
         var program = Required("PROGRAM");
-        AlgorandOASIS Create(string programDigest, byte[] storageKey) => new(
-            "http://127.0.0.1:4001", "http://127.0.0.1:8980", new string('a', 64), null,
-            new AlgorandRecordBoxSettings(appId, Required("GENESIS"), Required("WRITER"), programDigest, storageKey));
 
         var rejected = Create(new string('0', 64), key);
         Assert.IsTrue((await rejected.ActivateProviderAsync()).IsError);
@@ -49,6 +90,11 @@ public sealed class AlgorandRecordBoxTests
             await provider.DeActivateProviderAsync();
         }
     }
+
+    private static AlgorandOASIS Create(string programDigest, byte[] storageKey, byte[]? writerSeed = null) => new(
+        "http://127.0.0.1:4001", "http://127.0.0.1:8980", new string('a', 64), null,
+        new AlgorandRecordBoxSettings(ulong.Parse(Required("APP"), CultureInfo.InvariantCulture),
+            Required("GENESIS"), Required("WRITER"), programDigest, storageKey, writerSeed));
 
     private static string Required(string name) => Environment.GetEnvironmentVariable("OASIS_ALGORAND_RECORD_" + name)
         ?? throw new InvalidOperationException($"Missing native record fixture setting {name}.");

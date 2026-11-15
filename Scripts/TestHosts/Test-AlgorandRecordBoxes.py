@@ -85,7 +85,8 @@ def run(node, wallet, handle, writer, outsider):
         genesis = node.suggested_params().gh
         head = b"h" + key
         predecessor = bytes(32)
-        for version in (1, 2):
+        versions = () if os.environ.get("OASIS_ALGORAND_RECORD_WRITE_TEST") == "true" else (1, 2)
+        for version in versions:
             revision = secrets.token_bytes(32)
             format_name = "oasis-aes256gcm-v1:"
             context = f"oasis:algorand:v1:{genesis}:{app}:holon:{fixture}:{revision.hex().upper()}"
@@ -107,17 +108,23 @@ def run(node, wallet, handle, writer, outsider):
                         [head, manifest_name(key, revision), *names]))
             predecessor = digest(read(head))
 
-        with open(destination, "w", encoding="utf-8") as output:
-            for name, value in {
+        settings = {
                 "OASIS_ALGORAND_RECORD_APP": app,
                 "OASIS_ALGORAND_RECORD_GENESIS": genesis,
                 "OASIS_ALGORAND_RECORD_WRITER": writer,
                 "OASIS_ALGORAND_RECORD_PROGRAM": digest(approval).hex(),
                 "OASIS_ALGORAND_RECORD_KEY": base64.b64encode(storage_key).decode("ascii"),
                 "OASIS_ALGORAND_RECORD_ID": fixture,
-            }.items():
+        }
+        if not versions:
+            signing_key = base64.b64decode(wallet.export_key(handle, "", writer), validate=True)
+            if len(signing_key) != 64:
+                raise RuntimeError("Unexpected ephemeral LocalNet signing key format")
+            settings["OASIS_ALGORAND_RECORD_WRITER_SEED"] = base64.b64encode(signing_key[:32]).decode("ascii")
+        with open(destination, "w", encoding="utf-8") as output:
+            for name, value in settings.items():
                 output.write(f"{name}={value}\n")
-        print("Published two encrypted revisions in the owned LocalNet application.")
+        print("Prepared the enrolled record application and its owned LocalNet fixture.")
         return
 
     key = secrets.token_bytes(32)
