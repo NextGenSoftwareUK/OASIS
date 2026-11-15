@@ -1,5 +1,9 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. The scoped Algorand Development candidate used one temporary Git index and removed it after publication. Exact qualification uses hosted disposable LocalNet runners. No local runtime, database or build output was retained.
+
+15 November Cancun time. Algorand hard-delete, checkpoint recovery and group rollback runners each confirmed removal of the owned LocalNet containers, network, volumes and fixture directory. No local database, runtime or result was created.
+
 15 November Cancun time. Algorand grouped publication and purge qualification use owned disposable hosted LocalNet fixtures. The recovery case holds its ephemeral credentials in the owned fixture directory. Canceled the redundant public check. No local build, runtime, download or fixture output was created.
 
 15 November Cancun time. The Algorand collection runner confirmed removal of its owned LocalNet. Hard-delete qualification uses the existing hosted disposable fixture and canceled the redundant public check. No local runtime, database, download or result was created.
