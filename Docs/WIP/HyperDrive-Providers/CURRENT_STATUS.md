@@ -1,5 +1,7 @@
 # Current provider status
 
+15 November Cancun time. Native MongoDB-to-SQLite Files regression run 43694161825 is in progress. Contract run 43693892927 stopped at stale manager coverage declarations before tests. The manager and WEB4 route manifests have been reconciled against the current branch.
+
 15 November Cancun time. Files upload diagnostics narrowed the failure to HyperDrive committed replication evidence after the primary acknowledgement. The Files branch change requests a shallow save and preserves the failure code. Exact candidate and affected hosted fixture reconciliation remain open.
 
 15 November Cancun time. The Railway dev Files count is qualified on an empty account. Populated parity is open after the first fixture upload returned an application error. The exact shallow-read and Messages candidate image was still building at this checkpoint.

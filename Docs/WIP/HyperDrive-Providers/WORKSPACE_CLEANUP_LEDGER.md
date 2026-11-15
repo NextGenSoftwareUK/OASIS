@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. Removed both locally generated manifest review CSVs after reconciling the tracked manifests. No local native databases, downloads or build outputs were created.
+
 15 November Cancun time. The diagnostic Files fixture avatar self-delete succeeded. The upload response reported primary acknowledgement and returned no file ID. Fixture file persistence or deletion is unresolved. No local fixture files or build outputs were created.
 
 15 November Cancun time. The populated Files smoke used an in-memory payload with no local downloads, test databases, fixture files or build outputs. The first upload reported an application error and returned no file ID. The isolated WEB4 avatar self-delete returned HTTP 200 and true. C: had 27.1 GiB free at the check.
