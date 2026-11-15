@@ -64,6 +64,7 @@ namespace NextGenSoftware.OASIS.API.DNA
         public ArweaveOASISSettings ArweaveOASIS { get; set; }
 
         // Missing Blockchain Providers
+        public AlgorandOASISProviderSettings AlgorandOASIS { get; set; }
         public BitcoinOASISProviderSettings BitcoinOASIS { get; set; }
         public CardanoOASISProviderSettings CardanoOASIS { get; set; }
         public PolkadotOASISProviderSettings PolkadotOASIS { get; set; }

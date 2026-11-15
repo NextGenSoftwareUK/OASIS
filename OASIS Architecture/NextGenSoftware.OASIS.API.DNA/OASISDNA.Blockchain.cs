@@ -6,6 +6,26 @@ using NextGenSoftware.OASIS.API.Core.Configuration;
 
 namespace NextGenSoftware.OASIS.API.DNA
 {
+    public class AlgorandOASISProviderSettings : ProviderSettingsBase
+    {
+        public string AlgodUrl { get; set; } = "https://mainnet-api.algonode.cloud";
+        public string IndexerUrl { get; set; } = "https://mainnet-idx.algonode.cloud";
+        public string AlgodTokenEnvironmentVariable { get; set; }
+        public string IndexerTokenEnvironmentVariable { get; set; }
+        public AlgorandRecordStorageSettings RecordStorage { get; set; }
+    }
+
+    public class AlgorandRecordStorageSettings
+    {
+        public ulong ApplicationId { get; set; }
+        public string GenesisHash { get; set; }
+        public string WriterAddress { get; set; }
+        public string ApprovalProgramSha256 { get; set; }
+        public string StorageKeyEnvironmentVariable { get; set; }
+        public string WriterSeedEnvironmentVariable { get; set; }
+        public ulong MaximumFee { get; set; } = 1000;
+    }
+
     public class BitcoinOASISProviderSettings : ProviderSettingsBase
     {
         public string RpcEndpoint { get; set; } = "https://blockstream.info/api";

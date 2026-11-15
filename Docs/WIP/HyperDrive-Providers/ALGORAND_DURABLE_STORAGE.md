@@ -2,6 +2,13 @@
 
 The shipping Algorand provider reads account and transaction data through Algod and Indexer and submits signed transactions. Its native payment and public read evidence is recorded in the [provider matrix](PROVIDER_MATRIX.md). Durable OASIS records need an application with their own ledger state and a native acceptance fixture.
 
+## BootLoader enrollment
+
+- Configure `OASIS.StorageProviders.AlgorandOASIS` with the Algod and Indexer origins for the same ledger. An explicit empty entry uses the public mainnet origins. Operator endpoints can use HTTPS, and disposable local fixtures can use loopback HTTP. A request-time endpoint override cannot redirect this paired configuration.
+- For authenticated nodes, set `AlgodTokenEnvironmentVariable` and `IndexerTokenEnvironmentVariable` to the names of the operator-managed environment variables. Omitting a name sends no corresponding token.
+- For encrypted holons, configure `RecordStorage` with `ApplicationId`, `GenesisHash`, `WriterAddress`, `ApprovalProgramSha256`, and `StorageKeyEnvironmentVariable`. Its named environment variable must contain the Base64-encoded 32-byte encryption key. Name `WriterSeedEnvironmentVariable` only for a signing host. Its value is the Base64-encoded 32-byte seed for the enrolled writer. The default `MaximumFee` is 1,000 microALGO per native transaction.
+- Warm registration defers network calls to activation. The `storage_bootloader` hosted LocalNet case exercises that registration, activation of the same provider instance, and signed standard holon save and read.
+
 ## Ledger contract
 
 - Bind the store to the Algod genesis hash, application ID, verified approval program and expected writer address. Confirm the same identity before loading or publishing any record.

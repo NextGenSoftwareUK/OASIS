@@ -20,7 +20,7 @@ on:
       localnet_case:
         description: Focused signed LocalNet verification
         type: choice
-        options: [batch, indexed_search, storage_contract, storage_provider, storage_writer, storage_delete, storage_hard_delete, storage_hard_resume]
+        options: [batch, indexed_search, storage_contract, storage_provider, storage_writer, storage_delete, storage_hard_delete, storage_hard_resume, storage_bootloader]
         default: batch
       public_case:
         description: Focused public Indexer verification
@@ -141,6 +141,9 @@ jobs:
             set -a
             source "$fixture_env"
             set +a
+            if [[ "$ALGORAND_LOCALNET_CASE" == storage_bootloader ]]; then
+              export OASIS_ALGORAND_RECORD_LOCALNET_TOKEN=$(printf 'a%.0s' {1..64})
+            fi
             pwsh -NoProfile -Command '
               ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-AlgorandNativeRecordRead -Operation {
                 $test = switch ($env:ALGORAND_LOCALNET_CASE) {
@@ -148,9 +151,11 @@ jobs:
                   "storage_delete" { "SoftDeletesStoredHolonWithDurableAuditAndHistory" }
                   "storage_hard_delete" { "PurgesPublishedRevisionsAndFencesRepublishing" }
                   "storage_hard_resume" { "ResumesPurgingFromTheNativeCheckpoint" }
+                  "storage_bootloader" { "RegistersAndUsesTheEnrolledAlgorandProviderOnLocalNet" }
                   default { "ReadsEncryptedCurrentAndHistoricalRecordsFromNativeBoxes" }
                 }
-                dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.AlgorandOASIS.IntegrationTests" --filter "FullyQualifiedName~$test" /m:2 /nr:false /p:UseSharedCompilation=false
+                $withBootLoader = $env:ALGORAND_LOCALNET_CASE -eq "storage_bootloader"
+                dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.AlgorandOASIS.IntegrationTests" --filter "FullyQualifiedName~$test" /m:2 /nr:false /p:UseSharedCompilation=false "/p:WithAlgorandBootLoader=$withBootLoader"
                 if ($LASTEXITCODE -ne 0) { throw "Native record provider verification failed." }
               }'
             exit
