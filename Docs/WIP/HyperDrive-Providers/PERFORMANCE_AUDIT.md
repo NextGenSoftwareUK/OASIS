@@ -1,5 +1,7 @@
 # OPORTAL and HyperDrive performance audit
 
+15 November Cancun time. Compared the serving WEB4 dev and production API contracts before promoting dashboard code. Dev advertises the compact Files, Wallet and Messages reads. Production has none of those three routes yet. Gifts summary still awaits the verified dev batch in both environments. Map stats are available in both. These deployment differences determine when the dashboard can switch from list reads to compact counts.
+
 15 November Cancun time. OPORTAL 0e66a19 coalesces plan catalog reads when the router and cancellation handler open the same tab. Plan highlighting follows the catalog response instead of a fixed delay. The combined shipping-script regression observed one catalog request during a pending cancellation return, and the updated script is live on OPORTAL dev.
 
 15 November Cancun time. The serving WEB4 checkout-scope revision created a real owned Stripe sandbox Checkout session in 858 ms and read its status in 506 ms. The native £9 Bronze metadata and return URLs matched the OPORTAL contract. An otherwise owned session with a different ledger returned HTTP 403. These are individual request measurements.
