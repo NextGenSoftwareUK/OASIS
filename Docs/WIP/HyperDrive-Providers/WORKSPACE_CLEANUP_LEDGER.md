@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. The signed My routing test used the shipping SDK in memory and WEB4 confirmed deletion of the disposable avatar. Scoped portal candidate staging removed its temporary patch and Git index and reapplied the existing sparse checkout. No local dependencies, runtime downloads, build outputs or test artifacts were retained.
+
 15 November Cancun time. OPORTAL HyperDrive status and modal checks used WEB4's shipping SDK in memory. WEB4 confirmed deletion of the disposable sandbox avatars, including the initial harness run. Reapplied the existing sparse portal checkout. No local runtime installs, downloads or test artifacts were retained.
 
 15 November Cancun time. Grouped Algorand contract run 43758074426 verified removal of all owned LocalNet resources and its fixture directory after the stage guard failure. The replacement uses a disposable runner. Portal billing asset verification used memory only. No local runtime, dependencies or generated outputs were retained.
