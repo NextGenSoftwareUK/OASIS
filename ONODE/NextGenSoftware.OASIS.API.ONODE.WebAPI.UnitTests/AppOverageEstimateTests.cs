@@ -33,6 +33,7 @@ public sealed class AppOverageEstimateTests
     public void NoLimitOrNoPriceMeansNothingCanBeOwed(long used, long limit, double rate, double cap)
     {
         var r = AppOverageEstimate.Compute(used, limit, (decimal)rate, (decimal)cap);
+        Assert.Equal(limit > 0 ? used - limit : 0, r.OverRequests);
         Assert.Equal(0m, r.GrossUsd); Assert.Equal(0m, r.ChargedUsd); Assert.False(r.CapReached);
     }
 
