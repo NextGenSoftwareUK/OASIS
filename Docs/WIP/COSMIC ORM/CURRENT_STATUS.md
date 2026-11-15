@@ -2,6 +2,8 @@
 
 ## Exact signed metadata in CQL text
 
+The complete Web4Site d41989013528 Node client suite passed 190/190, zero skips. This includes SQL-like parsing, direct Run CQL, draft review, provider discovery, session behavior and tab navigation. This was a committed-file test run; hosted browser and live signed Int64 query verification remain open. Development 49e4ba65a783 served Railway ef75a9a8 and reported 106/107 CQL sources ready. The sole unavailable source was Cardano after HTTP 429. Blockscout and Connext were ready on that rollout. Server startup logged 86,473 ms and 103/104 verified query-only readers.
+
 Signed 64-bit metadata comparison and BETWEEN syntax is on Web4Site d41989013528 and builds in [preview 7801807850](https://web4-site-a3t60qyqb-oasis-team.vercel.app/web4-sandbox.html). All 62 focused editor and Ask tests passed. The browser now sends exact signed decimal text and WEB4 accepts the same native Int64 domain as existing JSON numbers. The exact Development candidate ef5f4606685a is in [protocol CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43702653709) and [image CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43702673556). Feature CI 43702310477 failed because the shallow preferences mock correction from Development was missing in the feature tree. That same verified fixture is now restored on the feature branch. Hosted browser and signed range API acceptance remain open.
 
 ## Nested DTO and Axelar integration qualification
