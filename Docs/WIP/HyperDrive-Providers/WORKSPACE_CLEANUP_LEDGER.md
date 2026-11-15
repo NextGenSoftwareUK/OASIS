@@ -1364,3 +1364,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 14 November Cancun time. The successful BTC and Rune native jobs removed their Esplora containers and images and deleted the owned fixture directory, including the wallet and SQLite receipt test state. Exact escrow staging removed its temporary Git index. No local builds or downloads were created.
 
 14 November Cancun time. Exact escrow jobs 132685861714 and 132685873122 removed their Esplora containers, image and owned chain/receipt fixtures. Only allowlisted variable-presence booleans were retained from the Railway check. No local build, fixture or credential file was created.
+
+14 November Cancun time. Native shallow-default job 132689471380 removed its runner MongoDB container and disposable MongoDB database and SQLite directory. The controlled OPORTAL browser emitted passing assertions before its shutdown helper failed. Inspected the exact temporary browser profile afterward and confirmed it was removed. No local backend, build or downloaded runtime was added.
