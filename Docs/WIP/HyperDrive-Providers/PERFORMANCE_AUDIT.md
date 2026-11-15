@@ -19,3 +19,5 @@
 Preserve the measured browser, HTTP and native behavior in [current status](CURRENT_STATUS.md). Record disposable environments and artifact removal in the [cleanup ledger](WORKSPACE_CLEANUP_LEDGER.md).
 
 15 November Cancun time. [WEB4 loopback HTTP](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43680727992/job/132710551095) compiled the controller graph and verified anonymous requests to both compact dashboard routes return 401. Signed-in hosted response checks and portal adoption remain open.
+
+15 November Cancun time. Portal preview commit daae6c6 uses the bundled WEB4 SDK HTTP client for the Files count and Wallets summary, including manual Files refresh. A loopback SDK check verified authenticated requests, zero count, zero default balance, refreshed count and an unavailable wallet response. Production promotion still needs the new hosted WEB4 routes.
