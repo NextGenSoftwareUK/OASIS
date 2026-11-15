@@ -2,7 +2,7 @@ using System.Text.Json;
 using NextGenSoftware.OASIS.API.Core.Services.Subscriptions;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
-using NextGenSoftware.OASIS.API.Providers.AxelarOASIS;
+using AxelarProvider = NextGenSoftware.OASIS.API.Providers.AxelarOASIS.AxelarOASIS;
 using MongoSource = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.MongoDBOASIS;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests;
@@ -14,7 +14,7 @@ public class CqlAxelarHostedAdmissionTests
     {
         const string provider = nameof(ProviderType.AxelarOASIS);
         var keys = new[] { "37269326", "37269327", "37269328" };
-        using var source = AxelarPublicBlockSource.FromJson(JsonSerializer.Serialize(new
+        using var source = AxelarProvider.FromPublicQueryConfiguration(JsonSerializer.Serialize(new
         {
             schema = 1,
             heights = new[] { 37269326, 37269327, 37269328 },
@@ -33,7 +33,7 @@ public class CqlAxelarHostedAdmissionTests
                 orderBy = "None", take = 25, includeMetadata = true,
                 filters = new[] { new
                 {
-                    metadataPath = new[] { AxelarPublicBlockSource.HeightMetadata },
+                    metadataPath = new[] { AxelarProvider.HeightMetadata },
                     scalar = "String", @operator = "In", value = keys.Take(count).ToArray()
                 } }
             };
