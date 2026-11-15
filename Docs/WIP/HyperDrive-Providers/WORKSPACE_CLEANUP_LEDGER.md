@@ -1350,3 +1350,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 14 November Cancun time. Native karma job 132673173154 deleted the fixture MongoDB database, SQLite directory and runner MongoDB container. The two temporary Git indexes used for the scoped dashboard projections were removed. No local builds or downloads were created.
 
 14 November Cancun time. Exact dashboard candidate staging removed its temporary Git index. Map job 132674174860 reached fixture teardown after the provider registration failure. Logs were read in memory. There were no local test databases, build outputs or downloads.
+
+14 November Cancun time. The corrected map CI case 132676922790 completed its owned SQLite directory teardown, removed the runner MongoDB container, and uploaded no test artifacts. The temporary Git index used for the corrected map projection was removed. The BTC escrow work created no local runtime downloads or test databases.

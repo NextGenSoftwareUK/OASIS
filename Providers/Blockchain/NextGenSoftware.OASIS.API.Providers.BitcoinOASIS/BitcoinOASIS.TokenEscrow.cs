@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -49,7 +50,9 @@ public partial class BitcoinOASIS : IOASISIdBoundTokenEscrowProvider
             {
                 ValidateBitcoinEscrowReceipt(previous, request.LockId, request.Web3TokenId, request.LockedByAvatarId);
                 if (previous.Satoshis != (long)satoshis ||
-                    (!string.IsNullOrWhiteSpace(request.FromWalletAddress) && previous.Source != request.FromWalletAddress))
+                    (!string.IsNullOrWhiteSpace(request.FromWalletAddress) &&
+                        !BitcoinAddress.Create(previous.Source, SigningNetwork).Equals(
+                            BitcoinAddress.Create(request.FromWalletAddress, SigningNetwork))))
                     throw new InvalidOperationException("This lock ID is already bound to a different Bitcoin deposit.");
                 return await PublishBitcoinEscrowReceiptAsync(previous);
             }
@@ -251,11 +254,24 @@ public partial class BitcoinOASIS : IOASISIdBoundTokenEscrowProvider
                 ["authentication"] = Convert.ToHexString(AuthenticateBitcoinEscrowReceipt(signer, id, json))
             }
         };
-        var conditions = new Dictionary<Guid, Guid?> { [id] = null };
-        var saved = await BitcoinEscrowReceipts.SaveHolonAsync(holon, receiptActor,
+        var transaction = Transaction.Parse(receipt.SignedTransaction, SigningNetwork);
+        var genesis = SigningNetwork.GetGenesis().GetHash();
+        var reservations = transaction.Inputs.Select(input => new Holon
+        {
+            Id = new Guid(SHA256.HashData(Encoding.UTF8.GetBytes(
+                $"{BitcoinEscrowRecordType}:input:{genesis}:{input.PrevOut}")).AsSpan(0, 16)),
+            Name = "Bitcoin escrow input reservation",
+            HolonType = HolonType.Custom,
+            CustomHolonType = "OASIS.BitcoinEscrow.Input.v1",
+            IsPublic = false,
+            MetaData = new Dictionary<string, object> { ["receiptId"] = id.ToString("D") }
+        }).Cast<IHolon>().Prepend(holon).ToArray();
+        var conditions = reservations.ToDictionary(row => row.Id, _ => (Guid?)null);
+        var saved = await BitcoinEscrowReceipts.SaveHolonsAsync(reservations, receiptActor,
             new CosmicWriteOptions(id, conditions), saveChildren: false, recursive: false, providerType: authority);
-        if (saved.IsError || !saved.IsSaved)
-            throw new InvalidOperationException("The Bitcoin escrow receipt was not reserved on its authority. Reconcile this lock ID before trying again.");
+        if (saved.IsError || !saved.IsSaved || saved.Result == null ||
+            !saved.Result.Select(row => row.Id).ToHashSet().SetEquals(conditions.Keys))
+            throw new InvalidOperationException("The Bitcoin escrow receipt and inputs were not atomically reserved. Reconcile this lock ID before trying again.");
     }
 
     private async Task<OASISResult<ITransactionResponse>> PublishBitcoinEscrowReceiptAsync(BitcoinEscrowReceipt receipt)
