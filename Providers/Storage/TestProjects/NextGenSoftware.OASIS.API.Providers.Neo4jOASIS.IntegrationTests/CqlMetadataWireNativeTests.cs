@@ -179,9 +179,23 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Assert.IsFalse(decimals.IsError, decimals.Message + decimals.Exception);
         CollectionAssert.AreEqual(new decimal?[] { 1.0000000000000000000000000001m, 1m, null },
             decimals.Result.ToArray());
+        async Task AssertIntegralDistinct<T>(string key, T firstValue, T secondValue) where T : struct
+        {
+            var values = await fixtureRows.OrderBy(row => row.Name)
+                .Select(row => CosmicQueryMetadata.Value<T?>(row, key))
+                .Distinct().ToCosmicListAsync();
+            Assert.IsFalse(values.IsError, values.Message + values.Exception);
+            CollectionAssert.AreEqual(new T?[] { firstValue, null, secondValue }, values.Result.ToArray());
+        }
+
+        await AssertIntegralDistinct("narrow", (byte)1, (byte)2);
+        await AssertIntegralDistinct("narrow", (sbyte)1, (sbyte)2);
+        await AssertIntegralDistinct("narrow", (short)1, (short)2);
+        await AssertIntegralDistinct("narrow", (ushort)1, (ushort)2);
+        await AssertIntegralDistinct("u32", uint.MaxValue, uint.MaxValue - 1);
         Assert.IsFalse(labels.IsError, labels.Message + labels.Exception);
         CollectionAssert.AreEqual(new string?[] { "case", null, "Case" }, labels.Result.ToArray());
 
-        checks.Add(new { provider = provider.ToString(), distinctWire = "native SQL and LINQ Int32, nullable Int64, Boolean, Guid, ordinal nullable String exact nullable UTC timestamps, nullable UInt64 and exact nullable Decimal" });
+        checks.Add(new { provider = provider.ToString(), distinctWire = "native SQL and LINQ Int32, nullable Int64, Boolean, Guid, ordinal nullable String exact nullable UTC timestamps, nullable UInt64, exact nullable Decimal and all narrower integral domains" });
     }
 }
