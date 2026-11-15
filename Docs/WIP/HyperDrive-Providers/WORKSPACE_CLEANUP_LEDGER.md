@@ -1404,3 +1404,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 15 November Cancun time. WEB4 dev dashboard smoke reused the enabled programmatic verification flow on the sandbox, generated temporary credentials in memory, and deleted its single registered fixture via its signed-in self-delete endpoint. Cleanup returned HTTP 200 with a true result. The earlier registration request rejected with HTTP 400 before creating a fixture because its terms field was omitted. No local credentials, database, build outputs or result files were retained.
 
 15 November Cancun time. Algorand mainnet job 132739950045 used read-only Indexer requests. No local runtime, build output, fixture database or test result file was created. Logs were inspected in memory.
+
+15 November Cancun time. The Algorand signed LocalNet run uses a hosted disposable runtime, virtual environment and compose fixture. The workflow owns their teardown. No local download, build output, credential file or test database was created.
