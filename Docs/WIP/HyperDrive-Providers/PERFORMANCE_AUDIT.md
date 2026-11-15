@@ -1,5 +1,7 @@
 # OPORTAL and HyperDrive performance audit
 
+15 November Cancun time. Signed Railway dev observed Stripe sandbox webhook activation in 3078 ms after the independent Stripe API created an active subscription. It returned the GBP 9 paid order and a valid authenticated Stripe billing portal session. This check used the actual Stripe webhook and WEB4 ledger. The earlier Stripe Checkout test covers session creation and expiry. A single browser journey tying Checkout submission, webhook and return together remains open.
+
 15 November Cancun time. Real signed WEB4 Stripe test Bronze checkout started in 863 ms and read back in 568 ms. Exact Stripe session metadata, subscription mode and GBP 9.00 matched. Checkout completion, webhook activation and authenticated billing management still require separate verification. Railway Files populated fixture verified four 4096-byte four-way round trips. The count payload was 313 bytes vs 2565 bytes for the list. Four count samples were 742–972 ms and list samples were 731–895 ms, so the samples do not show a latency gain.
 
 15 November Cancun time. A signed disposable Railway dev avatar returned HTTP 200 for subscriptions 411 ms / 65 bytes, usage 456 ms / 365 bytes, orders 510 ms / 56 bytes, and owner apps 647 ms / 285 bytes. These are single API samples on an empty account. Unknown checkout plan returned 400. The SDK loopback verified renewal/end dates, current plan propagation and errors for failed order reads.

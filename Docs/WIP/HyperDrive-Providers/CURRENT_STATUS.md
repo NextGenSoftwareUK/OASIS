@@ -1,5 +1,7 @@
 # Current provider status
 
+15 November Cancun time. A real Stripe sandbox payment created through the Stripe API exercised the enabled Railway dev webhook. WEB4 saved the exact active Bronze subscription, showed the GBP 9 paid order, and created an owned native billing portal session. Cancellation propagated to WEB4. Hosted browser Checkout form submission and browser return remain open after the automated launch was blocked before execution.
+
 15 November Cancun time. Signed Railway dev created a real Stripe test Bronze checkout at GBP 9.00, verified the session's owner, plan, pricing and open/inactive status, then expired it and removed the avatar. No charge was attempted. Portal e447629 stops confirmation on an expired session. WEB4 Files 49e4ba65a783 is serving and passed populated upload/download/count parity. The NFT request rerun 43702159216 exposed a test namespace collision, now corrected.
 
 15 November Cancun time. Signed Railway dev subscription, usage, orders and owner-app reads passed. Unknown checkout plan rejected with HTTP 400 before a Stripe call. OPORTAL 5ff7e5c shows trial and cancellation lifecycle, waits for current auth and separates order/API failures from empty accounts. Paid checkout, webhook and billing portal remain open end to end.
