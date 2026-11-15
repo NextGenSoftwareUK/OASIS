@@ -6,7 +6,7 @@ using NextGenSoftware.OASIS.API.Core.Queries;
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 
 /// <summary>An explicitly configured query-only representation. Its lifetime and
-/// activation are independent of the canonical wallet/provider provider registry.</summary>
+/// activation are independent of the canonical wallet and storage provider registry.</summary>
 public sealed class CqlReadSourceProfile : IDisposable
 {
     public IOASISProvider Provider { get; }

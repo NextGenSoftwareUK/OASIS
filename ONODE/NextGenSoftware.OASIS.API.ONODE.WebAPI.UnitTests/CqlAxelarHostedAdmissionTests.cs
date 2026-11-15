@@ -23,7 +23,7 @@ public class CqlAxelarHostedAdmissionTests
         using var profile = new CqlReadSourceProfile(source);
         var sourceRegistry = new CqlHostedSourceRegistry(new[] { profile });
         Assert.Same(source, sourceRegistry.Find(ProviderType.AxelarOASIS));
-        Assert.IsNotAssignableFrom<NextGenSoftware.OASIS.API.Core.Interfaces.IOASISStorageProvider>(source);
+        Assert.False((object)source is NextGenSoftware.OASIS.API.Core.Interfaces.IOASISStorageProvider);
 
         var admission = new PricedStorageAdmissionFactory(null, Array.Empty<NativeStorageAdmissionBinding>(),
             new[] { ProviderType.MongoDBOASIS },

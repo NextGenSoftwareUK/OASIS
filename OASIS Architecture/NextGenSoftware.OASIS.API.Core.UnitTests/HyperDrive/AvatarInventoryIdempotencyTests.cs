@@ -129,7 +129,7 @@ public sealed class AvatarInventoryIdempotencyTests
         return provider;
     }
 
-    private static AvatarManager CreateManager(IOASISProvider provider)
+    private static AvatarManager CreateManager(IOASISStorageProvider provider)
     {
         var dna = new OASISDNA
         {
