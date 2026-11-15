@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+15 November. SQL scalar alias qualification used disposable website test snapshots and one Git index, removed at exit. No new runtime, database or retained local build output.
+
 15 November. Both Atlas depth and edge-case probes executed database-level read-only aggregations over synthetic BSON documents. They created no database records. Temporary probe sources and builds were removed at exit. The existing SDK and cached MongoDB .NET libraries were reused through the local package cache.
 
 15 November. Scalar publication and grouped editor retest used two disposable website snapshots and one temporary Git index, removed at process exit. The superseded grouped verifier was stopped before fixture creation because the frontend source changed. The replacement waits for the same exact backend revision. No local database, runtime download or build outputs were created.
