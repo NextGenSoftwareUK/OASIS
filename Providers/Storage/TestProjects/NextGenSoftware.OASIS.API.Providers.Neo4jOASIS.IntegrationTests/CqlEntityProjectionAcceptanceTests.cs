@@ -30,12 +30,12 @@ public sealed partial class CqlProjectedAllAcceptanceTests
     private static Holon CreateEntityProjectionFixture(Guid[] ids,Guid actor,Guid other)
     {
         var root=new Holon{Id=ids[0],Name="protected source root",Description="Case",CreatedByAvatarId=actor,IsPublic=true,Version=1,
-            MetaData=new(){["i64"]=9007199254740993L,["narrow"]=1,["u32"]=uint.MaxValue,["distinctUtc"]=new DateTime(638700000000000001L,DateTimeKind.Utc),["u64"]=ulong.MaxValue,["decimal"]=1.0000000000000000000000000001m,["float"]=1f+1.1920929e-7f,["double"]=1d+2.220446049250313e-16d,["presentNull"]=null,["text"]="Café 😀"}};
+            MetaData=new(){["i64"]=9007199254740993L,["narrow"]=1,["u32"]=uint.MaxValue,["distinctHolonType"]=(int)HolonType.Avatar,["distinctProviderType"]=(int)ProviderType.MongoDBOASIS,["distinctUtc"]=new DateTime(638700000000000001L,DateTimeKind.Utc),["u64"]=ulong.MaxValue,["decimal"]=1.0000000000000000000000000001m,["float"]=1f+1.1920929e-7f,["double"]=1d+2.220446049250313e-16d,["presentNull"]=null,["text"]="Café 😀"}};
         root.Children.Add(new Holon{Id=ids[1],ParentHolonId=root.Id,Name="visible match",Description="Case",CreatedByAvatarId=actor,IsPublic=true,Version=1,
-            MetaData=new(){["i64"]=9007199254740992L,["narrow"]=2,["u32"]=uint.MaxValue-1,["u64"]=ulong.MaxValue-1,["decimal"]=1.00m,["distinctUtc"]=new DateTime(638700000000000002L,DateTimeKind.Utc)}});
+            MetaData=new(){["i64"]=9007199254740992L,["narrow"]=2,["u32"]=uint.MaxValue-1,["float"]=1f,["double"]=1d,["distinctHolonType"]=(int)HolonType.Quest,["distinctProviderType"]=(int)ProviderType.Neo4jOASIS,["u64"]=ulong.MaxValue-1,["decimal"]=1.00m,["distinctUtc"]=new DateTime(638700000000000002L,DateTimeKind.Utc)}});
         var branch=new Holon{Id=ids[2],ParentHolonId=root.Id,Name="private branch",Description=null,CreatedByAvatarId=other,Version=1};
         branch.Children.Add(new Holon{Id=ids[3],ParentHolonId=branch.Id,Name="grandchild one",Description="case",CreatedByAvatarId=other,IsPublic=true,Version=1,
-            MetaData=new(){["i64"]=9007199254740993L,["narrow"]=1,["u32"]=uint.MaxValue,["u64"]=ulong.MaxValue,["decimal"]=1.0000000000000000000000000001m,["distinctUtc"]=new DateTime(638700000000000001L,DateTimeKind.Utc)}});
+            MetaData=new(){["i64"]=9007199254740993L,["narrow"]=1,["u32"]=uint.MaxValue,["float"]=1f+1.1920929e-7f,["double"]=1d+2.220446049250313e-16d,["distinctHolonType"]=(int)HolonType.Avatar,["distinctProviderType"]=(int)ProviderType.MongoDBOASIS,["u64"]=ulong.MaxValue,["decimal"]=1.0000000000000000000000000001m,["distinctUtc"]=new DateTime(638700000000000001L,DateTimeKind.Utc)}});
         branch.Children.Add(new Holon{Id=ids[4],ParentHolonId=branch.Id,Name="grandchild two",Description=null,CreatedByAvatarId=other,IsPublic=true,Version=1,
             MetaData=new(){["decimal"]=1.000m}});
         root.Children.Add(branch);return root;

@@ -2,6 +2,7 @@ extern alias ShippingWeb4;
 
 using System.Text.Json;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Queries;
@@ -179,7 +180,7 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Assert.IsFalse(decimals.IsError, decimals.Message + decimals.Exception);
         CollectionAssert.AreEqual(new decimal?[] { 1.0000000000000000000000000001m, 1m, null },
             decimals.Result.ToArray());
-        async Task AssertIntegralDistinct<T>(string key, T firstValue, T secondValue) where T : struct
+        async Task AssertScalarDistinct<T>(string key, T firstValue, T secondValue) where T : struct
         {
             var values = await fixtureRows.OrderBy(row => row.Name)
                 .Select(row => CosmicQueryMetadata.Value<T?>(row, key))
@@ -188,14 +189,18 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             CollectionAssert.AreEqual(new T?[] { firstValue, null, secondValue }, values.Result.ToArray());
         }
 
-        await AssertIntegralDistinct("narrow", (byte)1, (byte)2);
-        await AssertIntegralDistinct("narrow", (sbyte)1, (sbyte)2);
-        await AssertIntegralDistinct("narrow", (short)1, (short)2);
-        await AssertIntegralDistinct("narrow", (ushort)1, (ushort)2);
-        await AssertIntegralDistinct("u32", uint.MaxValue, uint.MaxValue - 1);
+        await AssertScalarDistinct("narrow", (byte)1, (byte)2);
+        await AssertScalarDistinct("narrow", (sbyte)1, (sbyte)2);
+        await AssertScalarDistinct("narrow", (short)1, (short)2);
+        await AssertScalarDistinct("narrow", (ushort)1, (ushort)2);
+        await AssertScalarDistinct("u32", uint.MaxValue, uint.MaxValue - 1);
+        await AssertScalarDistinct("float", 1f + 1.1920929e-7f, 1f);
+        await AssertScalarDistinct("double", 1d + 2.220446049250313e-16d, 1d);
+        await AssertScalarDistinct("distinctHolonType", HolonType.Avatar, HolonType.Quest);
+        await AssertScalarDistinct("distinctProviderType", ProviderType.MongoDBOASIS, ProviderType.Neo4jOASIS);
         Assert.IsFalse(labels.IsError, labels.Message + labels.Exception);
         CollectionAssert.AreEqual(new string?[] { "case", null, "Case" }, labels.Result.ToArray());
 
-        checks.Add(new { provider = provider.ToString(), distinctWire = "native SQL and LINQ Int32, nullable Int64, Boolean, Guid, ordinal nullable String exact nullable UTC timestamps, nullable UInt64, exact nullable Decimal and all narrower integral domains" });
+        checks.Add(new { provider = provider.ToString(), distinctWire = "native SQL and LINQ Int32, nullable Int64, Boolean, Guid, ordinal nullable String exact nullable UTC timestamps, nullable UInt64, exact nullable Decimal all narrower integral domains, Single, Double, HolonType and ProviderType" });
     }
 }
