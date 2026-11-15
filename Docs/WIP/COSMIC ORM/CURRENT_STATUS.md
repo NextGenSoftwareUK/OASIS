@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Exact selected SQL result rendering
+
+15 November. Web4Site 09f7c17040a6 displays SQL NULL distinctly from an empty string in selected result tables. All 214 website tests passed; the controlled populated rendering case preserves the full Int64 and Decimal strings alongside NULL cells. [Protected preview 7805670363](https://web4-site-4nmzhzmpe-oasis-team.vercel.app/web4-sandbox.html) built. Signed-in hosted browser approval remains open and the Vercel connection still returns HTTP 403 for the OASIS team. Temporary browser test snapshots were removed.
+
 ## Default-comparer selected scalar Distinct meets Q52
 
 15 November. The native three-store step in [CI 43728756756](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43728756756) passed Single, Double, HolonType and ProviderType. Together with earlier evidence this covers every registered scalar key domain, and Q52 is marked verified on SQLite, MongoDB and Neo4j. Each provider now has 49 of 164 verified parity rows. The feature uses the existing native scalar domain registry. The full all-domain protocol run passed on exact 8b85f3d96a20. [Exact WEB4 image 43730307284](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43730307284) is queued. The smaller verified populated-grouping candidate retains its separate rollout gate; the all-domain live rollout remains open. MongoDB grouped Decimal SUM and AVG remain under investigation in [CI 43729435801](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43729435801).
