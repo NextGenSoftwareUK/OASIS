@@ -85,14 +85,16 @@ def run(node, wallet, handle, writer, outsider):
         assert base64.b64decode(box["name"], validate=True) == name
         return base64.b64decode(box["value"], validate=True)
 
-    def publication(sender, key, predecessor, revision, chunks, descriptor, hashes=None):
+    def publication(sender, key, predecessor, revision, chunks, descriptor, hashes=None, start=None):
         head = b"h" + key
         names = [chunk_name(key, revision, index) for index in range(len(chunks))]
-        stages = [call(sender, [b"stage", key, revision, index.to_bytes(8, "big"), chunk], [head, name])
+        target = [] if start is None else [(start + len(chunks)).to_bytes(8, "big")]
+        block = [] if start is None else [start.to_bytes(8, "big")]
+        stages = [call(sender, [b"stage", key, revision, index.to_bytes(8, "big"), chunk, *target], [head, name])
                   for index, (name, chunk) in enumerate(zip(names, chunks, strict=True))]
         if hashes is None:
             hashes = b"".join(digest(chunk) for chunk in chunks)
-        publish = call(writer, [b"publish", key, predecessor, revision, hashes, descriptor],
+        publish = call(writer, [b"publish", key, predecessor, revision, hashes, descriptor, *block],
                        [head, manifest_name(key, revision), b"d" + key, *names])
         return stages + [publish]
 
@@ -179,6 +181,37 @@ def run(node, wallet, handle, writer, outsider):
                 raise
         else:
             raise AssertionError("The application accepted a disallowed publication group")
+
+    if os.environ.get("OASIS_ALGORAND_GROUPED_CONTRACT_TEST") == "true":
+        other_key = secrets.token_bytes(32)
+        other_revision = secrets.token_bytes(32)
+        other_chunk = secrets.token_bytes(173)
+        other_descriptor = secrets.token_bytes(95)
+        legacy_key = secrets.token_bytes(32)
+        legacy_revision = secrets.token_bytes(32)
+        submit_group(publication(writer, legacy_key, absent, legacy_revision, [other_chunk], other_descriptor))
+        assert read(b"h" + legacy_key) == legacy_revision + absent + absent + digest(other_chunk)
+        before = node.application_boxes(app)["boxes"]
+
+        def grouped(other_predecessor):
+            left = publication(writer, key, absent, first_revision, chunks, descriptor, start=0)
+            right = publication(writer, other_key, other_predecessor, other_revision, [other_chunk],
+                                other_descriptor, start=len(left))
+            return left + right
+
+        misdirected = grouped(absent)
+        misdirected[0].app_args[-1] = (len(misdirected) - 1).to_bytes(8, "big")
+        reject_group(misdirected)
+        assert node.application_boxes(app)["boxes"] == before
+        reject_group(grouped(secrets.token_bytes(32)))
+        assert node.application_boxes(app)["boxes"] == before
+        submit_group(grouped(absent))
+        assert read(head) == first_revision + absent + absent + hashes
+        assert read(b"h" + other_key) == other_revision + absent + absent + digest(other_chunk)
+        assert read(descriptor_name) == descriptor
+        assert read(b"d" + other_key) == other_descriptor
+        print("Native grouped publication committed both records and rolled back both when the later predecessor failed.")
+        return
 
     reject_group(publication(outsider, key, absent, first_revision, chunks, descriptor))
     reject_group(publication(writer, key, absent, first_revision, chunks, descriptor, bytes(len(hashes))))

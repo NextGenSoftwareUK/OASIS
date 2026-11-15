@@ -42,8 +42,12 @@ int 0
 ==
 return
 
-// stage(key, revision, index, encryptedChunk)
+// stage(key, revision, index, encryptedChunk[, publishIndex])
 stage:
+txn NumAppArgs
+int 6
+==
+bnz explicit_stage_target
 txn NumAppArgs
 int 5
 ==
@@ -52,6 +56,42 @@ global GroupSize
 int 1
 -
 store 9
+load 9
+gtxns NumAppArgs
+int 6
+==
+assert
+b check_stage_target
+
+explicit_stage_target:
+txna ApplicationArgs 5
+len
+int 8
+==
+assert
+txna ApplicationArgs 5
+btoi
+dup
+global GroupSize
+<
+assert
+store 9
+load 9
+gtxns NumAppArgs
+int 7
+==
+assert
+load 9
+gtxnsa ApplicationArgs 6
+btoi
+txna ApplicationArgs 3
+btoi
++
+txn GroupIndex
+==
+assert
+
+check_stage_target:
 txn GroupIndex
 load 9
 <
@@ -137,12 +177,41 @@ box_put
 int 1
 return
 
-// publish(key, expected head digest, revision, chunk digests, encrypted identity)
+// publish(key, expected head digest, revision, chunk digests, encrypted identity[, firstStageIndex])
 publish:
+txn NumAppArgs
+int 7
+==
+bnz explicit_publish_block
 txn NumAppArgs
 int 6
 ==
 assert
+txn GroupIndex
+int 1
++
+global GroupSize
+==
+assert
+int 0
+store 8
+b check_publish_block
+
+explicit_publish_block:
+txna ApplicationArgs 6
+len
+int 8
+==
+assert
+txna ApplicationArgs 6
+btoi
+dup
+txn GroupIndex
+<
+assert
+store 8
+
+check_publish_block:
 txna ApplicationArgs 2
 len
 int 32
@@ -172,13 +241,9 @@ int 5
 <=
 assert
 dup
-txn GroupIndex
-==
-assert
-txn GroupIndex
-int 1
+load 8
 +
-global GroupSize
+txn GroupIndex
 ==
 assert
 store 2
