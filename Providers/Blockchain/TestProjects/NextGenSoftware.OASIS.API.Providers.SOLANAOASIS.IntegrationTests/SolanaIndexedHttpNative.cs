@@ -417,7 +417,7 @@ public partial class SolanaIndexedQueryNative
 
     private sealed class NoNativeHttpProviders : ICqlV1Providers
     {
-        public IOASISStorageProvider Resolve(ProviderType? requested) => throw new AssertFailedException("Indexed HTTP must use its frozen source/index binding.");
-        public HolonManager CreateManager(IOASISStorageProvider provider) => throw new AssertFailedException("Use the frozen server manager.");
+        public IOASISProvider Resolve(ProviderType? requested) => throw new AssertFailedException("Indexed HTTP must use its frozen source/index binding.");
+        public HolonManager CreateManager(IOASISProvider provider) => throw new AssertFailedException("Use the frozen server manager.");
     }
 }

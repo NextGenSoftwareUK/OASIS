@@ -44,13 +44,13 @@ public sealed partial class CqlV1Web4NativeTests
     private sealed class ShippingQuerySources(Dictionary<ProviderType, IOASISStorageProvider> providers, ProviderType selected) : ShippingProviders
     {
         public int Lookups;
-        public IOASISStorageProvider Resolve(ProviderType? requested)
+        public IOASISProvider Resolve(ProviderType? requested)
         {
             Lookups++;
             Assert.IsTrue(requested == null || requested == selected);
             return providers[selected];
         }
-        public HolonManager CreateManager(IOASISStorageProvider storage) => new Sources(providers).CreateManager(storage);
+        public HolonManager CreateManager(IOASISProvider storage) => new Sources(providers).CreateManager(storage);
     }
 
     private sealed class ShippingReadPolicy(Guid expectedActor, ProviderType expectedAuthority, Guid[] ids) : ShippingPolicy

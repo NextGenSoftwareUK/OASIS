@@ -30,9 +30,9 @@ public sealed partial class CqlV1Web4NativeTests
         internal bool Encrypted, WrongKey;
         internal static EncryptionSettings Encryption(bool wrong = false) => new()
         { Rijndael256EncryptionEnabled = true, Rijndael256Key = new string(wrong ? 'w' : 'e', 32) };
-        public IOASISStorageProvider Resolve(ProviderType? requested)
+        public IOASISProvider Resolve(ProviderType? requested)
         { Lookups++; return providers[requested ?? Default]; }
-        public HolonManager CreateManager(IOASISStorageProvider storage)
+        public HolonManager CreateManager(IOASISProvider storage)
         {
             var manager = new Sources(providers).CreateManager(storage);
             if (Encrypted) manager.OASISDNA.OASIS.Security = new SecuritySettings { HolonDataEncryption = Encryption(WrongKey) };
