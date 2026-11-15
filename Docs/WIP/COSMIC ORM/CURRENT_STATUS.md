@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Browser policy qualified alongside Algorand
+
+15 November. Browser-policy candidate fa2a6d115cce passed exact protocol CI 43745144155. Combined source ea42fa05130f retains the 18 HyperDrive Algorand paths from b4fb83823a9b byte-for-byte and adds only the three WEB4 browser-policy files. [Combined protocol](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43746779526) and [exact WEB4 image](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43746781696) are active. Development continues to serve the verified Decimal rollout dc24072806f6. Release review depends on live shared branch state and the deployment window. The protected browser walkthrough also needs the dedicated Development hostname. Temporary indexes were removed.
+
 ## Native nullable aggregate HAVING checks
 
 15 November. Web4Site f512a3327c6d accepts IS NULL, IS NOT NULL and null-safe ordinary inequality on nullable numeric aggregate aliases. All 226 website tests passed. On Development dc24072806f6, the exact SQL selected the empty AVG group for IS NULL and only the populated group for IS NOT NULL and inequality on MongoDB, SQLite and Neo4j. Nine client-to-HTTP samples ranged from 533 to 1093 ms. All six private fixture records were deleted and checked absent by exact ID. [Protected preview](https://web4-site-n8lg9jj4c-oasis-team.vercel.app/web4-sandbox.html)
