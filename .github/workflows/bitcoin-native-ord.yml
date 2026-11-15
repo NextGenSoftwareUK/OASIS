@@ -43,7 +43,7 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
-      - name: Verify a signed Ordinals transfer on Bitcoin regtest
+      - name: Verify signed Ordinals transfer and burn on Bitcoin regtest
         shell: bash
         run: |
           set -euo pipefail
@@ -104,7 +104,10 @@ jobs:
           # This public BIP86 test vector is paired with disposable test private scalar 1.
           descriptor="$(bitcoin getdescriptorinfo 'tr(79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798)' | jq -er .descriptor)"
           source="$(bitcoin deriveaddresses "$descriptor" | jq -er '.[0]')"
+          burn_descriptor="$(bitcoin getdescriptorinfo 'tr(c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5)' | jq -er .descriptor)"
+          recipient="$(bitcoin deriveaddresses "$burn_descriptor" | jq -er '.[0]')"
           bitcoin -rpcwallet=ord -named sendtoaddress address="$source" amount=0.01 fee_rate=2 >/dev/null
+          bitcoin -rpcwallet=ord -named sendtoaddress address="$recipient" amount=0.01 fee_rate=2 >/dev/null
           bitcoin generatetoaddress 1 "$miner" >/dev/null
           printf 'OASIS Ordinals native qualification\n' > "$owned/record.txt"
           # The disposable wallet and its chain are deleted after the test.
@@ -124,7 +127,10 @@ jobs:
           export OASIS_BITCOIN_REGTEST_API=http://127.0.0.1:3002
           export OASIS_BITCOIN_ORD_INSCRIPTION="$inscription"
           export OASIS_BITCOIN_ORD_OWNER="$source"
-          export OASIS_BITCOIN_ORD_RECIPIENT="$(wallet receive | jq -er '.addresses[0]')"
+          export OASIS_BITCOIN_ORD_RECIPIENT="$recipient"
+          export OASIS_BITCOIN_CORE_RPC_URL="http://127.0.0.1:$rpc_port"
+          export OASIS_BITCOIN_CORE_RPC_AUTH="cookiefile=$owned/chain/regtest/.cookie"
+          export OASIS_BITCOIN_ORD_MINER="$miner"
           tip="$(bitcoin getbestblockhash)"
           ready=false
           for attempt in {1..60}; do
@@ -161,3 +167,13 @@ jobs:
             sleep 1
           done
           test "$ownership" = true
+          tip="$(bitcoin getbestblockhash)"
+          for attempt in {1..60}; do
+            if [[ "$(curl -fsS "$OASIS_BITCOIN_REGTEST_API/blocks/tip/hash")" = "$tip" ]]; then break; fi
+            sleep 1
+          done
+          test "$(curl -fsS "$OASIS_BITCOIN_REGTEST_API/blocks/tip/hash")" = "$tip"
+          dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests" \
+            --no-build --no-restore --filter "FullyQualifiedName~OrdRegtestBurnsOnlyInscribedSatoshi" /m:2 /nr:false /p:UseSharedCompilation=false
+          curl -fsS -H 'Accept: application/json' "$OASIS_BITCOIN_ORD_API/inscription/$inscription" |
+            jq -e '.address == null and (.charms | index("burned") != null)' >/dev/null

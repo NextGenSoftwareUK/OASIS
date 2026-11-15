@@ -7,6 +7,8 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading.Tasks;
 using NBitcoin;
+using NBitcoin.RPC;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
@@ -75,6 +77,9 @@ public partial class BitcoinOASIS
                 ["Satpoint"] = inscription.GetProperty("satpoint").GetString(),
                 ["ContentUrl"] = new Uri(client.BaseAddress, "content/" + inscriptionId).AbsoluteUri
             };
+            foreach (var charm in inscription.GetProperty("charms").EnumerateArray())
+                if (charm.GetString() == "burned")
+                    metadata["Burned"] = "true";
             if (inscription.GetProperty("address").GetString() is string owner)
                 metadata["CurrentOwnerAddress"] = BitcoinAddress.Create(owner, SigningNetwork).ToString();
             if (inscription.GetProperty("content_type").GetString() is string contentType)
@@ -100,41 +105,39 @@ public partial class BitcoinOASIS
         return result;
     }
 
-    private async Task<OASISResult<IWeb3NFTTransactionResponse>> SendOrdinalInscriptionAsync(ISendWeb3NFTRequest request)
+    private Task<OASISResult<IWeb3NFTTransactionResponse>> SendOrdinalInscriptionAsync(ISendWeb3NFTRequest request)
+    {
+        var identifier = request?.FromNFTTokenAddress;
+        if (string.IsNullOrWhiteSpace(identifier))
+            identifier = string.IsNullOrWhiteSpace(request?.TokenAddress) ? request?.TokenId : request.TokenAddress;
+        return MoveOrdinalInscriptionAsync(identifier, request?.FromWalletAddress, request?.ToWalletAddress,
+            request?.OwnerPrivateKey, request?.OwnerSeedPhrase, request?.MemoText, burn: false);
+    }
+
+    private async Task<OASISResult<IWeb3NFTTransactionResponse>> MoveOrdinalInscriptionAsync(string identifier,
+        string sourceAddress, string recipientAddress, string privateKey, string seedPhrase, string memo, bool burn)
     {
         var result = new OASISResult<IWeb3NFTTransactionResponse>();
         try
         {
-            if (request == null || string.IsNullOrWhiteSpace(request.FromWalletAddress) ||
-                string.IsNullOrWhiteSpace(request.ToWalletAddress))
-                throw new ArgumentException("The Bitcoin inscription transfer requires a source and destination address.");
+            if (string.IsNullOrWhiteSpace(identifier) ||
+                (!burn && (string.IsNullOrWhiteSpace(sourceAddress) || string.IsNullOrWhiteSpace(recipientAddress))))
+                throw new ArgumentException("The inscription ID is required. Transfers also require a source and destination address.");
 
             if (!_isActivated)
             {
                 var activation = await ActivateProviderAsync();
                 if (activation.IsError)
-                    throw new InvalidOperationException("Could not activate the Bitcoin provider for the inscription transfer.");
+                    throw new InvalidOperationException("Could not activate the Bitcoin provider for the inscription transaction.");
             }
 
             var network = SigningNetwork;
-            var source = BitcoinAddress.Create(request.FromWalletAddress, network);
-            var recipient = BitcoinAddress.Create(request.ToWalletAddress, network);
-            var signer = new BitcoinSecret(ResolveWalletSigningKey(request.OwnerPrivateKey, request.OwnerSeedPhrase), network);
-            var wrappedSegwit = source.Equals(signer.GetAddress(ScriptPubKeyType.SegwitP2SH));
-            if (!wrappedSegwit && !source.Equals(signer.GetAddress(ScriptPubKeyType.Legacy)) &&
-                !source.Equals(signer.GetAddress(ScriptPubKeyType.Segwit)) &&
-                !source.Equals(signer.GetAddress(ScriptPubKeyType.TaprootBIP86)))
-                throw new ArgumentException("The Bitcoin inscription source must belong to the signing key.");
-
             if (!uint256.TryParse((await _httpClient.GetStringAsync("block-height/0")).Trim(), out var genesis) ||
                 genesis != network.GetGenesis().GetHash())
                 throw new InvalidOperationException("Esplora is serving a different Bitcoin network.");
 
             using var ord = CreateOrdClient();
             var tip = await ReadSharedOrdinalTipAsync(ord);
-            var identifier = request.FromNFTTokenAddress;
-            if (string.IsNullOrWhiteSpace(identifier))
-                identifier = string.IsNullOrWhiteSpace(request.TokenAddress) ? request.TokenId : request.TokenAddress;
             var inscription = await ReadOrdinalInscriptionAsync(identifier, ord);
             if (inscription.IsError)
             {
@@ -142,6 +145,22 @@ public partial class BitcoinOASIS
                 OASISErrorHandling.HandleError(ref result, inscription.Message);
                 return result;
             }
+
+            if (!inscription.Result.MetaData.TryGetValue("CurrentOwnerAddress", out var indexedOwner))
+                throw new InvalidOperationException("The inscription has no spendable indexed owner.");
+            if (burn && string.IsNullOrWhiteSpace(privateKey) && string.IsNullOrWhiteSpace(seedPhrase))
+                throw new ArgumentException("A Bitcoin inscription burn requires the owner signing key.");
+
+            var source = BitcoinAddress.Create(burn ? indexedOwner : sourceAddress, network);
+            var destination = burn
+                ? new Script(new byte[] { 0x6a, 0x00, 0x02, 0x00, 0x00 })
+                : BitcoinAddress.Create(recipientAddress, network).ScriptPubKey;
+            var signer = new BitcoinSecret(ResolveWalletSigningKey(privateKey, seedPhrase), network);
+            var wrappedSegwit = source.Equals(signer.GetAddress(ScriptPubKeyType.SegwitP2SH));
+            if (!wrappedSegwit && !source.Equals(signer.GetAddress(ScriptPubKeyType.Legacy)) &&
+                !source.Equals(signer.GetAddress(ScriptPubKeyType.Segwit)) &&
+                !source.Equals(signer.GetAddress(ScriptPubKeyType.TaprootBIP86)))
+                throw new ArgumentException("The Bitcoin inscription source must belong to the signing key.");
 
             var satpoint = inscription.Result.MetaData["Satpoint"]?.Split(':');
             if (satpoint == null || satpoint.Length != 3 || !uint256.TryParse(satpoint[0], out var txid) ||
@@ -152,9 +171,12 @@ public partial class BitcoinOASIS
             var inscribedOutpoint = new OutPoint(txid, vout);
             var inscribedCoin = await ReadOrdinalCoinAsync(ord, inscribedOutpoint, source, signer, wrappedSegwit, inscription.Result.TokenId);
             if (inscribedCoin == null || offset >= inscribedCoin.TxOut.Value.Satoshi)
-                throw new InvalidOperationException("The source output cannot transfer this inscription independently.");
+                throw new InvalidOperationException("The source output cannot move this inscription independently.");
 
             var feeRate = await ReadBitcoinPaymentFeeRateAsync();
+            var prefix = new TxOut(Money.Satoshis(offset), source.ScriptPubKey);
+            var requiresPadding = burn && offset > 0 && prefix.IsDust();
+            Coin padding = null;
             using var utxos = JsonDocument.Parse(await _httpClient.GetStringAsync($"address/{source}/utxo"));
             foreach (var utxo in utxos.RootElement.EnumerateArray())
             {
@@ -170,13 +192,32 @@ public partial class BitcoinOASIS
                 if (feeCoin == null)
                     continue;
 
+                if (requiresPadding && padding == null)
+                {
+                    if (prefix.Value + feeCoin.TxOut.Value >= prefix.GetDustThreshold())
+                        padding = feeCoin;
+                    continue;
+                }
+
                 var builder = network.CreateTransactionBuilder().AddCoins(inscribedCoin, feeCoin).AddKeys(signer.PrivateKey);
                 var transaction = network.CreateTransaction();
-                // Ordinal satoshis are assigned in input/output order. Preserve the full inscription output value.
+                if (padding != null)
+                {
+                    builder.AddCoins(padding);
+                    transaction.Inputs.Add(padding.Outpoint);
+                }
                 transaction.Inputs.Add(inscribedCoin.Outpoint);
                 transaction.Inputs.Add(feeCoin.Outpoint);
-                transaction.Outputs.Add(inscribedCoin.TxOut.Value, recipient.ScriptPubKey);
-                var change = transaction.Outputs.Add(feeCoin.TxOut.Value, source.ScriptPubKey);
+
+                // Input/output order determines the satoshi destination. A burn sends exactly one satoshi to OP_RETURN.
+                if (burn && offset > 0)
+                    transaction.Outputs.Add(prefix.Value + (padding?.TxOut.Value ?? Money.Zero), source.ScriptPubKey);
+                transaction.Outputs.Add(burn ? Money.Satoshis(1) : inscribedCoin.TxOut.Value, destination);
+
+                var changeAmount = feeCoin.TxOut.Value;
+                if (burn)
+                    changeAmount += inscribedCoin.TxOut.Value - Money.Satoshis(offset + 1);
+                var change = transaction.Outputs.Add(changeAmount, source.ScriptPubKey);
                 var fee = builder.EstimateFees(transaction, feeRate);
                 if (fee >= change.Value)
                     continue;
@@ -188,9 +229,11 @@ public partial class BitcoinOASIS
                 if (!builder.Verify(transaction))
                     continue;
                 if (await ReadSharedOrdinalTipAsync(ord) != tip)
-                    throw new InvalidOperationException("The Bitcoin chain advanced during inscription transfer preparation. Recheck the indexed inputs.");
+                    throw new InvalidOperationException("The Bitcoin chain advanced during inscription transaction preparation. Recheck the indexed inputs.");
 
-                var sent = await BroadcastSignedBitcoinAsync(transaction, request.MemoText);
+                var sent = burn
+                    ? await BroadcastOrdinalBurnAsync(transaction, tip)
+                    : await BroadcastSignedBitcoinAsync(transaction, memo);
                 foreach (var entry in sent.MetaData)
                     result.MetaData[entry.Key] = entry.Value;
                 if (sent.IsError)
@@ -200,22 +243,69 @@ public partial class BitcoinOASIS
                     return result;
                 }
 
-                inscription.Result.SendNFTTransactionHash = sent.Result.TransactionResult;
+                var transactionId = sent.Result.TransactionResult;
+                if (burn)
+                    inscription.Result.MetaData["BurnTransactionId"] = transactionId;
+                else
+                    inscription.Result.SendNFTTransactionHash = transactionId;
                 result.Result = new Web3NFTTransactionResponse
                 {
-                    TransactionResult = sent.Result.TransactionResult,
-                    SendNFTTransactionResult = sent.Result.TransactionResult,
+                    TransactionResult = transactionId,
+                    SendNFTTransactionResult = burn ? null : transactionId,
                     Web3NFT = inscription.Result
                 };
                 return result;
             }
 
-            throw new InvalidOperationException("No confirmed inscription-free and rune-free output from the signing address could pay the network fee.");
+            throw new InvalidOperationException("The signing address has insufficient confirmed inscription-free and rune-free funding.");
         }
         catch (Exception ex)
         {
             OASISErrorHandling.HandleError(ref result, ex is ArgumentException or InvalidOperationException
-                ? ex.Message : $"Bitcoin inscription transfer failed ({ex.GetType().Name}).");
+                ? ex.Message : $"Bitcoin inscription transaction failed ({ex.GetType().Name}).");
+        }
+
+        return result;
+    }
+
+    private async Task<OASISResult<ITransactionResponse>> BroadcastOrdinalBurnAsync(Transaction transaction, uint256 tip)
+    {
+        var endpoint = Environment.GetEnvironmentVariable("OASIS_BITCOIN_CORE_RPC_URL");
+        var credentials = Environment.GetEnvironmentVariable("OASIS_BITCOIN_CORE_RPC_AUTH");
+        if (!Uri.TryCreate(endpoint, UriKind.Absolute, out var address) ||
+            (address.Scheme != Uri.UriSchemeHttps && !(address.Scheme == Uri.UriSchemeHttp && address.IsLoopback)) ||
+            address.UserInfo.Length != 0 || address.Query.Length != 0 || address.Fragment.Length != 0 ||
+            string.IsNullOrWhiteSpace(credentials))
+            throw new InvalidOperationException("Bitcoin Ordinals burns require a protected Bitcoin Core RPC endpoint and credentials.");
+
+        using var transport = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false })
+        {
+            Timeout = TimeSpan.FromSeconds(30)
+        };
+        var core = new RPCClient(credentials, address, SigningNetwork) { HttpClient = transport };
+        if (await core.GetBestBlockHashAsync() != tip)
+            throw new InvalidOperationException("Bitcoin Core does not have the same chain tip as ord and Esplora.");
+
+        var result = new OASISResult<ITransactionResponse>();
+        var transactionId = transaction.GetHash();
+        result.MetaData[BitcoinTransactionIdMetadataKey] = transactionId.ToString();
+        try
+        {
+            // Core defaults to refusing burns. Authorize exactly one satoshi, with its default fee-rate limit.
+            var receipt = await core.SendCommandAsync("sendrawtransaction", transaction.ToHex(), 0.10m, 0.00000001m);
+            if (!uint256.TryParse(receipt.Result?.ToString(), out var accepted) || accepted != transactionId)
+                throw new InvalidOperationException("Bitcoin Core returned an unexpected burn transaction ID.");
+
+            result.Result = new BitcoinTransactionResponse { TransactionResult = transactionId.ToString() };
+        }
+        catch (RPCException ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Bitcoin Core rejected burn {transactionId} ({ex.RPCCode}).");
+        }
+        catch (Exception ex)
+        {
+            result.ErrorCode = BitcoinBroadcastOutcomeUnknown;
+            OASISErrorHandling.HandleError(ref result, $"Bitcoin Core did not acknowledge burn {transactionId} ({ex.GetType().Name}).");
         }
 
         return result;
@@ -226,7 +316,7 @@ public partial class BitcoinOASIS
         using var status = JsonDocument.Parse(await ord.GetStringAsync("status"));
         if (!status.RootElement.GetProperty("rune_index").GetBoolean() ||
             status.RootElement.GetProperty("unrecoverably_reorged").GetBoolean())
-            throw new InvalidOperationException("Bitcoin inscription transfers require a healthy ord server with Rune indexing enabled.");
+            throw new InvalidOperationException("Bitcoin inscription transactions require a healthy ord server with Rune indexing enabled.");
 
         var ordTip = await ord.GetFromJsonAsync<string>("r/blockhash");
         var esploraTip = (await _httpClient.GetStringAsync("blocks/tip/hash")).Trim();

@@ -158,81 +158,46 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
 
         public async Task<OASISResult<IWeb3NFTTransactionResponse>> BurnNFTAsync(IBurnWeb3NFTRequest request)
         {
-            var result = new OASISResult<IWeb3NFTTransactionResponse>();
+            if (request?.WaitTillNFTBurnt == true &&
+                (request.WaitForNFTToBurnInSeconds <= 0 || request.AttemptToBurnEveryXSeconds <= 0))
+            {
+                var invalid = new OASISResult<IWeb3NFTTransactionResponse>();
+                OASISErrorHandling.HandleError(ref invalid, "Bitcoin burn confirmation requires a positive timeout and polling interval.");
+                return invalid;
+            }
+
+            var identifier = string.IsNullOrWhiteSpace(request?.TokenId) ? request?.NFTTokenAddress : request.TokenId;
+            var result = await MoveOrdinalInscriptionAsync(identifier, null, null, request?.OwnerPrivateKey, request?.OwnerSeedPhrase,
+                null, burn: true);
+            if (result.IsError || request?.WaitTillNFTBurnt != true)
+                return result;
+
+            var transactionId = result.Result.TransactionResult;
+            using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(request.WaitForNFTToBurnInSeconds));
             try
             {
-                if (!_isActivated)
+                while (!timeout.IsCancellationRequested)
                 {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
+                    var observed = await ReadOrdinalInscriptionAsync(identifier).WaitAsync(timeout.Token);
+                    if (!observed.IsError &&
+                        observed.Result.MetaData.TryGetValue("Burned", out var burned) && burned == "true" &&
+                        observed.Result.MetaData["Satpoint"].StartsWith(transactionId + ":", StringComparison.Ordinal))
                     {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Bitcoin provider: {activateResult.Message}");
+                        observed.Result.MetaData["BurnTransactionId"] = transactionId;
+                        result.Result.Web3NFT = observed.Result;
                         return result;
                     }
-                }
 
-                if (request == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Invalid NFT burn request");
-                    return result;
-                }
-
-                // Bitcoin NFT burning using OP_RETURN
-                // Store NFT burn data in OP_RETURN transaction
-                var nftBurnData = new
-                {
-                    type = "nft_burn",
-                    nft_id = request.Web3NFTId.ToString(),
-                    token_address = request.NFTTokenAddress ?? "",
-                    timestamp = DateTime.UtcNow.ToString("O")
-                };
-
-                var nftJson = JsonSerializer.Serialize(nftBurnData);
-                var nftBytes = Encoding.UTF8.GetBytes(nftJson);
-
-                // Create Bitcoin transaction with OP_RETURN containing NFT burn data
-                var rpcRequest = new
-                {
-                    jsonrpc = "2.0",
-                    id = 1,
-                    method = "createrawtransaction",
-                    @params = new object[]
-                    {
-                        new object[0],
-                        new Dictionary<string, object>
-                        {
-                            ["data"] = Convert.ToHexString(nftBytes)
-                        }
-                    }
-                };
-
-                var content = new StringContent(JsonSerializer.Serialize(rpcRequest), Encoding.UTF8, "application/json");
-                var response = await _httpClient.PostAsync("", content);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var responseContent = await response.Content.ReadAsStringAsync();
-                    var txData = JsonSerializer.Deserialize<JsonElement>(responseContent);
-                    
-                    var txHash = txData.TryGetProperty("result", out var txResult) ? txResult.GetString() : "";
-
-                    result.Result = new Web3NFTTransactionResponse
-                    {
-                        TransactionResult = txHash ?? "",
-                        Web3NFT = new Web3NFT { MintTransactionHash = txHash }
-                    };
-                    result.IsError = false;
-                    result.Message = "NFT burned successfully via Bitcoin OP_RETURN";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to create NFT burn transaction: {response.StatusCode}");
+                    await Task.Delay(TimeSpan.FromSeconds(request.AttemptToBurnEveryXSeconds), timeout.Token);
                 }
             }
-            catch (Exception ex)
+            catch (OperationCanceledException) when (timeout.IsCancellationRequested)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error burning NFT via Bitcoin: {ex.Message}", ex);
+                // The acknowledged transaction ID remains available for subsequent confirmation.
             }
+
+            result.ErrorCode = "BITCOIN_CONFIRMATION_PENDING";
+            OASISErrorHandling.HandleError(ref result, $"Bitcoin Core acknowledged burn {transactionId}. Its confirmation is still pending.");
             return result;
         }
 

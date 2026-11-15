@@ -1,7 +1,9 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NBitcoin;
+using NBitcoin.RPC;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
 
 namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests;
@@ -73,5 +75,59 @@ public class BitcoinOASISOrdinalsIntegrationTests
         Assert.IsTrue(uint256.TryParse(transferred.Result.TransactionResult, out _));
         Assert.AreEqual(inscription, transferred.Result.Web3NFT.TokenId);
         Assert.AreEqual(transferred.Result.TransactionResult, transferred.Result.Web3NFT.SendNFTTransactionHash);
+    }
+
+    [TestMethod]
+    public async Task OrdRegtestBurnsOnlyInscribedSatoshi()
+    {
+        var api = Environment.GetEnvironmentVariable("OASIS_BITCOIN_REGTEST_API");
+        var inscription = Environment.GetEnvironmentVariable("OASIS_BITCOIN_ORD_INSCRIPTION");
+        var miner = Environment.GetEnvironmentVariable("OASIS_BITCOIN_ORD_MINER");
+        var endpoint = new Uri(Environment.GetEnvironmentVariable("OASIS_BITCOIN_CORE_RPC_URL"));
+        Assert.IsTrue(endpoint.IsLoopback);
+        var credentials = Environment.GetEnvironmentVariable("OASIS_BITCOIN_CORE_RPC_AUTH");
+        var core = new RPCClient(credentials, endpoint, Network.RegTest);
+
+        // Public test vector used on the disposable regtest chain only.
+        var privateScalar = new byte[32];
+        privateScalar[31] = 2;
+        using var signer = new Key(privateScalar);
+        using var provider = new BitcoinOASIS(api, "regtest", "", null, 2);
+        var request = new BurnWeb3NFTRequest
+        {
+            TokenId = inscription,
+            OwnerPublicKey = "",
+            OwnerPrivateKey = signer.GetWif(Network.RegTest).ToString(),
+            OwnerSeedPhrase = "",
+            WaitTillNFTBurnt = true,
+            WaitForNFTToBurnInSeconds = 40,
+            AttemptToBurnEveryXSeconds = 1
+        };
+        var burn = provider.BurnNFTAsync(request);
+        uint256[] pool = Array.Empty<uint256>();
+        for (var attempt = 0; attempt < 30 && !burn.IsCompleted; attempt++)
+        {
+            pool = await core.GetRawMempoolAsync();
+            if (pool.Length != 0)
+                break;
+            await Task.Delay(TimeSpan.FromSeconds(1));
+        }
+
+        if (pool.Length == 0 && burn.IsCompleted)
+        {
+            var failure = await burn;
+            Assert.Fail(failure.Message);
+        }
+
+        Assert.AreEqual(1, pool.Length);
+        var transaction = await core.GetRawTransactionAsync(pool[0]);
+        var output = transaction.Outputs.Single(output => output.ScriptPubKey.IsUnspendable);
+        Assert.AreEqual(Money.Satoshis(1), output.Value);
+        await core.SendCommandAsync("generatetoaddress", 1, miner);
+        var burned = await burn;
+        Assert.IsFalse(burned.IsError, burned.Message);
+        Assert.AreEqual(pool[0].ToString(), burned.Result.TransactionResult);
+        Assert.AreEqual("true", burned.Result.Web3NFT.MetaData["Burned"]);
+        Assert.IsFalse(burned.Result.Web3NFT.MetaData.ContainsKey("CurrentOwnerAddress"));
     }
 }
