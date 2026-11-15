@@ -1,5 +1,7 @@
 # Current provider status
 
+15 November Cancun time. Development advanced from serving d79168a14607 to 4c842fc2ceba after the 30-minute window. Railway queued WEB4 deployment 09e65c7d-46c2-4d3e-90a3-13e4916b2ba8 for the verified Gifts lifecycle, compact Gifts summary, and Checkout fragment fixes. The hosted checks remain open. Separate Stripe catalogue cache regression 43714069040 passed one test with no skips and remains on the task branch.
+
 15 November Cancun time. The WEB4 subscription plan price reader now shares validated Stripe price reads for 30 seconds per configured price and Stripe account. Concurrent catalogue opens share a refresh. Changing the configured price ID or Stripe account invalidates the cached value immediately. Checkout uses the native Stripe path. Focused cache verification and serving timing are pending.
 
 15 November Cancun time. OPORTAL dev be551234c06b passed Vercel deployment and serves dashboard 20261115e. The deployed dashboard and bundled SDK used a disposable signed-in WEB4 avatar. Opening the dashboard twice produced one compact request each for Files, Wallets and Messages. All three returned HTTP 200 and showed zero for the empty avatar. The fixture was deleted. The browser DOM was controlled, and the backend requests were real.

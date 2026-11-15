@@ -1,5 +1,7 @@
 # OPORTAL and HyperDrive performance audit
 
+15 November Cancun time. Stripe catalogue cache run 43714069040 used the shipping Stripe SDK over a controlled transport. Concurrent readers issued one price request. Expiry, a changed price ID, and a changed account key each issued a new request. A live WEB4 timing comparison remains open.
+
 15 November Cancun time. The serving WEB4 dev plan catalogue returned five plans and 1643 bytes in four uncached samples of 859, 720, 384 and 433 ms. The server previously started three Stripe price reads for every catalogue request. The new reader retains only successful validated prices for 30 seconds, deduplicates concurrent reads, and refreshes on config changes. The benchmark above is baseline timing. Hosted comparison awaits deployment.
 
 15 November Cancun time. Signed OPORTAL dev dashboard code requested Files, Wallets and Messages once each through the published SDK even when initialized twice. Real WEB4 response headers arrived in 542 ms, 541 ms and 537 ms respectively, and each card rendered zero for the empty account. These are from one run and exclude browser paint. Populated UI timing and production compact API availability remain open.
