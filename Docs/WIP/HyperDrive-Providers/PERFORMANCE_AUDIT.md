@@ -1,5 +1,7 @@
 # OPORTAL and HyperDrive performance audit
 
+15 November Cancun time. The combined OPORTAL billing candidate keeps usage, prices and statements concurrent and binds every existing call to the signed avatar. The same candidate includes the previously qualified concurrent app-owner usage, settings and pay-as-you-go reads. The new guards do not add requests. The controlled-DOM regressions checked signed responses and zero writes from stale controls. Browser timing remains unmeasured.
+
 15 November Cancun time. Opening the OAPP catalog now issues one WEB5 read. The previous modal also requested the avatar's OAPP inventory on open. A selected search result directly requests its OAPP by ID and skips the catalog. Signed controlled-DOM checks verified both one-request paths. Browser paint remains unmeasured.
 
 15 November Cancun time. HyperDrive overview fetches status and metrics concurrently. My routing fetches avatar settings on first opening the tab, so the overview adds no settings request. The editor reads settings back after saving to verify the effective values. Browser paint remains unmeasured.

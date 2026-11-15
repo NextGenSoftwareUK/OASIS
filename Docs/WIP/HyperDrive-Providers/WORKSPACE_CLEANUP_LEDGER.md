@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. Both in-memory Usage and Billing regressions verified deletion of each of their four disposable sandbox avatars. Combined candidate staging cleaned up the temporary Git patch and index, including the first patch conflict. Native Algorand run 43761720647 removed the LocalNet fixture containers and network. No local dependencies, downloads or build outputs were retained.
+
 15 November Cancun time. Algorand Development staging removed its temporary Git index. Python fixture syntax was checked in memory without writing bytecode. Grouped rollback run 43761720647 uses the hosted disposable LocalNet fixture. No local chain runtime, dependency or fixture data was created.
 
 15 November Cancun time. The signed Orders test used the shipping SDK in memory. The initial client-side harness error and the successful regression both ran avatar teardown for all disposable sessions. Candidate staging removed its temporary Git index and patch. No local dependencies, build output, test result files or downloads were retained.
