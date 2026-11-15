@@ -1,5 +1,7 @@
 # Current provider status
 
+15 November Cancun time. The real SQLite Gifts lifecycle test in 43709559073 found a durable receive failure. Gift updates loaded one metadata record but requested a child-selecting save, which the shipping router rejected because no child roles had been loaded. Core 670c5085 explicitly saves only the gift record and keeps child traversal out of send, receive and open. The isolated lifecycle rerun is pending.
+
 15 November Cancun time. The combined Gifts and Checkout candidate passed three redirect tests in run 43709075351. While it was in CI, COSMIC advanced Development to 55c1c2056c55 with a new Core pin. The new candidate d9e0325afbb7 preserves that peer source and applies only the seven Gifts and Checkout paths with matching Core gitlink and manifest. Focused SQLite and WEB4 checks 43709925389 and 43709927045 are queued against that graph. The prior candidate was not promoted.
 
 15 November Cancun time. Native SQLite Gifts lifecycle test afa70089864d calls the shipping manager to send, receive and open a gift, rejects an early open and the sender's attempt to receive it, and checks the persisted state and summary counts. Focused run 43709559073 is queued. This exercises writes using an isolated database instead of modifying shared hosted competition records during a smoke test.
