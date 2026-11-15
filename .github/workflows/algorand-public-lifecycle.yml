@@ -1,0 +1,195 @@
+name: Algorand public lifecycle
+
+on:
+  push:
+    branches: [work/hyperdrive-provider-completion]
+    paths:
+      - '.github/workflows/algorand-public-lifecycle.yml'
+      - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.AlgorandOASIS/**'
+      - 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.AlgorandOASIS.IntegrationTests/AlgorandPublicLifecycleTests.cs'
+  workflow_dispatch:
+    inputs:
+      signed_testnet:
+        description: Spend one bounded fee with the protected funded TestNet signer
+        type: boolean
+        default: false
+      signed_localnet:
+        description: Verify signed operations on disposable authenticated LocalNet
+        type: boolean
+        default: false
+      localnet_case:
+        description: Focused signed LocalNet verification
+        type: choice
+        options: [batch, indexed_search, storage_contract, storage_provider, storage_writer, storage_delete, storage_hard_delete, storage_hard_resume]
+        default: batch
+      public_case:
+        description: Focused public Indexer verification
+        type: choice
+        options: [asset_note_metadata, compact_account, participant_metadata, transaction_metadata, account_history, transaction_timestamp, provider_health, testnet_point]
+        default: account_history
+
+permissions:
+  contents: read
+
+jobs:
+  public-lifecycle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: OASIS
+    steps:
+      - name: Validate fixture selection
+        if: ${{ inputs.signed_localnet && inputs.signed_testnet }}
+        run: |
+          echo "Choose either LocalNet or public TestNet." >&2
+          exit 1
+      - uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          path: OASIS
+          submodules: recursive
+          persist-credentials: false
+      - name: Read the recorded Libraries revision
+        id: dependencies
+        run: |
+          revision="$(sed -n 's/^LIBRARIES_COMMIT=//p' Docker/oasis-dependency-versions.env)"
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "libraries=$revision" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependencies.outputs.libraries }}
+          path: NextGenSoftware-Libraries
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Verify shipping Indexer queries against Algorand mainnet
+        if: ${{ !inputs.signed_localnet && !inputs.signed_testnet }}
+        env:
+          ALGORAND_PUBLIC_CASE: ${{ inputs.public_case || 'testnet_point' }}
+        shell: pwsh
+        run: |
+          ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-AlgorandPublicLifecycle -Operation {
+            $test = switch ($env:ALGORAND_PUBLIC_CASE) {
+              'testnet_point' { 'PublicTestNetActivationAndIndexedPayment' }
+              'provider_health' { 'PublicActivationRequiresAHealthyIndexerAlongsideAlgod' }
+              'transaction_timestamp' { 'PublicIndexerPreservesNativeTransactionTimestamp' }
+              'asset_note_metadata' { 'PublicIndexerMatchesAssetIdAndExactNoteMetadata' }
+              'transaction_metadata' { 'PublicIndexerQueriesTransactionMetadataUsingNativeFilters' }
+              'participant_metadata' { 'PublicIndexerMatchesExactTransactionParticipants' }
+              'compact_account' { 'PublicAlgodLifecycleAndAccountRead' }
+              default { 'PublicIndexerPaginatesAccountHistoryAndRejectsInvalidAddress' }
+            }
+            dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.AlgorandOASIS.IntegrationTests" --filter "FullyQualifiedName~$test" /m:2 /nr:false /p:UseSharedCompilation=false --logger "console;verbosity=normal"
+            if ($LASTEXITCODE -ne 0) { throw "Algorand public lifecycle verification failed." }
+          }
+      - uses: actions/setup-python@v5
+        if: ${{ inputs.signed_localnet || inputs.signed_testnet }}
+        with:
+          python-version: '3.12'
+      - name: Verify signed operations with authenticated Algorand LocalNet
+        if: inputs.signed_localnet
+        env:
+          ALGORAND_LOCALNET_CASE: ${{ inputs.localnet_case }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          owned=$(mktemp -d "${RUNNER_TEMP}/oasis-algorand.XXXXXX")
+          cleanup() {
+            status=$?
+            trap - EXIT
+            compose="$owned/localnet/sandbox/docker-compose.yml"
+            project_label="com.docker.compose.project=algokit_sandbox"
+            if [[ -f "$compose" ]]; then
+              docker compose -f "$compose" down --volumes --remove-orphans || status=1
+            fi
+            containers=$(docker ps -aq --filter "label=$project_label") || status=1
+            networks=$(docker network ls -q --filter "label=$project_label") || status=1
+            volumes=$(docker volume ls -q --filter "label=$project_label") || status=1
+            if [[ -n "$containers$networks$volumes" ]]; then
+              echo "Owned Algorand LocalNet resources remain after teardown." >&2
+              status=1
+            fi
+            rm -rf -- "$owned" || status=1
+            if [[ "$status" == 0 ]]; then
+              echo "Verified removal of the LocalNet containers, network, volumes and fixture directory."
+            fi
+            exit "$status"
+          }
+          trap cleanup EXIT
+          python -m venv "$owned/venv"
+          "$owned/venv/bin/pip" install --no-cache-dir algokit==2.10.2 py-algorand-sdk==2.12.0
+          mkdir "$owned/localnet"
+          "$owned/venv/bin/algokit" localnet start --config-dir "$owned/localnet"
+          if [[ "$ALGORAND_LOCALNET_CASE" == storage_contract ]]; then
+            "$owned/venv/bin/python" -B Scripts/TestHosts/Test-AlgorandRecordBoxes.py
+            exit
+          fi
+          if [[ "$ALGORAND_LOCALNET_CASE" == storage_* ]]; then
+            umask 077
+            fixture_env="$owned/record-fixture.env"
+            if [[ "$ALGORAND_LOCALNET_CASE" != storage_provider ]]; then
+              export OASIS_ALGORAND_RECORD_WRITE_TEST=true
+            fi
+            if [[ "$ALGORAND_LOCALNET_CASE" == storage_hard_resume ]]; then
+              export OASIS_ALGORAND_RECORD_PURGE_RESUME=true
+            fi
+            OASIS_ALGORAND_ENROLLED_FIXTURE_ENV="$fixture_env" "$owned/venv/bin/python" -B Scripts/TestHosts/Test-AlgorandRecordBoxes.py
+            set -a
+            source "$fixture_env"
+            set +a
+            pwsh -NoProfile -Command '
+              ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-AlgorandNativeRecordRead -Operation {
+                $test = switch ($env:ALGORAND_LOCALNET_CASE) {
+                  "storage_writer" { "PublishesSignedEncryptedRevisionsThroughNativeBoxes" }
+                  "storage_delete" { "SoftDeletesStoredHolonWithDurableAuditAndHistory" }
+                  "storage_hard_delete" { "PurgesPublishedRevisionsAndFencesRepublishing" }
+                  "storage_hard_resume" { "ResumesPurgingFromTheNativeCheckpoint" }
+                  default { "ReadsEncryptedCurrentAndHistoricalRecordsFromNativeBoxes" }
+                }
+                dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.AlgorandOASIS.IntegrationTests" --filter "FullyQualifiedName~$test" /m:2 /nr:false /p:UseSharedCompilation=false
+                if ($LASTEXITCODE -ne 0) { throw "Native record provider verification failed." }
+              }'
+            exit
+          fi
+          fixture_env="$owned/fixture.env"
+          GITHUB_ENV="$fixture_env" "$owned/venv/bin/python" Scripts/TestHosts/Prepare-AlgorandLocalNetFixture.py
+          set -a
+          source "$fixture_env"
+          set +a
+          pwsh -NoProfile -Command '
+            ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-AlgorandSignedLocalNet -Operation {
+              $test = if ($env:ALGORAND_LOCALNET_CASE -eq "indexed_search") { "FindsSignedPaymentNoteOnNativeIndexer" } else { "PreservesPartialBatchReceiptsOnAuthenticatedLocalNet" }
+              dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.AlgorandOASIS.IntegrationTests" --filter "FullyQualifiedName~$test" /m:2 /nr:false /p:UseSharedCompilation=false
+              if ($LASTEXITCODE -ne 0) { throw "Native Algorand signed payment failed." }
+            }'
+      - name: Build the signed public TestNet verification
+        if: inputs.signed_testnet
+        shell: pwsh
+        run: |
+          ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-AlgorandSignedTestNet -Operation {
+            dotnet build "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.AlgorandOASIS.IntegrationTests" /m:2 /nr:false /p:UseSharedCompilation=false
+            if ($LASTEXITCODE -ne 0) { throw "Algorand TestNet verification did not build." }
+          }
+      - name: Verify a signed payment on public Algorand TestNet
+        if: inputs.signed_testnet
+        env:
+          OASIS_ALGORAND_TESTNET_MNEMONIC: ${{ secrets.OASIS_ALGORAND_TESTNET_MNEMONIC }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          : "${OASIS_ALGORAND_TESTNET_MNEMONIC:?A protected funded TestNet signer is required}"
+          umask 077
+          owned=$(mktemp -d "${RUNNER_TEMP}/oasis-algorand-testnet.XXXXXX")
+          trap 'rm -rf -- "$owned"' EXIT
+          python -m venv "$owned/venv"
+          env -u OASIS_ALGORAND_TESTNET_MNEMONIC "$owned/venv/bin/pip" install --no-cache-dir py-algorand-sdk==2.12.0
+          OASIS_ALGORAND_FIXTURE_ENV="$owned/fixture.env" "$owned/venv/bin/python" Scripts/TestHosts/Prepare-AlgorandTestNetFixture.py
+          unset OASIS_ALGORAND_TESTNET_MNEMONIC
+          set -a
+          source "$owned/fixture.env"
+          set +a
+          dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.AlgorandOASIS.IntegrationTests" --no-build --no-restore --filter 'FullyQualifiedName~SubmitsAndReadsSignedPaymentOnPublicTestNet' /m:2 /nr:false /p:UseSharedCompilation=false
