@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Axelar shipping provider qualification
+
+The feature branch removes the separate Axelar query adapter. WEB4 now constructs AxelarOASIS directly with its explicit read-only mainnet header catalogue. The shipping GMP/XChain API continues to use its existing client. The scoped historical-endpoint rollout is tracked independently so its availability and latency can be established first. Shipping-provider CI and live qualification are pending.
+
 ## Live Nostr revision and three-store DTO correctness
 
 Railway deployment 52db21a2-c961-4c5d-a121-6b4eed3c7627 serves Development c71dce60d523 with the shipping NostrOASIS query registration. Discovery warmed to 105 of 107 direct and federated sources. Nostr remained unavailable when the configured relay returned HTTP 521 during WebSocket upgrade at 341 ms. Axelar remained unavailable on the old endpoint. No scoped native or federated Nostr rows could be verified on this revision.
