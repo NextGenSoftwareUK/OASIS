@@ -1,5 +1,9 @@
 # Nostr public event qualification
 
+## Development relay subscription disconnect, 15 November UTC
+
+WEB4 deployment f8f6d3d0-fc75-467c-a1a6-f37345953c79 served 5a96fc73528f. Nostr advanced past WebSocket connect, then the shipping provider reported ConnectionClosedPrematurely during subscription at 218 ms. This activation differs from the earlier HTTP 521 upgrade failure and leaves Nostr unavailable. An upgrade-only check cannot verify this subscription path. No new event, persisted data, recovery action, or local artifact.
+
 ## Development activation and relay transport, 14 November 2026
 
 WEB4 revision 1ebcb3b772c5 reached 106/107 native and federated readiness, with NostrOASIS alone unavailable. The shipping provider reported HTTP 521 during activation at WebSocket connect after 251 ms, before any event selection. A later bounded anonymous WebSocket upgrade from the same Railway container to the configured relay received HTTP 101 and closed immediately. This establishes that the upgrade was reachable at the time of the later check. Signed event selection and provider recovery remain unverified on this deployment. No event subscription, fixture replay, endpoint change, or local artifact.
