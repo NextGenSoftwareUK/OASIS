@@ -776,6 +776,10 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
                         await Task.Delay(500);
                     }
                     Assert.AreEqual(bridgeBlock, (await http.GetStringAsync("blocks/tip/hash")).Trim());
+                    var confirmedWithdrawal = await boundWallet.GetTransactionStatusAsync(withdrawal.Result.TransactionId);
+                    Assert.IsFalse(confirmedWithdrawal.IsError, confirmedWithdrawal.Message);
+                    Assert.AreEqual("Completed", confirmedWithdrawal.Result.ToString());
+                    Assert.AreEqual(bridgeBlock, confirmedWithdrawal.MetaData["BitcoinBlockHash"]);
 
                     var wrongCustody = await recovered.DepositAsync(0.002m, destination);
                     Assert.IsTrue(wrongCustody.IsError);
@@ -787,6 +791,17 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
                     var deposit = await pool.DepositAsync(0.002m, destination);
                     Assert.IsFalse(deposit.IsError, deposit.Message);
                     Assert.AreEqual(0.002m, await ReadBridgeOutputAsync(deposit.Result.TransactionId, destination));
+                    for (var attempt = 0; attempt < 60; attempt++)
+                    {
+                        using var statusResponse = await http.GetAsync($"tx/{deposit.Result.TransactionId}/status");
+                        if (statusResponse.IsSuccessStatusCode)
+                            break;
+                        await Task.Delay(500);
+                    }
+                    var pendingDeposit = await pool.GetTransactionStatusAsync(deposit.Result.TransactionId);
+                    Assert.IsFalse(pendingDeposit.IsError, pendingDeposit.Message);
+                    Assert.AreEqual("Pending", pendingDeposit.Result.ToString());
+                    Assert.IsFalse(pendingDeposit.MetaData.ContainsKey("BitcoinBlockHash"));
                 }
                 finally
                 {

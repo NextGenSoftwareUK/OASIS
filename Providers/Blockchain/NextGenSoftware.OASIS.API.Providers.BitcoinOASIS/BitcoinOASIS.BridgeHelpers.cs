@@ -383,6 +383,13 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                     return result;
                 }
 
+                var genesis = (await _httpClient.GetStringAsync("block-height/0", token)).Trim();
+                if (!uint256.TryParse(genesis, out var genesisHash) || genesisHash != SigningNetwork.GetGenesis().GetHash())
+                {
+                    OASISErrorHandling.HandleError(ref result, "Esplora is serving a different Bitcoin network.");
+                    return result;
+                }
+
                 using var response = await _httpClient.GetAsync($"tx/{transactionId}/status", token);
                 if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
                 {
@@ -394,9 +401,26 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
 
                 response.EnsureSuccessStatusCode();
                 var status = await response.Content.ReadFromJsonAsync<JsonElement>(cancellationToken: token);
-                result.Result = status.GetProperty("confirmed").GetBoolean()
-                    ? BridgeTransactionStatus.Completed
-                    : BridgeTransactionStatus.Pending;
+                result.MetaData[BitcoinTransactionIdMetadataKey] = transactionId.ToString();
+                if (!status.GetProperty("confirmed").GetBoolean())
+                {
+                    result.Result = BridgeTransactionStatus.Pending;
+                    return result;
+                }
+
+                var height = status.GetProperty("block_height").GetUInt64();
+                var heightText = height.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                var blockHash = uint256.Parse(status.GetProperty("block_hash").GetString());
+                var canonicalBlock = (await _httpClient.GetStringAsync($"block-height/{heightText}", token)).Trim();
+                if (!uint256.TryParse(canonicalBlock, out var canonicalHash) || canonicalHash != blockHash)
+                {
+                    OASISErrorHandling.HandleError(ref result, "The reported Bitcoin confirmation block is no longer canonical.");
+                    return result;
+                }
+
+                result.MetaData["BitcoinBlockHash"] = blockHash.ToString();
+                result.MetaData["BitcoinBlockHeight"] = heightText;
+                result.Result = BridgeTransactionStatus.Completed;
             }
             catch (Exception ex)
             {
