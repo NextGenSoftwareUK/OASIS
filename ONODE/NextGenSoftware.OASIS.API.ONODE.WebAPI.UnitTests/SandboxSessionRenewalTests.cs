@@ -125,20 +125,27 @@ public sealed class SandboxSessionRenewalTests
     }
 
     [Theory]
-    [InlineData("https://web4.oasisomniverse.one", false, true)]
-    [InlineData("https://web4.oasisomniverse.one", true, true)]
-    [InlineData("https://dev.web4.oasisomniverse.one", false, false)]
-    [InlineData("https://dev.web4.oasisomniverse.one", true, true)]
-    [InlineData("https://dev.web4.oasisomniverse.one.attacker.example", true, false)]
-    [InlineData("https://third-party.example", true, false)]
-    [InlineData("https://web4.oasisomniverse.one.attacker.example", false, false)]
-    public async Task ActualPreflightAllowsCredentialCookiesOnlyForTheExactFirstParty(string origin, bool allowDevelopmentPreview, bool credentialed)
+    [InlineData("https://web4.oasisomniverse.one", false, "production", true)]
+    [InlineData("https://web4.oasisomniverse.one", true, "dev", true)]
+    [InlineData("https://dev.web4.oasisomniverse.one", false, "dev", false)]
+    [InlineData("https://dev.web4.oasisomniverse.one", true, "dev", true)]
+    [InlineData("https://dev.web4.oasisomniverse.one", true, "production", false)]
+    [InlineData("https://dev.web4.oasisomniverse.one.attacker.example", true, "dev", false)]
+    [InlineData("https://third-party.example", true, "dev", false)]
+    [InlineData("https://web4.oasisomniverse.one.attacker.example", false, "production", false)]
+    public async Task ActualPreflightAllowsCredentialCookiesOnlyForTheExactFirstParty(
+        string origin, bool allowDevelopmentPreview, string railwayEnvironment, bool credentialed)
     {
         var services = new ServiceCollection();
         services.AddLogging(); services.AddCors();
         await using var provider = services.BuildServiceProvider();
         var app = new ApplicationBuilder(provider);
-        Startup.ConfigureBrowserCors(app, allowDevelopmentPreview);
+        var sandbox = new NextGenSoftware.OASIS.API.DNA.SandboxSettings
+        {
+            EnableDevelopmentWeb4Preview = allowDevelopmentPreview
+        };
+        Startup.ConfigureBrowserCors(app, sandbox,
+            name => name == "RAILWAY_ENVIRONMENT_NAME" ? railwayEnvironment : null);
         var invoked = false;
         app.Run(context => { invoked = true; return Task.CompletedTask; });
         var context = new DefaultHttpContext { RequestServices = provider };
