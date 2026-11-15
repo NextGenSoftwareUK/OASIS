@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+15 November Cancun. Six private grouped HAVING fixture rows were hard-deleted and verified absent by exact ID through live CQL. The compact local acknowledgement journal is LocalState/COSMIC/HostedCqlPopulatedHaving-fdd9df3e/operations.jsonl. This reused the existing Development visitor and installed runtimes. No downloads, temporary runtime directories, database copies, repository build output or local results bundle.
+
 15 November Cancun. Populated WEB4 join acceptance used the retained Development test visitor. Six private native fixture rows were hard-deleted and independently checked absent by exact CQL ID. The compact LocalState/COSMIC/HostedCqlPopulatedJoins-807623f7/operations.jsonl journal records acknowledgments and stays local. The verifier ran from memory with installed Node and Python. No downloads, runtime, database copies, build output or test-result bundles. Retain the protected visitor for pending acceptance.
 
 15 November Cancun: reused the installed Node, Python, Git and Railway CLI for SQL and discovery probes. Parser, site test snapshots, JavaScript runners and Git indexes were temporary. Checked the corresponding temporary-directory prefixes and found none remaining. No local runtime download, provider database copy, build output or test-result bundle was created. The existing protected Development visitor is retained for the pending rollout verification. Native fixtures and images ran in hosted CI. Recovery C: measured 25.2 GiB free.

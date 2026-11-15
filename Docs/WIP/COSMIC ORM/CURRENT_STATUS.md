@@ -1,5 +1,11 @@
 # COSMIC ORM / CQL current status
 
+## Populated typed HAVING proved on live WEB4
+
+15 November. Exact Web4Site dc53b278c35d compiled three populated HAVING cases on each of MongoDB, SQLite and Neo4j while Development fdd9df3ee6e8 was serving. Nullable text inequality returned the non-null Green group only. IS NULL returned the null group only. An inclusive range on the selected Version alias combined with a count threshold returned the expected group with count two. All six private rows were hard-deleted with their native revision tokens and verified absent by exact CQL ID. No local builds or database copies.
+
+The native three-store step in [CI 43741759215](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43741759215) passed on test-only source 7d96ec8d801b. Its populated Decimal SUM and AVG assertions preserve the exact high-precision value. The combined runtime candidate passed protocol CI and the exact WEB4 image remains the release gate. Live WEB4 grouped Decimal acceptance remains open.
+
 ## Typed grouping-key filters in SQL HAVING
 
 15 November. Web4Site dc53b278c35d accepts comparisons on selected key aliases in HAVING alongside existing aggregate filters. It shares the exact type parser and excludes NULL from ordinary inequality while admitting explicit IS NULL and IS NOT NULL. All 224 website tests passed and [protected preview 7807290661](https://web4-site-q859b845g-oasis-team.vercel.app/web4-sandbox.html) built. The exact compiler sent a numeric range, Boolean equality, aggregate threshold and independent nullable text query to MongoDB, SQLite and Neo4j. Live WEB4 accepted all six requests with the exact deleted-ID scope and returned zero rows. Populated key-filter results and signed-in hosted browser acceptance remain open. No fixtures or local builds. The test snapshot was removed.
