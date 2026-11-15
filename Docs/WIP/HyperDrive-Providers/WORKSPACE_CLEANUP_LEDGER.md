@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. The WEB4 directory build command was rejected before creating a workspace or package cache. The Algorand Development candidate removed its temporary Git index. No local dependencies, binaries, fixtures or logs were retained.
+
 15 November Cancun time. Native rollback and deletion run 43763386514 confirmed removal of the LocalNet containers, network, volumes and fixture directory. Each signed global search probe removed its disposable avatar. Compared served portal assets in memory. No local test files, builds, dependency installs or downloads were retained.
 
 15 November Cancun time. Native Algorand run 43762871621 verified removal of the owned LocalNet containers, network, volumes and fixture directory. The follow-up integrated soft deletion test uses one disposable hosted runner at 43763386514. No local builds, fixture databases, SDK downloads or test output files were created.
