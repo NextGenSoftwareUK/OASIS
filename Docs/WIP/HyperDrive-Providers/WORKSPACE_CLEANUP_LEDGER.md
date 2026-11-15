@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. The progressive billing test used the shipped SDK in memory and WEB4 confirmed deletion of the signed sandbox avatar. The candidate runner removed its temporary patch and index and the task check reapplied the sparse checkout. No dependency installs, downloaded files, databases or generated results were retained.
+
 15 November Cancun time. The OPORTAL subscription sharing probe used the served SDK in memory. WEB4 confirmed deletion of the one signed sandbox avatar. Restored the existing sparse checkout and removed the temporary candidate patch and index. No dependencies, downloads, test results or build outputs were retained. C: had 24.50 GiB free at the follow-up check.
 
 15 November Cancun time. Signed OPORTAL deletion checks ran through the shipping SDK in memory. WEB4 confirmed hard deletion and independent not-found reads for the MongoDB and SQLite records, plus self-deletion of both disposable avatars. Exact release verification removed its temporary patch and Git index. The existing sparse checkout was reapplied after the subscription suite. No generated outputs, dependency installs, databases or downloaded files were retained.
