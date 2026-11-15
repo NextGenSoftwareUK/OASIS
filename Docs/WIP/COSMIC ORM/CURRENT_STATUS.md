@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Hosted browser origin check
+
+15 November. Live preflight for the exact protected Web4Site 80ecfac3cb77 preview allows the WEB6 bearer-token request headers. The WEB4 session client uses credentials include. WEB4 returns a wildcard without credentials for both the generated preview hostname and dev.web4.oasisomniverse.one. The dedicated Development website hostname does not resolve. The public website origin still receives credentialed WEB4 session headers. The hosted walkthrough requires the dedicated preview domain and the existing Development-only WEB4 origin opt-in. No settings changed.
+
 ## Populated grouped LIKE verified
 
 15 November. Web4Site 80ecfac3cb77 compiled escaped LIKE on a text grouping alias. Development fdd9df3ee6e8 distinguished the percent-sign record from the near-match on MongoDB, SQLite and Neo4j. The complementary prefix query selected the near-match. The six client-to-HTTP samples were 538, 802, 766, 818, 758 and 657 ms across the three stores, with one sample per query. All six owned records were deleted and verified absent through exact CQL IDs. [Protected preview](https://web4-site-prykceoik-oasis-team.vercel.app/web4-sandbox.html)

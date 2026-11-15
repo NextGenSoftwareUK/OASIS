@@ -4,6 +4,8 @@
 
 Open. Authorize the existing Vercel connection for the OASIS team with a current Vercel consent link. The earlier link was time-limited. The connector currently returns HTTP 403 for the team and the installed CLI has no active credentials. This access is for the existing [protected preview of Web4Site `80ecfac3cb77`](https://web4-site-prykceoik-oasis-team.vercel.app/web4-sandbox.html) for authenticated browser acceptance. The public site still serves the previous frontend. [Web4Site feature branch](https://github.com/NextGenSoftwareUK/Web4Site/tree/work/cosmic-cql)
 
+15 November browser check. The latest protected preview is recorded above. The dedicated hostname dev.web4.oasisomniverse.one still does not resolve. After Vercel access is available, verify that the Development domain can be assigned to the WEB4 website project and provisioned in DNS. Engineering will then enable OASIS:EnableDevelopmentWeb4Preview on Development WEB4 and verify the credentialed session before a browser run. WEB6 uses bearer authentication and accepted the requested preflight headers.
+
 The single list of everything that needs you: your accounts, phones, admin rights, approvals or a decision. Everything else is done or in progress. Tick items off and tell Claude when one is done; it picks up the next step. Never paste passwords, API keys, tokens or connection strings into chat.
 
 All agents must record owner-dependent requests here before asking, update answers, and preserve deferred decisions without repeatedly asking. Agent implementation/tool failures remain agent work.
