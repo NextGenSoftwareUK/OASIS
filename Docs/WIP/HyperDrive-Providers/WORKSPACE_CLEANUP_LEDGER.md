@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. Algorand avatar-detail run 43754674014 confirmed removal of all owned LocalNet containers, network, volumes and fixture directory after detecting the record size limit. Replacement 43755287511 uses one disposable fixture for both detail history and listing. Cancelled its redundant public auto-run. OPORTAL checkout verification compared the served asset in memory. No local builds or fixture downloads were retained.
+
 15 November Cancun time. Algorand avatar-detail verification uses one hosted disposable LocalNet fixture. Cancelled the duplicate public smoke run for the same revision. No local runtime, download, build or test fixture was created. Hosted teardown awaits run 43754674014.
 
 15 November Cancun time. Algorand exact BootLoader run 43753371692 confirmed removal of its LocalNet containers, network, volumes and owned fixture directory. OPORTAL checkout candidate staging removed its temporary index and patch and restored the existing sparse checkout. No local dependencies, builds or fixture databases were created.
