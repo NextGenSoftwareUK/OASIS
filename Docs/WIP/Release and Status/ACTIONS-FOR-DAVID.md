@@ -731,3 +731,9 @@ Status: missing account/configuration information,2 November2026. David approved
 ### Bitcoin hosted escrow fixture — 14 November 2026
 
 **Open.** Native Bitcoin Core, Esplora, ord and SQLite passed exact BTC and Rune deposit and release. WEB4 dev has no configured escrow pool or receipt authority. When the hosted test cohort is ready, identify the approved non-production Bitcoin network and existing fixture custodian. The fixture needs a same-network Esplora and ord endpoint, a disposable funded depositor and custody signer, and a dedicated service avatar on a shared conditional receipt store. The custodian should configure credentials through the protected deployment environment and provide only the fixture name or non-secret reference. The agent owns the deployment checks, round trip and cleanup. [Bitcoin provider setup](../../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS/README.md) · [Provider status](../HyperDrive-Providers/CURRENT_STATUS.md)
+
+### OPORTAL hosted Stripe sandbox Checkout
+
+- **Open, 15 November 2026.** The real sandbox API checks cover session creation, ledger scoping, subscription, billing and cancellation. Execution policy blocked the automated hosted payment form before submission.
+- **David action** Sign in to OPORTAL dev with a disposable avatar, choose Bronze, confirm the Stripe page is in test mode, and finish payment with a Stripe test card. After it returns to OPORTAL, confirm that My subscriptions displays Bronze as active and the payment confirmation appears. Share the result and approximate test time only.
+- **Reason** The manual browser step verifies hosted payment and return together on the deployed sandbox. Engineering owns follow-up and cleanup of the disposable subscription. [OPORTAL dev](https://dev.oportal.oasisomniverse.one/subscription) · [Stripe test cards](https://docs.stripe.com/testing#cards) · [Current status](../HyperDrive-Providers/CURRENT_STATUS.md)

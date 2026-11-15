@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. Deployed Stripe catalogue, signed Usage timing, missing Checkout and native Gifts responses were checked directly against WEB4 dev. All disposable avatars were deleted with HTTP 200. No card, payment, local browser data, downloads, builds or test artifacts were retained.
+
 15 November Cancun time. Signed portal usage checks ran in a controlled DOM through the bundled SDK with real WEB4 responses. WEB4 confirmed deletion of every disposable verification avatar. Exact portal candidate indexes were removed. No local browser profiles, packages, DB snapshots, builds or results were retained.
 
 15 November Cancun time. The shallow NFT candidate used one temporary Git index, which was removed after manifest verification. Native SQLite qualification runs on hosted CI and owns its disposable database cleanup. No local build, database, install or test outputs were created. C: had 25.63 GiB available.
