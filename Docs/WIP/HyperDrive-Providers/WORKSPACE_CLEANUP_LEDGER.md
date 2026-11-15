@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. Algorand contract run 43767516866 verified removal of all LocalNet containers, network, volumes and fixture directory. The provider lifecycle uses one disposable hosted LocalNet fixture. Removed the combined Development staging index. No local build output, packages, test databases or downloaded files were retained.
+
 15 November Cancun time. The Algorand alias qualification runs on one disposable hosted LocalNet fixture. Python syntax validation ran in memory. No local SDK, packages, build folders or test results were created. Hosted teardown awaits run 43767516866.
 
 15 November Cancun time. The signed STARNET game-list check used the shipped SDK in memory and WEB4 confirmed deletion of the sandbox avatar. Restored the existing sparse portal checkout and removed candidate staging index and patch files. No local downloads, builds or test artifacts were retained.
