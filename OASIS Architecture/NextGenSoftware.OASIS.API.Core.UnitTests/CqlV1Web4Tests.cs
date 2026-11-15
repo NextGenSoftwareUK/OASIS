@@ -282,8 +282,8 @@ public partial class CqlV1Web4Tests
                     return Task.FromResult(new OASISResult<IReadOnlyList<IHolon>>(Rows));
                 });
         }
-        public IOASISStorageProvider Resolve(ProviderType? requested) { Lookups++; return Storage.Object; }
-        public HolonManager CreateManager(IOASISStorageProvider provider)
+        public IOASISProvider Resolve(ProviderType? requested) { Lookups++; return Storage.Object; }
+        public HolonManager CreateManager(IOASISProvider provider)
         {
             Managers++;
             var dna = new OASISDNA { OASIS = new NextGenSoftware.OASIS.API.DNA.OASIS { HyperDriveMode = HyperDriveModes.V2 } };

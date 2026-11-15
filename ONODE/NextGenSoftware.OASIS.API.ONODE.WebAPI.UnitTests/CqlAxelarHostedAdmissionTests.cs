@@ -20,6 +20,11 @@ public class CqlAxelarHostedAdmissionTests
             heights = new[] { 37269326, 37269327, 37269328 },
             sourceOwner = Guid.NewGuid()
         }));
+        using var profile = new CqlReadSourceProfile(source);
+        var sourceRegistry = new CqlHostedSourceRegistry(new[] { profile });
+        Assert.Same(source, sourceRegistry.Find(ProviderType.AxelarOASIS));
+        Assert.False((object)source is NextGenSoftware.OASIS.API.Core.Interfaces.IOASISStorageProvider);
+
         var admission = new PricedStorageAdmissionFactory(null, Array.Empty<NativeStorageAdmissionBinding>(),
             new[] { ProviderType.MongoDBOASIS },
             new[] { new StorageQueryTariff(ProviderType.AxelarOASIS, 0, "demo-read-v1") },

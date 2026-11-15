@@ -53,11 +53,11 @@ public sealed class CqlElrondMongoNativeTests
     private sealed class Sources(IOASISStorageProvider mongo, IOASISStorageProvider elrondSource,
         OASISDNA dna, ProviderManager registry) : ICqlV1Providers
     {
-        public IOASISStorageProvider Resolve(ProviderType? requested) => requested switch {
+        public IOASISProvider Resolve(ProviderType? requested) => requested switch {
             null or ProviderType.MongoDBOASIS => mongo,
             ProviderType.ElrondOASIS => elrondSource,
             _ => throw new InvalidOperationException("Only the two explicitly enrolled native fixture providers are available.") };
-        public HolonManager CreateManager(IOASISStorageProvider provider) => new(null, dna, registry);
+        public HolonManager CreateManager(IOASISProvider provider) => new(null, dna, registry);
     }
 
     [ElrondMongoNativeFact]

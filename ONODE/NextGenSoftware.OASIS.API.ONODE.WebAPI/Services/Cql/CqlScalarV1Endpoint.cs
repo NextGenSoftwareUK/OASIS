@@ -74,7 +74,7 @@ public static partial class CqlV1Endpoint
     }
 
     private static async Task<IActionResult> ExecuteScalar<TResult>(HttpContext http, ICqlV1Providers providers,
-        IOASISStorageProvider storage, ICosmicQueryScalarStorageProvider adapter, CosmicScalarQuery<Holon, TResult> intent)
+        IOASISProvider storage, ICosmicQueryScalarStorageProvider adapter, CosmicScalarQuery<Holon, TResult> intent)
     {
         var selected = adapter.QueryProviderType;
         var planned = CosmicScalarPlanner.Plan(intent, selected,
@@ -108,12 +108,12 @@ public static partial class CqlV1Endpoint
     {
         private readonly HttpContext http;
         private readonly ICqlV1Providers providers;
-        private readonly IOASISStorageProvider storage;
+        private readonly IOASISProvider storage;
         private readonly ICosmicQueryScalarStorageProvider adapter;
         private readonly CosmicQuery<Holon> source;
         private readonly CosmicScalarOperation operation;
 
-        internal SelectedScalarConsumer(HttpContext http, ICqlV1Providers providers, IOASISStorageProvider storage,
+        internal SelectedScalarConsumer(HttpContext http, ICqlV1Providers providers, IOASISProvider storage,
             ICosmicQueryScalarStorageProvider adapter, CosmicQuery<Holon> source, CosmicScalarOperation operation)
         { this.http = http; this.providers = providers; this.storage = storage; this.adapter = adapter; this.source = source; this.operation = operation; }
 
