@@ -6789,3 +6789,5 @@ Web4Site 5fa63a71df5d used a temporary directory containing only committed websi
 - Nostr two-worker timing used the retained Development visitor, existing public catalogue and in-memory samples. No local reports, downloads or fixture data were created.
 
 - Connext cutover and Axelar probe timing used the retained Development visitor, existing public catalogue and in-memory samples. No local reports, downloads or fixture data were created.
+
+- The current SQL-like Run CQL test run used existing Node and transient copies of the committed Web4Site HTML and scripts. The temporary directory was removed after the 109 focused tests and branch push. Native qualification runs on CI; no local provider database or build output was created.
