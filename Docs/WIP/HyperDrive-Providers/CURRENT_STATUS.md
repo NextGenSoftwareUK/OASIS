@@ -1,5 +1,7 @@
 # Current provider status
 
+15 November Cancun time. Signed Railway dev created a real Stripe test Bronze checkout at GBP 9.00, verified the session's owner, plan, pricing and open/inactive status, then expired it and removed the avatar. No charge was attempted. Portal e447629 stops confirmation on an expired session. WEB4 Files 49e4ba65a783 is serving and passed populated upload/download/count parity. The NFT request rerun 43702159216 exposed a test namespace collision, now corrected.
+
 15 November Cancun time. Signed Railway dev subscription, usage, orders and owner-app reads passed. Unknown checkout plan rejected with HTTP 400 before a Stripe call. OPORTAL 5ff7e5c shows trial and cancellation lifecycle, waits for current auth and separates order/API failures from empty accounts. Paid checkout, webhook and billing portal remain open end to end.
 
 15 November Cancun time. Subscriptions are now the highest OPORTAL priority. Portal 8270ec4 returns checkout and billing to the relevant subscription tabs, verifies persisted activation, waits for session refresh and eliminates duplicate subscription reads in the confirmation handler. Dev and production public catalogs both returned five plans. Paid Stripe and signed hosted browser flows remain open. Files candidate 49e4ba65a783 reached Development after exact qualification and was queued on Railway.

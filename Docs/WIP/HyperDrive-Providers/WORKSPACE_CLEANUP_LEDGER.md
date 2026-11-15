@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. Stripe returned expired for the owned test checkout and WEB4 confirmed its test avatar self-delete. All four owned hosted Files deletions returned true, visible count returned zero, and the file test avatar self-delete succeeded. No local builds, browsers, databases, packages or results were created.
+
 15 November Cancun time. The signed Railway subscription test avatar self-delete returned HTTP 200 and true. The unknown-plan checkout was rejected and no payment or subscription was created. Loopback and API checks ran in memory and created no local results, builds or environments.
 
 15 November Cancun time. Subscription HTTP loopback ran from Node standard input and closed its listener. Public catalog checks and CI reviews ran in memory. No payment, download, local database or build output was created. Last C: check was 26.7 GiB free.

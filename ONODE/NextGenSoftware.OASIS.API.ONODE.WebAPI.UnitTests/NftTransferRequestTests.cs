@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.NFT;
 using NextGenSoftware.Utilities;
@@ -14,7 +13,8 @@ public sealed class NftTransferRequestTests
     public async Task RejectsUnboundOrAmbiguousNftTransfers()
     {
         var http = new DefaultHttpContext();
-        http.Items["Avatar"] = new Avatar { Id = Guid.NewGuid(), AvatarType = new EnumValue<AvatarType>(AvatarType.Wizard) };
+        http.Items["Avatar"] = new NextGenSoftware.OASIS.API.Core.Holons.Avatar
+            { Id = Guid.NewGuid(), AvatarType = new EnumValue<AvatarType>(AvatarType.Wizard) };
         var controller = new NftController { ControllerContext = new ControllerContext { HttpContext = http } };
         var request = new NFTWalletTransactionRequest
         {
