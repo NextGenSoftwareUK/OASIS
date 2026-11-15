@@ -1,5 +1,7 @@
 # Current provider status
 
+15 November Cancun time. OPORTAL dev d4543ffcca9a passed its endpoint check, subscription configuration suite and Vercel deployment. The public dev /subscription route returned HTTP 200 and served both the versioned router that preserves Stripe return parameters and the modal that checks the authenticated Checkout session. The dev batch contains four paths and leaves the pending Gifts dashboard change on the task branch. WEB4 run 43705322012 passed the signed cross-ledger Checkout event regression, one test, zero skips. WEB4 Development integration and a hosted browser payment and return remain open.
+
 15 November Cancun time. OPORTAL 8166074 fixes the router rewriting Stripe success and cancel links without their query parameters. The portal configuration suite verified that lazy mounting and a repeated modal open preserve the return URL. The running portal still needs the fix deployed and a hosted browser checkout. The first checkout ledger test fixture omitted Stripe's request envelope. Corrected rerun 43705322012 is in progress.
 
 15 November Cancun time. WEB4 now labels new Stripe Checkout sessions and their subscriptions with the billing ledger and rejects checkout reads and events explicitly marked for another ledger. Existing sessions without a scope stay compatible. Focused signed-event verification is in progress. The WEB4 NFT request validation passed run 43703881912, one test, no skips. Native NFT transfer remains open.
