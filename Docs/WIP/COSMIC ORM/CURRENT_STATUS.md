@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Remaining integral domains for selected Distinct
+
+15 November. Core b9d1445c5085 and feature ff43a1c0adf9 admit Byte, SByte, Int16, UInt16 and UInt32 to selected native Distinct. Exact [native CI 43728126676](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43728126676) qualifies d12c98ebc66f on the combined NFT and metadata-wire graph. It checks duplicates, missing nullable cells and adjacent values near UInt32.MaxValue on all three stores. Acceptance remains pending and no checklist row was closed.
+
 ## SQL typed metadata grouping and deduplication
 
 15 November. Web4Site db004a7a6ad9 uses exact metadata path and type for GROUP BY and DISTINCT. Live Development b9808ae777b8 accepted the exact compiler output for nullable Int64 DISTINCT with alias ordering on MongoDB, SQLite and Neo4j. It returned the expected column and zero visible rows for the retained visitor. Web4Site f0931cee35ae teaches the same syntax to Ask your data and checks the draft review handoff with a controlled WEB6 response. All 212 website tests passed. [Protected preview 7805134426](https://web4-site-e46ikez20-oasis-team.vercel.app/web4-sandbox.html) built. Populated live and authenticated hosted browser verification remain open. Temporary snapshots were removed.
