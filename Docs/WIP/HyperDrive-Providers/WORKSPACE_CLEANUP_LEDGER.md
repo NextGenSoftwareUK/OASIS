@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. The Algorand rebase candidate removed its temporary Git index. The avatar directory image build runs on a disposable hosted runner. No local build, runtime, test database, download or result file was created.
+
 15 November Cancun time. The signed Activity Feed and Karma Akashic Records checks ran in memory and WEB4 confirmed test avatar deletion. Restored the existing portal sparse checkout. Candidate staging removed its temporary Git index and patch. No local downloads, builds or test files were retained.
 
 15 November Cancun time. The signed avatar search check ran in memory. WEB4 confirmed deletion of the disposable avatar. Restored the existing portal sparse checkout after updating the dialog template. No local dependencies, builds, downloads or test files were retained.
