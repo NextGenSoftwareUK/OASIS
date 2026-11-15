@@ -37,9 +37,10 @@ public sealed class SqliteMetadataReadPerformanceTests(ITestOutputHelper output)
                 var result = await provider.SaveHolonAsync(new Holon
                 {
                     Id = id, Name = $"Owned metadata fixture {i}", IsActive = true,
+                    CreatedByAvatarId = i is 2 or 3 ? otherOwner : owner,
                     MetaData = new Dictionary<string, object>
                     {
-                        ["oasisFileType"] = file ? "file" : "record",
+                        ["oasisFileType"] = file || i == 3 ? "file" : "record",
                         ["CreatedByAvatarId"] = (i == 2 ? otherOwner : owner).ToString(),
                         ["marker.with dot"] = i == 2 ? "other" : "caller",
                         ["enabled"] = file,
@@ -93,6 +94,15 @@ public sealed class SqliteMetadataReadPerformanceTests(ITestOutputHelper output)
                 { IsAutoFailOverEnabled = false, IsAutoLoadBalanceEnabled = false, IsAutoReplicationEnabled = false };
             providers.RegisterProvider(provider);
             var files = new FilesManager(provider, dna, providers);
+            var ownerRows = await provider.LoadHolonsByMetaDataAsync("CreatedByAvatarId", owner.ToString(), loadChildren: false);
+            var candidateFiles = await provider.LoadHolonsByMetaDataAsync(new Dictionary<string, string>
+                { ["CreatedByAvatarId"] = owner.ToString(), ["oasisFileType"] = "file" },
+                MetaKeyValuePairMatchMode.All, loadChildren: false);
+            Assert.False(ownerRows.IsError, ownerRows.Message);
+            Assert.False(candidateFiles.IsError, candidateFiles.Message);
+            Assert.Equal(rowCount - 1, ownerRows.Result.Count());
+            Assert.Equal(3, candidateFiles.Result.Count());
+            output.WriteLine($"SQLITE_FILES ownerRows={ownerRows.LoadedCount} candidateFiles={candidateFiles.LoadedCount}");
             var fileList = await files.GetAllFilesForAvatarAsync(owner);
             var count = await files.GetFileCountForAvatarAsync(owner);
             Assert.False(fileList.IsError, fileList.Message);

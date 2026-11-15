@@ -1510,7 +1510,9 @@ public sealed partial class HyperDriveProviderExecutionTests
         var providerManager = new ProviderManager(null, dna);
         var provider = CreateActiveProvider(ProviderType.IPFSOASIS, "files-read-failure");
         provider.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
-        provider.Setup(x => x.LoadHolonsByMetaDataAsync("CreatedByAvatarId", avatarId.ToString(),
+        provider.Setup(x => x.LoadHolonsByMetaDataAsync(It.Is<Dictionary<string, string>>(filters =>
+                    filters.Count == 2 && filters["CreatedByAvatarId"] == avatarId.ToString() && filters["oasisFileType"] == "file"),
+                MetaKeyValuePairMatchMode.All,
                 It.IsAny<HolonType>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<int>(),
                 It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<int>()))
             .ReturnsAsync(new OASISResult<IEnumerable<IHolon>>
