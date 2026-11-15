@@ -34,7 +34,7 @@ on:
       sqlite_performance_case:
         description: Focused case selected when sqlite_metadata_only is enabled
         type: choice
-        options: [metadata, wallet_summary, message_summary, gift_summary, summary_http, message_summary_http, gift_summary_http, shallow_contract, nft_request, checkout_scope, checkout_return]
+        options: [metadata, wallet_summary, message_summary, gift_summary, gift_lifecycle, summary_http, message_summary_http, gift_summary_http, shallow_contract, nft_request, checkout_scope, checkout_return]
         default: metadata
 permissions:
   contents: read
@@ -124,7 +124,7 @@ jobs:
               $test = switch ($env:SQLITE_PERFORMANCE_CASE) { "message_summary_http" { "DashboardMessageSummaryRejectsAnonymousHttpRequests" } "gift_summary_http" { "DashboardGiftSummaryRejectsAnonymousHttpRequests" } "shallow_contract" { "Web4ShallowReadContractTests" } "nft_request" { "RejectsUnboundOrAmbiguousNftTransfers" } "checkout_scope" { "SignedCheckoutFromAnotherLedgerDoesNotTouchBilling" } "checkout_return" { "CheckoutSuccessUrlPreservesTheReturnQueryAndFragment" } default { "DashboardSummaryRoutesRejectAnonymousHttpRequests" } }
             } else {
               $project = "OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests"
-              $test = switch ($env:SQLITE_PERFORMANCE_CASE) { "wallet_summary" { "ReadsWalletSummaryFromNativeSqlite" } "message_summary" { "CountsAllMessagesAndOnlyUnreadIncomingMessages" } "gift_summary" { "CountsDurableInboxAndUnopenedGifts" } default { "NativeSqliteFiltersMetadataBeforeHolonMapping" } }
+              $test = switch ($env:SQLITE_PERFORMANCE_CASE) { "wallet_summary" { "ReadsWalletSummaryFromNativeSqlite" } "message_summary" { "CountsAllMessagesAndOnlyUnreadIncomingMessages" } "gift_summary" { "CountsDurableInboxAndUnopenedGifts" } "gift_lifecycle" { "SendsReceivesAndOpensGiftsAgainstNativeSqlite" } default { "NativeSqliteFiltersMetadataBeforeHolonMapping" } }
             }
             dotnet test $project --filter "FullyQualifiedName~$test" --logger 'console;verbosity=detailed' /m:2 /nr:false /p:UseSharedCompilation=false
             if ($LASTEXITCODE -ne 0) { throw 'Dashboard performance verification failed.' }
