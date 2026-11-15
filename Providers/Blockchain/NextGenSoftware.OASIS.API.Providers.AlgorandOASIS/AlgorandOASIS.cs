@@ -61,27 +61,34 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
             var result = new OASISResult<bool>();
             try
             {
-                var resp = await _algod.GetAsync("/v2/status");
-                resp.EnsureSuccessStatusCode();
-                using var doc = await JsonDocument.ParseAsync(await resp.Content.ReadAsStreamAsync());
-                ulong lastRound = doc.RootElement.TryGetProperty("last-round", out var lr) ? lr.GetUInt64() : 0;
+                using var response = await _algod.GetAsync("/v2/status").ConfigureAwait(false);
+                response.EnsureSuccessStatusCode();
+                using var body = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+                using var document = await JsonDocument.ParseAsync(body).ConfigureAwait(false);
+                if (!document.RootElement.TryGetProperty("last-round", out var round) || !round.TryGetUInt64(out var lastRound))
+                    throw new InvalidOperationException("Algod status did not provide a valid last round.");
+                IsProviderActivated = true;
                 result.Result = true;
                 result.Message = $"AlgorandOASIS activated. Last round: {lastRound} at {_algodUrl}.";
             }
             catch (Exception ex)
             {
+                IsProviderActivated = false;
                 result.Exception = ex;
                 OASISErrorHandling.HandleError(ref result, $"AlgorandOASIS: Error activating: {ex.Message}");
             }
             return result;
         }
 
-        public override OASISResult<bool> ActivateProvider() => ActivateProviderAsync().Result;
+        public override OASISResult<bool> ActivateProvider() => ActivateProviderAsync().GetAwaiter().GetResult();
 
-        public override async Task<OASISResult<bool>> DeActivateProviderAsync() =>
-            await Task.FromResult(new OASISResult<bool> { Result = true, Message = "AlgorandOASIS deactivated." });
+        public override Task<OASISResult<bool>> DeActivateProviderAsync() => Task.FromResult(DeActivateProvider());
 
-        public override OASISResult<bool> DeActivateProvider() => DeActivateProviderAsync().Result;
+        public override OASISResult<bool> DeActivateProvider()
+        {
+            IsProviderActivated = false;
+            return new OASISResult<bool> { Result = true, Message = "AlgorandOASIS deactivated." };
+        }
 
         // ─── Avatar: Load ─────────────────────────────────────────────────────────
 
@@ -115,15 +122,15 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
                     ModifiedDate = DateTime.UtcNow,
                 };
                 avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.AlgorandOASIS] = providerKey;
-                avatar.ProviderMetaData[Core.Enums.ProviderType.AlgorandOASIS]["address"] = providerKey;
+                GetAlgorandMetadata(avatar)["address"] = providerKey;
                 if (acct.TryGetProperty("amount", out var bal))
-                    avatar.ProviderMetaData[Core.Enums.ProviderType.AlgorandOASIS]["balance_microALGO"] = bal.GetUInt64().ToString();
+                    GetAlgorandMetadata(avatar)["balance_microALGO"] = bal.GetUInt64().ToString();
                 if (acct.TryGetProperty("amount-without-pending-rewards", out var nb))
-                    avatar.ProviderMetaData[Core.Enums.ProviderType.AlgorandOASIS]["balance_without_rewards_microALGO"] = nb.GetUInt64().ToString();
+                    GetAlgorandMetadata(avatar)["balance_without_rewards_microALGO"] = nb.GetUInt64().ToString();
                 if (acct.TryGetProperty("status", out var st))
-                    avatar.ProviderMetaData[Core.Enums.ProviderType.AlgorandOASIS]["status"] = st.GetString() ?? string.Empty;
+                    GetAlgorandMetadata(avatar)["status"] = st.GetString() ?? string.Empty;
                 if (acct.TryGetProperty("total-assets-opted-in", out var asas))
-                    avatar.ProviderMetaData[Core.Enums.ProviderType.AlgorandOASIS]["total_assets_opted_in"] = asas.GetUInt32().ToString();
+                    GetAlgorandMetadata(avatar)["total_assets_opted_in"] = asas.GetUInt32().ToString();
                 result.Result = avatar;
                 result.Message = $"AlgorandOASIS: Loaded account '{providerKey}'.";
             }
@@ -470,7 +477,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
                     using var doc = await JsonDocument.ParseAsync(await resp.Content.ReadAsStreamAsync());
                     string txId = doc.RootElement.TryGetProperty("txId", out var tx) ? tx.GetString() ?? string.Empty : string.Empty;
                     holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.AlgorandOASIS] = txId;
-                    holon.ProviderMetaData[Core.Enums.ProviderType.AlgorandOASIS]["tx_id"] = txId;
+                    GetAlgorandMetadata(holon)["tx_id"] = txId;
                     result.Result = holon;
                     result.Message = $"AlgorandOASIS: Transaction submitted with ID '{txId}'.";
                 }
@@ -681,29 +688,40 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
                 ModifiedDate = ts,
             };
             h.ProviderUniqueStorageKey[Core.Enums.ProviderType.AlgorandOASIS] = txId;
-            h.ProviderMetaData[Core.Enums.ProviderType.AlgorandOASIS]["tx_id"] = txId;
-            h.ProviderMetaData[Core.Enums.ProviderType.AlgorandOASIS]["sender"] = sender;
-            h.ProviderMetaData[Core.Enums.ProviderType.AlgorandOASIS]["tx_type"] = txType;
-            h.ProviderMetaData[Core.Enums.ProviderType.AlgorandOASIS]["note"] = note;
+            GetAlgorandMetadata(h)["tx_id"] = txId;
+            GetAlgorandMetadata(h)["sender"] = sender;
+            GetAlgorandMetadata(h)["tx_type"] = txType;
+            GetAlgorandMetadata(h)["note"] = note;
             if (t.TryGetProperty("confirmed-round", out var cr))
-                h.ProviderMetaData[Core.Enums.ProviderType.AlgorandOASIS]["confirmed_round"] = cr.GetUInt64().ToString();
+                GetAlgorandMetadata(h)["confirmed_round"] = cr.GetUInt64().ToString();
             if (txType == "pay" && t.TryGetProperty("payment-transaction", out var pay))
             {
                 if (pay.TryGetProperty("receiver", out var rec))
-                    h.ProviderMetaData[Core.Enums.ProviderType.AlgorandOASIS]["receiver"] = rec.GetString() ?? string.Empty;
+                    GetAlgorandMetadata(h)["receiver"] = rec.GetString() ?? string.Empty;
                 if (pay.TryGetProperty("amount", out var amt))
-                    h.ProviderMetaData[Core.Enums.ProviderType.AlgorandOASIS]["amount_microALGO"] = amt.GetUInt64().ToString();
+                    GetAlgorandMetadata(h)["amount_microALGO"] = amt.GetUInt64().ToString();
             }
             else if (txType == "axfer" && t.TryGetProperty("asset-transfer-transaction", out var axfer))
             {
                 if (axfer.TryGetProperty("asset-id", out var assetId))
-                    h.ProviderMetaData[Core.Enums.ProviderType.AlgorandOASIS]["asa_id"] = assetId.GetUInt64().ToString();
+                    GetAlgorandMetadata(h)["asa_id"] = assetId.GetUInt64().ToString();
                 if (axfer.TryGetProperty("amount", out var asaAmt))
-                    h.ProviderMetaData[Core.Enums.ProviderType.AlgorandOASIS]["asa_amount"] = asaAmt.GetUInt64().ToString();
+                    GetAlgorandMetadata(h)["asa_amount"] = asaAmt.GetUInt64().ToString();
                 if (axfer.TryGetProperty("receiver", out var asaRec))
-                    h.ProviderMetaData[Core.Enums.ProviderType.AlgorandOASIS]["receiver"] = asaRec.GetString() ?? string.Empty;
+                    GetAlgorandMetadata(h)["receiver"] = asaRec.GetString() ?? string.Empty;
             }
             return h;
+        }
+
+        private static Dictionary<string, string> GetAlgorandMetadata(IHolon holon)
+        {
+            holon.ProviderMetaData ??= new Dictionary<ProviderType, Dictionary<string, string>>();
+            if (!holon.ProviderMetaData.TryGetValue(Core.Enums.ProviderType.AlgorandOASIS, out var metadata) || metadata == null)
+            {
+                metadata = new Dictionary<string, string>();
+                holon.ProviderMetaData[Core.Enums.ProviderType.AlgorandOASIS] = metadata;
+            }
+            return metadata;
         }
 
         private static Guid DeriveGuid(string key)
