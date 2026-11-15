@@ -114,7 +114,14 @@ public sealed class SolidSqliteHyperDriveTests
         {
             var owned = solid.LoadAllHolons(HolonType.All, loadChildren: false);
             Assert.IsFalse(owned.IsError, owned.Exception?.ToString() ?? owned.Message);
+            Assert.IsTrue(owned.IsLoaded);
             Assert.AreEqual(0, owned.Result.Count());
+
+            var saved = solid.SaveHolon(new Core.Holons.Holon { Name = "solid-cold-start" }, saveChildren: false);
+            Assert.IsFalse(saved.IsError, saved.Exception?.ToString() ?? saved.Message);
+            var populated = solid.LoadAllHolons(HolonType.All, loadChildren: false);
+            Assert.IsFalse(populated.IsError, populated.Exception?.ToString() ?? populated.Message);
+            Assert.AreEqual(saved.Result.Id, populated.Result.Single().Id);
         }
         finally
         {

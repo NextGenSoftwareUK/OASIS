@@ -6,6 +6,7 @@ on:
     paths:
       - '.github/workflows/solid-sqlite-hyperdrive.yml'
       - 'Providers/Network/NextGenSoftware.OASIS.API.Providers.SOLIDOASIS/SOLIDOASIS.RecordHttp.cs'
+      - 'Providers/Network/NextGenSoftware.OASIS.API.Providers.SOLIDOASIS/SOLIDOASIS.Pages.cs'
       - 'Providers/Shared/TestSupport/NativePriorityRouting.cs'
       - 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.IntegrationTests/SolidSqliteHyperDriveTests.cs'
   workflow_dispatch:
@@ -59,7 +60,9 @@ jobs:
           git -C ../provider-source fetch --no-tags --depth=1 origin "$base"
           tests='Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.IntegrationTests'
           for path in "$tests/NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.IntegrationTests.csproj" \
-            "$tests/SolidSqliteHyperDriveTests.cs" 'Providers/Shared/TestSupport/NativePriorityRouting.cs' 'Providers/Network/NextGenSoftware.OASIS.API.Providers.SOLIDOASIS/SOLIDOASIS.RecordHttp.cs'; do
+            "$tests/SolidSqliteHyperDriveTests.cs" 'Providers/Shared/TestSupport/NativePriorityRouting.cs' \
+            'Providers/Network/NextGenSoftware.OASIS.API.Providers.SOLIDOASIS/SOLIDOASIS.RecordHttp.cs' \
+            'Providers/Network/NextGenSoftware.OASIS.API.Providers.SOLIDOASIS/SOLIDOASIS.Pages.cs'; do
             current="$(git ls-tree HEAD -- "$path")"
             reviewed="$(git -C ../provider-source ls-tree "$base" -- "$path")"
             incoming="$(git -C ../provider-source ls-tree HEAD -- "$path")"

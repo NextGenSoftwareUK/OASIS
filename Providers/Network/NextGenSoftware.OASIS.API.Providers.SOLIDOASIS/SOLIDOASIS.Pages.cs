@@ -12,7 +12,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS;
 
 public partial class SOLIDOASIS
 {
-    private async Task<Graph> ReadPrivateContainerPagesAsync(Uri container)
+    private async Task<Graph> ReadPrivateContainerPagesAsync(Uri container, bool allowMissingContainer = false)
     {
         var aggregate=new Graph{BaseUri=container};
         var visited=new HashSet<string>(StringComparer.Ordinal);
@@ -29,6 +29,11 @@ public partial class SOLIDOASIS
                 request.Headers.Accept.ParseAdd("text/turtle");
                 request.Headers.TryAddWithoutValidation("Prefer","return=representation; max-member-count=1000");
                 using var response=await _httpClient.SendAsync(request);
+                if (allowMissingContainer && visited.Count == 1 && response.StatusCode == HttpStatusCode.NotFound)
+                {
+                    aggregate.Dispose();
+                    return null;
+                }
                 if(response.StatusCode==HttpStatusCode.SeeOther)
                 {
                     var location=response.Headers.Location??throw new InvalidDataException("SOLID paging redirect lacks Location.");
