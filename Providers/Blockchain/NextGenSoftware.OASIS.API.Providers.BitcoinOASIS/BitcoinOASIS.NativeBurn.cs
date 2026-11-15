@@ -97,8 +97,12 @@ public partial class BitcoinOASIS
         return result;
     }
 
+    private Task<Transaction> CreateSignedCardinalPaymentAsync(HttpClient ord, BitcoinSecret signer,
+        BitcoinAddress address, FeeRate feeRate, params TxOut[] payments) =>
+        CreateSignedCardinalPaymentAsync(ord, signer, address, feeRate, null, null, payments);
+
     private async Task<Transaction> CreateSignedCardinalPaymentAsync(HttpClient ord, BitcoinSecret signer,
-        BitcoinAddress address, FeeRate feeRate, params TxOut[] payments)
+        BitcoinAddress address, FeeRate feeRate, Coin requiredCoin, Key requiredKey, params TxOut[] payments)
     {
         var wrappedSegwit = address.Equals(signer.GetAddress(ScriptPubKeyType.SegwitP2SH));
         var builder = SigningNetwork.CreateTransactionBuilder().AddKeys(signer.PrivateKey);
@@ -111,6 +115,13 @@ public partial class BitcoinOASIS
         }
         var change = transaction.Outputs.Add(Money.Zero, address.ScriptPubKey);
         var available = Money.Zero;
+        if (requiredCoin != null)
+        {
+            builder.AddKeys(requiredKey).AddCoins(requiredCoin);
+            transaction.Inputs.Add(requiredCoin.Outpoint);
+            available += requiredCoin.Amount;
+        }
+
         using var utxos = JsonDocument.Parse(await _httpClient.GetStringAsync($"address/{address}/utxo"));
         foreach (var utxo in utxos.RootElement.EnumerateArray())
         {

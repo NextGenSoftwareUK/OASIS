@@ -2,6 +2,11 @@ name: Bitcoin native Ordinals
 
 on:
   workflow_dispatch:
+    inputs:
+      escrow_only:
+        description: Qualify only the native BTC escrow lifecycle
+        type: boolean
+        default: false
   push:
     branches: [work/hyperdrive-provider-completion, work/hyperdrive-bitcoin-avatar-qualification]
     paths:
@@ -158,6 +163,16 @@ jobs:
             sleep 1
           done
           test "$ready" = true
+          if [[ '${{ inputs.escrow_only }}' = true ]]; then
+            export OASIS_BITCOIN_ESCROW_RECEIPT_PROVIDER=SQLLiteDBOASIS
+            export OASIS_BITCOIN_ESCROW_RECEIPT_ACTOR="$(cat /proc/sys/kernel/random/uuid)"
+            pwsh -NoProfile -Command '
+              ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-BitcoinEscrow -Operation {
+                dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests" --filter "FullyQualifiedName~NativeBitcoinEscrowConsumesOnlyTheAuthorizedDepositAndReturnsExactAmount" /m:2 /nr:false /p:UseSharedCompilation=false
+                if ($LASTEXITCODE -ne 0) { throw "Native Bitcoin escrow failed." }
+              }'
+            exit 0
+          fi
           before="$(curl -fsS -H 'Accept: application/json' "$OASIS_BITCOIN_ORD_API/inscription/$inscription" | jq -er '.satpoint')"
           test "$(bitcoin getrawmempool | jq 'length')" = 0
           pwsh -NoProfile -Command '

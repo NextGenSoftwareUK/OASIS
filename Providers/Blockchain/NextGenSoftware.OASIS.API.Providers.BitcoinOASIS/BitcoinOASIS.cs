@@ -100,8 +100,15 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
         }
 
         public BitcoinOASIS(string rpcEndpoint, string network, string privateKey, WalletManager walletManager, decimal? paymentFeeRateSatPerVByte)
+            : this(rpcEndpoint, network, privateKey, walletManager, paymentFeeRateSatPerVByte, null)
+        {
+        }
+
+        public BitcoinOASIS(string rpcEndpoint, string network, string privateKey, WalletManager walletManager,
+            decimal? paymentFeeRateSatPerVByte, HolonManager escrowReceipts)
         {
             _walletManager = walletManager;
+            _bitcoinEscrowReceipts = escrowReceipts;
             this.ProviderName = "BitcoinOASIS";
             this.ProviderDescription = "Bitcoin Provider - First and largest cryptocurrency";
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.BitcoinOASIS);

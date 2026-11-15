@@ -85,3 +85,7 @@ To burn an inscription, provide the inscription ID and its owner's signing key. 
 ### Bridge payments
 
 Native Bitcoin bridge payments require OASIS_BITCOIN_BRIDGE_POOL_ADDRESS. The address must belong to the configured Bitcoin network. Withdrawals send from the supplied wallet signer to the pool. Deposits spend from the pool using its configured provider signer. A pending response identifies an acknowledged Bitcoin broadcast.
+
+Native BTC token escrow requires the configured Bitcoin bridge pool and its matching signer, a healthy ord index and Esplora on the same chain, and a single conditional storage authority shared by the serving workers. Set OASIS_BITCOIN_ESCROW_RECEIPT_PROVIDER to that registered provider and OASIS_BITCOIN_ESCROW_RECEIPT_ACTOR to a dedicated service avatar. End users must not have access to the receipt service avatar or signing key. Keep the signer and receipt authority available for deposits that are already locked.
+
+Use TokenAddress BTC, a stable LockId, the asset UUID and the configured pool address. The funded output is bound to one deposit. Release requires its native confirmation, spends that exact output and returns the original amount to the depositor wallet. The pool supplies the release fee. Reusing the same lock ID and request reuses its staged signed transaction. Rune escrow and hosted qualification are pending.
