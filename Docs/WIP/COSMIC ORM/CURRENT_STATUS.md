@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## SQL RIGHT OUTER JOIN on real native stores
+
+15 November. Web4Site 9cc30d11a4bd compiles RIGHT OUTER JOIN by reversing the native source roles and retaining the requested column order. The result table labels outer-row presence as Matched. All 228 website tests passed. Exact Development dc24072806f6 returned the matching row and preserved the unmatched right row with null left fields on MongoDB, SQLite and Neo4j. All six private fixtures were deleted and verified absent by exact CQL ID. [Protected preview](https://web4-site-ir3rvde3b-oasis-team.vercel.app/web4-sandbox.html)
+
 ## Independent OFFSET for SQL join inputs
 
 15 November. Web4Site 261bd75bcf10 accepts an independent OFFSET after each bounded join input LIMIT. It submits native source Skip and retains the original input, pair and result bounds. All 227 website tests passed. On Development dc24072806f6, MongoDB, SQLite and Neo4j independently selected the expected left and right windows in nine populated checks. The six private records were deleted and verified absent by exact CQL ID. HyperDrive Algorand b4fb83823a9b queued its WEB4 deployment at 18:36:36 UTC. The combined browser-policy release awaits that serving revision, exact CI and the shared interval. [Protected preview](https://web4-site-quv1kc1lc-oasis-team.vercel.app/web4-sandbox.html)
