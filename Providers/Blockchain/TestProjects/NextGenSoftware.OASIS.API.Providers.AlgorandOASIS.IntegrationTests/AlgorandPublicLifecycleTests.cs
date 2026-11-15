@@ -151,6 +151,12 @@ public sealed class AlgorandPublicLifecycleTests
         Assert.IsFalse(rejected.Result);
         Assert.IsFalse(missingIndexer.IsProviderActivated);
         Assert.IsNotNull(rejected.Exception);
+
+        var differentChain = new AlgorandOASIS(algod, "https://testnet-idx.algonode.cloud");
+        var mismatched = await differentChain.ActivateProviderAsync();
+        Assert.IsTrue(mismatched.IsError);
+        Assert.IsFalse(differentChain.IsProviderActivated);
+        StringAssert.Contains(mismatched.Message, "different Algorand networks");
     }
 
     [TestMethod]

@@ -85,13 +85,17 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
             try
             {
                 var algod = ReadAlgodRoundAsync();
-                var indexer = ReadIndexerRoundAsync();
-                await Task.WhenAll(algod, indexer).ConfigureAwait(false);
+                var versions = ReadAlgodNetworkAsync();
+                var indexer = ReadIndexerStatusAsync();
+                await Task.WhenAll(algod, versions, indexer).ConfigureAwait(false);
                 var algodRound = await algod.ConfigureAwait(false);
-                var indexedRound = await indexer.ConfigureAwait(false);
+                var algodNetwork = await versions.ConfigureAwait(false);
+                var index = await indexer.ConfigureAwait(false);
+                if (algodNetwork.Id != index.GenesisId || algodNetwork.Hash != index.GenesisHash)
+                    throw new InvalidOperationException("Algod and Indexer identify different Algorand networks.");
                 IsProviderActivated = true;
                 result.Result = true;
-                result.Message = $"AlgorandOASIS activated. Algod round {algodRound} at {_algodUrl}. Indexed round {indexedRound} at {_indexerUrl}.";
+                result.Message = $"AlgorandOASIS activated. Algod round {algodRound} at {_algodUrl}. Indexed round {index.Round} at {_indexerUrl}.";
             }
             catch (Exception ex)
             {
@@ -104,27 +108,51 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
 
         private async Task<ulong> ReadAlgodRoundAsync()
         {
-            using var response = await _algod.GetAsync("/v2/status").ConfigureAwait(false);
-            response.EnsureSuccessStatusCode();
-            using var body = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
-            using var document = await JsonDocument.ParseAsync(body).ConfigureAwait(false);
+            using var document = await ReadJsonAsync(_algod, "/v2/status").ConfigureAwait(false);
             if (!document.RootElement.TryGetProperty("last-round", out var round) || !round.TryGetUInt64(out var lastRound))
                 throw new InvalidOperationException("Algod status did not provide a valid last round.");
             return lastRound;
         }
 
-        private async Task<ulong> ReadIndexerRoundAsync()
+        private async Task<(string Id, string Hash)> ReadAlgodNetworkAsync()
         {
-            using var response = await _indexer.GetAsync("/health").ConfigureAwait(false);
-            response.EnsureSuccessStatusCode();
-            using var body = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
-            using var document = await JsonDocument.ParseAsync(body).ConfigureAwait(false);
+            using var document = await ReadJsonAsync(_algod, "/versions").ConfigureAwait(false);
+            var root = document.RootElement;
+            return ReadNetworkIdentity(root, "genesis_id", "genesis_hash_b64");
+        }
+
+        private async Task<(ulong Round, string GenesisId, string GenesisHash)> ReadIndexerStatusAsync()
+        {
+            using var document = await ReadJsonAsync(_indexer, "/health").ConfigureAwait(false);
             var health = document.RootElement;
             if (!health.TryGetProperty("db-available", out var database) || database.ValueKind != JsonValueKind.True ||
                 !health.TryGetProperty("is-migrating", out var migrating) || migrating.ValueKind != JsonValueKind.False ||
                 !health.TryGetProperty("round", out var round) || !round.TryGetUInt64(out var indexedRound))
                 throw new InvalidOperationException("Indexer health did not report an available database and a valid round.");
-            return indexedRound;
+
+            using var block = await ReadJsonAsync(_indexer, $"/v2/blocks/{indexedRound.ToString(CultureInfo.InvariantCulture)}?header-only=true").ConfigureAwait(false);
+            var header = block.RootElement;
+            if (header.GetProperty("round").GetUInt64() != indexedRound)
+                throw new InvalidOperationException("Indexer did not return the requested network header.");
+            var network = ReadNetworkIdentity(header, "genesis-id", "genesis-hash");
+            return (indexedRound, network.Id, network.Hash);
+        }
+
+        private static (string Id, string Hash) ReadNetworkIdentity(JsonElement document, string idField, string hashField)
+        {
+            var id = document.GetProperty(idField).GetString();
+            var hash = document.GetProperty(hashField).GetString();
+            if (string.IsNullOrWhiteSpace(id) || hash == null || Convert.FromBase64String(hash).Length != 32)
+                throw new InvalidOperationException("Algorand did not return a valid genesis identity.");
+            return (id, hash);
+        }
+
+        private static async Task<JsonDocument> ReadJsonAsync(HttpClient client, string path)
+        {
+            using var response = await client.GetAsync(path).ConfigureAwait(false);
+            response.EnsureSuccessStatusCode();
+            using var body = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+            return await JsonDocument.ParseAsync(body).ConfigureAwait(false);
         }
 
         public override OASISResult<bool> ActivateProvider() => ActivateProviderAsync().GetAwaiter().GetResult();
