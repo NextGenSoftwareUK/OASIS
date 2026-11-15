@@ -1,5 +1,7 @@
 # Current provider status
 
+15 November Cancun time. OPORTAL 98858d7 loads the signed WEB5 quest tabs and search on demand and reuses same-session results. The exact portal script and shipping SDK returned HTTP 200 for My Quests, All Quests and an encoded search against the live WEB5 sandbox, with one request per operation. The real results were empty. Populated browser acceptance remains open. Scoped dev candidate 5b4862a8c343 combines Quests, Missions and the dashboard Karma changes for the 23:27:42 UTC or later review.
+
 15 November Cancun time. OPORTAL 2a5db3d loads the signed WEB5 mission tabs and search on demand. It reuses same-session results, distinguishes connection errors from empty lists, and suppresses responses from superseded searches and sessions. The shipping SDK returned HTTP 200 for My Missions, All Missions and an encoded search with one request per operation. Populated browser acceptance remains open. Scoped candidate 30d40f44eb9b combines Missions with the verified dashboard Karma batch. Dev release review remains 23:27:42 UTC or later.
 
 15 November Cancun time. OPORTAL c314d43 shows the real WEB4 Karma totals, including zero earnings or balance and negative spending. A signed SDK request confirmed the deployed field names and the controlled renderer passed zero and penalty cases. Candidate a6d026ceb722 combines these totals with bounded dashboard activity for the next portal release. WEB4 activity currently reads the avatar detail containing its history and applies paging to the results. Provider-side projection remains open.

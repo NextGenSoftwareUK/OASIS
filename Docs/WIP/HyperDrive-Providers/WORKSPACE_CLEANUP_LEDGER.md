@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. WEB4 confirmed deletion of the disposable signed Quests fixture with HTTP 200. Removed the staged release alternate index and patch. No SDK downloads, installation files, local build results or test artifacts were retained.
+
 15 November Cancun time. WEB4 confirmed both disposable mission test avatars were deleted with HTTP 200. Removed the scoped candidate index and temporary patch. No SDK installations, test output, local build artifacts or dependencies were retained.
 
 15 November Cancun time. WEB4 confirmed deletion of the disposable Karma stats test avatar with HTTP 200. Removed the scoped portal candidate index. No local build outputs, dependencies or test artifacts were retained.
