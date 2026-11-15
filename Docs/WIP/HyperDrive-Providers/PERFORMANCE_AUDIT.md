@@ -1,5 +1,7 @@
 # OPORTAL and HyperDrive performance audit
 
+15 November Cancun time. OPORTAL NFT transfer is wired through the bundled SDK with explicit token selection for multi-token NFTs. The loopback confirmed the selected chain identity, both recipient forms, rejection, acknowledgement and prevention of immediate repeat submission after an uncertain response. The WEB4 API requires an owned sender and same-provider recipient. Signed hosted and native funded acceptance remain open.
+
 15 November Cancun time. The NFT transfer audit found that WEB4 dropped token identity and called a provider without binding the sender to the authenticated avatar. The branch routes explicit identity through the existing owned-wallet signer and requires a native receipt. It accepts a wallet address or a username resolving to one or a unique default wallet on the same provider. Portal selection and native chain verification remain open.
 
 15 November Cancun time. Removed the front-end hard gate on NFT mint submission and kept the server authorization. The modal checks for a durable NFT identity in the response, blocks duplicate clicks during submission, distinguishes pending requests and renders an acknowledged mint without reloading the GeoNFT and OLand lists. The transfer request does not yet carry the selected token identity. Hosted and funded verification remain open.

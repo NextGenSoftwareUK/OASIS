@@ -1,5 +1,7 @@
 # Current provider status
 
+15 November Cancun time. OPORTAL 0584a7d sends a selected chain token identity, uses a wallet address or avatar username, and renders native acknowledgement or an uncertain outcome. The first focused WEB4 run 43701671260 found a missing Core Helpers import. The branch corrects it and needs a rerun. Native chain transfer remains open.
+
 15 November Cancun time. Gifts summary authorization passed WEB4 HTTP run 43700638886. The Files image remains in progress. The NFT transfer API now binds a token address and the exact owned sender wallet, with recipient lookup on the same provider. Focused request verification and native NFT transfer acceptance remain open.
 
 15 November Cancun time. OPORTAL f8148ae connects the NFT mint form to the bundled WEB4 SDK. The server already enforces the Wizard role and the task branch now names that requirement accurately. Loopback verified request, role rejection and receipt rendering. Funded chain acceptance and NFT transfer wiring remain open.
