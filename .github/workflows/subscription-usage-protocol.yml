@@ -93,7 +93,7 @@ jobs:
         shell: pwsh
         run: |
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner axelar-cql-ci -Operation {
-            dotnet test 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.CrossChain.ProtocolTests' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~AxelarProtocolTests|FullyQualifiedName~ConnextPublicOriginMetadataTests.ExactKeyQueryReturnsCompleteOrderedRowsOrFails'
+            dotnet test 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.CrossChain.ProtocolTests' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~AxelarProtocolTests|FullyQualifiedName~ConnextPublicOriginMetadataTests.ExactKeyQueryReturnsCompleteOrderedRowsOrFails|FullyQualifiedName~ConnextPublicOriginMetadataTests.UniversalReaderAuthenticatesExactLogRequestAndRejectsMissingCredentials'
             if ($LASTEXITCODE) { throw 'Axelar and Connext native protocol verification failed.' }
           }
       - name: Verify Nostr cached signature integrity and live-reader contract
