@@ -2,9 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
+using System.Net.Http;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using NextGenSoftware.Utilities;
@@ -13,6 +18,79 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS;
 
 public partial class AlgorandOASIS
 {
+    private async Task<OASISResult<IEnumerable<IHolon>>> LoadEnrolledCollectionAsync(Guid? parentId, HolonType type,
+        bool loadChildren, bool recursive, int maxChildDepth, int currentChildDepth, bool continueOnError,
+        bool loadChildrenFromProvider, int version)
+    {
+        var result = new OASISResult<IEnumerable<IHolon>>();
+        try
+        {
+            if (parentId == Guid.Empty)
+                throw new ArgumentException("An enrolled Algorand parent ID is required.", nameof(parentId));
+            ArgumentOutOfRangeException.ThrowIfNegative(version);
+            ArgumentOutOfRangeException.ThrowIfNegative(maxChildDepth);
+            ArgumentOutOfRangeException.ThrowIfNegative(currentChildDepth);
+            using var deadline = new CancellationTokenSource(_algod.Timeout);
+            var discovered = await DiscoverStoredHolonIdsAsync(deadline.Token).ConfigureAwait(false);
+            if (discovered.IsError)
+                throw new InvalidOperationException(discovered.Message, discovered.Exception);
+            var ids = discovered.Result;
+            var loaded = new OASISResult<IHolon>[ids.Count];
+            await Parallel.ForEachAsync(Enumerable.Range(0, ids.Count),
+                new ParallelOptions { MaxDegreeOfParallelism = 8, CancellationToken = deadline.Token },
+                async (index, token) =>
+                {
+                    loaded[index] = await LoadStoredHolonAsync(ids[index], version, token).ConfigureAwait(false);
+                }).ConfigureAwait(false);
+
+            var records = new List<IHolon>();
+            var skipped = new List<string>();
+            for (var index = 0; index < loaded.Length; index++)
+            {
+                var read = loaded[index];
+                if (!read.IsError && read.Result != null)
+                {
+                    records.Add(read.Result);
+                    continue;
+                }
+                if (version != 0 && read.ErrorCode == OASISResultErrorCodes.RecordNotFound)
+                    continue;
+                if (!continueOnError || read.Exception is not HttpRequestException)
+                    throw new InvalidOperationException(read.Message ?? "An enumerated Algorand record is unavailable.", read.Exception);
+                skipped.Add(ids[index].ToString("D"));
+            }
+            if (records.Count == 0 && skipped.Count != 0)
+                throw new InvalidOperationException("No Algorand collection could be read.");
+            var project = HolonGraphProjection.Create(records, loadChildren, recursive, maxChildDepth,
+                currentChildDepth, loadChildrenFromProvider, item => OasisJson.DeserializeStored<Holon>(OasisJson.Serialize(item)),
+                rootsAreChildren: parentId.HasValue);
+            var selected = records.Where(item =>
+                    (type == HolonType.All || item.HolonType == type) &&
+                    (!parentId.HasValue || item.ParentHolonId == parentId.Value))
+                .Select(project).ToArray();
+            result.Result = selected;
+            result.IsLoaded = true;
+            result.LoadedCount = selected.Length;
+            if (skipped.Count > 0)
+            {
+                result.IsWarning = true;
+                result.WarningCount = skipped.Count;
+                result.Message = "Returned a partial Algorand collection.";
+                result.MetaData = new Dictionary<string, string>
+                {
+                    ["partialHolonReads"] = "true",
+                    ["failedHolonReadCount"] = skipped.Count.ToString(CultureInfo.InvariantCulture),
+                    ["failedHolonReads"] = OasisJson.Serialize(skipped)
+                };
+            }
+        }
+        catch (Exception exception)
+        {
+            OASISErrorHandling.HandleError(ref result, "Could not load the enrolled Algorand collection.", exception);
+        }
+        return result;
+    }
+
     public async Task<OASISResult<IReadOnlyList<Guid>>> DiscoverStoredHolonIdsAsync(
         CancellationToken cancellationToken = default)
     {

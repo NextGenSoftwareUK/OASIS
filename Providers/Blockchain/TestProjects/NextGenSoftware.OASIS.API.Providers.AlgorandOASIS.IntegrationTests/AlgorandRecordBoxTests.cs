@@ -87,7 +87,8 @@ public sealed class AlgorandRecordBoxTests
             Assert.AreEqual(initial.Result.VersionId, update.Result.PreviousVersionId);
             Assert.AreNotEqual(initial.Result.VersionId, update.Result.VersionId);
             var secondId = Guid.NewGuid();
-            var second = await provider.SaveHolonAsync(new Holon { Id = secondId, Name = "Another record" }, saveChildren: false);
+            var second = await provider.SaveHolonAsync(new Holon
+                { Id = secondId, ParentHolonId = id, Name = "Another record" }, saveChildren: false);
             Assert.IsFalse(second.IsError, second.Exception?.ToString() ?? second.Message);
 
             var separateReader = Create(Required("PROGRAM"), storageKey);
@@ -104,6 +105,13 @@ public sealed class AlgorandRecordBoxTests
                 var discovered = await separateReader.DiscoverStoredHolonIdsAsync();
                 Assert.IsFalse(discovered.IsError, discovered.Exception?.ToString() ?? discovered.Message);
                 CollectionAssert.AreEquivalent(new[] { id, secondId }, System.Linq.Enumerable.ToArray(discovered.Result));
+                var all = await separateReader.LoadAllHolonsAsync(loadChildren: false);
+                Assert.IsFalse(all.IsError, all.Exception?.ToString() ?? all.Message);
+                CollectionAssert.AreEquivalent(new[] { id, secondId },
+                    System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(all.Result, record => record.Id)));
+                var children = separateReader.LoadHolonsForParent(id.ToString("D"), loadChildren: false);
+                Assert.IsFalse(children.IsError, children.Exception?.ToString() ?? children.Message);
+                Assert.AreEqual(secondId, System.Linq.Enumerable.Single(children.Result).Id);
             }
             finally
             {

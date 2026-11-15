@@ -433,6 +433,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
             bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0,
             bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
+            if (_recordBoxes != null)
+                return await LoadEnrolledCollectionAsync(null, type, loadChildren, recursive, maxChildDepth,
+                    curentChildDepth, continueOnError, loadChildrenFromProvider, version).ConfigureAwait(false);
             var result = new OASISResult<IEnumerable<IHolon>>();
             OASISErrorHandling.HandleError(ref result,
                 "AlgorandOASIS: LoadAllHolons is not supported — use LoadHolonsForParentAsync(accountAddress) to load an account's transactions.");
@@ -450,6 +453,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
             int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true,
             bool loadChildrenFromProvider = false, int version = 0)
         {
+            if (_recordBoxes != null)
+                return await LoadEnrolledCollectionAsync(id, type, loadChildren, recursive, maxChildDepth,
+                    curentChildDepth, continueOnError, loadChildrenFromProvider, version).ConfigureAwait(false);
             var result = new OASISResult<IEnumerable<IHolon>>();
             OASISErrorHandling.HandleError(ref result,
                 "AlgorandOASIS: Use LoadHolonsForParentAsync(algorandAddress) instead.");
@@ -468,6 +474,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
             int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true,
             bool loadChildrenFromProvider = false, int version = 0)
         {
+            if (_recordBoxes != null && Guid.TryParseExact(providerKey, "D", out var parentId))
+                return await LoadEnrolledCollectionAsync(parentId, type, loadChildren, recursive, maxChildDepth,
+                    curentChildDepth, continueOnError, loadChildrenFromProvider, version).ConfigureAwait(false);
             if (type != HolonType.All && type != HolonType.Holon)
                 return new OASISResult<IEnumerable<IHolon>>
                 {
