@@ -1,5 +1,7 @@
 # Current provider status
 
+15 November Cancun time. Shallow HolonManager and Messages reached Development at 3a0542795eda after exact image qualification. The serving Railway change is pending. Files native MongoDB assertions passed and SQLite download identified the JSON string representation mismatch. The decoder correction is on the task branch.
+
 15 November Cancun time. Native MongoDB-to-SQLite Files regression run 43694161825 is in progress. Contract run 43693892927 stopped at stale manager coverage declarations before tests. The manager and WEB4 route manifests have been reconciled against the current branch.
 
 15 November Cancun time. Files upload diagnostics narrowed the failure to HyperDrive committed replication evidence after the primary acknowledgement. The Files branch change requests a shallow save and preserves the failure code. Exact candidate and affected hosted fixture reconciliation remain open.

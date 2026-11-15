@@ -1,5 +1,9 @@
 # OPORTAL and HyperDrive performance audit
 
+15 November Cancun time. The OPORTAL branch now starts app-owner usage, settings and billing reads concurrently at 2d9c33b. The corresponding Development handlers each enforce app ownership before returning data. A loopback test held all three responses until every authenticated GET arrived and verified success rendering and 403 propagation. Anonymous dev probes returned 401 on all four owner routes, while the production origin returned 404. Production timing and adoption remain open.
+
+15 November Cancun time. The native Files rerun 43694763650 passed the MongoDB download and count assertions, then failed on SQLite download. SQLite's holon read returns string-valued metadata as JsonElement. The Files reader now decodes that same Base64 value directly, including legacy uploads already represented as JSON strings. Exact replica bytes and count parity still require rerun.
+
 15 November Cancun time. Native run 43694161825 reached the download assertion after the upload succeeded, then rejected the persisted data representation. Files now writes the Base64 representation already supported by its reader. The targeted replay adds provider names to download failures. Exact bytes, replica and list parity are still unverified.
 
 15 November Cancun time. Added an isolated native MongoDB-to-SQLite file upload case to verify exact binary bytes, avatar ownership, populated list/count parity and unrelated-avatar count. The owned databases are removed in the test finally block. Hosted workflow is the proof gate for this candidate.
