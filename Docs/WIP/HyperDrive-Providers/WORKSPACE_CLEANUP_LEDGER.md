@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. OPORTAL deployment verification compared the live assets in memory. The browser command was rejected before launch, so no browser profile was created. C: reported 24.19 GiB free before release verification.
+
 15 November Cancun time. Signed STARNET catalog and unknown-ID checks used the shipping SDK through one in-memory harness per scenario. WEB4 confirmed deletion of both disposable sandbox avatars. Removed the combined candidate's temporary Git index and patch and restored the existing sparse portal checkout. No local dependencies, runtimes, build output or downloaded files were retained.
 
 15 November Cancun time. The signed My routing test used the shipping SDK in memory and WEB4 confirmed deletion of the disposable avatar. Scoped portal candidate staging removed its temporary patch and Git index and reapplied the existing sparse checkout. No local dependencies, runtime downloads, build outputs or test artifacts were retained.
