@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## MongoDB SINGLE on Development Atlas
+
+15 November. A read-only Atlas probe isolated the failure to the Decimal128 branch of the native Single expression. Atlas accepted a synthetic command with BSON depth 65 and rejected the original depth 64 expression with code 8000 because the tier disallows $ltrim. The replacement builds the decimal digits from limbs without leading padding and tests whether the discarded tail is all zeros. Atlas accepted the complete replacement expression and matched all 14 synthetic Decimal128 vectors bit-for-bit, including values on both sides of a midpoint, exact ties, finite boundaries and invalid inputs. The probe used a database-level aggregation over synthetic documents and created no records. Live WEB4 verification and editor publication remain pending.
+
 ## CROSS JOIN reconciled with Algorand enrollment
 
 15 November. HyperDrive advanced Development to f50a2a48dde8 with Algorand BootLoader enrollment. Exact candidate cbd8383d12bf preserves all nine changed Algorand files and adds the same ten cross join files checked by the earlier native run. [Exact native qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43754440388) and [WEB4 image](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43754442819) are in flight. The old image passed on its earlier graph. The guarded release requires both new checks, successful Algorand deployment, the shared 30-minute interval and an unchanged Development tip. Website publication and populated live acceptance remain pending.

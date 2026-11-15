@@ -50,11 +50,15 @@ internal sealed partial class MongoCqlTranslator
                         new BsonArray { Op("$mod", "$$cqlmidlimbproduct", Literal(100000000L)) }) }
                 }) }
         });
+        // Emit the first nonzero limb without padding. Pad later limbs so their place values remain exact.
         var digits = new BsonDocument("$reduce", new BsonDocument
         {
             { "input", new BsonDocument("$reverseArray", Op("$concatArrays", "$$cqlmidproduct.limbs",
                 new BsonArray { "$$cqlmidproduct.carry" })) },
-            { "initialValue", Literal("") }, { "in", Op("$concat", "$$value", SinglePaddedLimb("$$this")) }
+            { "initialValue", Literal("") },
+            { "in", Choose(Op("$eq", "$$value", Literal("")),
+                Choose(Op("$eq", "$$this", Literal(0L)), Literal(""), new BsonDocument("$toString", "$$this")),
+                Op("$concat", "$$value", SinglePaddedLimb("$$this"))) }
         });
         var prefix = Op("$substrBytes", "$$cqlmiddigits", Literal(0), "$$cqlmidkeep");
         var tail = Op("$substrBytes", "$$cqlmiddigits", "$$cqlmidkeep", Op("$subtract", "$$cqlmidlength", "$$cqlmidkeep"));
@@ -63,14 +67,14 @@ internal sealed partial class MongoCqlTranslator
         var boundary = new BsonDocument
         {
             { "floor", new BsonDocument("$toDecimal", Op("$concat", prefix, Literal("E"), new BsonDocument("$toString", scale))) },
-            { "exact", Op("$eq", new BsonDocument("$trim", new BsonDocument { { "input", tail }, { "chars", Literal("0") } }), Literal("")) }
+            { "exact", new BsonDocument("$regexMatch", new BsonDocument { { "input", tail }, { "regex", Literal("^0*$") } }) }
         };
         return SingleLet("cqlmidbinaryexponent", SingleFloorInteger(Op("$divide", bits, Literal(8388608L))),
             SingleLet("cqlmidexponent", Choose(Op("$eq", "$$cqlmidbinaryexponent", Literal(0L)), Literal(-150L),
                 Op("$subtract", "$$cqlmidbinaryexponent", Literal(151L))),
                 SingleLet("cqlmidcoefficient", coefficient,
                     SingleLet("cqlmidproduct", multiply,
-                        SingleLet("cqlmiddigits", new BsonDocument("$ltrim", new BsonDocument { { "input", digits }, { "chars", Literal("0") } }),
+                        SingleLet("cqlmiddigits", digits,
                             SingleLet("cqlmidlength", new BsonDocument("$strLenBytes", "$$cqlmiddigits"),
                                 SingleLet("cqlmidkeep", Choose(Op("$gt", "$$cqlmidlength", Literal(34)), Literal(34), "$$cqlmidlength"), boundary)))))));
     }
