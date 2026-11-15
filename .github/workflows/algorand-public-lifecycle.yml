@@ -42,10 +42,10 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
-      - name: Verify the shipping lifecycle and account read against Algorand mainnet
+      - name: Verify the shipping confirmed transaction read against Algorand mainnet
         shell: pwsh
         run: |
           ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-AlgorandPublicLifecycle -Operation {
-            dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.AlgorandOASIS.IntegrationTests" --filter "FullyQualifiedName~PublicAlgodLifecycleAndAccountRead" /m:2 /nr:false /p:UseSharedCompilation=false --logger "console;verbosity=normal"
+            dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.AlgorandOASIS.IntegrationTests" --filter "FullyQualifiedName~PublicIndexerReturnsExactConfirmedTransaction" /m:2 /nr:false /p:UseSharedCompilation=false --logger "console;verbosity=normal"
             if ($LASTEXITCODE -ne 0) { throw "Algorand public lifecycle verification failed." }
           }

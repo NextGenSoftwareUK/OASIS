@@ -305,12 +305,17 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
             var result = new OASISResult<IHolon>();
             try
             {
-                // Use indexer for transaction lookup by ID
-                var resp = await _indexer.GetAsync($"/v2/transactions/{Uri.EscapeDataString(providerKey)}");
-                resp.EnsureSuccessStatusCode();
-                using var doc = await JsonDocument.ParseAsync(await resp.Content.ReadAsStreamAsync());
-                var txn = doc.RootElement.TryGetProperty("transaction", out var t) ? t : doc.RootElement;
-                result.Result = MapTransactionToHolon(txn, providerKey);
+                using var response = await _indexer.GetAsync($"/v2/transactions/{Uri.EscapeDataString(providerKey)}").ConfigureAwait(false);
+                response.EnsureSuccessStatusCode();
+                using var body = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+                using var document = await JsonDocument.ParseAsync(body).ConfigureAwait(false);
+                if (!document.RootElement.TryGetProperty("transaction", out var transaction) ||
+                    !transaction.TryGetProperty("id", out var id) ||
+                    !string.Equals(id.GetString(), providerKey, StringComparison.OrdinalIgnoreCase))
+                    throw new InvalidOperationException("The indexer did not return the requested transaction.");
+
+                result.Result = MapTransactionToHolon(transaction, id.GetString());
+                result.IsLoaded = true;
                 result.Message = $"AlgorandOASIS: Loaded transaction '{providerKey}'.";
             }
             catch (Exception ex)
