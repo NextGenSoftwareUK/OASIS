@@ -1,5 +1,7 @@
 # Current provider status
 
+15 November Cancun time. Algorand transaction paging and streamed account reads now apply each client's existing timeout to the complete operation, including JSON body consumption. The deadline prevents continuation pages or a stalled body from extending one operation beyond that configured timeout. The changed paging path is queued for native mainnet verification.
+
 15 November Cancun time. OPORTAL dev 35ff69955a48 is live following the shared portal cadence. The published SDK and dashboard made one authenticated compact Gifts summary request, rendered zero for the empty avatar, and issued no full inbox request. The published Gifts modal separates inbox and statistics loading. End-to-end hosted gift writes and production promotion remain open.
 
 15 November Cancun time. Railway dev 4c842fc2ceba is live. A real Stripe sandbox Checkout session preserved the query, literal session token and URL fragment in the expected order. The hosted Gifts summary returned HTTP 401 anonymously and matched the signed empty inbox. OPORTAL 08d8885 lets the inbox render before its stats and discards stale counters. Candidate 35ff69955a48 uses the live Gifts route and passed endpoint and inbox checks. The Development Stripe cache regression 43715074477 and native Algorand asset/note regression 43715668024 passed one test each with zero skips.

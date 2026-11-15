@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -130,11 +131,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
             var result = new OASISResult<IAvatar>();
             try
             {
+                using var deadline = new CancellationTokenSource(_algod.Timeout);
                 using var resp = await _algod.GetAsync($"/v2/accounts/{Uri.EscapeDataString(providerKey)}?exclude=all",
-                    HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false);
+                    HttpCompletionOption.ResponseHeadersRead, deadline.Token).ConfigureAwait(false);
                 resp.EnsureSuccessStatusCode();
-                using var stream = await resp.Content.ReadAsStreamAsync().ConfigureAwait(false);
-                using var doc = await JsonDocument.ParseAsync(stream).ConfigureAwait(false);
+                using var stream = await resp.Content.ReadAsStreamAsync(deadline.Token).ConfigureAwait(false);
+                using var doc = await JsonDocument.ParseAsync(stream, cancellationToken: deadline.Token).ConfigureAwait(false);
                 var account = doc.RootElement;
                 string address = account.GetProperty("address").GetString();
                 if (!string.Equals(address, providerKey, StringComparison.Ordinal))
@@ -428,6 +430,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
 
         private async Task<(List<IHolon> Transactions, bool HasMore)> ReadIndexedTransactionsAsync(string query)
         {
+            // Use the existing client timeout for the complete lookup, including all pages and response bodies.
+            using var deadline = new CancellationTokenSource(_indexer.Timeout);
             var holons = new List<IHolon>();
             var transactionIds = new HashSet<string>(StringComparer.Ordinal);
             var pageTokens = new HashSet<string>(StringComparer.Ordinal);
@@ -436,10 +440,11 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
             {
                 var pageSize = Math.Min(100, IndexerTransactionLimit - holons.Count);
                 var url = query + $"limit={pageSize}" + (nextToken == null ? "" : $"&next={Uri.EscapeDataString(nextToken)}");
-                using var response = await _indexer.GetAsync(url).ConfigureAwait(false);
+                using var response = await _indexer.GetAsync(url, HttpCompletionOption.ResponseHeadersRead,
+                    deadline.Token).ConfigureAwait(false);
                 response.EnsureSuccessStatusCode();
-                using var body = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
-                using var document = await JsonDocument.ParseAsync(body).ConfigureAwait(false);
+                using var body = await response.Content.ReadAsStreamAsync(deadline.Token).ConfigureAwait(false);
+                using var document = await JsonDocument.ParseAsync(body, cancellationToken: deadline.Token).ConfigureAwait(false);
                 foreach (var transaction in document.RootElement.GetProperty("transactions").EnumerateArray())
                 {
                     var transactionId = transaction.GetProperty("id").GetString();

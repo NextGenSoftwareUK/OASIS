@@ -22,7 +22,7 @@ on:
         description: Focused public Indexer verification
         type: choice
         options: [asset_note_metadata, compact_account, participant_metadata, transaction_metadata, account_history]
-        default: asset_note_metadata
+        default: account_history
 
 permissions:
   contents: read
@@ -65,11 +65,11 @@ jobs:
         run: |
           ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-AlgorandPublicLifecycle -Operation {
             $test = switch ($env:ALGORAND_PUBLIC_CASE) {
-              'account_history' { 'PublicIndexerPaginatesAccountHistoryAndRejectsInvalidAddress' }
+              'asset_note_metadata' { 'PublicIndexerMatchesAssetIdAndExactNoteMetadata' }
               'transaction_metadata' { 'PublicIndexerQueriesTransactionMetadataUsingNativeFilters' }
               'participant_metadata' { 'PublicIndexerMatchesExactTransactionParticipants' }
               'compact_account' { 'PublicAlgodLifecycleAndAccountRead' }
-              default { 'PublicIndexerMatchesAssetIdAndExactNoteMetadata' }
+              default { 'PublicIndexerPaginatesAccountHistoryAndRejectsInvalidAddress' }
             }
             dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.AlgorandOASIS.IntegrationTests" --filter "FullyQualifiedName~$test" /m:2 /nr:false /p:UseSharedCompilation=false --logger "console;verbosity=normal"
             if ($LASTEXITCODE -ne 0) { throw "Algorand public lifecycle verification failed." }
