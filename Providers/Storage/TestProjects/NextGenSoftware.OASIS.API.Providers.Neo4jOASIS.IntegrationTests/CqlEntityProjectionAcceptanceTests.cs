@@ -132,6 +132,15 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Assert.AreEqual(9007199254740993L, fieldRow.Precision);
         Passed("standard Select materializes public fields with exact Int64 precision");
 
+        var constructorFields = await rootSource.Take(1)
+            .Select(row => new NativeConstructorFieldProjection(row.Name, CosmicQueryMetadata.Value<long>(row, "i64")))
+            .ToCosmicListAsync();
+        Assert.IsFalse(constructorFields.IsError, constructorFields.Message + constructorFields.Exception);
+        var constructorFieldRow = constructorFields.Result.Single();
+        Assert.AreEqual("protected source root", constructorFieldRow.Name);
+        Assert.AreEqual(9007199254740993L, constructorFieldRow.Precision);
+        Passed("standard Select binds constructor arguments to readonly public fields");
+
         desired="not-matched-on-second-read";Assert.AreEqual(0,deferred.ToArray().Length);Passed("deferred selector rebinds without application source construction or eager DTOs");
         NativeProjectionProbe.Constructors=0;
         var invalid=await rootSource.Take(1).Where(row=>row.Name=="protected source root")
@@ -139,6 +148,12 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Assert.AreEqual("CQL_DATA_INVALID",invalid.ErrorCode,invalid.Message+invalid.Exception);
         Assert.AreEqual(0,NativeProjectionProbe.Constructors);Passed("standard Select rejects invalid native cells before DTOs");
     }
+    private sealed class NativeConstructorFieldProjection(string name, long precision)
+    {
+        public readonly string Name = name;
+        public readonly long Precision = precision;
+    }
+
     private sealed class NativeFieldProjection
     {
         public NativeFieldProjection() { }
