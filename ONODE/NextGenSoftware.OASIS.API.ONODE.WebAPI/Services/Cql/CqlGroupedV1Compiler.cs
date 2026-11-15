@@ -25,8 +25,13 @@ public static partial class CqlV1Compiler
             || request.ResultOrder == null || request.ResultOrder.Length > 32
             || request.Columns == null || request.Columns.Length is < 1 or > 32 || request.MaximumGroups is < 1 or > 100)
             throw new ArgumentException("Grouping requires one to8 keys, one to32 columns and one to100 output groups.");
+        // Key-only grouping over the full admitted input does not depend on source order.
+        var unorderedKeyGrouping = request.OrderBy == "None" && request.Take == null && request.Skip == 0
+            && request.Graph == null
+            && request.Columns.All(column => column?.KeyAlias != null && column.Operation == null && column.Selection == null);
         var source = CompileSource(actor, provider, request.Filters, request.AnyOf, request.AnyChildren,
-            request.AnyDescendants, request.Graph, request.OrderBy, request.Descending, request.Skip, request.Take,access);
+            request.AnyDescendants, request.Graph, request.OrderBy, request.Descending, request.Skip, request.Take,access,
+            unorderedKeyGrouping: unorderedKeyGrouping);
         var options = CosmicGroupingOptions.Create(request.MaximumGroups, 1024 * 1024).Result;
         var groupingResult = source.GroupByColumns(request.Keys.Select(ProjectionColumn).ToArray(), options);
         if (groupingResult.IsError) throw new ArgumentException(groupingResult.Message);

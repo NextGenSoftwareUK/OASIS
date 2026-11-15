@@ -4,6 +4,9 @@ using System.Text.Json;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Queries;
+using CqlGroupedRequest = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlGroupedV1Request;
+using CqlGroupedColumn = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlGroupedV1Column;
+using CqlProjectionColumn = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlProjectionV1Column;
 using CqlRequest = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlV1Request;
 using CqlFilter = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlV1Filter;
 using CqlOperator = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlV1Operator;
@@ -52,5 +55,49 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         await AssertMatch("i64", CqlOperator.Equal, true, "9007199254740993");
         await AssertMatch("i64", CqlOperator.Equal, false, "9007199254740992");
         checks.Add(new { provider = provider.ToString(), metadataWire = "missing, null, populated and exact signed Int64" });
+    }
+
+    private static async Task VerifyDistinctWire(ICosmicQueryGroupedStorageProvider adapter,
+        Guid[] ids, List<object> checks)
+    {
+        var provider = adapter.QueryProviderType;
+        var target = new[] { new CosmicGroupedTarget(provider, adapter.QueryCapabilities, adapter.GroupedCapabilities) };
+        var actor = Guid.NewGuid();
+        var request = new CqlGroupedRequest
+        {
+            Filters = new[] { new CqlFilter
+            {
+                Field = "Id", Operator = CqlOperator.In, Value = JsonSerializer.SerializeToElement(ids.Take(2).ToArray())
+            } },
+            Keys = new[] { new CqlProjectionColumn { Field = "Version", Alias = "Revision" } },
+            Columns = new[]
+            {
+                new CqlGroupedColumn { Alias = "Revision", KeyAlias = "Revision" },
+                new CqlGroupedColumn { Alias = "Total", Operation = "LongCount" }
+            },
+            MaximumGroups = 10
+        };
+        var counted = CosmicGroupedPlanner.Plan(CqlCompiler.CompileGrouped(request, actor, provider), provider, target);
+        Assert.IsFalse(counted.IsError, counted.Message);
+        var count = await CosmicGroupedExecutor.ExecuteAsync(counted.Result, new[] { adapter });
+        Assert.IsFalse(count.IsError, count.Message + count.Exception);
+        var original = count.Result.Providers.Single().Rows.Single();
+        CollectionAssert.AreEqual(new object[] { 1, 2L }, original.Values.ToArray());
+
+        request.OrderBy = "None";
+        Assert.ThrowsException<ArgumentException>(() => CqlCompiler.CompileGrouped(request, actor, provider));
+        request.Columns = new[] { request.Columns[0] };
+        request.Take = 1;
+        Assert.ThrowsException<ArgumentException>(() => CqlCompiler.CompileGrouped(request, actor, provider));
+        request.Take = null;
+        request.ResultTake = 1;
+        var intent = CqlCompiler.CompileGrouped(request, actor, provider);
+        Assert.AreEqual(0, intent.Source.Orderings.Count);
+        var distinct = CosmicGroupedPlanner.Plan(intent, provider, target);
+        Assert.IsFalse(distinct.IsError, distinct.Message);
+        var selected = await CosmicGroupedExecutor.ExecuteAsync(distinct.Result, new[] { adapter });
+        Assert.IsFalse(selected.IsError, selected.Message + selected.Exception);
+        CollectionAssert.AreEqual(new object[] { 1 }, selected.Result.Providers.Single().Rows.Single().Values.ToArray());
+        checks.Add(new { provider = provider.ToString(), distinctWire = "two visible rows collapse to one native scalar key" });
     }
 }
