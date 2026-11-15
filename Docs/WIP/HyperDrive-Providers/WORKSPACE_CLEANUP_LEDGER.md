@@ -1296,3 +1296,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 - 14 November Cancun time. Exact Ordinals 43654312113 removed its archives, executables and chain data. Native Bitcoin 43654312118 and 43654608588 removed their disposable container environments. No local build or fixture.
 
 - 14 November Cancun time. Development integration of 94400c617086 reused the qualified Git commit. No local checkout, build, download or temporary index was created. The C drive reported 34.89 GiB free and no matching temporary OASIS index files.
+
+- 14 November Cancun time. Removed the temporary Git index for candidate f74515a7d996 and verified it absent. Native Bitcoin 43654843585, 43655005471 and 43655923760 completed disposable backend teardown. No local build or download.
