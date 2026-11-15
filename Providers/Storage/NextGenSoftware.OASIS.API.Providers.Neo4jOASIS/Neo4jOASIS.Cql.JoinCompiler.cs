@@ -48,7 +48,8 @@ public partial class Neo4jOASIS
             +"UNION ALL WITH leftInput,rightInput WITH leftInput,rightInput WHERE "+valid+" "
             +"CALL { WITH leftInput,rightInput UNWIND range(0,size(leftInput)-1) AS li "
             +"WITH li,leftInput[li] AS l,rightInput CALL { WITH l,rightInput "
-            +"UNWIND range(0,size(rightInput)-1) AS ri WITH ri,rightInput[ri] AS r,l WHERE "+equality
+            +"UNWIND range(0,size(rightInput)-1) AS ri WITH ri,rightInput[ri] AS r,l"
+            +(query.Join.Kind==CosmicJoinKind.Cross?"":" WHERE "+equality)
             +" WITH ri ORDER BY ri ASC RETURN collect(ri) AS matches } "
             +"UNWIND CASE WHEN size(matches)=0 AND "+outer+" THEN [-1] ELSE matches END AS ri "
             +"RETURN li,ri ORDER BY li ASC,ri ASC LIMIT "+pairLimit+" } "

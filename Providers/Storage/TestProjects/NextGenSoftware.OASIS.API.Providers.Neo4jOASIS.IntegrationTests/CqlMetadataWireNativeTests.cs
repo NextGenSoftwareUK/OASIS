@@ -250,6 +250,17 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Assert.IsTrue(presence[ids[0]]);
         Assert.IsFalse(presence[ids[4]]);
 
+        var cross = left.Result.CrossJoin(right.Result).Select((leftRow, rightRow) =>
+            new { LeftId = leftRow.Id, RightId = rightRow.Id });
+        Assert.IsFalse(cross.IsError, cross.Message);
+        var crossPlan = CosmicJoinPlanner.Plan(cross.Result, provider, joinTargets);
+        Assert.IsFalse(crossPlan.IsError, crossPlan.Message);
+        var crossRows = await CosmicJoinExecutor.ExecuteAsync(crossPlan.Result, new[] { joinAdapter });
+        Assert.IsFalse(crossRows.IsError, crossRows.Message + crossRows.Exception);
+        var expectedCross = leftIds.SelectMany(l => rightIds.Select(r => (l, r))).ToArray();
+        var actualCross = crossRows.Result.Providers.Single().Rows.Select(row => (row.Value.LeftId, row.Value.RightId)).ToArray();
+        CollectionAssert.AreEquivalent(expectedCross, actualCross);
+
         checks.Add(new { provider = provider.ToString(), distinctWire = "native SQL and LINQ Int32, nullable Int64, Boolean, Guid, ordinal nullable String exact nullable UTC timestamps, nullable UInt64, exact nullable Decimal all narrower integral domains, Single, Double, HolonType and ProviderType; composite nullable join keys exclude null and retain unmatched left rows" });
     }
 }

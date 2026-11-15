@@ -41,7 +41,8 @@ internal sealed partial class MongoCqlTranslator
                 Op("$eq", "$$" + key + ".value", "$" + key + ".value")));
         }
         // Matching follows the right source's window, not its unpaged collection.
-        lookup.Add(new("$match", new BsonDocument("$expr", Op("$and", equality.ToArray()))));
+        if (query.Join.Kind != CosmicJoinKind.Cross)
+            lookup.Add(new("$match", new BsonDocument("$expr", Op("$and", equality.ToArray()))));
         var rightProjection = new BsonDocument { { "_id", 0 }, { "id", 1 } };
         for (var index = 0; index < query.Join.Right.Orderings.Count; index++) rightProjection.Add("o" + index, 1);
         lookup.Add(new("$project", rightProjection));

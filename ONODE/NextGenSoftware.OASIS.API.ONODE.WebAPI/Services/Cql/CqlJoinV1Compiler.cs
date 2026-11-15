@@ -18,12 +18,14 @@ public static partial class CqlV1Compiler
     public static CosmicJoinSelection<Holon,Holon,CosmicProjectionRecord,CosmicProjectionRecord> CompileJoin(
         CqlJoinV1Request request,Guid actor,ProviderType? provider,CosmicQueryReadAccess access)
     {
-        if(request==null || request.Left==null || request.Right==null || request.Keys==null || request.Keys.Length is <1 or >8
+        if(request==null || request.Left==null || request.Right==null || request.Keys==null || request.Keys.Length >8
             || request.Columns==null || request.Columns.Length is <1 or >32 || request.MaximumLeftRows is <1 or >1000
             || request.MaximumRightRows is <1 or >1000 || request.MaximumPairs is <1 or >10000 || request.MaximumResults is <1 or >100)
-            throw new ArgumentException("Join sources,1–8 keys,1–32 columns and bounded input/pair/output limits are required.");
+            throw new ArgumentException("Join sources, up to eight keys, one to 32 columns and bounded input, pair and output limits are required.");
         var kind=request.Kind switch {"Inner"=>CosmicJoinKind.Inner,"Left"=>CosmicJoinKind.Left,
-            _=>throw new ArgumentException("Join kind must be Inner or Left.")};
+            "Cross"=>CosmicJoinKind.Cross,_=>throw new ArgumentException("Join kind must be Inner, Left or Cross.")};
+        if ((kind==CosmicJoinKind.Cross) != (request.Keys.Length==0))
+            throw new ArgumentException("Cross joins have no keys. Inner and Left joins require at least one key.");
         CosmicQuery<Holon> Source(CqlJoinV1Source source)=>CompileSource(actor,provider,source.Filters,source.AnyOf,
             source.AnyChildren,source.AnyDescendants,source.Graph,source.OrderBy,source.Descending,source.Skip,source.Take,access);
         var left=Source(request.Left);var right=Source(request.Right);
@@ -35,8 +37,12 @@ public static partial class CqlV1Compiler
         var rightKeys=request.Keys.Select(key=>ProjectionColumn(JoinColumn(key.Alias,key.Right))).ToArray();
         var options=RequiredJoin(CosmicJoinOptions.Create(request.MaximumLeftRows,request.MaximumRightRows,request.MaximumPairs,
             request.MaximumResults,1024*1024,1024*1024,1024*1024));
-        var captured=kind==CosmicJoinKind.Left?left.LeftJoinColumns(right,leftKeys,rightKeys,options)
-            :left.JoinColumns(right,leftKeys,rightKeys,options);
+        var captured=kind switch
+        {
+            CosmicJoinKind.Cross=>left.CrossJoin(right,options),
+            CosmicJoinKind.Left=>left.LeftJoinColumns(right,leftKeys,rightKeys,options),
+            _=>left.JoinColumns(right,leftKeys,rightKeys,options)
+        };
         var join=RequiredJoin(captured);
         var columns=request.Columns.Select(column=>
         {
