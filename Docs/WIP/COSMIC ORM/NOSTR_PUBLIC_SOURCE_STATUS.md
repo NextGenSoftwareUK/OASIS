@@ -2,7 +2,7 @@
 
 ## Development relay subscription disconnect, 15 November UTC
 
-WEB4 deployment f8f6d3d0-fc75-467c-a1a6-f37345953c79 served 5a96fc73528f. Nostr advanced past WebSocket connect, then the shipping provider reported ConnectionClosedPrematurely during subscription at 218 ms. This activation differs from the earlier HTTP 521 upgrade failure and leaves Nostr unavailable. An upgrade-only check cannot verify this subscription path. No new event, persisted data, recovery action, or local artifact.
+WEB4 deployment f8f6d3d0-fc75-467c-a1a6-f37345953c79 served 5a96fc73528f. Nostr advanced past WebSocket connect, then the shipping provider reported ConnectionClosedPrematurely during subscription at 218 ms. This activation differs from the earlier HTTP 521 upgrade failure and leaves Nostr unavailable. An independent bounded Node WebSocket probe in the same Railway container successfully upgraded and sent one read-only REQ for an existing captured public event ID. It then closed abnormally with code 1006, zero events and no EOSE. This reproduces the subscription disconnect outside the shipping .NET client. The specific upstream or network component closing the socket is still unresolved. No event was published, no data was persisted, and no local artifact was created.
 
 ## Development activation and relay transport, 14 November 2026
 
