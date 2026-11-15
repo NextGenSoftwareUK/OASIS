@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Shared WEB4 image build queue
+
+GitHub Actions cancelled an older pending shared image when a newer run replaced the sole pending slot. The feature workflow now uses queue: max in the existing shared build-web4-image group. Image builds stay serial and pending runs can wait in order. Dev rollout cadence is unchanged. The corrected provider image is 43689834398. The obsolete image for 433731c6aa94 was cancelled. [GitHub Actions queue syntax](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#concurrency).
+
 ## Serial Development CQL startup baseline
 
 On Railway 519e39f9-d2af-433f-bf6c-6b0f783dfdb7, Development f99947f0e20b used serial CQL source activation. Time zero was the first observed Railway SUCCESS, followed by authenticated discovery at roughly nine-second intervals. Native and federated readiness matched at every sample: 14/107 at 7.5 s, 43/107 at 33.5 s, 50/107 at 42.2 s, still 50 at 112.7 s, 71 at 121.5 s, and 107/107 at 157.2 s. This client-observed baseline includes readiness observation and request time. CI is pending for the bounded startup candidate 159cde88671b, which also emits server-side startup duration and verified count.

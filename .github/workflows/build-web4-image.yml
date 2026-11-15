@@ -32,6 +32,7 @@ permissions:
 
 concurrency:
   group: build-web4-image
+  queue: max
   cancel-in-progress: false
 
 jobs:
