@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. Native Algorand run 43762871621 verified removal of the owned LocalNet containers, network, volumes and fixture directory. The follow-up integrated soft deletion test uses one disposable hosted runner at 43763386514. No local builds, fixture databases, SDK downloads or test output files were created.
+
 15 November Cancun time. Algorand hard deletion qualification uses the hosted disposable LocalNet runner. No local SDK downloads, fixtures, test output or builds were created in this batch. Hosted fixture teardown awaits run 43762871621.
 
 15 November Cancun time. Both in-memory Usage and Billing regressions verified deletion of each of their four disposable sandbox avatars. Combined candidate staging cleaned up the temporary Git patch and index, including the first patch conflict. Native Algorand run 43761720647 removed the LocalNet fixture containers and network. No local dependencies, downloads or build outputs were retained.
