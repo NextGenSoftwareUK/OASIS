@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+14 November Cancun time. SQLite metadata attempts 43677467856 and 43677992984 use hosted runners. Status and logs were inspected in memory. No local build outputs, downloads, results or databases were created.
+
 13 November Cancun time. Exact Solid job 132137393302 passed both native modes and removed its owned server, Pod, SQLite files and test outputs. GitHub logs were inspected in memory. No local artifacts were created.
 
 13 November Cancun time. Solid job 132132694377 passed both cases and removed the owned server, Pod, SQLite files and test output. The temporary candidate index was removed. No local downloads, builds or fixtures were created.
