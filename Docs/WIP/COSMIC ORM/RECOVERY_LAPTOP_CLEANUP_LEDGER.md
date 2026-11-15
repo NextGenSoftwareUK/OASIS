@@ -1,6 +1,6 @@
 # COSMIC cleanup ledger for the recovery laptop
 
-15 November Cancun. The MongoDB SINGLE investigation used temporary compiler and Atlas probe directories with cached packages. Atlas reads used synthetic documents and created no database fixtures. The temporary directories and their build outputs were removed. No shared build outputs or local result bundles.
+15 November Cancun. The MongoDB SINGLE investigation used temporary compiler and Atlas probe directories with cached packages. Atlas reads used synthetic documents and created no database fixtures. The temporary directories and their build outputs were removed. No shared build outputs or local result bundles. The 252-vector follow-up also wrote no records and left no owned temporary probe or index directory. C: measured 24.66 GiB free.
 
 15 November Cancun. Floating-point parser snapshots and MongoDB diagnostics indexes were removed after use. Hosted checks were read-only and created no fixtures. Reconciled CROSS JOIN qualification and WEB4 image builds use GitHub CI. No local installs, downloads, database copies or build output.
 
