@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Connext serial baseline
+
+On Development f99947f0e20b (Railway 519e39f9-d2af-433f-bf6c-6b0f783dfdb7), a serial Connext two-record probe returned matching native and MongoDB-federated IDs on successful requests. The sampler failed overall: each route returned two HTTP 503 CQL_QUERY_FAILED responses across five attempts. Three of four warm native requests succeeded (median 3,356 ms, max 3,364 ms), as did two of four warm federated requests (median 3,708.5 ms, max 4,338 ms). These timings describe successful responses only. Capture the same workload after shipping-provider cutover and investigate any recurrent 503s using server evidence.
+
 ## Nostr two-worker baseline
 
 On serving Development f99947f0e20b, Railway 519e39f9-d2af-433f-bf6c-6b0f783dfdb7, the retained Nostr two-event query passed eight warm requests per route with two workers. Both routes returned the same two IDs with Nostr provenance. Direct first/median/max were 2,327/2,367.5/2,750 ms. MongoDB-federated first/median/max were 2,736/2,343.5/2,585 ms. No HTTP failures. Compare the exact same workload after signature reuse rollout. This is a small client-observed baseline, not an estimate of tail latency under sustained load.

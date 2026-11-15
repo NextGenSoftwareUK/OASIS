@@ -6783,3 +6783,5 @@ Web4Site 5fa63a71df5d used a temporary directory containing only committed websi
 - Serial startup baseline polling reused the existing Development visitor and observed the normal Railway rollout. No local service, file report, or runtime download was created.
 
 - Nostr two-worker timing used the retained Development visitor, existing public catalogue and in-memory samples. No local reports, downloads or fixture data were created.
+
+- Connext serial timing used the retained Development visitor, existing public catalogue and in-memory samples. No local reports, downloads or fixture data were created.
