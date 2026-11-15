@@ -18,6 +18,10 @@ public sealed class DashboardSummaryHttpTests
     public Task DashboardMessageSummaryRejectsAnonymousHttpRequests() =>
         VerifyUnauthorizedAsync("/api/messaging/current-avatar/summary");
 
+    [Fact]
+    public Task DashboardGiftSummaryRejectsAnonymousHttpRequests() =>
+        VerifyUnauthorizedAsync("/api/gifts/my-gifts/summary");
+
     private static async Task VerifyUnauthorizedAsync(params string[] routes)
     {
         var builder = WebApplication.CreateBuilder();

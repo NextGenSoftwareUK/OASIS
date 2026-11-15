@@ -1,5 +1,7 @@
 # Current provider status
 
+15 November Cancun time. OPORTAL 287e6b4 uses the authenticated Gifts summary for the dashboard. The bundled SDK loopback passed pending, opened, zero and error responses. The existing inbox still uses full gift records. Added a focused WEB4 HTTP auth check for the summary. Native Files description run 43700335909 and exact WEB4 image 43700222343 remain in progress.
+
 15 November Cancun time. SQLite Gifts summary job 132768574278 passed the empty, opened and mixed inbox cases. The Files ownership, byte round-trip and selector changes were applied over Development 3eb0bb18da52 and queued for exact image qualification at 49e4ba65a783 in run 43700222343. Portal 43d58ba wires file upload descriptions and explicit operation failures. The description route is on the task branch.
 
 15 November Cancun time. OPORTAL end-to-end wiring and error fixes join performance as top-priority work. Portal branch d17d0e0 corrects Gift send query and metadata binding, Receive then Open, and history rendering. The bundled SDK passed an HTTP loopback flow. Native hosted API verification and portal rollout remain open.
