@@ -10,6 +10,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Interfaces
     public interface IHolonRepository : IConditionalHolonReceiptEvidenceStorageProvider, IHolonReplicaHeadAuditStorageProvider, ICommittedHolonReplicaReceiptStorageProvider, IHolonMigrationMutationStorageProvider, NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.IHolonMigrationReplicaAdoptionStorageProvider
     {
         Task<OASISResult<IEnumerable<IHolon>>> ExportAllVersionsAsync();
+        Task<OASISResult<IEnumerable<IHolon>>> LoadMatchingHolonsAsync(
+            Dictionary<string, string> filter, MetaKeyValuePairMatchMode mode, HolonType type,
+            bool loadChildren, bool recursive, int maxChildDepth, int currentChildDepth,
+            bool continueOnError, int version);
         OASISResult<HolonWritePreparation> ClaimHolonWritePreparation(HolonWritePreparation candidate, System.Threading.CancellationToken cancellationToken);
         Task<OASISResult<HolonWritePreparation>> ReadHolonWritePreparationAsync(Guid operationId, Guid actorId, System.Threading.CancellationToken cancellationToken = default);
         NextGenSoftware.OASIS.Common.OASISResult<IEnumerable<IHolon>> ExecuteReplicatingHolonWrite(

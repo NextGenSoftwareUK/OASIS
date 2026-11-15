@@ -17,7 +17,7 @@ public partial class HolonRepository
 {
     private const string MetadataMatchFunction = "oasis_match_holon_metadata";
 
-    internal async Task<OASISResult<IEnumerable<IHolon>>> LoadMatchingHolonsAsync(
+    public async Task<OASISResult<IEnumerable<IHolon>>> LoadMatchingHolonsAsync(
         Dictionary<string, string> filter, MetaKeyValuePairMatchMode mode, HolonType type,
         bool loadChildren, bool recursive, int maxChildDepth, int currentChildDepth,
         bool continueOnError, int version)
