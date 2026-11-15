@@ -55,7 +55,9 @@ public static partial class CqlV1Endpoint
                 {
                     deadline.Token.ThrowIfCancellationRequested();values[index]=ProjectionWireValue(row.Value.Values[index]);
                 }
-                rows.Add(new{hasRight=row.HasRight,values});
+                rows.Add(intent.Join.Kind == CosmicJoinKind.Full
+                    ? (object)new { hasLeft = row.HasLeft, hasRight = row.HasRight, values }
+                    : new { hasRight = row.HasRight, values });
             }
             deadline.Token.ThrowIfCancellationRequested();
             var response=JsonResponse(new OASISResult<object>(new

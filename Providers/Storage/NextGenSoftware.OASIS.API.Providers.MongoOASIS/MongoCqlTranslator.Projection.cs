@@ -118,7 +118,8 @@ internal sealed partial class MongoCqlTranslator
         var invalid = new BsonDocument { { "s", Literal(3) }, { "v", Literal(BsonNull.Value) } };
         BsonValue Walk(BsonValue input, int index)
         {
-            if (index == segments.Count) return cell(input);
+            if (index == segments.Count)
+                return new BsonDocument { { "s", Literal(2) }, { "v", input } };
             var current = prefix + "n" + index;
             var matches = prefix + "m" + index;
             var entry = prefix + "e" + index;
@@ -149,6 +150,9 @@ internal sealed partial class MongoCqlTranslator
             });
             return new BsonDocument("$let", new BsonDocument { { "vars", new BsonDocument(current, input) }, { "in", body } });
         }
-        return Walk("$MetaData", 0);
+        // Resolve storage shape first. The typed conversion must not inherit the nesting of the metadata walk.
+        var resolved = prefix + "resolved";
+        return SingleLet(resolved, Walk("$MetaData", 0), Choose(
+            Op("$eq", "$$" + resolved + ".s", Literal(2)), cell("$$" + resolved + ".v"), "$$" + resolved));
     }
 }

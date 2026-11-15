@@ -23,9 +23,9 @@ public static partial class CqlV1Compiler
             || request.MaximumRightRows is <1 or >1000 || request.MaximumPairs is <1 or >10000 || request.MaximumResults is <1 or >100)
             throw new ArgumentException("Join sources, up to eight keys, one to 32 columns and bounded input, pair and output limits are required.");
         var kind=request.Kind switch {"Inner"=>CosmicJoinKind.Inner,"Left"=>CosmicJoinKind.Left,
-            "Cross"=>CosmicJoinKind.Cross,_=>throw new ArgumentException("Join kind must be Inner, Left or Cross.")};
+            "Cross"=>CosmicJoinKind.Cross,"Full"=>CosmicJoinKind.Full,_=>throw new ArgumentException("Join kind must be Inner, Left, Full or Cross.")};
         if ((kind==CosmicJoinKind.Cross) != (request.Keys.Length==0))
-            throw new ArgumentException("Cross joins have no keys. Inner and Left joins require at least one key.");
+            throw new ArgumentException("Cross joins have no keys. Other joins require at least one key.");
         CosmicQuery<Holon> Source(CqlJoinV1Source source)=>CompileSource(actor,provider,source.Filters,source.AnyOf,
             source.AnyChildren,source.AnyDescendants,source.Graph,source.OrderBy,source.Descending,source.Skip,source.Take,access);
         var left=Source(request.Left);var right=Source(request.Right);
@@ -41,6 +41,7 @@ public static partial class CqlV1Compiler
         {
             CosmicJoinKind.Cross=>left.CrossJoin(right,options),
             CosmicJoinKind.Left=>left.LeftJoinColumns(right,leftKeys,rightKeys,options),
+            CosmicJoinKind.Full=>left.FullJoinColumns(right,leftKeys,rightKeys,options),
             _=>left.JoinColumns(right,leftKeys,rightKeys,options)
         };
         var join=RequiredJoin(captured);
@@ -55,7 +56,7 @@ public static partial class CqlV1Compiler
                 return RequiredJoin(CosmicJoinBinding.Presence(join,column.Alias,column.WhenMissing??false));
             }
             if(column.Source is not ("Left" or "Right") || column.WhenMissing.HasValue
-                || column.Source=="Left" && column.AllowMissing.HasValue)
+                || column.Source=="Left" && kind != CosmicJoinKind.Full && column.AllowMissing.HasValue)
                 throw new ArgumentException("Select Left,Right or RightPresence with the corresponding options.");
             return CompileSelection(JoinColumn(column.Alias,column.Selection),
                 new JoinSelectionConsumer(join,column.Source=="Right",column.AllowMissing??false));
@@ -77,7 +78,7 @@ public static partial class CqlV1Compiler
         internal JoinSelectionConsumer(CosmicJoinQuery<Holon,Holon,CosmicProjectionRecord> owner,bool right,bool allowMissing)
         {this.owner=owner;this.right=right;this.allowMissing=allowMissing;}
         public CosmicJoinBinding<Holon,Holon,CosmicProjectionRecord> Bind<TValue>(string alias,Expression<Func<Holon,TValue>> selector)
-            =>RequiredJoin(right?CosmicJoinBinding.Right(owner,alias,selector,allowMissing):CosmicJoinBinding.Left(owner,alias,selector));
+            =>RequiredJoin(right?CosmicJoinBinding.Right(owner,alias,selector,allowMissing):CosmicJoinBinding.Left(owner,alias,selector,allowMissing));
     }
 
     private static T RequiredJoin<T>(OASISResult<T> result)

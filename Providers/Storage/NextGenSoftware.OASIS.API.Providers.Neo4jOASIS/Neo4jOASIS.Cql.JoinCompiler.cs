@@ -32,13 +32,30 @@ public partial class Neo4jOASIS
         var pairLimit=binder.Bind(Math.Min(limits.MaximumPairs,(long)limits.MaximumResults)+1);
         var leftCount=binder.Bind(limits.MaximumLeftRows);var rightCount=binder.Bind(limits.MaximumRightRows);
         var leftBytes=binder.Bind(limits.MaximumLeftPayloadBytes);var rightBytes=binder.Bind(limits.MaximumRightPayloadBytes);
-        var outer=binder.Bind(query.Join.Kind==CosmicJoinKind.Left);
+        var outer = binder.Bind(query.Join.Kind is CosmicJoinKind.Left or CosmicJoinKind.Full);
         var equality=string.Join(" AND ",query.Join.Keys.Select((_,index)=>
             "l.keys["+index+"].s=2 AND r.keys["+index+"].s=2 AND l.keys["+index+"].v=r.keys["+index+"].v"));
         var valid="size(leftInput)<="+leftCount+" AND size(rightInput)<="+rightCount
             +" AND all(x IN leftInput+rightInput WHERE x.valid AND x.domainValid AND NOT(x.cycle OR x.traversalLimit OR x.payloadLimit))"
             +" AND reduce(total=0,x IN leftInput | total+x.bytes)<="+leftBytes
             +" AND reduce(total=0,x IN rightInput | total+x.bytes)<="+rightBytes;
+        var leftPairs = "WITH leftInput,rightInput UNWIND range(0,size(leftInput)-1) AS li "
+            + "WITH li,leftInput[li] AS l,rightInput CALL { WITH l,rightInput "
+            + "UNWIND range(0,size(rightInput)-1) AS ri WITH ri,rightInput[ri] AS r,l"
+            + (query.Join.Kind == CosmicJoinKind.Cross ? "" : " WHERE " + equality)
+            + " WITH ri ORDER BY ri ASC RETURN collect(ri) AS matches } "
+            + "UNWIND CASE WHEN size(matches)=0 AND " + outer + " THEN [-1] ELSE matches END AS ri "
+            + "RETURN li,ri ORDER BY li ASC,ri ASC LIMIT " + pairLimit;
+        var pairRows = leftPairs;
+        if (query.Join.Kind == CosmicJoinKind.Full)
+        {
+            // A left position just past the captured list separates unmatched right rows from real left rows.
+            pairRows = "WITH leftInput,rightInput CALL { " + leftPairs
+                + " UNION ALL WITH leftInput,rightInput UNWIND range(0,size(rightInput)-1) AS ri "
+                + "WITH leftInput,rightInput[ri] AS r,ri WHERE none(l IN leftInput WHERE " + equality + ") "
+                + "RETURN size(leftInput) AS li,ri ORDER BY ri ASC LIMIT " + pairLimit
+                + " } RETURN li,ri ORDER BY li ASC,ri ASC LIMIT " + pairLimit;
+        }
         var text="CALL { CALL { "+left+" } RETURN collect(input) AS leftInput } "
             +"CALL { CALL { "+right+" } RETURN collect(input) AS rightInput } WITH leftInput,rightInput "
             +"CALL { WITH leftInput,rightInput UNWIND range(0,size(leftInput)-1) AS li "
@@ -46,13 +63,7 @@ public partial class Neo4jOASIS
             +"UNION ALL WITH leftInput,rightInput UNWIND range(0,size(rightInput)-1) AS ri "
             +"RETURN 1 AS kind,-1 AS lp,ri AS rp,rightInput[ri] AS proof,size(rightInput) AS nativeCount "
             +"UNION ALL WITH leftInput,rightInput WITH leftInput,rightInput WHERE "+valid+" "
-            +"CALL { WITH leftInput,rightInput UNWIND range(0,size(leftInput)-1) AS li "
-            +"WITH li,leftInput[li] AS l,rightInput CALL { WITH l,rightInput "
-            +"UNWIND range(0,size(rightInput)-1) AS ri WITH ri,rightInput[ri] AS r,l"
-            +(query.Join.Kind==CosmicJoinKind.Cross?"":" WHERE "+equality)
-            +" WITH ri ORDER BY ri ASC RETURN collect(ri) AS matches } "
-            +"UNWIND CASE WHEN size(matches)=0 AND "+outer+" THEN [-1] ELSE matches END AS ri "
-            +"RETURN li,ri ORDER BY li ASC,ri ASC LIMIT "+pairLimit+" } "
+            +"CALL { "+pairRows+" } "
             +"WITH collect({l:li,r:ri}) AS pairs UNWIND pairs AS pair "
             +"RETURN 2 AS kind,pair.l AS lp,pair.r AS rp,null AS proof,size(pairs) AS nativeCount "
             +"} RETURN kind,lp,rp,proof,nativeCount ORDER BY kind ASC,lp ASC,rp ASC";
