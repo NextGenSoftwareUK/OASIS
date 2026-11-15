@@ -45,6 +45,11 @@ len
 int 32
 ==
 assert
+txna ApplicationArgs 2
+int 32
+bzero
+!=
+assert
 txna ApplicationArgs 3
 len
 int 8
@@ -52,7 +57,7 @@ int 8
 assert
 txna ApplicationArgs 3
 btoi
-int 7
+int 6
 <
 assert
 txna ApplicationArgs 4
@@ -106,7 +111,7 @@ int 1
 >=
 assert
 dup
-int 7
+int 6
 <=
 assert
 store 2
@@ -120,6 +125,8 @@ bnz has_head
 pop
 int 32
 bzero
+dup
+store 5
 b check_head
 
 has_head:
@@ -127,9 +134,7 @@ dup
 int 0
 int 32
 extract3
-txna ApplicationArgs 3
-!=
-assert
+store 5
 sha256
 check_head:
 txna ApplicationArgs 2
@@ -165,15 +170,35 @@ load 2
 <
 bnz check_chunk
 
-load 3
-box_del
-pop
-load 3
 txna ApplicationArgs 3
+load 5
+concat
 txna ApplicationArgs 2
 concat
 txna ApplicationArgs 4
 concat
+store 6
+
+// The revision entry is immutable. Creation and the head swap commit together.
+byte "m"
+txna ApplicationArgs 1
+txna ApplicationArgs 3
+concat
+sha256
+concat
+dup
+box_len
+!
+assert
+pop
+load 6
+box_put
+
+load 3
+box_del
+pop
+load 3
+load 6
 box_put
 int 1
 return

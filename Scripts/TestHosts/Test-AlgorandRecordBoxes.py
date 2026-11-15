@@ -22,6 +22,10 @@ def chunk_name(key, revision, index):
     return b"c" + digest(key + revision + index.to_bytes(8, "big"))
 
 
+def manifest_name(key, revision):
+    return b"m" + digest(key + revision)
+
+
 def run(node, wallet, handle, writer, outsider):
     def submit(txn):
         signed = wallet.sign_transaction(handle, "", txn)
@@ -76,31 +80,41 @@ def run(node, wallet, handle, writer, outsider):
     head = b"h" + key
     chunks = [secrets.token_bytes(896), secrets.token_bytes(93)]
     first_names = [chunk_name(key, first_revision, index) for index in range(len(chunks))]
+    first_manifest = manifest_name(key, first_revision)
+    first_refs = [head, first_manifest, *first_names]
     hashes = b"".join(digest(chunk) for chunk in chunks)
     stage_args = [b"stage", key, first_revision, bytes(8), chunks[0]]
     reject(call(outsider, stage_args, first_names[:1]))
     submit(call(writer, stage_args, first_names[:1]))
     reject(call(writer, stage_args, first_names[:1]))
     publish_args = [b"publish", key, absent, first_revision, hashes]
-    reject(call(writer, publish_args, [head, *first_names]))
+    reject(call(writer, publish_args, first_refs))
     submit(call(writer, [b"stage", key, first_revision, (1).to_bytes(8, "big"), chunks[1]], first_names[1:]))
-    reject(call(writer, [*publish_args[:4], bytes(len(hashes))], [head, *first_names]))
-    submit(call(writer, publish_args, [head, *first_names]))
-    first_head = first_revision + absent + hashes
+    reject(call(writer, [*publish_args[:4], bytes(len(hashes))], first_refs))
+    submit(call(writer, publish_args, first_refs))
+    first_head = first_revision + absent + absent + hashes
     assert read(head) == first_head
+    assert read(first_manifest) == first_head
     assert [read(name) for name in first_names] == chunks
 
     replacement = secrets.token_bytes(407)
     second_name = chunk_name(key, second_revision, 0)
+    second_manifest = manifest_name(key, second_revision)
+    second_refs = [head, second_manifest, second_name]
     submit(call(writer, [b"stage", key, second_revision, bytes(8), replacement], [second_name]))
-    reject(call(writer, [b"publish", key, absent, second_revision, digest(replacement)], [head, second_name]))
+    reject(call(writer, [b"publish", key, absent, second_revision, digest(replacement)], second_refs))
     assert read(head) == first_head
     predecessor = digest(first_head)
-    submit(call(writer, [b"publish", key, predecessor, second_revision, digest(replacement)], [head, second_name]))
-    assert read(head) == second_revision + predecessor + digest(replacement)
+    submit(call(writer, [b"publish", key, predecessor, second_revision, digest(replacement)], second_refs))
+    second_head = second_revision + first_revision + predecessor + digest(replacement)
+    assert read(second_manifest) == second_head
+    assert read(head) == second_head
+    reject(call(writer, [b"publish", key, digest(second_head), first_revision, hashes], first_refs))
+    assert read(head) == second_head
+    assert read(first_manifest) == first_head
     assert read(second_name) == replacement
     assert [read(name) for name in first_names] == chunks
-    print("Native record boxes verified writer authorization, immutable chunks, digest validation and revision fencing.")
+    print("Native record boxes verified write authorization, immutable manifests and chunks, and historical lineage.")
 
 
 def main():
