@@ -10,8 +10,9 @@ using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS;
 
-public partial class Neo4jOASIS : ICosmicQueryProjectedAllStorageProvider, ICosmicQueryEntityProjectionCompositionStorageProvider
+public partial class Neo4jOASIS : ICosmicQueryProjectedAllStorageProvider, ICosmicQueryEntityProjectionCardinalityStorageProvider
 {
+    public bool SupportsEntityProjectionCardinality=>true;
     public bool SupportsEntityProjectionComposition=>true;
     public async Task<OASISResult<CosmicProjectionCompositionPacket>> ExecuteCosmicEntityProjectionCompositionAsync<T,TResult>(
         CosmicProjectionCompositionPlan<T,TResult> plan,CosmicProjectionCompositionExecutionLimits limits,

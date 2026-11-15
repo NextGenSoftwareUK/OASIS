@@ -11,8 +11,9 @@ using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
 
-public partial class MongoDBOASIS : ICosmicQueryProjectedAllStorageProvider, ICosmicQueryEntityProjectionCompositionStorageProvider
+public partial class MongoDBOASIS : ICosmicQueryProjectedAllStorageProvider, ICosmicQueryEntityProjectionCardinalityStorageProvider
 {
+    public bool SupportsEntityProjectionCardinality=>true;
     public bool SupportsEntityProjectionComposition => true;
     public Task<OASISResult<CosmicProjectionCompositionPacket>> ExecuteCosmicEntityProjectionCompositionAsync<T,TResult>(
         CosmicProjectionCompositionPlan<T,TResult> plan,CosmicProjectionCompositionExecutionLimits limits,
