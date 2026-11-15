@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Populated native DISTINCT and source ordering
+
+The [native step in 43711813889](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43711813889) passed 56 assertions and fixture cleanup per store, including reduction of two visible rows to one Version key via the shipping WEB4 compiler and native MongoDB, SQLite and Neo4j. The existing frontend uses an ordered source, and the Development API rejected OrderBy None for a key-only group. Feature 20a014aaf402 admits an unordered full input for key-only groups with no source paging or graph. Exact candidate 999156055e94 is dispatched for native verification, which checks that duplicate reduction still works, and that unordered source windows and aggregates are rejected. The frontend continues using the verified source order until the new API is qualified and serving. Metadata presence deployment 4c4043ee is building.
+
 The subscription protocol workflow now validates report identity, case completeness and cleanup while the exact checked-out native test sources assert their own deterministic counts. This fixes the feature-workflow count mismatch when a release tests an older exact source_ref. All three fixture reports are still required. DISTINCT native qualification is tracked in 43711813889.
 
 ## Live editor requests and SQL DISTINCT
