@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. WEB4 confirmed the signed OPORTAL dashboard probe avatar was deleted. The probe evaluated published scripts in memory and created no browser profile, local download, database or retained test artifact.
+
 15 November Cancun time. Algorand address-role and compact account probes used read-only public HTTP in memory. No local packages, chain runtime, downloads or generated results were created.
 
 15 November Cancun time. Algorand filter validation used two public read-only mainnet Indexer calls with no local chain runtime, packages or retained output. The provider test runs on hosted CI.

@@ -1,5 +1,7 @@
 # OPORTAL and HyperDrive performance audit
 
+15 November Cancun time. Signed OPORTAL dev dashboard code requested Files, Wallets and Messages once each through the published SDK even when initialized twice. Real WEB4 response headers arrived in 542 ms, 541 ms and 537 ms respectively, and each card rendered zero for the empty account. These are from one run and exclude browser paint. Populated UI timing and production compact API availability remain open.
+
 15 November Cancun time. Compared the serving WEB4 dev and production API contracts before promoting dashboard code. Dev advertises the compact Files, Wallet and Messages reads. Production has none of those three routes yet. Gifts summary still awaits the verified dev batch in both environments. Map stats are available in both. These deployment differences determine when the dashboard can switch from list reads to compact counts.
 
 15 November Cancun time. OPORTAL 0e66a19 coalesces plan catalog reads when the router and cancellation handler open the same tab. Plan highlighting follows the catalog response instead of a fixed delay. The combined shipping-script regression observed one catalog request during a pending cancellation return, and the updated script is live on OPORTAL dev.
