@@ -122,8 +122,9 @@ jobs:
               echo "Owned Algorand LocalNet resources remain after teardown." >&2
               status=1
             fi
-            rm -rf -- "$owned" || status=1
-            if [[ "$status" == 0 ]]; then
+            if ! rm -rf -- "$owned"; then
+              status=1
+            elif [[ -z "$containers$networks$volumes" ]]; then
               echo "Verified removal of the LocalNet containers, network, volumes and fixture directory."
             fi
             exit "$status"

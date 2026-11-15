@@ -36,14 +36,19 @@ public sealed class AlgorandBootLoaderTests
         };
         var dna = new OASISDNA();
         dna.OASIS.HyperDriveMode = HyperDriveModes.V2;
-        dna.OASIS.OASISHyperDriveConfig = new OASISHyperDriveConfig();
+        dna.OASIS.OASISHyperDriveConfig = new OASISHyperDriveConfig
+        {
+            AutoFailoverEnabled = false,
+            AutoReplicationEnabled = false,
+            AutoLoadBalancingEnabled = false,
+            AutoFailoverProviders = [nameof(ProviderType.AlgorandOASIS)]
+        };
         dna.OASIS.Security = new SecuritySettings { SecretKey = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32)) };
         dna.OASIS.Logging = new LoggingSettings { LoggingFramework = "Default", LogToFile = false };
         dna.OASIS.ErrorHandling = new ErrorHandlingSettings();
         dna.OASIS.StorageProviders = new StorageProviderSettings
         {
             OASISProviderBootType = "Warm",
-            AutoFailOverProviders = nameof(ProviderType.AlgorandOASIS),
             AlgorandOASIS = settings
         };
 
