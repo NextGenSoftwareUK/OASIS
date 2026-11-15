@@ -371,8 +371,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             {return StatusCode(503,new {IsError=true,Message=ex.Message});}
         }
 
-        internal static string CheckoutSuccessUrl(string url) =>
-            url + (url.Contains('?') ? "&" : "?") + "subscribed=1&session_id={CHECKOUT_SESSION_ID}";
+        internal static string CheckoutSuccessUrl(string url)
+        {
+            int fragmentStart = url.IndexOf('#');
+            string destination = fragmentStart < 0 ? url : url[..fragmentStart];
+            string fragment = fragmentStart < 0 ? string.Empty : url[fragmentStart..];
+            string separator = destination.Contains('?') ? "&" : "?";
+            return destination + separator + "subscribed=1&session_id={CHECKOUT_SESSION_ID}" + fragment;
+        }
 
         [Authorize]
         [HttpGet("checkout/session/{sessionId}")]
