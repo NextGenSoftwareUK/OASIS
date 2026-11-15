@@ -35,3 +35,5 @@ Preserve the measured browser, HTTP and native behavior in [current status](CURR
 15 November Cancun time. The OPORTAL Messages card now uses the existing WEB4 SDK transport on the performance branch. Its loopback HTTP check passed for unread, total-only, zero, and service failure cases. The dashboard still uses the original Messages route in production.
 
 15 November Cancun time. Files and Wallets, read-only karma and map visits reached Development at 7e001a2e9c16. The public portal configuration uses api.web4.oasisomniverse.one. Validate the compact routes on that origin after the WEB4 production release before promoting portal commit daae6c6.
+
+15 November Cancun time. [WEB4 shallow contract CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43689317379/job/132736384036) passed GET controller default metadata and six request body types with omitted and explicit child flags. Runtime native storage behavior is covered by the preceding MongoDB and SQLite results.
