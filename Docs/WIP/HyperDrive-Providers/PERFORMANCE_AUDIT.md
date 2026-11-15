@@ -1,5 +1,7 @@
 # OPORTAL and HyperDrive performance audit
 
+15 November Cancun time. Opening the OAPP catalog now issues one WEB5 read. The previous modal also requested the avatar's OAPP inventory on open. A selected search result directly requests its OAPP by ID and skips the catalog. Signed controlled-DOM checks verified both one-request paths. Browser paint remains unmeasured.
+
 15 November Cancun time. HyperDrive overview fetches status and metrics concurrently. My routing fetches avatar settings on first opening the tab, so the overview adds no settings request. The editor reads settings back after saving to verify the effective values. Browser paint remains unmeasured.
 
 15 November Cancun time. Usage and Billing previously waited for pricing and statements together before rendering either section. OPORTAL now renders each section as its response arrives. The signed Free check displayed usage and pricing guidance while the response to the statement request was held in the test. WEB4 pricing and statements took 346 ms and 463 ms to response headers. A separate regression resolved statements first and proved a pricing failure leaves the statements visible. Browser paint was not measured.
