@@ -1,5 +1,7 @@
 # Current provider status
 
+15 November Cancun time. OPORTAL 6582f51 updates the Gifts card from the already refreshed inbox after a gift changes, rejects stale initial summaries, and accepts inbox updates only for the active avatar. Candidate 01291b1993b9 passed the exact endpoint and DOM regression checks and awaits portal dev publication. Native Algorand pagination with the operation deadline passed run 43716576493, including the existing multi-page query and invalid account rejection.
+
 15 November Cancun time. Algorand transaction paging and streamed account reads now apply each client's existing timeout to the complete operation, including JSON body consumption. The deadline prevents continuation pages or a stalled body from extending one operation beyond that configured timeout. The changed paging path is queued for native mainnet verification.
 
 15 November Cancun time. OPORTAL dev 35ff69955a48 is live following the shared portal cadence. The published SDK and dashboard made one authenticated compact Gifts summary request, rendered zero for the empty avatar, and issued no full inbox request. The published Gifts modal separates inbox and statistics loading. End-to-end hosted gift writes and production promotion remain open.

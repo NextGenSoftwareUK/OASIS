@@ -1,5 +1,7 @@
 # OPORTAL and HyperDrive performance audit
 
+15 November Cancun time. The OPORTAL dashboard previously retained its initial Gifts count after the inbox changed. The new UI uses the same-avatar inbox result without another HTTP request. The controlled regression verifies the count transitions from one unopened gift to one opened gift and proves that an older summary cannot overwrite it.
+
 15 November Cancun time. OPORTAL dev's live Gifts card returned response headers in 480 ms, requested the summary once and skipped the full inbox read during dashboard startup. This signed empty-account test used real WEB4 and a controlled DOM. It does not measure browser paint or a populated inbox.
 
 15 November Cancun time. Live WEB4 returned the signed Gifts summary in 380 ms and full empty inbox in 398 ms. The empty summary was 349 bytes compared with 317 bytes for the empty list. Populated sizing remains unmeasured. The OPORTAL inbox timing regression rendered the inbox while its stats response was still pending. The server-side Stripe cache passed on the Development dependency graph and awaits rollout timing.

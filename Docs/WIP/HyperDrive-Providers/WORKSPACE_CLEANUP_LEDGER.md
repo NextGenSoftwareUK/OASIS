@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. Portal Gifts synchronization tests ran in memory. The temporary Git index was removed after exact candidate verification. Algorand pagination ran against mainnet on hosted CI. No local dependencies, database or build outputs were retained.
+
 15 November Cancun time. The published Gifts dashboard probe avatar was deleted through WEB4 with HTTP 200. The served scripts ran in memory. No browser profile, local database, download or test artifacts were retained.
 
 15 November Cancun time. Stripe confirmed expiry of the owned redirect test session. WEB4 confirmed deletion of the signed Gifts test avatar. There was no payment or gift write. The portal endpoint map is the retained tracked output, and the temporary candidate index was removed. No local downloads or test output were retained.
