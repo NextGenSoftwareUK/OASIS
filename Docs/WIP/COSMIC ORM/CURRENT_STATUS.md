@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Nested DTO and Axelar integration qualification
+
+The exact feature-branch native run 43699160525 reached the new nested DTO case but failed later: SQLite had 53 assertions against a fixture expectation of 52, while MongoDB and Neo4j rejected a later flat entity-selected All proof. The fixture counts now match, and the next native candidate starts from the current Development providers and shared HyperDrive Core graph. That batch also covers the Axelar prepared public read fix. Live 3eb0bb18da52 reached 105/107 at 87.7 seconds; Axelar activated but was rejected by the storage-only prepared query guard. Blockscout and Connext reported upstream HTTP 500 during startup.
+
 ## WEB4 sandbox demo publication
 
 Web4Site 3a93bb25abdd adds typed inclusive BETWEEN ranges to the SQL-like parser and WEB6 prompt. All 59 focused tests passed. With the retained Development visitor, the exact parser produced requests identical to explicit >= and <= predicates, and WEB4 accepted the projection on SQLite, MongoDB and Neo4j. This check validates the request and API response, without a populated fixture claim. GitHub deployment 7801374887 confirms the [range preview](https://web4-site-e6h9zc34o-oasis-team.vercel.app/web4-sandbox.html) built. Hosted browser verification remains open. Nested projection CI 43697608045 succeeded but skipped the native three-store step because source_ref was absent. A new dispatch pins source_ref to 7b6ba94ca86f.
