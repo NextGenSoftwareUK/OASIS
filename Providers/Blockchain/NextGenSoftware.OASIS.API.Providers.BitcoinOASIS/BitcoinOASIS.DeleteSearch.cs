@@ -60,7 +60,6 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             Func<uint256, Task> preparePublication = null)
         {
             var result = new OASISResult<ITransactionResponse>();
-            uint256 submittedTransactionId = null;
             try
             {
                 if (!_isActivated)
@@ -140,27 +139,14 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                         : new Coin(outpoint, output));
                 }
 
-                decimal feeRate;
-                if (_paymentFeeRateSatPerVByte is decimal configuredFeeRate)
-                {
-                    feeRate = configuredFeeRate;
-                }
-                else
-                {
-                    var estimates = await _httpClient.GetFromJsonAsync<Dictionary<string, decimal>>("fee-estimates");
-                    if (!estimates.TryGetValue("6", out feeRate) || feeRate <= 0)
-                    {
-                        OASISErrorHandling.HandleError(ref result, "Esplora did not provide a fee estimate for six confirmations.");
-                        return result;
-                    }
-                }
+                var feeRate = await ReadBitcoinPaymentFeeRateAsync();
 
                 var payment = Money.Satoshis((long)satoshis);
                 var builder = network.CreateTransactionBuilder()
                     .AddCoins(coins.ToArray())
                     .AddKeys(signer.PrivateKey)
                     .SetChange(source)
-                    .SendEstimatedFees(new FeeRate(Money.Satoshis((long)decimal.Ceiling(feeRate * 1000m))));
+                    .SendEstimatedFees(feeRate);
                 if (destination != null)
                     builder.Send(destination, payment);
 
@@ -182,11 +168,38 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                     return result;
                 }
 
-                var expectedId = transaction.GetHash();
-                using var body = new StringContent(transaction.ToHex(), Encoding.ASCII, "text/plain");
                 if (preparePublication != null)
-                    await preparePublication(expectedId);
-                submittedTransactionId = expectedId;
+                    await preparePublication(transaction.GetHash());
+
+                return await BroadcastSignedBitcoinAsync(transaction, memoText);
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Bitcoin transaction failed ({ex.GetType().Name}).");
+            }
+
+            return result;
+        }
+
+        private async Task<FeeRate> ReadBitcoinPaymentFeeRateAsync()
+        {
+            if (_paymentFeeRateSatPerVByte is not decimal feeRate)
+            {
+                var estimates = await _httpClient.GetFromJsonAsync<Dictionary<string, decimal>>("fee-estimates");
+                if (!estimates.TryGetValue("6", out feeRate) || feeRate <= 0)
+                    throw new InvalidOperationException("Esplora did not provide a fee estimate for six confirmations.");
+            }
+
+            return new FeeRate(Money.Satoshis((long)decimal.Ceiling(feeRate * 1000m)));
+        }
+
+        private async Task<OASISResult<ITransactionResponse>> BroadcastSignedBitcoinAsync(Transaction transaction, string memoText)
+        {
+            var result = new OASISResult<ITransactionResponse>();
+            var expectedId = transaction.GetHash();
+            using var body = new StringContent(transaction.ToHex(), Encoding.ASCII, "text/plain");
+            try
+            {
                 result.MetaData[BitcoinTransactionIdMetadataKey] = expectedId.ToString();
                 using var response = await _httpClient.PostAsync("tx", body);
                 if (!response.IsSuccessStatusCode)
@@ -224,14 +237,9 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             }
             catch (Exception ex)
             {
-                if (submittedTransactionId != null)
-                {
-                    result.ErrorCode = BitcoinBroadcastOutcomeUnknown;
-                    OASISErrorHandling.HandleError(ref result,
-                        $"Esplora did not confirm Bitcoin transaction {submittedTransactionId} ({ex.GetType().Name}).");
-                }
-                else
-                    OASISErrorHandling.HandleError(ref result, $"Bitcoin transaction failed ({ex.GetType().Name}).");
+                result.ErrorCode = BitcoinBroadcastOutcomeUnknown;
+                OASISErrorHandling.HandleError(ref result,
+                    $"Esplora did not confirm Bitcoin transaction {expectedId} ({ex.GetType().Name}).");
             }
 
             return result;

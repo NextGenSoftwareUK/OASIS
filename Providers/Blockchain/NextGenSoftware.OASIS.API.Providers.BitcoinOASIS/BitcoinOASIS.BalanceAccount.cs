@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -63,18 +63,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             string signingKey;
             try
             {
-                signingKey = request.OwnerPrivateKey;
-                if (!string.IsNullOrWhiteSpace(request.OwnerSeedPhrase))
-                {
-                    var mnemonic = new Mnemonic(request.OwnerSeedPhrase);
-                    if (!mnemonic.IsValidChecksum)
-                        throw new ArgumentException("Invalid Bitcoin seed phrase checksum.");
-                    using var seedKey = mnemonic.DeriveExtKey().PrivateKey;
-                    var seedWif = seedKey.GetWif(SigningNetwork).ToString();
-                    if (!string.IsNullOrWhiteSpace(signingKey) && signingKey != seedWif)
-                        throw new ArgumentException("Bitcoin signing key and seed phrase do not match.");
-                    signingKey = seedWif;
-                }
+                signingKey = ResolveWalletSigningKey(request.OwnerPrivateKey, request.OwnerSeedPhrase);
             }
             catch (Exception ex)
             {
@@ -84,7 +73,23 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
 
             var memo = Encoding.UTF8.GetBytes(request.MemoText ?? string.Empty);
             return SendSignedTransactionAsync(request.FromWalletAddress, request.ToWalletAddress, request.Amount, memo,
-                request.MemoText, string.IsNullOrWhiteSpace(signingKey) ? _privateKey : signingKey, commitmentOnly: false);
+                request.MemoText, signingKey, commitmentOnly: false);
+        }
+
+        private string ResolveWalletSigningKey(string signingKey, string seedPhrase)
+        {
+            if (string.IsNullOrWhiteSpace(seedPhrase))
+                return string.IsNullOrWhiteSpace(signingKey) ? _privateKey : signingKey;
+
+            var mnemonic = new Mnemonic(seedPhrase);
+            if (!mnemonic.IsValidChecksum)
+                throw new ArgumentException("Invalid Bitcoin seed phrase checksum.");
+
+            using var seedKey = mnemonic.DeriveExtKey().PrivateKey;
+            var seedWif = seedKey.GetWif(SigningNetwork).ToString();
+            if (!string.IsNullOrWhiteSpace(signingKey) && signingKey != seedWif)
+                throw new ArgumentException("Bitcoin signing key and seed phrase do not match.");
+            return seedWif;
         }
 
         public OASISResult<ITransactionResponse> MintToken(IMintWeb3TokenRequest request)
