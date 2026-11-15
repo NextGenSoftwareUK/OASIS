@@ -1,9 +1,11 @@
 """Measure live Development CQL without creating fixtures or accounts."""
 import argparse
+from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
 import importlib.util
 import json
 from pathlib import Path
+import re
 from statistics import median
 from time import perf_counter
 
@@ -11,7 +13,14 @@ from time import perf_counter
 def measure(query, token, request, route, provider, samples, concurrency):
     def read(_):
         started = perf_counter()
-        rows = query.call(route, token, request)["result"]["rows"]
+        try:
+            rows = query.call(route, token, request)["result"]["rows"]
+        except RuntimeError as error:
+            failure = re.fullmatch(r"HTTP acceptance failed: ([0-9]{3}/[A-Za-z0-9_]{1,80})", str(error))
+            if failure is None:
+                raise
+            elapsed = round((perf_counter() - started) * 1000)
+            return None, elapsed, failure.group(1)
         elapsed = round((perf_counter() - started) * 1000)
         if route.endswith("/federation"):
             if any(row["selected"]["provider"] != provider for row in rows):
@@ -21,20 +30,31 @@ def measure(query, token, request, route, provider, samples, concurrency):
             identities = {row["id"] for row in rows}
         if not identities or len(identities) != len(rows):
             raise RuntimeError("Sample did not return unique, nonempty results.")
-        return identities, elapsed
+        return identities, elapsed, None
 
-    expected, first = read(0)
+    expected, first, first_error = read(0)
     warm = []
+    failures = Counter()
+    if first_error is not None:
+        failures[first_error] += 1
     with ThreadPoolExecutor(max_workers=concurrency) as workers:
-        for identities, elapsed in workers.map(read, range(samples)):
-            if expected != identities:
+        for identities, elapsed, error in workers.map(read, range(samples)):
+            if error is not None:
+                failures[error] += 1
+                continue
+            if expected is None:
+                expected = identities
+            elif expected != identities:
                 raise RuntimeError("The result set changed between samples.")
             warm.append(elapsed)
     return expected, {
-        "firstObservedMs": first,
+        "firstObservedMs": first if first_error is None else None,
+        "firstAttemptMs": first,
         "warmSamples": samples,
-        "warmMedianMs": median(warm),
-        "warmMaxMs": max(warm),
+        "warmSuccessfulSamples": len(warm),
+        "warmMedianMs": median(warm) if warm else None,
+        "warmMaxMs": max(warm) if warm else None,
+        "httpFailures": dict(failures),
     }
 
 
@@ -61,10 +81,14 @@ def main():
     direct_ids, direct = measure(query, token, requests[args.example], "data/query-cql", args.provider, args.samples, args.concurrency)
     pair_ids, paired = measure(query, token, requests["mongo-" + args.example],
                                "data/query-cql/federation", args.provider, args.samples, args.concurrency)
-    if direct_ids != pair_ids:
+    both_returned_rows = direct_ids is not None and pair_ids is not None
+    if both_returned_rows and direct_ids != pair_ids:
         raise RuntimeError("Native and federated samples returned different records.")
-    print(json.dumps({"provider": args.provider, "example": args.example, "rows": len(direct_ids),
+    print(json.dumps({"provider": args.provider, "example": args.example,
+                      "rows": len(direct_ids) if both_returned_rows else None,
                       "concurrency": args.concurrency, "native": direct, "federated": paired}, indent=2))
+    if direct["httpFailures"] or paired["httpFailures"]:
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":

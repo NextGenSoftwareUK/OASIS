@@ -4,7 +4,7 @@
 
 For changes that affect CQL execution, provider startup, or HyperDrive routing, record the exact revision and compare equivalent work before and after. Track startup readiness separately from warm request latency. Compare native and federated CQL on the same records and track provider attempts, fan-out and tail latency for HyperDrive routing under representative load. Include rollout smoke measurements where applicable and investigate regressions before accepting the batch. Timing comparisons must use identical query shapes, fixture scope and concurrency.
 
-The read-only Development sampler in Scripts/Sandbox/Measure-HostedCqlLatency.py reuses an existing visitor and validates matching native and federated results on every run. Its small sample reports first observed time, warm median and maximum. The default is serial, and the optional concurrency setting allows up to four workers for bounded comparisons. Use a larger controlled workload for tail latency or throughput claims. OPORTAL investigation is owned separately.
+The read-only Development sampler in Scripts/Sandbox/Measure-HostedCqlLatency.py reuses an existing visitor and validates matching native and federated results on every run. Its small sample reports first observed time, warm median and maximum. The default is serial, and the optional concurrency setting allows up to four workers for bounded comparisons. Runs with HTTP failures still report bounded sample outcomes and exit unsuccessfully. Timings for successful responses in a failed run describe that subset only. Use a larger controlled workload for tail latency or throughput claims. OPORTAL investigation is owned separately.
 
 ## User priority order updated 12 November 2026
 
