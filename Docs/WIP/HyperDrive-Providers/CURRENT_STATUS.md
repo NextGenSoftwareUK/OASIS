@@ -1,5 +1,7 @@
 # Current provider status
 
+15 November Cancun time. [Algorand descriptor contract qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43743043443) passed. The first provider run received HTTP 400 publishing its second distinct record. 80d7678b1dbd verifies application balance and the exact box allocation cost before staging and preserves the Algod rejection reason. [Replacement provider qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43743427722) is running.
+
 15 November Cancun time. [Algorand soft delete](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43742564963) passed one native test with zero skips in 302 ms, including the actor, repeated delete and earlier live revision. The runner verified teardown. Algorand 89bcfbf2935d publishes an encrypted discovery descriptor atomically with the head and binds enumeration to the declared ledger and application. Its [provider](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43743034894) and [contract](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43743043443) qualifications are running.
 
 15 November Cancun time. Algorand 5bef2e33227b adds a soft-delete revision with the actor, timestamp, prior version and durable repeat behavior. The [native soft-delete case](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43742564963) is running. Hard delete, discovery and routing remain open. WEB4 fdd9df3ee6e8 completed its Railway rollout.

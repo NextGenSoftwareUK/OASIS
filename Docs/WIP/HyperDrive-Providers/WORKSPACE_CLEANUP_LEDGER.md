@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. The descriptor contract runner confirmed removal of its owned LocalNet resources. The funding-check replacement uses a new disposable hosted fixture and canceled the redundant public case. No local download, runtime or result was created.
+
 15 November Cancun time. The Algorand soft-delete runner confirmed removal of its owned LocalNet containers, network, volumes and fixture directory. Discovery qualification uses the existing disposable hosted runner pattern. Canceled the redundant public check. No local build, runtime or fixture was created.
 
 15 November Cancun time. The Algorand soft-delete job uses the existing disposable hosted LocalNet fixture. Canceled the duplicate public check on the same commit. No local download, token, build output or report was created.
