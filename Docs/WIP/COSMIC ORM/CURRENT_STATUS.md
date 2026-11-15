@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Shared Development coordination with HyperDrive Gifts
+
+The 55c1c2056c55 image run 43707323885 passed exact qualification. The live rollout guard waits for the shared window after Stripe deployment cddc8e09 and verifies the unchanged Development head before pushing. HyperDrive is qualifying 2d616be42746 for Gifts and Checkout redirects. The two parent batches overlap only on the API Core gitlink and dependency manifest. Their Core revisions 8ea1efdce998 and 24cd4d4383c7 have disjoint source paths. A local merge-tree check produced abfcce3ee177 and verified its exact diff against both owners. Integrate against whichever revision actually reaches Development first and qualify the resulting pins before the next deployment. No combined Core ref or shared deployment was published by this check.
+
 On 15 November, Development 78eae0988824 completed its Stripe rollout. Candidate 55c1c2056c55 passed full exact protocol CI 43707321881. The exact WEB4 image and guarded rollout remain pending. Feature commit 8821687a5223 extends the following metadata-presence proof to populated native MongoDB, SQLite and Neo4j fixtures. It checks missing vs present-null, present-null vs non-null, and equality of adjacent Int64 values above JavaScript safe-integer precision. Candidate d79168a14607 contains that exact three-store proof. Native CI and live acceptance are pending.
 
 ## SQL metadata presence filters
