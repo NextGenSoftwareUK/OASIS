@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. The signed OAPP probes used two temporary WEB4 sandbox avatars. WEB4 confirmed deletion of both. Responses and SDK source were held in memory. The STAR candidate builder removed its temporary Git index. No local runtime, database, download or build output was retained.
+
 15 November Cancun time. OAPP modal response-order verification ran in memory. STAR-ODK changes were pushed to the task branch in the existing submodule, then the checkout returned to the current parent pin. No local runtime, database, download, build or report was created.
 
 15 November Cancun time. The application usage regression ran against exact portal trees in memory and removed both temporary Git indexes. No local downloads, runtimes, databases or test reports were created. Shared C drive free space was 25.17 GiB.

@@ -1,5 +1,9 @@
 # Current provider status
 
+15 November Cancun time. The deployed OPORTAL configuration and WEB5 SDK sent signed OAPP requests to STAR dev. The temporary avatar's owned list returned HTTP 200 in 319 ms, and a unique no-match search returned HTTP 200 in 721 ms. The portal supplies the required operation identity. This verifies the live warm service. A separate exact image candidate c47940d16a9b preserves the current STAR dependency and adds the cold search startup fix. Its hosted qualification is separate from release.
+
+15 November Cancun time. [Free estimate follow-up](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43735127065) and [Solid native lifecycle](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43735352478) are qualifying against the updated Development graph.
+
 15 November Cancun time. Development advanced to COSMIC/CQL 232e68a7f98b in the shared window and Railway queued WEB4 deployment 633b8ce1-4bcd-42ed-9315-4bb8e2fe7a3f. The estimate follow-up is being qualified against the new dependency graph. The next shared review opens after 16:47:38 UTC, subject to the latest rollout and shared head.
 
 15 November Cancun time. OPORTAL d823654 corrects OAPP list and search error states and keeps late responses from replacing a different avatar's list or a newer search. Focused controlled-DOM verification passed. STAR-ODK 86e6a52 calls the existing startup method before search, matching the owned-list endpoint's initialization. Live signed STAR verification is pending. The parent dependency pin remains at its currently qualified SHA.
