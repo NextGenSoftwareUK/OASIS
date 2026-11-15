@@ -1,5 +1,11 @@
 # COSMIC ORM / CQL current status
 
+## BNB Chain, Avalanche, Base and Optimism in the SQL editor
+
+15 November. Web4Site 77d6603c0c96 accepts the four shipping public EVM account key profiles and exposes them to discovery-scoped Ask Your Data. The text compiler now recognizes 28 named sources. All 198 client tests passed and [preview 7803423420](https://web4-site-pb6b0dhwa-oasis-team.vercel.app/web4-sandbox.html) built. On exact Development d79168a14607 the editor-compiled two-key queries for BNB Chain, Avalanche, Base and Optimism each returned two matching IDs directly and through MongoDB federation, including selected provider provenance. Signed-in hosted browser acceptance still requires Vercel access.
+
+Unordered key-only CQL 999156055e94 passed full CI 43712775037. The six changed CQL and native test files do not overlap the prepared HyperDrive Gifts and Checkout revision 4c842fc2ceba. Candidate 6ef92492c26e preserves that exact reviewed manifest and gitlinks and runs [protocol CI 43713966430](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43713966430) and [image CI 43713968496](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43713968496). Development still serves d79168a14607. The candidate requires the exact shared predecessor to reach and serve Development before promotion. The frontend retains ordered source grouping meanwhile.
+
 ## Bitcoin, XRP Ledger, Stellar and Cardano editor coverage
 
 15 November. Web4Site 9138317c77f2 adds exact public block or ledger filters to SQL text and the discovery-scoped Ask Your Data instructions for Bitcoin, XRP Ledger, Stellar and Cardano. All 197 frontend tests passed; [preview 7803361537](https://web4-site-mku0d1fsx-oasis-team.vercel.app/web4-sandbox.html) built. The exact editor compiled the two supplied keys from each live catalogue. Direct and MongoDB-federated execution on d79168a14607 returned two matching IDs per provider with exact selected-source provenance. This is SQL-to-live-API proof; signed-in hosted browser verification remains open.
