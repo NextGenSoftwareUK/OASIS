@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## SQL HAVING ranges in the WEB4 sandbox
+
+15 November. Web4Site 83c7fd0eaff6 accepts inclusive HAVING BETWEEN on selected aggregate aliases and teaches that form to Ask your data. The same typed threshold parser handles both bounds and retains exact Int64 and Decimal values. All 223 website tests passed. The exact frontend compiled the range to the same two native comparisons as the expanded form, and live Development accepted it on MongoDB, SQLite and Neo4j with zero matching rows for the exact deleted ID scope. [Protected preview 7807232794](https://web4-site-ozcw4go9m-oasis-team.vercel.app/web4-sandbox.html) built. Hosted signed-in browser acceptance remains open. No new fixtures or local build outputs.
+
 ## Grouped Decimal regression runs against three native stores
 
 15 November. Feature be0a61a587a2 adds an exact Decimal AVG assertion beside the existing populated SUM on the native WEB4 compiler and execution fixture. Both columns must return 1.0000000000000000000000000001 for the same visible input. The test-only candidate 7d96ec8d801b directly extends the reconciled dc24072806f6 backend tree and changes only the regression assertion. [Three-store qualification 43741759215](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43741759215) uses that source_ref. The runtime release candidate continues through its exact protocol and image gates. No local build outputs, database copies or downloads were created. The temporary indexes were removed.
