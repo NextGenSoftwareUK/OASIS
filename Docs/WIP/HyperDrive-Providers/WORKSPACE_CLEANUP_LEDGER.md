@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. Solid synchronous lifecycle verification and the Free estimate follow-up use hosted CI. The first Solid run stopped before creating any fixture. The replacement run owns its temporary Pod and test outputs. No local build, runtime download, database or test result was created.
+
 15 November Cancun time. The production portal candidate test used tracked blobs and removed its transient Git index. WEB4 release checks used read-only Git and Railway queries. No local archives, runtimes, databases, builds or results were retained.
 
 15 November Cancun time. Subscription response-order tests ran in memory. The temporary portal candidate index was removed. No SDK download, browser profile, database or generated results were retained.

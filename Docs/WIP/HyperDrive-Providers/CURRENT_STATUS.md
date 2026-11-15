@@ -1,5 +1,9 @@
 # Current provider status
 
+15 November Cancun time. [Exact Free estimate follow-up qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43732089472) passed. WEB4 42561325fd6c is still building on Railway. Review the next scoped Development batch after 16:17:16 UTC, subject to the current shared head and rollout.
+
+15 November Cancun time. [Solid synchronous lifecycle qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43732716701) is queued with a private native Pod. The first run stopped before provisioning because its reviewed test baseline predated the accepted Solid routing changes. The replacement baseline includes those changes and retains the input guard. The existing routing evidence carries forward.
+
 15 November Cancun time. Follow-up WEB4 2203a5054034 separates excess request counting from pricing. A Free projection above a finite allowance retains its excess request count and still returns a zero charge. An unlimited plan retains zero excess. Hosted qualification 396efc17ef64 was dispatched against the exact Development parent. The prior fix is queued on Railway, and portal promotion remains staged so it can use the correct end-to-end estimate.
 
 15 November Cancun time. Development advanced from serving 318d7369abd0 to qualified Free estimate revision 42561325fd6c after the shared window. Railway queued WEB4 deployment 2dd0e884-0a24-44dd-ae39-553cb9886631. Live Free estimate verification is pending. Qualified portal dev and production candidates remain staged until their backend is available.
