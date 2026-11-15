@@ -30,7 +30,7 @@ public partial class AlgorandOASIS
             using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             deadline.CancelAfter(_algod.Timeout);
             var token = deadline.Token;
-            var key = StoredHolonBoxKey(settings, id);
+            var key = StoredRecordBoxKey(settings, id);
             byte[] headName = [(byte)'h', ..key];
             var head = await ReadBoxAsync(settings, headName, token).ConfigureAwait(false);
             if (head == null)
