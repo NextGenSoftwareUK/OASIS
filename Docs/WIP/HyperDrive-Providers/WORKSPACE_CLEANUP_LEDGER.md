@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. The populated Files smoke used an in-memory payload with no local downloads, test databases, fixture files or build outputs. The first upload reported an application error and returned no file ID. The isolated WEB4 avatar self-delete returned HTTP 200 and true. C: had 27.1 GiB free at the check.
+
 15 November Cancun time. Hosted native SQLite wallet summary job 132708526739 passed, including the provider disposal and fixture directory deletion in its finally block. No local build outputs, downloads, results, databases or temporary Git indices were created. C: had 25.5 GiB free at the last check.
 
 14 November Cancun time. SQLite metadata attempts 43677467856 and 43677992984 use hosted runners. Status and logs were inspected in memory. No local build outputs, downloads, results or databases were created.

@@ -1,5 +1,7 @@
 # Current provider status
 
+15 November Cancun time. The Railway dev Files count is qualified on an empty account. Populated parity is open after the first fixture upload returned an application error. The exact shallow-read and Messages candidate image was still building at this checkpoint.
+
 ## Coverage checkpoint · 14 November 2026, Cancun
 
 | Area | Recorded status |
