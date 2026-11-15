@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Shared Development slot reserved for the qualified estimate fix
+
+15 November. The populated grouping image 43728692470 passed. HyperDrive has an independently qualified Free usage estimate fix, 42561325fd6c, with portal verification waiting on it. Stopped the older COSMIC push guard before it could take the shared window at 15:44:52 UTC. Its code and image remain verified. The next COSMIC batch must preserve the actual estimate revision and complete exact full-scope image verification on that graph. MongoDB grouped diagnostics b00a61183561 are in exact candidate 9d9e14b337c9. The prior populated Decimal reproduction 43729435801 passed CI while the equivalent live request continued failing with CQL_QUERY_FAILED.
+
 ## Exact selected SQL result rendering
 
 15 November. Web4Site 09f7c17040a6 displays SQL NULL distinctly from an empty string in selected result tables. All 214 website tests passed; the controlled populated rendering case preserves the full Int64 and Decimal strings alongside NULL cells. [Protected preview 7805670363](https://web4-site-4nmzhzmpe-oasis-team.vercel.app/web4-sandbox.html) built. Signed-in hosted browser approval remains open and the Vercel connection still returns HTTP 403 for the OASIS team. Temporary browser test snapshots were removed.
