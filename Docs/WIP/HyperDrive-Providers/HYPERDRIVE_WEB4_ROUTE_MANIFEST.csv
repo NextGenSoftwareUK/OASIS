@@ -247,6 +247,7 @@
 "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/FilesController.cs","174","FilesController","GetFileMetadata","GET","file-metadata/{fileId}","CoveredFeatureManagerDelegation"
 "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/FilesController.cs","184","FilesController","UpdateFileMetadata","PUT","update-file-metadata/{fileId}","CoveredFeatureManagerDelegation"
 "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/GiftsController.cs","25","GiftsController","GetMyGifts","GET","my-gifts","CoveredFeatureManagerDelegation"
+"ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/GiftsController.cs","30","GiftsController","GetMyGiftSummary","GET","my-gifts/summary","CoveredFeatureManagerDelegation"
 "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/GiftsController.cs","83","GiftsController","SendGift","POST","send-gift/{toAvatarId}","CoveredFeatureManagerDelegation"
 "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/GiftsController.cs","96","GiftsController","ReceiveGift","POST","receive-gift/{giftId}","CoveredFeatureManagerDelegation"
 "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/GiftsController.cs","108","GiftsController","OpenGift","POST","open-gift/{giftId}","CoveredFeatureManagerDelegation"

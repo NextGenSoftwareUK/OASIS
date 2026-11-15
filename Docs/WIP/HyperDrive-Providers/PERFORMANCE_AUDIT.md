@@ -1,5 +1,7 @@
 # OPORTAL and HyperDrive performance audit
 
+15 November Cancun time. The Gifts card had to download and parse full inbox DTOs for total and unopened counts. The new authenticated GET /api/gifts/my-gifts/summary uses the existing durable inbox selector and returns two counters without the list sort or response payload. Storage still reads durable gift payloads. Native, hosted and portal qualification remain open.
+
 15 November Cancun time. Native SQLite job 132761221674 reduced Files candidate materialization from 95 owner-key rows to 3 owner-and-type candidates and returned only the two records with the correct persisted owner. Native MongoDB-to-SQLite job 132761214366 passed upload, replica bytes, ownership and count on the new selector. Large file-byte projection and hosted populated timings remain open.
 
 15 November Cancun time. Files list and count now pass both owner and file kind to storage via the existing multi-key metadata selector. They still validate the persisted owner. The native SQLite regression compares materialized owner-only and file candidates and includes mismatched ownership metadata. File payload projection and live populated latency remain open.
