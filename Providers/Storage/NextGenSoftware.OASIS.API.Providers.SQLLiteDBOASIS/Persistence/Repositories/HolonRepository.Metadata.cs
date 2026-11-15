@@ -48,7 +48,7 @@ public partial class HolonRepository
             try
             {
                 var rows = await _dbContext.Holons.FromSqlRaw(
-                    "SELECT * FROM Holons WHERE CASE WHEN $allTypes OR HolonType = $type " +
+                    "SELECT * FROM Holon WHERE CASE WHEN $allTypes OR HolonType = $type " +
                     "THEN " + MetadataMatchFunction + "(MetaDataJson) ELSE 0 END",
                     new SqliteParameter("$allTypes", type == HolonType.All),
                     new SqliteParameter("$type", (int)type))

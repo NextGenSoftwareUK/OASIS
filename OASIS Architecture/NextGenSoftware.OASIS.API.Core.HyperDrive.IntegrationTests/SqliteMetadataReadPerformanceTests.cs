@@ -1,6 +1,8 @@
 using System.Diagnostics;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using Xunit;
@@ -20,6 +22,8 @@ public sealed class SqliteMetadataReadPerformanceTests(ITestOutputHelper output)
             var activated = await provider.ActivateProviderAsync();
             Assert.False(activated.IsError, activated.Message);
 
+            var owner = Guid.NewGuid();
+            var otherOwner = Guid.NewGuid();
             const int rowCount = 96;
             const string payload = "large file metadata";
             var roots = new List<Guid>();
@@ -36,6 +40,7 @@ public sealed class SqliteMetadataReadPerformanceTests(ITestOutputHelper output)
                     MetaData = new Dictionary<string, object>
                     {
                         ["oasisFileType"] = file ? "file" : "record",
+                        ["CreatedByAvatarId"] = (i == 2 ? otherOwner : owner).ToString(),
                         ["marker.with dot"] = i == 2 ? "other" : "caller",
                         ["enabled"] = file,
                         ["body"] = string.Concat(Enumerable.Repeat(payload, 512))
@@ -81,6 +86,23 @@ public sealed class SqliteMetadataReadPerformanceTests(ITestOutputHelper output)
                 { ["marker.with dot"] = "other", ["unknown"] = "no-match" }, MetaKeyValuePairMatchMode.Any, loadChildren: false);
             Assert.False(any.IsError, any.Message);
             Assert.Equal(otherOwnerFile, Assert.Single(any.Result).Id);
+
+            var dna = new OASISDNA { OASIS = new NextGenSoftware.OASIS.API.DNA.OASIS
+                { HyperDriveMode = HyperDriveModes.V2, StorageProviders = new StorageProviderSettings() } };
+            var providers = new ProviderManager(null, dna)
+                { IsAutoFailOverEnabled = false, IsAutoLoadBalanceEnabled = false, IsAutoReplicationEnabled = false };
+            providers.RegisterProvider(provider);
+            var files = new FilesManager(provider, dna, providers);
+            var fileList = await files.GetAllFilesForAvatarAsync(owner);
+            var count = await files.GetFileCountForAvatarAsync(owner);
+            Assert.False(fileList.IsError, fileList.Message);
+            Assert.False(count.IsError, count.Message);
+            Assert.Equal(roots.OrderBy(id => id).ToArray(), fileList.Result.Select(file => file.Id).OrderBy(id => id).ToArray());
+            Assert.Equal(fileList.Result.Count, count.Result);
+
+            var otherCount = await files.GetFileCountForAvatarAsync(otherOwner);
+            Assert.False(otherCount.IsError, otherCount.Message);
+            Assert.Equal(1, otherCount.Result);
         }
         finally
         {
