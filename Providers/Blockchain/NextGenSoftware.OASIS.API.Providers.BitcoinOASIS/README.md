@@ -78,6 +78,8 @@ Set `OASIS_BITCOIN_ORD_API` to a trusted HTTPS ord server or a loopback ord serv
 
 To send an inscription, use the current owner's Bitcoin address and signing key, the recipient address, and the inscription ID. The ord server must index Runes and agree with Esplora on the chain tip. Fund the source with a separate confirmed output free of inscriptions and Runes to pay fees. The transfer preserves the full inscription output value. Check the transaction ID and use the inscription lookup after confirmation to verify ownership. Native regtest verified both a confirmed transfer and rejection of a mismatched signer. [Native verification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43658729525/job/132643032791)
 
+To burn an inscription, provide the inscription ID and its owner's signing key. Configure `OASIS_BITCOIN_CORE_RPC_URL` with a protected HTTPS endpoint or a loopback Bitcoin Core RPC endpoint. Set `OASIS_BITCOIN_CORE_RPC_AUTH` to a protected `username:password` value or `cookiefile=<path>` for a readable Core authentication cookie. Core, Esplora, and ord must agree on the chain tip. The native transaction burns one satoshi and returns the remaining funds after fees. When you request confirmation, the provider waits for ord to index that exact burn transaction. If confirmation is still pending at the deadline, retain the returned `BitcoinTransactionId` and check the original inscription.
+
 ### Bridge payments
 
 Native Bitcoin bridge payments require OASIS_BITCOIN_BRIDGE_POOL_ADDRESS. The address must belong to the configured Bitcoin network. Withdrawals send from the supplied wallet signer to the pool. Deposits spend from the pool using its configured provider signer. A pending response identifies an acknowledged Bitcoin broadcast.
