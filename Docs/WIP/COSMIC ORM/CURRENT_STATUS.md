@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## SQL typed metadata selection and alias ordering
+
+15 November. Web4Site 0b7124331fac adds typed CAST selection of nullable metadata. On live Development b9808ae777b8 the exact compiler submitted an Int64 metadata projection ordered by its selected alias to MongoDB, SQLite and Neo4j. All returned the ExactValue column and zero visible rows. Web4Site 4ec5d2eae5eb teaches the same syntax to WEB6, including that metadata paths and types must be known. All 210 website tests passed, including the controlled WEB6 draft review. [Protected preview 7805081240](https://web4-site-7r23329eq-oasis-team.vercel.app/web4-sandbox.html) built. Populated live values, real WEB6 verification of this syntax, and the signed-in hosted browser walkthrough remain open. Temporary test snapshots were removed.
+
 ## SQL grouping with unselected field keys
 
 15 November. Web4Site 264d1d028b9d compiles grouping keys independently from selected outputs. Counts per Version can now return only the count. The exact compiler generated the grouped request and the live Development b9808ae777b8 API accepted it on MongoDB, SQLite and Neo4j, returning only the Count column with no visible rows for that visitor. Web4Site fa8dea47ee3e also teaches Ask your data this syntax and proves the draft review handoff with a controlled WEB6 response. All 208 website tests passed. [Protected preview 7804886364](https://web4-site-pf2acnjnk-oasis-team.vercel.app/web4-sandbox.html) built. Populated live results, a real WEB6 draft for this new syntax, and signed-in hosted browser acceptance remain open. Temporary test snapshots were removed.
