@@ -158,12 +158,14 @@ public partial class AlgorandOASIS
             return false;
 
         using var codec = new EncryptedRecordCodec(settings.StorageKey, compress: true);
-        var freezes = new List<AlgorandBoxTransaction.Call>(2);
+        var freezes = new List<AlgorandBoxTransaction.Call>(4);
         if (avatarHead.Length != PurgeCheckpointLength)
         {
-            await ReadStoredRecordAsync<Avatar>(settings, id, avatarKey, avatarHead, codec, "avatar", token)
-                .ConfigureAwait(false);
+            var avatar = (await ReadStoredRecordAsync<Avatar>(settings, id, avatarKey, avatarHead, codec, "avatar", token)
+                .ConfigureAwait(false)).Record;
+            var aliases = await PrepareAvatarAliasesAsync(settings, avatarKey, avatar, null, token).ConfigureAwait(false);
             freezes.Add(PrepareFreeze(avatarKey, avatarHeadName, avatarHead));
+            freezes.AddRange(aliases);
         }
         if (detailHead?.Length != PurgeCheckpointLength)
         {

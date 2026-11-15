@@ -2,6 +2,7 @@ using System;
 using System.Buffers.Binary;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Security.Cryptography;
@@ -76,8 +77,21 @@ public partial class AlgorandOASIS
             var token = deadline.Token;
             var publication = await PreparePublicationAsync<TRecord, TContract>(settings, holon, expectedVersion, kind,
                 token).ConfigureAwait(false);
-            await EnsureRecordApplicationFundingAsync(settings, publication.Funding, token).ConfigureAwait(false);
-            await SubmitBoxCallsAsync(settings, publication.Calls, token).ConfigureAwait(false);
+            var calls = publication.Calls;
+            var funding = publication.Funding;
+            if (kind == "avatar" && publication.Proposal is IAvatar avatar)
+            {
+                var aliases = await PrepareAvatarAliasesAsync(settings, publication.RecordKey,
+                    publication.Previous as IAvatar, avatar, token).ConfigureAwait(false);
+                if (aliases.Length != 0)
+                {
+                    PositionPublication(calls, 0);
+                    funding = checked(funding + (ulong)aliases.Count(alias => alias.Arguments[2].AsSpan().SequenceEqual(EmptyHash)) * AliasBoxFunding);
+                    calls = [..calls, ..aliases];
+                }
+            }
+            await EnsureRecordApplicationFundingAsync(settings, funding, token).ConfigureAwait(false);
+            await SubmitBoxCallsAsync(settings, calls, token).ConfigureAwait(false);
             await VerifyPublicationAsync(settings, publication, token).ConfigureAwait(false);
 
             result.Result = publication.Proposal;
@@ -91,8 +105,8 @@ public partial class AlgorandOASIS
         return result;
     }
 
-    private sealed record PreparedPublication<T>(T Proposal, AlgorandBoxTransaction.Call[] Calls,
-        byte[] ManifestName, byte[] ExpectedManifest, ulong Funding);
+    private sealed record PreparedPublication<T>(T Proposal, T? Previous, byte[] RecordKey,
+        AlgorandBoxTransaction.Call[] Calls, byte[] ManifestName, byte[] ExpectedManifest, ulong Funding) where T : class;
 
     private async Task<PreparedPublication<TContract>> PreparePublicationAsync<TRecord, TContract>(
         AlgorandRecordBoxSettings settings, TContract holon, int expectedVersion, string kind, CancellationToken token)
@@ -166,11 +180,11 @@ public partial class AlgorandOASIS
         var predecessor = head == null ? EmptyHash : SHA256.HashData(head);
         calls[count] = new(["publish"u8.ToArray(), key, predecessor, revision, digests, descriptor], names);
         byte[] previousRevision = head == null ? EmptyHash : head[..HashLength];
-        return new(proposal, calls, names[1], [..revision, ..previousRevision, ..predecessor, ..digests], funding);
+        return new(proposal, current, key, calls, names[1], [..revision, ..previousRevision, ..predecessor, ..digests], funding);
     }
 
     private async Task VerifyPublicationAsync<T>(AlgorandRecordBoxSettings settings, PreparedPublication<T> publication,
-        CancellationToken token)
+        CancellationToken token) where T : class
     {
         var manifest = await ReadBoxAsync(settings, publication.ManifestName, token).ConfigureAwait(false);
         if (manifest == null || !manifest.AsSpan().SequenceEqual(publication.ExpectedManifest))

@@ -35,10 +35,23 @@ public sealed class AlgorandRecordBoxTests
             var holonWrite = await writer.SaveStoredHolonAsync(new Holon { Id = id, Name = "Ordinary holon" }, 0);
             Assert.IsFalse(holonWrite.IsError, holonWrite.Exception?.ToString() ?? holonWrite.Message);
 
+            var byUsername = await writer.LoadAvatarByUsernameAsync(" ENROLLED-AVATAR ");
+            var byEmail = await writer.LoadAvatarByEmailAsync(" NATIVE@EXAMPLE.INVALID ");
+            Assert.IsFalse(byUsername.IsError, byUsername.Message);
+            Assert.IsFalse(byEmail.IsError, byEmail.Message);
+            Assert.AreEqual(id, byUsername.Result.Id);
+            Assert.AreEqual(id, byEmail.Result.Id);
+            var collisionId = Guid.NewGuid();
+            var collision = await writer.SaveAvatarAsync(new Avatar
+                { Id = collisionId, Version = 1, VersionId = Guid.NewGuid(), Username = avatar.Username.ToUpperInvariant() });
+            Assert.IsTrue(collision.IsError);
+            Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, (await writer.LoadAvatarAsync(collisionId)).ErrorCode);
+
             avatar.Version = 2;
             avatar.VersionId = Guid.NewGuid();
             avatar.PreviousVersionId = created.Result.VersionId;
             avatar.Username = "enrolled-avatar-updated";
+            avatar.Email = "updated@example.invalid";
             var updated = await writer.SaveAvatarAsync(avatar);
             Assert.IsFalse(updated.IsError, updated.Exception?.ToString() ?? updated.Message);
 
@@ -46,6 +59,11 @@ public sealed class AlgorandRecordBoxTests
             Assert.IsFalse(readerActivation.IsError, readerActivation.Message);
             var latest = await reader.LoadAvatarByProviderKeyAsync(id.ToString("D"));
             var historical = await reader.LoadAvatarAsync(id, version: 1);
+            Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, (await reader.LoadAvatarByUsernameAsync("enrolled-avatar")).ErrorCode);
+            Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, (await reader.LoadAvatarByEmailAsync("native@example.invalid")).ErrorCode);
+            Assert.AreEqual(id, (await reader.LoadAvatarByUsernameAsync(avatar.Username)).Result.Id);
+            Assert.AreEqual(id, (await reader.LoadAvatarByEmailAsync(avatar.Email)).Result.Id);
+            Assert.AreEqual("enrolled-avatar", (await reader.LoadAvatarByUsernameAsync(avatar.Username, 1)).Result.Username);
             var all = await reader.LoadAllAvatarsAsync();
             var allDetails = await reader.LoadAllAvatarDetailsAsync();
             Assert.IsFalse(latest.IsError, latest.Message);
@@ -61,7 +79,7 @@ public sealed class AlgorandRecordBoxTests
             Assert.AreEqual(id, (await reader.DiscoverStoredHolonIdsAsync()).Result.Single());
             Assert.AreEqual("Ordinary holon", (await reader.LoadStoredHolonAsync(id)).Result.Name);
 
-            var softDeleted = await writer.DeleteAvatarAsync(id);
+            var softDeleted = await writer.DeleteAvatarByUsernameAsync(avatar.Username);
             Assert.IsFalse(softDeleted.IsError, softDeleted.Exception?.ToString() ?? softDeleted.Message);
             Assert.IsTrue(softDeleted.IsDeleted);
             var avatarTombstone = await reader.LoadAvatarAsync(id);
@@ -77,7 +95,7 @@ public sealed class AlgorandRecordBoxTests
             Assert.IsTrue((await writer.DeleteAvatarAsync(id)).Result);
             Assert.AreEqual(3, (await reader.LoadAvatarAsync(id)).Result.Version);
 
-            var deleted = await writer.DeleteAvatarAsync(id.ToString("D"), softDelete: false);
+            var deleted = await writer.DeleteAvatarByEmailAsync(avatar.Email, softDelete: false);
             Assert.IsFalse(deleted.IsError, deleted.Exception?.ToString() ?? deleted.Message);
             Assert.IsTrue(deleted.IsDeleted);
             Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, (await reader.LoadAvatarAsync(id)).ErrorCode);
@@ -86,8 +104,11 @@ public sealed class AlgorandRecordBoxTests
             Assert.AreEqual("Ordinary holon", (await reader.LoadStoredHolonAsync(id)).Result.Name);
             Assert.IsTrue((await writer.DeleteAvatarAsync(id, softDelete: false)).Result);
 
+            Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, (await reader.LoadAvatarByEmailAsync(avatar.Email)).ErrorCode);
+            Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, (await reader.LoadAvatarByUsernameAsync(avatar.Username)).ErrorCode);
+
             var avatarOnlyId = Guid.NewGuid();
-            var avatarOnly = new Avatar { Id = avatarOnlyId, Version = 1, VersionId = Guid.NewGuid(), Username = "avatar-without-detail" };
+            var avatarOnly = new Avatar { Id = avatarOnlyId, Version = 1, VersionId = Guid.NewGuid(), Username = avatar.Username, Email = avatar.Email };
             var avatarOnlySaved = await writer.SaveAvatarAsync(avatarOnly);
             Assert.IsFalse(avatarOnlySaved.IsError, avatarOnlySaved.Exception?.ToString() ?? avatarOnlySaved.Message);
             var archived = await writer.DeleteAvatarAsync(avatarOnlyId);
@@ -152,7 +173,7 @@ public sealed class AlgorandRecordBoxTests
             Assert.AreEqual("native-profile", historical.Result.Username);
             Assert.AreEqual("Ordinary holon", (await reader.LoadStoredHolonAsync(id)).Result.Name);
 
-            var softDeleted = await writer.DeleteAvatarAsync(id);
+            var softDeleted = await writer.DeleteAvatarByUsernameAsync(avatar.Username);
             Assert.IsFalse(softDeleted.IsError, softDeleted.Exception?.ToString() ?? softDeleted.Message);
             Assert.IsTrue(softDeleted.IsDeleted);
             var avatarTombstone = await reader.LoadAvatarAsync(id);
@@ -168,7 +189,7 @@ public sealed class AlgorandRecordBoxTests
             Assert.IsTrue((await writer.DeleteAvatarAsync(id)).Result);
             Assert.AreEqual(3, (await reader.LoadAvatarAsync(id)).Result.Version);
 
-            var deleted = await writer.DeleteAvatarAsync(id.ToString("D"), softDelete: false);
+            var deleted = await writer.DeleteAvatarByEmailAsync(avatar.Email, softDelete: false);
             Assert.IsFalse(deleted.IsError, deleted.Exception?.ToString() ?? deleted.Message);
             Assert.IsTrue(deleted.IsDeleted);
             Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, (await reader.LoadAvatarAsync(id)).ErrorCode);
@@ -177,8 +198,11 @@ public sealed class AlgorandRecordBoxTests
             Assert.AreEqual("Ordinary holon", (await reader.LoadStoredHolonAsync(id)).Result.Name);
             Assert.IsTrue((await writer.DeleteAvatarAsync(id, softDelete: false)).Result);
 
+            Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, (await reader.LoadAvatarByEmailAsync(avatar.Email)).ErrorCode);
+            Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, (await reader.LoadAvatarByUsernameAsync(avatar.Username)).ErrorCode);
+
             var avatarOnlyId = Guid.NewGuid();
-            var avatarOnly = new Avatar { Id = avatarOnlyId, Version = 1, VersionId = Guid.NewGuid(), Username = "avatar-without-detail" };
+            var avatarOnly = new Avatar { Id = avatarOnlyId, Version = 1, VersionId = Guid.NewGuid(), Username = avatar.Username, Email = avatar.Email };
             var avatarOnlySaved = await writer.SaveAvatarAsync(avatarOnly);
             Assert.IsFalse(avatarOnlySaved.IsError, avatarOnlySaved.Exception?.ToString() ?? avatarOnlySaved.Message);
             var archived = await writer.DeleteAvatarAsync(avatarOnlyId);

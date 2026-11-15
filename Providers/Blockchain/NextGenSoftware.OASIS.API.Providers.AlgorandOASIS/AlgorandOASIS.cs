@@ -242,19 +242,15 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
         public override OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0) =>
             LoadAvatarByProviderKeyAsync(providerKey, version).Result;
 
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0) =>
-            _recordBoxes == null ? await LoadPublicAccountAsync(avatarUsername, version).ConfigureAwait(false) :
-                new OASISResult<IAvatar> { IsError = true, Message = "Algorand enrolled avatar lookup requires the OASIS ID." };
+        public override Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0) =>
+            _recordBoxes == null ? LoadPublicAccountAsync(avatarUsername, version) :
+                LoadEnrolledAvatarByAliasAsync("username", avatarUsername, version);
 
         public override OASISResult<IAvatar> LoadAvatarByUsername(string avatarUsername, int version = 0) =>
             LoadAvatarByUsernameAsync(avatarUsername, version).Result;
 
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0)
-        {
-            var result = new OASISResult<IAvatar>();
-            OASISErrorHandling.HandleError(ref result, "AlgorandOASIS: Email lookup is not supported.");
-            return await Task.FromResult(result);
-        }
+        public override Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0) =>
+            LoadEnrolledAvatarByAliasAsync("email", avatarEmail, version);
 
         public override OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail, int version = 0) =>
             LoadAvatarByEmailAsync(avatarEmail, version).Result;
@@ -321,21 +317,24 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
         public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true) =>
             DeleteAvatarAsync(providerKey, softDelete).Result;
 
-        public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
-        {
-            var result = new OASISResult<bool>();
-            OASISErrorHandling.HandleError(ref result, "AlgorandOASIS: Accounts cannot be deleted.");
-            return await Task.FromResult(result);
-        }
+        public override Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true) =>
+            DeleteEnrolledAvatarByAliasAsync("username", avatarUsername, softDelete);
 
         public override OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true) =>
             DeleteAvatarByUsernameAsync(avatarUsername, softDelete).Result;
 
-        public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
+        public override Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true) =>
+            DeleteEnrolledAvatarByAliasAsync("email", avatarEmail, softDelete);
+
+        private async Task<OASISResult<bool>> DeleteEnrolledAvatarByAliasAsync(string kind, string alias, bool softDelete)
         {
-            var result = new OASISResult<bool>();
-            OASISErrorHandling.HandleError(ref result, "AlgorandOASIS: Accounts cannot be deleted.");
-            return await Task.FromResult(result);
+            var target = await LoadEnrolledAvatarByAliasAsync(kind, alias, 0).ConfigureAwait(false);
+            if (target.IsError || target.Result == null)
+                return new OASISResult<bool>
+                {
+                    IsError = true, ErrorCode = target.ErrorCode, Message = target.Message, Exception = target.Exception
+                };
+            return await DeleteAvatarAsync(target.Result.Id, softDelete).ConfigureAwait(false);
         }
 
         public override OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true) =>
