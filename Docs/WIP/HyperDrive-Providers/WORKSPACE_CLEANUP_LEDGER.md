@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. The inventory count UI check ran in memory. Removed the combined WEB4 staging index. No local SDK, packages, databases or build outputs were generated. The scoped CI ref ci-hyperdrive-portal-e39c38c1db71 remains in use by image qualification.
+
 15 November Cancun time. The dashboard session regression ran in memory and the release staging index was removed. No local dependencies, runtime installation or build outputs were retained.
 
 15 November Cancun time. WEB4 confirmed deletion of the disposable signed Quests fixture with HTTP 200. Removed the staged release alternate index and patch. No SDK downloads, installation files, local build results or test artifacts were retained.
