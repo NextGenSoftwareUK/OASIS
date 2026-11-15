@@ -1360,3 +1360,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 14 November Cancun time. Production browser profile and processes were verified absent after the timed run. Native escrow jobs completed the owned runner cleanup after runtime rejection. No local build outputs, downloads or test databases were created.
 
 14 November Cancun time. The dashboard candidate on Blockscout used one temporary Git index, removed before the ref push. Exact WEB4 image qualification runs off-host. No local artifacts were generated.
+
+14 November Cancun time. The successful BTC and Rune native jobs removed their Esplora containers and images and deleted the owned fixture directory, including the wallet and SQLite receipt test state. Exact escrow staging removed its temporary Git index. No local builds or downloads were created.
