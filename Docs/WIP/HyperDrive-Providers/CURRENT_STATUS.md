@@ -1,5 +1,9 @@
 # Current provider status
 
+15 November Cancun time. OPORTAL 8c19ef7 distinguishes a failed application usage request from a successful empty owner list. Exact dev c00fcfa0a697 and production feab40944d4c candidates preserve their respective asset graphs and passed the subscription suite. Both remain staged for their WEB4 routes.
+
+15 November Cancun time. [Solid native qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43733703704) passed 1/1 with no skips in 378 ms. Synchronous activation, authenticated empty read, save, exact populated readback and deactivation all ran. The CI runner confirmed teardown. Candidate 3ba95c806d69 exactly matches the native tested tree e10bdc98a8ea on Development 42561325fd6c. Development rollout is pending.
+
 15 November Cancun time. The Solid diagnostic confirmed a native 404 on the fresh Pod's unprovisioned collection. d74e131f197c distinguishes a missing collection from an unreadable listed collection using native parent membership. The [native qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43733703704) checks the empty collection and populated read after a real write. The prior diagnostic runner confirmed teardown.
 
 15 November Cancun time. OPORTAL production candidate a84c07eae2ae incorporates the usage-section errors and stale chart fix on the production asset graph. Its subscription suite passed. Production WEB4's current release lacks the usage-series controller and estimate services used by this portal batch. The portal change remains staged until those routes are released through the Development snapshot workflow.

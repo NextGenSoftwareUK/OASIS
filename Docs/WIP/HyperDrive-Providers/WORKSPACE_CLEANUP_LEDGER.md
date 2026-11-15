@@ -1,5 +1,9 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. The application usage regression ran against exact portal trees in memory and removed both temporary Git indexes. No local downloads, runtimes, databases or test reports were created. Shared C drive free space was 25.17 GiB.
+
+15 November Cancun time. Successful Solid run 43733703704 confirmed teardown of the owned private Pod, container and test files. Removed the temporary Git index used to reproduce its tested tree. No local runtime or database was created.
+
 15 November Cancun time. Solid diagnostic 43733269589 confirmed deletion of its owned server, Pod and test files. Its replacement qualification uses a new disposable fixture on the hosted runner. The exact production portal test used tracked Git blobs and removed its temporary index. No local builds or downloads were created.
 
 15 November Cancun time. The signed Free estimate probe ran in memory and WEB4 confirmed deletion of its temporary avatar. The exact portal candidate test read tracked Git blobs and removed its temporary index. No local runtime, database, build or report was retained.
