@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. Algorand record box verification uses the existing hosted LocalNet runner and its owned Compose teardown. Canceled the redundant public lifecycle run. Local verification parsed the Python fixture with bytecode disabled. No local downloads, environments or test output were created.
+
 15 November Cancun time. The exact WEB5 qualification used a temporary Git index, which was removed, and builds on a disposable hosted runner. Algorand storage design work made no ledger writes, installs, downloads to disk or local builds.
 
 15 November Cancun time. Production portal verification used read-only OpenAPI, release status and asset reads in memory. Removed the temporary candidate index. No production fixture, local runtime, build or report was created.

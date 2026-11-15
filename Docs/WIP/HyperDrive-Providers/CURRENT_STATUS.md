@@ -1,5 +1,7 @@
 # Current provider status
 
+15 November Cancun time. Algorand 97165221c603 adds the first native AVM record box operations. A creator-authorized application stages immutable chunks and publishes a new head only after validating its predecessor and all chunk digests. [Authenticated LocalNet qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43738712271) is running. The shipping provider path and broader storage contract remain open.
+
 15 November Cancun time. STAR cold startup candidate fdd9df3ee6e8 layers the two verified STAR pin paths onto Development 807623f716cd. The [exact WEB5 image job](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43738248485) is running on that graph. The [Algorand durable storage scope](ALGORAND_DURABLE_STORAGE.md) records the native application-box contract, private payload design and LocalNet acceptance order. The earlier signed payment and public-read evidence remains in the provider matrix.
 
 15 November Cancun time. OPORTAL production cbbde53e1517 deployed the verified single-request avatar hydration and OAPP modal fixes. The production portal returned the three shipped scripts byte for byte, and both production APIs advertise the relevant routes. Production WEB4's serving cf47b47e595b still uses the older refresh-token revocation checks. Remaining portal candidate 1d9c140a8c49 includes session handling and the usage estimate and awaits the matching production WEB4 release. No signed production billing or token write was performed.
