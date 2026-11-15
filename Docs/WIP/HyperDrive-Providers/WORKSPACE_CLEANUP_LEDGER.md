@@ -1388,3 +1388,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 15 November Cancun time. Legacy soft-delete job 132723914553 used a hosted MongoDB fixture. Its local runner database was dropped by the test finally block and the owned MongoDB container was stopped by the workflow. No workstation fixtures or build outputs were created.
 
 15 November Cancun time. MongoDB job 132725197006 passed the legacy tombstone test and its owned database teardown. Preparing the dashboard candidate used one disposable index directory, removed before the pushes. No local build or test database was created.
+
+15 November Cancun time. Hosted MongoDB job 132726808041 passed both remaining read-modify-write checks. Their owned databases were dropped in the test cleanup and the workflow removed the MongoDB container and volume. No local test databases or build outputs were created.
