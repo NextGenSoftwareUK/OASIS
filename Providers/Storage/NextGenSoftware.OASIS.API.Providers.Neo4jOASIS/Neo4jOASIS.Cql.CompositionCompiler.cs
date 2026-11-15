@@ -36,7 +36,7 @@ public partial class Neo4jOASIS
         if (plan == null || limits == null || limits.Admit(plan.Options).IsError
             || plan.Targets.Count != 1 || plan.Targets[0].Provider != Core.Enums.ProviderType.Neo4jOASIS)
             throw new ArgumentException("Projected All requires one matching plan and remaining work.");
-        return CompileCqlSelected(plan.Query.Projection, limits, plan.Query.Predicate,entity:plan.EntitySource);
+        return CompileCqlSelected(plan.Query.Projection, limits, plan.Query.Predicate);
     }
 
     private static NeoCqlCompositionCommand CompileCqlSelected<T, TResult>(CosmicProjectionQuery<T, TResult> query,
@@ -95,6 +95,13 @@ public partial class Neo4jOASIS
             }
             else if (stage is CosmicSelectedReverseStage)
                 text.Append("WITH position,rank ORDER BY rank DESC ");
+            else if (stage is CosmicSelectedDistinctStage distinct)
+            {
+                text.Append("WITH input[position].values[").Append(distinct.ColumnIndex)
+                    .Append("].v AS distinctKey,position,rank ORDER BY rank ASC ")
+                    .Append("WITH distinctKey,head(collect(position)) AS position,min(rank) AS rank ")
+                    .Append("WITH position,rank ORDER BY rank ASC ");
+            }
             else if (stage is CosmicSelectedWindowStage window)
             {
                 text.Append("WITH position,rank ORDER BY rank ASC ")

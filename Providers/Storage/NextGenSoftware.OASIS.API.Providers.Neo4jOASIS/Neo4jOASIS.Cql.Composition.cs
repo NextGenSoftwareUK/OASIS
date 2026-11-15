@@ -43,7 +43,7 @@ public partial class Neo4jOASIS : ICosmicQueryProjectedAllStorageProvider, ICosm
     private static class CompositionContract
     {
         internal static readonly CosmicProjectionCompositionCapabilities Value = new(
-            CosmicSelectedStageFeatures.Filter | CosmicSelectedStageFeatures.Ordering | CosmicSelectedStageFeatures.Paging | CosmicSelectedStageFeatures.Reverse,
+            CosmicSelectedStageFeatures.Filter | CosmicSelectedStageFeatures.Ordering | CosmicSelectedStageFeatures.Paging | CosmicSelectedStageFeatures.Reverse | CosmicSelectedStageFeatures.Distinct,
             CqlGroupedCapabilities.FilteringCapabilities.Features, CqlGroupedCapabilities.FilteringCapabilities.Keys,
             CqlGroupedCapabilities.OrderingCapabilities.KeyTypes, 32, supportsAll: true, supportsCardinality: true, numericReductions: SelectedNumericContract.Value, extremaDomains: CqlGroupedCapabilities.OrderingCapabilities.KeyTypes);
     }
