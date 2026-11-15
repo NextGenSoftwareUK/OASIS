@@ -8,6 +8,11 @@ on:
       - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.AlgorandOASIS/**'
       - 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.AlgorandOASIS.IntegrationTests/AlgorandPublicLifecycleTests.cs'
   workflow_dispatch:
+    inputs:
+      signed_localnet:
+        description: Verify a signed payment on disposable authenticated LocalNet
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -43,9 +48,45 @@ jobs:
         with:
           dotnet-version: '10.0.x'
       - name: Verify the shipping confirmed transaction read against Algorand mainnet
+        if: ${{ !inputs.signed_localnet }}
         shell: pwsh
         run: |
           ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-AlgorandPublicLifecycle -Operation {
             dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.AlgorandOASIS.IntegrationTests" --filter "FullyQualifiedName~PublicIndexerReturnsExactConfirmedTransaction" /m:2 /nr:false /p:UseSharedCompilation=false --logger "console;verbosity=normal"
             if ($LASTEXITCODE -ne 0) { throw "Algorand public lifecycle verification failed." }
           }
+      - uses: actions/setup-python@v5
+        if: inputs.signed_localnet
+        with:
+          python-version: '3.12'
+      - name: Verify signed payment with authenticated Algorand LocalNet
+        if: inputs.signed_localnet
+        shell: bash
+        run: |
+          set -euo pipefail
+          owned=$(mktemp -d "${RUNNER_TEMP}/oasis-algorand.XXXXXX")
+          cleanup() {
+            status=$?
+            trap - EXIT
+            compose=$(rg --files --hidden "$owned/localnet" -g 'compose.yml' -g 'docker-compose.yml' | head -n 1 || true)
+            if [[ -n "$compose" ]]; then
+              docker compose -f "$compose" down --volumes --remove-orphans || status=1
+            fi
+            rm -rf -- "$owned"
+            exit "$status"
+          }
+          trap cleanup EXIT
+          python -m venv "$owned/venv"
+          "$owned/venv/bin/pip" install --no-cache-dir algokit==2.10.2 py-algorand-sdk==2.12.0
+          mkdir "$owned/localnet"
+          "$owned/venv/bin/algokit" localnet start --config-dir "$owned/localnet"
+          fixture_env="$owned/fixture.env"
+          GITHUB_ENV="$fixture_env" "$owned/venv/bin/python" Scripts/TestHosts/Prepare-AlgorandLocalNetFixture.py
+          set -a
+          source "$fixture_env"
+          set +a
+          pwsh -NoProfile -Command '
+            ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-AlgorandSignedLocalNet -Operation {
+              dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.AlgorandOASIS.IntegrationTests" --filter "FullyQualifiedName~SubmitsSignedPaymentToAuthenticatedLocalNet" /m:2 /nr:false /p:UseSharedCompilation=false
+              if ($LASTEXITCODE -ne 0) { throw "Native Algorand signed payment failed." }
+            }'

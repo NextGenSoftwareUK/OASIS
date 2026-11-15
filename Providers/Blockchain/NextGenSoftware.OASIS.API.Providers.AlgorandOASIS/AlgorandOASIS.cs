@@ -37,15 +37,19 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
             new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
 
         public AlgorandOASIS(string algodUrl = null, string indexerUrl = null)
+            : this(algodUrl ?? Environment.GetEnvironmentVariable("ALGORAND_ALGOD_URL"),
+                indexerUrl ?? Environment.GetEnvironmentVariable("ALGORAND_INDEXER_URL"),
+                ReadConfiguredToken(algodUrl, "ALGORAND_ALGOD_URL", "ALGORAND_ALGOD_API_TOKEN"),
+                ReadConfiguredToken(indexerUrl, "ALGORAND_INDEXER_URL", "ALGORAND_INDEXER_API_TOKEN"))
         {
-            _algodUrl = (algodUrl ?? Environment.GetEnvironmentVariable("ALGORAND_ALGOD_URL")
-                         ?? "https://mainnet-api.algonode.cloud").TrimEnd('/');
-            _indexerUrl = (indexerUrl ?? Environment.GetEnvironmentVariable("ALGORAND_INDEXER_URL")
-                           ?? "https://mainnet-idx.algonode.cloud").TrimEnd('/');
-            _algod = new HttpClient { BaseAddress = new Uri(_algodUrl) };
-            _algod.DefaultRequestHeaders.Accept.ParseAdd("application/json");
-            _indexer = new HttpClient { BaseAddress = new Uri(_indexerUrl) };
-            _indexer.DefaultRequestHeaders.Accept.ParseAdd("application/json");
+        }
+
+        public AlgorandOASIS(string algodUrl, string indexerUrl, string algodApiToken, string indexerApiToken)
+        {
+            _algodUrl = (algodUrl ?? "https://mainnet-api.algonode.cloud").TrimEnd('/');
+            _indexerUrl = (indexerUrl ?? "https://mainnet-idx.algonode.cloud").TrimEnd('/');
+            _algod = CreateClient(_algodUrl, "X-Algo-API-Token", algodApiToken);
+            _indexer = CreateClient(_indexerUrl, "X-Indexer-API-Token", indexerApiToken);
 
             ProviderName = "AlgorandOASIS";
             ProviderDescription = "Algorand pure-PoS blockchain provider";
@@ -55,6 +59,22 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
         }
 
         // ─── Activation ───────────────────────────────────────────────────────────
+
+        private static string ReadConfiguredToken(string suppliedUrl, string urlVariable, string tokenVariable) =>
+            suppliedUrl == null && !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(urlVariable))
+                ? Environment.GetEnvironmentVariable(tokenVariable)
+                : null;
+
+        private static HttpClient CreateClient(string url, string tokenHeader, string token)
+        {
+            var hasToken = !string.IsNullOrWhiteSpace(token);
+            var client = new HttpClient(new HttpClientHandler { AllowAutoRedirect = !hasToken })
+                { BaseAddress = new Uri(url) };
+            client.DefaultRequestHeaders.Accept.ParseAdd("application/json");
+            if (hasToken)
+                client.DefaultRequestHeaders.Add(tokenHeader, token);
+            return client;
+        }
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
         {
