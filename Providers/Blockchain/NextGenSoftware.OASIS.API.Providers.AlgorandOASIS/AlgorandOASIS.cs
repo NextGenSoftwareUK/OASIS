@@ -84,15 +84,14 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
             var result = new OASISResult<bool>();
             try
             {
-                using var response = await _algod.GetAsync("/v2/status").ConfigureAwait(false);
-                response.EnsureSuccessStatusCode();
-                using var body = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
-                using var document = await JsonDocument.ParseAsync(body).ConfigureAwait(false);
-                if (!document.RootElement.TryGetProperty("last-round", out var round) || !round.TryGetUInt64(out var lastRound))
-                    throw new InvalidOperationException("Algod status did not provide a valid last round.");
+                var algod = ReadAlgodRoundAsync();
+                var indexer = ReadIndexerRoundAsync();
+                await Task.WhenAll(algod, indexer).ConfigureAwait(false);
+                var algodRound = await algod.ConfigureAwait(false);
+                var indexedRound = await indexer.ConfigureAwait(false);
                 IsProviderActivated = true;
                 result.Result = true;
-                result.Message = $"AlgorandOASIS activated. Last round: {lastRound} at {_algodUrl}.";
+                result.Message = $"AlgorandOASIS activated. Algod round {algodRound} at {_algodUrl}. Indexed round {indexedRound} at {_indexerUrl}.";
             }
             catch (Exception ex)
             {
@@ -101,6 +100,31 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
                 OASISErrorHandling.HandleError(ref result, $"AlgorandOASIS: Error activating: {ex.Message}");
             }
             return result;
+        }
+
+        private async Task<ulong> ReadAlgodRoundAsync()
+        {
+            using var response = await _algod.GetAsync("/v2/status").ConfigureAwait(false);
+            response.EnsureSuccessStatusCode();
+            using var body = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+            using var document = await JsonDocument.ParseAsync(body).ConfigureAwait(false);
+            if (!document.RootElement.TryGetProperty("last-round", out var round) || !round.TryGetUInt64(out var lastRound))
+                throw new InvalidOperationException("Algod status did not provide a valid last round.");
+            return lastRound;
+        }
+
+        private async Task<ulong> ReadIndexerRoundAsync()
+        {
+            using var response = await _indexer.GetAsync("/health").ConfigureAwait(false);
+            response.EnsureSuccessStatusCode();
+            using var body = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+            using var document = await JsonDocument.ParseAsync(body).ConfigureAwait(false);
+            var health = document.RootElement;
+            if (!health.TryGetProperty("db-available", out var database) || database.ValueKind != JsonValueKind.True ||
+                !health.TryGetProperty("is-migrating", out var migrating) || migrating.ValueKind != JsonValueKind.False ||
+                !health.TryGetProperty("round", out var round) || !round.TryGetUInt64(out var indexedRound))
+                throw new InvalidOperationException("Indexer health did not report an available database and a valid round.");
+            return indexedRound;
         }
 
         public override OASISResult<bool> ActivateProvider() => ActivateProviderAsync().GetAwaiter().GetResult();

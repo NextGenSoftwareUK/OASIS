@@ -132,6 +132,28 @@ public sealed class AlgorandPublicLifecycleTests
     }
 
     [TestMethod]
+    public async Task PublicActivationRequiresAHealthyIndexerAlongsideAlgod()
+    {
+        const string algod = "https://mainnet-api.algonode.cloud";
+        const string indexer = "https://mainnet-idx.algonode.cloud";
+        var healthy = new AlgorandOASIS(algod, indexer);
+        var activated = await healthy.ActivateProviderAsync();
+        Assert.IsFalse(activated.IsError, activated.Message);
+        Assert.IsTrue(activated.Result);
+        Assert.IsTrue(healthy.IsProviderActivated);
+        StringAssert.Contains(activated.Message, "Algod round");
+        StringAssert.Contains(activated.Message, "Indexed round");
+
+        // Algod has its own /health endpoint, but its response cannot prove Indexer readiness.
+        var missingIndexer = new AlgorandOASIS(algod, algod);
+        var rejected = await missingIndexer.ActivateProviderAsync();
+        Assert.IsTrue(rejected.IsError);
+        Assert.IsFalse(rejected.Result);
+        Assert.IsFalse(missingIndexer.IsProviderActivated);
+        Assert.IsNotNull(rejected.Exception);
+    }
+
+    [TestMethod]
     public async Task PublicAlgodLifecycleAndAccountRead()
     {
         const string address = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HFKQ";
