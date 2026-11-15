@@ -1,5 +1,7 @@
 # COSMIC ORM / CQL current status
 
+On 15 November, Development 78eae0988824 completed its Stripe rollout. Candidate 55c1c2056c55 passed full exact protocol CI 43707321881. The exact WEB4 image and guarded rollout remain pending. Feature commit 8821687a5223 extends the following metadata-presence proof to populated native MongoDB, SQLite and Neo4j fixtures. It checks missing vs present-null, present-null vs non-null, and equality of adjacent Int64 values above JavaScript safe-integer precision. Candidate d79168a14607 contains that exact three-store proof. Native CI and live acceptance are pending.
+
 ## SQL metadata presence filters
 
 Feature WEB4 06ace698be4e extends CQL wire operations with IsMissing and IsNotNull. IS NOT NULL requires presence and a non-null value. The new operations reuse the established native metadata predicates. Web4Site de0155e92296 exposes both forms in typed SQL and the WEB6 draft instructions. All 194 frontend tests passed, and [preview 7802579954](https://web4-site-jo8gv1x9x-oasis-team.vercel.app/web4-sandbox.html) built. The preview feature requires the new WEB4 API; the earlier OR preview remains the browser verification target until metadata-presence deployment. No live presence-filter acceptance yet.
