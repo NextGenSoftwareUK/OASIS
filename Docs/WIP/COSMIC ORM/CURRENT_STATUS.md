@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Populated grouped Decimal on all three live stores
+
+15 November. On Development dc24072806f6 the same bounded grouped Decimal SQL with HAVING returned exact SUM 7 and AVG 3.5 on SQLite and Neo4j, completing the live three-store cohort. One client-to-HTTP sample per store was 628 ms on SQLite and 1516 ms on Neo4j. The four private fixture rows were hard-deleted using native revisions and verified absent by exact CQL ID. Browser DNA candidate fa2a6d115cce is running [protocol CI 43745144155](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43745144155) and [WEB4 image CI 43745409134](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43745409134).
+
 ## Exact grouped Decimal fixed on live WEB4
 
 15 November. Railway 8ca9ad1d successfully deployed Development dc24072806f6. MongoDB accepted both empty-scope Decimal aggregates. The populated SQL query, including HAVING, returned exact SUM 7 and AVG 3.5. Both private records were hard-deleted and verified absent by CQL ID. The browser opt-in now reads OASISDNA in feature e4b958ee676d. Exact candidate fa2a6d115cce is in CI and includes a production-side rejection case.
