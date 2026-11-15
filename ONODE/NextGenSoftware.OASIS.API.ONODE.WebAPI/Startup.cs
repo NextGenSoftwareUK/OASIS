@@ -618,7 +618,7 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             // Signed public Nostr events are a separate read-only relay profile.
             if (Configuration["CQL_NOSTR_PUBLIC_SOURCE_JSON"] is string nostrPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
-                    NextGenSoftware.OASIS.API.Providers.NostrOASIS.NostrPublicEventMetadataSource.FromJson(nostrPublicSource)));
+                    NextGenSoftware.OASIS.API.Providers.NostrOASIS.NostrOASIS.FromPublicQueryConfiguration(nostrPublicSource)));
             // Anonymous cached AppView profiles stay separate from PDS sessions.
             if (Configuration["CQL_BLUESKY_PUBLIC_SOURCE_JSON"] is string blueSkyPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(

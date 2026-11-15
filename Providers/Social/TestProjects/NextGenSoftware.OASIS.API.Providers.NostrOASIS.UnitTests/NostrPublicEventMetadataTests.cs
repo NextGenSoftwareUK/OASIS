@@ -42,18 +42,18 @@ public sealed class NostrPublicEventMetadataTests
             }
             return Task.FromResult<IReadOnlyList<string>>(rows);
         }
-        using var source = new NostrPublicEventMetadataSource(Relay, keys, Owner, Read);
+        using var source = new NostrOASIS(Relay, keys, Owner, Read);
         if (scenario != "inactive") Assert.IsFalse((await source.ActivateQuerySourceAsync(default)).IsError);
         fault = scenario; calls = 0;
         var selected = scenario == "unknown" ? new[] { new string('0', 64) }
             : scenario is "subset" or "unexpected" ? keys.Take(2).ToArray() : keys;
         var query = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(ProviderType.NostrOASIS).Result)
-            .Where(row => selected.Contains(CosmicQueryMetadata.Value<string>(row, NostrPublicEventMetadataSource.AddressMetadata))).Result;
+            .Where(row => selected.Contains(CosmicQueryMetadata.Value<string>(row, NostrOASIS.AddressMetadata))).Result;
         if (scenario == "point")
         {
             string key = keys[0];
             query = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(ProviderType.NostrOASIS).Result)
-                .Where(row => CosmicQueryMetadata.Value<string>(row, NostrPublicEventMetadataSource.AddressMetadata) == key).Result;
+                .Where(row => CosmicQueryMetadata.Value<string>(row, NostrOASIS.AddressMetadata) == key).Result;
         }
         if (scenario == "page") query = query.Skip(1).Result.Take(1).Result;
         if (scenario == "empty-page-tampered") query = query.Take(0).Result;
@@ -91,7 +91,7 @@ public sealed class NostrPublicEventMetadataTests
     public async Task UnsupportedTextQueryRejectsBeforeNativeReadAndSourceCannotSaveOrDelete()
     {
         int calls = 0; string[] keys = Events().Select(Id).ToArray();
-        using var source = new NostrPublicEventMetadataSource(Relay, keys, Owner,
+        using var source = new NostrOASIS(Relay, keys, Owner,
             (_, _) => { calls++; throw new InvalidOperationException("No native read expected."); });
         var query = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(ProviderType.NostrOASIS).Result)
             .Where(row => row.Name == "unbounded search").Result;
@@ -121,7 +121,7 @@ public sealed class NostrPublicEventMetadataTests
             case "uppercase": config["eventIds"]![0] = config["eventIds"]![0]!.GetValue<string>().ToUpperInvariant(); break;
             case "extra": config["secret"] = "forbidden-inert-value"; break;
         }
-        Assert.ThrowsException<ArgumentException>(() => NostrPublicEventMetadataSource.FromJson(config.ToJsonString()));
+        Assert.ThrowsException<ArgumentException>(() => NostrOASIS.FromPublicQueryConfiguration(config.ToJsonString()));
     }
 
     private sealed record Frame(byte[] Bytes, bool End = true, WebSocketMessageType Type = WebSocketMessageType.Text);
