@@ -1,0 +1,191 @@
+#pragma version 8
+txn RekeyTo
+global ZeroAddress
+==
+assert
+txn OnCompletion
+int NoOp
+==
+assert
+txn ApplicationID
+bz create
+txn Sender
+global CreatorAddress
+==
+assert
+txn NumAppArgs
+int 5
+==
+assert
+txna ApplicationArgs 1
+len
+int 32
+==
+assert
+txna ApplicationArgs 0
+byte "stage"
+==
+bnz stage
+txna ApplicationArgs 0
+byte "publish"
+==
+assert
+b publish
+
+create:
+txn NumAppArgs
+int 0
+==
+return
+
+// stage(key, revision, index, encryptedChunk)
+stage:
+txna ApplicationArgs 2
+len
+int 32
+==
+assert
+txna ApplicationArgs 3
+len
+int 8
+==
+assert
+txna ApplicationArgs 3
+btoi
+int 7
+<
+assert
+txna ApplicationArgs 4
+len
+dup
+int 0
+>
+assert
+int 896
+<=
+assert
+txna ApplicationArgs 2
+store 0
+txna ApplicationArgs 3
+store 1
+callsub chunk_name
+dup
+box_len
+!
+assert
+pop
+txna ApplicationArgs 4
+box_put
+int 1
+return
+
+// publish(key, expected head digest, revision, concatenated chunk digests)
+publish:
+txna ApplicationArgs 2
+len
+int 32
+==
+assert
+txna ApplicationArgs 3
+len
+int 32
+==
+assert
+txna ApplicationArgs 4
+len
+dup
+int 32
+%
+int 0
+==
+assert
+int 32
+/
+dup
+int 1
+>=
+assert
+dup
+int 7
+<=
+assert
+store 2
+byte "h"
+txna ApplicationArgs 1
+concat
+store 3
+load 3
+box_get
+bnz has_head
+pop
+int 32
+bzero
+b check_head
+
+has_head:
+dup
+int 0
+int 32
+extract3
+txna ApplicationArgs 3
+!=
+assert
+sha256
+check_head:
+txna ApplicationArgs 2
+==
+assert
+txna ApplicationArgs 3
+store 0
+int 0
+store 4
+
+check_chunk:
+load 4
+itob
+store 1
+callsub chunk_name
+box_get
+assert
+sha256
+txna ApplicationArgs 4
+load 4
+int 32
+*
+int 32
+extract3
+==
+assert
+load 4
+int 1
++
+dup
+store 4
+load 2
+<
+bnz check_chunk
+
+load 3
+box_del
+pop
+load 3
+txna ApplicationArgs 3
+txna ApplicationArgs 2
+concat
+txna ApplicationArgs 4
+concat
+box_put
+int 1
+return
+
+// The fixed-width components give each immutable chunk a unique opaque name.
+chunk_name:
+byte "c"
+txna ApplicationArgs 1
+load 0
+concat
+load 1
+concat
+sha256
+concat
+retsub

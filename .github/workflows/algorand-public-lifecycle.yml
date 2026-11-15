@@ -14,13 +14,13 @@ on:
         type: boolean
         default: false
       signed_localnet:
-        description: Verify a signed payment on disposable authenticated LocalNet
+        description: Verify signed operations on disposable authenticated LocalNet
         type: boolean
         default: false
       localnet_case:
         description: Focused signed LocalNet verification
         type: choice
-        options: [batch, indexed_search]
+        options: [batch, indexed_search, storage_contract]
         default: batch
       public_case:
         description: Focused public Indexer verification
@@ -90,7 +90,7 @@ jobs:
         if: ${{ inputs.signed_localnet || inputs.signed_testnet }}
         with:
           python-version: '3.12'
-      - name: Verify signed payment with authenticated Algorand LocalNet
+      - name: Verify signed operations with authenticated Algorand LocalNet
         if: inputs.signed_localnet
         env:
           ALGORAND_LOCALNET_CASE: ${{ inputs.localnet_case }}
@@ -124,6 +124,10 @@ jobs:
           "$owned/venv/bin/pip" install --no-cache-dir algokit==2.10.2 py-algorand-sdk==2.12.0
           mkdir "$owned/localnet"
           "$owned/venv/bin/algokit" localnet start --config-dir "$owned/localnet"
+          if [[ "$ALGORAND_LOCALNET_CASE" == storage_contract ]]; then
+            "$owned/venv/bin/python" -B Scripts/TestHosts/Test-AlgorandRecordBoxes.py
+            exit
+          fi
           fixture_env="$owned/fixture.env"
           GITHUB_ENV="$fixture_env" "$owned/venv/bin/python" Scripts/TestHosts/Prepare-AlgorandLocalNetFixture.py
           set -a
