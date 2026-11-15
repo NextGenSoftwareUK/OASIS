@@ -19,6 +19,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 public interface ICqlHostedSourceRegistry
 {
     IOASISProvider Find(ProviderType provider);
+    bool HasIndependentActivation(ProviderType provider) => false;
     Task ActivateReadSourceAsync(ProviderType provider, CancellationToken cancellationToken);
 }
 
@@ -67,19 +68,40 @@ public sealed class CqlHostedSources : BackgroundService
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         hostStoppingToken = stoppingToken;
-        foreach (var provider in queryOnly.OrderBy(type => type.ToString(), StringComparer.Ordinal))
+        var started = Stopwatch.GetTimestamp();
+        const int maximumConcurrentReaders = 3;
+        var ordered = queryOnly.OrderBy(type => type.ToString(), StringComparer.Ordinal).ToArray();
+        for (var index = 0; index < ordered.Length;)
         {
-            if (stoppingToken.IsCancellationRequested) break;
-            var state = activationStates[provider];
-            await state.Gate.WaitAsync(stoppingToken);
-            try
+            stoppingToken.ThrowIfCancellationRequested();
+            if (!registry.HasIndependentActivation(ordered[index]))
             {
-                await ActivateOneAsync(provider, state, stoppingToken);
-                if (stoppingToken.IsCancellationRequested) break;
+                await ActivateInitialAsync(ordered[index++], stoppingToken);
+                continue;
             }
-            finally { state.Gate.Release(); }
-            // Optional source failure is explicit in discovery; never select another provider.
+
+            // Independently owned profiles never use the shared BootLoader
+            // registration path. Drain their batch before a canonical activation.
+            var batch = new List<Task>(maximumConcurrentReaders);
+            do
+            {
+                batch.Add(ActivateInitialAsync(ordered[index++], stoppingToken));
+            }
+            while (batch.Count < maximumConcurrentReaders && index < ordered.Length
+                && registry.HasIndependentActivation(ordered[index]));
+            await Task.WhenAll(batch);
         }
+
+        logger.LogInformation("CQL startup completed readers={Enrolled} verified={Verified} elapsedMilliseconds={ElapsedMilliseconds}",
+            ordered.Length, verified.Count, (long)Stopwatch.GetElapsedTime(started).TotalMilliseconds);
+    }
+
+    private async Task ActivateInitialAsync(ProviderType provider, CancellationToken stoppingToken)
+    {
+        var state = activationStates[provider];
+        await state.Gate.WaitAsync(stoppingToken);
+        try { await ActivateOneAsync(provider, state, stoppingToken); }
+        finally { state.Gate.Release(); }
     }
 
     private async Task<string> ActivateOneAsync(ProviderType provider, ActivationState state, CancellationToken token)
