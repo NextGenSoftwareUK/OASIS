@@ -6755,3 +6755,5 @@ Web4Site 5fa63a71df5d used a temporary directory containing only committed websi
 14 November UTC. Requalified the scoped HoloOASIS candidate against Development 34c4526c6681 using GitHub-hosted CI. The temporary isolated Git index used for candidate 1ebcb3b772c5 was removed. No local build, download, runtime or database copy was created.
 
 14 November Cancun time. Read-only field constructor projection feature and Development candidate used temporary Git indexes, removed after publication. Native SQLite, MongoDB and Neo4j fixtures and the WEB4 image run on GitHub-hosted CI. No local build, dependency download, runtime or fixture was created. Observed 34.2 GiB free.
+
+14 November Cancun time. Archived the rejected Development Wizard sign-in as LocalState/COSMIC/HostedSourceRecoveryOperatorRejected-20261114-203016. The 1,606-byte DPAPI response and 116-byte intent record the application rejection. No access or refresh token was issued and no password was saved. This small archive can be removed after a successful sign-in and outcome are recorded. The Railway and Windows bounded Nostr subscription probes used installed runtimes and created no artifacts.
