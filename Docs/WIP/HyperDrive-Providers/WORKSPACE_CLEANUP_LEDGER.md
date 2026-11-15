@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. Removed the temporary Git indices and candidate manifest used to assemble the two-path Files deployment candidate. Its source review did not create local databases, builds, downloads or results.
+
 15 November Cancun time. Both hosted Messages fixture avatars were deleted with HTTP 200 and true. The first request used an incorrect assertion field name in the probe, which was corrected before the second isolated smoke. No local artifacts were created.
 
 15 November Cancun time. Hosted native Files job 132754373256 passed through the test finally block that drops its MongoDB database and removes its SQLite fixture directory. GitHub logs were inspected in memory. No local downloads, builds or test databases were created.

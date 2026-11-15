@@ -1,5 +1,7 @@
 # Current provider status
 
+15 November Cancun time. The scoped Files byte-fix candidate 9b3875d92187 preserves Development Core. Source review then found file-by-ID operations lacked a stored owner check. The task branch adds the shared owner check and native cross-avatar assertions. Advance the Files deployment candidate after that regression passes.
+
 15 November Cancun time. WEB4 served Development 3a0542795eda successfully on Railway dev. The signed-in empty Messages summary returned the expected counters and the anonymous request was denied. The focused native Files fix remains on the provider branch pending a scoped WEB4 rollout.
 
 15 November Cancun time. Native Files run 43695299274 passed MongoDB-to-SQLite upload, byte parity and scoped list/count. The 54 failures in the broader run all belong to HyperDriveProviderExecutionTests. Corrected the affected contract fixtures expecting eager child reads and the two Files fixtures expecting an eager save. The behavioral rerun will show which failures remain.

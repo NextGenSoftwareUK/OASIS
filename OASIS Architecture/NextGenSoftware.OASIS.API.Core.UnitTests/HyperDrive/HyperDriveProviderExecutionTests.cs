@@ -1538,6 +1538,7 @@ public sealed partial class HyperDriveProviderExecutionTests
         var stored = new Holon
         {
             Id = fileId,
+            CreatedByAvatarId = avatarId,
             MetaData = new Dictionary<string, object>
             {
                 ["oasisFileType"] = "file",

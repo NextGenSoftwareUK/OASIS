@@ -73,16 +73,23 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
                 var selectedReader = reader.SetAndActivateCurrentStorageProvider(provider);
                 Assert.False(selectedReader.IsError, selectedReader.Message);
                 var stored = new FilesManager(provider, dna, reader);
+                var visitor = Guid.NewGuid();
+                Assert.True((await stored.DownloadFileAsync(visitor, upload.Result.Id)).IsError);
+                Assert.True((await stored.GetFileMetadataAsync(visitor, upload.Result.Id)).IsError);
+                Assert.True((await stored.UpdateFileMetadataAsync(visitor, upload.Result.Id,
+                    new Dictionary<string, object> { ["fileName"] = "unauthorized.bin" })).IsError);
+                Assert.True((await stored.DeleteFileAsync(visitor, upload.Result.Id)).IsError);
                 var download = await stored.DownloadFileAsync(actor, upload.Result.Id);
                 Assert.False(download.IsError, $"{provider.ProviderType.Value}: {download.Message}");
                 Assert.Equal(bytes, download.Result.Data);
+                Assert.Equal("dashboard-fixture.bin", download.Result.FileName);
                 var list = await stored.GetAllFilesForAvatarAsync(actor);
                 Assert.False(list.IsError, list.Message);
                 Assert.Equal(upload.Result.Id, Assert.Single(list.Result).Id);
                 var count = await stored.GetFileCountForAvatarAsync(actor);
                 Assert.False(count.IsError, count.Message);
                 Assert.Equal(1, count.Result);
-                var unrelated = await stored.GetFileCountForAvatarAsync(Guid.NewGuid());
+                var unrelated = await stored.GetFileCountForAvatarAsync(visitor);
                 Assert.False(unrelated.IsError, unrelated.Message);
                 Assert.Equal(0, unrelated.Result);
             }
