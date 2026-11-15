@@ -1,5 +1,9 @@
 # Current provider status
 
+15 November Cancun time. WEB4 807623f716cd serves on Railway dev. A signed sandbox Free estimate returned HTTP 200 in 525 ms with 30,000 included requests and zero charge, and WEB4 confirmed fixture deletion. The remaining OPORTAL dev candidate b583f0523d14 is eligible for review after the preceding Vercel window at 17:16:57 UTC, subject to the portal head and serving state.
+
+15 November Cancun time. [Algorand LocalNet](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43738712271) compiled and deployed the actual record box contract. Writer authorization, chunk immutability, exact digest checks, predecessor fencing and readback passed. The runner verified deletion of its LocalNet containers, network, volumes and fixture directory. The shipping provider remains to be connected to the contract.
+
 15 November Cancun time. Algorand 97165221c603 adds the first native AVM record box operations. A creator-authorized application stages immutable chunks and publishes a new head only after validating its predecessor and all chunk digests. [Authenticated LocalNet qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43738712271) is running. The shipping provider path and broader storage contract remain open.
 
 15 November Cancun time. STAR cold startup candidate fdd9df3ee6e8 layers the two verified STAR pin paths onto Development 807623f716cd. The [exact WEB5 image job](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43738248485) is running on that graph. The [Algorand durable storage scope](ALGORAND_DURABLE_STORAGE.md) records the native application-box contract, private payload design and LocalNet acceptance order. The earlier signed payment and public-read evidence remains in the provider matrix.
