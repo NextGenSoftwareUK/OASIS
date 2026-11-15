@@ -27,7 +27,7 @@ using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 using NextGenSoftware.OASIS.Common;
-using ConnextSource = NextGenSoftware.OASIS.API.Providers.ConnextOASIS.ConnextPublicOriginMetadataSource;
+using ConnextSource = NextGenSoftware.OASIS.API.Providers.ConnextOASIS.ConnextOASIS;
 using MidenSource = NextGenSoftware.OASIS.API.Providers.MidenOASIS.MidenPublicBlockHeaderSource;
 using EspressoSource = NextGenSoftware.OASIS.API.Providers.EspressoSystemsOASIS.EspressoPublicBlockHeaderSource;
 using EigenLayerSource = NextGenSoftware.OASIS.API.Providers.EigenLayerOASIS.EigenLayerPublicOperatorSource;
@@ -214,7 +214,7 @@ public sealed class CqlHyperlaneMongoNativeTests
     [ConnextMongoNativeFact]
     public Task NativeConnextMetadataAndPrivateMongoCopiesProduceThreeTwoFiveFourOverHttp()
         => VerifyAsync(ProviderType.ConnextOASIS, "Connext", "connext",
-            ConnextSource.TransferIdMetadata, ConnextSource.FromJson,
+            ConnextSource.TransferIdMetadata, ConnextSource.FromPublicQueryConfiguration,
             new[] { "ConnextOriginChainId", "ConnextOriginBlockNumber", "ConnextOriginLogIndex" },
             (native, metadata, _) =>
             {

@@ -729,7 +729,7 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             // Connext Ethereum origin event metadata is enrolled only as an explicit read source.
             if (Configuration["CQL_CONNEXT_PUBLIC_SOURCE_JSON"] is string connextPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
-                    NextGenSoftware.OASIS.API.Providers.ConnextOASIS.ConnextPublicOriginMetadataSource.FromJson(connextPublicSource),
+                    NextGenSoftware.OASIS.API.Providers.ConnextOASIS.ConnextOASIS.FromPublicQueryConfiguration(connextPublicSource),
                     Services.Cql.CqlReadSourceActivationPolicy.TransientServerErrorOnce));
             // Miden testnet block headers are enrolled only as an explicit read source.
             if (Configuration["CQL_MIDEN_PUBLIC_SOURCE_JSON"] is string midenPublicSource)

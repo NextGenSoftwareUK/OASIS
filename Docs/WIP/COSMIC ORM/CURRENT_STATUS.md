@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Connext shipping provider qualification
+
+The feature branch moves the bounded Connext origin-read catalogue into ConnextOASIS. The hosted profile retains exact anonymous Ethereum origin reads and rejects storage writes. The legacy constructor continues to supply the existing PostgREST operations. CI and live qualification are pending.
+
 ## Live Nostr recovery and Axelar performance candidate
 
 Railway 0bd54a93-e9ce-48df-9dff-dc94bbc9407f serves Development d7807ff87c7c and confirms the Primal WSS relay with the original three-event catalogue. Native CQL and MongoDB federation returned matching exact three-event and two-event subsets with Nostr provenance. Four warm requests per route for the same two-event subset all succeeded. Direct first/median/max were 2,031/1,984.5/2,018 ms. Federated first/median/max were 2,524/2,192.5/2,254 ms. Those are the first timings after relay recovery. Warm discovery reached 107/107 enrolled profiles ready for both native CQL and federation.

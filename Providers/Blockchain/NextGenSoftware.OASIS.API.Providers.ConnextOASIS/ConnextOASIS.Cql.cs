@@ -11,10 +11,7 @@ using System.Text.RegularExpressions;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Objects.NativeData;
 using NextGenSoftware.OASIS.API.Core.Queries;
-using NextGenSoftware.OASIS.API.Core.Serialization;
 using NextGenSoftware.OASIS.Common;
-using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
-using NextGenSoftware.Utilities;
 using PType = NextGenSoftware.OASIS.API.Core.Enums.ProviderType;
 
 namespace NextGenSoftware.OASIS.API.Providers.ConnextOASIS;
@@ -22,33 +19,30 @@ namespace NextGenSoftware.OASIS.API.Providers.ConnextOASIS;
 /// <summary>
 /// Anonymous indexed order metadata over a bounded Connext ID catalogue.
 /// </summary>
-public sealed class ConnextPublicOriginMetadataSource : KeyValueStorageProviderBase,
-    ICosmicQueryStorageProvider, ICosmicReadOnlyQueryActivation, IDisposable
+public partial class ConnextOASIS : ICosmicQueryStorageProvider, ICosmicReadOnlyQueryActivation, IDisposable
 {
     public const string TransferIdMetadata = "ConnextTransferId";
-    private readonly MessagesBackend messages;
+    private readonly PublicMessages? publicMessages;
     private bool disposed;
 
-    public ConnextPublicOriginMetadataSource(HttpClient client,
+    internal ConnextOASIS(HttpClient client,
         IEnumerable<ConnextOriginEventClient.Identity> events, Guid sourceOwner, bool ownsClient = false)
-        : this(new MessagesBackend(client, events, sourceOwner, ownsClient)) { }
-
-    private ConnextPublicOriginMetadataSource(MessagesBackend backend) : base(backend, backend.Prefix)
+        : this()
     {
-        messages = backend;
-        ProviderName = PType.ConnextOASIS.ToString();
-        ProviderDescription = "Anonymous Connext DLN order observations";
-        ProviderType = new EnumValue<PType>(PType.ConnextOASIS);
-        ProviderCategory = new EnumValue<Core.Enums.ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+        publicMessages = new PublicMessages(client, events, sourceOwner, ownsClient);
         QueryCapabilities = CosmicQueryCapabilities.ForStringMetadataKeyLookup(TransferIdMetadata, 66, 8);
     }
 
     public PType QueryProviderType => PType.ConnextOASIS;
-    public CosmicQueryCapabilities QueryCapabilities { get; }
+    public CosmicQueryCapabilities QueryCapabilities { get; } = new(CosmicQueryFeatures.None);
+
+    private static OASISResult<T> PublicProfileWriteRejected<T>()
+        => new() { IsError = true, ErrorCount = 1, ErrorCode = "CQL_READ_ONLY_SOURCE",
+            Message = "The public Connext event profile is read-only." };
 
     /// <summary>Separate host query-profile configuration, never the existing
     /// cross-chain tracker settings. Reject unknown fields rather than ignore keys.</summary>
-    public static ConnextPublicOriginMetadataSource FromJson(string json)
+    public static ConnextOASIS FromPublicQueryConfiguration(string json)
     {
         if (json == null || Encoding.UTF8.GetByteCount(json) > 8192)
             throw new ArgumentException("Bounded explicit Connext public source required.");
@@ -67,7 +61,7 @@ public sealed class ConnextPublicOriginMetadataSource : KeyValueStorageProviderB
         var client = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(15) };
         try
         {
-            return new ConnextPublicOriginMetadataSource(client,
+            return new ConnextOASIS(client,
                 root.GetProperty("events").EnumerateArray().Select(value => new ConnextOriginEventClient.Identity(
                     value.GetProperty("transferId").GetString(), value.GetProperty("transactionHash").GetString(),
                     value.GetProperty("blockHash").GetString(), value.GetProperty("blockNumber").GetInt64(),
@@ -79,10 +73,13 @@ public sealed class ConnextPublicOriginMetadataSource : KeyValueStorageProviderB
 
     public async Task<OASISResult<bool>> ActivateQuerySourceAsync(CancellationToken cancellationToken)
     {
+        if (publicMessages == null)
+            return new() { IsError = true, ErrorCount = 1, ErrorCode = "CQL_SOURCE_UNAVAILABLE",
+                Message = "Configure the public event catalogue before activating Connext queries." };
         try
         {
             ObjectDisposedException.ThrowIf(disposed, this);
-            await messages.VerifyAsync(cancellationToken);
+            await publicMessages.VerifyAsync(cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
             IsProviderActivated = true;
             return new(true);
@@ -101,6 +98,8 @@ public sealed class ConnextPublicOriginMetadataSource : KeyValueStorageProviderB
         try
         {
             ObjectDisposedException.ThrowIf(disposed, this);
+            if (publicMessages == null)
+                return Failure("CQL_SOURCE_UNAVAILABLE", "Configure the public event catalogue before querying Connext.");
             if (plan == null || plan.Targets.Count != 1 || plan.Targets[0].Provider != QueryProviderType)
                 return Failure("CQL_PLAN_TARGET_UNAVAILABLE", "One explicitly admitted public Connext source is required.");
             if (maximumResults is < 1 or > 10000) return Failure("CQL_QUERY_LIMIT", "A bounded result budget is required.");
@@ -119,11 +118,11 @@ public sealed class ConnextPublicOriginMetadataSource : KeyValueStorageProviderB
                 if (selected.IsError) return Failure(selected.ErrorCode, selected.Message);
                 keys = new[] { selected.Result };
             }
-            if (keys.Any(key => !messages.MessageIds.Contains(key, StringComparer.Ordinal)))
+            if (keys.Any(key => !publicMessages.MessageIds.Contains(key, StringComparer.Ordinal)))
                 return Failure("CQL_INVALID_SOURCE_KEY", "Select transfer IDs from the configured event catalogue.");
             cancellationToken.ThrowIfCancellationRequested();
             if (!IsProviderActivated) return Failure("CQL_PROVIDER_INACTIVE", "Activate the configured public source first.");
-            var native = await messages.ReadAsync(keys, cancellationToken);
+            var native = await publicMessages.ReadAsync(keys, cancellationToken);
             var rows = native.Where(row => plan.Query.ReadAccess == null || plan.Query.ReadAccess.CanRead(row))
                 .Skip(plan.Query.Offset).Take(plan.Query.Limit ?? native.Count).ToArray();
             if (rows.Length > maximumResults) return Failure("CQL_QUERY_LIMIT", "The complete source page exceeds the result budget.");
@@ -137,7 +136,10 @@ public sealed class ConnextPublicOriginMetadataSource : KeyValueStorageProviderB
     public void Dispose()
     {
         if (disposed) return;
-        disposed = true; IsProviderActivated = false; messages.Dispose();
+        disposed = true;
+        IsProviderActivated = false;
+        publicMessages?.Dispose();
+        _http.Dispose();
     }
 
     private static OASISResult<IReadOnlyList<IHolon>> Failure(string code, string message, Exception error = null)
@@ -160,7 +162,7 @@ public sealed class ConnextPublicOriginMetadataSource : KeyValueStorageProviderB
 
 
 
-    private sealed class MessagesBackend : IKeyValueBackend, IDisposable
+    private sealed class PublicMessages : IDisposable
     {
         private const string SourceName = "connext-ethereum-origin";
         private readonly HttpClient client;
@@ -168,11 +170,9 @@ public sealed class ConnextPublicOriginMetadataSource : KeyValueStorageProviderB
         private readonly Dictionary<string, ConnextOriginEventClient.Identity> catalogue;
         private readonly Guid owner;
         private readonly bool ownsClient;
-        private readonly Dictionary<string, string> records;
         public IReadOnlyList<string> MessageIds { get; }
-        public string Prefix => "connext-public-metadata/";
 
-        public MessagesBackend(HttpClient client, IEnumerable<ConnextOriginEventClient.Identity> events, Guid owner, bool ownsClient)
+        public PublicMessages(HttpClient client, IEnumerable<ConnextOriginEventClient.Identity> events, Guid owner, bool ownsClient)
         {
             ArgumentNullException.ThrowIfNull(client);
             ArgumentNullException.ThrowIfNull(events);
@@ -192,8 +192,6 @@ public sealed class ConnextPublicOriginMetadataSource : KeyValueStorageProviderB
             this.owner = owner;
             this.ownsClient = ownsClient;
             MessageIds = Array.AsReadOnly(keys);
-            records = keys.ToDictionary(key => Prefix + "holon/" +
-                NativeRecordHolonMapper.StableHolonId(owner, PType.ConnextOASIS, SourceName, key).ToString("N"), key => key);
         }
 
         public async Task<IReadOnlyList<IHolon>> ReadAsync(IReadOnlyList<string> keys, CancellationToken token)
@@ -231,26 +229,6 @@ public sealed class ConnextPublicOriginMetadataSource : KeyValueStorageProviderB
         }
 
         public async Task VerifyAsync(CancellationToken token) => await ReadAsync(MessageIds, token);
-
-        public async Task<string> GetAsync(string key, CancellationToken token = default)
-        {
-            if (!records.TryGetValue(key, out var id)) return null;
-            var rows = await ReadAsync(new[] { id }, token);
-            return StoredRecordJson.Serialize<IHolon>(rows[0]);
-        }
-
-        public Task<IReadOnlyList<string>> ListKeysAsync(string prefix, CancellationToken token = default)
-        {
-            token.ThrowIfCancellationRequested();
-            return Task.FromResult<IReadOnlyList<string>>(Array.AsReadOnly(records.Keys
-                .Where(key => key.StartsWith(prefix, StringComparison.Ordinal)).ToArray()));
-        }
-
-        public Task PutAsync(string key, string value, CancellationToken token = default)
-            => Task.FromException(new NotSupportedException("Public Connext metadata is read-only."));
-
-        public Task DeleteAsync(string key, CancellationToken token = default)
-            => Task.FromException(new NotSupportedException("Public Connext metadata is read-only."));
 
         public void Dispose()
         {

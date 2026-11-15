@@ -10,6 +10,7 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Queries;
 using NextGenSoftware.OASIS.API.Providers.ConnextOASIS;
+using ConnextProvider = NextGenSoftware.OASIS.API.Providers.ConnextOASIS.ConnextOASIS;
 
 namespace NextGenSoftware.OASIS.API.Providers.CrossChain.ProtocolTests;
 
@@ -65,13 +66,13 @@ public class ConnextPublicOriginMetadataTests
         using var explorer = new Scan();
         using var client = new HttpClient(explorer);
         var owner = Guid.NewGuid();
-        using var source = new ConnextPublicOriginMetadataSource(client, Events, owner);
+        using var source = new ConnextProvider(client, Events, owner);
         var activation = await source.ActivateQuerySourceAsync(default);
         Assert.IsFalse(activation.IsError, activation.Exception?.ToString());
         explorer.Fault = fault;
         var keys = Keys.Take(2).ToArray();
         var query = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(ProviderType.ConnextOASIS).Result)
-            .Where(row => keys.Contains(CosmicQueryMetadata.Value<string>(row, ConnextPublicOriginMetadataSource.TransferIdMetadata))).Result;
+            .Where(row => keys.Contains(CosmicQueryMetadata.Value<string>(row, ConnextProvider.TransferIdMetadata))).Result;
         var plan = CosmicQueryPlanner.Plan(query, ProviderType.ConnextOASIS,
             new[] { new CosmicQueryTarget(ProviderType.ConnextOASIS, source.QueryCapabilities) });
         Assert.IsFalse(plan.IsError, plan.Message);
@@ -88,6 +89,10 @@ public class ConnextPublicOriginMetadataTests
         CollectionAssert.AreEqual(keys, result.Result.Select(row => row.ProviderUniqueStorageKey[ProviderType.ConnextOASIS]).ToArray());
         Assert.IsTrue(result.Result.All(row => row.IsPublic && row.CreatedByAvatarId == owner));
         Assert.IsTrue(result.Result.All(row => (long)row.MetaData["ConnextOriginChainId"] == 1));
+        var rejectedSave = await source.SaveHolonAsync(new Holon());
+        Assert.AreEqual("CQL_READ_ONLY_SOURCE", rejectedSave.ErrorCode);
+        var rejectedDelete = await source.DeleteHolonAsync(Guid.NewGuid());
+        Assert.AreEqual("CQL_READ_ONLY_SOURCE", rejectedDelete.ErrorCode);
     }
     [TestMethod]
     public async Task QualifiedOriginCatalogueExecutesNativeCql()
@@ -96,7 +101,7 @@ public class ConnextPublicOriginMetadataTests
         if (string.IsNullOrWhiteSpace(json))
             Assert.Inconclusive("An explicitly qualified Connext origin catalogue is required.");
 
-        using var source = ConnextPublicOriginMetadataSource.FromJson(json);
+        using var source = ConnextProvider.FromPublicQueryConfiguration(json);
         using var document = JsonDocument.Parse(json);
         var keys = document.RootElement.GetProperty("events").EnumerateArray()
             .Select(value => value.GetProperty("transferId").GetString()).ToArray();
@@ -107,7 +112,7 @@ public class ConnextPublicOriginMetadataTests
         {
             var query = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(ProviderType.ConnextOASIS).Result)
                 .Where(row => selected.Contains(CosmicQueryMetadata.Value<string>(row,
-                    ConnextPublicOriginMetadataSource.TransferIdMetadata))).Result;
+                    ConnextProvider.TransferIdMetadata))).Result;
             var plan = CosmicQueryPlanner.Plan(query, ProviderType.ConnextOASIS,
                 new[] { new CosmicQueryTarget(ProviderType.ConnextOASIS, source.QueryCapabilities) });
             Assert.IsFalse(plan.IsError, plan.Message);
