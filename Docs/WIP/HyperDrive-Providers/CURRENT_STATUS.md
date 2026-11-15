@@ -2333,3 +2333,5 @@ Performance follow-up. WEB4 wallet summary is implemented on the task branch and
 15 November Cancun time. The shallow graph projection optimization is on the task branch at 5a388afe78cd. [Native parity and latency qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43683969960/job/132720407136) passed on MongoDB and SQLite. The combined WEB4 image remains queued.
 
 15 November Cancun time. Caller audit found five existing read-modify-write calls that need children under the shallow HolonManager defaults. Core a1bbde46 explicitly retains graph reads in legacy soft deletes by ID and provider key in both execution modes, and in file metadata updates. Native regression qualification is still open.
+
+15 November Cancun time. Native MongoDB legacy soft-delete attempt 43685132166 exposed an existing missing actor handoff. The request actor was set on the tombstone but the save then consulted the global logged-in avatar. Core 47fa7622 forwards the explicit actor in every legacy soft-delete overload and keeps child loading explicit for typed and untyped reads. The corrected native fixture is pending.

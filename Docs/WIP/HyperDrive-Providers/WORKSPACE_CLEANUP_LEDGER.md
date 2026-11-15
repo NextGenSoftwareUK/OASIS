@@ -1384,3 +1384,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 15 November Cancun time. The OPORTAL dashboard SDK check ran in memory against an owned loopback HTTP listener and shut down the listener after assertions. The combined WEB4 candidate used Git tree objects only. No local downloads, databases, build outputs or test files were created.
 
 15 November Cancun time. Shallow projection verification 43683969960 passed. The temporary MongoDB teardown step succeeded and the SQLite fixture was deleted by the test. Logs were inspected in memory. No local build outputs or test databases were created.
+
+15 November Cancun time. Legacy soft-delete job 132723914553 used a hosted MongoDB fixture. Its local runner database was dropped by the test finally block and the owned MongoDB container was stopped by the workflow. No workstation fixtures or build outputs were created.
