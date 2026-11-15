@@ -102,3 +102,5 @@ No native fixture replay or source writes. Browser acceptance remains open.
 `1b5e416123683a03948396f22d0112bf7da4b3debe1261aa53cfb7313ac9cfdc`.
 
 11 November UTC: Axelar public mainnet block-header presets rendered 3 full and 2 filtered rows in the live Development WEB4 CQL Playground. The original-owner private paired browser check remains open.
+
+15 November UTC. Railway 96644c92-a6ff-4c6d-9812-357ff725bf0e serves Development d307d12e3a0f. Discovery reached 105 of 107 direct and federated sources. Connext returned matching three-record and two-record public direct and MongoDB-federated subsets with Connext provenance. Axelar received upstream HTTP 500 on activation and repeated HTTP 500 after the configured 5-second delay. Railway recorded one retry and 6,048 ms total elapsed. Axelar remains unavailable. Nostr remained unavailable after the relay closed its WebSocket during subscription at 1,556 ms.

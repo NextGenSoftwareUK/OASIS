@@ -6761,3 +6761,5 @@ Web4Site 5fa63a71df5d used a temporary directory containing only committed websi
 14 November Cancun time. Blockscout candidate qualification used temporary Git indexes removed at exit and GitHub-hosted builds. Read-only baseline probes reused the existing Development visitor and emitted timings to stdout. No local fixture, build output, package download or result file was created.
 
 - Blockscout live query and timing checks reused the existing Development visitor and public records. No downloads, build outputs, or timing files were created. The documentation-only Git index was temporary.
+
+- Axelar and Connext live checks reused the existing visitor and public records. Nostr qualification used remote CI and temporary Git indexes. No local runtime download or build outputs were created.

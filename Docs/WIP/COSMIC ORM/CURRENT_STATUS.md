@@ -1,5 +1,11 @@
 # COSMIC ORM / CQL current status
 
+## Development activation and Nostr CI
+
+Railway 96644c92-a6ff-4c6d-9812-357ff725bf0e serves Development d307d12e3a0f. Discovery reached 105 of 107 direct and federated sources. Connext returned matching three-record and two-record public direct and MongoDB-federated subsets with Connext provenance. Axelar received upstream HTTP 500 on activation and repeated HTTP 500 after the configured 5-second delay. Railway recorded one retry and 6,048 ms total elapsed. Axelar remains unavailable. Nostr remained unavailable after the relay closed its WebSocket during subscription at 1,556 ms.
+
+Nostr shipping-provider candidate c71dce60d523 is based on the serving Development revision. [Exact protocol](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43677757564) and [exact WEB4 image](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43677759979) were dispatched. [Feature protocol](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43677047463) reached the provider-specific test steps after WEB4 compilation.
+
 ## Nostr shipping provider qualification
 
 WEB4 and the SDK demo construct NostrOASIS directly for the signed public-event catalogue. The catalogue still selects exact configured event IDs from one explicit anonymous WSS relay, with the same activation and result verification. The current Development deployment f35d4a037e53 logged relay HTTP 520 at WebSocket connect after 383 ms. This provider migration does not resolve that upstream failure. CI and live acceptance are pending.
