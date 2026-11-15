@@ -92,7 +92,9 @@ def run(node, wallet, handle, writer, outsider):
         descriptor_ciphertext, descriptor_tag = descriptor_cipher.encrypt_and_digest(str(fixture).encode())
         descriptor = format_name.encode() + base64.b64encode(descriptor_nonce + descriptor_tag + descriptor_ciphertext)
         predecessor = bytes(32)
-        versions = () if os.environ.get("OASIS_ALGORAND_RECORD_WRITE_TEST") == "true" else (1, 2)
+        writing = os.environ.get("OASIS_ALGORAND_RECORD_WRITE_TEST") == "true"
+        resuming = os.environ.get("OASIS_ALGORAND_RECORD_PURGE_RESUME") == "true"
+        versions = (1, 2) if resuming or not writing else ()
         for version in versions:
             revision = secrets.token_bytes(32)
             context = f"oasis:algorand:v1:{genesis}:{app}:holon:{fixture}:{revision.hex().upper()}"
@@ -114,6 +116,15 @@ def run(node, wallet, handle, writer, outsider):
                         [head, manifest_name(key, revision), descriptor_name, *names]))
             predecessor = digest(read(head))
 
+        if resuming:
+            current = read(head)
+            submit(call(writer, [b"freeze", key, digest(current)], [head, descriptor_name]))
+            checkpoint = read(head)
+            assert checkpoint == revision + digest(current)
+            submit(call(writer, [b"purge", key, checkpoint], [head, manifest_name(key, revision), *names]))
+            assert read(head) == current[32:96]
+            print("Paused the native deletion after removing the latest revision.")
+
         settings = {
                 "OASIS_ALGORAND_RECORD_APP": app,
                 "OASIS_ALGORAND_RECORD_GENESIS": genesis,
@@ -122,7 +133,7 @@ def run(node, wallet, handle, writer, outsider):
                 "OASIS_ALGORAND_RECORD_KEY": base64.b64encode(storage_key).decode("ascii"),
                 "OASIS_ALGORAND_RECORD_ID": fixture,
         }
-        if not versions:
+        if writing:
             signing_key = base64.b64decode(wallet.export_key(handle, "", writer), validate=True)
             if len(signing_key) != 64:
                 raise RuntimeError("Unexpected ephemeral LocalNet signing key format")

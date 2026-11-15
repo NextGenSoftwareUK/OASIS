@@ -16,6 +16,40 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS.IntegrationTests;
 public sealed class AlgorandRecordBoxTests
 {
     [TestMethod]
+    public async Task ResumesPurgingFromTheNativeCheckpoint()
+    {
+        var id = Guid.Parse(Required("ID"));
+        var storageKey = Convert.FromBase64String(Required("KEY"));
+        var provider = Create(Required("PROGRAM"), storageKey, Convert.FromBase64String(Required("WRITER_SEED")));
+        var active = await provider.ActivateProviderAsync();
+        Assert.IsFalse(active.IsError, active.Message);
+        try
+        {
+            using var node = CreateNativeAlgod();
+            Assert.IsTrue((await NativeBoxNames(node)).Length > 1);
+            var discovery = await provider.DiscoverStoredHolonIdsAsync();
+            Assert.IsFalse(discovery.IsError, discovery.Exception?.ToString() ?? discovery.Message);
+            Assert.AreEqual(0, discovery.Result.Count);
+            Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,
+                (await provider.LoadStoredHolonAsync(id, version: 1)).ErrorCode);
+            Assert.IsTrue((await provider.SaveStoredHolonAsync(new Holon { Id = id, Name = "Rejected" }, 0)).IsError);
+
+            var resumed = await provider.DeleteHolonAsync(id);
+            Assert.IsFalse(resumed.IsError, resumed.Exception?.ToString() ?? resumed.Message);
+            Assert.IsTrue(resumed.IsDeleted);
+            Assert.AreEqual(1, resumed.DeletedCount);
+            var key = HMACSHA256.HashData(storageKey, Encoding.UTF8.GetBytes($"oasis:algorand:box:v1:holon:{id:D}"));
+            var remaining = await NativeBoxNames(node);
+            CollectionAssert.AreEqual(new[] { Convert.ToBase64String([(byte)'h', ..key]) }, remaining);
+            Assert.AreEqual(0, (await provider.DeleteHolonAsync(id)).DeletedCount);
+        }
+        finally
+        {
+            await provider.DeActivateProviderAsync();
+        }
+    }
+
+    [TestMethod]
     public async Task PurgesPublishedRevisionsAndFencesRepublishing()
     {
         var id = Guid.Parse(Required("ID"));
@@ -25,21 +59,12 @@ public sealed class AlgorandRecordBoxTests
         Assert.IsFalse(active.IsError, active.Message);
         try
         {
-            using var node = new HttpClient { BaseAddress = new Uri("http://127.0.0.1:4001") };
-            node.DefaultRequestHeaders.Add("X-Algo-API-Token", new string('a', 64));
-            var appId = ulong.Parse(Required("APP"), CultureInfo.InvariantCulture);
-            async Task<string[]> NativeBoxNames()
-            {
-                var response = await node.GetStringAsync($"/v2/applications/{appId}/boxes");
-                using var document = JsonDocument.Parse(response);
-                return document.RootElement.GetProperty("boxes").EnumerateArray()
-                    .Select(box => box.GetProperty("name").GetString()!).ToArray();
-            }
+            using var node = CreateNativeAlgod();
 
             var unrelatedId = Guid.NewGuid();
             var unrelated = await provider.SaveStoredHolonAsync(new Holon { Id = unrelatedId, Name = "Keep this record" }, 0);
             Assert.IsFalse(unrelated.IsError, unrelated.Exception?.ToString() ?? unrelated.Message);
-            var unrelatedBoxes = await NativeBoxNames();
+            var unrelatedBoxes = await NativeBoxNames(node);
 
             var record = new Holon { Id = id, Name = "First", Description = new string('x', 850) };
             var first = await provider.SaveStoredHolonAsync(record, 0);
@@ -47,7 +72,7 @@ public sealed class AlgorandRecordBoxTests
             record.Name = "Second";
             var second = await provider.SaveStoredHolonAsync(record, 1);
             Assert.IsFalse(second.IsError, second.Exception?.ToString() ?? second.Message);
-            Assert.IsTrue((await NativeBoxNames()).Length > unrelatedBoxes.Length + 1);
+            Assert.IsTrue((await NativeBoxNames(node)).Length > unrelatedBoxes.Length + 1);
 
             var deleted = await provider.DeleteHolonAsync(id.ToString("D"));
             Assert.IsFalse(deleted.IsError, deleted.Exception?.ToString() ?? deleted.Message);
@@ -56,7 +81,7 @@ public sealed class AlgorandRecordBoxTests
             Assert.AreEqual("Second", deleted.Result.Name);
             var opaqueKey = HMACSHA256.HashData(storageKey, Encoding.UTF8.GetBytes($"oasis:algorand:box:v1:holon:{id:D}"));
             var fenceName = Convert.ToBase64String([(byte)'h', ..opaqueKey]);
-            CollectionAssert.AreEquivalent(unrelatedBoxes.Append(fenceName).ToArray(), await NativeBoxNames());
+            CollectionAssert.AreEquivalent(unrelatedBoxes.Append(fenceName).ToArray(), await NativeBoxNames(node));
             Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, (await provider.LoadStoredHolonAsync(id)).ErrorCode);
             Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,
                 (await provider.LoadStoredHolonAsync(id, version: 1)).ErrorCode);
@@ -66,7 +91,7 @@ public sealed class AlgorandRecordBoxTests
             Assert.IsFalse(repeated.IsError, repeated.Message);
             Assert.IsTrue(repeated.IsDeleted);
             Assert.AreEqual(0, repeated.DeletedCount);
-            CollectionAssert.AreEquivalent(unrelatedBoxes.Append(fenceName).ToArray(), await NativeBoxNames());
+            CollectionAssert.AreEquivalent(unrelatedBoxes.Append(fenceName).ToArray(), await NativeBoxNames(node));
         }
         finally
         {
@@ -229,6 +254,22 @@ public sealed class AlgorandRecordBoxTests
         "http://127.0.0.1:4001", "http://127.0.0.1:8980", new string('a', 64), null,
         new AlgorandRecordBoxSettings(ulong.Parse(Required("APP"), CultureInfo.InvariantCulture),
             Required("GENESIS"), Required("WRITER"), programDigest, storageKey, writerSeed));
+
+    private static HttpClient CreateNativeAlgod()
+    {
+        var node = new HttpClient { BaseAddress = new Uri("http://127.0.0.1:4001") };
+        node.DefaultRequestHeaders.Add("X-Algo-API-Token", new string('a', 64));
+        return node;
+    }
+
+    private static async Task<string[]> NativeBoxNames(HttpClient node)
+    {
+        var appId = ulong.Parse(Required("APP"), CultureInfo.InvariantCulture);
+        var response = await node.GetStringAsync($"/v2/applications/{appId}/boxes");
+        using var document = JsonDocument.Parse(response);
+        return document.RootElement.GetProperty("boxes").EnumerateArray()
+            .Select(box => box.GetProperty("name").GetString()!).ToArray();
+    }
 
     private static string Required(string name) => Environment.GetEnvironmentVariable("OASIS_ALGORAND_RECORD_" + name)
         ?? throw new InvalidOperationException($"Missing native record fixture setting {name}.");

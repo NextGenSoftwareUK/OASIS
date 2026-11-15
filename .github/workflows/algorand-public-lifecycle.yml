@@ -20,7 +20,7 @@ on:
       localnet_case:
         description: Focused signed LocalNet verification
         type: choice
-        options: [batch, indexed_search, storage_contract, storage_provider, storage_writer, storage_delete, storage_hard_delete]
+        options: [batch, indexed_search, storage_contract, storage_provider, storage_writer, storage_delete, storage_hard_delete, storage_hard_resume]
         default: batch
       public_case:
         description: Focused public Indexer verification
@@ -128,11 +128,14 @@ jobs:
             "$owned/venv/bin/python" -B Scripts/TestHosts/Test-AlgorandRecordBoxes.py
             exit
           fi
-          if [[ "$ALGORAND_LOCALNET_CASE" == storage_provider || "$ALGORAND_LOCALNET_CASE" == storage_writer || "$ALGORAND_LOCALNET_CASE" == storage_delete || "$ALGORAND_LOCALNET_CASE" == storage_hard_delete ]]; then
+          if [[ "$ALGORAND_LOCALNET_CASE" == storage_* ]]; then
             umask 077
             fixture_env="$owned/record-fixture.env"
             if [[ "$ALGORAND_LOCALNET_CASE" != storage_provider ]]; then
               export OASIS_ALGORAND_RECORD_WRITE_TEST=true
+            fi
+            if [[ "$ALGORAND_LOCALNET_CASE" == storage_hard_resume ]]; then
+              export OASIS_ALGORAND_RECORD_PURGE_RESUME=true
             fi
             OASIS_ALGORAND_ENROLLED_FIXTURE_ENV="$fixture_env" "$owned/venv/bin/python" -B Scripts/TestHosts/Test-AlgorandRecordBoxes.py
             set -a
@@ -144,6 +147,7 @@ jobs:
                   "storage_writer" { "PublishesSignedEncryptedRevisionsThroughNativeBoxes" }
                   "storage_delete" { "SoftDeletesStoredHolonWithDurableAuditAndHistory" }
                   "storage_hard_delete" { "PurgesPublishedRevisionsAndFencesRepublishing" }
+                  "storage_hard_resume" { "ResumesPurgingFromTheNativeCheckpoint" }
                   default { "ReadsEncryptedCurrentAndHistoricalRecordsFromNativeBoxes" }
                 }
                 dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.AlgorandOASIS.IntegrationTests" --filter "FullyQualifiedName~$test" /m:2 /nr:false /p:UseSharedCompilation=false
