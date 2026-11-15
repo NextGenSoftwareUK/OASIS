@@ -1,5 +1,11 @@
 # COSMIC ORM / CQL current status
 
+## Axelar live Development acceptance
+
+15 November. Exact WEB4 55c1c2056c55, Railway 1899923d, returned the same three public Axelar row IDs and two subset IDs through direct and MongoDB-federated CQL. Each federated selected row carried Axelar provenance and the two-row set was a strict subset. The exact deployed revision also accepted full signed Int64 bounds through SQL text compiled to typed WEB4 requests on MongoDB, SQLite and Neo4j. The bound check proves API acceptance. Populated integer discrimination has separate native CI evidence.
+
+Observed 106 of 107 sources ready in both modes at 89.0 seconds. Blockscout remained unavailable after upstream HTTP 500 on both activation attempts. The warm Axelar two-row run used four serial warm samples per mode. Direct first/median/max were 1500/1574/1701 ms. Federated first/median/max were 1691/1720.5/1799 ms. Zero HTTP failures, matching two IDs and stable exact revision. The earlier 991bda31479a run had median 1959.5/2074 ms. These are observations on separate deployments and network conditions.
+
 ## Axelar SQL and Ask Your Data coverage
 
 Web4Site 2d9cd171a41d adds Axelar block heights to the text editor and discovery-scoped WEB6 drafting instructions. One equality or IN filter is required and a set may contain up to eight distinct quoted positive Int64 keys. All 195 frontend tests passed and [preview 7802928244](https://web4-site-auxpu7x0r-oasis-team.vercel.app/web4-sandbox.html) built. Against the serving Development catalogue, the exact editor compiled matching provider, key filter, order, metadata flag and limit for the three-record and two-record preset. This comparison made no Axelar query requests. Railway 1899923d is building CQL 55c1c2056c55; its direct/federated results and timing are still pending. The latest preview also has the metadata-presence editor and needs its matching WEB4 API before that syntax is live.
