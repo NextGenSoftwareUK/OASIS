@@ -141,6 +141,15 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Assert.AreEqual(9007199254740993L, constructorFieldRow.Precision);
         Passed("standard Select binds constructor arguments to readonly public fields");
 
+        var opaqueConstructor = await rootSource.Take(1)
+            .Select(row => new NativeOpaqueConstructorProjection(row.Name, CosmicQueryMetadata.Value<long>(row, "i64")))
+            .ToCosmicListAsync();
+        Assert.IsFalse(opaqueConstructor.IsError, opaqueConstructor.Message + opaqueConstructor.Exception);
+        var opaqueRow = opaqueConstructor.Result.Single();
+        Assert.AreEqual("prefix:protected source root", opaqueRow.Label);
+        Assert.AreEqual(9007199254740993L, opaqueRow.Sequence);
+        Passed("standard Select materializes opaque constructor inputs after native validation");
+
         desired="not-matched-on-second-read";Assert.AreEqual(0,deferred.ToArray().Length);Passed("deferred selector rebinds without application source construction or eager DTOs");
         NativeProjectionProbe.Constructors=0;
         var invalid=await rootSource.Take(1).Where(row=>row.Name=="protected source root")
@@ -152,6 +161,12 @@ public sealed partial class CqlProjectedAllAcceptanceTests
     {
         public readonly string Name = name;
         public readonly long Precision = precision;
+    }
+
+    private sealed class NativeOpaqueConstructorProjection(string sourceName, long sourceValue)
+    {
+        public string Label { get; } = "prefix:" + sourceName;
+        public long Sequence { get; } = sourceValue;
     }
 
     private sealed class NativeFieldProjection
