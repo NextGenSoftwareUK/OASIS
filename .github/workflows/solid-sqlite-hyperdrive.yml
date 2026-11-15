@@ -55,7 +55,7 @@ jobs:
       - name: Apply the reviewed Solid routing scope
         shell: bash
         run: |
-          base=59bc51b9ba7cad3ec933300d38ea94b9f7359d32
+          base=42561325fd6c4fe692237cc562618df80936fb5e
           git -C ../provider-source fetch --no-tags --depth=1 origin "$base"
           tests='Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.IntegrationTests'
           for path in "$tests/NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.IntegrationTests.csproj" \
@@ -63,7 +63,10 @@ jobs:
             current="$(git ls-tree HEAD -- "$path")"
             reviewed="$(git -C ../provider-source ls-tree "$base" -- "$path")"
             incoming="$(git -C ../provider-source ls-tree HEAD -- "$path")"
-            [[ -n "$incoming" && ( "$current" == "$reviewed" || "$current" == "$incoming" ) ]]
+            if [[ -z "$incoming" || ( "$current" != "$reviewed" && "$current" != "$incoming" ) ]]; then
+              echo "::error::Development differs from the reviewed Solid input at $path"
+              exit 1
+            fi
             install -m 644 "../provider-source/$path" "$path"
             git add -- "$path"
           done
