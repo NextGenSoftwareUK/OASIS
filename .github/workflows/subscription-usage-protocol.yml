@@ -10,6 +10,11 @@ on:
         description: Run the native MongoDB and SQLite point-read verification only
         type: boolean
         default: false
+      mongo_point_read_case:
+        description: Focused test selected with the native point-read runner
+        type: choice
+        options: [round_robin, legacy_soft_delete]
+        default: round_robin
       mongo_sqlite_latency:
         description: Measure real MongoDB, SQLite and request-scoped HyperDrive latency only
         type: boolean
@@ -75,6 +80,8 @@ jobs:
           exit 1
       - name: Verify native MongoDB and SQLite request-scoped point reads
         if: inputs.mongo_sqlite_point_reads || inputs.mongo_sqlite_latency || inputs.mongo_sqlite_karma
+        env:
+          MONGO_POINT_READ_CASE: ${{ inputs.mongo_point_read_case }}
         shell: pwsh
         run: |
           ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-MongoSqlitePointReads -Operation {
@@ -82,6 +89,8 @@ jobs:
               'FullyQualifiedName~ColdKarmaReadDoesNotPersistSettings'
             } elseif ('${{ inputs.mongo_sqlite_latency }}' -eq 'true') {
               'FullyQualifiedName~ProfileNativeMongoSqlitePointReadLatency'
+            } elseif ($env:MONGO_POINT_READ_CASE -eq 'legacy_soft_delete') {
+              'FullyQualifiedName~LegacySoftDeleteRetainsEmbeddedChildren'
             } else {
               'FullyQualifiedName~ScopedRoundRobinPointReadsUseBothNativeStores'
             }
