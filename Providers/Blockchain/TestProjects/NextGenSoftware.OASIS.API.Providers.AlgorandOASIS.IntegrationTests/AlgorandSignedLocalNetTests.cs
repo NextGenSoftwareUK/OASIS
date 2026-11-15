@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -12,7 +13,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS.IntegrationTests;
 public sealed class AlgorandSignedLocalNetTests
 {
     [TestMethod]
-    public async Task SubmitsSignedPaymentToAuthenticatedLocalNet()
+    public async Task SubmitsSignedPaymentToAuthenticatedLocalNet() => VerifySignedSubmission(false);
+
+    [TestMethod]
+    public Task PreservesPartialBatchReceiptsOnAuthenticatedLocalNet() => VerifySignedSubmission(true);
+
+    private static async Task VerifySignedSubmission(bool batch)
     {
         string Required(string name) => Environment.GetEnvironmentVariable(name)
             ?? throw new InvalidOperationException($"Missing owned LocalNet fixture variable {name}.");
@@ -28,9 +34,26 @@ public sealed class AlgorandSignedLocalNetTests
             var txId = Required("OASIS_ALGORAND_LOCALNET_TX");
             var holon = new Holon();
             holon.MetaData["SignedTxnBase64"] = Required("OASIS_ALGORAND_LOCALNET_SIGNED");
-            var submitted = await provider.SaveHolonAsync(holon, saveChildren: false);
-            Assert.IsFalse(submitted.IsError, submitted.Message);
-            Assert.AreEqual(txId, submitted.Result.ProviderUniqueStorageKey[ProviderType.AlgorandOASIS]);
+            if (batch)
+            {
+                var invalid = new Holon();
+                var stopped = await provider.SaveHolonsAsync(new[] { invalid, holon }, saveChildren: false, continueOnError: false);
+                Assert.IsTrue(stopped.IsError);
+                Assert.AreEqual(1, stopped.ErrorCount);
+                Assert.IsFalse(stopped.Result.Any());
+
+                var partial = await provider.SaveHolonsAsync(new[] { invalid, holon }, saveChildren: false, continueOnError: true);
+                Assert.IsTrue(partial.IsError);
+                Assert.AreEqual(1, partial.ErrorCount);
+                Assert.AreEqual(txId, partial.Result.Single().ProviderUniqueStorageKey[ProviderType.AlgorandOASIS]);
+                Assert.AreEqual(1, partial.InnerMessages.Count);
+            }
+            else
+            {
+                var submitted = await provider.SaveHolonAsync(holon, saveChildren: false);
+                Assert.IsFalse(submitted.IsError, submitted.Message);
+                Assert.AreEqual(txId, submitted.Result.ProviderUniqueStorageKey[ProviderType.AlgorandOASIS]);
+            }
 
             using var confirmationClient = new HttpClient { BaseAddress = new Uri(algod), Timeout = TimeSpan.FromSeconds(5) };
             confirmationClient.DefaultRequestHeaders.Add("X-Algo-API-Token", new string('a', 64));

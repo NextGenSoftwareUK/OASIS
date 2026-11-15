@@ -98,6 +98,6 @@ jobs:
           set +a
           pwsh -NoProfile -Command '
             ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-AlgorandSignedLocalNet -Operation {
-              dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.AlgorandOASIS.IntegrationTests" --filter "FullyQualifiedName~SubmitsSignedPaymentToAuthenticatedLocalNet" /m:2 /nr:false /p:UseSharedCompilation=false
+              dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.AlgorandOASIS.IntegrationTests" --filter "FullyQualifiedName~PreservesPartialBatchReceiptsOnAuthenticatedLocalNet" /m:2 /nr:false /p:UseSharedCompilation=false
               if ($LASTEXITCODE -ne 0) { throw "Native Algorand signed payment failed." }
             }'

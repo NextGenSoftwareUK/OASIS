@@ -535,23 +535,40 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
             bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0,
             bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            var saved = new List<IHolon>();
+            var submitted = new List<IHolon>();
+            var result = new OASISResult<IEnumerable<IHolon>> { Result = submitted };
             try
             {
-                foreach (var h in holons)
+                var index = 0;
+                foreach (var holon in holons)
                 {
-                    var r = await SaveHolonAsync(h, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
-                    if (!r.IsError && r.Result != null) saved.Add(r.Result);
-                    else if (!continueOnError) { OASISErrorHandling.HandleError(ref result, r.Message); return result; }
+                    var response = await SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth,
+                        continueOnError, saveChildrenOnProvider).ConfigureAwait(false);
+                    if (!response.IsError && response.Result != null)
+                    {
+                        submitted.Add(response.Result);
+                    }
+                    else
+                    {
+                        result.IsError = true;
+                        result.ErrorCount++;
+                        result.ErrorCode ??= response.ErrorCode;
+                        result.Exception ??= response.Exception;
+                        result.InnerMessages.Add($"Item {index}: {response.Message}");
+                        if (!continueOnError)
+                            break;
+                    }
+                    index++;
                 }
-                result.Result = saved;
-                result.Message = $"AlgorandOASIS: Saved {saved.Count} holons.";
+
+                result.Message = result.IsError
+                    ? $"AlgorandOASIS: Submitted {submitted.Count} transactions and rejected {result.ErrorCount}."
+                    : $"AlgorandOASIS: Submitted {submitted.Count} transactions.";
             }
             catch (Exception ex)
             {
                 result.Exception = ex;
-                OASISErrorHandling.HandleError(ref result, $"AlgorandOASIS: Error saving holons: {ex.Message}");
+                OASISErrorHandling.HandleError(ref result, $"AlgorandOASIS: Error submitting transactions: {ex.Message}");
             }
             return result;
         }
