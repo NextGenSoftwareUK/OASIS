@@ -16,7 +16,8 @@ public class BlockscoutPublicAddressMetadataTests
     {
         public string Fault = "";
         public List<string> Calls = new();
-        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token)
+        public TaskCompletionSource<bool>? ConcurrentReads;
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token)
         {
             token.ThrowIfCancellationRequested();
             Assert.Equal(HttpMethod.Get, request.Method); Assert.Null(request.Content);
@@ -58,10 +59,15 @@ public class BlockscoutPublicAddressMetadataTests
             if (Fault == "duplicate") text = "{\"hash\":\"x\",\"hash\":\"y\"}";
             if (Fault == "oversize") text = new string(' ',1048577);
             bool denied = Fault == "http" || Fault == "last" && address == Addresses.Last();
-            return Task.FromResult(new HttpResponseMessage(denied ? HttpStatusCode.NotFound : HttpStatusCode.OK)
+            if (ConcurrentReads is { } gate)
+            {
+                if (Calls.Count == Addresses.Length) gate.TrySetResult(true);
+                await gate.Task.WaitAsync(token);
+            }
+            return new HttpResponseMessage(denied ? HttpStatusCode.NotFound : HttpStatusCode.OK)
             {
                 Content = new StringContent(text, Encoding.UTF8, "application/json")
-            });
+            };
         }
     }
 
@@ -123,6 +129,21 @@ public class BlockscoutPublicAddressMetadataTests
         else { Assert.True(result.IsError); Assert.True(result.Result == null || result.Result.Count == 0); }
         if (scenario is "inactive" or "cancel" or "unknown") Assert.Empty(native.Calls);
         if (scenario is "last" or "empty-window-error") Assert.Equal(3, native.Calls.Count);
+    }
+
+    [Fact]
+    public async Task ActivationStartsAllThreeReadsBeforeAwaitingResponses()
+    {
+        var native = new Native { ConcurrentReads = new(TaskCreationOptions.RunContinuationsAsynchronously) };
+        using var client = new HttpClient(native);
+        using var source = new BlockscoutPublicAddressMetadataSource(
+            client, new Uri("https://example.invalid/api/v2/"), Addresses, Guid.NewGuid());
+        using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(3));
+
+        var result = await source.ActivateQuerySourceAsync(deadline.Token);
+
+        Assert.False(result.IsError, result.Exception?.ToString());
+        Assert.Equal(Addresses, native.Calls);
     }
 
     [Fact]
