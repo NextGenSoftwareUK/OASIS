@@ -14,7 +14,11 @@ On serving Development f99947f0e20b, Railway 519e39f9-d2af-433f-bf6c-6b0f783dfdb
 
 ## Shared WEB4 image build queue
 
-GitHub Actions cancelled an older pending shared image when a newer run replaced the sole pending slot. The feature workflow now uses queue: max in the existing shared build-web4-image group. Image builds stay serial and pending runs can wait in order. Dev rollout cadence is unchanged. The corrected provider image is 43689834398. The obsolete image for 433731c6aa94 was cancelled. [GitHub Actions queue syntax](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#concurrency).
+The COSMIC workflow now uses queue: max for serial WEB4 image builds. A pending startup build was still cancelled while a HyperDrive workflow revision using the older queue configuration shared the group. Rerun [43691047229](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43691047229) was accepted once the HyperDrive build started. Verify queue retention across workflow revisions before relying on it.
+
+## Shipping provider rollout
+
+[Protocol CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43689151897) and the [exact WEB4 image build](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43689834398) passed for Development 242d120b6a2f. Railway deployment 62b99878-100f-4d9f-8d36-fa914215933b is building. Live direct and federated checks for Axelar, Connext and Nostr require the new deployment to serve. The [bounded startup candidate CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43689946899) passed separately; its image and comparative live timing remain open.
 
 ## Serial Development CQL startup baseline
 
