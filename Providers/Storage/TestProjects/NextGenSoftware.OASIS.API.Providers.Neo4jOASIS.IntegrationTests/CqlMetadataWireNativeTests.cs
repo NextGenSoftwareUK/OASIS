@@ -84,9 +84,16 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         var original = count.Result.Providers.Single().Rows.Single();
         CollectionAssert.AreEqual(new object[] { 1, 2L }, original.Values.ToArray());
 
+        request.OrderBy = "None";
+        Assert.ThrowsException<ArgumentException>(() => CqlCompiler.CompileGrouped(request, actor, provider));
         request.Columns = new[] { request.Columns[0] };
+        request.Take = 1;
+        Assert.ThrowsException<ArgumentException>(() => CqlCompiler.CompileGrouped(request, actor, provider));
+        request.Take = null;
         request.ResultTake = 1;
-        var distinct = CosmicGroupedPlanner.Plan(CqlCompiler.CompileGrouped(request, actor, provider), provider, target);
+        var intent = CqlCompiler.CompileGrouped(request, actor, provider);
+        Assert.AreEqual(0, intent.Source.Orderings.Count);
+        var distinct = CosmicGroupedPlanner.Plan(intent, provider, target);
         Assert.IsFalse(distinct.IsError, distinct.Message);
         var selected = await CosmicGroupedExecutor.ExecuteAsync(distinct.Result, new[] { adapter });
         Assert.IsFalse(selected.IsError, selected.Message + selected.Exception);
