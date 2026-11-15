@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. Algorand readiness used public native reads and hosted CI. NFT manifest normalization and the refreshed candidate used transient indexes, which were removed. No local test database, downloads, builds or result files were retained.
+
 15 November Cancun time. The live Plans timing and signed OPORTAL dev check ran in memory against the public scripts and bundled SDK. WEB4 confirmed the disposable test avatar was deleted. The Algorand check used hosted CI. No local browser profiles, builds, downloads or test results were retained.
 
 15 November Cancun time. Deployed Stripe catalogue, signed Usage timing, missing Checkout and native Gifts responses were checked directly against WEB4 dev. All disposable avatars were deleted with HTTP 200. No card, payment, local browser data, downloads, builds or test artifacts were retained.
