@@ -76,6 +76,56 @@ public partial class CqlHostedSourcesTests
     private static CqlHostedSources Sources(Registry registry, bool configured = true)
         => new(configured ? Admission() : null, registry, NullLogger<CqlHostedSources>.Instance);
 
+    private sealed class StartupRegistry(HashSet<ProviderType> independent) : ICqlHostedSourceRegistry
+    {
+        public readonly System.Collections.Concurrent.ConcurrentQueue<ProviderType> Attempts = new();
+        public readonly TaskCompletionSource ThreeReadersStarted = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public readonly TaskCompletionSource ReleaseReaders = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private int readerCount;
+
+        public IOASISProvider Find(ProviderType type) => null;
+        public bool HasIndependentActivation(ProviderType type) => independent.Contains(type);
+
+        public async Task ActivateReadSourceAsync(ProviderType type, CancellationToken cancellationToken)
+        {
+            Attempts.Enqueue(type);
+            if (!independent.Contains(type))
+                return;
+            if (Interlocked.Increment(ref readerCount) == 3)
+                ThreeReadersStarted.TrySetResult();
+            await ReleaseReaders.Task.WaitAsync(cancellationToken);
+        }
+    }
+
+    [Fact]
+    public async Task StartupBatchesIndependentReadersAndDrainsBeforeBootLoaderActivation()
+    {
+        var independent = new[] { ProviderType.ActivityPubOASIS, ProviderType.AkashOASIS,
+            ProviderType.AlgorandOASIS, ProviderType.AptosOASIS };
+        var bootLoader = ProviderType.SolanaOASIS;
+        var enrolled = independent.Append(bootLoader).ToArray();
+        var registry = new StartupRegistry(independent.ToHashSet());
+        var admission = new PricedStorageAdmissionFactory(null, Array.Empty<NativeStorageAdmissionBinding>(),
+            Array.Empty<ProviderType>(), enrolled.Select(type => new StorageQueryTariff(type, 0, "test-v1")).ToArray(),
+            null, enrolled);
+        using var sources = new CqlHostedSources(admission, registry, NullLogger<CqlHostedSources>.Instance);
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+
+        await sources.StartAsync(timeout.Token);
+        try
+        {
+            await registry.ThreeReadersStarted.Task.WaitAsync(timeout.Token);
+            Assert.Equal(independent.Take(3).ToArray(), registry.Attempts.ToArray());
+        }
+        finally
+        {
+            registry.ReleaseReaders.TrySetResult();
+        }
+
+        await sources.ExecuteTask!.WaitAsync(timeout.Token);
+        Assert.Equal(enrolled, registry.Attempts.ToArray());
+    }
+
     [Fact]
     public async Task OracleDiscoveryPlansAllFourPresetsWithTheSameConfiguredPublicCatalogue()
     {
