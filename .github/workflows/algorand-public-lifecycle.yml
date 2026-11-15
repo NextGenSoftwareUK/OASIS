@@ -20,7 +20,7 @@ on:
       localnet_case:
         description: Focused signed LocalNet verification
         type: choice
-        options: [batch, indexed_search, storage_contract, storage_provider, storage_writer, storage_delete, storage_hard_delete, storage_hard_resume, storage_bootloader, storage_avatar_detail]
+        options: [batch, indexed_search, storage_contract, storage_provider, storage_writer, storage_delete, storage_hard_delete, storage_hard_resume, storage_bootloader, storage_avatar_detail, storage_avatar]
         default: batch
       public_case:
         description: Focused public Indexer verification
@@ -165,6 +165,7 @@ jobs:
                   "storage_hard_resume" { "ResumesPurgingFromTheNativeCheckpoint" }
                   "storage_bootloader" { "RegistersAndUsesTheEnrolledAlgorandProviderOnLocalNet" }
                   "storage_avatar_detail" { "PublishesTypedAvatarDetailHistoryWithoutReplacingTheHolon" }
+                  "storage_avatar" { "PublishesAndListsEnrolledAvatarsSeparatelyFromDetailsAndHolons" }
                   default { "ReadsEncryptedCurrentAndHistoricalRecordsFromNativeBoxes" }
                 }
                 $withBootLoader = $env:ALGORAND_LOCALNET_CASE -eq "storage_bootloader"

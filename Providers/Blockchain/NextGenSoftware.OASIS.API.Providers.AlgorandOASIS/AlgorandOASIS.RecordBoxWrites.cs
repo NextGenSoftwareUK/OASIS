@@ -73,6 +73,7 @@ public partial class AlgorandOASIS
                 throw new InvalidOperationException("Activate an enrolled Algorand application with a writer before publishing records.");
             ArgumentNullException.ThrowIfNull(holon);
             ArgumentOutOfRangeException.ThrowIfNegative(expectedVersion);
+            ArgumentOutOfRangeException.ThrowIfNegative(holon.Version);
             if (holon.Id == Guid.Empty)
                 throw new ArgumentException("The proposed record must have a stable OASIS ID.", nameof(holon));
 
@@ -88,13 +89,13 @@ public partial class AlgorandOASIS
             var head = await ReadBoxAsync(settings, headName, token).ConfigureAwait(false);
             if (head?.Length == PurgeCheckpointLength)
                 throw new InvalidOperationException("The Algorand record is fenced for permanent deletion.");
-            using var codec = new EncryptedRecordCodec(settings.StorageKey, compress: kind == "avatar-detail");
+            using var codec = new EncryptedRecordCodec(settings.StorageKey, compress: kind != "holon");
             var current = head == null ? null : (await ReadStoredRecordAsync<TRecord>(settings, id, key,
                 head, codec, kind, token).ConfigureAwait(false)).Record;
             if ((current?.Version ?? 0) != expectedVersion)
                 throw new InvalidOperationException("The requested Algorand predecessor version is no longer current.");
-            if (kind == "avatar-detail" && proposal.PreviousVersionId != (current?.VersionId ?? Guid.Empty))
-                throw new InvalidOperationException("The proposed Algorand avatar detail does not reference the current predecessor.");
+            if (kind != "holon" && proposal.PreviousVersionId != (current?.VersionId ?? Guid.Empty))
+                throw new InvalidOperationException("The proposed Algorand avatar record does not reference the current predecessor.");
             var version = checked(expectedVersion + 1);
             if (proposal.VersionId == Guid.Empty || proposal.Version != version || proposal.VersionId == current?.VersionId)
                 proposal.VersionId = Guid.NewGuid();

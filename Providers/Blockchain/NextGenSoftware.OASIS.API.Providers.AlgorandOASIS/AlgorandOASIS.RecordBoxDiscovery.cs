@@ -152,38 +152,40 @@ public partial class AlgorandOASIS
         return result;
     }
 
-    private async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadEnrolledAvatarDetailsAsync(int version)
+    private async Task<OASISResult<IEnumerable<TContract>>> LoadEnrolledAvatarRecordsAsync<TRecord, TContract>(string kind, int version)
+        where TRecord : class, TContract
+        where TContract : class, IHolonBase
     {
-        var result = new OASISResult<IEnumerable<IAvatarDetail>>();
+        var result = new OASISResult<IEnumerable<TContract>>();
         try
         {
             ArgumentOutOfRangeException.ThrowIfNegative(version);
             using var deadline = new CancellationTokenSource(_algod.Timeout);
-            var discovered = await DiscoverStoredRecordIdsAsync("avatar-detail", deadline.Token).ConfigureAwait(false);
+            var discovered = await DiscoverStoredRecordIdsAsync(kind, deadline.Token).ConfigureAwait(false);
             if (discovered.IsError)
                 throw new InvalidOperationException(discovered.Message, discovered.Exception);
 
-            var details = new IAvatarDetail?[discovered.Result.Count];
-            await Parallel.ForEachAsync(Enumerable.Range(0, details.Length),
+            var records = new TContract?[discovered.Result.Count];
+            await Parallel.ForEachAsync(Enumerable.Range(0, records.Length),
                 new ParallelOptions { MaxDegreeOfParallelism = 8, CancellationToken = deadline.Token },
                 async (index, token) =>
                 {
-                    var read = await LoadStoredRecordAsync<AvatarDetail, IAvatarDetail>(discovered.Result[index], version,
-                        "avatar-detail", token).ConfigureAwait(false);
+                    var read = await LoadStoredRecordAsync<TRecord, TContract>(discovered.Result[index], version,
+                        kind, token).ConfigureAwait(false);
                     if (!read.IsError && read.Result != null)
-                        details[index] = read.Result;
+                        records[index] = read.Result;
                     else if (version == 0 || read.ErrorCode != OASISResultErrorCodes.RecordNotFound)
-                        throw new InvalidOperationException(read.Message ?? "An enumerated Algorand avatar detail is unavailable.", read.Exception);
+                        throw new InvalidOperationException(read.Message ?? "An enumerated Algorand avatar record is unavailable.", read.Exception);
                 }).ConfigureAwait(false);
 
-            var loaded = details.OfType<IAvatarDetail>().Where(detail => !detail.IsDeleted).ToArray();
+            var loaded = records.OfType<TContract>().Where(record => !record.IsDeleted).ToArray();
             result.Result = loaded;
             result.IsLoaded = true;
             result.LoadedCount = loaded.Length;
         }
         catch (Exception exception)
         {
-            OASISErrorHandling.HandleError(ref result, "Could not load the enrolled Algorand avatar details.", exception);
+            OASISErrorHandling.HandleError(ref result, "Could not load enrolled Algorand avatar records.", exception);
         }
         return result;
     }
@@ -200,7 +202,7 @@ public partial class AlgorandOASIS
         var value = codec.Decrypt(DiscoveryContext(settings, key), StrictUtf8.GetString(descriptor), cancellationToken);
         var separator = value.IndexOf(':');
         var kind = separator >= 0 ? value[..separator] : "holon";
-        if (kind is not ("holon" or "avatar-detail") || !Guid.TryParseExact(value[(separator + 1)..], "D", out var id) || id == Guid.Empty ||
+        if (kind is not ("holon" or "avatar" or "avatar-detail") || !Guid.TryParseExact(value[(separator + 1)..], "D", out var id) || id == Guid.Empty ||
             !CryptographicOperations.FixedTimeEquals(StoredRecordBoxKey(settings, id, kind), key))
             throw new InvalidDataException("An Algorand discovery descriptor does not match its opaque record key.");
         return (kind, id);

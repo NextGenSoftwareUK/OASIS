@@ -16,6 +16,59 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS.IntegrationTests;
 public sealed class AlgorandRecordBoxTests
 {
     [TestMethod]
+    public async Task PublishesAndListsEnrolledAvatarsSeparatelyFromDetailsAndHolons()
+    {
+        var storageKey = Convert.FromBase64String(Required("KEY"));
+        var writer = Create(Required("PROGRAM"), storageKey, Convert.FromBase64String(Required("WRITER_SEED")));
+        var reader = Create(Required("PROGRAM"), storageKey, null);
+        var active = await writer.ActivateProviderAsync();
+        Assert.IsFalse(active.IsError, active.Message);
+        try
+        {
+            var id = Guid.NewGuid();
+            var avatar = new Avatar { Id = id, Version = 1, VersionId = Guid.NewGuid(), Username = "enrolled-avatar", Email = "native@example.invalid" };
+            var created = await writer.SaveAvatarAsync(avatar);
+            Assert.IsFalse(created.IsError, created.Exception?.ToString() ?? created.Message);
+            var detail = new AvatarDetail { Id = id, Version = 1, VersionId = Guid.NewGuid(), Username = "enrolled-detail" };
+            var detailWrite = await writer.SaveAvatarDetailAsync(detail);
+            Assert.IsFalse(detailWrite.IsError, detailWrite.Exception?.ToString() ?? detailWrite.Message);
+            var holonWrite = await writer.SaveStoredHolonAsync(new Holon { Id = id, Name = "Ordinary holon" }, 0);
+            Assert.IsFalse(holonWrite.IsError, holonWrite.Exception?.ToString() ?? holonWrite.Message);
+
+            avatar.Version = 2;
+            avatar.VersionId = Guid.NewGuid();
+            avatar.PreviousVersionId = created.Result.VersionId;
+            avatar.Username = "enrolled-avatar-updated";
+            var updated = await writer.SaveAvatarAsync(avatar);
+            Assert.IsFalse(updated.IsError, updated.Exception?.ToString() ?? updated.Message);
+
+            var readerActivation = await reader.ActivateProviderAsync();
+            Assert.IsFalse(readerActivation.IsError, readerActivation.Message);
+            var latest = await reader.LoadAvatarByProviderKeyAsync(id.ToString("D"));
+            var historical = await reader.LoadAvatarAsync(id, version: 1);
+            var all = await reader.LoadAllAvatarsAsync();
+            var allDetails = await reader.LoadAllAvatarDetailsAsync();
+            Assert.IsFalse(latest.IsError, latest.Message);
+            Assert.IsFalse(historical.IsError, historical.Message);
+            Assert.IsFalse(all.IsError, all.Message);
+            Assert.IsFalse(allDetails.IsError, allDetails.Message);
+            Assert.AreEqual("enrolled-avatar-updated", latest.Result.Username);
+            Assert.AreEqual(avatar.Email, latest.Result.Email);
+            Assert.AreEqual("enrolled-avatar", historical.Result.Username);
+            Assert.AreEqual(created.Result.VersionId, latest.Result.PreviousVersionId);
+            Assert.AreEqual(id, all.Result.Single().Id);
+            Assert.AreEqual("enrolled-detail", allDetails.Result.Single().Username);
+            Assert.AreEqual(id, (await reader.DiscoverStoredHolonIdsAsync()).Result.Single());
+            Assert.AreEqual("Ordinary holon", (await reader.LoadStoredHolonAsync(id)).Result.Name);
+        }
+        finally
+        {
+            await reader.DeActivateProviderAsync();
+            await writer.DeActivateProviderAsync();
+        }
+    }
+
+    [TestMethod]
     public async Task PublishesTypedAvatarDetailHistoryWithoutReplacingTheHolon()
     {
         var storageKey = Convert.FromBase64String(Required("KEY"));
