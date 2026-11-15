@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. Verified all seven serving portal assets in memory. No local SDK downloads, browser profiles, build output or test files were created.
+
 15 November Cancun time. WEB4 confirmed deletion of all three disposable OAPP test avatars with HTTP 200. Restored the portal sparse worktree patterns and removed the scoped candidate index and patch. No local packages, SDK downloads or build artifacts were retained.
 
 15 November Cancun time. Ran HyperDrive sign-out UI verification in memory. No disposable test avatars, local build results, dependencies or downloads were created this pass.
