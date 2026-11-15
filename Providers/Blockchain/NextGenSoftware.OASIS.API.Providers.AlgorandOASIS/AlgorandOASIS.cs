@@ -122,15 +122,16 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
                     ModifiedDate = DateTime.UtcNow,
                 };
                 avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.AlgorandOASIS] = providerKey;
-                GetAlgorandMetadata(avatar)["address"] = providerKey;
+                var metadata = GetAlgorandMetadata(avatar);
+                metadata["address"] = providerKey;
                 if (acct.TryGetProperty("amount", out var bal))
-                    GetAlgorandMetadata(avatar)["balance_microALGO"] = bal.GetUInt64().ToString();
+                    metadata["balance_microALGO"] = bal.GetUInt64().ToString();
                 if (acct.TryGetProperty("amount-without-pending-rewards", out var nb))
-                    GetAlgorandMetadata(avatar)["balance_without_rewards_microALGO"] = nb.GetUInt64().ToString();
+                    metadata["balance_without_rewards_microALGO"] = nb.GetUInt64().ToString();
                 if (acct.TryGetProperty("status", out var st))
-                    GetAlgorandMetadata(avatar)["status"] = st.GetString() ?? string.Empty;
+                    metadata["status"] = st.GetString() ?? string.Empty;
                 if (acct.TryGetProperty("total-assets-opted-in", out var asas))
-                    GetAlgorandMetadata(avatar)["total_assets_opted_in"] = asas.GetUInt32().ToString();
+                    metadata["total_assets_opted_in"] = asas.GetUInt32().ToString();
                 result.Result = avatar;
                 result.Message = $"AlgorandOASIS: Loaded account '{providerKey}'.";
             }
@@ -688,32 +689,33 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
                 ModifiedDate = ts,
             };
             h.ProviderUniqueStorageKey[Core.Enums.ProviderType.AlgorandOASIS] = txId;
-            GetAlgorandMetadata(h)["tx_id"] = txId;
-            GetAlgorandMetadata(h)["sender"] = sender;
-            GetAlgorandMetadata(h)["tx_type"] = txType;
-            GetAlgorandMetadata(h)["note"] = note;
+            var metadata = GetAlgorandMetadata(h);
+            metadata["tx_id"] = txId;
+            metadata["sender"] = sender;
+            metadata["tx_type"] = txType;
+            metadata["note"] = note;
             if (t.TryGetProperty("confirmed-round", out var cr))
-                GetAlgorandMetadata(h)["confirmed_round"] = cr.GetUInt64().ToString();
+                metadata["confirmed_round"] = cr.GetUInt64().ToString();
             if (txType == "pay" && t.TryGetProperty("payment-transaction", out var pay))
             {
                 if (pay.TryGetProperty("receiver", out var rec))
-                    GetAlgorandMetadata(h)["receiver"] = rec.GetString() ?? string.Empty;
+                    metadata["receiver"] = rec.GetString() ?? string.Empty;
                 if (pay.TryGetProperty("amount", out var amt))
-                    GetAlgorandMetadata(h)["amount_microALGO"] = amt.GetUInt64().ToString();
+                    metadata["amount_microALGO"] = amt.GetUInt64().ToString();
             }
             else if (txType == "axfer" && t.TryGetProperty("asset-transfer-transaction", out var axfer))
             {
                 if (axfer.TryGetProperty("asset-id", out var assetId))
-                    GetAlgorandMetadata(h)["asa_id"] = assetId.GetUInt64().ToString();
+                    metadata["asa_id"] = assetId.GetUInt64().ToString();
                 if (axfer.TryGetProperty("amount", out var asaAmt))
-                    GetAlgorandMetadata(h)["asa_amount"] = asaAmt.GetUInt64().ToString();
+                    metadata["asa_amount"] = asaAmt.GetUInt64().ToString();
                 if (axfer.TryGetProperty("receiver", out var asaRec))
-                    GetAlgorandMetadata(h)["receiver"] = asaRec.GetString() ?? string.Empty;
+                    metadata["receiver"] = asaRec.GetString() ?? string.Empty;
             }
             return h;
         }
 
-        private static Dictionary<string, string> GetAlgorandMetadata(IHolon holon)
+        private static Dictionary<string, string> GetAlgorandMetadata(IHolonBase holon)
         {
             holon.ProviderMetaData ??= new Dictionary<ProviderType, Dictionary<string, string>>();
             if (!holon.ProviderMetaData.TryGetValue(Core.Enums.ProviderType.AlgorandOASIS, out var metadata) || metadata == null)
