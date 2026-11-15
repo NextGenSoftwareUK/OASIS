@@ -19,6 +19,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 public interface ICqlHostedSourceRegistry
 {
     IOASISProvider Find(ProviderType provider);
+    bool HasIndependentActivation(ProviderType provider) => false;
     Task ActivateReadSourceAsync(ProviderType provider, CancellationToken cancellationToken);
 }
 
@@ -67,19 +68,39 @@ public sealed class CqlHostedSources : BackgroundService
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         hostStoppingToken = stoppingToken;
-        foreach (var provider in queryOnly.OrderBy(type => type.ToString(), StringComparer.Ordinal))
+        var started = Stopwatch.GetTimestamp();
+        const int maximumConcurrentReaders = 3;
+        var ordered = queryOnly.OrderBy(type => type.ToString(), StringComparer.Ordinal).ToArray();
+        // Only registered, independently owned profiles may use the parallel
+        // lane. Shared BootLoader registrations still run in a single sequence.
+        var independent = ordered.Where(registry.HasIndependentActivation).ToHashSet();
+        var options = new ParallelOptions
         {
-            if (stoppingToken.IsCancellationRequested) break;
-            var state = activationStates[provider];
-            await state.Gate.WaitAsync(stoppingToken);
-            try
-            {
-                await ActivateOneAsync(provider, state, stoppingToken);
-                if (stoppingToken.IsCancellationRequested) break;
-            }
-            finally { state.Gate.Release(); }
-            // Optional source failure is explicit in discovery; never select another provider.
-        }
+            MaxDegreeOfParallelism = maximumConcurrentReaders,
+            CancellationToken = stoppingToken
+        };
+        await Task.WhenAll(
+            ActivateCanonicalAsync(ordered.Where(provider => !independent.Contains(provider)), stoppingToken),
+            Parallel.ForEachAsync(ordered.Where(independent.Contains), options,
+                (provider, token) => new ValueTask(ActivateInitialAsync(provider, token))));
+
+        logger.LogInformation("CQL startup completed readers={Enrolled} verified={Verified} elapsedMilliseconds={ElapsedMilliseconds}",
+            ordered.Length, verified.Count, (long)Stopwatch.GetElapsedTime(started).TotalMilliseconds);
+    }
+
+    private async Task ActivateCanonicalAsync(IEnumerable<ProviderType> canonicalProviders,
+        CancellationToken stoppingToken)
+    {
+        foreach (var provider in canonicalProviders)
+            await ActivateInitialAsync(provider, stoppingToken);
+    }
+
+    private async Task ActivateInitialAsync(ProviderType provider, CancellationToken stoppingToken)
+    {
+        var state = activationStates[provider];
+        await state.Gate.WaitAsync(stoppingToken);
+        try { await ActivateOneAsync(provider, state, stoppingToken); }
+        finally { state.Gate.Release(); }
     }
 
     private async Task<string> ActivateOneAsync(ProviderType provider, ActivationState state, CancellationToken token)
