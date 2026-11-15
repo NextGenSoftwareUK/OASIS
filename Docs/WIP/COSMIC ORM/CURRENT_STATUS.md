@@ -2,6 +2,8 @@
 
 ## Coordinated Development integration
 
+Combined candidate 4ba2d04b6a1f failed [WEB4 unit CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43694661758) because the preferences receipt replay mock still required a deep settings load. Core 6aee2da2cdf7 makes that call shallow. Corrected candidate 3eb0bb18da52 updates the fixture and asserts no child traversal while retaining the no-second-write replay assertion. It preserves the five CQL files and the peer pinned source graph. [Corrected protocol](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43695548616) and [image](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43695572600) are active. The superseded image was cancelled.
+
 The peer shallow-read revision 3a0542795eda is on Development and Railway deployment ea697826-d4d6-471c-8626-14d0687d387b is queued. The COSMIC candidate 4ba2d04b6a1f is its direct child and changes only five CQL and test files. It retains all peer changes and combines the Axelar activation fix with three-worker startup for independent hosted sources. [Exact protocol](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43694661758) and [image](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43694675045) are pending. The earlier Axelar-only candidate c6e142a53795 passed protocol CI; its image attempt cannot be used as a fast-forward from 3a0542795eda. Compare readiness on the immediately preceding peer build and verify the exact Axelar direct/federated presets after the combined rollout. Blockscout/Connext authentication changes remain on the feature branch pending their [protocol checks](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43694281412) and private credential.
 
 ## Blockscout Universal API migration
