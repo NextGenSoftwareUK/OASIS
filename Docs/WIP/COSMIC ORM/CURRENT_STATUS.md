@@ -1,5 +1,11 @@
 # COSMIC ORM / CQL current status
 
+## Ask your data drafts bounded native joins
+
+15 November. Web4Site c93c9d2c582b teaches WEB6 same-provider INNER and LEFT joins with two explicit input bounds and exact composite keys. The example uses an available store from discovery. All 221 website tests passed, including controlled draft review and the join wire request. [Protected preview 7806848698](https://web4-site-qo9ao8p4e-oasis-team.vercel.app/web4-sandbox.html) built. A fresh real WEB6 join draft and the signed-in browser walkthrough remain open. The website snapshot and index were removed.
+
+On exact backend candidate da2a6e66b28a, a read-only synthetic Atlas probe proved eight exact Decimal SUM and AVG cases including signed values, no participants, both overflow signs, cancellation and midpoint rounding. An initial probe encoded the decimal limbs in reverse order. The corrected probe followed the provider most-significant-first contract. [Protocol CI 43739271040](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43739271040) and [WEB4 image 43739273458](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43739273458) qualify the combined backend candidate. Live WEB4 grouped Decimal execution is still pending. Cached assemblies were reused in memory.
+
 ## Live join admission and Atlas Decimal depth confirmed
 
 15 November. Development 807623f716cd accepted exact sandbox-compiled INNER and LEFT queries on MongoDB, SQLite and Neo4j. The read-only demo visitor saw zero visible rows. Populated native joins were previously proved in CI. A direct read-only probe on the Development Atlas database accepted a shallow control and rejected both exact grouped Decimal aggregate expressions with server code 8000 and a nesting-depth indication. Both original expressions reached 56 BSON levels. The proposed preparation, rounding and publication stages measured 36, 37 and 20 levels and Atlas accepted the combined command on the same empty ID scope. Populated numeric regression CI and rollout remain open. The probe reused cached assemblies and created no repository build outputs or downloads.
