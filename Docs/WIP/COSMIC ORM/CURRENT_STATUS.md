@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Constructor inputs without matching DTO members
+
+Core 9b59c055f511 and feature 16464d0cbdbd allow bounded scalar constructor inputs with no public member name match. Those inputs retain internal aliases that cannot bind to result members. The native fixture checks a computed label and exact Int64 value after native result validation. Feature protocol 43659875767 reached native execution but stopped at existing numeric reduction because the feature tree lacks Development provider enrollment. The [exact Development-based run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43660806755) tests candidate 6be42b98fc98 with the enrolled providers. Results are pending and Q11 remains open.
+
 ## Read-only field constructor projections
 
 Core fe79da17581b and feature commit 7a04d199755b add constructor binding to read-only public fields using the existing unique name and exact-type rules. The native fixture asserts the projected name and exact Int64 value 9007199254740993 on SQLite, MongoDB and Neo4j. [Feature protocol CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43655946538) and [exact Development protocol CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43656275077) are active. Candidate fef0aa153e2d has matching Core gitlink and manifest values, with [exact WEB4 image CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43656277115) active. Q11 remains open for arbitrary DTO shapes.
