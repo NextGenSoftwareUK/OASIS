@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Blockscout Universal API migration
+
+The Development Blockscout and Connext public CQL profiles use the Ethereum Universal API route with a dedicated header credential. The existing source identities and response validators are retained. A missing or malformed key stops the configured profile before outbound requests. Native authenticated verification and rollout are pending.
+
 ## Axelar hosted activation flag
 
 The 242d120b6a2f registry reads ICosmicReadOnlyQueryActivation.IsQuerySourceActivated. Its default recognizes IOASISStorageProvider, so the shipping Axelar network provider is rejected even after the native header check succeeds. The provider now implements the flag for its configured public-query profile and the bounded activation test asserts the interface before and after the native catalogue check. Exact CI and live acceptance are pending.

@@ -29,10 +29,10 @@ public partial class ConnextOASIS : ICosmicQueryStorageProvider, ICosmicReadOnly
     private bool disposed;
 
     internal ConnextOASIS(HttpClient client,
-        IEnumerable<ConnextOriginEventClient.Identity> events, Guid sourceOwner, bool ownsClient = false)
+        IEnumerable<ConnextOriginEventClient.Identity> events, Guid sourceOwner, bool ownsClient = false, string universalApiKey = null)
         : this()
     {
-        publicMessages = new PublicMessages(client, events, sourceOwner, ownsClient);
+        publicMessages = new PublicMessages(client, events, sourceOwner, ownsClient, universalApiKey);
         QueryCapabilities = CosmicQueryCapabilities.ForStringMetadataKeyLookup(TransferIdMetadata, 66, 8);
     }
 
@@ -45,7 +45,12 @@ public partial class ConnextOASIS : ICosmicQueryStorageProvider, ICosmicReadOnly
 
     /// <summary>Separate host query-profile configuration, never the existing
     /// cross-chain tracker settings. Reject unknown fields rather than ignore keys.</summary>
-    public static ConnextOASIS FromPublicQueryConfiguration(string json)
+    public static ConnextOASIS FromPublicQueryConfiguration(string json) => FromQueryConfiguration(json, null);
+
+    public static ConnextOASIS FromUniversalQueryConfiguration(string json, string apiKey)
+        => FromQueryConfiguration(json, apiKey ?? string.Empty);
+
+    private static ConnextOASIS FromQueryConfiguration(string json, string universalApiKey)
     {
         if (json == null || Encoding.UTF8.GetByteCount(json) > 8192)
             throw new ArgumentException("Bounded explicit Connext public source required.");
@@ -69,7 +74,7 @@ public partial class ConnextOASIS : ICosmicQueryStorageProvider, ICosmicReadOnly
                     value.GetProperty("transferId").GetString(), value.GetProperty("transactionHash").GetString(),
                     value.GetProperty("blockHash").GetString(), value.GetProperty("blockNumber").GetInt64(),
                     value.GetProperty("logIndex").GetInt32())),
-                root.GetProperty("sourceOwner").GetGuid(), true);
+                root.GetProperty("sourceOwner").GetGuid(), true, universalApiKey);
         }
         catch { client.Dispose(); throw; }
     }
@@ -175,7 +180,7 @@ public partial class ConnextOASIS : ICosmicQueryStorageProvider, ICosmicReadOnly
         private readonly bool ownsClient;
         public IReadOnlyList<string> MessageIds { get; }
 
-        public PublicMessages(HttpClient client, IEnumerable<ConnextOriginEventClient.Identity> events, Guid owner, bool ownsClient)
+        public PublicMessages(HttpClient client, IEnumerable<ConnextOriginEventClient.Identity> events, Guid owner, bool ownsClient, string universalApiKey)
         {
             ArgumentNullException.ThrowIfNull(client);
             ArgumentNullException.ThrowIfNull(events);
@@ -190,7 +195,7 @@ public partial class ConnextOASIS : ICosmicQueryStorageProvider, ICosmicReadOnly
             if (client.DefaultRequestHeaders.Authorization != null || client.DefaultRequestHeaders.Contains("Cookie"))
                 throw new ArgumentException("Connext public event reads require an anonymous client.");
             this.client = client;
-            origin = new ConnextOriginEventClient(client);
+            origin = new ConnextOriginEventClient(client, universalApiKey);
             catalogue = captured.ToDictionary(entry => entry.TransferId, StringComparer.Ordinal);
             this.owner = owner;
             this.ownsClient = ownsClient;
