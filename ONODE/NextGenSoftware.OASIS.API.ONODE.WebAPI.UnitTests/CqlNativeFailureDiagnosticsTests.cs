@@ -8,6 +8,11 @@ using NextGenSoftware.OASIS.API.Core.Queries;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 using Moq;
+using MongoDB.Bson;
+using MongoDB.Driver;
+using MongoDB.Driver.Core.Clusters;
+using MongoDB.Driver.Core.Connections;
+using MongoDB.Driver.Core.Servers;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests;
 
@@ -34,6 +39,25 @@ public sealed class CqlNativeFailureDiagnosticsTests
     }
 
     [Fact]
+    public void MongoCommandFailureLogsItsCodeWithoutTheCommandOrServerMessage()
+    {
+        var connection = new ConnectionId(new ServerId(new ClusterId(), new DnsEndPoint("private-host.example", 27017)));
+        var command = new MongoCommandException(connection, "private message",
+            new BsonDocument("find", "private collection"),
+            new BsonDocument { { "ok", 0 }, { "code", 17280 }, { "errmsg", "private result" } });
+        var logger = new CaptureLogger();
+
+        CqlNativeFailureDiagnostics.Record(logger, ProviderType.MongoDBOASIS, false,
+            new InvalidOperationException("wrapped", command));
+
+        var entry = Assert.Single(logger.Entries);
+        Assert.Null(entry.Exception);
+        Assert.Contains("category=other/mongo_command", entry.Text);
+        Assert.Contains("mongoCommandCode=17280", entry.Text);
+        Assert.DoesNotContain("private", entry.Text);
+    }
+
+    [Fact]
     public void CancellationWithAnInnerTimeoutRetainsBothCategories()
     {
         var error = new OperationCanceledException("request canceled", new TimeoutException("request timed out"));
@@ -51,6 +75,26 @@ public sealed class CqlNativeFailureDiagnosticsTests
         var activation = new InvalidOperationException("Activation failed.", cancellation);
 
         Assert.Equal(stage, CqlNativeFailureDiagnostics.Capture(activation).Stage);
+    }
+
+    [Fact]
+    public void HoloOasisTimeoutLogsObservedCountsAndPreservesAnUnobservedRunningCellCount()
+    {
+        var native = new TimeoutException("private conductor output");
+        native.Data["COSMIC.NativeStage"] = "cell creation started";
+        native.Data[typeof(HoloOasisStartupCounts)] = new HoloOasisStartupCounts(135, 0, null);
+        var logger = new CaptureLogger();
+
+        CqlNativeFailureDiagnostics.Record(logger, ProviderType.HoloOASIS, true,
+            new InvalidOperationException("Activation failed.", native));
+
+        var entry = Assert.Single(logger.Entries);
+        Assert.Null(entry.Exception);
+        Assert.Contains("stage=cell creation started", entry.Text);
+        Assert.Contains("persistedAppInterfaces=135", entry.Text);
+        Assert.Contains("cellListReplies=0", entry.Text);
+        Assert.Contains("runningCells=(null)", entry.Text);
+        Assert.DoesNotContain("private conductor output", entry.Text);
     }
 
     private sealed class CaptureLogger : ILogger
