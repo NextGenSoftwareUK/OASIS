@@ -1,5 +1,7 @@
 # Current provider status
 
+15 November Cancun time. OPORTAL dev 3850d15ffe7b passed deployment and the public /subscription route serves the version with a single post-activation subscription refresh. The separate WEB4 return-fragment regression is running in 43708398273.
+
 15 November Cancun time. Railway dev WEB4 deployment cddc8e09-a731-4812-944c-82e8290f9810 serves 78eae0988824. An owned real GBP 9 Stripe sandbox Checkout session carried the exact billing ledger, avatar and plan metadata, included the OPORTAL return URLs, and was readable by its owner. WEB4 rejected another genuine Stripe test session marked for a different ledger with HTTP 403 even though it named the same avatar. Both sessions were expired and the test avatar removed. No card was submitted. The hosted browser payment and return remain open. WEB4 81e4c3a8d6d6 also moves session parameters before any caller's URL fragment; focused CI is in progress.
 
 15 November Cancun time. OPORTAL 66a4d22 suppresses the subscription list request while a paid Checkout return is being confirmed. The router and subscription modal regression passed together, showing a single list refresh after verified activation. This change is on the task branch. Railway still reports checkout-scope revision 78eae0988824 as building.
