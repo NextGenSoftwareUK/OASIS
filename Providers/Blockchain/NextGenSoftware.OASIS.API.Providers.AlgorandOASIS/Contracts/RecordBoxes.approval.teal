@@ -31,6 +31,10 @@ byte "purge"
 ==
 bnz purge
 txna ApplicationArgs 0
+byte "set_alias"
+==
+bnz set_alias
+txna ApplicationArgs 0
 byte "publish"
 ==
 assert
@@ -519,6 +523,62 @@ load 3
 load 6
 box_put
 int 1
+return
+
+// Compare and set an opaque alias. Zero expected owner is absent; zero next owner removes it.
+set_alias:
+txn NumAppArgs
+int 4
+==
+assert
+txna ApplicationArgs 2
+len
+int 32
+==
+assert
+txna ApplicationArgs 3
+len
+int 32
+==
+assert
+byte "a"
+txna ApplicationArgs 1
+concat
+store 3
+load 3
+box_get
+bnz alias_exists
+pop
+int 32
+bzero
+alias_exists:
+txna ApplicationArgs 2
+==
+assert
+txna ApplicationArgs 3
+int 32
+bzero
+==
+bnz remove_alias
+
+// A new owner must have a published and unfrozen head.
+byte "h"
+txna ApplicationArgs 3
+concat
+box_len
+assert
+int 128
+>=
+assert
+load 3
+txna ApplicationArgs 3
+box_put
+int 1
+return
+
+remove_alias:
+load 3
+box_del
 return
 
 // The fixed-width components give each immutable chunk a unique opaque name.

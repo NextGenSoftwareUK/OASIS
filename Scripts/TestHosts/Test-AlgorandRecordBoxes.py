@@ -218,6 +218,37 @@ def run(node, wallet, handle, writer, outsider):
         assert read(descriptor_name) == descriptor
         assert read(b"d" + other_key) == other_descriptor
         print("Native grouped publication committed both records and rolled back both when the later predecessor failed.")
+
+        alias = secrets.token_bytes(32)
+        alias_name = b"a" + alias
+
+        def alias_call(sender, expected, next_owner):
+            refs = [alias_name]
+            if next_owner != absent:
+                refs.append(b"h" + next_owner)
+            return call(sender, [b"set_alias", alias, expected, next_owner], refs)
+
+        reject_group([alias_call(outsider, absent, key)])
+        reject_group([alias_call(writer, absent, secrets.token_bytes(32))])
+
+        indexed_key = secrets.token_bytes(32)
+        indexed_revision = secrets.token_bytes(32)
+        write = publication(writer, indexed_key, absent, indexed_revision, [other_chunk], other_descriptor, start=0)
+        submit_group(write + [alias_call(writer, absent, indexed_key)])
+        assert read(alias_name) == indexed_key
+
+        before_collision = snapshot()
+        collision_key = secrets.token_bytes(32)
+        collision_revision = secrets.token_bytes(32)
+        collision = publication(writer, collision_key, absent, collision_revision, [other_chunk], other_descriptor, start=0)
+        reject_group(collision + [alias_call(writer, absent, collision_key)])
+        assert snapshot() == before_collision, "A colliding alias changed its owner or published the losing record"
+        reject_group([alias_call(writer, key, absent)])
+        assert read(alias_name) == indexed_key
+
+        submit_group([alias_call(writer, indexed_key, absent), alias_call(writer, absent, other_key)])
+        assert read(alias_name) == other_key
+        print("Native alias compare-and-set protected ownership and rolled back a colliding publication.")
         return
 
     reject_group(publication(outsider, key, absent, first_revision, chunks, descriptor))
