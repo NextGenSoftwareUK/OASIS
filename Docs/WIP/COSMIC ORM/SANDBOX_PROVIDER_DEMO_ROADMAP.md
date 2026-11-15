@@ -18,6 +18,38 @@ first live Development gate.
 
 [Current deployment and readiness](CURRENT_STATUS.md) · [Owner actions](../Release%20and%20Status/ACTIONS-FOR-DAVID.md).
 
+## Hosted SQL and Ask Your Data walkthrough
+
+Use a protected Development preview with the matching WEB4 revision and a
+signed-in demo visitor. Use a prepared, populated fixture belonging to that
+visitor. Keep the existing fixture tag and replace `fixtureTag` below with
+it. The current deployment, preview and access state are recorded in
+[Current status](CURRENT_STATUS.md).
+
+In the SQL editor, use **Preview request** to inspect the typed request,
+then **Run CQL** to check that the visible fixture groups by Version and
+returns a positive count. Run the same query with `SQLLiteDBOASIS` and
+`Neo4jOASIS` after confirming their fixture copies are ready.
+
+```sql
+SELECT Version, COUNT(*) AS Total
+FROM MongoDBOASIS
+WHERE metadata.demoTag = 'fixtureTag'
+GROUP BY Version
+HAVING Total >= 1
+ORDER BY Total DESC
+LIMIT 5
+```
+
+In **Ask Your Data**, ask to count the visible MongoDB holons with that
+metadata demo tag by Version, keep counts of one or more, sort by descending
+count, and return up to five groups. Review the generated SQL before running
+it and compare its result to the direct SQL. Verify in the browser that WEB6
+produced the draft, the query only ran after explicit execution, and WEB4
+returned the rows for the selected provider. Record the frontend revision,
+serving WEB4 revision, provider, and result counts without recording session
+credentials.
+
 ## Observed integration points
 
 - Frontend: `C:/Source/Web4Site/web4-sandbox.html` (separate repository).
