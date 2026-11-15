@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+15 November Cancun. Live CROSS JOIN acceptance hard-deleted all nine private fixtures and confirmed their exact absence through independent provider reads. Retained only the compact operation journal at LocalState/COSMIC/HostedCqlCrossJoin-cbd8383d/operations.jsonl. The website test snapshot and temporary index were removed. No local builds, downloads or database copies.
+
 15 November Cancun. The MongoDB SINGLE investigation used temporary compiler and Atlas probe directories with cached packages. Atlas reads used synthetic documents and created no database fixtures. The temporary directories and their build outputs were removed. No shared build outputs or local result bundles. The 252-vector follow-up also wrote no records and left no owned temporary probe or index directory. C: measured 24.66 GiB free.
 
 15 November Cancun. Floating-point parser snapshots and MongoDB diagnostics indexes were removed after use. Hosted checks were read-only and created no fixtures. Reconciled CROSS JOIN qualification and WEB4 image builds use GitHub CI. No local installs, downloads, database copies or build output.
