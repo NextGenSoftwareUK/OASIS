@@ -54,9 +54,13 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                 return Task.FromResult(result);
             }
 
-            if (request.Web3TokenId != Guid.Empty || !string.IsNullOrWhiteSpace(request.FromTokenAddress))
+            if (!string.IsNullOrWhiteSpace(request.FromTokenAddress))
+                return MoveBitcoinRuneAsync(request.FromTokenAddress, request.FromWalletAddress, request.ToWalletAddress,
+                    request.OwnerPrivateKey, request.OwnerSeedPhrase, request.Amount, burn: false);
+
+            if (request.Web3TokenId != Guid.Empty)
             {
-                OASISErrorHandling.HandleError(ref result, "This Bitcoin provider transfers native BTC. A token transfer requires its own protocol provider.");
+                OASISErrorHandling.HandleError(ref result, "Provide the existing Rune ID in block:index form for a Bitcoin token transfer.");
                 return Task.FromResult(result);
             }
 
@@ -97,80 +101,9 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             return MintTokenAsync(request).Result;
         }
 
-        public async Task<OASISResult<ITransactionResponse>> MintTokenAsync(IMintWeb3TokenRequest request)
+        public Task<OASISResult<ITransactionResponse>> MintTokenAsync(IMintWeb3TokenRequest request)
         {
-            var result = new OASISResult<ITransactionResponse>(new TransactionResponse());
-            try
-            {
-                if (!_isActivated)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Bitcoin provider is not activated");
-                    return result;
-                }
-
-                if (request == null || string.IsNullOrWhiteSpace(request.Symbol))
-                {
-                    OASISErrorHandling.HandleError(ref result, "Invalid token mint request");
-                    return result;
-                }
-
-                // Bitcoin token minting using OP_RETURN transactions
-                // Store token mint data in OP_RETURN transaction
-                var tokenMintData = new
-                {
-                    type = "token_mint",
-                    token_address = request.Symbol ?? "",
-                    amount = "0",
-                    mint_to = "",
-                    timestamp = DateTime.UtcNow.ToString("O")
-                };
-
-                var tokenJson = JsonSerializer.Serialize(tokenMintData);
-                var tokenBytes = Encoding.UTF8.GetBytes(tokenJson);
-
-                // Create Bitcoin transaction with OP_RETURN containing token mint data
-                var rpcRequest = new
-                {
-                    jsonrpc = "2.0",
-                    id = 1,
-                    method = "createrawtransaction",
-                    @params = new object[]
-                    {
-                        new object[0],
-                        new Dictionary<string, object>
-                        {
-                            ["data"] = Convert.ToHexString(tokenBytes)
-                        }
-                    }
-                };
-
-                var content = new StringContent(JsonSerializer.Serialize(rpcRequest), Encoding.UTF8, "application/json");
-                var response = await _httpClient.PostAsync("", content);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var responseContent = await response.Content.ReadAsStringAsync();
-                    var txData = JsonSerializer.Deserialize<JsonElement>(responseContent);
-                    
-                    var txHash = txData.TryGetProperty("result", out var txResult) ? txResult.GetString() : "";
-
-                    result.Result = new TransactionResponse
-                    {
-                        TransactionResult = txHash
-                    };
-                    result.IsError = false;
-                    result.Message = "Token minted successfully via Bitcoin OP_RETURN";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to create token mint transaction: {response.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error minting token: {ex.Message}", ex);
-            }
-            return result;
+            return MintBitcoinRuneAsync(request);
         }
 
         public OASISResult<ITransactionResponse> BurnToken(IBurnWeb3TokenRequest request)
@@ -178,80 +111,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             return BurnTokenAsync(request).Result;
         }
 
-        public async Task<OASISResult<ITransactionResponse>> BurnTokenAsync(IBurnWeb3TokenRequest request)
+        public Task<OASISResult<ITransactionResponse>> BurnTokenAsync(IBurnWeb3TokenRequest request)
         {
-            var result = new OASISResult<ITransactionResponse>(new TransactionResponse());
-            try
-            {
-                if (!_isActivated)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Bitcoin provider is not activated");
-                    return result;
-                }
-
-                if (request == null || string.IsNullOrWhiteSpace(request.TokenAddress))
-                {
-                    OASISErrorHandling.HandleError(ref result, "Invalid token burn request");
-                    return result;
-                }
-
-                // Bitcoin token burning using OP_RETURN transactions
-                // Store token burn data in OP_RETURN transaction
-                var tokenBurnData = new
-                {
-                    type = "token_burn",
-                    token_address = request.TokenAddress ?? "",
-                    amount = "0",
-                    burn_from = request.OwnerPublicKey ?? "",
-                    timestamp = DateTime.UtcNow.ToString("O")
-                };
-
-                var tokenJson = JsonSerializer.Serialize(tokenBurnData);
-                var tokenBytes = Encoding.UTF8.GetBytes(tokenJson);
-
-                // Create Bitcoin transaction with OP_RETURN containing token burn data
-                var rpcRequest = new
-                {
-                    jsonrpc = "2.0",
-                    id = 1,
-                    method = "createrawtransaction",
-                    @params = new object[]
-                    {
-                        new object[0],
-                        new Dictionary<string, object>
-                        {
-                            ["data"] = Convert.ToHexString(tokenBytes)
-                        }
-                    }
-                };
-
-                var content = new StringContent(JsonSerializer.Serialize(rpcRequest), Encoding.UTF8, "application/json");
-                var response = await _httpClient.PostAsync("", content);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var responseContent = await response.Content.ReadAsStringAsync();
-                    var txData = JsonSerializer.Deserialize<JsonElement>(responseContent);
-                    
-                    var txHash = txData.TryGetProperty("result", out var txResult) ? txResult.GetString() : "";
-
-                    result.Result = new TransactionResponse
-                    {
-                        TransactionResult = txHash
-                    };
-                    result.IsError = false;
-                    result.Message = "Token burned successfully via Bitcoin OP_RETURN";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to create token burn transaction: {response.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error burning token: {ex.Message}", ex);
-            }
-            return result;
+            if (!string.IsNullOrWhiteSpace(request?.TokenAddress) && !string.Equals(request.TokenAddress, "BTC", StringComparison.OrdinalIgnoreCase))
+                return MoveBitcoinRuneAsync(request.TokenAddress, null, null, request.OwnerPrivateKey,
+                    request.OwnerSeedPhrase, request.Amount, burn: true);
+            return BurnNativeBitcoinAsync(request);
         }
 
         public OASISResult<ITransactionResponse> LockToken(ILockWeb3TokenRequest request)

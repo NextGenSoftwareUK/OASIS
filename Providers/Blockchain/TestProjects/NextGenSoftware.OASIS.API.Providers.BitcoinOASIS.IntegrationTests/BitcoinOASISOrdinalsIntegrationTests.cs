@@ -1,12 +1,21 @@
 using System;
 using System.Linq;
 using System.Net.Http;
+using System.Reflection;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NBitcoin;
 using NBitcoin.RPC;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
+using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests;
+using NextGenSoftware.OASIS.API.DNA;
+using Key = NBitcoin.Key;
+using WalletFileProvider = NextGenSoftware.OASIS.API.Providers.LocalFileOASIS.LocalFileOASIS;
 
 namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests;
 
@@ -219,17 +228,227 @@ public class BitcoinOASISOrdinalsIntegrationTests
         Assert.AreEqual(reveal.Outputs[0].Value, locked.Outputs[0].Value);
         await core.SendCommandAsync("generatetoaddress", 1, miner);
 
+        await VerifyIndexedOwnerAsync(provider, identifier, poolAddress, custody.Result.TransactionId);
+        await VerifyAvatarReleaseAsync(provider, core, reader, api, identifier, recipient, miner);
+    }
+
+    private static async Task VerifyAvatarReleaseAsync(BitcoinOASIS provider, RPCClient core, HttpClient reader,
+        string api, string identifier, string depositor, string miner)
+    {
+        var storageDirectory = Environment.GetEnvironmentVariable("OASIS_BITCOIN_ORD_WALLET_FIXTURE");
+        Assert.IsFalse(string.IsNullOrWhiteSpace(storageDirectory));
+        var local = new WalletFileProvider(storageDirectory: storageDirectory);
+        Assert.IsFalse((await local.ActivateProviderAsync()).IsError);
+        var depositorAvatar = Guid.NewGuid();
+        var otherAvatar = Guid.NewGuid();
+        foreach (var (id, address) in new[] { (depositorAvatar, depositor), (otherAvatar, miner) })
+        {
+            var wallet = new ProviderWallet
+            {
+                Id = Guid.NewGuid(), AvatarId = id, IsDefaultWallet = true,
+                WalletAddress = address, ProviderType = ProviderType.BitcoinOASIS
+            };
+            var saved = await local.SaveProviderWalletsForAvatarByIdAsync(id,
+                new() { [ProviderType.BitcoinOASIS] = new List<IProviderWallet> { wallet } });
+            Assert.IsFalse(saved.IsError, saved.Message);
+        }
+
+        var dna = new OASISDNA();
+        dna.OASIS.HyperDriveMode = HyperDriveModes.V2;
+        dna.OASIS.StorageProviders = new StorageProviderSettings { LogSwitchingProviders = false };
+        var providers = new ProviderManager(null, dna);
+        providers.RegisterProvider(local);
+        Assert.IsFalse(providers.SetAndActivateCurrentStorageProvider(local).IsError);
+        var constructor = typeof(WalletManager).GetConstructors(BindingFlags.NonPublic | BindingFlags.Instance)
+            .Single(candidate => candidate.GetParameters().Length == 4);
+        provider.WalletManager = (WalletManager)constructor.Invoke(new object?[] { local, dna, providers, null });
+
+        var tip = (await core.GetBestBlockHashAsync()).ToString();
+        for (var attempt = 0; attempt < 30; attempt++)
+        {
+            if ((await reader.GetStringAsync(api + "/blocks/tip/hash")).Trim() == tip)
+                break;
+            await Task.Delay(TimeSpan.FromSeconds(1));
+        }
+
+        var rejected = await provider.UnlockNFTAsync(new UnlockWeb3NFTRequest
+        {
+            NFTTokenAddress = identifier, UnlockedByAvatarId = otherAvatar
+        });
+        Assert.IsTrue(rejected.IsError);
+        StringAssert.Contains(rejected.Message, "does not own the original custody inputs");
+        Assert.AreEqual(0, (await core.GetRawMempoolAsync()).Length);
+
+        var released = await provider.UnlockNFTAsync(new UnlockWeb3NFTRequest
+        {
+            NFTTokenAddress = identifier, UnlockedByAvatarId = depositorAvatar
+        });
+        Assert.IsFalse(released.IsError, released.Message);
+        Assert.IsTrue(uint256.TryParse(released.Result.TransactionResult, out var transactionId));
+        Assert.IsTrue((await core.GetRawMempoolAsync()).Contains(transactionId));
+        await core.SendCommandAsync("generatetoaddress", 1, miner);
+        await VerifyIndexedOwnerAsync(provider, identifier, depositor, transactionId.ToString());
+        await local.DeActivateProviderAsync();
+    }
+
+    private static async Task VerifyIndexedOwnerAsync(BitcoinOASIS provider, string identifier, string walletAddress, string transactionId)
+    {
         for (var attempt = 0; attempt < 30; attempt++)
         {
             var lookup = await provider.LoadOnChainNFTDataAsync(identifier);
-            if (!lookup.IsError && lookup.Result.MetaData.TryGetValue("CurrentOwnerAddress", out var owner) && owner == poolAddress)
+            if (!lookup.IsError && lookup.Result.MetaData.TryGetValue("CurrentOwnerAddress", out var owner) && owner == walletAddress)
             {
-                Assert.AreEqual(custody.Result.TransactionId + ":0:0", lookup.Result.MetaData["Satpoint"]);
+                Assert.AreEqual(transactionId + ":0:0", lookup.Result.MetaData["Satpoint"]);
                 return;
             }
             await Task.Delay(TimeSpan.FromSeconds(1));
         }
+        Assert.Fail("The ord index did not confirm the exact transaction and wallet owner.");
+    }
 
-        Assert.Fail("The ord index did not confirm the inscription under bridge custody.");
+    [TestMethod]
+    public async Task OrdRegtestBurnsExactNativeBitcoinAmount()
+    {
+        var api = Environment.GetEnvironmentVariable("OASIS_BITCOIN_REGTEST_API");
+        var miner = Environment.GetEnvironmentVariable("OASIS_BITCOIN_ORD_MINER");
+        var endpoint = new Uri(Environment.GetEnvironmentVariable("OASIS_BITCOIN_CORE_RPC_URL"));
+        Assert.IsTrue(endpoint.IsLoopback);
+        var core = new RPCClient(Environment.GetEnvironmentVariable("OASIS_BITCOIN_CORE_RPC_AUTH"), endpoint, Network.RegTest);
+        var privateScalar = new byte[32];
+        privateScalar[31] = 1;
+        using var signer = new Key(privateScalar);
+        using var provider = new BitcoinOASIS(api, "regtest", "", null, 2);
+        var request = new BurnWeb3TokenRequest
+        {
+            TokenAddress = "BTC", Amount = 0.00002m, OwnerPublicKey = "", OwnerSeedPhrase = "",
+            OwnerPrivateKey = signer.GetWif(Network.RegTest).ToString()
+        };
+        var burned = await provider.BurnTokenAsync(request);
+        Assert.IsFalse(burned.IsError, burned.Message);
+        var transactionId = uint256.Parse(burned.Result.TransactionResult);
+        var transaction = await core.GetRawTransactionAsync(transactionId);
+        Assert.AreEqual(Money.Satoshis(2_000), transaction.Outputs.Single(output => output.ScriptPubKey.IsUnspendable).Value);
+        await core.SendCommandAsync("generatetoaddress", 1, miner);
+        Assert.IsFalse((await core.GetRawMempoolAsync()).Contains(transactionId));
+        Assert.AreEqual(transactionId, (await core.GetRawTransactionAsync(transactionId)).GetHash());
+    }
+
+    [TestMethod]
+    public async Task OrdRegtestMintsExactRuneTranche()
+    {
+        var api = Environment.GetEnvironmentVariable("OASIS_BITCOIN_REGTEST_API");
+        var ord = Environment.GetEnvironmentVariable("OASIS_BITCOIN_ORD_API");
+        var runeId = Environment.GetEnvironmentVariable("OASIS_BITCOIN_RUNE_ID");
+        var recipient = Environment.GetEnvironmentVariable("OASIS_BITCOIN_ORD_RECIPIENT");
+        var miner = Environment.GetEnvironmentVariable("OASIS_BITCOIN_ORD_MINER");
+        var endpoint = new Uri(Environment.GetEnvironmentVariable("OASIS_BITCOIN_CORE_RPC_URL"));
+        Assert.IsTrue(endpoint.IsLoopback);
+        var core = new RPCClient(Environment.GetEnvironmentVariable("OASIS_BITCOIN_CORE_RPC_AUTH"), endpoint, Network.RegTest);
+        var privateScalar = new byte[32];
+        privateScalar[31] = 1;
+        using var signer = new Key(privateScalar);
+        using var provider = new BitcoinOASIS(api, "regtest", signer.GetWif(Network.RegTest).ToString(), null, 2);
+        var request = new MintWeb3TokenRequest { TokenAddress = runeId, ToWalletAddress = recipient, Amount = 7.24m };
+        var refused = await provider.MintTokenAsync(request);
+        Assert.IsTrue(refused.IsError);
+        StringAssert.Contains(refused.Message, "must match one tranche");
+        Assert.AreEqual(0, (await core.GetRawMempoolAsync()).Length);
+
+        request.Amount = 7.25m;
+        var minted = await provider.MintTokenAsync(request);
+        Assert.IsFalse(minted.IsError, minted.Message);
+        Assert.AreEqual(runeId, minted.MetaData["BitcoinRuneId"]);
+        Assert.AreEqual("725", minted.MetaData["BitcoinRuneMintUnits"]);
+        var transactionId = uint256.Parse(minted.Result.TransactionResult);
+        var transaction = await core.GetRawTransactionAsync(transactionId);
+        Assert.AreEqual(BitcoinAddress.Create(recipient, Network.RegTest).ScriptPubKey, transaction.Outputs[0].ScriptPubKey);
+        await core.SendCommandAsync("generatetoaddress", 1, miner);
+
+        using var client = new HttpClient();
+        client.DefaultRequestHeaders.Accept.ParseAdd("application/json");
+        for (var attempt = 0; attempt < 30; attempt++)
+        {
+            using var response = await client.GetAsync($"{ord}/output/{transactionId}:0");
+            if (response.IsSuccessStatusCode)
+            {
+                using var indexed = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+                if (indexed.RootElement.GetProperty("runes").ValueKind == JsonValueKind.Object &&
+                    indexed.RootElement.GetProperty("runes").TryGetProperty("OASISTESTMINT", out var balance))
+                {
+                    Assert.AreEqual(725, balance.GetProperty("amount").GetInt32());
+                    await VerifyRuneSendAndBurnAsync(provider, core, client, api, ord, runeId, recipient, miner, signer);
+                    return;
+                }
+            }
+            await Task.Delay(TimeSpan.FromSeconds(1));
+        }
+        Assert.Fail("The Rune index did not confirm the exact mint tranche at the recipient output.");
+    }
+
+    private static async Task VerifyRuneSendAndBurnAsync(BitcoinOASIS provider, RPCClient core, HttpClient client,
+        string api, string ord, string runeId, string recipient, string miner, Key signer)
+    {
+        async Task WaitForEsploraAsync()
+        {
+            var tip = (await core.GetBestBlockHashAsync()).ToString();
+            for (var attempt = 0; attempt < 30; attempt++)
+            {
+                if ((await client.GetStringAsync(api + "/blocks/tip/hash")).Trim() == tip)
+                    return;
+                await Task.Delay(TimeSpan.FromSeconds(1));
+            }
+            Assert.Fail("Esplora did not index the Bitcoin Core chain tip.");
+        }
+
+        async Task AssertRuneOutputAsync(string transactionId, int output, int units)
+        {
+            for (var attempt = 0; attempt < 30; attempt++)
+            {
+                using var response = await client.GetAsync($"{ord}/output/{transactionId}:{output}");
+                if (response.IsSuccessStatusCode)
+                {
+                    using var indexed = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+                    if (indexed.RootElement.GetProperty("runes").ValueKind == JsonValueKind.Object &&
+                        indexed.RootElement.GetProperty("runes").TryGetProperty("OASISTESTMINT", out var balance))
+                    {
+                        Assert.AreEqual(units, balance.GetProperty("amount").GetInt32());
+                        return;
+                    }
+                }
+                await Task.Delay(TimeSpan.FromSeconds(1));
+            }
+            Assert.Fail("The Rune index did not confirm the expected native output allocation.");
+        }
+
+        await WaitForEsploraAsync();
+        var privateScalar = new byte[32];
+        privateScalar[31] = 2;
+        using var sender = new Key(privateScalar);
+        var destination = signer.GetAddress(ScriptPubKeyType.TaprootBIP86, Network.RegTest).ToString();
+        var sent = await provider.SendTokenAsync(new SendWeb3TokenRequest
+        {
+            FromTokenAddress = runeId, FromWalletAddress = recipient, ToWalletAddress = destination,
+            OwnerPrivateKey = sender.GetWif(Network.RegTest).ToString(), Amount = 0.25m
+        });
+        Assert.IsFalse(sent.IsError, sent.Message);
+        Assert.AreEqual("25", sent.MetaData["BitcoinRuneUnits"]);
+        await core.SendCommandAsync("generatetoaddress", 1, miner);
+        await AssertRuneOutputAsync(sent.Result.TransactionResult, 0, 700);
+        await AssertRuneOutputAsync(sent.Result.TransactionResult, 1, 25);
+
+        await WaitForEsploraAsync();
+        var burn = await provider.BurnTokenAsync(new BurnWeb3TokenRequest
+        {
+            TokenAddress = runeId, Amount = 0.15m, OwnerPublicKey = "", OwnerSeedPhrase = "",
+            OwnerPrivateKey = signer.GetWif(Network.RegTest).ToString()
+        });
+        Assert.IsFalse(burn.IsError, burn.Message);
+        Assert.AreEqual("15", burn.MetaData["BitcoinRuneUnits"]);
+        var burned = await core.GetRawTransactionAsync(uint256.Parse(burn.Result.TransactionResult));
+        Assert.AreEqual(Money.Zero, burned.Outputs.Single(output => output.ScriptPubKey.IsUnspendable).Value);
+        await core.SendCommandAsync("generatetoaddress", 1, miner);
+        await AssertRuneOutputAsync(burn.Result.TransactionResult, 0, 10);
+        using var definition = JsonDocument.Parse(await client.GetStringAsync($"{ord}/rune/{runeId}"));
+        Assert.AreEqual(15, definition.RootElement.GetProperty("entry").GetProperty("burned").GetInt32());
     }
 }
