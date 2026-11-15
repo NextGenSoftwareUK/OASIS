@@ -28,6 +28,17 @@ public static partial class CqlV1Compiler
             && ulong.TryParse(text, NumberStyles.None, CultureInfo.InvariantCulture, out value);
     }
 
+    private static bool TryInt64(JsonElement json, out long value)
+    {
+        value = default;
+        if (json.ValueKind == JsonValueKind.Number) return json.TryGetInt64(out value);
+        if (json.ValueKind != JsonValueKind.String) return false;
+        var text = json.GetString();
+        return text.Length is >= 1 and <= 20 &&
+            long.TryParse(text, NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out value) &&
+            value.ToString(CultureInfo.InvariantCulture) == text;
+    }
+
     private static bool TryUtcDate(JsonElement json, out DateTime value)
     {
         value = default;
@@ -397,7 +408,7 @@ public static partial class CqlV1Compiler
         object value;
         if (type == typeof(string) && json.ValueKind == JsonValueKind.String && json.GetString().Length <= 512) value = json.GetString();
         else if (type == typeof(bool) && json.ValueKind is JsonValueKind.True or JsonValueKind.False) value = json.GetBoolean();
-        else if (type == typeof(long) && json.ValueKind == JsonValueKind.Number && json.TryGetInt64(out var number)) value = number;
+        else if (type == typeof(long) && TryInt64(json, out var number)) value = number;
         else if (type == typeof(int) && json.ValueKind == JsonValueKind.Number && json.TryGetInt32(out var integer)) value = integer;
         else if (type == typeof(Guid) && json.ValueKind == JsonValueKind.String && Guid.TryParseExact(json.GetString(), "D", out var guid)) value = guid;
         else if (type == typeof(ulong) && TryUInt64(json, out var unsigned)) value = unsigned;
