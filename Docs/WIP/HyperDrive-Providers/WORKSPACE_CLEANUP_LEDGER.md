@@ -1391,4 +1391,4 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 
 15 November Cancun time. Hosted MongoDB job 132726808041 passed both remaining read-modify-write checks. Their owned databases were dropped in the test cleanup and the workflow removed the MongoDB container and volume. No local test databases or build outputs were created.
 
-15 November Cancun time. Messages summary run 43686768595 uses a disposable hosted SQLite database. No local build, download, test database or test result file was created.
+15 November Cancun time. Messages summary job 132728770627 passed and removed its disposable hosted SQLite database directory in the test finally block. No local build, download, test database or test result file was created.

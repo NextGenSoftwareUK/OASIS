@@ -10,7 +10,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests;
 public sealed class DashboardSummaryHttpTests
 {
     [Fact]
-    public async Task DashboardSummaryRoutesRejectAnonymousHttpRequests()
+    public Task DashboardSummaryRoutesRejectAnonymousHttpRequests() => VerifyUnauthorizedAsync(
+        "/api/files/get-file-count-for-current-logged-in-avatar",
+        "/api/wallet/current-avatar/summary");
+
+    [Fact]
+    public Task DashboardMessageSummaryRejectsAnonymousHttpRequests() =>
+        VerifyUnauthorizedAsync("/api/messaging/current-avatar/summary");
+
+    private static async Task VerifyUnauthorizedAsync(params string[] routes)
     {
         var builder = WebApplication.CreateBuilder();
         builder.WebHost.UseUrls("http://127.0.0.1:0");
@@ -21,11 +29,7 @@ public sealed class DashboardSummaryHttpTests
         await app.StartAsync();
 
         using var client = new HttpClient { BaseAddress = new Uri(app.Urls.Single()) };
-        foreach (var route in new[]
-        {
-            "/api/files/get-file-count-for-current-logged-in-avatar",
-            "/api/wallet/current-avatar/summary"
-        })
+        foreach (var route in routes)
         {
             using var response = await client.GetAsync(route);
             Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
