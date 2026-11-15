@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. The production Checkout cancel update used the already qualified three-file tree. Public verification ran in memory and Vercel built remotely. No payment, local build, download or results were created.
+
 15 November Cancun time. Gifts lifecycle passed in an isolated CI SQLite database that the test removes after provider disposal. OPORTAL browser-script regression ran in memory and both temporary candidate indexes were removed. No local databases, packages or build outputs were created.
 
 15 November Cancun time. Removed the two isolated temporary Git indexes used to reapply the Gifts and Checkout batch to the latest Development graph. No local builds, databases, downloads or result files were created.
