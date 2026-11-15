@@ -403,6 +403,38 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.Subscription
             result.Should().BeOfType<UnauthorizedObjectResult>();
             _svc.VerifyNoOtherCalls();
         }
+        [Fact]
+        public async Task SignedCheckoutFromAnotherLedgerDoesNotTouchBilling()
+        {
+            const string secret = "whsec_test_checkout";
+            var config = new ConfigurationBuilder().AddInMemoryCollection(
+                new Dictionary<string, string> { ["STRIPE_WEBHOOK_SECRET"] = secret }).Build();
+            var billing = new Mock<ISubscriptionBillingRepository>(MockBehavior.Strict);
+            var controller = new SubscriptionController(config, _svc.Object, billingRepository: billing.Object);
+            long timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            string body = System.Text.Json.JsonSerializer.Serialize(new
+            {
+                id = "evt_other_checkout", @object = "event", type = "checkout.session.completed",
+                created = timestamp, api_version = Stripe.StripeConfiguration.ApiVersion,
+                data = new { @object = new
+                {
+                    id = "cs_test_other_checkout", @object = "checkout.session", subscription = "sub_other",
+                    metadata = new { oasis_ledger_scope = "different_ledger_" + Guid.NewGuid().ToString("N"), avatar_id = Guid.NewGuid().ToString("D") }
+                } }
+            });
+            using var hmac = new System.Security.Cryptography.HMACSHA256(System.Text.Encoding.UTF8.GetBytes(secret));
+            string signature = Convert.ToHexStringLower(hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(timestamp + "." + body)));
+            var context = new DefaultHttpContext();
+            context.Request.Headers["Stripe-Signature"] = $"t={timestamp},v1={signature}";
+            context.Request.Body = new System.IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes(body));
+            controller.ControllerContext = new ControllerContext { HttpContext = context };
+
+            var result = (await controller.StripeWebhook()).Should().BeOfType<OkObjectResult>().Subject;
+            System.Text.Json.JsonSerializer.Serialize(result.Value).Should().Contain("other_ledger_checkout");
+            billing.VerifyNoOtherCalls();
+            _svc.VerifyNoOtherCalls();
+        }
+
         [Theory]
         [InlineData("invoice.paid", "price_bronze", "bronze", "usd", 12.34, false)]
         [InlineData("invoice.payment_succeeded", "price_bronze", "bronze", "gbp", 12.34, false)]
