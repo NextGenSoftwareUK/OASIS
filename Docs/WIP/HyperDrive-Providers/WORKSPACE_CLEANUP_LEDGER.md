@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. WEB4 confirmed deletion of the disposable Karma stats test avatar with HTTP 200. Removed the scoped portal candidate index. No local build outputs, dependencies or test artifacts were retained.
+
 15 November Cancun time. WEB4 confirmed deletion of the disposable dashboard test avatar with HTTP 200. Removed the alternate Git index and temporary patch after staging the dashboard candidate. The signed sandbox and UI checks ran in memory with no local installation, build output or test artifacts.
 
 15 November Cancun time. The global Avatar filter used one disposable signed sandbox avatar and WEB4 confirmed deletion with HTTP 200. Compared all seven live portal files in memory. Removed the combined WEB4 candidate alternate index. No local installations, packages, databases or build outputs were retained. C: had 30.10 GiB free before the portal push.
