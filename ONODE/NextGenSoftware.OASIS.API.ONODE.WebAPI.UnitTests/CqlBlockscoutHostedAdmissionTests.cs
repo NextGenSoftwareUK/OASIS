@@ -10,6 +10,22 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests;
 
 public class CqlBlockscoutHostedAdmissionTests
 {
+    [Theory]
+    [InlineData(null)]
+    [InlineData("invalid key")]
+    public async Task UniversalProfileFailsActivationWhenCredentialIsMissingOrMalformed(string apiKey)
+    {
+        using var source = BlockscoutOASIS.FromUniversalQueryConfiguration(JsonSerializer.Serialize(new
+        {
+            schema = 1, apiUrl = "https://eth.blockscout.com/api/v2/",
+            addresses = new[] { "0x6b175474e89094c44da98b954eedeac495271d0f" }, sourceOwner = Guid.NewGuid()
+        }), apiKey);
+        var result = await source.ActivateQuerySourceAsync(default);
+        Assert.True(result.IsError);
+        Assert.IsType<InvalidOperationException>(result.Exception);
+        Assert.False(source.IsProviderActivated);
+    }
+
     [Fact]
     public void AddressCopyIdentityKeepsTheExisting128CharacterBoundary()
     {
