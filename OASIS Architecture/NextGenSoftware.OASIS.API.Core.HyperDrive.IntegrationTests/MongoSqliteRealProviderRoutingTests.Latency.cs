@@ -160,6 +160,21 @@ public sealed class MongoSqliteRoutingLatencyTests(ITestOutputHelper output)
         static int CountNodes(IHolon node) => 1 + (node.Children?.Sum(CountNodes) ?? 0);
         foreach (var provider in new[] { ProviderType.MongoDBOASIS, ProviderType.SQLLiteDBOASIS })
         {
+            var defaultCollection = await reader.LoadHolonsForParentAsync(dashboardParent, HolonType.All, providerType: provider);
+            Assert.False(defaultCollection.IsError, defaultCollection.Message);
+            Assert.Equal(expectedIds, defaultCollection.Result.Select(row => row.Id).OrderBy(id => id).ToArray());
+            Assert.Equal(parentResults, defaultCollection.Result.Sum(CountNodes));
+
+            var defaultRoot = await reader.LoadHolonAsync(roots[0].Id, providerType: provider);
+            Assert.False(defaultRoot.IsError, defaultRoot.Message);
+            Assert.Equal(1, CountNodes(defaultRoot.Result));
+
+            var immediateChildren = await reader.LoadHolonsForParentAsync(roots[0].Id, HolonType.All, providerType: provider);
+            Assert.False(immediateChildren.IsError, immediateChildren.Message);
+            Assert.Equal(roots[0].Children.Select(row => row.Id).OrderBy(id => id),
+                immediateChildren.Result.Select(row => row.Id).OrderBy(id => id));
+            Assert.Equal(childrenPerParent, immediateChildren.Result.Sum(CountNodes));
+
             var samples = new Dictionary<bool, List<double>> { [false] = [], [true] = [] };
             for (var iteration = 0; iteration < 24; iteration++)
             {
