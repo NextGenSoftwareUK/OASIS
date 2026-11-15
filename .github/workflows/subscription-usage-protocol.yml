@@ -29,7 +29,7 @@ on:
       sqlite_performance_case:
         description: Focused case selected when sqlite_metadata_only is enabled
         type: choice
-        options: [metadata, wallet_summary]
+        options: [metadata, wallet_summary, summary_http]
         default: metadata
 permissions:
   contents: read
@@ -99,17 +99,22 @@ jobs:
             dotnet test ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests --filter 'FullyQualifiedName~NativeMapVisitSurvivesNewManagersAndKeepsAvatarHistoryPrivate' --logger 'console;verbosity=detailed' /m:2 /nr:false /p:UseSharedCompilation=false
             if ($LASTEXITCODE -ne 0) { throw 'Native map visit verification failed.' }
           }
-      - name: Verify native SQLite performance case
+      - name: Verify selected dashboard performance case
         if: inputs.sqlite_metadata_only
         env:
           SQLITE_PERFORMANCE_CASE: ${{ inputs.sqlite_performance_case }}
         shell: pwsh
         run: |
           ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-SqliteMetadata -Operation {
-            $project = 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests'
-            $test = if ($env:SQLITE_PERFORMANCE_CASE -eq 'wallet_summary') { 'ReadsWalletSummaryFromNativeSqlite' } else { 'NativeSqliteFiltersMetadataBeforeHolonMapping' }
+            if ($env:SQLITE_PERFORMANCE_CASE -eq "summary_http") {
+              $project = "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests"
+              $test = "DashboardSummaryRoutesRejectAnonymousHttpRequests"
+            } else {
+              $project = "OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests"
+              $test = if ($env:SQLITE_PERFORMANCE_CASE -eq "wallet_summary") { "ReadsWalletSummaryFromNativeSqlite" } else { "NativeSqliteFiltersMetadataBeforeHolonMapping" }
+            }
             dotnet test $project --filter "FullyQualifiedName~$test" --logger 'console;verbosity=detailed' /m:2 /nr:false /p:UseSharedCompilation=false
-            if ($LASTEXITCODE -ne 0) { throw 'Native SQLite performance verification failed.' }
+            if ($LASTEXITCODE -ne 0) { throw 'Dashboard performance verification failed.' }
           }
       - name: Validate sole authority and pinned source graph
         if: ${{ !inputs.mongo_sqlite_point_reads && !inputs.mongo_sqlite_latency && !inputs.mongo_sqlite_karma && !inputs.sqlite_map_visits && !inputs.sqlite_metadata_only }}
