@@ -45,8 +45,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
 
         internal const string DevelopmentSessionCookieOrigin = "https://dev.web4.oasisomniverse.one";
 
-        internal static void ConfigureBrowserCors(IApplicationBuilder app, bool allowDevelopmentPreview = false)
+        internal static void ConfigureBrowserCors(IApplicationBuilder app,
+            NextGenSoftware.OASIS.API.DNA.SandboxSettings sandbox, Func<string, string> environment = null)
         {
+            var allowDevelopmentPreview = sandbox?.EnableDevelopmentWeb4Preview == true
+                && NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.ProgrammaticVerificationPolicy
+                    .IsDevelopmentEnvironment(environment);
             var cookieOrigins = allowDevelopmentPreview
                 ? new[] { SessionCookieOrigin, DevelopmentSessionCookieOrigin }
                 : new[] { SessionCookieOrigin };
@@ -1070,10 +1074,7 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             //app.UseSession();
 
             // global cors policy — open to any origin so OASIS APIs are pluggable everywhere
-            ConfigureBrowserCors(app,
-                Configuration.GetValue<bool>("OASIS:EnableDevelopmentWeb4Preview")
-                && NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.ProgrammaticVerificationPolicy
-                    .IsDevelopmentEnvironment(Environment.GetEnvironmentVariable));
+            ConfigureBrowserCors(app, NextGenSoftware.OASIS.API.DNA.OASISDNAManager.OASISDNA?.OASIS?.Sandbox);
 
             //TODO: Was this, check later...
             //app.UseCors(MyAllowSpecificOrigins);

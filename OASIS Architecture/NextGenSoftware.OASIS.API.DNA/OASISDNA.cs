@@ -137,6 +137,9 @@ namespace NextGenSoftware.OASIS.API.DNA
     /// <summary>The public sandbox: whether this node is one, how its throwaway demo avatars are named, limited and cleaned up.</summary>
     public class SandboxSettings
     {
+        /// <summary>Allows the fixed Development WEB4 website origin to use browser session cookies on a Development server.</summary>
+        public bool EnableDevelopmentWeb4Preview { get; set; }
+
         /// <summary>Turns the sandbox endpoints and the demo avatar cleanup on. Only the sandbox deployment sets this.</summary>
         public bool Enabled { get; set; } = false;
         /// <summary>The providers a demo avatar's HyperDrive settings route across, comma-separated.</summary>
