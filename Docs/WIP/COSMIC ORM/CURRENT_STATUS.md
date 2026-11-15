@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Plain OR in the SQL-like editor · 15 November
+
+Web4Site f86d9242d47b now accepts a plain WHERE OR list and compiles it to the same typed request as a parenthesized OR group. Mixed AND and OR still require the parentheses supported by the existing bounded WEB4 grammar. Ask Your Data advertises the same syntax. The exact full client suite passed 193 tests. [Preview 7802284428](https://web4-site-a2i9orgxy-oasis-team.vercel.app/web4-sandbox.html) built successfully. The retained signed-in visitor ran the same compiled projection on live WEB4 2526b8c8a0e8 for MongoDB, SQLite and Neo4j, with an empty visible cohort. The exact deployment matched before and after. Protected browser verification remains open.
+
 ## Signed metadata and nested composition qualification · 15 November
 
 Focused CI 43704296158 failed on a new assertion that expected Decimal for an Int64 comparison. The compiler correctly emitted Int64. The feature correction 591b9a2aa325 is in CI 43705254613. Exact signed-only candidate bc8fbf3c32d6 is in protocol CI 43705395121 and image CI 43705398948. The separate nested composition candidate 40c410687c39 is in protocol CI 43705396868. Development 2526b8c8a0e8 is building in Railway deployment 665fe506; live Axelar acceptance is still pending. The protected hosted browser walkthrough remains the top demo gate.
