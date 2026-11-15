@@ -1,5 +1,11 @@
 # COSMIC ORM / CQL current status
 
+## SQL COUNT(1) and shared Development integration
+
+15 November. Web4Site c260c497e66d accepts COUNT(1) in scalar and grouped SQL and tells Ask your data that it is equivalent to COUNT(*). All 222 website tests passed. Exact c260c497e66d generated identical request bodies for both count spellings. Development 807623f716cd accepted the scalar and grouped forms on MongoDB, SQLite and Neo4j, returning zero or no groups for the six already-cleaned exact IDs. [Protected preview 7807060233](https://web4-site-p42kg2y1e-oasis-team.vercel.app/web4-sandbox.html) built. The new browser walkthrough remains open. Temporary website test snapshots and indexes were removed.
+
+Exact backend da2a6e66b28a passed both protocol CI 43739271040 and WEB4 image CI 43739273458. HyperDrive published the WEB5 cold OAPP search revision fdd9df3ee6e8 before the old rollout guard published the CQL candidate. Both guards stopped, and the two peer files are disjoint from all seven CQL files. The next exact candidate must preserve both the STAR gitlink and matching dependency manifest. Railway queued 888c1af0 at 17:22:56 UTC. Reconcile the new combined candidate and observe the shared deployment window before the next push.
+
 ## Populated native SQL joins verified on live WEB4
 
 15 November. On Development 807623f716cd, the exact Web4Site c93c9d2c582b compiler sent an INNER and a LEFT join to each of MongoDB, SQLite and Neo4j. Each INNER join returned the expected same-ID match on both Id and Version. Each LEFT join also returned the unmatched row with a null right ID and hasRight false. All six private fixtures were hard-deleted using the native revision observed on load. The initial MongoDB absence handler expected a result field in a successful empty response. The subsequent checks verified all six IDs absent through CQL. One client-to-HTTP sample per empty left join measured 924 ms on MongoDB, 489 ms on SQLite and 1,044 ms on Neo4j. These are observations of empty queries. The hosted browser walkthrough and live WEB6 join draft remain open.
