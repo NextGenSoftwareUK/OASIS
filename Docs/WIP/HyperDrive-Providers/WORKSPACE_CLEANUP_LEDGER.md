@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. Ran the subscription badge UI test in memory. Both release staging indexes were removed. No local SDK, downloads, build output or test result files were retained.
+
 15 November Cancun time. Removed the combined portal release index after staging. Ran syntax and scope verification in memory. The recent staging-file scan found zero owned leftovers, and C: had 29.76 GiB free.
 
 15 November Cancun time. Removed the alternate indexes for the two scoped OPORTAL releases. Verified loader compatibility and candidate scope in memory. No local downloads, environments, artifacts or database fixtures were created.
