@@ -60,7 +60,7 @@ public partial class HolonRepository
                         limits.MaximumRightRows, limits.MaximumRightPayloadBytes).ConfigureAwait(false);
                     var rows = new List<CosmicJoinRow>();
                     long bytes = 0, pairCount = 0;
-                    using (var command = Command("SELECT *,count(*) OVER () AS nativeCount FROM (" + compiled.Pairs + ") ORDER BY 1,2"))
+                    using (var command = Command("SELECT *,count(*) OVER () AS nativeCount FROM (" + compiled.Pairs + ") ORDER BY 1 NULLS LAST,2"))
                     await using (var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false))
                     {
                         while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
@@ -69,7 +69,7 @@ public partial class HolonRepository
                             pairCount = reader.GetInt64(2);
                             if (pairCount > limits.MaximumPairs || pairCount > limits.MaximumResults)
                                 throw new SqliteCqlResourceException("Native join exceeds remaining pair or output work.");
-                            var l = left.Rows[reader.GetInt64(0)];
+                            var l = reader.IsDBNull(0) ? null : left.Rows[reader.GetInt64(0)];
                             var r = reader.IsDBNull(1) ? null : right.Rows[reader.GetInt64(1)];
                             var values = new object[plan.Query.Columns.Count];
                             var li = 0; var ri = 0;
@@ -79,15 +79,13 @@ public partial class HolonRepository
                                 var column = plan.Query.Columns[index];
                                 values[index] = column.Source switch
                                 {
-                                    CosmicJoinColumnSource.Left => l.Values[li++],
-                                    CosmicJoinColumnSource.Right => r == null ? MissingRight() : r.Values[ri++],
+                                    CosmicJoinColumnSource.Left => l?.Values[li++],
+                                    CosmicJoinColumnSource.Right => r?.Values[ri++],
                                     _ => column.PresenceWhenMissing ? r == null : r != null
                                 };
                                 Reserve(values[index], ref bytes, limits.MaximumPayloadBytes);
                             }
-                            rows.Add(new CosmicJoinRow(l.Id, r?.Id, values));
-
-                            object MissingRight() { ri++; return null; }
+                            rows.Add(new CosmicJoinRow(l?.Id ?? Guid.Empty, r?.Id, values));
                         }
                     }
                     Check();

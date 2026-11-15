@@ -54,22 +54,57 @@ internal sealed partial class MongoCqlTranslator
         }));
         pairs.Add(new("$unwind", new BsonDocument
         {
-            { "path", "$matched" }, { "preserveNullAndEmptyArrays", query.Join.Kind == CosmicJoinKind.Left }
+            { "path", "$matched" }, { "preserveNullAndEmptyArrays", query.Join.Kind is CosmicJoinKind.Left or CosmicJoinKind.Full }
         }));
         var projection = new BsonDocument
         {
             { "_id", 0 }, { "left", "$id" }, { "right", Op("$ifNull", "$matched.id", Literal(BsonNull.Value)) }
         };
         var sort = new BsonDocument();
+        if (query.Join.Kind == CosmicJoinKind.Full)
+        {
+            projection.Add("leftPresent", Literal(true));
+            sort.Add("leftPresent", -1);
+        }
         PairOrdering(query.Join.Left, "l", false);
         sort.Add("left", 1);
         PairOrdering(query.Join.Right, "r", true);
         sort.Add("right", 1);
         pairs.Add(new("$project", projection));
+        if (query.Join.Kind == CosmicJoinKind.Full)
+        {
+            // Match from the right window against the same left window at the session's snapshot time.
+            // Only an existence probe is needed to exclude right rows already emitted by the left join.
+            var antiProbe = Plain(left);
+            antiProbe.Add(new("$match", new BsonDocument("$expr", Op("$and", equality.ToArray()))));
+            antiProbe.Add(new("$project", new BsonDocument { { "_id", 0 }, { "id", 1 } }));
+            antiProbe.Add(new("$limit", 1));
+            var unmatchedRight = Plain(right);
+            unmatchedRight.Add(new("$lookup", new BsonDocument
+            {
+                { "from", "Holon" }, { "let", bindings.DeepClone() },
+                { "pipeline", new BsonArray(antiProbe) }, { "as", "matched" }
+            }));
+            unmatchedRight.Add(new("$match", new BsonDocument("matched.0", new BsonDocument("$exists", false))));
+            unmatchedRight.Add(new("$limit", pairLimit));
+            var rightOnly = new BsonDocument
+            {
+                { "_id", 0 }, { "leftPresent", Literal(false) },
+                { "left", Literal(BsonNull.Value) }, { "right", "$id" }
+            };
+            for (var index = 0; index < query.Join.Left.Orderings.Count; index++)
+                rightOnly.Add("l" + index, Literal(BsonNull.Value));
+            for (var index = 0; index < query.Join.Right.Orderings.Count; index++)
+                rightOnly.Add("r" + index, "$o" + index);
+            unmatchedRight.Add(new("$project", rightOnly));
+            pairs.Add(new("$unionWith", new BsonDocument
+                { { "coll", "Holon" }, { "pipeline", new BsonArray(unmatchedRight) } }));
+        }
         pairs.Add(new("$sort", sort));
         pairs.Add(new("$limit", pairLimit));
         pairs.Add(CountWindow());
         pairs.Add(new("$sort", (BsonDocument)sort.DeepClone()));
+        if (query.Join.Kind == CosmicJoinKind.Full) pairs.Add(new("$project", new BsonDocument("leftPresent", 0)));
         ValidatePipeline(pairs);
         return new MongoCqlJoinCommand(left, right, pairs.ToArray());
 

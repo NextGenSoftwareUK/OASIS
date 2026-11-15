@@ -311,6 +311,48 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         var boundedRows = await CosmicJoinExecutor.ExecuteAsync(boundedCross.Result, new[] { joinAdapter });
         Assert.IsTrue(boundedRows.IsError, "Exceeding pair work must never return partial Cartesian results.");
 
+        var fullRequest = new CqlJoinRequest
+        {
+            Provider = provider.ToString(), Kind = "Full", Left = CrossSource(leftIds),
+            Right = CrossSource(new[] { ids[0], ids[1], ids[2], ids[3] }),
+            MaximumLeftRows = 2, MaximumRightRows = 4, MaximumPairs = 8, MaximumResults = 8,
+            Keys = new[] { new CqlJoinKey
+            {
+                Alias = "Id", Left = new CqlJoinScalar { Field = "Id" }, Right = new CqlJoinScalar { Field = "Id" }
+            } },
+            Columns = new[]
+            {
+                new CqlJoinColumn { Alias = "LeftId", Source = "Left", AllowMissing = true, Selection = new CqlJoinScalar { Field = "Id" } },
+                new CqlJoinColumn { Alias = "RightId", Source = "Right", AllowMissing = true, Selection = new CqlJoinScalar { Field = "Id" } }
+            }
+        };
+        var fullPlan = CosmicJoinPlanner.Plan(CqlCompiler.CompileJoin(fullRequest, actor, provider), provider, joinTargets);
+        Assert.IsFalse(fullPlan.IsError, fullPlan.Message);
+        var fullRows = await CosmicJoinExecutor.ExecuteAsync(fullPlan.Result, new[] { joinAdapter });
+        Assert.IsFalse(fullRows.IsError, fullRows.Message + fullRows.Exception);
+        var expectedFull = leftIds.OrderBy(id => id).Select(id => ((Guid?)id, id == ids[0] ? (Guid?)id : null))
+            .Concat(new[] { ids[1], ids[3] }.OrderBy(id => id).Select(id => ((Guid?)null, (Guid?)id))).ToArray();
+        var actualFull = fullRows.Result.Providers.Single().Rows.ToArray();
+        CollectionAssert.AreEqual(expectedFull, actualFull
+            .Select(row => ((Guid?)row.Value["LeftId"], (Guid?)row.Value["RightId"])).ToArray());
+        Assert.IsTrue(actualFull.All(row => row.HasLeft == (row.Value["LeftId"] != null)
+            && row.HasRight == (row.Value["RightId"] != null)));
+
+        fullRequest.MaximumPairs = 3;
+        var fullLimited = CosmicJoinPlanner.Plan(CqlCompiler.CompileJoin(fullRequest, actor, provider), provider, joinTargets);
+        Assert.IsFalse(fullLimited.IsError, fullLimited.Message);
+        Assert.IsTrue((await CosmicJoinExecutor.ExecuteAsync(fullLimited.Result, new[] { joinAdapter })).IsError,
+            "Full joins cannot publish a partial pair budget result.");
+
+        fullRequest.MaximumPairs = 8;
+        fullRequest.Left = CrossSource(new[] { Guid.NewGuid() });
+        var emptyLeft = CosmicJoinPlanner.Plan(CqlCompiler.CompileJoin(fullRequest, actor, provider), provider, joinTargets);
+        Assert.IsFalse(emptyLeft.IsError, emptyLeft.Message);
+        var rightOnly = await CosmicJoinExecutor.ExecuteAsync(emptyLeft.Result, new[] { joinAdapter });
+        Assert.IsFalse(rightOnly.IsError, rightOnly.Message + rightOnly.Exception);
+        CollectionAssert.AreEqual(visibleRightIds.OrderBy(id => id).ToArray(), rightOnly.Result.Providers.Single().Rows
+            .Select(row => { Assert.IsFalse(row.HasLeft); Assert.IsTrue(row.HasRight); return (Guid)row.Value["RightId"]; }).ToArray());
+
         checks.Add(new { provider = provider.ToString(), distinctWire = "native SQL and LINQ Int32, nullable Int64, Boolean, Guid, ordinal nullable String exact nullable UTC timestamps, nullable UInt64, exact nullable Decimal all narrower integral domains, Single, Double, HolonType and ProviderType; composite nullable join keys exclude null and retain unmatched left rows" });
     }
 }

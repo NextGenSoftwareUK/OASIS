@@ -58,8 +58,14 @@ public partial class HolonRepository
                         if (data.ElementCount != 3 + query.Join.Left.Orderings.Count + query.Join.Right.Orderings.Count
                             || !data.TryGetValue("left", out var leftId) || !data.TryGetValue("right", out var rightId))
                             throw new InvalidDataException("Native join pair shape is invalid.");
-                        var id = (Guid)DecodeNativeProjectionCell(leftId, typeof(Guid));
-                        if (!left.Rows.TryGetValue(id, out var l)) throw new InvalidDataException("Native join left identity is outside its source.");
+                        CosmicJoinInputRow l = null;
+                        if (leftId.IsBsonNull)
+                        {
+                            if (query.Join.Kind != CosmicJoinKind.Full || rightId.IsBsonNull)
+                                throw new InvalidDataException("Native join cannot omit its left identity.");
+                        }
+                        else if (!left.Rows.TryGetValue((Guid)DecodeNativeProjectionCell(leftId, typeof(Guid)), out l))
+                            throw new InvalidDataException("Native join left identity is outside its source.");
                         CosmicJoinInputRow r = null;
                         if (!rightId.IsBsonNull && !right.Rows.TryGetValue((Guid)DecodeNativeProjectionCell(rightId, typeof(Guid)), out r))
                             throw new InvalidDataException("Native join right identity is outside its source.");
@@ -68,13 +74,13 @@ public partial class HolonRepository
                         for (var index = 0; index < values.Length; index++)
                         {
                             var column = query.Columns[index];
-                            if (column.Source == CosmicJoinColumnSource.Left) values[index] = l.Values[li++];
+                            if (column.Source == CosmicJoinColumnSource.Left) { values[index] = l?.Values[li]; li++; }
                             else if (column.Source == CosmicJoinColumnSource.Right)
                             { values[index] = r == null ? null : r.Values[ri]; ri++; }
                             else values[index] = column.PresenceWhenMissing ? r == null : r != null;
                             ReserveJoinCell(values[index], ref bytes, limits.MaximumPayloadBytes);
                         }
-                        rows.Add(new CosmicJoinRow(l.Id, r?.Id, values));
+                        rows.Add(new CosmicJoinRow(l?.Id ?? Guid.Empty, r?.Id, values));
                     }
             deadline.Token.ThrowIfCancellationRequested();
             if (pairCount != rows.Count) throw new InvalidDataException("Native join pair count disagrees with its complete stream.");
