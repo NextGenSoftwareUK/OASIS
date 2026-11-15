@@ -2,7 +2,7 @@
 
 ### WEB4 COSMIC demo preview access · 13 November
 
-Open. Authorize the existing Vercel connection for the OASIS team with a current Vercel consent link. The earlier link was time-limited. The connector currently returns HTTP 403 for the team and the installed CLI has no active credentials. This access is for the existing [protected preview of Web4Site `09f7c17040a6`](https://web4-site-4nmzhzmpe-oasis-team.vercel.app/web4-sandbox.html) for authenticated browser acceptance. The public site still serves the previous frontend. [Web4Site feature branch](https://github.com/NextGenSoftwareUK/Web4Site/tree/work/cosmic-cql)
+Open. Authorize the existing Vercel connection for the OASIS team with a current Vercel consent link. The earlier link was time-limited. The connector currently returns HTTP 403 for the team and the installed CLI has no active credentials. This access is for the existing [protected preview of Web4Site `881cd0c603d6`](https://web4-site-qlsux2nkk-oasis-team.vercel.app/web4-sandbox.html) for authenticated browser acceptance. The public site still serves the previous frontend. [Web4Site feature branch](https://github.com/NextGenSoftwareUK/Web4Site/tree/work/cosmic-cql)
 
 The single list of everything that needs you: your accounts, phones, admin rights, approvals or a decision. Everything else is done or in progress. Tick items off and tell Claude when one is done; it picks up the next step. Never paste passwords, API keys, tokens or connection strings into chat.
 
