@@ -1,5 +1,7 @@
 # Current provider status
 
+15 November Cancun time. Development advanced from serving 232e68a7f98b to 807623f716cd with the qualified Free excess-request estimate and Solid cold collection changes. The guarded push observed the shared interval and passed dependency-manifest verification. Railway WEB4 deployment f6d02af2-a661-4a10-802d-b728b9cbd6b1 is building. The next shared review starts after 17:20:12 UTC, subject to serving state and the remote head. Live estimates and the remaining subscription portal rollout are pending.
+
 15 November Cancun time. OPORTAL dev d26862072ab3 deployed successfully. The served portal requests the qualified avatar, session and OAPP files at 20261115a, and all three assets match their Git blobs byte for byte. The independent release uses the already verified WEB4 and WEB5 routes. Exact remaining subscription candidate b583f0523d14 preserves those deployed files and the separately qualified subscription assets. It awaits the WEB4 estimate rollout.
 
 15 November Cancun time. OPORTAL b63f723 shares one session refresh, makes 401 handling call the actual refresh function, waits for an active refresh at sign-out, and revokes the resulting refresh credential through the authenticated SDK. The signed WEB4 test verified refresh, revoke, rejected reuse of the rotated credential, and clearing of the portal session. Exact portal candidates are dev 2e4da8ad884f and production b6bf4791da50. They remain staged with their subscription assets.
