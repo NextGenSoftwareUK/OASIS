@@ -30,7 +30,7 @@ public sealed class CqlInt64WireTests
             var query = CqlV1Compiler.Compile(Source(wire), Guid.NewGuid(), null);
             var predicate = Assert.Single(query.Predicates.OfType<CosmicQueryComparison>());
             Assert.Equal(typeof(long), predicate.Path.ValueType);
-            Assert.Equal((decimal)expected, Assert.IsType<decimal>(predicate.Literal.Value));
+            Assert.Equal(expected, Assert.IsType<long>(predicate.Literal.Value));
         }
     }
 
