@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+15 November. The populated 17df815c verifier deleted exactly two MongoDB numeric records and nine joined records across all three providers and independently verified absence. Compact operation journals remain in LocalState/COSMIC/HostedCqlFloatingMetadata-17df815c (1714 bytes) and HostedCqlFullOuter-17df815c (7740 bytes). The website test snapshot and Git index were removed after use. No runtime downloads, local databases or build outputs were created. C: free 32306012160 bytes observed after the work.
+
 15 November. The website pagination-only release and combined SQL retest used two temporary source snapshots and one disposable Git index, removed at command exit. No local runtime, download, database or build output was retained.
 
 15 November. SQL FETCH and OFFSET ROWS verification used one disposable website test snapshot, removed at process exit. No local runtime installation, outputs or database fixtures were retained.
