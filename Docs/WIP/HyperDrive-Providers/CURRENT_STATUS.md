@@ -1,5 +1,7 @@
 # Current provider status
 
+15 November Cancun time. OPORTAL dev candidate be551234c06b is staged against serving portal revision 174be35dabb3. It changes three files to use the already available Files, Wallets and Messages summaries and independently render Map counts, retaining the existing Gifts read until that compact API is serving. JavaScript compiled and the exact candidate passed endpoint contract checking. Promotion awaits the next portal dev window.
+
 15 November Cancun time. OPORTAL production 01957699fe7c passed the scoped subscription regression and Vercel deployment. The live production cancel-return route serves the single-catalog request and response-driven plan highlight. Railway dev now reports COSMIC/CQL revision 55c1c2056c55 successful. The Gifts and Checkout batch 093064cd58ad remains ready for the next shared Development window.
 
 15 November Cancun time. Native SQLite Gifts lifecycle run 43710560660 passed send, receive, open, authorization denials and independently read back the final durable status. The verified Development candidate 093064cd58ad contains the Core save fix and preserves peer revision 55c1c2056c55. The latter is still building on Railway, so the queued WEB4 batch awaits the next Development window. The Checkout return regression passed all three cases in 43709927045. OPORTAL dev 174be35dabb3 serves the cancel-return fix, with one plan request and highlighting after the catalog renders.
