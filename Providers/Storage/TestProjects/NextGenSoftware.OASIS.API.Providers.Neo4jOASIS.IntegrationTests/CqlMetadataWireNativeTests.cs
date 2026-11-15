@@ -219,6 +219,37 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Assert.IsFalse(labels.IsError, labels.Message + labels.Exception);
         CollectionAssert.AreEqual(new string?[] { "case", null, "Case" }, labels.Result.ToArray());
 
-        checks.Add(new { provider = provider.ToString(), distinctWire = "native SQL and LINQ Int32, nullable Int64, Boolean, Guid, ordinal nullable String exact nullable UTC timestamps, nullable UInt64, exact nullable Decimal all narrower integral domains, Single, Double, HolonType and ProviderType" });
+        Assert.IsInstanceOfType<ICosmicQueryJoinStorageProvider>(adapter);
+        var joinAdapter = (ICosmicQueryJoinStorageProvider)adapter;
+        var joinTargets = new[] { new CosmicJoinTarget(provider, adapter.QueryCapabilities, joinAdapter.JoinCapabilities) };
+        var scope = CosmicQueryScope.Named(provider).Result;
+        var leftIds = new[] { ids[0], ids[4] };
+        var rightIds = new[] { ids[1], ids[2], ids[3] };
+        var left = CosmicQuery<Holon>.Create(scope).Where(row => leftIds.Contains(row.Id));
+        var right = CosmicQuery<Holon>.Create(scope).Where(row => rightIds.Contains(row.Id));
+
+        var inner = left.Join(right, row => new { row.Version, row.Description },
+            row => new { row.Version, row.Description }).Select((leftRow, rightRow) => rightRow.Id);
+        Assert.IsFalse(inner.IsError, inner.Message);
+        var innerPlan = CosmicJoinPlanner.Plan(inner.Result, provider, joinTargets);
+        Assert.IsFalse(innerPlan.IsError, innerPlan.Message);
+        var innerRows = await CosmicJoinExecutor.ExecuteAsync(innerPlan.Result, new[] { joinAdapter });
+        Assert.IsFalse(innerRows.IsError, innerRows.Message + innerRows.Exception);
+        Assert.AreEqual(ids[1], innerRows.Result.Providers.Single().Rows.Single().Value);
+
+        var outer = left.LeftJoin(right, row => new { row.Version, row.Description },
+            row => new { row.Version, row.Description })
+            .Select((leftRow, rightRow) => new { LeftId = leftRow.Id, Present = rightRow != null });
+        Assert.IsFalse(outer.IsError, outer.Message);
+        var outerPlan = CosmicJoinPlanner.Plan(outer.Result, provider, joinTargets);
+        Assert.IsFalse(outerPlan.IsError, outerPlan.Message);
+        var outerRows = await CosmicJoinExecutor.ExecuteAsync(outerPlan.Result, new[] { joinAdapter });
+        Assert.IsFalse(outerRows.IsError, outerRows.Message + outerRows.Exception);
+        var presence = outerRows.Result.Providers.Single().Rows.ToDictionary(row => row.Value.LeftId, row => row.Value.Present);
+        Assert.AreEqual(2, presence.Count);
+        Assert.IsTrue(presence[ids[0]]);
+        Assert.IsFalse(presence[ids[4]]);
+
+        checks.Add(new { provider = provider.ToString(), distinctWire = "native SQL and LINQ Int32, nullable Int64, Boolean, Guid, ordinal nullable String exact nullable UTC timestamps, nullable UInt64, exact nullable Decimal all narrower integral domains, Single, Double, HolonType and ProviderType; composite nullable join keys exclude null and retain unmatched left rows" });
     }
 }

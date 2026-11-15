@@ -12,10 +12,6 @@ internal sealed partial class MongoCqlTranslator
         => Op("$add", Op("$multiply", "$a" + index + "high",
             Literal(new BsonDecimal128(new Decimal128(CosmicNumericScalarResults.LimbBase)))), "$a" + index + "low");
 
-    private static BsonValue GroupedDecimalValue(int index, bool average)
-        => DecimalAggregateValue(new BsonArray(Enumerable.Range(0, CosmicDecimalScalarResults.LimbCount)
-            .Select(part => (BsonValue)("$a" + index + "d" + part))), "$a" + index + "present", average);
-
     private static BsonValue GroupedSumValue(CosmicGroupedColumn column, int index)
     {
         var type = Nullable.GetUnderlyingType(column.Selector.ValueType) ?? column.Selector.ValueType;
