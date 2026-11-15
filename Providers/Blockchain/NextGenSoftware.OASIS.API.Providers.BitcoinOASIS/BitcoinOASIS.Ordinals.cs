@@ -11,7 +11,7 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Responses;
-using NextGenSoftware.OASIS.API.Core.Objects.NFT.Responses;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
@@ -204,6 +204,7 @@ public partial class BitcoinOASIS
                 result.Result = new Web3NFTTransactionResponse
                 {
                     TransactionResult = sent.Result.TransactionResult,
+                    SendNFTTransactionResult = sent.Result.TransactionResult,
                     Web3NFT = inscription.Result
                 };
                 return result;
