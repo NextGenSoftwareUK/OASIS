@@ -282,19 +282,40 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
         public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
         {
             var result = new OASISResult<bool>();
-            OASISErrorHandling.HandleError(ref result, "AlgorandOASIS: Accounts cannot be deleted.");
-            return await Task.FromResult(result);
+            try
+            {
+                var settings = _recordBoxes;
+                if (settings?.WriterSeed == null || !IsProviderActivated)
+                    throw new InvalidOperationException("Activate an enrolled Algorand record writer before deleting an avatar.");
+                if (id == Guid.Empty)
+                    throw new ArgumentException("An enrolled Algorand avatar ID is required.", nameof(id));
+                if (softDelete)
+                    throw new NotSupportedException("Algorand enrolled avatar soft deletion is unavailable.");
+                if (!await DeleteEnrolledAvatarPermanentlyAsync(id, settings, CancellationToken.None).ConfigureAwait(false))
+                    return new OASISResult<bool>
+                    {
+                        IsError = true,
+                        ErrorCode = OASISResultErrorCodes.RecordNotFound,
+                        Message = "The enrolled Algorand avatar was not found."
+                    };
+                result.Result = true;
+                result.IsDeleted = true;
+                result.DeletedCount = 1;
+            }
+            catch (Exception exception)
+            {
+                OASISErrorHandling.HandleError(ref result, "Could not complete enrolled Algorand avatar deletion.", exception);
+            }
+            return result;
         }
 
         public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true) =>
             DeleteAvatarAsync(id, softDelete).Result;
 
-        public override async Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
-        {
-            var result = new OASISResult<bool>();
-            OASISErrorHandling.HandleError(ref result, "AlgorandOASIS: Accounts cannot be deleted.");
-            return await Task.FromResult(result);
-        }
+        public override Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true) =>
+            Guid.TryParseExact(providerKey, "D", out var id) ?
+                DeleteAvatarAsync(id, softDelete) :
+                Task.FromResult(new OASISResult<bool> { IsError = true, Message = "An enrolled Algorand avatar ID is required." });
 
         public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true) =>
             DeleteAvatarAsync(providerKey, softDelete).Result;

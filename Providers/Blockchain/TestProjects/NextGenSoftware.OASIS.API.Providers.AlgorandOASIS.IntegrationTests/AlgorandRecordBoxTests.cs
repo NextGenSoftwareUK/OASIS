@@ -60,6 +60,25 @@ public sealed class AlgorandRecordBoxTests
             Assert.AreEqual("enrolled-detail", allDetails.Result.Single().Username);
             Assert.AreEqual(id, (await reader.DiscoverStoredHolonIdsAsync()).Result.Single());
             Assert.AreEqual("Ordinary holon", (await reader.LoadStoredHolonAsync(id)).Result.Name);
+
+            var deleted = await writer.DeleteAvatarAsync(id.ToString("D"), softDelete: false);
+            Assert.IsFalse(deleted.IsError, deleted.Exception?.ToString() ?? deleted.Message);
+            Assert.IsTrue(deleted.IsDeleted);
+            Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, (await reader.LoadAvatarAsync(id)).ErrorCode);
+            Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, (await reader.LoadAvatarAsync(id, version: 1)).ErrorCode);
+            Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, (await reader.LoadAvatarDetailAsync(id)).ErrorCode);
+            Assert.AreEqual("Ordinary holon", (await reader.LoadStoredHolonAsync(id)).Result.Name);
+            Assert.IsTrue((await writer.DeleteAvatarAsync(id, softDelete: false)).Result);
+
+            var avatarOnlyId = Guid.NewGuid();
+            var avatarOnly = new Avatar { Id = avatarOnlyId, Version = 1, VersionId = Guid.NewGuid(), Username = "avatar-without-detail" };
+            var avatarOnlySaved = await writer.SaveAvatarAsync(avatarOnly);
+            Assert.IsFalse(avatarOnlySaved.IsError, avatarOnlySaved.Exception?.ToString() ?? avatarOnlySaved.Message);
+            var removed = await writer.DeleteAvatarAsync(avatarOnlyId, softDelete: false);
+            Assert.IsFalse(removed.IsError, removed.Exception?.ToString() ?? removed.Message);
+            var lateDetail = await writer.SaveAvatarDetailAsync(new AvatarDetail
+                { Id = avatarOnlyId, Version = 1, VersionId = Guid.NewGuid(), Username = "late-detail" });
+            Assert.IsTrue(lateDetail.IsError, "A deleted avatar must not acquire a detail record.");
         }
         finally
         {
@@ -111,6 +130,25 @@ public sealed class AlgorandRecordBoxTests
             Assert.AreEqual(first.Result.VersionId, latest.Result.PreviousVersionId);
             Assert.AreEqual("native-profile", historical.Result.Username);
             Assert.AreEqual("Ordinary holon", (await reader.LoadStoredHolonAsync(id)).Result.Name);
+
+            var deleted = await writer.DeleteAvatarAsync(id.ToString("D"), softDelete: false);
+            Assert.IsFalse(deleted.IsError, deleted.Exception?.ToString() ?? deleted.Message);
+            Assert.IsTrue(deleted.IsDeleted);
+            Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, (await reader.LoadAvatarAsync(id)).ErrorCode);
+            Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, (await reader.LoadAvatarAsync(id, version: 1)).ErrorCode);
+            Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, (await reader.LoadAvatarDetailAsync(id)).ErrorCode);
+            Assert.AreEqual("Ordinary holon", (await reader.LoadStoredHolonAsync(id)).Result.Name);
+            Assert.IsTrue((await writer.DeleteAvatarAsync(id, softDelete: false)).Result);
+
+            var avatarOnlyId = Guid.NewGuid();
+            var avatarOnly = new Avatar { Id = avatarOnlyId, Version = 1, VersionId = Guid.NewGuid(), Username = "avatar-without-detail" };
+            var avatarOnlySaved = await writer.SaveAvatarAsync(avatarOnly);
+            Assert.IsFalse(avatarOnlySaved.IsError, avatarOnlySaved.Exception?.ToString() ?? avatarOnlySaved.Message);
+            var removed = await writer.DeleteAvatarAsync(avatarOnlyId, softDelete: false);
+            Assert.IsFalse(removed.IsError, removed.Exception?.ToString() ?? removed.Message);
+            var lateDetail = await writer.SaveAvatarDetailAsync(new AvatarDetail
+                { Id = avatarOnlyId, Version = 1, VersionId = Guid.NewGuid(), Username = "late-detail" });
+            Assert.IsTrue(lateDetail.IsError, "A deleted avatar must not acquire a detail record.");
             var discovered = await reader.DiscoverStoredHolonIdsAsync();
             Assert.IsFalse(discovered.IsError, discovered.Message);
             CollectionAssert.AreEqual(new[] { id }, discovered.Result.ToArray());

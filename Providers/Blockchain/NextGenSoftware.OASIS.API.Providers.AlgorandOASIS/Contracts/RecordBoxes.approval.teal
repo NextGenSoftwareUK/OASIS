@@ -379,7 +379,7 @@ concat
 store 3
 load 3
 box_get
-assert
+bz freeze_absent
 dup
 len
 int 128
@@ -404,6 +404,28 @@ concat
 box_del
 assert
 b save_checkpoint
+
+// An absent record receives the completed purge marker and cannot be created later.
+freeze_absent:
+pop
+txna ApplicationArgs 2
+int 32
+bzero
+==
+assert
+byte "d"
+txna ApplicationArgs 1
+concat
+box_len
+!
+assert
+pop
+load 3
+int 64
+bzero
+box_put
+int 1
+return
 
 // Purge one exact revision and advance to its authenticated predecessor.
 purge:
