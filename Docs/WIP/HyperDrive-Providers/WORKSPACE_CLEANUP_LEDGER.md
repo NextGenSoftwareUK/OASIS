@@ -1346,3 +1346,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 14 November Cancun time. Rune qualification status was checked through the GitHub API in memory. Karma implementation and CI preparation created no local build output or databases. C: had 25.9 GiB free during the check.
 
 14 November Cancun time. Cold-karma job 132672112770 cleaned up its runner MongoDB container after the compile failure. Its logs were inspected in memory. No local build output, fixture databases, downloads or logs were created for the karma or map changes.
+
+14 November Cancun time. Native karma job 132673173154 deleted the fixture MongoDB database, SQLite directory and runner MongoDB container. The two temporary Git indexes used for the scoped dashboard projections were removed. No local builds or downloads were created.
