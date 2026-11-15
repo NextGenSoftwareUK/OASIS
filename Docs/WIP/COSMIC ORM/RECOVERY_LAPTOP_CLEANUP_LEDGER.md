@@ -6773,3 +6773,5 @@ Web4Site 5fa63a71df5d used a temporary directory containing only committed websi
 - Axelar deployment and DTO verification used remote CI and the existing Railway service. No local build outputs or provider fixtures were created. Temporary Git indexes were used.
 
 - Axelar query verification and timing used the existing Development visitor and public fixtures. No test result files or local runtime downloads. Temporary Git indexes and batch blob inputs were removed automatically after use.
+
+- Nostr relay discovery and signature checks ran in memory on the serving Railway container. The scoped relay URL update used the existing CLI installation and created no local credentials, builds or test result files.
