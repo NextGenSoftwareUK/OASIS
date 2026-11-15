@@ -437,6 +437,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.Subscription
         }
 
         [Theory]
+        [InlineData("https://portal.example/subscription", "https://portal.example/subscription?subscribed=1&session_id={CHECKOUT_SESSION_ID}")]
+        [InlineData("https://portal.example/subscription?tab=mysubs#billing", "https://portal.example/subscription?tab=mysubs&subscribed=1&session_id={CHECKOUT_SESSION_ID}#billing")]
+        [InlineData("https://portal.example/subscription#billing?mode=detail", "https://portal.example/subscription?subscribed=1&session_id={CHECKOUT_SESSION_ID}#billing?mode=detail")]
+        public void CheckoutSuccessUrlPreservesTheReturnQueryAndFragment(string returnUrl, string expected)
+        {
+            SubscriptionController.CheckoutSuccessUrl(returnUrl).Should().Be(expected);
+        }
+
+        [Theory]
         [InlineData("invoice.paid", "price_bronze", "bronze", "usd", 12.34, false)]
         [InlineData("invoice.payment_succeeded", "price_bronze", "bronze", "gbp", 12.34, false)]
         [InlineData("invoice.paid", "price_retired", null, "jpy", 1234, false)]
