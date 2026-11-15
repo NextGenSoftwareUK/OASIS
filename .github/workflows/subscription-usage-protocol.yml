@@ -137,10 +137,13 @@ jobs:
             & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cql-entity-projection-ci -Operation {
               dotnet test Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~EntityProjectionPreservesStagesAndProofBeforeDtoConstruction' --logger 'trx;LogFileName=entity-projection.trx' --results-directory TestResults/Neo4jCurrent
               if ($LASTEXITCODE) { throw 'Native entity projection failed.' }
+              # The native tests assert the exact fixture count for the checked-out source.
+              $providers = @{ sqlite = 'SQLLiteDBOASIS'; mongo = 'MongoDBOASIS'; neo = 'Neo4jOASIS' }
               foreach ($store in 'sqlite','mongo','neo') {
                 $report = Get-Content "TestResults/Neo4jCurrent/$store-entity-projection-native.json" -Raw | ConvertFrom-Json
-                if ($report.checks -ne 56 -or !($report.inMemoryFixture -or $report.exactCleanupVerified)) {
-                  throw "Expected all 56 native assertions and fixture cleanup for $store."
+                if ($report.provider -ne $providers[$store] -or $report.checks -lt 1 -or
+                    $report.checks -ne @($report.cases).Count -or !($report.inMemoryFixture -or $report.exactCleanupVerified)) {
+                  throw "Expected a complete native assertion report and fixture cleanup for $store."
                 }
               }
             }
