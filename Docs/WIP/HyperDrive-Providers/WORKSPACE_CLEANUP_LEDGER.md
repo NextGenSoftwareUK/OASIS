@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. The combined WEB4 Gifts and Checkout candidate used an isolated Git index, removed after staging. Focused checks run remotely without local builds, test databases or generated files.
+
 15 November Cancun time. Checked the exact three-file OPORTAL production candidate in memory and removed its isolated temporary index. The deployment built on Vercel. No local dependencies, production payments or generated results were created.
 
 15 November Cancun time. Stripe confirmed expiry for both owned Checkout test sessions. WEB4 confirmed deletion of the test avatar. The verification used sandbox sessions and in-memory HTTP calls, and created no local artifacts.

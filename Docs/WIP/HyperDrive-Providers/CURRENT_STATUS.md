@@ -1,5 +1,7 @@
 # Current provider status
 
+15 November Cancun time. WEB4 Checkout success URLs retained query parameters and URL fragments in all three focused regression cases in run 43708398273. The combined Development candidate 2d616be42746 adds those two tested files on top of the previously qualified Gifts candidate. Focused run 43709075351 checks the redirect against the combined deployment dependency graph. No Development push before qualification.
+
 15 November Cancun time. OPORTAL production 9e4806d65a10 passed the endpoint and subscription regression suites and its Vercel deployment. The canonical production /subscription page returned HTTP 200 and serves the guard that suppresses a duplicate subscription-list request until Stripe activation is confirmed. The full hosted browser payment remains open.
 
 15 November Cancun time. OPORTAL dev 3850d15ffe7b passed deployment and the public /subscription route serves the version with a single post-activation subscription refresh. The separate WEB4 return-fragment regression is running in 43708398273.
