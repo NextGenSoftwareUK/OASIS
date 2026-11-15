@@ -18,7 +18,7 @@ public static class BlockscoutPublicWalkthrough
         // Reuse the retained explorer endpoint, addresses and projection owner.
         // No API key, account, wallet or local node is created by this demo.
         var json = await File.ReadAllTextAsync(configurationPath, cancellationToken);
-        using var source = BlockscoutPublicAddressMetadataSource.FromJson(json);
+        using var source = BlockscoutOASIS.FromPublicQueryConfiguration(json);
         using var configuration = JsonDocument.Parse(json);
         var addresses = configuration.RootElement.GetProperty("addresses")
             .EnumerateArray()

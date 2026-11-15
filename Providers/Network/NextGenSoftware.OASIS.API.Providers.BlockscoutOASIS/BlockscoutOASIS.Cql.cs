@@ -15,7 +15,6 @@ using NextGenSoftware.OASIS.API.Core.Queries;
 using NextGenSoftware.OASIS.API.Core.Serialization;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
-using NextGenSoftware.Utilities;
 using PType = NextGenSoftware.OASIS.API.Core.Enums.ProviderType;
 
 namespace NextGenSoftware.OASIS.API.Providers.BlockscoutOASIS;
@@ -24,24 +23,17 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockscoutOASIS;
 /// Anonymous explorer-address observations over a bounded configured catalogue.
 /// Never submits transactions or projects private/watchlist data.
 /// </summary>
-public sealed class BlockscoutPublicAddressMetadataSource : KeyValueStorageProviderBase,
-    ICosmicQueryStorageProvider, ICosmicReadOnlyQueryActivation, IDisposable
+public partial class BlockscoutOASIS : ICosmicQueryStorageProvider, ICosmicReadOnlyQueryActivation, IDisposable
 {
     public const string AddressMetadata = "BlockscoutAddress";
     private readonly AddressesBackend addressesBackend;
     private bool disposed;
 
-    public BlockscoutPublicAddressMetadataSource(HttpClient client, Uri rest,
+    public BlockscoutOASIS(HttpClient client, Uri rest,
         IEnumerable<string> addresses, Guid sourceOwner, bool ownsClient = false)
-        : this(new AddressesBackend(client, rest, addresses, sourceOwner, ownsClient)) { }
-
-    private BlockscoutPublicAddressMetadataSource(AddressesBackend backend) : base(backend, backend.Prefix)
+        : this(client)
     {
-        addressesBackend = backend;
-        ProviderName = PType.BlockscoutOASIS.ToString();
-        ProviderDescription = "Read-only public Blockscout address observations";
-        ProviderType = new EnumValue<PType>(PType.BlockscoutOASIS);
-        ProviderCategory = new EnumValue<Core.Enums.ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+        addressesBackend = new AddressesBackend(client, rest, addresses, sourceOwner, ownsClient);
         QueryCapabilities = CosmicQueryCapabilities.ForStringMetadataKeyLookup(AddressMetadata, 42, 8);
     }
 
@@ -50,7 +42,7 @@ public sealed class BlockscoutPublicAddressMetadataSource : KeyValueStorageProvi
 
     /// <summary>Separate host query-profile configuration, never the existing
     /// explorer API-key settings. Reject unknown fields rather than ignore keys.</summary>
-    public static BlockscoutPublicAddressMetadataSource FromJson(string json)
+    public static BlockscoutOASIS FromPublicQueryConfiguration(string json)
     {
         if (json == null || Encoding.UTF8.GetByteCount(json) > 8192)
             throw new ArgumentException("Bounded explicit Blockscout public source required.");
@@ -70,7 +62,7 @@ public sealed class BlockscoutPublicAddressMetadataSource : KeyValueStorageProvi
         var client = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(15) };
         try
         {
-            return new BlockscoutPublicAddressMetadataSource(client, new Uri(root.GetProperty("apiUrl").GetString(), UriKind.Absolute),
+            return new BlockscoutOASIS(client, new Uri(root.GetProperty("apiUrl").GetString(), UriKind.Absolute),
                 root.GetProperty("addresses").EnumerateArray().Select(value => value.GetString()),
                 root.GetProperty("sourceOwner").GetGuid(), true);
         }
@@ -82,6 +74,9 @@ public sealed class BlockscoutPublicAddressMetadataSource : KeyValueStorageProvi
         try
         {
             ObjectDisposedException.ThrowIf(disposed, this);
+            if (addressesBackend == null)
+                return new() { IsError = true, ErrorCount = 1, ErrorCode = "CQL_CAPABILITY_UNSUPPORTED",
+                    Message = "A reviewed Blockscout address catalogue is required." };
             await addressesBackend.VerifyAsync(cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
             IsProviderActivated = true;
@@ -104,6 +99,7 @@ public sealed class BlockscoutPublicAddressMetadataSource : KeyValueStorageProvi
             if (plan == null || plan.Targets.Count != 1 || plan.Targets[0].Provider != QueryProviderType)
                 return Failure("CQL_PLAN_TARGET_UNAVAILABLE", "One explicitly admitted public Blockscout address source is required.");
             if (maximumResults is < 1 or > 10000) return Failure("CQL_QUERY_LIMIT", "A bounded result budget is required.");
+            if (addressesBackend == null) return Failure("CQL_CAPABILITY_UNSUPPORTED", "A reviewed Blockscout address catalogue is required.");
             var admitted = QueryCapabilities.AdmitPlan(plan);
             if (admitted.IsError) return Failure(admitted.ErrorCode, admitted.Message);
             IReadOnlyList<string> keys;
@@ -137,7 +133,10 @@ public sealed class BlockscoutPublicAddressMetadataSource : KeyValueStorageProvi
     public void Dispose()
     {
         if (disposed) return;
-        disposed = true; IsProviderActivated = false; addressesBackend.Dispose();
+        disposed = true;
+        IsProviderActivated = false;
+        if (addressesBackend == null) _http.Dispose();
+        else addressesBackend.Dispose();
     }
 
     private static OASISResult<IReadOnlyList<IHolon>> Failure(string code, string message, Exception error = null)
@@ -218,16 +217,14 @@ public sealed class BlockscoutPublicAddressMetadataSource : KeyValueStorageProvi
         return fields;
     }
 
-    private sealed class AddressesBackend : IKeyValueBackend, IDisposable
+    private sealed class AddressesBackend : IDisposable
     {
         private readonly string sourceName;
         private readonly HttpClient client;
         private readonly Uri api;
         private readonly Guid owner;
         private readonly bool ownsClient;
-        private readonly Dictionary<string, string> records;
         public IReadOnlyList<string> Addresses { get; }
-        public string Prefix => "blockscout-public-metadata/";
 
         public AddressesBackend(HttpClient client, Uri api, IEnumerable<string> addresses, Guid owner, bool ownsClient)
         {
@@ -246,8 +243,6 @@ public sealed class BlockscoutPublicAddressMetadataSource : KeyValueStorageProvi
             // Same-owner addresses on another configured explorer cannot collide.
             sourceName = "blockscout-public-addresses:" + api.AbsoluteUri;
             Addresses = Array.AsReadOnly(keys);
-            records = keys.ToDictionary(key => Prefix + "holon/" +
-                NativeRecordHolonMapper.StableHolonId(owner, PType.BlockscoutOASIS, sourceName, key).ToString("N"), key => key);
         }
 
         public async Task<IReadOnlyList<IHolon>> ReadAsync(IReadOnlyList<string> keys, CancellationToken token)
@@ -295,21 +290,6 @@ public sealed class BlockscoutPublicAddressMetadataSource : KeyValueStorageProvi
             var rows = await ReadAsync(Addresses, token);
             if (rows.Count != Addresses.Count) throw new InvalidDataException("Configured addresses are missing.");
         }
-        public async Task<string> GetAsync(string key, CancellationToken token = default)
-        {
-            if (!records.TryGetValue(key, out var address)) return null;
-            var rows = await ReadAsync(new[] { address }, token);
-            return StoredRecordJson.Serialize<IHolon>(rows[0]);
-        }
-        public Task<IReadOnlyList<string>> ListKeysAsync(string prefix, CancellationToken token = default)
-        {
-            token.ThrowIfCancellationRequested();
-            return Task.FromResult<IReadOnlyList<string>>(Array.AsReadOnly(records.Keys.Where(key => key.StartsWith(prefix, StringComparison.Ordinal)).ToArray()));
-        }
-        public Task PutAsync(string key, string value, CancellationToken token = default)
-            => Task.FromException(new NotSupportedException("Public Blockscout address data is read-only."));
-        public Task DeleteAsync(string key, CancellationToken token = default)
-            => Task.FromException(new NotSupportedException("Public Blockscout address data is read-only."));
         public void Dispose() { if (ownsClient) client.Dispose(); }
     }
 }

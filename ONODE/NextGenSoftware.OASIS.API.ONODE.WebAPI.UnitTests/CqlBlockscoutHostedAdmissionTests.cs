@@ -47,13 +47,13 @@ public class CqlBlockscoutHostedAdmissionTests
     public async Task PublicAddressPresetsPlanNativeThreeTwoAndMongoPairsWithoutSigningOrTransactionSubmission()
     {
         var keys = new[] { "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2", "0x6b175474e89094c44da98b954eedeac495271d0f", "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48" };
-        using var source = BlockscoutPublicAddressMetadataSource.FromJson(JsonSerializer.Serialize(new {
+        using var source = BlockscoutOASIS.FromPublicQueryConfiguration(JsonSerializer.Serialize(new {
             schema=1,apiUrl="https://example.invalid/api/v2/",addresses=keys,sourceOwner=Guid.NewGuid()}));
         var rows = new List<object>();
         foreach (var count in new[] { 3, 2 })
         {
             var selection = new { orderBy = "None", take = 8, filters = new[] {
-                new { metadataPath = new[] { BlockscoutPublicAddressMetadataSource.AddressMetadata },
+                new { metadataPath = new[] { BlockscoutOASIS.AddressMetadata },
                     scalar = "String", @operator = "In", value = keys.Take(count).ToArray() } } };
             rows.Add(new { id = "native-" + count, label = "Blockscout public address state", request = new {
                 provider = "BlockscoutOASIS", selection.orderBy, selection.take, selection.filters } });
@@ -64,7 +64,7 @@ public class CqlBlockscoutHostedAdmissionTests
         var examples = CqlHostedQueryExamples.FromJson(JsonSerializer.Serialize(new Dictionary<string, object> {
             ["BlockscoutOASIS"] = rows }));
         var planned = examples.For(ProviderType.BlockscoutOASIS, source.QueryCapabilities,
-            _ => CosmicQueryCapabilities.ForStringMetadataKeyLookup(BlockscoutPublicAddressMetadataSource.AddressMetadata, 42, 8));
+            _ => CosmicQueryCapabilities.ForStringMetadataKeyLookup(BlockscoutOASIS.AddressMetadata, 42, 8));
         Assert.Equal(4, planned.Count);
         Assert.All(planned, example => Assert.True(example.Available, example.ErrorCode));
 
