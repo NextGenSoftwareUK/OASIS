@@ -155,8 +155,8 @@ public partial class SolanaChainIndexedBillingTests
 
     private sealed class NoNativeProviders : ICqlV1Providers
     {
-        public IOASISStorageProvider Resolve(ProviderType? requested) => throw new AssertFailedException("Indexed HTTP must not activate native provider lookup.");
-        public HolonManager CreateManager(IOASISStorageProvider provider) => throw new AssertFailedException("Use the frozen server manager.");
+        public IOASISProvider Resolve(ProviderType? requested) => throw new AssertFailedException("Indexed HTTP must not activate native provider lookup.");
+        public HolonManager CreateManager(IOASISProvider provider) => throw new AssertFailedException("Use the frozen server manager.");
     }
 
 

@@ -61,9 +61,9 @@ public sealed partial class CqlV1Web4NativeTests
 
     private sealed class Sources(Dictionary<ProviderType, IOASISStorageProvider> providers) : ICqlV1Providers
     {
-        public IOASISStorageProvider Resolve(ProviderType? requested) => providers[requested ?? ProviderType.SQLLiteDBOASIS];
+        public IOASISProvider Resolve(ProviderType? requested) => providers[requested ?? ProviderType.SQLLiteDBOASIS];
 
-        public HolonManager CreateManager(IOASISStorageProvider storage)
+        public HolonManager CreateManager(IOASISProvider storage)
         {
             var dna = new OASISDNA { OASIS = new NextGenSoftware.OASIS.API.DNA.OASIS
             {
@@ -74,7 +74,7 @@ public sealed partial class CqlV1Web4NativeTests
             {
                 IsAutoFailOverEnabled = false, IsAutoReplicationEnabled = false, IsAutoLoadBalanceEnabled = false
             };
-            return new HolonManager(storage, dna, registry);
+            return new HolonManager((IOASISStorageProvider)storage, dna, registry);
         }
     }
 

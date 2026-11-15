@@ -23,8 +23,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 /// <summary>Host-owned lookup of existing providers. Implementations must never activate or fail over.</summary>
 public interface ICqlV1Providers
 {
-    IOASISStorageProvider Resolve(ProviderType? requested);
-    HolonManager CreateManager(IOASISStorageProvider provider);
+    IOASISProvider Resolve(ProviderType? requested);
+    HolonManager CreateManager(IOASISProvider provider);
 }
 
 /// <summary>Records affirmative no-execution evidence even when API model validation short-circuits the action.</summary>
@@ -128,7 +128,7 @@ public static partial class CqlV1Endpoint
     }
 
     private static bool TryResolveEligible(ICqlV1Providers providers, ProviderType? requested, PreparedStorageExecution admission,
-        out IOASISStorageProvider storage, out ICosmicQueryStorageProvider adapter, out ProviderType selected,
+        out IOASISProvider storage, out ICosmicQueryStorageProvider adapter, out ProviderType selected,
         ReadPolicyObservation observation=null, bool includeCloudReadProfile=false)
     {
         if(observation!=null)

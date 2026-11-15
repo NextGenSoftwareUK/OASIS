@@ -155,6 +155,10 @@ public partial class NostrOASIS : ICosmicQueryStorageProvider, ICosmicReadOnlyQu
     {
         private const string SourceName = "nostr-public-events";
         private readonly Guid owner;
+        // One verified wire representation per configured event. Every query
+        // still requires the exact complete current response from the relay.
+        private readonly Dictionary<string, (string Raw, NostrVerifiedPublicEvent Event)> verifiedEvents =
+            new(StringComparer.Ordinal);
         private readonly Func<IReadOnlyList<string>, CancellationToken, Task<IReadOnlyList<string>>> read;
         public IReadOnlyList<string> Addresses { get; }
 
@@ -183,9 +187,11 @@ public partial class NostrOASIS : ICosmicQueryStorageProvider, ICosmicReadOnlyQu
             foreach (string raw in events)
             {
                 token.ThrowIfCancellationRequested();
-                var verified = NostrPublicEventVerification.Parse(raw);
+                var verified = VerifyEvent(raw);
                 if (!selected.Contains(verified.Id) || observed.ContainsKey(verified.Id))
                     throw new InvalidDataException("Native event ID differs or repeats.");
+                lock (verifiedEvents)
+                    verifiedEvents[verified.Id] = (raw, verified);
                 var fields = new Dictionary<string, object> {
                     [AddressMetadata] = verified.Id, ["NostrPublicKey"] = verified.PublicKey,
                     ["NostrCreatedAt"] = verified.CreatedAt.ToString(CultureInfo.InvariantCulture),
@@ -204,6 +210,17 @@ public partial class NostrOASIS : ICosmicQueryStorageProvider, ICosmicReadOnlyQu
             }
             token.ThrowIfCancellationRequested();
             return Array.AsReadOnly(keys.Select(key => observed[key]).ToArray());
+        }
+
+        private NostrVerifiedPublicEvent VerifyEvent(string raw)
+        {
+            lock (verifiedEvents)
+            {
+                foreach (var verified in verifiedEvents.Values)
+                    if (string.Equals(verified.Raw, raw, StringComparison.Ordinal))
+                        return verified.Event;
+            }
+            return NostrPublicEventVerification.Parse(raw);
         }
 
         public async Task VerifyAsync(CancellationToken token = default)

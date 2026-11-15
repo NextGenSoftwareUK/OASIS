@@ -30,10 +30,10 @@ public class CqlSolanaNativeEndpointTests
 {
     private sealed class Sources(SolanaOASIS source, OASISDNA dna, ProviderManager registry) : ICqlV1Providers
     {
-        public IOASISStorageProvider Resolve(ProviderType? requested) =>
+        public IOASISProvider Resolve(ProviderType? requested) =>
             requested == ProviderType.SolanaOASIS && source.IsProviderActivated
                 ? source : throw new InvalidOperationException("The fixture admits only the activated Solana provider.");
-        public HolonManager CreateManager(IOASISStorageProvider provider) => CqlV1Providers.CreateQueryManager(dna, registry);
+        public HolonManager CreateManager(IOASISProvider provider) => CqlV1Providers.CreateQueryManager(dna, registry);
     }
 
     [SolanaPublicEndpointFact]
