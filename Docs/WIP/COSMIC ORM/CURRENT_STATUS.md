@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Live provider rollout and Nostr latency
+
+On live Development 242d120b6a2f, Railway 62b99878-100f-4d9f-8d36-fa914215933b, Nostr and Connext returned matching exact direct and MongoDB-federated 3/2 results with provenance. Startup settled at 105/107 after 169 seconds observed. Blockscout reported two upstream HTTP 500 activation failures; Axelar activation reported an unclassified failure without an HTTP status. Nostr completed eight warm two-worker requests per route without errors. Direct first/median/max were 1925/2024.5/2330 ms versus prior 2327/2367.5/2750 ms. Federated first/median/max were 2262/2311/2755 ms versus prior 2736/2343.5/2585 ms. These are small live samples; the federated maximum increased and the baseline does not establish sustained tail latency.
+
 ## Connext upstream HTTP failures baseline
 
 Railway deployment logs on f99947f0e20b captured multiple Connext native query failures with category http and upstream HTTP 500 during the serial probe. WEB4 surfaced HTTP 503 CQL_QUERY_FAILED. Logs confirm upstream HTTP failure for the sampled events and leave the upstream cause open. Repeat the same direct and federated workload after cutover.

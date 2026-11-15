@@ -6785,3 +6785,5 @@ Web4Site 5fa63a71df5d used a temporary directory containing only committed websi
 - Nostr two-worker timing used the retained Development visitor, existing public catalogue and in-memory samples. No local reports, downloads or fixture data were created.
 
 - Connext serial timing used the retained Development visitor, existing public catalogue and in-memory samples. No local reports, downloads or fixture data were created.
+
+- Nostr two-worker timing used the retained Development visitor, existing public catalogue and in-memory samples. No local reports, downloads or fixture data were created.
