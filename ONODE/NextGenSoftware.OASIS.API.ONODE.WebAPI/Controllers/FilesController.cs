@@ -135,6 +135,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return await FilesManager.Instance.GetAllFilesForAvatarAsync(AvatarId);
         }
 
+        /// <summary>Get the number of stored files for the currently logged in avatar.</summary>
+        [Authorize]
+        [HttpGet("get-file-count-for-current-logged-in-avatar")]
+        public Task<OASISResult<int>> GetFileCountForCurrentLoggedInAvatar() =>
+            FilesManager.Instance.GetFileCountForAvatarAsync(AvatarId);
+
         /// <summary>
         /// Upload a file for the current avatar.
         /// </summary>

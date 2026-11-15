@@ -10,6 +10,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers;
 
@@ -99,6 +100,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         //{
         //    return await WalletManager.LoadProviderWalletsForAvatarByIdAsync(id, showOnlyDefault, decryptPrivateKeys, providerType);
         //}
+
+        /// <summary>Get wallet count and default balance for the authenticated avatar.</summary>
+        [Authorize]
+        [HttpGet("current-avatar/summary")]
+        public Task<OASISResult<WalletSummary>> GetCurrentAvatarWalletSummary() =>
+            WalletManager.LoadWalletSummaryAsync(AvatarId);
 
         /// <summary>
         ///     Load all provider wallets for an avatar by ID.
