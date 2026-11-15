@@ -76,6 +76,7 @@ public sealed class BitcoinTokenEscrowIntegrationTests
         Assert.IsInstanceOfType(provider, typeof(IOASISIdBoundTokenEscrowProvider));
         var active = await provider.ActivateProviderAsync();
         Assert.IsFalse(active.IsError, active.Message);
+        providers.RegisterProvider(provider);
 
         var rune = token != "BTC";
         if (rune)
@@ -92,46 +93,48 @@ public sealed class BitcoinTokenEscrowIntegrationTests
         var lockId = Guid.NewGuid();
         var amount = rune ? 2.5m : 0.00025m;
         var depositOutput = rune ? 1 : 0;
-        var locking = new LockWeb3TokenRequest
+        var locking = new LockWeb4TokenRequest
         {
+            ProviderType = new(ProviderType.BitcoinOASIS),
             LockId = lockId, Web3TokenId = asset, LockedByAvatarId = avatar,
             TokenAddress = token, Amount = amount, EscrowContractAddress = pool,
             FromWalletAddress = source, FromWalletPrivateKey = sourceKey.GetWif(Network.RegTest).ToString()
         };
-        var deposit = await provider.LockTokenAsync(locking);
+        var deposit = await manager.LockTokenAsync(locking);
         Assert.IsFalse(deposit.IsError, deposit.Message);
         var depositId = uint256.Parse(deposit.Result.TransactionResult);
         var onChainDeposit = await core.GetRawTransactionAsync(depositId);
         if (!rune)
             Assert.AreEqual(25_000L, onChainDeposit.Outputs[depositOutput].Value.Satoshi);
-        var lockRetry = await provider.LockTokenAsync(locking);
+        var lockRetry = await manager.LockTokenAsync(locking);
         Assert.IsFalse(lockRetry.IsError, lockRetry.Message);
         Assert.AreEqual(depositId.ToString(), lockRetry.Result.TransactionResult);
         locking.Amount = amount + 0.01m;
-        Assert.IsTrue((await provider.LockTokenAsync(locking)).IsError);
+        Assert.IsTrue((await manager.LockTokenAsync(locking)).IsError);
 
-        var unlocking = new UnlockWeb3TokenRequest
+        var unlocking = new UnlockWeb4TokenRequest
         {
+            ProviderType = new(ProviderType.BitcoinOASIS),
             LockId = lockId, Web3TokenId = asset, UnlockedByAvatarId = avatar,
             TokenAddress = token, EscrowContractAddress = pool
         };
-        Assert.IsTrue((await provider.UnlockTokenAsync(unlocking)).IsError);
+        Assert.IsTrue((await manager.UnlockTokenAsync(unlocking)).IsError);
         await MineAndWaitAsync(core, reader, miner, api, ord);
         if (rune)
             await AssertRuneOutputAsync(reader, ord, depositId, depositOutput, 250);
 
         unlocking.UnlockedByAvatarId = Guid.NewGuid();
-        Assert.IsTrue((await provider.UnlockTokenAsync(unlocking)).IsError);
+        Assert.IsTrue((await manager.UnlockTokenAsync(unlocking)).IsError);
         Assert.AreEqual(0, (await core.GetRawMempoolAsync()).Length);
         unlocking.UnlockedByAvatarId = avatar;
-        var released = await provider.UnlockTokenAsync(unlocking);
+        var released = await manager.UnlockTokenAsync(unlocking);
         Assert.IsFalse(released.IsError, released.Message);
         var releaseId = uint256.Parse(released.Result.TransactionResult);
         var payout = await core.GetRawTransactionAsync(releaseId);
         Assert.AreEqual(new OutPoint(depositId, (uint)depositOutput), payout.Inputs[0].PrevOut);
         Assert.AreEqual(onChainDeposit.Outputs[depositOutput].Value.Satoshi, payout.Outputs[0].Value.Satoshi);
         Assert.AreEqual(BitcoinAddress.Create(source, Network.RegTest).ScriptPubKey, payout.Outputs[0].ScriptPubKey);
-        var releaseRetry = await provider.UnlockTokenAsync(unlocking);
+        var releaseRetry = await manager.UnlockTokenAsync(unlocking);
         Assert.IsFalse(releaseRetry.IsError, releaseRetry.Message);
         Assert.AreEqual(releaseId.ToString(), releaseRetry.Result.TransactionResult);
         await MineAndWaitAsync(core, reader, miner, api, ord);
