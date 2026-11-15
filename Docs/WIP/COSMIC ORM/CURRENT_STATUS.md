@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Populated exact Int64 metadata joins on live WEB4
+
+15 November. Development dc24072806f6 and the Web4Site f512a3327c6d compiler verified populated INNER and LEFT joins on MongoDB, SQLite and Neo4j. Both sources joined on typed metadata Int64 and Version. The left values 9007199254740992 and 9007199254740993 remained distinct. Only the matching value paired, the other left row preserved null right fields, and the selected Int64 values were exact decimal strings on the wire. The initial probe omitted its expected projection columns, then the corrected probe passed. All eight private fixtures from both probes were deleted and verified absent by exact CQL ID.
+
 ## Browser policy qualified alongside Algorand
 
 15 November. Browser-policy candidate fa2a6d115cce passed exact protocol CI 43745144155. Combined source ea42fa05130f retains the 18 HyperDrive Algorand paths from b4fb83823a9b byte-for-byte and adds only the three WEB4 browser-policy files. [Combined protocol](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43746779526) and [exact WEB4 image](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43746781696) are active. Development continues to serve the verified Decimal rollout dc24072806f6. Release review depends on live shared branch state and the deployment window. The protected browser walkthrough also needs the dedicated Development hostname. Temporary indexes were removed.
