@@ -477,11 +477,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
             bool recursive = true, int maxChildDepth = 0, bool continueOnError = true,
             bool saveChildrenOnProvider = false)
         {
-            // Send an Algorand payment transaction with a note field containing the holon name.
-            // Requires holon.MetaData["SenderAddress"], ["ReceiverAddress"], and ["SignedTxnBase64"].
-            // The caller must sign the transaction offline (Ed25519) and supply the base64-encoded
-            // signed msgpack. This is mandatory for blockchain transactions — private keys must never
-            // leave the client.
+            // Submit the caller-signed transaction. A submission receipt does not establish confirmation.
             var result = new OASISResult<IHolon>();
             try
             {
@@ -497,22 +493,30 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
                 byte[] signedTxn = Convert.FromBase64String(holon.MetaData["SignedTxnBase64"].ToString()!);
                 using var content = new ByteArrayContent(signedTxn);
                 content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/x-binary");
-                var resp = await _algod.PostAsync("/v2/transactions", content);
-                if (resp.IsSuccessStatusCode)
+                using var response = await _algod.PostAsync("/v2/transactions", content).ConfigureAwait(false);
+                if (!response.IsSuccessStatusCode)
                 {
-                    using var doc = await JsonDocument.ParseAsync(await resp.Content.ReadAsStreamAsync());
-                    string txId = doc.RootElement.TryGetProperty("txId", out var tx) ? tx.GetString() ?? string.Empty : string.Empty;
-                    holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.AlgorandOASIS] = txId;
-                    GetAlgorandMetadata(holon)["tx_id"] = txId;
-                    result.Result = holon;
-                    result.Message = $"AlgorandOASIS: Transaction submitted with ID '{txId}'.";
-                }
-                else
-                {
-                    var body = await resp.Content.ReadAsStringAsync();
+                    var rejected = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                     OASISErrorHandling.HandleError(ref result,
-                        $"AlgorandOASIS: Transaction submission failed ({resp.StatusCode}): {body}");
+                        $"AlgorandOASIS: Transaction submission failed ({response.StatusCode}): {rejected}");
+                    return result;
                 }
+
+                using var body = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+                using var document = await JsonDocument.ParseAsync(body).ConfigureAwait(false);
+                if (!document.RootElement.TryGetProperty("txId", out var id) || id.ValueKind != JsonValueKind.String ||
+                    id.GetString() is not { Length: 52 } txId ||
+                    !System.Text.RegularExpressions.Regex.IsMatch(txId, "^[A-Z2-7]{52}$"))
+                {
+                    OASISErrorHandling.HandleError(ref result,
+                        "Algod acknowledged submission without a valid transaction ID. Reconcile the signed transaction before resubmitting.");
+                    return result;
+                }
+
+                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.AlgorandOASIS] = txId;
+                GetAlgorandMetadata(holon)["tx_id"] = txId;
+                result.Result = holon;
+                result.Message = $"AlgorandOASIS: Transaction submitted with ID '{txId}'.";
             }
             catch (Exception ex)
             {
