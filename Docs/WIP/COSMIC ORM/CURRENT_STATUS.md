@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Blockscout shipping provider migration
+
+Feature 45326aa8b3b2 moves the anonymous address catalogue, admission, activation, and native reads into BlockscoutOASIS. WEB4 and the SDK walkthrough now construct the same shipping provider with FromPublicQueryConfiguration. The existing API-key constructor remains available for ordinary explorer operations. The public query configuration still rejects credentials and only admits its configured addresses. Migration qualification is pending. The independent performance candidate c412471143cc remains eligible for the next verified rollout.
+
 ## Development CQL performance baseline
 
 On live Development 5a96fc73528f, the HoloOASIS two-record preset returned the same IDs throughout an initial request and eight warm samples per route. Direct CQL measured 1,449 ms first observed, 1,426 ms warm median and 1,569 ms maximum. MongoDB federation measured 1,590 ms first observed, 1,630 ms warm median and 1,968 ms maximum. These are client-observed timings and include network time. This small single-client sample is the initial comparison point, with startup, routing concurrency and provider latency tracked separately. Existing visitor and records reused. No local artifacts.

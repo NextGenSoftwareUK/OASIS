@@ -154,7 +154,7 @@ public class BlockscoutPublicAddressMetadataTests
         var query = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(ProviderType.BlockscoutOASIS).Result).Where(h => h.Name == "anything").Result;
         Assert.True(CosmicQueryPlanner.Plan(query, ProviderType.BlockscoutOASIS,
             new[] { new CosmicQueryTarget(ProviderType.BlockscoutOASIS, source.QueryCapabilities) }).IsError);
-        Assert.True((await source.SaveHolonAsync(new Holon { Id = Guid.NewGuid(), IsNewHolon = true }, saveChildren: false)).IsError);
+        Assert.True((await source.SaveHolonAsync(new Holon { Id = Guid.NewGuid(), IsNewHolon = true }, false)).IsError);
         Assert.True((await source.DeleteHolonAsync(Guid.NewGuid())).IsError);
         Assert.Empty(native.Calls);
     }
