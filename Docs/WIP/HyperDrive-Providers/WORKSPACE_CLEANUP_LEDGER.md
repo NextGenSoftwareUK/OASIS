@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. Removed the two isolated temporary Git indexes used to reapply the Gifts and Checkout batch to the latest Development graph. No local builds, databases, downloads or result files were created.
+
 15 November Cancun time. The new native Gifts lifecycle case creates a per-test SQLite directory only on the CI runner and removes it after disposing the provider. No local environment, packages, database or results were created.
 
 15 November Cancun time. The combined WEB4 Gifts and Checkout candidate used an isolated Git index, removed after staging. Focused checks run remotely without local builds, test databases or generated files.

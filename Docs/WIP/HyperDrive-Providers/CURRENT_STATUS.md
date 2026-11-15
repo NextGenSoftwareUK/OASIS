@@ -1,5 +1,7 @@
 # Current provider status
 
+15 November Cancun time. The combined Gifts and Checkout candidate passed three redirect tests in run 43709075351. While it was in CI, COSMIC advanced Development to 55c1c2056c55 with a new Core pin. The new candidate d9e0325afbb7 preserves that peer source and applies only the seven Gifts and Checkout paths with matching Core gitlink and manifest. Focused SQLite and WEB4 checks 43709925389 and 43709927045 are queued against that graph. The prior candidate was not promoted.
+
 15 November Cancun time. Native SQLite Gifts lifecycle test afa70089864d calls the shipping manager to send, receive and open a gift, rejects an early open and the sender's attempt to receive it, and checks the persisted state and summary counts. Focused run 43709559073 is queued. This exercises writes using an isolated database instead of modifying shared hosted competition records during a smoke test.
 
 15 November Cancun time. WEB4 Checkout success URLs retained query parameters and URL fragments in all three focused regression cases in run 43708398273. The combined Development candidate 2d616be42746 adds those two tested files on top of the previously qualified Gifts candidate. Focused run 43709075351 checks the redirect against the combined deployment dependency graph. No Development push before qualification.
