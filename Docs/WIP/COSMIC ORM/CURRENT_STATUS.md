@@ -1,5 +1,7 @@
 # COSMIC ORM / CQL current status
 
+15 November. Development advanced to e91534fcb9c5 with the native Algorand alias lifecycle and avatar directory. The combined MongoDB floating-point projection and native FULL OUTER JOIN candidate 17df815c84f1 preserves all nine concurrent paths and the exact 15 CQL release paths. The manifest and seven Dockerfile pins validate. [Exact native qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43769463076) and [WEB4 image](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43769465284) are running. The Development push and populated hosted verification remain gated. A fresh read of the protected [Web4Site preview](https://web4-site-1t8mlgryy-oasis-team.vercel.app/web4-sandbox.html) returned an OASIS Vercel team authorization 403.
+
 15 November. The existing COSMIC branch contains native translation of independently captured LINQ `SelectMany` through the bounded CQL cross join. [Exact qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43768973583) is pending. Correlated selectors, navigation flattening, and composition over join results remain open. The combined WEB4 release proceeds through its original CI and live verification independently.
 
 ## MongoDB SINGLE projection layout on Development

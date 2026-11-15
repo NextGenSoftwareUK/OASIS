@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+15 November. Reconciled combined WEB4 candidate 17df815c84f1 against the concurrent Development update using one disposable Git index, removed at command exit. The superseded rollout guard and hosted verifier exited before any fixtures were created. The replacement build runs in GitHub and uses no local SDK installs, databases or build output.
+
 15 November. Independent LINQ `SelectMany` publication used two disposable Git indexes, both removed after writing the commits. Qualification runs in [CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43768973583). This change used no local runtime installs, downloads, databases, or build outputs.
 
 15 November Cancun. Removed the temporary combined website-test snapshot and stopped the superseded full-only rollout and verifier before any fixture writes. Exact candidate staging used a disposable Git index. Combined native and image qualification run in GitHub CI.
