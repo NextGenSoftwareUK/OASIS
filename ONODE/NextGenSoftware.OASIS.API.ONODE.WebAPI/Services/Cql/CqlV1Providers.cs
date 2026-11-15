@@ -31,7 +31,7 @@ public sealed class CqlV1Providers : ICqlV1Providers
     private readonly ICqlHostedSourceRegistry sources;
     public CqlV1Providers(ICqlHostedSourceRegistry sources = null) => this.sources = sources;
 
-    public IOASISStorageProvider Resolve(ProviderType? requested)
+    public IOASISProvider Resolve(ProviderType? requested)
     {
         var registry = ProviderManager.Instance;
         var provider = requested.HasValue
@@ -43,7 +43,7 @@ public sealed class CqlV1Providers : ICqlV1Providers
         return provider;
     }
 
-    public HolonManager CreateManager(IOASISStorageProvider provider)
+    public HolonManager CreateManager(IOASISProvider provider)
         => CreateQueryManager(OASISBootLoader.OASISBootLoader.OASISDNA, ProviderManager.Instance);
 
     internal static HolonManager CreateQueryManager(NextGenSoftware.OASIS.API.DNA.OASISDNA dna, ProviderManager registry)
@@ -105,14 +105,14 @@ public sealed class CqlHostedSourceRegistry : ICqlHostedSourceRegistry
         hederaPublicAccountConfiguration = configuration?["CQL_HEDERA_PUBLIC_SOURCE_JSON"];
     }
 
-    public IOASISStorageProvider Find(ProviderType provider)
+    public IOASISProvider Find(ProviderType provider)
         => profiles.TryGetValue(provider, out var profile) ? profile.Storage
             : ProviderManager.Instance.GetStorageProvider(provider);
 
     public async Task ActivateReadSourceAsync(ProviderType provider, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        IOASISStorageProvider storage;
+        IOASISProvider storage;
         if (profiles.TryGetValue(provider, out var profile)) storage = profile.Storage;
         else
         {

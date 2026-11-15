@@ -41,7 +41,7 @@ public partial class CqlHostedSourcesTests
         public TaskCompletionSource? Release;
         public bool Fail;
         public bool IgnoreCancellation;
-        public IOASISStorageProvider Find(ProviderType type) => Providers.GetValueOrDefault(type);
+        public IOASISProvider Find(ProviderType type) => Providers.GetValueOrDefault(type);
         public QueryStorage Add(ProviderType type, bool active)
         {
             var storage = DispatchProxy.Create<QueryStorage, Adapter>();

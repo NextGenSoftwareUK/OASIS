@@ -715,7 +715,7 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
 
             if (Configuration["CQL_AXELAR_PUBLIC_SOURCE_JSON"] is string axelarPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
-                    NextGenSoftware.OASIS.API.Providers.AxelarOASIS.AxelarPublicBlockSource.FromJson(axelarPublicSource),
+                    NextGenSoftware.OASIS.API.Providers.AxelarOASIS.AxelarOASIS.FromPublicQueryConfiguration(axelarPublicSource),
                     Services.Cql.CqlReadSourceActivationPolicy.TransientServerErrorOnce));
 
             if (Configuration["CQL_RITUAL_PUBLIC_SOURCE_JSON"] is string ritualPublicSource)

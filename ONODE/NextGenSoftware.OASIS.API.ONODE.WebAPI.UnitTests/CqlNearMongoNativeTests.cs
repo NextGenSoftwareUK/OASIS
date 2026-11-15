@@ -53,11 +53,11 @@ public sealed class CqlNearMongoNativeTests
     private sealed class Sources(IOASISStorageProvider mongo, IOASISStorageProvider near,
         OASISDNA dna, ProviderManager registry) : ICqlV1Providers
     {
-        public IOASISStorageProvider Resolve(ProviderType? requested) => requested switch {
+        public IOASISProvider Resolve(ProviderType? requested) => requested switch {
             null or ProviderType.MongoDBOASIS => mongo,
             ProviderType.NEAROASIS => near,
             _ => throw new InvalidOperationException("Only the two explicitly enrolled native fixture providers are available.") };
-        public HolonManager CreateManager(IOASISStorageProvider provider) => new(null, dna, registry);
+        public HolonManager CreateManager(IOASISProvider provider) => new(null, dna, registry);
     }
 
     [NearMongoNativeFact]

@@ -90,13 +90,13 @@ internal static class ProtocolPointWeb4Acceptance
     private sealed class Providers(IOASISStorageProvider provider,HolonManager manager,ProviderType authority) : ICqlV1Providers
     {
         public int Lookups;
-        public IOASISStorageProvider Resolve(ProviderType? requested)
+        public IOASISProvider Resolve(ProviderType? requested)
         {
             Lookups++;
             if(requested!=authority||!provider.IsProviderActivated)throw new InvalidOperationException("Only the explicitly selected active protocol adapter is eligible.");
             return provider;
         }
-        public HolonManager CreateManager(IOASISStorageProvider selected)
+        public HolonManager CreateManager(IOASISProvider selected)
             =>ReferenceEquals(provider,selected)?manager:throw new InvalidOperationException("Provider substitution rejected.");
     }
     private sealed class Catalogue(Guid actor,Guid record,ProviderType selected) : ICqlReadAccessPolicy
