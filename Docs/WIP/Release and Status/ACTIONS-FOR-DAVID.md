@@ -737,3 +737,9 @@ Status: missing account/configuration information,2 November2026. David approved
 - **Open, 15 November 2026.** The real sandbox API checks cover session creation, ledger scoping, subscription, billing and cancellation. Execution policy blocked the automated hosted payment form before submission.
 - **David action** Sign in to OPORTAL dev with a disposable avatar, choose Bronze, confirm the Stripe page is in test mode, and finish payment with a Stripe test card. After it returns to OPORTAL, confirm that My subscriptions displays Bronze as active and the payment confirmation appears. Share the result and approximate test time only.
 - **Reason** The manual browser step verifies hosted payment and return together on the deployed sandbox. Engineering owns follow-up and cleanup of the disposable subscription. [OPORTAL dev](https://dev.oportal.oasisomniverse.one/subscription) · [Stripe test cards](https://docs.stripe.com/testing#cards) · [Current status](../HyperDrive-Providers/CURRENT_STATUS.md)
+
+### Algorand signed public TestNet acceptance
+
+- **Open, 15 November 2026.** The native LocalNet signed payment has passed. The public TestNet write needs a dedicated funded TestNet-only signing account.
+- **David action** Fund a disposable Algorand account on the official TestNet dispenser and add its mnemonic to the OASIS GitHub Actions secrets as `OASIS_ALGORAND_TESTNET_MNEMONIC`. Keep it out of chat and Git. The job needs the account's minimum balance plus one 1,000 microALGO fee.
+- **Reason** The opt-in test signs one zero-value self-payment and independently verifies the native Indexer receipt. Engineering owns running the job and recording the result. [Algorand TestNet funding](https://dev.algorand.co/algokit/deployment/) · [Provider status](../HyperDrive-Providers/CURRENT_STATUS.md)
