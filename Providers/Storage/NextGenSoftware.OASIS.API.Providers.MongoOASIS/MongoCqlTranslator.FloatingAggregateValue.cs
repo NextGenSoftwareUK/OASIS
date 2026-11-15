@@ -7,8 +7,19 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
 
 internal sealed partial class MongoCqlTranslator
 {
-    internal static BsonValue FloatingAggregateValue(BsonValue parts, BsonValue count, bool average, bool single)
-        => new FloatingAggregateCompiler(single).Compile(parts, count, average);
+    private static void AddFloatingAggregate(BsonDocument preparation, BsonDocument shifts, BsonDocument publication,
+        string output, BsonValue parts, BsonValue count, bool average, bool single)
+    {
+        var compiler = new FloatingAggregateCompiler(single);
+        var arithmetic = output + "Arithmetic";
+        var shift = output + "Shift";
+        preparation.Add(arithmetic, compiler.Prepare(parts, count, average));
+        var prepared = "$" + arithmetic;
+        var valid = Op("$ne", prepared, Literal(BsonNull.Value));
+        shifts.Add(shift, Choose(valid, compiler.Shift(prepared + ".q"), Literal(BsonNull.Value)));
+        publication.Add(output, Choose(valid, compiler.Round(prepared + ".q", prepared + ".r",
+            prepared + ".d", prepared + ".negative", "$" + shift), Literal(BsonNull.Value)));
+    }
 
     // Only exact integer limb arithmetic uses Decimal128. The original binary
     // values and the complete large numerator never pass through Decimal128.
@@ -70,7 +81,7 @@ internal sealed partial class MongoCqlTranslator
                     { "r", Op("$subtract", value, Op("$multiply", quotient, denominator)) }
                 })));
 
-        private BsonValue Shift(BsonValue words)
+        internal BsonValue Shift(BsonValue words)
             => Let(Reduce(Op("$range", Literal(0), Literal(width + 1)), Literal(-1),
                 (first, index) => Choose(Op("$gte", first, Literal(0)), first,
                     Choose(Op("$gt", At(words, index), D(0)), index, Literal(-1)))), first =>
@@ -100,12 +111,11 @@ internal sealed partial class MongoCqlTranslator
                                 (sticky, index) => Op("$or", sticky, Op("$ne", At(words, index), D(0))))))))))));
         }
 
-        private BsonValue Round(BsonValue words, BsonValue remainder, BsonValue denominator, BsonValue negative)
+        internal BsonValue Round(BsonValue words, BsonValue remainder, BsonValue denominator, BsonValue negative, BsonValue shift)
         {
             var powers = Literal(new BsonArray(Enumerable.Range(0, maximumShift + 1)
                 .Select(shift => new BsonDouble(Math.Pow(2, minimumExponent + shift)))));
-            return Let(Shift(words), shift =>
-                Choose(Op("$gt", shift, Literal(maximumShift)), Literal(BsonNull.Value),
+            return Choose(Op("$gt", shift, Literal(maximumShift)), Literal(BsonNull.Value),
                     Let(Truncate(Op("$divide", shift, D(30))), removedWords =>
                     Let(Op("$mod", shift, D(30)), removedBits =>
                     Let(Reduce(new BsonDocument("$slice", new BsonArray { words, Literal(0),
@@ -118,10 +128,10 @@ internal sealed partial class MongoCqlTranslator
                             Choose(Op("$eq", rounded, D(0)), Literal(0d),
                                 Op("$multiply", Choose(negative, Literal(-1d), Literal(1d)),
                                     new BsonDocument("$toDouble", rounded),
-                                    At(powers, new BsonDocument("$toInt", shift))))))))))));
+                                    At(powers, new BsonDocument("$toInt", shift)))))))))));
         }
 
-        internal BsonValue Compile(BsonValue parts, BsonValue count, bool average)
+        internal BsonValue Prepare(BsonValue parts, BsonValue count, bool average)
             => Let(parts, input => Let(count, participation =>
                 Choose(Op("$and", Op(average ? "$gt" : "$gte", participation, D(0)),
                     Op("$lte", participation, Literal(CosmicNumericScalarResults.MaximumParticipatingValues))),
@@ -131,7 +141,11 @@ internal sealed partial class MongoCqlTranslator
                     Let(Op("$concatArrays", new BsonArray { F(magnitude, "carry") }, F(magnitude, "digits")), words =>
                     Let(average ? (BsonValue)new BsonDocument("$toDecimal", participation) : D(1), denominator =>
                     Let(Divide(words, denominator), divided =>
-                        Round(F(divided, "q"), F(divided, "r"), denominator, negative))))))),
+                        new BsonDocument
+                        {
+                            { "q", F(divided, "q") }, { "r", F(divided, "r") },
+                            { "d", denominator }, { "negative", negative }
+                        })))))),
                     Literal(BsonNull.Value))));
     }
 }
