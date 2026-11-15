@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Reconciled cross join on the browser-policy graph
+
+15 November. Exact source d032e5b61051 preserves all three browser-policy files from ea42fa05130f and adds the native cross join plus request and pair-budget tests. The pinned Core gitlink matches the Railway manifest. [Combined native CI 43750112229](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43750112229) runs that source. Development serves the Algorand revision b4fb83823a9b. The browser-policy guard remains active for ea42fa05130f. Temporary index removed.
+
 ## CROSS JOIN request and independent pair-budget qualification
 
 15 November. Feature 16fbab0fcde8 adds native integration coverage through the WEB4 join compiler. The fixture requires six exact Cartesian pairs, rejects an empty-key equijoin and a keyed cross join, and rejects a pair budget below the product. Exact test source cc6595d4b5fb is running in [CI 43749629256](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43749629256). The separate draft SQL editor and Ask your data instructions passed all 229 website tests in a temporary snapshot. Website publication and live cross join acceptance await the qualified backend. The snapshot and indexes were removed.
