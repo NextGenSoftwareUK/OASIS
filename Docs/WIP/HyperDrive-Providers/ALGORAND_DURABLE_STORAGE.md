@@ -13,6 +13,8 @@ The [exact Development qualification](https://github.com/NextGenSoftwareUK/OASIS
 
 ## Ledger contract
 
+Avatar details use a distinct kind inside the opaque key and encryption context. Their encrypted discovery descriptor carries that kind and the OASIS ID. Ordinary holon descriptors retain the ID-only encoding, and holon discovery validates all descriptors while returning the ordinary holon identities. An avatar-detail update requires its exact predecessor revision ID as well as the version number. The [native same-ID and history case](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43754674014) is qualifying.
+
 - Bind the store to the Algod genesis hash, application ID, verified approval program and expected writer address. Confirm the same identity before loading or publishing any record.
 - Keep one manifest box per opaque record key. Derive the key from the store secret, record kind and OASIS ID. Encrypt payloads and any private metadata with the existing `EncryptedRecordCodec`, using the store and record identity as authenticated context.
 - Stage larger encrypted payloads in bounded revision boxes. The owning application publishes a manifest only after verifying the authorized writer, the expected predecessor and all required chunks. Readers resolve the manifest and verify its payload digest and authenticated envelope. Unpublished chunks remain eligible for explicit cleanup by revision.
