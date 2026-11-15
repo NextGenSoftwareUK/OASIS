@@ -256,7 +256,13 @@ public sealed class BlockscoutPublicAddressMetadataSource : KeyValueStorageProvi
             deadline.CancelAfter(TimeSpan.FromSeconds(30));
             var rows = new List<IHolon>();
             long totalBytes = 0;
-            foreach (string address in keys)
+            const int maximumConcurrentReads = 3;
+            foreach (var batch in keys.Chunk(maximumConcurrentReads))
+                rows.AddRange(await Task.WhenAll(batch.Select(ReadAddressAsync)));
+            deadline.Token.ThrowIfCancellationRequested();
+            return Array.AsReadOnly(rows.ToArray());
+
+            async Task<IHolon> ReadAddressAsync(string address)
             {
                 using var request = new HttpRequestMessage(HttpMethod.Get, new Uri(api, "addresses/" + address));
                 using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, deadline.Token);
@@ -265,8 +271,7 @@ public sealed class BlockscoutPublicAddressMetadataSource : KeyValueStorageProvi
                 using var body = new MemoryStream(); var buffer = new byte[8192]; int count;
                 while ((count = await stream.ReadAsync(buffer.AsMemory(), deadline.Token)) != 0)
                 {
-                    totalBytes += count;
-                    if (body.Length + count > 1048576 || totalBytes > 4194304)
+                    if (body.Length + count > 1048576 || Interlocked.Add(ref totalBytes, count) > 4194304)
                         throw new InvalidDataException("Native response byte budget exceeded.");
                     body.Write(buffer, 0, count);
                 }
@@ -282,10 +287,8 @@ public sealed class BlockscoutPublicAddressMetadataSource : KeyValueStorageProvi
                 var row = mapped.Result;
                 row.CreatedByAvatarId = owner; row.IsPublic = true; row.IsActive = true; row.Children = Array.Empty<IHolon>();
                 row.ProviderUniqueStorageKey[PType.BlockscoutOASIS] = address;
-                rows.Add(row);
+                return row;
             }
-            deadline.Token.ThrowIfCancellationRequested();
-            return Array.AsReadOnly(rows.ToArray());
         }
         public async Task VerifyAsync(CancellationToken token = default)
         {
