@@ -22,6 +22,11 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         public int Revision { get; init; }
     }
 
+    private sealed record NestedProjectionEnvelope(NativeProjectionRecord Detail)
+    {
+        public string Label { get; init; } = "";
+    }
+
     private static Holon CreateEntityProjectionFixture(Guid[] ids,Guid actor,Guid other)
     {
         var root=new Holon{Id=ids[0],Name="protected source root",CreatedByAvatarId=actor,IsPublic=true,Version=1,
@@ -57,6 +62,18 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         var dto=native.Result.Providers.Single().Rows.Single();Assert.AreEqual(9007199254740993L,dto.Precision);
         Assert.AreEqual(ulong.MaxValue,dto.Unsigned);Assert.AreEqual(1.0000000000000000000000000001m,dto.Amount);
         Assert.AreEqual(1,NativeProjectionProbe.Constructors);Passed("exact native cells without source entity construction");
+        var nested = rootSource.Select(row => new NestedProjectionEnvelope(
+            new NativeProjectionRecord(row.Name, CosmicQueryMetadata.Value<long>(row, "i64")) { Revision = row.Version })
+            { Label = row.Name });
+        Assert.IsFalse(nested.IsError, nested.Message);
+        var nestedResult = await Read(nested.Result);
+        Assert.IsFalse(nestedResult.IsError, nestedResult.Message + nestedResult.Exception);
+        var envelope = nestedResult.Result.Providers.Single().Rows.Single();
+        Assert.AreEqual("protected source root", envelope.Label);
+        Assert.AreEqual(envelope.Label, envelope.Detail.Name);
+        Assert.AreEqual(9007199254740993L, envelope.Detail.Precision);
+        Assert.AreEqual(1, envelope.Detail.Revision);
+        Passed("nested DTO from exact native scalar cells");
         var firstSource=CosmicQuery<Holon>.Create(scope).Where(row=>row.Id==rootId || row.ParentHolonId==rootId).OrderBy(row=>row.Name).Take(1).Result;
         var excluded=await Read(firstSource.Compose().Result.Where(row=>row.Name=="protected source root").Result.Select(row=>row.Name).Result);
         Assert.IsFalse(excluded.IsError,excluded.Message+excluded.Exception);Assert.AreEqual(0,excluded.Result.Providers.Single().Rows.Count);Passed("selection cannot move filter before source page");
