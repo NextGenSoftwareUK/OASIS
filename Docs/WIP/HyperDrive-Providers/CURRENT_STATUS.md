@@ -1,5 +1,7 @@
 # Current provider status
 
+15 November Cancun time. The 234-project provider matrix now regenerates without losing native Bitcoin and IPFS proof or the outstanding Niantic Lightship and WRLD3D implementation requirements. The generator check passed. WEB4 Gifts authorization run 43718037088 passed for summary, history and stats. The native SQLite lifecycle, history and counters passed in 43718039634. Both runs used 307d3ab9d523. These API changes await integration.
+
 15 November Cancun time. Recounted the shipping projects using the inventory selector. The total remains 234 distinct provider projects, and Development has no added, removed or renamed shipping provider project since the published 234-project audit. Native Gifts run 43718039634 passed persisted receive/open state, real counter values and history. The corresponding WEB4 authorization check remains in progress.
 
 15 November Cancun time. Signed live WEB4 Gifts returned numeric sentGifts and receivedGifts counters and an empty history for a disposable avatar. OPORTAL 5fc7eb6 now reads those actual field names and preserves zero. WEB4 Gifts history and stats forward native manager responses and errors directly, removing the test-data success paths. Focused hosted-CI verification is pending.
