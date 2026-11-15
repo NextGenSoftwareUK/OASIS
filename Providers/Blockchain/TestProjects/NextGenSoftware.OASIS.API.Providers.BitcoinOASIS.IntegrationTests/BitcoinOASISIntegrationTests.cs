@@ -754,6 +754,44 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
                 Assert.IsFalse(boundPayment.IsError, boundPayment.Message);
                 Assert.AreEqual(boundPayment.Result.TransactionResult, boundPayment.MetaData["BitcoinTransactionId"]);
                 await BitcoinCliAsync("getmempoolentry", boundPayment.Result.TransactionResult);
+
+                const string bridgePoolVariable = "OASIS_BITCOIN_BRIDGE_POOL_ADDRESS";
+                var previousPool = Environment.GetEnvironmentVariable(bridgePoolVariable);
+                try
+                {
+                    using var bridgeKey = new NBitcoin.Key();
+                    var poolAddress = bridgeKey.PubKey.GetAddress(NBitcoin.ScriptPubKeyType.Segwit, network).ToString();
+                    Environment.SetEnvironmentVariable(bridgePoolVariable, poolAddress);
+                    var withdrawal = await boundWallet.WithdrawAsync(0.01m, storageAddress, sourceKey.GetWif(network).ToString());
+                    Assert.IsFalse(withdrawal.IsError, withdrawal.Message);
+                    Assert.AreEqual(0.01m, await ReadBridgeOutputAsync(withdrawal.Result.TransactionId, poolAddress));
+
+                    using var bridgeBlocks = System.Text.Json.JsonDocument.Parse(
+                        await BitcoinCliAsync("generatetoaddress", "1", source));
+                    var bridgeBlock = bridgeBlocks.RootElement[0].GetString();
+                    for (var attempt = 0; attempt < 60; attempt++)
+                    {
+                        if ((await http.GetStringAsync("blocks/tip/hash")).Trim() == bridgeBlock)
+                            break;
+                        await Task.Delay(500);
+                    }
+                    Assert.AreEqual(bridgeBlock, (await http.GetStringAsync("blocks/tip/hash")).Trim());
+
+                    var wrongCustody = await recovered.DepositAsync(0.002m, destination);
+                    Assert.IsTrue(wrongCustody.IsError);
+                    Assert.IsFalse(wrongCustody.MetaData.ContainsKey("BitcoinTransactionId"));
+
+                    using var pool = new BitcoinOASIS(api, "regtest", bridgeKey.GetWif(network).ToString(), null, 2m);
+                    var poolActivation = await pool.ActivateProviderAsync();
+                    Assert.IsFalse(poolActivation.IsError, poolActivation.Message);
+                    var deposit = await pool.DepositAsync(0.002m, destination);
+                    Assert.IsFalse(deposit.IsError, deposit.Message);
+                    Assert.AreEqual(0.002m, await ReadBridgeOutputAsync(deposit.Result.TransactionId, destination));
+                }
+                finally
+                {
+                    Environment.SetEnvironmentVariable(bridgePoolVariable, previousPool);
+                }
             }
             finally
             {
@@ -804,6 +842,16 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
                 response.EnsureSuccessStatusCode();
                 using var pins = System.Text.Json.JsonDocument.Parse(await response.Content.ReadAsStringAsync());
                 return pins.RootElement.GetProperty("Keys").EnumerateObject().Select(pin => pin.Name).ToArray();
+            }
+
+            async Task<decimal> ReadBridgeOutputAsync(string transactionId, string address)
+            {
+                await BitcoinCliAsync("getmempoolentry", transactionId);
+                using var receipt = System.Text.Json.JsonDocument.Parse(
+                    await BitcoinCliAsync("getrawtransaction", transactionId, "1"));
+                return receipt.RootElement.GetProperty("vout").EnumerateArray().Single(output =>
+                    output.GetProperty("scriptPubKey").TryGetProperty("address", out var recipient) &&
+                    recipient.GetString() == address).GetProperty("value").GetDecimal();
             }
 
             async Task<string> BitcoinCliAsync(params string[] arguments)

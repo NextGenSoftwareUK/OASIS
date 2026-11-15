@@ -317,153 +317,52 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             return result;
         }
 
-        public async Task<OASISResult<BridgeTransactionResponse>> WithdrawAsync(decimal amount, string senderAccountAddress, string senderPrivateKey)
+        public Task<OASISResult<BridgeTransactionResponse>> WithdrawAsync(decimal amount, string senderAccountAddress, string senderPrivateKey)
+            => SubmitBridgePaymentAsync(amount, senderAccountAddress, null, senderPrivateKey, fromPool: false);
+
+        public Task<OASISResult<BridgeTransactionResponse>> DepositAsync(decimal amount, string receiverAccountAddress)
+            => SubmitBridgePaymentAsync(amount, null, receiverAccountAddress, _privateKey, fromPool: true);
+
+        private async Task<OASISResult<BridgeTransactionResponse>> SubmitBridgePaymentAsync(
+            decimal amount, string sender, string receiver, string signingKey, bool fromPool)
         {
             var result = new OASISResult<BridgeTransactionResponse>();
+            var configuredPool = Environment.GetEnvironmentVariable("OASIS_BITCOIN_BRIDGE_POOL_ADDRESS");
+            if (string.IsNullOrWhiteSpace(configuredPool))
+            {
+                OASISErrorHandling.HandleError(ref result, "A Bitcoin bridge pool address must be configured.");
+                return result;
+            }
+
+            BitcoinAddress pool;
             try
             {
-                if (!_isActivated || _httpClient == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Bitcoin provider is not activated");
-                    return result;
-                }
-
-                if (string.IsNullOrWhiteSpace(senderAccountAddress) || string.IsNullOrWhiteSpace(senderPrivateKey))
-                {
-                    OASISErrorHandling.HandleError(ref result, "Sender account address and private key are required");
-                    return result;
-                }
-
-                if (amount <= 0)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Amount must be greater than zero");
-                    return result;
-                }
-
-                // Convert amount to Satoshis
-                var satoshiAmount = (ulong)(amount * 100_000_000m);
-                var bridgePoolAddress = "1" + new string('0', 33);
-
-                // Create Bitcoin transaction using RPC
-                var rpcRequest = new
-                {
-                    jsonrpc = "2.0",
-                    id = 1,
-                    method = "sendtoaddress",
-                    @params = new object[] { bridgePoolAddress, amount, "Bridge Withdrawal", "", true }
-                };
-
-                var response = await _httpClient.PostAsJsonAsync("", rpcRequest);
-                var content = await response.Content.ReadAsStringAsync();
-                var jsonDoc = JsonDocument.Parse(content);
-
-                if (jsonDoc.RootElement.TryGetProperty("result", out var resultElement))
-                {
-                    var txHash = resultElement.GetString();
-                    result.Result = new BridgeTransactionResponse
-                    {
-                        TransactionId = txHash ?? CreateDeterministicGuid($"{ProviderType.Value}:withdraw:{senderAccountAddress}:{amount}:{DateTime.UtcNow.Ticks}").ToString("N"),
-                        IsSuccessful = true,
-                        Status = BridgeTransactionStatus.Pending
-                    };
-                    result.IsError = false;
-                }
-                else
-                {
-                    result.Result = new BridgeTransactionResponse
-                    {
-                        TransactionId = string.Empty,
-                        IsSuccessful = false,
-                        ErrorMessage = "Failed to create transaction",
-                        Status = BridgeTransactionStatus.Canceled
-                    };
-                    OASISErrorHandling.HandleError(ref result, "Failed to create Bitcoin transaction");
-                }
+                pool = BitcoinAddress.Create(configuredPool, SigningNetwork);
             }
-            catch (Exception ex)
+            catch (FormatException)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error withdrawing: {ex.Message}", ex);
-                result.Result = new BridgeTransactionResponse
-                {
-                    TransactionId = string.Empty,
-                    IsSuccessful = false,
-                    ErrorMessage = ex.Message,
-                    Status = BridgeTransactionStatus.Canceled
-                };
+                OASISErrorHandling.HandleError(ref result, "The Bitcoin bridge pool address is invalid for the configured network.");
+                return result;
             }
-            return result;
-        }
 
-        public async Task<OASISResult<BridgeTransactionResponse>> DepositAsync(decimal amount, string receiverAccountAddress)
-        {
-            var result = new OASISResult<BridgeTransactionResponse>();
-            try
+            var payment = await SendSignedTransactionAsync(
+                fromPool ? pool.ToString() : sender,
+                fromPool ? receiver : pool.ToString(),
+                amount, Array.Empty<byte>(), null, signingKey, commitmentOnly: false);
+            result.ErrorCode = payment.ErrorCode;
+            result.MetaData = payment.MetaData;
+            if (payment.IsError)
             {
-                if (!_isActivated || _httpClient == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Bitcoin provider is not activated");
-                    return result;
-                }
-
-                if (string.IsNullOrWhiteSpace(receiverAccountAddress))
-                {
-                    OASISErrorHandling.HandleError(ref result, "Receiver account address is required");
-                    return result;
-                }
-
-                if (amount <= 0)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Amount must be greater than zero");
-                    return result;
-                }
-
-                // Create Bitcoin transaction from bridge pool to receiver
-                var rpcRequest = new
-                {
-                    jsonrpc = "2.0",
-                    id = 1,
-                    method = "sendtoaddress",
-                    @params = new object[] { receiverAccountAddress, amount, "Bridge Deposit", "", true }
-                };
-
-                var response = await _httpClient.PostAsJsonAsync("", rpcRequest);
-                var content = await response.Content.ReadAsStringAsync();
-                var jsonDoc = JsonDocument.Parse(content);
-
-                if (jsonDoc.RootElement.TryGetProperty("result", out var resultElement))
-                {
-                    var txHash = resultElement.GetString();
-                    result.Result = new BridgeTransactionResponse
-                    {
-                        TransactionId = txHash ?? CreateDeterministicGuid($"{ProviderType.Value}:deposit:{receiverAccountAddress}:{amount}:{DateTime.UtcNow.Ticks}").ToString("N"),
-                        IsSuccessful = true,
-                        Status = BridgeTransactionStatus.Pending
-                    };
-                    result.IsError = false;
-                }
-                else
-                {
-                    result.Result = new BridgeTransactionResponse
-                    {
-                        TransactionId = string.Empty,
-                        IsSuccessful = false,
-                        ErrorMessage = "Failed to create transaction",
-                        Status = BridgeTransactionStatus.Canceled
-                    };
-                    OASISErrorHandling.HandleError(ref result, "Failed to create Bitcoin transaction");
-                }
+                OASISErrorHandling.HandleError(ref result, payment.Message, payment.Exception);
+                return result;
             }
-            catch (Exception ex)
+
+            result.Result = new BridgeTransactionResponse
             {
-                OASISErrorHandling.HandleError(ref result, $"Error depositing: {ex.Message}", ex);
-                result.Result = new BridgeTransactionResponse
-                {
-                    TransactionId = string.Empty,
-                    IsSuccessful = false,
-                    ErrorMessage = ex.Message,
-                    Status = BridgeTransactionStatus.Canceled
-                };
-            }
+                TransactionId = payment.Result.TransactionResult,
+                IsSuccessful = true,
+                Status = BridgeTransactionStatus.Pending
+            };
             return result;
         }
 
