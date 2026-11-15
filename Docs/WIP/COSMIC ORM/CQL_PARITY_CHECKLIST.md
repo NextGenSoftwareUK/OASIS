@@ -172,7 +172,7 @@ older chronological roadmap is supporting history, not the source of green statu
 | Q42 | Same-provider left join with independent right-presence result | [✅][D30] | [✅][D30] | [✅][D30] | V1 example30. |
 | Q43 | Composite/nullable join keys for native inner and left equijoins | ✅ | ✅ | ✅ | [Exact native CI 43734236170](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43734236170) proves a composite Version/Description key, exact ordinal case, null-component exclusion and retention of the unmatched left row on SQLite, MongoDB and Neo4j. |
 | Q44 | GroupJoin / grouped right collections | ❌ | ❌ | ❌ | No complete operator proof. |
-| Q45 | SelectMany / cross join / navigation flattening | ❌ | ❌ | ❌ | No complete operator proof. |
+| Q45 | SelectMany / cross join / navigation flattening | ❌ | ❌ | ❌ | Bounded same-provider CROSS JOIN passed the native three-store step in [CI 43751065875](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43751065875). It proves the visible Cartesian product, private-row exclusion and atomic pair-budget rejection. Live WEB4, LINQ SelectMany and navigation flattening remain open. |
 | Q46 | Non-equijoin / arbitrary join predicates | ❌ | ❌ | ❌ | Exact equijoin support is narrower. |
 | Q47 | Correlated subqueries beyond child/descendant Exists | ❌ | ❌ | ❌ | No general correlated scalar/query support proof. |
 | Q48 | Direct child Any/Exists predicates | [✅][D5] | [✅][D5] | [✅][D5] | V1 example5; visibility before root paging. |
