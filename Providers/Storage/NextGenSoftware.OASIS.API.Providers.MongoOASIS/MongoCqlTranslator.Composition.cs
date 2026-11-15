@@ -137,6 +137,16 @@ internal sealed partial class MongoCqlTranslator
                 current.Add(new("$set", new BsonDocument("rank", "$nextRank")));
                 current.Add(new("$unset", "nextRank"));
             }
+            else if (stage is CosmicSelectedDistinctStage distinct)
+            {
+                current.Add(new("$sort", new BsonDocument("rank", 1)));
+                current.Add(new("$group", new BsonDocument
+                {
+                    { "_id", new BsonDocument("$ifNull", new BsonArray { "$k" + distinct.ColumnIndex + ".value", BsonNull.Value }) },
+                    { "firstRow", new BsonDocument("$first", "$$ROOT") }
+                }));
+                current.Add(new("$replaceRoot", new BsonDocument("newRoot", "$firstRow")));
+            }
             else if (stage is CosmicSelectedWindowStage window)
             {
                 // A window reads the previous stage's deterministic rank.
