@@ -1,3 +1,5 @@
+using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -7,6 +9,27 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS.IntegrationTests;
 [TestClass]
 public sealed class AlgorandPublicLifecycleTests
 {
+    [TestMethod]
+    public async Task PublicIndexerPaginatesAccountHistoryAndRejectsInvalidAddress()
+    {
+        const string address = "I3345FUQQ2GRBHFZQPLYQQX5HJMMRZMABCHRLWV6RCJYC6OO4MOLEUBEGU";
+        var provider = new AlgorandOASIS("https://mainnet-api.algonode.cloud", "https://mainnet-idx.algonode.cloud");
+        var loaded = await provider.LoadHolonsForParentAsync(address, loadChildren: false);
+        Assert.IsFalse(loaded.IsError, loaded.Message);
+        Assert.IsTrue(loaded.IsLoaded);
+        var keys = loaded.Result.Select(holon => holon.ProviderUniqueStorageKey[ProviderType.AlgorandOASIS]).ToArray();
+        Assert.IsTrue(keys.Length > 100, "The fixture must exercise multiple pages.");
+        Assert.AreEqual(keys.Length, keys.Distinct().Count());
+        Assert.AreEqual(keys.Length, loaded.LoadedCount);
+        Assert.AreEqual(loaded.IsWarning ? 1 : 0, loaded.WarningCount);
+
+        var rejected = await provider.LoadHolonsForParentAsync("invalid-account-address", loadChildren: false);
+        Assert.IsTrue(rejected.IsError);
+        Assert.IsFalse(rejected.IsLoaded);
+        Assert.IsNull(rejected.Result);
+        Assert.IsInstanceOfType<HttpRequestException>(rejected.Exception);
+    }
+
     [TestMethod]
     public async Task PublicAlgodLifecycleAndAccountRead()
     {

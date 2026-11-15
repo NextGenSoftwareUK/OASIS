@@ -396,28 +396,40 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
             var result = new OASISResult<IEnumerable<IHolon>>();
             try
             {
+                const int maximumTransactions = 2000;
                 var holons = new List<IHolon>();
+                var transactionIds = new HashSet<string>(StringComparer.Ordinal);
+                var pageTokens = new HashSet<string>(StringComparer.Ordinal);
                 string nextToken = null;
                 do
                 {
                     string url = $"/v2/accounts/{Uri.EscapeDataString(providerKey)}/transactions?limit=100" +
                                  (nextToken != null ? $"&next={Uri.EscapeDataString(nextToken)}" : "");
-                    var resp = await _indexer.GetAsync(url);
-                    if (!resp.IsSuccessStatusCode) break;
-                    using var doc = await JsonDocument.ParseAsync(await resp.Content.ReadAsStreamAsync());
-                    if (doc.RootElement.TryGetProperty("transactions", out var txns))
-                        foreach (var t in txns.EnumerateArray())
-                        {
-                            string txId = t.TryGetProperty("id", out var id) ? id.GetString() ?? string.Empty : string.Empty;
-                            if (!string.IsNullOrEmpty(txId))
-                                holons.Add(MapTransactionToHolon(t, txId));
-                        }
+                    using var resp = await _indexer.GetAsync(url).ConfigureAwait(false);
+                    resp.EnsureSuccessStatusCode();
+                    using var body = await resp.Content.ReadAsStreamAsync().ConfigureAwait(false);
+                    using var doc = await JsonDocument.ParseAsync(body).ConfigureAwait(false);
+                    foreach (var transaction in doc.RootElement.GetProperty("transactions").EnumerateArray())
+                    {
+                        var txId = transaction.GetProperty("id").GetString();
+                        if (string.IsNullOrWhiteSpace(txId) || !transactionIds.Add(txId))
+                            throw new InvalidOperationException("The indexer returned a missing or repeated transaction identity.");
+                        holons.Add(MapTransactionToHolon(transaction, txId));
+                    }
                     nextToken = doc.RootElement.TryGetProperty("next-token", out var nt) ? nt.GetString() : null;
+                    if (!string.IsNullOrEmpty(nextToken) && !pageTokens.Add(nextToken))
+                        throw new InvalidOperationException("The indexer repeated the account history page token.");
                 }
-                while (!string.IsNullOrEmpty(nextToken) && holons.Count < 2000);
+                while (!string.IsNullOrEmpty(nextToken) && holons.Count < maximumTransactions);
 
                 result.Result = holons;
-                result.Message = $"AlgorandOASIS: Loaded {holons.Count} transactions for '{providerKey}'.";
+                result.IsLoaded = true;
+                result.LoadedCount = holons.Count;
+                result.IsWarning = !string.IsNullOrEmpty(nextToken);
+                result.WarningCount = result.IsWarning ? 1 : 0;
+                result.Message = result.IsWarning
+                    ? $"AlgorandOASIS: Returned {holons.Count} transactions for '{providerKey}'. More indexed history is available."
+                    : $"AlgorandOASIS: Loaded {holons.Count} transactions for '{providerKey}'.";
             }
             catch (Exception ex)
             {

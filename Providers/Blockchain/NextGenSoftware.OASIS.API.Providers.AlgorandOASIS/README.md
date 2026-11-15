@@ -13,3 +13,5 @@ https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.
 Make sure you check out the Overview and Benefits Of Building On The WEB 4 OASIS API sections above! :) Thank you!
 
 For authenticated private nodes, configure ALGORAND_ALGOD_URL and ALGORAND_ALGOD_API_TOKEN together. For a private Indexer, use ALGORAND_INDEXER_URL and ALGORAND_INDEXER_API_TOKEN. Callers supplying endpoint URLs directly can use the four-argument constructor to bind tokens to those endpoints. Keep tokens in protected settings. The provider submits caller-signed raw transactions and does not hold signing keys.
+
+Account transaction history follows the Indexer pagination tokens and returns up to 2,000 transactions. A response with more available history carries a warning. An unsuccessful Indexer page returns an error for the history request.

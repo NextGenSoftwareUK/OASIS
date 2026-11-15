@@ -1,5 +1,7 @@
 # Current provider status
 
+15 November Cancun time. The changed Files selector passed focused MongoDB-to-SQLite and SQLite fixture runs 43697509783 and 43697512256. The SQLite provider mapped 3 candidates instead of 95 owner-key matches before persisted-owner validation. Algorand account-history pagination now surfaces Indexer failures and continuation limits. Exact public native verification is pending.
+
 15 November Cancun time. The Files owner/type predicate change is on 6a42ddbf09f8. Focused native runs 43697509783 and 43697512256 cover the changed MongoDB-to-SQLite upload/list path and SQLite materialization. The separate Files byte and ownership image run 43697065571 is still pending. No local builds or databases were used for these dispatches.
 
 15 November Cancun time. The MongoDB-to-SQLite Files ownership regression passed in 43696677302. Scoped WEB4 candidate 07fd2fc5a661 carries the byte and owner fixes over the serving Development revision, with exact image run 43697065571 pending. The contract rerun after the two fixture corrections is 43696889331.
