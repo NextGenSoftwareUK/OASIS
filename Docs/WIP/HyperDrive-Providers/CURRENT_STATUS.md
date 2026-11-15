@@ -1,5 +1,7 @@
 # Current provider status
 
+15 November Cancun time. OPORTAL production 9e4806d65a10 passed the endpoint and subscription regression suites and its Vercel deployment. The canonical production /subscription page returned HTTP 200 and serves the guard that suppresses a duplicate subscription-list request until Stripe activation is confirmed. The full hosted browser payment remains open.
+
 15 November Cancun time. OPORTAL dev 3850d15ffe7b passed deployment and the public /subscription route serves the version with a single post-activation subscription refresh. The separate WEB4 return-fragment regression is running in 43708398273.
 
 15 November Cancun time. Railway dev WEB4 deployment cddc8e09-a731-4812-944c-82e8290f9810 serves 78eae0988824. An owned real GBP 9 Stripe sandbox Checkout session carried the exact billing ledger, avatar and plan metadata, included the OPORTAL return URLs, and was readable by its owner. WEB4 rejected another genuine Stripe test session marked for a different ledger with HTTP 403 even though it named the same avatar. Both sessions were expired and the test avatar removed. No card was submitted. The hosted browser payment and return remain open. WEB4 81e4c3a8d6d6 also moves session parameters before any caller's URL fragment; focused CI is in progress.
