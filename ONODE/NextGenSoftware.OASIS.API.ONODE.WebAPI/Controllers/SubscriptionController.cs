@@ -388,7 +388,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (!Guid.TryParseExact(userId, "D", out _)) return Unauthorized();
             if (string.IsNullOrWhiteSpace(sessionId) || !sessionId.StartsWith("cs_", StringComparison.Ordinal))
                 return BadRequest(new { IsError=true, Message="A Stripe checkout session ID is required." });
-            var session = await new Stripe.Checkout.SessionService(StripeClient()).GetAsync(sessionId, cancellationToken: HttpContext.RequestAborted);
+            Stripe.Checkout.Session session;
+            try
+            {
+                session = await new Stripe.Checkout.SessionService(StripeClient()).GetAsync(sessionId, cancellationToken: HttpContext.RequestAborted);
+            }
+            catch (StripeException ex) when (ex.HttpStatusCode == System.Net.HttpStatusCode.NotFound && ex.StripeError?.Code == "resource_missing")
+            {
+                return NotFound(new { IsError = true, Message = "The Stripe checkout session could not be found." });
+            }
             if (IsOtherLedger(session.Metadata) || session.Metadata?.GetValueOrDefault("avatar_id") != userId) return Forbid();
             var record = await _subscriptionService.GetSubscriptionAsync(userId);
             bool activated = session.Status == "complete" && (session.PaymentStatus is "paid" or "no_payment_required") &&
