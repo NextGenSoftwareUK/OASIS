@@ -1,5 +1,7 @@
 # OPORTAL and HyperDrive performance audit
 
+15 November Cancun time. The standalone Search Avatars dialog removes one eager full roster request from each opening. Opening the view and entering an invalid query made zero signed requests. A valid submission sent one signed, bounded directory GET. The route is awaiting deployment, so result latency and browser paint are unmeasured.
+
 15 November Cancun time. OPORTAL 97b8208 starts global search sources concurrently and renders each completed source without waiting for the rest. It searches just the selected source when a type filter is active and discards old results on query, session or modal changes. All five signed WEB5 requests reached their native routes. WEB4 avatar search still has a request binding defect. Browser timing is unmeasured.
 
 15 November Cancun time. The combined OPORTAL billing candidate keeps usage, prices and statements concurrent and binds every existing call to the signed avatar. The same candidate includes the previously qualified concurrent app-owner usage, settings and pay-as-you-go reads. The new guards do not add requests. The controlled-DOM regressions checked signed responses and zero writes from stale controls. Browser timing remains unmeasured.
