@@ -23,53 +23,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns>List of gifts</returns>
         [Authorize]
         [HttpGet("my-gifts")]
-        public async Task<OASISResult<List<Gift>>> GetMyGifts()
-        {
-            try
-            {
-                OASISResult<List<Gift>> result = null;
-                try
-                {
-                    result = await GiftsManager.Instance.GetAllGiftsAsync(Avatar.Id);
-                }
-                catch
-                {
-                    // If real data unavailable, use test data
-                }
+        public Task<OASISResult<List<Gift>>> GetMyGifts() =>
+            GiftsManager.Instance.GetAllGiftsAsync(AvatarId);
 
-                // Return test data if setting is enabled and result is null, has error, or result is null
-                if (UseTestDataWhenLiveDataNotAvailable && (result == null || result.IsError || result.Result == null))
-                {
-                    return new OASISResult<List<Gift>>
-                    {
-                        Result = new List<Gift>(),
-                        IsError = false,
-                        Message = "Gifts retrieved successfully (using test data)"
-                    };
-                }
-
-                return result;
-            }
-            catch (Exception ex)
-            {
-                // Return test data if setting is enabled, otherwise return error
-                if (UseTestDataWhenLiveDataNotAvailable)
-                {
-                    return new OASISResult<List<Gift>>
-                    {
-                        Result = new List<Gift>(),
-                        IsError = false,
-                        Message = "Gifts retrieved successfully (using test data)"
-                    };
-                }
-                return new OASISResult<List<Gift>>
-                {
-                    IsError = true,
-                    Message = $"Error retrieving gifts: {ex.Message}",
-                    Exception = ex
-                };
-            }
-        }
+        /// <summary>Get the total and unopened gifts for the current avatar.</summary>
+        [Authorize]
+        [HttpGet("my-gifts/summary")]
+        public Task<OASISResult<GiftSummary>> GetMyGiftSummary() =>
+            GiftsManager.Instance.GetGiftSummaryAsync(AvatarId);
 
         /// <summary>
         /// Send a gift to another avatar
