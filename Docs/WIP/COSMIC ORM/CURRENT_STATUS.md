@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Populated native SQL joins verified on live WEB4
+
+15 November. On Development 807623f716cd, the exact Web4Site c93c9d2c582b compiler sent an INNER and a LEFT join to each of MongoDB, SQLite and Neo4j. Each INNER join returned the expected same-ID match on both Id and Version. Each LEFT join also returned the unmatched row with a null right ID and hasRight false. All six private fixtures were hard-deleted using the native revision observed on load. The initial MongoDB absence handler expected a result field in a successful empty response. The subsequent checks verified all six IDs absent through CQL. One client-to-HTTP sample per empty left join measured 924 ms on MongoDB, 489 ms on SQLite and 1,044 ms on Neo4j. These are observations of empty queries. The hosted browser walkthrough and live WEB6 join draft remain open.
+
 ## Ask your data drafts bounded native joins
 
 15 November. Web4Site c93c9d2c582b teaches WEB6 same-provider INNER and LEFT joins with two explicit input bounds and exact composite keys. The example uses an available store from discovery. All 221 website tests passed, including controlled draft review and the join wire request. [Protected preview 7806848698](https://web4-site-qo9ao8p4e-oasis-team.vercel.app/web4-sandbox.html) built. A fresh real WEB6 join draft and the signed-in browser walkthrough remain open. The website snapshot and index were removed.
