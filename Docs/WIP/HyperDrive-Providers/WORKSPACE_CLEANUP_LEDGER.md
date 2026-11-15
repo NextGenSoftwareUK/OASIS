@@ -1326,3 +1326,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 - 14 November Cancun time. Native avatar release and BTC burn 43662913466 passed with hosted cleanup of the wallet fixture, chain, processes and downloads. Rune mint source and workflow changes created no local outputs or downloads.
 
 - 14 November Cancun time. The first Rune mint CI stopped at official ord etching validation and removed its disposable wallet and chain. Rune send and burn changes created no local outputs or downloads.
+
+- 14 November Cancun time. OPORTAL timing reused installed Chrome with fresh task-owned profiles and retained only aggregate timings. All temporary profiles were removed; the baseline Chrome process wait timed out after sampling, and absence of its exact profile was independently checked. Portal edits use a sparse worktree at C:/Source/OPORTAL-JS-performance with no new dependencies, downloads or builds.
