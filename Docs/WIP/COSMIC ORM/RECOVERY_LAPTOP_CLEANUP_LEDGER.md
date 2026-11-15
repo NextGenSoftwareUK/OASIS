@@ -6753,3 +6753,5 @@ Web4Site 5fa63a71df5d used a temporary directory containing only committed websi
 14 November, Cancun. Removed the archived rejected subscription-admin sign-in after live WEB6 and WEB4 verification succeeded. The successful protected session and the minimal approved grant receipt remain in HostedSubscriptionAdminCurrent. Exact conductor and image builds ran in CI. No local builds or downloads.
 
 14 November UTC. Requalified the scoped HoloOASIS candidate against Development 34c4526c6681 using GitHub-hosted CI. The temporary isolated Git index used for candidate 1ebcb3b772c5 was removed. No local build, download, runtime or database copy was created.
+
+14 November Cancun time. Read-only field constructor projection feature and Development candidate used temporary Git indexes, removed after publication. Native SQLite, MongoDB and Neo4j fixtures and the WEB4 image run on GitHub-hosted CI. No local build, dependency download, runtime or fixture was created. Observed 34.2 GiB free.
