@@ -1,5 +1,7 @@
 # Current provider status
 
+15 November Cancun time. The first Algorand hard-delete test reached a single-call AVM budget error during record publication. e73efef5a3f3 groups encrypted chunk staging and manifest publication atomically. [Hard delete](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43745021092), [recovery from a committed checkpoint](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43745037844) and [native group rollback](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43745040433) are qualifying.
+
 15 November Cancun time. [Algorand collection and parent reads](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43743852560) passed in 418 ms with zero skips and verified native teardown. 27283cfbf8e0 implements revision-fenced hard deletion of published history and descriptor boxes. Its [native hard-delete job](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43744368454) is queued.
 
 15 November Cancun time. The [Algorand replacement provider run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43743427722) passed in 422 ms with zero skips. It published distinct records, reopened current and historical versions, and discovered both encrypted identities through Algod. The fixture verified teardown. Revision b55b6a98fc19 adds standard collection and parent reads with bounded concurrent lookups. Its [native provider run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43743852560) is queued.
