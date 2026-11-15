@@ -1,5 +1,7 @@
 # OPORTAL and HyperDrive performance audit
 
+15 November Cancun time. The exact OPORTAL dashboard plus two immediate My Subscriptions openings reused one signed WEB4 SDK request in 458 ms to response headers. Both views displayed Free. Browser rendering used a controlled DOM and the WEB4 backend was live; this measured request fan-out and response latency, with browser paint unmeasured. Tests cover independent bearer sessions and a fresh read after plan activation superseding a pending read.
+
 15 November Cancun time. OPORTAL dashboard task commit 3dece75 removes one unauthorized ONET statistics request from each ordinary-avatar dashboard initialization. The exact release-tree test confirms zero ONET calls for a User and one call with a reported zero for Wizard enum value 0. NFT, GeoNFT, Holon, Games and Clan counts distinguish unavailable results from native empty lists, and failed map totals finish loading. This reduces request fan-out by one for ordinary avatars. Overall browser load-time improvement has not been measured for this batch.
 
 15 November Cancun time. The OPORTAL dashboard previously retained its initial Gifts count after the inbox changed. The new UI uses the same-avatar inbox result without another HTTP request. The controlled regression verifies the count transitions from one unopened gift to one opened gift and proves that an older summary cannot overwrite it.
