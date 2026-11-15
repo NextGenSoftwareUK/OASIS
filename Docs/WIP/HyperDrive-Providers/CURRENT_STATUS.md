@@ -1,5 +1,7 @@
 # Current provider status
 
+15 November Cancun time. Follow-up WEB4 2203a5054034 separates excess request counting from pricing. A Free projection above a finite allowance retains its excess request count and still returns a zero charge. An unlimited plan retains zero excess. Hosted qualification 396efc17ef64 was dispatched against the exact Development parent. The prior fix is queued on Railway, and portal promotion remains staged so it can use the correct end-to-end estimate.
+
 15 November Cancun time. Development advanced from serving 318d7369abd0 to qualified Free estimate revision 42561325fd6c after the shared window. Railway queued WEB4 deployment 2dd0e884-0a24-44dd-ae39-553cb9886631. Live Free estimate verification is pending. Qualified portal dev and production candidates remain staged until their backend is available.
 
 15 November Cancun time. OPORTAL production candidate bf7f79b6f8a1 preserves the serving production assets outside the subscription changes and passed the exact subscription suite. Backend serving remains the prerequisite for promotion. Before the next Development window, WEB4 candidate 42561325fd6c passed a clean three-path diff and exact dependency manifest check on serving 318d7369abd0.
