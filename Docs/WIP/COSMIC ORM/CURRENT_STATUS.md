@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## WEB4 sandbox demo publication
+
+The public WEB4 sandbox still serves the JSON-only editor and labels Ask Your Data as Soon. Web4Site feature revision 2cad8572beb7 includes the SQL-like editor and enabled Ask Your Data tab. GitHub deployment 7791128690 confirmed the [exact preview](https://web4-site-nl2ge9ag1-oasis-team.vercel.app/web4-sandbox.html) built successfully. The intended Development hostname did not resolve from this laptop. The priority demo gap is the hosted browser walkthrough for both modes. Existing parser-to-WEB4 and WEB6-to-WEB4 results remain verified at their recorded scope. Public release remains pending.
+
 ## Native nested DTO projections
 
 Nested constructor and member-initializer projections now carry detached materialization through selection copies. Providers receive scalar leaves and validate the complete row buffer before any DTO constructor or setter runs. A shared regression and SQLite, MongoDB and Neo4j native fixture case were added. CI and parity acceptance remain pending.
