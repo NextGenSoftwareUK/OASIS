@@ -1,5 +1,11 @@
 # COSMIC ORM / CQL current status
 
+## CROSS JOIN reconciled with Algorand enrollment
+
+15 November. HyperDrive advanced Development to f50a2a48dde8 with Algorand BootLoader enrollment. Exact candidate cbd8383d12bf preserves all nine changed Algorand files and adds the same ten cross join files checked by the earlier native run. [Exact native qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43754440388) and [WEB4 image](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43754442819) are in flight. The old image passed on its earlier graph. The guarded release requires both new checks, successful Algorand deployment, the shared 30-minute interval and an unchanged Development tip. Website publication and populated live acceptance remain pending.
+
+The SQL editor floating-point draft passed 76 parser tests, using canonical WEB4 literals. Read-only hosted checks on the prior Development deployment accepted Double equality on MongoDB, SQLite and Neo4j. Single equality returned empty rows on SQLite and Neo4j and failed on MongoDB on both entity and projection routes. The existing operator log classified the cause as other. Commit cbf09dddd2ec adds safe numeric MongoDB command codes to operator logs and a redaction test. [Diagnostics CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43753953858) is running. The floating-point editor change and populated verification remain open.
+
 ## Browser-policy rollout and cross join access proof
 
 15 November. Exact browser-policy image 43746781696 and protocol 43746779526 passed. Development advanced to ea42fa05130f and Railway queued 56dbe407 at 19:08:51 UTC, 32 minutes and 15 seconds after the prior deployment. Railway served ea42fa05130f successfully. Live WEB4 preflight admitted credentials from the public website origin. Both the generated preview and the dedicated Development origin received a wildcard without credentials. The dedicated Development website hostname had no DNS answer. The dedicated hostname and protected preview access remain open.
