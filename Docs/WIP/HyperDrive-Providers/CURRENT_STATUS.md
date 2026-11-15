@@ -1,5 +1,7 @@
 # Current provider status
 
+15 November Cancun time. Algorand 5bef2e33227b adds a soft-delete revision with the actor, timestamp, prior version and durable repeat behavior. The [native soft-delete case](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43742564963) is running. Hard delete, discovery and routing remain open. WEB4 fdd9df3ee6e8 completed its Railway rollout.
+
 15 November Cancun time. Railway WEB5 fdd9df3ee6e8 serves. A signed portal SDK search sent before the owned-list read returned HTTP 200 in 1,183 ms and an empty result. The owned-list read returned HTTP 200 in 338 ms. WEB4 confirmed deletion of the sandbox avatar.
 
 15 November Cancun time. [Algorand signed native writer](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43741404640) passed in 300 ms with zero skips, confirming two encrypted revisions, stale write rejection, separate-reader readback and teardown. Commit ba5827cb2c6f connects the enrolled store to standard provider root saves and point reads. [Native entry-point qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43741947058) passed one case with zero skips in 426 ms and verified teardown.
