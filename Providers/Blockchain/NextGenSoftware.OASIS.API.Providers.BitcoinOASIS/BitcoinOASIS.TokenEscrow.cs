@@ -59,8 +59,9 @@ public partial class BitcoinOASIS : IOASISIdBoundTokenEscrowProvider
                 return await PublishBitcoinEscrowReceiptAsync(previous);
             }
 
+            var usesStoredKey = string.IsNullOrWhiteSpace(request.FromWalletPrivateKey);
             var wallet = await WalletManager.GetAvatarDefaultWalletByIdAsync(request.LockedByAvatarId,
-                ProviderType.Value, showPrivateKeys: true);
+                ProviderType.Value, showPrivateKeys: usesStoredKey);
             if (wallet.IsError || string.IsNullOrWhiteSpace(wallet.Result?.WalletAddress))
                 throw new InvalidOperationException("The locking avatar has no Bitcoin wallet.");
 
@@ -69,8 +70,7 @@ public partial class BitcoinOASIS : IOASISIdBoundTokenEscrowProvider
                 !source.Equals(BitcoinAddress.Create(request.FromWalletAddress, SigningNetwork)))
                 throw new InvalidOperationException("Only the locking avatar's configured Bitcoin wallet can fund this deposit.");
 
-            var privateKey = string.IsNullOrWhiteSpace(request.FromWalletPrivateKey)
-                ? wallet.Result.PrivateKey : request.FromWalletPrivateKey;
+            var privateKey = usesStoredKey ? wallet.Result.PrivateKey : request.FromWalletPrivateKey;
             if (string.IsNullOrWhiteSpace(privateKey))
                 throw new InvalidOperationException("The locking avatar has no Bitcoin signing key.");
 

@@ -1356,3 +1356,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 14 November Cancun time. Escrow job 132679763870 removed its Esplora container and image and ran the owned regtest fixture cleanup after compilation failed. Logs were inspected in memory. No local test databases, downloads or builds were created.
 
 14 November Cancun time. OPORTAL production staging removed its temporary Git index. Both preview browser profiles were removed after the browser exited. Portal and Bitcoin qualification logs were inspected in memory. No local browser downloads, environments, builds or test databases were created.
+
+14 November Cancun time. Production browser profile and processes were verified absent after the timed run. Native escrow jobs completed the owned runner cleanup after runtime rejection. No local build outputs, downloads or test databases were created.
