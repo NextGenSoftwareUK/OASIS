@@ -111,6 +111,23 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         CollectionAssert.AreEqual(new[] { 1 }, reduced.Result.ToArray());
         Assert.AreEqual(1, versions.Distinct().Count());
         Assert.ThrowsException<CosmicLinqException>(() => versions.Distinct(EqualityComparer<int>.Default));
-        checks.Add(new { provider = provider.ToString(), distinctWire = "two visible rows collapse to one native scalar key in SQL and LINQ" });
+        var flags = await root.Select(row => row.IsPublic).Distinct().ToCosmicListAsync();
+        Assert.IsFalse(flags.IsError, flags.Message + flags.Exception);
+        CollectionAssert.AreEqual(new[] { true }, flags.Result.ToArray());
+
+        var identifiers = await root.OrderBy(row => row.Id).Select(row => row.Id).Distinct().ToCosmicListAsync();
+        Assert.IsFalse(identifiers.IsError, identifiers.Message + identifiers.Exception);
+        CollectionAssert.AreEqual(new[] { first, second }.OrderBy(id => id).ToArray(), identifiers.Result.ToArray());
+
+        var fixtureIds = ids;
+        var fixtureSource = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(provider).Result)
+            .Where(row => fixtureIds.Contains(row.Id)).Result;
+        var fixtureRows = CosmicLinq.Create(NativeManager(adapter), adapter, fixtureSource).Result;
+        var labels = await fixtureRows.OrderBy(row => row.Name).Select(row => row.Description)
+            .Distinct().ToCosmicListAsync();
+        Assert.IsFalse(labels.IsError, labels.Message + labels.Exception);
+        CollectionAssert.AreEqual(new string?[] { "case", null, "Case" }, labels.Result.ToArray());
+
+        checks.Add(new { provider = provider.ToString(), distinctWire = "native SQL and LINQ Int32, Boolean, Guid and ordinal nullable String" });
     }
 }
