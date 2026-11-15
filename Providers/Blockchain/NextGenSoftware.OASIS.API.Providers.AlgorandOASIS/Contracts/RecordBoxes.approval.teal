@@ -13,10 +13,6 @@ txn Sender
 global CreatorAddress
 ==
 assert
-txn NumAppArgs
-int 5
-==
-assert
 txna ApplicationArgs 1
 len
 int 32
@@ -40,6 +36,10 @@ return
 
 // stage(key, revision, index, encryptedChunk)
 stage:
+txn NumAppArgs
+int 5
+==
+assert
 txna ApplicationArgs 2
 len
 int 32
@@ -57,7 +57,7 @@ int 8
 assert
 txna ApplicationArgs 3
 btoi
-int 6
+int 5
 <
 assert
 txna ApplicationArgs 4
@@ -84,8 +84,12 @@ box_put
 int 1
 return
 
-// publish(key, expected head digest, revision, concatenated chunk digests)
+// publish(key, expected head digest, revision, chunk digests, encrypted identity)
 publish:
+txn NumAppArgs
+int 6
+==
+assert
 txna ApplicationArgs 2
 len
 int 32
@@ -111,7 +115,7 @@ int 1
 >=
 assert
 dup
-int 6
+int 5
 <=
 assert
 store 2
@@ -179,6 +183,34 @@ txna ApplicationArgs 4
 concat
 store 6
 
+// The encrypted discovery descriptor is fixed for the lifetime of the record.
+byte "d"
+txna ApplicationArgs 1
+concat
+dup
+box_get
+bnz verify_descriptor
+pop
+txna ApplicationArgs 5
+len
+dup
+int 1
+>=
+assert
+int 256
+<=
+assert
+txna ApplicationArgs 5
+box_put
+b save_manifest
+
+verify_descriptor:
+txna ApplicationArgs 5
+==
+assert
+pop
+
+save_manifest:
 // The revision entry is immutable. Creation and the head swap commit together.
 byte "m"
 txna ApplicationArgs 1

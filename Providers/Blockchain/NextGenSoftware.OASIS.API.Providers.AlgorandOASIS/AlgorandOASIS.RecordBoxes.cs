@@ -20,7 +20,7 @@ public partial class AlgorandOASIS
 {
     private const int HashLength = 32;
     private const int ManifestHeaderLength = 3 * HashLength;
-    private const int MaximumChunks = 6;
+    private const int MaximumChunks = 5;
     private const int MaximumChunkLength = 896;
     private const int MaximumHistoryDepth = 10000;
     private static readonly byte[] EmptyHash = new byte[HashLength];

@@ -86,6 +86,9 @@ public sealed class AlgorandRecordBoxTests
             Assert.AreEqual(2, update.Result.Version);
             Assert.AreEqual(initial.Result.VersionId, update.Result.PreviousVersionId);
             Assert.AreNotEqual(initial.Result.VersionId, update.Result.VersionId);
+            var secondId = Guid.NewGuid();
+            var second = await provider.SaveHolonAsync(new Holon { Id = secondId, Name = "Another record" }, saveChildren: false);
+            Assert.IsFalse(second.IsError, second.Exception?.ToString() ?? second.Message);
 
             var separateReader = Create(Required("PROGRAM"), storageKey);
             Assert.IsFalse((await separateReader.ActivateProviderAsync()).IsError);
@@ -98,6 +101,9 @@ public sealed class AlgorandRecordBoxTests
                 var original = separateReader.LoadHolon(id.ToString("D"), loadChildren: false, version: 1);
                 Assert.IsFalse(original.IsError, original.Exception?.ToString() ?? original.Message);
                 Assert.AreEqual("Signed native version one", original.Result.Name);
+                var discovered = await separateReader.DiscoverStoredHolonIdsAsync();
+                Assert.IsFalse(discovered.IsError, discovered.Exception?.ToString() ?? discovered.Message);
+                CollectionAssert.AreEquivalent(new[] { id, secondId }, System.Linq.Enumerable.ToArray(discovered.Result));
             }
             finally
             {

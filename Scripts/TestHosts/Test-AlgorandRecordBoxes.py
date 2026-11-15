@@ -84,11 +84,17 @@ def run(node, wallet, handle, writer, outsider):
         key = hmac.digest(storage_key, f"oasis:algorand:box:v1:holon:{fixture}".encode(), "sha256")
         genesis = node.suggested_params().gh
         head = b"h" + key
+        descriptor_name = b"d" + key
+        format_name = "oasis-aes256gcm-v1:"
+        descriptor_nonce = secrets.token_bytes(12)
+        descriptor_cipher = AES.new(storage_key, AES.MODE_GCM, nonce=descriptor_nonce)
+        descriptor_cipher.update((format_name + f"oasis:algorand:discovery:v1:{genesis}:{app}:{key.hex().upper()}").encode())
+        descriptor_ciphertext, descriptor_tag = descriptor_cipher.encrypt_and_digest(str(fixture).encode())
+        descriptor = format_name.encode() + base64.b64encode(descriptor_nonce + descriptor_tag + descriptor_ciphertext)
         predecessor = bytes(32)
         versions = () if os.environ.get("OASIS_ALGORAND_RECORD_WRITE_TEST") == "true" else (1, 2)
         for version in versions:
             revision = secrets.token_bytes(32)
-            format_name = "oasis-aes256gcm-v1:"
             context = f"oasis:algorand:v1:{genesis}:{app}:holon:{fixture}:{revision.hex().upper()}"
             nonce = secrets.token_bytes(12)
             cipher = AES.new(storage_key, AES.MODE_GCM, nonce=nonce)
@@ -104,8 +110,8 @@ def run(node, wallet, handle, writer, outsider):
             for index, (name, chunk) in enumerate(zip(names, chunks, strict=True)):
                 submit(call(writer, [b"stage", key, revision, index.to_bytes(8, "big"), chunk], [name]))
             hashes = b"".join(digest(chunk) for chunk in chunks)
-            submit(call(writer, [b"publish", key, predecessor, revision, hashes],
-                        [head, manifest_name(key, revision), *names]))
+            submit(call(writer, [b"publish", key, predecessor, revision, hashes, descriptor],
+                        [head, manifest_name(key, revision), descriptor_name, *names]))
             predecessor = digest(read(head))
 
         settings = {
@@ -132,38 +138,43 @@ def run(node, wallet, handle, writer, outsider):
     second_revision = secrets.token_bytes(32)
     absent = bytes(32)
     head = b"h" + key
+    descriptor_name = b"d" + key
+    descriptor = secrets.token_bytes(95)
     chunks = [secrets.token_bytes(896), secrets.token_bytes(93)]
     first_names = [chunk_name(key, first_revision, index) for index in range(len(chunks))]
     first_manifest = manifest_name(key, first_revision)
-    first_refs = [head, first_manifest, *first_names]
+    first_refs = [head, first_manifest, descriptor_name, *first_names]
     hashes = b"".join(digest(chunk) for chunk in chunks)
     stage_args = [b"stage", key, first_revision, bytes(8), chunks[0]]
     reject(call(outsider, stage_args, first_names[:1]))
     submit(call(writer, stage_args, first_names[:1]))
     reject(call(writer, stage_args, first_names[:1]))
-    publish_args = [b"publish", key, absent, first_revision, hashes]
+    publish_args = [b"publish", key, absent, first_revision, hashes, descriptor]
     reject(call(writer, publish_args, first_refs))
     submit(call(writer, [b"stage", key, first_revision, (1).to_bytes(8, "big"), chunks[1]], first_names[1:]))
-    reject(call(writer, [*publish_args[:4], bytes(len(hashes))], first_refs))
+    reject(call(writer, [*publish_args[:4], bytes(len(hashes)), descriptor], first_refs))
     submit(call(writer, publish_args, first_refs))
     first_head = first_revision + absent + absent + hashes
     assert read(head) == first_head
     assert read(first_manifest) == first_head
+    assert read(descriptor_name) == descriptor
     assert [read(name) for name in first_names] == chunks
 
     replacement = secrets.token_bytes(407)
     second_name = chunk_name(key, second_revision, 0)
     second_manifest = manifest_name(key, second_revision)
-    second_refs = [head, second_manifest, second_name]
+    second_refs = [head, second_manifest, descriptor_name, second_name]
     submit(call(writer, [b"stage", key, second_revision, bytes(8), replacement], [second_name]))
-    reject(call(writer, [b"publish", key, absent, second_revision, digest(replacement)], second_refs))
+    reject(call(writer, [b"publish", key, absent, second_revision, digest(replacement), descriptor], second_refs))
     assert read(head) == first_head
     predecessor = digest(first_head)
-    submit(call(writer, [b"publish", key, predecessor, second_revision, digest(replacement)], second_refs))
+    reject(call(writer, [b"publish", key, predecessor, second_revision, digest(replacement), b"different"], second_refs))
+    assert read(head) == first_head
+    submit(call(writer, [b"publish", key, predecessor, second_revision, digest(replacement), descriptor], second_refs))
     second_head = second_revision + first_revision + predecessor + digest(replacement)
     assert read(second_manifest) == second_head
     assert read(head) == second_head
-    reject(call(writer, [b"publish", key, digest(second_head), first_revision, hashes], first_refs))
+    reject(call(writer, [b"publish", key, digest(second_head), first_revision, hashes, descriptor], first_refs))
     assert read(head) == second_head
     assert read(first_manifest) == first_head
     assert read(second_name) == replacement

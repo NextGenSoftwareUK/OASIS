@@ -102,9 +102,16 @@ public partial class AlgorandOASIS
                 throw new InvalidDataException("The encrypted Algorand record exceeds the contract's publication limit.");
 
             var count = (envelope.Length + MaximumChunkLength - 1) / MaximumChunkLength;
-            var names = new byte[count + 2][];
+            var names = new byte[count + 3][];
             names[0] = headName;
             names[1] = BoxName('m', [..key, ..revision]);
+            names[2] = [(byte)'d', ..key];
+            var descriptor = head == null
+                ? StrictUtf8.GetBytes(codec.Encrypt(DiscoveryContext(settings, key), id.ToString("D"), token))
+                : await ReadBoxAsync(settings, names[2], token).ConfigureAwait(false)
+                    ?? throw new InvalidDataException("The Algorand record is missing its discovery descriptor.");
+            if (DecodeDiscoveredId(settings, codec, key, descriptor, token) != id)
+                throw new InvalidDataException("The Algorand discovery descriptor identifies a different record.");
             var digests = new byte[count * HashLength];
             for (var index = 0; index < count; index++)
             {
@@ -113,14 +120,14 @@ public partial class AlgorandOASIS
                 var indexBytes = new byte[8];
                 BinaryPrimitives.WriteUInt64BigEndian(indexBytes, (ulong)index);
                 var name = BoxName('c', [..key, ..revision, ..indexBytes]);
-                names[index + 2] = name;
+                names[index + 3] = name;
                 SHA256.HashData(payload).CopyTo(digests, index * HashLength);
                 await SubmitBoxCallAsync(settings, ["stage"u8.ToArray(), key, revision, indexBytes, payload],
                     [name], token).ConfigureAwait(false);
             }
 
             var predecessor = head == null ? EmptyHash : SHA256.HashData(head);
-            await SubmitBoxCallAsync(settings, ["publish"u8.ToArray(), key, predecessor, revision, digests],
+            await SubmitBoxCallAsync(settings, ["publish"u8.ToArray(), key, predecessor, revision, digests, descriptor],
                 names, token).ConfigureAwait(false);
             var manifest = await ReadBoxAsync(settings, names[1], token).ConfigureAwait(false);
             byte[] previousRevision = head == null ? EmptyHash : head[..HashLength];
