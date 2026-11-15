@@ -694,7 +694,8 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
 
             if (Configuration["CQL_CONNEXT_PUBLIC_SOURCE_JSON"] is string connextPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
-                    NextGenSoftware.OASIS.API.Providers.ConnextOASIS.ConnextPublicOriginMetadataSource.FromJson(connextPublicSource)));
+                    NextGenSoftware.OASIS.API.Providers.ConnextOASIS.ConnextPublicOriginMetadataSource.FromJson(connextPublicSource),
+                    Services.Cql.CqlReadSourceActivationPolicy.TransientServerErrorOnce));
 
             if (Configuration["CQL_MIDEN_PUBLIC_SOURCE_JSON"] is string midenPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
@@ -714,7 +715,8 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
 
             if (Configuration["CQL_AXELAR_PUBLIC_SOURCE_JSON"] is string axelarPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
-                    NextGenSoftware.OASIS.API.Providers.AxelarOASIS.AxelarPublicBlockSource.FromJson(axelarPublicSource)));
+                    NextGenSoftware.OASIS.API.Providers.AxelarOASIS.AxelarPublicBlockSource.FromJson(axelarPublicSource),
+                    Services.Cql.CqlReadSourceActivationPolicy.TransientServerErrorOnce));
 
             if (Configuration["CQL_RITUAL_PUBLIC_SOURCE_JSON"] is string ritualPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
