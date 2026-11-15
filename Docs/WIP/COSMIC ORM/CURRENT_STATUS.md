@@ -6,7 +6,7 @@
 
 ## Exact nullable Int64 Distinct and current peer scope
 
-15 November. Feature 30b4fdf44f33 and Core 99bb82ccc332 admit signed Int64 for selected native Distinct. The test fixture uses repeated values, missing cells and adjacent values above JavaScript safe-integer precision. Exact [native protocol CI 43722762847](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43722762847) runs candidate 4437cc9e119f atop HyperDrive b9808ae777b8, preserving its qualified Stripe and Gifts changes. The preceding combined CI 43721215988 and the standalone four-domain image 43720025865 succeeded. The Int64 extension is unverified and no additional parity row is closed. Disposable Git indexes were removed.
+15 November. Feature 30b4fdf44f33 and Core 99bb82ccc332 admit signed Int64 for selected native Distinct. The test fixture uses repeated values, missing cells and adjacent values above JavaScript safe-integer precision. Exact [native protocol CI 43722762847](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43722762847) runs candidate 4437cc9e119f atop HyperDrive b9808ae777b8, preserving its qualified Stripe and Gifts changes. The preceding combined CI 43721215988 and the standalone four-domain image 43720025865 succeeded. The Int64 case passed the native three-store step, including adjacent large values, repeated values and missing nullable cells. Source publication and the exact WEB4 image remain pending. No additional parity row is closed. Disposable Git indexes were removed.
 
 ## Shared Development candidate with HyperDrive changes
 
