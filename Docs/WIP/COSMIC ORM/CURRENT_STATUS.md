@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Independent OR groups inside SQL join inputs
+
+15 November. Web4Site bf90e80774aa reuses the standard CQL predicate parser for each bounded join input. Each input keeps its own AND predicates and its own OR group. The compiler applies those filters before the source window and preserves the pair bound. All 230 website tests passed. Populated WEB4 checks on Development cbd8383d12bf returned exactly four expected pairs on MongoDB, SQLite and Neo4j, with wall times of 933 ms, 513 ms and 823 ms respectively. All 12 scoped records were hard-deleted and independently confirmed absent. The Ask Your Data instructions describe independent OR groups. Authenticated browser acceptance remains open.
+
 ## MongoDB SINGLE on Development Atlas
 
 15 November. A read-only Atlas probe isolated the failure to the Decimal128 branch of the native Single expression. Atlas accepted a synthetic command with BSON depth 65 and rejected the original depth 64 expression with code 8000 because the tier disallows $ltrim. The replacement builds the decimal digits from limbs without leading padding and tests whether the discarded tail is all zeros. Atlas accepted the complete replacement expression and matched all 14 synthetic Decimal128 vectors bit-for-bit, including values on both sides of a midpoint, exact ties, finite boundaries and invalid inputs. The probe used a database-level aggregation over synthetic documents and created no records. A second read-only Atlas run verified all 252 signed midpoint cases from boundary and seeded-random exponents bit-for-bit in 1,311 ms wall time. MongoDB fix candidate f480b33d6865 is in [protocol CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43756757068) and [image CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43756759215). Populated WEB4 filters, projection, DISTINCT and editor publication remain pending.
