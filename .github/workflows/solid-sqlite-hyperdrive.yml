@@ -9,6 +9,12 @@ on:
       - 'Providers/Shared/TestSupport/NativePriorityRouting.cs'
       - 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.IntegrationTests/SolidSqliteHyperDriveTests.cs'
   workflow_dispatch:
+    inputs:
+      solid_case:
+        description: Native Solid case
+        type: choice
+        options: [routing, sync_activation]
+        default: routing
 
 permissions:
   contents: read
@@ -93,7 +99,9 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      - name: Verify routing against a private Solid Pod and SQLite
+      - name: Verify against a private Solid Pod
+        env:
+          OASIS_SOLID_NATIVE_CASE: ${{ inputs.solid_case || 'sync_activation' }}
         shell: bash
         run: |
           umask 077
@@ -151,10 +159,13 @@ jobs:
             Write-Output "::add-mask::$env:OASIS_SOLID_ROUTING_STORAGE_KEY"
             ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-PrioritySolidRouting -Operation {
               $project = "Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.SOLIDOASIS.IntegrationTests"
-              dotnet test $project --filter "FullyQualifiedName~SolidSqliteHyperDriveTests" /p:SolidDirectProviderOnly=true /p:SolidRoutingTests=true /m:2 /nr:false /p:UseSharedCompilation=false --logger "trx;LogFileName=routing.trx" --results-directory $env:OASIS_SOLID_ROUTING_DIRECTORY
+              $syncActivation = $env:OASIS_SOLID_NATIVE_CASE -eq "sync_activation"
+              $test = if ($syncActivation) { "SynchronouslyActivatesAndReadsTheNativePod" } else { "RoutesAcrossNativeSolidAndSqlite" }
+              $expected = if ($syncActivation) { 1 } else { 2 }
+              dotnet test $project --filter "FullyQualifiedName~$test" /p:SolidDirectProviderOnly=true /p:SolidRoutingTests=true /m:2 /nr:false /p:UseSharedCompilation=false --logger "trx;LogFileName=routing.trx" --results-directory $env:OASIS_SOLID_ROUTING_DIRECTORY
               if ($LASTEXITCODE -ne 0) { throw "Native Solid routing verification failed." }
               [xml]$report = Get-Content -LiteralPath (Join-Path $env:OASIS_SOLID_ROUTING_DIRECTORY "routing.trx")
-              if ($report.TestRun.ResultSummary.Counters.passed -ne "2" -or $report.TestRun.ResultSummary.Counters.total -ne "2") {
-                throw "Both native Solid routing cases must execute and pass."
+              if ([int]$report.TestRun.ResultSummary.Counters.passed -ne $expected -or [int]$report.TestRun.ResultSummary.Counters.total -ne $expected) {
+                throw "The selected native Solid cases must execute and pass."
               }
             }'
