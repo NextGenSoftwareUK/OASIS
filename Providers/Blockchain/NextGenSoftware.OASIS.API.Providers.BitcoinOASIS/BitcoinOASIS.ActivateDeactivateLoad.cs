@@ -53,25 +53,19 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                     return response;
                 }
 
-                using var testResponse = await _httpClient.GetAsync("blocks/tip/height").ConfigureAwait(false);
-                if (testResponse.IsSuccessStatusCode)
+                var height = _httpClient.GetStringAsync("blocks/tip/height");
+                await Task.WhenAll(height, VerifyBitcoinExplorerNetworkAsync()).ConfigureAwait(false);
+                if (!int.TryParse((await height.ConfigureAwait(false)).Trim(), System.Globalization.NumberStyles.None,
+                    System.Globalization.CultureInfo.InvariantCulture, out _))
                 {
-                    var body = await testResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
-                    if (!int.TryParse(body.Trim(), System.Globalization.NumberStyles.None,
-                        System.Globalization.CultureInfo.InvariantCulture, out _))
-                    {
-                        OASISErrorHandling.HandleError(ref response, "Bitcoin explorer returned an invalid chain tip height.");
-                        return response;
-                    }
-                    _isActivated = true;
-                    IsProviderActivated = true;
-                    response.Result = true;
-                    response.Message = "Bitcoin provider activated successfully";
+                    OASISErrorHandling.HandleError(ref response, "Bitcoin explorer returned an invalid chain tip height.");
+                    return response;
                 }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to read Bitcoin explorer chain tip: {testResponse.StatusCode}");
-                }
+
+                _isActivated = true;
+                IsProviderActivated = true;
+                response.Result = true;
+                response.Message = "Bitcoin provider activated successfully";
             }
             catch (Exception ex)
             {
@@ -80,6 +74,13 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             }
 
             return response;
+        }
+
+        private async Task VerifyBitcoinExplorerNetworkAsync()
+        {
+            var genesis = (await _httpClient.GetStringAsync("block-height/0").ConfigureAwait(false)).Trim();
+            if (!uint256.TryParse(genesis, out var hash) || hash != SigningNetwork.GetGenesis().GetHash())
+                throw new InvalidOperationException("Esplora is serving a different Bitcoin network.");
         }
 
         public override OASISResult<bool> ActivateProvider()

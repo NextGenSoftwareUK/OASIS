@@ -42,7 +42,7 @@ public partial class BitcoinOASIS : IOASISIdBoundTokenEscrowProvider
             var (authority, receiptActor, pool, poolSigner) = ReadBitcoinEscrowConfiguration(request.LockId,
                 request.Web3TokenId, request.LockedByAvatarId, request.EscrowContractAddress);
             var token = CanonicalBitcoinEscrowToken(request.TokenAddress);
-            await VerifyBitcoinEscrowNetworkAsync();
+            await VerifyBitcoinExplorerNetworkAsync();
             if (request.Amount <= 0)
                 throw new ArgumentException("The Bitcoin escrow amount must be positive.");
 
@@ -130,7 +130,7 @@ public partial class BitcoinOASIS : IOASISIdBoundTokenEscrowProvider
             var (authority, receiptActor, pool, poolSigner) = ReadBitcoinEscrowConfiguration(request.LockId,
                 request.Web3TokenId, request.UnlockedByAvatarId, request.EscrowContractAddress);
             var token = CanonicalBitcoinEscrowToken(request.TokenAddress);
-            await VerifyBitcoinEscrowNetworkAsync();
+            await VerifyBitcoinExplorerNetworkAsync();
             var depositId = BitcoinEscrowRecordId(pool, request.LockId, "deposit");
             var releaseId = BitcoinEscrowRecordId(pool, request.LockId, "release");
             var deposit = await ReadBitcoinEscrowReceiptAsync(depositId, receiptActor, authority, poolSigner);
@@ -231,13 +231,6 @@ public partial class BitcoinOASIS : IOASISIdBoundTokenEscrowProvider
 
     private static string CanonicalBitcoinEscrowToken(string token) =>
         string.Equals(token, "BTC", StringComparison.OrdinalIgnoreCase) ? "BTC" : ParseBitcoinRuneId(token).Id;
-
-    private async Task VerifyBitcoinEscrowNetworkAsync()
-    {
-        var genesis = (await _httpClient.GetStringAsync("block-height/0")).Trim();
-        if (!uint256.TryParse(genesis, out var hash) || hash != SigningNetwork.GetGenesis().GetHash())
-            throw new InvalidOperationException("Esplora is serving a different Bitcoin escrow network.");
-    }
 
     private static bool BitcoinEscrowSignerOwnsAddress(BitcoinSecret signer, BitcoinAddress address) =>
         address.Equals(signer.GetAddress(ScriptPubKeyType.Segwit)) ||

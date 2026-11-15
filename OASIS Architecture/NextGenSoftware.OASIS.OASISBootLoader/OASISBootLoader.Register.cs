@@ -375,6 +375,23 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                             break;
                         }
 
+                        case ProviderType.BitcoinOASIS:
+                        {
+                            var settings = OASISDNA.OASIS.StorageProviders.BitcoinOASIS
+                                ?? throw new InvalidOperationException("Bitcoin storage settings are required.");
+                            var endpoint = overrideConnectionString ?? settings.RpcEndpoint;
+                            if (!Uri.TryCreate(endpoint, UriKind.Absolute, out var esplora) ||
+                                (esplora.Scheme != Uri.UriSchemeHttps && esplora.Scheme != Uri.UriSchemeHttp) ||
+                                string.IsNullOrWhiteSpace(settings.Network))
+                                throw new InvalidOperationException("Configure an HTTP Esplora endpoint and a Bitcoin network.");
+
+                            var provider = new BitcoinOASIS(esplora.AbsoluteUri, settings.Network,
+                                Environment.GetEnvironmentVariable("OASIS_BITCOIN_SIGNING_KEY") ?? string.Empty);
+                            provider.OnStorageProviderError += (_, error) => HandleProviderError("BitcoinOASIS", error);
+                            result.Result = provider;
+                            break;
+                        }
+
                         //case ProviderType.CardanoOASIS:
                         //    {
                         //        CardanoOASIS cardanoOASIS = new CardanoOASIS(

@@ -7,6 +7,10 @@ on:
         description: Qualify only the native BTC escrow lifecycle
         type: boolean
         default: false
+      bootloader_only:
+        description: Qualify only the Bitcoin provider registration and activation
+        type: boolean
+        default: false
       rune_escrow_only:
         description: Qualify only the native Rune escrow lifecycle
         type: boolean
@@ -46,12 +50,22 @@ jobs:
           revision="$(sed -n 's/^LIBRARIES_COMMIT=//p' Docker/oasis-dependency-versions.env)"
           [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
           echo "libraries=$revision" >> "$GITHUB_OUTPUT"
+          holochain="$(sed -n 's/^HOLOCHAIN_COMMIT=//p' Docker/oasis-dependency-versions.env)"
+          [[ "$holochain" =~ ^[a-f0-9]{40}$ ]]
+          echo "holochain=$holochain" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@v7
         with:
           repository: NextGenSoftwareUK/NextGenSoftware-Libraries
           ref: ${{ steps.dependencies.outputs.libraries }}
           path: NextGenSoftware-Libraries
           token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - uses: actions/checkout@v7
+        if: inputs.bootloader_only
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          ref: ${{ steps.dependencies.outputs.holochain }}
+          path: holochain-client-csharp
           persist-credentials: false
       - uses: actions/setup-dotnet@v4
         with:
@@ -167,6 +181,50 @@ jobs:
             sleep 1
           done
           test "$ready" = true
+          if [[ '${{ inputs.bootloader_only }}' = true ]]; then
+            export OASIS_BITCOIN_BOOT_DNA="$owned/bootloader-dna.json"
+            export OASIS_BITCOIN_WRONG_NETWORK_DNA="$owned/bootloader-wrong-network.json"
+            secret="$(openssl rand -hex 32)"
+            jq -n --arg endpoint "$OASIS_BITCOIN_REGTEST_API" --arg secret "$secret" '
+              {OASIS:{
+                HyperDriveMode:"OASISHyperDrive2",
+                Logging:{LoggingFramework:"Default", LogToConsole:false, LogToFile:false},
+                ErrorHandling:{LogAllErrors:false, LogAllWarnings:false},
+                Security:{SecretKey:$secret},
+                StorageProviders:{
+                  OASISProviderBootType:"Warm", AutoFailOverEnabled:false, AutoFailOverLocalProvidersEnabled:false,
+                  AutoReplicationEnabled:false, AutoLoadBalanceEnabled:false,
+                  AutoFailOverProviders:"BitcoinOASIS", AutoFailOverLocalProviders:"BitcoinOASIS",
+                  AutoReplicationProviders:"BitcoinOASIS", AutoLoadBalanceProviders:"BitcoinOASIS",
+                  AutoFailOverProvidersForAvatarLogin:"BitcoinOASIS",
+                  AutoFailOverProvidersForCheckIfEmailAlreadyInUse:"BitcoinOASIS",
+                  AutoFailOverProvidersForCheckIfUsernameAlreadyInUse:"BitcoinOASIS",
+                  AutoFailOverProvidersForCheckIfOASISSystemAccountExists:"BitcoinOASIS",
+                  BitcoinOASIS:{RpcEndpoint:$endpoint, Network:"regtest"}
+                },
+                OASISHyperDriveConfig:{
+                  AutoFailoverEnabled:false, AutoReplicationEnabled:false, AutoLoadBalancingEnabled:false,
+                  EnabledProviders:["BitcoinOASIS"], AutoFailoverProviders:["BitcoinOASIS"],
+                  AutoReplicationProviders:["BitcoinOASIS"], LoadBalancingProviders:["BitcoinOASIS"]
+                }
+              }}' > "$OASIS_BITCOIN_BOOT_DNA"
+            jq '.OASIS.StorageProviders.BitcoinOASIS.Network = "mainnet"' "$OASIS_BITCOIN_BOOT_DNA" > "$OASIS_BITCOIN_WRONG_NETWORK_DNA"
+            chmod 600 "$OASIS_BITCOIN_BOOT_DNA" "$OASIS_BITCOIN_WRONG_NETWORK_DNA"
+            pwsh -NoProfile -Command '
+              ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-BitcoinBootLoader -Operation {
+                $project = "OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader.TestHarness/NextGenSoftware.OASIS.OASISBootLoader.TestHarness.csproj"
+                dotnet build $project /m:2 /nr:false /p:UseSharedCompilation=false
+                if ($LASTEXITCODE -ne 0) { throw "Bitcoin BootLoader harness build failed." }
+                dotnet run --no-build --no-restore --project $project -- $env:OASIS_BITCOIN_BOOT_DNA BitcoinOASIS
+                if ($LASTEXITCODE -ne 0) { throw "Bitcoin BootLoader activation failed." }
+                $rejected = dotnet run --no-build --no-restore --project $project -- $env:OASIS_BITCOIN_WRONG_NETWORK_DNA BitcoinOASIS 2>&1
+                if ($LASTEXITCODE -ne 1 -or ($rejected -join " ") -notmatch "Activation failed for BitcoinOASIS") {
+                  throw "Bitcoin BootLoader did not reject the mismatched native genesis."
+                }
+                Write-Output "Rejected the same Esplora endpoint with a mismatched Bitcoin network."
+              }'
+            exit 0
+          fi
           qualify_escrow() {
             export OASIS_BITCOIN_ESCROW_RECEIPT_PROVIDER=SQLLiteDBOASIS
             export OASIS_BITCOIN_ESCROW_RECEIPT_ACTOR="$(cat /proc/sys/kernel/random/uuid)"
