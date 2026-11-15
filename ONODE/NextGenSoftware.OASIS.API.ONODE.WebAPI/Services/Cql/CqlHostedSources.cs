@@ -68,6 +68,7 @@ public sealed class CqlHostedSources : BackgroundService
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         hostStoppingToken = stoppingToken;
+        var started = Stopwatch.GetTimestamp();
         const int maximumConcurrentReaders = 3;
         var ordered = queryOnly.OrderBy(type => type.ToString(), StringComparer.Ordinal).ToArray();
         for (var index = 0; index < ordered.Length;)
@@ -90,6 +91,9 @@ public sealed class CqlHostedSources : BackgroundService
                 && registry.HasIndependentActivation(ordered[index]));
             await Task.WhenAll(batch);
         }
+
+        logger.LogInformation("CQL startup completed readers={Enrolled} verified={Verified} elapsedMilliseconds={ElapsedMilliseconds}",
+            ordered.Length, verified.Count, (long)Stopwatch.GetElapsedTime(started).TotalMilliseconds);
     }
 
     private async Task ActivateInitialAsync(ProviderType provider, CancellationToken stoppingToken)
