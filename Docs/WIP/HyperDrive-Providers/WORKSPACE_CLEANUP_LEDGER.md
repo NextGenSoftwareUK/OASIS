@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. The signed Gifts stats and history probe was read-only. WEB4 confirmed the test avatar self-delete. No local downloads, databases, builds or result files were created.
+
 15 November Cancun time. The task worktree had 25.7 GiB free on C:. Read-only inventory found 2421 untracked files totaling 142.51 MiB under generated bin and obj paths in TestResults/HyperDrive-Providers. Execution policy rejected the verified-path recursive cleanup before the command ran. The retained native evidence files are outside the generated directories.
 
 15 November Cancun time. Portal Gifts synchronization tests ran in memory. The temporary Git index was removed after exact candidate verification. Algorand pagination ran against mainnet on hosted CI. No local dependencies, database or build outputs were retained.

@@ -1,5 +1,7 @@
 # Current provider status
 
+15 November Cancun time. Signed live WEB4 Gifts returned numeric sentGifts and receivedGifts counters and an empty history for a disposable avatar. OPORTAL 5fc7eb6 now reads those actual field names and preserves zero. WEB4 Gifts history and stats forward native manager responses and errors directly, removing the test-data success paths. Focused hosted-CI verification is pending.
+
 15 November Cancun time. COSMIC/CQL advanced Development to 6ef92492c26e in the shared window. Stripe cache candidate 9e6049390fcc preserves that change, the dependency manifest, and both file hashes from the passed qualification. It awaits the next Development window. The live latency check is ready for the serving revision.
 
 15 November Cancun time. OPORTAL 6582f51 updates the Gifts card from the already refreshed inbox after a gift changes, rejects stale initial summaries, and accepts inbox updates only for the active avatar. Candidate 01291b1993b9 passed the exact endpoint and DOM regression checks and awaits portal dev publication. Native Algorand pagination with the operation deadline passed run 43716576493, including the existing multi-page query and invalid account rejection.

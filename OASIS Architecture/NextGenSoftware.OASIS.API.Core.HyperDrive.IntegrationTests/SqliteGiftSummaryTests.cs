@@ -43,6 +43,17 @@ public sealed class SqliteGiftSummaryTests
         Assert.Equal(recipient, gift.ToAvatarId);
         Assert.True(gift.IsReceived);
         Assert.True(gift.IsOpened);
+
+        var stats = await gifts.GetGiftStatsAsync(recipient);
+        Assert.False(stats.IsError, stats.Message);
+        Assert.Equal(0, Assert.IsType<int>(stats.Result["sentGifts"]));
+        Assert.Equal(1, Assert.IsType<int>(stats.Result["receivedGifts"]));
+        Assert.Equal(1, Assert.IsType<int>(stats.Result["openedGifts"]));
+
+        var history = await gifts.GetGiftHistoryAsync(recipient);
+        Assert.False(history.IsError, history.Message);
+        Assert.Contains(history.Result, entry => entry.GiftId == giftId &&
+            entry.TransactionType == GiftTransactionType.Opened);
     });
 
     private static async Task WithNativeGiftsAsync(Func<SQLLiteDBOASIS, GiftsManager, Task> verify)
