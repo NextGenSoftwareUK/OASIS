@@ -1,5 +1,7 @@
 # OPORTAL and HyperDrive performance audit
 
+15 November Cancun time. The populated live Files dashboard check returned one in a 313-byte compact response. The old full list for the same avatar and one file returned 824 bytes. The compact request reached response headers in 469 ms, and the old request took 478 ms including the body. This single run demonstrates the smaller payload. It does not establish a latency difference or browser paint time.
+
 15 November Cancun time. Stripe catalogue cache run 43714069040 used the shipping Stripe SDK over a controlled transport. Concurrent readers issued one price request. Expiry, a changed price ID, and a changed account key each issued a new request. A live WEB4 timing comparison remains open.
 
 15 November Cancun time. The serving WEB4 dev plan catalogue returned five plans and 1643 bytes in four uncached samples of 859, 720, 384 and 433 ms. The server previously started three Stripe price reads for every catalogue request. The new reader retains only successful validated prices for 30 seconds, deduplicates concurrent reads, and refreshes on config changes. The benchmark above is baseline timing. Hosted comparison awaits deployment.
