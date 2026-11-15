@@ -416,6 +416,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.Subscription
             {
                 id = "evt_other_checkout", @object = "event", type = "checkout.session.completed",
                 created = timestamp, api_version = Stripe.StripeConfiguration.ApiVersion,
+                request = new { id = "req_other_checkout", idempotency_key = (string)null },
                 data = new { @object = new
                 {
                     id = "cs_test_other_checkout", @object = "checkout.session", subscription = "sub_other",
