@@ -33,7 +33,7 @@ public partial class CqlV1Web4Tests
         public HolonManager CreateManager(IOASISProvider provider)
         {
             var dna = new OASISDNA { OASIS = new NextGenSoftware.OASIS.API.DNA.OASIS { HyperDriveMode = HyperDriveModes.V2 } };
-            return new HolonManager(provider, dna, new ProviderManager(null, dna) {
+            return new HolonManager((IOASISStorageProvider)provider, dna, new ProviderManager(null, dna) {
                 IsAutoFailOverEnabled = false, IsAutoReplicationEnabled = false, IsAutoLoadBalanceEnabled = false
             });
         }

@@ -76,7 +76,7 @@ public partial class CqlV1Web4Tests
             var registry = new ProviderManager(null, dna) {
                 IsAutoFailOverEnabled = false, IsAutoReplicationEnabled = false, IsAutoLoadBalanceEnabled = false
             };
-            return new HolonManager(provider, dna, registry);
+            return new HolonManager((IOASISStorageProvider)provider, dna, registry);
         }
     }
 
