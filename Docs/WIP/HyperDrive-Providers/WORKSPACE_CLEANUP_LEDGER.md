@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. Checkout ledger verification runs on GitHub-hosted CI. No local build, test database, download or result files were created. C: had 26.7 GiB free.
+
 15 November Cancun time. Stripe confirmed cancellation of the scoped test subscription and removal of its owned sandbox customer. WEB4 observed canceled status before deleting the test avatar. Stripe and WEB4 retain their native canceled billing and event audit history. No browser profile was created by the rejected launch, and no builds, downloads or local databases were created.
 
 15 November Cancun time. Stripe returned expired for the owned test checkout and WEB4 confirmed its test avatar self-delete. All four owned hosted Files deletions returned true, visible count returned zero, and the file test avatar self-delete succeeded. No local builds, browsers, databases, packages or results were created.

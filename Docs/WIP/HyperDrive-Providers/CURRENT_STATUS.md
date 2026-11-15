@@ -1,5 +1,7 @@
 # Current provider status
 
+15 November Cancun time. WEB4 now labels new Stripe Checkout sessions and their subscriptions with the billing ledger and rejects checkout reads and events explicitly marked for another ledger. Existing sessions without a scope stay compatible. Focused signed-event verification is in progress. The WEB4 NFT request validation passed run 43703881912, one test, no skips. Native NFT transfer remains open.
+
 15 November Cancun time. A real Stripe sandbox payment created through the Stripe API exercised the enabled Railway dev webhook. WEB4 saved the exact active Bronze subscription, showed the GBP 9 paid order, and created an owned native billing portal session. Cancellation propagated to WEB4. Hosted browser Checkout form submission and browser return remain open after the automated launch was blocked before execution.
 
 15 November Cancun time. Signed Railway dev created a real Stripe test Bronze checkout at GBP 9.00, verified the session's owner, plan, pricing and open/inactive status, then expired it and removed the avatar. No charge was attempted. Portal e447629 stops confirmation on an expired session. WEB4 Files 49e4ba65a783 is serving and passed populated upload/download/count parity. The NFT request rerun 43702159216 exposed a test namespace collision, now corrected.

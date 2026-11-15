@@ -429,7 +429,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.Subscription
             context.Request.Body = new System.IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes(body));
             controller.ControllerContext = new ControllerContext { HttpContext = context };
 
-            var result = (await controller.StripeWebhook()).Should().BeOfType<OkObjectResult>().Subject;
+            var result = (await controller.StripeWebhook()).Should().BeOfType<OkObjectResult>().Which;
             System.Text.Json.JsonSerializer.Serialize(result.Value).Should().Contain("other_ledger_checkout");
             billing.VerifyNoOtherCalls();
             _svc.VerifyNoOtherCalls();
