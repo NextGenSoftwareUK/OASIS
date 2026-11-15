@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. The combined router and subscription modal test ran from Node standard input, reading the sparse checkout's tracked fixtures from Git. No packages, browser profile, local build or test outputs were created.
+
 15 November Cancun time. OPORTAL production integration checked Git objects and deleted its temporary index. Hosted deployment built on Vercel. Public API and asset checks ran in memory. No production billing fixture, local build, download or test result was created.
 
 15 November Cancun time. Both task-owned temporary Git indexes used to compose the Gifts candidate were removed. The SQLite and hosted authorization tests run on remote CI. No local build, package download, database or test output was created.

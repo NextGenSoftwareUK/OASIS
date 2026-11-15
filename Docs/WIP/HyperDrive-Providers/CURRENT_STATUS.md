@@ -1,5 +1,7 @@
 # Current provider status
 
+15 November Cancun time. OPORTAL 66a4d22 suppresses the subscription list request while a paid Checkout return is being confirmed. The router and subscription modal regression passed together, showing a single list refresh after verified activation. This change is on the task branch. Railway still reports checkout-scope revision 78eae0988824 as building.
+
 15 November Cancun time. The Gifts controller rejected anonymous requests in exact-graph WEB4 run 43706928149, one test and no skips. Together with the native SQLite count pass in 43706925779, candidate 6b93605f44da is ready for the next eligible Development batch. Railway still lists checkout-scope revision 78eae0988824 as building and reports previous revision 2526b8c8a0e8 as successful. The next sandbox checkout check will verify native Stripe ledger metadata and rejection of a same-avatar session marked for another ledger.
 
 15 November Cancun time. OPORTAL production 97b458c669e1 passed endpoint and subscription checks and Vercel deployment. Production WEB4 OpenAPI advertises all six required subscription methods. The public production /subscription route returned HTTP 200 and served the versions containing the Stripe return URL and authenticated confirmation fixes. No production payment was created. The hosted browser payment and return still need verification. On the pending Gifts batch, exact-graph native SQLite run 43706925779 passed one case with no skips.
