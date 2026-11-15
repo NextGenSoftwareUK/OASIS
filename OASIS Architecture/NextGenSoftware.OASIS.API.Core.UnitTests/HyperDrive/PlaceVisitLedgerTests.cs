@@ -25,8 +25,8 @@ public sealed partial class HyperDriveProviderExecutionTests
             stored[row.Id]=StoredRecordJson.Serialize(row);
             return new(StoredRecordJson.Deserialize<Holon>(stored[row.Id])){IsSaved=true,SavedCount=1};
         }
-        provider.Setup(p=>p.LoadHolon(It.IsAny<Guid>(),true,true,0,true,false,0)).Returns((Guid id,bool a,bool b,int c,bool d,bool e,int f)=>Read(id));
-        provider.Setup(p=>p.LoadHolonAsync(It.IsAny<Guid>(),true,true,0,true,false,0)).ReturnsAsync((Guid id,bool a,bool b,int c,bool d,bool e,int f)=>Read(id));
+        provider.Setup(p=>p.LoadHolon(It.IsAny<Guid>(),false,true,0,true,false,0)).Returns((Guid id,bool a,bool b,int c,bool d,bool e,int f)=>Read(id));
+        provider.Setup(p=>p.LoadHolonAsync(It.IsAny<Guid>(),false,true,0,true,false,0)).ReturnsAsync((Guid id,bool a,bool b,int c,bool d,bool e,int f)=>Read(id));
         foreach(var children in new[]{false,true})
         {
             provider.Setup(p=>p.SaveHolon(It.IsAny<IHolon>(),children,true,0,true,false)).Returns((IHolon row,bool a,bool b,int c,bool d,bool e)=>Save(row));

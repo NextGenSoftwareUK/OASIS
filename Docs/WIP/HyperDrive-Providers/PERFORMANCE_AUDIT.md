@@ -1,5 +1,7 @@
 # OPORTAL and HyperDrive performance audit
 
+15 November Cancun time. Native Files job 132754373256 passed one test with no skips. One upload through FilesManager reached both MongoDB and SQLite, preserved all 4096 bytes on each download, returned the same file identity in both lists and counted one file per store for its owner and zero for an unrelated avatar. Hosted populated timings remain open.
+
 15 November Cancun time. The OPORTAL branch now starts app-owner usage, settings and billing reads concurrently at 2d9c33b. The corresponding Development handlers each enforce app ownership before returning data. A loopback test held all three responses until every authenticated GET arrived and verified success rendering and 403 propagation. Anonymous dev probes returned 401 on all four owner routes, while the production origin returned 404. Production timing and adoption remain open.
 
 15 November Cancun time. The native Files rerun 43694763650 passed the MongoDB download and count assertions, then failed on SQLite download. SQLite's holon read returns string-valued metadata as JsonElement. The Files reader now decodes that same Base64 value directly, including legacy uploads already represented as JSON strings. Exact replica bytes and count parity still require rerun.

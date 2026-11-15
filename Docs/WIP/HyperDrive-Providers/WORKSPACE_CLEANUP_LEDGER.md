@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. Hosted native Files job 132754373256 passed through the test finally block that drops its MongoDB database and removes its SQLite fixture directory. GitHub logs were inspected in memory. No local downloads, builds or test databases were created.
+
 15 November Cancun time. The OPORTAL loopback test ran via standard input, closed its HTTP server and created no persistent test results, downloads or environment. No local .NET build or database was created for the hosted Files rerun. C: had about 27.1 GiB free.
 
 15 November Cancun time. Removed both locally generated manifest review CSVs after reconciling the tracked manifests. No local native databases, downloads or build outputs were created.

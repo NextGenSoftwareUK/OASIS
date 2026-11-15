@@ -1,5 +1,7 @@
 # Current provider status
 
+15 November Cancun time. Native Files run 43695299274 passed MongoDB-to-SQLite upload, byte parity and scoped list/count. The 54 failures in the broader run all belong to HyperDriveProviderExecutionTests. Corrected the affected contract fixtures expecting eager child reads and the two Files fixtures expecting an eager save. The behavioral rerun will show which failures remain.
+
 15 November Cancun time. Reconciled HyperDrive contract run 43694527368 passed the declaration and WEB4 build gates, then reported 939 behavioral passes and 54 failures across the broad suite. Failure attribution is open. Focused native Files run 43695299274 checks the SQLite decoder change independently. Railway WEB4 was building 3a0542795eda at this checkpoint.
 
 15 November Cancun time. Shallow HolonManager and Messages reached Development at 3a0542795eda after exact image qualification. The serving Railway change is pending. Files native MongoDB assertions passed and SQLite download identified the JSON string representation mismatch. The decoder correction is on the task branch.
