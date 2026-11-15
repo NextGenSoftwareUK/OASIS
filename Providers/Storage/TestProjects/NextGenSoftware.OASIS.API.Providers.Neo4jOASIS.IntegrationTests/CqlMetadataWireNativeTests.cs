@@ -143,9 +143,22 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         }, exactTimes.Result.ToArray());
         Assert.IsTrue(exactTimes.Result.Where(value => value.HasValue)
             .All(value => value.Value.Kind == DateTimeKind.Utc));
+        var unsignedIntegers = await fixtureRows.OrderBy(row => row.Name)
+            .Select(row => CosmicQueryMetadata.Value<ulong?>(row, "u64"))
+            .Distinct().ToCosmicListAsync();
+        Assert.IsFalse(unsignedIntegers.IsError, unsignedIntegers.Message + unsignedIntegers.Exception);
+        CollectionAssert.AreEqual(new ulong?[] { ulong.MaxValue, null, ulong.MaxValue - 1 },
+            unsignedIntegers.Result.ToArray());
+
+        var decimals = await fixtureRows.OrderBy(row => row.Name)
+            .Select(row => CosmicQueryMetadata.Value<decimal?>(row, "decimal"))
+            .Distinct().ToCosmicListAsync();
+        Assert.IsFalse(decimals.IsError, decimals.Message + decimals.Exception);
+        CollectionAssert.AreEqual(new decimal?[] { 1.0000000000000000000000000001m, 1m, null },
+            decimals.Result.ToArray());
         Assert.IsFalse(labels.IsError, labels.Message + labels.Exception);
         CollectionAssert.AreEqual(new string?[] { "case", null, "Case" }, labels.Result.ToArray());
 
-        checks.Add(new { provider = provider.ToString(), distinctWire = "native SQL and LINQ Int32, nullable Int64, Boolean, Guid, ordinal nullable String and exact nullable UTC timestamps" });
+        checks.Add(new { provider = provider.ToString(), distinctWire = "native SQL and LINQ Int32, nullable Int64, Boolean, Guid, ordinal nullable String exact nullable UTC timestamps, nullable UInt64 and exact nullable Decimal" });
     }
 }
