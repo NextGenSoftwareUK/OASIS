@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Exact Qualification after Stripe Development integration
+
+Candidate 9ceb41a6edda was rejected by dependency validation in CI 43706675367. Copying the feature manifest had advanced six unrelated pins without matching gitlinks. Development advanced independently to 78eae0988824 for the Stripe ledger scope. Its two changed files do not overlap the COSMIC batch. Candidate 55c1c2056c55 starts at that Development revision, retains the six shared pins, and advances only the API Core dependency for CQL. All seven candidate gitlinks match their manifest pins before remote qualification. Railway cddc8e09 was queued for the Stripe revision. Protected browser walkthrough and live signed bounds, Axelar results and timings remain open.
+
 ## Development Axelar admission and native nested projections · 15 November
 
 Railway 665fe506 serves Development 2526b8c8a0e8 and reached 107/107 direct and federated sources ready 91.7 seconds after the first readiness probe. Axelar direct and MongoDB-federated presets still return HTTP 503 HYPERDRIVE_PREPARED_EXECUTION_REJECTED. Its standalone exact-key profile passed capability admission, but the shared metering classifier only recognized a lookup composed into a separate canonical profile. Core 8ea1efdce998 uses the admitted exact-key classifier for both types and both execution paths. Parent feature ee3dc81b0910 adds direct and federated receipt regression tests. Combined candidate 9ceb41a6edda awaits qualification. No measurement of successful live Axelar queries yet.
