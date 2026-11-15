@@ -1,5 +1,7 @@
 # OPORTAL and HyperDrive performance audit
 
+15 November Cancun time. The Gifts modal sent message and item fields in the wrong part of the HTTP request, offered Open before Receive, rendered transaction history as gift rows, and showed an empty inbox for provider errors. OPORTAL d17d0e0 uses WEB4 query/body binding through the bundled SDK, gates gift actions on persisted state, renders transaction history, and distinguishes load failures. The optional field stores a holon reference as metadata. The loopback checked send, receive, open, history, zero-valued stats and error rendering.
+
 15 November Cancun time. The Gifts card had to download and parse full inbox DTOs for total and unopened counts. The new authenticated GET /api/gifts/my-gifts/summary uses the existing durable inbox selector and returns two counters without the list sort or response payload. Storage still reads durable gift payloads. Native, hosted and portal qualification remain open.
 
 15 November Cancun time. Native SQLite job 132761221674 reduced Files candidate materialization from 95 owner-key rows to 3 owner-and-type candidates and returned only the two records with the correct persisted owner. Native MongoDB-to-SQLite job 132761214366 passed upload, replica bytes, ownership and count on the new selector. Large file-byte projection and hosted populated timings remain open.

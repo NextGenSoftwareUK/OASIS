@@ -1,5 +1,7 @@
 # Current provider status
 
+15 November Cancun time. OPORTAL end-to-end wiring and error fixes join performance as top-priority work. Portal branch d17d0e0 corrects Gift send query and metadata binding, Receive then Open, and history rendering. The bundled SDK passed an HTTP loopback flow. Native hosted API verification and portal rollout remain open.
+
 15 November Cancun time. Algorand mainnet 43698559297 and signed LocalNet 43698590596 both passed on the shared Indexer path. WEB4 Gifts now has a focused authenticated summary route and the existing inbox forwards storage errors. Native SQLite verification is pending.
 
 15 November Cancun time. Algorand mainnet job 132762712625 passed multi-page account history and real invalid-address rejection, one test and zero skips. The shared paging revision is under mainnet run 43698559297 and signed Indexer note run 43698590596. WEB4 Files image 43697065571 is still building.

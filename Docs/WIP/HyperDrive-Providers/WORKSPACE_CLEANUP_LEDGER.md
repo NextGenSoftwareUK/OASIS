@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. Portal Gifts loopback ran via Node standard input, closed its listener and created no persistent result files, builds, downloads or runtimes.
+
 15 November Cancun time. Algorand LocalNet job 132764482762 passed one test with zero skips and verified removal of its containers, network, volumes and fixture directory. Public mainnet job 132764384372 passed one test. No local environment, build outputs or databases were created.
 
 15 November Cancun time. Algorand mainnet history requests and CI log review ran in memory. The Python fixture syntax was parsed without producing bytecode. No local build outputs, SDK downloads or databases were created.
