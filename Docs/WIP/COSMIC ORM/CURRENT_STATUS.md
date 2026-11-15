@@ -1,5 +1,11 @@
 # COSMIC ORM / CQL current status
 
+## Bitcoin, XRP Ledger, Stellar and Cardano editor coverage
+
+15 November. Web4Site 9138317c77f2 adds exact public block or ledger filters to SQL text and the discovery-scoped Ask Your Data instructions for Bitcoin, XRP Ledger, Stellar and Cardano. All 197 frontend tests passed; [preview 7803361537](https://web4-site-mku0d1fsx-oasis-team.vercel.app/web4-sandbox.html) built. The exact editor compiled the two supplied keys from each live catalogue. Direct and MongoDB-federated execution on d79168a14607 returned two matching IDs per provider with exact selected-source provenance. This is SQL-to-live-API proof; signed-in hosted browser verification remains open.
+
+Unordered key-only grouping candidate 999156055e94 passed the focused and three-store native steps of CI 43712775037, including populated duplicate reduction and rejection of unordered source windows and aggregates. Final source publication was still running at review. The editor retains source ordering pending exact backend integration. HyperDrive Gifts candidate 4c842fc2ceba is ready for the next shared slot. Reconcile the serving revision and both batch scopes before publishing the next COSMIC image.
+
 ## Live SQL metadata presence on Development
 
 15 November. Railway WEB4 deployment 4c4043ee serves d79168a14607. Exact Web4Site de0155e92296 compiled IS MISSING and IS NOT NULL; both requests were accepted by MongoDB, SQLite and Neo4j during the same serving deployment. The existing visitor had no populated demo-tag rows, so this is live transport and query-shape proof. Populated true and false cases remain separately proven by the [55-check native fixture run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43708842227). Current [protected preview 7803064305](https://web4-site-5axnzypco-oasis-team.vercel.app/web4-sandbox.html) also includes Axelar and DISTINCT. Vercel reported no accessible team for the connected account. Hosted signed-in Ask Your Data walkthrough is still open. Unordered key-only grouping is in [exact CI 43712775037](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43712775037).
