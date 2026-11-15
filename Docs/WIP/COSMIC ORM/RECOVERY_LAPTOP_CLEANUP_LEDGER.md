@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+15 November Cancun. Six private nullable aggregate fixtures were hard-deleted and verified absent by exact CQL ID. Compact journal at LocalState/COSMIC/HostedCqlPopulatedNullAggregate-dc240728/operations.jsonl. Website test snapshot was removed. No downloads, local builds, database copies or results bundle.
+
 15 November Cancun. Populated Decimal verification added four private rows across SQLite and Neo4j and hard-deleted all four. Exact CQL IDs verified absent. Compact local journal at LocalState/COSMIC/HostedCqlPopulatedDecimalOtherStores-dc240728/operations.jsonl. Reused the existing Development session and installed tools. No local builds, downloads, database copies or results bundle.
 
 15 November Cancun. The two private Decimal fixture rows were hard-deleted and independent CQL reads confirmed absence. The compact LocalState/COSMIC/HostedCqlPopulatedDecimal-dc240728/operations.jsonl journal stays local. No builds, downloads, database copies or result bundle on the recovery laptop. C: measured 24.7 GiB free.

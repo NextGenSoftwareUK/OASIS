@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Native nullable aggregate HAVING checks
+
+15 November. Web4Site f512a3327c6d accepts IS NULL, IS NOT NULL and null-safe ordinary inequality on nullable numeric aggregate aliases. All 226 website tests passed. On Development dc24072806f6, the exact SQL selected the empty AVG group for IS NULL and only the populated group for IS NOT NULL and inequality on MongoDB, SQLite and Neo4j. Nine client-to-HTTP samples ranged from 533 to 1093 ms. All six private fixture records were deleted and checked absent by exact ID. [Protected preview](https://web4-site-n8lg9jj4c-oasis-team.vercel.app/web4-sandbox.html)
+
 ## Populated grouped Decimal on all three live stores
 
 15 November. On Development dc24072806f6 the same bounded grouped Decimal SQL with HAVING returned exact SUM 7 and AVG 3.5 on SQLite and Neo4j, completing the live three-store cohort. One client-to-HTTP sample per store was 628 ms on SQLite and 1516 ms on Neo4j. The four private fixture rows were hard-deleted using native revisions and verified absent by exact CQL ID. Browser DNA candidate fa2a6d115cce is running [protocol CI 43745144155](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43745144155) and [WEB4 image CI 43745409134](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43745409134).
