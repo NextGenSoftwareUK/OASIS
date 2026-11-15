@@ -161,7 +161,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             var store = new BitcoinRecordBlobStore(client, codec, kind);
             var json = NextGenSoftware.OASIS.API.Core.Serialization.StoredRecordJson.Serialize(snapshot.Proposal);
             var commitment = await store.PutAsync(scope, json);
-            var publication = await SendSignedTransactionAsync(source, null, 0m, commitment, null, commitmentOnly: true,
+            var publication = await SendSignedTransactionAsync(source, null, 0m, commitment, null, _privateKey, commitmentOnly: true,
                 preparePublication: transactionId =>
                 {
                     snapshot.ValidateUnchanged();

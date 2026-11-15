@@ -728,6 +728,32 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests
                 Assert.AreEqual($"{rootReceipt},{childReceipt}", savedGraph.MetaData["BitcoinAcknowledgedTransactionIds"]);
                 await BitcoinCliAsync("getmempoolentry", rootReceipt);
                 await BitcoinCliAsync("getmempoolentry", childReceipt);
+
+                var invalidSigner = await recovered.SendTokenAsync(
+                    new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests.SendWeb3TokenRequest
+                    {
+                        FromWalletAddress = storageAddress,
+                        ToWalletAddress = destination,
+                        Amount = 0.001m,
+                        OwnerPrivateKey = destinationKey.GetWif(network).ToString()
+                    });
+                Assert.IsTrue(invalidSigner.IsError);
+                Assert.IsFalse(invalidSigner.MetaData.ContainsKey("BitcoinTransactionId"));
+
+                using var boundWallet = new BitcoinOASIS(api, "regtest", null, null, 2m);
+                var boundActivation = await boundWallet.ActivateProviderAsync();
+                Assert.IsFalse(boundActivation.IsError, boundActivation.Message);
+                var boundPayment = await boundWallet.SendTokenAsync(
+                    new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests.SendWeb3TokenRequest
+                    {
+                        FromWalletAddress = storageAddress,
+                        ToWalletAddress = destination,
+                        Amount = 0.001m,
+                        OwnerPrivateKey = sourceKey.GetWif(network).ToString()
+                    });
+                Assert.IsFalse(boundPayment.IsError, boundPayment.Message);
+                Assert.AreEqual(boundPayment.Result.TransactionResult, boundPayment.MetaData["BitcoinTransactionId"]);
+                await BitcoinCliAsync("getmempoolentry", boundPayment.Result.TransactionResult);
             }
             finally
             {

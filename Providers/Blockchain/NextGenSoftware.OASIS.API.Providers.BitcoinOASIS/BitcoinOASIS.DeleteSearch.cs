@@ -49,14 +49,14 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
         public Task<OASISResult<ITransactionResponse>> SendTransactionAsync(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
         {
             var memo = Encoding.UTF8.GetBytes(memoText ?? string.Empty);
-            return SendSignedTransactionAsync(fromWalletAddress, toWalletAddress, amount, memo, memoText, commitmentOnly: false);
+            return SendSignedTransactionAsync(fromWalletAddress, toWalletAddress, amount, memo, memoText, _privateKey, commitmentOnly: false);
         }
 
         private const string BitcoinTransactionIdMetadataKey = "BitcoinTransactionId";
         private const string BitcoinBroadcastOutcomeUnknown = "BITCOIN_BROADCAST_OUTCOME_UNKNOWN";
 
         private async Task<OASISResult<ITransactionResponse>> SendSignedTransactionAsync(
-            string fromWalletAddress, string toWalletAddress, decimal amount, byte[] memo, string memoText, bool commitmentOnly,
+            string fromWalletAddress, string toWalletAddress, decimal amount, byte[] memo, string memoText, string signingKey, bool commitmentOnly,
             Func<uint256, Task> preparePublication = null)
         {
             var result = new OASISResult<ITransactionResponse>();
@@ -69,7 +69,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                     return result;
                 }
 
-                if (string.IsNullOrWhiteSpace(_privateKey))
+                if (string.IsNullOrWhiteSpace(signingKey))
                 {
                     OASISErrorHandling.HandleError(ref result, "A Bitcoin wallet signing key is required.");
                     return result;
@@ -91,7 +91,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                 var network = SigningNetwork;
                 var source = BitcoinAddress.Create(fromWalletAddress, network);
                 var destination = commitmentOnly ? null : BitcoinAddress.Create(toWalletAddress, network);
-                var signer = new BitcoinSecret(_privateKey, network);
+                var signer = new BitcoinSecret(signingKey, network);
                 var wrappedSegwit = source.Equals(signer.GetAddress(ScriptPubKeyType.SegwitP2SH));
                 if (!wrappedSegwit && !source.Equals(signer.GetAddress(ScriptPubKeyType.Legacy)) &&
                     !source.Equals(signer.GetAddress(ScriptPubKeyType.Segwit)))

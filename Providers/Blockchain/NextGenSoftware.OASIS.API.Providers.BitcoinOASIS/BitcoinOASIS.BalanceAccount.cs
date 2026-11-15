@@ -60,7 +60,31 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                 return Task.FromResult(result);
             }
 
-            return SendTransactionAsync(request.FromWalletAddress, request.ToWalletAddress, request.Amount, request.MemoText);
+            string signingKey;
+            try
+            {
+                signingKey = request.OwnerPrivateKey;
+                if (!string.IsNullOrWhiteSpace(request.OwnerSeedPhrase))
+                {
+                    var mnemonic = new Mnemonic(request.OwnerSeedPhrase);
+                    if (!mnemonic.IsValidChecksum)
+                        throw new ArgumentException("Invalid Bitcoin seed phrase checksum.");
+                    using var seedKey = mnemonic.DeriveExtKey().PrivateKey;
+                    var seedWif = seedKey.GetWif(SigningNetwork).ToString();
+                    if (!string.IsNullOrWhiteSpace(signingKey) && signingKey != seedWif)
+                        throw new ArgumentException("Bitcoin signing key and seed phrase do not match.");
+                    signingKey = seedWif;
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Bitcoin wallet signer validation failed ({ex.GetType().Name}).");
+                return Task.FromResult(result);
+            }
+
+            var memo = Encoding.UTF8.GetBytes(request.MemoText ?? string.Empty);
+            return SendSignedTransactionAsync(request.FromWalletAddress, request.ToWalletAddress, request.Amount, memo,
+                request.MemoText, string.IsNullOrWhiteSpace(signingKey) ? _privateKey : signingKey, commitmentOnly: false);
         }
 
         public OASISResult<ITransactionResponse> MintToken(IMintWeb3TokenRequest request)
