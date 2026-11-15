@@ -129,6 +129,9 @@ namespace NextGenSoftware.OASIS.API.DNA
         public bool InheritedReads { get; set; } = true;
         /// <summary>Seconds a caller's group list is reused between queries; group membership changes take effect within this time.</summary>
         public int GroupCacheSeconds { get; set; } = 15;
+
+        /// <summary>Private Blockscout Universal API credential for the Ethereum CQL address and Connext event readers.</summary>
+        public string BlockscoutUniversalApiKey { get; set; }
     }
 
     /// <summary>The public sandbox: whether this node is one, how its throwaway demo avatars are named, limited and cleaned up.</summary>

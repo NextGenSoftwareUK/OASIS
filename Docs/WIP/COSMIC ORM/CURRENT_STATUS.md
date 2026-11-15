@@ -24,7 +24,7 @@ The peer shallow-read revision 3a0542795eda is on Development and Railway deploy
 
 ## Blockscout Universal API migration
 
-The Development Blockscout and Connext public CQL profiles use the Ethereum Universal API route with a dedicated header credential. The existing source identities and response validators are retained. A missing or malformed key stops the configured profile before outbound requests. Native authenticated verification and rollout are pending.
+The Development Blockscout and Connext public CQL profiles use the Ethereum Universal API route with a dedicated header credential. Both readers load the key from private Development OASISDNA at OASIS.Cql.BlockscoutUniversalApiKey. The existing source identities and response validators are retained. A missing or malformed key stops the configured profile before outbound requests. Native authenticated verification and rollout are pending.
 
 ## Axelar hosted activation flag
 

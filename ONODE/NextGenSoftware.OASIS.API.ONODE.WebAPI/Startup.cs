@@ -695,7 +695,7 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             if (Configuration["CQL_BLOCKSCOUT_PUBLIC_SOURCE_JSON"] is string blockscoutPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
                     NextGenSoftware.OASIS.API.Providers.BlockscoutOASIS.BlockscoutOASIS.FromUniversalQueryConfiguration(blockscoutPublicSource,
-                        Configuration["CQL_BLOCKSCOUT_API_KEY"]),
+                        NextGenSoftware.OASIS.API.DNA.OASISDNAManager.OASISDNA?.OASIS?.Cql?.BlockscoutUniversalApiKey),
                     Services.Cql.CqlReadSourceActivationPolicy.TransientServerErrorOnce));
 
             // Pinned Celestia header reads never enable blob submission or node wallets.
@@ -731,7 +731,7 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             if (Configuration["CQL_CONNEXT_PUBLIC_SOURCE_JSON"] is string connextPublicSource)
                 services.AddSingleton<Services.Cql.CqlReadSourceProfile>(_ => new Services.Cql.CqlReadSourceProfile(
                     NextGenSoftware.OASIS.API.Providers.ConnextOASIS.ConnextOASIS.FromUniversalQueryConfiguration(connextPublicSource,
-                        Configuration["CQL_BLOCKSCOUT_API_KEY"]),
+                        NextGenSoftware.OASIS.API.DNA.OASISDNAManager.OASISDNA?.OASIS?.Cql?.BlockscoutUniversalApiKey),
                     Services.Cql.CqlReadSourceActivationPolicy.TransientServerErrorOnce));
             // Miden testnet block headers are enrolled only as an explicit read source.
             if (Configuration["CQL_MIDEN_PUBLIC_SOURCE_JSON"] is string midenPublicSource)

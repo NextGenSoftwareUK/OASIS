@@ -985,6 +985,6 @@ Open 13 November. Approve the Vercel OASIS team access request when a fresh one-
 ### Blockscout Universal API credential for Development CQL
 
 - Status on 15 November 2026 UTC. Deferred by David. Revisit when he is ready to add the key.
-- Use the [Blockscout developer portal](https://dev.blockscout.com/) to create or identify a dedicated Universal API key on the free plan. Store it privately in Development OASISDNA with the other provider settings and keys. Keep the value out of chat and source control.
-- Engineering owns confirming the OASISDNA field and wiring both CQL readers to it before requesting placement. The current feature candidate uses a service setting and needs this correction before rollout.
+- Use the [Blockscout developer portal](https://dev.blockscout.com/) to create or identify a dedicated Universal API key on the free plan. Store it privately in Development OASISDNA at OASIS.Cql.BlockscoutUniversalApiKey. Keep the value out of chat and source control.
+- Engineering wired both hosted readers to this OASISDNA field on the COSMIC feature branch. Hosted configuration and authenticated verification remain deferred.
 - Reason. [Blockscout deprecated per-instance API support](https://docs.blockscout.com/devs/apis). The monitored address and Connext log readers need the supported authenticated route. Engineering owns migration, identity preservation, exact live verification and performance checks.
