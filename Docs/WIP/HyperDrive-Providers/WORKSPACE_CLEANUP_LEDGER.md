@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. Combined Algorand run 43757041532 confirmed removal of its LocalNet containers, network, volumes and fixture directory. The combined portal billing candidate removed its temporary Git index and patch and reapplied the existing sparse checkout. No local build outputs, dependencies, downloaded files or databases were retained.
+
 15 November Cancun time. Algorand enrolled avatar run 43756404419 verified removal of its LocalNet containers, network, volumes and fixture directory. The combined Development candidate removed its temporary Git patch and index. Exact qualification uses a hosted disposable fixture. No local dependencies or build artifacts were retained.
 
 15 November Cancun time. Exact avatar-detail run 43755840860 confirmed removal of all hosted LocalNet resources and the fixture directory. Enrolled avatar qualification uses the same disposable workflow, with redundant public auto-run cancelled. No local build outputs or fixtures were created.
