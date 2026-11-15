@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Exact grouped Decimal fixed on live WEB4
+
+15 November. Railway 8ca9ad1d successfully deployed Development dc24072806f6. MongoDB accepted both empty-scope Decimal aggregates. The populated SQL query, including HAVING, returned exact SUM 7 and AVG 3.5. Both private records were hard-deleted and verified absent by CQL ID. The browser opt-in now reads OASISDNA in feature e4b958ee676d. Exact candidate fa2a6d115cce is in CI and includes a production-side rejection case.
+
 ## Hosted browser origin check
 
 15 November. Live preflight for the exact protected Web4Site 80ecfac3cb77 preview allows the WEB6 bearer-token request headers. The WEB4 session client uses credentials include. WEB4 returns a wildcard without credentials for both the generated preview hostname and dev.web4.oasisomniverse.one. The dedicated Development website hostname does not resolve. The public website origin still receives credentialed WEB4 session headers. The hosted walkthrough requires the dedicated preview domain and the existing Development-only WEB4 origin opt-in. No settings changed.

@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+15 November Cancun. The two private Decimal fixture rows were hard-deleted and independent CQL reads confirmed absence. The compact LocalState/COSMIC/HostedCqlPopulatedDecimal-dc240728/operations.jsonl journal stays local. No builds, downloads, database copies or result bundle on the recovery laptop. C: measured 24.7 GiB free.
+
 15 November Cancun. Populated grouped LIKE acceptance deleted all six private fixture records and verified exact CQL absence. Compact local journal at LocalState/COSMIC/HostedCqlPopulatedLike-fdd9df3e/operations.jsonl. Reused installed runtimes and retained session. No local builds, downloads, database copies or results bundle.
 
 15 November Cancun. Six private grouped HAVING fixture rows were hard-deleted and verified absent by exact ID through live CQL. The compact local acknowledgement journal is LocalState/COSMIC/HostedCqlPopulatedHaving-fdd9df3e/operations.jsonl. This reused the existing Development visitor and installed runtimes. No downloads, temporary runtime directories, database copies, repository build output or local results bundle.
