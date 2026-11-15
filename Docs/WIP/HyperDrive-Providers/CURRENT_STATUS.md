@@ -1,5 +1,7 @@
 # Current provider status
 
+15 November Cancun time. Algorand mainnet job 132762712625 passed multi-page account history and real invalid-address rejection, one test and zero skips. The shared paging revision is under mainnet run 43698559297 and signed Indexer note run 43698590596. WEB4 Files image 43697065571 is still building.
+
 15 November Cancun time. Algorand account history and note-prefix search now share one validated Indexer paging path with HTTP error reporting and an explicit bounded result. The signed LocalNet fixture supplies a unique payment note so the new search check can verify the exact payment against the native Indexer.
 
 15 November Cancun time. HyperDrive contract job 132759326753 passed all 993 behavioral checks, zero failures and zero skips, on the exact rerun with corrected shallow/eager fixtures. This is controlled suite evidence. Native provider acceptance and hosted routing coverage remain tracked separately. Algorand mainnet account-history verification is run 43698006454.

@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. Algorand mainnet history requests and CI log review ran in memory. The Python fixture syntax was parsed without producing bytecode. No local build outputs, SDK downloads or databases were created.
+
 15 November Cancun time. Native Files jobs 132761214366 and 132761221674 both passed their finally-block fixture cleanup. Algorand public page probes ran in memory. These checks created no local build outputs, downloads or databases.
 
 15 November Cancun time. Files ownership job 132758665503 passed through its native fixture teardown. The scoped CORE and WEB4 candidate temporary index, lock and manifest were removed. The candidate temporary filename scan found zero remaining files.
