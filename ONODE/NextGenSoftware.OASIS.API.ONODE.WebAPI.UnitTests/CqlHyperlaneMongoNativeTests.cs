@@ -157,7 +157,7 @@ public sealed class RitualMongoNativeFactAttribute : FactAttribute
 
 public sealed class CqlHyperlaneMongoNativeTests
 {
-    private sealed class Sources(IOASISStorageProvider mongo, IOASISStorageProvider publicSource, ProviderType publicProvider,
+    private sealed class Sources(IOASISStorageProvider mongo, IOASISProvider publicSource, ProviderType publicProvider,
         OASISDNA dna, ProviderManager registry) : ICqlV1Providers
     {
         public IOASISProvider Resolve(ProviderType? requested) => requested switch {
@@ -315,7 +315,7 @@ public sealed class CqlHyperlaneMongoNativeTests
         string metadataKey, Func<string, TSource> createSource, string[] endpointFields,
         Action<IHolon, JsonElement, bool> verifyMetadata, bool continuing, string policy,
         Func<JsonElement, string[]>? selectCatalogue = null)
-        where TSource : IOASISStorageProvider, ICosmicQueryStorageProvider, ICosmicReadOnlyQueryActivation, IDisposable
+        where TSource : IOASISProvider, ICosmicQueryStorageProvider, ICosmicReadOnlyQueryActivation, IDisposable
     {
         var Database = $"cosmic_cql_{fixture}_http_demo";
         var Owner = $"cosmic-cql-{fixture}-http-v1";
