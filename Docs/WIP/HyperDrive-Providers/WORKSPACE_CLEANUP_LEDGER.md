@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. Exact portal candidate and subscription suite used Git blobs and JavaScript in memory. Temporary Git indexes were removed. The WEB4 qualification used hosted CI. No local packages, builds, databases or result files were retained.
+
 15 November Cancun time. The provider inventory check walked existing source with Python bytecode writes disabled. Registry and matrix edits retain compact verification links only. No backend, downloaded packages or generated test outputs were created.
 
 15 November Cancun time. The signed Gifts stats and history probe was read-only. WEB4 confirmed the test avatar self-delete. No local downloads, databases, builds or result files were created.
