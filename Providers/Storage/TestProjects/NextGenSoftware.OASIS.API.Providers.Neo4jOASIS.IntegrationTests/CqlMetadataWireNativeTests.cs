@@ -2,6 +2,7 @@ extern alias ShippingWeb4;
 
 using System.Text.Json;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Queries;
 using CqlGroupedRequest = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlGroupedV1Request;
@@ -98,6 +99,18 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         var selected = await CosmicGroupedExecutor.ExecuteAsync(distinct.Result, new[] { adapter });
         Assert.IsFalse(selected.IsError, selected.Message + selected.Exception);
         CollectionAssert.AreEqual(new object[] { 1 }, selected.Result.Providers.Single().Rows.Single().Values.ToArray());
-        checks.Add(new { provider = provider.ToString(), distinctWire = "two visible rows collapse to one native scalar key" });
+        var first = ids[0];
+        var second = ids[1];
+        var source = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(provider).Result)
+            .Where(row => row.Id == first || row.Id == second).Result;
+        var root = CosmicLinq.Create(NativeManager(adapter), adapter, source).Result;
+        var versions = root.OrderBy(row => row.Id).Select(row => row.Version);
+        Assert.AreEqual(2, versions.Count());
+        var reduced = await versions.Distinct().Where(version => version >= 1).Take(2).ToCosmicListAsync();
+        Assert.IsFalse(reduced.IsError, reduced.Message + reduced.Exception);
+        CollectionAssert.AreEqual(new[] { 1 }, reduced.Result.ToArray());
+        Assert.AreEqual(1, versions.Distinct().Count());
+        Assert.ThrowsException<CosmicLinqException>(() => versions.Distinct(EqualityComparer<int>.Default));
+        checks.Add(new { provider = provider.ToString(), distinctWire = "two visible rows collapse to one native scalar key in SQL and LINQ" });
     }
 }

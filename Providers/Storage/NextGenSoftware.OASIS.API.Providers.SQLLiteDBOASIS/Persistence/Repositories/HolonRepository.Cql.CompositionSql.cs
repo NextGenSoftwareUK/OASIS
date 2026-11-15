@@ -78,6 +78,15 @@ public partial class HolonRepository
             }
             else if (stage is CosmicSelectedReverseStage)
                 ranking = "row_number() OVER (ORDER BY " + previousRank + " DESC)";
+            else if (stage is CosmicSelectedDistinctStage distinct)
+            {
+                var duplicateRank = "distinctRank" + index;
+                var column = "v" + distinct.ColumnIndex + "v"
+                    + CqlSqlTranslator.SelectedCollation(query.Columns[distinct.ColumnIndex].Path.ValueType);
+                from = "(SELECT *,row_number() OVER (PARTITION BY " + column + " ORDER BY " + previousRank
+                    + ") AS " + duplicateRank + " FROM " + from + ")";
+                tail = " WHERE " + duplicateRank + " = 1";
+            }
             else if (stage is CosmicSelectedWindowStage window)
                 tail = " ORDER BY " + previousRank + " LIMIT " + translator.Bind(window.Kind == CosmicSelectedWindowKind.Take ? (long)window.Count : -1L)
                     + " OFFSET " + translator.Bind(window.Kind == CosmicSelectedWindowKind.Skip ? (long)window.Count : 0L);
