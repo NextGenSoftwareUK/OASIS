@@ -1,5 +1,7 @@
 # OPORTAL and HyperDrive performance audit
 
+15 November Cancun time. The native Files round trip verified the description in both providers alongside exact bytes, owner-scoped list and count, and cross-avatar rejection. The portal upload and list read used the bundled SDK in loopback. Hosted controller-to-provider description persistence remains open.
+
 15 November Cancun time. OPORTAL dashboard 287e6b4 requests only GET /api/gifts/my-gifts/summary. The loopback verified the authenticated SDK URL and pending, opened-only, empty and error rendering. The larger Gifts inbox loads when opened. The SQLite manager pass covers count parity. Signed hosted API and browser verification remain open.
 
 15 November Cancun time. Files portal upload now sends the name, content type and description on the existing upload request. The manager receives description as metadata, and the modal shows it in the list. The bundled SDK loopback verified encoding, escaped rendering, delete acknowledgement, read failure and backend list failure. The native SQLite Gifts summary passed count parity for empty, opened and mixed inboxes. Serving endpoint and browser verification remain open.
