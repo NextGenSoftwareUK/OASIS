@@ -49,18 +49,17 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
         public Task<OASISResult<ITransactionResponse>> SendTransactionAsync(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
         {
             var memo = Encoding.UTF8.GetBytes(memoText ?? string.Empty);
-            return SendSignedTransactionAsync(fromWalletAddress, toWalletAddress, amount, memo, memoText, commitmentOnly: false);
+            return SendSignedTransactionAsync(fromWalletAddress, toWalletAddress, amount, memo, memoText, _privateKey, commitmentOnly: false);
         }
 
         private const string BitcoinTransactionIdMetadataKey = "BitcoinTransactionId";
         private const string BitcoinBroadcastOutcomeUnknown = "BITCOIN_BROADCAST_OUTCOME_UNKNOWN";
 
         private async Task<OASISResult<ITransactionResponse>> SendSignedTransactionAsync(
-            string fromWalletAddress, string toWalletAddress, decimal amount, byte[] memo, string memoText, bool commitmentOnly,
+            string fromWalletAddress, string toWalletAddress, decimal amount, byte[] memo, string memoText, string signingKey, bool commitmentOnly,
             Func<uint256, Task> preparePublication = null)
         {
             var result = new OASISResult<ITransactionResponse>();
-            uint256 submittedTransactionId = null;
             try
             {
                 if (!_isActivated)
@@ -69,7 +68,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                     return result;
                 }
 
-                if (string.IsNullOrWhiteSpace(_privateKey))
+                if (string.IsNullOrWhiteSpace(signingKey))
                 {
                     OASISErrorHandling.HandleError(ref result, "A Bitcoin wallet signing key is required.");
                     return result;
@@ -91,7 +90,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                 var network = SigningNetwork;
                 var source = BitcoinAddress.Create(fromWalletAddress, network);
                 var destination = commitmentOnly ? null : BitcoinAddress.Create(toWalletAddress, network);
-                var signer = new BitcoinSecret(_privateKey, network);
+                var signer = new BitcoinSecret(signingKey, network);
                 var wrappedSegwit = source.Equals(signer.GetAddress(ScriptPubKeyType.SegwitP2SH));
                 if (!wrappedSegwit && !source.Equals(signer.GetAddress(ScriptPubKeyType.Legacy)) &&
                     !source.Equals(signer.GetAddress(ScriptPubKeyType.Segwit)))
@@ -140,27 +139,14 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                         : new Coin(outpoint, output));
                 }
 
-                decimal feeRate;
-                if (_paymentFeeRateSatPerVByte is decimal configuredFeeRate)
-                {
-                    feeRate = configuredFeeRate;
-                }
-                else
-                {
-                    var estimates = await _httpClient.GetFromJsonAsync<Dictionary<string, decimal>>("fee-estimates");
-                    if (!estimates.TryGetValue("6", out feeRate) || feeRate <= 0)
-                    {
-                        OASISErrorHandling.HandleError(ref result, "Esplora did not provide a fee estimate for six confirmations.");
-                        return result;
-                    }
-                }
+                var feeRate = await ReadBitcoinPaymentFeeRateAsync();
 
                 var payment = Money.Satoshis((long)satoshis);
                 var builder = network.CreateTransactionBuilder()
                     .AddCoins(coins.ToArray())
                     .AddKeys(signer.PrivateKey)
                     .SetChange(source)
-                    .SendEstimatedFees(new FeeRate(Money.Satoshis((long)decimal.Ceiling(feeRate * 1000m))));
+                    .SendEstimatedFees(feeRate);
                 if (destination != null)
                     builder.Send(destination, payment);
 
@@ -182,11 +168,38 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
                     return result;
                 }
 
-                var expectedId = transaction.GetHash();
-                using var body = new StringContent(transaction.ToHex(), Encoding.ASCII, "text/plain");
                 if (preparePublication != null)
-                    await preparePublication(expectedId);
-                submittedTransactionId = expectedId;
+                    await preparePublication(transaction.GetHash());
+
+                return await BroadcastSignedBitcoinAsync(transaction, memoText);
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Bitcoin transaction failed ({ex.GetType().Name}).");
+            }
+
+            return result;
+        }
+
+        private async Task<FeeRate> ReadBitcoinPaymentFeeRateAsync()
+        {
+            if (_paymentFeeRateSatPerVByte is not decimal feeRate)
+            {
+                var estimates = await _httpClient.GetFromJsonAsync<Dictionary<string, decimal>>("fee-estimates");
+                if (!estimates.TryGetValue("6", out feeRate) || feeRate <= 0)
+                    throw new InvalidOperationException("Esplora did not provide a fee estimate for six confirmations.");
+            }
+
+            return new FeeRate(Money.Satoshis((long)decimal.Ceiling(feeRate * 1000m)));
+        }
+
+        private async Task<OASISResult<ITransactionResponse>> BroadcastSignedBitcoinAsync(Transaction transaction, string memoText)
+        {
+            var result = new OASISResult<ITransactionResponse>();
+            var expectedId = transaction.GetHash();
+            using var body = new StringContent(transaction.ToHex(), Encoding.ASCII, "text/plain");
+            try
+            {
                 result.MetaData[BitcoinTransactionIdMetadataKey] = expectedId.ToString();
                 using var response = await _httpClient.PostAsync("tx", body);
                 if (!response.IsSuccessStatusCode)
@@ -224,14 +237,9 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             }
             catch (Exception ex)
             {
-                if (submittedTransactionId != null)
-                {
-                    result.ErrorCode = BitcoinBroadcastOutcomeUnknown;
-                    OASISErrorHandling.HandleError(ref result,
-                        $"Esplora did not confirm Bitcoin transaction {submittedTransactionId} ({ex.GetType().Name}).");
-                }
-                else
-                    OASISErrorHandling.HandleError(ref result, $"Bitcoin transaction failed ({ex.GetType().Name}).");
+                result.ErrorCode = BitcoinBroadcastOutcomeUnknown;
+                OASISErrorHandling.HandleError(ref result,
+                    $"Esplora did not confirm Bitcoin transaction {expectedId} ({ex.GetType().Name}).");
             }
 
             return result;

@@ -5,6 +5,7 @@ on:
   push:
     branches: [work/hyperdrive-provider-completion, work/hyperdrive-bitcoin-avatar-qualification]
     paths:
+      - '.github/workflows/bitcoin-native-ord.yml'
       - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS/BitcoinOASIS.Ordinals.cs'
       - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS/BitcoinOASIS.NFTToken.cs'
       - 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests/BitcoinOASISOrdinalsIntegrationTests.cs'
@@ -42,15 +43,23 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
-      - name: Verify a real ord inscription on Bitcoin regtest
+      - name: Verify a signed Ordinals transfer on Bitcoin regtest
         shell: bash
         run: |
           set -euo pipefail
           owned="$(mktemp -d "$RUNNER_TEMP/oasis-bitcoin-ord.XXXXXXXX")"
           fixture_pid=
+          explorer="oasis-ord-esplora-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          image='blockstream/esplora@sha256:1d5c64df311cce3e7ab6fd5749f8e65c20099186014c058e561cbf52085ef6db'
           cleanup() {
             local status=$?
             trap - EXIT
+            if docker container inspect "$explorer" >/dev/null 2>&1; then
+              docker rm -f -v "$explorer" || status=1
+            fi
+            if docker image inspect "$image" >/dev/null 2>&1; then
+              docker image rm "$image" || status=1
+            fi
             if [[ -n "$fixture_pid" ]]; then
               if kill -0 -- "-$fixture_pid" 2>/dev/null; then
                 kill -TERM -- "-$fixture_pid" || status=1
@@ -91,30 +100,64 @@ jobs:
           bitcoin() { bitcoin-cli -datadir="$owned/chain" "$@"; }
           genesis="$(bitcoin getblockhash 0)"
           test "$(curl -fsS "$OASIS_BITCOIN_ORD_API/r/blockhash/0" | jq -er .)" = "$genesis"
-          recipient="$(wallet receive | jq -er '.addresses[0]')"
+          miner="$(wallet receive | jq -er '.addresses[0]')"
+          # This public BIP86 test vector is paired with disposable test private scalar 1.
+          descriptor="$(bitcoin getdescriptorinfo 'tr(79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798)' | jq -er .descriptor)"
+          source="$(bitcoin deriveaddresses "$descriptor" | jq -er '.[0]')"
+          bitcoin -rpcwallet=ord -named sendtoaddress address="$source" amount=0.01 fee_rate=2 >/dev/null
+          bitcoin generatetoaddress 1 "$miner" >/dev/null
           printf 'OASIS Ordinals native qualification\n' > "$owned/record.txt"
-          # The disposable wallet and its chain are deleted after this read test.
-          receipt="$(wallet inscribe --no-backup --fee-rate 2 --file "$owned/record.txt" --destination "$recipient")"
+          # The disposable wallet and its chain are deleted after the test.
+          receipt="$(wallet inscribe --no-backup --fee-rate 2 --file "$owned/record.txt" --destination "$source")"
           inscription="$(jq -er '
             select(.reveal_broadcast == true and (.inscriptions | length) == 1)
             | .inscriptions[0].id | select(type == "string" and test("^[0-9a-f]{64}i[0-9]+$"))
           ' <<< "$receipt")"
-          export OASIS_BITCOIN_ORD_INSCRIPTION="$inscription"
           bitcoin getmempoolentry "${inscription%i*}" >/dev/null
-          bitcoin generatetoaddress 1 "$recipient" >/dev/null
-          indexed=false
+          bitcoin generatetoaddress 1 "$miner" >/dev/null
+
+          rpc_port="$(jq -er '.bitcoind_port' "$owned/chain/env.json")"
+          docker run -d --name "$explorer" --network host -v "$owned/chain:/bitcoin:ro" \
+            --entrypoint /srv/explorer/electrs_bitcoin/bin/electrs "$image" \
+            --network regtest --daemon-dir /bitcoin --daemon-rpc-addr "127.0.0.1:$rpc_port" \
+            --jsonrpc-import --http-addr 127.0.0.1:3002 --db-dir /tmp/esplora
+          export OASIS_BITCOIN_REGTEST_API=http://127.0.0.1:3002
+          export OASIS_BITCOIN_ORD_INSCRIPTION="$inscription"
+          export OASIS_BITCOIN_ORD_OWNER="$source"
+          export OASIS_BITCOIN_ORD_RECIPIENT="$(wallet receive | jq -er '.addresses[0]')"
+          tip="$(bitcoin getbestblockhash)"
+          ready=false
+          for attempt in {1..60}; do
+            if [[ "$(curl -fsS "$OASIS_BITCOIN_REGTEST_API/blocks/tip/hash" 2>/dev/null)" = "$tip" ]] &&
+              curl -fsS -H 'Accept: application/json' "$OASIS_BITCOIN_ORD_API/inscription/$inscription" |
+              jq -e --arg id "$inscription" --arg owner "$source" '.id == $id and .address == $owner' >/dev/null; then
+              ready=true
+              break
+            fi
+            if [[ "$(docker inspect -f '{{.State.Running}}' "$explorer")" != true ]]; then
+              docker logs --tail 15 "$explorer"
+              exit 1
+            fi
+            sleep 1
+          done
+          test "$ready" = true
+          before="$(curl -fsS -H 'Accept: application/json' "$OASIS_BITCOIN_ORD_API/inscription/$inscription" | jq -er '.satpoint')"
+          test "$(bitcoin getrawmempool | jq 'length')" = 0
+          pwsh -NoProfile -Command '
+            ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-BitcoinOrdinals -Operation {
+              dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests" --filter "FullyQualifiedName~OrdRegtestTransfersIndexedInscription" /m:2 /nr:false /p:UseSharedCompilation=false
+              if ($LASTEXITCODE -ne 0) { throw "Native Ordinals transfer failed." }
+            }'
+          sent="$(bitcoin getrawmempool | jq -er 'select(length == 1) | .[0]')"
+          bitcoin generatetoaddress 1 "$miner" >/dev/null
+          ownership=false
           for attempt in {1..60}; do
             if curl -fsS -H 'Accept: application/json' "$OASIS_BITCOIN_ORD_API/inscription/$inscription" |
-              jq -e --arg id "$inscription" --arg owner "$recipient" '.id == $id and .address == $owner' >/dev/null; then
-              indexed=true
+              jq -e --arg recipient "$OASIS_BITCOIN_ORD_RECIPIENT" --arg satpoint "$sent:0:${before##*:}" \
+                '.address == $recipient and .satpoint == $satpoint' >/dev/null; then
+              ownership=true
               break
             fi
             sleep 1
           done
-          test "$indexed" = true
-          export OASIS_BITCOIN_ORD_OWNER="$recipient"
-          pwsh -NoProfile -Command '
-            ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-BitcoinOrdinals -Operation {
-              dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests" --filter "FullyQualifiedName~OrdRegtestReadsIndexedInscription" /m:2 /nr:false /p:UseSharedCompilation=false
-              if ($LASTEXITCODE -ne 0) { throw "Native Ordinals verification failed." }
-            }'
+          test "$ownership" = true

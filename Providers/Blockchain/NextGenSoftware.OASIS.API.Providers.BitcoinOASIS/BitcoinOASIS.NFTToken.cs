@@ -56,86 +56,9 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             return SendNFTAsync(request).Result;
         }
 
-        public async Task<OASISResult<IWeb3NFTTransactionResponse>> SendNFTAsync(ISendWeb3NFTRequest request)
+        public Task<OASISResult<IWeb3NFTTransactionResponse>> SendNFTAsync(ISendWeb3NFTRequest request)
         {
-            var result = new OASISResult<IWeb3NFTTransactionResponse>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Bitcoin provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                if (request == null || string.IsNullOrWhiteSpace(request.ToWalletAddress))
-                {
-                    OASISErrorHandling.HandleError(ref result, "Invalid NFT send request");
-                    return result;
-                }
-
-                // Bitcoin NFT implementation using Ordinals protocol or OP_RETURN
-                // Store NFT transfer data in OP_RETURN transaction
-                var nftTransferData = new
-                {
-                    type = "nft_transfer",
-                    nft_id = request.TokenId ?? "",
-                    from = request.FromWalletAddress ?? "",
-                    to = request.ToWalletAddress ?? "",
-                    token_address = request.TokenAddress ?? request.FromNFTTokenAddress ?? "",
-                    timestamp = DateTime.UtcNow.ToString("O")
-                };
-
-                var nftJson = JsonSerializer.Serialize(nftTransferData);
-                var nftBytes = Encoding.UTF8.GetBytes(nftJson);
-
-                // Create Bitcoin transaction with OP_RETURN containing NFT transfer data
-                var rpcRequest = new
-                {
-                    jsonrpc = "2.0",
-                    id = 1,
-                    method = "createrawtransaction",
-                    @params = new object[]
-                    {
-                        new object[0],
-                        new Dictionary<string, object>
-                        {
-                            ["data"] = Convert.ToHexString(nftBytes)
-                        }
-                    }
-                };
-
-                var content = new StringContent(JsonSerializer.Serialize(rpcRequest), Encoding.UTF8, "application/json");
-                var response = await _httpClient.PostAsync("", content);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var responseContent = await response.Content.ReadAsStringAsync();
-                    var txData = JsonSerializer.Deserialize<JsonElement>(responseContent);
-                    
-                    var txHash = txData.TryGetProperty("result", out var txResult) ? txResult.GetString() : "";
-
-                    result.Result = new Web3NFTTransactionResponse
-                    {
-                        TransactionResult = txHash ?? "",
-                        Web3NFT = new Web3NFT { SendNFTTransactionHash = txHash }
-                    };
-                    result.IsError = false;
-                    result.Message = "NFT transfer initiated successfully via Bitcoin OP_RETURN";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to create NFT transfer transaction: {response.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error sending NFT via Bitcoin: {ex.Message}", ex);
-            }
-            return result;
+            return SendOrdinalInscriptionAsync(request);
         }
 
         public OASISResult<IWeb3NFTTransactionResponse> MintNFT(IMintWeb3NFTRequest request)

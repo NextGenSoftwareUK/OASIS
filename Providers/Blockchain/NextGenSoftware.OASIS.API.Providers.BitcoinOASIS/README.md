@@ -73,3 +73,5 @@ Native regtest verified save, mined commitment, and readback through a fresh pro
 Bitcoin avatar soft deletion publishes an encrypted tombstone signed by the configured storage wallet. Current avatar selectors and lists exclude the tombstoned identity. Explicit historical-version reads and the original transaction key retain access to the earlier committed record. Requests for physical deletion return an error.
 
 For Bitcoin NFT lookup, set OASIS_BITCOIN_ORD_API to a trusted HTTPS ord server or a loopback ord server with JSON responses enabled. Pass an inscription ID consisting of the reveal transaction ID, i, and the inscription index. The reader verifies the server's Bitcoin network before requesting the inscription.
+
+Native Bitcoin bridge payments require OASIS_BITCOIN_BRIDGE_POOL_ADDRESS. The address must belong to the configured Bitcoin network. Withdrawals send from the supplied wallet signer to the pool. Deposits spend from the pool using its configured provider signer. A pending response identifies an acknowledged Bitcoin broadcast.
