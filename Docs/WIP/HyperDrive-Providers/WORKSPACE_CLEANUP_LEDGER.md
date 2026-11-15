@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. WEB4 confirmed deletion of the disposable avatar fixtures from the signed directory and standalone portal probes. Probes ran in memory. Restored the two touched Core submodule files to their prior contents and verified no diff. The hosted delivery qualification uses a disposable MongoDB replica set and removes its container and volumes during teardown. No local downloads, dependency installs, test databases or build result files were retained.
+
 15 November Cancun time. The signed Holon History probe ran in memory and WEB4 confirmed deletion of the disposable avatar. Restored the portal sparse checkout and removed temporary Git index and patch files. No local SDK, packages, build outputs or test result files were retained.
 
 15 November Cancun time. Algorand provider run 43768512529 verified removal of all owned LocalNet containers, network, volumes and fixture directory. Combined Development staging removed the temporary index on both the initial index-add failure and the corrected run. No local builds, SDK downloads, packages or test databases were retained.
