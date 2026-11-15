@@ -1366,3 +1366,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 14 November Cancun time. Exact escrow jobs 132685861714 and 132685873122 removed their Esplora containers, image and owned chain/receipt fixtures. Only allowlisted variable-presence booleans were retained from the Railway check. No local build, fixture or credential file was created.
 
 14 November Cancun time. Native shallow-default job 132689471380 removed its runner MongoDB container and disposable MongoDB database and SQLite directory. The controlled OPORTAL browser emitted passing assertions before its shutdown helper failed. Inspected the exact temporary browser profile afterward and confirmed it was removed. No local backend, build or downloaded runtime was added.
+
+14 November Cancun time. The controlled OPORTAL production browser reported both passing assertions before timing out at shutdown. The disposable profile was gone and the last owned Chrome process was closed and verified absent. The independent map response-order check ran in memory with Node and created no local files. No local build, runtime or database was added.
