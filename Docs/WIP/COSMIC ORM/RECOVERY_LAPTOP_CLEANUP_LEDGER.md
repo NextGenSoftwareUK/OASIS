@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+15 November Cancun: reused the installed Node, Python, Git and Railway CLI for SQL and discovery probes. Parser, site test snapshots, JavaScript runners and Git indexes were temporary. Checked the corresponding temporary-directory prefixes and found none remaining. No local runtime download, provider database copy, build output or test-result bundle was created. The existing protected Development visitor is retained for the pending rollout verification. Native fixtures and images ran in hosted CI. Recovery C: measured 25.2 GiB free.
+
 14 November Cancun: extended original conductor probe held the existing lease and stopped its owned process after observing one running cell. Removed its temporary trace configuration and created no database copy, local runtime or build output. Retain ci-cosmic-shared-918da95d740f during exact qualification.
 
 14 November Cancun: direct persisted-state observations used the installed official conductor with the existing exclusive lock and stopped the child after each probe. No cloned database, local downloads or build outputs. Railway forbids opening a separate network namespace, so no duplicated live agent was started.
