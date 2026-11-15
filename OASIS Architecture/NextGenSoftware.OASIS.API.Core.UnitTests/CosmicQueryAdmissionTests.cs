@@ -61,6 +61,60 @@ public class CosmicQueryAdmissionTests
         }
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task StandaloneNetworkKeySetIsMeteredInDirectAndFederatedReads(bool federation)
+    {
+        const ProviderType provider = ProviderType.AxelarOASIS;
+        const string key = "AxelarBlockHeight";
+        var capabilities = CosmicQueryCapabilities.ForStringMetadataKeyLookup(key, 19, 8);
+        var network = new Mock<IOASISProvider>();
+        network.SetupGet(value => value.ProviderType).Returns(new EnumValue<ProviderType>(provider));
+        network.As<ICosmicReadOnlyQueryActivation>().SetupGet(value => value.IsQuerySourceActivated).Returns(true);
+        var adapter = network.As<ICosmicQueryStorageProvider>();
+        adapter.SetupGet(value => value.QueryProviderType).Returns(provider);
+        adapter.SetupGet(value => value.QueryCapabilities).Returns(capabilities);
+        adapter.Setup(value => value.ExecuteCosmicQueryAsync(It.IsAny<CosmicQueryPlan<Holon>>(),
+            It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new OASISResult<IReadOnlyList<IHolon>>(Array.Empty<IHolon>()));
+        var keys = new[] { "37269326", "37269327" };
+        var query = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(provider).Result)
+            .Where(row => keys.Contains(CosmicQueryMetadata.Value<string>(row, key))).Result;
+        Assert.NotNull(query);
+        var targets = new[] { new CosmicQueryTarget(provider, capabilities) };
+        var store = new Mock<IUsageOutboxStore>();
+        var operation = new UsageOutboxOperation
+        {
+            Id = "cql-standalone-network", ExecutionOwner = "test-owner",
+            Policy = new UsageEndpointPolicy { RequiresProviderMeasurement = true, MaximumProviderAttempts = 1 }
+        };
+        var handle = new UsageExecutionHandle(operation, store.Object, new Web4UsageLedgerOptions(),
+            new SubscriptionAuthorizationResult(), Mock.Of<IUsageReservationAuthority>());
+        var admission = new PreparedStorageExecution(handle, "cql-test", new Dictionary<ProviderType, string>(),
+            new[] { provider }, new[] { new StorageQueryTariff(provider, 0, "public-test") },
+            null, false, null, new[] { provider });
+
+        if (federation)
+        {
+            var plan = CosmicFederationPlanner.Plan(query, CosmicFederationOptions.Create().Result, provider, targets);
+            Assert.False(plan.IsError, plan.Message);
+            var result = await admission.RunAsync(() => CosmicFederationExecutor.ExecuteAsync(plan.Result, new[] { adapter.Object }));
+            Assert.False(result.IsError, result.Message);
+        }
+        else
+        {
+            var plan = CosmicQueryPlanner.Plan(query, provider, targets);
+            Assert.False(plan.IsError, plan.Message);
+            var result = await admission.RunAsync(() => CosmicQueryExecutor.ExecuteAsync(plan.Result, new[] { adapter.Object }));
+            Assert.False(result.IsError, result.Message);
+        }
+
+        store.Verify(value => value.AppendReceiptAsync(It.IsAny<string>(), It.IsAny<string>(),
+            It.Is<UsageProviderReceipt>(receipt => receipt.Provider == "AxelarOASIS"
+                && receipt.CostSource == "CQL-service-query-attempt-tariff"), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
     [Fact]
     public async Task TargetSpecificFederationActorIsCheckedBeforeAnyPhysicalAdmissionOrRead()
     {
