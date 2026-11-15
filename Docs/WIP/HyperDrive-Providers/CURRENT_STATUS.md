@@ -1,5 +1,7 @@
 # Current provider status
 
+15 November Cancun time. OPORTAL f8148ae connects the NFT mint form to the bundled WEB4 SDK. The server already enforces the Wizard role and the task branch now names that requirement accurately. Loopback verified request, role rejection and receipt rendering. Funded chain acceptance and NFT transfer wiring remain open.
+
 15 November Cancun time. Native Files job 132769873632 passed description persistence in both MongoDB and SQLite with one test and no skips. Gifts summary HTTP authorization is queued in run 43700638886. Hosted description binding awaits a deployment containing the controller change.
 
 15 November Cancun time. OPORTAL 287e6b4 uses the authenticated Gifts summary for the dashboard. The bundled SDK loopback passed pending, opened, zero and error responses. The existing inbox still uses full gift records. Added a focused WEB4 HTTP auth check for the summary. Native Files description run 43700335909 and exact WEB4 image 43700222343 remain in progress.

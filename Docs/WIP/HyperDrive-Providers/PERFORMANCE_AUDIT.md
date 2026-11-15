@@ -1,5 +1,7 @@
 # OPORTAL and HyperDrive performance audit
 
+15 November Cancun time. Removed the front-end hard gate on NFT mint submission and kept the server authorization. The modal checks for a durable NFT identity in the response, blocks duplicate clicks during submission, distinguishes pending requests and renders an acknowledged mint without reloading the GeoNFT and OLand lists. The transfer request does not yet carry the selected token identity. Hosted and funded verification remain open.
+
 15 November Cancun time. The native Files round trip verified the description in both providers alongside exact bytes, owner-scoped list and count, and cross-avatar rejection. The portal upload and list read used the bundled SDK in loopback. Hosted controller-to-provider description persistence remains open.
 
 15 November Cancun time. OPORTAL dashboard 287e6b4 requests only GET /api/gifts/my-gifts/summary. The loopback verified the authenticated SDK URL and pending, opened-only, empty and error rendering. The larger Gifts inbox loads when opened. The SQLite manager pass covers count parity. Signed hosted API and browser verification remain open.

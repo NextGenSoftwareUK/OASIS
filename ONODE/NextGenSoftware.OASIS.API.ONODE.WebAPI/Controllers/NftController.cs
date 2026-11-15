@@ -395,7 +395,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public async Task<OASISResult<IWeb4NFT>> MintNftAsync(Models.NFT.MintNFTTransactionRequest request)
         {
             if (Avatar?.AvatarType.Value != AvatarType.Wizard)
-                return new OASISResult<IWeb4NFT>() { IsError = true, Message = "NFT minting requires an active subscription. Please upgrade to a paid plan to use this feature." };
+                return new OASISResult<IWeb4NFT>() { IsError = true, Message = "NFT minting requires the Wizard avatar role." };
             if (request == null)
                 return new OASISResult<IWeb4NFT> { IsError = true, Message = "NFT mint request body is required." };
 
