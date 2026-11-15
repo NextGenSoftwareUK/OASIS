@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Signed metadata and nested composition qualification · 15 November
+
+Focused CI 43704296158 failed on a new assertion that expected Decimal for an Int64 comparison. The compiler correctly emitted Int64. The feature correction 591b9a2aa325 is in CI 43705254613. Exact signed-only candidate bc8fbf3c32d6 is in protocol CI 43705395121 and image CI 43705398948. The separate nested composition candidate 40c410687c39 is in protocol CI 43705396868. Development 2526b8c8a0e8 is building in Railway deployment 665fe506; live Axelar acceptance is still pending. The protected hosted browser walkthrough remains the top demo gate.
+
 ## Exact signed metadata in CQL text
 
 The complete Web4Site d41989013528 Node client suite passed 190/190, zero skips. This includes SQL-like parsing, direct Run CQL, draft review, provider discovery, session behavior and tab navigation. This was a committed-file test run; hosted browser and live signed Int64 query verification remain open. Development 49e4ba65a783 served Railway ef75a9a8 and reported 106/107 CQL sources ready. The sole unavailable source was Cardano after HTTP 429. Blockscout and Connext were ready on that rollout. Server startup logged 86,473 ms and 103/104 verified query-only readers.
