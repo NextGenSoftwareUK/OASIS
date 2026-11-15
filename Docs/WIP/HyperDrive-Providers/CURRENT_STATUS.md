@@ -1,5 +1,7 @@
 # Current provider status
 
+15 November Cancun time. Development advanced from serving 807623f716cd to exact-qualified fdd9df3ee6e8 after the shared interval. It changes the STAR-ODK dependency manifest and gitlink together. Railway queued WEB5 deployment 40ac6e79-e709-4f7e-b0f9-e1e4a8546ca7 and WEB4 deployment 888c1af0-6b01-4e25-a202-f6caefad86d4 at 17:22:56 UTC. The signed search-first check awaits the exact WEB5 deployment. The next shared review starts after 17:52:56 UTC.
+
 15 November Cancun time. OPORTAL dev b583f0523d14 serves the qualified subscription modal and usage charts. A signed sandbox avatar exercised the deployed SDK and portal scripts against WEB4 807623f716cd. Subscriptions, estimate, notifications and owned-app usage each returned HTTP 200. The modal displayed Free and the estimate rendered. WEB4 confirmed deletion. Hosted Stripe payment and return and the production WEB4 prerequisite remain open.
 
 15 November Cancun time. [Algorand shipping provider LocalNet](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43739866052) passed one test with zero skips in 131 ms. Application enrollment rejected an incorrect program digest. The provider read the exact encrypted current and historical revisions and returned RecordNotFound for an absent ID and version. The runner verified teardown.
