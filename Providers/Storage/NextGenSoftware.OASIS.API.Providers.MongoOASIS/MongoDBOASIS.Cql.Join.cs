@@ -16,7 +16,7 @@ public partial class MongoDBOASIS : ICosmicQueryJoinStorageProvider
     private static class JoinContract
     {
         internal static readonly CosmicJoinCapabilities Value = new(
-            new[] { CosmicJoinKind.Inner, CosmicJoinKind.Left }, CqlProjectionCapabilities, CqlProjectionCapabilities);
+            new[] { CosmicJoinKind.Inner, CosmicJoinKind.Left, CosmicJoinKind.Cross }, CqlProjectionCapabilities, CqlProjectionCapabilities);
     }
     public static CosmicJoinCapabilities CqlJoinCapabilities => JoinContract.Value;
     public CosmicJoinCapabilities JoinCapabilities => CqlJoinCapabilities;
