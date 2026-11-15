@@ -34,7 +34,7 @@ on:
       sqlite_performance_case:
         description: Focused case selected when sqlite_metadata_only is enabled
         type: choice
-        options: [metadata, wallet_summary, summary_http]
+        options: [metadata, wallet_summary, message_summary, summary_http]
         default: metadata
 permissions:
   contents: read
@@ -122,7 +122,7 @@ jobs:
               $test = "DashboardSummaryRoutesRejectAnonymousHttpRequests"
             } else {
               $project = "OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests"
-              $test = if ($env:SQLITE_PERFORMANCE_CASE -eq "wallet_summary") { "ReadsWalletSummaryFromNativeSqlite" } else { "NativeSqliteFiltersMetadataBeforeHolonMapping" }
+              $test = switch ($env:SQLITE_PERFORMANCE_CASE) { "wallet_summary" { "ReadsWalletSummaryFromNativeSqlite" } "message_summary" { "CountsAllMessagesAndOnlyUnreadIncomingMessages" } default { "NativeSqliteFiltersMetadataBeforeHolonMapping" } }
             }
             dotnet test $project --filter "FullyQualifiedName~$test" --logger 'console;verbosity=detailed' /m:2 /nr:false /p:UseSharedCompilation=false
             if ($LASTEXITCODE -ne 0) { throw 'Dashboard performance verification failed.' }
