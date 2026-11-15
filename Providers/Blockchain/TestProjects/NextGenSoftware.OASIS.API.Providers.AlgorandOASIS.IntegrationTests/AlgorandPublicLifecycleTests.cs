@@ -11,6 +11,30 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS.IntegrationTests;
 public sealed class AlgorandPublicLifecycleTests
 {
     [TestMethod]
+    public async Task PublicIndexerMatchesExactTransactionParticipants()
+    {
+        const string id = "7MK6WLKFBPC323ATSEKNEKUTQZ23TCCM75SJNSFAHEM65GYJ5ANQ";
+        const string sender = "I3345FUQQ2GRBHFZQPLYQQX5HJMMRZMABCHRLWV6RCJYC6OO4MOLEUBEGU";
+        const string receiver = "ALGORANDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIN5DNAU";
+        var provider = new AlgorandOASIS("https://mainnet-api.algonode.cloud", "https://mainnet-idx.algonode.cloud");
+        var filters = new Dictionary<string, string> { ["tx_id"] = id, ["sender"] = sender, ["receiver"] = receiver };
+        var matched = await provider.LoadHolonsByMetaDataAsync(filters, MetaKeyValuePairMatchMode.All, loadChildren: false);
+        Assert.IsFalse(matched.IsError, matched.Message);
+        Assert.AreEqual(id, matched.Result.Single().ProviderUniqueStorageKey[ProviderType.AlgorandOASIS]);
+
+        filters["receiver"] = sender;
+        var rejected = await provider.LoadHolonsByMetaDataAsync(filters, MetaKeyValuePairMatchMode.All, loadChildren: false);
+        Assert.IsFalse(rejected.IsError, rejected.Message);
+        Assert.AreEqual(0, rejected.LoadedCount);
+
+        filters.Remove("sender");
+        filters["receiver"] = receiver;
+        var nativeReceiver = provider.LoadHolonsByMetaData(filters, MetaKeyValuePairMatchMode.All, loadChildren: false);
+        Assert.IsFalse(nativeReceiver.IsError, nativeReceiver.Message);
+        Assert.AreEqual(id, nativeReceiver.Result.Single().ProviderUniqueStorageKey[ProviderType.AlgorandOASIS]);
+    }
+
+    [TestMethod]
     public async Task PublicIndexerQueriesTransactionMetadataUsingNativeFilters()
     {
         const string id = "7MK6WLKFBPC323ATSEKNEKUTQZ23TCCM75SJNSFAHEM65GYJ5ANQ";

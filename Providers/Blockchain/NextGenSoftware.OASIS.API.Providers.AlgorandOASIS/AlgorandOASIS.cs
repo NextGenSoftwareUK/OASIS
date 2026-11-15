@@ -485,15 +485,23 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
                 if (!Enum.IsDefined(typeof(MetaKeyValuePairMatchMode), metaKeyValuePairMatchMode))
                     throw new ArgumentOutOfRangeException(nameof(metaKeyValuePairMatchMode));
 
-                var filters = metaKeyValuePairs.Select(pair => AlgorandTransactionFilter(pair.Key, pair.Value)).ToArray();
+                var filters = metaKeyValuePairs.Select(pair => (Field: pair, Query: AlgorandTransactionFilter(pair.Key, pair.Value))).ToArray();
+                // The Indexer accepts one address-role per query. For an All query with both participants,
+                // push the sender and all non-address fields down, then check both mapped participants.
                 var queries = metaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.All
-                    ? new[] { string.Join("&", filters) }
-                    : filters;
+                    ? new[] { (Query: string.Join("&", filters.Where(filter =>
+                        filter.Field.Key != "receiver" || !metaKeyValuePairs.ContainsKey("sender")).Select(filter => filter.Query)),
+                        Fields: filters.Select(filter => filter.Field).ToArray()) }
+                    : filters.Select(filter => (filter.Query, Fields: new[] { filter.Field })).ToArray();
                 if (type != HolonType.All && type != HolonType.Holon)
-                    queries = Array.Empty<string>();
+                    queries = Array.Empty<(string Query, KeyValuePair<string, string>[] Fields)>();
 
-                var pages = await Task.WhenAll(queries.Select(query =>
-                    ReadIndexedTransactionsAsync($"/v2/transactions?{query}&"))).ConfigureAwait(false);
+                var pages = await Task.WhenAll(queries.Select(async query =>
+                {
+                    var page = await ReadIndexedTransactionsAsync($"/v2/transactions?{query.Query}&").ConfigureAwait(false);
+                    var participantMatches = page.Transactions.Where(holon => MatchesAlgorandParticipants(holon, query.Fields)).ToList();
+                    return (Transactions: participantMatches, page.HasMore);
+                })).ConfigureAwait(false);
                 var matches = pages.SelectMany(page => page.Transactions)
                     .DistinctBy(holon => holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.AlgorandOASIS])
                     .Take(IndexerTransactionLimit + 1).ToList();
@@ -518,14 +526,23 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
         {
             if (string.IsNullOrWhiteSpace(value))
                 throw new ArgumentException($"The metadata field '{key}' requires a value.");
-            string parameter = key switch
+            string encoded = Uri.EscapeDataString(value);
+            return key switch
             {
-                "tx_id" => "txid",
-                "tx_type" => "tx-type",
-                "confirmed_round" => "round",
+                "tx_id" => $"txid={encoded}",
+                "tx_type" => $"tx-type={encoded}",
+                "confirmed_round" => $"round={encoded}",
+                "sender" => $"address={encoded}&address-role=sender",
+                "receiver" => $"address={encoded}&address-role=receiver&exclude-close-to=true",
                 _ => throw new ArgumentException($"The metadata field '{key}' is not indexed by this provider.")
             };
-            return $"{parameter}={Uri.EscapeDataString(value)}";
+        }
+
+        private static bool MatchesAlgorandParticipants(IHolon holon, IEnumerable<KeyValuePair<string, string>> fields)
+        {
+            var metadata = holon.ProviderMetaData[Core.Enums.ProviderType.AlgorandOASIS];
+            return fields.Where(field => field.Key is "sender" or "receiver").All(field =>
+                metadata.TryGetValue(field.Key, out var value) && StringComparer.Ordinal.Equals(value, field.Value));
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(

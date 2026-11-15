@@ -1,5 +1,7 @@
 # Current provider status
 
+15 November Cancun time. Algorand transaction metadata lookup now includes sender and receiver. The provider uses native address roles, excludes close-to addresses from receiver lookups, and checks both projected participants when the Indexer can accept only one address. A focused mainnet regression is pending. [Algorand Indexer address filters](https://dev.algorand.co/reference/rest-api/indexer/operations/searchfortransactions/)
+
 15 November Cancun time. COSMIC/CQL published d79168a14607 in the shared Development window. The carry-forward candidate 4c842fc2ceba has the same seven passed Gifts and Checkout file hashes and the same Core dependency as 093064cd58ad. The manifest check passed. The earliest next shared integration is 30 minutes after the peer deployment was queued, subject to its serving revision and current remote parent. Algorand provider-level mainnet Indexer metadata verification passed in 43711939861 with one test and zero skips.
 
 15 November Cancun time. Algorand metadata lookups now use the shipping Indexer client for transaction ID, type and confirmed round. All combines native filters in one search, and Any merges distinct native transaction IDs with the existing result limit. A read-only mainnet probe found the exact known payment in round 62440 and zero results in 62441. The provider-level regression passed against mainnet. [Algorand Indexer transaction search](https://dev.algorand.co/reference/rest-api/indexer/operations/searchfortransactions/)
