@@ -113,7 +113,7 @@ public sealed class SolidSqliteHyperDriveTests
         try
         {
             var owned = solid.LoadAllHolons(HolonType.All, loadChildren: false);
-            Assert.IsFalse(owned.IsError, owned.Message);
+            Assert.IsFalse(owned.IsError, owned.Exception?.ToString() ?? owned.Message);
             Assert.AreEqual(0, owned.Result.Count());
         }
         finally
