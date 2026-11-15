@@ -1,5 +1,7 @@
 # Current provider status
 
+15 November Cancun time. OPORTAL is the active priority. Avatar task commit 97770e1 removes fabricated karma, XP, and level and removes the progress bar based on a local formula that differs from WEB4's LevelManager. The exact OPORTAL dev candidate 87573cd62846 passed nine checks, including real zero and absent-field display. It awaits the next OPORTAL dev integration window. The wider portal audit found off-chain holon storage and ONET management still unwired.
+
 15 November Cancun time. OPORTAL dev eb8f129ada2f serves the exact qualified Stripe return script. Its subscription suite passed against the release tree. Confirmation now requires a signed session and discards responses after sign-out or navigation without rewriting the current URL. The real hosted Stripe payment and return, matching WEB4 production rollout and wider OPORTAL acceptance remain open.
 
 15 November Cancun time. Scoped Algorand candidate b4fb83823a9b contains 18 provider and native-qualification paths on Development dc24072806f6. The peer change does not overlap those paths. Exact native [hard delete](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43745583557), [purge recovery](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43745586347) and [write, discovery and collection](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43745656193) are qualifying. The candidate remains subject to the shared rollout interval and authoritative remote head.
