@@ -22,6 +22,8 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS;
 
 public partial class BitcoinOASIS
 {
+    private static readonly Script BitcoinBurnScript = new(new byte[] { 0x6a, 0x00, 0x02, 0x00, 0x00 });
+
     private static HttpClient CreateOrdClient()
     {
         var endpoint = Environment.GetEnvironmentVariable("OASIS_BITCOIN_ORD_API");
@@ -154,7 +156,7 @@ public partial class BitcoinOASIS
 
             var source = BitcoinAddress.Create(burn ? indexedOwner : sourceAddress, network);
             var destination = burn
-                ? new Script(new byte[] { 0x6a, 0x00, 0x02, 0x00, 0x00 })
+                ? BitcoinBurnScript
                 : BitcoinAddress.Create(recipientAddress, network).ScriptPubKey;
             var signer = new BitcoinSecret(ResolveWalletSigningKey(privateKey, seedPhrase), network);
             var wrappedSegwit = source.Equals(signer.GetAddress(ScriptPubKeyType.SegwitP2SH));
@@ -235,7 +237,7 @@ public partial class BitcoinOASIS
                     throw new InvalidOperationException("The Bitcoin chain advanced during inscription transaction preparation. Recheck the indexed inputs.");
 
                 var sent = burn
-                    ? await BroadcastOrdinalBurnAsync(transaction, tip)
+                    ? await BroadcastBitcoinBurnAsync(transaction, Money.Satoshis(1), tip)
                     : await BroadcastSignedBitcoinAsync(transaction, memo);
                 foreach (var entry in sent.MetaData)
                     result.MetaData[entry.Key] = entry.Value;
@@ -287,7 +289,7 @@ public partial class BitcoinOASIS
         return new RPCClient(credentials, address, SigningNetwork) { HttpClient = transport };
     }
 
-    private async Task<OASISResult<ITransactionResponse>> BroadcastOrdinalBurnAsync(Transaction transaction, uint256 tip)
+    private async Task<OASISResult<ITransactionResponse>> BroadcastBitcoinBurnAsync(Transaction transaction, Money amount, uint256 tip)
     {
         using var transport = CreateBitcoinCoreTransport();
         var core = CreateBitcoinCoreClient(transport);
@@ -299,8 +301,8 @@ public partial class BitcoinOASIS
         result.MetaData[BitcoinTransactionIdMetadataKey] = transactionId.ToString();
         try
         {
-            // Core defaults to refusing burns. Authorize exactly one satoshi, with its default fee-rate limit.
-            var receipt = await core.SendCommandAsync("sendrawtransaction", transaction.ToHex(), 0.10m, 0.00000001m);
+            // Core defaults to refusing burns. Authorize only the intended amount, with its default fee-rate limit.
+            var receipt = await core.SendCommandAsync("sendrawtransaction", transaction.ToHex(), 0.10m, amount.ToDecimal(MoneyUnit.BTC));
             if (!uint256.TryParse(receipt.Result?.ToString(), out var accepted) || accepted != transactionId)
                 throw new InvalidOperationException("Bitcoin Core returned an unexpected burn transaction ID.");
 

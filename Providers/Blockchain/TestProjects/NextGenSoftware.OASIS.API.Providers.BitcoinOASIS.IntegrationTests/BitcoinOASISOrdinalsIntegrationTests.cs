@@ -12,8 +12,10 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
 using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests;
 using NextGenSoftware.OASIS.API.DNA;
-using NextGenSoftware.OASIS.API.Providers.LocalFileOASIS;
+using Key = NBitcoin.Key;
+using WalletFileProvider = NextGenSoftware.OASIS.API.Providers.LocalFileOASIS.LocalFileOASIS;
 
 namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests;
 
@@ -235,7 +237,7 @@ public class BitcoinOASISOrdinalsIntegrationTests
     {
         var storageDirectory = Environment.GetEnvironmentVariable("OASIS_BITCOIN_ORD_WALLET_FIXTURE");
         Assert.IsFalse(string.IsNullOrWhiteSpace(storageDirectory));
-        var local = new LocalFileOASIS(storageDirectory: storageDirectory);
+        var local = new WalletFileProvider(storageDirectory: storageDirectory);
         Assert.IsFalse((await local.ActivateProviderAsync()).IsError);
         var depositorAvatar = Guid.NewGuid();
         var otherAvatar = Guid.NewGuid();
@@ -302,5 +304,32 @@ public class BitcoinOASISOrdinalsIntegrationTests
             await Task.Delay(TimeSpan.FromSeconds(1));
         }
         Assert.Fail("The ord index did not confirm the exact transaction and wallet owner.");
+    }
+
+    [TestMethod]
+    public async Task OrdRegtestBurnsExactNativeBitcoinAmount()
+    {
+        var api = Environment.GetEnvironmentVariable("OASIS_BITCOIN_REGTEST_API");
+        var miner = Environment.GetEnvironmentVariable("OASIS_BITCOIN_ORD_MINER");
+        var endpoint = new Uri(Environment.GetEnvironmentVariable("OASIS_BITCOIN_CORE_RPC_URL"));
+        Assert.IsTrue(endpoint.IsLoopback);
+        var core = new RPCClient(Environment.GetEnvironmentVariable("OASIS_BITCOIN_CORE_RPC_AUTH"), endpoint, Network.RegTest);
+        var privateScalar = new byte[32];
+        privateScalar[31] = 1;
+        using var signer = new Key(privateScalar);
+        using var provider = new BitcoinOASIS(api, "regtest", "", null, 2);
+        var request = new BurnWeb3TokenRequest
+        {
+            TokenAddress = "BTC", Amount = 0.00002m, OwnerPublicKey = "", OwnerSeedPhrase = "",
+            OwnerPrivateKey = signer.GetWif(Network.RegTest).ToString()
+        };
+        var burned = await provider.BurnTokenAsync(request);
+        Assert.IsFalse(burned.IsError, burned.Message);
+        var transactionId = uint256.Parse(burned.Result.TransactionResult);
+        var transaction = await core.GetRawTransactionAsync(transactionId);
+        Assert.AreEqual(Money.Satoshis(2_000), transaction.Outputs.Single(output => output.ScriptPubKey.IsUnspendable).Value);
+        await core.SendCommandAsync("generatetoaddress", 1, miner);
+        Assert.IsFalse((await core.GetRawMempoolAsync()).Contains(transactionId));
+        Assert.AreEqual(transactionId, (await core.GetRawTransactionAsync(transactionId)).GetHash());
     }
 }

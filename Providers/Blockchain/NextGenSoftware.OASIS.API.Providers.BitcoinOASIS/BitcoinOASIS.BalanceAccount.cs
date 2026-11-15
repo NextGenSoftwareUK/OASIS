@@ -178,80 +178,9 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             return BurnTokenAsync(request).Result;
         }
 
-        public async Task<OASISResult<ITransactionResponse>> BurnTokenAsync(IBurnWeb3TokenRequest request)
+        public Task<OASISResult<ITransactionResponse>> BurnTokenAsync(IBurnWeb3TokenRequest request)
         {
-            var result = new OASISResult<ITransactionResponse>(new TransactionResponse());
-            try
-            {
-                if (!_isActivated)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Bitcoin provider is not activated");
-                    return result;
-                }
-
-                if (request == null || string.IsNullOrWhiteSpace(request.TokenAddress))
-                {
-                    OASISErrorHandling.HandleError(ref result, "Invalid token burn request");
-                    return result;
-                }
-
-                // Bitcoin token burning using OP_RETURN transactions
-                // Store token burn data in OP_RETURN transaction
-                var tokenBurnData = new
-                {
-                    type = "token_burn",
-                    token_address = request.TokenAddress ?? "",
-                    amount = "0",
-                    burn_from = request.OwnerPublicKey ?? "",
-                    timestamp = DateTime.UtcNow.ToString("O")
-                };
-
-                var tokenJson = JsonSerializer.Serialize(tokenBurnData);
-                var tokenBytes = Encoding.UTF8.GetBytes(tokenJson);
-
-                // Create Bitcoin transaction with OP_RETURN containing token burn data
-                var rpcRequest = new
-                {
-                    jsonrpc = "2.0",
-                    id = 1,
-                    method = "createrawtransaction",
-                    @params = new object[]
-                    {
-                        new object[0],
-                        new Dictionary<string, object>
-                        {
-                            ["data"] = Convert.ToHexString(tokenBytes)
-                        }
-                    }
-                };
-
-                var content = new StringContent(JsonSerializer.Serialize(rpcRequest), Encoding.UTF8, "application/json");
-                var response = await _httpClient.PostAsync("", content);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var responseContent = await response.Content.ReadAsStringAsync();
-                    var txData = JsonSerializer.Deserialize<JsonElement>(responseContent);
-                    
-                    var txHash = txData.TryGetProperty("result", out var txResult) ? txResult.GetString() : "";
-
-                    result.Result = new TransactionResponse
-                    {
-                        TransactionResult = txHash
-                    };
-                    result.IsError = false;
-                    result.Message = "Token burned successfully via Bitcoin OP_RETURN";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to create token burn transaction: {response.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error burning token: {ex.Message}", ex);
-            }
-            return result;
+            return BurnNativeBitcoinAsync(request);
         }
 
         public OASISResult<ITransactionResponse> LockToken(ILockWeb3TokenRequest request)

@@ -9,6 +9,7 @@ on:
       - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS/BitcoinOASIS.Ordinals.cs'
       - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS/BitcoinOASIS.OrdinalsMint.cs'
       - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS/BitcoinOASIS.OrdinalsCustody.cs'
+      - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS/BitcoinOASIS.NativeBurn.cs'
       - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS/BitcoinOASIS.NFTToken.cs'
       - 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests/BitcoinOASISOrdinalsIntegrationTests.cs'
 
@@ -189,3 +190,11 @@ jobs:
           test "$(curl -fsS "$OASIS_BITCOIN_REGTEST_API/blocks/tip/hash")" = "$tip"
           dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests" \
             --no-build --no-restore --filter "FullyQualifiedName~OrdRegtestMintsCommitRevealAndReadback" /m:2 /nr:false /p:UseSharedCompilation=false
+          tip="$(bitcoin getbestblockhash)"
+          for attempt in {1..60}; do
+            if [[ "$(curl -fsS "$OASIS_BITCOIN_REGTEST_API/blocks/tip/hash")" = "$tip" ]]; then break; fi
+            sleep 1
+          done
+          test "$(curl -fsS "$OASIS_BITCOIN_REGTEST_API/blocks/tip/hash")" = "$tip"
+          dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests" \
+            --no-build --no-restore --filter "FullyQualifiedName~OrdRegtestBurnsExactNativeBitcoinAmount" /m:2 /nr:false /p:UseSharedCompilation=false
