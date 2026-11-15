@@ -76,6 +76,28 @@ public partial class CqlHostedSourcesTests
     private static CqlHostedSources Sources(Registry registry, bool configured = true)
         => new(configured ? Admission() : null, registry, NullLogger<CqlHostedSources>.Instance);
 
+    [Theory]
+    [InlineData(0)]
+    [InlineData(7)]
+    public async Task DiscoveryPublishesOnlyReadyStandaloneNativeKeyBounds(int maximumSetKeys)
+    {
+        var registry = new Registry();
+        registry.Add(ProviderType.MongoDBOASIS, active: true);
+        var social = (Adapter)(object)registry.Add(ProviderType.ActivityPubOASIS, active: false);
+        social.Capabilities = maximumSetKeys == 0
+            ? CosmicQueryCapabilities.ForStringMetadataPointLookup("NativeKey", 128)
+            : CosmicQueryCapabilities.ForStringMetadataKeyLookup("NativeKey", 128, maximumSetKeys);
+        using var sources = Sources(registry);
+        Assert.All(sources.Describe(), row => Assert.Null(row.TextKeyProfile));
+
+        await sources.StartAsync(default);
+        await sources.ExecuteTask!.WaitAsync(TimeSpan.FromSeconds(5));
+        var ready = Assert.Single(sources.Describe().Where(row => row.QueryOnly));
+        Assert.True(ready.Available);
+        Assert.Equal(new CqlHostedTextKeyProfile("NativeKey", 128, maximumSetKeys), ready.TextKeyProfile);
+        Assert.Null(Assert.Single(sources.Describe().Where(row => !row.QueryOnly)).TextKeyProfile);
+    }
+
     private sealed class StartupRegistry(HashSet<ProviderType> independent) : ICqlHostedSourceRegistry
     {
         public readonly System.Collections.Concurrent.ConcurrentQueue<ProviderType> ReaderAttempts = new();
