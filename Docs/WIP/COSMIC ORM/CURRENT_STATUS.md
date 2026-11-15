@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Native scalar LINQ Distinct candidate
+
+15 November. Core b7409757d956 adds a selected scalar Distinct stage, native capability admission and exact stage proof. The parent feature be6ec42e757c uses SQLite partition ranking, MongoDB native grouping and Neo4j grouped ordering to retain the first row in the preceding native order. The default comparer supports Int32, Boolean, Guid and ordinal String domains with nullable values under the pre-existing projection domain rules. The test candidate 9b7227537678 checks populated Int32 reduction, following Where and Take, selected Count and rejection of a custom comparer. A small SQLite in-memory test also validated the partition ordering with duplicate nulls. Shared native CI has not completed. The wider Q52 parity row remains open.
+
 ## Ask Your Data prompt scope and shared build evidence
 
 15 November. Web4Site 9f42a6ed68db omits built-in CQL guidance families when their sources are unavailable and keeps the discovered native key bounds for ready sources. All 203 client tests passed. A paired capture of the system message reduced it from 9,040 to 5,075 UTF-8 bytes for MongoDB and Neo4j only, and from 9,253 to 766 bytes for one standalone discovered profile. The capture used a controlled client transport; WEB6 latency and hosted browser acceptance remain unverified. [Preview 7803716541](https://web4-site-l4rpnw2vj-oasis-team.vercel.app/web4-sandbox.html) built.
