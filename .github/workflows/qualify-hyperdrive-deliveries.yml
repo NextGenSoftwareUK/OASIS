@@ -1,0 +1,73 @@
+name: Verify hosted HyperDrive delivery history
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [work/hyperdrive-provider-completion]
+    paths:
+      - '.github/workflows/qualify-hyperdrive-deliveries.yml'
+      - 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests/HostedMongoSyncTransactionTests.cs'
+
+permissions:
+  contents: read
+
+jobs:
+  native-deliveries:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          path: OASIS
+          submodules: recursive
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - name: Read the canonical Libraries revision
+        id: pins
+        working-directory: OASIS
+        run: |
+          python3 -B Scripts/validate_railway_dependency_manifest.py --require-gitlinks
+          grep -E '^LIBRARIES_COMMIT=[0-9a-f]{40}$' Docker/oasis-dependency-versions.env >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.pins.outputs.LIBRARIES_COMMIT }}
+          path: NextGenSoftware-Libraries
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+      - name: Start disposable MongoDB and verify delivery reads
+        working-directory: OASIS
+        shell: bash
+        env:
+          OASIS_MONGO_REPLICA_SET_CONNECTION: mongodb://127.0.0.1:27017/?replicaSet=rs0&serverSelectionTimeoutMS=4000
+        run: |
+          set -euo pipefail
+          fixture="portal-deliveries-${GITHUB_RUN_ID}"
+          docker run --detach --name "$fixture" -p 127.0.0.1:27017:27017 mongo:7 --replSet rs0 --bind_ip_all
+          cleanup() {
+            docker rm --force --volumes "$fixture" >/dev/null
+            echo "Removed isolated MongoDB container and volumes."
+          }
+          trap cleanup EXIT
+          for n in {1..40}; do
+            if docker exec "$fixture" mongosh --quiet --eval 'db.adminCommand({ping:1}).ok' | grep -qx 1; then
+              break
+            fi
+            if [ "$n" = 40 ]; then exit 1; fi
+            sleep 1
+          done
+          docker exec "$fixture" mongosh --quiet --eval "rs.initiate({_id:'rs0',members:[{_id:0,host:'localhost:27017'}]})"
+          for n in {1..40}; do
+            if docker exec "$fixture" mongosh --quiet --eval 'db.hello().isWritablePrimary' | grep -qx true; then
+              break
+            fi
+            if [ "$n" = 40 ]; then exit 1; fi
+            sleep 1
+          done
+          pwsh -NoProfile -Command '& Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner hosted-delivery-ci -Operation {
+            dotnet test Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests.csproj /m:2 /nr:false /p:UseSharedCompilation=false --filter "FullyQualifiedName~PortalDeliveryHistoryIsAvatarScopedBoundedAndReadOnly" --logger "console;verbosity=normal"
+            if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          }'
