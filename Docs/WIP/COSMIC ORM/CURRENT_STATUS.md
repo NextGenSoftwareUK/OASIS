@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Serial Development CQL startup baseline
+
+On Railway 519e39f9-d2af-433f-bf6c-6b0f783dfdb7, Development f99947f0e20b used serial CQL source activation. Time zero was the first observed Railway SUCCESS, followed by authenticated discovery at roughly nine-second intervals. Native and federated readiness matched at every sample: 14/107 at 7.5 s, 43/107 at 33.5 s, 50/107 at 42.2 s, still 50 at 112.7 s, 71 at 121.5 s, and 107/107 at 157.2 s. This client-observed baseline includes readiness observation and request time. CI is pending for the bounded startup candidate 159cde88671b, which also emits server-side startup duration and verified count.
+
 ## Shared provider candidate
 
 Development advanced to f99947f0e20b. Candidate 433731c6aa94 layers the shipping Axelar and Connext providers, bounded Axelar header reads and exact-body Nostr signature reuse on that shared revision. The provider change paths do not intersect the peer integration. Both Development gitlinks and the dependency manifest are inherited from the shared base. [Exact protocol](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43688294760) is active. The Axelar-only image 43687061422 on the superseded base was cancelled. The combined candidate still needs the exact image and live query and timing comparisons.
