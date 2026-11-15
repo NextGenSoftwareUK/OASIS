@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. WEB4 confirmed both disposable mission test avatars were deleted with HTTP 200. Removed the scoped candidate index and temporary patch. No SDK installations, test output, local build artifacts or dependencies were retained.
+
 15 November Cancun time. WEB4 confirmed deletion of the disposable Karma stats test avatar with HTTP 200. Removed the scoped portal candidate index. No local build outputs, dependencies or test artifacts were retained.
 
 15 November Cancun time. WEB4 confirmed deletion of the disposable dashboard test avatar with HTTP 200. Removed the alternate Git index and temporary patch after staging the dashboard candidate. The signed sandbox and UI checks ran in memory with no local installation, build output or test artifacts.
