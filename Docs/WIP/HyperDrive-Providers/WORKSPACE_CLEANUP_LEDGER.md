@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. WEB4 confirmed deletion of the avatar used by the signed OAPP modal regression. Hosted Solid CI confirmed deletion of the private Pod and test files. The exact Solid and portal staged candidates removed their temporary Git indexes. No local builds, runtimes or databases were created.
+
 15 November Cancun time. The signed OAPP probes used two temporary WEB4 sandbox avatars. WEB4 confirmed deletion of both. Responses and SDK source were held in memory. The STAR candidate builder removed its temporary Git index. No local runtime, database, download or build output was retained.
 
 15 November Cancun time. OAPP modal response-order verification ran in memory. STAR-ODK changes were pushed to the task branch in the existing submodule, then the checkout returned to the current parent pin. No local runtime, database, download, build or report was created.

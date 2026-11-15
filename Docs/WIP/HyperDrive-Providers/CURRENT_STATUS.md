@@ -1,5 +1,9 @@
 # Current provider status
 
+15 November Cancun time. [Solid native lifecycle](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43735352478) passed 1/1 with no skips on Development 232e68a7f98b in 578 ms and confirmed teardown. Candidate 9005061f3166 reproduces the exact CI tree ee5ea541a0b6 and remains staged.
+
+15 November Cancun time. The staged OAPP modal rendered the signed owned-list and search empty states using the deployed OPORTAL SDK and WEB5 dev responses. The reads returned HTTP 200 in 442 ms and 349 ms respectively. OPORTAL candidates 1069c2ec0a99 and c346f40f9693 add the verified modal and its version to the previously qualified subscription assets. The [cold-start WEB5 image qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43735619550) remains separate.
+
 15 November Cancun time. The deployed OPORTAL configuration and WEB5 SDK sent signed OAPP requests to STAR dev. The temporary avatar's owned list returned HTTP 200 in 319 ms, and a unique no-match search returned HTTP 200 in 721 ms. The portal supplies the required operation identity. This verifies the live warm service. A separate exact image candidate c47940d16a9b preserves the current STAR dependency and adds the cold search startup fix. Its hosted qualification is separate from release.
 
 15 November Cancun time. [Free estimate follow-up](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43735127065) and [Solid native lifecycle](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43735352478) are qualifying against the updated Development graph.
