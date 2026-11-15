@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. The live OPORTAL subscription checks held assets and responses in memory. WEB4 confirmed deletion of the temporary avatar. No local browser profile, runtime, build or report was retained.
+
 15 November Cancun time. Algorand shipping-provider qualification confirmed removal of the disposable LocalNet containers, network, volumes and fixture directory. No local build or fixture was created.
 
 15 November Cancun time. Historical Algorand qualification confirmed removal of the owned LocalNet containers, network, volumes and fixture directory. Provider read qualification provisions encrypted fixture data on the hosted runner. Canceled the duplicate public check. No local runtime, build output or fixture was created.

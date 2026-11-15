@@ -1,5 +1,7 @@
 # Current provider status
 
+15 November Cancun time. OPORTAL dev b583f0523d14 serves the qualified subscription modal and usage charts. A signed sandbox avatar exercised the deployed SDK and portal scripts against WEB4 807623f716cd. Subscriptions, estimate, notifications and owned-app usage each returned HTTP 200. The modal displayed Free and the estimate rendered. WEB4 confirmed deletion. Hosted Stripe payment and return and the production WEB4 prerequisite remain open.
+
 15 November Cancun time. [Algorand shipping provider LocalNet](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43739866052) passed one test with zero skips in 131 ms. Application enrollment rejected an incorrect program digest. The provider read the exact encrypted current and historical revisions and returned RecordNotFound for an absent ID and version. The runner verified teardown.
 
 15 November Cancun time. [Algorand historical manifests](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43739225328) passed native writer admission, immutable manifests, retention of older chunks and lineage checks, and verified teardown. Provider 9513612cd4df adds explicit application enrollment and authenticated current and historical reads. Its [shipping provider native case](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43739866052) is running. Generic writes, deletion, discovery and routing remain open.
