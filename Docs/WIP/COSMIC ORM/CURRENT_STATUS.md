@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## SQL typed metadata grouping and deduplication
+
+15 November. Web4Site db004a7a6ad9 uses exact metadata path and type for GROUP BY and DISTINCT. Live Development b9808ae777b8 accepted the exact compiler output for nullable Int64 DISTINCT with alias ordering on MongoDB, SQLite and Neo4j. It returned the expected column and zero visible rows for the retained visitor. Web4Site f0931cee35ae teaches the same syntax to Ask your data and checks the draft review handoff with a controlled WEB6 response. All 212 website tests passed. [Protected preview 7805134426](https://web4-site-e46ikez20-oasis-team.vercel.app/web4-sandbox.html) built. Populated live and authenticated hosted browser verification remain open. Temporary snapshots were removed.
+
 ## SQL typed metadata selection and alias ordering
 
 15 November. Web4Site 0b7124331fac adds typed CAST selection of nullable metadata. On live Development b9808ae777b8 the exact compiler submitted an Int64 metadata projection ordered by its selected alias to MongoDB, SQLite and Neo4j. All returned the ExactValue column and zero visible rows. Web4Site 4ec5d2eae5eb teaches the same syntax to WEB6, including that metadata paths and types must be known. All 210 website tests passed, including the controlled WEB6 draft review. [Protected preview 7805081240](https://web4-site-7r23329eq-oasis-team.vercel.app/web4-sandbox.html) built. Populated live values, real WEB6 verification of this syntax, and the signed-in hosted browser walkthrough remain open. Temporary test snapshots were removed.
