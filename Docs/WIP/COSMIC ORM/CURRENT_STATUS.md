@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Native nested DTO projections
+
+Nested constructor and member-initializer projections now carry detached materialization through selection copies. Providers receive scalar leaves and validate the complete row buffer before any DTO constructor or setter runs. A shared regression and SQLite, MongoDB and Neo4j native fixture case were added. CI and parity acceptance remain pending.
+
 ## Coordinated Development integration
 
 Railway ea697826-d4d6-471c-8626-14d0687d387b served Development 3a0542795eda and settled at 106/107 on both routes. Axelar alone remained unavailable; Blockscout recovered under the existing profile. Relative to the first observed Railway SUCCESS, authenticated readiness was 10 at 5.2 s, 17 at 14.8 s, 26 at 24.6 s, 46 at 34.4 s, 49 at 44.1 s, 71 at 113.0 s, 93 at 123.0 s, 103 at 132.9 s and 106 at 142.7 s. This is the immediate serial baseline for 3eb0bb18da52, with the same HyperDrive source graph. The endpoint observes readiness at polling intervals. [Blockscout/Connext CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43695162104) passed WEB4 unit and authenticated Connext protocol steps. The Development credential and live result acceptance remain open.
