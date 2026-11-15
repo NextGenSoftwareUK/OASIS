@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Native bounded cross join qualification
+
+15 November. Core 2687a4374c7b and parent feature d0e6618f640e introduce keyless Cross capture, WEB4 CQL intent admission, and native Cartesian execution in MongoDB, SQLite and Neo4j. The existing source, pair and output proofs apply. The regression asserts all six distinct pairs from bounded two-row and three-row inputs. The Core gitlink and Railway dependency manifest advance together. Exact source f98bf485017e is queued in [three-store qualification 43749225426](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43749225426). SQL editor syntax and live WEB4 verification remain open. No local builds or downloads. Temporary indexes were removed.
+
 ## SQL RIGHT OUTER JOIN on real native stores
 
 15 November. Web4Site 9cc30d11a4bd compiles RIGHT OUTER JOIN by reversing the native source roles and retaining the requested column order. The result table labels outer-row presence as Matched. All 228 website tests passed. Exact Development dc24072806f6 returned the matching row and preserved the unmatched right row with null left fields on MongoDB, SQLite and Neo4j. All six private fixtures were deleted and verified absent by exact CQL ID. [Protected preview](https://web4-site-ir3rvde3b-oasis-team.vercel.app/web4-sandbox.html)
