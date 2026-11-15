@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. OPORTAL Stripe return qualification read the exact release tree directly from Git. Removed the temporary index and patch and reapplied the existing sparse checkout after the task-branch suite. No dependencies, downloaded payloads, build outputs or test results were retained. C: had 24.71 GiB free after verification.
+
 15 November Cancun time. The scoped Algorand Development candidate used one temporary Git index and removed it after publication. Exact qualification uses hosted disposable LocalNet runners. No local runtime, database or build output was retained.
 
 15 November Cancun time. Algorand hard-delete, checkpoint recovery and group rollback runners each confirmed removal of the owned LocalNet containers, network, volumes and fixture directory. No local database, runtime or result was created.

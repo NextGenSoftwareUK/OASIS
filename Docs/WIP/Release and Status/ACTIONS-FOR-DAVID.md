@@ -734,7 +734,7 @@ Status: missing account/configuration information,2 November2026. David approved
 
 ### OPORTAL hosted Stripe sandbox Checkout
 
-- **Open, 15 November 2026.** The real sandbox API checks cover session creation, ledger scoping, subscription, billing and cancellation. Execution policy blocked the automated hosted payment form before submission.
+- **Open, 15 November 2026.** The real sandbox API checks cover session creation, ledger scoping, subscription, billing and cancellation. OPORTAL dev eb8f129ada2f serves the qualified session-bound confirmation script. Execution policy blocked the automated hosted payment form before submission.
 - **David action** Sign in to OPORTAL dev with a disposable avatar, choose Bronze, confirm the Stripe page is in test mode, and finish payment with a Stripe test card. After it returns to OPORTAL, confirm that My subscriptions displays Bronze as active and the payment confirmation appears. Share the result and approximate test time only.
 - **Reason** The manual browser step verifies hosted payment and return together on the deployed sandbox. Engineering owns follow-up and cleanup of the disposable subscription. [OPORTAL dev](https://dev.oportal.oasisomniverse.one/subscription) · [Stripe test cards](https://docs.stripe.com/testing#cards) · [Current status](../HyperDrive-Providers/CURRENT_STATUS.md)
 
