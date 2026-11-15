@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Sui, Aptos, Starknet and Fantom in the SQL editor
+
+15 November. Web4Site f170ee0d730a adds four more public-key profiles and the discovery-scoped Ask Your Data instructions. The text compiler now recognizes 32 named sources. All 199 client tests passed and [preview 7803476449](https://web4-site-4jug63za3-oasis-team.vercel.app/web4-sandbox.html) built. Each preview-compiled two-key source query ran against exact live WEB4 d79168a14607 and returned matching two IDs directly and through MongoDB federation, with selected provider provenance. Sui and Aptos retain exact 32-byte lowercase domains, Starknet enforces its canonical field-element bound, and Fantom uses its enrolled EVM account key. The signed-in hosted walkthrough remains open.
+
 ## BNB Chain, Avalanche, Base and Optimism in the SQL editor
 
 15 November. Web4Site 77d6603c0c96 accepts the four shipping public EVM account key profiles and exposes them to discovery-scoped Ask Your Data. The text compiler now recognizes 28 named sources. All 198 client tests passed and [preview 7803423420](https://web4-site-pb6b0dhwa-oasis-team.vercel.app/web4-sandbox.html) built. On exact Development d79168a14607 the editor-compiled two-key queries for BNB Chain, Avalanche, Base and Optimism each returned two matching IDs directly and through MongoDB federation, including selected provider provenance. Signed-in hosted browser acceptance still requires Vercel access.
