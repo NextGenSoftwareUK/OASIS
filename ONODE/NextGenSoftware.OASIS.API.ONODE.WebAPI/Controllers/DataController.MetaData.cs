@@ -114,7 +114,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [Authorize]
         [HttpGet("load-holon-by-metadata/{metaKey}/{metaValue}/{holonType}/{loadChildren}/{recursive}/{maxChildDepth}/{continueOnError}/{version}")]
         public async Task<OASISHttpResponseMessage<Holon>> LoadHolonByMetaData(string metaKey, string metaValue, string holonType,
-            bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+            bool loadChildren = false, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             return await LoadHolonByMetaData(new LoadHolonByMetaDataRequest
             {
@@ -213,7 +213,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [Authorize]
         [HttpGet("load-holons-by-metadata/{metaKey}/{metaValue}/{holonType}/{loadChildren}/{recursive}/{maxChildDepth}/{continueOnError}/{version}")]
         public async Task<OASISHttpResponseMessage<IEnumerable<Holon>>> LoadHolonsByMetaData(string metaKey, string metaValue, string holonType,
-            bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+            bool loadChildren = false, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
             return await LoadHolonsByMetaData(new LoadHolonsByMetaDataRequest
             {
