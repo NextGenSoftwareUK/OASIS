@@ -5268,3 +5268,5 @@ COSMIC session reused the existing worktree, Python and GitHub CLI; no restore, 
 15 November Cancun time. Discovery-key work used disposable Git indexes and committed-file client test extractions. All were removed after use. No local runtime installation, build outputs, downloads, fixtures or retained local results. Preview 7803600015 and exact backend CI 43715310725 use existing hosted resources.
 
 15 November Cancun time. Prompt scope comparison ran with a controlled in-memory HTTP capture using the existing Node runtime. Disposable committed-file test extractions and indexes removed at completion. No WEB6 API call, local runtime install, download, build output or retained result file. Exact image 43716296740 and preview 7803716541 use existing hosted lifecycles.
+
+15 November Cancun time. Native LINQ scalar stage and test staging used disposable Git indexes, removed after use. SQLite partition sanity check was in-memory and the populated provider tests use isolated hosted fixtures with cleanup checks. No local runtime installation, database copy, retained result files or build outputs.

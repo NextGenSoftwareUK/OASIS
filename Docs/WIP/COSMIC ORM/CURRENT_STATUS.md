@@ -1,5 +1,11 @@
 # COSMIC ORM / CQL current status
 
+## LINQ Distinct scalar domain verification
+
+15 November. C# native qualification now includes the three other domains declared alongside Int32: Boolean collapse, exact Guid identity and order, and ordinal String equality including case distinctions, duplicate nulls and first occurrence order. The small native fixture is isolated and uses the existing cleanup assertions. Feature 688e29208c5c was scoped to two fixture files; exact shared candidate 3dfbd1c5d4df is pending CI. Original Int32 candidate 9b7227537678 is in [protocol CI 43717348671](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43717348671). No parity row was closed.
+
+Unordered SQL DISTINCT 6ef92492c26e advanced to Development with Gifts preserved. Railway deployment c9c73414 is building; the recorded interval between Railway deployment creation times was 30 minutes 30 seconds. The exact read-only verifier is monitoring that rollout.
+
 ## Native scalar LINQ Distinct candidate
 
 15 November. Core b7409757d956 adds a selected scalar Distinct stage, native capability admission and exact stage proof. The parent feature be6ec42e757c uses SQLite partition ranking, MongoDB native grouping and Neo4j grouped ordering to retain the first row in the preceding native order. The default comparer supports Int32, Boolean, Guid and ordinal String domains with nullable values under the pre-existing projection domain rules. The test candidate 9b7227537678 checks populated Int32 reduction, following Where and Take, selected Count and rejection of a custom comparer. A small SQLite in-memory test also validated the partition ordering with duplicate nulls. Shared native CI has not completed. The wider Q52 parity row remains open.
