@@ -123,6 +123,24 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         CollectionAssert.AreEquivalent(new object[] { 1L, 2L },
             metadataCounts.Result.Providers.Single().Rows.Select(row => row.Values.Single()).ToArray());
 
+        request.Filters[0].Value = JsonSerializer.SerializeToElement(new[] { ids[0] });
+        request.Columns = new[]
+        {
+            new CqlGroupedColumn
+            {
+                Alias = "Total",
+                Operation = "Sum",
+                Selection = new CqlProjectionColumn
+                    { MetadataPath = new[] { "decimal" }, ValueType = "Decimal", Nullable = true }
+            }
+        };
+        var decimalPlan = CosmicGroupedPlanner.Plan(CqlCompiler.CompileGrouped(request, actor, provider), provider, target);
+        Assert.IsFalse(decimalPlan.IsError, decimalPlan.Message);
+        var decimalRows = await CosmicGroupedExecutor.ExecuteAsync(decimalPlan.Result, new[] { adapter });
+        Assert.IsFalse(decimalRows.IsError, decimalRows.Message + decimalRows.Exception);
+        CollectionAssert.AreEqual(new object[] { 1.0000000000000000000000000001m },
+            decimalRows.Result.Providers.Single().Rows.Single().Values.ToArray());
+
         var first = ids[0];
         var second = ids[1];
         var source = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(provider).Result)
