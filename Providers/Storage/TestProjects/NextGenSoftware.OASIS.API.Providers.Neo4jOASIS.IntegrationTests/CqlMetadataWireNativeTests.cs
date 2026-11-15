@@ -130,7 +130,7 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             {
                 Alias = "Total",
                 Operation = "Sum",
-                Selection = new CqlProjectionColumn
+                Selection = new ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlScalarV1Selection
                     { MetadataPath = new[] { "decimal" }, ValueType = "Decimal", Nullable = true }
             }
         };
