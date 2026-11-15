@@ -1,5 +1,11 @@
 # COSMIC ORM / CQL current status
 
+## Live Nostr revision and three-store DTO correctness
+
+Railway deployment 52db21a2-c961-4c5d-a121-6b4eed3c7627 serves Development c71dce60d523 with the shipping NostrOASIS query registration. Discovery warmed to 105 of 107 direct and federated sources. Nostr remained unavailable when the configured relay returned HTTP 521 during WebSocket upgrade at 341 ms. Axelar remained unavailable on the old endpoint. No scoped native or federated Nostr rows could be verified on this revision.
+
+Core c7a4b39d44aa and feature a6da5d77457f preserve constructor inputs for terminal projection and require explicit member binding to compose over those inputs. The shared native fixture checks the actual transformed terminal value and rejection of native substitution for that member. It was added to MongoDB, SQLite and Neo4j qualification. Computed DTO-member composition remains open.
+
 ## Nostr rollout and Axelar qualification
 
 Nostr shipping-provider candidate c71dce60d523 passed its exact protocol and WEB4 image jobs and reached Development. Railway queued 52db21a2-c961-4c5d-a121-6b4eed3c7627 at 04:59:19 UTC. On the preceding d307d12e3a0f container, the configured relay opened but failed during the exact three-event subscription after 425 ms. The nos.lol relay returned EOSE with zero matching events after 376 ms. The relay.nostr.band handshake failed after 10,489 ms. No relay configuration or event catalogue was changed. Verify the exact Nostr deployment before updating live status.
