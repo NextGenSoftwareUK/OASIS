@@ -1376,3 +1376,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 14 November Cancun time. Preview 63f7d0f used one temporary Chrome profile. The browser emitted passing assertions and then timed out at shutdown. The exact profile and test browser processes were verified gone. SQLite metadata implementation and test preparation created no local runtime, dependency download, build, database or results file.
 
 14 November Cancun time. The dashboard projection on d307d12e3a0f removed its owned temporary Git index. OPORTAL production deployment was verified with an in-memory HTTP check. The SQLite compile failure happened on CI before the disposable fixture started. No local build, test database or runtime download was created.
+
+15 November Cancun time. WEB4 HTTP job 132710551095 passed. Its owned loopback host was disposed and logs were inspected in memory. Native Bitcoin and Rune runs 43681410753 and 43681413306 use hosted fixtures with workflow teardown. No local build outputs, downloads, results or databases were created. C: had 25.5 GiB free when checked.

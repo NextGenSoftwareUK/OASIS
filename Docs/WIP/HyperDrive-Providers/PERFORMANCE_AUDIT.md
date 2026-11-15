@@ -17,3 +17,5 @@
 | HyperDrive routing | Native timings cover warm direct provider and request-scoped reads. Hosted behavior also includes authentication, network time, graph materialization and deployment topology. | [Routing evidence and open hosted checks](PRIORITY_HYPERDRIVE_ROUTING.md). Compare the same reads and payloads before and after changes, recording the provider that served each result. |
 
 Preserve the measured browser, HTTP and native behavior in [current status](CURRENT_STATUS.md). Record disposable environments and artifact removal in the [cleanup ledger](WORKSPACE_CLEANUP_LEDGER.md).
+
+15 November Cancun time. [WEB4 loopback HTTP](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43680727992/job/132710551095) compiled the controller graph and verified anonymous requests to both compact dashboard routes return 401. Signed-in hosted response checks and portal adoption remain open.
