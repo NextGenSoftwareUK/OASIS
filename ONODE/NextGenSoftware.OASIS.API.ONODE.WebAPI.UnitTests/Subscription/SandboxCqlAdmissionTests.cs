@@ -13,6 +13,7 @@ public class SandboxCqlAdmissionTests
     [InlineData("POST", "/api/data/query-cql/scalar", 1)]
     [InlineData("POST", "/api/data/query-cql/projection", 1)]
     [InlineData("POST", "/api/data/query-cql/grouped", 1)]
+    [InlineData("POST", "/api/data/query-cql/join", 1)]
     [InlineData("POST", "/api/data/query-cql/federation", 3)]
     [InlineData("POST", "/api/data/save-holon", 512)]
     [InlineData("POST", "/api/data/save-holons", 512)]
