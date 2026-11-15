@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. Signed usage timing and unknown Stripe session checks used real WEB4 dev on disposable avatars. Both avatar deletions returned HTTP 200. The temporary Git index for exact qualification was removed. No local builds, installs, database or test outputs were retained.
+
 15 November Cancun time. Exact portal candidate and subscription suite used Git blobs and JavaScript in memory. Temporary Git indexes were removed. The WEB4 qualification used hosted CI. No local packages, builds, databases or result files were retained.
 
 15 November Cancun time. The provider inventory check walked existing source with Python bytecode writes disabled. Registry and matrix edits retain compact verification links only. No backend, downloaded packages or generated test outputs were created.
