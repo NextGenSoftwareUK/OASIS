@@ -1,5 +1,7 @@
 # Current provider status
 
+15 November Cancun time. The MongoDB-to-SQLite Files ownership regression passed in 43696677302. Scoped WEB4 candidate 07fd2fc5a661 carries the byte and owner fixes over the serving Development revision, with exact image run 43697065571 pending. The contract rerun after the two fixture corrections is 43696889331.
+
 15 November Cancun time. HyperDrive contract run 43695950232 improved to 991 passed and two failed. The two remaining cases now explicitly exercise eager read detachment and expect empty persisted place-visit history after an acknowledged write failure. Verification is pending. The native Files ownership check is running in 43696677302.
 
 15 November Cancun time. The scoped Files byte-fix candidate 9b3875d92187 preserves Development Core. Source review then found file-by-ID operations lacked a stored owner check. The task branch adds the shared owner check and native cross-avatar assertions. Advance the Files deployment candidate after that regression passes.

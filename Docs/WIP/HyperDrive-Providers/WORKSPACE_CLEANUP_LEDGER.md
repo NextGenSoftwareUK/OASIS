@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. Files ownership job 132758665503 passed through its native fixture teardown. The scoped CORE and WEB4 candidate temporary index, lock and manifest were removed. The candidate temporary filename scan found zero remaining files.
+
 15 November Cancun time. Removed the temporary Git indices and candidate manifest used to assemble the two-path Files deployment candidate. Its source review did not create local databases, builds, downloads or results.
 
 15 November Cancun time. Both hosted Messages fixture avatars were deleted with HTTP 200 and true. The first request used an incorrect assertion field name in the probe, which was corrected before the second isolated smoke. No local artifacts were created.

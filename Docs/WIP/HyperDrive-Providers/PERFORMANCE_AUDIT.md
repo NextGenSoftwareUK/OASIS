@@ -1,5 +1,7 @@
 # OPORTAL and HyperDrive performance audit
 
+15 November Cancun time. Native job 132758665503 passed: both real stores rejected another avatar's file reads, metadata update and delete, while the owner retained identical bytes, name and counts. The exact WEB4 image is pending, so hosted Files performance is still unmeasured for populated accounts.
+
 15 November Cancun time. The Files audit found that authentication at the route did not validate ownership of the requested file in the manager. Download, metadata read/update, and delete now check the recorded owner and file type at the manager boundary. Deletion adds a shallow authorization read. The owned native regression checks cross-avatar denials before verifying the original owner still sees the original bytes, filename and count.
 
 15 November Cancun time. Railway WEB4 deployment ea697826-d4d6-471c-8626-14d0687d387b succeeded on Development 3a0542795eda. Signed-in empty Messages summary returned count 0 and unreadCount 0 in one 384 ms, 349 byte sample. Anonymous access returned 401. This verifies the dev route and response shape. Production adoption and populated hosted timing remain open.
