@@ -1,5 +1,11 @@
 # COSMIC ORM / CQL current status
 
+## Axelar deployment and DTO qualification
+
+Axelar historical endpoint fix 991bda31479a passed its exact protocol and WEB4 image gates, advanced Development, and queued Railway f9ae984c-e0f2-41d7-bc2a-1445c7f905be at 05:42:07 UTC. Verify exact native and MongoDB-federated full/subset CQL and measure warm timings on the serving revision. Review the next shared Development window no earlier than 06:12:07 UTC. The separate shipping AxelarOASIS query migration is on the feature branch at 99cf99be3d07.
+
+The exact Development candidate d7807ff87c7c passed the transformed constructor-member regression, with 52 native projection checks and fixture cleanup per SQLite, MongoDB and Neo4j in [protocol CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43681071778). The [exact image](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43682040315) is queued. Computed DTO-member composition remains open.
+
 ## Axelar shipping provider qualification
 
 The feature branch removes the separate Axelar query adapter. WEB4 now constructs AxelarOASIS directly with its explicit read-only mainnet header catalogue. The shipping GMP/XChain API continues to use its existing client. The scoped historical-endpoint rollout is tracked independently so its availability and latency can be established first. Shipping-provider CI and live qualification are pending.

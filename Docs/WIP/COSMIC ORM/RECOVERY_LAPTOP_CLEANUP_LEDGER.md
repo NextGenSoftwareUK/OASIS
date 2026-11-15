@@ -6769,3 +6769,5 @@ Web4Site 5fa63a71df5d used a temporary directory containing only committed websi
 - Exact Nostr relay probes used the existing Railway container and retained IDs in memory. No local downloads or outputs. The Axelar candidate Git index was temporary and removed when the command completed.
 
 - Nostr live readiness reused the retained visitor. Core and parent DTO edits used temporary Git indexes that were removed on completion. No local builds or provider environments were created.
+
+- Axelar deployment and DTO verification used remote CI and the existing Railway service. No local build outputs or provider fixtures were created. Temporary Git indexes were used.
