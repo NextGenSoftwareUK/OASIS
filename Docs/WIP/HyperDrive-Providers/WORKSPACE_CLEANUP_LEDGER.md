@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. The live Plans timing and signed OPORTAL dev check ran in memory against the public scripts and bundled SDK. WEB4 confirmed the disposable test avatar was deleted. The Algorand check used hosted CI. No local browser profiles, builds, downloads or test results were retained.
+
 15 November Cancun time. Deployed Stripe catalogue, signed Usage timing, missing Checkout and native Gifts responses were checked directly against WEB4 dev. All disposable avatars were deleted with HTTP 200. No card, payment, local browser data, downloads, builds or test artifacts were retained.
 
 15 November Cancun time. Signed portal usage checks ran in a controlled DOM through the bundled SDK with real WEB4 responses. WEB4 confirmed deletion of every disposable verification avatar. Exact portal candidate indexes were removed. No local browser profiles, packages, DB snapshots, builds or results were retained.
