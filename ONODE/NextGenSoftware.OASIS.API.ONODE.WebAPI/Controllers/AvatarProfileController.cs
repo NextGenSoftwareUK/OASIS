@@ -1036,6 +1036,22 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             }
         }
 
+        /// <summary>Returns the number of inventory entries owned by the signed-in avatar.</summary>
+        [Authorize]
+        [HttpGet("inventory/count")]
+        [ProducesResponseType(typeof(OASISResult<int>), StatusCodes.Status200OK)]
+        public async Task<OASISResult<int>> GetAvatarInventoryCount()
+        {
+            if (AvatarId == Guid.Empty)
+                return new OASISResult<int> { IsError = true, Message = "Sign in to read your inventory count." };
+
+            var inventory = await AvatarManager.GetAvatarInventoryAsync(AvatarId);
+            if (inventory.IsError || inventory.Result == null)
+                return new OASISResult<int> { IsError = true, Message = "Could not read your inventory count." };
+
+            return new OASISResult<int>(inventory.Result.Count());
+        }
+
         [HttpPost("inventory")]
         [Authorize]
         [ProducesResponseType(typeof(OASISHttpResponseMessage<IInventoryItem>), StatusCodes.Status200OK)]

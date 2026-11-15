@@ -12,7 +12,8 @@ public sealed class DashboardSummaryHttpTests
     [Fact]
     public Task DashboardSummaryRoutesRejectAnonymousHttpRequests() => VerifyUnauthorizedAsync(
         "/api/files/get-file-count-for-current-logged-in-avatar",
-        "/api/wallet/current-avatar/summary");
+        "/api/wallet/current-avatar/summary",
+        "/api/avatar/inventory/count");
 
     [Fact]
     public Task DashboardMessageSummaryRejectsAnonymousHttpRequests() =>
