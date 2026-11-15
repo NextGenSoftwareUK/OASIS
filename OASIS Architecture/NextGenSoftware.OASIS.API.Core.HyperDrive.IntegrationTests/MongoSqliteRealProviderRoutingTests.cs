@@ -60,7 +60,9 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
             var actor = Guid.NewGuid();
             var bytes = Enumerable.Range(0, 4096).Select(index => (byte)(index % 251)).ToArray();
             var files = new FilesManager(mongo, dna, manager);
-            var upload = await files.UploadFileAsync(actor, "dashboard-fixture.bin", bytes, "application/octet-stream");
+            const string description = "Owned file description";
+            var upload = await files.UploadFileAsync(actor, "dashboard-fixture.bin", bytes, "application/octet-stream",
+                new Dictionary<string, object> { ["description"] = description });
             Assert.False(upload.IsError, $"{upload.ErrorCode}: {upload.Message}");
             Assert.Equal(actor, upload.Result.AvatarId);
             Assert.Equal((long)bytes.Length, upload.Result.Size);
@@ -85,7 +87,9 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
                 Assert.Equal("dashboard-fixture.bin", download.Result.FileName);
                 var list = await stored.GetAllFilesForAvatarAsync(actor);
                 Assert.False(list.IsError, list.Message);
-                Assert.Equal(upload.Result.Id, Assert.Single(list.Result).Id);
+                var listed = Assert.Single(list.Result);
+                Assert.Equal(upload.Result.Id, listed.Id);
+                Assert.Equal(description, listed.Metadata["description"].ToString());
                 var count = await stored.GetFileCountForAvatarAsync(actor);
                 Assert.False(count.IsError, count.Message);
                 Assert.Equal(1, count.Result);

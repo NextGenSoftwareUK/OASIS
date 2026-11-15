@@ -1,5 +1,7 @@
 # OPORTAL and HyperDrive performance audit
 
+15 November Cancun time. Files portal upload now sends the name, content type and description on the existing upload request. The manager receives description as metadata, and the modal shows it in the list. The bundled SDK loopback verified encoding, escaped rendering, delete acknowledgement, read failure and backend list failure. The native SQLite Gifts summary passed count parity for empty, opened and mixed inboxes. Serving endpoint and browser verification remain open.
+
 15 November Cancun time. The Gifts modal sent message and item fields in the wrong part of the HTTP request, offered Open before Receive, rendered transaction history as gift rows, and showed an empty inbox for provider errors. OPORTAL d17d0e0 uses WEB4 query/body binding through the bundled SDK, gates gift actions on persisted state, renders transaction history, and distinguishes load failures. The optional field stores a holon reference as metadata. The loopback checked send, receive, open, history, zero-valued stats and error rendering.
 
 15 November Cancun time. The Gifts card had to download and parse full inbox DTOs for total and unopened counts. The new authenticated GET /api/gifts/my-gifts/summary uses the existing durable inbox selector and returns two counters without the list sort or response payload. Storage still reads durable gift payloads. Native, hosted and portal qualification remain open.

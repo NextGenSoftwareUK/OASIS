@@ -1,5 +1,7 @@
 # Current provider status
 
+15 November Cancun time. SQLite Gifts summary job 132768574278 passed the empty, opened and mixed inbox cases. The Files ownership, byte round-trip and selector changes were applied over Development 3eb0bb18da52 and queued for exact image qualification at 49e4ba65a783 in run 43700222343. Portal 43d58ba wires file upload descriptions and explicit operation failures. The description route is on the task branch.
+
 15 November Cancun time. OPORTAL end-to-end wiring and error fixes join performance as top-priority work. Portal branch d17d0e0 corrects Gift send query and metadata binding, Receive then Open, and history rendering. The bundled SDK passed an HTTP loopback flow. Native hosted API verification and portal rollout remain open.
 
 15 November Cancun time. Algorand mainnet 43698559297 and signed LocalNet 43698590596 both passed on the shared Indexer path. WEB4 Gifts now has a focused authenticated summary route and the existing inbox forwards storage errors. Native SQLite verification is pending.

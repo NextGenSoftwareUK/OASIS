@@ -146,10 +146,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// </summary>
         [Authorize]
         [HttpPost("upload-file")]
-        public async Task<OASISResult<StoredFile>> UploadFile(string fileName, [FromBody] byte[] fileData, string contentType, [FromForm] Dictionary<string, object> metadata = null)
+        public async Task<OASISResult<StoredFile>> UploadFile(string fileName, [FromBody] byte[] fileData,
+            string contentType, [FromForm] Dictionary<string, object> metadata = null, [FromQuery] string description = null)
         {
             if (fileData == null || fileData.Length == 0)
                 return new OASISResult<StoredFile> { IsError = true, Message = "The request body is required. Please provide the file data (byte array)." };
+            if (!string.IsNullOrWhiteSpace(description))
+            {
+                metadata ??= new Dictionary<string, object>();
+                metadata["description"] = description.Trim();
+            }
             return await FilesManager.Instance.UploadFileAsync(AvatarId, fileName, fileData, contentType, metadata);
         }
 
