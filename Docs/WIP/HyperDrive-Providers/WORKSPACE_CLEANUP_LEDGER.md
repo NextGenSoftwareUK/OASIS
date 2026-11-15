@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. The exact WEB5 qualification used a temporary Git index, which was removed, and builds on a disposable hosted runner. Algorand storage design work made no ledger writes, installs, downloads to disk or local builds.
+
 15 November Cancun time. Production portal verification used read-only OpenAPI, release status and asset reads in memory. Removed the temporary candidate index. No production fixture, local runtime, build or report was created.
 
 15 November Cancun time. The independent OPORTAL dev candidate builder removed its temporary Git index. Live deployment verification checked downloaded HTML and three asset responses in memory. No local downloads, profiles, runtimes, builds or results were retained.
