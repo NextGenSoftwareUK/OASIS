@@ -132,6 +132,33 @@ public sealed class AlgorandPublicLifecycleTests
     }
 
     [TestMethod]
+    public async Task PublicTestNetActivationAndIndexedPayment()
+    {
+        const string id = "QOOBRVQMX4HW5QZ2EGLQDQCQTKRF3UP3JKDGKYPCXMI6AVV35KQA";
+        var provider = new AlgorandOASIS("https://testnet-api.algonode.cloud", "https://testnet-idx.algonode.cloud");
+        var active = await provider.ActivateProviderAsync();
+        Assert.IsFalse(active.IsError, active.Message);
+        Assert.IsTrue(provider.IsProviderActivated);
+        try
+        {
+            var result = await provider.LoadHolonAsync(id, loadChildren: false);
+            Assert.IsFalse(result.IsError, result.Message);
+            Assert.AreEqual(id, result.Result.ProviderUniqueStorageKey[ProviderType.AlgorandOASIS]);
+            var fields = result.Result.ProviderMetaData[ProviderType.AlgorandOASIS];
+            Assert.AreEqual("1", fields["confirmed_round"]);
+            Assert.AreEqual("100000000", fields["amount_microALGO"]);
+            Assert.AreEqual("GD64YIY3TWGDMCNPP553DZPPR6LDUSFQOIJVFDPPXWEG3FVOJCCDBBHU5A", fields["sender"]);
+            Assert.AreEqual("3NVE2MK2QYZQFOZ5XIRQTM7JRHNPUBV7QKLYLT7OO6QXFHXMRIAUXXNCBM", fields["receiver"]);
+            Assert.AreEqual(System.DateTimeOffset.FromUnixTimeSeconds(1560210480).UtcDateTime, result.Result.CreatedDate);
+        }
+        finally
+        {
+            Assert.IsTrue((await provider.DeActivateProviderAsync()).Result);
+            Assert.IsFalse(provider.IsProviderActivated);
+        }
+    }
+
+    [TestMethod]
     public async Task PublicActivationRequiresAHealthyIndexerAlongsideAlgod()
     {
         const string algod = "https://mainnet-api.algonode.cloud";

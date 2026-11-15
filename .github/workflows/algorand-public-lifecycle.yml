@@ -25,7 +25,7 @@ on:
       public_case:
         description: Focused public Indexer verification
         type: choice
-        options: [asset_note_metadata, compact_account, participant_metadata, transaction_metadata, account_history, transaction_timestamp, provider_health]
+        options: [asset_note_metadata, compact_account, participant_metadata, transaction_metadata, account_history, transaction_timestamp, provider_health, testnet_point]
         default: account_history
 
 permissions:
@@ -69,11 +69,12 @@ jobs:
       - name: Verify shipping Indexer queries against Algorand mainnet
         if: ${{ !inputs.signed_localnet && !inputs.signed_testnet }}
         env:
-          ALGORAND_PUBLIC_CASE: ${{ inputs.public_case || 'provider_health' }}
+          ALGORAND_PUBLIC_CASE: ${{ inputs.public_case || 'testnet_point' }}
         shell: pwsh
         run: |
           ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-AlgorandPublicLifecycle -Operation {
             $test = switch ($env:ALGORAND_PUBLIC_CASE) {
+              'testnet_point' { 'PublicTestNetActivationAndIndexedPayment' }
               'provider_health' { 'PublicActivationRequiresAHealthyIndexerAlongsideAlgod' }
               'transaction_timestamp' { 'PublicIndexerPreservesNativeTransactionTimestamp' }
               'asset_note_metadata' { 'PublicIndexerMatchesAssetIdAndExactNoteMetadata' }
