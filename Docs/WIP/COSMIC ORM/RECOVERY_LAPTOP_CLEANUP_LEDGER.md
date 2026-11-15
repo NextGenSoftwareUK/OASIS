@@ -6781,3 +6781,5 @@ Web4Site 5fa63a71df5d used a temporary directory containing only committed websi
 - Shared provider candidate assembly reused the existing Git checkout and a temporary index. No local build or runtime download. The superseded Axelar-only remote image was cancelled.
 
 - Serial startup baseline polling reused the existing Development visitor and observed the normal Railway rollout. No local service, file report, or runtime download was created.
+
+- Nostr two-worker timing used the retained Development visitor, existing public catalogue and in-memory samples. No local reports, downloads or fixture data were created.

@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Nostr two-worker baseline
+
+On serving Development f99947f0e20b, Railway 519e39f9-d2af-433f-bf6c-6b0f783dfdb7, the retained Nostr two-event query passed eight warm requests per route with two workers. Both routes returned the same two IDs with Nostr provenance. Direct first/median/max were 2,327/2,367.5/2,750 ms. MongoDB-federated first/median/max were 2,736/2,343.5/2,585 ms. No HTTP failures. Compare the exact same workload after signature reuse rollout. This is a small client-observed baseline, not an estimate of tail latency under sustained load.
+
 ## Shared WEB4 image build queue
 
 GitHub Actions cancelled an older pending shared image when a newer run replaced the sole pending slot. The feature workflow now uses queue: max in the existing shared build-web4-image group. Image builds stay serial and pending runs can wait in order. Dev rollout cadence is unchanged. The corrected provider image is 43689834398. The obsolete image for 433731c6aa94 was cancelled. [GitHub Actions queue syntax](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#concurrency).
