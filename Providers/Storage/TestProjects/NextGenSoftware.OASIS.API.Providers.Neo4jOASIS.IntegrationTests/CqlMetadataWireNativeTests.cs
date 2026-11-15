@@ -125,6 +125,12 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         var fixtureRows = CosmicLinq.Create(NativeManager(adapter), adapter, fixtureSource).Result;
         var labels = await fixtureRows.OrderBy(row => row.Name).Select(row => row.Description)
             .Distinct().ToCosmicListAsync();
+        var exactIntegers = await fixtureRows.OrderBy(row => row.Name)
+            .Select(row => CosmicQueryMetadata.Value<long?>(row, "i64"))
+            .Distinct().ToCosmicListAsync();
+        Assert.IsFalse(exactIntegers.IsError, exactIntegers.Message + exactIntegers.Exception);
+        CollectionAssert.AreEqual(new long?[] { 9007199254740993L, null, 9007199254740992L },
+            exactIntegers.Result.ToArray());
         Assert.IsFalse(labels.IsError, labels.Message + labels.Exception);
         CollectionAssert.AreEqual(new string?[] { "case", null, "Case" }, labels.Result.ToArray());
 
