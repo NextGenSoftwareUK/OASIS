@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+15 November. Both Atlas depth and edge-case probes executed database-level read-only aggregations over synthetic BSON documents. They created no database records. Temporary probe sources and builds were removed at exit. The existing SDK and cached MongoDB .NET libraries were reused through the local package cache.
+
 15 November. Scalar publication and grouped editor retest used two disposable website snapshots and one temporary Git index, removed at process exit. The superseded grouped verifier was stopped before fixture creation because the frontend source changed. The replacement waits for the same exact backend revision. No local database, runtime download or build outputs were created.
 
 15 November. Floating aggregate acceptance used three sets of six scoped records. Two verifier setup errors were corrected and each original fixture was confirmed absent before reseeding. All 18 exact records were hard-deleted and independently verified absent. Three operation journals under LocalState/COSMIC/HostedCqlFloating*17df815c retain 5100 bytes each. The isolated BSON depth probes used cached .NET and BSON assemblies and removed the temporary source and build output at exit. No runtime downloads or persistent local database copies were created.
