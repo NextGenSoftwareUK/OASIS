@@ -2,6 +2,15 @@ name: Bitcoin native Ordinals
 
 on:
   workflow_dispatch:
+    inputs:
+      escrow_only:
+        description: Qualify only the native BTC escrow lifecycle
+        type: boolean
+        default: false
+      rune_escrow_only:
+        description: Qualify only the native Rune escrow lifecycle
+        type: boolean
+        default: false
   push:
     branches: [work/hyperdrive-provider-completion, work/hyperdrive-bitcoin-avatar-qualification]
     paths:
@@ -158,52 +167,68 @@ jobs:
             sleep 1
           done
           test "$ready" = true
-          before="$(curl -fsS -H 'Accept: application/json' "$OASIS_BITCOIN_ORD_API/inscription/$inscription" | jq -er '.satpoint')"
-          test "$(bitcoin getrawmempool | jq 'length')" = 0
-          pwsh -NoProfile -Command '
-            ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-BitcoinOrdinals -Operation {
-              dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests" --filter "FullyQualifiedName~OrdRegtestTransfersIndexedInscription" /m:2 /nr:false /p:UseSharedCompilation=false
-              if ($LASTEXITCODE -ne 0) { throw "Native Ordinals transfer failed." }
-            }'
-          sent="$(bitcoin getrawmempool | jq -er 'select(length == 1) | .[0]')"
-          bitcoin generatetoaddress 1 "$miner" >/dev/null
-          ownership=false
-          for attempt in {1..60}; do
-            if curl -fsS -H 'Accept: application/json' "$OASIS_BITCOIN_ORD_API/inscription/$inscription" |
-              jq -e --arg recipient "$OASIS_BITCOIN_ORD_RECIPIENT" --arg satpoint "$sent:0:${before##*:}" \
-                '.address == $recipient and .satpoint == $satpoint' >/dev/null; then
-              ownership=true
-              break
-            fi
-            sleep 1
-          done
-          test "$ownership" = true
-          tip="$(bitcoin getbestblockhash)"
-          for attempt in {1..60}; do
-            if [[ "$(curl -fsS "$OASIS_BITCOIN_REGTEST_API/blocks/tip/hash")" = "$tip" ]]; then break; fi
-            sleep 1
-          done
-          test "$(curl -fsS "$OASIS_BITCOIN_REGTEST_API/blocks/tip/hash")" = "$tip"
-          dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests" \
-            --no-build --no-restore --filter "FullyQualifiedName~OrdRegtestBurnsOnlyInscribedSatoshi" /m:2 /nr:false /p:UseSharedCompilation=false
-          curl -fsS -H 'Accept: application/json' "$OASIS_BITCOIN_ORD_API/inscription/$inscription" |
-            jq -e '.address == null and (.charms | index("burned") != null)' >/dev/null
-          tip="$(bitcoin getbestblockhash)"
-          for attempt in {1..60}; do
-            if [[ "$(curl -fsS "$OASIS_BITCOIN_REGTEST_API/blocks/tip/hash")" = "$tip" ]]; then break; fi
-            sleep 1
-          done
-          test "$(curl -fsS "$OASIS_BITCOIN_REGTEST_API/blocks/tip/hash")" = "$tip"
-          dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests" \
-            --no-build --no-restore --filter "FullyQualifiedName~OrdRegtestMintsCommitRevealAndReadback" /m:2 /nr:false /p:UseSharedCompilation=false
-          tip="$(bitcoin getbestblockhash)"
-          for attempt in {1..60}; do
-            if [[ "$(curl -fsS "$OASIS_BITCOIN_REGTEST_API/blocks/tip/hash")" = "$tip" ]]; then break; fi
-            sleep 1
-          done
-          test "$(curl -fsS "$OASIS_BITCOIN_REGTEST_API/blocks/tip/hash")" = "$tip"
-          dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests" \
-            --no-build --no-restore --filter "FullyQualifiedName~OrdRegtestBurnsExactNativeBitcoinAmount" /m:2 /nr:false /p:UseSharedCompilation=false
+          qualify_escrow() {
+            export OASIS_BITCOIN_ESCROW_RECEIPT_PROVIDER=SQLLiteDBOASIS
+            export OASIS_BITCOIN_ESCROW_RECEIPT_ACTOR="$(cat /proc/sys/kernel/random/uuid)"
+            export OASIS_BITCOIN_ESCROW_TEST="$1"
+            pwsh -NoProfile -Command '
+              ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-BitcoinEscrow -Operation {
+                dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests" --filter "FullyQualifiedName~$env:OASIS_BITCOIN_ESCROW_TEST" /m:2 /nr:false /p:UseSharedCompilation=false
+                if ($LASTEXITCODE -ne 0) { throw "Native Bitcoin escrow failed." }
+              }'
+          }
+          if [[ '${{ inputs.escrow_only }}' = true ]]; then
+            qualify_escrow NativeBitcoinEscrowConsumesOnlyTheAuthorizedDepositAndReturnsExactAmount
+            exit 0
+          fi
+          if [[ '${{ inputs.rune_escrow_only }}' != true ]]; then
+            before="$(curl -fsS -H 'Accept: application/json' "$OASIS_BITCOIN_ORD_API/inscription/$inscription" | jq -er '.satpoint')"
+            test "$(bitcoin getrawmempool | jq 'length')" = 0
+            pwsh -NoProfile -Command '
+              ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-BitcoinOrdinals -Operation {
+                dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests" --filter "FullyQualifiedName~OrdRegtestTransfersIndexedInscription" /m:2 /nr:false /p:UseSharedCompilation=false
+                if ($LASTEXITCODE -ne 0) { throw "Native Ordinals transfer failed." }
+              }'
+            sent="$(bitcoin getrawmempool | jq -er 'select(length == 1) | .[0]')"
+            bitcoin generatetoaddress 1 "$miner" >/dev/null
+            ownership=false
+            for attempt in {1..60}; do
+              if curl -fsS -H 'Accept: application/json' "$OASIS_BITCOIN_ORD_API/inscription/$inscription" |
+                jq -e --arg recipient "$OASIS_BITCOIN_ORD_RECIPIENT" --arg satpoint "$sent:0:${before##*:}" \
+                  '.address == $recipient and .satpoint == $satpoint' >/dev/null; then
+                ownership=true
+                break
+              fi
+              sleep 1
+            done
+            test "$ownership" = true
+            tip="$(bitcoin getbestblockhash)"
+            for attempt in {1..60}; do
+              if [[ "$(curl -fsS "$OASIS_BITCOIN_REGTEST_API/blocks/tip/hash")" = "$tip" ]]; then break; fi
+              sleep 1
+            done
+            test "$(curl -fsS "$OASIS_BITCOIN_REGTEST_API/blocks/tip/hash")" = "$tip"
+            dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests" \
+              --no-build --no-restore --filter "FullyQualifiedName~OrdRegtestBurnsOnlyInscribedSatoshi" /m:2 /nr:false /p:UseSharedCompilation=false
+            curl -fsS -H 'Accept: application/json' "$OASIS_BITCOIN_ORD_API/inscription/$inscription" |
+              jq -e '.address == null and (.charms | index("burned") != null)' >/dev/null
+            tip="$(bitcoin getbestblockhash)"
+            for attempt in {1..60}; do
+              if [[ "$(curl -fsS "$OASIS_BITCOIN_REGTEST_API/blocks/tip/hash")" = "$tip" ]]; then break; fi
+              sleep 1
+            done
+            test "$(curl -fsS "$OASIS_BITCOIN_REGTEST_API/blocks/tip/hash")" = "$tip"
+            dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests" \
+              --no-build --no-restore --filter "FullyQualifiedName~OrdRegtestMintsCommitRevealAndReadback" /m:2 /nr:false /p:UseSharedCompilation=false
+            tip="$(bitcoin getbestblockhash)"
+            for attempt in {1..60}; do
+              if [[ "$(curl -fsS "$OASIS_BITCOIN_REGTEST_API/blocks/tip/hash")" = "$tip" ]]; then break; fi
+              sleep 1
+            done
+            test "$(curl -fsS "$OASIS_BITCOIN_REGTEST_API/blocks/tip/hash")" = "$tip"
+            dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests" \
+              --no-build --no-restore --filter "FullyQualifiedName~OrdRegtestBurnsExactNativeBitcoinAmount" /m:2 /nr:false /p:UseSharedCompilation=false
+          fi
           cat > "$owned/rune-batch.yaml" <<EOF
           mode: separate-outputs
           etching:
@@ -242,5 +267,9 @@ jobs:
           export OASIS_BITCOIN_RUNE_ID="$(curl -fsS -H 'Accept: application/json' "$OASIS_BITCOIN_ORD_API/rune/OASISTESTMINT" |
             jq -er 'select(.mintable and .entry.terms.amount == 725) | .id')"
           test "$(curl -fsS "$OASIS_BITCOIN_REGTEST_API/blocks/tip/hash")" = "$tip"
+          if [[ '${{ inputs.rune_escrow_only }}' = true ]]; then
+            qualify_escrow NativeRuneEscrowConsumesOnlyTheAuthorizedDepositAndReturnsExactUnits
+            exit 0
+          fi
           dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests" \
             --no-build --no-restore --filter "FullyQualifiedName~OrdRegtestMintsExactRuneTranche" /m:2 /nr:false /p:UseSharedCompilation=false

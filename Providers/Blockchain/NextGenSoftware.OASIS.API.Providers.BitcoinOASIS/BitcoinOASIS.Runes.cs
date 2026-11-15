@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Net.Http;
 using System.Numerics;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -113,16 +114,13 @@ public partial class BitcoinOASIS
     }
 
     private async Task<OASISResult<ITransactionResponse>> MoveBitcoinRuneAsync(string identifier, string senderAddress,
-        string receiverAddress, string privateKey, string seedPhrase, decimal amount, bool burn)
+        string receiverAddress, string privateKey, string seedPhrase, decimal amount, bool burn,
+        Func<Transaction, string, BigInteger, Task> reservePublication = null)
     {
         var result = new OASISResult<ITransactionResponse>();
         try
         {
-            var id = identifier?.Split(':');
-            if (id == null || id.Length != 2 ||
-                !ulong.TryParse(id[0], NumberStyles.None, CultureInfo.InvariantCulture, out var block) || block == 0 ||
-                !uint.TryParse(id[1], NumberStyles.None, CultureInfo.InvariantCulture, out var index))
-                throw new ArgumentException("A Bitcoin Rune ID in block:index form is required.");
+            var (runeId, block, index) = ParseBitcoinRuneId(identifier);
             if (amount <= 0)
                 throw new ArgumentException("A positive Rune amount is required.");
             if (string.IsNullOrWhiteSpace(privateKey) && string.IsNullOrWhiteSpace(seedPhrase))
@@ -151,28 +149,16 @@ public partial class BitcoinOASIS
             if (!uint256.TryParse(genesis, out var genesisHash) || genesisHash != network.GetGenesis().GetHash())
                 throw new InvalidOperationException("The ord server is indexing a different Bitcoin network.");
 
-            var runeId = FormattableString.Invariant($"{block}:{index}");
-            using var rune = JsonDocument.Parse(await ord.GetStringAsync("rune/" + runeId));
-            if (rune.RootElement.GetProperty("id").GetString() != runeId)
-                throw new InvalidOperationException("The Rune index returned a different native asset.");
-            var entry = rune.RootElement.GetProperty("entry");
-            var runeName = entry.GetProperty("spaced_rune").GetString();
-            var divisibility = entry.GetProperty("divisibility").GetInt32();
-            if (string.IsNullOrWhiteSpace(runeName) || divisibility < 0 || divisibility > 38)
-                throw new InvalidOperationException("The Rune index returned invalid asset parameters.");
+            var (runeName, divisibility) = await ReadBitcoinRuneDefinitionAsync(ord, runeId);
             var units = ConvertRuneAmount(amount, divisibility);
 
             // Output zero receives every unallocated Rune. A burn allocates only the requested units to OP_RETURN.
-            var payload = new List<byte>();
-            foreach (var value in new BigInteger[] { 22, 0, 0, block, index, units, 1 })
-                WriteRunestoneInteger(payload, value);
-
             var transaction = network.CreateTransaction();
             var change = transaction.Outputs.Add(Money.Zero, source.ScriptPubKey);
             var postage = burn ? Money.Zero : Money.Satoshis(OrdinalPostageSatoshis);
             if (!burn)
                 transaction.Outputs.Add(postage, recipient.ScriptPubKey);
-            transaction.Outputs.Add(Money.Zero, new Script(OpcodeType.OP_RETURN, OpcodeType.OP_13, Op.GetPushOp(payload.ToArray())));
+            transaction.Outputs.Add(Money.Zero, CreateBitcoinRuneAllocation(block, index, units, 1));
 
             var feeRate = await ReadBitcoinPaymentFeeRateAsync();
             var builder = network.CreateTransactionBuilder().AddKeys(signer.PrivateKey);
@@ -210,6 +196,8 @@ public partial class BitcoinOASIS
                 if (await ReadSharedOrdinalTipAsync(ord) != tip)
                     throw new InvalidOperationException("The indexed Bitcoin chain changed while preparing the Rune transaction.");
 
+                if (reservePublication != null)
+                    await reservePublication(transaction, runeId, units);
                 result = await BroadcastSignedBitcoinAsync(transaction, null);
                 result.MetaData["BitcoinRuneId"] = runeId;
                 result.MetaData["BitcoinRuneUnits"] = units.ToString(CultureInfo.InvariantCulture);
@@ -225,4 +213,39 @@ public partial class BitcoinOASIS
         }
         return result;
     }
+    private static (string Id, ulong Block, uint Index) ParseBitcoinRuneId(string identifier)
+    {
+        var parts = identifier?.Split(':');
+        if (parts == null || parts.Length != 2 ||
+            !ulong.TryParse(parts[0], NumberStyles.None, CultureInfo.InvariantCulture, out var block) || block == 0 ||
+            !uint.TryParse(parts[1], NumberStyles.None, CultureInfo.InvariantCulture, out var index))
+            throw new ArgumentException("A Bitcoin Rune ID in block:index form is required.");
+
+        return (FormattableString.Invariant($"{block}:{index}"), block, index);
+    }
+
+    private static async Task<(string Name, int Divisibility)> ReadBitcoinRuneDefinitionAsync(HttpClient ord, string runeId)
+    {
+        using var rune = JsonDocument.Parse(await ord.GetStringAsync("rune/" + runeId));
+        if (rune.RootElement.GetProperty("id").GetString() != runeId)
+            throw new InvalidOperationException("The Rune index returned a different native asset.");
+
+        var entry = rune.RootElement.GetProperty("entry");
+        var name = entry.GetProperty("spaced_rune").GetString();
+        var divisibility = entry.GetProperty("divisibility").GetInt32();
+        if (string.IsNullOrWhiteSpace(name) || divisibility < 0 || divisibility > 38)
+            throw new InvalidOperationException("The Rune index returned invalid asset parameters.");
+
+        return (name, divisibility);
+    }
+
+    private static Script CreateBitcoinRuneAllocation(ulong block, uint index, BigInteger units, uint output)
+    {
+        var payload = new List<byte>();
+        foreach (var value in new BigInteger[] { 22, 0, 0, block, index, units, output })
+            WriteRunestoneInteger(payload, value);
+
+        return new Script(OpcodeType.OP_RETURN, OpcodeType.OP_13, Op.GetPushOp(payload.ToArray()));
+    }
+
 }
