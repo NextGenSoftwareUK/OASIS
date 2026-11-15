@@ -23,7 +23,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AxelarOASIS
     /// (https://api.axelarscan.io/gmp/searchGMP). Axelar is a cross-chain network, not a data store, so this is an
     /// <see cref="OASISProvider"/> implementing <see cref="ICrossChainTracker"/>.
     /// </summary>
-    public class AxelarOASIS : OASISProvider, ICrossChainTracker
+    public partial class AxelarOASIS : OASISProvider, ICrossChainTracker
     {
         private const int MaxPageSize = 25; // searchGMP rejects size > 25
         private readonly HttpClient _http;
@@ -43,6 +43,10 @@ namespace NextGenSoftware.OASIS.API.Providers.AxelarOASIS
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
         {
+            ObjectDisposedException.ThrowIf(disposed, this);
+            if (publicHeaders != null)
+                return await ActivateQuerySourceAsync(CancellationToken.None);
+
             var probe = await SearchAsync(new Dictionary<string, object> { ["size"] = 1 }, CancellationToken.None);
             var result = new OASISResult<bool>();
             if (probe.IsError) { OASISErrorHandling.HandleError(ref result, probe.Message); return result; }

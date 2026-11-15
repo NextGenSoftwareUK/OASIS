@@ -131,8 +131,8 @@ public sealed class CqlDaprNativeHttpTests
 
     private sealed class FixtureProviders(CqlHostedSourceRegistry sources, OASISDNA dna, ProviderManager registry) : ICqlV1Providers
     {
-        public IOASISStorageProvider Resolve(ProviderType? requested) => requested == Provider
+        public IOASISProvider Resolve(ProviderType? requested) => requested == Provider
             ? sources.Find(Provider) : throw new InvalidOperationException("Only Dapr is enrolled in this fixture.");
-        public HolonManager CreateManager(IOASISStorageProvider provider) => CqlV1Providers.CreateQueryManager(dna, registry);
+        public HolonManager CreateManager(IOASISProvider provider) => CqlV1Providers.CreateQueryManager(dna, registry);
     }
 }

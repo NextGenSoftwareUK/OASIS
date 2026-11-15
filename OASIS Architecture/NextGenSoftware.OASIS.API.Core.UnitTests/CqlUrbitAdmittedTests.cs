@@ -62,13 +62,13 @@ public partial class CqlV1Web4Tests
     private sealed class UrbitEndpointSource(UrbitContactBookQuerySource source) : ICqlV1Providers
     {
         internal int Managers;
-        public IOASISStorageProvider Resolve(ProviderType? requested)
+        public IOASISProvider Resolve(ProviderType? requested)
         {
             if (requested != ProviderType.UrbitOASIS || !source.IsProviderActivated)
                 throw new InvalidOperationException("Explicit activated private source required.");
             return source;
         }
-        public HolonManager CreateManager(IOASISStorageProvider provider)
+        public HolonManager CreateManager(IOASISProvider provider)
         {
             Assert.Same(source, provider);
             Managers++;
@@ -76,7 +76,7 @@ public partial class CqlV1Web4Tests
             var registry = new ProviderManager(null, dna) {
                 IsAutoFailOverEnabled = false, IsAutoReplicationEnabled = false, IsAutoLoadBalanceEnabled = false
             };
-            return new HolonManager(provider, dna, registry);
+            return new HolonManager((IOASISStorageProvider)provider, dna, registry);
         }
     }
 

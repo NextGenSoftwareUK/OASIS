@@ -21,17 +21,17 @@ public partial class CqlV1Web4Tests
     private sealed class UrbitFederatedSources(Source mongo, UrbitContactBookQuerySource urbit) : ICqlV1Providers
     {
         internal int Managers;
-        public IOASISStorageProvider Resolve(ProviderType? requested)
+        public IOASISProvider Resolve(ProviderType? requested)
         {
             if (requested is null or ProviderType.MongoDBOASIS) return mongo.Resolve(ProviderType.MongoDBOASIS);
             if (requested == ProviderType.UrbitOASIS && urbit.IsProviderActivated) return urbit;
             throw new InvalidOperationException("Every requested source must be explicitly active.");
         }
-        public HolonManager CreateManager(IOASISStorageProvider provider)
+        public HolonManager CreateManager(IOASISProvider provider)
         {
             Managers++;
             var dna = new OASISDNA { OASIS = new NextGenSoftware.OASIS.API.DNA.OASIS { HyperDriveMode = HyperDriveModes.V2 } };
-            return new HolonManager(provider, dna, new ProviderManager(null, dna) {
+            return new HolonManager((IOASISStorageProvider)provider, dna, new ProviderManager(null, dna) {
                 IsAutoFailOverEnabled = false, IsAutoReplicationEnabled = false, IsAutoLoadBalanceEnabled = false
             });
         }
