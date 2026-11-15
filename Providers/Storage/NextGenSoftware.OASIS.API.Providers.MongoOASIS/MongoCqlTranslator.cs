@@ -155,12 +155,21 @@ internal sealed partial class MongoCqlTranslator
         BsonValue root=Choose(Op("$eq",Type("$MetaData"),Literal("array")),new BsonDocument("$arrayToObject","$MetaData"),"$MetaData");
         BsonValue Walk(BsonValue input,int index)
         {
-            var name=prefix+index;BsonValue current="$$"+name;
-            var body=index==segments.Count?predicate(current):Walk(new BsonDocument("$getField",new BsonDocument{
-                {"field",Literal(segments[index])},{"input",Choose(Op("$eq",Type(current),Literal("object")),current,Literal(new BsonDocument()))}}),index+1);
-            return new BsonDocument("$let",new BsonDocument{{"vars",new BsonDocument(name,input)},{"in",body}});
+            if (index == segments.Count) return input;
+            var name = prefix + index;
+            BsonValue current = "$$" + name;
+            var next = new BsonDocument("$getField", new BsonDocument
+            {
+                { "field", Literal(segments[index]) },
+                { "input", Choose(Op("$eq", Type(current), Literal("object")), current, Literal(new BsonDocument())) }
+            });
+            return new BsonDocument("$let", new BsonDocument
+                { { "vars", new BsonDocument(name, input) }, { "in", Walk(next, index + 1) } });
         }
-        return Walk(root,0);
+        // Resolve the property in a variable so the predicate does not inherit the path's BSON depth.
+        var pathVariable = prefix + "path";
+        return new BsonDocument("$let", new BsonDocument
+            { { "vars", new BsonDocument(pathVariable, Walk(root, 0)) }, { "in", predicate("$$" + pathVariable) } });
     }
     private static BsonValue MetadataDate(BsonValue value,IReadOnlyList<string> segments)
     {
@@ -273,6 +282,26 @@ internal sealed partial class MongoCqlTranslator
         return true;
     }
 
+    private BsonValue TranslateLogical(CosmicQueryLogical logical, int depth)
+    {
+        var operands = new BsonArray();
+        void AddOperand(CosmicQueryPredicate predicate, int operandDepth)
+        {
+            if (predicate is CosmicQueryLogical nested && nested.IsAnd == logical.IsAnd)
+            {
+                // Charge every original node and level even when the native expression is flat.
+                if (++nodes > 2048 || operandDepth > 64) throw new MongoCqlLimitException();
+                AddOperand(nested.Left, operandDepth + 1);
+                AddOperand(nested.Right, operandDepth + 1);
+                return;
+            }
+            operands.Add(Translate(predicate, operandDepth));
+        }
+        AddOperand(logical.Left, depth + 1);
+        AddOperand(logical.Right, depth + 1);
+        return new BsonDocument(logical.IsAnd ? "$and" : "$or", operands);
+    }
+
     private BsonValue Translate(CosmicQueryPredicate predicate,int depth)
     {
         if(++nodes>2048||depth>64)throw new MongoCqlLimitException();
@@ -281,7 +310,7 @@ internal sealed partial class MongoCqlTranslator
             case CosmicQueryAnyAncestor ancestor:return "$"+AncestorField(ancestor);
             case CosmicQueryFieldComparison fields:return FieldComparison(fields);
             case CosmicQueryBoolean boolean:return Literal(boolean.Value);
-            case CosmicQueryLogical logical:return Op(logical.IsAnd?"$and":"$or",Translate(logical.Left,depth+1),Translate(logical.Right,depth+1));
+            case CosmicQueryLogical logical:return TranslateLogical(logical, depth);
             case CosmicQueryNot not:return Op("$not",Translate(not.Operand,depth+1));
             case CosmicQueryMetadataTest test:return Metadata(test.Segments,value=>test.Kind==CosmicQueryMetadataTestKind.IsNull
                 ?Op("$eq",Type(value),Literal("null")):Op("$ne",Type(value),Literal("missing")));
