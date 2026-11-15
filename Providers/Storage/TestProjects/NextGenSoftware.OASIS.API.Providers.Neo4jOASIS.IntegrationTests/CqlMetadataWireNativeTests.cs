@@ -7,6 +7,7 @@ using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Queries;
 using CqlGroupedRequest = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlGroupedV1Request;
+using CqlGroupedFilter = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlGroupedV1Filter;
 using CqlGroupedColumn = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlGroupedV1Column;
 using CqlProjectionColumn = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlProjectionV1Column;
 using CqlRequest = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlV1Request;
@@ -145,6 +146,35 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Assert.IsFalse(decimalRows.IsError, decimalRows.Message + decimalRows.Exception);
         CollectionAssert.AreEqual(new object[] { 1.0000000000000000000000000001m },
             decimalRows.Result.Providers.Single().Rows.Single().Values.ToArray());
+
+        var floatingRequest = new CqlGroupedRequest
+        {
+            Filters = new[] { new CqlFilter
+            {
+                Field = "Id", Operator = CqlOperator.In, Value = JsonSerializer.SerializeToElement(ids.Take(2).ToArray())
+            } },
+            Keys = new[] { new CqlProjectionColumn { Field = "Version", Alias = "Revision" } },
+            Columns = new[]
+            {
+                new CqlGroupedColumn { Alias = "Revision", KeyAlias = "Revision" },
+                new CqlGroupedColumn { Alias = "Total", Operation = "Sum", Selection = new CqlJoinScalar
+                    { MetadataPath = new[] { "float" }, ValueType = "Single", Nullable = true } },
+                new CqlGroupedColumn { Alias = "Mean", Operation = "Average", Selection = new CqlJoinScalar
+                    { MetadataPath = new[] { "double" }, ValueType = "Double", Nullable = true } }
+            },
+            ResultFilters = new[]
+            {
+                new CqlGroupedFilter { Alias = "Total", Operator = CqlOperator.Equal, Value = JsonSerializer.SerializeToElement("2") },
+                new CqlGroupedFilter { Alias = "Mean", Operator = CqlOperator.Equal, Value = JsonSerializer.SerializeToElement("1") }
+            },
+            MaximumGroups = 10
+        };
+        var floatingPlan = CosmicGroupedPlanner.Plan(CqlCompiler.CompileGrouped(floatingRequest, actor, provider), provider, target);
+        Assert.IsFalse(floatingPlan.IsError, floatingPlan.Message);
+        var floatingRows = await CosmicGroupedExecutor.ExecuteAsync(floatingPlan.Result, new[] { adapter });
+        Assert.IsFalse(floatingRows.IsError, floatingRows.Message + floatingRows.Exception);
+        CollectionAssert.AreEqual(new object[] { 1, 2f, 1d },
+            floatingRows.Result.Providers.Single().Rows.Single().Values.ToArray());
 
         var first = ids[0];
         var second = ids[1];
