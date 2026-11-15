@@ -1,5 +1,9 @@
 # Current provider status
 
+15 November Cancun time. Development advanced to COSMIC/CQL 232e68a7f98b in the shared window and Railway queued WEB4 deployment 633b8ce1-4bcd-42ed-9315-4bb8e2fe7a3f. The estimate follow-up is being qualified against the new dependency graph. The next shared review opens after 16:47:38 UTC, subject to the latest rollout and shared head.
+
+15 November Cancun time. OPORTAL d823654 corrects OAPP list and search error states and keeps late responses from replacing a different avatar's list or a newer search. Focused controlled-DOM verification passed. STAR-ODK 86e6a52 calls the existing startup method before search, matching the owned-list endpoint's initialization. Live signed STAR verification is pending. The parent dependency pin remains at its currently qualified SHA.
+
 15 November Cancun time. OPORTAL 8c19ef7 distinguishes a failed application usage request from a successful empty owner list. Exact dev c00fcfa0a697 and production feab40944d4c candidates preserve their respective asset graphs and passed the subscription suite. Both remain staged for their WEB4 routes.
 
 15 November Cancun time. [Solid native qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43733703704) passed 1/1 with no skips in 378 ms. Synchronous activation, authenticated empty read, save, exact populated readback and deactivation all ran. The CI runner confirmed teardown. Candidate 3ba95c806d69 exactly matches the native tested tree e10bdc98a8ea on Development 42561325fd6c. Development rollout is pending.
