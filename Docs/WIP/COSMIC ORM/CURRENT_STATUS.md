@@ -2,7 +2,7 @@
 
 ## Shared Development slot reserved for the qualified estimate fix
 
-15 November. The populated grouping image 43728692470 passed. HyperDrive has an independently qualified Free usage estimate fix, 42561325fd6c, with portal verification waiting on it. Stopped the older COSMIC push guard before it could take the shared window at 15:44:52 UTC. Its code and image remain verified. The next COSMIC batch must preserve the actual estimate revision and complete exact full-scope image verification on that graph. MongoDB grouped diagnostics b00a61183561 are in exact candidate 9d9e14b337c9. The prior populated Decimal reproduction 43729435801 passed CI while the equivalent live request continued failing with CQL_QUERY_FAILED.
+15 November. The populated grouping image 43728692470 passed. HyperDrive has an independently qualified Free usage estimate fix, 42561325fd6c, with portal verification waiting on it. Stopped the older COSMIC push guard before it could take the shared window at 15:44:52 UTC. Its code and image remain verified. Exact candidate 232e68a7f98b combines the estimate fix 42561325fd6c with the full scalar Distinct and MongoDB diagnostic scope. The three peer files and five COSMIC files are disjoint, and the combined candidate preserved both sets byte-for-byte. [Exact CI 43731697058](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43731697058) is running. Reconcile against the serving Development revision before integration. MongoDB grouped diagnostics b00a61183561 are in exact candidate 9d9e14b337c9. The prior populated Decimal reproduction 43729435801 passed CI while the equivalent live request continued failing with CQL_QUERY_FAILED.
 
 ## Exact selected SQL result rendering
 
