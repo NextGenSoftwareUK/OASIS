@@ -1,5 +1,7 @@
 # Current provider status
 
+15 November Cancun time. OPORTAL 8166074 fixes the router rewriting Stripe success and cancel links without their query parameters. The portal configuration suite verified that lazy mounting and a repeated modal open preserve the return URL. The running portal still needs the fix deployed and a hosted browser checkout. The first checkout ledger test fixture omitted Stripe's request envelope. Corrected rerun 43705322012 is in progress.
+
 15 November Cancun time. WEB4 now labels new Stripe Checkout sessions and their subscriptions with the billing ledger and rejects checkout reads and events explicitly marked for another ledger. Existing sessions without a scope stay compatible. Focused signed-event verification is in progress. The WEB4 NFT request validation passed run 43703881912, one test, no skips. Native NFT transfer remains open.
 
 15 November Cancun time. A real Stripe sandbox payment created through the Stripe API exercised the enabled Railway dev webhook. WEB4 saved the exact active Bronze subscription, showed the GBP 9 paid order, and created an owned native billing portal session. Cancellation propagated to WEB4. Hosted browser Checkout form submission and browser return remain open after the automated launch was blocked before execution.
