@@ -117,6 +117,7 @@ public partial class AlgorandOASIS
             await EnsureRecordApplicationFundingAsync(settings, head?.Length, envelope.Length,
                 count, descriptor.Length, token).ConfigureAwait(false);
             var digests = new byte[count * HashLength];
+            var calls = new AlgorandBoxTransaction.Call[count + 1];
             for (var index = 0; index < count; index++)
             {
                 var offset = index * MaximumChunkLength;
@@ -126,13 +127,12 @@ public partial class AlgorandOASIS
                 var name = BoxName('c', [..key, ..revision, ..indexBytes]);
                 names[index + 3] = name;
                 SHA256.HashData(payload).CopyTo(digests, index * HashLength);
-                await SubmitBoxCallAsync(settings, ["stage"u8.ToArray(), key, revision, indexBytes, payload],
-                    [headName, name], token).ConfigureAwait(false);
+                calls[index] = new(["stage"u8.ToArray(), key, revision, indexBytes, payload], [headName, name]);
             }
 
             var predecessor = head == null ? EmptyHash : SHA256.HashData(head);
-            await SubmitBoxCallAsync(settings, ["publish"u8.ToArray(), key, predecessor, revision, digests, descriptor],
-                names, token).ConfigureAwait(false);
+            calls[count] = new(["publish"u8.ToArray(), key, predecessor, revision, digests, descriptor], names);
+            await SubmitBoxCallsAsync(settings, calls, token).ConfigureAwait(false);
             var manifest = await ReadBoxAsync(settings, names[1], token).ConfigureAwait(false);
             byte[] previousRevision = head == null ? EmptyHash : head[..HashLength];
             byte[] expectedManifest = [..revision, ..previousRevision, ..predecessor, ..digests];
@@ -150,7 +150,11 @@ public partial class AlgorandOASIS
         return result;
     }
 
-    private async Task SubmitBoxCallAsync(AlgorandRecordBoxSettings settings, byte[][] arguments, byte[][] boxes,
+    private Task SubmitBoxCallAsync(AlgorandRecordBoxSettings settings, byte[][] arguments, byte[][] boxes,
+        CancellationToken cancellationToken)
+        => SubmitBoxCallsAsync(settings, [new(arguments, boxes)], cancellationToken);
+
+    private async Task SubmitBoxCallsAsync(AlgorandRecordBoxSettings settings, AlgorandBoxTransaction.Call[] calls,
         CancellationToken cancellationToken)
     {
         using var parameters = await ReadBoxTransactionJsonAsync("/v2/transactions/params", cancellationToken).ConfigureAwait(false);
@@ -160,7 +164,7 @@ public partial class AlgorandOASIS
             throw new InvalidDataException("Algod's signing parameters identify a different ledger.");
         var round = native.GetProperty("last-round").GetUInt64();
         var (signed, id) = AlgorandBoxTransaction.Sign(settings, genesis.Id, round,
-            native.GetProperty("min-fee").GetUInt64(), native.GetProperty("fee").GetUInt64(), arguments, boxes);
+            native.GetProperty("min-fee").GetUInt64(), native.GetProperty("fee").GetUInt64(), calls);
         using var content = new ByteArrayContent(signed);
         content.Headers.ContentType = new MediaTypeHeaderValue("application/x-binary");
         using var response = await _algod.PostAsync("/v2/transactions", content, cancellationToken).ConfigureAwait(false);

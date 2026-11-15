@@ -63,6 +63,13 @@ def run(node, wallet, handle, writer, outsider):
             boxes=[(0, name) for name in names],
         )
 
+    def submit_group(calls):
+        grouped = transaction.assign_group_id(calls)
+        signed = [wallet.sign_transaction(handle, "", txn) for txn in grouped]
+        txid = node.send_transactions(signed)
+        assert txid == grouped[0].get_txid()
+        transaction.wait_for_confirmation(node, txid, 8)
+
     def reject(txn):
         try:
             submit(txn)
@@ -77,6 +84,17 @@ def run(node, wallet, handle, writer, outsider):
         box = node.application_box_by_name(app, name)
         assert base64.b64decode(box["name"], validate=True) == name
         return base64.b64decode(box["value"], validate=True)
+
+    def publication(sender, key, predecessor, revision, chunks, descriptor, hashes=None):
+        head = b"h" + key
+        names = [chunk_name(key, revision, index) for index in range(len(chunks))]
+        stages = [call(sender, [b"stage", key, revision, index.to_bytes(8, "big"), chunk], [head, name])
+                  for index, (name, chunk) in enumerate(zip(names, chunks, strict=True))]
+        if hashes is None:
+            hashes = b"".join(digest(chunk) for chunk in chunks)
+        publish = call(writer, [b"publish", key, predecessor, revision, hashes, descriptor],
+                       [head, manifest_name(key, revision), b"d" + key, *names])
+        return stages + [publish]
 
     if destination := os.environ.get("OASIS_ALGORAND_ENROLLED_FIXTURE_ENV"):
         fixture = uuid.uuid4()
@@ -109,11 +127,7 @@ def run(node, wallet, handle, writer, outsider):
             envelope = format_name.encode("ascii") + base64.b64encode(nonce + tag + ciphertext)
             chunks = [envelope[index:index + 896] for index in range(0, len(envelope), 896)]
             names = [chunk_name(key, revision, index) for index in range(len(chunks))]
-            for index, (name, chunk) in enumerate(zip(names, chunks, strict=True)):
-                submit(call(writer, [b"stage", key, revision, index.to_bytes(8, "big"), chunk], [head, name]))
-            hashes = b"".join(digest(chunk) for chunk in chunks)
-            submit(call(writer, [b"publish", key, predecessor, revision, hashes, descriptor],
-                        [head, manifest_name(key, revision), descriptor_name, *names]))
+            submit_group(publication(writer, key, predecessor, revision, chunks, descriptor))
             predecessor = digest(read(head))
 
         if resuming:
@@ -154,17 +168,22 @@ def run(node, wallet, handle, writer, outsider):
     chunks = [secrets.token_bytes(896), secrets.token_bytes(93)]
     first_names = [chunk_name(key, first_revision, index) for index in range(len(chunks))]
     first_manifest = manifest_name(key, first_revision)
-    first_refs = [head, first_manifest, descriptor_name, *first_names]
     hashes = b"".join(digest(chunk) for chunk in chunks)
     stage_args = [b"stage", key, first_revision, bytes(8), chunks[0]]
-    reject(call(outsider, stage_args, [head, first_names[0]]))
-    submit(call(writer, stage_args, [head, first_names[0]]))
     reject(call(writer, stage_args, [head, first_names[0]]))
-    publish_args = [b"publish", key, absent, first_revision, hashes, descriptor]
-    reject(call(writer, publish_args, first_refs))
-    submit(call(writer, [b"stage", key, first_revision, (1).to_bytes(8, "big"), chunks[1]], [head, first_names[1]]))
-    reject(call(writer, [*publish_args[:4], bytes(len(hashes)), descriptor], first_refs))
-    submit(call(writer, publish_args, first_refs))
+    def reject_group(group):
+        try:
+            submit_group(group)
+        except error.AlgodHTTPError as exc:
+            if "assert failed" not in str(exc).lower():
+                raise
+        else:
+            raise AssertionError("The application accepted a disallowed publication group")
+
+    reject_group(publication(outsider, key, absent, first_revision, chunks, descriptor))
+    reject_group(publication(writer, key, absent, first_revision, chunks, descriptor, bytes(len(hashes))))
+    assert not node.application_boxes(app)["boxes"]
+    submit_group(publication(writer, key, absent, first_revision, chunks, descriptor))
     first_head = first_revision + absent + absent + hashes
     assert read(head) == first_head
     assert read(first_manifest) == first_head
@@ -174,18 +193,16 @@ def run(node, wallet, handle, writer, outsider):
     replacement = secrets.token_bytes(407)
     second_name = chunk_name(key, second_revision, 0)
     second_manifest = manifest_name(key, second_revision)
-    second_refs = [head, second_manifest, descriptor_name, second_name]
-    submit(call(writer, [b"stage", key, second_revision, bytes(8), replacement], [head, second_name]))
-    reject(call(writer, [b"publish", key, absent, second_revision, digest(replacement), descriptor], second_refs))
+    reject_group(publication(writer, key, absent, second_revision, [replacement], descriptor))
     assert read(head) == first_head
     predecessor = digest(first_head)
-    reject(call(writer, [b"publish", key, predecessor, second_revision, digest(replacement), b"different"], second_refs))
+    reject_group(publication(writer, key, predecessor, second_revision, [replacement], b"different"))
     assert read(head) == first_head
-    submit(call(writer, [b"publish", key, predecessor, second_revision, digest(replacement), descriptor], second_refs))
+    submit_group(publication(writer, key, predecessor, second_revision, [replacement], descriptor))
     second_head = second_revision + first_revision + predecessor + digest(replacement)
     assert read(second_manifest) == second_head
     assert read(head) == second_head
-    reject(call(writer, [b"publish", key, digest(second_head), first_revision, hashes, descriptor], first_refs))
+    reject_group(publication(writer, key, digest(second_head), first_revision, chunks, descriptor))
     assert read(head) == second_head
     assert read(first_manifest) == first_head
     assert read(second_name) == replacement

@@ -21,9 +21,11 @@ internal static class AlgorandBoxTransaction
         return Base32([..address, ..Digest(address).AsSpan(28)]);
     }
 
+    internal sealed record Call(byte[][] Arguments, byte[][] Boxes);
+
     internal static (byte[] Signed, string Id) Sign(
         AlgorandRecordBoxSettings settings, string genesisId, ulong round,
-        ulong minimumFee, ulong feePerByte, byte[][] arguments, byte[][] boxes)
+        ulong minimumFee, ulong feePerByte, Call[] calls)
     {
         var key = new Ed25519PrivateKeyParameters(settings.WriterSeed ??
             throw new InvalidOperationException("No writer has been configured."), 0);
@@ -32,37 +34,63 @@ internal static class AlgorandBoxTransaction
         if (address != settings.WriterAddress)
             throw new InvalidOperationException("The signing key does not match the enrolled Algorand writer.");
 
-        var feeBound = Encode(settings, genesisId, round, settings.MaximumFee, sender, arguments, boxes);
-        // The signed envelope contains its map header, keys and one 64-byte signature.
-        var fee = Math.Max(minimumFee, checked(feePerByte * (ulong)(feeBound.Length + 75)));
-        if (fee == 0 || fee > settings.MaximumFee)
-            throw new InvalidOperationException("Algod's current fee exceeds the configured signing limit.");
-        var raw = Encode(settings, genesisId, round, fee, sender, arguments, boxes);
-        byte[] message = [(byte)'T', (byte)'X', ..raw];
+        var fees = new ulong[calls.Length];
+        var group = calls.Length > 1 ? new byte[32] : null;
+        for (var index = 0; index < calls.Length; index++)
+        {
+            var feeBound = Encode(settings, genesisId, round, settings.MaximumFee, sender, calls[index], group);
+            // The signed envelope contains its map header, keys and one 64-byte signature.
+            var fee = Math.Max(minimumFee, checked(feePerByte * (ulong)(feeBound.Length + 75)));
+            if (fee == 0 || fee > settings.MaximumFee)
+                throw new InvalidOperationException("Algod's current fee exceeds the configured signing limit.");
+            fees[index] = fee;
+        }
+        if (group != null)
+        {
+            using var transactionGroup = new MemoryStream();
+            transactionGroup.Write("TG"u8);
+            transactionGroup.WriteByte(0x81);
+            WriteString(transactionGroup, "txlist");
+            transactionGroup.WriteByte((byte)(0x90 + calls.Length));
+            for (var index = 0; index < calls.Length; index++)
+            {
+                var raw = Encode(settings, genesisId, round, fees[index], sender, calls[index], null);
+                WriteBytes(transactionGroup, Digest([(byte)'T', (byte)'X', ..raw]));
+            }
+            group = Digest(transactionGroup.ToArray());
+        }
+
         var signer = new Ed25519Signer();
-        signer.Init(true, key);
-        signer.BlockUpdate(message, 0, message.Length);
         using var signed = new MemoryStream();
-        signed.WriteByte(0x82);
-        WriteString(signed, "sig");
-        WriteBytes(signed, signer.GenerateSignature());
-        WriteString(signed, "txn");
-        signed.Write(raw);
-        return (signed.ToArray(), Base32(Digest(message)));
+        string? firstId = null;
+        for (var index = 0; index < calls.Length; index++)
+        {
+            var raw = Encode(settings, genesisId, round, fees[index], sender, calls[index], group);
+            byte[] message = [(byte)'T', (byte)'X', ..raw];
+            firstId ??= Base32(Digest(message));
+            signer.Init(true, key);
+            signer.BlockUpdate(message, 0, message.Length);
+            signed.WriteByte(0x82);
+            WriteString(signed, "sig");
+            WriteBytes(signed, signer.GenerateSignature());
+            WriteString(signed, "txn");
+            signed.Write(raw);
+        }
+        return (signed.ToArray(), firstId ?? throw new ArgumentException("At least one call is required.", nameof(calls)));
     }
 
     private static byte[] Encode(AlgorandRecordBoxSettings settings, string genesisId, ulong round,
-        ulong fee, byte[] sender, byte[][] arguments, byte[][] boxes)
+        ulong fee, byte[] sender, Call call, byte[]? group)
     {
         using var stream = new MemoryStream();
-        stream.WriteByte(0x8a);
+        stream.WriteByte(group == null ? (byte)0x8a : (byte)0x8b);
         WriteString(stream, "apaa");
-        stream.WriteByte((byte)(0x90 + arguments.Length));
-        foreach (var argument in arguments)
+        stream.WriteByte((byte)(0x90 + call.Arguments.Length));
+        foreach (var argument in call.Arguments)
             WriteBytes(stream, argument);
         WriteString(stream, "apbx");
-        stream.WriteByte((byte)(0x90 + boxes.Length));
-        foreach (var box in boxes)
+        stream.WriteByte((byte)(0x90 + call.Boxes.Length));
+        foreach (var box in call.Boxes)
         {
             stream.WriteByte(0x81);
             WriteString(stream, "n");
@@ -78,6 +106,11 @@ internal static class AlgorandBoxTransaction
         WriteString(stream, genesisId);
         WriteString(stream, "gh");
         WriteBytes(stream, Convert.FromBase64String(settings.GenesisHash));
+        if (group != null)
+        {
+            WriteString(stream, "grp");
+            WriteBytes(stream, group);
+        }
         WriteString(stream, "lv");
         WriteUInt(stream, checked(round + 30));
         WriteString(stream, "snd");

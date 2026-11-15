@@ -48,6 +48,39 @@ txn NumAppArgs
 int 5
 ==
 assert
+global GroupSize
+int 1
+-
+store 9
+txn GroupIndex
+load 9
+<
+assert
+load 9
+gtxns ApplicationID
+txn ApplicationID
+==
+assert
+load 9
+gtxns Sender
+txn Sender
+==
+assert
+load 9
+gtxnsa ApplicationArgs 0
+byte "publish"
+==
+assert
+load 9
+gtxnsa ApplicationArgs 1
+txna ApplicationArgs 1
+==
+assert
+load 9
+gtxnsa ApplicationArgs 3
+txna ApplicationArgs 2
+==
+assert
 byte "h"
 txna ApplicationArgs 1
 concat
@@ -77,8 +110,8 @@ int 8
 assert
 txna ApplicationArgs 3
 btoi
-int 5
-<
+txn GroupIndex
+==
 assert
 txna ApplicationArgs 4
 len
@@ -137,6 +170,16 @@ assert
 dup
 int 5
 <=
+assert
+dup
+txn GroupIndex
+==
+assert
+txn GroupIndex
+int 1
++
+global GroupSize
+==
 assert
 store 2
 byte "h"
