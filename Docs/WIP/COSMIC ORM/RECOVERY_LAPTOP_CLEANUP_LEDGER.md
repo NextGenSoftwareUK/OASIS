@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+15 November. COUNT DISTINCT compilation and editor testing used a disposable Git index and an isolated frontend snapshot, removed at exit. Native verification runs in GitHub. No local provider fixtures, downloads or build output were retained.
+
 15 November. Grouped MongoDB reconciliation with the concurrent HyperDrive batch used one disposable Git index, removed at exit. The superseded image was cancelled and the prior guard and verifier exited before any fixtures were created. The replacement CI runs use no local runtimes, databases or build output.
 
 15 November. SQL scalar alias qualification used disposable website test snapshots and one Git index, removed at exit. No new runtime, database or retained local build output.
