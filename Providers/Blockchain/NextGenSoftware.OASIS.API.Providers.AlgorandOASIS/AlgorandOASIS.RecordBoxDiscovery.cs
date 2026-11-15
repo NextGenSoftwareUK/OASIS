@@ -104,7 +104,7 @@ public partial class AlgorandOASIS
             deadline.CancelAfter(_algod.Timeout);
             using var codec = new EncryptedRecordCodec(settings.StorageKey);
             var ids = new List<Guid>();
-            var seen = new HashSet<Guid>();
+            var seen = new HashSet<(string Kind, Guid Id)>();
             var cursors = new HashSet<string>(StringComparer.Ordinal);
             const int maxRecords = 10000;
             const int pageSize = 64;
@@ -127,11 +127,11 @@ public partial class AlgorandOASIS
                     var name = entry.GetProperty("name").GetBytesFromBase64();
                     if (name.Length != 1 + HashLength || name[0] != (byte)'d')
                         throw new InvalidDataException("Algod returned a box outside the record discovery namespace.");
-                    var id = DecodeDiscoveredId(settings, codec, name[1..],
+                    var (kind, id) = DecodeDiscoveredRecord(settings, codec, name[1..],
                         entry.GetProperty("value").GetBytesFromBase64(), deadline.Token);
-                    if (!seen.Add(id) || ids.Count == maxRecords)
+                    if (!seen.Add((kind, id)) || seen.Count > maxRecords)
                         throw new InvalidDataException("Algorand discovery returned a duplicate or exceeded its result limit.");
-                    ids.Add(id);
+                    if (kind == "holon") ids.Add(id);
                 }
                 cursor = root.TryGetProperty("next-token", out var next) ? next.GetString() ?? string.Empty : string.Empty;
                 if (cursor.Length > 0 && (!cursors.Add(cursor) || cursors.Count > maxRecords))
@@ -153,14 +153,17 @@ public partial class AlgorandOASIS
         => FormattableString.Invariant(
             $"oasis:algorand:discovery:v1:{settings.GenesisHash}:{settings.ApplicationId}:{Convert.ToHexString(key)}");
 
-    private static Guid DecodeDiscoveredId(AlgorandRecordBoxSettings settings, EncryptedRecordCodec codec,
+    private static (string Kind, Guid Id) DecodeDiscoveredRecord(AlgorandRecordBoxSettings settings, EncryptedRecordCodec codec,
         byte[] key, byte[] descriptor, CancellationToken cancellationToken)
     {
-        if (descriptor is not { Length: > 0 and <= 256 } ||
-            !Guid.TryParseExact(codec.Decrypt(DiscoveryContext(settings, key), StrictUtf8.GetString(descriptor),
-                cancellationToken), "D", out var id) || id == Guid.Empty ||
-            !CryptographicOperations.FixedTimeEquals(StoredHolonBoxKey(settings, id), key))
+        if (descriptor is not { Length: > 0 and <= 256 })
+            throw new InvalidDataException("An Algorand discovery descriptor has an invalid length.");
+        var value = codec.Decrypt(DiscoveryContext(settings, key), StrictUtf8.GetString(descriptor), cancellationToken);
+        var separator = value.IndexOf(':');
+        var kind = separator >= 0 ? value[..separator] : "holon";
+        if (kind is not ("holon" or "avatar-detail") || !Guid.TryParseExact(value[(separator + 1)..], "D", out var id) || id == Guid.Empty ||
+            !CryptographicOperations.FixedTimeEquals(StoredRecordBoxKey(settings, id, kind), key))
             throw new InvalidDataException("An Algorand discovery descriptor does not match its opaque record key.");
-        return id;
+        return (kind, id);
     }
 }
