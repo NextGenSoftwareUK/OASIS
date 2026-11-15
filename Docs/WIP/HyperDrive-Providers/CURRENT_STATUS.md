@@ -1,5 +1,7 @@
 # Current provider status
 
+15 November Cancun time. Railway dev 4c842fc2ceba is live. A real Stripe sandbox Checkout session preserved the query, literal session token and URL fragment in the expected order. The hosted Gifts summary returned HTTP 401 anonymously and matched the signed empty inbox. OPORTAL 08d8885 lets the inbox render before its stats and discards stale counters. Candidate 35ff69955a48 uses the live Gifts route and passed endpoint and inbox checks. The Development Stripe cache regression 43715074477 and native Algorand asset/note regression 43715668024 passed one test each with zero skips.
+
 15 November Cancun time. Algorand now pushes asset ID and note searches to the native Indexer and validates exact projected metadata. This excludes non-transfer asset matches and longer transaction notes that share a prefix. Read-only mainnet probes verified the selected transfer and the native note-prefix behavior. Provider-level verification is pending. [Algorand Indexer transaction search](https://dev.algorand.co/reference/rest-api/indexer/operations/searchfortransactions/)
 
 15 November Cancun time. The published OPORTAL dev dashboard and SDK rendered one file for a disposable signed-in avatar after a real 4096-byte upload. The old full Files list contained exactly the same record. The dashboard made one compact count request and no list request for its Files card. Wallet and Messages remained empty for this fixture. WEB4 confirmed file deletion, a zero count, and avatar deletion.

@@ -1,5 +1,7 @@
 # OPORTAL and HyperDrive performance audit
 
+15 November Cancun time. Live WEB4 returned the signed Gifts summary in 380 ms and full empty inbox in 398 ms. The empty summary was 349 bytes compared with 317 bytes for the empty list. Populated sizing remains unmeasured. The OPORTAL inbox timing regression rendered the inbox while its stats response was still pending. The server-side Stripe cache passed on the Development dependency graph and awaits rollout timing.
+
 15 November Cancun time. The populated live Files dashboard check returned one in a 313-byte compact response. The old full list for the same avatar and one file returned 824 bytes. The compact request reached response headers in 469 ms, and the old request took 478 ms including the body. This single run demonstrates the smaller payload. It does not establish a latency difference or browser paint time.
 
 15 November Cancun time. Stripe catalogue cache run 43714069040 used the shipping Stripe SDK over a controlled transport. Concurrent readers issued one price request. Expiry, a changed price ID, and a changed account key each issued a new request. A live WEB4 timing comparison remains open.

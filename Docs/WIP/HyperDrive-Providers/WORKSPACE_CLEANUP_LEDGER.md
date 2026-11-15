@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. Stripe confirmed expiry of the owned redirect test session. WEB4 confirmed deletion of the signed Gifts test avatar. There was no payment or gift write. The portal endpoint map is the retained tracked output, and the temporary candidate index was removed. No local downloads or test output were retained.
+
 15 November Cancun time. The 4096-byte dashboard file and its signed test avatar were deleted through WEB4, and the file count returned zero after deletion. Both the temporary payload and deployed script verification ran in memory. No local files, packages, environments or test results were retained.
 
 15 November Cancun time. The two-file Stripe price candidate used a temporary Git index that was removed immediately after staging. Qualification builds remotely. No local package, payment, test database or result files were created.
