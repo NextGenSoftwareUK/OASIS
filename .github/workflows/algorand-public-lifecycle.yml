@@ -63,6 +63,15 @@ jobs:
           path: NextGenSoftware-Libraries
           token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
           persist-credentials: false
+      - name: Fetch the pinned sibling used by the full BootLoader build
+        if: ${{ inputs.signed_localnet && inputs.localnet_case == 'storage_bootloader' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          . Docker/oasis-dependency-versions.env
+          git clone --no-checkout "$HOLOCHAIN_REPO" ../holochain-client-csharp
+          git -C ../holochain-client-csharp fetch --no-tags origin "$HOLOCHAIN_COMMIT"
+          git -C ../holochain-client-csharp checkout --detach "$HOLOCHAIN_COMMIT"
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
