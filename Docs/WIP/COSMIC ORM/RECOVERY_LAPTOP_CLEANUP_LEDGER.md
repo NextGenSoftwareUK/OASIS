@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+15 November. Independent LINQ `SelectMany` publication used two disposable Git indexes, both removed after writing the commits. Qualification runs in [CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43768973583). This change used no local runtime installs, downloads, databases, or build outputs.
+
 15 November Cancun. Removed the temporary combined website-test snapshot and stopped the superseded full-only rollout and verifier before any fixture writes. Exact candidate staging used a disposable Git index. Combined native and image qualification run in GitHub CI.
 
 15 November Cancun. The exact MongoDB SINGLE release probe removed both private fixtures and independently verified absence. The compact journal remains in HostedCqlFloatingMetadata-56d45431. The projection state and depth investigations used read-only Atlas commands with synthetic documents and disposable compiler outputs. The temporary outputs were removed.
