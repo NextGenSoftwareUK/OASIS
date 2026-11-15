@@ -1,5 +1,7 @@
 # Current provider status
 
+15 November Cancun time. OPORTAL production cbbde53e1517 deployed the verified single-request avatar hydration and OAPP modal fixes. The production portal returned the three shipped scripts byte for byte, and both production APIs advertise the relevant routes. Production WEB4's serving cf47b47e595b still uses the older refresh-token revocation checks. Remaining portal candidate 1d9c140a8c49 includes session handling and the usage estimate and awaits the matching production WEB4 release. No signed production billing or token write was performed.
+
 15 November Cancun time. Development advanced from serving 232e68a7f98b to 807623f716cd with the qualified Free excess-request estimate and Solid cold collection changes. The guarded push observed the shared interval and passed dependency-manifest verification. Railway WEB4 deployment f6d02af2-a661-4a10-802d-b728b9cbd6b1 is building. The next shared review starts after 17:20:12 UTC, subject to serving state and the remote head. Live estimates and the remaining subscription portal rollout are pending.
 
 15 November Cancun time. OPORTAL dev d26862072ab3 deployed successfully. The served portal requests the qualified avatar, session and OAPP files at 20261115a, and all three assets match their Git blobs byte for byte. The independent release uses the already verified WEB4 and WEB5 routes. Exact remaining subscription candidate b583f0523d14 preserves those deployed files and the separately qualified subscription assets. It awaits the WEB4 estimate rollout.

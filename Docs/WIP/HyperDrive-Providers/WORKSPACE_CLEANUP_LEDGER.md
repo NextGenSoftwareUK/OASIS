@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. Production portal verification used read-only OpenAPI, release status and asset reads in memory. Removed the temporary candidate index. No production fixture, local runtime, build or report was created.
+
 15 November Cancun time. The independent OPORTAL dev candidate builder removed its temporary Git index. Live deployment verification checked downloaded HTML and three asset responses in memory. No local downloads, profiles, runtimes, builds or results were retained.
 
 15 November Cancun time. Session revocation verification used disposable signed avatars, and WEB4 confirmed every deletion. The probe recorded only statuses and success flags. Removed the two portal candidate indexes. No local runtime, database, build or result was retained.
