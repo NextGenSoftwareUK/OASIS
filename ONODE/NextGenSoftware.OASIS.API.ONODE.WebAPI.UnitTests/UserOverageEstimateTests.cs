@@ -36,6 +36,7 @@ public sealed class UserOverageEstimateTests
             new DateTime(2026, 11, 10, 9, 0, 0, DateTimeKind.Utc));
         Assert.Equal(36_000, result.ProjectedMonthRequests);
         Assert.Equal(0m, result.RatePerRequestUsd);
+        Assert.Equal(6_000, result.Projected.OverRequests);
         Assert.Equal(0m, result.Projected.ChargedUsd);
     }
 

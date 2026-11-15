@@ -22,8 +22,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
         public static AppOverageEstimateResult Compute(long monthlyRequests, long includedLimit, decimal ratePerRequestUsd, decimal monthlyCapUsd)
         {
             var result = new AppOverageEstimateResult { RatePerRequestUsd = Math.Max(0, ratePerRequestUsd) };
-            if (includedLimit <= 0 || ratePerRequestUsd <= 0) return result; // unlimited plan or no price: nothing can be owed
+            if (includedLimit <= 0) return result;
             result.OverRequests = Math.Max(0, monthlyRequests - includedLimit);
+            if (ratePerRequestUsd <= 0) return result;
             result.GrossUsd = decimal.Round(result.OverRequests * ratePerRequestUsd, 6);
             var cap = Math.Max(0, monthlyCapUsd);
             result.ChargedUsd = cap > 0 ? Math.Min(result.GrossUsd, cap) : result.GrossUsd;
