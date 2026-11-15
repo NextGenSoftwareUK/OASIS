@@ -150,6 +150,19 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Assert.AreEqual(9007199254740993L, opaqueRow.Sequence);
         Passed("standard Select materializes opaque constructor inputs after native validation");
 
+        var transformed = await rootSource.Take(1)
+            .Select(row => new NativeTransformingConstructorProjection(row.Name))
+            .ToCosmicListAsync();
+        Assert.IsFalse(transformed.IsError, transformed.Message + transformed.Exception);
+        Assert.AreEqual("prefix:protected source root", transformed.Result.Single().Name);
+
+        var explicitProjection = CosmicQuery<NativeCountWithoutConstructor>.Create(scope)
+            .Select(row => new NativeTransformingConstructorProjection(row.Name));
+        Assert.IsFalse(explicitProjection.IsError, explicitProjection.Message);
+        var unsafeFilter = explicitProjection.Result.Where(row => row.Name == "protected source root");
+        Assert.IsTrue(unsafeFilter.IsError, "A constructor argument is not proof of the materialized member value.");
+        Passed("selected member composition rejects unsafe constructor argument substitution");
+
         desired="not-matched-on-second-read";Assert.AreEqual(0,deferred.ToArray().Length);Passed("deferred selector rebinds without application source construction or eager DTOs");
         NativeProjectionProbe.Constructors=0;
         var invalid=await rootSource.Take(1).Where(row=>row.Name=="protected source root")
@@ -161,6 +174,11 @@ public sealed partial class CqlProjectedAllAcceptanceTests
     {
         public readonly string Name = name;
         public readonly long Precision = precision;
+    }
+
+    private sealed class NativeTransformingConstructorProjection(string name)
+    {
+        public string Name { get; } = "prefix:" + name;
     }
 
     private sealed class NativeOpaqueConstructorProjection(string sourceName, long sourceValue)
