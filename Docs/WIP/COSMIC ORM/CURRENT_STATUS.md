@@ -2,7 +2,7 @@
 
 ## Exact Qualification after Stripe Development integration
 
-Candidate 9ceb41a6edda was rejected by dependency validation in CI 43706675367. Copying the feature manifest had advanced six unrelated pins without matching gitlinks. Development advanced independently to 78eae0988824 for the Stripe ledger scope. Its two changed files do not overlap the COSMIC batch. Candidate 55c1c2056c55 starts at that Development revision, retains the six shared pins, and advances only the API Core dependency for CQL. All seven candidate gitlinks match their manifest pins before remote qualification. Railway cddc8e09 was queued for the Stripe revision. Protected browser walkthrough and live signed bounds, Axelar results and timings remain open.
+Candidate 9ceb41a6edda was rejected by dependency validation in CI 43706675367. Copying the feature manifest had advanced six unrelated pins without matching gitlinks. Development advanced independently to 78eae0988824 for the Stripe ledger scope. Its two changed files do not overlap the COSMIC batch. Candidate 55c1c2056c55 starts at that Development revision, retains the six shared pins, and advances only the API Core dependency for CQL. All seven candidate gitlinks match their manifest pins before remote qualification. [Protocol CI 43707321881](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43707321881) and [WEB4 image CI 43707323885](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43707323885) use that exact candidate. Railway cddc8e09 was queued for the Stripe revision. Protected browser walkthrough and live signed bounds, Axelar results and timings remain open.
 
 ## Development Axelar admission and native nested projections · 15 November
 
