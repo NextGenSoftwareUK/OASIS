@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Exact signed metadata in CQL text
+
+Signed 64-bit metadata comparison and BETWEEN syntax is on Web4Site d41989013528 and builds in [preview 7801807850](https://web4-site-a3t60qyqb-oasis-team.vercel.app/web4-sandbox.html). All 62 focused editor and Ask tests passed. The browser now sends exact signed decimal text and WEB4 accepts the same native Int64 domain as existing JSON numbers. The exact Development candidate ef5f4606685a is in [protocol CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43702653709) and [image CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43702673556). Feature CI 43702310477 failed because the shallow preferences mock correction from Development was missing in the feature tree. That same verified fixture is now restored on the feature branch. Hosted browser and signed range API acceptance remain open.
+
 ## Nested DTO and Axelar integration qualification
 
 The exact feature-branch native run 43699160525 reached the new nested DTO case but failed later: SQLite had 53 assertions against a fixture expectation of 52, while MongoDB and Neo4j rejected a later flat entity-selected All proof. The fixture counts now match, and the next native candidate starts from the current Development providers and shared HyperDrive Core graph. That batch also covers the Axelar prepared public read fix. Live 3eb0bb18da52 reached 105/107 at 87.7 seconds; Axelar activated but was rejected by the storage-only prepared query guard. Blockscout and Connext reported upstream HTTP 500 during startup.
