@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. Algorand TestNet evidence came from a public read and hosted native CI. No signer, write, local install, database, build or report was created.
+
 15 November Cancun time. The live signed shallow NFT check retrieved responses in memory and WEB4 confirmed the disposable avatar deletion. Estimate qualification ran on hosted CI. No local downloads, databases, builds or test results were retained.
 
 15 November Cancun time. Exact production Free-plan and dev estimate candidate checks used tracked Git blobs and transient indexes. The indexes were removed. Rollout verification retrieved public scripts in memory and produced no local packages, browser profiles, builds or test results.
