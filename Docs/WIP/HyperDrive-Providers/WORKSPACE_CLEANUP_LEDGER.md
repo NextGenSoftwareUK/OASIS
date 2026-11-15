@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. Algorand exact BootLoader run 43753371692 confirmed removal of its LocalNet containers, network, volumes and owned fixture directory. OPORTAL checkout candidate staging removed its temporary index and patch and restored the existing sparse checkout. No local dependencies, builds or fixture databases were created.
+
 15 November Cancun time. Algorand BootLoader candidate staging used one temporary Git index and patch at a time, and removed them after use. Native work ran on the hosted disposable LocalNet fixture. Revision 2897a851f9e3 reports verified cleanup separately from test failure. No local builds, databases or dependencies were created.
 
 15 November Cancun time. The first Algorand BootLoader workflow logged removal of all four owned LocalNet containers and the Docker network after its compile error. Its runner executed the owned fixture cleanup. The replacement again uses a disposable hosted job. OPORTAL deployed asset verification read response bytes in memory and retained no local downloads or results.

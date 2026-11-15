@@ -9,6 +9,8 @@ The shipping Algorand provider reads account and transaction data through Algod 
 - For encrypted holons, configure `RecordStorage` with `ApplicationId`, `GenesisHash`, `WriterAddress`, `ApprovalProgramSha256`, and `StorageKeyEnvironmentVariable`. Its named environment variable must contain the Base64-encoded 32-byte encryption key. Name `WriterSeedEnvironmentVariable` only for a signing host. Its value is the Base64-encoded 32-byte seed for the enrolled writer. The default `MaximumFee` is 1,000 microALGO per native transaction.
 - Warm registration defers network calls to activation. The `storage_bootloader` hosted LocalNet case exercises that registration, activation of the same provider instance, and signed standard holon save and read.
 
+The [exact Development qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43753371692) passed one native case with zero skips in 391 ms and verified LocalNet container, network, volume and fixture teardown. f50a2a48dde8 includes the registration path on Development. This case exercises registration and storage with automatic routing disabled.
+
 ## Ledger contract
 
 - Bind the store to the Algod genesis hash, application ID, verified approval program and expected writer address. Confirm the same identity before loading or publishing any record.
