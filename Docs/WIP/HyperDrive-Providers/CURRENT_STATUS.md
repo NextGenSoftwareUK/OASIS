@@ -1,5 +1,7 @@
 # Current provider status
 
+15 November Cancun time. Recounted the shipping projects using the inventory selector. The total remains 234 distinct provider projects, and Development has no added, removed or renamed shipping provider project since the published 234-project audit. Native Gifts run 43718039634 passed persisted receive/open state, real counter values and history. The corresponding WEB4 authorization check remains in progress.
+
 15 November Cancun time. Signed live WEB4 Gifts returned numeric sentGifts and receivedGifts counters and an empty history for a disposable avatar. OPORTAL 5fc7eb6 now reads those actual field names and preserves zero. WEB4 Gifts history and stats forward native manager responses and errors directly, removing the test-data success paths. Focused hosted-CI verification is pending.
 
 15 November Cancun time. COSMIC/CQL advanced Development to 6ef92492c26e in the shared window. Stripe cache candidate 9e6049390fcc preserves that change, the dependency manifest, and both file hashes from the passed qualification. It awaits the next Development window. The live latency check is ready for the serving revision.

@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. The provider inventory check walked existing source with Python bytecode writes disabled. Registry and matrix edits retain compact verification links only. No backend, downloaded packages or generated test outputs were created.
+
 15 November Cancun time. The signed Gifts stats and history probe was read-only. WEB4 confirmed the test avatar self-delete. No local downloads, databases, builds or result files were created.
 
 15 November Cancun time. The task worktree had 25.7 GiB free on C:. Read-only inventory found 2421 untracked files totaling 142.51 MiB under generated bin and obj paths in TestResults/HyperDrive-Providers. Execution policy rejected the verified-path recursive cleanup before the command ran. The retained native evidence files are outside the generated directories.
