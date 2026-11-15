@@ -1,5 +1,7 @@
 # Current provider status
 
+15 November Cancun time. OPORTAL production 8dcd515bbaf7 passed the exact subscription suite and Vercel deployment. Production serves both qualified 20261115i scripts, so current Free subscriptions are recognized and expired subscriptions are excluded. No production billing write was made. Portal estimate candidate 3f26ffc2639b preserves the current dev asset graph and passed the subscription suite. Its promotion awaits the WEB4 estimate fix.
+
 15 November Cancun time. Exact WEB4 candidate 42561325fd6c fixes Free usage estimates in the Development-only controller. Free projects its request allowance without loading a paid rate. Paid plans still use the validated pricing configuration. Hosted run 43729233174 is qualifying the Free and Bronze calculations. OPORTAL 94aaef5 renders an allowance projection without charge language for Free and keeps paid overage cost and cap text. Both cases passed a focused controlled-DOM check. The portal change awaits the backend. The shallow NFT Railway deployment is still building.
 
 15 November Cancun time. OPORTAL dev 8391e3d3f18b is live and serves the exact qualified Free-plan and expiry scripts. After the shared window, Development advanced from 4437cc9e119f to native SQLite-qualified 318d7369abd0. Railway WEB4 deployment 30f83fb7-278e-42d8-b93b-57aa138da654 is building. Live NFT acceptance, the Free estimate fix and the hosted Stripe payment return remain open.

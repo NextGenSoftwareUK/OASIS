@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. Exact production Free-plan and dev estimate candidate checks used tracked Git blobs and transient indexes. The indexes were removed. Rollout verification retrieved public scripts in memory and produced no local packages, browser profiles, builds or test results.
+
 15 November Cancun time. The exact estimate candidate used one temporary Git index, which was removed. The portal rendering check ran in memory. No local dependencies, databases or results were retained.
 
 15 November Cancun time. WEB4 confirmed each temporary Free sandbox test avatar self-delete. Its issued plan is managed by the normal sandbox retirement policy. Exact portal candidate preparation removed its transient Git index. Tests and served-asset comparisons ran in memory or hosted CI. No local archives, databases, builds or results were retained.
