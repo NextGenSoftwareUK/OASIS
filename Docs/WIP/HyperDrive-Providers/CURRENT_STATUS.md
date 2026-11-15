@@ -1,5 +1,7 @@
 # Current provider status
 
+15 November Cancun time. OPORTAL e91133b uses the native WEB4 catalogue contact-sales flag for both the plan button label and action. The focused portal checks passed for a renamed sales plan, a purchasable plan with Enterprise in the name, and Stripe return behavior. The change is on the portal task branch. OPORTAL dev c2d63b4b00c1 passed Vercel and the public portal serves the corrected Gifts counters. Candidate e7137fb33d67 combines the qualified Stripe catalogue cache with the Gifts stats/history fix and preserves the deployed Core Gifts manager blob. Exact Development qualification was dispatched on 73dea3dfb453.
+
 15 November Cancun time. The 234-project provider matrix now regenerates without losing native Bitcoin and IPFS proof or the outstanding Niantic Lightship and WRLD3D implementation requirements. The generator check passed. WEB4 Gifts authorization run 43718037088 passed for summary, history and stats. The native SQLite lifecycle, history and counters passed in 43718039634. Both runs used 307d3ab9d523. These API changes await integration.
 
 15 November Cancun time. Recounted the shipping projects using the inventory selector. The total remains 234 distinct provider projects, and Development has no added, removed or renamed shipping provider project since the published 234-project audit. Native Gifts run 43718039634 passed persisted receive/open state, real counter values and history. The corresponding WEB4 authorization check remains in progress.
