@@ -26,15 +26,7 @@ public sealed class SolidSqliteHyperDriveTests
         var root = Path.GetFullPath(Required("OASIS_SOLID_ROUTING_DIRECTORY"));
         Assert.AreEqual(Path.GetFullPath(Required("RUNNER_TEMP")), Path.GetDirectoryName(root));
         Assert.IsTrue(Path.GetFileName(root).StartsWith("oasis-solid-routing.", StringComparison.Ordinal));
-        using var solid = SolidProviderFactory.Create(new SolidOASISProviderSettings
-        {
-            PodRoot = "http://localhost:13000/oasis-routing/",
-            AuthenticationMode = "DpopClientCredentials",
-            TokenEndpoint = "http://localhost:13000/.oidc/token",
-            ClientId = Required("OASIS_SOLID_ROUTING_CLIENT_ID"),
-            ClientSecretEnvironmentVariable = "OASIS_SOLID_ROUTING_CLIENT_SECRET",
-            StorageKeyEnvironmentVariable = "OASIS_SOLID_ROUTING_STORAGE_KEY"
-        });
+        using var solid = CreateSolid();
         var sqlitePath = Path.Combine(root, sync ? "routing-sync.db" : "routing-async.db");
         Assert.IsFalse(File.Exists(sqlitePath));
         using var sqlite = new SqliteProvider($"Data Source={sqlitePath};Pooling=False");
@@ -108,6 +100,48 @@ public sealed class SolidSqliteHyperDriveTests
             await unavailableSolid.DeActivateProviderAsync();
             await sqlite.DeActivateProviderAsync();
         }
+    }
+
+    [Fact]
+    public void SynchronouslyActivatesAndReadsTheNativePod()
+    {
+        Assert.AreEqual("true", Required("GITHUB_ACTIONS"));
+        using var solid = CreateSolid();
+        Assert.IsFalse(solid.IsProviderActivated);
+        var active = solid.ActivateProvider();
+        Assert.IsTrue(!active.IsError && active.Result && solid.IsProviderActivated, active.Message);
+        try
+        {
+            var owned = solid.LoadAllHolons(HolonType.All, loadChildren: false);
+            Assert.IsFalse(owned.IsError, owned.Exception?.ToString() ?? owned.Message);
+            Assert.IsTrue(owned.IsLoaded);
+            Assert.AreEqual(0, owned.Result.Count());
+
+            var saved = solid.SaveHolon(new Core.Holons.Holon { Name = "solid-cold-start" }, saveChildren: false);
+            Assert.IsFalse(saved.IsError, saved.Exception?.ToString() ?? saved.Message);
+            var populated = solid.LoadAllHolons(HolonType.All, loadChildren: false);
+            Assert.IsFalse(populated.IsError, populated.Exception?.ToString() ?? populated.Message);
+            Assert.AreEqual(saved.Result.Id, populated.Result.Single().Id);
+        }
+        finally
+        {
+            var deactivated = solid.DeActivateProvider();
+            Assert.IsTrue(!deactivated.IsError && deactivated.Result, deactivated.Message);
+            Assert.IsFalse(solid.IsProviderActivated);
+        }
+    }
+
+    private static SOLIDOASIS CreateSolid()
+    {
+        return SolidProviderFactory.Create(new SolidOASISProviderSettings
+        {
+            PodRoot = "http://localhost:13000/oasis-routing/",
+            AuthenticationMode = "DpopClientCredentials",
+            TokenEndpoint = "http://localhost:13000/.oidc/token",
+            ClientId = Required("OASIS_SOLID_ROUTING_CLIENT_ID"),
+            ClientSecretEnvironmentVariable = "OASIS_SOLID_ROUTING_CLIENT_SECRET",
+            StorageKeyEnvironmentVariable = "OASIS_SOLID_ROUTING_STORAGE_KEY"
+        });
     }
 
     private static string Required(string name)
