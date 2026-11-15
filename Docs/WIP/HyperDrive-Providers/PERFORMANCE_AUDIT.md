@@ -1,5 +1,7 @@
 # OPORTAL and HyperDrive performance audit
 
+15 November Cancun time. The diagnostic Files upload on Railway dev confirmed that HyperDrive reported a primary acknowledgement followed by failure to capture the committed replication payload. Files uploads now explicitly save a single holon and preserve the downstream error code. The candidate still needs an exact native upload and populated parity check.
+
 15 November Cancun time. The populated Files parity benchmark on Railway dev stopped at the first portal-format upload. WEB4 returned HTTP 200 with an application error. The fixture avatar self-delete returned HTTP 200 and true. No populated list/count comparison or timing was obtained. Capture the upload failure at the shipping endpoint before measuring populated parity.
 
 14 November 2026, Cancun. Performance is the top priority during provider implementation and qualification. This audit is in progress.
