@@ -18,6 +18,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.Subscription
     public class SubscriptionControllerTests
     {
         private readonly Mock<ISubscriptionService> _svc;
+        private readonly Mock<ISubscriptionUsageRepository> _usage = new();
         private readonly IConfiguration _cfg;
         private readonly SubscriptionController _ctrl;
         private readonly Mock<ISubscriptionBillingPortal> _portal;
@@ -30,7 +31,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.Subscription
             var prices = new Mock<ISubscriptionPlanPriceReader>();
             prices.Setup(x => x.GetAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new SubscriptionPlanPrice(9m, "GBP", "month"));
-            _ctrl = new SubscriptionController(_cfg, _svc.Object, planCatalogue: new SubscriptionPlanCatalogue(prices.Object),billingPortal:_portal.Object);
+            _ctrl = new SubscriptionController(_cfg, _svc.Object, _usage.Object, planCatalogue: new SubscriptionPlanCatalogue(prices.Object),billingPortal:_portal.Object);
             SetUnauthenticated();
         }
 
@@ -312,21 +313,31 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.Subscription
         }
 
         [Fact]
-        public async Task GetUsage_ReturnsRequestCount()
+        public async Task GetUsage_ReadsOneSnapshotForRequestsAndOverage()
         {
             var userId = Guid.NewGuid();
             SetAuthenticatedUser(userId);
             var now = DateTime.UtcNow;
 
-            _svc.Setup(s => s.GetUsageAsync(userId.ToString(), now.Year, now.Month))
-                .ReturnsAsync(new UsageRecord { UserId = userId.ToString(), Year = now.Year, Month = now.Month, RequestCount = 42 });
+            var month = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+            using var cancellation = new CancellationTokenSource();
+            _ctrl.HttpContext.RequestAborted = cancellation.Token;
+            _usage.Setup(r => r.GetAggregateForPeriodAsync(userId.ToString(), month, cancellation.Token))
+                .ReturnsAsync(new SubscriptionUsageAggregate { MonthlyRequests = 42, SettledOverageUsd = 1.25m, ReservedOverageUsd = 0.5m });
             _svc.Setup(s => s.GetSubscriptionAsync(userId.ToString()))
                 .ReturnsAsync(new SubscriptionRecord { UserId = userId.ToString(), PlanId = "bronze", Status = "active" });
 
             var result = await _ctrl.GetUsage() as OkObjectResult;
 
             result.Should().NotBeNull();
-            System.Text.Json.JsonSerializer.Serialize(result!.Value).Should().Contain("42");
+            var json = System.Text.Json.JsonSerializer.SerializeToElement(result!.Value);
+            json.GetProperty("currentMonth").GetProperty("requests").GetInt64().Should().Be(42);
+            var overage = json.GetProperty("overageCharges");
+            overage.GetProperty("currentMonth").GetDecimal().Should().Be(1.25m);
+            overage.GetProperty("reservedUsd").GetDecimal().Should().Be(0.5m);
+            _usage.Verify(r => r.GetAggregateForPeriodAsync(userId.ToString(), month, cancellation.Token), Times.Once);
+            _usage.VerifyNoOtherCalls();
+            _svc.Verify(s => s.GetUsageAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>()), Times.Never);
         }
 
         [Fact]
@@ -336,8 +347,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.Subscription
             SetAuthenticatedUser(userId);
             var now = DateTime.UtcNow;
 
-            _svc.Setup(s => s.GetUsageAsync(userId.ToString(), now.Year, now.Month))
-                .ReturnsAsync(new UsageRecord { UserId = userId.ToString(), RequestCount = 0 });
+            _usage.Setup(r => r.GetAggregateForPeriodAsync(userId.ToString(), new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new SubscriptionUsageAggregate());
             _svc.Setup(s => s.GetSubscriptionAsync(userId.ToString()))
                 .ReturnsAsync(new SubscriptionRecord { UserId = userId.ToString(), PlanId = "free", Status = "active" });
 

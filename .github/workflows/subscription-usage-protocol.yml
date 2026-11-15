@@ -34,7 +34,7 @@ on:
       sqlite_performance_case:
         description: Focused case selected when sqlite_metadata_only is enabled
         type: choice
-        options: [metadata, wallet_summary, message_summary, gift_summary, gift_lifecycle, summary_http, message_summary_http, gift_summary_http, shallow_contract, nft_request, checkout_scope, checkout_return, catalog_price_cache]
+        options: [metadata, wallet_summary, message_summary, gift_summary, gift_lifecycle, summary_http, message_summary_http, gift_summary_http, shallow_contract, nft_request, checkout_scope, checkout_return, catalog_price_cache, subscription_usage_snapshot]
         default: metadata
 permissions:
   contents: read
@@ -119,9 +119,9 @@ jobs:
         shell: pwsh
         run: |
           ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-SqliteMetadata -Operation {
-            if ($env:SQLITE_PERFORMANCE_CASE -in "summary_http", "message_summary_http", "gift_summary_http", "shallow_contract", "nft_request", "checkout_scope", "checkout_return", "catalog_price_cache") {
+            if ($env:SQLITE_PERFORMANCE_CASE -in "summary_http", "message_summary_http", "gift_summary_http", "shallow_contract", "nft_request", "checkout_scope", "checkout_return", "catalog_price_cache", "subscription_usage_snapshot") {
               $project = "ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests"
-              $test = switch ($env:SQLITE_PERFORMANCE_CASE) { "message_summary_http" { "DashboardMessageSummaryRejectsAnonymousHttpRequests" } "gift_summary_http" { "DashboardGiftSummaryRejectsAnonymousHttpRequests" } "shallow_contract" { "Web4ShallowReadContractTests" } "nft_request" { "RejectsUnboundOrAmbiguousNftTransfers" } "checkout_scope" { "SignedCheckoutFromAnotherLedgerDoesNotTouchBilling" } "checkout_return" { "CheckoutSuccessUrlPreservesTheReturnQueryAndFragment" } "catalog_price_cache" { "StripeCatalogCoalescesPriceReadsAndRefreshesOnExpiryOrConfigurationChange" } default { "DashboardSummaryRoutesRejectAnonymousHttpRequests" } }
+              $test = switch ($env:SQLITE_PERFORMANCE_CASE) { "message_summary_http" { "DashboardMessageSummaryRejectsAnonymousHttpRequests" } "gift_summary_http" { "DashboardGiftSummaryRejectsAnonymousHttpRequests" } "shallow_contract" { "Web4ShallowReadContractTests" } "nft_request" { "RejectsUnboundOrAmbiguousNftTransfers" } "checkout_scope" { "SignedCheckoutFromAnotherLedgerDoesNotTouchBilling" } "checkout_return" { "CheckoutSuccessUrlPreservesTheReturnQueryAndFragment" } "catalog_price_cache" { "StripeCatalogCoalescesPriceReadsAndRefreshesOnExpiryOrConfigurationChange" } "subscription_usage_snapshot" { "SubscriptionControllerTests.GetUsage_" } default { "DashboardSummaryRoutesRejectAnonymousHttpRequests" } }
             } else {
               $project = "OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests"
               $test = switch ($env:SQLITE_PERFORMANCE_CASE) { "wallet_summary" { "ReadsWalletSummaryFromNativeSqlite" } "message_summary" { "CountsAllMessagesAndOnlyUnreadIncomingMessages" } "gift_summary" { "CountsDurableInboxAndUnopenedGifts" } "gift_lifecycle" { "SendsReceivesAndOpensGiftsAgainstNativeSqlite" } default { "NativeSqliteFiltersMetadataBeforeHolonMapping" } }
