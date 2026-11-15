@@ -77,42 +77,14 @@ public partial class BitcoinOASIS
             var feeRate = await ReadBitcoinPaymentFeeRateAsync();
             foreach (var address in addresses)
             {
-                var wrappedSegwit = address.Equals(supported[2]);
-                var builder = network.CreateTransactionBuilder().AddKeys(signer.PrivateKey);
-                var transaction = network.CreateTransaction();
-                transaction.Outputs.Add(amount, BitcoinBurnScript);
-                var change = transaction.Outputs.Add(Money.Zero, address.ScriptPubKey);
-                var available = Money.Zero;
-                using var utxos = JsonDocument.Parse(await _httpClient.GetStringAsync($"address/{address}/utxo"));
-                foreach (var utxo in utxos.RootElement.EnumerateArray())
-                {
-                    if (!utxo.GetProperty("status").GetProperty("confirmed").GetBoolean() ||
-                        !uint256.TryParse(utxo.GetProperty("txid").GetString(), out var previousId))
-                        continue;
+                var transaction = await CreateSignedCardinalPaymentAsync(ord, signer, address, feeRate,
+                    new TxOut(amount, BitcoinBurnScript));
+                if (transaction == null)
+                    continue;
 
-                    var outpoint = new OutPoint(previousId, utxo.GetProperty("vout").GetUInt32());
-                    var coin = await ReadOrdinalCoinAsync(ord, outpoint, address, signer, wrappedSegwit, null);
-                    if (coin == null)
-                        continue;
-
-                    builder.AddCoins(coin);
-                    transaction.Inputs.Add(outpoint);
-                    available += coin.Amount;
-                    var fee = builder.EstimateFees(transaction, feeRate);
-                    if (available <= amount + fee)
-                        continue;
-                    change.Value = available - amount - fee;
-                    if (change.IsDust())
-                        continue;
-
-                    builder.SignTransactionInPlace(transaction);
-                    if (!builder.Verify(transaction))
-                        throw new InvalidOperationException("The signed Bitcoin burn failed local transaction policy.");
-                    if (await ReadSharedOrdinalTipAsync(ord) != tip)
-                        throw new InvalidOperationException("The indexed Bitcoin chain changed while preparing the burn.");
-
-                    return await BroadcastBitcoinBurnAsync(transaction, amount, tip);
-                }
+                if (await ReadSharedOrdinalTipAsync(ord) != tip)
+                    throw new InvalidOperationException("The indexed Bitcoin chain changed while preparing the burn.");
+                return await BroadcastBitcoinBurnAsync(transaction, amount, tip);
             }
 
             throw new InvalidOperationException("The signing wallet has insufficient confirmed inscription-free and Rune-free BTC.");
@@ -123,5 +95,50 @@ public partial class BitcoinOASIS
                 ? ex.Message : $"Native Bitcoin burn failed ({ex.GetType().Name}).");
         }
         return result;
+    }
+
+    private async Task<Transaction> CreateSignedCardinalPaymentAsync(HttpClient ord, BitcoinSecret signer,
+        BitcoinAddress address, FeeRate feeRate, params TxOut[] payments)
+    {
+        var wrappedSegwit = address.Equals(signer.GetAddress(ScriptPubKeyType.SegwitP2SH));
+        var builder = SigningNetwork.CreateTransactionBuilder().AddKeys(signer.PrivateKey);
+        var transaction = SigningNetwork.CreateTransaction();
+        var paymentValue = Money.Zero;
+        foreach (var payment in payments)
+        {
+            transaction.Outputs.Add(payment);
+            paymentValue += payment.Value;
+        }
+        var change = transaction.Outputs.Add(Money.Zero, address.ScriptPubKey);
+        var available = Money.Zero;
+        using var utxos = JsonDocument.Parse(await _httpClient.GetStringAsync($"address/{address}/utxo"));
+        foreach (var utxo in utxos.RootElement.EnumerateArray())
+        {
+            if (!utxo.GetProperty("status").GetProperty("confirmed").GetBoolean() ||
+                !uint256.TryParse(utxo.GetProperty("txid").GetString(), out var previousId))
+                continue;
+
+            var outpoint = new OutPoint(previousId, utxo.GetProperty("vout").GetUInt32());
+            var coin = await ReadOrdinalCoinAsync(ord, outpoint, address, signer, wrappedSegwit, null);
+            if (coin == null)
+                continue;
+
+            builder.AddCoins(coin);
+            transaction.Inputs.Add(outpoint);
+            available += coin.Amount;
+            var fee = builder.EstimateFees(transaction, feeRate);
+            if (available <= paymentValue + fee)
+                continue;
+            change.Value = available - paymentValue - fee;
+            if (change.IsDust())
+                continue;
+
+            builder.SignTransactionInPlace(transaction);
+            if (!builder.Verify(transaction))
+                throw new InvalidOperationException("The signed Bitcoin transaction failed local policy.");
+            return transaction;
+        }
+
+        return null;
     }
 }

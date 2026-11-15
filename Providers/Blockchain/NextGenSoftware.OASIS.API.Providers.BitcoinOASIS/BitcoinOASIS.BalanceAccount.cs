@@ -97,80 +97,9 @@ namespace NextGenSoftware.OASIS.API.Providers.BitcoinOASIS
             return MintTokenAsync(request).Result;
         }
 
-        public async Task<OASISResult<ITransactionResponse>> MintTokenAsync(IMintWeb3TokenRequest request)
+        public Task<OASISResult<ITransactionResponse>> MintTokenAsync(IMintWeb3TokenRequest request)
         {
-            var result = new OASISResult<ITransactionResponse>(new TransactionResponse());
-            try
-            {
-                if (!_isActivated)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Bitcoin provider is not activated");
-                    return result;
-                }
-
-                if (request == null || string.IsNullOrWhiteSpace(request.Symbol))
-                {
-                    OASISErrorHandling.HandleError(ref result, "Invalid token mint request");
-                    return result;
-                }
-
-                // Bitcoin token minting using OP_RETURN transactions
-                // Store token mint data in OP_RETURN transaction
-                var tokenMintData = new
-                {
-                    type = "token_mint",
-                    token_address = request.Symbol ?? "",
-                    amount = "0",
-                    mint_to = "",
-                    timestamp = DateTime.UtcNow.ToString("O")
-                };
-
-                var tokenJson = JsonSerializer.Serialize(tokenMintData);
-                var tokenBytes = Encoding.UTF8.GetBytes(tokenJson);
-
-                // Create Bitcoin transaction with OP_RETURN containing token mint data
-                var rpcRequest = new
-                {
-                    jsonrpc = "2.0",
-                    id = 1,
-                    method = "createrawtransaction",
-                    @params = new object[]
-                    {
-                        new object[0],
-                        new Dictionary<string, object>
-                        {
-                            ["data"] = Convert.ToHexString(tokenBytes)
-                        }
-                    }
-                };
-
-                var content = new StringContent(JsonSerializer.Serialize(rpcRequest), Encoding.UTF8, "application/json");
-                var response = await _httpClient.PostAsync("", content);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var responseContent = await response.Content.ReadAsStringAsync();
-                    var txData = JsonSerializer.Deserialize<JsonElement>(responseContent);
-                    
-                    var txHash = txData.TryGetProperty("result", out var txResult) ? txResult.GetString() : "";
-
-                    result.Result = new TransactionResponse
-                    {
-                        TransactionResult = txHash
-                    };
-                    result.IsError = false;
-                    result.Message = "Token minted successfully via Bitcoin OP_RETURN";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to create token mint transaction: {response.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error minting token: {ex.Message}", ex);
-            }
-            return result;
+            return MintBitcoinRuneAsync(request);
         }
 
         public OASISResult<ITransactionResponse> BurnToken(IBurnWeb3TokenRequest request)
