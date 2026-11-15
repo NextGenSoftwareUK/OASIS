@@ -20,7 +20,7 @@ public sealed class DashboardSummaryHttpTests
 
     [Fact]
     public Task DashboardGiftSummaryRejectsAnonymousHttpRequests() =>
-        VerifyUnauthorizedAsync("/api/gifts/my-gifts/summary");
+        VerifyUnauthorizedAsync("/api/gifts/my-gifts/summary", "/api/gifts/history", "/api/gifts/stats");
 
     private static async Task VerifyUnauthorizedAsync(params string[] routes)
     {

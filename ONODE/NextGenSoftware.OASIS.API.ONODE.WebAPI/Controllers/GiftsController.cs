@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -80,106 +80,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns>Gift transaction history</returns>
         [Authorize]
         [HttpGet("history")]
-        public async Task<OASISResult<List<GiftTransaction>>> GetGiftHistory([FromQuery] int limit = 50, [FromQuery] int offset = 0)
-        {
-            try
-            {
-                OASISResult<List<GiftTransaction>> result = null;
-                try
-                {
-                    result = await GiftsManager.Instance.GetGiftHistoryAsync(Avatar.Id, limit, offset);
-                }
-                catch
-                {
-                    // If real data unavailable, use test data
-                }
+        public Task<OASISResult<List<GiftTransaction>>> GetGiftHistory([FromQuery] int limit = 50, [FromQuery] int offset = 0) =>
+            GiftsManager.Instance.GetGiftHistoryAsync(AvatarId, limit, offset);
 
-                // Return test data if setting is enabled and result is null, has error, or result is null
-                if (UseTestDataWhenLiveDataNotAvailable && (result == null || result.IsError || result.Result == null))
-                {
-                    return new OASISResult<List<GiftTransaction>>
-                    {
-                        Result = new List<GiftTransaction>(),
-                        IsError = false,
-                        Message = "Gift history retrieved successfully (using test data)"
-                    };
-                }
-
-                return result;
-            }
-            catch (Exception ex)
-            {
-                // Return test data if setting is enabled, otherwise return error
-                if (UseTestDataWhenLiveDataNotAvailable)
-                {
-                    return new OASISResult<List<GiftTransaction>>
-                    {
-                        Result = new List<GiftTransaction>(),
-                        IsError = false,
-                        Message = "Gift history retrieved successfully (using test data)"
-                    };
-                }
-                return new OASISResult<List<GiftTransaction>>
-                {
-                    IsError = true,
-                    Message = $"Error retrieving gift history: {ex.Message}",
-                    Exception = ex
-                };
-            }
-        }
-
-        /// <summary>
-        /// Get gift statistics for the current avatar
-        /// </summary>
-        /// <returns>Gift statistics</returns>
+        /// <summary>Get gift statistics for the current avatar.</summary>
         [Authorize]
         [HttpGet("stats")]
-        public async Task<OASISResult<Dictionary<string, object>>> GetGiftStats()
-        {
-            try
-            {
-                OASISResult<Dictionary<string, object>> result = null;
-                try
-                {
-                    result = await GiftsManager.Instance.GetGiftStatsAsync(Avatar.Id);
-                }
-                catch
-                {
-                    // If real data unavailable, use test data
-                }
-
-                // Return test data if setting is enabled and result is null, has error, or result is null
-                if (UseTestDataWhenLiveDataNotAvailable && (result == null || result.IsError || result.Result == null))
-                {
-                    return new OASISResult<Dictionary<string, object>>
-                    {
-                        Result = new Dictionary<string, object>(),
-                        IsError = false,
-                        Message = "Gift stats retrieved successfully (using test data)"
-                    };
-                }
-
-                return result;
-            }
-            catch (Exception ex)
-            {
-                // Return test data if setting is enabled, otherwise return error
-                if (UseTestDataWhenLiveDataNotAvailable)
-                {
-                    return new OASISResult<Dictionary<string, object>>
-                    {
-                        Result = new Dictionary<string, object>(),
-                        IsError = false,
-                        Message = "Gift stats retrieved successfully (using test data)"
-                    };
-                }
-                return new OASISResult<Dictionary<string, object>>
-                {
-                    IsError = true,
-                    Message = $"Error retrieving gift stats: {ex.Message}",
-                    Exception = ex
-                };
-            }
-        }
+        public Task<OASISResult<Dictionary<string, object>>> GetGiftStats() =>
+            GiftsManager.Instance.GetGiftStatsAsync(AvatarId);
     }
 }
