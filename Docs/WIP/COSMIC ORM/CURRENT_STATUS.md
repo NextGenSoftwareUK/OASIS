@@ -1,5 +1,11 @@
 # COSMIC ORM / CQL current status
 
+## Nostr rollout and Axelar qualification
+
+Nostr shipping-provider candidate c71dce60d523 passed its exact protocol and WEB4 image jobs and reached Development. Railway queued 52db21a2-c961-4c5d-a121-6b4eed3c7627 at 04:59:19 UTC. On the preceding d307d12e3a0f container, the configured relay opened but failed during the exact three-event subscription after 425 ms. The nos.lol relay returned EOSE with zero matching events after 376 ms. The relay.nostr.band handshake failed after 10,489 ms. No relay configuration or event catalogue was changed. Verify the exact Nostr deployment before updating live status.
+
+Axelar candidate 991bda31479a layers the historical endpoint change onto c71dce60d523. [Exact protocol](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43678970217) and [exact WEB4 image](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43678971687) are active. All three endpoint-probe hashes exactly matched the recorded Axelar public fixture. Review the shared deployment window no earlier than 05:29:19 UTC and verify the serving parent before publishing this batch.
+
 ## Axelar historical height retention
 
 On Development d307d12e3a0f the existing Axelar route returned HTTP 200 for latest, but all three configured historical heights returned RPC code 2 and reported heights below the oldest retained block. Both activation attempts therefore failed. A read from the same serving WEB4 container against the [Posthuman Axelar mainnet REST service](https://nodes.posthuman.digital/chains/axelar) returned all three unchanged configured heights with chain ID axelar-dojo-1, matching height, canonical 32-byte hashes, valid timestamp format, and bodies of 22,576 bytes each. Concurrent client-observed response times were 436, 490 and 492 ms. The feature change selects this single endpoint for the existing query profile. CI and live CQL acceptance are pending. No source settings, receipts or fixture records changed.

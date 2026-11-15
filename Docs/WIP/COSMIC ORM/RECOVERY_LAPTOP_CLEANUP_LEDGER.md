@@ -6765,3 +6765,5 @@ Web4Site 5fa63a71df5d used a temporary directory containing only committed websi
 - Axelar and Connext live checks reused the existing visitor and public records. Nostr qualification used remote CI and temporary Git indexes. No local runtime download or build outputs were created.
 
 - Axelar historical-height REST checks ran as bounded, read-only requests in the existing Railway container. Bodies were validated in memory. No download, local service or build output was created.
+
+- Exact Nostr relay probes used the existing Railway container and retained IDs in memory. No local downloads or outputs. The Axelar candidate Git index was temporary and removed when the command completed.
