@@ -1161,18 +1161,18 @@ public sealed partial class HyperDriveProviderExecutionTests
         var holon = new Holon { Id = holonId };
         current.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
         DeclareLeafChildReadContract(injected);
-        injected.Setup(x => x.LoadHolonAsync(holonId, false, true, 0, true, false, 0))
+        injected.Setup(x => x.LoadHolonAsync(holonId, true, true, 0, true, false, 0))
             .ReturnsAsync(new OASISResult<IHolon> { Result = holon });
         providerManager.RegisterProvider(current.Object);
         providerManager.SetAndActivateCurrentStorageProvider(current.Object).IsError.Should().BeFalse();
 
         var manager = new HolonManager(injected.Object, dna, providerManager);
-        var result = await manager.LoadHolonAsync(holonId);
+        var result = await manager.LoadHolonAsync(holonId, loadChildren: true);
 
         result.IsError.Should().BeFalse(result.Message);
         result.Result.Should().NotBeSameAs(holon);
         result.Result.Id.Should().Be(holon.Id);
-        injected.Verify(x => x.LoadHolonAsync(holonId, false, true, 0, true, false, 0), Times.Once);
+        injected.Verify(x => x.LoadHolonAsync(holonId, true, true, 0, true, false, 0), Times.Once);
         current.Verify(x => x.LoadHolonAsync(It.IsAny<Guid>(), It.IsAny<bool>(), It.IsAny<bool>(),
             It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<int>()), Times.Never);
         providerManager.CurrentStorageProviderType.Value.Should().Be(ProviderType.MongoDBOASIS);

@@ -1,5 +1,7 @@
 # Current provider status
 
+15 November Cancun time. HyperDrive contract run 43695950232 improved to 991 passed and two failed. The two remaining cases now explicitly exercise eager read detachment and expect empty persisted place-visit history after an acknowledged write failure. Verification is pending. The native Files ownership check is running in 43696677302.
+
 15 November Cancun time. The scoped Files byte-fix candidate 9b3875d92187 preserves Development Core. Source review then found file-by-ID operations lacked a stored owner check. The task branch adds the shared owner check and native cross-avatar assertions. Advance the Files deployment candidate after that regression passes.
 
 15 November Cancun time. WEB4 served Development 3a0542795eda successfully on Railway dev. The signed-in empty Messages summary returned the expected counters and the anonymous request was denied. The focused native Files fix remains on the provider branch pending a scoped WEB4 rollout.

@@ -39,7 +39,16 @@ public sealed partial class HyperDriveProviderExecutionTests
         provider.Setup(p=>p.SaveAvatarDetailAsync(It.IsAny<IAvatarDetail>())).ReturnsAsync((IAvatarDetail row)=>{profile=row;return new OASISResult<IAvatarDetail>(row){IsSaved=true,SavedCount=1};});
         var place=new PlaceVisitRecord{PlaceId="osm:node:123",Name="Owned Yoga Venue",Category="Yoga",Latitude=21,Longitude=-86};
         var first=await manager.ObservePlaceVisitAsync(avatar,place,true,firstId);
-        if(failSave){Assert.True(first.IsError);Assert.Empty(stored);Assert.True((await manager.GetPlaceVisitsAsync(avatar)).IsError);return;}
+        if (failSave)
+        {
+            Assert.True(first.IsError, first.Message);
+            Assert.Empty(stored);
+            var historyAfterFailure = await manager.GetPlaceVisitsAsync(avatar);
+            Assert.False(historyAfterFailure.IsError, historyAfterFailure.Message);
+            Assert.Empty(historyAfterFailure.Result);
+            Assert.Empty(stored);
+            return;
+        }
         Assert.False(first.IsError,first.Message);Assert.Equal(100,first.Result.Karma);
         var restarted=new KarmaManager(provider.Object,dna,providers);
         var replay=await restarted.ObservePlaceVisitAsync(avatar,place,true,firstId);Assert.Equal(firstId,replay.Result.Id);
