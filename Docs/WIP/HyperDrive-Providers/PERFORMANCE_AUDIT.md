@@ -1,5 +1,7 @@
 # OPORTAL and HyperDrive performance audit
 
+15 November Cancun time. OPORTAL dashboard task commit 3dece75 removes one unauthorized ONET statistics request from each ordinary-avatar dashboard initialization. The exact release-tree test confirms zero ONET calls for a User and one call with a reported zero for Wizard enum value 0. NFT, GeoNFT, Holon, Games and Clan counts distinguish unavailable results from native empty lists, and failed map totals finish loading. This reduces request fan-out by one for ordinary avatars. Overall browser load-time improvement has not been measured for this batch.
+
 15 November Cancun time. The OPORTAL dashboard previously retained its initial Gifts count after the inbox changed. The new UI uses the same-avatar inbox result without another HTTP request. The controlled regression verifies the count transitions from one unopened gift to one opened gift and proves that an older summary cannot overwrite it.
 
 15 November Cancun time. OPORTAL dev's live Gifts card returned response headers in 480 ms, requested the summary once and skipped the full inbox read during dashboard startup. This signed empty-account test used real WEB4 and a controlled DOM. It does not measure browser paint or a populated inbox.

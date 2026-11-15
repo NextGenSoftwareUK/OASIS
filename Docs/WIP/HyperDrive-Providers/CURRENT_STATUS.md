@@ -1,5 +1,7 @@
 # Current provider status
 
+15 November Cancun time. OPORTAL 3dece75 removes the unauthorized ONET request from ordinary-avatar dashboard startup, preserves the Wizard statistics request, and distinguishes unavailable counts from native zero. Combined portal release candidate 18a1cc2cb764 includes that change and the already signed MongoDB and SQLite delete fix. The exact candidate passed the subscription, Data and ONET checks. Deployment awaits the shared portal dev interval.
+
 15 November Cancun time. OPORTAL f499936 binds the confirmed delete to the displayed provider and its native revision, uses the SDK's metered WEB4 DELETE route and retains the operation identity for an unchanged retry. Exact portal dev candidate 4405800664be passed the subscription, Data and ONET checks. Its portal confirmation and shipping SDK rejected a stale revision with HTTP 409 on both MongoDB and SQLite, then hard-deleted the valid revision on each selected database. Independent signed reads returned OASIS_RECORD_NOT_FOUND and WEB4 confirmed deletion of both sandbox avatars. The change awaits the next portal dev deployment window.
 
 15 November Cancun time. Combined OPORTAL dev b5bc584608e2 is serving. The public portal serves the exact qualified configuration, Data, Avatar and ONET scripts and all three changed modal fragments. The accepted OPORTAL database form uses WEB4 POST /api/data/save-holon. The separate chain-anchor API, authorized ONET peer acceptance and hosted Stripe payment return remain open.
