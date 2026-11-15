@@ -1,5 +1,9 @@
 # Current provider status
 
+15 November Cancun time. The [Algorand replacement provider run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43743427722) passed in 422 ms with zero skips. It published distinct records, reopened current and historical versions, and discovered both encrypted identities through Algod. The fixture verified teardown. Revision b55b6a98fc19 adds standard collection and parent reads with bounded concurrent lookups. Its [native provider run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43743852560) is queued.
+
+15 November Cancun time. The shared Development review found peer revision dc24072806f6 queued on WEB4 at 17:54:16 UTC. The next shared review starts after 18:24:16 UTC, subject to successful rollout and the remote head.
+
 15 November Cancun time. [Algorand descriptor contract qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43743043443) passed. The first provider run received HTTP 400 publishing its second distinct record. 80d7678b1dbd verifies application balance and the exact box allocation cost before staging and preserves the Algod rejection reason. [Replacement provider qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43743427722) is running.
 
 15 November Cancun time. [Algorand soft delete](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43742564963) passed one native test with zero skips in 302 ms, including the actor, repeated delete and earlier live revision. The runner verified teardown. Algorand 89bcfbf2935d publishes an encrypted discovery descriptor atomically with the head and binds enumeration to the declared ledger and application. Its [provider](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43743034894) and [contract](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43743043443) qualifications are running.
