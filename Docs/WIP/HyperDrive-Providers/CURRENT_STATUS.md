@@ -1,5 +1,11 @@
 # Current provider status
 
+15 November Cancun time. WEB4 42561325fd6c is serving in Railway dev. A signed disposable Free avatar received HTTP 200 in 351 ms, a 30,000-request allowance and zero charge. WEB4 confirmed fixture deletion. The separate excess-request candidate remains staged for the 16:17:16 UTC review.
+
+15 November Cancun time. OPORTAL 0bcf4c9 keeps daily chart responses scoped to the usage summary that requested them and displays failures for the affected sections. Exact dev candidate 1a76acecebd0 passed the full subscription suite, including a late chart response and a failed estimate. It remains staged for the backend excess-request rollout.
+
+15 November Cancun time. The [native Solid lifecycle run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43732716701) activated synchronously on its real fresh Pod and reached the collection read, which returned an application error. The [focused diagnostic run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43733269589) exposes the underlying provider exception. Fresh-Pod collection acceptance is open.
+
 15 November Cancun time. [Exact Free estimate follow-up qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43732089472) passed. WEB4 42561325fd6c is still building on Railway. Review the next scoped Development batch after 16:17:16 UTC, subject to the current shared head and rollout.
 
 15 November Cancun time. [Solid synchronous lifecycle qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43732716701) is queued with a private native Pod. The first run stopped before provisioning because its reviewed test baseline predated the accepted Solid routing changes. The replacement baseline includes those changes and retains the input guard. The existing routing evidence carries forward.
