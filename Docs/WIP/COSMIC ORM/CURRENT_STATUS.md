@@ -2,7 +2,7 @@
 
 ## Default-comparer selected scalar Distinct meets Q52
 
-15 November. The native three-store step in [CI 43728756756](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43728756756) passed Single, Double, HolonType and ProviderType. Together with earlier evidence this covers every registered scalar key domain, and Q52 is marked verified on SQLite, MongoDB and Neo4j. Each provider now has 49 of 164 verified parity rows. The feature uses the existing native scalar domain registry. The exact all-domain build and live rollout are separate gates. MongoDB grouped Decimal SUM and AVG remain under investigation in [CI 43729435801](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43729435801).
+15 November. The native three-store step in [CI 43728756756](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43728756756) passed Single, Double, HolonType and ProviderType. Together with earlier evidence this covers every registered scalar key domain, and Q52 is marked verified on SQLite, MongoDB and Neo4j. Each provider now has 49 of 164 verified parity rows. The feature uses the existing native scalar domain registry. The full all-domain protocol run passed on exact 8b85f3d96a20. [Exact WEB4 image 43730307284](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43730307284) is queued. The smaller verified populated-grouping candidate retains its separate rollout gate; the all-domain live rollout remains open. MongoDB grouped Decimal SUM and AVG remain under investigation in [CI 43729435801](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43729435801).
 
 ## Exact metadata aggregates and MongoDB Decimal failure
 
