@@ -71,6 +71,74 @@ public partial class AlgorandOASIS
         return result;
     }
 
+    private async Task<bool> DeleteEnrolledAvatarSoftlyAsync(Guid id, AlgorandRecordBoxSettings settings,
+        CancellationToken cancellationToken)
+    {
+        using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        deadline.CancelAfter(_algod.Timeout);
+        var token = deadline.Token;
+        var avatarRead = LoadStoredRecordAsync<Avatar, IAvatar>(id, 0, "avatar", token);
+        var detailRead = LoadStoredRecordAsync<AvatarDetail, IAvatarDetail>(id, 0, "avatar-detail", token);
+        await Task.WhenAll(avatarRead, detailRead).ConfigureAwait(false);
+        var avatarResult = await avatarRead.ConfigureAwait(false);
+        var detailResult = await detailRead.ConfigureAwait(false);
+        if (avatarResult.ErrorCode == OASISResultErrorCodes.RecordNotFound)
+            return false;
+        if (avatarResult.IsError || avatarResult.Result == null)
+            throw new InvalidDataException(avatarResult.Message, avatarResult.Exception);
+        if (detailResult.IsError && detailResult.ErrorCode != OASISResultErrorCodes.RecordNotFound)
+            throw new InvalidDataException(detailResult.Message, detailResult.Exception);
+
+        var avatar = avatarResult.Result;
+        var detail = detailResult.Result ?? new AvatarDetail { Id = id };
+        if (avatar.IsDeleted && detail.IsDeleted &&
+            avatar.DeletedDate == detail.DeletedDate && avatar.DeletedByAvatarId == detail.DeletedByAvatarId)
+            return true;
+
+        var avatarVersion = avatar.Version;
+        var detailVersion = detail.Version;
+        var deletedAt = avatar.IsDeleted ? avatar.DeletedDate : DateTime.UtcNow;
+        SetDeleted(avatar, deletedAt, avatar.DeletedByAvatarId);
+        SetDeleted(detail, deletedAt, avatar.DeletedByAvatarId);
+        var avatarPrepare = PreparePublicationAsync<Avatar, IAvatar>(settings, avatar, avatarVersion, "avatar", token);
+        var detailPrepare = PreparePublicationAsync<AvatarDetail, IAvatarDetail>(settings, detail, detailVersion, "avatar-detail", token);
+        await Task.WhenAll(avatarPrepare, detailPrepare).ConfigureAwait(false);
+        var avatarPublication = await avatarPrepare.ConfigureAwait(false);
+        var detailPublication = await detailPrepare.ConfigureAwait(false);
+
+        PositionPublication(avatarPublication.Calls, 0);
+        PositionPublication(detailPublication.Calls, avatarPublication.Calls.Length);
+        var funding = checked(avatarPublication.Funding + detailPublication.Funding);
+        await EnsureRecordApplicationFundingAsync(settings, funding, token).ConfigureAwait(false);
+        await SubmitBoxCallsAsync(settings, [..avatarPublication.Calls, ..detailPublication.Calls], token)
+            .ConfigureAwait(false);
+        await Task.WhenAll(VerifyPublicationAsync(settings, avatarPublication, token),
+            VerifyPublicationAsync(settings, detailPublication, token)).ConfigureAwait(false);
+        return true;
+    }
+
+    private static void SetDeleted(IHolonBase record, DateTime deletedAt, Guid deletedBy)
+    {
+        record.DeletedDate = deletedAt;
+        record.DeletedByAvatarId = deletedBy;
+        record.IsActive = false;
+        record.PreviousVersionId = record.VersionId;
+    }
+
+    private static void PositionPublication(AlgorandBoxTransaction.Call[] calls, int firstStage)
+    {
+        var publishIndex = calls.Length - 1;
+        var stageTargetArg = new byte[8];
+        var firstStageArg = new byte[8];
+        BinaryPrimitives.WriteUInt64BigEndian(stageTargetArg, (ulong)(firstStage + publishIndex));
+        BinaryPrimitives.WriteUInt64BigEndian(firstStageArg, (ulong)firstStage);
+        for (var index = 0; index < calls.Length; index++)
+        {
+            var call = calls[index];
+            calls[index] = call with { Arguments = [..call.Arguments, index == publishIndex ? firstStageArg : stageTargetArg] };
+        }
+    }
+
     private async Task<bool> DeleteEnrolledAvatarPermanentlyAsync(Guid id, AlgorandRecordBoxSettings settings,
         CancellationToken cancellationToken)
     {

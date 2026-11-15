@@ -289,9 +289,10 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
                     throw new InvalidOperationException("Activate an enrolled Algorand record writer before deleting an avatar.");
                 if (id == Guid.Empty)
                     throw new ArgumentException("An enrolled Algorand avatar ID is required.", nameof(id));
-                if (softDelete)
-                    throw new NotSupportedException("Algorand enrolled avatar soft deletion is unavailable.");
-                if (!await DeleteEnrolledAvatarPermanentlyAsync(id, settings, CancellationToken.None).ConfigureAwait(false))
+                var deleted = softDelete
+                    ? await DeleteEnrolledAvatarSoftlyAsync(id, settings, CancellationToken.None).ConfigureAwait(false)
+                    : await DeleteEnrolledAvatarPermanentlyAsync(id, settings, CancellationToken.None).ConfigureAwait(false);
+                if (!deleted)
                     return new OASISResult<bool>
                     {
                         IsError = true,
