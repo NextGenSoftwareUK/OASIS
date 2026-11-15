@@ -1,5 +1,7 @@
 # Current provider status
 
+15 November Cancun time. OPORTAL b63f723 shares one session refresh, makes 401 handling call the actual refresh function, waits for an active refresh at sign-out, and revokes the resulting refresh credential through the authenticated SDK. The signed WEB4 test verified refresh, revoke, rejected reuse of the rotated credential, and clearing of the portal session. Exact portal candidates are dev 2e4da8ad884f and production b6bf4791da50. They remain staged with their subscription assets.
+
 15 November Cancun time. OPORTAL b611d02 consolidates dashboard and avatar popup hydration into one request through the signed SDK ID endpoint. The live controlled-browser probe shared one HTTP 200 read in 339 ms and published one matching avatar update. The session-change and wrong-owner regressions passed. On dev c9b6687fcff5 and production 4653df4c39cb the same files are staged with the OAPP and subscription batch.
 
 15 November Cancun time. Combined Development candidate 807623f716cd contains the six previously qualified Free estimate and Solid paths on shared parent 232e68a7f98b. Blob comparisons show each scope is unchanged and separate. The candidate remains subject to the shared 16:47:38 UTC window and the prior rollout. The [exact WEB5 image build](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43735619550) passed on separate candidate c47940d16a9b. Cold live OAPP search verification awaits its scoped release.
