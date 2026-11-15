@@ -1,5 +1,7 @@
 # OPORTAL and HyperDrive performance audit
 
+15 November Cancun time. The serving WEB4 dev plan catalogue returned five plans and 1643 bytes in four uncached samples of 859, 720, 384 and 433 ms. The server previously started three Stripe price reads for every catalogue request. The new reader retains only successful validated prices for 30 seconds, deduplicates concurrent reads, and refreshes on config changes. The benchmark above is baseline timing. Hosted comparison awaits deployment.
+
 15 November Cancun time. Signed OPORTAL dev dashboard code requested Files, Wallets and Messages once each through the published SDK even when initialized twice. Real WEB4 response headers arrived in 542 ms, 541 ms and 537 ms respectively, and each card rendered zero for the empty account. These are from one run and exclude browser paint. Populated UI timing and production compact API availability remain open.
 
 15 November Cancun time. Compared the serving WEB4 dev and production API contracts before promoting dashboard code. Dev advertises the compact Files, Wallet and Messages reads. Production has none of those three routes yet. Gifts summary still awaits the verified dev batch in both environments. Map stats are available in both. These deployment differences determine when the dashboard can switch from list reads to compact counts.

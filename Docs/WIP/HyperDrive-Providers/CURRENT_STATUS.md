@@ -1,5 +1,7 @@
 # Current provider status
 
+15 November Cancun time. The WEB4 subscription plan price reader now shares validated Stripe price reads for 30 seconds per configured price and Stripe account. Concurrent catalogue opens share a refresh. Changing the configured price ID or Stripe account invalidates the cached value immediately. Checkout uses the native Stripe path. Focused cache verification and serving timing are pending.
+
 15 November Cancun time. OPORTAL dev be551234c06b passed Vercel deployment and serves dashboard 20261115e. The deployed dashboard and bundled SDK used a disposable signed-in WEB4 avatar. Opening the dashboard twice produced one compact request each for Files, Wallets and Messages. All three returned HTTP 200 and showed zero for the empty avatar. The fixture was deleted. The browser DOM was controlled, and the backend requests were real.
 
 15 November Cancun time. The shipping Algorand account projection requests Algod's compact account response, validates the returned address and status, and records the native round instead of treating the lookup time as an account timestamp. A direct mainnet sample returned 405 bytes with holdings excluded and 477 bytes with the default response. The provider rerun passed in 43713037869, covering both entry points, the native round and stable identity. [Algod account information](https://dev.algorand.co/reference/rest-api/algod/operations/accountinformation/)
