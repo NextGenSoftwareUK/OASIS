@@ -275,12 +275,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
 
         public override OASISResult<IAvatar> SaveAvatar(IAvatar avatar) => SaveAvatarAsync(avatar).Result;
 
-        public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatarDetail)
-        {
-            var result = new OASISResult<IAvatarDetail>();
-            OASISErrorHandling.HandleError(ref result, "AlgorandOASIS: SaveAvatarDetail is not supported.");
-            return await Task.FromResult(result);
-        }
+        public override Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatarDetail)
+            => SaveStoredRecordAsync<AvatarDetail, IAvatarDetail>(avatarDetail,
+                avatarDetail is { Version: > 0 } ? avatarDetail.Version - 1 : 0, "avatar-detail");
 
         public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail avatarDetail) =>
             SaveAvatarDetailAsync(avatarDetail).Result;
@@ -327,12 +324,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
 
         // ─── Avatar Detail ────────────────────────────────────────────────────────
 
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
-        {
-            var result = new OASISResult<IAvatarDetail>();
-            OASISErrorHandling.HandleError(ref result, "AlgorandOASIS: Use LoadAvatarDetailByUsernameAsync(address) instead.");
-            return await Task.FromResult(result);
-        }
+        public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
+            => LoadStoredRecordAsync<AvatarDetail, IAvatarDetail>(id, version, "avatar-detail");
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0) =>
             LoadAvatarDetailAsync(id, version).Result;
@@ -360,12 +353,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string avatarEmail, int version = 0) =>
             LoadAvatarDetailByEmailAsync(avatarEmail, version).Result;
 
-        public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IAvatarDetail>>();
-            OASISErrorHandling.HandleError(ref result, "AlgorandOASIS: LoadAllAvatarDetails is not supported.");
-            return await Task.FromResult(result);
-        }
+        public override Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
+            => LoadEnrolledAvatarDetailsAsync(version);
 
         public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0) =>
             LoadAllAvatarDetailsAsync(version).Result;

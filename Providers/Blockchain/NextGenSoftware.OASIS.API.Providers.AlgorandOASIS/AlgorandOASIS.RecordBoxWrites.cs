@@ -58,8 +58,14 @@ public partial class AlgorandOASIS
 
     public async Task<OASISResult<IHolon>> SaveStoredHolonAsync(IHolon holon, int expectedVersion,
         CancellationToken cancellationToken = default)
+        => await SaveStoredRecordAsync<Holon, IHolon>(holon, expectedVersion, "holon", cancellationToken).ConfigureAwait(false);
+
+    private async Task<OASISResult<TContract>> SaveStoredRecordAsync<TRecord, TContract>(TContract holon, int expectedVersion,
+        string kind, CancellationToken cancellationToken = default)
+        where TRecord : class, TContract
+        where TContract : class, IHolonBase
     {
-        var result = new OASISResult<IHolon>();
+        var result = new OASISResult<TContract>();
         try
         {
             var settings = _recordBoxes;
@@ -71,34 +77,36 @@ public partial class AlgorandOASIS
                 throw new ArgumentException("The proposed record must have a stable OASIS ID.", nameof(holon));
 
             var id = holon.Id;
-            var proposal = OasisJson.DeserializeStored<Holon>(OasisJson.Serialize(holon));
+            var proposal = OasisJson.DeserializeStored<TRecord>(OasisJson.Serialize(holon));
             if (proposal == null || proposal.Id != id)
                 throw new InvalidDataException("Could not snapshot the proposed record identity.");
             using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             deadline.CancelAfter(_algod.Timeout);
             var token = deadline.Token;
-            var key = StoredHolonBoxKey(settings, id);
+            var key = StoredRecordBoxKey(settings, id, kind);
             byte[] headName = [(byte)'h', ..key];
             var head = await ReadBoxAsync(settings, headName, token).ConfigureAwait(false);
             if (head?.Length == PurgeCheckpointLength)
                 throw new InvalidOperationException("The Algorand record is fenced for permanent deletion.");
-            using var codec = new EncryptedRecordCodec(settings.StorageKey);
-            var current = head == null ? null : (await ReadStoredHolonAsync(settings, id, key,
-                head, codec, token).ConfigureAwait(false)).Record;
+            using var codec = new EncryptedRecordCodec(settings.StorageKey, compress: kind == "avatar-detail");
+            var current = head == null ? null : (await ReadStoredRecordAsync<TRecord>(settings, id, key,
+                head, codec, kind, token).ConfigureAwait(false)).Record;
             if ((current?.Version ?? 0) != expectedVersion)
                 throw new InvalidOperationException("The requested Algorand predecessor version is no longer current.");
+            if (kind == "avatar-detail" && proposal.PreviousVersionId != (current?.VersionId ?? Guid.Empty))
+                throw new InvalidOperationException("The proposed Algorand avatar detail does not reference the current predecessor.");
             var version = checked(expectedVersion + 1);
             if (proposal.VersionId == Guid.Empty || proposal.Version != version || proposal.VersionId == current?.VersionId)
                 proposal.VersionId = Guid.NewGuid();
             proposal.PreviousVersionId = current?.VersionId ?? Guid.Empty;
             proposal.Version = version;
-            proposal.Children = [];
+            if (proposal is IHolon graph) graph.Children = [];
             proposal.IsNewHolon = false;
             proposal.ProviderUniqueStorageKey ??= [];
             proposal.ProviderUniqueStorageKey[Core.Enums.ProviderType.AlgorandOASIS] = id.ToString("D");
 
             var revision = RandomNumberGenerator.GetBytes(HashLength);
-            var envelope = StrictUtf8.GetBytes(codec.Encrypt(StoredHolonContext(settings, id, revision),
+            var envelope = StrictUtf8.GetBytes(codec.Encrypt(StoredRecordContext(settings, id, revision, kind),
                 OasisJson.Serialize(proposal), token));
             if (envelope.Length > MaximumChunks * MaximumChunkLength)
                 throw new InvalidDataException("The encrypted Algorand record exceeds the contract's publication limit.");
@@ -109,10 +117,10 @@ public partial class AlgorandOASIS
             names[1] = BoxName('m', [..key, ..revision]);
             names[2] = [(byte)'d', ..key];
             var descriptor = head == null
-                ? StrictUtf8.GetBytes(codec.Encrypt(DiscoveryContext(settings, key), id.ToString("D"), token))
+                ? StrictUtf8.GetBytes(codec.Encrypt(DiscoveryContext(settings, key), kind == "holon" ? id.ToString("D") : $"{kind}:{id:D}", token))
                 : await ReadBoxAsync(settings, names[2], token).ConfigureAwait(false)
                     ?? throw new InvalidDataException("The Algorand record is missing its discovery descriptor.");
-            if (DecodeDiscoveredId(settings, codec, key, descriptor, token) != id)
+            if (DecodeDiscoveredRecord(settings, codec, key, descriptor, token) != (kind, id))
                 throw new InvalidDataException("The Algorand discovery descriptor identifies a different record.");
             await EnsureRecordApplicationFundingAsync(settings, head?.Length, envelope.Length,
                 count, descriptor.Length, token).ConfigureAwait(false);

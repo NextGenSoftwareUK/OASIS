@@ -43,20 +43,26 @@ public partial class AlgorandOASIS
 
     public async Task<OASISResult<IHolon>> LoadStoredHolonAsync(Guid id, int version = 0,
         CancellationToken cancellationToken = default)
+        => await LoadStoredRecordAsync<Holon, IHolon>(id, version, "holon", cancellationToken).ConfigureAwait(false);
+
+    private async Task<OASISResult<TContract>> LoadStoredRecordAsync<TRecord, TContract>(Guid id, int version,
+        string kind, CancellationToken cancellationToken = default)
+        where TRecord : class, TContract
+        where TContract : class, IHolonBase
     {
-        var result = new OASISResult<IHolon>();
+        var result = new OASISResult<TContract>();
         try
         {
             if (_recordBoxes == null || !IsProviderActivated)
-                throw new InvalidOperationException("Activate an enrolled Algorand record application before reading stored holons.");
+                throw new InvalidOperationException("Activate an enrolled Algorand record application before reading records.");
             if (id == Guid.Empty)
-                throw new ArgumentException("A stored holon ID is required.", nameof(id));
+                throw new ArgumentException("A stored record ID is required.", nameof(id));
             ArgumentOutOfRangeException.ThrowIfNegative(version);
 
             using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             deadline.CancelAfter(_algod.Timeout);
             var settings = _recordBoxes;
-            var key = StoredHolonBoxKey(settings, id);
+            var key = StoredRecordBoxKey(settings, id, kind);
             var manifest = await ReadBoxAsync(settings, [(byte)'h', ..key], deadline.Token).ConfigureAwait(false);
             if (manifest?.Length == PurgeCheckpointLength)
                 manifest = null;
@@ -66,8 +72,8 @@ public partial class AlgorandOASIS
             {
                 if (depth == MaximumHistoryDepth)
                     throw new InvalidDataException("Algorand history exceeds its traversal limit.");
-                var (record, previousRevision, previousDigest) = await ReadStoredHolonAsync(settings, id, key,
-                    manifest, codec, deadline.Token).ConfigureAwait(false);
+                var (record, previousRevision, previousDigest) = await ReadStoredRecordAsync<TRecord>(settings, id, key,
+                    manifest, codec, kind, deadline.Token).ConfigureAwait(false);
                 if (record.Version <= 0 || (lastVersion.HasValue && record.Version >= lastVersion.Value))
                     throw new InvalidDataException("The Algorand record has an invalid version sequence.");
                 lastVersion = record.Version;
@@ -88,7 +94,7 @@ public partial class AlgorandOASIS
             }
             result.IsError = true;
             result.ErrorCode = OASISResultErrorCodes.RecordNotFound;
-            result.Message = "The requested Algorand holon or version was not found.";
+            result.Message = "The requested Algorand record or version was not found.";
         }
         catch (Exception exception) when (exception is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
         {
@@ -126,6 +132,11 @@ public partial class AlgorandOASIS
     private async Task<(Holon Record, byte[] PreviousRevision, byte[] PreviousDigest)> ReadStoredHolonAsync(
         AlgorandRecordBoxSettings settings, Guid id, byte[] key, byte[] manifest, EncryptedRecordCodec codec,
         CancellationToken cancellationToken)
+        => await ReadStoredRecordAsync<Holon>(settings, id, key, manifest, codec, "holon", cancellationToken).ConfigureAwait(false);
+
+    private async Task<(TRecord Record, byte[] PreviousRevision, byte[] PreviousDigest)> ReadStoredRecordAsync<TRecord>(
+        AlgorandRecordBoxSettings settings, Guid id, byte[] key, byte[] manifest, EncryptedRecordCodec codec,
+        string kind, CancellationToken cancellationToken) where TRecord : class, IHolonBase
     {
         var hashBytes = manifest.Length - ManifestHeaderLength;
         if (hashBytes < HashLength || hashBytes > MaximumChunks * HashLength || hashBytes % HashLength != 0)
@@ -157,11 +168,11 @@ public partial class AlgorandOASIS
                 throw new InvalidDataException("An Algorand chunk does not match the committed digest.");
             encrypted.Write(chunk);
         }
-        var json = codec.Decrypt(StoredHolonContext(settings, id, revision),
+        var json = codec.Decrypt(StoredRecordContext(settings, id, revision, kind),
             StrictUtf8.GetString(encrypted.ToArray()), cancellationToken);
-        var record = OasisJson.DeserializeStored<Holon>(json);
+        var record = OasisJson.DeserializeStored<TRecord>(json);
         if (record == null || record.Id != id)
-            throw new InvalidDataException("The Algorand record does not match the requested holon identity.");
+            throw new InvalidDataException("The Algorand record does not match the requested identity.");
         return (record, previousRevision, previousDigest);
     }
 
@@ -188,10 +199,10 @@ public partial class AlgorandOASIS
     private static byte[] BoxName(char prefix, byte[] material)
         => [(byte)prefix, ..SHA256.HashData(material)];
 
-    private static byte[] StoredHolonBoxKey(AlgorandRecordBoxSettings settings, Guid id)
-        => HMACSHA256.HashData(settings.StorageKey, StrictUtf8.GetBytes($"oasis:algorand:box:v1:holon:{id:D}"));
+    private static byte[] StoredRecordBoxKey(AlgorandRecordBoxSettings settings, Guid id, string kind = "holon")
+        => HMACSHA256.HashData(settings.StorageKey, StrictUtf8.GetBytes($"oasis:algorand:box:v1:{kind}:{id:D}"));
 
-    private static string StoredHolonContext(AlgorandRecordBoxSettings settings, Guid id, byte[] revision)
+    private static string StoredRecordContext(AlgorandRecordBoxSettings settings, Guid id, byte[] revision, string kind)
         => FormattableString.Invariant(
-            $"oasis:algorand:v1:{settings.GenesisHash}:{settings.ApplicationId}:holon:{id:D}:{Convert.ToHexString(revision)}");
+            $"oasis:algorand:v1:{settings.GenesisHash}:{settings.ApplicationId}:{kind}:{id:D}:{Convert.ToHexString(revision)}");
 }
