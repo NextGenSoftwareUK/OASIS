@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## Native Distinct on exact nullable UTC timestamps
+
+15 November. Core f4e3929e3197 and parent feature e45c945b1219 admit nullable UTC DateTime values for selected native Distinct. The existing three-store fixture now uses adjacent 100 ns timestamps, repeated timestamps, and missing nullable values. Exact [native protocol CI 43724444186](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43724444186) qualifies fecb66e43741 after the Int64 candidate. This is pending native acceptance. HyperDrive b9808ae777b8 is serving, and the [Int64 image 43723982906](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43723982906) is building. The deployment check requires the exact successful image and the shared 30-minute window, and aborts if another Development commit appears.
+
 ## SQL comments in the sandbox editor
 
 15 November. Web4Site bb5e3ec82a5b supports line and block comments in a single SQL-like statement. All 206 website tests passed. On live Development the exact editor produced the same Fhenix request with comments as without them, and the native and MongoDB-federated queries matched three IDs. [Protected preview 7804644764](https://web4-site-qn8lpcq1u-oasis-team.vercel.app/web4-sandbox.html) built. Signed-in hosted browser acceptance remains open. The temporary parser and full suite snapshots were removed. A read-only Fhenix sample of three requests per route on serving revision 3c52429ba542 measured client-to-HTTP medians of 1,532 ms native (1,532, 1,559, 1,486) and 1,680 ms MongoDB-federated (1,680, 1,711, 1,639). Every request returned three rows. These timings are a baseline for this cohort.
