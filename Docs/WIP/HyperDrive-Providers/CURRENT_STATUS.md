@@ -1,5 +1,7 @@
 # Current provider status
 
+15 November Cancun time. The Files owner/type predicate change is on 6a42ddbf09f8. Focused native runs 43697509783 and 43697512256 cover the changed MongoDB-to-SQLite upload/list path and SQLite materialization. The separate Files byte and ownership image run 43697065571 is still pending. No local builds or databases were used for these dispatches.
+
 15 November Cancun time. The MongoDB-to-SQLite Files ownership regression passed in 43696677302. Scoped WEB4 candidate 07fd2fc5a661 carries the byte and owner fixes over the serving Development revision, with exact image run 43697065571 pending. The contract rerun after the two fixture corrections is 43696889331.
 
 15 November Cancun time. HyperDrive contract run 43695950232 improved to 991 passed and two failed. The two remaining cases now explicitly exercise eager read detachment and expect empty persisted place-visit history after an acknowledged write failure. Verification is pending. The native Files ownership check is running in 43696677302.
