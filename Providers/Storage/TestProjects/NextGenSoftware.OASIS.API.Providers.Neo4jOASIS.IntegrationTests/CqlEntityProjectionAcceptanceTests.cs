@@ -29,12 +29,12 @@ public sealed partial class CqlProjectedAllAcceptanceTests
 
     private static Holon CreateEntityProjectionFixture(Guid[] ids,Guid actor,Guid other)
     {
-        var root=new Holon{Id=ids[0],Name="protected source root",CreatedByAvatarId=actor,IsPublic=true,Version=1,
+        var root=new Holon{Id=ids[0],Name="protected source root",Description="Case",CreatedByAvatarId=actor,IsPublic=true,Version=1,
             MetaData=new(){["i64"]=9007199254740993L,["u64"]=ulong.MaxValue,["decimal"]=1.0000000000000000000000000001m,["float"]=1f+1.1920929e-7f,["double"]=1d+2.220446049250313e-16d,["presentNull"]=null,["text"]="Café 😀"}};
-        root.Children.Add(new Holon{Id=ids[1],ParentHolonId=root.Id,Name="visible match",CreatedByAvatarId=actor,IsPublic=true,Version=1});
-        var branch=new Holon{Id=ids[2],ParentHolonId=root.Id,Name="private branch",CreatedByAvatarId=other,Version=1};
-        branch.Children.Add(new Holon{Id=ids[3],ParentHolonId=branch.Id,Name="grandchild one",CreatedByAvatarId=other,IsPublic=true,Version=1});
-        branch.Children.Add(new Holon{Id=ids[4],ParentHolonId=branch.Id,Name="grandchild two",CreatedByAvatarId=other,IsPublic=true,Version=1});
+        root.Children.Add(new Holon{Id=ids[1],ParentHolonId=root.Id,Name="visible match",Description="Case",CreatedByAvatarId=actor,IsPublic=true,Version=1});
+        var branch=new Holon{Id=ids[2],ParentHolonId=root.Id,Name="private branch",Description=null,CreatedByAvatarId=other,Version=1};
+        branch.Children.Add(new Holon{Id=ids[3],ParentHolonId=branch.Id,Name="grandchild one",Description="case",CreatedByAvatarId=other,IsPublic=true,Version=1});
+        branch.Children.Add(new Holon{Id=ids[4],ParentHolonId=branch.Id,Name="grandchild two",Description=null,CreatedByAvatarId=other,IsPublic=true,Version=1});
         root.Children.Add(branch);return root;
     }
 
