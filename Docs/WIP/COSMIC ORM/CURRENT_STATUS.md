@@ -4,7 +4,7 @@
 
 15 November. Development Railway c9c73414 succeeded for 6ef92492c26e. On live WEB4, unordered and ordered SQL DISTINCT returned matching results for MongoDB, SQLite and Neo4j; the dedicated visitor had zero visible rows in these comparisons. Populated live DISTINCT remains open. Website 3e8e86479b19 implements key-only GROUP BY and passed 204 client tests. The exact discovery image 43716296740 passed and awaits the next shared deployment window.
 
-Native CI 43717348671 found that the MongoDB and Neo4j qualification sources had dropped the already-qualified entity input window from projected All. Both compiler entry points now pass the entity input to their native query compiler. Scalar Distinct still requires corrected exact native CI; no parity row was closed.
+Native CI 43717348671 found that the MongoDB and Neo4j qualification sources had dropped the already-qualified entity input window from projected All. Both compiler entry points now pass the entity input to their native query compiler. Scalar Distinct awaits [corrected exact native CI 43718713219](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43718713219) on 8f10699c39ee. No parity row was closed. [Protected Web4Site preview 7803985560](https://web4-site-g7r4n5lvh-oasis-team.vercel.app/web4-sandbox.html) built successfully; signed-in browser acceptance remains open.
 
 ## LINQ Distinct scalar domain verification
 
