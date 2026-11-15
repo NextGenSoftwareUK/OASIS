@@ -1,5 +1,9 @@
 # COSMIC ORM / CQL current status
 
+## SQL grouped aggregate aliases
+
+15 November. Web4Site dfc77ca9be37 allows implicit grouped aggregate labels. All 59 focused editor tests passed. Development WEB4 6ef92492c26e accepted the exact compiled COUNT and AVG with HAVING and ORDER BY on MongoDB, SQLite and Neo4j. The implicit form compiled identically to the explicit labels. The retained visitor returned zero rows. [Protected preview 7804323125](https://web4-site-cbjomzo3y-oasis-team.vercel.app/web4-sandbox.html) built. Signed-in browser acceptance and populated live coverage remain open. The disposable parser test snapshot was removed.
+
 ## Live SQL rollout and native qualification correction
 
 15 November. Development Railway c9c73414 succeeded for 6ef92492c26e. On live WEB4, unordered and ordered SQL DISTINCT returned matching results for MongoDB, SQLite and Neo4j; the dedicated visitor had zero visible rows in these comparisons. Populated live DISTINCT remains open. Website 3e8e86479b19 implements key-only GROUP BY and passed 204 client tests. Using the exact editor compiler, key-only GROUP BY generated the same grouped request as SELECT DISTINCT and live WEB4 accepted the query on MongoDB, SQLite and Neo4j. The retained visitor returned zero rows from each store. The exact discovery image 43716296740 passed. Development advanced to 3c52429ba542 after the shared window, and Railway queued the WEB4 rollout. Live discovery and queries remain gated on the exact deployment succeeding. The scalar Distinct candidate has an [exact WEB4 image build 43720025865](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43720025865) in progress.
