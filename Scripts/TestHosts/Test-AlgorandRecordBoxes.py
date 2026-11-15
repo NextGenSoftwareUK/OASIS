@@ -191,7 +191,14 @@ def run(node, wallet, handle, writer, outsider):
         legacy_revision = secrets.token_bytes(32)
         submit_group(publication(writer, legacy_key, absent, legacy_revision, [other_chunk], other_descriptor))
         assert read(b"h" + legacy_key) == legacy_revision + absent + absent + digest(other_chunk)
-        before = node.application_boxes(app)["boxes"]
+
+        def snapshot():
+            listed = node.application_boxes(app)["boxes"]
+            names = [base64.b64decode(box["name"], validate=True) for box in listed]
+            assert len(names) == len(set(names)), "Algod returned duplicate box names"
+            return {name: read(name) for name in names}
+
+        before = snapshot()
 
         def grouped(other_predecessor):
             left = publication(writer, key, absent, first_revision, chunks, descriptor, start=0)
@@ -202,9 +209,9 @@ def run(node, wallet, handle, writer, outsider):
         misdirected = grouped(absent)
         misdirected[0].app_args[-1] = (len(misdirected) - 1).to_bytes(8, "big")
         reject_group(misdirected)
-        assert node.application_boxes(app)["boxes"] == before
+        assert snapshot() == before, "A rejected group changed the application boxes"
         reject_group(grouped(secrets.token_bytes(32)))
-        assert node.application_boxes(app)["boxes"] == before
+        assert snapshot() == before, "A rejected group changed the application boxes"
         submit_group(grouped(absent))
         assert read(head) == first_revision + absent + absent + hashes
         assert read(b"h" + other_key) == other_revision + absent + absent + digest(other_chunk)
