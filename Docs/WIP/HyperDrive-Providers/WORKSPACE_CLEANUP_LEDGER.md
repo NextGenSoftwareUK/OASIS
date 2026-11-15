@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. The OPORTAL Data form and avatar checks used the existing Node runtime and read the combined release tree through Git. Candidate staging removed its temporary patch and Git index after each attempt. No disposable database, downloads, dependency installation or build output was created. C: had 24.50 GiB free at the final check.
+
 15 November Cancun time. OPORTAL Stripe return qualification read the exact release tree directly from Git. Removed the temporary index and patch and reapplied the existing sparse checkout after the task-branch suite. No dependencies, downloaded payloads, build outputs or test results were retained. C: had 24.71 GiB free after verification.
 
 15 November Cancun time. The scoped Algorand Development candidate used one temporary Git index and removed it after publication. Exact qualification uses hosted disposable LocalNet runners. No local runtime, database or build output was retained.
