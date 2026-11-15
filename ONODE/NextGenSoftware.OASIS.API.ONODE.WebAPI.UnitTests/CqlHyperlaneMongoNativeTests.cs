@@ -280,7 +280,7 @@ public sealed class CqlHyperlaneMongoNativeTests
     [AxelarMongoNativeFact]
     public Task NativeAxelarBlocksAndPrivateMongoCopiesProduceThreeTwoFiveFourOverHttp()
         => VerifyAsync(ProviderType.AxelarOASIS, "AxelarBlock", "axelar",
-            AxelarSource.HeightMetadata, AxelarSource.FromJson, Array.Empty<string>(),
+            AxelarSource.HeightMetadata, AxelarSource.FromPublicQueryConfiguration, Array.Empty<string>(),
             (native, metadata, _) =>
             {
                 Assert.Equal("axelar-dojo-1", metadata.GetProperty("AxelarChainId").GetString());
