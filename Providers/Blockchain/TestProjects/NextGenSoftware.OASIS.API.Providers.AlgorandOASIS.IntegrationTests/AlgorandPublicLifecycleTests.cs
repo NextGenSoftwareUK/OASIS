@@ -95,7 +95,7 @@ public sealed class AlgorandPublicLifecycleTests
     {
         const string address = "I3345FUQQ2GRBHFZQPLYQQX5HJMMRZMABCHRLWV6RCJYC6OO4MOLEUBEGU";
         var provider = new AlgorandOASIS("https://mainnet-api.algonode.cloud", "https://mainnet-idx.algonode.cloud");
-        var loaded = await provider.LoadHolonsForParentAsync(address, loadChildren: false);
+        var loaded = await provider.LoadHolonsForParentAsync(address, type: HolonType.Holon, loadChildren: false);
         Assert.IsFalse(loaded.IsError, loaded.Message);
         Assert.IsTrue(loaded.IsLoaded);
         var keys = loaded.Result.Select(holon => holon.ProviderUniqueStorageKey[ProviderType.AlgorandOASIS]).ToArray();
@@ -103,6 +103,12 @@ public sealed class AlgorandPublicLifecycleTests
         Assert.AreEqual(keys.Length, keys.Distinct().Count());
         Assert.AreEqual(keys.Length, loaded.LoadedCount);
         Assert.AreEqual(loaded.IsWarning ? 1 : 0, loaded.WarningCount);
+
+        var typed = await provider.LoadHolonsForParentAsync(address, type: HolonType.Avatar, loadChildren: false);
+        Assert.IsFalse(typed.IsError, typed.Message);
+        Assert.IsTrue(typed.IsLoaded);
+        Assert.AreEqual(0, typed.LoadedCount);
+        Assert.AreEqual(0, typed.Result.Count());
 
         var rejected = await provider.LoadHolonsForParentAsync("invalid-account-address", loadChildren: false);
         Assert.IsTrue(rejected.IsError);

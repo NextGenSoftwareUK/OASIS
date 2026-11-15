@@ -401,6 +401,14 @@ namespace NextGenSoftware.OASIS.API.Providers.AlgorandOASIS
             int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true,
             bool loadChildrenFromProvider = false, int version = 0)
         {
+            if (type != HolonType.All && type != HolonType.Holon)
+                return new OASISResult<IEnumerable<IHolon>>
+                {
+                    Result = Array.Empty<IHolon>(),
+                    IsLoaded = true,
+                    Message = $"AlgorandOASIS: Account history has no {type} holons."
+                };
+
             // Load transaction history for an Algorand account via the indexer
             var result = new OASISResult<IEnumerable<IHolon>>();
             try
