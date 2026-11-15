@@ -1,5 +1,11 @@
 # COSMIC ORM / CQL current status
 
+## Live Axelar recovery and query-only resolver
+
+Railway f9ae984c-e0f2-41d7-bc2a-1445c7f905be serves Development 991bda31479a. Axelar returned matching native and MongoDB-federated three-record and two-record subsets with Axelar provenance. The two-record timing run used one client and four warm requests per route. Direct first/median/max were 1,791/1,959.5/2,064 ms. Federated first/median/max were 1,959/2,074/2,289 ms. Every attempt succeeded. These client timings establish the first post-recovery baseline while the wider provider catalogue was still warming. The prior endpoint could not serve the cohort, so no previous comparable timing is available.
+
+The first shipping AxelarOASIS candidate failed WEB4 compilation because the host CQL registry required IOASISStorageProvider. Feature 32368f745a97 admits IOASISProvider through the hosted query path, with mandatory CQL capability, identity and activation checks and existing fixture semantics preserved. [Feature protocol](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43684106998) is active. The new registry and shipping Axelar source are pending compilation and runtime qualification.
+
 ## Axelar deployment and DTO qualification
 
 Axelar historical endpoint fix 991bda31479a passed its exact protocol and WEB4 image gates, advanced Development, and queued Railway f9ae984c-e0f2-41d7-bc2a-1445c7f905be at 05:42:07 UTC. Verify exact native and MongoDB-federated full/subset CQL and measure warm timings on the serving revision. Review the next shared Development window no earlier than 06:12:07 UTC. The separate shipping AxelarOASIS query migration is on the feature branch at 99cf99be3d07.
