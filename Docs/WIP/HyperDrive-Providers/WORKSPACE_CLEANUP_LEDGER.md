@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. The Algorand collection runner confirmed removal of its owned LocalNet. Hard-delete qualification uses the existing hosted disposable fixture and canceled the redundant public check. No local runtime, database, download or result was created.
+
 15 November Cancun time. The Algorand discovery replacement confirmed removal of its LocalNet containers, network, volumes and fixture directory. The standard collection case uses an owned hosted fixture. Canceled its redundant public run. No local builds or fixture files were created.
 
 15 November Cancun time. The descriptor contract runner confirmed removal of its owned LocalNet resources. The funding-check replacement uses a new disposable hosted fixture and canceled the redundant public case. No local download, runtime or result was created.
