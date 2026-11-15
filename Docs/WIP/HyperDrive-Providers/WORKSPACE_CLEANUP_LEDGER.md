@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. The independent OPORTAL dev candidate builder removed its temporary Git index. Live deployment verification checked downloaded HTML and three asset responses in memory. No local downloads, profiles, runtimes, builds or results were retained.
+
 15 November Cancun time. Session revocation verification used disposable signed avatars, and WEB4 confirmed every deletion. The probe recorded only statuses and success flags. Removed the two portal candidate indexes. No local runtime, database, build or result was retained.
 
 15 November Cancun time. Avatar hydration verification used disposable signed WEB4 avatars and the API confirmed deletion after each probe. The first probe's failed assertion printed its disposable sandbox token to the local tool transcript. The revised probe does not print session data. Combined and portal candidate indexes were removed. No local downloads, databases, builds or test results were retained.

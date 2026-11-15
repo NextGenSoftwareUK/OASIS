@@ -1,5 +1,7 @@
 # Current provider status
 
+15 November Cancun time. OPORTAL dev d26862072ab3 deployed successfully. The served portal requests the qualified avatar, session and OAPP files at 20261115a, and all three assets match their Git blobs byte for byte. The independent release uses the already verified WEB4 and WEB5 routes. Exact remaining subscription candidate b583f0523d14 preserves those deployed files and the separately qualified subscription assets. It awaits the WEB4 estimate rollout.
+
 15 November Cancun time. OPORTAL b63f723 shares one session refresh, makes 401 handling call the actual refresh function, waits for an active refresh at sign-out, and revokes the resulting refresh credential through the authenticated SDK. The signed WEB4 test verified refresh, revoke, rejected reuse of the rotated credential, and clearing of the portal session. Exact portal candidates are dev 2e4da8ad884f and production b6bf4791da50. They remain staged with their subscription assets.
 
 15 November Cancun time. OPORTAL b611d02 consolidates dashboard and avatar popup hydration into one request through the signed SDK ID endpoint. The live controlled-browser probe shared one HTTP 200 read in 339 ms and published one matching avatar update. The session-change and wrong-owner regressions passed. On dev c9b6687fcff5 and production 4653df4c39cb the same files are staged with the OAPP and subscription batch.
