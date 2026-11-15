@@ -124,21 +124,18 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             metadataCounts.Result.Providers.Single().Rows.Select(row => row.Values.Single()).ToArray());
 
         request.Filters[0].Value = JsonSerializer.SerializeToElement(new[] { ids[0] });
+        var decimalSelection = new ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlScalarV1Selection
+            { MetadataPath = new[] { "decimal" }, ValueType = "Decimal", Nullable = true };
         request.Columns = new[]
         {
-            new CqlGroupedColumn
-            {
-                Alias = "Total",
-                Operation = "Sum",
-                Selection = new ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlScalarV1Selection
-                    { MetadataPath = new[] { "decimal" }, ValueType = "Decimal", Nullable = true }
-            }
+            new CqlGroupedColumn { Alias = "Total", Operation = "Sum", Selection = decimalSelection },
+            new CqlGroupedColumn { Alias = "Mean", Operation = "Average", Selection = decimalSelection }
         };
         var decimalPlan = CosmicGroupedPlanner.Plan(CqlCompiler.CompileGrouped(request, actor, provider), provider, target);
         Assert.IsFalse(decimalPlan.IsError, decimalPlan.Message);
         var decimalRows = await CosmicGroupedExecutor.ExecuteAsync(decimalPlan.Result, new[] { adapter });
         Assert.IsFalse(decimalRows.IsError, decimalRows.Message + decimalRows.Exception);
-        CollectionAssert.AreEqual(new object[] { 1.0000000000000000000000000001m },
+        CollectionAssert.AreEqual(new object[] { 1.0000000000000000000000000001m, 1.0000000000000000000000000001m },
             decimalRows.Result.Providers.Single().Rows.Single().Values.ToArray());
 
         var first = ids[0];
