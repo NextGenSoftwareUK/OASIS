@@ -40,7 +40,12 @@ public partial class HolonRepository
             var collation = type == typeof(Guid) ? " COLLATE NOCASE" : " COLLATE BINARY";
             equality.Add($"l.k{index}s=2 AND r.k{index}s=2 AND l.k{index}v{collation}=r.k{index}v{collation}");
         }
-        var join = selection.Join.Kind == CosmicJoinKind.Left ? " LEFT JOIN " : " INNER JOIN ";
+        var join = selection.Join.Kind switch
+        {
+            CosmicJoinKind.Left => " LEFT JOIN r ON " + string.Join(" AND ", equality.Select(value => "(" + value + ")")),
+            CosmicJoinKind.Inner => " INNER JOIN r ON " + string.Join(" AND ", equality.Select(value => "(" + value + ")")),
+            _ => " CROSS JOIN r"
+        };
         var cap = Math.Min(limits.MaximumPairs, (long)limits.MaximumResults) + 1;
         var pairLimit = left.Bind(cap);
         return new JoinSql
@@ -49,8 +54,7 @@ public partial class HolonRepository
             LeftPredicate = lp, RightPredicate = rp,
             HasRelationship = left.HasRelationship || right.HasRelationship,
             Pairs = "WITH l AS MATERIALIZED (" + ls + "),r AS MATERIALIZED (" + rs
-                + ") SELECT l.position,r.position FROM l" + join + "r ON "
-                + string.Join(" AND ", equality.Select(value => "(" + value + ")"))
+                + ") SELECT l.position,r.position FROM l" + join
                 + " ORDER BY l.position,r.position LIMIT " + pairLimit
         };
 
