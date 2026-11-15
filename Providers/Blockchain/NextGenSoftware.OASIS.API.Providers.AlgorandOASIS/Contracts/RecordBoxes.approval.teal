@@ -61,6 +61,8 @@ gtxns NumAppArgs
 int 6
 ==
 assert
+int 0
+store 8
 b check_stage_target
 
 explicit_stage_target:
@@ -84,12 +86,7 @@ assert
 load 9
 gtxnsa ApplicationArgs 6
 btoi
-txna ApplicationArgs 3
-btoi
-+
-txn GroupIndex
-==
-assert
+store 8
 
 check_stage_target:
 txn GroupIndex
@@ -150,6 +147,8 @@ int 8
 assert
 txna ApplicationArgs 3
 btoi
+load 8
++
 txn GroupIndex
 ==
 assert
