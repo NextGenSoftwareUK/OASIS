@@ -5266,3 +5266,5 @@ COSMIC session reused the existing worktree, Python and GitHub CLI; no restore, 
 15 November Cancun time. Algorand, Filecoin, Zcash and Radix editor verification used one disposable frontend extraction and Git indexes, removed after push. The live proof reused the retained visitor and queried at most two providers concurrently; no fixture writes, installations, downloads, local build output or retained test files. Preview 7803519574 uses the existing hosted lifecycle.
 
 15 November Cancun time. Discovery-key work used disposable Git indexes and committed-file client test extractions. All were removed after use. No local runtime installation, build outputs, downloads, fixtures or retained local results. Preview 7803600015 and exact backend CI 43715310725 use existing hosted resources.
+
+15 November Cancun time. Prompt scope comparison ran with a controlled in-memory HTTP capture using the existing Node runtime. Disposable committed-file test extractions and indexes removed at completion. No WEB6 API call, local runtime install, download, build output or retained result file. Exact image 43716296740 and preview 7803716541 use existing hosted lifecycles.

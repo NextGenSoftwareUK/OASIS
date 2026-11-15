@@ -1,5 +1,11 @@
 # COSMIC ORM / CQL current status
 
+## Ask Your Data prompt scope and shared build evidence
+
+15 November. Web4Site 9f42a6ed68db omits built-in CQL guidance families when their sources are unavailable and keeps the discovered native key bounds for ready sources. All 203 client tests passed. A paired capture of the system message reduced it from 9,040 to 5,075 UTF-8 bytes for MongoDB and Neo4j only, and from 9,253 to 766 bytes for one standalone discovered profile. The capture used a controlled client transport; WEB6 latency and hosted browser acceptance remain unverified. [Preview 7803716541](https://web4-site-l4rpnw2vj-oasis-team.vercel.app/web4-sandbox.html) built.
+
+The unordered DISTINCT image 43713968496 succeeded on 6ef92492c26e. The release guard is waiting for the shared window after serving Gifts. The discovery backend 3c52429ba542 passed WEB4 application and native fixture steps; its exact [image CI 43716296740](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43716296740) is in progress. Both live checks remain pending.
+
 ## Discovery-driven native key queries
 
 15 November. WEB4 feature 097c9e212207 exposes the native metadata key name, character limit and optional IN bound only for ready enrolled query-only sources with standalone native key capabilities. It uses the actual provider capability and changes no tariffs or permissions. Exact backend 3c52429ba542 is in [protocol CI 43715310725](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43715310725). Web4Site a29c176e24bc recognizes these profiles in the editor and WEB6 prompt, clears them on sign-out, and retains the 36 existing explicit profiles. All 203 frontend tests passed, including the signed-in discovered-profile entry points. [Preview 7803600015](https://web4-site-mt1qibde4-oasis-team.vercel.app/web4-sandbox.html) built. Newly discovered profiles require the matching WEB4 deployment; live expanded coverage and hosted browser verification remain open.
