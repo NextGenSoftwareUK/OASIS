@@ -36,7 +36,7 @@ public partial class Neo4jOASIS
         if (plan == null || limits == null || limits.Admit(plan.Options).IsError
             || plan.Targets.Count != 1 || plan.Targets[0].Provider != Core.Enums.ProviderType.Neo4jOASIS)
             throw new ArgumentException("Projected All requires one matching plan and remaining work.");
-        return CompileCqlSelected(plan.Query.Projection, limits, plan.Query.Predicate);
+        return CompileCqlSelected(plan.Query.Projection, limits, plan.Query.Predicate,entity:plan.EntitySource);
     }
 
     private static NeoCqlCompositionCommand CompileCqlSelected<T, TResult>(CosmicProjectionQuery<T, TResult> query,

@@ -1,5 +1,11 @@
 # COSMIC ORM / CQL current status
 
+## Live SQL rollout and native qualification correction
+
+15 November. Development Railway c9c73414 succeeded for 6ef92492c26e. On live WEB4, unordered and ordered SQL DISTINCT returned matching results for MongoDB, SQLite and Neo4j; the dedicated visitor had zero visible rows in these comparisons. Populated live DISTINCT remains open. Website 3e8e86479b19 implements key-only GROUP BY and passed 204 client tests. The exact discovery image 43716296740 passed and awaits the next shared deployment window.
+
+Native CI 43717348671 found that the MongoDB and Neo4j qualification sources had dropped the already-qualified entity input window from projected All. Both compiler entry points now pass the entity input to their native query compiler. Scalar Distinct still requires corrected exact native CI; no parity row was closed.
+
 ## LINQ Distinct scalar domain verification
 
 15 November. C# native qualification now includes the three other domains declared alongside Int32: Boolean collapse, exact Guid identity and order, and ordinal String equality including case distinctions, duplicate nulls and first occurrence order. The small native fixture is isolated and uses the existing cleanup assertions. Feature 688e29208c5c was scoped to two fixture files; exact shared candidate 3dfbd1c5d4df is pending CI. Original Int32 candidate 9b7227537678 is in [protocol CI 43717348671](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43717348671). No parity row was closed.
