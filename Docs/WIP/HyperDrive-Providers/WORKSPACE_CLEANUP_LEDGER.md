@@ -1332,3 +1332,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 - 14 November Cancun time. Both OPORTAL dashboard benchmark profiles were removed after capture. Endpoint generation streamed the OpenAPI specs and retained only the checked-in generated map. The rebased Ordinals qualification used Git objects without a temporary index. No local dependencies, restore or build outputs.
 
 - 14 November Cancun time. Vercel compiled the portal preview and dev revision. The Chromium test profiles were removed. Two preview browser shutdown waits timed out after capture, and the exact profile paths and matching browser processes were subsequently checked and absent. The dev browser exited cleanly. No local installs, builds or downloaded browser bundles.
+
+- 14 November Cancun time. The OPORTAL shallow-count probe used an installed Chrome and one temporary isolated profile. The shutdown wait timed out after the request capture. Verified its exact profile path was absent. No local builds or dependencies. Native exact Ordinals qualification c8d3700273d1 completed hosted fixture teardown.
