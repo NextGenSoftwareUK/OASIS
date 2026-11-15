@@ -26,6 +26,11 @@ on:
         description: Verify the native SQLite metadata selector and its materialization cost
         type: boolean
         default: false
+      sqlite_performance_case:
+        description: Focused case selected when sqlite_metadata_only is enabled
+        type: choice
+        options: [metadata, wallet_summary]
+        default: metadata
 permissions:
   contents: read
 jobs:
@@ -94,14 +99,17 @@ jobs:
             dotnet test ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests --filter 'FullyQualifiedName~NativeMapVisitSurvivesNewManagersAndKeepsAvatarHistoryPrivate' --logger 'console;verbosity=detailed' /m:2 /nr:false /p:UseSharedCompilation=false
             if ($LASTEXITCODE -ne 0) { throw 'Native map visit verification failed.' }
           }
-      - name: Verify native SQLite metadata materialization
+      - name: Verify native SQLite performance case
         if: inputs.sqlite_metadata_only
+        env:
+          SQLITE_PERFORMANCE_CASE: ${{ inputs.sqlite_performance_case }}
         shell: pwsh
         run: |
           ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-SqliteMetadata -Operation {
             $project = 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests'
-            dotnet test $project --filter 'FullyQualifiedName~NativeSqliteFiltersMetadataBeforeHolonMapping' --logger 'console;verbosity=detailed' /m:2 /nr:false /p:UseSharedCompilation=false
-            if ($LASTEXITCODE -ne 0) { throw 'Native SQLite metadata verification failed.' }
+            $test = if ($env:SQLITE_PERFORMANCE_CASE -eq 'wallet_summary') { 'ReadsWalletSummaryFromNativeSqlite' } else { 'NativeSqliteFiltersMetadataBeforeHolonMapping' }
+            dotnet test $project --filter "FullyQualifiedName~$test" --logger 'console;verbosity=detailed' /m:2 /nr:false /p:UseSharedCompilation=false
+            if ($LASTEXITCODE -ne 0) { throw 'Native SQLite performance verification failed.' }
           }
       - name: Validate sole authority and pinned source graph
         if: ${{ !inputs.mongo_sqlite_point_reads && !inputs.mongo_sqlite_latency && !inputs.mongo_sqlite_karma && !inputs.sqlite_map_visits && !inputs.sqlite_metadata_only }}
