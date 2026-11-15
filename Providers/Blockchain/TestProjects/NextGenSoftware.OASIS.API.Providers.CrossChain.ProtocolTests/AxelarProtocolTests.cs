@@ -53,7 +53,9 @@ namespace NextGenSoftware.OASIS.API.Providers.CrossChain.ProtocolTests
             }
 
             using var source = new AxelarOASIS.AxelarOASIS(heights, Guid.NewGuid(), Read);
-            var activation = source.ActivateQuerySourceAsync(timeout.Token);
+            NextGenSoftware.OASIS.API.Core.Interfaces.ICosmicReadOnlyQueryActivation querySource = source;
+            Assert.IsFalse(querySource.IsQuerySourceActivated);
+            var activation = querySource.ActivateQuerySourceAsync(timeout.Token);
             try
             {
                 await firstBatchStarted.Task.WaitAsync(timeout.Token);
@@ -67,6 +69,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CrossChain.ProtocolTests
             var result = await activation;
             Assert.IsFalse(result.IsError, result.Message);
             Assert.IsTrue(source.IsProviderActivated);
+            Assert.IsTrue(querySource.IsQuerySourceActivated);
             CollectionAssert.AreEquivalent(heights, started.ToArray());
         }
 

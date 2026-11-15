@@ -105,6 +105,8 @@ public sealed class CqlHostedSourceRegistry : ICqlHostedSourceRegistry
         hederaPublicAccountConfiguration = configuration?["CQL_HEDERA_PUBLIC_SOURCE_JSON"];
     }
 
+    public bool HasIndependentActivation(ProviderType provider) => profiles.ContainsKey(provider);
+
     public IOASISProvider Find(ProviderType provider)
         => profiles.TryGetValue(provider, out var profile) ? profile.Storage
             : ProviderManager.Instance.GetStorageProvider(provider);

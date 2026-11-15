@@ -36,6 +36,7 @@ public partial class AxelarOASIS : ICosmicQueryStorageProvider, ICosmicReadOnlyQ
     }
 
     public PType QueryProviderType => PType.AxelarOASIS;
+    bool ICosmicReadOnlyQueryActivation.IsQuerySourceActivated => publicHeaders != null && IsProviderActivated;
     public CosmicQueryCapabilities QueryCapabilities { get; } = new(CosmicQueryFeatures.None);
 
     public static AxelarOASIS FromPublicQueryConfiguration(string json)
