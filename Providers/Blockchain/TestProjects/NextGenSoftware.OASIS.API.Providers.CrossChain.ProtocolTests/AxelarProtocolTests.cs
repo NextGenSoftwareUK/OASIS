@@ -66,7 +66,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CrossChain.ProtocolTests
 
             var result = await activation;
             Assert.IsFalse(result.IsError, result.Message);
-            Assert.IsTrue(source.IsQuerySourceActivated);
+            Assert.IsTrue(source.IsProviderActivated);
             CollectionAssert.AreEquivalent(heights, started.ToArray());
         }
 
