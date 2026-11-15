@@ -7,6 +7,7 @@ on:
     paths:
       - '.github/workflows/bitcoin-native-ord.yml'
       - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS/BitcoinOASIS.Ordinals.cs'
+      - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS/BitcoinOASIS.OrdinalsMint.cs'
       - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS/BitcoinOASIS.NFTToken.cs'
       - 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests/BitcoinOASISOrdinalsIntegrationTests.cs'
 
@@ -43,7 +44,7 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
-      - name: Verify signed Ordinals transfer and burn on Bitcoin regtest
+      - name: Verify Ordinals mint, transfer and burn on Bitcoin regtest
         shell: bash
         run: |
           set -euo pipefail
@@ -177,3 +178,11 @@ jobs:
             --no-build --no-restore --filter "FullyQualifiedName~OrdRegtestBurnsOnlyInscribedSatoshi" /m:2 /nr:false /p:UseSharedCompilation=false
           curl -fsS -H 'Accept: application/json' "$OASIS_BITCOIN_ORD_API/inscription/$inscription" |
             jq -e '.address == null and (.charms | index("burned") != null)' >/dev/null
+          tip="$(bitcoin getbestblockhash)"
+          for attempt in {1..60}; do
+            if [[ "$(curl -fsS "$OASIS_BITCOIN_REGTEST_API/blocks/tip/hash")" = "$tip" ]]; then break; fi
+            sleep 1
+          done
+          test "$(curl -fsS "$OASIS_BITCOIN_REGTEST_API/blocks/tip/hash")" = "$tip"
+          dotnet test "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.BitcoinOASIS.IntegrationTests" \
+            --no-build --no-restore --filter "FullyQualifiedName~OrdRegtestMintsCommitRevealAndReadback" /m:2 /nr:false /p:UseSharedCompilation=false

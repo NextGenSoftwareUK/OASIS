@@ -268,7 +268,10 @@ public partial class BitcoinOASIS
         return result;
     }
 
-    private async Task<OASISResult<ITransactionResponse>> BroadcastOrdinalBurnAsync(Transaction transaction, uint256 tip)
+    private static HttpClient CreateBitcoinCoreTransport() =>
+        new(new HttpClientHandler { AllowAutoRedirect = false }) { Timeout = TimeSpan.FromSeconds(30) };
+
+    private RPCClient CreateBitcoinCoreClient(HttpClient transport)
     {
         var endpoint = Environment.GetEnvironmentVariable("OASIS_BITCOIN_CORE_RPC_URL");
         var credentials = Environment.GetEnvironmentVariable("OASIS_BITCOIN_CORE_RPC_AUTH");
@@ -276,13 +279,15 @@ public partial class BitcoinOASIS
             (address.Scheme != Uri.UriSchemeHttps && !(address.Scheme == Uri.UriSchemeHttp && address.IsLoopback)) ||
             address.UserInfo.Length != 0 || address.Query.Length != 0 || address.Fragment.Length != 0 ||
             string.IsNullOrWhiteSpace(credentials))
-            throw new InvalidOperationException("Bitcoin Ordinals burns require a protected Bitcoin Core RPC endpoint and credentials.");
+            throw new InvalidOperationException("Bitcoin Ordinals publishing requires a protected Bitcoin Core RPC endpoint and credentials.");
 
-        using var transport = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false })
-        {
-            Timeout = TimeSpan.FromSeconds(30)
-        };
-        var core = new RPCClient(credentials, address, SigningNetwork) { HttpClient = transport };
+        return new RPCClient(credentials, address, SigningNetwork) { HttpClient = transport };
+    }
+
+    private async Task<OASISResult<ITransactionResponse>> BroadcastOrdinalBurnAsync(Transaction transaction, uint256 tip)
+    {
+        using var transport = CreateBitcoinCoreTransport();
+        var core = CreateBitcoinCoreClient(transport);
         if (await core.GetBestBlockHashAsync() != tip)
             throw new InvalidOperationException("Bitcoin Core does not have the same chain tip as ord and Esplora.");
 
