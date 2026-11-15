@@ -286,3 +286,14 @@ For a separately approved reconciliation, bind the current authorization to the 
 The SQLite receiver already reserves its writer transaction before checking the native store ID, operation receipt and selected records. Initial baseline admission rejects any replica head, current row, retained revision or receipt history for those records. That transaction can enforce an explicitly reviewed absent predecessor for the held MongoDB-to-SQLite save. A reviewed existing predecessor would require the ordinary lineage comparison with exact expected revisions. The new authorization must enter before target execution, and the source acknowledgement must compare the original denial code and exact receipt in the MongoDB transaction. The hosted row remains untouched.
 
 14 November Cancun time. Added an opt-in native latency baseline for MongoDB and SQLite point reads. It compares the same canonical holon through the direct provider clients and through request-scoped HyperDrive Auto and RoundRobin. It makes six warm-up reads and 40 timed reads per path with rotating order, checks the exact returned ID and payload on every read, and reports p50, p95, maximum, and response-owned provider distribution. The hosted run measures warm backend and routing time without browser or Railway network overhead. It does not yet establish production latency or a cross-provider performance budget.
+
+[Native latency run 43666138520](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43666138520/job/132665811933) passed on 94a90f4dfabe. Warm point-read results in milliseconds, 40 requests per path:
+
+| Path | p50 | p95 | Max | Serving providers |
+| --- | ---: | ---: | ---: | --- |
+| MongoDB direct | 1.282 | 2.018 | 18.817 | MongoDB |
+| SQLite direct | 1.861 | 2.157 | 2.411 | SQLite |
+| HyperDrive Auto | 2.235 | 2.759 | 24.605 | SQLite 24, MongoDB 16 |
+| HyperDrive RoundRobin | 2.051 | 2.656 | 3.202 | MongoDB 20, SQLite 20 |
+
+The follow-up runs the shipping parent-collection manager path used by OPORTAL, comparing an eight-root collection with and without 96 nested records. It requires identical top-level IDs and checks exactly how many records were materialized before comparing timing. This samples two native providers and excludes hosted authentication and network time.

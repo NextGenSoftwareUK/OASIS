@@ -107,11 +107,87 @@ public sealed class MongoSqliteRoutingLatencyTests(ITestOutputHelper output)
                     maxMs = Math.Round(samples[^1], 3), servingProviders = routing[item.Name]
                 }));
             }
+
+            await ProfileDashboardParentCollectionAsync(reader, mongo, sqlite);
         }
         finally
         {
             try { await client.DropDatabaseAsync(database); }
             finally { directory.Delete(recursive: true); }
+        }
+    }
+
+    private async Task ProfileDashboardParentCollectionAsync(HolonManager reader, MongoDBOASIS mongo, SQLLiteDBOASIS sqlite)
+    {
+        const int parentResults = 8;
+        const int childrenPerParent = 4;
+        const int grandchildrenPerChild = 2;
+        var dashboardParent = Guid.NewGuid();
+        Holon CreateHolon(Guid parent) => new()
+        {
+            Id = Guid.NewGuid(), ParentHolonId = parent, IsActive = true, Name = "Dashboard collection fixture", Children = new List<IHolon>()
+        };
+
+        var roots = new List<Holon>();
+        var records = new List<Holon>();
+        for (var rootIndex = 0; rootIndex < parentResults; rootIndex++)
+        {
+            var root = CreateHolon(dashboardParent);
+            roots.Add(root);
+            records.Add(root);
+            for (var childIndex = 0; childIndex < childrenPerParent; childIndex++)
+            {
+                var child = CreateHolon(root.Id);
+                root.Children.Add(child);
+                records.Add(child);
+                for (var leafIndex = 0; leafIndex < grandchildrenPerChild; leafIndex++)
+                {
+                    var leaf = CreateHolon(child.Id);
+                    child.Children.Add(leaf);
+                    records.Add(leaf);
+                }
+            }
+        }
+
+        foreach (var provider in new IOASISStorageProvider[] { mongo, sqlite })
+        foreach (var record in roots)
+        {
+            var saved = await provider.SaveHolonAsync(record, saveChildren: true);
+            Assert.True(saved.IsSaved && !saved.IsError, saved.Message);
+        }
+
+        var expectedIds = roots.Select(root => root.Id).OrderBy(id => id).ToArray();
+        static int CountNodes(IHolon node) => 1 + (node.Children?.Sum(CountNodes) ?? 0);
+        foreach (var provider in new[] { ProviderType.MongoDBOASIS, ProviderType.SQLLiteDBOASIS })
+        {
+            var samples = new Dictionary<bool, List<double>> { [false] = [], [true] = [] };
+            for (var iteration = 0; iteration < 24; iteration++)
+            {
+                foreach (var recursive in new[] { iteration % 2 == 0, iteration % 2 != 0 })
+                {
+                    var started = Stopwatch.GetTimestamp();
+                    var result = await reader.LoadHolonsForParentAsync(dashboardParent, HolonType.All,
+                        loadChildren: recursive, recursive: recursive, providerType: provider);
+                    var elapsed = Stopwatch.GetElapsedTime(started).TotalMilliseconds;
+                    Assert.True(!result.IsError && result.Result != null, result.Message);
+                    var rows = result.Result.ToArray();
+                    Assert.Equal(expectedIds, rows.Select(row => row.Id).OrderBy(id => id).ToArray());
+                    Assert.Equal(recursive ? records.Count : parentResults, rows.Sum(CountNodes));
+                    if (iteration >= 4) samples[recursive].Add(elapsed);
+                }
+            }
+
+            foreach (var (recursive, timings) in samples)
+            {
+                timings.Sort();
+                output.WriteLine("HYPERDRIVE_DASHBOARD_LATENCY " + JsonSerializer.Serialize(new
+                {
+                    provider = provider.ToString(), recursive, samples = timings.Count,
+                    resultCount = parentResults, materializedNodes = recursive ? records.Count : parentResults,
+                    p50Ms = Math.Round(timings[(timings.Count + 1) / 2 - 1], 3),
+                    p95Ms = Math.Round(timings[(int)Math.Ceiling(timings.Count * 0.95) - 1], 3)
+                }));
+            }
         }
     }
 }

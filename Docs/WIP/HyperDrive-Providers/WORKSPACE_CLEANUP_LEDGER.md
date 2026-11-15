@@ -1336,3 +1336,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 - 14 November Cancun time. The OPORTAL shallow-count probe used an installed Chrome and one temporary isolated profile. The shutdown wait timed out after the request capture. Verified its exact profile path was absent. No local builds or dependencies. Native exact Ordinals qualification c8d3700273d1 completed hosted fixture teardown.
 
 - 14 November Cancun time. Native latency profiling reuses the existing hosted replica-set workflow, drops its uniquely named database, removes the temporary SQLite directory and removes the owned container with volumes. Aggregate JSON is logged directly. No local build or dependency files were created.
+
+- 14 November Cancun time. Native priority latency run 43666138520 passed and removed the temporary SQLite fixture and MongoDB container and volume. Only aggregate timing output was retained in hosted logs. No local builds or artifacts.
