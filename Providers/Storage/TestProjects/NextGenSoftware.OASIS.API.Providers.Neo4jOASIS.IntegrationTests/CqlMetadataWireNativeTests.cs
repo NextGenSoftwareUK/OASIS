@@ -13,6 +13,11 @@ using CqlRequest = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.D
 using CqlFilter = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlV1Filter;
 using CqlOperator = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlV1Operator;
 using CqlScalar = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlV1Scalar;
+using CqlJoinRequest = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlJoinV1Request;
+using CqlJoinSource = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlJoinV1Source;
+using CqlJoinColumn = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlJoinV1Column;
+using CqlJoinKey = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlJoinV1Key;
+using CqlJoinScalar = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlScalarV1Selection;
 using CqlCompiler = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql.CqlV1Compiler;
 
 namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests;
@@ -247,16 +252,49 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Assert.IsTrue(presence[ids[0]]);
         Assert.IsFalse(presence[ids[4]]);
 
-        var cross = left.Result.CrossJoin(right.Result).Select((leftRow, rightRow) =>
-            new { LeftId = leftRow.Id, RightId = rightRow.Id });
-        Assert.IsFalse(cross.IsError, cross.Message);
-        var crossPlan = CosmicJoinPlanner.Plan(cross.Result, provider, joinTargets);
+        CqlJoinSource CrossSource(Guid[] inputs) => new()
+        {
+            OrderBy = "Id",
+            Take = inputs.Length,
+            Filters = new[] { new CqlFilter
+            {
+                Field = "Id", Operator = CqlOperator.In, Value = JsonSerializer.SerializeToElement(inputs)
+            } }
+        };
+        var crossRequest = new CqlJoinRequest
+        {
+            Provider = provider.ToString(), Kind = "Cross", Left = CrossSource(leftIds), Right = CrossSource(rightIds),
+            MaximumLeftRows = 2, MaximumRightRows = 3, MaximumPairs = 6, MaximumResults = 6,
+            Columns = new[]
+            {
+                new CqlJoinColumn { Alias = "LeftId", Source = "Left", Selection = new CqlJoinScalar { Field = "Id" } },
+                new CqlJoinColumn { Alias = "RightId", Source = "Right", Selection = new CqlJoinScalar { Field = "Id" } }
+            }
+        };
+        crossRequest.Kind = "Inner";
+        Assert.ThrowsException<ArgumentException>(() => CqlCompiler.CompileJoin(crossRequest, actor, provider));
+        crossRequest.Kind = "Cross";
+        crossRequest.Keys = new[] { new CqlJoinKey
+        {
+            Alias = "Id", Left = new CqlJoinScalar { Field = "Id" }, Right = new CqlJoinScalar { Field = "Id" }
+        } };
+        Assert.ThrowsException<ArgumentException>(() => CqlCompiler.CompileJoin(crossRequest, actor, provider));
+        crossRequest.Keys = Array.Empty<CqlJoinKey>();
+
+        var crossPlan = CosmicJoinPlanner.Plan(CqlCompiler.CompileJoin(crossRequest, actor, provider), provider, joinTargets);
         Assert.IsFalse(crossPlan.IsError, crossPlan.Message);
         var crossRows = await CosmicJoinExecutor.ExecuteAsync(crossPlan.Result, new[] { joinAdapter });
         Assert.IsFalse(crossRows.IsError, crossRows.Message + crossRows.Exception);
         var expectedCross = leftIds.SelectMany(l => rightIds.Select(r => (l, r))).ToArray();
-        var actualCross = crossRows.Result.Providers.Single().Rows.Select(row => (row.Value.LeftId, row.Value.RightId)).ToArray();
+        var actualCross = crossRows.Result.Providers.Single().Rows
+            .Select(row => ((Guid)row.Value["LeftId"], (Guid)row.Value["RightId"])).ToArray();
         CollectionAssert.AreEquivalent(expectedCross, actualCross);
+
+        crossRequest.MaximumPairs = 5;
+        var boundedCross = CosmicJoinPlanner.Plan(CqlCompiler.CompileJoin(crossRequest, actor, provider), provider, joinTargets);
+        Assert.IsFalse(boundedCross.IsError, boundedCross.Message);
+        var boundedRows = await CosmicJoinExecutor.ExecuteAsync(boundedCross.Result, new[] { joinAdapter });
+        Assert.IsTrue(boundedRows.IsError, "Exceeding pair work must never return partial Cartesian results.");
 
         checks.Add(new { provider = provider.ToString(), distinctWire = "native SQL and LINQ Int32, nullable Int64, Boolean, Guid, ordinal nullable String exact nullable UTC timestamps, nullable UInt64, exact nullable Decimal all narrower integral domains, Single, Double, HolonType and ProviderType; composite nullable join keys exclude null and retain unmatched left rows" });
     }
