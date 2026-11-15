@@ -99,6 +99,29 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         var selected = await CosmicGroupedExecutor.ExecuteAsync(distinct.Result, new[] { adapter });
         Assert.IsFalse(selected.IsError, selected.Message + selected.Exception);
         CollectionAssert.AreEqual(new object[] { 1 }, selected.Result.Providers.Single().Rows.Single().Values.ToArray());
+        request.Filters[0].Value = JsonSerializer.SerializeToElement(new[] { ids[0], ids[1], ids[3] });
+        request.Keys = new[]
+        {
+            new CqlProjectionColumn { MetadataPath = new[] { "i64" }, ValueType = "Int64", Nullable = true, Alias = "ExactValue" }
+        };
+        request.Columns = new[] { new CqlGroupedColumn { Alias = "ExactValue", KeyAlias = "ExactValue" } };
+        request.ResultTake = 5;
+        var metadataDistinct = CosmicGroupedPlanner.Plan(CqlCompiler.CompileGrouped(request, actor, provider), provider, target);
+        Assert.IsFalse(metadataDistinct.IsError, metadataDistinct.Message);
+        var metadataRows = await CosmicGroupedExecutor.ExecuteAsync(metadataDistinct.Result, new[] { adapter });
+        Assert.IsFalse(metadataRows.IsError, metadataRows.Message + metadataRows.Exception);
+        CollectionAssert.AreEquivalent(new object[] { 9007199254740992L, 9007199254740993L },
+            metadataRows.Result.Providers.Single().Rows.Select(row => row.Values.Single()).ToArray());
+
+        request.OrderBy = "Name";
+        request.Columns = new[] { new CqlGroupedColumn { Alias = "Count", Operation = "LongCount" } };
+        var metadataCount = CosmicGroupedPlanner.Plan(CqlCompiler.CompileGrouped(request, actor, provider), provider, target);
+        Assert.IsFalse(metadataCount.IsError, metadataCount.Message);
+        var metadataCounts = await CosmicGroupedExecutor.ExecuteAsync(metadataCount.Result, new[] { adapter });
+        Assert.IsFalse(metadataCounts.IsError, metadataCounts.Message + metadataCounts.Exception);
+        CollectionAssert.AreEquivalent(new object[] { 1L, 2L },
+            metadataCounts.Result.Providers.Single().Rows.Select(row => row.Values.Single()).ToArray());
+
         var first = ids[0];
         var second = ids[1];
         var source = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(provider).Result)
