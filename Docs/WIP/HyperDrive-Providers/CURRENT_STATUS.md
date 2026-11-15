@@ -1,5 +1,9 @@
 # Current provider status
 
+15 November Cancun time. Algorand BootLoader f50a2a48dde8 finished serving on Railway WEB4 dev. The [native typed avatar-detail fixture](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43755287511) passed one case with zero skips in 609 ms and verified cleanup. It covered same-ID holon isolation, stale predecessor rejection, independent exact history and versioned listing. Development uses a different Core revision. Scoped candidate 9ce22e85b34b contains seven Algorand provider and test paths on f50a2a48dde8. [Exact Development qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43755840860) is running.
+
+15 November Cancun time. OPORTAL cf9411d prevents Manage Billing from redirecting if the signed session or route changed while waiting for Stripe. Scoped portal candidate 31ee5d796f51 passed the full portal checks, including delayed sign-out and normal current-session redirect. Next portal dev review opens at 20:25:30 UTC. Hosted Stripe payment and return remain open.
+
 15 November Cancun time. OPORTAL dev d201c17e4240 is serving the exact qualified Stripe checkout initiation script. The change prevents use of a checkout redirect returned to a previous session or route. The hosted test payment and return remain open.
 
 15 November Cancun time. Algorand avatar-detail run 43754674014 reached the native publish boundary and verified disposal, but ordinary profile serialization exceeded the contract's transaction size. 6bad834331b9 uses the existing compressed encrypted format for avatar details and implements type-filtered versioned listing with bounded reads. Revision 5ae680761825 exercises save, lookup, list, namespace isolation and stale rejection in one owned fixture. [Replacement native run 43755287511](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43755287511) is running. The unchanged public auto-run was cancelled.
