@@ -1,5 +1,7 @@
 # OPORTAL and HyperDrive performance audit
 
+15 November Cancun time. Holon History makes no request when opened without an ID. A valid ID makes one bounded-to-ID STARNET versions request. The previous path also requested the current record. The signed probe verified those request counts. Browser paint remains unmeasured.
+
 15 November Cancun time. The Games dialog issues one catalog request on open. It loads personal games and cross-game quests only when their tabs are selected. Signed checks confirmed one GET per visited tab and zero repeat requests on revisiting all three. Browser paint remains unmeasured.
 
 15 November Cancun time. The Inventory modal opens with one authenticated WEB4 read for the personal collection and zero WEB5 requests. The STARNET catalog loads on demand and is reused during the same signed session. Signed checks verified the native item quantity and catalog request counts. Browser paint remains unmeasured.
