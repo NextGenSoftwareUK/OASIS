@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. The wallet controller attempt used a disposable hosted runner and its logs were read in memory. No local downloads, builds or test outputs were retained. The scan of recent owned alternate indexes found zero leftovers and C: had 29.21 GiB free.
+
 15 November Cancun time. Removed the wallet alternate index from the combined candidate staging. The temporary qualifier branch ci-hyperdrive-wallet-ff95c1c10fe5 remains in use by the hosted build. No local SDK, packages, databases or build outputs were added.
 
 15 November Cancun time. The focused wallet controller check uses a disposable GitHub runner and retains no uploaded results. Removed the scoped OPORTAL index. No local package, runtime, database or build output was created.
