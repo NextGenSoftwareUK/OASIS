@@ -88,6 +88,8 @@ The task branch adds ASP.NET Core liveness at /api/health for WEB7 through WEB10
 
 The six Dockerfile probe commands passed 24 checks over loopback HTTP. Each exited zero for HTTP 200 and nonzero for HTTP 302, 404 and 503. The check ran the probe commands with a real local listener and the existing local Node installation. It created no files. Patched image builds and startup checks remain open.
 
+An isolated .NET 10 ASP.NET Core process compiled with the same health middleware ordering as WEB7–WEB10. The exact Docker probe command reached /api/health and received HTTP 200 Healthy over loopback. An ordinary HTTP route still redirected to HTTPS. The process stopped and its 465,903 bytes of temporary build output were removed. Full image startup checks remain open.
+
 WEB7 deployment b783559f reached SUCCESS. Its running DNA hash matched the saved configuration and public Swagger returned HTTP 200 with an OpenAPI document. Started WEB6 deployment 2bc98826 at 07:34:42 UTC. Four of seven running services have been verified.
 
 WEB6 deployment 2bc98826 reached SUCCESS. Its running DNA hash matched the saved configuration and its public /v1/health returned HTTP 200 with status ok. Started WEB5 deployment f6c1e5b5 at 07:38:47 UTC. Five of seven running services have been verified.
