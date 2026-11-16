@@ -65,7 +65,9 @@ public partial class Neo4jOASIS
             bad.Add(Invalid(column.Selector, name + "s"));
             reductions.Add("sum(CASE WHEN " + name + "s=2 THEN 1 ELSE 0 END) AS " + name + "n");
             var value = "CASE WHEN " + name + "s=2 THEN " + name + "v ELSE 0 END";
-            if (column.Operation is CosmicScalarOperation.Sum or CosmicScalarOperation.Average)
+            if (column.Operation == CosmicScalarOperation.LongCount)
+                aggregatePackets.Add("{present:" + name + "n}");
+            else if (column.Operation is CosmicScalarOperation.Sum or CosmicScalarOperation.Average)
             {
                 var type = Nullable.GetUnderlyingType(column.Selector.ValueType) ?? column.Selector.ValueType;
                 if (type == typeof(decimal) || type == typeof(float) || type == typeof(double))
@@ -143,13 +145,15 @@ public partial class Neo4jOASIS
         {
             var column = query.Columns[resultOrdering.ColumnIndex];
             if (column.KeyIndex >= 0) Sort("keys[" + column.KeyIndex + "].v", resultOrdering.Descending);
-            else if (column.Operation is CosmicScalarOperation.Count or CosmicScalarOperation.LongCount)
+            else if (column.Selector == null)
                 Sort("inputs", resultOrdering.Descending);
             else
             {
                 var slot = query.Columns.Take(resultOrdering.ColumnIndex).Count(item => item.KeyIndex < 0 && item.Selector != null);
                 var packet = "aggregates[" + slot + "]";
-                if (column.Operation is CosmicScalarOperation.Min or CosmicScalarOperation.Max)
+                if (column.Operation == CosmicScalarOperation.LongCount)
+                    Sort(packet + ".present", resultOrdering.Descending);
+                else if (column.Operation is CosmicScalarOperation.Min or CosmicScalarOperation.Max)
                     Sort(packet + ".value", resultOrdering.Descending);
                 else if (column.Operation == CosmicScalarOperation.Sum)
                 {
