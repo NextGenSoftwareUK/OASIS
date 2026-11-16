@@ -6891,3 +6891,5 @@ Web4Site 5fa63a71df5d used a temporary directory containing only committed websi
 16 November UTC. The Atlas index-name check used a temporary project with the existing .NET and cached MongoDB driver. The owned project, restore output and build were removed on exit. No database documents or changes were made.
 
 16 November UTC. The Atlas index definition probe and isolated compile check used the existing .NET SDK and cached MongoDB driver. All disposable projects and outputs were removed and the temporary paths verified absent. The grouped count editor dry run used the existing Node runtime with a temporary snapshot removed after 252 passing tests.
+
+16 November UTC. The existing Vercel CLI read the protected preview and generated an automation bypass token. The exact token was revoked and its absence verified immediately after the read. No token output, downloads, browser profile or local result files were retained.

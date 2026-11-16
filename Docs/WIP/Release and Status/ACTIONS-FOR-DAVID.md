@@ -979,6 +979,14 @@ Approved 13 November. David approved the 30-minute Bronze grant for the dedicate
 
 Open 13 November. Approve the Vercel OASIS team access request when a fresh one-time consent link is provided, so engineering can open and verify the protected Development demo preview in a browser. No production change is requested. GitHub deployment 7802106867 confirms the successful preview for Web4Site revision 068b892f558a. The connected Vercel account still needs OASIS team authorization. Team authorization allows preview inspection. The preview hostname separately lacks the WEB4 credentialed session origin required for a live browser run. [Protected preview](https://web4-site-26o21ws1l-oasis-team.vercel.app/web4-sandbox.html).
 
+16 November update. Existing authenticated Vercel CLI access verified the protected WEB4 preview. The earlier team-consent action is closed. Vercel verified ownership and assigned dev.web4.oasisomniverse.one to the work/cosmic-cql preview branch.
+
+### Development WEB4 sandbox DNS
+
+- **Status (16 November UTC)** Open. The preview alias is assigned and the authoritative NameSilo record is missing.
+- **David action** In the NameSilo DNS records for oasisomniverse.one, add a CNAME with host dev.web4 and target 6022d70f3a03e68f.vercel-dns-017.com. Use the existing zone and leave other records intact.
+- **Reason** The Development sandbox needs its dedicated HTTPS hostname for credentialed WEB4 requests and the signed-in Ask Your Data walkthrough. Engineering will verify DNS, HTTPS, preview protection and OASISDNA origin admission. [WEB4 project domains](https://vercel.com/oasis-team/web4-site/settings/domains)
+
 ## Older tracked wallet export review
 
 15 November 2026 UTC. An existing WEB4 wallet export is tracked in the COSMIC history. It includes fields named PrivateKey and SecretRecoveryPhrase. Engineering has not established whether this is synthetic or still usable. Confirm the origin of the export with the wallet owner. If the wallets are real, handle rotation or asset migration through the existing private owner process and coordinate any repository-history remediation separately. Keep values out of chat, Git and this list.
