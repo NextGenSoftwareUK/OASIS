@@ -1930,3 +1930,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 2026-11-16 UTC — Removed the exact avatar qualification scratch index. The serialization tests run on a disposable hosted runner, with no local package or build output.
 
 2026-11-16 UTC — Removed the focused native avatar candidate index and temporary directory. It installs the conductor only in CI; no local runtime or test fixtures were created.
+
+2026-11-16 UTC — Removed the corrected native avatar scratch index after constructing the exact CI candidate. No local test environment, runtime or fixture was created.
