@@ -107,7 +107,24 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             }, saveChildren: false);
             Assert.IsFalse(unlisted.IsError, unlisted.Message + unlisted.Exception);
             await VerifyChildSource(provider, actor, ids[0], ids[1], checks);
-            Assert.AreEqual(65,checks.Count);
+            var source = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(((ICosmicQueryJoinStorageProvider)provider).QueryProviderType).Result);
+            var admitted = new[] { ids[0], ids[1] };
+            var parentId = ids[0];
+            var left = source.Where(row => row.Id == parentId).Result;
+            var right = source.Where(row => admitted.Contains(row.Id)).OrderBy(row => row.Name).Result;
+            var selected = left.CrossJoin(right).Select((parent, child) => new { Name = child.Name }).Result
+                .OrderByOutput("Name", descending: true);
+            Assert.IsFalse(selected.IsError, selected.Message);
+            var native = (ICosmicQueryJoinStorageProvider)provider;
+            var sorted = CosmicJoinPlanner.Plan(selected.Result, native.QueryProviderType,
+                new[] { new CosmicJoinTarget(native.QueryProviderType, native.QueryCapabilities, native.JoinCapabilities) });
+            Assert.IsFalse(sorted.IsError, sorted.Message);
+            var ordered = await NativeManager(provider).ExecuteJoinQueryAsync(sorted.Result, new[] { native });
+            Assert.IsFalse(ordered.IsError, ordered.Message + ordered.Exception);
+            CollectionAssert.AreEqual(new[] { "visible match", "protected source root" },
+                ordered.Result.Providers.Single().Rows.Select(row => row.Value.Name).ToArray());
+            checks.Add(new { provider = "SQLLiteDBOASIS", join = "native selected output ordering" });
+            Assert.AreEqual(66,checks.Count);
             await File.WriteAllTextAsync(Path.Combine(rootPath,"TestResults/Neo4jCurrent/sqlite-entity-projection-native.json"),
                 JsonSerializer.Serialize(new{provider="SQLLiteDBOASIS",checks=checks.Count,cases=checks,inMemoryFixture=true}));
         }
