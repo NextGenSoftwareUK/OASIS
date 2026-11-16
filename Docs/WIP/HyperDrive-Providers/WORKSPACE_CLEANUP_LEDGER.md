@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-16 UTC — Portal release preparation removed the two disposable local files it used (patch and alternate Git index). Wallet image qualification runs on GitHub under `ci-hyperdrive-wallet-e767ca027bd2`; retire the temporary ref after the job finishes and its evidence is captured.
+
 2026-11-16 UTC — Developer Portal verification used the live fragment in memory and created no test or build outputs. Both temporary Git indexes used to prepare portal release candidates were removed. No runtime or dependency downloads were needed.
 
 15 November Cancun time. WEB4 confirmed deletion of the disposable Celestial Map avatar with HTTP 200. Restored the portal sparse checkout and removed both alternate release indexes. No local SDK downloads, dependencies, builds or outputs were retained.

@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-16 UTC — Shared WEB4 image run `43779875754` passed on Development `307f52dfc9ae`. Confirmed the remote base and dispatched the scoped wallet image at `e767ca027bd2`. Run `43783783607` is in progress. The next portal candidates carry the HyperDrive overview fix and are `bf252de` (Celestial and Developer Portal) and `0e5af62` (includes wallet UI). The independent candidate can ship on its own after the portal release gate and current-head check.
+
 2026-11-16 UTC — OPORTAL task commit `6cc7910` resets the HyperDrive overview on open, ignores responses from previous sessions, renders status independently of optional metrics, and gives an explicit Refresh cue for failed status requests. A controlled in-memory check passed for status-first and metrics-first ordering, stale responses after reopening, and WEB4 error feedback. It created no disposable files or build outputs. The change is pushed to the portal task branch. Browser acceptance and deployment remain open.
 
 2026-11-16 UTC — OPORTAL task commit `a044a6b` moves the Developer Portal HTML fetch to the first open. Dev candidates are `7e53f68d` with Celestial Map and `8a002251` with Celestial Map and wallet changes. Deployment and browser deep-link/Back checks remain open.
