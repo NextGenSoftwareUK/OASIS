@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+16 November UTC. Removed the isolated website test directory after the 271 checks. The exact site and backend qualification sources were published as remote tags. No new local builds or model downloads.
+
 16 November UTC. The exact WEB4 recovery used a temporary linked Railway directory. The isolated directory and link were removed. No provider packages, test databases or local image layers were created.
 
 16 November UTC. Verified the Railway retry context in a disposable directory, confirmed it selected only Development WEB4, unlinked it and verified the original context. Removed temporary Git indexes after feature branch publication. No provider runtime or build was installed. C: measured 18.73 GiB free.
