@@ -32,7 +32,8 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             await VerifyEntitySelectedAll((ICosmicQueryEntityProjectedAllStorageProvider)provider,ids[0],checks);
             await VerifyMetadataPresenceWire(provider, ids[0], checks);
             await VerifyDistinctWire(provider, ids, checks);
-            Assert.AreEqual(56,checks.Count);
+            await VerifyNativeFlattening(provider,ids[0],ids[1],checks);
+            Assert.AreEqual(58,checks.Count);
             await File.WriteAllTextAsync(Path.Combine(rootPath,"TestResults/Neo4jCurrent/sqlite-entity-projection-native.json"),
                 JsonSerializer.Serialize(new{provider="SQLLiteDBOASIS",checks=checks.Count,cases=checks,inMemoryFixture=true}));
         }

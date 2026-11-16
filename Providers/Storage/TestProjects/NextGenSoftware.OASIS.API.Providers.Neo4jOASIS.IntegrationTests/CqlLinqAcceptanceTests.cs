@@ -24,6 +24,56 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         return new HolonManager((IOASISStorageProvider)adapter, dna, registry);
     }
 
+    private static async Task VerifyNativeFlattening(ICosmicQueryStorageProvider adapter,
+        Guid rootId, Guid otherId, List<object> checks)
+    {
+        var scope = CosmicQueryScope.Named(adapter.QueryProviderType).Result;
+        var manager = NativeManager(adapter);
+        var root = CosmicLinq.Create(manager, adapter, CosmicQuery<Holon>.Create(scope)
+            .Where(row => row.Id == rootId).Result, maximumResults: 10).Result;
+        var multi = CosmicLinq.Create(manager, adapter, CosmicQuery<Holon>.Create(scope)
+            .Where(row => row.Id == rootId || row.Id == otherId).Result, maximumResults: 10).Result;
+        using var cancellation = new CancellationTokenSource();
+        cancellation.Cancel();
+
+        var rightSource = root.OrderBy(row => row.Id).Take(1);
+        var flattened = root.Take(1).SelectMany(_ => rightSource,
+            (leftRow, rightRow) => new { LeftId = leftRow.Id, RightId = rightRow.Id });
+        var flattenedRows = await flattened.ToCosmicListAsync();
+        Assert.IsFalse(flattenedRows.IsError, flattenedRows.Message + flattenedRows.Exception);
+        Assert.AreEqual(rootId, flattenedRows.Result.Single().LeftId);
+        Assert.AreEqual(rootId, flattenedRows.Result.Single().RightId);
+        Assert.AreEqual(rootId, flattened.ToList().Single().RightId);
+
+        rightSource = root.OrderBy(row => row.Id).Take(0);
+        var flattenedAgain = await flattened.ToCosmicListAsync();
+        Assert.IsFalse(flattenedAgain.IsError, flattenedAgain.Message + flattenedAgain.Exception);
+        Assert.AreEqual(0, flattenedAgain.Result.Count);
+        var cancelledFlatten = await flattened.ToCosmicListAsync(cancellation.Token);
+        Assert.AreEqual("CQL_QUERY_CANCELLED", cancelledFlatten.ErrorCode);
+
+        var attemptedCallbacks = 0;
+        Func<IQueryable<Holon>> callback = () => { attemptedCallbacks++; return root; };
+        Assert.ThrowsException<CosmicLinqException>(() => root.SelectMany(_ => callback(),
+            (leftRow, rightRow) => new { LeftId = leftRow.Id, RightId = rightRow.Id }));
+        Assert.AreEqual(0, attemptedCallbacks);
+        checks.Add(new { provider = adapter.QueryProviderType.ToString(), linq = "independent SelectMany" });
+        var correlated = root.SelectMany(left => multi.Where(right =>
+                right.Id == left.Id && left.CreatedByAvatarId == right.CreatedByAvatarId),
+            (left, right) => new { LeftId = left.Id, RightId = right.Id });
+        var correlatedRows = await correlated.ToCosmicListAsync();
+        Assert.IsFalse(correlatedRows.IsError, correlatedRows.Message + correlatedRows.Exception);
+        Assert.AreEqual(rootId, correlatedRows.Result.Single().LeftId);
+        Assert.AreEqual(rootId, correlatedRows.Result.Single().RightId);
+
+        var reordered = root.SelectMany(left => multi.Where(right => left.Id == right.Id),
+            (left, right) => right.Id);
+        CollectionAssert.AreEqual(new[] { rootId }, reordered.ToArray());
+        Assert.ThrowsException<CosmicLinqException>(() => root.SelectMany(left =>
+            multi.Where(right => left.Name == right.Name), (left, right) => right.Id));
+        checks.Add(new { provider = adapter.QueryProviderType.ToString(), linq = "correlated SelectMany exact keys" });
+    }
+
     private static async Task VerifyLinqRows(ICosmicQueryStorageProvider adapter, Guid rootId, List<object> checks)
     {
         var source = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(adapter.QueryProviderType).Result)
