@@ -1968,3 +1968,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 2026-11-16 UTC — The command to obtain a temporary Railway CLI for read-only network-flow diagnostics was rejected before execution. No archive, executable or diagnostic output file was created. Existing CLI deployment-log summaries stayed in memory.
 
 2026-11-16 UTC — The hosted wallet coordinator update used the verified bundle already packaged in the exact WEB4 runtime. Preflight, update and independent readback were in memory. No local downloads, credentials, test records or coordinator artifacts were retained.
+
+2026-11-16 UTC — The two fresh WEB4 sandbox avatars for HoloOASIS discovery and the public CQL read received acknowledged deletion. The read used existing public records and created no Holochain data. No local secrets, payload, browser profile or report were saved.
