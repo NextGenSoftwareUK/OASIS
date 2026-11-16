@@ -65,8 +65,29 @@ public sealed class HoloNativeEdgeReplicationTests
             var applied = await repository.ApplyLocalMutationAsync(mutation, CancellationToken.None);
             Assert.True(!applied.IsError && applied.IsSaved, applied.Message);
             originalHash = await ReadMutationHashAsync(provider, mutation);
+            var hostedItem = new HostedSyncFanOutItem
+            {
+                OperationId = mutation.OperationId,
+                AvatarId = mutation.AvatarId,
+                EntityId = mutation.EntityId,
+                EntityType = mutation.EntityType,
+                VersionId = mutation.VersionId,
+                Kind = mutation.Kind,
+                PayloadJson = mutation.PayloadJson
+            };
             if (coordinatorWasm != null)
             {
+                // The predecessor returns its old record for conflicting replays.
+                hostedItem.PayloadJson = "{\"name\":\"different payload\"}";
+                var wrongPayload = await provider.ApplyReplicatedMutationAsync(hostedItem, CancellationToken.None);
+                Assert.Equal("HOLO_HYPERDRIVE_RECEIPT_INVALID", wrongPayload.ErrorCode);
+                Assert.False(wrongPayload.IsSaved);
+                hostedItem.PayloadJson = mutation.PayloadJson;
+                hostedItem.Kind = SyncOperationKind.Delete;
+                var wrongKind = await provider.ApplyReplicatedMutationAsync(hostedItem, CancellationToken.None);
+                Assert.Equal("HOLO_HYPERDRIVE_RECEIPT_INVALID", wrongKind.ErrorCode);
+                Assert.False(wrongKind.IsSaved);
+                hostedItem.Kind = mutation.Kind;
                 if (Environment.GetEnvironmentVariable("OASIS_HOLO_BATCH_BENCHMARK") == "1")
                     await BenchmarkIndexedReadsAsync(provider, endpoint, dnaHash, coordinatorWasm);
                 else
@@ -78,16 +99,7 @@ public sealed class HoloNativeEdgeReplicationTests
             Assert.True(!replay.IsError && replay.IsSaved, replay.Message);
             Assert.Equal(originalHash, await ReadMutationHashAsync(provider, mutation));
 
-            var hostedReplay = await provider.ApplyReplicatedMutationAsync(new HostedSyncFanOutItem
-            {
-                OperationId = mutation.OperationId,
-                AvatarId = mutation.AvatarId,
-                EntityId = mutation.EntityId,
-                EntityType = mutation.EntityType,
-                VersionId = mutation.VersionId,
-                Kind = mutation.Kind,
-                PayloadJson = mutation.PayloadJson
-            }, CancellationToken.None);
+            var hostedReplay = await provider.ApplyReplicatedMutationAsync(hostedItem, CancellationToken.None);
             Assert.True(!hostedReplay.IsError && hostedReplay.IsSaved && hostedReplay.Result, hostedReplay.Message);
             Assert.Equal(originalHash, await ReadMutationHashAsync(provider, mutation));
 
