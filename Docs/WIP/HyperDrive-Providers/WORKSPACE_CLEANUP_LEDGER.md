@@ -1890,3 +1890,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 2026-11-16 UTC — Both map-routing candidate scratch indexes were removed. The first stopped when adding a new workflow path and the second applied the exact Git delta successfully. No provider runtime, credentials or build output were created.
 
 2026-11-16 UTC — Removed the scratch index after dispatching exact shared-routing qualification. No local SDK install, build output or provider fixtures were created.
+
+2026-11-16 UTC — All three signed My routing probes self-deleted their disposable avatars and removed their protected session directories and owned Chrome profiles. The final probe restored and verified the original per-avatar preference before deletion. No global settings, query results, screenshots or local build output were retained.
