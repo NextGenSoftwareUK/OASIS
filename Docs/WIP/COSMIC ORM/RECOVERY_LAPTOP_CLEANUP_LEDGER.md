@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+16 November UTC. The temporary Bronze grant was restored to Free. Chrome profile, grant journal and website test snapshots are absent. The short-lived WEB4 administrator session was independently confirmed invalid when revocation returned 401. Its five local files were removed. No provider downloads or installs were made. The staged WEB6 Free source patches are retained only until the exact candidate and follow-up are verified in Git. C: measured 19.0 GiB free.
+
 16 November UTC. The one approved Bronze check used installed Chrome and standard library automation. The temporary profile and grant journal were removed after the visitor returned to Free. No browser runtime or models were downloaded. Retain the protected short-lived administrator session only through reconciliation, and record its cleanup. Small WEB6 source patches under `LocalState/COSMIC` are pending publication.
 
 16 November UTC. Verified and removed two published WEB4 null-safe patches. Removed the temporary 2.1 MB website snapshot after all 269 tests passed at `ce5c6c8ddc72`. Temporary staged indexes and the scratch manifest from the feature-branch integration were removed. Retain the 1.5 KiB `LocalState/COSMIC/CqlJoinedCardinality-PairProof-08acd7e10da7.patch` until the native LINQ cardinality candidate is published. No local dependencies or build outputs were added.
