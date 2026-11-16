@@ -8,11 +8,8 @@ public sealed class TronPublicWalletBalanceTests
     [PublicTronRead]
     public async Task SynchronousWalletBalanceReadsSolidifiedTrxWithoutCallerPosts()
     {
-        var provider = new TRONOASIS(
-            fullNodeGrpcEndpoint: "https://tron-grpc.publicnode.com:443",
-            solidityNodeGrpcEndpoint: "https://tron-solidity-grpc.publicnode.com:443",
-            genesisBlockId: TronPublicHeaderMetadataSource.PublicGenesis);
-        var request = new GetWeb3WalletBalanceRequest { WalletAddress = "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb" };
+        var provider = CreateProvider();
+        var request = CreateRequest();
         var context = new ObservedContext();
         var previous = SynchronizationContext.Current;
         try
@@ -31,6 +28,32 @@ public sealed class TronPublicWalletBalanceTests
             Assert.False(deactivation.IsError, deactivation.Message);
         }
     }
+
+    [PublicTronRead]
+    public async Task AsynchronousWalletBalanceReadsSolidifiedTrxWithoutActivation()
+    {
+        var provider = CreateProvider();
+        try
+        {
+            var result = await provider.GetBalanceAsync(CreateRequest());
+            Assert.False(result.IsError, result.Message);
+            Assert.True(result.Result > 0d);
+            Assert.False(provider.IsProviderActivated);
+        }
+        finally
+        {
+            var deactivation = await provider.DeActivateProviderAsync();
+            Assert.False(deactivation.IsError, deactivation.Message);
+        }
+    }
+
+    private static TRONOASIS CreateProvider() => new(
+        fullNodeGrpcEndpoint: "https://tron-grpc.publicnode.com:443",
+        solidityNodeGrpcEndpoint: "https://tron-solidity-grpc.publicnode.com:443",
+        genesisBlockId: TronPublicHeaderMetadataSource.PublicGenesis);
+
+    private static GetWeb3WalletBalanceRequest CreateRequest() =>
+        new() { WalletAddress = "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb" };
 
     private sealed class PublicTronReadAttribute : FactAttribute
     {
