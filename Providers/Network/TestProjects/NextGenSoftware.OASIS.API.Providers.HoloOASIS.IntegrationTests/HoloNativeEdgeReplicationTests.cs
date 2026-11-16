@@ -1,4 +1,6 @@
+using System.Text.Json;
 using NextGenSoftware.Holochain.HoloNET.Client;
+using NextGenSoftware.Holochain.HoloNET.Client.Data.Admin.Requests.Objects;
 using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive.Synchronization;
 using NextGenSoftware.OASIS.API.Providers.HoloOASIS.Edge;
 using Xunit;
@@ -13,13 +15,25 @@ public sealed class HoloNativeEdgeReplicationTests
         Assert.Equal("true", Environment.GetEnvironmentVariable("GITHUB_ACTIONS"));
         var endpoint = new Uri(Required("OASIS_HOLOCHAIN_ADMIN_URI"));
         Assert.True(endpoint.IsLoopback);
+        var receiptPath = Environment.GetEnvironmentVariable("OASIS_HOLO_EDGE_RESTART_RECEIPT");
+        if (receiptPath != null && File.Exists(receiptPath))
+        {
+            var receipt = JsonSerializer.Deserialize<RestartReceipt>(await File.ReadAllTextAsync(receiptPath));
+            Assert.NotNull(receipt);
+            await VerifyAfterRestartAsync(endpoint, receipt);
+            return;
+        }
+
+        var priorBundle = Environment.GetEnvironmentVariable("OASIS_HOLO_EDGE_PRIOR_HAPP");
+        var coordinatorWasm = Environment.GetEnvironmentVariable("OASIS_HOLO_EDGE_COORDINATOR_WASM");
+        Assert.Equal(string.IsNullOrEmpty(priorBundle), string.IsNullOrEmpty(coordinatorWasm));
         var admin = OpenAdmin(endpoint);
         var connected = await admin.ConnectAsync();
         Assert.False(connected.IsError, connected.Message);
         try
         {
             var installed = await admin.InstallAppAsync(HoloOASIS.OASIS_HAPP_ID,
-                Required("HOLONET_LIVE_HAPP_PATH"), network_seed: Guid.NewGuid().ToString("N"));
+                priorBundle ?? Required("HOLONET_LIVE_HAPP_PATH"), network_seed: Guid.NewGuid().ToString("N"));
             Assert.False(installed.IsError, installed.Message);
         }
         finally
@@ -35,14 +49,26 @@ public sealed class HoloNativeEdgeReplicationTests
         };
         var provider = OpenProvider(endpoint);
         string originalHash;
+        string dnaHash;
+        string agentKey;
         try
         {
             var activated = await provider.ActivateProviderAsync();
             Assert.True(!activated.IsError && activated.Result, activated.Message);
+            var dna = provider.HoloNETClientAppAgent.HoloNETDNA;
+            dnaHash = dna.DnaHash;
+            agentKey = dna.AgentPubKey;
+            Assert.False(string.IsNullOrWhiteSpace(dnaHash));
+            Assert.False(string.IsNullOrWhiteSpace(agentKey));
             var repository = new HoloEdgeMutationRepository(new HoloNetEdgeAppClient(provider.HoloNETClientAppAgent));
             var applied = await repository.ApplyLocalMutationAsync(mutation, CancellationToken.None);
             Assert.True(!applied.IsError && applied.IsSaved, applied.Message);
             originalHash = await ReadMutationHashAsync(provider, mutation);
+            if (coordinatorWasm != null)
+            {
+                await UpdateCoordinatorAsync(endpoint, dnaHash, coordinatorWasm);
+                Assert.Equal(originalHash, await ReadMutationHashAsync(provider, mutation));
+            }
 
             var replay = await repository.ApplyLocalMutationAsync(mutation, CancellationToken.None);
             Assert.True(!replay.IsError && replay.IsSaved, replay.Message);
@@ -66,6 +92,8 @@ public sealed class HoloNativeEdgeReplicationTests
         {
             var activated = await reopened.ActivateProviderAsync();
             Assert.True(!activated.IsError && activated.Result, activated.Message);
+            Assert.Equal(dnaHash, reopened.HoloNETClientAppAgent.HoloNETDNA.DnaHash);
+            Assert.Equal(agentKey, reopened.HoloNETClientAppAgent.HoloNETDNA.AgentPubKey);
             Assert.Equal(originalHash, await ReadMutationHashAsync(reopened, mutation));
             var latest = await reopened.HoloNETClientAppAgent.CallZomeFunctionAsync("oasis",
                 "get_latest_hyperdrive_entity", new
@@ -80,6 +108,70 @@ public sealed class HoloNativeEdgeReplicationTests
         finally
         {
             if (reopened.IsProviderActivated) await reopened.DeActivateProviderAsync();
+        }
+
+        if (receiptPath != null)
+        {
+            Assert.False(string.IsNullOrEmpty(coordinatorWasm));
+            var receipt = new RestartReceipt(mutation, dnaHash, agentKey, originalHash);
+            await File.WriteAllTextAsync(receiptPath, JsonSerializer.Serialize(receipt));
+        }
+    }
+
+    private static async Task VerifyAfterRestartAsync(Uri endpoint, RestartReceipt receipt)
+    {
+        var provider = OpenProvider(endpoint);
+        try
+        {
+            var activated = await provider.ActivateProviderAsync();
+            Assert.True(!activated.IsError && activated.Result, activated.Message);
+            Assert.Equal(receipt.DnaHash, provider.HoloNETClientAppAgent.HoloNETDNA.DnaHash);
+            Assert.Equal(receipt.AgentKey, provider.HoloNETClientAppAgent.HoloNETDNA.AgentPubKey);
+            Assert.Equal(receipt.ActionHash, await ReadMutationHashAsync(provider, receipt.ConflictingMutation));
+            var repository = new HoloEdgeMutationRepository(new HoloNetEdgeAppClient(provider.HoloNETClientAppAgent));
+            var conflict = await repository.ApplyLocalMutationAsync(receipt.ConflictingMutation, CancellationToken.None);
+            Assert.True(conflict.IsError);
+            Assert.False(conflict.IsSaved);
+            Assert.Contains("already bound to a different mutation", conflict.Message);
+            Assert.Equal(receipt.ActionHash, await ReadMutationHashAsync(provider, receipt.ConflictingMutation));
+        }
+        finally
+        {
+            if (provider.IsProviderActivated) await provider.DeActivateProviderAsync();
+        }
+    }
+
+    private sealed record RestartReceipt(SyncOperation ConflictingMutation, string DnaHash, string AgentKey, string ActionHash);
+
+    private static async Task UpdateCoordinatorAsync(Uri endpoint, string dnaHash, string wasmPath)
+    {
+        const string resource = "oasis.wasm";
+        var bundle = new CoordinatorBundle
+        {
+            manifest = new CoordinatorManifest
+            {
+                zomes = new[]
+                {
+                    new ZomeManifest
+                    {
+                        name = "oasis", path = resource,
+                        dependencies = new[] { new ZomeDependency { name = "oasis_integrity" } }
+                    }
+                }
+            },
+            resources = new Dictionary<string, byte[]> { [resource] = await File.ReadAllBytesAsync(wasmPath) }
+        };
+        var admin = OpenAdmin(endpoint);
+        var connected = await admin.ConnectAsync();
+        Assert.False(connected.IsError, connected.Message);
+        try
+        {
+            var result = await admin.UpdateCoordinatorsAsync(dnaHash, bundle);
+            Assert.False(result.IsError, result.Message);
+        }
+        finally
+        {
+            await admin.DisconnectAsync();
         }
     }
 
