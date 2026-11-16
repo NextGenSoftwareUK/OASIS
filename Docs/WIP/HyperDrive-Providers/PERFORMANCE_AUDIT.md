@@ -1,5 +1,7 @@
 # OPORTAL and HyperDrive performance audit
 
+15 November Cancun time. Wallet modal startup now sends two signed WEB4 reads and defers portfolio, token and analytics calls to the selected Portfolio tab. The wallet networks list reuses the current wallet results. A signed sandbox check verified the request count and empty-wallet portfolio behavior. Measured populated wallet and browser latency remain open.
+
 15 November Cancun time. Holon History makes no request when opened without an ID. A valid ID makes one bounded-to-ID STARNET versions request. The previous path also requested the current record. The signed probe verified those request counts. Browser paint remains unmeasured.
 
 15 November Cancun time. The Games dialog issues one catalog request on open. It loads personal games and cross-game quests only when their tabs are selected. Signed checks confirmed one GET per visited tab and zero repeat requests on revisiting all three. Browser paint remains unmeasured.
