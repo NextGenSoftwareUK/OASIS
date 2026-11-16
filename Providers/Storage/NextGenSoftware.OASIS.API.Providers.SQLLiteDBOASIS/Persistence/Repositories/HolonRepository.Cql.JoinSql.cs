@@ -39,11 +39,18 @@ public partial class HolonRepository
         var equality = new List<string>();
         for (var index = 0; index < selection.Join.Keys.Count; index++)
         {
-            // Null/missing components never match, including null == null.
+            var operation = selection.Join.Keys[index].Comparison;
             var type = Nullable.GetUnderlyingType(selection.Join.Keys[index].Left.ValueType)
                 ?? selection.Join.Keys[index].Left.ValueType;
             var collation = type == typeof(Guid) ? " COLLATE NOCASE" : " COLLATE BINARY";
-            var comparison = selection.Join.Keys[index].Comparison switch
+            if (operation is CosmicJoinComparison.NullSafeEqual or CosmicJoinComparison.NullSafeNotEqual)
+            {
+                var nullableOperator = operation == CosmicJoinComparison.NullSafeEqual ? "IS" : "IS NOT";
+                equality.Add($"(CASE WHEN l.k{index}s=2 THEN l.k{index}v END) {nullableOperator} "
+                    + $"(CASE WHEN r.k{index}s=2 THEN r.k{index}v END)");
+                continue;
+            }
+            var comparison = operation switch
             {
                 CosmicJoinComparison.Equal => "=",
                 CosmicJoinComparison.NotEqual => "<>",

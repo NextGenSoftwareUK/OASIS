@@ -39,16 +39,24 @@ public partial class Neo4jOASIS
         {
             var comparison = key.Comparison switch
             {
-                CosmicJoinComparison.Equal => "=",
-                CosmicJoinComparison.NotEqual => "<>",
+                CosmicJoinComparison.Equal or CosmicJoinComparison.NullSafeEqual => "=",
+                CosmicJoinComparison.NotEqual or CosmicJoinComparison.NullSafeNotEqual => "<>",
                 CosmicJoinComparison.LessThan => "<",
                 CosmicJoinComparison.LessThanOrEqual => "<=",
                 CosmicJoinComparison.GreaterThan => ">",
                 CosmicJoinComparison.GreaterThanOrEqual => ">=",
                 _ => throw new NotSupportedException("Unknown native join comparison.")
             };
-            return "l.keys["+index+"].s=2 AND r.keys["+index+"].s=2 AND l.keys["+index+"].v"
-                + comparison + "r.keys["+index+"].v";
+            var lcell = "l.keys[" + index + "]";
+            var rcell = "r.keys[" + index + "]";
+            var leftPresent = lcell + ".s=2";
+            var rightPresent = rcell + ".s=2";
+            var present = leftPresent + " AND " + rightPresent;
+            var valuesMatch = lcell + ".v" + comparison + rcell + ".v";
+            return key.Comparison is CosmicJoinComparison.NullSafeEqual or CosmicJoinComparison.NullSafeNotEqual
+                ? "(CASE WHEN " + present + " THEN " + valuesMatch + " ELSE (" + leftPresent + ")"
+                    + comparison + "(" + rightPresent + ") END)"
+                : present + " AND " + valuesMatch;
         }));
         var valid="size(leftInput)<="+leftCount+" AND size(rightInput)<="+rightCount
             +" AND all(x IN leftInput+rightInput WHERE x.valid AND x.domainValid AND NOT(x.cycle OR x.traversalLimit OR x.payloadLimit))"

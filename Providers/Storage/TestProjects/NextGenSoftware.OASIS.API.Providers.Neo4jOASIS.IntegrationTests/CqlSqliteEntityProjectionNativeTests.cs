@@ -310,6 +310,18 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Assert.IsFalse(limitedAdmission.IsError, limitedAdmission.Message);
         var lowerRows = CosmicLinq.Create(manager, provider, lower, maximumResults: 4).Result;
         var higherRows = CosmicLinq.Create(manager, provider, higher, maximumResults: 4).Result;
+        var liftedEqual = await higherRows.SelectMany(l => higherRows.Where(r =>
+                CosmicQueryMetadata.Value<long?>(r, "i64") == CosmicQueryMetadata.Value<long?>(l, "i64")),
+            (l, r) => new { Left = l.Id, Right = r.Id }).ToCosmicListAsync();
+        Assert.IsFalse(liftedEqual.IsError, liftedEqual.Message + liftedEqual.Exception);
+        CollectionAssert.AreEquivalent(new[] { (parentId,parentId), (missingId,missingId) },
+            liftedEqual.Result.Select(pair => (pair.Left,pair.Right)).ToArray());
+        var liftedUnequal = await lowerRows.SelectMany(l => higherRows.Where(r =>
+                CosmicQueryMetadata.Value<long?>(r, "i64") != CosmicQueryMetadata.Value<long?>(l, "i64")),
+            (l, r) => new { Left = l.Id, Right = r.Id }).ToCosmicListAsync();
+        Assert.IsFalse(liftedUnequal.IsError, liftedUnequal.Message + liftedUnequal.Exception);
+        CollectionAssert.AreEquivalent(new[] { (parentId,missingId), (lowerId,parentId), (lowerId,missingId) },
+            liftedUnequal.Result.Select(pair => (pair.Left,pair.Right)).ToArray());
         var exactMetadata = lowerRows.SelectMany(l => higherRows.Where(r =>
                 CosmicQueryMetadata.Value<long?>(r, "i64") > CosmicQueryMetadata.Value<long?>(l, "i64")),
             (l, r) => new { Before = l.Id, After = r.Id });
