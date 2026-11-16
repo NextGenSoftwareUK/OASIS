@@ -8,6 +8,7 @@ param(
     [string]$BootLoaderProject,
     [switch]$HoloConformance,
     [switch]$HoloRouting,
+    [ValidateSet('SavesPublicAvatarWithoutAuthenticationState')][string]$HoloRoutingCase,
     [switch]$HoloEdgeReplication,
     [string]$CqlProject
 )
@@ -21,6 +22,9 @@ if (($HoloConformance -or $HoloRouting -or $HoloEdgeReplication) -and -not $Desk
 }
 if ($HoloEdgeReplication -and ($HoloConformance -or $HoloRouting)) {
     throw 'Select Edge replication on its own.'
+}
+if ($HoloRoutingCase -and -not $HoloRouting) {
+    throw 'A routing case requires Holo routing verification.'
 }
 function Assert-CompleteTestReport([string]$Path, [int]$Minimum) {
     [xml]$report = Get-Content -LiteralPath $Path -Raw
@@ -231,6 +235,7 @@ try {
         $env:OASIS_HOLOCHAIN_ADMIN_URI = $env:HOLONET_LIVE_ADMIN_URI
         $env:OASIS_HOLOCHAIN_REPORT_DIR = $ResultsDirectory
         $test = if ($HoloEdgeReplication) { 'EdgeReplayKeepsTheOriginalNativeMutation' } elseif ($HoloRouting) { 'HoloNativeRoutingTests' } elseif ($HoloConformance) { 'HoloCoreStorageConformance' } else { 'DesktopAvatarAndHolonCrud' }
+        if ($HoloRoutingCase) { $test = $HoloRoutingCase }
         $minimum = if ($HoloConformance -or $HoloRouting) { 2 } else { 1 }
         $timeoutOptions = @()
         if ($HoloConformance) { $timeoutOptions = @('--blame-hang-timeout', '2m', '--blame-hang-dump-type', 'none') }
