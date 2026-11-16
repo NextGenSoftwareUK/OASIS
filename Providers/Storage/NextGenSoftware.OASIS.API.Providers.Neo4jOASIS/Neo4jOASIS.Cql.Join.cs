@@ -15,7 +15,7 @@ public partial class Neo4jOASIS : ICosmicQueryJoinStorageProvider
     {
         internal static readonly CosmicJoinCapabilities Value = new(
             new[] { CosmicJoinKind.Inner, CosmicJoinKind.Left, CosmicJoinKind.Cross, CosmicJoinKind.Full }, CqlProjectionCapabilities, CqlProjectionCapabilities,
-            supportsChildNavigation:true);
+            supportsChildNavigation:true,supportsOutputOrdering:true);
     }
     public static CosmicJoinCapabilities CqlJoinCapabilities => JoinContract.Value;
     public CosmicJoinCapabilities JoinCapabilities => CqlJoinCapabilities;
