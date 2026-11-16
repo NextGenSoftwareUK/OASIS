@@ -6899,3 +6899,5 @@ Web4Site 5fa63a71df5d used a temporary directory containing only committed websi
 16 November UTC. Canonical null and combined grouped-count editor checks used temporary exact-source snapshots and the existing Node runtime. Each snapshot was removed on exit, including the first run with an outdated negative assertion. Verified the temporary source paths absent. No downloaded dependencies or test database.
 
 16 November UTC. The bounded read-only Mongo visitor reconciliation used the cached driver and existing .NET SDK. The temporary project and build outputs were removed and verified absent. The original encrypted authentication journal remains retained. No new avatar, database or runtime installation.
+
+16 November UTC. The existing Railway CLI lacked secure stdin for setting the private OASISDNA payload, so a pinned Railway CLI 5.74.0 and npm cache were created inside one temporary directory, used, and removed with that directory. The rejected version lookup and its owned debug log were also cleaned up. The configuration was passed to the CLI over stdin and only compared in memory.
