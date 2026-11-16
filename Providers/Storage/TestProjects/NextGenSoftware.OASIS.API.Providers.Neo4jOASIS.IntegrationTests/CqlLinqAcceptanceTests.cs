@@ -209,6 +209,11 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Assert.AreEqual(1, root.Count(row => row.Name == name)); Passed("native Count predicate");
         Assert.AreEqual(1, root.Take(1).Count(row => row.Name == name)); Passed("native post-window entity Count predicate");
         Assert.IsTrue(root.All(row => row.Children.Any(child => child.Name == "visible match")));
+        Assert.IsTrue(root.Any(row => row.Children.Any()));
+        Assert.IsFalse(root.Any(row => !row.Children.Any()));
+        var childrenPresent = await root.Where(row => row.Children.Any()).ToCosmicListAsync();
+        Assert.IsFalse(childrenPresent.IsError, childrenPresent.Message);
+        Assert.AreEqual(rootId, childrenPresent.Result.Single().Id);
         Passed("native All child scope");
 
         var comprehension =
