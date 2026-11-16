@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+16 November UTC. Reverse-checked 15 previously staged whole-child patches against their exact published tags, then deleted the local duplicates. The verification and commit indexes were removed. Three small patches for typed child selection and regression assertions are tracked in `LocalState/COSMIC` until their exact publication is reconciled. No local test builds, runtime installations or database fixtures for this batch.
+
 16 November UTC. Whole-child LINQ qualification uses ephemeral CI. Local `LocalState/COSMIC/WholeChildJoin-*.patch` files contain approximately 25 KiB of source edits pending qualification. Temporary Git indexes were removed after validation and the obsolete first SQLite patch was deleted. Dispose of retained patches individually once their replacements are published and verified. No new local packages, environments or build outputs were produced. C: measured 19.7 GiB free.
 
 16 November UTC. The exact Development joined-paging acceptance used 15 private fixtures across MongoDB, SQLite and Neo4j. All dispatched IDs were confirmed absent after revision-checked deletion and the append-only journal was removed. Ethereum probes were read-only and used the existing container and installed Node runtime. No local build or database outputs were created.
