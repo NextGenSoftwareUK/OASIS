@@ -1924,3 +1924,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 2026-11-16 UTC — Removed the HoloOASIS/COSMIC integration scratch index and temporary directory. Only scoped Git metadata was fetched. No local build ran.
 
 2026-11-16 UTC — Removed the isolated Git indexes for the search candidate and its Core portability fix. The failed build and fresh verification both run in CI, with no local packages or build artifacts.
+
+2026-11-16 UTC — Removed the scratch Core portability index. Fetched only the pinned Git objects needed to verify the next Core base and the HoloNET-ORM source graph. No local build output or runtime was installed.
