@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-16 UTC — WEB4 holon copy controller compiled and all 11 focused tests passed. The first run exposed a fixture type mismatch in four signed cases. Corrected the fixture to use the same Core avatar type as the authorization filter, rebuilt the tests against the already compiled WEB4 dependencies and verified Wizard access, standard avatar refusal, guest refusal and invalid provider input. The corrected combined candidate is 653ce2132f25dd5488892551d716cf0902d074f7 on f550a04cc75d. Image qualification and native HTTP acceptance remain open.
+
 2026-11-16 UTC — OPORTAL `2b5a77e` adds regression coverage for denied Wizard access, duplicate-submit suppression, same-session acknowledgement, wrong IDs, and stale responses after a session change. A stale result tells the operator to check the destination before retrying. All checks passed. Updated portal candidate `2bfd8cc` remains staged pending live WEB4 copy acceptance. Staging index removed and no local browser or Node artifacts were created.
 
 2026-11-16 UTC — Railway reported WEB4 billing-index recovery deployment `ab45a804` on `f550a04cc75d` successful. The public /api/health probe still timed out after 10 seconds and the replacement runtime logged a new MongoDB 512 MB quota rejection at 03:27 UTC. Public serving and writable storage are therefore unverified. The shared WEB4 image queue remains in use. The existing local holon-copy test is still compiling providers; no duplicate build started.

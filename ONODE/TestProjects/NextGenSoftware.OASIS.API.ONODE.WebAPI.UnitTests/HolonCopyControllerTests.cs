@@ -8,11 +8,11 @@ using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Routing;
 using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 using Xunit;
+using CoreAvatar = NextGenSoftware.OASIS.API.Core.Holons.Avatar;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests;
 
@@ -31,7 +31,7 @@ public sealed class HolonCopyControllerTests
         Assert.NotNull(filter);
         var http = new DefaultHttpContext();
         if (avatarType.HasValue)
-            http.Items["Avatar"] = new Avatar { AvatarType = new EnumValue<AvatarType>(avatarType.Value) };
+            http.Items["Avatar"] = new CoreAvatar { AvatarType = new EnumValue<AvatarType>(avatarType.Value) };
         var context = new AuthorizationFilterContext(
             new ActionContext(http, new RouteData(), new ActionDescriptor()), new List<IFilterMetadata>());
 
