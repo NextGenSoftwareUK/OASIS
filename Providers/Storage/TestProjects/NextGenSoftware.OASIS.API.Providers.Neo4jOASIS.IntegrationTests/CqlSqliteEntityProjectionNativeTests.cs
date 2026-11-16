@@ -79,6 +79,21 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         var wireRows = await NativeManager(provider).ExecuteJoinQueryAsync(wirePlan.Result, new[] { provider });
         Assert.IsFalse(wireRows.IsError, wireRows.Message + wireRows.Exception);
         Assert.AreEqual(childId, (Guid)wireRows.Result.Providers.Single().Rows.Single().Value["ChildId"]);
+        request.OutputOffset = 1;
+        request.OutputLimit = 1;
+        var page = CqlCompiler.CompileJoin(request, actor, provider.QueryProviderType, CosmicQueryReadAccess.OwnerOrPublic(actor).Result);
+        Assert.AreEqual(1, page.OutputOffset);
+        Assert.AreEqual(1, page.OutputLimit);
+        Assert.AreEqual(2, page.OutputOrdering.Count);
+        var pagePlan = CosmicJoinPlanner.Plan(page, provider.QueryProviderType,
+            new[] { new CosmicJoinTarget(provider.QueryProviderType, provider.QueryCapabilities, provider.JoinCapabilities) });
+        Assert.IsFalse(pagePlan.IsError, pagePlan.Message);
+        var pageRows = await NativeManager(provider).ExecuteJoinQueryAsync(pagePlan.Result, new[] { provider });
+        Assert.IsFalse(pageRows.IsError, pageRows.Message + pageRows.Exception);
+        Assert.AreEqual(0, pageRows.Result.Providers.Single().Rows.Count);
+        request.OutputLimit = null;
+        Assert.ThrowsException<ArgumentException>(() => CqlCompiler.CompileJoin(request, actor,
+            provider.QueryProviderType, CosmicQueryReadAccess.OwnerOrPublic(actor).Result));
         checks.Add(new { provider = provider.QueryProviderType.ToString(), linq = "scoped child input before native budget" });
     }
 
