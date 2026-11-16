@@ -50,7 +50,7 @@ jobs:
         run: |
           $project = 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.HoloOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.HoloOASIS.UnitTests.csproj'
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-HoloWalletSerialization -Operation {
-            dotnet test $project --configuration Release /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~AvatarSerializationRejectsWalletCredentialsInBothModes' --logger 'console;verbosity=normal'
+            dotnet test $project --configuration Release /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~AvatarSerialization' --logger 'console;verbosity=normal'
             if ($LASTEXITCODE) { throw "HoloOASIS wallet serialization tests exited $LASTEXITCODE" }
           }
       - name: Check out the pinned prior hApp fixture

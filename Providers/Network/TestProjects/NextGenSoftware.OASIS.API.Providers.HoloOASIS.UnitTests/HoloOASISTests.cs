@@ -13,6 +13,35 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.UnitTests
 {
     public class HoloOASISTests
     {
+        [Fact]
+        public void AvatarSerializationOmitsAuthenticationStateFromBothModes()
+        {
+            var avatar = new Avatar
+            {
+                Username = "public-test-avatar",
+                Password = "synthetic-password",
+                JwtToken = "synthetic-session",
+                RefreshToken = "synthetic-refresh",
+                ResetToken = "synthetic-reset",
+                VerificationToken = "synthetic-verification",
+                ProviderUniqueStorageKey = new Dictionary<ProviderType, string>()
+            };
+
+            object direct = DataHelper.ConvertAvatarToParamsObject(avatar);
+            foreach (var field in new[] { "password", "jwt_token", "refresh_token", "refresh_tokens",
+                "reset_token", "verification_token", "password_reset", "reset_token_expires" })
+                Assert.Null(direct.GetType().GetProperty(field));
+            Assert.Equal(avatar.Username, direct.GetType().GetProperty("username").GetValue(direct));
+
+            var reflection = DataHelper.ConvertAvatarToHoloOASISAvatar(avatar, new HcAvatar());
+            Assert.Equal(avatar.Username, reflection.Username);
+            Assert.Null(reflection.Password);
+            Assert.Null(reflection.JwtToken);
+            Assert.Null(reflection.RefreshToken);
+            Assert.Null(reflection.ResetToken);
+            Assert.Null(reflection.VerificationToken);
+        }
+
         [Theory]
         [InlineData("synthetic-private-key", null)]
         [InlineData(null, "synthetic-recovery-phrase")]
