@@ -1,0 +1,27 @@
+name: Holochain listener maintenance
+
+on:
+  push:
+    branches: [work/hyperdrive-provider-completion]
+    paths:
+      - 'Scripts/HoloListenerMaintenance/**'
+      - '.github/workflows/holo-listener-maintenance.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: Scripts/HoloListenerMaintenance
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - run: rustup toolchain install 1.96.0 --profile minimal --component rustfmt
+      - run: cargo +1.96.0 fmt -- --check
+      - run: cargo +1.96.0 check --jobs 2

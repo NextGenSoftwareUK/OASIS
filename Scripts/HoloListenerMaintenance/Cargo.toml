@@ -1,0 +1,12 @@
+[package]
+name = "oasis-holo-listener-maintenance"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[dependencies]
+anyhow = "1"
+holochain_state = { version = "=0.7.1", features = ["encryption"] }
+holochain_util = { version = "=0.7.1", default-features = false, features = ["pw"] }
+sha2 = "0.10"
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
