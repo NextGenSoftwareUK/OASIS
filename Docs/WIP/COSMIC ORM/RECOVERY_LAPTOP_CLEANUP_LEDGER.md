@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+16 November UTC. Join paging used installed Node and Python, disposable Git indexes, and temporary website test snapshots removed by the test runner. The SQLite syntax check used an in-memory database. Builds run in GitHub Actions. No new environment or locally installed runtime was used.
+
 16 November UTC. Multi-column joined ordering candidates were prepared through disposable Git indexes that closed after commit creation. The syntax check used the installed Node runtime and in-memory sample identities. The exact native build is running in CI. No local build, runtime install or live fixture has been created for this batch.
 
 16 November UTC. The live predicate-free relationship test removed all 15 fixture records and verified absence. Its append journal and the joined-order website test snapshot were removed. No local builds or downloads were created.
