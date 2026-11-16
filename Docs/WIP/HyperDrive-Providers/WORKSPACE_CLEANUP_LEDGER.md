@@ -1904,3 +1904,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 2026-11-16 UTC — Removed the temporary Git fixture preload after the combined app-owner usage and billing failure regression. No dependencies, build output or app account were created.
 
 2026-11-16 UTC — Removed the Git fixture preload after the app-owner read deadline check. No installations or build outputs were created.
+
+2026-11-16 UTC — Removed the scoped OPORTAL candidate index and exact-tree test preload. No local SDK, packages, fixtures or build output were created.
