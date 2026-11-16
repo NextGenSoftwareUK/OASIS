@@ -1800,3 +1800,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 2026-11-16 UTC — MongoDB emergency diagnosis used two exact temporary PyMongo paths. Removed oasis-mongo-quota-audit-z1xxnc4b and oasis-mongo-quota-sdk-baca985c084c4c71b225f9d4ffdac745 after the client processes exited and confirmed both absent. Temporary API avatar deletion returned HTTP 200 and a true result. No reports, database exports or credential files were downloaded.
 
 2026-11-16 UTC — Removed the exact 25,929,170-byte QuotaReconciliationDedup build tree after the leased test exited. The temporary Atlas SDK directory was also removed. The corrected test dropped its uniquely named database.
+
+2026-11-16 UTC — Stopped the owned MongoDB 8.2.1 test process after the native avatar authentication test exited and removed the exact AvatarLoginFailoverQualification tree (488,228,448 bytes across 1,740 files), including temporary Mongo data, SDK, logs and build outputs. Verified the path absent.

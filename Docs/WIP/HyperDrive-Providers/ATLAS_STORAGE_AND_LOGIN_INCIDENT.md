@@ -53,3 +53,5 @@ The focused MongoDB-to-SQLite authentication regression is wired to the reusable
 ## Sign-in DNA routing update
 
 Saved and read back MongoDBOASIS, Neo4jOASIS, SQLLiteDBOASIS in the avatar sign-in override for every WEB4 through WEB10 Railway service in dev and production. The Railway updates were saved without triggering simultaneous deployments. Updated eight full parent-repository DNA configurations and two STAR defaults/templates. Provider-only overlays inherit their configuration and were not given a separate route. Native login and refresh qualification and rollout remain open.
+
+The native MongoDB 8.2.1 and SQLite controlled test compiled and reached the refresh assertion. MongoDB still served reads and rejected writes. The wrong password was rejected, the correct login returned a JWT, the new refresh token was absent from MongoDB and present in SQLite. The follow-on refresh reported Avatar not found. The saved Railway route is a configuration change only. The remaining refresh defect and hosted secondary authority checks prevent claiming end-to-end failover.
