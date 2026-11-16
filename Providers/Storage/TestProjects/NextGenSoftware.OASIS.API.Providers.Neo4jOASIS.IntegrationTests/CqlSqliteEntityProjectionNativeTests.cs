@@ -271,6 +271,16 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             .CompareKey("Amount", CosmicJoinComparison.LessThan).Result.Select((l, r) => r.Id).Result;
         var limitedAdmission = native.JoinCapabilities.Admit(limited);
         Assert.IsFalse(limitedAdmission.IsError, limitedAdmission.Message);
+        var lowerRows = CosmicLinq.Create(manager, provider, lower, maximumResults: 4).Result;
+        var higherRows = CosmicLinq.Create(manager, provider, higher, maximumResults: 4).Result;
+        var exactMetadata = lowerRows.SelectMany(l => higherRows.Where(r =>
+                CosmicQueryMetadata.Value<long?>(r, "i64") > CosmicQueryMetadata.Value<long?>(l, "i64")),
+            (l, r) => new { Before = l.Id, After = r.Id });
+        var exactMetadataRows = await exactMetadata.ToCosmicListAsync();
+        Assert.IsFalse(exactMetadataRows.IsError, exactMetadataRows.Message + exactMetadataRows.Exception);
+        var exactMetadataPair = exactMetadataRows.Result.Single();
+        Assert.AreEqual(lowerId, exactMetadataPair.Before);
+        Assert.AreEqual(parentId, exactMetadataPair.After);
         checks.Add(new { provider = provider.QueryProviderType.ToString(), join = "native selected output ordering" });
     }
 
