@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+16 November UTC. Removed the temporary exact website source snapshot after testing the asset-version change. No packages or runtimes were installed. C: measured 18.90 GiB free before the test.
+
 16 November UTC. The isolated website test directory was removed automatically after all 270 checks. The candidate is retained as an exact remote tag. No packages, runtimes, model weights or browser downloads were installed.
 
 16 November UTC. Removed eight exact duplicate WEB6 Free source patches after reverse-checking them against the remote source tags. Four small patches were retained for comparison with their published successors where surrounding context changed. All isolated Git indexes used for qualification closed with their temporary directories. No inference model, browser or test runtime download was made. C: measured 18.97 GiB free.
