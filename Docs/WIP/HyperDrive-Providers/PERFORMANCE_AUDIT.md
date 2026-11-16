@@ -161,3 +161,5 @@ Preserve the measured browser, HTTP and native behavior in [current status](CURR
 2026-11-16 UTC — OPORTAL task commit 537b151 disables both app-owner pay-as-you-go controls during a save. The subscription suite verified a competing click sends no second request, both controls reopen on completion, and the result is rendered. Hosted billing verification remains open.
 
 2026-11-16 UTC — OPORTAL task commit 683cee8 uses the saved app account from WEB4 to update the billing controls and confirmed monthly cap without a follow-up read. Reopening during a save cannot issue competing reads. The old estimate is hidden until the app detail is reopened and recalculated using the saved cap. All 12 subscription checks passed. Hosted billing remains open.
+
+2026-11-16 UTC — WEB4 owner details previously loaded the admin app catalogue capped at 500 after checking ownership, causing false app-not-found errors outside the first page. Pay-as-you-go GET repeated both reads, and POST fetched the app catalogue again. Candidate 201691ce5908 reads one matching account for the authorization decision and reuses that account. Hosted timing and owner isolation remain open.
