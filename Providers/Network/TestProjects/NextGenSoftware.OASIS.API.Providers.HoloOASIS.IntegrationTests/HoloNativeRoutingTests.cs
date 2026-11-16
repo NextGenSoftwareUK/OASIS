@@ -35,7 +35,7 @@ public sealed class HoloNativeRoutingTests
             {
                 var response = await client.CallZomeFunctionAsync("oasis", function, paramsObject: payload);
                 Assert.False(response.IsError, response.Message);
-                var hash = HoloNETClientAppAgent.ConvertHoloHashToBytes(Assert.Single(response.Records).ActionHash);
+                var hash = client.ConvertHoloHashToBytes(Assert.Single(response.Records).ActionHash);
                 Assert.Equal(39, hash.Length);
                 fixtures.Add((delete, hash));
                 return hash;
