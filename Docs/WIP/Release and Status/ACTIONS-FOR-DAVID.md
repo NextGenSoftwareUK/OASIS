@@ -749,3 +749,9 @@ Status: missing account/configuration information,2 November2026. David approved
 - **Open, 15 November 2026.** The native LocalNet signed payment has passed. The public TestNet write needs a dedicated funded TestNet-only signing account.
 - **David action** Fund a disposable Algorand account on the official TestNet dispenser and add its mnemonic to the OASIS GitHub Actions secrets as `OASIS_ALGORAND_TESTNET_MNEMONIC`. Keep it out of chat and Git. The job needs the account's minimum balance plus one 1,000 microALGO fee.
 - **Reason** The opt-in test signs one zero-value self-payment and independently verifies the native Indexer receipt. Engineering owns running the job and recording the result. [Algorand TestNet funding](https://dev.algorand.co/algokit/deployment/) · [Provider status](../HyperDrive-Providers/CURRENT_STATUS.md)
+
+### WEB4 dev wallet encryption key
+
+- **Open, 15 November 2026.** A disposable avatar's Solana wallet creation reached WEB4 and failed because wallet encryption was enabled with no configured key. The avatar was deleted.
+- **David action** In Railway dev, restore the retained wallet encryption key from its protected custodian to WEB4's `OASIS_DNA_JSON` property `OASIS.Security.OASISProviderPrivateKeys.QuantumEncryptionKey`. Keep the existing wallet encryption settings and preserve the key that protects any retained ciphertext. If no retained key exists, identify the isolated sandbox with no retained wallet ciphertext where a new persistent key can be provisioned. Share only confirmation of the protected configuration, never its value.
+- **Reason** WEB4 needs the key to persist and reopen encrypted wallet credentials. Engineering will verify owned wallet creation, receipt behavior and cleanup. [Current status](../HyperDrive-Providers/CURRENT_STATUS.md)
