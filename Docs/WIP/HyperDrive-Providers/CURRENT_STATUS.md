@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-16 UTC — Live Edge reproduced signed-out /hyperdrive incorrectly setting the authenticated flag without an avatar and failing to open Beam In. OPORTAL `876b97f` uses the existing protected router and login opener. Controlled checks passed for the deep link and menu action without authentication writes. Scoped portal dev candidate `a44f493` also contains the verified dashboard request removal. Live confirmation awaits deployment.
+
 2026-11-16 UTC — Started [WEB4 image run 43789246453](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43789246453) for the holon count. Exact candidate `1b3d96085421` adds only the count controller action to the confirmed Development base `307f52dfc9ae`. The shared image workflow had no active or queued run before dispatch. Development was not updated. The matched dashboard client remains on the portal task branch pending live endpoint acceptance.
 
 2026-11-16 UTC — Added signed WEB4 current-avatar holon count and OPORTAL `e7bb7c1` switches the dashboard card to the compact response. The API uses the existing HyperDrive-routed direct-child read with recursive loading disabled, counts returned holons and sends an integer. It derives the parent from the signed session. The portal regression passed for zero and a WEB4 failure. Backend build, signed wire verification and timing remain open. The dashboard request removal candidate `eaa4669` remains independently deployable.
