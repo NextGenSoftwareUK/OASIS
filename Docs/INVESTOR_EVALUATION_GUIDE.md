@@ -5,7 +5,7 @@
 The OASIS (Open Advanced Sensory Immersion System) is the universal interoperability and intelligence infrastructure for the internet — WEB4 through WEB10. It unifies every blockchain, database, cloud, AI provider and protocol behind one API, with a single avatar identity and karma reputation system that travels across every app, game and world built on top of it.
 
 **Where we are today (August 2026):**
-- **WEB4** — The foundation: universal data aggregation, COSMIC ORM (**102 providers**), HyperDrive 100% uptime, SSO Avatar, cross-chain NFTs, ONET P2P networking. Live in production.
+- **WEB4** — The foundation: universal data aggregation, COSMIC ORM, HyperDrive failover and replication, SSO Avatar, cross-chain NFTs, and ONET P2P networking. Live in production. See the [current provider inventory](Provider-Summary.md).
 - **WEB5** — The application layer: STAR ODK low-code metaverse generator, STARNET holon graph, OAPPs (OASIS applications), quests, missions, cross-world asset sharing. Live in production.
 - **WEB6** — The intelligence layer: one API, every AI. FAHRN multi-agent orchestration, Holonic BRAID shared reasoning graph, SkillOpt self-evolving agent skills, **508 MCP tools**, **56 REST endpoints**, **98 AI providers, 27 billable today** (OpenAI, Anthropic, Gemini, Groq, Mistral, Cohere, xAI/Grok, DeepSeek, Ollama, EXO, SambaNova, Cerebras, OpenRouter, Together AI, Fireworks AI, Perplexity, HuggingFace, Azure OpenAI, AWS Bedrock, Google Vertex AI, IBM WatsonX, Snowflake Cortex, Databricks, Cloudflare Workers AI, Alibaba Qwen, Doubao, MiniMax, Zhipu AI, Baidu ERNIE, 01.AI, Tencent Hunyuan, Naver HyperCLOVA X, LG EXAONE, JAIS, ElevenLabs, Runway ML, Black Forest Labs, and 60+ more), **22 orchestrator protocols** (MCP, A2A, ACP, ANP, LangGraph, OpenAI Agents SDK, Nostr NIP-90, LangChain, AutoGen, CrewAI, SemanticKernel, gRPC, GraphQL, Kafka, AMQP, MQTT, Webhook), DID/Verifiable Credentials, karma-gated model tiers. **Fully shipped as of August 2026. This is the primary revenue growth driver.**
 - **WEB7** — The symbiosis layer: bio-signal and neural interface integration bridging human consciousness to the OASIS AI layer. Architecture complete, implementation in progress.
@@ -33,8 +33,8 @@ The OASIS (Open Advanced Sensory Immersion System) is the universal interoperabi
 
 ## Unique Selling Propositions (USPs)
 
-### 1. OASIS HyperDrive - 100% Uptime System
-**Revolutionary Innovation**: The world's first universal auto-failover system that provides 100% uptime:
+### 1. OASIS HyperDrive
+HyperDrive provides automatic failover, load balancing and replication across eligible providers. The [routing evidence](WIP/HyperDrive-Providers/PRIORITY_HYPERDRIVE_ROUTING.md) records verification by backend and operation.
 
 **v1 vs v2**
 - Legacy (v1): Auto-Replication, Auto-Failover
@@ -48,13 +48,13 @@ The OASIS (Open Advanced Sensory Immersion System) is the universal interoperabi
 
 **Example**: If Solana is slow, automatically switches to MongoDB, then syncs to Solana when conditions improve. If offline, switches to local SQLite, then syncs when back online.
 
-**Investment Value**: Impossible to shutdown, eliminates vendor lock-in, provides unprecedented reliability and cost optimization.
+**Investment Value**: Applications can reduce dependence on a single provider and route eligible operations according to their reliability and cost requirements.
 
 ### 2. OASIS COSMIC ORM - Universal Data Abstraction
 **Revolutionary Innovation**: The world's first universal data abstraction layer:
 
 - **Universal API**: Single API for all data operations across Web2 and Web3
-- **100% Uptime**: Built on HyperDrive foundation with auto-failover
+- **Resilience**: Built on HyperDrive with automatic failover across eligible providers
 - **Easy Migration**: Simple data migration between any providers
 - **Provider Abstraction**: Works with any storage system seamlessly
 
@@ -84,7 +84,7 @@ The OASIS (Open Advanced Sensory Immersion System) is the universal interoperabi
 - **Enhanced Security**: OASIS Avatar integration with multi-layer security
 - **DeFi Integration**: Native support for 100+ DeFi protocols and yield farming
 - **Fiat Support**: Seamless integration with traditional banking and payment systems
-- **100% Uptime**: Built on OASIS HyperDrive foundation with auto-failover
+- **Resilience**: Built on OASIS HyperDrive with automatic failover across eligible providers
 - **Analytics & Reporting**: Comprehensive portfolio analytics and tax reporting
 - **Universal Compatibility**: The inventory tracks 234 shipping provider projects, including adapters for AWS, Azure, Google Cloud, MongoDB, Neo4j, IPFS, Holochain, Mapbox, SQL Server, and Oracle. Verification is tracked per provider.
 
@@ -94,27 +94,9 @@ The OASIS (Open Advanced Sensory Immersion System) is the universal interoperabi
 
 ### 4a. OASIS Provider Ecosystem — Unmatched Competitive Moat
 
-**206 fully implemented, hot-swappable providers** — the largest unified provider ecosystem in Web3.
+The current [provider inventory](Provider-Summary.md) lists **234 shipping provider projects**, including **178 storage and specialized-storage projects** and **56 non-storage projects**. Alternate implementations count separately. The [provider matrix](WIP/HyperDrive-Providers/PROVIDER_MATRIX.md) records the capabilities and backend verification for each project.
 
-No competitor comes close:
-
-| Platform | Provider Count | Capability |
-|---|---|---|
-| **OASIS** | **102** | Read + Write + Identity + Social + Spatial + AI |
-| Moralis | ~15 | Read-only Web3 data enrichment |
-| Alchemy | ~10 | EVM RPC only |
-| Infura | ~8 | EVM RPC only |
-| The Graph | ~50 | Indexing/querying only (no write) |
-| Chainlink | ~20 | Oracle data only |
-
-**Category breakdown:**
-- **43 blockchains** — Ethereum, Bitcoin, Solana, BNB Chain, Polygon, Arbitrum, Cardano, Polkadot, Cosmos, Sui, Aptos, TON, Stellar, Monad, Abstract, Berachain, Sei, and 26 more
-- **17 storage/database/cloud** — MongoDB, Neo4j, SQL Server, Oracle DB, IPFS, Arweave, AWS, Azure, Google Cloud, ThreeFold, SOLID, and more
-- **22 decentralised social/network** — Farcaster, Nostr, Lens, BlueSky, Matrix, Discord, ActivityPub, Holochain, Urbit, Waku, Push Protocol, Akash, Livepeer, and more
-- **4 Web3 API/indexing** — The Graph, ENS, Alchemy, Infura
-- **4 spatial/AR/gaming** — GO Map (Unity AR), Mapbox, WRLD 3D, Cargo
-- **3 identity/encryption/IP** — World ID, Lit Protocol, Story Protocol
-- **2 infrastructure** — Safe (Gnosis multisig), Sei Network
+Examples include Ethereum, Bitcoin, Solana and Polygon for blockchain, MongoDB and Neo4j for storage, ActivityPub and Holochain for networking, and GO Map and Mapbox for spatial applications.
 
 **Switching cost**: Any app built on OASIS can change its underlying provider(s) at runtime with a single config change — zero code changes required. This lock-in of developer workflows, not data, is OASIS's deepest moat.
 
