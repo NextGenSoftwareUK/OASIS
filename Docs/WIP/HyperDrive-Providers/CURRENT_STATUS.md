@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-16 UTC — Shared Development advanced to `5371b0a8a628`; its wallet controller and regression test blobs exactly match the qualified wallet candidate. Railway queued this revision. The count endpoint was staged as `0da3dc5f3cea` over that parent with a controller-only diff. Its earlier image run `43789246453` was still active, so no duplicate build was queued. Matching OPORTAL candidate `b340572` remains staged pending signed count acceptance. Portal sign-in and dashboard startup candidate `f7f0c9b` can ship independently.
+
 2026-11-16 UTC — OPORTAL `299aa06` repairs already-affected browser storage on startup. A stored signed-in flag without a recognizable avatar is cleared before the dashboard or protected routes run. A focused startup check passed for missing, undefined, malformed and incomplete profiles, and preserved a valid avatar. Scoped portal candidate `f7f0c9b` includes the signed-out HyperDrive route and dashboard request fixes. Dev browser acceptance remains open.
 
 2026-11-16 UTC — Live Edge reproduced signed-out /hyperdrive incorrectly setting the authenticated flag without an avatar and failing to open Beam In. OPORTAL `876b97f` uses the existing protected router and login opener. Controlled checks passed for the deep link and menu action without authentication writes. Scoped portal dev candidate `a44f493` also contains the verified dashboard request removal. Live confirmation awaits deployment.
