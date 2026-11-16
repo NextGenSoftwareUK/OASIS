@@ -50,6 +50,19 @@ public sealed class HoloNativeRoutingTests
             Assert.False(baseline.IsError, baseline.Message);
             var baselineIds = baseline.Result.Select(record => record.Id).ToHashSet();
             await NativePriorityRouting.VerifyAsync(holo, sqlite, unavailable, unavailableSqlite, sync);
+            var query = new SearchParams
+            {
+                SearchOnlyForCurrentAvatar = false,
+                SearchGroups = new List<ISearchGroupBase>
+                {
+                    new SearchTextGroup { SearchHolons = true, HolonType = HolonType.All, SearchQuery = "unavailable conductor" }
+                }
+            };
+            var failedSearch = sync ? unavailable.Search(query, loadChildren: false)
+                : await unavailable.SearchAsync(query, loadChildren: false);
+            Assert.True(failedSearch.IsError, failedSearch.Message);
+            Assert.False(failedSearch.IsLoaded);
+            Assert.Null(failedSearch.Result);
             Assert.False(File.Exists(missing));
             var records = await sqlite.LoadAllHolonsAsync(HolonType.All, loadChildren: false);
             Assert.False(records.IsError, records.Message);
