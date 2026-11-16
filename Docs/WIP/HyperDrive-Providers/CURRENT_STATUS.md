@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-16 UTC — Reconciled canonical HoloOASIS evidence in the provider matrix. Both same-instance native BootLoader jobs and the exact four-case HoloOASIS/SQLite routing job remain successful. Their integration commits are ancestors of Development 307f52dfc9ae. No accepted tests were rerun. Managed hosted storage and cross-agent acceptance remain open. No local downloads, fixtures or build outputs were created.
+
 2026-11-16 UTC — OPORTAL `2546218` labels WEB4 provider success rates as request success, shows sample counts and displays latency only after a successful request. The focused rendering check passed for healthy, failed-only and unmeasured providers. The combined portal dev candidate is `69a36a0`. Deployed signed confirmation remains open.
 
 2026-11-16 UTC — OPORTAL `e8db681` shows observed WEB4 failover and provider-selection diagnostics from the existing status response. The focused UI check verified successful automatic failover, quota-blocked manual failover, effective strategy and absent selection, with no extra requests. Portal dev candidate `bda25b2` also includes the qualified subscription updates. Live signed verification remains open.
