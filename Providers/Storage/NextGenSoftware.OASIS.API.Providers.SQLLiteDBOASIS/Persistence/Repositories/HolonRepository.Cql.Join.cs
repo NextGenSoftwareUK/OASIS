@@ -60,7 +60,7 @@ public partial class HolonRepository
                         limits.MaximumRightRows, limits.MaximumRightPayloadBytes).ConfigureAwait(false);
                     var rows = new List<CosmicJoinRow>();
                     long bytes = 0, pairCount = 0;
-                    using (var command = Command("SELECT *,count(*) OVER () AS nativeCount FROM (" + compiled.Pairs + ") ORDER BY 1 NULLS LAST,2"))
+                    using (var command = Command("SELECT lp,rp,count(*) OVER () AS nativeCount FROM (" + compiled.Pairs + ") ORDER BY " + compiled.PairOrder))
                     await using (var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false))
                     {
                         while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))

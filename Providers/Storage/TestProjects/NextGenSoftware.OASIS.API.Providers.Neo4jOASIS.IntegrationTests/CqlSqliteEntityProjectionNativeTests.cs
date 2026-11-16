@@ -58,6 +58,7 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         var request = new CqlJoinRequest
         {
             Kind = "Child",
+            OutputOrderBy = "ChildId", OutputDescending = true,
             Left = new() { Take = 1, Filters = new[] {
                 new CqlJoinFilter { Field = "Id", Operator = CqlJoinOperator.Equal,
                     Value = JsonSerializer.SerializeToElement(parentId) } } },
@@ -66,6 +67,8 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         };
         var wire = CqlCompiler.CompileJoin(request, actor, provider.QueryProviderType, CosmicQueryReadAccess.OwnerOrPublic(actor).Result);
         Assert.IsTrue(wire.Join.RestrictsRightToLeftParents);
+        Assert.AreEqual(0, wire.OutputOrderColumn);
+        Assert.IsTrue(wire.OutputOrderDescending);
         var wirePlan = CosmicJoinPlanner.Plan(wire, provider.QueryProviderType,
             new[] { new CosmicJoinTarget(provider.QueryProviderType, provider.QueryCapabilities, provider.JoinCapabilities) });
         Assert.IsFalse(wirePlan.IsError, wirePlan.Message);
@@ -73,6 +76,54 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Assert.IsFalse(wireRows.IsError, wireRows.Message + wireRows.Exception);
         Assert.AreEqual(childId, (Guid)wireRows.Result.Providers.Single().Rows.Single().Value["ChildId"]);
         checks.Add(new { provider = provider.QueryProviderType.ToString(), linq = "scoped child input before native budget" });
+    }
+
+    private static async Task VerifyJoinOutputOrdering(ICosmicQueryJoinStorageProvider provider, Guid[] ids, List<object> checks)
+    {
+        var source = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(provider.QueryProviderType).Result);
+        var admitted = new[] { ids[0], ids[1], ids[4] };
+        var parentId = ids[0];
+        var left = source.Where(row => row.Id == parentId).Result;
+        var right = source.Where(row => admitted.Contains(row.Id)).OrderBy(row => row.Name).Result;
+        var selected = left.CrossJoin(right).Select((parent, child) => new { Name = child.Name }).Result
+            .OrderByOutput("Name", descending: true);
+        Assert.IsFalse(selected.IsError, selected.Message);
+        var native = provider;
+        var sorted = CosmicJoinPlanner.Plan(selected.Result, native.QueryProviderType,
+            new[] { new CosmicJoinTarget(native.QueryProviderType, native.QueryCapabilities, native.JoinCapabilities) });
+        Assert.IsFalse(sorted.IsError, sorted.Message);
+        var ordered = await NativeManager(provider).ExecuteJoinQueryAsync(sorted.Result, new[] { native });
+        Assert.IsFalse(ordered.IsError, ordered.Message + ordered.Exception);
+        CollectionAssert.AreEqual(new[] { "visible match", "protected source root", "grandchild two" },
+            ordered.Result.Providers.Single().Rows.Select(row => row.Value.Name).ToArray());
+        var byDescription = left.CrossJoin(right).Select((parent, child) => new { child.Id, child.Description }).Result;
+        foreach (var descending in new[] { false, true })
+        {
+            var orderedDescriptions = byDescription.OrderByOutput("Description", descending);
+            Assert.IsFalse(orderedDescriptions.IsError, orderedDescriptions.Message);
+            var nullablePlan = CosmicJoinPlanner.Plan(orderedDescriptions.Result, native.QueryProviderType,
+                new[] { new CosmicJoinTarget(native.QueryProviderType, native.QueryCapabilities, native.JoinCapabilities) });
+            Assert.IsFalse(nullablePlan.IsError, nullablePlan.Message);
+            var nullableRows = await NativeManager(provider).ExecuteJoinQueryAsync(nullablePlan.Result, new[] { native });
+            Assert.IsFalse(nullableRows.IsError, nullableRows.Message + nullableRows.Exception);
+            var expected = descending ? new[] { ids[0], ids[1], ids[4] } : new[] { ids[4], ids[0], ids[1] };
+            CollectionAssert.AreEqual(expected, nullableRows.Result.Providers.Single().Rows.Select(row => row.Value.Id).ToArray());
+        }
+        var manager = NativeManager(provider);
+        var leftRows = CosmicLinq.Create(manager, provider, left, maximumResults: 4).Result;
+        var rightRows = CosmicLinq.Create(manager, provider, right, maximumResults: 4).Result;
+        var linq = leftRows.SelectMany(_ => rightRows, (parent, child) => new { child.Name })
+            .OrderByDescending(child => child.Name);
+        var orderedLinq = await linq.ToCosmicListAsync();
+        Assert.IsFalse(orderedLinq.IsError, orderedLinq.Message + orderedLinq.Exception);
+        CollectionAssert.AreEqual(new[] { "visible match", "protected source root", "grandchild two" },
+            orderedLinq.Result.Select(row => row.Name).ToArray());
+        var scalar = leftRows.SelectMany(_ => rightRows, (parent, child) => child.Name).OrderBy(name => name);
+        var orderedScalar = await scalar.ToCosmicListAsync();
+        Assert.IsFalse(orderedScalar.IsError, orderedScalar.Message + orderedScalar.Exception);
+        CollectionAssert.AreEqual(new[] { "grandchild two", "protected source root", "visible match" },
+            orderedScalar.Result.ToArray());
+        checks.Add(new { provider = provider.QueryProviderType.ToString(), join = "native selected output ordering" });
     }
 
     [TestMethod]
@@ -107,7 +158,8 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             }, saveChildren: false);
             Assert.IsFalse(unlisted.IsError, unlisted.Message + unlisted.Exception);
             await VerifyChildSource(provider, actor, ids[0], ids[1], checks);
-            Assert.AreEqual(65,checks.Count);
+            await VerifyJoinOutputOrdering(provider, ids, checks);
+            Assert.AreEqual(66,checks.Count);
             await File.WriteAllTextAsync(Path.Combine(rootPath,"TestResults/Neo4jCurrent/sqlite-entity-projection-native.json"),
                 JsonSerializer.Serialize(new{provider="SQLLiteDBOASIS",checks=checks.Count,cases=checks,inMemoryFixture=true}));
         }

@@ -14,7 +14,7 @@ public partial class HolonRepository
     // every pair. Pair membership is produced exclusively by SQLite's JOIN.
     private sealed class JoinSql
     {
-        internal string Left, Right, Pairs;
+        internal string Left, Right, Pairs, PairOrder;
         internal string LeftPredicate, RightPredicate;
         internal bool HasRelationship;
         internal List<SqliteParameter> Parameters;
@@ -55,14 +55,28 @@ public partial class HolonRepository
         };
         var cap = Math.Min(limits.MaximumPairs, (long)limits.MaximumResults) + 1;
         var pairLimit = left.Bind(cap);
+        var pairOrder = "lp NULLS LAST,rp";
+        var orderProjection = "";
+        if (selection.OutputOrderColumn is int order)
+        {
+            var column = selection.Columns[order];
+            var source = column.Source == CosmicJoinColumnSource.Left ? "l" : "r";
+            var index = selection.Columns.Take(order).Count(item => item.Source == column.Source);
+            var cell = source + ".v" + index;
+            orderProjection = ",CASE WHEN " + cell + "s=2 THEN " + cell + "v END AS orderValue";
+            var collation = (Nullable.GetUnderlyingType(column.ValueType) ?? column.ValueType) == typeof(Guid)
+                ? " COLLATE NOCASE" : " COLLATE BINARY";
+            pairOrder = "orderValue" + collation + (selection.OutputOrderDescending ? " DESC NULLS LAST," : " ASC NULLS FIRST,")
+                + pairOrder;
+        }
         return new JoinSql
         {
-            Left = ls, Right = rs, Parameters = parameters,
+            Left = ls, Right = rs, Parameters = parameters, PairOrder = pairOrder,
             LeftPredicate = lp, RightPredicate = rp,
             HasRelationship = left.HasRelationship || right.HasRelationship,
             Pairs = "WITH l AS MATERIALIZED (" + ls + "),r AS MATERIALIZED (" + rs
-                + ") SELECT l.position,r.position FROM l" + join
-                + " ORDER BY l.position NULLS LAST,r.position LIMIT " + pairLimit
+                + ") SELECT l.position AS lp,r.position AS rp" + orderProjection + " FROM l" + join
+                + " ORDER BY " + pairOrder + " LIMIT " + pairLimit
         };
 
         static string Predicate<T>(CqlSqlTranslator translator, CosmicQuery<T> query) where T : IHolon

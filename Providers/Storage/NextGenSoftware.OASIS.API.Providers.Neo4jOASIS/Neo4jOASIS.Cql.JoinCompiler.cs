@@ -63,6 +63,21 @@ public partial class Neo4jOASIS
                 +"entry{.id,.visible,.creator,.valid,.domainValid,.cycle,.traversalLimit,.payloadLimit,.bytes,.keys,.values,.ordering}"
                 +" AS proof,size(leftInput) AS nativeCount "
             : "RETURN 0 AS kind,li AS lp,-1 AS rp,leftInput[li] AS proof,size(leftInput) AS nativeCount ";
+        var output = "RETURN kind,lp,rp,proof,nativeCount ORDER BY kind ASC,lp ASC,rp ASC";
+        if (query.OutputOrderColumn is int order)
+        {
+            var column = query.Columns[order];
+            var index = query.Columns.Take(order).Count(item => item.Source == column.Source);
+            var position = column.Source == CosmicJoinColumnSource.Left ? "lp" : "rp";
+            var input = column.Source == CosmicJoinColumnSource.Left ? "leftInput" : "rightInput";
+            var cell = input + "[" + position + "].values[" + index + "]";
+            var direction = query.OutputOrderDescending ? " DESC" : " ASC";
+            output = "WITH kind,lp,rp,proof,nativeCount,CASE WHEN kind=2 AND " + position + ">=0 AND " + position
+                + "<size(" + input + ") AND " + cell + ".s=2 THEN " + cell + ".v END AS outputValue "
+                + "RETURN kind,lp,rp,proof,nativeCount ORDER BY kind ASC,"
+                + "CASE WHEN outputValue IS NULL THEN 0 ELSE 1 END" + direction + ",outputValue" + direction
+                + ",lp ASC,rp ASC";
+        }
         var text="CALL { CALL { "+left+" } RETURN collect(input) AS leftInput } "
             +"CALL { "+import+"CALL { "+import+right+" } RETURN collect(input) AS rightInput } WITH leftInput,rightInput "
             +"CALL { WITH leftInput,rightInput UNWIND range(0,size(leftInput)-1) AS li "+leftProof
@@ -72,7 +87,7 @@ public partial class Neo4jOASIS
             +"CALL { "+pairRows+" } "
             +"WITH collect({l:li,r:ri}) AS pairs UNWIND pairs AS pair "
             +"RETURN 2 AS kind,pair.l AS lp,pair.r AS rp,null AS proof,size(pairs) AS nativeCount "
-            +"} RETURN kind,lp,rp,proof,nativeCount ORDER BY kind ASC,lp ASC,rp ASC";
+            +"} "+output;
         if(text.Length>1024*1024)throw new NeoCqlLimitException("Native join exceeds its statement-size budget.");
         return new NeoCqlJoinCommand(text,parameters);
 
