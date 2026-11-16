@@ -342,6 +342,27 @@ public sealed partial class CqlProjectedAllAcceptanceTests
                 result.Result.Providers.Single().Rows.Select(row => ((Guid?)row.Value["LeftId"], (Guid?)row.Value["RightId"])).ToArray());
         }
 
+        request.Keys[0].Left.MetadataPath = new[] { "nullableJoinFlag" };
+        request.Keys[0].Right.MetadataPath = new[] { "nullableJoinFlag" };
+        request.Keys[0].Left.ValueType = request.Keys[0].Right.ValueType = "Boolean";
+        request.Left.Filters = new[] { KeySet(rightKeys) };
+        await VerifyNullComparison("IsNotDistinctFrom", CosmicJoinComparison.NullSafeEqual,
+            new (Guid?,Guid?)[] { (parentId,parentId), (missingId,missingId) });
+        request.Left.Filters = new[] { KeySet(leftKeys) };
+        await VerifyNullComparison("IsDistinctFrom", CosmicJoinComparison.NullSafeNotEqual,
+            new (Guid?,Guid?)[] { (parentId,missingId), (lowerId,parentId), (lowerId,missingId) });
+        request.Keys[0].Operator = "LessThan";
+        Assert.ThrowsException<ArgumentException>(() => CqlCompiler.CompileJoin(request, wireActor, native.QueryProviderType, access));
+
+        var flagRows = CosmicLinq.Create(manager, provider, higher, maximumResults: 4).Result;
+        var matchingFlags = await flagRows.SelectMany(leftFlag => flagRows.Where(rightFlag =>
+                CosmicQueryMetadata.Value<bool?>(rightFlag, "nullableJoinFlag") ==
+                CosmicQueryMetadata.Value<bool?>(leftFlag, "nullableJoinFlag")),
+            (leftFlag, rightFlag) => new { Left = leftFlag.Id, Right = rightFlag.Id }).ToCosmicListAsync();
+        Assert.IsFalse(matchingFlags.IsError, matchingFlags.Message + matchingFlags.Exception);
+        CollectionAssert.AreEquivalent(new[] { (parentId, parentId), (missingId, missingId) },
+            matchingFlags.Result.Select(row => (row.Left, row.Right)).ToArray());
+
         request.Keys[0].Operator = "Invalid";
         Assert.ThrowsException<ArgumentException>(() => CqlCompiler.CompileJoin(request, wireActor, native.QueryProviderType, access));
 
