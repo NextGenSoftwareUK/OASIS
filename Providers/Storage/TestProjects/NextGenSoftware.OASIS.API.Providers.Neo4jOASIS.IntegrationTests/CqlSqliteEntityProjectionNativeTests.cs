@@ -31,6 +31,14 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             .Select(pair => pair.ChildId).ToCosmicListAsync();
         Assert.IsFalse(flattened.IsError, flattened.Message + flattened.Exception);
         Assert.AreEqual(childId, flattened.Result.Single());
+        var childName = "visible match";
+        var filtered = linq.SelectMany(parent => parent.Children.Where(child => child.Name == childName),
+            (parent, child) => child.Id);
+        CollectionAssert.AreEqual(new[] { childId }, (await filtered.ToCosmicListAsync()).Result.ToArray());
+        childName = "absent";
+        var noChildren = await filtered.ToCosmicListAsync();
+        Assert.IsFalse(noChildren.IsError, noChildren.Message + noChildren.Exception);
+        Assert.AreEqual(0, noChildren.Result.Count);
         checks.Add(new { provider = provider.QueryProviderType.ToString(), linq = "scoped child input before native budget" });
     }
 
