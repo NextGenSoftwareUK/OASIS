@@ -400,7 +400,8 @@ function Get-PackageReleaseNotes($Project, [string]$Version, $PublishedRelease, 
     if ($changes.Count -eq 0 -and $Graph -and ($Graph.baselineCommit -is [string]) -and $Graph.baselineCommit -match '^[0-9a-fA-F]{40}$') {
         # A package is rebuilt when anything in its source graph changed (a dependency, a pinned
         # submodule, shared build files), not only its own folder. Report those commits.
-        $inputPaths = @($Graph.changedInputs | Where-Object { $_ -and (Test-Path -LiteralPath (Join-Path $repoRoot ([string]$_))) } | Select-Object -First 200)
+        # The analyzer prefixes inputs of this repository with 'OASIS/'; map them back to repository-relative paths.
+        $inputPaths = @($Graph.changedInputs | ForEach-Object { ([string]$_) -replace '^OASIS/', '' } | Where-Object { $_ -and (Test-Path -LiteralPath (Join-Path $repoRoot $_)) } | Select-Object -First 200)
         if ($inputPaths.Count -gt 0) {
             $changes = @(& git -C $repoRoot log --no-merges --format='%H%x09%s' "$($Graph.baselineCommit)..HEAD" -- @($inputPaths) 2>$null | ForEach-Object {
         $parts = $_ -split "`t", 2
@@ -418,7 +419,7 @@ function Get-PackageReleaseNotes($Project, [string]$Version, $PublishedRelease, 
     $lines.Add('')
     $lines.Add("What's new $rangeDescription")
     if ($changes.Count -eq 0) {
-        $changedInputs = if ($Graph) { @($Graph.changedInputs | Select-Object -First 15) } else { @() }
+        $changedInputs = if ($Graph) { @($Graph.changedInputs | ForEach-Object { ([string]$_) -replace '^OASIS/', '' } | Select-Object -First 15) } else { @() }
         if ($changedInputs.Count -gt 0) {
             $lines.Add('- Rebuilt because these package inputs changed (no commit touched the package folder itself):')
             foreach ($changedInput in $changedInputs) { $lines.Add("  - $changedInput") }
