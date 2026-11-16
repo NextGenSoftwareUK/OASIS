@@ -983,7 +983,7 @@ Open 13 November. Approve the Vercel OASIS team access request when a fresh one-
 
 ### Development WEB4 sandbox DNS
 
-- **Status (16 November UTC)** Open. The preview alias is assigned and the authoritative NameSilo record is missing.
+- **Status (16 November UTC)** Open. The preview alias is assigned and the authoritative NameSilo record is missing. WEB4 origin admission is live and verified on Railway bfbeefb0.
 - **David action** In the NameSilo DNS records for oasisomniverse.one, add a CNAME with host dev.web4 and target 6022d70f3a03e68f.vercel-dns-017.com. Use the existing zone and leave other records intact.
 - **Reason** The Development sandbox needs its dedicated HTTPS hostname for credentialed WEB4 requests and the signed-in Ask Your Data walkthrough. Engineering will verify DNS, HTTPS, preview protection and OASISDNA origin admission. [WEB4 project domains](https://vercel.com/oasis-team/web4-site/settings/domains)
 
