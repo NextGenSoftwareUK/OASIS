@@ -1794,3 +1794,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 15 November Cancun time. Algorand acknowledgement job 132743823068 passed and verified LocalNet container, network, volume and fixture directory removal. The new WEB4 candidate used Git tree objects only. No local build or test database was created.
 
 15 November Cancun time. Hosted Algorand batch job 132746358377 verified removal of all LocalNet containers, networks, volumes and the temporary fixture directory. No local builds or test data were created.
+
+2026-11-16 UTC — Both live OPORTAL browser probes exited and cleaned their exact temporary Edge profiles and uncached websocket-client installs. The oportal-checkout-live-edge prefix check found no remaining directories. No browser downloads or repository build output were created.
