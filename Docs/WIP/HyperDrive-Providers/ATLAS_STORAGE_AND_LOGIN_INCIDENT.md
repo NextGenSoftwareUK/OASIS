@@ -86,6 +86,8 @@ WEB9 deployment 803b873f and WEB8 deployment ddb08c4c reached SUCCESS. Each runn
 
 The task branch adds ASP.NET Core liveness at /api/health for WEB7 through WEB10, before HTTPS redirection and application authentication. Docker WEB5 through WEB10 use the Node executable already in the final images and require an exact HTTP 200 over loopback. WEB6 uses its existing /v1/health endpoint. The probe checks HTTP process liveness. The patched images still need build and runtime verification.
 
+The six Dockerfile probe commands passed 24 checks over loopback HTTP. Each exited zero for HTTP 200 and nonzero for HTTP 302, 404 and 503. The check ran the probe commands with a real local listener and the existing local Node installation. It created no files. Patched image builds and startup checks remain open.
+
 WEB7 deployment b783559f reached SUCCESS. Its running DNA hash matched the saved configuration and public Swagger returned HTTP 200 with an OpenAPI document. Started WEB6 deployment 2bc98826 at 07:34:42 UTC. Four of seven running services have been verified.
 
 WEB6 deployment 2bc98826 reached SUCCESS. Its running DNA hash matched the saved configuration and its public /v1/health returned HTTP 200 with status ok. Started WEB5 deployment f6c1e5b5 at 07:38:47 UTC. Five of seven running services have been verified.
