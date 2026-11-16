@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+16 November UTC. The projected SelectMany filter change used disposable Git indexes removed when their commits were created. The three-store acceptance run is remote. No tools, local build outputs or databases were created.
+
 16 November UTC. Metadata NOT IN removed all 12 owned hosted fixtures via WEB4 and verified absence. The compact populated-sql-metadata-not-in-v1 journal is 11688 bytes. Temporary website test snapshot and index were removed. No downloads or local build outputs were retained. C: free 23204167680 bytes observed.
 
 16 November UTC. The signed HoloOASIS browser query reused the installed Chromium and existing visitor. The temporary browser profile was removed and no fixture records or local downloads were created. The combined sandbox candidate used disposable Git indexes, removed after staging.
