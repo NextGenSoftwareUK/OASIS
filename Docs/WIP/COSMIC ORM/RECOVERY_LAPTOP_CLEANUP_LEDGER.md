@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+16 November UTC. Verified the Railway retry context in a disposable directory, confirmed it selected only Development WEB4, unlinked it and verified the original context. Removed temporary Git indexes after feature branch publication. No provider runtime or build was installed. C: measured 18.73 GiB free.
+
 16 November UTC. The joined-tail boundary check used an in-memory SQLite database. Its process and isolated Git indexes exited. The native suites run in GitHub CI. No local packages, build output or provider services were created.
 
 16 November UTC. Removed the temporary exact website source snapshot after testing the asset-version change. No packages or runtimes were installed. C: measured 18.90 GiB free before the test.
