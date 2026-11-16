@@ -1864,3 +1864,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 2026-11-16 UTC — The signed dashboard timing fixture was self-deleted through WEB4 with acknowledgement. Removed its protected session directory and owned Chrome profile. No screenshots, test downloads or local build output were retained.
 
 2026-11-16 UTC — Removed the scoped HyperDrive modal regression archive, extracted fixture and combined OPORTAL candidate index. No installs, downloads or build outputs were retained.
+
+2026-11-16 UTC — All three combined OPORTAL early-navigation probes removed their disposable signed avatars, protected session directories and owned Chrome profiles. The first two were diagnostic attempts. No downloads, HTTP payloads, screenshots or local build outputs were retained.
