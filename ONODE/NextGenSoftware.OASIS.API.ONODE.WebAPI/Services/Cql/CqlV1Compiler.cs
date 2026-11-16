@@ -339,7 +339,7 @@ public static partial class CqlV1Compiler
     {
         if (filter == null || !Enum.IsDefined(filter.Operator) || !Enum.IsDefined(filter.Scalar))
             throw new ArgumentException("Defined filter operator and scalar required.");
-        var metadataTest = filter.Operator is CqlV1Operator.Exists or CqlV1Operator.IsNull
+        var presenceTest = filter.Operator is CqlV1Operator.Exists or CqlV1Operator.IsNull
             or CqlV1Operator.IsMissing or CqlV1Operator.IsNotNull;
         Expression path;
         if (filter.MetadataPath != null)
@@ -348,7 +348,7 @@ public static partial class CqlV1Compiler
                 filter.MetadataPath.Any(s => string.IsNullOrEmpty(s) || s.Length > 64 || s.Any(char.IsControl)))
                 throw new ArgumentException("Use a metadata path of one to four bounded segments, without Field.");
             var segments = Expression.NewArrayInit(typeof(string), filter.MetadataPath.Select(s => Expression.Constant(s)));
-            if (metadataTest)
+            if (presenceTest)
             {
                 if (filter.Value.ValueKind != JsonValueKind.Undefined) throw new ArgumentException("Existence/null tests do not accept Value.");
                 Expression MetadataCall(string method) => Expression.Call(typeof(CosmicQueryMetadata), method, null, parameter, segments);
@@ -373,7 +373,6 @@ public static partial class CqlV1Compiler
         {
             if (filter.Field is not ("Id" or "Name" or "Description" or "Version" or "IsActive" or "ParentHolonId"))
                 throw new ArgumentException("Unsupported canonical query field.");
-            if (metadataTest) throw new ArgumentException("Existence/null tests require MetadataPath.");
             // Reflection on an interface does not include inherited interfaces.
             // Bind the one declared contract member (e.g. IHolonBase.Name).
             var property = parameter.Type.IsInterface
@@ -381,6 +380,16 @@ public static partial class CqlV1Compiler
                     .Where(member => member.Name == filter.Field).Distinct().Single()
                 : parameter.Type.GetProperty(filter.Field);
             path = Expression.Property(parameter, property);
+            if (presenceTest)
+            {
+                if (path.Type != typeof(string) || filter.Operator is not (CqlV1Operator.IsNull or CqlV1Operator.IsNotNull))
+                    throw new ArgumentException("Canonical null tests require a text field; metadata presence tests require MetadataPath.");
+                if (filter.Value.ValueKind != JsonValueKind.Undefined)
+                    throw new ArgumentException("Null tests do not accept Value.");
+                var absent = Expression.Constant(null, path.Type);
+                return filter.Operator == CqlV1Operator.IsNull
+                    ? Expression.Equal(path, absent) : Expression.NotEqual(path, absent);
+            }
         }
 
         if (filter.Operator == CqlV1Operator.In)
