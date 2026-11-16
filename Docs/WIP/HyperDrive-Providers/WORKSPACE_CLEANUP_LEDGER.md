@@ -1816,3 +1816,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 2026-11-16 UTC — Signed dashboard and provider-copy browser verification removed the disposable avatar via WEB4. The temporary Edge profile and uncached websocket-client dependency directory were removed and verified absent.
 
 2026-11-16 UTC — The hosted WEB4 sign-in and refresh verification deleted its one disposable avatar through the authenticated self-delete endpoint. The verifier used in-memory request data and created no local files or downloaded dependencies.
+
+2026-11-16 UTC — Two hosted WEB4 Files attempts removed both generated 256 KiB files through the authenticated Files delete route and confirmed each count returned to zero. Both test avatars were self-deleted. Payloads and responses stayed in memory and no local output was created.

@@ -2949,3 +2949,5 @@ Performance follow-up. WEB4 wallet summary is implemented on the task branch and
 2026-11-16 UTC — Railway WEB4 deployment def1bd8a moved from QUEUED to BUILDING. The six patched WEB5–WEB10 Dockerfile liveness commands passed 24 loopback HTTP checks for 200, 302, 404 and 503. The patched images still need build and startup verification. The loopback check generated no files.
 
 2026-11-16 UTC — Confirmed running Railway dev WEB4 commit 9fb52e18bbce on deployment def1bd8a. A verified disposable avatar passed hosted sign-in, refresh rotation with the same identity, HTTP-only cookie issuance, revocation and rejection of both replay attempts. The avatar was removed. Hosted MFA factor completion and sign-in under provider failure remain open.
+
+2026-11-16 UTC — Signed hosted WEB4 Files verification on 9fb52e18bbce passed portal-format upload, populated count/list ID parity and a byte-for-byte 256 KiB download. The deployed controller lacks the task branch's upload description query parameter, and the list returned no description. Both fixtures and their avatars were removed. The scoped description route remains pending exact image and hosted verification.
