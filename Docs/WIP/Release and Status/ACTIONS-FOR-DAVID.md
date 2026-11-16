@@ -987,7 +987,7 @@ Open 13 November. Approve the Vercel OASIS team access request when a fresh one-
 - **David action** Add two CNAME records in the existing NameSilo zone for oasisomniverse.one.
   - Host sandbox.web4 points to 6022d70f3a03e68f.vercel-dns-017.com.
   - Host sandbox.web6 points to d8f3f9dacdc03719.vercel-dns-017.com.
-- **Reason** These records provide the HTTPS addresses for the Development sandboxes. Engineering will verify DNS, certificates, branch assignments, preview protection and the WEB4 signed browser flow. [WEB4 domains](https://vercel.com/oasis-team/web4-site/settings/domains) · [WEB6 domains](https://vercel.com/oasis-team/web6-site/settings/domains)
+- **Reason** These records provide the HTTPS addresses for the Development sandboxes. Engineering will verify DNS, certificates, the redirects from each sandbox root, preview protection and the WEB4 signed browser flow. [WEB4 domains](https://vercel.com/oasis-team/web4-site/settings/domains) · [WEB6 domains](https://vercel.com/oasis-team/web6-site/settings/domains)
 
 ## Older tracked wallet export review
 
