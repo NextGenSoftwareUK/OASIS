@@ -47,6 +47,21 @@ public static partial class CqlV1Compiler
             _=>left.JoinColumns(right,leftKeys,rightKeys,options)
         };
         var join=RequiredJoin(captured);
+        foreach (var key in request.Keys)
+        {
+            var comparison = key.Operator switch
+            {
+                null or "Equal" => CosmicJoinComparison.Equal,
+                "NotEqual" => CosmicJoinComparison.NotEqual,
+                "LessThan" => CosmicJoinComparison.LessThan,
+                "LessThanOrEqual" => CosmicJoinComparison.LessThanOrEqual,
+                "GreaterThan" => CosmicJoinComparison.GreaterThan,
+                "GreaterThanOrEqual" => CosmicJoinComparison.GreaterThanOrEqual,
+                _ => throw new ArgumentException("Unknown join key operator.")
+            };
+            if (comparison != CosmicJoinComparison.Equal)
+                join = RequiredJoin(join.CompareKey(key.Alias, comparison));
+        }
         var columns=request.Columns.Select(column=>
         {
             if(column==null)throw new ArgumentException("Join output columns cannot be null.");

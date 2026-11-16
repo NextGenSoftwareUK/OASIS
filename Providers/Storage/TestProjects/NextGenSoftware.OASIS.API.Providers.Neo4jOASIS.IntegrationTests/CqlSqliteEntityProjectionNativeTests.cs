@@ -9,7 +9,9 @@ using CqlCompiler = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Service
 using CqlJoinRequest = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlJoinV1Request;
 using CqlJoinColumn = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlJoinV1Column;
 using CqlJoinFilter = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlV1Filter;
+using CqlJoinKey = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlJoinV1Key;
 using CqlJoinOrder = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlV1JoinOrder;
+using CqlJoinScalar = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlV1Scalar;
 using CqlJoinOperator = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlV1Operator;
 using SqliteProvider=NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.SQLLiteDBOASIS;
 
@@ -191,6 +193,95 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             Assert.IsFalse(paged.IsError, paged.Message + paged.Exception);
             CollectionAssert.AreEqual(expected, paged.Result.Select(row => row.Id).ToArray());
         }
+        var lowerId = ids[1];
+        var missingId = ids[4];
+        var leftKeys = new[] { parentId, lowerId };
+        var rightKeys = new[] { parentId, missingId };
+        var lower = source.Where(row => leftKeys.Contains(row.Id)).Result;
+        var higher = source.Where(row => rightKeys.Contains(row.Id)).Result;
+        var keys = new[] { CosmicProjectionSelection<Holon>.Create("Amount",
+            row => CosmicQueryMetadata.Value<long?>(row, "i64")).Result };
+        var full = lower.FullJoinColumns(higher, keys, keys).Result;
+        var compared = full.CompareKey("Amount", CosmicJoinComparison.LessThan);
+        Assert.IsFalse(compared.IsError, compared.Message);
+        var picked = compared.Result.Select((l, r) => new { Left = (Guid?)l.Id, Right = (Guid?)r.Id });
+        Assert.IsFalse(picked.IsError, picked.Message);
+        var comparePlan = CosmicJoinPlanner.Plan(picked.Result, native.QueryProviderType,
+            new[] { new CosmicJoinTarget(native.QueryProviderType, native.QueryCapabilities, native.JoinCapabilities) });
+        Assert.IsFalse(comparePlan.IsError, comparePlan.Message);
+        var compareRows = await manager.ExecuteJoinQueryAsync(comparePlan.Result, new[] { native });
+        Assert.IsFalse(compareRows.IsError, compareRows.Message + compareRows.Exception);
+        var comparedRows = compareRows.Result.Providers.Single().Rows;
+        CollectionAssert.AreEquivalent(new (Guid?, Guid?)[] { (parentId, null), (lowerId, parentId), (null, missingId) },
+            comparedRows.Select(row => (row.Value.Left, row.Value.Right)).ToArray());
+        Assert.AreEqual(3, comparedRows.Count);
+        var wireActor = Guid.NewGuid();
+        var access = CosmicQueryReadAccess.OwnerOrPublic(wireActor).Result;
+        var request = new CqlJoinRequest
+        {
+            Provider = native.QueryProviderType.ToString(),
+            Kind = "Full",
+            Left = new() { Take = 2, Filters = new[] { KeySet(leftKeys) } },
+            Right = new() { Take = 2, Filters = new[] { KeySet(rightKeys) } },
+            Keys = new[] { new CqlJoinKey
+            {
+                Alias = "Amount",
+                Operator = "LessThan",
+                Left = new() { MetadataPath = new[] { "i64" }, ValueType = "Int64", Nullable = true },
+                Right = new() { MetadataPath = new[] { "i64" }, ValueType = "Int64", Nullable = true }
+            } },
+            Columns = new[]
+            {
+                new CqlJoinColumn { Alias = "LeftId", Source = "Left", AllowMissing = true, Selection = new() { Field = "Id" } },
+                new CqlJoinColumn { Alias = "RightId", Source = "Right", AllowMissing = true, Selection = new() { Field = "Id" } }
+            },
+            MaximumLeftRows = 2, MaximumRightRows = 2, MaximumPairs = 4, MaximumResults = 4
+        };
+        var wire = CqlCompiler.CompileJoin(request, wireActor, native.QueryProviderType, access);
+        Assert.AreEqual(CosmicJoinComparison.LessThan, wire.Join.Keys.Single().Comparison);
+        var wirePlan = CosmicJoinPlanner.Plan(wire, native.QueryProviderType,
+            new[] { new CosmicJoinTarget(native.QueryProviderType, native.QueryCapabilities, native.JoinCapabilities) });
+        Assert.IsFalse(wirePlan.IsError, wirePlan.Message);
+        var wireRows = await manager.ExecuteJoinQueryAsync(wirePlan.Result, new[] { native });
+        Assert.IsFalse(wireRows.IsError, wireRows.Message + wireRows.Exception);
+        CollectionAssert.AreEquivalent(new (Guid?, Guid?)[] { (parentId, null), (lowerId, parentId), (null, missingId) },
+            wireRows.Result.Providers.Single().Rows.Select(row => ((Guid?)row.Value["LeftId"], (Guid?)row.Value["RightId"])).ToArray());
+        request.Keys[0].Operator = "Invalid";
+        Assert.ThrowsException<ArgumentException>(() => CqlCompiler.CompileJoin(request, wireActor, native.QueryProviderType, access));
+
+        static CqlJoinFilter KeySet(Guid[] selectedIds) => new()
+        {
+            Field = "Id", Operator = CqlJoinOperator.In, Scalar = CqlJoinScalar.Guid, Value = JsonSerializer.SerializeToElement(selectedIds)
+        };
+        var byVersion = leftRows.SelectMany(l => rightRows.Where(r => r.Version >= l.Version),
+            (l, r) => new { r.Id, r.Name });
+        var nativeVersionPage = await byVersion.OrderBy(r => r.Name).Skip(1).Take(1).ToCosmicListAsync();
+        Assert.IsFalse(nativeVersionPage.IsError, nativeVersionPage.Message + nativeVersionPage.Exception);
+        Assert.AreEqual(ids[0], nativeVersionPage.Result.Single().Id);
+        var strictVersion = leftRows.SelectMany(l => rightRows.Where(r => l.Version < r.Version),
+            (l, r) => r.Id);
+        var noStrictMatches = await strictVersion.ToCosmicListAsync();
+        Assert.IsFalse(noStrictMatches.IsError, noStrictMatches.Message + noStrictMatches.Exception);
+        Assert.AreEqual(0, noStrictMatches.Result.Count);
+        var wide = CosmicJoinOptions.Create(maximumLeftRows: CosmicJoinOptions.MaximumInputRows,
+            maximumRightRows: CosmicJoinOptions.MaximumInputRows, maximumPairs: 1, maximumResults: 1).Result;
+        var tooWide = lower.JoinColumns(higher, keys, keys, wide).Result.CompareKey("Amount", CosmicJoinComparison.LessThan)
+            .Result.Select((l, r) => r.Id).Result;
+        Assert.AreEqual("CQL_RESULT_LIMIT", native.JoinCapabilities.Admit(tooWide).ErrorCode);
+        var limited = lower.Take(1).Result.JoinColumns(higher.Take(1).Result, keys, keys, wide).Result
+            .CompareKey("Amount", CosmicJoinComparison.LessThan).Result.Select((l, r) => r.Id).Result;
+        var limitedAdmission = native.JoinCapabilities.Admit(limited);
+        Assert.IsFalse(limitedAdmission.IsError, limitedAdmission.Message);
+        var lowerRows = CosmicLinq.Create(manager, provider, lower, maximumResults: 4).Result;
+        var higherRows = CosmicLinq.Create(manager, provider, higher, maximumResults: 4).Result;
+        var exactMetadata = lowerRows.SelectMany(l => higherRows.Where(r =>
+                CosmicQueryMetadata.Value<long?>(r, "i64") > CosmicQueryMetadata.Value<long?>(l, "i64")),
+            (l, r) => new { Before = l.Id, After = r.Id });
+        var exactMetadataRows = await exactMetadata.ToCosmicListAsync();
+        Assert.IsFalse(exactMetadataRows.IsError, exactMetadataRows.Message + exactMetadataRows.Exception);
+        var exactMetadataPair = exactMetadataRows.Result.Single();
+        Assert.AreEqual(lowerId, exactMetadataPair.Before);
+        Assert.AreEqual(parentId, exactMetadataPair.After);
         checks.Add(new { provider = provider.QueryProviderType.ToString(), join = "native selected output ordering" });
     }
 

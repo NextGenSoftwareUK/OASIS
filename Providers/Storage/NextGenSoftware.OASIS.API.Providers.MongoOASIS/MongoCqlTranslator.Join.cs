@@ -35,13 +35,27 @@ internal sealed partial class MongoCqlTranslator
         var lookup = Plain(right);
         var bindings = new BsonDocument();
         var equality = new List<BsonValue>();
+        var reverse = new List<BsonValue>();
         for (var index = 0; index < query.Join.Keys.Count; index++)
         {
             var key = "k" + index;
             bindings.Add(key, "$" + key);
-            equality.Add(Op("$and", Op("$eq", "$$" + key + ".rank", Literal(2)),
-                Op("$eq", "$" + key + ".rank", Literal(2)),
-                Op("$eq", "$$" + key + ".value", "$" + key + ".value")));
+            var comparison = query.Join.Keys[index].Comparison switch
+            {
+                CosmicJoinComparison.Equal => "$eq",
+                CosmicJoinComparison.NotEqual => "$ne",
+                CosmicJoinComparison.LessThan => "$lt",
+                CosmicJoinComparison.LessThanOrEqual => "$lte",
+                CosmicJoinComparison.GreaterThan => "$gt",
+                CosmicJoinComparison.GreaterThanOrEqual => "$gte",
+                _ => throw new NotSupportedException("Unknown native join comparison.")
+            };
+            var variable = "$$" + key;
+            var document = "$" + key;
+            var present = Op("$and", Op("$eq", variable + ".rank", Literal(2)),
+                Op("$eq", document + ".rank", Literal(2)));
+            equality.Add(Op("$and", present, Op(comparison, variable + ".value", document + ".value")));
+            reverse.Add(Op("$and", present.DeepClone(), Op(comparison, document + ".value", variable + ".value")));
         }
         // Matching follows the right source's window, not its unpaged collection.
         if (query.Join.Kind != CosmicJoinKind.Cross)
@@ -96,7 +110,7 @@ internal sealed partial class MongoCqlTranslator
             // Match from the right window against the same left window at the session's snapshot time.
             // Only an existence probe is needed to exclude right rows already emitted by the left join.
             var antiProbe = Plain(left);
-            antiProbe.Add(new("$match", new BsonDocument("$expr", Op("$and", equality.ToArray()))));
+            antiProbe.Add(new("$match", new BsonDocument("$expr", Op("$and", reverse.ToArray()))));
             antiProbe.Add(new("$project", new BsonDocument { { "_id", 0 }, { "id", 1 } }));
             antiProbe.Add(new("$limit", 1));
             var unmatchedRight = Plain(right);
