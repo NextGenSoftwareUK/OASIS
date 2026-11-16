@@ -1920,3 +1920,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 2026-11-16 UTC — Removed the temporary Git index for exact receipt candidate 275fb990ca02. Native reports and runtimes were generated only on hosted runners.
 
 2026-11-16 UTC — Removed the scoped HoloOASIS release index and temporary directory. Verified committed file identity in Git. No runtime, dependency download or local build output was created.
+
+2026-11-16 UTC — Removed the HoloOASIS/COSMIC integration scratch index and temporary directory. Only scoped Git metadata was fetched. No local build ran.
