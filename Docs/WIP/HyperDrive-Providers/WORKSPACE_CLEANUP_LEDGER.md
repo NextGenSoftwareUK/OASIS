@@ -1956,3 +1956,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 2026-11-16 UTC — Removed the temporary index used to stage Analytics on the coordinated WEB4 source. The checkout stayed on its assigned branch and no local build, dependencies or fixture were created.
 
 2026-11-16 UTC — Removed the OPORTAL UTC boundary candidate index. The regressions ran from existing Git blobs with no browser profile or generated files.
+
+2026-11-16 UTC — Removed the temporary HoloOASIS collection qualification index. The native fixtures run on an isolated hosted conductor. No local build, runtime install or data fixture was created.
