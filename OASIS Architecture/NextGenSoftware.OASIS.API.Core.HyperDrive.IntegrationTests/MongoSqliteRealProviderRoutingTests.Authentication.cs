@@ -114,16 +114,27 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
             login.Result.JwtToken.Should().NotBeNullOrEmpty();
             var token = login.Result.RefreshToken;
             token.Should().NotBeNullOrEmpty();
-            (await mongo.LoadAvatarAsync(fixture.Id)).Result.RefreshTokens.Should()
-                .NotContain(refresh => refresh.Token == token);
-            (await sqlite.LoadAvatarByRefreshTokenAsync(token)).Result.Id.Should().Be(fixture.Id);
+            var firstSession = (await sqlite.LoadAvatarAsync(fixture.Id)).Result.RefreshTokens.Single();
+            var copyStillOnMongo = (await mongo.LoadAvatarAsync(fixture.Id)).Result;
+            (copyStillOnMongo.RefreshTokens?.Any(refresh => refresh.Token == firstSession.Token) ?? false)
+                .Should().BeFalse();
+            token.Should().StartWith("oasis-r1.SQLLiteDBOASIS.");
+            avatarManager.RefreshToken(firstSession.Token, ip).IsError.Should().BeTrue();
+            avatarManager.RefreshToken(token.Replace("SQLLiteDBOASIS", "MongoDBOASIS"), ip).IsError.Should().BeTrue();
 
             var rotated = avatarManager.RefreshToken(token, ip);
             rotated.IsError.Should().BeFalse(rotated.Message);
-            rotated.Result.RefreshToken.Should().NotBe(token);
+            rotated.Result.RefreshToken.Should().NotBe(token).And.StartWith("oasis-r1.SQLLiteDBOASIS.");
             var stored = (await sqlite.LoadAvatarAsync(fixture.Id)).Result;
-            stored.RefreshTokens.Single(refresh => refresh.Token == token).IsActive.Should().BeFalse();
-            stored.RefreshTokens.Single(refresh => refresh.Token == rotated.Result.RefreshToken).IsActive.Should().BeTrue();
+            stored.RefreshTokens.Single(refresh => refresh.Token == firstSession.Token).IsActive.Should().BeFalse();
+            stored.RefreshTokens.Should().ContainSingle(refresh => refresh.IsActive);
+            avatarManager.RefreshToken(token, ip).IsError.Should().BeTrue("rotation revokes the old token");
+
+            var revoked = avatarManager.RevokeToken(rotated.Result.RefreshToken, ip);
+            revoked.IsSaved.Should().BeTrue(revoked.Message);
+            avatarManager.RefreshToken(rotated.Result.RefreshToken, ip).IsError.Should().BeTrue();
+            (await sqlite.LoadAvatarAsync(fixture.Id)).Result.RefreshTokens.Should()
+                .OnlyContain(refresh => !refresh.IsActive);
         }
         finally
         {
