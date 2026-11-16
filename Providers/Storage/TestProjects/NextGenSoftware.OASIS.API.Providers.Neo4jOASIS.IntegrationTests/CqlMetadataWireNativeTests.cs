@@ -71,7 +71,7 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         var provider = adapter.QueryProviderType;
         var target = new[] { new CosmicGroupedTarget(provider, adapter.QueryCapabilities, adapter.GroupedCapabilities) };
         var actor = Guid.NewGuid();
-        var source = new CqlRequest
+        var nullFilterRequest = new CqlRequest
         {
             Filters = new[]
             {
@@ -84,8 +84,8 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         };
         foreach (var (operation, expected) in new[] { (CqlOperator.IsNull, ids[4]), (CqlOperator.IsNotNull, ids[0]) })
         {
-            source.Filters[1].Operator = operation;
-            var filterPlan = CosmicQueryPlanner.Plan(CqlCompiler.Compile(source, actor, provider), provider,
+            nullFilterRequest.Filters[1].Operator = operation;
+            var filterPlan = CosmicQueryPlanner.Plan(CqlCompiler.Compile(nullFilterRequest, actor, provider), provider,
                 new[] { new CosmicQueryTarget(provider, adapter.QueryCapabilities) });
             Assert.IsFalse(filterPlan.IsError, filterPlan.Message);
             var filtered = await CosmicQueryExecutor.ExecuteAsync(filterPlan.Result, new[] { adapter });
