@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-16 UTC — Added signed WEB4 current-avatar holon count and OPORTAL `e7bb7c1` switches the dashboard card to the compact response. The API uses the existing HyperDrive-routed direct-child read with recursive loading disabled, counts returned holons and sends an integer. It derives the parent from the signed session. The portal regression passed for zero and a WEB4 failure. Backend build, signed wire verification and timing remain open. The dashboard request removal candidate `eaa4669` remains independently deployable.
+
 2026-11-16 UTC — OPORTAL `e936b33` removes startup Clan list and ONET statistics calls because the shipped dashboard has no matching cards. Subscription and dashboard checks passed and proved zero calls for both a standard avatar and a Wizard. Scoped portal dev candidate `eaa4669` is ready for the next review. Live signed dashboard timing remains open.
 
 2026-11-16 UTC — OPORTAL dev advanced from `e83d5af` to `c779bac` at the 01:44 UTC review. All four changed live assets matched the exact Git blobs. Edge opened the public subscription deep link, rendered all five real plans, highlighted Bronze, confirmed Enterprise Contact Sales and recorded exactly one WEB4 catalogue request. The release also includes HyperDrive diagnostics, accurate request metrics, reduced polling and the subscription feedback fix. Signed browser and payment completion remain open. The current WEB4 dev deployment still logs MongoDB quota rejections. Next portal review after 02:15 UTC.

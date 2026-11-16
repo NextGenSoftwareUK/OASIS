@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-16 UTC — Holon count portal tests ran in memory, without dependencies, reports or local build output.
+
 2026-11-16 UTC — Dashboard regression assets outside the sparse checkout were read from tracked blobs in memory. Removed the temporary candidate patch and alternate index. No dependencies or build outputs were created.
 
 2026-11-16 UTC — The second portal dev release asset probe ran in memory. The public subscription Edge check stopped its browser and removed its temporary profile and uncached websocket-client installation. No test or build files were written to either worktree.

@@ -21,6 +21,29 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
     public partial class DataController
     {
+        /// <summary>Returns the number of direct holons under the signed-in avatar.</summary>
+        [Authorize]
+        [HttpGet("current-avatar/holon-count")]
+        [ProducesResponseType(typeof(OASISResult<int>), StatusCodes.Status200OK)]
+        public async Task<ActionResult<OASISResult<int>>> GetCurrentAvatarHolonCount()
+        {
+            var avatarId = AvatarId;
+            if (avatarId == Guid.Empty)
+                return Unauthorized(new OASISResult<int> { IsError = true, Message = "Sign in to read your holon count." });
+
+            var holons = await HolonManager.LoadHolonsForParentAsync(avatarId,
+                loadChildren: false, recursive: false, avatarId: avatarId, includePublic: false);
+            if (holons.IsError || holons.Result == null)
+                return StatusCode(StatusCodes.Status503ServiceUnavailable, new OASISResult<int>
+                {
+                    IsError = true,
+                    ErrorCode = holons.ErrorCode,
+                    Message = "Could not read your holon count."
+                });
+
+            return Ok(new OASISResult<int>(holons.Result.Count()));
+        }
+
         /// <summary>
         /// Load's a holon data object for the given id.
         /// Set the loadChildren flag to true to load all the holon's child holon's. This defaults to true.
