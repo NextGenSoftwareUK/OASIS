@@ -1836,3 +1836,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 2026-11-16 UTC — Verified the rebuilt Holochain producer ZIP in memory. Removed the temporary Git indexes and exact scratch file used to stage its bundle and manifest. The qualified candidate bundle is retained as a Git object referenced by the native CI tag. No local conductor or build outputs were created.
 
 2026-11-16 UTC — The OPORTAL dev subscription verification used only the needed Git blobs and a temporary Git index in one disposable directory. The test process exited and its directory was removed. The public script was hashed in memory. No installs, images or retained test outputs.
+
+2026-11-16 UTC — Removed the disposable OPORTAL refresh test directory and Git index after use. The dev script was verified in memory. No retained test outputs or new dependencies.
