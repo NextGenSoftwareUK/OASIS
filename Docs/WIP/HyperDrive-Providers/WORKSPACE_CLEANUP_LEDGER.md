@@ -1946,3 +1946,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 2026-11-16 UTC — Removed the combined OPORTAL admin report candidate index. All test inputs came from existing tracked blobs and no browser profile, dependency install or generated report was written.
 
 2026-11-16 UTC — Subscription Analytics qualification used a hosted CI runner with a disposable MongoDB database and fixture teardown. No local MongoDB image, build output or report was created.
+
+2026-11-16 UTC — Removed both temporary indexes for the MongoDB Analytics successor. The OPORTAL deployed asset comparison ran in memory and created no download or profile.
