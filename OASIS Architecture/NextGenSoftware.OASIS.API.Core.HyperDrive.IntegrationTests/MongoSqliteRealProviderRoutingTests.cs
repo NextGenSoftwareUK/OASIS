@@ -179,13 +179,18 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
             var parentId = Guid.NewGuid();
             var sharedChild = Guid.NewGuid();
             var primaryChild = Guid.NewGuid();
+            var actor = Guid.NewGuid();
+            var otherOwner = Guid.NewGuid();
             foreach (var (provider, childId) in new (IOASISStorageProvider, Guid)[]
             {
                 (mongo, sharedChild), (mongo, primaryChild), (sqlite, sharedChild)
             })
             {
-                var saved = await provider.SaveHolonAsync(
-                    new Holon { Id = childId, ParentHolonId = parentId, Name = childId.ToString() }, saveChildren: false);
+                var saved = await provider.SaveHolonAsync(new Holon
+                {
+                    Id = childId, ParentHolonId = parentId, Name = childId.ToString(),
+                    CreatedByAvatarId = childId == sharedChild ? actor : otherOwner
+                }, saveChildren: false);
                 Assert.True(saved.IsSaved && !saved.IsError, saved.Message);
             }
             var replica = await sqlite.LoadHolonsForParentAsync(parentId, loadChildren: false);
@@ -213,6 +218,22 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
                 Assert.False(result.IsError, result.Message);
                 Assert.Equal(new[] { sharedChild, primaryChild }.Order(), result.Result.Select(holon => holon.Id).Order());
             }
+
+            var publicChild = Guid.NewGuid();
+            var savedPublic = await mongo.SaveHolonAsync(new Holon
+            {
+                Id = publicChild, ParentHolonId = parentId, Name = "Public child",
+                CreatedByAvatarId = otherOwner, IsPublic = true
+            }, saveChildren: false);
+            Assert.True(savedPublic.IsSaved && !savedPublic.IsError, savedPublic.Message);
+
+            var holonManager = new HolonManager(null, dna, manager);
+            var privateRead = await holonManager.LoadHolonsForParentAsync(parentId, avatarId: actor);
+            Assert.False(privateRead.IsError, privateRead.Message);
+            Assert.Equal(sharedChild, Assert.Single(privateRead.Result).Id);
+            var includePublic = await holonManager.LoadHolonsForParentAsync(parentId, avatarId: actor, includePublic: true);
+            Assert.False(includePublic.IsError, includePublic.Message);
+            Assert.Equal(new[] { sharedChild, publicChild }.Order(), includePublic.Result.Select(holon => holon.Id).Order());
         }
         finally
         {
