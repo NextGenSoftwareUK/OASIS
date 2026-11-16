@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. Removed the newest scoped portal alternate index. Read test output and validated JavaScript in memory. No local SDK, database, downloads or build output were retained.
+
 15 November Cancun time. WEB4 confirmed deletion of the disposable wallet creation avatar with HTTP 200. Restored the portal sparse checkout and removed the newer wallet candidate alternate index. No local SDK, packages, database copies or artifacts were retained.
 
 15 November Cancun time. WEB4 confirmed deletion of the disposable Wallets timing avatar with HTTP 200. Restored the portal sparse checkout and removed the wallet candidate alternate index. No local runtime, dependencies, result files or build artifacts were retained.
