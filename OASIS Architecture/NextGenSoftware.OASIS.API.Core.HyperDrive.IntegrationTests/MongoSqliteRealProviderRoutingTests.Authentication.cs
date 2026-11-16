@@ -135,6 +135,15 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
             avatarManager.RefreshToken(rotated.Result.RefreshToken, ip).IsError.Should().BeTrue();
             (await sqlite.LoadAvatarAsync(fixture.Id)).Result.RefreshTokens.Should()
                 .OnlyContain(refresh => !refresh.IsActive);
+
+            var completedMfa = await avatarManager.CompleteSecondFactorAsync(fixture.Id, ip);
+            completedMfa.IsSaved.Should().BeTrue(completedMfa.Message);
+            var mfaToken = completedMfa.Result.RefreshToken;
+            mfaToken.Should().StartWith("oasis-r1.SQLLiteDBOASIS.");
+            var refreshedMfa = avatarManager.RefreshToken(mfaToken, ip);
+            refreshedMfa.IsError.Should().BeFalse(refreshedMfa.Message);
+            refreshedMfa.Result.RefreshToken.Should().StartWith("oasis-r1.SQLLiteDBOASIS.");
+            avatarManager.RefreshToken(mfaToken, ip).IsError.Should().BeTrue();
         }
         finally
         {
