@@ -57,7 +57,7 @@ jobs:
         if: startsWith(github.ref_name, 'ci-hyperdrive-holo-edge-replay-')
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
-          ref: 4bd294f69a3dd11fee9522e2e0ffd857578d1dd7
+          ref: 201691ce590871ff41cae625e68043a23deb0471
           path: OASIS-prior-happ
           sparse-checkout: Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/OASIS_hAPP/oasis.happ
           sparse-checkout-cone-mode: false
@@ -78,7 +78,7 @@ jobs:
 
           package = 'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/OASIS_hAPP/oasis.happ'
           old = (Path('..') / 'OASIS-prior-happ' / package).read_bytes()
-          if sha256(old).hexdigest() != 'd6f3b9b792e4e38e191e4b9952ed849d925c68266ccde1be812dc5a607e47ef0':
+          if sha256(old).hexdigest() != 'eb6e48a7448c074c64635189f664c5842a86006f569074a05d42ef27ff0eb988':
               raise SystemExit('Prior hApp hash mismatch')
           h_app = zlib.decompress(Path(package).read_bytes(), 31)
           candidates = []
@@ -91,7 +91,7 @@ jobs:
                   start = module.start()
                   size = int.from_bytes(dna[start + 1:start + 5], 'big')
                   wasm = dna[start + 5:start + 5 + size]
-                  if sha256(wasm).hexdigest() == 'b849276cb16914f95b6b95b8b67e059d21a033def1db2b3163b1478862ee07f3':
+                  if sha256(wasm).hexdigest() == '2697393d8e8ee529cd3480cff6ea97a330ab87bf3ccd2aad9fcbf2825aec9425':
                       candidates.append(wasm)
           if len(candidates) != 1:
               raise SystemExit('Expected one source-matched coordinator WASM')
@@ -108,7 +108,7 @@ jobs:
           $package = 'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/OASIS_hAPP'
           $manifest = Get-Content -LiteralPath "$package/build-manifest.json" -Raw | ConvertFrom-Json
           $happ = "$package/oasis.happ"
-          if ($manifest.schemaVersion -ne 1 -or $manifest.sourceCommit -cne '5477bee0d8ab9420f7d237a799cbecccc850d226' -or
+          if ($manifest.schemaVersion -ne 1 -or $manifest.sourceCommit -cne '7e7051bc77e49b8fde8143ac3097232644c8ab24' -or
               (Get-FileHash -LiteralPath $happ -Algorithm SHA256).Hash -ine $manifest.artifactSha256) {
             throw 'The candidate hApp does not match the replay fix and its checked-in manifest.'
           }
