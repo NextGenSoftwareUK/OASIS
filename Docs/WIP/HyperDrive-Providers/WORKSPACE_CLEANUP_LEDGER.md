@@ -1918,3 +1918,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 2026-11-16 UTC — All scratch indexes for the exact Holo routing candidate were removed after use, including the failed attempts to apply workflow files against the older baseline. No local build or provider runtime was installed.
 
 2026-11-16 UTC — Removed the temporary Git index for exact receipt candidate 275fb990ca02. Native reports and runtimes were generated only on hosted runners.
+
+2026-11-16 UTC — Removed the scoped HoloOASIS release index and temporary directory. Verified committed file identity in Git. No runtime, dependency download or local build output was created.
