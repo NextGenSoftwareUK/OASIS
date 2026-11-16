@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -219,11 +220,32 @@ public sealed class MongoUsageReconciler
             result.ProviderEvidenceComplete = providerComplete;
             return result;
         }, new TransactionOptions(readConcern: ReadConcern.Snapshot, writeConcern: WriteConcern.WMajority), ct);
-        await _reports.InsertOneAsync(report, cancellationToken: ct);
+        await SaveReportAsync(report, ct);
         Interlocked.Exchange(ref _lastSuccess, _time.GetUtcNow().ToUnixTimeSeconds());
         foreach (var finding in report.Findings) Drift.Add(1, new KeyValuePair<string, object>("code", finding.Code));
         Latency.Record(watch.Elapsed.TotalSeconds);
         return report;
+    }
+
+    private Task SaveReportAsync(UsageReconciliationReport report, CancellationToken ct)
+    {
+        var state = report.ToBsonDocument();
+        state.Remove("_id");
+        state.Remove(nameof(UsageReconciliationReport.CheckedAtUtc));
+        state[nameof(UsageReconciliationReport.Findings)] = new BsonArray(report.Findings
+            .OrderBy(finding => finding.Code, StringComparer.Ordinal)
+            .ThenBy(finding => finding.Reference, StringComparer.Ordinal)
+            .ThenBy(finding => finding.Detail, StringComparer.Ordinal)
+            .Select(finding => finding.ToBsonDocument()));
+
+        // Account, month and all result fields identify the derived state across worker passes.
+        report.Id = Convert.ToHexStringLower(SHA256.HashData(state.ToBson()));
+        var update = new BsonDocument
+        {
+            { "$setOnInsert", state },
+            { "$max", new BsonDocument(nameof(UsageReconciliationReport.CheckedAtUtc), report.CheckedAtUtc) }
+        };
+        return _reports.UpdateOneAsync(x => x.Id == report.Id, update, new UpdateOptions { IsUpsert = true }, ct);
     }
 
     private static void Add(UsageReconciliationReport report, string code, string reference, string detail) =>
@@ -236,7 +258,7 @@ public sealed class MongoUsageReconciler
     {
         var report = new UsageReconciliationReport { UserId=userId, Month=month, CheckedAtUtc=_time.GetUtcNow().UtcDateTime };
         Add(report, "RECONCILIATION_FAILED", userId + ":" + month, "The check did not complete: " + failureType);
-        await _reports.InsertOneAsync(report, cancellationToken: ct);
+        await SaveReportAsync(report, ct);
         Drift.Add(1, new KeyValuePair<string, object>("code", "RECONCILIATION_FAILED"));
     }
 
