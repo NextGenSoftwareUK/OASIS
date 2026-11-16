@@ -1,5 +1,7 @@
 # OPORTAL and HyperDrive performance audit
 
+2026-11-16 UTC — Subscription Admin task commit `c61b7e8` reduces opening from eight requests to one. Previously it fetched Analytics, five tab lists, WEB6 pricing and outboxes immediately. The controlled startup and tab-switch request counts passed; hosted Wizard timing remains unmeasured.
+
 2026-11-16 UTC — Removed the unused local-only routing settings startup script and HTML fragment. Direct My routing navigation loads the settings request without fetching status and metrics.
 
 2026-11-16 UTC — Subscription catalogue task commit `351ca27` ends the pending WEB4 catalogue read after eight seconds. Controlled UI with the real dev request showed recovery at 8,069 ms. No automatic retries were sent and payment mutations retain their existing transport contract.
