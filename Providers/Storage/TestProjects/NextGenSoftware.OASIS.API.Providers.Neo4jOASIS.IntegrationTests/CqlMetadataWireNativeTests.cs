@@ -414,6 +414,31 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         CollectionAssert.AreEqual(expectedPage, orderedRows.Result.Providers.Single().Rows
             .Select(result => (Guid)result.Values[0]).ToArray());
 
+        var rowRequest = new CqlRequest
+        {
+            Filters = orderedRequest.Filters,
+            OrderBy = "None",
+            Ordering = new[]
+            {
+                new ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlV1Ordering { Field = "Description" },
+                new ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlV1Ordering { Field = "Id" }
+            },
+            Skip = 1,
+            Take = 2
+        };
+        var rowIntent = CqlCompiler.Compile(rowRequest, actor, provider);
+        Assert.AreEqual(2, rowIntent.Orderings.Count);
+        var rowPlan = CosmicQueryPlanner.Plan(rowIntent, provider,
+            new[] { new CosmicQueryTarget(provider, adapter.QueryCapabilities) });
+        Assert.IsFalse(rowPlan.IsError, rowPlan.Message);
+        var rowPage = await CosmicQueryExecutor.ExecuteAsync(rowPlan.Result, new[] { adapter });
+        Assert.IsFalse(rowPage.IsError, rowPage.Message + rowPage.Exception);
+        CollectionAssert.AreEqual(expectedPage, rowPage.Result.Providers.Single().Rows.Select(row => row.Id).ToArray());
+
+        rowRequest.Ordering[1].Field = "Description";
+        Assert.ThrowsException<ArgumentException>(() => CqlCompiler.Compile(rowRequest, actor, provider));
+
+
 
         foreach (var (operation, pattern, expected) in new[]
         {

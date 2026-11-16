@@ -79,6 +79,9 @@ internal static class CqlRequestCapture
         return new CqlV1Request
         {
             Provider = value.Provider, OrderBy = value.OrderBy, Descending = value.Descending,
+            Ordering = value.Ordering == null ? null : Array(value.Ordering, 4, term => term == null
+                ? throw new ArgumentException("Missing row ordering.")
+                : new CqlV1Ordering { Field = term.Field, Descending = term.Descending }),
             Skip = value.Skip, Take = value.Take, IncludeMetadata = value.IncludeMetadata,
             MaximumDurationMilliseconds = value.MaximumDurationMilliseconds,
             Filters = Array(value.Filters, 64, Filter), AnyOf = Array(value.AnyOf, 64, Filter),

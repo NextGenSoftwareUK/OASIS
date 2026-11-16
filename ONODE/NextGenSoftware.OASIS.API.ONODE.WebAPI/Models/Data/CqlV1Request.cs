@@ -24,12 +24,21 @@ public sealed class CqlV1Request
     // None is explicit and restricted to the unsorted ActivityPub, IPFS and SOLID point profiles.
     public string OrderBy { get; set; } = "Name";
     public bool Descending { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public CqlV1Ordering[]? Ordering { get; set; }
     public int Skip { get; set; }
     public int Take { get; set; } = 25;
     // Explicit execution budget for the leaf endpoint; federation has its own global budget.
     public int MaximumDurationMilliseconds { get; set; } = 5000;
     public bool IncludeMetadata { get; set; }
     public CqlV1Graph? Graph { get; set; }
+}
+
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed class CqlV1Ordering
+{
+    public string? Field { get; set; }
+    public bool Descending { get; set; }
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
