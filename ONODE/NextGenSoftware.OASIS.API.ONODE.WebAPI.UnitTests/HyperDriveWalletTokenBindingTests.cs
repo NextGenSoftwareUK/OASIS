@@ -57,14 +57,7 @@ public class HyperDriveWalletTokenBindingTests
     [Fact]
     public async Task WalletKeyReadsRejectEveryForeignAvatarSelector()
     {
-        var controller = new WalletController
-        {
-            ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() }
-        };
-        controller.Avatar = new NextGenSoftware.OASIS.API.Core.Holons.Avatar
-        {
-            Id = Guid.NewGuid(), Username = "wallet-owner", Email = "wallet-owner@example.test"
-        };
+        var controller = CreateWalletOwnerController();
 
         var byId = await controller.LoadProviderWalletsForAvatarByIdAsync(Guid.NewGuid(), decryptPrivateKeys: true);
         var byUsername = await controller.LoadProviderWalletsForAvatarByUsernameAsync("other", decryptPrivateKeys: true);
@@ -81,6 +74,55 @@ public class HyperDriveWalletTokenBindingTests
         Assert.True(defaultWallet.IsError);
         Assert.Null(defaultWallet.Result);
         Assert.Equal(StatusCodes.Status403Forbidden, controller.Response.StatusCode);
+    }
+
+    [Fact]
+    public async Task WalletWritesRejectEveryForeignAvatarSelectorBeforeStorage()
+    {
+        var controller = CreateWalletOwnerController();
+        var id = Guid.NewGuid();
+        var wallet = Guid.NewGuid();
+        const string username = "other";
+        const string email = "other@example.test";
+        const string key = "not-signing-material";
+
+        Assert.All(new[]
+        {
+            await controller.SaveProviderWalletsForAvatarByIdAsync(id, new()),
+            await controller.SaveProviderWalletsForAvatarByUsernameAsync(username, new()),
+            await controller.SaveProviderWalletsForAvatarByEmailAsync(email, new())
+        }, result => Assert.Equal("AVATAR_OPERATION_FORBIDDEN", result.ErrorCode));
+        Assert.All(new[]
+        {
+            await controller.SetAvatarDefaultWalletByIdAsync(id, wallet, default),
+            await controller.SetAvatarDefaultWalletByUsernameAsync(username, wallet, default),
+            await controller.SetAvatarDefaultWalletByEmailAsync(email, wallet, default),
+            controller.ImportWalletUsingPrivateKeyById(id, key, default),
+            controller.ImportWalletUsingPrivateKeyByUsername(username, key, default),
+            controller.ImportWalletUsingPrivateKeyByEmail(email, key, default),
+            controller.ImportWalletUsingPublicKeyById(id, key, "other-wallet", default),
+            controller.ImportWalletUsingPublicKeyByUsername(username, key, "other-wallet", default),
+            controller.ImportWalletUsingPublicKeyByEmail(email, key, "other-wallet", default)
+        }, result =>
+        {
+            Assert.Equal("AVATAR_OPERATION_FORBIDDEN", result.ErrorCode);
+            Assert.True(result.IsError);
+            Assert.Null(result.Result);
+        });
+        Assert.Equal(StatusCodes.Status403Forbidden, controller.Response.StatusCode);
+    }
+
+    private static WalletController CreateWalletOwnerController()
+    {
+        var controller = new WalletController
+        {
+            ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() }
+        };
+        controller.Avatar = new NextGenSoftware.OASIS.API.Core.Holons.Avatar
+        {
+            Id = Guid.NewGuid(), Username = "wallet-owner", Email = "wallet-owner@example.test"
+        };
+        return controller;
     }
 
     [Fact]
