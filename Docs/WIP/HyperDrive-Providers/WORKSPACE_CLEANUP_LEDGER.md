@@ -1944,3 +1944,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 2026-11-16 UTC — Removed the temporary indexes for the shared HoloOASIS avatar successor and both OPORTAL app-usage staging attempts. The exact portal test read tracked blobs directly. No runtime, build output or browser profile was retained.
 
 2026-11-16 UTC — Removed the combined OPORTAL admin report candidate index. All test inputs came from existing tracked blobs and no browser profile, dependency install or generated report was written.
+
+2026-11-16 UTC — Subscription Analytics qualification used a hosted CI runner with a disposable MongoDB database and fixture teardown. No local MongoDB image, build output or report was created.

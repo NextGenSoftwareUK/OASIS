@@ -6,7 +6,7 @@
 
 2026-11-16 UTC — Exact combined portal candidate d86d5773218a also rejects stale avatar usage results. When the current avatar report settles first, a later error from the previous lookup cannot erase it. The regression uses both app and avatar reports and completes pending replies after logout. Signed hosted interactions remain open.
 
-2026-11-16 UTC — WEB4 Subscription Admin Analytics previously downloaded every matching event, paid invoice and all subscriptions to calculate the report. The repository now requests grouped counts, units, costs and revenue from MongoDB and coalesces the groups into the existing response. A new native fixture checks empty reports, repeated dimensions, case-insensitive currency totals, paid-only invoices and exact date boundaries. Compilation, native totals and hosted latency measurements are pending.
+2026-11-16 UTC — WEB4 Subscription Admin Analytics previously downloaded every matching event, paid invoice and all subscriptions to calculate the report. The repository now requests grouped counts, units, costs and revenue from MongoDB and coalesces the groups into the existing response. The native fixture passed on a disposable MongoDB replica set in run 43946191572. It checks empty reports, repeated dimensions, case-insensitive currency totals, paid-only invoices and exact date boundaries. The 94 ms fixture duration includes setup work and is not a hosted latency measurement.
 
 2026-11-16 UTC — Config `c26306f` bounds each selected account subscription GET to eight seconds, including checkout confirmation. This is a request deadline. Live signed timings are unmeasured and payment writes retain their existing behavior.
 
