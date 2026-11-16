@@ -99,7 +99,7 @@
     "StorageProviders": {
       "AutoReplicationEnabled": "false",
       "AutoFailOverEnabled": "true",
-      "AutoLoadBalanceEnabled": "true",
+      "AutoLoadBalanceEnabled": "false",
       "AutoLoadBalanceReadPollIntervalMins": "10",
       "AutoLoadBalanceWritePollIntervalMins": "10",
       "ProviderMethodCallTimeOutSeconds": "10",

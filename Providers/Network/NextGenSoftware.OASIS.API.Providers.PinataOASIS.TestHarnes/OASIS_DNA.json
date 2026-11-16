@@ -91,7 +91,7 @@
     "StorageProviders": {
       "AutoReplicationEnabled": "true",
       "AutoFailOverEnabled": "true",
-      "AutoLoadBalanceEnabled": "true",
+      "AutoLoadBalanceEnabled": "false",
       "AutoLoadBalanceReadPollIntervalMins": "10",
       "AutoLoadBalanceWritePollIntervalMins": "10",
       "AutoReplicationProviders": "MongoDBOASIS, SQLLiteDBOASIS, Neo4jOASIS, IPFSOASIS, PinataOASIS, HoloOASIS, TelosOASIS, EOSIOOASIS, EthereumOASIS, ThreeFoldOASIS",

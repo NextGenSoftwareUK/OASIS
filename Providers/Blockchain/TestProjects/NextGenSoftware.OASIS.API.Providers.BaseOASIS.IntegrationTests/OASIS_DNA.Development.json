@@ -168,7 +168,7 @@
       "DectivateProviderTimeOutSeconds": 10,
       "AutoReplicationEnabled": false,
       "AutoFailOverEnabled": true,
-      "AutoLoadBalanceEnabled": true,
+      "AutoLoadBalanceEnabled": false,
       "AutoLoadBalanceReadPollIntervalMins": 10,
       "AutoLoadBalanceWritePollIntervalMins": 10,
       "AutoReplicationProviders": "MongoDBOASIS, ArbitrumOASIS, PolygonOASIS, RootstockOASIS, LocalFileOASIS, SQLLiteDBOASIS, Neo4jOASIS, IPFSOASIS, PinataOASIS, HoloOASIS, SolanaOASIS, TelosOASIS, EOSIOOASIS, EthereumOASIS, ThreeFoldOASIS",
