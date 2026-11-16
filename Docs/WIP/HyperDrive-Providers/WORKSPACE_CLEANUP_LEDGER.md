@@ -1898,3 +1898,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 2026-11-16 UTC — Removed the combined map routing and Core candidate index and temporary manifest immediately after writing the Git tree. The pin validation streamed committed files without writing Python bytecode. No local build or provider fixtures were created.
 
 2026-11-16 UTC — Removed the OPORTAL test preload and both scoped publication indexes. The preload read existing dev-only account-verification fixtures straight from Git. No installs, browser profiles, local build output or fixture files were retained.
+
+2026-11-16 UTC — Removed the OPORTAL fixture preload after verifying the disabled app-usage regression. It read existing source from Git; no app account, dependency install or local build output was created.
