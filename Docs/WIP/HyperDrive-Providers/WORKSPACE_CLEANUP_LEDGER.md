@@ -1954,3 +1954,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 2026-11-16 UTC — Atlas was not used for the reply-volume test. The hosted runner used an isolated MongoDB fixture and dropped its database on teardown. The local successor index was removed. The C drive had 18.66 GiB free at the last check.
 
 2026-11-16 UTC — Removed the temporary index used to stage Analytics on the coordinated WEB4 source. The checkout stayed on its assigned branch and no local build, dependencies or fixture were created.
+
+2026-11-16 UTC — Removed the OPORTAL UTC boundary candidate index. The regressions ran from existing Git blobs with no browser profile or generated files.
