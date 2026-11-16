@@ -45,7 +45,12 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             var wholeRows = await NativeManager(provider).ExecuteJoinQueryAsync(wholePlan.Result, new[] { provider });
             Assert.IsFalse(wholeRows.IsError, wholeRows.Message + wholeRows.Exception);
             Assert.AreEqual(childId, wholeRows.Result.Providers.Single().Rows.Single().Value.Id);
-            var wholeChildren = await linq.SelectMany(parent => parent.Children).ToCosmicListAsync();
+            var children = linq.SelectMany(parent => parent.Children);
+            Assert.AreEqual(1, children.Count());
+            Assert.AreEqual(0L, children.Skip(1).LongCount());
+            Assert.IsTrue(children.Any());
+            Assert.IsFalse(children.Take(0).Any());
+            var wholeChildren = await children.ToCosmicListAsync();
             Assert.IsFalse(wholeChildren.IsError, wholeChildren.Message + wholeChildren.Exception);
             var child = wholeChildren.Result.Single();
             Assert.AreEqual(childId, child.Id);
@@ -214,6 +219,11 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         var orderedThenBy = await thenBy.ToCosmicListAsync();
         Assert.IsFalse(orderedThenBy.IsError, orderedThenBy.Message + orderedThenBy.Exception);
         CollectionAssert.AreEqual(new[] { ids[4], ids[1], ids[0] }, orderedThenBy.Result.Select(row => row.Id).ToArray());
+        Assert.AreEqual(3, thenBy.Count());
+        Assert.AreEqual(2L, thenBy.Skip(1).LongCount());
+        Assert.AreEqual(1, thenBy.Take(2).Skip(1).Count());
+        Assert.IsTrue(thenBy.Skip(2).Any());
+        Assert.IsFalse(thenBy.Skip(3).Any());
         foreach (var (query, expected) in new[]
         {
             (thenBy.Skip(1).Take(1), new[] { ids[1] }),
