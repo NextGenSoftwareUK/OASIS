@@ -61,19 +61,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
             _buckets = database.GetCollection<SubscriptionUsageBucket>("subscription_usage_buckets");
             _audit = database.GetCollection<SubscriptionUsageAuditEntry>("subscription_usage_audit");
             _receipts = database.GetCollection<BsonDocument>("subscription_usage_receipts");
-            _events.Indexes.CreateMany(new[] {
+            EnsureSubscriptionIndexes(_events, new[] {
                 new CreateIndexModel<UsageEventDocument>(Builders<UsageEventDocument>.IndexKeys.Ascending(x => x.OperationId), new CreateIndexOptions { Unique = true, Name = "ux_operation_id" }),
                 new CreateIndexModel<UsageEventDocument>(Builders<UsageEventDocument>.IndexKeys.Ascending(x => x.UserId).Descending(x => x.AuthorizedAtUtc), new CreateIndexOptions { Name = "ix_user_authorized" }),
                 new CreateIndexModel<UsageEventDocument>(Builders<UsageEventDocument>.IndexKeys.Ascending(x => x.Status).Ascending(x => x.ExpiresAtUtc), new CreateIndexOptions { Name = "ix_status_expiry" }),
                 new CreateIndexModel<UsageEventDocument>(Builders<UsageEventDocument>.IndexKeys.Ascending(x => x.ConsumingService).Ascending(x => x.Status).Ascending(x => x.AuthorizedAtUtc), new CreateIndexOptions { Name = "ix_service_recovery" }),
                 new CreateIndexModel<UsageEventDocument>(Builders<UsageEventDocument>.IndexKeys.Ascending(x => x.PooledAppId).Descending(x => x.AuthorizedAtUtc), new CreateIndexOptions<UsageEventDocument> { Name = "ix_pool_app_authorized", PartialFilterExpression = new MongoDB.Bson.BsonDocument("PooledAppId", new MongoDB.Bson.BsonDocument("$type", "string")) })
             });
-            _audit.Indexes.CreateMany(new[] {
+            EnsureSubscriptionIndexes(_audit, new[] {
                 new CreateIndexModel<SubscriptionUsageAuditEntry>(Builders<SubscriptionUsageAuditEntry>.IndexKeys.Ascending(x => x.UserId).Descending(x => x.OccurredAtUtc).Descending(x => x.Id), new CreateIndexOptions { Name = "ix_user_audit_cursor" }),
                 new CreateIndexModel<SubscriptionUsageAuditEntry>(Builders<SubscriptionUsageAuditEntry>.IndexKeys.Ascending(x => x.OperationId).Ascending(x => x.Kind), new CreateIndexOptions { Name = "ix_operation_audit" }),
                 new CreateIndexModel<SubscriptionUsageAuditEntry>(Builders<SubscriptionUsageAuditEntry>.IndexKeys.Ascending(x => x.Month).Ascending(x => x.UserId), new CreateIndexOptions { Name = "ix_month_reconciliation" })
             });
-            _buckets.Indexes.CreateOne(new CreateIndexModel<SubscriptionUsageBucket>(Builders<SubscriptionUsageBucket>.IndexKeys.Ascending(x => x.UserId).Ascending(x => x.PeriodType).Ascending(x => x.Period), new CreateIndexOptions { Name = "ix_user_period", Unique = true }));
+            EnsureSubscriptionIndexes(_buckets, new CreateIndexModel<SubscriptionUsageBucket>(Builders<SubscriptionUsageBucket>.IndexKeys.Ascending(x => x.UserId).Ascending(x => x.PeriodType).Ascending(x => x.Period), new CreateIndexOptions { Name = "ix_user_period", Unique = true }));
         }
 
         public Task<(SubscriptionUsageEvent Event, SubscriptionUsageAggregate Aggregate)> AuthorizeAsync(

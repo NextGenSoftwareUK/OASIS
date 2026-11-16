@@ -37,6 +37,20 @@ public sealed class MongoLedgerTests : IAsyncLifetime
     }
     public Task DisposeAsync() => _client == null ? Task.CompletedTask : _client.DropDatabaseAsync(_databaseName);
 
+    [Fact]
+    public void ExistingSubscriptionIndexesAreVerifiedWithoutCreatingIndexes()
+    {
+        var settings = MongoClientSettings.FromConnectionString(Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI"));
+        var observed = new System.Collections.Concurrent.ConcurrentQueue<string>();
+        settings.ClusterConfigurator = cluster => cluster.Subscribe<MongoDB.Driver.Core.Events.CommandStartedEvent>(command =>
+            observed.Enqueue(command.CommandName));
+
+        _ = new MongoSubscriptionUsageRepository(new MongoClient(settings), _databaseName, _clock, _policy);
+
+        Assert.Contains("listIndexes", observed);
+        Assert.DoesNotContain("createIndexes", observed);
+    }
+
     private sealed class FixedPolicyProvider : ISubscriptionUsagePolicyProvider
     {
         public SubscriptionUsagePolicy Current = Unlimited;
