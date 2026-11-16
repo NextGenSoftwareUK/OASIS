@@ -1888,3 +1888,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 2026-11-16 UTC — Removed the scoped PyMongo diagnostic SDK and script after two live reconciliation samples. Credentials stayed in the configured child process. No cache, dataset copy, raw report or local build output was retained.
 
 2026-11-16 UTC — Both map-routing candidate scratch indexes were removed. The first stopped when adding a new workflow path and the second applied the exact Git delta successfully. No provider runtime, credentials or build output were created.
+
+2026-11-16 UTC — Removed the scratch index after dispatching exact shared-routing qualification. No local SDK install, build output or provider fixtures were created.
