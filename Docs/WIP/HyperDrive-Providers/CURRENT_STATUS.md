@@ -2937,3 +2937,7 @@ Performance follow-up. WEB4 wallet summary is implemented on the task branch and
 2026-11-16 UTC — WEB7 running DNA matched saved replacement Neo4j configuration and public Swagger returned HTTP 200. Started WEB6 restart 2bc98826. The original Neo4j login remains active while WEB6, WEB5 and WEB4 finish switching.
 
 2026-11-16 UTC — WEB6 running DNA matched saved replacement Neo4j configuration and public /v1/health returned HTTP 200 with status ok. Started WEB5 restart f6c1e5b5. WEB4 is next after WEB5 verification.
+
+2026-11-16 UTC — WEB4 image workflow 43823082242 succeeded and its build output confirmed publication of the exact 9fb52e18bbce image tag for the MongoDB-to-SQLite refresh and MFA candidate. Development still pointed to 6771e17f6207 at the integration review. A Development push triggers fleet redeploys, so integration waits for the isolated Neo4j credential rollout to finish. Build evidence adds to the native test evidence. Hosted sign-in acceptance remains open.
+
+2026-11-16 UTC — WEB5 running DNA matched saved replacement Neo4j configuration and public /api/health returned HTTP 200 with status healthy. Started the final dev API restart on WEB4 deployment 0b2a7e68.

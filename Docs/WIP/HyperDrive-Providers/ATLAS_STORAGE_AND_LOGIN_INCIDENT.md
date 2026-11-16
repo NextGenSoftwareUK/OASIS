@@ -89,3 +89,5 @@ The task branch adds ASP.NET Core liveness at /api/health for WEB7 through WEB10
 WEB7 deployment b783559f reached SUCCESS. Its running DNA hash matched the saved configuration and public Swagger returned HTTP 200 with an OpenAPI document. Started WEB6 deployment 2bc98826 at 07:34:42 UTC. Four of seven running services have been verified.
 
 WEB6 deployment 2bc98826 reached SUCCESS. Its running DNA hash matched the saved configuration and its public /v1/health returned HTTP 200 with status ok. Started WEB5 deployment f6c1e5b5 at 07:38:47 UTC. Five of seven running services have been verified.
+
+WEB5 deployment f6c1e5b5 reached SUCCESS. Its running DNA hash matched the saved configuration and its public /api/health returned HTTP 200 with status healthy. Started the final API restart, WEB4 deployment 0b2a7e68, at 07:44:45 UTC. Six of seven running services have been verified. Original password revocation is pending WEB4 verification.
