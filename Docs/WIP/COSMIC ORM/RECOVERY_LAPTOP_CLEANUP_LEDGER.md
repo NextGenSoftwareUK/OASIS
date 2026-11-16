@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+16 November UTC. Two exact-website test snapshots and temporary Git indexes were removed. Edge browser verification left two owned OS-temp profiles after cleanup attempts: C:/Users/David/AppData/Local/Temp/web4-exact-browser-LjwGMM (17.30 MiB) and C:/Users/David/AppData/Local/Temp/web4-exact-browser-ChjeS6 (11.03 MiB). The first scoped recursive cleanup was rejected by automatic execution policy. The temporary MongoDB read-only audit client C:/Source/OASIS2/LocalState/COSMIC/piper-mongo-read-4qwzdwjt (9.26 MiB) also remains after the tool rejected deletion. No ongoing test depends on these directories. No browser binaries, model weights or application databases were installed.
+
 16 November UTC. The Free catalogue Chrome probe removed its isolated incognito profile. The older retained visitor refresh was rejected as not found and issued no replacement cookie or token. Its protected evidence remains for reconciliation and was not replayed.
 
 16 November UTC. Inspected released Holochain source in memory and staged the retained-interface reproduction through CI. No local conductor or Rust packages were downloaded. CI owns its disposable Linux state. Temporary Git index removed.
