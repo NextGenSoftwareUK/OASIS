@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-16 UTC — Account billing deadline tests ran in memory. Removed the staging index and created no browser, dependency or build artifacts.
+
 2026-11-16 UTC — Subscription Admin deployment comparison ran in memory. Removed the temporary index for the two staged copy variants. No browser profile, SDK install or local build output was created.
 
 2026-11-16 UTC — Subscription Admin checks ran in memory and the temporary staging index was removed. No dependencies, browser profile or local build output was created.

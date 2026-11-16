@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-16 UTC — OPORTAL `c26306f` extends the existing eight-second WEB4 read deadline to signed account subscriptions, orders, usage and billing, and the checkout confirmation lookup. Existing checkout status recovery and URL retention are reused. The subscription suite passed and verifies that the cancellation boundary excludes admin analytics and payment POSTs. Scoped portal candidate `a6cc149` retains the dev host selection. Live signed acceptance remains open.
+
 2026-11-16 UTC — OPORTAL dev advanced to `e68beba` around 03:54 UTC with lazy Subscription Admin tabs. The two changed served assets matched the exact Git blobs and /admin and /subscription returned the portal shell. Wizard browser verification is pending WEB4 dev recovery. Rebasing over this portal release produced `fec694b` for copy and `c0ad9c2` for copy with dashboard count. Both retain the released Admin changes and await the matching backend checks. Review the next portal batch after 04:24:30 UTC.
 
 2026-11-16 UTC — OPORTAL `c61b7e8` opens Subscription Admin with Analytics alone and loads each other tab on selection. In-flight reads coalesce, successful tab reads are reused for the open session, and stale responses cannot repopulate billing views after logout. Controlled checks passed for one initial request, invoice tab selection and reuse, and late audit response after logout. Independent candidate `e68beba` is staged. Live signed Wizard acceptance remains open.

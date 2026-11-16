@@ -1,5 +1,7 @@
 # OPORTAL and HyperDrive performance audit
 
+2026-11-16 UTC — Config `c26306f` bounds each selected account subscription GET to eight seconds, including checkout confirmation. This is a request deadline. Live signed timings are unmeasured and payment writes retain their existing behavior.
+
 2026-11-16 UTC — Subscription Admin task commit `c61b7e8` reduces opening from eight requests to one. Previously it fetched Analytics, five tab lists, WEB6 pricing and outboxes immediately. The controlled startup and tab-switch request counts passed; hosted Wizard timing remains unmeasured.
 
 2026-11-16 UTC — Removed the unused local-only routing settings startup script and HTML fragment. Direct My routing navigation loads the settings request without fetching status and metrics.
