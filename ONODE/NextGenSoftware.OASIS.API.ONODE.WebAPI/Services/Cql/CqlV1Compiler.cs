@@ -335,6 +335,17 @@ public static partial class CqlV1Compiler
         return result.Result;
     }
 
+    private static string StringFilterMethod(CqlV1Operator operation) => operation switch
+    {
+        CqlV1Operator.Contains or CqlV1Operator.NotContains => nameof(string.Contains),
+        CqlV1Operator.StartsWith or CqlV1Operator.NotStartsWith => nameof(string.StartsWith),
+        CqlV1Operator.EndsWith or CqlV1Operator.NotEndsWith => nameof(string.EndsWith),
+        _ => null
+    };
+
+    private static bool IsNegatedStringFilter(CqlV1Operator operation)
+        => operation is CqlV1Operator.NotContains or CqlV1Operator.NotStartsWith or CqlV1Operator.NotEndsWith;
+
     private static Expression Predicate(CqlV1Filter filter, ParameterExpression parameter)
     {
         if (filter == null || !Enum.IsDefined(filter.Operator) || !Enum.IsDefined(filter.Scalar))
@@ -403,13 +414,7 @@ public static partial class CqlV1Compiler
         }
 
         var literal = Literal(filter.Value, path.Type);
-        var stringMethod = filter.Operator switch
-        {
-            CqlV1Operator.Contains or CqlV1Operator.NotContains => nameof(string.Contains),
-            CqlV1Operator.StartsWith or CqlV1Operator.NotStartsWith => nameof(string.StartsWith),
-            CqlV1Operator.EndsWith or CqlV1Operator.NotEndsWith => nameof(string.EndsWith),
-            _ => null
-        };
+        var stringMethod = StringFilterMethod(filter.Operator);
         if (stringMethod != null)
         {
             if (path.Type != typeof(string)) throw new ArgumentException("String operation requires a string field.");
@@ -417,7 +422,7 @@ public static partial class CqlV1Compiler
             // portable native contract requires ordinal semantics explicitly.
             var method = typeof(string).GetMethod(stringMethod, new[] { typeof(string), typeof(StringComparison) });
             var match = Expression.Call(path, method, literal, Expression.Constant(StringComparison.Ordinal));
-            if (filter.Operator is not (CqlV1Operator.NotContains or CqlV1Operator.NotStartsWith or CqlV1Operator.NotEndsWith))
+            if (!IsNegatedStringFilter(filter.Operator))
                 return match;
 
             // SQL negation excludes null and missing text even when the provider's
