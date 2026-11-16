@@ -58,6 +58,7 @@ internal sealed partial class MongoCqlTranslator
             invalid.Add(Bad(column.Selector, "$" + name));
             var present = Op("$eq", "$" + name + ".s", Literal(2));
             reduction.Add(name + "present", new BsonDocument("$sum", Choose(present, Literal(1L), Literal(0L))));
+            if (column.Operation == CosmicScalarOperation.LongCount) continue;
             if (column.Operation is CosmicScalarOperation.Sum or CosmicScalarOperation.Average)
             {
                 var inputType = Nullable.GetUnderlyingType(column.Selector.ValueType) ?? column.Selector.ValueType;
@@ -192,7 +193,8 @@ internal sealed partial class MongoCqlTranslator
             var column = query.Columns[ordering.ColumnIndex];
             BsonValue value;
             if (column.KeyIndex >= 0) value = "$_id.k" + column.KeyIndex;
-            else if (column.Operation is CosmicScalarOperation.Count or CosmicScalarOperation.LongCount) value = "$inputs";
+            else if (column.Operation is CosmicScalarOperation.Count or CosmicScalarOperation.LongCount)
+                value = column.Selector == null ? "$inputs" : "$a" + ordering.ColumnIndex + "present";
             else if (column.Operation is CosmicScalarOperation.Min or CosmicScalarOperation.Max)
                 value = "$a" + ordering.ColumnIndex + ".k";
             else if (column.Operation == CosmicScalarOperation.Sum)

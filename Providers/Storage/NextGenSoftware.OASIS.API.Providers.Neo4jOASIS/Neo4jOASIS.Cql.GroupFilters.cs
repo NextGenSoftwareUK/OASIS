@@ -38,10 +38,11 @@ public partial class Neo4jOASIS
             if (index < 0) throw new NotSupportedException("Grouped filter requires an exact selected scalar.");
             var column = query.Columns[index];
             if (column.KeyIndex >= 0) return new Cell { Value = "keys[" + column.KeyIndex + "].v", Type = column.ValueType };
-            if (column.Operation is CosmicScalarOperation.Count or CosmicScalarOperation.LongCount) return new Cell { Value = "inputs", Type = column.ValueType };
+            if (column.Selector == null) return new Cell { Value = "inputs", Type = column.ValueType };
             if (column.Operation == CosmicScalarOperation.Average) return new Cell { Value = "averageKeys[" + index + "]", Type = column.ValueType };
             var slot = query.Columns.Take(index).Count(item => item.KeyIndex < 0 && item.Selector != null);
             var packet = "aggregates[" + slot + "]";
+            if (column.Operation == CosmicScalarOperation.LongCount) return new Cell { Value = packet + ".present", Type = column.ValueType };
             if (column.Operation == CosmicScalarOperation.Sum)
             {
                 var type = Nullable.GetUnderlyingType(column.Selector.ValueType) ?? column.Selector.ValueType;

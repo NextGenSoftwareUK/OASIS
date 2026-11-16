@@ -51,7 +51,8 @@ public partial class MongoDBOASIS : ICosmicQueryGroupedStorageProvider
                 keys.Select(Scalar).ToArray(), aggregates.Select(value =>
                     new CosmicGroupedAggregateFilteringCapability(value.Operation, Scalar(value.ValueType))).ToArray());
             return new CosmicGroupedCapabilities(CqlProjectionCapabilities, CqlScalarCapabilities,
-                new CosmicGroupedOrderingCapabilities(keys, aggregates), supportsResultPaging: true, filtering: filters);
+                new CosmicGroupedOrderingCapabilities(keys, aggregates), supportsResultPaging: true, filtering: filters,
+                selectedCountCapabilities: CqlProjectionCapabilities);
         }
     }
     public static CosmicGroupedCapabilities CqlGroupedCapabilities => GroupContract.Value;

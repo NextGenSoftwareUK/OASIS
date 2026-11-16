@@ -130,22 +130,86 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             metadataCounts.Result.Providers.Single().Rows.Select(row => row.Values.Single()).ToArray());
 
         request.Filters[0].Value = JsonSerializer.SerializeToElement(new[] { ids[0] });
+        var decimalSelection = new ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlScalarV1Selection
+            { MetadataPath = new[] { "decimal" }, ValueType = "Decimal", Nullable = true };
         request.Columns = new[]
         {
-            new CqlGroupedColumn
-            {
-                Alias = "Total",
-                Operation = "Sum",
-                Selection = new ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlScalarV1Selection
-                    { MetadataPath = new[] { "decimal" }, ValueType = "Decimal", Nullable = true }
-            }
+            new CqlGroupedColumn { Alias = "Total", Operation = "Sum", Selection = decimalSelection },
+            new CqlGroupedColumn { Alias = "Mean", Operation = "Average", Selection = decimalSelection }
         };
         var decimalPlan = CosmicGroupedPlanner.Plan(CqlCompiler.CompileGrouped(request, actor, provider), provider, target);
         Assert.IsFalse(decimalPlan.IsError, decimalPlan.Message);
         var decimalRows = await CosmicGroupedExecutor.ExecuteAsync(decimalPlan.Result, new[] { adapter });
         Assert.IsFalse(decimalRows.IsError, decimalRows.Message + decimalRows.Exception);
-        CollectionAssert.AreEqual(new object[] { 1.0000000000000000000000000001m },
+        CollectionAssert.AreEqual(new object[] { 1.0000000000000000000000000001m, 1.0000000000000000000000000001m },
             decimalRows.Result.Providers.Single().Rows.Single().Values.ToArray());
+
+        var exactPaths = new CqlGroupedRequest
+        {
+            Filters = new[] { new CqlFilter
+            {
+                Field = "Id", Operator = CqlOperator.Equal, Value = JsonSerializer.SerializeToElement(ids[0])
+            } },
+            Keys = new[]
+            {
+                new CqlProjectionColumn { MetadataPath = new[] { "catalog.v1" }, ValueType = "String", Nullable = true, Alias = "Literal" },
+                new CqlProjectionColumn { MetadataPath = new[] { "catalog", "v1" }, ValueType = "String", Nullable = true, Alias = "Nested" }
+            },
+            Columns = new[]
+            {
+                new CqlGroupedColumn { Alias = "Literal", KeyAlias = "Literal" },
+                new CqlGroupedColumn { Alias = "Nested", KeyAlias = "Nested" }
+            },
+            OrderBy = "None",
+            MaximumGroups = 10
+        };
+        var exactDistinct = CosmicGroupedPlanner.Plan(CqlCompiler.CompileGrouped(exactPaths, actor, provider), provider, target);
+        Assert.IsFalse(exactDistinct.IsError, exactDistinct.Message);
+        var exactRows = await CosmicGroupedExecutor.ExecuteAsync(exactDistinct.Result, new[] { adapter });
+        Assert.IsFalse(exactRows.IsError, exactRows.Message + exactRows.Exception);
+        CollectionAssert.AreEqual(new object[] { "literal", "nested" },
+            exactRows.Result.Providers.Single().Rows.Single().Values.ToArray());
+
+        exactPaths.OrderBy = "Name";
+        exactPaths.Columns = exactPaths.Columns.Append(new CqlGroupedColumn { Alias = "Total", Operation = "LongCount" }).ToArray();
+        var exactGrouped = CosmicGroupedPlanner.Plan(CqlCompiler.CompileGrouped(exactPaths, actor, provider), provider, target);
+        Assert.IsFalse(exactGrouped.IsError, exactGrouped.Message);
+        var exactCounts = await CosmicGroupedExecutor.ExecuteAsync(exactGrouped.Result, new[] { adapter });
+        Assert.IsFalse(exactCounts.IsError, exactCounts.Message + exactCounts.Exception);
+        CollectionAssert.AreEqual(new object[] { "literal", "nested", 1L },
+            exactCounts.Result.Providers.Single().Rows.Single().Values.ToArray());
+
+        var selectedCount = new CqlGroupedRequest
+        {
+            Filters = new[] { new CqlFilter
+            {
+                Field = "Id", Operator = CqlOperator.In,
+                Value = JsonSerializer.SerializeToElement(new[] { ids[0], ids[1], ids[3], ids[4] })
+            } },
+            Keys = new[] { new CqlProjectionColumn { Field = "Version", Alias = "Revision" } },
+            Columns = new[]
+            {
+                new CqlGroupedColumn { Alias = "Rows", Operation = "LongCount" },
+                new CqlGroupedColumn { Alias = "Descriptions", Operation = "LongCount",
+                    Selection = new CqlJoinScalar { Field = "Description" } },
+                new CqlGroupedColumn { Alias = "Labels", Operation = "LongCount",
+                    Selection = new CqlJoinScalar { MetadataPath = new[] { "catalog.v1" }, ValueType = "String", Nullable = true } }
+            },
+            ResultFilters = new[] { new CqlGroupedFilter
+            {
+                Alias = "Descriptions", Operator = CqlOperator.Equal, Value = JsonSerializer.SerializeToElement("3")
+            } },
+            ResultOrder = new[] { new ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlGroupedV1Ordering
+                { Alias = "Descriptions", Descending = true } },
+            OrderBy = "Name",
+            MaximumGroups = 10
+        };
+        var selectedCountPlan = CosmicGroupedPlanner.Plan(CqlCompiler.CompileGrouped(selectedCount, actor, provider), provider, target);
+        Assert.IsFalse(selectedCountPlan.IsError, selectedCountPlan.Message);
+        var selectedCounts = await CosmicGroupedExecutor.ExecuteAsync(selectedCountPlan.Result, new[] { adapter });
+        Assert.IsFalse(selectedCounts.IsError, selectedCounts.Message + selectedCounts.Exception);
+        CollectionAssert.AreEqual(new object[] { 4L, 3L, 1L },
+            selectedCounts.Result.Providers.Single().Rows.Single().Values.ToArray());
 
         var floatingRequest = new CqlGroupedRequest
         {
