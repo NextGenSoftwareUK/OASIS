@@ -1972,3 +1972,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 2026-11-16 UTC — The two fresh WEB4 sandbox avatars for HoloOASIS discovery and the public CQL read received acknowledged deletion. The read used existing public records and created no Holochain data. No local secrets, payload, browser profile or report were saved.
 
 2026-11-16 UTC — Removed the OPORTAL cancellation candidate index. The Node tests read tracked fixture blobs and created no profile, dependency cache or generated report.
+
+2026-11-16 UTC — Removed the OPORTAL shared-dismissal candidate index. Exact subscription tests read tracked Git blobs and retained no generated files.
