@@ -53,6 +53,7 @@ public sealed class HoloNativeEdgeReplicationTests
             var conflict = await repository.ApplyLocalMutationAsync(mutation, CancellationToken.None);
             Assert.True(conflict.IsError, "A conflicting operation ID was acknowledged.");
             Assert.False(conflict.IsSaved);
+            Assert.Contains("already bound to a different mutation", conflict.Message);
             Assert.Equal(originalHash, await ReadMutationHashAsync(provider, mutation));
         }
         finally
@@ -74,7 +75,7 @@ public sealed class HoloNativeEdgeReplicationTests
                     entity_id = mutation.EntityId.ToString("D")
                 });
             Assert.False(latest.IsError, latest.Message);
-            Assert.Equal(originalHash, latest.ZomeReturnHash);
+            Assert.Equal(originalHash, Assert.Single(latest.Records).ActionHash);
         }
         finally
         {
@@ -87,8 +88,9 @@ public sealed class HoloNativeEdgeReplicationTests
         var result = await provider.HoloNETClientAppAgent.CallZomeFunctionAsync("oasis",
             "get_hyperdrive_mutation", mutation.OperationId.ToString("D"));
         Assert.False(result.IsError, result.Message);
-        Assert.False(string.IsNullOrWhiteSpace(result.ZomeReturnHash));
-        return result.ZomeReturnHash;
+        var record = Assert.Single(result.Records);
+        Assert.False(string.IsNullOrWhiteSpace(record.ActionHash));
+        return record.ActionHash;
     }
 
     private static HoloNETClientAdmin OpenAdmin(Uri endpoint) => new(new HoloNETDNA
