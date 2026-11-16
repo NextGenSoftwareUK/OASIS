@@ -144,6 +144,41 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         CollectionAssert.AreEqual(new object[] { 1.0000000000000000000000000001m, 1.0000000000000000000000000001m },
             decimalRows.Result.Providers.Single().Rows.Single().Values.ToArray());
 
+        var exactPaths = new CqlGroupedRequest
+        {
+            Filters = new[] { new CqlFilter
+            {
+                Field = "Id", Operator = CqlOperator.Equal, Value = JsonSerializer.SerializeToElement(ids[0])
+            } },
+            Keys = new[]
+            {
+                new CqlProjectionColumn { MetadataPath = new[] { "catalog.v1" }, ValueType = "String", Nullable = true, Alias = "Literal" },
+                new CqlProjectionColumn { MetadataPath = new[] { "catalog", "v1" }, ValueType = "String", Nullable = true, Alias = "Nested" }
+            },
+            Columns = new[]
+            {
+                new CqlGroupedColumn { Alias = "Literal", KeyAlias = "Literal" },
+                new CqlGroupedColumn { Alias = "Nested", KeyAlias = "Nested" }
+            },
+            OrderBy = "None",
+            MaximumGroups = 10
+        };
+        var exactDistinct = CosmicGroupedPlanner.Plan(CqlCompiler.CompileGrouped(exactPaths, actor, provider), provider, target);
+        Assert.IsFalse(exactDistinct.IsError, exactDistinct.Message);
+        var exactRows = await CosmicGroupedExecutor.ExecuteAsync(exactDistinct.Result, new[] { adapter });
+        Assert.IsFalse(exactRows.IsError, exactRows.Message + exactRows.Exception);
+        CollectionAssert.AreEqual(new object[] { "literal", "nested" },
+            exactRows.Result.Providers.Single().Rows.Single().Values.ToArray());
+
+        exactPaths.OrderBy = "Name";
+        exactPaths.Columns = exactPaths.Columns.Append(new CqlGroupedColumn { Alias = "Total", Operation = "LongCount" }).ToArray();
+        var exactGrouped = CosmicGroupedPlanner.Plan(CqlCompiler.CompileGrouped(exactPaths, actor, provider), provider, target);
+        Assert.IsFalse(exactGrouped.IsError, exactGrouped.Message);
+        var exactCounts = await CosmicGroupedExecutor.ExecuteAsync(exactGrouped.Result, new[] { adapter });
+        Assert.IsFalse(exactCounts.IsError, exactCounts.Message + exactCounts.Exception);
+        CollectionAssert.AreEqual(new object[] { "literal", "nested", 1L },
+            exactCounts.Result.Providers.Single().Rows.Single().Values.ToArray());
+
         var floatingRequest = new CqlGroupedRequest
         {
             Filters = new[] { new CqlFilter

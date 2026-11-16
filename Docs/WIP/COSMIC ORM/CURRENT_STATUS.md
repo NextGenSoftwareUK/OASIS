@@ -1,5 +1,7 @@
 # COSMIC ORM / CQL current status
 
+15 November Cancun time. Added a three-store native regression that compiles and executes wire requests for literal dotted and nested metadata in the same DISTINCT and grouped-count query. It reuses the exact existing test fixture and asserts separate output values. Native qualification remains open.
+
 15 November Cancun time. Web4Site 22486c94b693 preserves exact metadata segments during composite SQL selection matching. Previously metadata."catalog.v1" and metadata.catalog.v1 collapsed onto a single dotted identity in the browser. DISTINCT and GROUP BY now retain both paths in the compiled WEB4 request, while duplicate exact paths and mismatched selected/grouped paths are still rejected. All 249 website tests passed and the [protected preview built](https://vercel.com/oasis-team/web4-site/836ZmWVAfFEUqEw8bsRg1TWGirjh). Populated hosted checks for composite dotted and nested keys remain open.
 
 15 November Cancun time. The exact combined WEB4 image for 5371b0a8a628 completed successfully in [run 43785948229](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43785948229), including publication. [Native qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43785879338) passed. The candidate preserves the wallet parent and changes only the selected-count compiler, endpoint and native test fixture above it. Development still served 307f52dfc9ae at the latest check. The release guard awaits the shared wallet parent and its rollout interval. No Development push occurred during this check.
