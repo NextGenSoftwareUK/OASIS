@@ -43,7 +43,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
             => policy.WithOrigins(SessionCookieOrigin).AllowCredentials().AllowAnyMethod().AllowAnyHeader()
                 .WithExposedHeaders("X-OASIS-Operation-Id");
 
-        internal const string DevelopmentSessionCookieOrigin = "https://dev.web4.oasisomniverse.one";
+        internal const string DevelopmentSessionCookieOrigin = "https://sandbox.web4.oasisomniverse.one";
 
         internal static void ConfigureBrowserCors(IApplicationBuilder app,
             NextGenSoftware.OASIS.API.DNA.SandboxSettings sandbox, Func<string, string> environment = null)
