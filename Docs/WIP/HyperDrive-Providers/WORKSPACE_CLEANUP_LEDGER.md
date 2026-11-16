@@ -1832,3 +1832,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 2026-11-16 UTC — Removed the OPORTAL app-owner release's temporary Git index and HTML scratch source. Exact subscription tests and hosted asset hashing read Git objects and HTTP responses in memory. No package install or browser profile was created.
 
 2026-11-16 UTC — The Railway app-owner access probe removed its disposable avatar through WEB4. No apps, billing records or local output files were created.
+
+2026-11-16 UTC — Verified the rebuilt Holochain producer ZIP in memory. Removed the temporary Git indexes and exact scratch file used to stage its bundle and manifest. The qualified candidate bundle is retained as a Git object referenced by the native CI tag. No local conductor or build outputs were created.
