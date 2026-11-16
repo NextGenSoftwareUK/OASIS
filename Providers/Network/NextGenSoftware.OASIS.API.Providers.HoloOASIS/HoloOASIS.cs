@@ -73,8 +73,6 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
         private const string ZOME_DELETE_HOLON_BY_CUSTOM_KEY_FUNCTION = "delete_holon_by_custom_key";
         private const string ZOME_DELETE_HOLON_BY_META_DATA_FUNCTION = "delete_holon_by_meta_data";
 
-        private AvatarRepository _avatarRepository = null;
-        private AvatarDetailRepository _avatarDetailRepository = null;
         private HolonRepository _holonRepository = null;
         private GenericRepository _genericRepository = null;
         private string _holochainConductorAppAgentURI = "";
@@ -139,8 +137,6 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.HoloOASIS);
             this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
 
-            _avatarRepository = new AvatarRepository();
-            _avatarDetailRepository = new AvatarDetailRepository();
             _holonRepository = new HolonRepository();
             _genericRepository = new GenericRepository(HoloNETClientAppAgent, this.UseHoloNETORMReflection);
         }

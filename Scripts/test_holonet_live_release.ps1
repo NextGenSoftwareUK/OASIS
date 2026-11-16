@@ -8,7 +8,7 @@ param(
     [string]$BootLoaderProject,
     [switch]$HoloConformance,
     [switch]$HoloRouting,
-    [ValidateSet('SavesPublicAvatarWithoutAuthenticationState')][string]$HoloRoutingCase,
+    [ValidateSet('SavesPublicAvatarWithoutAuthenticationState', 'LoadsCurrentAvatarCollectionsFromTheConnectedConductor')][string]$HoloRoutingCase,
     [switch]$HoloEdgeReplication,
     [string]$CqlProject
 )
