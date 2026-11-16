@@ -35,7 +35,7 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Assert.IsFalse(rows.IsError, rows.Message + rows.Exception);
         Assert.AreEqual(childId, rows.Result.Providers.Single().Rows.Single().Value);
         var linq = CosmicLinq.Create(NativeManager(provider), provider, parents, maximumResults: 1).Result;
-        if (provider is SqliteProvider)
+        if (provider.JoinCapabilities.SupportsChildEntities)
         {
             var wholeChildren = await linq.SelectMany(parent => parent.Children).ToCosmicListAsync();
             Assert.IsFalse(wholeChildren.IsError, wholeChildren.Message + wholeChildren.Exception);
