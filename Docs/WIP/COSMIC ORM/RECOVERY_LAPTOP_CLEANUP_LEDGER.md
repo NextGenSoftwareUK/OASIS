@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+16 November UTC. Whole-child LINQ qualification uses ephemeral CI. Local `LocalState/COSMIC/WholeChildJoin-*.patch` files contain approximately 25 KiB of source edits pending qualification. Temporary Git indexes were removed after validation and the obsolete first SQLite patch was deleted. Dispose of retained patches individually once their replacements are published and verified. No new local packages, environments or build outputs were produced. C: measured 19.7 GiB free.
+
 16 November UTC. The exact Development joined-paging acceptance used 15 private fixtures across MongoDB, SQLite and Neo4j. All dispatched IDs were confirmed absent after revision-checked deletion and the append-only journal was removed. Ethereum probes were read-only and used the existing container and installed Node runtime. No local build or database outputs were created.
 
 16 November UTC. The superseded paging image run 43895927071 was cancelled after the HoloOASIS rollout changed the Development base. All replacement builds use GitHub CI. The joined SQL and WEB6 drafting tests used disposable source snapshots with the installed Node runtime, and the snapshots were removed after each run. Live acceptance monitors are waiting without fixture creation.
