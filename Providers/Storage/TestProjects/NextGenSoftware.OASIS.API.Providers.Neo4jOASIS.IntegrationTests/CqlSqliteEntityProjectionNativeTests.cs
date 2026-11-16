@@ -191,6 +191,28 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             Assert.IsFalse(paged.IsError, paged.Message + paged.Exception);
             CollectionAssert.AreEqual(expected, paged.Result.Select(row => row.Id).ToArray());
         }
+        var lowerId = ids[1];
+        var missingId = ids[4];
+        var leftKeys = new[] { parentId, lowerId };
+        var rightKeys = new[] { parentId, missingId };
+        var lower = source.Where(row => leftKeys.Contains(row.Id)).Result;
+        var higher = source.Where(row => rightKeys.Contains(row.Id)).Result;
+        var keys = new[] { CosmicProjectionSelection<Holon>.Create("Amount",
+            row => CosmicQueryMetadata.Value<long?>(row, "i64")).Result };
+        var full = lower.FullJoinColumns(higher, keys, keys).Result;
+        var compared = full.CompareKey("Amount", CosmicJoinComparison.LessThan);
+        Assert.IsFalse(compared.IsError, compared.Message);
+        var picked = compared.Result.Select((l, r) => new { Left = (Guid?)l.Id, Right = (Guid?)r.Id });
+        Assert.IsFalse(picked.IsError, picked.Message);
+        var comparePlan = CosmicJoinPlanner.Plan(picked.Result, native.QueryProviderType,
+            new[] { new CosmicJoinTarget(native.QueryProviderType, native.QueryCapabilities, native.JoinCapabilities) });
+        Assert.IsFalse(comparePlan.IsError, comparePlan.Message);
+        var compareRows = await manager.ExecuteJoinQueryAsync(comparePlan.Result, new[] { native });
+        Assert.IsFalse(compareRows.IsError, compareRows.Message + compareRows.Exception);
+        var comparedRows = compareRows.Result.Providers.Single().Rows;
+        CollectionAssert.AreEquivalent(new (Guid?, Guid?)[] { (parentId, null), (lowerId, parentId), (null, missingId) },
+            comparedRows.Select(row => (row.Value.Left, row.Value.Right)).ToArray());
+        Assert.AreEqual(3, comparedRows.Count);
         checks.Add(new { provider = provider.QueryProviderType.ToString(), join = "native selected output ordering" });
     }
 
