@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+16 November UTC. Development SQL verification removed three initial exact MongoDB fixtures and nine subsequent fixtures across MongoDB, SQLite and Neo4j and verified absence. Retained compact owned journals under HostedCqlDevelopmentSqlAcceptance-f480b33d/populated-sql-count-null-v1 and v2 are 2907 and 8864 bytes. MongoDB probes reused cached packages and removed their temporary build directories. The native CI outputs are remote. C: free 23257477120 bytes observed.
+
 16 November UTC. The SQL LIKE website qualification reused the installed Node runtime. Its temporary source snapshot and Git index were removed at command exit and no cosmic-like-tests directory remained. Preview build outputs are remote. C: free 23323656192 bytes observed.
 
 16 November UTC. The temporary isolated MongoDB read-only probe directory was confirmed absent after its timeout. The probe reused cached packages, and Railway and DNS checks wrote no output files. No generated output remains in the scoped COSMIC temporary directories. C: free 23331622912 bytes observed.
