@@ -191,7 +191,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("app-owner/{appId}/payg")]
         public Task<IActionResult> GetPayg(string appId) => Gate(true, "", async me =>
         {
-            await RequireOwnerAsync(appId, me);
             var account = await RequireOwnerAsync(appId, me);
             var prices = AppOveragePrices.Load();
             var pool = await _repository.GetAppPoolUsageAsync(appId, HttpContext.RequestAborted);
@@ -204,9 +203,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("app-owner/{appId}/payg")]
         public Task<IActionResult> SetPayg(string appId, [FromBody] AppPaygRequest request) => Gate(true, "", async me =>
         {
-            await RequireOwnerAsync(appId, me);
+            var account = await RequireOwnerAsync(appId, me);
             if (!Settings.AppPayAsYouGoEnabled) throw new InvalidOperationException("App pay-as-you-go is not enabled on this node (OASIS.UsageVisibility.AppPayAsYouGoEnabled).");
-            var account = (await _repository.ListAppAccountsAsync(HttpContext.RequestAborted)).FirstOrDefault(a => a.AppId == appId) ?? throw new KeyNotFoundException("The app account was not found.");
             var prices = AppOveragePrices.Load();
             if (request != null && request.Enabled)
             {
@@ -240,9 +238,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         private async Task<AppAccountRecord> RequireOwnerAsync(string appId, string me)
         {
-            var isOwner = await _repository.IsAppOwnerAsync(appId, me, HttpContext.RequestAborted);
+            var account = await _repository.GetAppAccountAsync(appId, HttpContext.RequestAborted);
+            var isOwner = account?.OwnerAvatarIds?.Contains(me) == true;
             if (!CanViewApp(isOwner, IsAdministrator())) throw new UnauthorizedAccessException("You are not an owner of this app.");
-            return (await _repository.ListAppAccountsAsync(HttpContext.RequestAborted)).FirstOrDefault(a => a.AppId == appId) ?? throw new KeyNotFoundException("The app account was not found.");
+            return account ?? throw new KeyNotFoundException("The app account was not found.");
         }
 
         private string Me()
