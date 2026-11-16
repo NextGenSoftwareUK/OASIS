@@ -35,6 +35,11 @@ if (activation.IsError || provider is null || provider.ProviderType?.Value != pr
 
 var holo = provider as HoloProvider;
 var agent = holo?.HoloNETClientAppAgent?.HoloNETDNA.AgentPubKey;
+var checkListenerReuse = holo != null
+    && !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("OASIS_HOLO_LINUX_CI_FIXTURE"));
+ushort? originalListener = null;
+if (checkListenerReuse)
+    originalListener = await GetOnlyOasisListenerPortAsync(holo!);
 
 var deactivation = await provider.DeActivateProviderAsync();
 if (deactivation.IsError || !deactivation.Result || provider.IsProviderActivated)
@@ -57,6 +62,9 @@ if (providerType == ProviderType.HoloOASIS)
 
     var reopening = await holo!.ActivateProviderAsync();
     var sameAgent = StringComparer.Ordinal.Equals(agent, holo.HoloNETClientAppAgent?.HoloNETDNA.AgentPubKey);
+    var reopenedListener = checkListenerReuse && !reopening.IsError
+        ? await GetOnlyOasisListenerPortAsync(holo)
+        : originalListener;
     var closing = await holo.DeActivateProviderAsync();
     if (reopening.IsError || !reopening.Result || !sameAgent || closing.IsError || !closing.Result || holo.IsProviderActivated)
     {
@@ -64,7 +72,28 @@ if (providerType == ProviderType.HoloOASIS)
         return 1;
     }
 
+    if (checkListenerReuse && (!originalListener.HasValue || originalListener != reopenedListener))
+    {
+        Console.Error.WriteLine("HoloOASIS changed the app listener during reconnection.");
+        return 1;
+    }
+    if (checkListenerReuse)
+        Console.WriteLine("HoloOASIS reused the single app-bound listener after reconnection.");
+
     Console.WriteLine("Reactivated the same HoloOASIS provider instance and original app agent.");
 }
 
 return 0;
+
+static async Task<ushort?> GetOnlyOasisListenerPortAsync(HoloProvider provider)
+{
+    var listed = await provider.HoloNETClientAdmin.ListInterfacesAsync();
+    if (listed == null || listed.IsError || listed.AppInterfaces.Count != 1)
+        return null;
+
+    var listener = listed.AppInterfaces[0];
+    if (!StringComparer.Ordinal.Equals(listener.InstalledAppId, "oasis") || listener.Port == 0)
+        return null;
+
+    return listener.Port;
+}

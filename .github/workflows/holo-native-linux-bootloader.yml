@@ -5,6 +5,7 @@ on:
     branches: [work/hyperdrive-provider-completion]
     paths:
       - '.github/workflows/holo-native-linux-bootloader.yml'
+      - 'OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader.TestHarness/Program.cs'
       - 'Scripts/TestHosts/Invoke-HoloLinuxBootLoaderActivation.ps1'
       - 'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/HoloOASIS.ActivateDeactivateLoad.cs'
   workflow_dispatch:
