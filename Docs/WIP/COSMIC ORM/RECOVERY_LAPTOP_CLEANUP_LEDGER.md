@@ -6921,3 +6921,5 @@ Web4Site 5fa63a71df5d used a temporary directory containing only committed websi
 16 November UTC. Hosted WEB4 browser check for Solana, Ethereum, Polygon, Arbitrum and NEAR reused installed Chrome and the existing demo session. The isolated Chromium profile was deleted at completion. All requests were read-only and no fixture, download or local test report was created. The temporary Git index for this entry is removed by its scoped publisher.
 
 16 November UTC. The second hosted WEB4 read-only browser cohort reused Chrome and the existing visitor. Its isolated Chromium profile was deleted at completion. No download, fixture or local test report was created. The temporary Git index for this entry is removed by its scoped publisher.
+
+16 November UTC. Public WEB4 button check used one fresh Development demo avatar, signed out with server acknowledgment, created no demo holons and left avatar and billing retirement to the built-in sandbox expiry sweep. Retirement has not been observed. Chrome profile was removed and no downloads or reports were created. The temporary Git index is removed by the scoped publisher.
