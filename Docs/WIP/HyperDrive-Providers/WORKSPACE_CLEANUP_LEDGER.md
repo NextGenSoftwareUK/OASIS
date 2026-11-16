@@ -1938,3 +1938,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 2026-11-16 UTC — Removed the temporary index for the pinned Core interface correction. Native compilation and its conductor fixture run in CI.
 
 2026-11-16 UTC — The avatar conductor run passed both cases and hard-deleted both disposable avatars. Removed the temporary Git index used to prepare the scoped successor. No local build or runtime was used.
+
+2026-11-16 UTC — Removed the OPORTAL admin-read staging index. Subscription fixtures were read directly from tracked Git blobs and the live asset comparison and controlled timeout used memory only. No checkout expansion, Node install, browser profile or test output was retained.
