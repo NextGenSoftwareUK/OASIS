@@ -78,6 +78,19 @@ public sealed class HoloNativeEdgeReplicationTests
             Assert.True(!replay.IsError && replay.IsSaved, replay.Message);
             Assert.Equal(originalHash, await ReadMutationHashAsync(provider, mutation));
 
+            var hostedReplay = await provider.ApplyReplicatedMutationAsync(new HostedSyncFanOutItem
+            {
+                OperationId = mutation.OperationId,
+                AvatarId = mutation.AvatarId,
+                EntityId = mutation.EntityId,
+                EntityType = mutation.EntityType,
+                VersionId = mutation.VersionId,
+                Kind = mutation.Kind,
+                PayloadJson = mutation.PayloadJson
+            }, CancellationToken.None);
+            Assert.True(!hostedReplay.IsError && hostedReplay.IsSaved && hostedReplay.Result, hostedReplay.Message);
+            Assert.Equal(originalHash, await ReadMutationHashAsync(provider, mutation));
+
             mutation.VersionId = Guid.NewGuid();
             mutation.PayloadJson = "{\"name\":\"conflicting replay\"}";
             var conflict = await repository.ApplyLocalMutationAsync(mutation, CancellationToken.None);
