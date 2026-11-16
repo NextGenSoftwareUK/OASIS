@@ -2957,3 +2957,5 @@ Performance follow-up. WEB4 wallet summary is implemented on the task branch and
 2026-11-16 UTC — Hosted dev WEB4 9fb52e18bbce passed TOTP enrollment, token-free password challenge, recovery-code completion, replay rejection and same-avatar refresh rotation. MFA and the fixture avatar were removed. The verifier's local clock differed from the hosted response clock by about 116 seconds. The confirmed check used the service response timestamp. Hosted provider-failure sign-in remains open.
 
 2026-11-16 UTC — Removed two pending MFA enrollment records linked to the earlier disposable test avatars and verified their absence in Atlas. Both temporary SDK directories were removed. Exact Files description image workflow 43831026341 remains in progress.
+
+2026-11-16 UTC — Pushed OPORTAL 14cc40a to the portal task branch. Repeated clicks on an app-owner usage button now share its in-flight usage, settings and billing reads. Subscription configuration checks passed, including retry after failure. No local downloads or output files. Hosted verification remains open.
