@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+16 November UTC. The joined-tail boundary check used an in-memory SQLite database. Its process and isolated Git indexes exited. The native suites run in GitHub CI. No local packages, build output or provider services were created.
+
 16 November UTC. Removed the temporary exact website source snapshot after testing the asset-version change. No packages or runtimes were installed. C: measured 18.90 GiB free before the test.
 
 16 November UTC. The isolated website test directory was removed automatically after all 270 checks. The candidate is retained as an exact remote tag. No packages, runtimes, model weights or browser downloads were installed.
