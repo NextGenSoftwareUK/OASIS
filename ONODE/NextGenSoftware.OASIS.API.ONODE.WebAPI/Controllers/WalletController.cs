@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
@@ -71,6 +71,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
         public async Task<OASISResult<ISendWeb4TokenResponse>> SendTokenAsync([FromBody] SendWeb4TokenRequest request)
         {
+            if (request == null)
+                return new OASISResult<ISendWeb4TokenResponse> { IsError = true, Message = "A token transfer request is required." };
+
             if ((request.FromAvatarId != Guid.Empty && request.FromAvatarId != AvatarId)
                 || (!string.IsNullOrWhiteSpace(request.FromAvatarUsername) && !string.Equals(request.FromAvatarUsername, Avatar?.Username, StringComparison.OrdinalIgnoreCase))
                 || (!string.IsNullOrWhiteSpace(request.FromAvatarEmail) && !string.Equals(request.FromAvatarEmail, Avatar?.Email, StringComparison.OrdinalIgnoreCase)))
@@ -79,6 +82,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 return new OASISResult<ISendWeb4TokenResponse> { IsError = true, ErrorCode = "AVATAR_OPERATION_FORBIDDEN",
                     Message = "Forbidden. All requested sender avatar selectors must match the authenticated avatar." };
             }
+            if (request.FromProvider == null || request.ToProvider == null)
+                return new OASISResult<ISendWeb4TokenResponse>
+                {
+                    IsError = true,
+                    Message = "Explicit sender and recipient providers are required for token transfer."
+                };
             return await WalletManager.SendTokenAsync(AvatarId, request);
         }
 
@@ -123,6 +132,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
         public async Task<OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>> LoadProviderWalletsForAvatarByIdAsync(Guid id, bool showOnlyDefault = false, bool decryptPrivateKeys = false, ProviderType providerType = ProviderType.Default)
         {
+            if (decryptPrivateKeys && !OwnsWalletAvatar(id))
+                return RejectWalletKeyRead<Dictionary<ProviderType, List<IProviderWallet>>>();
+
             try
             {
                 // This used to be wrapped in a bare `catch { }`. With test data disabled (the production
@@ -182,7 +194,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
         public async Task<OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>> LoadProviderWalletsForAvatarByUsernameAsync(string username, bool showOnlyDefault = false, bool decryptPrivateKeys = false, ProviderType providerType = ProviderType.Default)
         {
-            return await WalletManager.LoadProviderWalletsForAvatarByUsernameAsync(username, showOnlyDefault, decryptPrivateKeys, false, ProviderType.All, providerType);
+            if (decryptPrivateKeys && !OwnsWalletIdentity(username, Avatar?.Username))
+                return RejectWalletKeyRead<Dictionary<ProviderType, List<IProviderWallet>>>();
+
+            return decryptPrivateKeys
+                ? await WalletManager.LoadProviderWalletsForAvatarByIdAsync(AvatarId, showOnlyDefault, true, false, ProviderType.All, providerType)
+                : await WalletManager.LoadProviderWalletsForAvatarByUsernameAsync(username, showOnlyDefault, false, false, ProviderType.All, providerType);
         }
 
 
@@ -223,7 +240,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
         public async Task<OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>> LoadProviderWalletsForAvatarByEmailAsync(string email, bool showOnlyDefault = false, bool decryptPrivateKeys = false, ProviderType providerType = ProviderType.Default)
         {
-            return await WalletManager.LoadProviderWalletsForAvatarByEmailAsync(email, showOnlyDefault, decryptPrivateKeys, false, ProviderType.All, providerType);
+            if (decryptPrivateKeys && !OwnsWalletIdentity(email, Avatar?.Email))
+                return RejectWalletKeyRead<Dictionary<ProviderType, List<IProviderWallet>>>();
+
+            return decryptPrivateKeys
+                ? await WalletManager.LoadProviderWalletsForAvatarByIdAsync(AvatarId, showOnlyDefault, true, false, ProviderType.All, providerType)
+                : await WalletManager.LoadProviderWalletsForAvatarByEmailAsync(email, showOnlyDefault, false, false, ProviderType.All, providerType);
         }
 
         /// <summary>
@@ -243,6 +265,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
         public async Task<OASISResult<bool>> SaveProviderWalletsForAvatarByIdAsync(Guid id, Dictionary<ProviderType, List<IProviderWallet>> wallets, ProviderType providerType = ProviderType.Default)
         {
+            if (!OwnsWalletAvatar(id))
+                return RejectWalletAccess<bool>("Only the authenticated wallet owner can change wallet settings.");
+
             return await WalletManager.SaveProviderWalletsForAvatarByIdAsync(id, wallets, providerType);
         }
 
@@ -263,7 +288,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
         public async Task<OASISResult<bool>> SaveProviderWalletsForAvatarByUsernameAsync(string username, Dictionary<ProviderType, List<IProviderWallet>> wallets, ProviderType providerType = ProviderType.Default)
         {
-            return await WalletManager.SaveProviderWalletsForAvatarByUsernameAsync(username, wallets, providerType);
+            if (!OwnsWalletIdentity(username, Avatar?.Username))
+                return RejectWalletAccess<bool>("Only the authenticated wallet owner can change wallet settings.");
+
+            return await WalletManager.SaveProviderWalletsForAvatarByIdAsync(AvatarId, wallets, providerType);
         }
 
         /// <summary>
@@ -283,7 +311,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
         public async Task<OASISResult<bool>> SaveProviderWalletsForAvatarByEmailAsync(string email, Dictionary<ProviderType, List<IProviderWallet>> wallets, ProviderType providerType = ProviderType.Default)
         {
-            return await WalletManager.SaveProviderWalletsForAvatarByEmailAsync(email, wallets, providerType);
+            if (!OwnsWalletIdentity(email, Avatar?.Email))
+                return RejectWalletAccess<bool>("Only the authenticated wallet owner can change wallet settings.");
+
+            return await WalletManager.SaveProviderWalletsForAvatarByIdAsync(AvatarId, wallets, providerType);
         }
 
         /// <summary>
@@ -321,7 +352,32 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
         public async Task<OASISResult<IProviderWallet>> GetAvatarDefaultWalletByUsernameAsync(string username, bool showOnlyDefault = false, bool decryptPrivateKeys = false, ProviderType providerType = ProviderType.Default)
         {
-            return await WalletManager.GetAvatarDefaultWalletByUsernameAsync(username, showOnlyDefault, decryptPrivateKeys, false, providerType);
+            if (decryptPrivateKeys && !OwnsWalletIdentity(username, Avatar?.Username))
+                return RejectWalletKeyRead<IProviderWallet>();
+
+            return decryptPrivateKeys
+                ? await WalletManager.GetAvatarDefaultWalletByIdAsync(AvatarId, providerType, showOnlyDefault, true)
+                : await WalletManager.GetAvatarDefaultWalletByUsernameAsync(username, showOnlyDefault, false, false, providerType);
+        }
+
+        private bool OwnsWalletAvatar(Guid id) => id != Guid.Empty && AvatarId == id;
+
+        private bool OwnsWalletIdentity(string requested, string authenticated) =>
+            AvatarId != Guid.Empty && !string.IsNullOrWhiteSpace(authenticated) &&
+            string.Equals(requested, authenticated, StringComparison.OrdinalIgnoreCase);
+
+        private OASISResult<T> RejectWalletKeyRead<T>() =>
+            RejectWalletAccess<T>("Only the authenticated wallet owner can request private keys.");
+
+        private OASISResult<T> RejectWalletAccess<T>(string message)
+        {
+            Response.StatusCode = StatusCodes.Status403Forbidden;
+            return new OASISResult<T>
+            {
+                IsError = true,
+                ErrorCode = "AVATAR_OPERATION_FORBIDDEN",
+                Message = message
+            };
         }
 
         /// <summary>
@@ -360,6 +416,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
         public async Task<OASISResult<IProviderWallet>> SetAvatarDefaultWalletByIdAsync(Guid id, Guid walletId, ProviderType providerType)
         {
+            if (!OwnsWalletAvatar(id))
+                return RejectWalletAccess<IProviderWallet>("Only the authenticated wallet owner can change wallet settings.");
+
             return await WalletManager.SetAvatarDefaultWalletByIdAsync(id, walletId, providerType);
         }
 
@@ -380,7 +439,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
         public async Task<OASISResult<IProviderWallet>> SetAvatarDefaultWalletByUsernameAsync(string username, Guid walletId, ProviderType providerType)
         {
-            return await WalletManager.SetAvatarDefaultWalletByUsernameAsync(username, walletId, providerType);
+            if (!OwnsWalletIdentity(username, Avatar?.Username))
+                return RejectWalletAccess<IProviderWallet>("Only the authenticated wallet owner can change wallet settings.");
+
+            return await WalletManager.SetAvatarDefaultWalletByIdAsync(AvatarId, walletId, providerType);
         }
 
         /// <summary>
@@ -400,7 +462,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
         public async Task<OASISResult<IProviderWallet>> SetAvatarDefaultWalletByEmailAsync(string email, Guid walletId, ProviderType providerType)
         {
-            return await WalletManager.SetAvatarDefaultWalletByEmailAsync(email, walletId, providerType);
+            if (!OwnsWalletIdentity(email, Avatar?.Email))
+                return RejectWalletAccess<IProviderWallet>("Only the authenticated wallet owner can change wallet settings.");
+
+            return await WalletManager.SetAvatarDefaultWalletByIdAsync(AvatarId, walletId, providerType);
         }
 
         /// <summary>
@@ -420,6 +485,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
         public OASISResult<IProviderWallet> ImportWalletUsingPrivateKeyById(Guid avatarId, string key, ProviderType providerToImportTo)
         {
+            if (!OwnsWalletAvatar(avatarId))
+                return RejectWalletAccess<IProviderWallet>("Only the authenticated wallet owner can change wallet settings.");
+
             return WalletManager.ImportWalletUsingPrivateKeyById(avatarId, key, providerToImportTo);
         }
 
@@ -440,7 +508,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
         public OASISResult<IProviderWallet> ImportWalletUsingPrivateKeyByUsername(string username, string key, ProviderType providerToImportTo)
         {
-            return WalletManager.ImportWalletUsingPrivateKeyByUsername(username, key, providerToImportTo);
+            if (!OwnsWalletIdentity(username, Avatar?.Username))
+                return RejectWalletAccess<IProviderWallet>("Only the authenticated wallet owner can change wallet settings.");
+
+            return WalletManager.ImportWalletUsingPrivateKeyById(AvatarId, key, providerToImportTo);
         }
 
         /// <summary>
@@ -460,7 +531,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
         public OASISResult<IProviderWallet> ImportWalletUsingPrivateKeyByEmail(string email, string key, ProviderType providerToImportTo)
         {
-            return WalletManager.ImportWalletUsingPrivateKeyByEmail(email, key, providerToImportTo);
+            if (!OwnsWalletIdentity(email, Avatar?.Email))
+                return RejectWalletAccess<IProviderWallet>("Only the authenticated wallet owner can change wallet settings.");
+
+            return WalletManager.ImportWalletUsingPrivateKeyById(AvatarId, key, providerToImportTo);
         }
 
         /// <summary>
@@ -480,6 +554,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
         public OASISResult<IProviderWallet> ImportWalletUsingPublicKeyById(Guid avatarId, string key, string walletAddress, ProviderType providerToImportTo)
         {
+            if (!OwnsWalletAvatar(avatarId))
+                return RejectWalletAccess<IProviderWallet>("Only the authenticated wallet owner can change wallet settings.");
+
             return WalletManager.ImportWalletUsingPublicKeyById(avatarId, key, walletAddress, providerToImportTo);
         }
 
@@ -500,7 +577,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
         public OASISResult<IProviderWallet> ImportWalletUsingPublicKeyByUsername(string username, string key, string walletAddress, ProviderType providerToImportTo)
         {
-            return WalletManager.ImportWalletUsingPublicKeyByUsername(username, key, walletAddress, providerToImportTo);
+            if (!OwnsWalletIdentity(username, Avatar?.Username))
+                return RejectWalletAccess<IProviderWallet>("Only the authenticated wallet owner can change wallet settings.");
+
+            return WalletManager.ImportWalletUsingPublicKeyById(AvatarId, key, walletAddress, providerToImportTo);
         }
 
         /// <summary>
@@ -520,7 +600,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
         public OASISResult<IProviderWallet> ImportWalletUsingPublicKeyByEmail(string email, string key, string walletAddress, ProviderType providerToImportTo)
         {
-            return WalletManager.ImportWalletUsingPublicKeyByEmail(email, key, walletAddress, providerToImportTo);
+            if (!OwnsWalletIdentity(email, Avatar?.Email))
+                return RejectWalletAccess<IProviderWallet>("Only the authenticated wallet owner can change wallet settings.");
+
+            return WalletManager.ImportWalletUsingPublicKeyById(AvatarId, key, walletAddress, providerToImportTo);
         }
 
         /// <summary>
@@ -621,27 +704,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <response code="401">Unauthorized - authentication required</response>
         [Authorize]
         [HttpPost("transfer")]
-        [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<ISendWeb4TokenResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<ISendWeb4TokenResponse>), StatusCodes.Status403Forbidden)]
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
-        public async Task<OASISResult<object>> TransferBetweenWalletsAsync([FromBody] object request)
-        {
-            if (request == null)
-                return new OASISResult<object> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with transfer details (e.g. fromWalletId, toWalletId, amount)." };
-            // This would need to be implemented in WalletManager
-            // For now, return a demo response
-            return new OASISResult<object>
-            {
-                Result = new
-                {
-                    transactionId = Guid.NewGuid().ToString(),
-                    status = "pending",
-                    timestamp = DateTime.UtcNow.ToString("O")
-                },
-                IsSaved = true,
-                Message = "Transfer initiated successfully"
-            };
-        }
+        public Task<OASISResult<ISendWeb4TokenResponse>> TransferBetweenWalletsAsync([FromBody] SendWeb4TokenRequest request) =>
+            SendTokenAsync(request);
 
         /// <summary>
         ///     Get wallet analytics for an avatar.
@@ -781,6 +849,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 return new OASISResult<IProviderWallet> { IsError = true, Message = "Unauthorized. You can only create wallets for your own avatar." };
             if (request == null)
                 return new OASISResult<IProviderWallet> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with Name, Description, and optional WalletProviderType, GenerateKeyPair, IsDefaultWallet." };
+            if ((request.ShowPrivateKey || request.ShowSecretRecoveryPhase) && !OwnsWalletAvatar(avatarId))
+                return RejectWalletKeyRead<IProviderWallet>();
             return await WalletManager.CreateWalletForAvatarByIdAsync(avatarId, request.Name, request.Description, request.WalletProviderType, request.GenerateKeyPair, request.IsDefaultWallet, request.ShowSecretRecoveryPhase, request.ShowPrivateKey, providerTypeToLoadSave);
         }
 
