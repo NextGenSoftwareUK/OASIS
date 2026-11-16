@@ -57,12 +57,16 @@ public static partial class CqlV1Compiler
             : Expression.Constant(value, type);
         if (literal.Type != path.Type) literal = Expression.Convert(literal, path.Type);
         Expression predicate;
-        if (operation is CqlV1Operator.Contains or CqlV1Operator.StartsWith or CqlV1Operator.EndsWith)
+        var stringMethod = StringFilterMethod(operation);
+        if (stringMethod != null)
         {
             if (type != typeof(string) || value == null)
                 throw new ArgumentException("String operations require a non-null string literal.");
-            var method = typeof(string).GetMethod(operation.ToString(), new[] { typeof(string), typeof(StringComparison) });
-            predicate = Expression.Call(path, method, literal, Expression.Constant(StringComparison.Ordinal));
+            var method = typeof(string).GetMethod(stringMethod, new[] { typeof(string), typeof(StringComparison) });
+            var match = Expression.Call(path, method, literal, Expression.Constant(StringComparison.Ordinal));
+            predicate = IsNegatedStringFilter(operation)
+                ? Expression.AndAlso(Expression.NotEqual(path, Expression.Constant(null, path.Type)), Expression.Not(match))
+                : match;
         }
         else
         {

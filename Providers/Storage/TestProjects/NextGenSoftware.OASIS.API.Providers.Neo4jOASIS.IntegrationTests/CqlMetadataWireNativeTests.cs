@@ -373,6 +373,33 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Assert.IsFalse(labels.IsError, labels.Message + labels.Exception);
         CollectionAssert.AreEqual(new string?[] { "case", null, "Case" }, labels.Result.ToArray());
 
+        foreach (var (operation, pattern, expected) in new[]
+        {
+            (CqlOperator.NotContains, "Case", new[] { "case" }),
+            (CqlOperator.NotStartsWith, "Ca", new[] { "case" }),
+            (CqlOperator.NotEndsWith, "ase", Array.Empty<string>()),
+            (CqlOperator.NotContains, "", Array.Empty<string>())
+        })
+        {
+            var groupedText = new CqlGroupedRequest
+            {
+                Filters = new[] { new CqlFilter { Field = "Id", Operator = CqlOperator.In,
+                    Value = JsonSerializer.SerializeToElement(ids) } },
+                Keys = new[] { new CqlProjectionColumn { Field = "Description", Alias = "Label" } },
+                Columns = new[] { new CqlGroupedColumn { Alias = "Label", KeyAlias = "Label" } },
+                ResultFilters = new[] { new CqlGroupedFilter { Alias = "Label", Operator = operation,
+                    Value = JsonSerializer.SerializeToElement(pattern) } },
+                MaximumGroups = 10
+            };
+            var groupedTextPlan = CosmicGroupedPlanner.Plan(CqlCompiler.CompileGrouped(groupedText, actor, provider), provider, target);
+            Assert.IsFalse(groupedTextPlan.IsError, groupedTextPlan.Message);
+            var remaining = await CosmicGroupedExecutor.ExecuteAsync(groupedTextPlan.Result, new[] { adapter });
+            Assert.IsFalse(remaining.IsError, remaining.Message + remaining.Exception);
+            CollectionAssert.AreEqual(expected, remaining.Result.Providers.Single().Rows
+                .Select(result => (string)result.Values.Single()).ToArray());
+        }
+
+
         Assert.IsInstanceOfType<ICosmicQueryJoinStorageProvider>(adapter);
         var joinAdapter = (ICosmicQueryJoinStorageProvider)adapter;
         var joinTargets = new[] { new CosmicJoinTarget(provider, adapter.QueryCapabilities, joinAdapter.JoinCapabilities) };
