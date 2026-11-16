@@ -793,6 +793,11 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
 
         public static OASISResult<T> ConvertHCResponseToOASISResult<T>(ZomeFunctionCallBackEventArgs response, HcObjectTypeEnum hcObjectType, IHoloNETAuditEntryBase hcObject, OASISResult<T> result) where T : IHolonBase
         {
+            return ConvertHCResponseToOASISResult(response, hcObjectType, hcObject, result, UseReflection);
+        }
+
+        internal static OASISResult<T> ConvertHCResponseToOASISResult<T>(ZomeFunctionCallBackEventArgs response, HcObjectTypeEnum hcObjectType, IHoloNETAuditEntryBase hcObject, OASISResult<T> result, bool useReflection) where T : IHolonBase
+        {
             //We can also get the result from the EntryDataObject if we wanted.
             //if (response != null && response.Records != null && response.Records.Count > 0 && response.Records[0] != null && response.Records[0].EntryDataObject != null)
             //{
@@ -812,7 +817,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
             //    }
             //}
 
-            if (UseReflection)
+            if (useReflection)
             {
                 switch (hcObjectType)
                 {

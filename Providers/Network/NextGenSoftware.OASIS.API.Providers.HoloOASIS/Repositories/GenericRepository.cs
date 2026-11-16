@@ -392,7 +392,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Repositories
             {
                 if (!response.IsError)
                 {
-                    result = DataHelper.ConvertHCResponseToOASISResult(response, hcObjectType, hcObject, result);
+                    result = DataHelper.ConvertHCResponseToOASISResult(response, hcObjectType, hcObject, result, UseReflection);
                     if (result.Result != null)
                     {
                         result.IsLoaded = true;
