@@ -45,7 +45,14 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             var wholeRows = await NativeManager(provider).ExecuteJoinQueryAsync(wholePlan.Result, new[] { provider });
             Assert.IsFalse(wholeRows.IsError, wholeRows.Message + wholeRows.Exception);
             Assert.AreEqual(childId, wholeRows.Result.Providers.Single().Rows.Single().Value.Id);
-            var wholeChildren = await linq.SelectMany(parent => parent.Children).ToCosmicListAsync();
+            var children = linq.SelectMany(parent => parent.Children);
+            Assert.AreEqual(1, children.Count());
+            Assert.AreEqual(0L, children.Skip(1).LongCount());
+            Assert.IsTrue(children.Any());
+            Assert.IsFalse(children.Take(0).Any());
+            Assert.AreEqual(childId, children.First().Id);
+            Assert.IsNull(children.Skip(1).FirstOrDefault());
+            var wholeChildren = await children.ToCosmicListAsync();
             Assert.IsFalse(wholeChildren.IsError, wholeChildren.Message + wholeChildren.Exception);
             var child = wholeChildren.Result.Single();
             Assert.AreEqual(childId, child.Id);
@@ -214,6 +221,27 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         var orderedThenBy = await thenBy.ToCosmicListAsync();
         Assert.IsFalse(orderedThenBy.IsError, orderedThenBy.Message + orderedThenBy.Exception);
         CollectionAssert.AreEqual(new[] { ids[4], ids[1], ids[0] }, orderedThenBy.Result.Select(row => row.Id).ToArray());
+        Assert.AreEqual(3, thenBy.Count());
+        Assert.AreEqual(2L, thenBy.Skip(1).LongCount());
+        Assert.AreEqual(1, thenBy.Take(2).Skip(1).Count());
+        Assert.IsTrue(thenBy.Skip(2).Any());
+        Assert.IsFalse(thenBy.Skip(3).Any());
+        Assert.AreEqual(ids[4], thenBy.Take(1).Single().Id);
+        Assert.AreEqual(ids[0], thenBy.Skip(2).Single().Id);
+        Assert.IsNull(thenBy.Skip(3).SingleOrDefault());
+        Assert.AreEqual("CQL_SEQUENCE_MULTIPLE",
+            Assert.ThrowsException<CosmicLinqException>(() => thenBy.Single()).Code);
+        Assert.AreEqual("CQL_SEQUENCE_MULTIPLE",
+            Assert.ThrowsException<CosmicLinqException>(() => thenBy.Skip(1).Take(2).SingleOrDefault()).Code);
+        Assert.AreEqual(ids[4], thenBy.First().Id);
+        Assert.AreEqual(ids[1], thenBy.Skip(1).First().Id);
+        Assert.AreEqual(ids[0], thenBy.Skip(1).ElementAt(1).Id);
+        Assert.IsNull(thenBy.Take(1).ElementAtOrDefault(1));
+        Assert.IsNull(thenBy.ElementAtOrDefault(-1));
+        Assert.AreEqual("CQL_SEQUENCE_EMPTY",
+            Assert.ThrowsException<CosmicLinqException>(() => thenBy.Take(0).First()).Code);
+        Assert.AreEqual("CQL_INDEX_OUT_OF_RANGE",
+            Assert.ThrowsException<CosmicLinqException>(() => thenBy.ElementAt(3)).Code);
         foreach (var (query, expected) in new[]
         {
             (thenBy.Skip(1).Take(1), new[] { ids[1] }),
