@@ -603,6 +603,8 @@
       "MaximumSessionsPerDay": 1000
     },
     "Web6": {
+      "OllamaBaseUrl": "",
+      "OllamaFreeModel": "",
       "DefaultProvider": "Auto",
       "DefaultOpenServModel": "gpt-5.4",
       "DefaultRoutingPriority": "cost",
@@ -654,6 +656,8 @@
       "EnableFAHRN": false,
       "EnableHolonicBraid": false,
       "ApiKeys": {
+        "GeminiFree": "",
+        "OpenRouter": "",
         "OpenAI": "",
         "Anthropic": "",
         "Gemini": "",

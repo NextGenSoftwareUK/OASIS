@@ -323,6 +323,8 @@
     "StatsCacheEnabled": false,
     "StatsCacheTtlSeconds": 45,
     "Web6": {
+      "OllamaBaseUrl": "",
+      "OllamaFreeModel": "",
       "DefaultProvider": "Auto",
       "DefaultOpenServModel": "gpt-5.4",
       "DefaultRoutingPriority": "cost",
@@ -371,6 +373,8 @@
       "EnableFAHRN": false,
       "EnableHolonicBraid": false,
       "ApiKeys": {
+        "GeminiFree": "",
+        "OpenRouter": "",
         "OpenAI": "",
         "Anthropic": "",
         "Gemini": "",
