@@ -8,10 +8,14 @@ use std::{env, fs, io, path::Path};
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let args: Vec<_> = env::args_os().skip(1).collect();
+    let mut args: Vec<_> = env::args_os().skip(1).collect();
+    if args.first().is_some_and(|arg| arg == "--piped") {
+        holochain_util::pw::pw_set_piped(true);
+        args.remove(0);
+    }
     ensure!(
         args.len() == 4,
-        "usage: oasis-holo-listener-maintenance SNAPSHOT_DIR SNAPSHOT_SHA256 OUTPUT_DIR EXPECTED_REMOVALS"
+        "usage: oasis-holo-listener-maintenance [--piped] SNAPSHOT_DIR SNAPSHOT_SHA256 OUTPUT_DIR EXPECTED_REMOVALS"
     );
     let snapshot = Path::new(&args[0]).canonicalize()?;
     let expected_hash = args[1].to_str().context("invalid snapshot fingerprint")?;
@@ -70,6 +74,7 @@ async fn main() -> Result<()> {
         },
     )
     .await?;
+    let pool = db.pool().clone();
     let store = ConductorStore::new(db);
     let remaining = store
         .update_state(
@@ -101,6 +106,11 @@ async fn main() -> Result<()> {
             &Default::default(),
         )
         .await?;
+    pool.close().await;
+    ensure!(
+        !output.join("conductor.db-wal").exists() && !output.join("conductor.db-shm").exists(),
+        "output database was not checkpointed"
+    );
     println!("Removed {expected_removals} listeners from the copy. {remaining} remain.");
     Ok(())
 }

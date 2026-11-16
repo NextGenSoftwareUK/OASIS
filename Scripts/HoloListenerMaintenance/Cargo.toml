@@ -10,3 +10,10 @@ holochain_state = { version = "=0.7.1", features = ["encryption"] }
 holochain_util = { version = "=0.7.1", default-features = false, features = ["pw"] }
 sha2 = "0.10"
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+
+[dev-dependencies]
+holochain_conductor_api = "=0.7.1"
+holochain_types = "=0.7.1"
+serde_json = "1"
+sodoken = "0.1"
+tempfile = "3"

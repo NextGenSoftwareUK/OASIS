@@ -24,4 +24,4 @@ jobs:
           persist-credentials: false
       - run: rustup toolchain install 1.96.0 --profile minimal --component rustfmt
       - run: cargo +1.96.0 fmt -- --check
-      - run: cargo +1.96.0 check --jobs 2
+      - run: cargo +1.96.0 test --jobs 2
