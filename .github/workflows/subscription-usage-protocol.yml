@@ -93,7 +93,7 @@ jobs:
         shell: pwsh
         run: |
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cql-literal-projection-ci -Operation {
-            dotnet test 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CqlInt64WireTests|FullyQualifiedName~CqlMetadataPresenceWireTests|FullyQualifiedName~CosmicProjectionResultTests|FullyQualifiedName~CosmicLinqProjectionElementTests|FullyQualifiedName~CosmicQueryAdmissionTests|FullyQualifiedName~NetworkSourceRequiresActiveIndependentQueryEnrollment'
+            dotnet test 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.UnitTests' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CqlInt64WireTests|FullyQualifiedName~CqlMetadataPresenceWireTests|FullyQualifiedName~CosmicProjectionResultTests|FullyQualifiedName~CosmicJoinResultsTests|FullyQualifiedName~CosmicLinqProjectionElementTests|FullyQualifiedName~CosmicQueryAdmissionTests|FullyQualifiedName~NetworkSourceRequiresActiveIndependentQueryEnrollment'
             if ($LASTEXITCODE) { throw 'CQL literal, projection or metered read verification failed.' }
           }
       - name: Verify bounded Axelar headers and Connext origin reads
