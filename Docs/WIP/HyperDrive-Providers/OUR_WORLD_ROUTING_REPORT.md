@@ -29,3 +29,5 @@ The enabled scene therefore combines GO Map rendering with Mapbox route computat
 Google Maps reads the restricted route credential from OASIS_GOOGLE_ROUTES_API_KEY. Mapbox reads OASIS_MAPBOX_ACCESS_TOKEN, including for callers of its existing Directions service. HERE reads OASIS_HERE_ROUTING_API_KEY. GOMap's default public OSRM demo is a driving endpoint. Configure an OSRM deployment built for the requested travel profile for walking and cycling. MapLibre is a renderer and needs a separately configured routing backend.
 
 On 16 November 2026, the listed stable NuGet provider assemblies for Google Maps 2.0.5, Mapbox 2.0.6 and HERE 2.0.5 lacked the shared routing interface symbol. The published Contracts 2.0.6 assembly contains it. The three adapter implementations passed the current source build and still need a package release before NuGet consumers can use them.
+
+The 2.0.7 build-only rehearsal packed all three routing adapters and verified the published Contracts 2.0.6 dependency. Artifact inspection confirmed the routing interface symbol in each provider assembly. [NuGet rehearsal](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43895234540)
