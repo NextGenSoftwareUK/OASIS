@@ -53,6 +53,8 @@ public static partial class CqlV1Compiler
             {
                 null or "Equal" => CosmicJoinComparison.Equal,
                 "NotEqual" => CosmicJoinComparison.NotEqual,
+                "IsDistinctFrom" => CosmicJoinComparison.NullSafeNotEqual,
+                "IsNotDistinctFrom" => CosmicJoinComparison.NullSafeEqual,
                 "LessThan" => CosmicJoinComparison.LessThan,
                 "LessThanOrEqual" => CosmicJoinComparison.LessThanOrEqual,
                 "GreaterThan" => CosmicJoinComparison.GreaterThan,
