@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-16 UTC — Subscription Admin deployment comparison ran in memory. Removed the temporary index for the two staged copy variants. No browser profile, SDK install or local build output was created.
+
 2026-11-16 UTC — Subscription Admin checks ran in memory and the temporary staging index was removed. No dependencies, browser profile or local build output was created.
 
 2026-11-16 UTC — Stopped the owned rerun after it began rebuilding unchanged dependencies. Reused completed binaries for the test-only rerun. After both owned processes exited, removed the exact HolonCopyControllerBuild tree (12,606 files, 3,771,887,424 bytes), its identified MSBuild diagnostic temp directory and the disposable Git index. Verified all paths absent. C: then reported 28.07 GB free.

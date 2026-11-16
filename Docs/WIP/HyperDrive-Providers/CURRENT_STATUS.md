@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-16 UTC — OPORTAL dev advanced to `e68beba` around 03:54 UTC with lazy Subscription Admin tabs. The two changed served assets matched the exact Git blobs and /admin and /subscription returned the portal shell. Wizard browser verification is pending WEB4 dev recovery. Rebasing over this portal release produced `fec694b` for copy and `c0ad9c2` for copy with dashboard count. Both retain the released Admin changes and await the matching backend checks. Review the next portal batch after 04:24:30 UTC.
+
 2026-11-16 UTC — OPORTAL `c61b7e8` opens Subscription Admin with Analytics alone and loads each other tab on selection. In-flight reads coalesce, successful tab reads are reused for the open session, and stale responses cannot repopulate billing views after logout. Controlled checks passed for one initial request, invoice tab selection and reuse, and late audit response after logout. Independent candidate `e68beba` is staged. Live signed Wizard acceptance remains open.
 
 2026-11-16 UTC — Railway deployment ab45a804 moved to CRASHED. Its fatal 03:29 UTC startup log shows MongoDB rejected index creation in MongoUsageOutboxStore.InitializeAsync at the same quota. Shared recovery image 43799150179 is building f7e7301f9f8d, which applies the idempotent index verification to outbox startup. The commit changes no holon count or copy paths. Prepared candidate 9e637d84a17452ac87bbf508dd21a632e135f16b over that pending parent with the three qualified files only. It awaits the shared rollout. The temporary index was removed.
