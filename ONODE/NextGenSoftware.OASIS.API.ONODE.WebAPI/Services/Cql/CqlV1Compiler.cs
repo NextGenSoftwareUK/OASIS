@@ -403,13 +403,32 @@ public static partial class CqlV1Compiler
         }
 
         var literal = Literal(filter.Value, path.Type);
-        if (filter.Operator is CqlV1Operator.Contains or CqlV1Operator.StartsWith or CqlV1Operator.EndsWith)
+        var stringMethod = filter.Operator switch
+        {
+            CqlV1Operator.Contains or CqlV1Operator.NotContains => nameof(string.Contains),
+            CqlV1Operator.StartsWith or CqlV1Operator.NotStartsWith => nameof(string.StartsWith),
+            CqlV1Operator.EndsWith or CqlV1Operator.NotEndsWith => nameof(string.EndsWith),
+            _ => null
+        };
+        if (stringMethod != null)
         {
             if (path.Type != typeof(string)) throw new ArgumentException("String operation requires a string field.");
             // Prefix/suffix single-argument overloads use the current culture. CQL's
             // portable native contract requires ordinal semantics explicitly.
-            var method = typeof(string).GetMethod(filter.Operator.ToString(), new[] { typeof(string), typeof(StringComparison) });
-            return Expression.Call(path, method, literal, Expression.Constant(StringComparison.Ordinal));
+            var method = typeof(string).GetMethod(stringMethod, new[] { typeof(string), typeof(StringComparison) });
+            var match = Expression.Call(path, method, literal, Expression.Constant(StringComparison.Ordinal));
+            if (filter.Operator is not (CqlV1Operator.NotContains or CqlV1Operator.NotStartsWith or CqlV1Operator.NotEndsWith))
+                return match;
+
+            // SQL negation excludes null and missing text even when the provider's
+            // boolean NOT would match the absence of a positive pattern.
+            var exists = Predicate(new CqlV1Filter
+            {
+                Field = filter.Field,
+                MetadataPath = filter.MetadataPath,
+                Operator = CqlV1Operator.IsNotNull
+            }, parameter);
+            return Expression.AndAlso(exists, Expression.Not(match));
         }
         var node = filter.Operator switch
         {
