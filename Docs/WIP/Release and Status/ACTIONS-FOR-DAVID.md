@@ -992,3 +992,9 @@ Open 13 November. Approve the Vercel OASIS team access request when a fresh one-
 - Use the [Blockscout developer portal](https://dev.blockscout.com/) to create or identify a dedicated Universal API key on the free plan. Store it privately in Development OASISDNA at OASIS.Cql.BlockscoutUniversalApiKey. Keep the value out of chat and source control.
 - Engineering wired both hosted readers to this OASISDNA field on the COSMIC feature branch. Hosted configuration and authenticated verification remain deferred.
 - Reason. [Blockscout deprecated per-instance API support](https://docs.blockscout.com/devs/apis). The monitored address and Connext log readers need the supported authenticated route. Engineering owns migration, identity preservation, exact live verification and performance checks.
+
+### WEB4 dev MongoDB storage quota
+
+- **Status (2026-11-16 UTC)** Open. Railway dev deployment 887a53d4 logged MongoDB insert and findAndModify rejections at 512 MB of 512 MB. Two disposable sandbox sign-in attempts returned HTTP 400 during avatar creation, before issuing a session.
+- **David action** Restore writable storage for the MongoDB deployment backing Railway WEB4 dev. Increase its storage quota, or identify the exact disposable development collection or records that an administrator can remove to recover capacity. If identifying data, provide collection names and their retention scope only.
+- **Reason** The quota blocks disposable sandbox avatar creation and other MongoDB writes. Engineering will verify sandbox sign-in, subscriptions and HyperDrive after capacity is restored. [WEB4 dev deployment](https://railway.com/) · [Current status](../HyperDrive-Providers/CURRENT_STATUS.md)
