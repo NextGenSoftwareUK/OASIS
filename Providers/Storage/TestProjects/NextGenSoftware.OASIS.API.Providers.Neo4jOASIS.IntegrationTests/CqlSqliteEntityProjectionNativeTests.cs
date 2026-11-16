@@ -78,7 +78,7 @@ public sealed partial class CqlProjectedAllAcceptanceTests
     private static async Task VerifyJoinOutputOrdering(ICosmicQueryJoinStorageProvider provider, Guid[] ids, List<object> checks)
     {
         var source = CosmicQuery<Holon>.Create(CosmicQueryScope.Named(provider.QueryProviderType).Result);
-        var admitted = new[] { ids[0], ids[1] };
+        var admitted = new[] { ids[0], ids[1], ids[4] };
         var parentId = ids[0];
         var left = source.Where(row => row.Id == parentId).Result;
         var right = source.Where(row => admitted.Contains(row.Id)).OrderBy(row => row.Name).Result;
@@ -91,8 +91,21 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Assert.IsFalse(sorted.IsError, sorted.Message);
         var ordered = await NativeManager(provider).ExecuteJoinQueryAsync(sorted.Result, new[] { native });
         Assert.IsFalse(ordered.IsError, ordered.Message + ordered.Exception);
-        CollectionAssert.AreEqual(new[] { "visible match", "protected source root" },
+        CollectionAssert.AreEqual(new[] { "visible match", "protected source root", "grandchild two" },
             ordered.Result.Providers.Single().Rows.Select(row => row.Value.Name).ToArray());
+        var byDescription = left.CrossJoin(right).Select((parent, child) => new { child.Id, child.Description }).Result;
+        foreach (var descending in new[] { false, true })
+        {
+            var orderedDescriptions = byDescription.OrderByOutput("Description", descending);
+            Assert.IsFalse(orderedDescriptions.IsError, orderedDescriptions.Message);
+            var nullablePlan = CosmicJoinPlanner.Plan(orderedDescriptions.Result, native.QueryProviderType,
+                new[] { new CosmicJoinTarget(native.QueryProviderType, native.QueryCapabilities, native.JoinCapabilities) });
+            Assert.IsFalse(nullablePlan.IsError, nullablePlan.Message);
+            var nullableRows = await NativeManager(provider).ExecuteJoinQueryAsync(nullablePlan.Result, new[] { native });
+            Assert.IsFalse(nullableRows.IsError, nullableRows.Message + nullableRows.Exception);
+            var expected = descending ? new[] { ids[0], ids[1], ids[4] } : new[] { ids[4], ids[0], ids[1] };
+            CollectionAssert.AreEqual(expected, nullableRows.Result.Providers.Single().Rows.Select(row => row.Value.Id).ToArray());
+        }
         checks.Add(new { provider = provider.QueryProviderType.ToString(), join = "native selected output ordering" });
     }
 

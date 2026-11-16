@@ -54,7 +54,8 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             await VerifyDistinctWire(provider, ids, checks);
             await VerifyNativeFlattening(provider,ids[0],ids[1],checks);
             await VerifyChildSource(provider, actor, ids[0], ids[1], checks);
-            Assert.AreEqual(65,checks.Count);
+            await VerifyJoinOutputOrdering(provider, ids, checks);
+            Assert.AreEqual(66,checks.Count);
             var deactivated=await provider.DeActivateProviderAsync();Assert.IsFalse(deactivated.IsError,deactivated.Message);active=false;
             await client.DropDatabaseAsync(database);
             using var remaining=await client.ListDatabaseNamesAsync();Assert.IsFalse((await remaining.ToListAsync()).Contains(database));
