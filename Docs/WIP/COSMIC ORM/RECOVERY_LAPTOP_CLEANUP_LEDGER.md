@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+15 November Cancun time. Selected-value COUNT used temporary website test snapshots and one disposable Git index, removed at command exit. Native qualification runs in GitHub. No new local runtime installation, provider fixtures or build output.
+
 15 November Cancun time. The exact grouped MongoDB Development verifier hard-deleted both temporary records and verified absence. The compact journal in LocalState/COSMIC/HostedCqlFloatingGroupedAccepted-04843366 is 1700 bytes. The website snapshot and temporary Git index were removed. No local database, runtime, download or build outputs were retained. C: free 31368265728 bytes observed.
 
 15 November Cancun time. The corrected exact COUNT DISTINCT candidate used a disposable Git index, removed at exit. The grouped MongoDB deployment and CI run remotely. No local build outputs, runtimes or database copies were retained.
