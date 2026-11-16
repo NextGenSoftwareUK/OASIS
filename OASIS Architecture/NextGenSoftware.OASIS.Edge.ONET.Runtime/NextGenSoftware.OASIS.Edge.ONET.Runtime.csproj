@@ -2,7 +2,7 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard2.1;net8.0</TargetFrameworks>
     <PackageId>NextGenSoftware.OASIS.Edge.ONET.Runtime</PackageId>
-    <Description>Unity-compatible Edge ONODE composition over OASIS Edge Runtime and ONET.</Description>
+    <Description>Unity-compatible Edge ONODE composition over OASIS Edge Runtime and ONET. Optional Holochain replication via HoloOASIS.Edge, built on HoloNET.</Description>
     <Version>1.0.0</Version>
     <Authors>David Ellams (NextGen Software Ltd)</Authors>
     <PackageTags>OASIS; Edge; Unity; ONET; ONODE; Offline; HyperDrive; Synchronization</PackageTags>
