@@ -58,6 +58,7 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         var request = new CqlJoinRequest
         {
             Kind = "Child",
+            OutputOrderBy = "ChildId", OutputDescending = true,
             Left = new() { Take = 1, Filters = new[] {
                 new CqlJoinFilter { Field = "Id", Operator = CqlJoinOperator.Equal,
                     Value = JsonSerializer.SerializeToElement(parentId) } } },
@@ -66,6 +67,8 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         };
         var wire = CqlCompiler.CompileJoin(request, actor, provider.QueryProviderType, CosmicQueryReadAccess.OwnerOrPublic(actor).Result);
         Assert.IsTrue(wire.Join.RestrictsRightToLeftParents);
+        Assert.AreEqual(0, wire.OutputOrderColumn);
+        Assert.IsTrue(wire.OutputOrderDescending);
         var wirePlan = CosmicJoinPlanner.Plan(wire, provider.QueryProviderType,
             new[] { new CosmicJoinTarget(provider.QueryProviderType, provider.QueryCapabilities, provider.JoinCapabilities) });
         Assert.IsFalse(wirePlan.IsError, wirePlan.Message);

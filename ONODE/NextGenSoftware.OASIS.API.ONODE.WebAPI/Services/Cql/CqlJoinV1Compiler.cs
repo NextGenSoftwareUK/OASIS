@@ -63,7 +63,12 @@ public static partial class CqlV1Compiler
             return CompileSelection(JoinColumn(column.Alias,column.Selection),
                 new JoinSelectionConsumer(join,column.Source=="Right",column.AllowMissing??false));
         }).ToArray();
-        return RequiredJoin(join.SelectColumns(columns));
+        var selected = RequiredJoin(join.SelectColumns(columns));
+        if (request.OutputOrderBy != null)
+            return RequiredJoin(selected.OrderByOutput(request.OutputOrderBy,request.OutputDescending));
+        if (request.OutputDescending)
+            throw new ArgumentException("A descending join order requires an output alias.");
+        return selected;
     }
 
     private static CqlProjectionV1Column JoinColumn(string alias,CqlScalarV1Selection selection)
