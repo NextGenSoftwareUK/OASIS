@@ -6885,3 +6885,5 @@ Web4Site 5fa63a71df5d used a temporary directory containing only committed websi
 16 November UTC. The 250-test selected-count dry run used the existing Node runtime and a temporary exact source snapshot. The temporary test directory was removed and verified absent. No packages installed and no fixture data written.
 
 16 November UTC. WEB6 draft envelope verification used the existing Node runtime and one temporary Web4Site snapshot. Removed the snapshot after all 250 website tests passed. No additional package or test result file retained.
+
+16 November UTC. The selected-count preview verification ran 251 site tests with the existing Node runtime. The exact temporary snapshot was removed and the temporary path verified absent. Sealed renewal inspection ran in memory and retained the existing protected journal only.
