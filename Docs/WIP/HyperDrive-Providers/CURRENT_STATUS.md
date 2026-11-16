@@ -3023,3 +3023,5 @@ Performance follow-up. WEB4 wallet summary is implemented on the task branch and
 2026-11-16 UTC — HoloOASIS hApp candidate 5477bee0d8ab batches the native record reads behind the shared link-index path. Holochain 0.7.1 bounds the batch to ten reads in flight. The candidate keeps filtering missing records and sorting by record time, with native assertions for exact history order and deletion visibility. Producer run 43853845106 is active. This is separate from the immutable queued WEB4 replay candidate. The temporary Git index was removed and no local runtimes or builds were created.
 
 2026-11-16 UTC — OPORTAL task revision b2ce145 shares an in-flight Orders read only within the same authenticated session. The exact dev-base fixture passed 14 controlled groups, including duplicate opens, a session change during the pending read, and fresh data on revisit after settlement. Dev rollout remains open.
+
+2026-11-16 UTC — OPORTAL dev 088cce9d2f78 now serves the Orders request coalescing change. The public dev script returned HTTP 200 and exactly matched the tested Git blob. Signed hosted Orders behavior and production rollout remain open.
