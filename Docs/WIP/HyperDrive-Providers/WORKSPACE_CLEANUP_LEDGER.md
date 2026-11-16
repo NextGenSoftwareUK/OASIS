@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-16 UTC — Removed both temporary Git indexes used for WEB4 and portal holon copy release preparation. Portal patch data stayed in memory and no local build was run.
+
 2026-11-16 UTC — Provider copy form verification ran in memory. Restored the original portal sparse checkout after editing the menu and fragment. No build outputs, dependencies or test reports were created.
 
 2026-11-16 UTC — My routing checks ran in memory. Restored the portal sparse checkout and removed the disposable alternate index used for candidate staging. No build output or dependency installation was created.

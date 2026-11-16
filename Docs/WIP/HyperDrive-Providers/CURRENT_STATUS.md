@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-16 UTC — Staged WEB4 candidate `6e99efc81b59` on confirmed Development `5371b0a8a628`. Its three-file scope adds holon count, copy endpoints and the copy request assertions. The shared WEB4 image queue already had one active and one pending run, so no extra image was queued. OPORTAL candidate `df89d78` stages the copy form after the independent My routing candidate and awaits backend acceptance.
+
 2026-11-16 UTC — OPORTAL `bff6b98` replaces the legacy migration demo with Copy holon between providers. The form requests WEB4 registered storage names, submits one explicit holon ID and requires the matching acknowledgement. The in-memory regression covered provider choices, wrong-ID refusal and confirmation. The UI is pushed to its task branch and held for backend compilation and live native HTTP acceptance. The operation copies the graph and leaves the source in place.
 
 2026-11-16 UTC — Added Wizard-scoped WEB4 endpoints for registered storage provider choices and a single explicit holon graph copy. The action calls the existing HolonManager.SendHolonAsync path with the authenticated actor, distinct named providers and its default disabled auto-replication. It publishes only the acknowledged holon ID. Added focused invalid-input assertions that run before storage resolution. Compilation and native HTTP acceptance remain pending. The old portal screen still needs the matching rewrite before publication.
