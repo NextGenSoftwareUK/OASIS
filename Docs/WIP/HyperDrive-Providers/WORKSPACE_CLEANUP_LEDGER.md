@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. The native wallet workflow uses the existing hosted Agave fixture, keeps its TRX inside that directory, and removes the owned validator process, ledger, signer, runtime and output on exit. Teardown remains pending run 43778262121. No local SDK, packages, databases or build outputs were created.
+
 15 November Cancun time. The combined signed WEB4 fixture removed its real inventory item and WEB4 confirmed avatar deletion. WEB4 also confirmed deletion of the disposable wallet authorization fixture. Restored the portal sparse checkout. Release asset comparisons and wallet renderer test ran in memory, leaving no local downloads, dependencies, databases or test artifacts.
 
 15 November Cancun time. WEB4 confirmed deletion of the Provider activity sandbox avatar with HTTP 200. Restored the portal sparse checkout and removed both scoped staging indexes. No local dependencies, runtime downloads, build outputs or test artifacts were retained.
