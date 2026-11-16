@@ -1838,3 +1838,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 2026-11-16 UTC — The OPORTAL dev subscription verification used only the needed Git blobs and a temporary Git index in one disposable directory. The test process exited and its directory was removed. The public script was hashed in memory. No installs, images or retained test outputs.
 
 2026-11-16 UTC — Removed the disposable OPORTAL refresh test directory and Git index after use. The dev script was verified in memory. No retained test outputs or new dependencies.
+
+2026-11-16 UTC — Removed the disposable OPORTAL Orders verification directory after the Node process exited. No bundles, installs or retained test output.
