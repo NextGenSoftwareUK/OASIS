@@ -42,9 +42,15 @@ public class CqlMetadataPresenceWireTests
     [Theory]
     [InlineData(CqlV1Operator.IsMissing)]
     [InlineData(CqlV1Operator.IsNotNull)]
-    public void PresenceTestsRejectCanonicalFieldsAndLiteralValues(CqlV1Operator operation)
+    public void PresenceTestsRejectNonTextCanonicalFieldsAndLiteralValues(CqlV1Operator operation)
     {
-        Assert.Throws<ArgumentException>(() => Compile(new CqlV1Filter { Field = "Name", Operator = operation }));
+        Assert.Throws<ArgumentException>(() => Compile(new CqlV1Filter { Field = "Version", Operator = operation }));
+        if (operation == CqlV1Operator.IsMissing)
+            Assert.Throws<ArgumentException>(() => Compile(new CqlV1Filter { Field = "Name", Operator = operation }));
+        Assert.Throws<ArgumentException>(() => Compile(new CqlV1Filter
+        {
+            Field = "Name", Operator = operation, Value = JsonSerializer.SerializeToElement(true)
+        }));
         Assert.Throws<ArgumentException>(() => Compile(new CqlV1Filter
         {
             MetadataPath = new[] { "value" }, Operator = operation, Value = JsonSerializer.SerializeToElement(true)
