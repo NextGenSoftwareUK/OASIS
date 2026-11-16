@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-16 UTC — Portal sign-in state recovery tests ran in memory. Removed the staging patch and alternate Git index. No browser profile, dependency install or build output was created.
+
 2026-11-16 UTC — The signed-out browser baseline initially left a locked browser profile. Confirmed the owned Edge process exited, removed the exact temporary profile and uncached dependency, and removed the staging patch and index. No test reports or build outputs were kept.
 
 2026-11-16 UTC — Holon count image preparation removed its disposable patch and alternate Git index. The build runs on GitHub and creates no local build output. Retire temporary branch `ci-hyperdrive-holon-count-1b3d96085421` after its qualification evidence is captured and the release candidate no longer needs the ref.

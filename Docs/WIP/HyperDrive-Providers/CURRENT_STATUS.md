@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-16 UTC — OPORTAL `299aa06` repairs already-affected browser storage on startup. A stored signed-in flag without a recognizable avatar is cleared before the dashboard or protected routes run. A focused startup check passed for missing, undefined, malformed and incomplete profiles, and preserved a valid avatar. Scoped portal candidate `f7f0c9b` includes the signed-out HyperDrive route and dashboard request fixes. Dev browser acceptance remains open.
+
 2026-11-16 UTC — Live Edge reproduced signed-out /hyperdrive incorrectly setting the authenticated flag without an avatar and failing to open Beam In. OPORTAL `876b97f` uses the existing protected router and login opener. Controlled checks passed for the deep link and menu action without authentication writes. Scoped portal dev candidate `a44f493` also contains the verified dashboard request removal. Live confirmation awaits deployment.
 
 2026-11-16 UTC — Started [WEB4 image run 43789246453](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43789246453) for the holon count. Exact candidate `1b3d96085421` adds only the count controller action to the confirmed Development base `307f52dfc9ae`. The shared image workflow had no active or queued run before dispatch. Development was not updated. The matched dashboard client remains on the portal task branch pending live endpoint acceptance.
