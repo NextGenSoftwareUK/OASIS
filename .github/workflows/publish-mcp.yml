@@ -16,6 +16,17 @@ on:
         required: true
       NUGET_API_KEY:
         required: true
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "SemVer version to publish"
+        required: true
+        type: string
+      publish:
+        description: "Publish GitHub, NuGet, and npm releases"
+        required: true
+        type: boolean
+        default: false
   pull_request:
     branches: [Development, master]
     paths:
