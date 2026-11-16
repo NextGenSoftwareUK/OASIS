@@ -151,3 +151,5 @@ Preserve the measured browser, HTTP and native behavior in [current status](CURR
 15 November Cancun time. [WEB4 shallow contract CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43689317379/job/132736384036) passed GET controller default metadata and six request body types with omitted and explicit child flags. Runtime native storage behavior is covered by the preceding MongoDB and SQLite results.
 
 15 November Cancun time. Signed-in WEB4 dev smoke at f99947f0e20b measured one end-to-end sample per endpoint: Files count 429 ms / 313 bytes, Files list 889 ms / 314 bytes, Wallet summary 413 ms / 341 bytes, Wallet inventory 462 ms / 332 bytes, karma 397 ms, map stats 398 ms. The avatar held no files or wallets. These are availability and parity samples, not a benchmark for populated accounts or production browser latency.
+
+2026-11-16 UTC — Live OPORTAL dev f522491 sign-in submit to the integer dashboard holon card was 2,359 ms in Edge for one disposable ordinary avatar. Exactly one compact count request completed in 1,246 ms. The native count rendered zero. The signed provider-copy panel correctly hid the Wizard-only form.
