@@ -66,6 +66,16 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Assert.AreEqual(rootId, correlatedRows.Result.Single().LeftId);
         Assert.AreEqual(rootId, correlatedRows.Result.Single().RightId);
 
+        var selectedId = rootId;
+        var filteredCorrelation = root.SelectMany(left => multi.Where(right =>
+                left.Id == right.Id && right.Id == selectedId), (left, right) => right.Id);
+        CollectionAssert.AreEqual(new[] { rootId }, filteredCorrelation.ToArray());
+        selectedId = Guid.NewGuid();
+        CollectionAssert.AreEqual(Array.Empty<Guid>(), filteredCorrelation.ToArray());
+        var filteredCross = root.SelectMany(left => multi.Where(right => right.Id == rootId),
+            (left, right) => right.Id);
+        CollectionAssert.AreEqual(new[] { rootId }, filteredCross.ToArray());
+
         var reordered = root.SelectMany(left => multi.Where(right => left.Id == right.Id),
             (left, right) => right.Id);
         CollectionAssert.AreEqual(new[] { rootId }, reordered.ToArray());
