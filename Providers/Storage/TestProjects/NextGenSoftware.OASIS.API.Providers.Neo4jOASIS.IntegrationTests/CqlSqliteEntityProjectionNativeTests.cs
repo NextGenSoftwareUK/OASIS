@@ -221,6 +221,17 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         var orderedThenBy = await thenBy.ToCosmicListAsync();
         Assert.IsFalse(orderedThenBy.IsError, orderedThenBy.Message + orderedThenBy.Exception);
         CollectionAssert.AreEqual(new[] { ids[4], ids[1], ids[0] }, orderedThenBy.Result.Select(row => row.Id).ToArray());
+        var excluded = ids[0];
+        var missing = Guid.NewGuid();
+        Assert.AreEqual(2, thenBy.Count(row => row.Id != excluded));
+        Assert.AreEqual(2L, thenBy.LongCount(row => row.Id != excluded));
+        Assert.IsFalse(thenBy.Any(row => row.Id == missing));
+        Assert.AreEqual(ids[4], thenBy.First(row => row.Id != excluded).Id);
+        Assert.AreEqual(ids[1], thenBy.Last(row => row.Id != excluded).Id);
+        Assert.AreEqual(excluded, thenBy.Single(row => row.Id == excluded).Id);
+        Assert.IsNull(thenBy.LastOrDefault(row => row.Id == missing));
+        Assert.AreEqual("CQL_EXPRESSION_UNSUPPORTED",
+            Assert.ThrowsException<CosmicLinqException>(() => thenBy.Take(1).Count(row => row.Id != excluded)).Code);
         Assert.AreEqual(3, thenBy.Count());
         Assert.AreEqual(2L, thenBy.Skip(1).LongCount());
         Assert.AreEqual(1, thenBy.Take(2).Skip(1).Count());
