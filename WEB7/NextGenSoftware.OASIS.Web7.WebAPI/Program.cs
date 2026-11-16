@@ -27,6 +27,7 @@ Directory.SetCurrentDirectory(AppContext.BaseDirectory);
 var enableGenericExceptionHandling = builder.Configuration.GetValue<bool>("EnableGenericExceptionHandling",
     bool.Parse(Environment.GetEnvironmentVariable("ENABLE_GENERIC_EXCEPTION_HANDLING") ?? "true"));
 
+builder.Services.AddHealthChecks();
 builder.Services.AddControllers(options =>
 {
     options.Filters.Add<Web7ExceptionFilter>();
@@ -107,6 +108,8 @@ if (subscriptionUsageEnabled)
     builder.Services.AddWeb4UsageLedger(builder.Configuration, "WEB7", storageUsagePolicy);
 
 var app = builder.Build();
+
+app.UseHealthChecks("/api/health");
 
 app.UseSwagger();
 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", string.Concat("WEB7 OASIS Symbiotic Layer API v", OASISBootLoader.WEB7APIVersion)));

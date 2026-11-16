@@ -19,6 +19,7 @@ builder.WebHost.ConfigureKestrel(options =>
     options.ListenAnyIP(port, o => o.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1AndHttp2);
 });
 
+builder.Services.AddHealthChecks();
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
@@ -93,6 +94,8 @@ if (subscriptionUsageEnabled)
     builder.Services.AddWeb4UsageLedger(builder.Configuration, "WEB9", storageUsagePolicy);
 
 var app = builder.Build();
+
+app.UseHealthChecks("/api/health");
 
 app.UseSwagger();
 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", string.Concat("WEB9 OASIS Singularity Layer API v", OASISBootLoader.WEB9APIVersion)));

@@ -17,6 +17,7 @@ builder.WebHost.ConfigureKestrel(options =>
     options.ListenAnyIP(port, o => o.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1AndHttp2);
 });
 
+builder.Services.AddHealthChecks();
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
@@ -90,6 +91,8 @@ if (subscriptionUsageEnabled)
     builder.Services.AddWeb4UsageLedger(builder.Configuration, "WEB10", storageUsagePolicy);
 
 var app = builder.Build();
+
+app.UseHealthChecks("/api/health");
 
 app.UseSwagger();
 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", string.Concat("WEB10 OASIS Source Layer API v", OASISBootLoader.WEB10APIVersion)));

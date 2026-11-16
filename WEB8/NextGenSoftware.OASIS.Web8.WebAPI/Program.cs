@@ -29,6 +29,7 @@ Directory.SetCurrentDirectory(AppContext.BaseDirectory);
 var enableGenericExceptionHandling = builder.Configuration.GetValue<bool>("EnableGenericExceptionHandling",
     bool.Parse(Environment.GetEnvironmentVariable("ENABLE_GENERIC_EXCEPTION_HANDLING") ?? "true"));
 
+builder.Services.AddHealthChecks();
 builder.Services.AddControllers(options =>
 {
     options.Filters.Add<Web8ExceptionFilter>();
@@ -112,6 +113,8 @@ if (subscriptionUsageEnabled)
     builder.Services.AddWeb4UsageLedger(builder.Configuration, "WEB8", storageUsagePolicy);
 
 var app = builder.Build();
+
+app.UseHealthChecks("/api/health");
 
 app.UseSwagger();
 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", string.Concat("WEB8 OASIS Inter-Galactic Layer API v", OASISBootLoader.WEB8APIVersion)));
