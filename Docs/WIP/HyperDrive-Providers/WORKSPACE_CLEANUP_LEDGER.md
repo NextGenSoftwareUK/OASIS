@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-16 UTC — Holon count image preparation removed its disposable patch and alternate Git index. The build runs on GitHub and creates no local build output. Retire temporary branch `ci-hyperdrive-holon-count-1b3d96085421` after its qualification evidence is captured and the release candidate no longer needs the ref.
+
 2026-11-16 UTC — Holon count portal tests ran in memory, without dependencies, reports or local build output.
 
 2026-11-16 UTC — Dashboard regression assets outside the sparse checkout were read from tracked blobs in memory. Removed the temporary candidate patch and alternate index. No dependencies or build outputs were created.

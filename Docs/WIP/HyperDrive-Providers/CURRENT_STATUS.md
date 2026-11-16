@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-16 UTC — Started [WEB4 image run 43789246453](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43789246453) for the holon count. Exact candidate `1b3d96085421` adds only the count controller action to the confirmed Development base `307f52dfc9ae`. The shared image workflow had no active or queued run before dispatch. Development was not updated. The matched dashboard client remains on the portal task branch pending live endpoint acceptance.
+
 2026-11-16 UTC — Added signed WEB4 current-avatar holon count and OPORTAL `e7bb7c1` switches the dashboard card to the compact response. The API uses the existing HyperDrive-routed direct-child read with recursive loading disabled, counts returned holons and sends an integer. It derives the parent from the signed session. The portal regression passed for zero and a WEB4 failure. Backend build, signed wire verification and timing remain open. The dashboard request removal candidate `eaa4669` remains independently deployable.
 
 2026-11-16 UTC — OPORTAL `e936b33` removes startup Clan list and ONET statistics calls because the shipped dashboard has no matching cards. Subscription and dashboard checks passed and proved zero calls for both a standard avatar and a Wizard. Scoped portal dev candidate `eaa4669` is ready for the next review. Live signed dashboard timing remains open.
