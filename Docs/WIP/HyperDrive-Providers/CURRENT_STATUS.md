@@ -2959,3 +2959,5 @@ Performance follow-up. WEB4 wallet summary is implemented on the task branch and
 2026-11-16 UTC — Removed two pending MFA enrollment records linked to the earlier disposable test avatars and verified their absence in Atlas. Both temporary SDK directories were removed. Exact Files description image workflow 43831026341 remains in progress.
 
 2026-11-16 UTC — Pushed OPORTAL 14cc40a to the portal task branch. Repeated clicks on an app-owner usage button now share its in-flight usage, settings and billing reads. Subscription configuration checks passed, including retry after failure. No local downloads or output files. Hosted verification remains open.
+
+2026-11-16 UTC — Files description image workflow 43831026341 succeeded and published exact commit ca7a17b58584. All seven prior dev deployments showed SUCCESS. Fast-forwarded Development from 9fb52e18bbce to ca7a17b58584 with the single controller change. Railway queued WEB4 909ad23c at 08:46:52 UTC. Hosted description persistence remains pending. OPORTAL task commit 537b151 also serializes app-owner pay-as-you-go control submissions. Subscription suite passed with no local downloads or output.
