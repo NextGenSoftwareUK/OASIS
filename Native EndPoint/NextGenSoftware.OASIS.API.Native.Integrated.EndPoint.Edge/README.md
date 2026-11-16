@@ -2,6 +2,10 @@
 
 Native facade for the Unity-compatible OASIS Edge Runtime.
 
+## Holochain and HoloNET
+
+This package does not bundle a Holochain conductor. Optional Holochain 0.7 replication is provided by [NextGenSoftware.OASIS.API.Providers.HoloOASIS.Edge](https://www.nuget.org/packages/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Edge), which is built on HoloNET, the .NET and Unity client for Holochain: [NextGenSoftware.Holochain.HoloNET.Client](https://www.nuget.org/packages/NextGenSoftware.Holochain.HoloNET.Client) ([HoloNET documentation](https://holonet.oasisomniverse.one/)). Unity builds use [NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity](https://www.nuget.org/packages/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity) with HoloNET's Unity-compatible conductor bindings.
+
 ## Installation
 
 ```sh
