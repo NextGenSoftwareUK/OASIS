@@ -1850,3 +1850,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 2026-11-16 UTC — The signed Orders fixture avatar was deleted through WEB4 and the scoped protected session directory was removed after acknowledgement. No app account, invoice, order, downloads or build outputs were created.
 
 2026-11-16 UTC — Both disposable signed CQL readers were self-deleted through the acknowledged WEB4 endpoint, including the reader used before the response parser correction. Their protected directories were removed after deletion. No query results, credentials or build outputs were retained.
+
+2026-11-16 UTC — Removed the disposable OPORTAL chart regression tree and its dev archive after all 14 groups passed. No dependencies installed and no generated assets or test output files retained.
