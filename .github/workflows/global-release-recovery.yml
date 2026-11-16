@@ -56,7 +56,6 @@ jobs:
       edge_runtime: false
       ogengine_client: false
       native_endpoint: false
-      mcp_server: false
       optional_components: none
       advance_api_versions: false
       version_mode: ${{ inputs.version_mode }}
@@ -76,7 +75,6 @@ jobs:
       edge_runtime: false
       ogengine_client: false
       native_endpoint: false
-      mcp_server: false
       optional_components: none
       advance_api_versions: false
       version_mode: ${{ inputs.version_mode }}
