@@ -1916,3 +1916,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 2026-11-16 UTC — Removed the wallet successor Git index and its temporary directory. Provenance was verified directly from Git objects without creating an archive, runtime or build directory.
 
 2026-11-16 UTC — All scratch indexes for the exact Holo routing candidate were removed after use, including the failed attempts to apply workflow files against the older baseline. No local build or provider runtime was installed.
+
+2026-11-16 UTC — Removed the temporary Git index for exact receipt candidate 275fb990ca02. Native reports and runtimes were generated only on hosted runners.
