@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+16 November UTC. Combined SQL and HyperDrive candidate 5248f94f82e7 and website candidate 320dd72d97da used disposable Git indexes and one temporary website test snapshot. The staging commands exited and removed these directories. Native regression and runtime image outputs are hosted in GitHub. The health timing and origin probes ran without output files. No SDK downloads, environments, test databases or build artifacts were retained for this batch. C: free 30118969344 bytes observed.
+
 15 November Cancun time. The exact COUNT DISTINCT Development verifier removed four scoped records per database and independently confirmed all 12 absent. The retained LocalState/COSMIC/HostedCqlCountDistinct-307f52df operation journal is 10452 bytes. Temporary website snapshots and Git index were removed. No new SDK downloads, local databases or retained builds. C: free 31102230528 bytes observed.
 
 15 November Cancun time. Quoted metadata verification removed one scoped record per MongoDB, SQLite and Neo4j and verified all three absent. The retained LocalState/COSMIC/HostedCqlQuotedMetadata-04843366 operation journal is 2646 bytes. Temporary frontend test snapshots and Git index were removed. No SDK downloads, local databases or builds were retained.
