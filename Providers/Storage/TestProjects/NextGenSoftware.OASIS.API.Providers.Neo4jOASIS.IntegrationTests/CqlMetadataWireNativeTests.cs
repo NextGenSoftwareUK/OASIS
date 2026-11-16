@@ -102,6 +102,42 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             Assert.AreEqual(expected, filtered.Result.Providers.Single().Rows.Single().Id);
         }
 
+
+        foreach (var item in new[]
+        {
+            (Name: "visible match", Descendant: false, Expected: false),
+            (Name: "absent", Descendant: false, Expected: true),
+            (Name: "grandchild one", Descendant: true, Expected: true),
+            (Name: "visible match", Descendant: true, Expected: false)
+        })
+        {
+            var related = new CqlFilter
+            {
+                Field = "Name", Operator = CqlOperator.Equal, Value = JsonSerializer.SerializeToElement(item.Name)
+            };
+            var negated = new CqlRequest
+            {
+                Filters = new[] { new CqlFilter { Field = "Id", Operator = CqlOperator.Equal,
+                    Value = JsonSerializer.SerializeToElement(ids[0]) } },
+                Take = 1
+            };
+            if (item.Descendant)
+                negated.AnyDescendants = new[] { new ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlV1DescendantExists
+                    { Negated = true, Filters = new[] { related } } };
+            else
+                negated.AnyChildren = new[] { new ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlV1ChildExists
+                    { Negated = true, Filters = new[] { related } } };
+            var plan = CosmicQueryPlanner.Plan(CqlCompiler.Compile(negated, actor, provider,
+                CosmicQueryReadAccess.OwnerOrPublic(actor).Result), provider,
+                new[] { new CosmicQueryTarget(provider, adapter.QueryCapabilities) });
+            Assert.IsFalse(plan.IsError, plan.Message);
+            var result = await CosmicQueryExecutor.ExecuteAsync(plan.Result, new[] { adapter });
+            Assert.IsFalse(result.IsError, result.Message + result.Exception);
+            var expected = item.Expected ? new[] { ids[0] } : Array.Empty<Guid>();
+            CollectionAssert.AreEqual(expected, result.Result.Providers.Single().Rows.Select(row => row.Id).ToArray());
+            checks.Add(new { provider = provider.ToString(), wire = "NOT EXISTS", item.Descendant, item.Expected });
+        }
+
         var request = new CqlGroupedRequest
         {
             Filters = new[] { new CqlFilter
