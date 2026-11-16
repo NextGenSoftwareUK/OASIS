@@ -22,18 +22,24 @@ jobs:
           submodules: recursive
           token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
           persist-credentials: false
-      - name: Read the canonical Libraries revision
+      - name: Read canonical sibling dependency revisions
         id: pins
         working-directory: OASIS
         run: |
           python3 -B Scripts/validate_railway_dependency_manifest.py --require-gitlinks
-          grep -E '^LIBRARIES_COMMIT=[0-9a-f]{40}$' Docker/oasis-dependency-versions.env >> "$GITHUB_OUTPUT"
+          grep -E '^(LIBRARIES|HOLOCHAIN)_COMMIT=[0-9a-f]{40}$' Docker/oasis-dependency-versions.env >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@v7
         with:
           repository: NextGenSoftwareUK/NextGenSoftware-Libraries
           ref: ${{ steps.pins.outputs.LIBRARIES_COMMIT }}
           path: NextGenSoftware-Libraries
           token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - uses: actions/checkout@v7
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          ref: ${{ steps.pins.outputs.HOLOCHAIN_COMMIT }}
+          path: holochain-client-csharp
           persist-credentials: false
       - uses: actions/setup-dotnet@v6
         with:
