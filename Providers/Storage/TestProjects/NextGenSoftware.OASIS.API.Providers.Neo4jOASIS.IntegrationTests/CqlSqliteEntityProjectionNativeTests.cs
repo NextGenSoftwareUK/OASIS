@@ -226,6 +226,13 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Assert.AreEqual(1, thenBy.Take(2).Skip(1).Count());
         Assert.IsTrue(thenBy.Skip(2).Any());
         Assert.IsFalse(thenBy.Skip(3).Any());
+        Assert.AreEqual(ids[4], thenBy.Take(1).Single().Id);
+        Assert.AreEqual(ids[0], thenBy.Skip(2).Single().Id);
+        Assert.IsNull(thenBy.Skip(3).SingleOrDefault());
+        Assert.AreEqual("CQL_SEQUENCE_MULTIPLE",
+            Assert.ThrowsException<CosmicLinqException>(() => thenBy.Single()).Code);
+        Assert.AreEqual("CQL_SEQUENCE_MULTIPLE",
+            Assert.ThrowsException<CosmicLinqException>(() => thenBy.Skip(1).Take(2).SingleOrDefault()).Code);
         Assert.AreEqual(ids[4], thenBy.First().Id);
         Assert.AreEqual(ids[1], thenBy.Skip(1).First().Id);
         Assert.AreEqual(ids[0], thenBy.Skip(1).ElementAt(1).Id);
