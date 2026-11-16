@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-16 UTC — OPORTAL task commit `a044a6b` moves the Developer Portal HTML fetch to the first open. Dev candidates are `7e53f68d` with Celestial Map and `8a002251` with Celestial Map and wallet changes. Deployment and browser deep-link/Back checks remain open.
+
 15 November Cancun time. OPORTAL c1d6e16 loads real Celestial Spaces and Bodies with the signed WEB5 SDK and displays each service error independently. The real sandbox returned zero spaces and bodies with one HTTP 200 GET each. The map uses the returned parent relationship and shows unassigned bodies together. Both portal menus link to it. Candidates 83e4fcb808dd and 3b4455c0521e stage the map alone and with the pending wallet batch. Populated browser verification remains open. The current COSMIC exact image was still active and Development remained 048433666dff at the last check.
 
 15 November Cancun time. OPORTAL 2d79c08 removes the fake Holon Browser data and uses the shipping WEB5 SDK for a single signed catalogue read. Type and provider filters come from returned records. The signed sandbox UI check passed and deleted its avatar. Portal dev now serves bd7ca3da3c72, with all five changed files matched, including the versioned script and both active nav templates. Populated browser verification remains open. Wallet candidate 647f8f41c9d4 rebases that staged work onto the current portal dev release. The next portal review opens after 01:14:35 UTC on 16 November.
