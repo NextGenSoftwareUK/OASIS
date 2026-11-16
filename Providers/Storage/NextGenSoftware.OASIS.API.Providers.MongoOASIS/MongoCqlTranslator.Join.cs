@@ -151,6 +151,31 @@ internal sealed partial class MongoCqlTranslator
             var page = new List<BsonDocument>();
             if (requestedLimit == 0)
                 page.Add(new("$match", new BsonDocument("$expr", Literal(false))));
+            else if (query.OutputFromEnd > 0)
+            {
+                page.Add(new("$setWindowFields", new BsonDocument
+                {
+                    { "sortBy", sort },
+                    { "output", new BsonDocument
+                    {
+                        { "position", new BsonDocument("$documentNumber", new BsonDocument()) },
+                        { "pairCount", new BsonDocument
+                        {
+                            { "$count", new BsonDocument() },
+                            { "window", new BsonDocument("documents", new BsonArray { "unbounded", "unbounded" }) }
+                        } }
+                    } }
+                }));
+                BsonValue end = query.OutputTailWindowLimit is int window
+                    ? new BsonDocument("$min", new BsonArray { "$pairCount", (long)query.OutputOffset + window })
+                    : new BsonString("$pairCount");
+                var position = new BsonDocument("$subtract", new BsonArray { end, query.OutputFromEnd - 1 });
+                page.Add(new("$match", new BsonDocument("$expr", new BsonDocument("$and", new BsonArray
+                {
+                    new BsonDocument("$eq", new BsonArray { "$position", position }),
+                    new BsonDocument("$gt", new BsonArray { "$position", query.OutputOffset })
+                }))));
+            }
             else
             {
                 page.Add(new("$sort", sort));

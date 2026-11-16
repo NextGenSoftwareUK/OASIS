@@ -135,12 +135,22 @@ public partial class Neo4jOASIS
             var pagingValues = values.Select(value => value.Replace("kind=2 AND ", "")).ToArray();
             var offset = binder.Bind(query.OutputOffset);
             var end = binder.Bind((long)query.OutputOffset + requestedLimit);
+            var page = "pairs[" + offset + ".." + end + "]";
+            if (query.OutputFromEnd > 0)
+            {
+                var windowEnd = query.OutputTailWindowLimit is int window
+                    ? binder.Bind((long)query.OutputOffset + window) : "size(pairs)";
+                var windowRows = "pairs[" + offset + ".." + windowEnd + "]";
+                var fromEnd = binder.Bind(query.OutputFromEnd);
+                page = "CASE WHEN size(" + windowRows + ")>=" + fromEnd
+                    + " THEN [" + windowRows + "[-" + fromEnd + "]] ELSE [] END";
+            }
             pairProof = "CALL { WITH leftInput,rightInput CALL { " + pairRows + " } "
                 + "WITH leftInput,rightInput,li AS lp,ri AS rp "
                 + (pagingValues.Length == 0 ? "" : "WITH lp,rp," + string.Join(",", pagingValues) + " ")
                 + "ORDER BY " + string.Join(",", orderTerms.Concat(new[] { "lp ASC", "rp ASC" }))
                 + " RETURN collect({kind:2,l:lp,r:rp}) AS pairs } "
-                + "UNWIND pairs[" + offset + ".." + end + "]+[{kind:3,l:-1,r:-1}] AS pair "
+                + "UNWIND (" + page + ")+[{kind:3,l:-1,r:-1}] AS pair "
                 + "RETURN pair.kind AS kind,pair.l AS lp,pair.r AS rp,null AS proof,size(pairs) AS nativeCount ";
         }
         var text="CALL { CALL { "+left+" } RETURN collect(input) AS leftInput } "

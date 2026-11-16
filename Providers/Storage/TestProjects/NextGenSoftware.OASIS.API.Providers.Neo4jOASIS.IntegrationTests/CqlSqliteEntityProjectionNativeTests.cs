@@ -236,6 +236,17 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Assert.AreEqual(ids[4], thenBy.First().Id);
         Assert.AreEqual(ids[1], thenBy.Skip(1).First().Id);
         Assert.AreEqual(ids[0], thenBy.Skip(1).ElementAt(1).Id);
+        Assert.AreEqual(ids[0], thenBy.Last().Id);
+        Assert.AreEqual(thenBy.ElementAt(1).Id, thenBy.Take(2).Last().Id);
+        Assert.AreEqual(thenBy.ElementAt(1).Id, thenBy.Skip(1).ElementAt(^2).Id);
+        Assert.AreEqual(thenBy.ElementAt(1).Id, thenBy.ElementAt(new Index(1)).Id);
+        Assert.IsNull(thenBy.Skip(3).LastOrDefault());
+        Assert.IsNull(thenBy.Take(1).ElementAtOrDefault(^2));
+        Assert.IsNull(thenBy.ElementAtOrDefault(^0));
+        Assert.AreEqual("CQL_SEQUENCE_EMPTY",
+            Assert.ThrowsException<CosmicLinqException>(() => thenBy.Take(0).Last()).Code);
+        Assert.AreEqual("CQL_INDEX_OUT_OF_RANGE",
+            Assert.ThrowsException<CosmicLinqException>(() => thenBy.ElementAt(^4)).Code);
         Assert.IsNull(thenBy.Take(1).ElementAtOrDefault(1));
         Assert.IsNull(thenBy.ElementAtOrDefault(-1));
         Assert.AreEqual("CQL_SEQUENCE_EMPTY",
