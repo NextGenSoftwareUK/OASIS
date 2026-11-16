@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+16 November UTC. Inspected released Holochain source in memory and staged the retained-interface reproduction through CI. No local conductor or Rust packages were downloaded. CI owns its disposable Linux state. Temporary Git index removed.
+
 16 November UTC. The targeted HoloOASIS Chrome probe stopped at catalogue availability and removed its isolated workspace profile. Hosted network checks selected only an HTTPS status, local admin listener state and structured activation counters. No files or tools were installed in Railway.
 
 16 November UTC. Both diagnostic Chrome sessions used isolated incognito profiles under LocalState/COSMIC, closed their browser and removed their profile directories. The earlier OS-temp directory remains recorded separately. No new packages or model weights were installed.
