@@ -2,7 +2,7 @@
 
 ### WEB4 COSMIC demo preview access · 13 November
 
-15 November. A fresh one-time OASIS team consent link was shared privately in chat after the connector returned a team-scoped 403. Approval is pending. After approval, engineering will inspect the current preview, verify the Development website domain and credentialed WEB4 origin, and run the signed-in walkthrough.
+15 November. A fresh one-time OASIS team consent link was shared privately in chat after the connector returned a team-scoped 403. Approval is pending. The later canonical-field Web4Site revision 26695b39ce13 was pushed, but GitHub has no preview deployment or check record for it. The Vercel project lookup still returns a team-scoped HTTP 403. The protected link below is the last confirmed preview. After approval, engineering will inspect the Git integration, verify the Development website domain and credentialed WEB4 origin, and run the signed-in walkthrough.
 
 Open. Authorize the existing Vercel connection for the OASIS team with a current Vercel consent link. The earlier link was time-limited. The connector currently returns HTTP 403 for the team and the installed CLI has no active credentials. This access is for the existing [protected preview of Web4Site `df0a4fdb278f`](https://web4-site-3kp4xrvix-oasis-team.vercel.app/web4-sandbox.html) for authenticated browser acceptance. The public site still serves the previous frontend. [Web4Site feature branch](https://github.com/NextGenSoftwareUK/Web4Site/tree/work/cosmic-cql)
 
