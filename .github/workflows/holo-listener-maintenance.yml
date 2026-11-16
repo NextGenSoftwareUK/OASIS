@@ -15,6 +15,9 @@ jobs:
   check:
     runs-on: ubuntu-24.04
     timeout-minutes: 25
+    env:
+      CARGO_PROFILE_DEV_DEBUG: '0'
+      CARGO_INCREMENTAL: '0'
     defaults:
       run:
         working-directory: Scripts/HoloListenerMaintenance
@@ -25,3 +28,14 @@ jobs:
       - run: rustup toolchain install 1.96.0 --profile minimal --component rustfmt
       - run: cargo +1.96.0 fmt -- --check
       - run: cargo +1.96.0 test --jobs 2
+      - name: Fingerprint the binary exercised by the encrypted fixture
+        working-directory: Scripts/HoloListenerMaintenance/target/debug
+        run: sha256sum oasis-holo-listener-maintenance > oasis-holo-listener-maintenance.sha256
+      - uses: actions/upload-artifact@v7
+        with:
+          name: holo-listener-maintenance-linux-x64
+          path: |
+            Scripts/HoloListenerMaintenance/target/debug/oasis-holo-listener-maintenance
+            Scripts/HoloListenerMaintenance/target/debug/oasis-holo-listener-maintenance.sha256
+          if-no-files-found: error
+          retention-days: 1
