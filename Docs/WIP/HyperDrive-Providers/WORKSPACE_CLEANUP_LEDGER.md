@@ -1950,3 +1950,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 2026-11-16 UTC — Removed both temporary indexes for the MongoDB Analytics successor. The OPORTAL deployed asset comparison ran in memory and created no download or profile.
 
 2026-11-16 UTC — Removed the shared analytics regression reconciliation index. Source and project-contract checks read the staged Git objects directly and did not create build output or runtime files.
+
+2026-11-16 UTC — Atlas was not used for the reply-volume test. The hosted runner used an isolated MongoDB fixture and dropped its database on teardown. The local successor index was removed. The C drive had 18.66 GiB free at the last check.
