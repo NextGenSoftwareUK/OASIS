@@ -108,12 +108,15 @@ public partial class Neo4jOASIS
         if (query.SelectsChildEntity)
         {
             var entityLimit = binder.Bind(limits.MaximumPayloadBytes);
-            output = "WITH kind,lp,rp,proof,nativeCount,CASE WHEN kind=2 THEN rightInput[rp] END AS selected "
+            var entityOrder = values.Count == 0 ? "" : "," + string.Join(",", values);
+            output = "WITH kind,lp,rp,proof,nativeCount,CASE WHEN kind=2 THEN rightInput[rp] END AS selected"
+                + entityOrder + " "
                 + "OPTIONAL MATCH (child:Holon) WHERE elementId(child)=selected.entityLocator "
                 + "AND coalesce(child.ProviderRevisionId,'')=selected.entityRevision "
                 + "RETURN kind,lp,rp,proof,nativeCount,CASE WHEN child IS NOT NULL THEN "
                 + "{id:child.Id,revision:child.ProviderRevisionId,snapshot:CASE WHEN size(child.SnapshotJson)<="
-                + entityLimit + " THEN child.SnapshotJson END} END AS entity ORDER BY kind ASC,lp ASC,rp ASC";
+                + entityLimit + " THEN child.SnapshotJson END} END AS entity ORDER BY kind ASC,"
+                + string.Join(",", orderTerms.Concat(new[] { "lp ASC", "rp ASC" }));
         }
         var pairProof = "CALL { " + pairRows + " } "
             + "WITH collect({l:li,r:ri}) AS pairs UNWIND pairs AS pair "

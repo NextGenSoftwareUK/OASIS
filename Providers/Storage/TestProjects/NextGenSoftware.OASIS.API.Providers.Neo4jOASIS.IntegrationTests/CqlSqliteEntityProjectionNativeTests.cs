@@ -55,6 +55,10 @@ public sealed partial class CqlProjectedAllAcceptanceTests
                 (parent, row) => row).Take(1).ToCosmicListAsync();
             Assert.IsFalse(paged.IsError, paged.Message + paged.Exception);
             Assert.AreEqual(childId, paged.Result.Single().Id);
+            var ordered = await linq.SelectMany(parent => parent.Children)
+                .OrderByDescending(row => row.Name).ThenBy(row => row.Id).Take(1).ToCosmicListAsync();
+            Assert.IsFalse(ordered.IsError, ordered.Message + ordered.Exception);
+            Assert.AreEqual(childId, ordered.Result.Single().Id);
             var empty = await linq.SelectMany(parent => parent.Children).Take(0).ToCosmicListAsync();
             Assert.IsFalse(empty.IsError, empty.Message + empty.Exception);
             Assert.AreEqual(0, empty.Result.Count);
