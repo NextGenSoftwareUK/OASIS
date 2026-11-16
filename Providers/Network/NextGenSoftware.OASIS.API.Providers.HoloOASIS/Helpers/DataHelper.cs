@@ -41,7 +41,6 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
             RequirePublicWallets(avatar.ProviderWallets);
             hcAvatar.Id = avatar.Id;
             hcAvatar.Username = avatar.Username;
-            hcAvatar.Password = avatar.Password;
             hcAvatar.Email = avatar.Email;
             hcAvatar.Title = avatar.Title;
             hcAvatar.Name = avatar.Name;
@@ -66,13 +65,11 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
             //hcAvatar.CustomKey = avatar.CustomKey;
             hcAvatar.IsActive = avatar.IsActive;
             hcAvatar.IsBeamedIn = avatar.IsBeamedIn;
-            hcAvatar.JwtToken = avatar.JwtToken;
             hcAvatar.LastBeamedIn = avatar.LastBeamedIn;
             hcAvatar.LastBeamedOut = avatar.LastBeamedOut;
             hcAvatar.MetaData = avatar.MetaData;
             //hcAvatar.ParentHolon = avatar.ParentHolon;
             hcAvatar.ParentHolonId = avatar.ParentHolonId;
-            hcAvatar.PasswordReset = avatar.PasswordReset;
             hcAvatar.PreviousVersionId = avatar.PreviousVersionId;
             hcAvatar.PreviousVersionProviderUniqueStorageKey = avatar.PreviousVersionProviderUniqueStorageKey;
             hcAvatar.ProviderMetaData = avatar.ProviderMetaData;
@@ -80,11 +77,6 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
             hcAvatar.ProviderUniqueStorageKey[ProviderType.HoloOASIS] = hcAvatar.EntryHash;
             hcAvatar.ProviderUsername = avatar.ProviderUsername;
             hcAvatar.ProviderWallets = avatar.ProviderWallets;
-            hcAvatar.RefreshToken = avatar.RefreshToken;
-            hcAvatar.RefreshTokens = avatar.RefreshTokens;
-            hcAvatar.ResetToken = avatar.ResetToken;
-            hcAvatar.ResetTokenExpires = avatar.ResetTokenExpires;
-            hcAvatar.VerificationToken = avatar.VerificationToken;
             hcAvatar.Verified = avatar.Verified;
             hcAvatar.Version = avatar.Version;
             hcAvatar.VersionId = avatar.VersionId;
@@ -98,7 +90,6 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
             {
                 Id = hcAvatar.Id,
                 Username = hcAvatar.Username,
-                Password = hcAvatar.Password,
                 Email = hcAvatar.Email,
                 Title = hcAvatar.Title,
                 Description = hcAvatar.Description,
@@ -121,24 +112,17 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
                 CustomKey = hcAvatar.CustomKey,
                 IsActive = hcAvatar.IsActive,
                 IsBeamedIn = hcAvatar.IsBeamedIn,
-                JwtToken = hcAvatar.JwtToken,
                 LastBeamedIn = hcAvatar.LastBeamedIn,
                 LastBeamedOut = hcAvatar.LastBeamedOut,
                 MetaData = hcAvatar.MetaData,
                 //ParentHolon = hcAvatar.ParentHolon,
                 ParentHolonId = hcAvatar.ParentHolonId,
-                PasswordReset = hcAvatar.PasswordReset,
                 PreviousVersionId = hcAvatar.PreviousVersionId,
                 PreviousVersionProviderUniqueStorageKey = hcAvatar.PreviousVersionProviderUniqueStorageKey,
                 ProviderMetaData = hcAvatar.ProviderMetaData,
                 ProviderUniqueStorageKey = hcAvatar.ProviderUniqueStorageKey,
                 ProviderUsername = hcAvatar.ProviderUsername,
                 ProviderWallets = hcAvatar.ProviderWallets,
-                RefreshToken = hcAvatar.RefreshToken,
-                RefreshTokens = hcAvatar.RefreshTokens,
-                ResetToken = hcAvatar.ResetToken,
-                ResetTokenExpires = hcAvatar.ResetTokenExpires,
-                VerificationToken = hcAvatar.VerificationToken,
                 Verified = hcAvatar.Verified,
                 Version = hcAvatar.Version,
                 VersionId = hcAvatar.VersionId
@@ -155,7 +139,6 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
             {
                 Id = new Guid(keyValuePair["id"]),
                 Username = keyValuePair["username"],
-                Password = keyValuePair["password"],
                 Email = keyValuePair["email"],
                 Title = keyValuePair["title"],
                 //Name = keyValuePair["name"],
@@ -179,24 +162,17 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
                 CustomKey = keyValuePair["custom_key"],
                 IsActive = Convert.ToBoolean(keyValuePair["is_active"]),
                 IsBeamedIn = Convert.ToBoolean(keyValuePair["is_beamed_in"]),
-                JwtToken = keyValuePair["jwt_token"],
                 LastBeamedIn = Convert.ToDateTime(keyValuePair["last_beamed_in"]),
                 LastBeamedOut = Convert.ToDateTime(keyValuePair["last_beamed_out"]),
                 MetaData = (Dictionary<string, object>)JsonSerializer.Deserialize(keyValuePair["meta_data"], typeof(Dictionary<string, object>)),
                 //ParentHolon = keyValuePair["parent_holon"],
                 ParentHolonId = new Guid(keyValuePair["parent_holon_id"]),
-                PasswordReset = Convert.ToDateTime(keyValuePair["password_reset"]),
                 PreviousVersionId = new Guid(keyValuePair["previous_version_id"]),
                 PreviousVersionProviderUniqueStorageKey = (Dictionary<ProviderType, string>)JsonSerializer.Deserialize(keyValuePair["previous_version_provider_unique_storage_key"], typeof(Dictionary<ProviderType, string>)),
                 ProviderMetaData = (Dictionary<ProviderType, Dictionary<string, string>>)JsonSerializer.Deserialize(keyValuePair["provider_meta_data"], typeof(Dictionary<ProviderType, Dictionary<string, string>>)),
                 ProviderUniqueStorageKey = (Dictionary<ProviderType, string>)JsonSerializer.Deserialize(keyValuePair["provider_unique_storage_key"], typeof(Dictionary<ProviderType, string>)),
                 ProviderUsername = (Dictionary<ProviderType, string>)JsonSerializer.Deserialize(keyValuePair["provider_user_name"], typeof(Dictionary<ProviderType, string>)),
                 ProviderWallets = (Dictionary<ProviderType, List<IProviderWallet>>)JsonSerializer.Deserialize(keyValuePair["provider_wallets"], typeof(Dictionary<ProviderType, List<IProviderWallet>>)),
-                RefreshToken = keyValuePair["refresh_token"],
-                RefreshTokens = (List<RefreshToken>)JsonSerializer.Deserialize(keyValuePair["refresh_tokens"], typeof(List<RefreshToken>)),
-                ResetToken = keyValuePair["reset_token"],
-                ResetTokenExpires = Convert.ToDateTime(keyValuePair["reset_token_expires"]),
-                VerificationToken = keyValuePair["verification_token"],
                 Verified = Convert.ToDateTime(keyValuePair["verified"]),
                 Version = Convert.ToInt32(keyValuePair["version"]),
                 VersionId = new Guid(keyValuePair["version_id"])
@@ -213,7 +189,6 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
             {
                 id = avatar.Id.ToString(),
                 username = avatar.Username,
-                password = avatar.Password,
                 email = avatar.Email,
                 name = avatar.Name,
                 description = avatar.Description,
@@ -237,24 +212,17 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
                 //custom_key = avatar.CustomKey,
                 is_active = avatar.IsActive,
                 is_beamed_in = avatar.IsBeamedIn,
-                jwt_token = avatar.JwtToken,
                 last_beamed_in = avatar.LastBeamedIn,
                 last_beamed_out = avatar.LastBeamedOut,
                 meta_data = avatar.MetaData,
                 //ParentHolon = avatar.ParentHolon,
                 parent_holon_id = avatar.ParentHolonId,
-                password_reset = avatar.PasswordReset,
                 previous_version_id = avatar.PreviousVersionId,
                 previous_version_provider_unique_storage_key = avatar.PreviousVersionProviderUniqueStorageKey,
                 provider_meta_data = avatar.ProviderMetaData,
                 provider_unique_storage_key = avatar.ProviderUniqueStorageKey,
                 provider_username = avatar.ProviderUsername,
                 provider_wallets = avatar.ProviderWallets,
-                refresh_token = avatar.RefreshToken,
-                refresh_tokens = avatar.RefreshTokens,
-                reset_token = avatar.ResetToken,
-                reset_token_expires = avatar.ResetTokenExpires,
-                verification_token = avatar.VerificationToken,
                 verified = avatar.Verified,
                 version = avatar.Version,
                 version_id = avatar.VersionId
