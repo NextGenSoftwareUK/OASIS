@@ -21,12 +21,15 @@ internal sealed partial class MongoCqlTranslator
     // This compiler does not enroll joins. A single snapshot owner must validate
     // both complete proof streams before executing the native matching stream.
     internal MongoCqlJoinCommand CompileJoin<TLeft, TRight, TKey, TResult>(
-        CosmicJoinSelection<TLeft, TRight, TKey, TResult> query, CosmicJoinExecutionLimits limits)
+        CosmicJoinSelection<TLeft, TRight, TKey, TResult> query, CosmicJoinExecutionLimits limits,
+        IReadOnlyList<Guid> admittedParents = null)
         where TLeft : IHolon where TRight : IHolon
     {
         if (query == null || limits == null || limits.Admit(query.Join.Options).IsError)
             throw new ArgumentException("Join selection and admitted remaining limits are required.");
         var left = Source(query.Join.Left, true, limits.MaximumLeftRows);
+        if (query.Join.RestrictsRightToLeftParents && admittedParents == null)
+            return new MongoCqlJoinCommand(left, null, Array.Empty<BsonDocument>());
         var right = Source(query.Join.Right, false, limits.MaximumRightRows);
         var pairs = Plain(left);
         var lookup = Plain(right);
@@ -127,6 +130,8 @@ internal sealed partial class MongoCqlTranslator
         MongoCqlProjectionCommand Source<T>(CosmicQuery<T> source, bool isLeft, int maximumRows) where T : IHolon
         {
             var pipeline = CompileSource(source, out var traverses);
+            if (!isLeft && query.Join.RestrictsRightToLeftParents)
+                pipeline.InsertRange(0, ScopedChildSource(admittedParents));
             var fetch = source.Limit.HasValue ? Math.Min(source.Limit.Value, maximumRows + 1) : maximumRows + 1;
             var page = SelectedWindow(source, fetch);
             var proof = new BsonDocument
@@ -162,6 +167,38 @@ internal sealed partial class MongoCqlTranslator
             ValidatePipeline(pipeline);
             var membership = source.Predicates.Any(HasRelationships);
             return new MongoCqlProjectionCommand(pipeline.ToArray(), membership, true, traverses, fetch == 0);
+        }
+
+        static BsonDocument[] ScopedChildSource(IReadOnlyList<Guid> parents)
+        {
+            const string admittedParent = "cqlJoinParent";
+            BsonValue Id(string field) => Op("$toLower", Op("$ifNull", "$" + field, Literal("")));
+            var ids = new BsonArray(parents.Select(parent => parent.ToString("D")));
+            var membership = Op("$or",
+                Op("$eq", "$CosmicCqlMembership.declared", Literal(false)),
+                Op("$in", "$$joinChild", Op("$ifNull", "$CosmicCqlMembership.members", Literal(new BsonArray()))));
+            return new BsonDocument[]
+            {
+                new("$match", new BsonDocument("$expr", Op("$and",
+                    Op("$in", Id("ParentHolonId"), Literal(ids)),
+                    Op("$ne", Id("HolonId"), Id("ParentHolonId"))))),
+                new("$lookup", new BsonDocument
+                {
+                    { "from", "Holon" },
+                    { "let", new BsonDocument { { "joinParent", Id("ParentHolonId") }, { "joinChild", Id("HolonId") } } },
+                    { "pipeline", new BsonArray
+                        {
+                            new BsonDocument("$match", new BsonDocument("$expr", Op("$and",
+                                Op("$eq", Id("HolonId"), "$$joinParent"), membership))),
+                            new BsonDocument("$project", new BsonDocument("_id", 1)),
+                            new BsonDocument("$limit", 1)
+                        }
+                    },
+                    { "as", admittedParent }
+                }),
+                new("$match", new BsonDocument(admittedParent + ".0", new BsonDocument("$exists", true))),
+                new("$unset", admittedParent)
+            };
         }
 
         static BsonDocument CountWindow() => new("$setWindowFields", new BsonDocument("output",
