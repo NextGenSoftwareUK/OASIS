@@ -6955,3 +6955,5 @@ Web4Site 5fa63a71df5d used a temporary directory containing only committed websi
 16 November UTC. Negated relationship development used disposable Git indexes and website test directories, removed automatically. The native fixture runs in GitHub Actions. The superseded run was canceled in GitHub. No local build outputs, runtime downloads or databases were created.
 
 16 November UTC. Development reconciliation and the fixture count correction used disposable Git indexes, removed after exact commits. CI owns the native suites and image build. The older waiting workers stopped when their expected Development revision changed. The temporary fixture journal will be created only after the new exact rollout serves. No local runtime or build artifacts were generated.
+
+16 November UTC. Composed SelectMany used disposable Git indexes for Core and WEB4. Exact native verification runs in GitHub Actions. The standard Queryable overload was checked with the installed PowerShell runtime. No local database, download or build output was created.
