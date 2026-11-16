@@ -109,6 +109,20 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             var expected = descending ? new[] { ids[0], ids[1], ids[4] } : new[] { ids[4], ids[0], ids[1] };
             CollectionAssert.AreEqual(expected, nullableRows.Result.Providers.Single().Rows.Select(row => row.Value.Id).ToArray());
         }
+        var manager = NativeManager(provider);
+        var leftRows = CosmicLinq.Create(manager, provider, left, maximumResults: 4).Result;
+        var rightRows = CosmicLinq.Create(manager, provider, right, maximumResults: 4).Result;
+        var linq = leftRows.SelectMany(_ => rightRows, (parent, child) => new { child.Name })
+            .OrderByDescending(child => child.Name);
+        var orderedLinq = await linq.ToCosmicListAsync();
+        Assert.IsFalse(orderedLinq.IsError, orderedLinq.Message + orderedLinq.Exception);
+        CollectionAssert.AreEqual(new[] { "visible match", "protected source root", "grandchild two" },
+            orderedLinq.Result.Select(row => row.Name).ToArray());
+        var scalar = leftRows.SelectMany(_ => rightRows, (parent, child) => child.Name).OrderBy(name => name);
+        var orderedScalar = await scalar.ToCosmicListAsync();
+        Assert.IsFalse(orderedScalar.IsError, orderedScalar.Message + orderedScalar.Exception);
+        CollectionAssert.AreEqual(new[] { "grandchild two", "protected source root", "visible match" },
+            orderedScalar.Result.ToArray());
         checks.Add(new { provider = provider.QueryProviderType.ToString(), join = "native selected output ordering" });
     }
 
