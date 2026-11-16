@@ -187,6 +187,11 @@ jobs:
           try {
             ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-HoloOASIS -Operation {
               if ($env:HOLO_VERIFICATION -eq 'routing') {
+                if ($env:HOLO_EXACT_SOURCE -eq 'true') {
+                  $provider = 'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/NextGenSoftware.OASIS.API.Providers.HoloOASIS.csproj'
+                  dotnet build $provider -c Release -f netstandard2.1 /m:2 /nr:false /p:UseSharedCompilation=false
+                  if ($LASTEXITCODE) { throw "HoloOASIS .NET Standard build exited $LASTEXITCODE" }
+                }
                 ./Scripts/test_holonet_live_release.ps1 -Project $client -Happ $happ -ResultsDirectory $artifact -DesktopProject $project -HoloRouting
               }
               elseif ($env:HOLO_VERIFICATION -eq 'storage') {

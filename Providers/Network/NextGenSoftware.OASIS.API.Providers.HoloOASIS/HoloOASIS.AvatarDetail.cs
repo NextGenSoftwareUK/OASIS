@@ -26,6 +26,7 @@ using NextGenSoftware.OASIS.API.Core.Managers.Bridge.DTOs;
 using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Response;
@@ -456,45 +457,54 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             var result = new OASISResult<ISearchResults>();
             try
             {
+                StoredRecordSearch.Validate(searchParams, version, maxChildDepth);
                 if (!IsProviderActivated)
                 {
                     var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
+                    if (activateResult.IsError || !activateResult.Result)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        result.ErrorCode = activateResult.ErrorCode;
                         return result;
                     }
                 }
 
+                var groups = searchParams.SearchGroups;
+                var wantsAvatars = groups == null || groups.Count == 0 || groups.Any(group => group.SearchAvatars || !group.SearchHolons);
+                var wantsHolons = groups == null || groups.Count == 0 || groups.Any(group => group.SearchHolons || !group.SearchAvatars);
+                var avatarRead = wantsAvatars ? LoadAllAvatarsAsync(version) : null;
+                var holonRead = wantsHolons || searchParams.ParentId != Guid.Empty
+                    ? LoadAllHolonsAsync(HolonType.All, loadChildren, recursive, maxChildDepth,
+                        continueOnError: continueOnError, version: version)
+                    : null;
+
+                var avatars = avatarRead == null ? null : await avatarRead;
+                var holons = holonRead == null ? null : await holonRead;
+                if (avatarRead != null && (avatars.IsError || avatars.Result == null))
+                {
+                    OASISErrorHandling.HandleError(ref result, avatars.Message ?? "Holochain returned no avatar collection.");
+                    result.ErrorCode = avatars.ErrorCode;
+                    return result;
+                }
+                if (holonRead != null && (holons.IsError || holons.Result == null))
+                {
+                    OASISErrorHandling.HandleError(ref result, holons.Message ?? "Holochain returned no holon collection.");
+                    result.ErrorCode = holons.ErrorCode;
+                    return result;
+                }
+
+                var candidates = holons?.Result?.ToList() ?? new List<IHolon>();
                 var searchResults = new SearchResults();
-                var holons = new List<IHolon>();
-                var avatars = new List<IAvatar>();
-                
-                // Search holons in Holochain
-                if (searchParams.SearchGroups != null && searchParams.SearchGroups.Any())
-                {
-                    var q = searchParams.SearchGroups.First().PreviousSearchGroupOperator.ToString();
-                    // basic contains filter using exported data as fallback
-                    var exportAll = await _holonRepository.LoadHolonsAsync("holons", "holons_anchor", ZOME_LOAD_ALL_HOLONS_FUNCTION, version);
-                    if (!exportAll.IsError && exportAll.Result != null)
-                        holons.AddRange(exportAll.Result.Where(h => (h.Name ?? string.Empty).Contains(q, StringComparison.OrdinalIgnoreCase) || (h.Description ?? string.Empty).Contains(q, StringComparison.OrdinalIgnoreCase)));
-                }
-                
-                // Search avatars fallback
-                if (searchParams.SearchGroups != null && searchParams.SearchGroups.Any())
-                {
-                    var q = searchParams.SearchGroups.First().PreviousSearchGroupOperator.ToString();
-                    var allAvatars = await _avatarRepository.LoadAvatarsAsync("avatars", "", ZOME_LOAD_ALL_AVATARS_FUNCTION, version);
-                    if (!allAvatars.IsError && allAvatars.Result != null)
-                        avatars.AddRange(allAvatars.Result.Where(a => (a.Name ?? string.Empty).Contains(q, StringComparison.OrdinalIgnoreCase) || (a.Description ?? string.Empty).Contains(q, StringComparison.OrdinalIgnoreCase)));
-                }
-                
-                searchResults.SearchResultHolons = holons;
-                searchResults.SearchResultAvatars = avatars;
-                
+                if (avatars != null)
+                    searchResults.SearchResultAvatars.AddRange(avatars.Result.Where(avatar =>
+                        StoredRecordSearch.Matches(avatar, true, searchParams, candidates)));
+                if (wantsHolons)
+                    searchResults.SearchResultHolons.AddRange(candidates.Where(holon =>
+                        StoredRecordSearch.Matches(holon, false, searchParams, candidates)));
+                searchResults.NumberOfResults = searchResults.SearchResultAvatars.Count + searchResults.SearchResultHolons.Count;
                 result.Result = searchResults;
-                result.IsError = false;
-                result.Message = $"Search completed successfully in Holochain with full property mapping ({holons.Count} holons, {avatars.Count} avatars)";
+                result.IsLoaded = true;
+                result.LoadedCount = searchResults.NumberOfResults;
             }
             catch (Exception ex)
             {
