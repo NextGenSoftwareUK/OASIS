@@ -43,7 +43,17 @@ public partial class HolonRepository
             var type = Nullable.GetUnderlyingType(selection.Join.Keys[index].Left.ValueType)
                 ?? selection.Join.Keys[index].Left.ValueType;
             var collation = type == typeof(Guid) ? " COLLATE NOCASE" : " COLLATE BINARY";
-            equality.Add($"l.k{index}s=2 AND r.k{index}s=2 AND l.k{index}v{collation}=r.k{index}v{collation}");
+            var comparison = selection.Join.Keys[index].Comparison switch
+            {
+                CosmicJoinComparison.Equal => "=",
+                CosmicJoinComparison.NotEqual => "<>",
+                CosmicJoinComparison.LessThan => "<",
+                CosmicJoinComparison.LessThanOrEqual => "<=",
+                CosmicJoinComparison.GreaterThan => ">",
+                CosmicJoinComparison.GreaterThanOrEqual => ">=",
+                _ => throw new NotSupportedException("Unknown native join comparison.")
+            };
+            equality.Add($"l.k{index}s=2 AND r.k{index}s=2 AND l.k{index}v{collation}{comparison}r.k{index}v{collation}");
         }
         var join = selection.Join.Kind switch
         {

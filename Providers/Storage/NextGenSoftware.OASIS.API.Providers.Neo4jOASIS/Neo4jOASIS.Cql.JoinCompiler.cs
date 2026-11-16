@@ -35,8 +35,21 @@ public partial class Neo4jOASIS
         var leftCount=binder.Bind(limits.MaximumLeftRows);var rightCount=binder.Bind(limits.MaximumRightRows);
         var leftBytes=binder.Bind(limits.MaximumLeftPayloadBytes);var rightBytes=binder.Bind(limits.MaximumRightPayloadBytes);
         var outer = binder.Bind(query.Join.Kind is CosmicJoinKind.Left or CosmicJoinKind.Full);
-        var equality=string.Join(" AND ",query.Join.Keys.Select((_,index)=>
-            "l.keys["+index+"].s=2 AND r.keys["+index+"].s=2 AND l.keys["+index+"].v=r.keys["+index+"].v"));
+        var equality=string.Join(" AND ",query.Join.Keys.Select((key,index) =>
+        {
+            var comparison = key.Comparison switch
+            {
+                CosmicJoinComparison.Equal => "=",
+                CosmicJoinComparison.NotEqual => "<>",
+                CosmicJoinComparison.LessThan => "<",
+                CosmicJoinComparison.LessThanOrEqual => "<=",
+                CosmicJoinComparison.GreaterThan => ">",
+                CosmicJoinComparison.GreaterThanOrEqual => ">=",
+                _ => throw new NotSupportedException("Unknown native join comparison.")
+            };
+            return "l.keys["+index+"].s=2 AND r.keys["+index+"].s=2 AND l.keys["+index+"].v"
+                + comparison + "r.keys["+index+"].v";
+        }));
         var valid="size(leftInput)<="+leftCount+" AND size(rightInput)<="+rightCount
             +" AND all(x IN leftInput+rightInput WHERE x.valid AND x.domainValid AND NOT(x.cycle OR x.traversalLimit OR x.payloadLimit))"
             +" AND reduce(total=0,x IN leftInput | total+x.bytes)<="+leftBytes
