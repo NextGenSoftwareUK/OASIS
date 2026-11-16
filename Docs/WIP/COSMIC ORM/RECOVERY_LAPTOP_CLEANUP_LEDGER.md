@@ -6877,3 +6877,5 @@ Web4Site 5fa63a71df5d used a temporary directory containing only committed websi
 15 November Cancun time. The read-only Atlas quota probe used the existing .NET SDK and cached MongoDB driver. The COSMIC Atlas probe temporary project, build and restore outputs were removed automatically through the owned temporary-directory scope after the process exited. No persistent results, database copies or new environment were created.
 
 15 November Cancun time. SQL distinct-count example verification used a temporary Web4Site source snapshot and the existing Node runtime. The snapshot was removed after all 247 tests passed, and the temporary path was verified absent. No install or external fixture was created.
+
+15 November Cancun time. Ask Your Data prompt verification ran 248 site tests with the existing Node runtime in one temporary source snapshot, which was removed after the run. No new runtime, database or retained test output.
