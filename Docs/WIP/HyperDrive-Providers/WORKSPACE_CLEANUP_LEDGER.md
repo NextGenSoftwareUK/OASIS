@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-16 UTC — The Development parent-read candidate used isolated temporary Git indexes that were deleted automatically after each attempt, including the rejected patch application. No new checkout or build environment was created. Native CI 43972654005 stopped its temporary MongoDB service and skipped artifact upload. Exact candidate jobs 43973553421 and 43973557525 run remotely. GitHub workflow logs were read in memory.
+
 2026-11-16 UTC — Holochain listener maintenance source inspection and upstream-schema rehearsal used in-memory release package reads and an in-memory SQLite fixture. The proposed local build-and-cleanup command was rejected before starting and created no cache or target directory. Native build qualification runs on ephemeral GitHub Actions runner 43969770551, with no artifact upload. The Railway health and conductor probes were read-only and created no local output.
 
 2026-11-16 UTC — Account billing deadline tests ran in memory. Removed the staging index and created no browser, dependency or build artifacts.
