@@ -1806,3 +1806,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 2026-11-16 UTC — After the successful refresh authority regression exited and its Mongo process stopped, removed the exact AvatarLoginFailoverQualification tree (487940377 bytes, 1740 files), including Mongo data, the uncached client, build files and logs. Verified the path and listener absent.
 
 2026-11-16 UTC — The temporary PyMongo verification environment for the live report cutover was removed and verified absent after both samples. No records or credentials were exported.
+
+2026-11-16 UTC — Removed the second temporary Atlas SDK after verifying live report reuse. The temporary refresh release index was also removed. No database exports or credential files were created.
