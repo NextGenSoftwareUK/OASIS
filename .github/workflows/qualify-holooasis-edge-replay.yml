@@ -58,8 +58,8 @@ jobs:
           import zlib
 
           package = 'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/OASIS_hAPP/oasis.happ'
-          old = subprocess.check_output(['git', 'show', '201691ce590871ff41cae625e68043a23deb0471:' + package])
-          if sha256(old).hexdigest() != 'eb6e48a7448c074c64635189f664c5842a86006f569074a05d42ef27ff0eb988':
+          old = subprocess.check_output(['git', 'show', '4bd294f69a3dd11fee9522e2e0ffd857578d1dd7:' + package])
+          if sha256(old).hexdigest() != 'd6f3b9b792e4e38e191e4b9952ed849d925c68266ccde1be812dc5a607e47ef0':
               raise SystemExit('Prior hApp hash mismatch')
           h_app = zlib.decompress(Path(package).read_bytes(), 31)
           candidates = []
@@ -72,7 +72,7 @@ jobs:
                   start = module.start()
                   size = int.from_bytes(dna[start + 1:start + 5], 'big')
                   wasm = dna[start + 5:start + 5 + size]
-                  if sha256(wasm).hexdigest() == '7840644f943207edf829bdf60a4091b14eba4e2642fbe55b13f059e65175ea0d':
+                  if sha256(wasm).hexdigest() == 'b849276cb16914f95b6b95b8b67e059d21a033def1db2b3163b1478862ee07f3':
                       candidates.append(wasm)
           if len(candidates) != 1:
               raise SystemExit('Expected one source-matched coordinator WASM')
@@ -88,7 +88,7 @@ jobs:
           $package = 'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/OASIS_hAPP'
           $manifest = Get-Content -LiteralPath "$package/build-manifest.json" -Raw | ConvertFrom-Json
           $happ = "$package/oasis.happ"
-          if ($manifest.schemaVersion -ne 1 -or $manifest.sourceCommit -cne '921dd0e76690bdbfa8ac094813268d14969eb1ff' -or
+          if ($manifest.schemaVersion -ne 1 -or $manifest.sourceCommit -cne '5477bee0d8ab9420f7d237a799cbecccc850d226' -or
               (Get-FileHash -LiteralPath $happ -Algorithm SHA256).Hash -ine $manifest.artifactSha256) {
             throw 'The candidate hApp does not match the replay fix and its checked-in manifest.'
           }
@@ -102,6 +102,7 @@ jobs:
               !(Test-Path -LiteralPath $env:OASIS_HOLO_EDGE_COORDINATOR_WASM -PathType Leaf)) {
             throw 'In-place coordinator update fixtures are missing.'
           }
+          $env:OASIS_HOLO_BATCH_BENCHMARK = '1'
           $client = '../holochain-client-csharp/NextGenSoftware.Holochain.HoloNET.Client.Tests/NextGenSoftware.Holochain.HoloNET.Client.Tests.csproj'
           $tests = 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests.csproj'
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-HoloEdgeReplay -Operation {
@@ -111,6 +112,8 @@ jobs:
         if: always()
         with:
           name: holo-edge-replay-report
-          path: ${{ runner.temp }}/oasis-holo-edge-replay/*.trx
+          path: |
+            ${{ runner.temp }}/oasis-holo-edge-replay/*.trx
+            ${{ runner.temp }}/oasis-holo-edge-replay/holo-indexed-read-timing.json
           if-no-files-found: ignore
           retention-days: 2
