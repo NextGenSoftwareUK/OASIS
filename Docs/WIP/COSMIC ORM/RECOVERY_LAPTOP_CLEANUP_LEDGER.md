@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+16 November UTC. The superseded paging image run 43895927071 was cancelled after the HoloOASIS rollout changed the Development base. All replacement builds use GitHub CI. The joined SQL and WEB6 drafting tests used disposable source snapshots with the installed Node runtime, and the snapshots were removed after each run. Live acceptance monitors are waiting without fixture creation.
+
 16 November UTC. The exact CHILD JOIN live acceptance created private fixtures only within the dedicated visitor scope. All dispatched fixture IDs were verified absent on MongoDB, SQLite and Neo4j after revision-checked deletion. The append-only fixture journal was removed. No local database, runtime installation or build output was created.
 
 16 November UTC. Join paging used installed Node and Python, disposable Git indexes, and temporary website test snapshots removed by the test runner. The SQLite syntax check used an in-memory database. Builds run in GitHub Actions. No new environment or locally installed runtime was used.
