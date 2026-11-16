@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+15 November Cancun time. The exact COUNT DISTINCT Development verifier removed four scoped records per database and independently confirmed all 12 absent. The retained LocalState/COSMIC/HostedCqlCountDistinct-307f52df operation journal is 10452 bytes. Temporary website snapshots and Git index were removed. No new SDK downloads, local databases or retained builds. C: free 31102230528 bytes observed.
+
 15 November Cancun time. Quoted metadata verification removed one scoped record per MongoDB, SQLite and Neo4j and verified all three absent. The retained LocalState/COSMIC/HostedCqlQuotedMetadata-04843366 operation journal is 2646 bytes. Temporary frontend test snapshots and Git index were removed. No SDK downloads, local databases or builds were retained.
 
 15 November Cancun time. Canonical projection qualification created seven scoped records across the initial, diagnostic and accepted runs. Every record was hard-deleted and independently confirmed absent. Compact journals under LocalState/COSMIC/HostedCqlCanonicalProjection* are 2664, 888 and 2664 bytes, respectively. Website snapshots and the temporary Git index were removed after use. No new runtimes, local databases or retained build artifacts.
