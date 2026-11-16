@@ -262,6 +262,15 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         var noStrictMatches = await strictVersion.ToCosmicListAsync();
         Assert.IsFalse(noStrictMatches.IsError, noStrictMatches.Message + noStrictMatches.Exception);
         Assert.AreEqual(0, noStrictMatches.Result.Count);
+        var wide = CosmicJoinOptions.Create(maximumLeftRows: CosmicJoinOptions.MaximumInputRows,
+            maximumRightRows: CosmicJoinOptions.MaximumInputRows, maximumPairs: 1, maximumResults: 1).Result;
+        var tooWide = lower.JoinColumns(higher, keys, keys, wide).Result.CompareKey("Amount", CosmicJoinComparison.LessThan)
+            .Result.Select((l, r) => r.Id).Result;
+        Assert.AreEqual("CQL_RESULT_LIMIT", native.JoinCapabilities.Admit(tooWide).ErrorCode);
+        var limited = lower.Take(1).Result.JoinColumns(higher.Take(1).Result, keys, keys, wide).Result
+            .CompareKey("Amount", CosmicJoinComparison.LessThan).Result.Select((l, r) => r.Id).Result;
+        var limitedAdmission = native.JoinCapabilities.Admit(limited);
+        Assert.IsFalse(limitedAdmission.IsError, limitedAdmission.Message);
         checks.Add(new { provider = provider.QueryProviderType.ToString(), join = "native selected output ordering" });
     }
 
