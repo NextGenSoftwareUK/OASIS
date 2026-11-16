@@ -1908,3 +1908,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 2026-11-16 UTC — Removed the scoped OPORTAL candidate index and exact-tree test preload. No local SDK, packages, fixtures or build output were created.
 
 2026-11-16 UTC — Removed the temporary hApp Git indexes used to prepare the scoped native candidate. Live OPORTAL verification read HTTP responses in memory. No local downloads, build output or account fixtures were created.
+
+2026-11-16 UTC — Scoped C# wallet qualification uses a disposable hosted runner. Both local candidate indexes were removed. The rejected local .NET command created no test outputs or package cache.
