@@ -37,6 +37,14 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         var linq = CosmicLinq.Create(NativeManager(provider), provider, parents, maximumResults: 1).Result;
         if (provider.JoinCapabilities.SupportsChildEntities)
         {
+            var whole = parents.JoinChildren(source, options).Select((parent, child) => child);
+            Assert.IsFalse(whole.IsError, whole.Message);
+            var wholePlan = CosmicJoinPlanner.Plan(whole.Result, provider.QueryProviderType,
+                new[] { new CosmicJoinTarget(provider.QueryProviderType, provider.QueryCapabilities, provider.JoinCapabilities) });
+            Assert.IsFalse(wholePlan.IsError, wholePlan.Message);
+            var wholeRows = await NativeManager(provider).ExecuteJoinQueryAsync(wholePlan.Result, new[] { provider });
+            Assert.IsFalse(wholeRows.IsError, wholeRows.Message + wholeRows.Exception);
+            Assert.AreEqual(childId, wholeRows.Result.Providers.Single().Rows.Single().Value.Id);
             var wholeChildren = await linq.SelectMany(parent => parent.Children).ToCosmicListAsync();
             Assert.IsFalse(wholeChildren.IsError, wholeChildren.Message + wholeChildren.Exception);
             var child = wholeChildren.Result.Single();
