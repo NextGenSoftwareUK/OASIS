@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+16 November UTC. Removed 19 more local patches after their exact remote Git tags and reverse checks confirmed they were duplicates (three typed child patches, five ordering/indexed SQLite patches, eleven nullable join patches). The Node test snapshot and temporary indexes were removed. No package installs or local .NET build outputs were created. C: measured 19.6 GiB free.
+
 16 November UTC. Reverse-checked 15 previously staged whole-child patches against their exact published tags, then deleted the local duplicates. The verification and commit indexes were removed. Three small patches for typed child selection and regression assertions are tracked in `LocalState/COSMIC` until their exact publication is reconciled. No local test builds, runtime installations or database fixtures for this batch.
 
 16 November UTC. Whole-child LINQ qualification uses ephemeral CI. Local `LocalState/COSMIC/WholeChildJoin-*.patch` files contain approximately 25 KiB of source edits pending qualification. Temporary Git indexes were removed after validation and the obsolete first SQLite patch was deleted. Dispose of retained patches individually once their replacements are published and verified. No new local packages, environments or build outputs were produced. C: measured 19.7 GiB free.
