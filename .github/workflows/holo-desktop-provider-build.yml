@@ -33,6 +33,8 @@ on:
       exact_source:
         type: boolean
         default: false
+      routing_case:
+        type: string
     secrets:
       PRIVATE_SUBMODULE_PAT:
         required: true
@@ -167,6 +169,7 @@ jobs:
         env:
           HOLO_VERIFICATION: ${{ inputs.verification || 'bootloader' }}
           HOLO_EXACT_SOURCE: ${{ inputs.exact_source || false }}
+          HOLO_ROUTING_CASE: ${{ inputs.routing_case }}
         shell: pwsh
         run: |
           $artifact = Join-Path $env:RUNNER_TEMP 'oasis-holo-native-results'
@@ -192,7 +195,9 @@ jobs:
                   dotnet build $provider -c Release -f netstandard2.1 /m:2 /nr:false /p:UseSharedCompilation=false
                   if ($LASTEXITCODE) { throw "HoloOASIS .NET Standard build exited $LASTEXITCODE" }
                 }
-                ./Scripts/test_holonet_live_release.ps1 -Project $client -Happ $happ -ResultsDirectory $artifact -DesktopProject $project -HoloRouting
+                $case = @{}
+                if ($env:HOLO_ROUTING_CASE) { $case.HoloRoutingCase = $env:HOLO_ROUTING_CASE }
+                ./Scripts/test_holonet_live_release.ps1 -Project $client -Happ $happ -ResultsDirectory $artifact -DesktopProject $project -HoloRouting @case
               }
               elseif ($env:HOLO_VERIFICATION -eq 'storage') {
                 ./Scripts/test_holonet_live_release.ps1 -Project $client -Happ $happ -ResultsDirectory $artifact -DesktopProject $project -HoloConformance

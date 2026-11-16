@@ -15,6 +15,64 @@ public sealed class HoloNativeRoutingTests
     private static readonly Lazy<Task> InstallIsolatedApp = new(InstallIsolatedAppAsync);
 
     [Theory, InlineData(false), InlineData(true)]
+    public async Task SavesPublicAvatarWithoutAuthenticationState(bool useReflection)
+    {
+        Assert.Equal("true", Environment.GetEnvironmentVariable("GITHUB_ACTIONS"));
+        await InstallIsolatedApp.Value;
+        var admin = new Uri(Required("OASIS_HOLOCHAIN_ADMIN_URI"));
+        Assert.True(admin.IsLoopback);
+        var holo = new HoloOASIS(OpenAdmin(admin), null!, useHoloNetwork: false,
+            useHoloNETORMReflection: useReflection);
+        var avatar = new Avatar
+        {
+            Id = Guid.NewGuid(),
+            Username = $"holo-public-{Guid.NewGuid():N}",
+            Email = $"holo-public-{Guid.NewGuid():N}@oasis.test",
+            FirstName = "Public profile",
+            Password = "synthetic-password",
+            JwtToken = "synthetic-session",
+            RefreshToken = "synthetic-refresh",
+            ResetToken = "synthetic-reset",
+            VerificationToken = "synthetic-verification"
+        };
+
+        try
+        {
+            var active = await holo.ActivateProviderAsync();
+            Assert.True(!active.IsError && active.Result, active.Message);
+            var saved = await holo.SaveAvatarAsync(avatar);
+            Assert.True(!saved.IsError && saved.IsSaved, saved.Message);
+            try
+            {
+                var native = await holo.HoloNETClientAppAgent.CallZomeFunctionAsync("oasis", "get_avatar_by_id",
+                    paramsObject: avatar.Id.ToString("D"));
+                Assert.False(native.IsError, native.Message);
+                var entry = Assert.Single(native.Records).EntryKeyValuePairs;
+                Assert.Equal(avatar.Username, entry["username"]);
+                foreach (var key in new[] { "password", "jwt_token", "refresh_token", "refresh_tokens",
+                    "reset_token", "verification_token", "password_reset", "reset_token_expires" })
+                    Assert.False(entry.ContainsKey(key), $"The native public record contained {key}.");
+
+                var loaded = await holo.LoadAvatarAsync(avatar.Id);
+                Assert.True(!loaded.IsError && loaded.IsLoaded, loaded.Message);
+                Assert.Equal(avatar.Id, loaded.Result.Id);
+                Assert.Equal(avatar.FirstName, loaded.Result.FirstName);
+                Assert.Null(loaded.Result.Password);
+                Assert.Null(loaded.Result.JwtToken);
+            }
+            finally
+            {
+                var deleted = await holo.DeleteAvatarAsync(avatar.Id, softDelete: false);
+                Assert.True(!deleted.IsError && deleted.IsDeleted, deleted.Message);
+            }
+        }
+        finally
+        {
+            if (holo.IsProviderActivated) await holo.DeActivateProviderAsync();
+        }
+    }
+
+    [Theory, InlineData(false), InlineData(true)]
     public async Task RoutesAcrossOfficialConductorAndSqlite(bool sync)
     {
         Assert.Equal("true", Environment.GetEnvironmentVariable("GITHUB_ACTIONS"));
