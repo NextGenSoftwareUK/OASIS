@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-16 UTC — Holochain listener maintenance source inspection and upstream-schema rehearsal used in-memory release package reads and an in-memory SQLite fixture. The proposed local build-and-cleanup command was rejected before starting and created no cache or target directory. Native build qualification runs on ephemeral GitHub Actions runner 43969770551, with no artifact upload. The Railway health and conductor probes were read-only and created no local output.
+
 2026-11-16 UTC — Account billing deadline tests ran in memory. Removed the staging index and created no browser, dependency or build artifacts.
 
 2026-11-16 UTC — Subscription Admin deployment comparison ran in memory. Removed the temporary index for the two staged copy variants. No browser profile, SDK install or local build output was created.
