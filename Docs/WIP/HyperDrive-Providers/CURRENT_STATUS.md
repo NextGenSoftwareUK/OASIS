@@ -2935,3 +2935,5 @@ Performance follow-up. WEB4 wallet summary is implemented on the task branch and
 2026-11-16 UTC — WEB9 and WEB8 running DNA matched saved replacement Neo4j configuration and public Swagger returned HTTP 200. Started WEB7 restart b783559f. Corrected WEB5–WEB10 container liveness probes in source after the live WEB10 probe resolved to a missing route. The patched images still need build and runtime verification.
 
 2026-11-16 UTC — WEB7 running DNA matched saved replacement Neo4j configuration and public Swagger returned HTTP 200. Started WEB6 restart 2bc98826. The original Neo4j login remains active while WEB6, WEB5 and WEB4 finish switching.
+
+2026-11-16 UTC — WEB6 running DNA matched saved replacement Neo4j configuration and public /v1/health returned HTTP 200 with status ok. Started WEB5 restart f6c1e5b5. WEB4 is next after WEB5 verification.
