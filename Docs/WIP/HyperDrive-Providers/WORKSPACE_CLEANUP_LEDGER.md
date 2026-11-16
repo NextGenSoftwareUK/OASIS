@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-16 UTC — Provider metric rendering checks ran in memory. Removed the temporary candidate patch and alternate Git index. No downloads, build outputs or test reports were written.
+
 2026-11-16 UTC — HyperDrive diagnostics verification ran in memory. Restored the original sparse checkout and removed the temporary candidate patch and alternate Git index. No dependencies or build outputs were created.
 
 2026-11-16 UTC — Live catalogue and subscription verification ran in memory, with no downloads or local build outputs. Removed the temporary patch and alternate Git index used to stage the dev candidate.
