@@ -1,0 +1,49 @@
+name: Verify WEB4 wallet ownership
+
+on:
+  push:
+    branches: [work/hyperdrive-provider-completion]
+    paths:
+      - '.github/workflows/qualify-web4-wallet.yml'
+      - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Controllers/WalletController.cs'
+      - 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/HyperDriveWalletTokenBindingTests.cs'
+
+permissions:
+  contents: read
+
+jobs:
+  wallet-controller:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          path: OASIS
+          submodules: recursive
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - name: Read the canonical Libraries revision
+        id: pins
+        working-directory: OASIS
+        run: |
+          python3 -B Scripts/validate_railway_dependency_manifest.py --require-gitlinks
+          grep -E '^LIBRARIES_COMMIT=[0-9a-f]{40}$' Docker/oasis-dependency-versions.env >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.pins.outputs.LIBRARIES_COMMIT }}
+          path: NextGenSoftware-Libraries
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+      - name: Verify wallet request binding and ownership without sending funds
+        working-directory: OASIS
+        shell: pwsh
+        run: |
+          ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-Web4Wallet -Operation {
+            $project = 'ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests/NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.csproj'
+            dotnet test $project /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~HyperDriveWalletTokenBindingTests' --logger 'console;verbosity=normal'
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
