@@ -6941,3 +6941,5 @@ Web4Site 5fa63a71df5d used a temporary directory containing only committed websi
 16 November UTC. The follow-up SQL batch used one temporary Git index, removed after staging the immutable candidate. The C drive reported 21.26 GiB free during this check. No local builds, containers, browser profiles or runtime downloads were created.
 
 16 November UTC. The projected SelectMany change used disposable Core and parent Git indexes that were removed. The existing Core branch, manifest and gitlink were advanced together on the COSMIC feature branch. Native validation runs in CI. No local runtime install, test database or build output was created.
+
+16 November UTC. Anonymous projected SelectMany used temporary Core and parent indexes removed after staging. The Core gitlink and deployment manifest advance together on the COSMIC feature branch. Native qualification runs on GitHub. No local build or database fixture was created.
