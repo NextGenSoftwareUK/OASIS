@@ -131,7 +131,7 @@ jobs:
           $bundle = 'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/OASIS_hAPP'
           $happ = Join-Path $bundle 'oasis.happ'
           $manifest = Get-Content -LiteralPath (Join-Path $bundle 'build-manifest.json') -Raw | ConvertFrom-Json
-          if ($manifest.sourceCommit -cne 'a9fbde84b4f33ebe7ac8d8a08ce73ce16ceab608' -or
+          if ($manifest.sourceCommit -cne '921dd0e76690bdbfa8ac094813268d14969eb1ff' -or
               (Get-FileHash -LiteralPath $happ -Algorithm SHA256).Hash -ine $manifest.artifactSha256) {
             throw 'The verified producer bundle failed provenance checks.'
           }
