@@ -1856,3 +1856,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 2026-11-16 UTC — Removed the isolated temporary index for OPORTAL chart candidate bf20d5d and both disposable anonymous browser profiles after their owned processes stopped. No credentials, account, screenshots, downloads or local build output were created.
 
 2026-11-16 UTC — All three signed OPORTAL browser test avatars were deleted through the acknowledged WEB4 endpoint. All three protected session directories and owned Chrome profiles were removed. The browser verifier retained no response payloads, screenshots, test downloads or local build output.
+
+2026-11-16 UTC — Removed the scoped dev archive and test directory after the OPORTAL early-open regression. No installs, downloads or generated assets were retained.
