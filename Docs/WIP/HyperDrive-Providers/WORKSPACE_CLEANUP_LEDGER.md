@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. WEB4 confirmed deletion of the disposable Celestial Map avatar with HTTP 200. Restored the portal sparse checkout and removed both alternate release indexes. No local SDK downloads, dependencies, builds or outputs were retained.
+
 15 November Cancun time. WEB4 confirmed the disposable Holon Browser avatar was deleted with HTTP 200. Restored the sparse portal checkout, removed both alternate indexes and verified serving files in memory. No local SDK, packages, databases or result files were retained.
 
 15 November Cancun time. Removed the wallet staging index over pending COSMIC source and read the hosted controller log in memory. No local builds, dependencies, databases or test artifacts were retained.
