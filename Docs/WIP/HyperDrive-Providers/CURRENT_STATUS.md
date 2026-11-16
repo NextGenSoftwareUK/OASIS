@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-16 UTC — OPORTAL `e64d1bb` removes outdated hard-coded plan benefits and renders pricing, billing interval, descriptions and benefits from WEB4. The subscription regression suite passed. The shipping SDK and updated renderer made one live catalogue request and rendered five real plans, including Bronze at GBP 9 per month and Enterprise contact sales. Scoped dev candidate `33745ce` includes the earlier billing feedback fix. Hosted payment and signed browser coverage remain open.
+
 2026-11-16 UTC — OPORTAL `5a442bc` fixes subscription feedback ownership: an older transient message can no longer hide a newer payment confirmation, error, or pending status. The focused timer check and existing subscription regression suite passed. Scoped release candidate `196c026` was verified against current portal dev `e83d5af`. Dev release and signed browser verification remain open.
 
 2026-11-16 UTC — Signed HyperDrive browser acceptance stopped during disposable avatar creation. WEB4 dev `307f52dfc9ae`, Railway deployment `887a53d4`, returned HTTP 400 with Mongo record save failed. Railway logs confirmed MongoDB rejected insert and findAndModify because its cluster was at 512 MB of 512 MB. No session was issued. The owner list records storage recovery. The exact wallet WEB4 image `e767ca027bd2` passed run `43783783607`. Shared dev integration and live wallet acceptance remain open.
