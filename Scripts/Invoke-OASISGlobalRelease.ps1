@@ -566,9 +566,9 @@ if ($NuGetPackages) {
     $packageProjects = @(Get-PackageProjects)
     $excludedIds = if ($reviewedPlan) { @($reviewedPlan.excludedPackageIds) } else { @($ExcludedPackageIds) }
     $expectedExclusionCount = if ($reviewedPlan) { [int]$reviewedPlan.expectedExcludedPackageCount } else { $ExpectedExcludedPackageCount }
-    # The MCP Server component builds and publishes NextGenSoftware.OASIS.MCP.Server itself. Letting the
-    # bulk NuGet publication rebuild the same version collides with it on the immutable registry.
-    if (-not $reviewedPlan -and $MCPServer -and 'NextGenSoftware.OASIS.MCP.Server' -notin @($excludedIds)) {
+    # The MCP Server is released on its own (publish-mcp.yml) and is never part of the global release or the
+    # bulk NuGet publication; rebuilding the same version here collides on the immutable registry.
+    if (-not $reviewedPlan -and 'NextGenSoftware.OASIS.MCP.Server' -notin @($excludedIds)) {
         $excludedIds = @($excludedIds) + 'NextGenSoftware.OASIS.MCP.Server'
         $expectedExclusionCount++
     }
