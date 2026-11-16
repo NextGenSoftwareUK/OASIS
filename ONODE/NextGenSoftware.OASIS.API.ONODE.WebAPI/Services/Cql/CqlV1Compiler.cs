@@ -213,8 +213,8 @@ public static partial class CqlV1Compiler
         var filterCount = filters.Length + anyOf.Length;
         void CountGroup(CqlV1Filter[] filters,CqlV1Filter[] anyOf)
         {
-            if(filters==null || anyOf==null || filters.Length+(long)anyOf.Length is <1 or >12)
-                throw new ArgumentException("Each relationship group requires one to twelve bounded filters.");
+            if(filters==null || anyOf==null || filters.Length+(long)anyOf.Length >12)
+                throw new ArgumentException("Each relationship group accepts up to twelve bounded filters.");
             filterCount+=filters.Length+anyOf.Length;
             if(filterCount>12)throw new ArgumentException("Use at most twelve filters across roots and relationship groups.");
         }
@@ -336,7 +336,7 @@ public static partial class CqlV1Compiler
             alternatives=alternatives==null?next:Expression.OrElse(alternatives,next);
         }
         if(alternatives!=null)condition=condition==null?alternatives:Expression.AndAlso(condition,alternatives);
-        return Expression.Lambda<Func<IHolon,bool>>(condition,child);
+        return Expression.Lambda<Func<IHolon,bool>>(condition ?? Expression.Constant(true),child);
     }
 
     /// <summary>

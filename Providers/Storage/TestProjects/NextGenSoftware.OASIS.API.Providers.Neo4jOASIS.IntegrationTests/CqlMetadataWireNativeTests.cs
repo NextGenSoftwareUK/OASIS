@@ -108,7 +108,9 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             (Name: "visible match", Descendant: false, Expected: false),
             (Name: "absent", Descendant: false, Expected: true),
             (Name: "grandchild one", Descendant: true, Expected: true),
-            (Name: "visible match", Descendant: true, Expected: false)
+            (Name: "visible match", Descendant: true, Expected: false),
+            (Name: (string)null, Descendant: false, Expected: false),
+            (Name: (string)null, Descendant: true, Expected: false)
         })
         {
             var related = new CqlFilter
@@ -121,12 +123,13 @@ public sealed partial class CqlProjectedAllAcceptanceTests
                     Value = JsonSerializer.SerializeToElement(ids[0]) } },
                 Take = 1
             };
+            var relationshipFilters = item.Name == null ? Array.Empty<CqlFilter>() : new[] { related };
             if (item.Descendant)
                 negated.AnyDescendants = new[] { new ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlV1DescendantExists
-                    { Negated = true, Filters = new[] { related } } };
+                    { Negated = true, Filters = relationshipFilters } };
             else
                 negated.AnyChildren = new[] { new ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlV1ChildExists
-                    { Negated = true, Filters = new[] { related } } };
+                    { Negated = true, Filters = relationshipFilters } };
             var plan = CosmicQueryPlanner.Plan(CqlCompiler.Compile(negated, actor, provider,
                 CosmicQueryReadAccess.OwnerOrPublic(actor).Result), provider,
                 new[] { new CosmicQueryTarget(provider, adapter.QueryCapabilities) });
