@@ -267,7 +267,15 @@ public static partial class CqlV1Compiler
 
         foreach(var group in anyChildren)
         {
-            var related=query.WhereAnyChild(RelationshipPredicate(group.Filters,group.AnyOf));
+            var child = RelationshipPredicate(group.Filters, group.AnyOf);
+            if (group.Negated)
+            {
+                var navigation = Expression.Property(parameter, typeof(ISemanticHolon).GetProperty(nameof(ISemanticHolon.Children)));
+                var any = Expression.Call(typeof(Enumerable), nameof(Enumerable.Any), new[] { typeof(IHolon) }, navigation, child);
+                query = Add(query, parameter, Expression.Not(any));
+                continue;
+            }
+            var related=query.WhereAnyChild(child);
             if(related.IsError)throw new ArgumentException(related.Message);
             query=related.Result;
         }
@@ -275,7 +283,15 @@ public static partial class CqlV1Compiler
         {
             var limits=CosmicQueryTraversalOptions.Create(group.MaximumDepth,group.MaximumNodes);
             if(limits.IsError)throw new ArgumentException(limits.Message);
-            var related=query.WhereAnyDescendant(RelationshipPredicate(group.Filters,group.AnyOf),limits.Result);
+            var descendant = RelationshipPredicate(group.Filters, group.AnyOf);
+            if (group.Negated)
+            {
+                var any = Expression.Call(typeof(CosmicQueryRelations), nameof(CosmicQueryRelations.AnyDescendant), null,
+                    parameter, descendant, Expression.Constant(limits.Result));
+                query = Add(query, parameter, Expression.Not(any));
+                continue;
+            }
+            var related=query.WhereAnyDescendant(descendant,limits.Result);
             if(related.IsError)throw new ArgumentException(related.Message);
             query=related.Result;
         }

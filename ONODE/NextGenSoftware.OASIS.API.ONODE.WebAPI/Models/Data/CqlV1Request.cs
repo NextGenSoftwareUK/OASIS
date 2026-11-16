@@ -44,6 +44,8 @@ public sealed class CqlV1Ordering
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed class CqlV1ChildExists
 {
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool Negated { get; set; }
     // Each group requires one visible direct child satisfying its local filters.
     // Separate groups are ANDed and may match different children.
     public CqlV1Filter[] Filters { get; set; } = Array.Empty<CqlV1Filter>();
@@ -53,6 +55,8 @@ public sealed class CqlV1ChildExists
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed class CqlV1DescendantExists
 {
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool Negated { get; set; }
     // Filtering depth/node bounds are independent of response Graph shape.
     public int MaximumDepth { get; set; } = 8;
     public int MaximumNodes { get; set; } = 1000;

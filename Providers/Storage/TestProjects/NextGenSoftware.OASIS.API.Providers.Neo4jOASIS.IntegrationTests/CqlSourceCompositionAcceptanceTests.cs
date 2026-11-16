@@ -1,7 +1,16 @@
+extern alias ShippingWeb4;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Queries;
+using System.Text.Json;
+using CqlCompiler = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql.CqlV1Compiler;
+using CqlRequest = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlV1Request;
+using CqlFilter = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlV1Filter;
+using CqlOperator = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlV1Operator;
+using CqlChild = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlV1ChildExists;
+using CqlDescendant = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlV1DescendantExists;
 
 namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests;
 
@@ -35,6 +44,31 @@ public sealed partial class CqlProjectedAllAcceptanceTests
                 ("private intermediate descendant", secure.WhereAnyChild(child => CosmicQueryRelations.AnyDescendant(child, leaf => leaf.Name == "grandchild one", enough)).Result, 0)
             };
             foreach (var item in cases) await Check(item.Label, item.Query, item.Count);
+
+            await Check("WEB4 NOT EXISTS child present", WireNotExists("visible match", descendant: false), 0);
+            await Check("WEB4 NOT EXISTS child absent", WireNotExists("absent", descendant: false), 1);
+            await Check("WEB4 NOT EXISTS descendant hidden branch", WireNotExists("grandchild one", descendant: true), 1);
+            await Check("WEB4 NOT EXISTS descendant present", WireNotExists("visible match", descendant: true), 0);
+
+            CosmicQuery<Holon> WireNotExists(string name, bool descendant)
+            {
+                static CqlFilter Name(string value) => new()
+                {
+                    Field = "Name", Operator = CqlOperator.Equal, Value = JsonSerializer.SerializeToElement(value)
+                };
+                var request = new CqlRequest
+                {
+                    Filters = new[] { Name("protected source root") },
+                    Take = 1
+                };
+                if (descendant)
+                    request.AnyDescendants = new[] { new CqlDescendant { Negated = true, Filters = new[] { Name(name) } } };
+                else
+                    request.AnyChildren = new[] { new CqlChild { Negated = true, Filters = new[] { Name(name) } } };
+                return CqlCompiler.Compile(request, actor, adapter.QueryProviderType,
+                    CosmicQueryReadAccess.OwnerOrPublic(actor).Result);
+            }
+
 
             var errors = new (string Label, CosmicQuery<Holon> Query)[]
             {
