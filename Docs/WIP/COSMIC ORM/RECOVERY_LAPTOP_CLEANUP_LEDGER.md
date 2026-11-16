@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+15 November Cancun time. The corrected exact COUNT DISTINCT candidate used a disposable Git index, removed at exit. The grouped MongoDB deployment and CI run remotely. No local build outputs, runtimes or database copies were retained.
+
 15 November. COUNT DISTINCT correction and candidate checks used temporary Git indexes and one combined website snapshot, all removed at exit. Fixtures and databases for the initial red were confined to the CI runner. No local runtime, fixtures or outputs were added.
 
 15 November. COUNT DISTINCT compilation and editor testing used a disposable Git index and an isolated frontend snapshot, removed at exit. Native verification runs in GitHub. No local provider fixtures, downloads or build output were retained.
