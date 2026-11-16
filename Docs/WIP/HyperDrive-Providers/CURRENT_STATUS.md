@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-16 UTC — OPORTAL dev advanced from `e83d5af` to `c779bac` at the 01:44 UTC review. All four changed live assets matched the exact Git blobs. Edge opened the public subscription deep link, rendered all five real plans, highlighted Bronze, confirmed Enterprise Contact Sales and recorded exactly one WEB4 catalogue request. The release also includes HyperDrive diagnostics, accurate request metrics, reduced polling and the subscription feedback fix. Signed browser and payment completion remain open. The current WEB4 dev deployment still logs MongoDB quota rejections. Next portal review after 02:15 UTC.
+
 2026-11-16 UTC — OPORTAL `8987d05` pauses HyperDrive background status and metrics polling on My routing and Sync deliveries. A controlled check verified zero background request pairs on these tabs, working manual refresh and one request pair on returning to routing status. Combined portal candidate `c779bac` includes this change and the previously qualified subscription and HyperDrive changes. Live signed acceptance remains open.
 
 2026-11-16 UTC — Reconciled canonical HoloOASIS evidence in the provider matrix. Both same-instance native BootLoader jobs and the exact four-case HoloOASIS/SQLite routing job remain successful. Their integration commits are ancestors of Development 307f52dfc9ae. No accepted tests were rerun. Managed hosted storage and cross-agent acceptance remain open. No local downloads, fixtures or build outputs were created.

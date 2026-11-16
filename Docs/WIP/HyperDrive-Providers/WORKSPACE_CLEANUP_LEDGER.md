@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-16 UTC — The second portal dev release asset probe ran in memory. The public subscription Edge check stopped its browser and removed its temporary profile and uncached websocket-client installation. No test or build files were written to either worktree.
+
 2026-11-16 UTC — HyperDrive polling verification ran in memory. The candidate patch and alternate index were removed. No dependencies or build outputs were created.
 
 2026-11-16 UTC — Provider metric rendering checks ran in memory. Removed the temporary candidate patch and alternate Git index. No downloads, build outputs or test reports were written.
