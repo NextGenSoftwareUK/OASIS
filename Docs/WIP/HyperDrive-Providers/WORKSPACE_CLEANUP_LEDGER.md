@@ -1876,3 +1876,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 2026-11-16 UTC — The corrected native HoloOASIS qualification used a disposable index removed before dispatch. The pinned hApp hash was checked from Git in memory. No local download, build or conductor was started.
 
 2026-11-16 UTC — Removed the regenerated OpenAPI scratch output and the OPORTAL exact release verification archive, directory and Git index. No new CLI installation, dependencies or local build outputs were created.
+
+2026-11-16 UTC — Removed the temporary index after preparing the scoped HoloOASIS/COSMIC candidate. No local build or bundle was generated. C: free space was 20.68 GiB at the review.
