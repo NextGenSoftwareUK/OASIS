@@ -158,7 +158,12 @@ internal sealed partial class MongoCqlTranslator
                     { "sortBy", sort },
                     { "output", new BsonDocument
                     {
-                        { "position", new BsonDocument("$documentNumber", new BsonDocument()) },
+                        // The full sort tuple includes deterministic tie breakers.
+                        { "position", new BsonDocument
+                        {
+                            { "$sum", 1 },
+                            { "window", new BsonDocument("documents", new BsonArray { "unbounded", "current" }) }
+                        } },
                         { "pairCount", new BsonDocument
                         {
                             { "$count", new BsonDocument() },
