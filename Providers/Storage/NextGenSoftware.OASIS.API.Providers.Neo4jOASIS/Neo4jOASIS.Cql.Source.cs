@@ -25,7 +25,8 @@ public partial class Neo4jOASIS
 
     // Row and scalar shapes share the same native ownership/access/membership
     // source. Result shaping must not copy or weaken those predicates.
-    private static NeoCqlSource CompileCqlSource<T>(CosmicQuery<T> query, Dictionary<string,object> sharedParameters=null) where T : IHolon
+    private static NeoCqlSource CompileCqlSource<T>(CosmicQuery<T> query, Dictionary<string,object> sharedParameters=null,
+        bool scopeChildren=false) where T : IHolon
     {
         var translator = sharedParameters==null ? new NeoCqlTranslator(query.ReadAccess)
             : new NeoCqlTranslator("h","p",sharedParameters,query.ReadAccess);
@@ -34,15 +35,21 @@ public partial class Neo4jOASIS
             ? string.Join(" AND ", predicates.Where(item => !HasSourceRelationship(item.Node)).Select(item => item.Sql)) : "true";
         var descendantPredicate = predicates.Any(item => HasSourceRelationship(item.Node))
             ? string.Join(" AND ", predicates.Where(item => HasSourceRelationship(item.Node)).Select(item => item.Sql)) : "true";
+        var carried = scopeChildren ? ",leftInput" : "";
+        var childScope = scopeChildren
+            ? " AND any(parent IN leftInput WHERE parent.valid AND p.f_ParentHolonId=parent.id AND p.f_Id<>parent.id "
+                + "AND (NOT parent.hasChildManifest OR p.f_Id IN parent.childIds))"
+            : "";
         var source = "MATCH (h:Holon) OPTIONAL MATCH (h)-[p:HAS_CQL_PROJECTION]->(h) "
-            + "WITH h,collect(p) AS projections WITH h,head(projections) AS p,size(projections)=1 AS uniqueProjection "
-            + "WITH h,p,coalesce(uniqueProjection AND p.SchemaVersion=$schema AND p.f_Id=toLower(h.Id) AND p.f_HasChildManifest IN [true,false] AND p.f_ChildIds IS NOT NULL AND h.SnapshotJson IS NOT NULL "
+            + "WITH h,collect(p) AS projections" + carried
+            + " WITH h,head(projections) AS p,size(projections)=1 AS uniqueProjection" + carried
+            + " WITH h,p" + carried + ",coalesce(uniqueProjection AND p.SchemaVersion=$schema AND p.f_Id=toLower(h.Id) AND p.f_HasChildManifest IN [true,false] AND p.f_ChildIds IS NOT NULL AND h.SnapshotJson IS NOT NULL "
             + "AND coalesce(p.ProviderRevisionId,'')=coalesce(h.ProviderRevisionId,''),false) AS valid ";
         if(!translator.Parameters.ContainsKey("schema"))translator.Parameters.Add("schema", NeoCqlProjection.SchemaVersion);
         return new NeoCqlSource
         {
             Translator = translator, Source = source, DescendantPredicate = descendantPredicate,
-            EligibleSource = source + "WHERE valid AND (" + parentPredicate + ") WITH h,p " + string.Concat(translator.TraversalClauses)
+            EligibleSource = source + "WHERE valid AND (" + parentPredicate + ")" + childScope + " WITH h,p " + string.Concat(translator.TraversalClauses)
                 + "WITH h,p" + string.Concat(translator.TraversalStates.Select(state => "," + state)) + " ",
             Cycle = translator.TraversalCycles.Count == 0 ? "false" : "(" + string.Join(" OR ", translator.TraversalCycles) + ")",
             TraversalLimit = translator.TraversalLimits.Count == 0 ? "false" : "(" + string.Join(" OR ", translator.TraversalLimits) + ")"

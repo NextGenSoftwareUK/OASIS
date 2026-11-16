@@ -10,23 +10,22 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests;
 
 public sealed partial class CqlProjectedAllAcceptanceTests
 {
-    private static async Task VerifyChildSource(SqliteProvider provider, Guid actor, Guid parentId, Guid childId,
+    private static async Task VerifyChildSource(ICosmicQueryJoinStorageProvider provider, Guid actor, Guid parentId, Guid childId,
         List<object> checks)
     {
-        var native = (ICosmicQueryJoinStorageProvider)provider;
-        var scope = CosmicQueryScope.Named(native.QueryProviderType).Result;
-        var source = CosmicQuery<Holon>.Create(scope).WithReadAccess(CosmicQueryReadAccess.OwnerOrPublic(actor).Result);
+        var scope = CosmicQueryScope.Named(provider.QueryProviderType).Result;
+        var source = CosmicQuery<Holon>.Create(scope).WithReadAccess(CosmicQueryReadAccess.OwnerOrPublic(actor).Result).Result;
         var parents = source.Where(row => row.Id == parentId).Take(1).Result;
         var options = CosmicJoinOptions.Create(maximumLeftRows: 1, maximumRightRows: 1).Result;
         var joined = parents.JoinChildren(source, options).Select((parent, child) => child.Id);
         Assert.IsFalse(joined.IsError, joined.Message);
-        var plan = CosmicJoinPlanner.Plan(joined.Result, native.QueryProviderType,
-            new[] { new CosmicJoinTarget(native.QueryProviderType, native.QueryCapabilities, native.JoinCapabilities) });
+        var plan = CosmicJoinPlanner.Plan(joined.Result, provider.QueryProviderType,
+            new[] { new CosmicJoinTarget(provider.QueryProviderType, provider.QueryCapabilities, provider.JoinCapabilities) });
         Assert.IsFalse(plan.IsError, plan.Message);
-        var rows = await NativeManager(provider).ExecuteJoinQueryAsync(plan.Result, new[] { native });
+        var rows = await NativeManager(provider).ExecuteJoinQueryAsync(plan.Result, new[] { provider });
         Assert.IsFalse(rows.IsError, rows.Message + rows.Exception);
         Assert.AreEqual(childId, rows.Result.Providers.Single().Rows.Single().Value);
-        checks.Add(new { provider = "SQLLiteDBOASIS", linq = "scoped child input before native budget" });
+        checks.Add(new { provider = provider.QueryProviderType.ToString(), linq = "scoped child input before native budget" });
     }
 
     [TestMethod]

@@ -80,7 +80,8 @@ public partial class Neo4jOASIS
                 query.Join.Keys.Select(key => (isLeft ? key.Left : key.Right).ValueType).ToArray(),
                 query.Columns.Where(column => column.Source == (isLeft ? CosmicJoinColumnSource.Left : CosmicJoinColumnSource.Right))
                     .Select(column => column.Path.ValueType).ToArray(),
-                intent.Orderings.Select(item => item.Path.ValueType).ToArray(), ref bytes, maximumBytes);
+                intent.Orderings.Select(item => item.Path.ValueType).ToArray(), ref bytes, maximumBytes,
+                includeNativeByteFloor:isLeft && query.Join.RestrictsRightToLeftParents);
 
         private static void Observe(long count,int actual,int maximum,ref long observed)
         {

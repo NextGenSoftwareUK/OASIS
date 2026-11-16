@@ -56,10 +56,16 @@ public partial class Neo4jOASIS
                 + "RETURN size(leftInput) AS li,ri ORDER BY ri ASC LIMIT " + pairLimit
                 + " } RETURN li,ri ORDER BY li ASC,ri ASC LIMIT " + pairLimit;
         }
+        var navigation=query.Join.RestrictsRightToLeftParents;
+        var import=navigation ? "WITH leftInput " : "";
+        var leftProof=navigation
+            ? "WITH leftInput,li,leftInput[li] AS entry RETURN 0 AS kind,li AS lp,-1 AS rp,"
+                +"entry{.id,.visible,.creator,.valid,.domainValid,.cycle,.traversalLimit,.payloadLimit,.bytes,.keys,.values,.ordering}"
+                +" AS proof,size(leftInput) AS nativeCount "
+            : "RETURN 0 AS kind,li AS lp,-1 AS rp,leftInput[li] AS proof,size(leftInput) AS nativeCount ";
         var text="CALL { CALL { "+left+" } RETURN collect(input) AS leftInput } "
-            +"CALL { CALL { "+right+" } RETURN collect(input) AS rightInput } WITH leftInput,rightInput "
-            +"CALL { WITH leftInput,rightInput UNWIND range(0,size(leftInput)-1) AS li "
-            +"RETURN 0 AS kind,li AS lp,-1 AS rp,leftInput[li] AS proof,size(leftInput) AS nativeCount "
+            +"CALL { "+import+"CALL { "+import+right+" } RETURN collect(input) AS rightInput } WITH leftInput,rightInput "
+            +"CALL { WITH leftInput,rightInput UNWIND range(0,size(leftInput)-1) AS li "+leftProof
             +"UNION ALL WITH leftInput,rightInput UNWIND range(0,size(rightInput)-1) AS ri "
             +"RETURN 1 AS kind,-1 AS lp,ri AS rp,rightInput[ri] AS proof,size(rightInput) AS nativeCount "
             +"UNION ALL WITH leftInput,rightInput WITH leftInput,rightInput WHERE "+valid+" "
@@ -74,6 +80,8 @@ public partial class Neo4jOASIS
             => CompileCqlDetachedSource(source, parameters,
                 query.Join.Keys.Select(key => isLeft ? key.Left : key.Right).ToArray(),
                 query.Columns.Where(column => column.Source == (isLeft ? CosmicJoinColumnSource.Left : CosmicJoinColumnSource.Right))
-                    .Select(column => column.Path).ToArray(), maximumRows, maximumBytes);
+                    .Select(column => column.Path).ToArray(), maximumRows, maximumBytes,
+                scopeChildren: !isLeft && query.Join.RestrictsRightToLeftParents,
+                includeChildMembership: isLeft && query.Join.RestrictsRightToLeftParents);
     }
 }

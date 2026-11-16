@@ -12,9 +12,12 @@ public partial class Neo4jOASIS
     // One detached source owner for joins and selected-result composition.
     private static string CompileCqlDetachedSource<T>(CosmicQuery<T> source,
         Dictionary<string, object> parameters, IReadOnlyList<CosmicQueryPath> keyPaths,
-        IReadOnlyList<CosmicQueryPath> valuePaths, int maximumRows, int maximumBytes, CosmicEntityCompositionPlan<T> entity=null) where T : IHolon
+        IReadOnlyList<CosmicQueryPath> valuePaths, int maximumRows, int maximumBytes, CosmicEntityCompositionPlan<T> entity=null,
+        bool scopeChildren=false, bool includeChildMembership=false) where T : IHolon
         {
-            var compiled=CompileCqlSource(source,parameters);var translator=compiled.Translator;
+            var compiled=CompileCqlSource(source,parameters,scopeChildren);var translator=compiled.Translator;
+            var import=scopeChildren ? "WITH leftInput " : "";
+
             var cells=new List<(string State,string Value)>();var invalid=new List<string>();
             var keys=new List<string>();var values=new List<string>();var order=new List<string>();
             foreach(var path in keyPaths) keys.Add(Cell(path,false));
@@ -34,8 +37,15 @@ public partial class Neo4jOASIS
                 +string.Concat(cells.Select((_,index)=>"+CASE WHEN jv"+index+" IS NOT NULL AND jv"+index+" IS :: STRING THEN size(jv"+index+") ELSE 16 END"));
             var fetch=source.Limit.HasValue?Math.Min(source.Limit.Value,maximumRows+1):maximumRows+1;
             var take=translator.Bind(fetch);var offset=translator.Bind(source.Offset);var byteLimit=translator.Bind(maximumBytes);
+            if(includeChildMembership)
+            {
+                bytes += "+size(p.f_ChildIds)*36";
+            }
+            var membership=includeChildMembership
+                ? ",hasChildManifest:p.f_HasChildManifest,childIds:CASE WHEN joinBytes>"+byteLimit+" THEN [] ELSE p.f_ChildIds END"
+                : "";
             var empty="{id:h.Id,visible:false,creator:null,valid:false,domainValid:false,cycle:false,traversalLimit:false,payloadLimit:false,bytes:0,keys:[],values:[],ordering:[]}";
-            var traversalError=translator.TraversalClauses.Count==0?"":" UNION ALL "+compiled.EligibleSource
+            var traversalError=translator.TraversalClauses.Count==0?"":" UNION ALL "+import+compiled.EligibleSource
                 +"WHERE "+compiled.Cycle+" OR "+compiled.TraversalLimit
                 +" RETURN {id:h.Id,visible:false,creator:null,valid:false,domainValid:false,cycle:"+compiled.Cycle
                 +",traversalLimit:"+compiled.TraversalLimit+",payloadLimit:false,bytes:0,keys:[],values:[],ordering:[]} AS input"+emptySort+" LIMIT 1";
@@ -60,8 +70,8 @@ public partial class Neo4jOASIS
                     +"WITH item.h AS h,item.p AS p,position WITH h,p,position"+nativeCells+" WITH h,p,position"+returnedCells
                     +","+bytes+" AS joinBytes WITH "+map+" AS input,position ORDER BY position RETURN collect(input) AS input } RETURN input,entityProofs";
             }
-            return "CALL { "+compiled.Source+"WHERE NOT valid RETURN "+empty+" AS input"+emptySort+" LIMIT 1"
-                +traversalError+" UNION ALL "+compiled.EligibleSource
+            return "CALL { "+import+compiled.Source+"WHERE NOT valid RETURN "+empty+" AS input"+emptySort+" LIMIT 1"
+                +traversalError+" UNION ALL "+import+compiled.EligibleSource
                 +"WHERE ("+compiled.DescendantPredicate+") AND NOT("+compiled.Cycle+" OR "+compiled.TraversalLimit+") "
                 +"WITH h,p"+sortValues+" ORDER BY "+sourceOrder+" SKIP "+offset+" LIMIT "+take+" "
                 +"WITH h,p"+returned+nativeCells+" WITH h,p"+returned+returnedCells+","+bytes+" AS joinBytes "
@@ -70,7 +80,7 @@ public partial class Neo4jOASIS
                 +"),cycle:false,traversalLimit:false,payloadLimit:joinBytes>"+byteLimit+",bytes:joinBytes,"
                 +"keys:CASE WHEN joinBytes>"+byteLimit+" THEN [] ELSE ["+string.Join(",",keys)+"] END,"
                 +"values:CASE WHEN joinBytes>"+byteLimit+" THEN [] ELSE ["+string.Join(",",values)+"] END,"
-                +"ordering:CASE WHEN joinBytes>"+byteLimit+" THEN [] ELSE ["+string.Join(",",order)+"] END} AS input"+returned
+                +"ordering:CASE WHEN joinBytes>"+byteLimit+" THEN [] ELSE ["+string.Join(",",order)+"] END"+membership+"} AS input"+returned
                 +" } RETURN input ORDER BY "+outputOrder;
 
             string Cell(CosmicQueryPath path,bool ordering)
