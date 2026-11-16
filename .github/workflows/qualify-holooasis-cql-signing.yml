@@ -56,6 +56,7 @@ jobs:
         env:
           OASIS_CQL_HOLOOASIS_LINUX: '1'
           OASIS_CQL_HOLOOASIS_MANAGED_NATIVE: '1'
+          OASIS_CQL_HOLOOASIS_LEGACY_INTERFACES: ${{ startsWith(github.ref_name, 'ci-cosmic-holooasis-managed-legacy-interfaces-') && '1' || '0' }}
           HOLONET_CONDUCTOR_FOLDER: ${{ runner.temp }}/oasis-holonet-tools
         run: |
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner holooasis-cql-ci -Operation {

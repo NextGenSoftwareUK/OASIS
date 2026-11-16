@@ -82,6 +82,7 @@ public sealed class CqlHoloOasisDevelopmentConductorTests
         var hosted = Assert.IsType<HoloOasisDevelopmentConductor>(
             HoloOasisDevelopmentConductor.CreateIfEnabled(configuration));
         var managed = Environment.GetEnvironmentVariable("OASIS_CQL_HOLOOASIS_MANAGED_NATIVE") == "1";
+        var legacyInterfaces = Environment.GetEnvironmentVariable("OASIS_CQL_HOLOOASIS_LEGACY_INTERFACES") == "1" ? 134 : 0;
         (string Dna, string Agent) originalCell = default;
         await hosted.StartAsync(default);
         try
@@ -101,14 +102,24 @@ public sealed class CqlHoloOasisDevelopmentConductorTests
                 Assert.True(connection.IsConnected && !connection.IsError);
                 var listed = await inspector.ListAppsAsync(AppStatusFilter.All);
                 Assert.False(listed.IsError);
+                if (managed)
+                {
+                    originalCell = await VerifyManagedReaderAsync(hosted, configuration, ids);
+                    // Old releases attached unscoped listeners that persist in conductor state.
+                    for (var index = 0; index < legacyInterfaces; index++)
+                    {
+                        var attached = await inspector.AttachAppInterfaceAsync().WaitAsync(TimeSpan.FromSeconds(5));
+                        Assert.False(attached.IsError, attached.Message);
+                    }
+                    var persisted = await inspector.ListInterfacesAsync();
+                    Assert.False(persisted.IsError, persisted.Message);
+                    Assert.Equal(legacyInterfaces + 1, persisted.AppInterfaces.Count());
+                }
             }
             finally
             {
                 await inspector.DisconnectAsync();
             }
-
-            if (managed)
-                originalCell = await VerifyManagedReaderAsync(hosted, configuration, ids);
         }
         finally
         {
@@ -130,11 +141,11 @@ public sealed class CqlHoloOasisDevelopmentConductorTests
             {
                 await hosted.StopAsync();
             }
-            await VerifyManagedBootLoaderAsync(configuration, ids);
+            await VerifyManagedBootLoaderAsync(configuration, ids, legacyInterfaces);
         }
     }
 
-    private static async Task VerifyManagedBootLoaderAsync(IConfiguration configuration, Guid[] ids)
+    private static async Task VerifyManagedBootLoaderAsync(IConfiguration configuration, Guid[] ids, int legacyInterfaces)
     {
         configuration["CQL_HOLOOASIS_LOCAL_DEMO:UseBootLoader"] = "true";
         var hosted = Assert.IsType<HoloOasisDevelopmentConductor>(
@@ -175,7 +186,8 @@ public sealed class CqlHoloOasisDevelopmentConductorTests
                 Assert.True(connected.IsConnected && !connected.IsError);
                 var interfaces = await inspector.ListInterfacesAsync();
                 Assert.False(interfaces.IsError, interfaces.Message);
-                Assert.Equal(CanonicalHoloOasis.OASIS_HAPP_ID, Assert.Single(interfaces.AppInterfaces).InstalledAppId);
+                Assert.Equal(legacyInterfaces + 1, interfaces.AppInterfaces.Count());
+                Assert.Single(interfaces.AppInterfaces.Where(item => item.InstalledAppId == CanonicalHoloOasis.OASIS_HAPP_ID));
             }
             finally
             {
