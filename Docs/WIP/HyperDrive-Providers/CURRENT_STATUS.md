@@ -2925,3 +2925,5 @@ Performance follow-up. WEB4 wallet summary is implemented on the task branch and
 2026-11-16 UTC — Started exact refresh/MFA WEB4 build 43819686961 on 8c192a2f628e after the shared workflow cleared. Removed 2,220 post-recovery legacy Atlas reports only after verifying each state exists in a current keyed row. All 260 current keyed rows were still present. The exact native build and MFA regression remain in flight.
 
 2026-11-16 UTC — Exact Development-rebased native refresh and MFA regression passed, 1/1 without skips. The healthy hosted Atlas cutover revision passed sign-in and signed subscription reads with test avatar cleanup. The separate authentication image 43819686961 and hosted failure qualification remain open.
+
+2026-11-16 UTC — Published current Development refresh candidate 9fb52e18bbce / Core 1b3cb05f97b5 while prior WEB4 image 43819686961 remained active. Dev Neo4j contains four Avatar nodes and dev SQLite has persistent storage. Production Neo4j points at loopback and its SQLite configuration has no persistent volume. Logged the dev-only credential rotation coordination action without recording credential values.

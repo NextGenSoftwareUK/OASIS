@@ -761,3 +761,9 @@ Status: missing account/configuration information,2 November2026. David approved
 - **Status (2026-11-16 UTC)** Resolved for immediate write recovery. David authorized clearing test data. Removed 531,679 derived reconciliation reports, rebuilt the existing indexes, and verified WEB4 registration, verification, authentication, signed portal reads and cleanup. Report growth prevention is engineering work.
 - **David action** Complete. No immediate storage upgrade was needed for the measured recovery.
 - **Reason** The quota blocks disposable sandbox avatar creation and other MongoDB writes. Engineering will verify sandbox sign-in, subscriptions and HyperDrive after capacity is restored. [WEB4 dev deployment](https://railway.com/) · [Current status](../HyperDrive-Providers/CURRENT_STATUS.md)
+
+### Coordinate Railway dev Neo4j credential rotation
+
+- **Status (2026-11-16 UTC)** Open. A dev Neo4j credential appeared in diagnostic output. The same value is configured on the private dev Neo4j service and all seven dev WEB API DNA values. No matching value was found in the inspected production or staging service variables.
+- **David action** Confirm a dev maintenance window, or approve staging a replacement credential and rolling the seven services. Engineering owns rotation, credential verification and revocation of the old credential. The window coordinates active COSMIC/CQL tests and Railway redeployments.
+- **Context** [Atlas storage and sign-in incident](../HyperDrive-Providers/ATLAS_STORAGE_AND_LOGIN_INCIDENT.md).
