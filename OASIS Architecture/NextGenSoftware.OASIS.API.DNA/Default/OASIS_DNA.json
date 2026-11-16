@@ -128,7 +128,7 @@
       "AutoReplicationProviders": "MongoDBOASIS, ArbitrumOASIS, PolygonOASIS, RootstockOASIS, LocalFileOASIS, SQLLiteDBOASIS, Neo4jOASIS, IPFSOASIS, PinataOASIS, HoloOASIS, SolanaOASIS, TelosOASIS, EOSIOOASIS, EthereumOASIS, ThreeFoldOASIS",
       "AutoLoadBalanceProviders": "MongoDBOASIS, ArbitrumOASIS, PolygonOASIS, RootstockOASIS, LocalFileOASIS, SQLLiteDBOASIS, Neo4jOASIS, IPFSOASIS, PinataOASIS, HoloOASIS, SolanaOASIS, TelosOASIS, EOSIOOASIS, EthereumOASIS, ThreeFoldOASIS",
       "AutoFailOverProviders": "MongoDBOASIS, ArbitrumOASIS, LocalFileOASIS, SQLLiteDBOASIS, Neo4jOASIS, IPFSOASIS, PinataOASIS, HoloOASIS, SolanaOASIS, TelosOASIS, EOSIOOASIS, EthereumOASIS, ThreeFoldOASIS",
-      "AutoFailOverProvidersForAvatarLogin": "MongoDBOASIS",
+      "AutoFailOverProvidersForAvatarLogin": "MongoDBOASIS, Neo4jOASIS, SQLLiteDBOASIS",
       "AutoFailOverProvidersForCheckIfEmailAlreadyInUse": "MongoDBOASIS",
       "AutoFailOverProvidersForCheckIfUsernameAlreadyInUse": "MongoDBOASIS",
       "AutoFailOverProvidersForCheckIfOASISSystemAccountExists": "MongoDBOASIS",

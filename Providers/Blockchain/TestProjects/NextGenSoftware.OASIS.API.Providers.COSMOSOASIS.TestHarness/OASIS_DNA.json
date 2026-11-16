@@ -96,6 +96,7 @@
       "AutoLoadBalanceWritePollIntervalMins": "10",
       "AutoReplicationProviders": "MongoDBOASIS, SQLLiteDBOASIS, Neo4jOASIS, IPFSOASIS, HoloOASIS, TelosOASIS, EOSIOOASIS, EthereumOASIS, ThreeFoldOASIS",
       "AutoFailOverProviders": "MongoDBOASIS, SQLLiteDBOASIS, Neo4jOASIS, IPFSOASIS, HoloOASIS, TelosOASIS, EOSIOOASIS, EthereumOASIS, ThreeFoldOASIS",
+      "AutoFailOverProvidersForAvatarLogin": "MongoDBOASIS, Neo4jOASIS, SQLLiteDBOASIS",
       "AutoLoadBalanceProviders": "MongoDBOASIS, SQLLiteDBOASIS, Neo4jOASIS, IPFSOASIS, HoloOASIS, TelosOASIS, EOSIOOASIS, EthereumOASIS, ThreeFoldOASIS",
 
       //Can be:

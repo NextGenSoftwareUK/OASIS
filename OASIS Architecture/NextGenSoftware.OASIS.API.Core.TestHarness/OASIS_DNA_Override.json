@@ -19,6 +19,7 @@
       //"DefaultProviders": "MongoDBOASIS, SQLLiteDBOASIS, Neo4JOASIS, IPFSOASIS, HoloOASIS, EOSIOOASIS, EthereumOASIS, ThreeFoldOASIS",
       "AutoReplicationProviders": "MongoDBOASIS, SQLLiteDBOASIS, Neo4jOASIS, IPFSOASIS, HoloOASIS, EOSIOOASIS, EthereumOASIS, ThreeFoldOASIS",
       "AutoFailOverProviders": "MongoDBOASIS, SQLLiteDBOASIS, Neo4jOASIS, IPFSOASIS, HoloOASIS, EOSIOOASIS, EthereumOASIS, ThreeFoldOASIS",
+      "AutoFailOverProvidersForAvatarLogin": "MongoDBOASIS, Neo4jOASIS, SQLLiteDBOASIS",
       "AutoLoadBalanceProviders": "MongoDBOASIS, SQLLiteDBOASIS, Neo4jOASIS, IPFSOASIS, HoloOASIS, EOSIOOASIS, EthereumOASIS, ThreeFoldOASIS",
 
       "HoloOASIS": {
