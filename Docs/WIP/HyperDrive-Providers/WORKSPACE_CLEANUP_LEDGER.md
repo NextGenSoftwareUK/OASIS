@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-16 UTC — Holochain package CI 43978166317 passed its encrypted rehearsal and uploaded artifact 14282211467, 5,886,655-byte ZIP with one-day retention. In-memory verification confirmed its archive digest and the 19,647,896-byte Linux x64 maintenance binary SHA-256 c7a88aba5e916e63aee4f66c4d6201615b08309024da80ddaa93ab531baee5bc. No local file was written. The direct specimen transfer-and-run command was rejected by execution policy before launch, so it created no remote temporary file. Plain system SSH accepted a harmless stdin probe. Retire the artifact and qualification tag after use. Temporary Git indexes were removed by the candidate composer.
+
 2026-11-16 UTC — Confirmed that the previously blocked 6.38 GiB Visual Studio installer staging path is now absent. The generated HyperDrive build path remains absent. C: reported 21.83 GiB free, with cleanup performed outside this task. Combined visibility qualification built on GitHub and did not create a local build or database. CI logs were read in memory.
 
 2026-11-16 UTC — Follow-up check: C: reported 13.78 GiB free. The generated HyperDrive probe build path is now absent, with removal performed outside this task. The 6.38 GiB Visual Studio installer staging folder still exists. No worktree was removed.
