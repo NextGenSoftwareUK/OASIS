@@ -1,9 +1,15 @@
+extern alias ShippingWeb4;
 using System.Text.Json;
 using Microsoft.Data.Sqlite;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Queries;
+using CqlCompiler = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql.CqlV1Compiler;
+using CqlJoinRequest = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlJoinV1Request;
+using CqlJoinColumn = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlJoinV1Column;
+using CqlJoinFilter = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlV1Filter;
+using CqlJoinOperator = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlV1Operator;
 using SqliteProvider=NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.SQLLiteDBOASIS;
 
 namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests;
@@ -49,6 +55,23 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         var filteredProjection = await projectedFilter.ToCosmicListAsync();
         Assert.IsFalse(filteredProjection.IsError, filteredProjection.Message + filteredProjection.Exception);
         Assert.AreEqual(childId, filteredProjection.Result.Single());
+        var request = new CqlJoinRequest
+        {
+            Kind = "Child",
+            Left = new() { Take = 1, Filters = new[] {
+                new CqlJoinFilter { Field = "Id", Operator = CqlJoinOperator.Equal,
+                    Value = JsonSerializer.SerializeToElement(parentId) } } },
+            MaximumLeftRows = 1, MaximumRightRows = 1,
+            Columns = new[] { new CqlJoinColumn { Alias = "ChildId", Source = "Right", Selection = new() { Field = "Id" } } }
+        };
+        var wire = CqlCompiler.CompileJoin(request, actor, provider.QueryProviderType, CosmicQueryReadAccess.OwnerOrPublic(actor).Result);
+        Assert.IsTrue(wire.Join.RestrictsRightToLeftParents);
+        var wirePlan = CosmicJoinPlanner.Plan(wire, provider.QueryProviderType,
+            new[] { new CosmicJoinTarget(provider.QueryProviderType, provider.QueryCapabilities, provider.JoinCapabilities) });
+        Assert.IsFalse(wirePlan.IsError, wirePlan.Message);
+        var wireRows = await NativeManager(provider).ExecuteJoinQueryAsync(wirePlan.Result, new[] { provider });
+        Assert.IsFalse(wireRows.IsError, wireRows.Message + wireRows.Exception);
+        Assert.AreEqual(childId, (Guid)wireRows.Result.Providers.Single().Rows.Single().Value["ChildId"]);
         checks.Add(new { provider = provider.QueryProviderType.ToString(), linq = "scoped child input before native budget" });
     }
 
