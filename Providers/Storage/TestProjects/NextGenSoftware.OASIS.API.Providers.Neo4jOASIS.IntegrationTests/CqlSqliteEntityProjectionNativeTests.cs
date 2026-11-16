@@ -252,6 +252,16 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         {
             Field = "Id", Operator = CqlJoinOperator.In, Scalar = "Guid", Value = JsonSerializer.SerializeToElement(selectedIds)
         };
+        var byVersion = leftRows.SelectMany(l => rightRows.Where(r => r.Version >= l.Version),
+            (l, r) => new { r.Id, r.Name });
+        var nativeVersionPage = await byVersion.OrderBy(r => r.Name).Skip(1).Take(1).ToCosmicListAsync();
+        Assert.IsFalse(nativeVersionPage.IsError, nativeVersionPage.Message + nativeVersionPage.Exception);
+        Assert.AreEqual(ids[0], nativeVersionPage.Result.Single().Id);
+        var strictVersion = leftRows.SelectMany(l => rightRows.Where(r => l.Version < r.Version),
+            (l, r) => r.Id);
+        var noStrictMatches = await strictVersion.ToCosmicListAsync();
+        Assert.IsFalse(noStrictMatches.IsError, noStrictMatches.Message + noStrictMatches.Exception);
+        Assert.AreEqual(0, noStrictMatches.Result.Count);
         checks.Add(new { provider = provider.QueryProviderType.ToString(), join = "native selected output ordering" });
     }
 
