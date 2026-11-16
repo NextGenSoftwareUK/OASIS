@@ -6873,3 +6873,5 @@ Web4Site 5fa63a71df5d used a temporary directory containing only committed websi
 - The current SQL-like Run CQL test run used existing Node and transient copies of the committed Web4Site HTML and scripts. The temporary directory was removed after the 109 focused tests and branch push. Native qualification runs on CI; no local provider database or build output was created.
 
 - Full Web4Site d41989013528 client suite: 190 passed using the installed Node runtime and temporary copies of committed HTML, scripts and tests. The temporary snapshot was removed. No package installation, local API build or database fixture was created.
+
+15 November Cancun time. The read-only Atlas quota probe used the existing .NET SDK and cached MongoDB driver. The COSMIC Atlas probe temporary project, build and restore outputs were removed automatically through the owned temporary-directory scope after the process exited. No persistent results, database copies or new environment were created.
