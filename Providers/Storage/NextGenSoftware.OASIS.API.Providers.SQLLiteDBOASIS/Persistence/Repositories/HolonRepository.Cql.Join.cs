@@ -93,10 +93,38 @@ public partial class HolonRepository
                         }
                     }
                     Check();
+                    var children = plan.Query.SelectsChildEntity
+                        ? await ReadMatchedChildren(rows, bytes).ConfigureAwait(false)
+                        : null;
                     var packet = new CosmicJoinPacket(left.Rows.Values.ToArray(), right.Rows.Values.ToArray(), rows.ToArray(),
-                        left.Count, right.Count, pairCount);
+                        left.Count, right.Count, pairCount, children);
                     transaction?.Commit(); Check();
                     return new OASISResult<CosmicJoinPacket>(packet) { IsLoaded = true };
+
+                    async Task<IHolon[]> ReadMatchedChildren(IReadOnlyList<CosmicJoinRow> pairs, long measured)
+                    {
+                        if (pairs.Count == 0)
+                            return Array.Empty<IHolon>();
+                        var identities = pairs.Select(pair => pair.RightId ?? throw new InvalidDataException(
+                            "A whole-child result must have a native right identity.")).ToArray();
+                        var byId = new Dictionary<Guid, IHolon>(identities.Length);
+                        var storageKeys = identities.Select(id => id.ToString()).ToArray();
+                        var records = _dbContext.Holons.AsNoTracking()
+                            .Where(row => storageKeys.Contains(EF.Functions.Collate(row.Id, "NOCASE")));
+                        await foreach (var record in records.AsAsyncEnumerable().WithCancellation(cancellationToken).ConfigureAwait(false))
+                        {
+                            Check();
+                            measured = checked(measured + CqlRecordSize(record));
+                            if (measured > limits.MaximumPayloadBytes)
+                                throw new SqliteCqlResourceException("Native joined child entities exceed the output byte budget.");
+                            var child = GetHolonFromEntity(record);
+                            byId.Add(child.Id, child);
+                        }
+                        Check();
+                        if (byId.Count != identities.Length)
+                            throw new InvalidDataException("Native child entities do not match the joined identities.");
+                        return identities.Select(id => byId[id]).ToArray();
+                    }
 
                     void Check() { budget.Check(); traversal?.Check(); }
 
