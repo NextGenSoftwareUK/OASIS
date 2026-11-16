@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Sockets;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.Holochain.HoloNET.Client;
 using NextGenSoftware.OASIS.Providers.TestSupport;
 using Xunit;
@@ -86,7 +87,7 @@ public sealed class HoloNativeRoutingTests
         var admin = new Uri(Required("OASIS_HOLOCHAIN_ADMIN_URI"));
         Assert.True(admin.IsLoopback);
         var holo = OpenProvider(admin);
-        var holon = new Holon { Id = Guid.NewGuid(), Name = "action-hash fixture", CreatedByAvatarId = Guid.NewGuid() };
+        var holon = new Holon { Id = Guid.NewGuid(), Name = $"action-hash fixture {Guid.NewGuid():N}", CreatedByAvatarId = Guid.NewGuid() };
         try
         {
             var active = await holo.ActivateProviderAsync();
@@ -107,6 +108,18 @@ public sealed class HoloNativeRoutingTests
                 Assert.True(!loaded.IsError && loaded.IsLoaded, loaded.Message);
                 Assert.Equal(holon.Id, loaded.Result.Id);
                 Assert.Equal(holon.Name, loaded.Result.Name);
+
+                var group = new SearchTextGroup { SearchHolons = true, HolonType = HolonType.All, SearchQuery = holon.Name };
+                var search = new SearchParams { SearchOnlyForCurrentAvatar = false, SearchGroups = new List<ISearchGroupBase> { group } };
+                var found = sync ? holo.Search(search, loadChildren: false) : await holo.SearchAsync(search, loadChildren: false);
+                Assert.True(!found.IsError && found.IsLoaded, found.Message);
+                Assert.Equal(holon.Id, Assert.Single(found.Result.SearchResultHolons).Id);
+                Assert.Empty(found.Result.SearchResultAvatars);
+
+                group.SearchQuery = $"absent {Guid.NewGuid():N}";
+                var absent = sync ? holo.Search(search, loadChildren: false) : await holo.SearchAsync(search, loadChildren: false);
+                Assert.True(!absent.IsError && absent.IsLoaded, absent.Message);
+                Assert.Empty(absent.Result.SearchResultHolons);
             }
             finally
             {
