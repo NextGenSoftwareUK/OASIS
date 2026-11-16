@@ -1894,3 +1894,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 2026-11-16 UTC — All three signed My routing probes self-deleted their disposable avatars and removed their protected session directories and owned Chrome profiles. The final probe restored and verified the original per-avatar preference before deletion. No global settings, query results, screenshots or local build output were retained.
 
 2026-11-16 UTC — Removed the scoped routing/COSMIC candidate index. No build or package output was written locally.
+
+2026-11-16 UTC — Removed the combined map routing and Core candidate index and temporary manifest immediately after writing the Git tree. The pin validation streamed committed files without writing Python bytecode. No local build or provider fixtures were created.
