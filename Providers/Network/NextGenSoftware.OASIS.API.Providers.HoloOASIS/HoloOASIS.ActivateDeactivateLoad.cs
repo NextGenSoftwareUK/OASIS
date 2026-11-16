@@ -359,7 +359,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
             try
             {
-                var response = await HoloNETClientAppAgent.CallZomeFunctionAsync("oasis", function, null, typeof(TEntry));
+                var response = await HoloNETClientAppAgent.CallZomeFunctionAsync("oasis", function, paramsObject: null,
+                    entryDataObjectTypeReturnedFromZome: typeof(TEntry));
                 if (response == null || response.IsError || response.Records == null)
                 {
                     OASISErrorHandling.HandleError(ref result, response?.Message ?? $"No records response from Holochain {function}.");
