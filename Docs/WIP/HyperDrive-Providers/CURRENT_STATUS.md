@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-16 UTC — OPORTAL task commit `6cc7910` resets the HyperDrive overview on open, ignores responses from previous sessions, renders status independently of optional metrics, and gives an explicit Refresh cue for failed status requests. A controlled in-memory check passed for status-first and metrics-first ordering, stale responses after reopening, and WEB4 error feedback. It created no disposable files or build outputs. The change is pushed to the portal task branch. Browser acceptance and deployment remain open.
+
 2026-11-16 UTC — OPORTAL task commit `a044a6b` moves the Developer Portal HTML fetch to the first open. Dev candidates are `7e53f68d` with Celestial Map and `8a002251` with Celestial Map and wallet changes. Deployment and browser deep-link/Back checks remain open.
 
 15 November Cancun time. OPORTAL c1d6e16 loads real Celestial Spaces and Bodies with the signed WEB5 SDK and displays each service error independently. The real sandbox returned zero spaces and bodies with one HTTP 200 GET each. The map uses the returned parent relationship and shows unassigned bodies together. Both portal menus link to it. Candidates 83e4fcb808dd and 3b4455c0521e stage the map alone and with the pending wallet batch. Populated browser verification remains open. The current COSMIC exact image was still active and Development remained 048433666dff at the last check.
