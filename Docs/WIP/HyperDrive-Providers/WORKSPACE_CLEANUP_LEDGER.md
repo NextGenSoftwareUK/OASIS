@@ -1868,3 +1868,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 2026-11-16 UTC — All three combined OPORTAL early-navigation probes removed their disposable signed avatars, protected session directories and owned Chrome profiles. The first two were diagnostic attempts. No downloads, HTTP payloads, screenshots or local build outputs were retained.
 
 2026-11-16 UTC — Removed both OPORTAL deadline regression archives, their scratch directories and the dev candidate index. No local build, download or test fixture was retained.
+
+2026-11-16 UTC — All four scoped deadline browser probes removed their disposable avatars by acknowledged WEB4 self-delete, then removed the protected session directories and owned profiles. No response payloads, exported source files or local build output were retained.
