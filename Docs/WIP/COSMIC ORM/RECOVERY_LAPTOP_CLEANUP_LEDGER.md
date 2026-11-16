@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+16 November UTC. The live predicate-free relationship test removed all 15 fixture records and verified absence. Its append journal and the joined-order website test snapshot were removed. No local builds or downloads were created.
+
 16 November UTC. The signed Chrome ordinal test removed both private MongoDB fixtures by revision, confirmed absence and removed the disposable journal and Chromium profile. No downloads or local builds were needed.
 
 16 November UTC. Reconciled the combined Development SQL fixture journal after Windows blocked replacing it. All 15 IDs were verified absent across three providers, then the original, partial and recovery journals were removed. HoloOASIS preset verification created no records. No local builds or downloads were created.
