@@ -83,6 +83,67 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
         }
     }
 
+    [Fact]
+    public async Task ParentReadsUseTheWholeAuthoritativeCollectionWhenReplicaHasOneChild()
+    {
+        const string uri = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
+        if (Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI") != uri)
+            throw new InvalidOperationException("Owned reusable Mongo runner required; refusing other databases.");
+
+        var database = "hyperdrive_parent_authority_" + Guid.NewGuid().ToString("N");
+        var directory = Directory.CreateTempSubdirectory("oasis-parent-authority-");
+        var client = new MongoClient(uri);
+        var mongo = new MongoDBOASIS(uri, database);
+        try
+        {
+            using var sqlite = new SQLLiteDBOASIS($"Data Source={Path.Combine(directory.FullName, "parent-reads.db")};Pooling=False");
+            Assert.False((await mongo.ActivateProviderAsync()).IsError);
+            Assert.False((await sqlite.ActivateProviderAsync()).IsError);
+            var parentId = Guid.NewGuid();
+            var sharedChild = Guid.NewGuid();
+            var primaryChild = Guid.NewGuid();
+            foreach (var (provider, childId) in new (IOASISStorageProvider, Guid)[]
+            {
+                (mongo, sharedChild), (mongo, primaryChild), (sqlite, sharedChild)
+            })
+            {
+                var saved = await provider.SaveHolonAsync(
+                    new Holon { Id = childId, ParentHolonId = parentId, Name = childId.ToString() }, saveChildren: false);
+                Assert.True(saved.IsSaved && !saved.IsError, saved.Message);
+            }
+            var replica = await sqlite.LoadHolonsForParentAsync(parentId, loadChildren: false);
+            Assert.False(replica.IsError, replica.Message);
+            Assert.Equal(sharedChild, Assert.Single(replica.Result).Id);
+
+            var dna = new OASISDNA { OASIS = new NextGenSoftware.OASIS.API.DNA.OASIS
+                { HyperDriveMode = HyperDriveModes.V2, StorageProviders = new StorageProviderSettings(), SubscriptionConfig = new() { PlanType = "Gold" } } };
+            var manager = new ProviderManager(null, dna) { IsAutoLoadBalanceEnabled = true };
+            manager.RegisterProvider(mongo);
+            manager.RegisterProvider(sqlite);
+            var selected = manager.SetAndActivateCurrentStorageProvider(mongo);
+            Assert.False(selected.IsError, selected.Message);
+            manager.AddProvidersToAutoLoadBalanceList(new[] { ProviderType.SQLLiteDBOASIS });
+            var router = new OASISHyperDrive(manager);
+            StorageOperationRequest Request() => new() { Operation = "LoadHolonsForParent", HolonId = parentId, HolonType = HolonType.All };
+            var results = new[]
+            {
+                router.RouteRequest<IEnumerable<IHolon>>(Request()),
+                await router.RouteRequestAsync<IEnumerable<IHolon>>(Request()),
+                await router.LoadBalanceRequestAsync<IEnumerable<IHolon>>(Request())
+            };
+            foreach (var result in results)
+            {
+                Assert.False(result.IsError, result.Message);
+                Assert.Equal(new[] { sharedChild, primaryChild }.Order(), result.Result.Select(holon => holon.Id).Order());
+            }
+        }
+        finally
+        {
+            try { await client.DropDatabaseAsync(database); }
+            finally { directory.Delete(recursive: true); }
+        }
+    }
+
     [Theory]
     [InlineData(true, true)]
     [InlineData(true, false)]
