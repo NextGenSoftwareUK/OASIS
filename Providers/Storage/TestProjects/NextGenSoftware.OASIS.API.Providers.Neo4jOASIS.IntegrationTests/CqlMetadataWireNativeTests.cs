@@ -36,7 +36,7 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         };
         var actor = Guid.NewGuid();
 
-        async Task AssertMatch(string key, CqlOperator operation, bool matches, string? integer = null)
+        async Task AssertMatch(string key, CqlOperator operation, bool matches, string? integer = null, string? text = null)
         {
             var filter = new CqlFilter { MetadataPath = new[] { key }, Operator = operation };
             if (integer != null)
@@ -45,6 +45,7 @@ public sealed partial class CqlProjectedAllAcceptanceTests
                 filter.Value = JsonSerializer.SerializeToElement(integer);
             }
 
+            if (text != null) filter.Value = JsonSerializer.SerializeToElement(text);
             var request = new CqlRequest { Filters = new[] { id, filter }, OrderBy = "Id", Take = 2 };
             var query = CqlCompiler.Compile(request, actor, provider);
             var plan = CosmicQueryPlanner.Plan(query, provider, target);
@@ -60,6 +61,14 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         await AssertMatch("text", CqlOperator.IsNotNull, true);
         await AssertMatch("presentNull", CqlOperator.IsNotNull, false);
         await AssertMatch("missing", CqlOperator.IsNotNull, false);
+        await AssertMatch("text", CqlOperator.NotContains, false, text: "Café");
+        await AssertMatch("text", CqlOperator.NotContains, true, text: "tea");
+        await AssertMatch("text", CqlOperator.NotStartsWith, false, text: "Caf");
+        await AssertMatch("text", CqlOperator.NotStartsWith, true, text: "caf");
+        await AssertMatch("text", CqlOperator.NotEndsWith, false, text: "😀");
+        await AssertMatch("text", CqlOperator.NotEndsWith, true, text: "tea");
+        await AssertMatch("presentNull", CqlOperator.NotContains, false, text: "tea");
+        await AssertMatch("missing", CqlOperator.NotContains, false, text: "tea");
         await AssertMatch("i64", CqlOperator.Equal, true, "9007199254740993");
         await AssertMatch("i64", CqlOperator.Equal, false, "9007199254740992");
         checks.Add(new { provider = provider.ToString(), metadataWire = "missing, null, populated and exact signed Int64" });
