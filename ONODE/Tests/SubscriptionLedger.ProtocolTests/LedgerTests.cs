@@ -37,6 +37,60 @@ public sealed class MongoLedgerTests : IAsyncLifetime
     }
     public Task DisposeAsync() => _client == null ? Task.CompletedTask : _client.DropDatabaseAsync(_databaseName);
 
+    [Fact]
+    public async Task AdminAnalyticsAggregatesNativeBillingAndUsageGroups()
+    {
+        var from = _clock.Now;
+        var to = from.AddDays(1);
+        var empty = await _ledger.GetAdminAnalyticsAsync(from, to, default);
+        Assert.Equal(0L, empty.UsageOperations);
+        Assert.Empty(empty.RevenueByCurrency);
+
+        var db = _client.GetDatabase(_databaseName);
+        await db.GetCollection<SubscriptionRecord>("subscription_records").InsertManyAsync(new[]
+        {
+            new SubscriptionRecord { UserId = _user, PlanId = "bronze", Status = "active" },
+            new SubscriptionRecord { UserId = "trial", PlanId = "bronze", Status = "trialing" },
+            new SubscriptionRecord { UserId = "former", Status = "cancelled" }
+        });
+        await db.GetCollection<OrderRecord>("subscription_orders").InsertManyAsync(new[]
+        {
+            new OrderRecord { StripeInvoiceId = "in_lower", CreatedAt = from, Currency = "usd", Amount = 1.25m },
+            new OrderRecord { StripeInvoiceId = "in_upper", CreatedAt = from, Currency = "USD", Amount = 2.50m },
+            new OrderRecord { StripeInvoiceId = "in_gbp", CreatedAt = from, Currency = "GBP", Amount = 9.00m },
+            new OrderRecord { StripeInvoiceId = "in_outside", CreatedAt = to, Currency = "USD", Amount = 100m },
+            new OrderRecord { StripeInvoiceId = "in_open", CreatedAt = from, Currency = "USD", Amount = 100m, Status = "open" }
+        });
+        BsonDocument Usage(DateTime at, string status, long units, decimal cost) => new()
+        {
+            { "OperationId", Guid.NewGuid().ToString("D") }, { "AuthorizedAtUtc", at }, { "Status", status },
+            { "Units", units }, { "SettledCostUsd", new BsonDecimal128(cost) }
+        };
+        await db.GetCollection<BsonDocument>("subscription_usage_events").InsertManyAsync(new[]
+        {
+            Usage(from, "settled", 7, .031m).Add("Provider", "real").Add("Model", "model"),
+            Usage(from.AddHours(1), "settled", 2, .002m).Add("Provider", "real").Add("Model", "model").Add("Outcome", "failed"),
+            Usage(from.AddHours(2), "expired", 0, 0m),
+            Usage(to, "failed", 100, 100m)
+        });
+
+        var report = await _ledger.GetAdminAnalyticsAsync(from, to, default);
+        Assert.Equal(3L, report.Customers);
+        Assert.Equal(2L, report.ActiveSubscriptions);
+        Assert.Equal(2L, report.SubscriptionsByPlan["bronze"]);
+        Assert.Equal(1L, report.SubscriptionsByPlan["unknown"]);
+        Assert.Equal(3L, report.UsageOperations);
+        Assert.Equal(2L, report.FailedOperations);
+        Assert.Equal(9L, report.SettledUnits);
+        Assert.Equal(.033m, report.UsageCostUsd);
+        Assert.Equal(3.75m, report.RevenueUsd);
+        Assert.Equal(9m, report.RevenueByCurrency["GBP"]);
+        Assert.Equal(2L, report.OperationsByProvider["real"]);
+        Assert.Equal(2L, report.OperationsByModel["model"]);
+        Assert.Equal(1L, report.OperationsByProvider["unknown"]);
+        Assert.Equal(2L, report.OperationsByStatus["settled"]);
+    }
+
     private sealed class FixedPolicyProvider : ISubscriptionUsagePolicyProvider
     {
         public SubscriptionUsagePolicy Current = Unlimited;

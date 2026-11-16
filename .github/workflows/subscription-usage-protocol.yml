@@ -7,13 +7,13 @@ on:
   workflow_dispatch:
     inputs:
       mongo_sqlite_point_reads:
-        description: Run the native MongoDB and SQLite point-read verification only
+        description: Run only the selected native MongoDB or SQLite storage check
         type: boolean
         default: false
       mongo_point_read_case:
-        description: Focused test selected with the native point-read runner
+        description: Focused test selected with the native storage runner
         type: choice
-        options: [round_robin, legacy_soft_delete, legacy_child_writes, replicated_file_upload]
+        options: [round_robin, legacy_soft_delete, legacy_child_writes, replicated_file_upload, admin_analytics]
         default: round_robin
       mongo_sqlite_latency:
         description: Measure real MongoDB, SQLite and request-scoped HyperDrive latency only
@@ -78,13 +78,14 @@ jobs:
             sleep 1
           done
           exit 1
-      - name: Verify native MongoDB and SQLite request-scoped point reads
+      - name: Verify selected native MongoDB or SQLite storage case
         if: inputs.mongo_sqlite_point_reads || inputs.mongo_sqlite_latency || inputs.mongo_sqlite_karma
         env:
           MONGO_POINT_READ_CASE: ${{ inputs.mongo_point_read_case }}
         shell: pwsh
         run: |
           ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-MongoSqlitePointReads -Operation {
+            $project = 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests'
             $filter = if ('${{ inputs.mongo_sqlite_karma }}' -eq 'true') {
               'FullyQualifiedName~ColdKarmaReadDoesNotPersistSettings'
             } elseif ('${{ inputs.mongo_sqlite_latency }}' -eq 'true') {
@@ -95,10 +96,12 @@ jobs:
               'FullyQualifiedName~LegacySoftDeleteRetainsEmbeddedChildren'
             } elseif ($env:MONGO_POINT_READ_CASE -eq 'replicated_file_upload') {
               'FullyQualifiedName~UploadedFileCanBeReadFromNativeMongoAndSqlite'
+            } elseif ($env:MONGO_POINT_READ_CASE -eq 'admin_analytics') {
+              $project = 'ONODE/Tests/SubscriptionLedger.ProtocolTests/SubscriptionLedger.ProtocolTests.csproj'
+              'FullyQualifiedName~AdminAnalyticsAggregatesNativeBillingAndUsageGroups'
             } else {
               'FullyQualifiedName~ScopedRoundRobinPointReadsUseBothNativeStores'
             }
-            $project = 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests'
             dotnet test $project --filter $filter --logger 'console;verbosity=detailed' /m:2 /nr:false /p:UseSharedCompilation=false
             if ($LASTEXITCODE -ne 0) { throw 'Native MongoDB and SQLite routing verification failed.' }
           }

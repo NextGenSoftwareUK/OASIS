@@ -55,26 +55,68 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
             if (fromUtc.Kind != DateTimeKind.Utc || toUtc.Kind != DateTimeKind.Utc || fromUtc >= toUtc || toUtc - fromUtc > TimeSpan.FromDays(366))
                 throw new ArgumentException("A UTC analytics range of at most 366 days is required.");
 
-            var events = await _events.Find(x => x.AuthorizedAtUtc >= fromUtc && x.AuthorizedAtUtc < toUtc).ToListAsync(ct);
-            var invoices = await Orders.Find(x => x.CreatedAt >= fromUtc && x.CreatedAt < toUtc && x.Status == "paid").ToListAsync(ct);
-            var subscriptions = await Subscriptions.Find(Builders<SubscriptionRecord>.Filter.Empty).ToListAsync(ct);
+            // Return one row per group instead of transferring all source documents to WEB4.
+            var eventQuery = _events.Aggregate()
+                .Match(x => x.AuthorizedAtUtc >= fromUtc && x.AuthorizedAtUtc < toUtc)
+                .Group<BsonDocument>(new BsonDocument
+                {
+                    { "_id", new BsonDocument { { "provider", OrUnknown("$Provider") }, { "model", OrUnknown("$Model") }, { "status", OrUnknown("$Status") } } },
+                    { "count", new BsonDocument("$sum", 1) },
+                    { "failed", new BsonDocument("$sum", new BsonDocument("$cond", new BsonArray
+                    {
+                        new BsonDocument("$or", new BsonArray
+                        {
+                            new BsonDocument("$in", new BsonArray { "$Status", new BsonArray { "failed", "expired" } }),
+                            new BsonDocument("$eq", new BsonArray { "$Outcome", "failed" })
+                        }),
+                        1, 0
+                    })) },
+                    { "units", new BsonDocument("$sum", "$Units") },
+                    { "cost", new BsonDocument("$sum", "$SettledCostUsd") }
+                }).ToListAsync(ct);
+            var invoiceQuery = Orders.Aggregate()
+                .Match(x => x.CreatedAt >= fromUtc && x.CreatedAt < toUtc && x.Status == "paid")
+                .Group<BsonDocument>(new BsonDocument
+                {
+                    { "_id", new BsonDocument("$ifNull", new BsonArray { "$Currency", "USD" }) },
+                    { "amount", new BsonDocument("$sum", "$Amount") }
+                }).ToListAsync(ct);
+            var subscriptionQuery = Subscriptions.Aggregate()
+                .Group<BsonDocument>(new BsonDocument
+                {
+                    { "_id", new BsonDocument { { "plan", OrUnknown("$PlanId") }, { "status", OrUnknown("$Status") } } },
+                    { "count", new BsonDocument("$sum", 1) }
+                }).ToListAsync(ct);
+
+            await Task.WhenAll(eventQuery, invoiceQuery, subscriptionQuery);
+            var events = await eventQuery;
+            var subscriptions = await subscriptionQuery;
+            var revenueByCurrency = (await invoiceQuery).GroupBy(row => row["_id"].AsString.ToUpperInvariant())
+                .ToDictionary(group => group.Key, group => group.Sum(row => row["amount"].ToDecimal()));
             return new SubscriptionAdminSnapshot
             {
                 FromUtc = fromUtc, ToUtc = toUtc,
-                Customers = subscriptions.LongCount(),
-                ActiveSubscriptions = subscriptions.LongCount(x => x.Status is "active" or "trialing" or "free"),
-                UsageOperations = events.LongCount(),
-                FailedOperations = events.LongCount(x => x.Status is "failed" or "expired" || x.Outcome == "failed"),
-                SettledUnits = events.Sum(x => x.Units),
-                UsageCostUsd = events.Sum(x => x.SettledCostUsd),
-                RevenueUsd = invoices.Where(x => string.Equals(x.Currency, "USD", StringComparison.OrdinalIgnoreCase)).Sum(x => x.Amount),
-                RevenueByCurrency = invoices.GroupBy(x => x.Currency.ToUpperInvariant()).ToDictionary(x => x.Key, x => x.Sum(invoice => invoice.Amount)),
-                SubscriptionsByPlan = subscriptions.GroupBy(x => x.PlanId ?? "unknown").ToDictionary(x => x.Key, x => x.LongCount()),
-                OperationsByProvider = events.GroupBy(x => x.Provider ?? "unknown").ToDictionary(x => x.Key, x => x.LongCount()),
-                OperationsByModel = events.GroupBy(x => x.Model ?? "unknown").ToDictionary(x => x.Key, x => x.LongCount()),
-                OperationsByStatus = events.GroupBy(x => x.Status ?? "unknown").ToDictionary(x => x.Key, x => x.LongCount())
+                Customers = subscriptions.Sum(row => row["count"].ToInt64()),
+                ActiveSubscriptions = subscriptions.Where(row => row["_id"]["status"].AsString is "active" or "trialing" or "free")
+                    .Sum(row => row["count"].ToInt64()),
+                UsageOperations = events.Sum(row => row["count"].ToInt64()),
+                FailedOperations = events.Sum(row => row["failed"].ToInt64()),
+                SettledUnits = events.Sum(row => row["units"].ToInt64()),
+                UsageCostUsd = events.Sum(row => row["cost"].ToDecimal()),
+                RevenueUsd = revenueByCurrency.GetValueOrDefault("USD"),
+                RevenueByCurrency = revenueByCurrency,
+                SubscriptionsByPlan = AdminCountsBy(subscriptions, "plan"),
+                OperationsByProvider = AdminCountsBy(events, "provider"),
+                OperationsByModel = AdminCountsBy(events, "model"),
+                OperationsByStatus = AdminCountsBy(events, "status")
             };
         }
+
+        private static BsonDocument OrUnknown(string field) => new BsonDocument("$ifNull", new BsonArray { field, "unknown" });
+
+        private static Dictionary<string, long> AdminCountsBy(IEnumerable<BsonDocument> rows, string field) =>
+            rows.GroupBy(row => row["_id"][field].AsString)
+                .ToDictionary(group => group.Key, group => group.Sum(row => row["count"].ToInt64()));
 
         private static SubscriptionAdminPage<T> Page<T>(List<T> items, int take, Func<T, string> cursor)
         {
