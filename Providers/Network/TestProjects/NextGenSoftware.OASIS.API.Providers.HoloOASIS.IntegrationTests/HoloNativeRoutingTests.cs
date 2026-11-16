@@ -15,6 +15,77 @@ public sealed class HoloNativeRoutingTests
     private static readonly Lazy<Task> InstallIsolatedApp = new(InstallIsolatedAppAsync);
 
     [Theory, InlineData(false), InlineData(true)]
+    public async Task LoadsCurrentAvatarCollectionsFromTheConnectedConductor(bool sync)
+    {
+        Assert.Equal("true", Environment.GetEnvironmentVariable("GITHUB_ACTIONS"));
+        await InstallIsolatedApp.Value;
+        var endpoint = new Uri(Required("OASIS_HOLOCHAIN_ADMIN_URI"));
+        Assert.True(endpoint.IsLoopback);
+        var holo = OpenProvider(endpoint);
+        var id = Guid.NewGuid();
+        var username = $"collection-{id:N}";
+        var email = $"{username}@oasis.test";
+        var fixtures = new List<(string Delete, byte[] Hash)>();
+        try
+        {
+            var activated = await holo.ActivateProviderAsync();
+            Assert.True(!activated.IsError && activated.Result, activated.Message);
+            var client = holo.HoloNETClientAppAgent;
+            async Task<byte[]> Write(string function, string delete, object payload)
+            {
+                var response = await client.CallZomeFunctionAsync("oasis", function, paramsObject: payload);
+                Assert.False(response.IsError, response.Message);
+                var hash = HoloNETClientAppAgent.ConvertHoloHashToBytes(Assert.Single(response.Records).ActionHash);
+                Assert.Equal(39, hash.Length);
+                fixtures.Add((delete, hash));
+                return hash;
+            }
+
+            var original = await Write("create_entry_avatar", "delete_entry_avatar",
+                new { id = id.ToString("D"), username, email, first_name = "Original" });
+            await Write("update_entry_avatar", "delete_entry_avatar", new
+            {
+                original_action_hash = original,
+                updated_entry = new { id = id.ToString("D"), username, email, first_name = "Current" }
+            });
+            await Write("create_entry_avatar_detail", "delete_entry_avatar_detail",
+                new { id = id.ToString("D"), username, email });
+
+            var avatars = sync ? holo.LoadAllAvatars() : await holo.LoadAllAvatarsAsync();
+            Assert.True(!avatars.IsError && avatars.IsLoaded, avatars.Message);
+            Assert.Equal("Current", Assert.Single(avatars.Result.Where(row => row.Id == id)).FirstName);
+            var details = sync ? holo.LoadAllAvatarDetails() : await holo.LoadAllAvatarDetailsAsync();
+            Assert.True(!details.IsError && details.IsLoaded, details.Message);
+            Assert.Equal(username, Assert.Single(details.Result.Where(row => row.Id == id)).Username);
+        }
+        finally
+        {
+            if (holo.IsProviderActivated)
+            {
+                try
+                {
+                    foreach (var fixture in fixtures.AsEnumerable().Reverse())
+                    {
+                        var deleted = await holo.HoloNETClientAppAgent.CallZomeFunctionAsync("oasis", fixture.Delete,
+                            paramsObject: fixture.Hash);
+                        Assert.False(deleted.IsError, deleted.Message);
+                    }
+                    var avatars = await holo.LoadAllAvatarsAsync();
+                    var details = await holo.LoadAllAvatarDetailsAsync();
+                    Assert.True(!avatars.IsError && avatars.IsLoaded, avatars.Message);
+                    Assert.True(!details.IsError && details.IsLoaded, details.Message);
+                    Assert.DoesNotContain(avatars.Result, row => row.Id == id);
+                    Assert.DoesNotContain(details.Result, row => row.Id == id);
+                }
+                finally
+                {
+                    await holo.DeActivateProviderAsync();
+                }
+            }
+        }
+    }
+
+    [Theory, InlineData(false), InlineData(true)]
     public async Task SavesPublicAvatarWithoutAuthenticationState(bool useReflection)
     {
         Assert.Equal("true", Environment.GetEnvironmentVariable("GITHUB_ACTIONS"));

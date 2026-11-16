@@ -15,6 +15,6 @@ jobs:
     with:
       verification: routing
       exact_source: ${{ startsWith(github.ref_name, 'ci-hyperdrive-holo-routing-') }}
-      routing_case: ${{ startsWith(github.ref_name, 'ci-hyperdrive-holo-routing-avatar-') && 'SavesPublicAvatarWithoutAuthenticationState' || '' }}
+      routing_case: ${{ startsWith(github.ref_name, 'ci-hyperdrive-holo-routing-avatar-') && 'SavesPublicAvatarWithoutAuthenticationState' || startsWith(github.ref_name, 'ci-hyperdrive-holo-routing-collections-') && 'LoadsCurrentAvatarCollectionsFromTheConnectedConductor' || '' }}
     secrets:
       PRIVATE_SUBMODULE_PAT: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
