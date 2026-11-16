@@ -60,15 +60,19 @@ public partial class HolonRepository
                         limits.MaximumRightRows, limits.MaximumRightPayloadBytes).ConfigureAwait(false);
                     var rows = new List<CosmicJoinRow>();
                     long bytes = 0, pairCount = 0;
-                    using (var command = Command("SELECT *,count(*) OVER () AS nativeCount FROM (" + compiled.Pairs + ") ORDER BY 1 NULLS LAST,2"))
+                    using (var command = Command(compiled.Pairs))
                     await using (var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false))
                     {
                         while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
                         {
                             Check();
                             pairCount = reader.GetInt64(2);
-                            if (pairCount > limits.MaximumPairs || pairCount > limits.MaximumResults)
+                            if (pairCount > limits.MaximumPairs ||
+                                (!plan.Query.OutputLimit.HasValue && pairCount > limits.MaximumResults))
                                 throw new SqliteCqlResourceException("Native join exceeds remaining pair or output work.");
+                            if (reader.IsDBNull(3)) continue;
+                            if (rows.Count == limits.MaximumResults)
+                                throw new SqliteCqlResourceException("Native join exceeds remaining output rows.");
                             var l = reader.IsDBNull(0) ? null : left.Rows[reader.GetInt64(0)];
                             var r = reader.IsDBNull(1) ? null : right.Rows[reader.GetInt64(1)];
                             var values = new object[plan.Query.Columns.Count];

@@ -18,6 +18,18 @@ public sealed class CqlJoinV1Request
     public int MaximumRightRows { get; set; } = 100;
     public long MaximumPairs { get; set; } = 1000;
     public int MaximumResults { get; set; } = 25;
+    public string? OutputOrderBy { get; set; }
+    public bool OutputDescending { get; set; }
+    public CqlV1JoinOrder[]? OutputOrdering { get; set; }
+    public int? OutputOffset { get; set; }
+    public int? OutputLimit { get; set; }
+}
+
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed class CqlV1JoinOrder
+{
+    public string? Alias { get; set; }
+    public bool Descending { get; set; }
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]

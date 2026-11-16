@@ -27,7 +27,18 @@ public partial class Neo4jOASIS
             check();
             if(record.Count!=5 || !record.TryGetValue("proof",out var proof))throw Invalid("Native join envelope is invalid.");
             var kind=Number(record,"kind");var lp=Number(record,"lp");var rp=Number(record,"rp");var count=Number(record,"nativeCount");
-            if(kind<previousKind || kind is <0 or >2 || count<1)throw Invalid("Native join stream order/count is invalid.");
+            if(kind<previousKind || kind is <0 or >3 || count<0 || kind!=3 && count==0)
+                throw Invalid("Native join stream order/count is invalid.");
+            if (kind == 3)
+            {
+                if (!query.OutputLimit.HasValue || previousKind == 3 || lp != -1 || rp != -1 || proof != null ||
+                    pairs.Count != 0 && pairCount != count)
+                    throw Invalid("Native join page total proof is invalid.");
+                if (count > limits.MaximumPairs) throw new NeoCqlLimitException("Native join exceeds remaining pair work.");
+                pairCount = count;
+                previousKind = kind;
+                return;
+            }
             previousKind=kind;
             if(kind==0)
             {
@@ -47,7 +58,8 @@ public partial class Neo4jOASIS
                 if (proof != null || lp < 0 || lp > left.Count || lp == left.Count && !missingLeft
                     || rp < -1 || rp >= right.Count || missingLeft && rp < 0)
                     throw Invalid("Native join pair refers outside its captured source.");
-                if(count>limits.MaximumPairs || count>limits.MaximumResults || pairs.Count>=limits.MaximumPairs || pairs.Count>=limits.MaximumResults)
+                if(count>limits.MaximumPairs || !query.OutputLimit.HasValue && count>limits.MaximumResults ||
+                    pairs.Count>=limits.MaximumPairs || pairs.Count>=limits.MaximumResults)
                     throw new NeoCqlLimitException("Native join exceeds remaining pair/output work.");
                 if(pairs.Count>0 && pairCount!=count)throw Invalid("Native join pair count changed.");
                 pairCount=count;
@@ -70,7 +82,8 @@ public partial class Neo4jOASIS
         internal CosmicJoinPacket Complete()
         {
             check();
-            if(left.Count!=leftCount || right.Count!=rightCount || pairs.Count!=pairCount)
+            if(left.Count!=leftCount || right.Count!=rightCount ||
+                (query.OutputLimit.HasValue ? previousKind != 3 : pairs.Count!=pairCount))
                 throw Invalid("Native join stream is incomplete.");
             return new CosmicJoinPacket(left.ToArray(),right.ToArray(),pairs.ToArray(),leftCount,rightCount,pairCount);
         }

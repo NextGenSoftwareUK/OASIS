@@ -63,7 +63,29 @@ public static partial class CqlV1Compiler
             return CompileSelection(JoinColumn(column.Alias,column.Selection),
                 new JoinSelectionConsumer(join,column.Source=="Right",column.AllowMissing??false));
         }).ToArray();
-        return RequiredJoin(join.SelectColumns(columns));
+        var selected = RequiredJoin(join.SelectColumns(columns));
+        if (request.OutputOrdering is { } terms)
+        {
+            if (request.OutputOrderBy != null || request.OutputDescending || terms.Length is < 1 or > 8)
+                throw new ArgumentException("Provide one to eight join ordering terms or a single output alias.");
+            for (var index = 0; index < terms.Length; index++)
+            {
+                var term = terms[index] ?? throw new ArgumentException("Join ordering terms cannot be null.");
+                selected = RequiredJoin(index == 0
+                    ? selected.OrderByOutput(term.Alias, term.Descending)
+                    : selected.ThenByOutput(term.Alias, term.Descending));
+            }
+        }
+        else if (request.OutputOrderBy != null)
+            selected = RequiredJoin(selected.OrderByOutput(request.OutputOrderBy,request.OutputDescending));
+        else if (request.OutputDescending)
+            throw new ArgumentException("A descending join order requires an output alias.");
+
+        if (request.OutputLimit is int limit)
+            return RequiredJoin(selected.PageOutput(request.OutputOffset ?? 0,limit));
+        if (request.OutputOffset.HasValue)
+            throw new ArgumentException("A join output offset requires an output limit.");
+        return selected;
     }
 
     private static CqlProjectionV1Column JoinColumn(string alias,CqlScalarV1Selection selection)
