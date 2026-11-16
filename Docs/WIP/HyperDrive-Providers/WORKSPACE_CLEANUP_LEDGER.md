@@ -1814,3 +1814,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 2026-11-16 UTC — Removed the exact AvatarLoginFailoverQualification tree (488481334 bytes, 1740 files) after the MFA test exited and the Mongo listener stopped. Verified absence. The hosted smoke avatar was deleted through WEB4.
 
 2026-11-16 UTC — Signed dashboard and provider-copy browser verification removed the disposable avatar via WEB4. The temporary Edge profile and uncached websocket-client dependency directory were removed and verified absent.
+
+2026-11-16 UTC — The hosted WEB4 sign-in and refresh verification deleted its one disposable avatar through the authenticated self-delete endpoint. The verifier used in-memory request data and created no local files or downloaded dependencies.

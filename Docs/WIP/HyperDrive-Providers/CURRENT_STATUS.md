@@ -2947,3 +2947,5 @@ Performance follow-up. WEB4 wallet summary is implemented on the task branch and
 2026-11-16 UTC — With the isolated credential rollout complete and all seven dev deployment statuses SUCCESS, advanced Development from 6771e17f6207 to the exact image-qualified WEB4 refresh and MFA revision 9fb52e18bbce. This scoped push includes the Core dependency pin and the native MongoDB-to-SQLite authentication coverage. Railway deployment and hosted authentication verification remain pending.
 
 2026-11-16 UTC — Railway WEB4 deployment def1bd8a moved from QUEUED to BUILDING. The six patched WEB5–WEB10 Dockerfile liveness commands passed 24 loopback HTTP checks for 200, 302, 404 and 503. The patched images still need build and startup verification. The loopback check generated no files.
+
+2026-11-16 UTC — Confirmed running Railway dev WEB4 commit 9fb52e18bbce on deployment def1bd8a. A verified disposable avatar passed hosted sign-in, refresh rotation with the same identity, HTTP-only cookie issuance, revocation and rejection of both replay attempts. The avatar was removed. Hosted MFA factor completion and sign-in under provider failure remain open.
