@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-16 UTC — OPORTAL `e8db681` shows observed WEB4 failover and provider-selection diagnostics from the existing status response. The focused UI check verified successful automatic failover, quota-blocked manual failover, effective strategy and absent selection, with no extra requests. Portal dev candidate `bda25b2` also includes the qualified subscription updates. Live signed verification remains open.
+
 2026-11-16 UTC — OPORTAL `e64d1bb` removes outdated hard-coded plan benefits and renders pricing, billing interval, descriptions and benefits from WEB4. The subscription regression suite passed. The shipping SDK and updated renderer made one live catalogue request and rendered five real plans, including Bronze at GBP 9 per month and Enterprise contact sales. Scoped dev candidate `33745ce` includes the earlier billing feedback fix. Hosted payment and signed browser coverage remain open.
 
 2026-11-16 UTC — OPORTAL `5a442bc` fixes subscription feedback ownership: an older transient message can no longer hide a newer payment confirmation, error, or pending status. The focused timer check and existing subscription regression suite passed. Scoped release candidate `196c026` was verified against current portal dev `e83d5af`. Dev release and signed browser verification remain open.

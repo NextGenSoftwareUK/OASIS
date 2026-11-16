@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-16 UTC — HyperDrive diagnostics verification ran in memory. Restored the original sparse checkout and removed the temporary candidate patch and alternate Git index. No dependencies or build outputs were created.
+
 2026-11-16 UTC — Live catalogue and subscription verification ran in memory, with no downloads or local build outputs. Removed the temporary patch and alternate Git index used to stage the dev candidate.
 
 2026-11-16 UTC — Subscription timer and regression checks ran in memory. The portal release preparation removed its temporary HTML and alternate Git index. No local dependency install or build output was created.
