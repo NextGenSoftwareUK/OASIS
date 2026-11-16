@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-16 UTC — Subscription testing read excluded fixtures in memory and wrote no results or build outputs. Removed the disposable patch and alternate Git index used to prepare both release candidates.
+
 2026-11-16 UTC — The local Edge acceptance run stopped its owned browser tree and removed its temporary profile and websocket-client installation. The pinned dependency used no pip cache. No test results or build outputs were written to the worktree.
 
 2026-11-16 UTC — Portal release preparation removed the two disposable local files it used (patch and alternate Git index). Wallet image qualification runs on GitHub under `ci-hyperdrive-wallet-e767ca027bd2`; retire the temporary ref after the job finishes and its evidence is captured.

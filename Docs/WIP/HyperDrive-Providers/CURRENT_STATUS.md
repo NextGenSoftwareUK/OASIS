@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-16 UTC — OPORTAL `5d304fa` loads the actual subscription list for a missing or expired checkout session, reports the return status and clears processed return parameters. The controlled subscription suite passed including both new cases. Two old usage fixtures were brought into line with the shipping session/request contracts. Account recovery fixtures outside the sparse checkout were read from tracked Git blobs in memory. Portal dev candidates are `e83d5af` without wallet and `be4b7d8` with wallet. Hosted Stripe completion remains open.
+
 2026-11-16 UTC — Installed Edge verified the exact `bf252de` Developer Portal opener, router and HTML fragment in a minimal local page. It confirmed zero fragment requests on home, one on direct /developer navigation, Back closing the panel and Forward restoring it from memory. Full deployed portal verification remains open.
 
 2026-11-16 UTC — Shared WEB4 image run `43779875754` passed on Development `307f52dfc9ae`. Confirmed the remote base and dispatched the scoped wallet image at `e767ca027bd2`. Run `43783783607` is in progress. The next portal candidates carry the HyperDrive overview fix and are `bf252de` (Celestial and Developer Portal) and `0e5af62` (includes wallet UI). The independent candidate can ship on its own after the portal release gate and current-head check.
