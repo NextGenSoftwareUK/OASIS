@@ -73,6 +73,21 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Assert.AreEqual(inner.Id, structuredPair.RightId);
         Assert.AreEqual(inner.Version, structuredPair.Version);
 
+        var composed = flattened.Select(pair => new { pair.RightId }).Select(pair => pair.RightId);
+        var composedResult = await composed.ToCosmicListAsync();
+        Assert.IsFalse(composedResult.IsError, composedResult.Message + composedResult.Exception);
+        CollectionAssert.AreEqual(new[] { rootId }, composedResult.Result.ToArray());
+
+        var scalarComposition = projectedIds.Select(id => new { Identity = id });
+        Assert.AreEqual(rootId, scalarComposition.ToList().Single().Identity);
+        var correlatedComposition = structuredPairs.Select(pair => pair.LeftId);
+        Assert.AreEqual(rootId, correlatedComposition.ToList().Single());
+
+        var unsupportedProjection = root.Take(1).SelectMany(_ => rightSource,
+            (left, right) => new { right.Id, Computed = right.Id.ToString() });
+        Assert.ThrowsException<CosmicLinqException>(() => unsupportedProjection.Select(item => item.Id));
+
+
         Assert.ThrowsException<CosmicLinqException>(() => root.SelectMany(
             _ => rightSource.Select(right => new { right.Id, Computed = right.Id.ToString() }),
             (left, item) => item.Id));
