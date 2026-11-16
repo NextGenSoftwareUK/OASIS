@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-16 UTC — API diagnostics Edge checks removed their isolated browser profiles and uncached websocket-client installation. The temporary directory check found zero oportal-live-edge directories. No downloaded test results or local build outputs remain.
+
 2026-11-16 UTC — The live Edge check closed its owned browser and cleaned its temporary profile and uncached dependency. API health checks ran in memory. Restored sparse checkout after editing portal fragments and removed the health candidate alternate Git index. The rebased count image runs remotely under `ci-hyperdrive-holon-count-0da3dc5f3cea` with no local outputs.
 
 2026-11-16 UTC — Count candidate preparation removed the temporary portal patch and both alternate Git indexes. The Development fetch reused the existing clone and wrote no build outputs.
