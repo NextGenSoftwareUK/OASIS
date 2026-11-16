@@ -1932,3 +1932,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 2026-11-16 UTC — Removed the focused native avatar candidate index and temporary directory. It installs the conductor only in CI; no local runtime or test fixtures were created.
 
 2026-11-16 UTC — Removed the corrected native avatar scratch index after constructing the exact CI candidate. No local test environment, runtime or fixture was created.
+
+2026-11-16 UTC — Removed both temporary Git indexes used to stage the direct avatar wire mapping check. The second index checks only the staged delta against its exact candidate parent. No local build output, runtime or fixture was created.
