@@ -23,7 +23,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             if (request.Data == null || request.Data.Length == 0 || request.Data.Length > ChunkedFileManifest.MaxChunkBytes)
                 return TestDataHelper.CreateErrorResponse<Guid>(
-                    $"Chunk data must be between 1 byte and {ChunkedFileManifest.MaxChunkBytes} bytes.", Guid.Empty, HttpStatusCode.BadRequest);
+                    $"Chunk data must be between 1 byte and {ChunkedFileManifest.MaxChunkBytes} bytes.", statusCode: HttpStatusCode.BadRequest);
 
             OASISConfigResult<Guid> configResult = ConfigureOASISEngine<Guid>(request);
             if (configResult.IsError && configResult.Response != null)
@@ -55,7 +55,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
             var invalid = manifest.Validate();
             if (invalid != null)
-                return TestDataHelper.CreateErrorResponse<Guid>(invalid, Guid.Empty, HttpStatusCode.BadRequest);
+                return TestDataHelper.CreateErrorResponse<Guid>(invalid, statusCode: HttpStatusCode.BadRequest);
 
             OASISConfigResult<Guid> configResult = ConfigureOASISEngine<Guid>(request);
             if (configResult.IsError && configResult.Response != null)
@@ -69,7 +69,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     var chunk = await HolonManager.LoadHolonAsync(chunkId);
                     if (chunk == null || chunk.IsError || chunk.Result == null || chunk.Result.CreatedByAvatarId != AvatarId)
                         return TestDataHelper.CreateErrorResponse<Guid>(
-                            $"Chunk {chunkId} was not found or was not uploaded by you.", Guid.Empty, HttpStatusCode.BadRequest);
+                            $"Chunk {chunkId} was not found or was not uploaded by you.", statusCode: HttpStatusCode.BadRequest);
                 }
 
                 OASISResult<Guid> response = await HolonManager.SaveFileAsync(manifest.ToBytes(), AvatarId);
