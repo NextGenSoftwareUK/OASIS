@@ -202,6 +202,9 @@ namespace NextGenSoftware.OASIS.API.DNA
         /// <summary>Default AIProviderType (e.g. "Auto", "OpenAI", "Anthropic", "OpenServ") used by /v1/complete when CompletionRequest.Provider is "auto" or not set.</summary>
         public string DefaultProvider { get; set; } = "Auto";
 
+        public string OllamaBaseUrl { get; set; } = "";
+        public string OllamaFreeModel { get; set; } = "";
+
         /// <summary>Default model id used when CompletionRequest.Model is "auto" or not set and the resolved provider is OpenServ.</summary>
         public string DefaultOpenServModel { get; set; } = "gpt-5.4";
 
@@ -290,6 +293,8 @@ namespace NextGenSoftware.OASIS.API.DNA
         public string OpenAI { get; set; } = "";
         public string Anthropic { get; set; } = "";
         public string Gemini { get; set; } = "";
+        public string GeminiFree { get; set; } = "";
+        public string OpenRouter { get; set; } = "";
         public string Groq { get; set; } = "";
         public string Mistral { get; set; } = "";
         public string Cohere { get; set; } = "";
