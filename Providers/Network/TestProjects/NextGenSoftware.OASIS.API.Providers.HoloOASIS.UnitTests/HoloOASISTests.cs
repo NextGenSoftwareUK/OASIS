@@ -1,13 +1,40 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Xunit;
 using NextGenSoftware.OASIS.API.Providers.HoloOASIS;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers;
 
 namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.UnitTests
 {
     public class HoloOASISTests
     {
+        [Theory]
+        [InlineData("synthetic-private-key", null)]
+        [InlineData(null, "synthetic-recovery-phrase")]
+        public void AvatarSerializationRejectsWalletCredentialsInBothModes(string privateKey, string recoveryPhrase)
+        {
+            var avatar = new Avatar
+            {
+                ProviderWallets = new Dictionary<ProviderType, List<IProviderWallet>>
+                {
+                    [ProviderType.HoloOASIS] = new List<IProviderWallet>
+                    {
+                        new ProviderWallet { PrivateKey = privateKey, SecretRecoveryPhrase = recoveryPhrase }
+                    }
+                }
+            };
+
+            var direct = Assert.Throws<InvalidOperationException>(() => { DataHelper.ConvertAvatarToParamsObject(avatar); });
+            var reflection = Assert.Throws<InvalidOperationException>(() => DataHelper.ConvertAvatarToHoloOASISAvatar(avatar, null));
+            Assert.Equal("HoloOASIS public avatar entries cannot store wallet signing credentials.", direct.Message);
+            Assert.Equal(direct.Message, reflection.Message);
+        }
+
         [Fact]
         public void Constructor_ShouldInitializeProviderCorrectly()
         {
