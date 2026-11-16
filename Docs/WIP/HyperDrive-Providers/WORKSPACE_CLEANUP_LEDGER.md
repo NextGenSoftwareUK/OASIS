@@ -1842,3 +1842,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 2026-11-16 UTC — Removed the disposable OPORTAL Orders verification directory after the Node process exited. No bundles, installs or retained test output.
 
 2026-11-16 UTC — Removed the temporary Git index for the OPORTAL Orders dev integration. The deployed script was hashed in memory.
+
+2026-11-16 UTC — Removed the disposable OPORTAL pricing regression directory and temporary Git index. Dev script verification ran in memory. No installs, generated bundles or retained tests.
