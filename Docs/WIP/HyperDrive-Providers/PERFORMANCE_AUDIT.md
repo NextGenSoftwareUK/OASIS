@@ -2,6 +2,8 @@
 
 2026-11-16 UTC — The OPORTAL dev Subscription Admin deadline is active on 15e10be1239c. The exact hosted configuration aborted one deliberately stalled WEB4 Analytics request after 8,018 ms. The deadline also covers invoice, subscription, usage, audit, outbox, statement and app or avatar reporting reads. The exact-batch regression verified that payment, requeue and settings POSTs retain their existing request behavior. Signed admin timings remain open.
 
+2026-11-16 UTC — Subscription Admin App Usage publishes the main chart and pool metrics while Top Users is pending. An independent ranking failure leaves the main result visible and earlier requests cannot populate a newer app or signed-out session. The exact staged portal revision 1f86d7f72a05 passed the controlled sequencing checks. Hosted signed performance remains open.
+
 2026-11-16 UTC — Config `c26306f` bounds each selected account subscription GET to eight seconds, including checkout confirmation. This is a request deadline. Live signed timings are unmeasured and payment writes retain their existing behavior.
 
 2026-11-16 UTC — Subscription Admin task commit `c61b7e8` reduces opening from eight requests to one. Previously it fetched Analytics, five tab lists, WEB6 pricing and outboxes immediately. The controlled startup and tab-switch request counts passed; hosted Wizard timing remains unmeasured.
