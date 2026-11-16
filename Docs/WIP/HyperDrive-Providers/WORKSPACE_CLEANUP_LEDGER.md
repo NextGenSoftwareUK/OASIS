@@ -1884,3 +1884,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 2026-11-16 UTC — Removed the exact OPORTAL recovery archive, scoped npm cache, node_modules and generated SDK bundles. The first cleanup guard stopped on a trailing separator in the temp root. Resolved and verified the exact owned directory and contents, removed it and confirmed absence. No runtime installation or workspace build outputs were retained.
 
 2026-11-16 UTC — The Free checkout browser fixture avatar self-delete was acknowledged, and the owned Chrome profile and protected session directory were removed. The operation reused the existing sandbox Free subscription. Subscription retirement is handled by the sandbox lifecycle. No local results or downloaded artifacts were retained.
+
+2026-11-16 UTC — Removed the scoped PyMongo diagnostic SDK and script after two live reconciliation samples. Credentials stayed in the configured child process. No cache, dataset copy, raw report or local build output was retained.
