@@ -167,3 +167,5 @@ Preserve the measured browser, HTTP and native behavior in [current status](CURR
 2026-11-16 UTC — Signed Railway dev Files check passed description persistence on ca7a17b58584. Upload took 539 ms, populated list 338 ms, count 388 ms, and download 352 ms for a 1 KiB fixture. Count and list agreed and the downloaded payload matched. These single-request timings are functional samples. The file and avatar were removed.
 
 2026-11-16 UTC — OPORTAL dev 6204a649f973 serves the app-owner request and billing control changes. All 12 exact subscription test groups passed. The versioned script matched the Git blob and the hosted subscription route preserved the released stylesheet version. This verifies live asset delivery. A signed owner billing interaction and hosted timing remain open.
+
+2026-11-16 UTC — OPORTAL dev 6e49a2e10c38 fetches the HyperDrive fragment with the primary modals and binds on its own ready event. The regression held the optional Gifts fragment while HyperDrive finished loading and bound Refresh exactly once. All 13 exact checks passed. The two hosted scripts matched their Git blobs. Signed browser timing remains open.
