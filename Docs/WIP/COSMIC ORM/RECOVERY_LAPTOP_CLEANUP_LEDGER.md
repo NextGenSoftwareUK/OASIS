@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+16 November UTC. The isolated Chrome profile C:/Users/David/AppData/Local/Temp/cosmic-ask-chrome-y0ebfrll survived the initial cleanup because Chrome was still closing. Process inspection later found no matching Chrome process. The automatic execution policy rejected the scoped recursive profile deletion. The owned directory is still present and is recorded for cleanup. No user profile was used. Git qualification indexes were removed.
+
 16 November UTC. The signed-comparison check deleted its nine exact live fixture IDs, confirmed they were absent and removed its local cleanup journal. Preview inspection used the installed Vercel CLI and kept responses in memory. No local packages or image layers were downloaded.
 
 16 November UTC. Removed the isolated website test directory after the 271 checks. The exact site and backend qualification sources were published as remote tags. No new local builds or model downloads.
