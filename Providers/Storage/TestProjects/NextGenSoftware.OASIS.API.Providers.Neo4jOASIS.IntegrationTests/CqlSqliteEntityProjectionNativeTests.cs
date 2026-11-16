@@ -176,6 +176,21 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         var orderedThenBy = await thenBy.ToCosmicListAsync();
         Assert.IsFalse(orderedThenBy.IsError, orderedThenBy.Message + orderedThenBy.Exception);
         CollectionAssert.AreEqual(new[] { ids[4], ids[1], ids[0] }, orderedThenBy.Result.Select(row => row.Id).ToArray());
+        foreach (var (query, expected) in new[]
+        {
+            (thenBy.Skip(1).Take(1), new[] { ids[1] }),
+            (thenBy.Skip(1), new[] { ids[1], ids[0] }),
+            (thenBy.Take(2).Skip(1), new[] { ids[1] }),
+            (thenBy.Take(1).Skip(2), Array.Empty<Guid>()),
+            (thenBy.Skip(1).Skip(1).Take(4).Take(1), new[] { ids[0] }),
+            (thenBy.Skip(-1).Take(1), new[] { ids[4] }),
+            (thenBy.Take(-1), Array.Empty<Guid>())
+        })
+        {
+            var paged = await query.ToCosmicListAsync();
+            Assert.IsFalse(paged.IsError, paged.Message + paged.Exception);
+            CollectionAssert.AreEqual(expected, paged.Result.Select(row => row.Id).ToArray());
+        }
         checks.Add(new { provider = provider.QueryProviderType.ToString(), join = "native selected output ordering" });
     }
 
