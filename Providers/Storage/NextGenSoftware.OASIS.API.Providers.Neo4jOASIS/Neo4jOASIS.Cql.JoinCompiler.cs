@@ -29,7 +29,9 @@ public partial class Neo4jOASIS
         var left=Source(query.Join.Left,true,limits.MaximumLeftRows,limits.MaximumLeftPayloadBytes);
         var right=Source(query.Join.Right,false,limits.MaximumRightRows,limits.MaximumRightPayloadBytes);
         var binder=new NeoCqlTranslator("h","p",parameters,null);
-        var pairLimit=binder.Bind(Math.Min(limits.MaximumPairs,(long)limits.MaximumResults)+1);
+        var pairLimit=binder.Bind((query.OutputLimit.HasValue
+            ? limits.MaximumPairs
+            : Math.Min(limits.MaximumPairs,(long)limits.MaximumResults))+1);
         var leftCount=binder.Bind(limits.MaximumLeftRows);var rightCount=binder.Bind(limits.MaximumRightRows);
         var leftBytes=binder.Bind(limits.MaximumLeftPayloadBytes);var rightBytes=binder.Bind(limits.MaximumRightPayloadBytes);
         var outer = binder.Bind(query.Join.Kind is CosmicJoinKind.Left or CosmicJoinKind.Full);
@@ -64,10 +66,10 @@ public partial class Neo4jOASIS
                 +" AS proof,size(leftInput) AS nativeCount "
             : "RETURN 0 AS kind,li AS lp,-1 AS rp,leftInput[li] AS proof,size(leftInput) AS nativeCount ";
         var output = "RETURN kind,lp,rp,proof,nativeCount ORDER BY kind ASC,lp ASC,rp ASC";
+        var values = new List<string>();
+        var orderTerms = new List<string>();
         if (query.OutputOrdering.Count != 0)
         {
-            var values = new List<string>();
-            var orderTerms = new List<string> { "kind ASC" };
             foreach (var order in query.OutputOrdering)
             {
                 var column = query.Columns[order.Column];
@@ -82,9 +84,25 @@ public partial class Neo4jOASIS
                 orderTerms.Add("CASE WHEN " + alias + " IS NULL THEN 0 ELSE 1 END" + direction);
                 orderTerms.Add(alias + direction);
             }
-            orderTerms.AddRange(new[] { "lp ASC", "rp ASC" });
             output = "WITH kind,lp,rp,proof,nativeCount," + string.Join(",", values)
-                + " RETURN kind,lp,rp,proof,nativeCount ORDER BY " + string.Join(",", orderTerms);
+                + " RETURN kind,lp,rp,proof,nativeCount ORDER BY kind ASC," + string.Join(",", orderTerms) + ",lp ASC,rp ASC";
+        }
+        var pairProof = "CALL { " + pairRows + " } "
+            + "WITH collect({l:li,r:ri}) AS pairs UNWIND pairs AS pair "
+            + "RETURN 2 AS kind,pair.l AS lp,pair.r AS rp,null AS proof,size(pairs) AS nativeCount ";
+        if (query.OutputLimit is int requestedLimit)
+        {
+            // Count stays available when the requested window is empty.
+            var pagingValues = values.Select(value => value.Replace("kind=2 AND ", "")).ToArray();
+            var offset = binder.Bind(query.OutputOffset);
+            var end = binder.Bind((long)query.OutputOffset + requestedLimit);
+            pairProof = "CALL { WITH leftInput,rightInput CALL { " + pairRows + " } "
+                + "WITH leftInput,rightInput,li AS lp,ri AS rp "
+                + (pagingValues.Length == 0 ? "" : "WITH lp,rp," + string.Join(",", pagingValues) + " ")
+                + "ORDER BY " + string.Join(",", orderTerms.Concat(new[] { "lp ASC", "rp ASC" }))
+                + " RETURN collect({kind:2,l:lp,r:rp}) AS pairs } "
+                + "UNWIND pairs[" + offset + ".." + end + "]+[{kind:3,l:-1,r:-1}] AS pair "
+                + "RETURN pair.kind AS kind,pair.l AS lp,pair.r AS rp,null AS proof,size(pairs) AS nativeCount ";
         }
         var text="CALL { CALL { "+left+" } RETURN collect(input) AS leftInput } "
             +"CALL { "+import+"CALL { "+import+right+" } RETURN collect(input) AS rightInput } WITH leftInput,rightInput "
@@ -92,10 +110,7 @@ public partial class Neo4jOASIS
             +"UNION ALL WITH leftInput,rightInput UNWIND range(0,size(rightInput)-1) AS ri "
             +"RETURN 1 AS kind,-1 AS lp,ri AS rp,rightInput[ri] AS proof,size(rightInput) AS nativeCount "
             +"UNION ALL WITH leftInput,rightInput WITH leftInput,rightInput WHERE "+valid+" "
-            +"CALL { "+pairRows+" } "
-            +"WITH collect({l:li,r:ri}) AS pairs UNWIND pairs AS pair "
-            +"RETURN 2 AS kind,pair.l AS lp,pair.r AS rp,null AS proof,size(pairs) AS nativeCount "
-            +"} "+output;
+            + pairProof + "} "+output;
         if(text.Length>1024*1024)throw new NeoCqlLimitException("Native join exceeds its statement-size budget.");
         return new NeoCqlJoinCommand(text,parameters);
 

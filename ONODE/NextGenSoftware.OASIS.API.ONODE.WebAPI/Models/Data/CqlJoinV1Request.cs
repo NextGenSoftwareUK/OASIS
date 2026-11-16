@@ -21,6 +21,8 @@ public sealed class CqlJoinV1Request
     public string? OutputOrderBy { get; set; }
     public bool OutputDescending { get; set; }
     public CqlV1JoinOrder[]? OutputOrdering { get; set; }
+    public int? OutputOffset { get; set; }
+    public int? OutputLimit { get; set; }
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]

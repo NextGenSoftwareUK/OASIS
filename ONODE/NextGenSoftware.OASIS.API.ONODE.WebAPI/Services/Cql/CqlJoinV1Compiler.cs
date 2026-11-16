@@ -75,12 +75,16 @@ public static partial class CqlV1Compiler
                     ? selected.OrderByOutput(term.Alias, term.Descending)
                     : selected.ThenByOutput(term.Alias, term.Descending));
             }
-            return selected;
         }
-        if (request.OutputOrderBy != null)
-            return RequiredJoin(selected.OrderByOutput(request.OutputOrderBy,request.OutputDescending));
-        if (request.OutputDescending)
+        else if (request.OutputOrderBy != null)
+            selected = RequiredJoin(selected.OrderByOutput(request.OutputOrderBy,request.OutputDescending));
+        else if (request.OutputDescending)
             throw new ArgumentException("A descending join order requires an output alias.");
+
+        if (request.OutputLimit is int limit)
+            return RequiredJoin(selected.PageOutput(request.OutputOffset ?? 0,limit));
+        if (request.OutputOffset.HasValue)
+            throw new ArgumentException("A join output offset requires an output limit.");
         return selected;
     }
 
