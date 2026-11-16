@@ -132,6 +132,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
         public async Task<OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>> LoadProviderWalletsForAvatarByIdAsync(Guid id, bool showOnlyDefault = false, bool decryptPrivateKeys = false, ProviderType providerType = ProviderType.Default)
         {
+            if (decryptPrivateKeys && (AvatarId == Guid.Empty || id != AvatarId))
+                return RejectWalletKeyRead<Dictionary<ProviderType, List<IProviderWallet>>>();
+
             try
             {
                 // This used to be wrapped in a bare `catch { }`. With test data disabled (the production
@@ -191,6 +194,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
         public async Task<OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>> LoadProviderWalletsForAvatarByUsernameAsync(string username, bool showOnlyDefault = false, bool decryptPrivateKeys = false, ProviderType providerType = ProviderType.Default)
         {
+            if (decryptPrivateKeys && !OwnsWalletIdentity(username, Avatar?.Username))
+                return RejectWalletKeyRead<Dictionary<ProviderType, List<IProviderWallet>>>();
+
             return await WalletManager.LoadProviderWalletsForAvatarByUsernameAsync(username, showOnlyDefault, decryptPrivateKeys, false, ProviderType.All, providerType);
         }
 
@@ -232,6 +238,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
         public async Task<OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>> LoadProviderWalletsForAvatarByEmailAsync(string email, bool showOnlyDefault = false, bool decryptPrivateKeys = false, ProviderType providerType = ProviderType.Default)
         {
+            if (decryptPrivateKeys && !OwnsWalletIdentity(email, Avatar?.Email))
+                return RejectWalletKeyRead<Dictionary<ProviderType, List<IProviderWallet>>>();
+
             return await WalletManager.LoadProviderWalletsForAvatarByEmailAsync(email, showOnlyDefault, decryptPrivateKeys, false, ProviderType.All, providerType);
         }
 
@@ -330,7 +339,25 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
         public async Task<OASISResult<IProviderWallet>> GetAvatarDefaultWalletByUsernameAsync(string username, bool showOnlyDefault = false, bool decryptPrivateKeys = false, ProviderType providerType = ProviderType.Default)
         {
+            if (decryptPrivateKeys && !OwnsWalletIdentity(username, Avatar?.Username))
+                return RejectWalletKeyRead<IProviderWallet>();
+
             return await WalletManager.GetAvatarDefaultWalletByUsernameAsync(username, showOnlyDefault, decryptPrivateKeys, false, providerType);
+        }
+
+        private bool OwnsWalletIdentity(string requested, string authenticated) =>
+            AvatarId != Guid.Empty && !string.IsNullOrWhiteSpace(authenticated) &&
+            string.Equals(requested, authenticated, StringComparison.OrdinalIgnoreCase);
+
+        private OASISResult<T> RejectWalletKeyRead<T>()
+        {
+            Response.StatusCode = StatusCodes.Status403Forbidden;
+            return new OASISResult<T>
+            {
+                IsError = true,
+                ErrorCode = "AVATAR_OPERATION_FORBIDDEN",
+                Message = "Only the authenticated wallet owner can request private keys."
+            };
         }
 
         /// <summary>

@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers;
@@ -51,6 +52,35 @@ public class HyperDriveWalletTokenBindingTests
         Assert.True(response.IsError);
         Assert.Null(response.Result);
         Assert.False(response.IsSaved);
+    }
+
+    [Fact]
+    public async Task WalletKeyReadsRejectEveryForeignAvatarSelector()
+    {
+        var controller = new WalletController
+        {
+            ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() }
+        };
+        controller.Avatar = new NextGenSoftware.OASIS.API.Core.Holons.Avatar
+        {
+            Id = Guid.NewGuid(), Username = "wallet-owner", Email = "wallet-owner@example.test"
+        };
+
+        var byId = await controller.LoadProviderWalletsForAvatarByIdAsync(Guid.NewGuid(), decryptPrivateKeys: true);
+        var byUsername = await controller.LoadProviderWalletsForAvatarByUsernameAsync("other", decryptPrivateKeys: true);
+        var byEmail = await controller.LoadProviderWalletsForAvatarByEmailAsync("other@example.test", decryptPrivateKeys: true);
+        var defaultWallet = await controller.GetAvatarDefaultWalletByUsernameAsync("other", decryptPrivateKeys: true);
+
+        Assert.All(new[] { byId, byUsername, byEmail }, result =>
+        {
+            Assert.Equal("AVATAR_OPERATION_FORBIDDEN", result.ErrorCode);
+            Assert.True(result.IsError);
+            Assert.Null(result.Result);
+        });
+        Assert.Equal("AVATAR_OPERATION_FORBIDDEN", defaultWallet.ErrorCode);
+        Assert.True(defaultWallet.IsError);
+        Assert.Null(defaultWallet.Result);
+        Assert.Equal(StatusCodes.Status403Forbidden, controller.Response.StatusCode);
     }
 
     [Fact]
