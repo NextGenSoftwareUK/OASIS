@@ -20,6 +20,14 @@ public sealed class CqlJoinV1Request
     public int MaximumResults { get; set; } = 25;
     public string? OutputOrderBy { get; set; }
     public bool OutputDescending { get; set; }
+    public CqlV1JoinOrder[]? OutputOrdering { get; set; }
+}
+
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed class CqlV1JoinOrder
+{
+    public string? Alias { get; set; }
+    public bool Descending { get; set; }
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]

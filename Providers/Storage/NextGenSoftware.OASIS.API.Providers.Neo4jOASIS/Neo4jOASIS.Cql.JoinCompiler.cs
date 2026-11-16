@@ -64,19 +64,27 @@ public partial class Neo4jOASIS
                 +" AS proof,size(leftInput) AS nativeCount "
             : "RETURN 0 AS kind,li AS lp,-1 AS rp,leftInput[li] AS proof,size(leftInput) AS nativeCount ";
         var output = "RETURN kind,lp,rp,proof,nativeCount ORDER BY kind ASC,lp ASC,rp ASC";
-        if (query.OutputOrderColumn is int order)
+        if (query.OutputOrdering.Count != 0)
         {
-            var column = query.Columns[order];
-            var index = query.Columns.Take(order).Count(item => item.Source == column.Source);
-            var position = column.Source == CosmicJoinColumnSource.Left ? "lp" : "rp";
-            var input = column.Source == CosmicJoinColumnSource.Left ? "leftInput" : "rightInput";
-            var cell = input + "[" + position + "].values[" + index + "]";
-            var direction = query.OutputOrderDescending ? " DESC" : " ASC";
-            output = "WITH kind,lp,rp,proof,nativeCount,CASE WHEN kind=2 AND " + position + ">=0 AND " + position
-                + "<size(" + input + ") AND " + cell + ".s=2 THEN " + cell + ".v END AS outputValue "
-                + "RETURN kind,lp,rp,proof,nativeCount ORDER BY kind ASC,"
-                + "CASE WHEN outputValue IS NULL THEN 0 ELSE 1 END" + direction + ",outputValue" + direction
-                + ",lp ASC,rp ASC";
+            var values = new List<string>();
+            var orderTerms = new List<string> { "kind ASC" };
+            foreach (var order in query.OutputOrdering)
+            {
+                var column = query.Columns[order.Column];
+                var index = query.Columns.Take(order.Column).Count(item => item.Source == column.Source);
+                var position = column.Source == CosmicJoinColumnSource.Left ? "lp" : "rp";
+                var input = column.Source == CosmicJoinColumnSource.Left ? "leftInput" : "rightInput";
+                var cell = input + "[" + position + "].values[" + index + "]";
+                var direction = order.Descending ? " DESC" : " ASC";
+                var alias = "outputValue" + values.Count;
+                values.Add("CASE WHEN kind=2 AND " + position + ">=0 AND " + position
+                    + "<size(" + input + ") AND " + cell + ".s=2 THEN " + cell + ".v END AS " + alias);
+                orderTerms.Add("CASE WHEN " + alias + " IS NULL THEN 0 ELSE 1 END" + direction);
+                orderTerms.Add(alias + direction);
+            }
+            orderTerms.AddRange(new[] { "lp ASC", "rp ASC" });
+            output = "WITH kind,lp,rp,proof,nativeCount," + string.Join(",", values)
+                + " RETURN kind,lp,rp,proof,nativeCount ORDER BY " + string.Join(",", orderTerms);
         }
         var text="CALL { CALL { "+left+" } RETURN collect(input) AS leftInput } "
             +"CALL { "+import+"CALL { "+import+right+" } RETURN collect(input) AS rightInput } WITH leftInput,rightInput "

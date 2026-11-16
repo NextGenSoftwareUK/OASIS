@@ -9,6 +9,7 @@ using CqlCompiler = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Service
 using CqlJoinRequest = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlJoinV1Request;
 using CqlJoinColumn = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlJoinV1Column;
 using CqlJoinFilter = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlV1Filter;
+using CqlJoinOrder = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlV1JoinOrder;
 using CqlJoinOperator = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlV1Operator;
 using SqliteProvider=NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.SQLLiteDBOASIS;
 
@@ -58,17 +59,20 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         var request = new CqlJoinRequest
         {
             Kind = "Child",
-            OutputOrderBy = "ChildId", OutputDescending = true,
+            OutputOrdering = new[] { new CqlJoinOrder { Alias = "ChildId", Descending = true },
+                new CqlJoinOrder { Alias = "ChildName" } },
             Left = new() { Take = 1, Filters = new[] {
                 new CqlJoinFilter { Field = "Id", Operator = CqlJoinOperator.Equal,
                     Value = JsonSerializer.SerializeToElement(parentId) } } },
             MaximumLeftRows = 1, MaximumRightRows = 1,
-            Columns = new[] { new CqlJoinColumn { Alias = "ChildId", Source = "Right", Selection = new() { Field = "Id" } } }
+            Columns = new[] { new CqlJoinColumn { Alias = "ChildId", Source = "Right", Selection = new() { Field = "Id" } },
+                new CqlJoinColumn { Alias = "ChildName", Source = "Right", Selection = new() { Field = "Name" } } }
         };
         var wire = CqlCompiler.CompileJoin(request, actor, provider.QueryProviderType, CosmicQueryReadAccess.OwnerOrPublic(actor).Result);
         Assert.IsTrue(wire.Join.RestrictsRightToLeftParents);
         Assert.AreEqual(0, wire.OutputOrderColumn);
         Assert.IsTrue(wire.OutputOrderDescending);
+        Assert.AreEqual(new CosmicJoinOutputOrder(1, false), wire.OutputOrdering[1]);
         var wirePlan = CosmicJoinPlanner.Plan(wire, provider.QueryProviderType,
             new[] { new CosmicJoinTarget(provider.QueryProviderType, provider.QueryCapabilities, provider.JoinCapabilities) });
         Assert.IsFalse(wirePlan.IsError, wirePlan.Message);
@@ -109,6 +113,16 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             var expected = descending ? new[] { ids[0], ids[1], ids[4] } : new[] { ids[4], ids[0], ids[1] };
             CollectionAssert.AreEqual(expected, nullableRows.Result.Providers.Single().Rows.Select(row => row.Value.Id).ToArray());
         }
+        var composite = left.CrossJoin(right).Select((parent, child) => new { child.Id, child.Description, child.Name }).Result
+            .OrderByOutput("Description").Result.ThenByOutput("Name", descending: true);
+        Assert.IsFalse(composite.IsError, composite.Message);
+        var compositePlan = CosmicJoinPlanner.Plan(composite.Result, native.QueryProviderType,
+            new[] { new CosmicJoinTarget(native.QueryProviderType, native.QueryCapabilities, native.JoinCapabilities) });
+        Assert.IsFalse(compositePlan.IsError, compositePlan.Message);
+        var compositeRows = await NativeManager(provider).ExecuteJoinQueryAsync(compositePlan.Result, new[] { native });
+        Assert.IsFalse(compositeRows.IsError, compositeRows.Message + compositeRows.Exception);
+        CollectionAssert.AreEqual(new[] { ids[4], ids[1], ids[0] },
+            compositeRows.Result.Providers.Single().Rows.Select(row => row.Value.Id).ToArray());
         var manager = NativeManager(provider);
         var leftRows = CosmicLinq.Create(manager, provider, left, maximumResults: 4).Result;
         var rightRows = CosmicLinq.Create(manager, provider, right, maximumResults: 4).Result;
@@ -123,6 +137,11 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Assert.IsFalse(orderedScalar.IsError, orderedScalar.Message + orderedScalar.Exception);
         CollectionAssert.AreEqual(new[] { "grandchild two", "protected source root", "visible match" },
             orderedScalar.Result.ToArray());
+        var thenBy = leftRows.SelectMany(_ => rightRows, (parent, child) => new { child.Id, child.Name, child.Description })
+            .OrderBy(child => child.Description).ThenByDescending(child => child.Name);
+        var orderedThenBy = await thenBy.ToCosmicListAsync();
+        Assert.IsFalse(orderedThenBy.IsError, orderedThenBy.Message + orderedThenBy.Exception);
+        CollectionAssert.AreEqual(new[] { ids[4], ids[1], ids[0] }, orderedThenBy.Result.Select(row => row.Id).ToArray());
         checks.Add(new { provider = provider.QueryProviderType.ToString(), join = "native selected output ordering" });
     }
 

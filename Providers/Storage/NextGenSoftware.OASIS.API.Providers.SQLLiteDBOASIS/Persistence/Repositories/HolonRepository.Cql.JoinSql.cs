@@ -55,20 +55,21 @@ public partial class HolonRepository
         };
         var cap = Math.Min(limits.MaximumPairs, (long)limits.MaximumResults) + 1;
         var pairLimit = left.Bind(cap);
-        var pairOrder = "lp NULLS LAST,rp";
+        var orderTerms = new List<string>();
         var orderProjection = "";
-        if (selection.OutputOrderColumn is int order)
+        foreach (var order in selection.OutputOrdering)
         {
-            var column = selection.Columns[order];
+            var column = selection.Columns[order.Column];
             var source = column.Source == CosmicJoinColumnSource.Left ? "l" : "r";
-            var index = selection.Columns.Take(order).Count(item => item.Source == column.Source);
+            var index = selection.Columns.Take(order.Column).Count(item => item.Source == column.Source);
             var cell = source + ".v" + index;
-            orderProjection = ",CASE WHEN " + cell + "s=2 THEN " + cell + "v END AS orderValue";
+            var alias = "orderValue" + orderTerms.Count;
+            orderProjection += ",CASE WHEN " + cell + "s=2 THEN " + cell + "v END AS " + alias;
             var collation = (Nullable.GetUnderlyingType(column.ValueType) ?? column.ValueType) == typeof(Guid)
                 ? " COLLATE NOCASE" : " COLLATE BINARY";
-            pairOrder = "orderValue" + collation + (selection.OutputOrderDescending ? " DESC NULLS LAST," : " ASC NULLS FIRST,")
-                + pairOrder;
+            orderTerms.Add(alias + collation + (order.Descending ? " DESC NULLS LAST" : " ASC NULLS FIRST"));
         }
+        var pairOrder = string.Join(",", orderTerms.Concat(new[] { "lp NULLS LAST", "rp" }));
         return new JoinSql
         {
             Left = ls, Right = rs, Parameters = parameters, PairOrder = pairOrder,
