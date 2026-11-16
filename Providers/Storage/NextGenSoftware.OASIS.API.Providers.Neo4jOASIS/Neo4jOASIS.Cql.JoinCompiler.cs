@@ -100,6 +100,24 @@ public partial class Neo4jOASIS
             output = "WITH kind,lp,rp,proof,nativeCount," + string.Join(",", values)
                 + " RETURN kind,lp,rp,proof,nativeCount ORDER BY kind ASC," + string.Join(",", orderTerms) + ",lp ASC,rp ASC";
         }
+        var rightProof = query.SelectsChildEntity
+            ? "WITH rightInput,ri,rightInput[ri] AS entry RETURN 1 AS kind,-1 AS lp,ri AS rp,"
+                + "entry{.id,.visible,.creator,.valid,.domainValid,.cycle,.traversalLimit,.payloadLimit,.bytes,.keys,.values,.ordering}"
+                + " AS proof,size(rightInput) AS nativeCount "
+            : "RETURN 1 AS kind,-1 AS lp,ri AS rp,rightInput[ri] AS proof,size(rightInput) AS nativeCount ";
+        if (query.SelectsChildEntity)
+        {
+            var entityLimit = binder.Bind(limits.MaximumPayloadBytes);
+            var entityOrder = values.Count == 0 ? "" : "," + string.Join(",", values);
+            output = "WITH kind,lp,rp,proof,nativeCount,CASE WHEN kind=2 THEN rightInput[rp] END AS selected"
+                + entityOrder + " "
+                + "OPTIONAL MATCH (child:Holon) WHERE elementId(child)=selected.entityLocator "
+                + "AND coalesce(child.ProviderRevisionId,'')=selected.entityRevision "
+                + "RETURN kind,lp,rp,proof,nativeCount,CASE WHEN child IS NOT NULL THEN "
+                + "{id:child.Id,revision:child.ProviderRevisionId,snapshot:CASE WHEN size(child.SnapshotJson)<="
+                + entityLimit + " THEN child.SnapshotJson END} END AS entity ORDER BY kind ASC,"
+                + string.Join(",", orderTerms.Concat(new[] { "lp ASC", "rp ASC" }));
+        }
         var pairProof = "CALL { " + pairRows + " } "
             + "WITH collect({l:li,r:ri}) AS pairs UNWIND pairs AS pair "
             + "RETURN 2 AS kind,pair.l AS lp,pair.r AS rp,null AS proof,size(pairs) AS nativeCount ";
@@ -121,7 +139,7 @@ public partial class Neo4jOASIS
             +"CALL { "+import+"CALL { "+import+right+" } RETURN collect(input) AS rightInput } WITH leftInput,rightInput "
             +"CALL { WITH leftInput,rightInput UNWIND range(0,size(leftInput)-1) AS li "+leftProof
             +"UNION ALL WITH leftInput,rightInput UNWIND range(0,size(rightInput)-1) AS ri "
-            +"RETURN 1 AS kind,-1 AS lp,ri AS rp,rightInput[ri] AS proof,size(rightInput) AS nativeCount "
+            +rightProof
             +"UNION ALL WITH leftInput,rightInput WITH leftInput,rightInput WHERE "+valid+" "
             + pairProof + "} "+output;
         if(text.Length>1024*1024)throw new NeoCqlLimitException("Native join exceeds its statement-size budget.");
@@ -133,6 +151,7 @@ public partial class Neo4jOASIS
                 query.Columns.Where(column => column.Source == (isLeft ? CosmicJoinColumnSource.Left : CosmicJoinColumnSource.Right))
                     .Select(column => column.Path).ToArray(), maximumRows, maximumBytes,
                 scopeChildren: !isLeft && query.Join.RestrictsRightToLeftParents,
-                includeChildMembership: isLeft && query.Join.RestrictsRightToLeftParents);
+                includeChildMembership: isLeft && query.Join.RestrictsRightToLeftParents,
+                includeEntityLocator: !isLeft && query.SelectsChildEntity);
     }
 }

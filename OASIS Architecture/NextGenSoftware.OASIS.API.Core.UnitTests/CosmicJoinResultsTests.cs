@@ -55,6 +55,51 @@ public sealed class CosmicJoinResultsTests
         result.Result.Should().BeNull();Dto.Constructors.Should().Be(0);
     }
 
+    [Theory]
+    [InlineData("identity")]
+    [InlineData("parent")]
+    [InlineData("visibility")]
+    [InlineData("owner")]
+    [InlineData("missing")]
+    public void ChildEntityMustMatchNativeSourceProof(string mismatch)
+    {
+        var source=CosmicQuery<Holon>.Create().WithReadAccess(CosmicQueryReadAccess.OwnerOrPublic(Actor).Result).Result;
+        var query=source.JoinChildren(source).Result.SelectChildEntity<Holon,Holon,Guid,Holon>().Result;
+        var child=new Holon
+        {
+            Id=mismatch=="identity" ? R2 : R1,
+            ParentHolonId=mismatch=="parent" ? L2 : L1,
+            Name="native child",
+            IsPublic=mismatch=="visibility",
+            CreatedByAvatarId=mismatch=="owner" ? L2 : Actor
+        };
+        var packet=new CosmicJoinPacket(new[]{Input(L1,L1)},
+            new[]{new CosmicJoinInputRow(R1,false,Actor,new object[]{L1},Array.Empty<object>())},
+            new[]{new CosmicJoinRow(L1,R1)},1,1,1,
+            mismatch=="missing" ? null : new[]{child});
+        var result=CosmicJoinResults.Materialize(query,packet);
+        result.ErrorCode.Should().Be("CQL_PROVIDER_RESULT_INVALID",result.Message);
+        result.Result.Should().BeNull();
+    }
+
+    [Fact]
+    public void ChildEntitiesAreDetachedAndChargedToTheOutputBudget()
+    {
+        var source=CosmicQuery<Holon>.Create();
+        var child=new Holon{Id=R1,ParentHolonId=L1,IsPublic=true,CreatedByAvatarId=Actor,Name=new string('x',256)};
+        var packet=new CosmicJoinPacket(new[]{Input(L1,L1)},new[]{Input(R1,L1)},
+            new[]{new CosmicJoinRow(L1,R1)},1,1,1,new[]{child});
+        var complete=source.JoinChildren(source).Result.SelectChildEntity<Holon,Holon,Guid,Holon>().Result;
+        var detached=CosmicJoinResults.Materialize(complete,packet);
+        detached.IsError.Should().BeFalse(detached.Message);
+        detached.Result.Single().Value.Should().NotBeSameAs(child);
+        detached.Result.Single().Value.Name.Should().Be(child.Name);
+
+        var bounds=CosmicJoinOptions.Create(maximumPayloadBytes:128).Result;
+        var bounded=source.JoinChildren(source,bounds).Result.SelectChildEntity<Holon,Holon,Guid,Holon>().Result;
+        CosmicJoinResults.Materialize(bounded,packet).ErrorCode.Should().Be("CQL_RESULT_LIMIT");
+    }
+
     [Fact]
     public void MatchedNullAndUnmatchedNullKeepDifferentPublishedPresence()
     {

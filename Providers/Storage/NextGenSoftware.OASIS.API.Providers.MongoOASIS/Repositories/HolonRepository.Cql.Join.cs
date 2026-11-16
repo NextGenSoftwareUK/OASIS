@@ -87,7 +87,33 @@ public partial class HolonRepository
             deadline.Token.ThrowIfCancellationRequested();
             if (query.OutputLimit.HasValue ? !receivedFacet : pairCount != rows.Count)
                 throw new InvalidDataException("Native join pair count disagrees with its complete stream.");
-            return new CosmicJoinPacket(left.Rows.Values.ToArray(), right.Rows.Values.ToArray(), rows.ToArray(), left.Count, right.Count, pairCount);
+            var children = query.SelectsChildEntity ? await ReadMatchedChildren().ConfigureAwait(false) : null;
+            return new CosmicJoinPacket(left.Rows.Values.ToArray(), right.Rows.Values.ToArray(), rows.ToArray(),
+                left.Count, right.Count, pairCount, children);
+
+            async Task<IHolon[]> ReadMatchedChildren()
+            {
+                var identities = rows.Select(row => row.RightId ?? throw new InvalidDataException(
+                    "A whole-child result must have a native right identity.")).ToArray();
+                var byId = new Dictionary<Guid, IHolon>(identities.Length);
+                foreach (var batch in identities.Chunk(CosmicQueryExpression.MaximumMembershipValues))
+                {
+                    var selection = CosmicQuery<Core.Holons.Holon>.Create(query.Join.Right.Scope)
+                        .Where(child => batch.Contains(child.Id));
+                    if (query.Join.Right.ReadAccess != null)
+                        selection = selection.WithReadAccess(query.Join.Right.ReadAccess);
+                    if (selection.IsError) throw new InvalidDataException(selection.Message);
+                    var read = new MongoCqlTranslator().CompileExecution(selection.Result, batch.Length);
+                    var matched = await ReadNativeCqlRowsAsync(read, batch.Length,
+                        checked((int)(limits.MaximumPayloadBytes - bytes)), session, Options, deadline.Token,
+                        payloadBytes => bytes = checked(bytes + payloadBytes)).ConfigureAwait(false);
+                    foreach (var child in matched)
+                        byId.Add(child.Id, child);
+                }
+                if (byId.Count != identities.Length)
+                    throw new InvalidDataException("Native child entities do not match the joined identities.");
+                return identities.Select(id => byId[id]).ToArray();
+            }
 
             void AddPair(BsonDocument data, bool paged)
             {
