@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. The focused wallet controller check uses a disposable GitHub runner and retains no uploaded results. Removed the scoped OPORTAL index. No local package, runtime, database or build output was created.
+
 15 November Cancun time. Hosted Solana wallet run 43778262121 verified removal of its owned Agave fixture, including runtime, signer, ledger and TRX. Read its logs in memory and removed the scoped WEB4 index. No local SDK, packages, databases or build outputs were retained.
 
 15 November Cancun time. The native wallet workflow uses the existing hosted Agave fixture, keeps its TRX inside that directory, and removes the owned validator process, ledger, signer, runtime and output on exit. Teardown remains pending run 43778262121. No local SDK, packages, databases or build outputs were created.
