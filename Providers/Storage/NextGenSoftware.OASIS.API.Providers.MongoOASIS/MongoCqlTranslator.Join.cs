@@ -40,10 +40,11 @@ internal sealed partial class MongoCqlTranslator
         {
             var key = "k" + index;
             bindings.Add(key, "$" + key);
-            var comparison = query.Join.Keys[index].Comparison switch
+            var operation = query.Join.Keys[index].Comparison;
+            var comparison = operation switch
             {
-                CosmicJoinComparison.Equal => "$eq",
-                CosmicJoinComparison.NotEqual => "$ne",
+                CosmicJoinComparison.Equal or CosmicJoinComparison.NullSafeEqual => "$eq",
+                CosmicJoinComparison.NotEqual or CosmicJoinComparison.NullSafeNotEqual => "$ne",
                 CosmicJoinComparison.LessThan => "$lt",
                 CosmicJoinComparison.LessThanOrEqual => "$lte",
                 CosmicJoinComparison.GreaterThan => "$gt",
@@ -52,10 +53,19 @@ internal sealed partial class MongoCqlTranslator
             };
             var variable = "$$" + key;
             var document = "$" + key;
-            var present = Op("$and", Op("$eq", variable + ".rank", Literal(2)),
-                Op("$eq", document + ".rank", Literal(2)));
-            equality.Add(Op("$and", present, Op(comparison, variable + ".value", document + ".value")));
-            reverse.Add(Op("$and", present.DeepClone(), Op(comparison, document + ".value", variable + ".value")));
+            equality.Add(PairComparison(variable,document));
+            reverse.Add(PairComparison(document,variable));
+
+            BsonValue PairComparison(string leftCell,string rightCell)
+            {
+                var leftPresent = Op("$eq", leftCell + ".rank", Literal(2));
+                var rightPresent = Op("$eq", rightCell + ".rank", Literal(2));
+                var bothPresent = Op("$and",leftPresent,rightPresent);
+                var matchedValues = Op(comparison,leftCell + ".value",rightCell + ".value");
+                return operation is CosmicJoinComparison.NullSafeEqual or CosmicJoinComparison.NullSafeNotEqual
+                    ? Op("$cond",bothPresent,matchedValues,Op(comparison,leftPresent.DeepClone(),rightPresent.DeepClone()))
+                    : Op("$and",bothPresent,matchedValues);
+            }
         }
         // Matching follows the right source's window, not its unpaged collection.
         if (query.Join.Kind != CosmicJoinKind.Cross)

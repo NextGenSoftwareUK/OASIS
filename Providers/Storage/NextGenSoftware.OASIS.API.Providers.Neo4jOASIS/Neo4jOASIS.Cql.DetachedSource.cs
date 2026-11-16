@@ -13,7 +13,7 @@ public partial class Neo4jOASIS
     private static string CompileCqlDetachedSource<T>(CosmicQuery<T> source,
         Dictionary<string, object> parameters, IReadOnlyList<CosmicQueryPath> keyPaths,
         IReadOnlyList<CosmicQueryPath> valuePaths, int maximumRows, int maximumBytes, CosmicEntityCompositionPlan<T> entity=null,
-        bool scopeChildren=false, bool includeChildMembership=false) where T : IHolon
+        bool scopeChildren=false, bool includeChildMembership=false, bool includeEntityLocator=false) where T : IHolon
         {
             var compiled=CompileCqlSource(source,parameters,scopeChildren);var translator=compiled.Translator;
             var import=scopeChildren ? "WITH leftInput " : "";
@@ -43,6 +43,9 @@ public partial class Neo4jOASIS
             }
             var membership=includeChildMembership
                 ? ",hasChildManifest:p.f_HasChildManifest,childIds:CASE WHEN joinBytes>"+byteLimit+" THEN [] ELSE p.f_ChildIds END"
+                : "";
+            var entityLocator=includeEntityLocator
+                ? ",entityLocator:elementId(h),entityRevision:coalesce(h.ProviderRevisionId,'')"
                 : "";
             var empty="{id:h.Id,visible:false,creator:null,valid:false,domainValid:false,cycle:false,traversalLimit:false,payloadLimit:false,bytes:0,keys:[],values:[],ordering:[]}";
             var traversalError=translator.TraversalClauses.Count==0?"":" UNION ALL "+import+compiled.EligibleSource
@@ -80,7 +83,7 @@ public partial class Neo4jOASIS
                 +"),cycle:false,traversalLimit:false,payloadLimit:joinBytes>"+byteLimit+",bytes:joinBytes,"
                 +"keys:CASE WHEN joinBytes>"+byteLimit+" THEN [] ELSE ["+string.Join(",",keys)+"] END,"
                 +"values:CASE WHEN joinBytes>"+byteLimit+" THEN [] ELSE ["+string.Join(",",values)+"] END,"
-                +"ordering:CASE WHEN joinBytes>"+byteLimit+" THEN [] ELSE ["+string.Join(",",order)+"] END"+membership+"} AS input"+returned
+                +"ordering:CASE WHEN joinBytes>"+byteLimit+" THEN [] ELSE ["+string.Join(",",order)+"] END"+membership+entityLocator+"} AS input"+returned
                 +" } RETURN input ORDER BY "+outputOrder;
 
             string Cell(CosmicQueryPath path,bool ordering)

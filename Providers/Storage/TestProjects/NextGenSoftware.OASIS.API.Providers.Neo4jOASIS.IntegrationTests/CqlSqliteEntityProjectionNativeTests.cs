@@ -35,6 +35,49 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Assert.IsFalse(rows.IsError, rows.Message + rows.Exception);
         Assert.AreEqual(childId, rows.Result.Providers.Single().Rows.Single().Value);
         var linq = CosmicLinq.Create(NativeManager(provider), provider, parents, maximumResults: 1).Result;
+        if (provider.JoinCapabilities.SupportsChildEntities)
+        {
+            var whole = parents.JoinChildren(source, options).Select((parent, child) => child);
+            Assert.IsFalse(whole.IsError, whole.Message);
+            var wholePlan = CosmicJoinPlanner.Plan(whole.Result, provider.QueryProviderType,
+                new[] { new CosmicJoinTarget(provider.QueryProviderType, provider.QueryCapabilities, provider.JoinCapabilities) });
+            Assert.IsFalse(wholePlan.IsError, wholePlan.Message);
+            var wholeRows = await NativeManager(provider).ExecuteJoinQueryAsync(wholePlan.Result, new[] { provider });
+            Assert.IsFalse(wholeRows.IsError, wholeRows.Message + wholeRows.Exception);
+            Assert.AreEqual(childId, wholeRows.Result.Providers.Single().Rows.Single().Value.Id);
+            var children = linq.SelectMany(parent => parent.Children);
+            Assert.AreEqual(1, children.Count());
+            Assert.AreEqual(0L, children.Skip(1).LongCount());
+            Assert.IsTrue(children.Any());
+            Assert.IsFalse(children.Take(0).Any());
+            Assert.AreEqual(childId, children.First().Id);
+            Assert.IsNull(children.Skip(1).FirstOrDefault());
+            var wholeChildren = await children.ToCosmicListAsync();
+            Assert.IsFalse(wholeChildren.IsError, wholeChildren.Message + wholeChildren.Exception);
+            var child = wholeChildren.Result.Single();
+            Assert.AreEqual(childId, child.Id);
+            Assert.AreEqual(parentId, child.ParentHolonId);
+            Assert.AreEqual("visible match", child.Name);
+            var paged = await linq.SelectMany(parent => parent.Children.Where(row => row.Name == "visible match"),
+                (parent, row) => row).Take(1).ToCosmicListAsync();
+            Assert.IsFalse(paged.IsError, paged.Message + paged.Exception);
+            Assert.AreEqual(childId, paged.Result.Single().Id);
+            var ordered = await linq.SelectMany(parent => parent.Children)
+                .OrderByDescending(row => row.Name).ThenBy(row => row.Id).Take(1).ToCosmicListAsync();
+            Assert.IsFalse(ordered.IsError, ordered.Message + ordered.Exception);
+            Assert.AreEqual(childId, ordered.Result.Single().Id);
+            var empty = await linq.SelectMany(parent => parent.Children).Take(0).ToCosmicListAsync();
+            Assert.IsFalse(empty.IsError, empty.Message + empty.Exception);
+            Assert.AreEqual(0, empty.Result.Count);
+            var filteredEntity = await linq.SelectMany(parent => parent.Children)
+                .Where(row => row.Name == "visible match").ToCosmicListAsync();
+            Assert.IsFalse(filteredEntity.IsError, filteredEntity.Message + filteredEntity.Exception);
+            Assert.AreEqual(childId, filteredEntity.Result.Single().Id);
+            var projectedEntity = await linq.SelectMany(parent => parent.Children.Select(child => child))
+                .Where(row => row.Name == "visible match").Select(row => row.Id).ToCosmicListAsync();
+            Assert.IsFalse(projectedEntity.IsError, projectedEntity.Message + projectedEntity.Exception);
+            Assert.AreEqual(childId, projectedEntity.Result.Single());
+        }
         var flattened = await linq.SelectMany(parent => parent.Children,
             (parent, child) => new { ParentId = parent.Id, ChildId = child.Id })
             .Select(pair => pair.ChildId).ToCosmicListAsync();
@@ -178,6 +221,27 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         var orderedThenBy = await thenBy.ToCosmicListAsync();
         Assert.IsFalse(orderedThenBy.IsError, orderedThenBy.Message + orderedThenBy.Exception);
         CollectionAssert.AreEqual(new[] { ids[4], ids[1], ids[0] }, orderedThenBy.Result.Select(row => row.Id).ToArray());
+        Assert.AreEqual(3, thenBy.Count());
+        Assert.AreEqual(2L, thenBy.Skip(1).LongCount());
+        Assert.AreEqual(1, thenBy.Take(2).Skip(1).Count());
+        Assert.IsTrue(thenBy.Skip(2).Any());
+        Assert.IsFalse(thenBy.Skip(3).Any());
+        Assert.AreEqual(ids[4], thenBy.Take(1).Single().Id);
+        Assert.AreEqual(ids[0], thenBy.Skip(2).Single().Id);
+        Assert.IsNull(thenBy.Skip(3).SingleOrDefault());
+        Assert.AreEqual("CQL_SEQUENCE_MULTIPLE",
+            Assert.ThrowsException<CosmicLinqException>(() => thenBy.Single()).Code);
+        Assert.AreEqual("CQL_SEQUENCE_MULTIPLE",
+            Assert.ThrowsException<CosmicLinqException>(() => thenBy.Skip(1).Take(2).SingleOrDefault()).Code);
+        Assert.AreEqual(ids[4], thenBy.First().Id);
+        Assert.AreEqual(ids[1], thenBy.Skip(1).First().Id);
+        Assert.AreEqual(ids[0], thenBy.Skip(1).ElementAt(1).Id);
+        Assert.IsNull(thenBy.Take(1).ElementAtOrDefault(1));
+        Assert.IsNull(thenBy.ElementAtOrDefault(-1));
+        Assert.AreEqual("CQL_SEQUENCE_EMPTY",
+            Assert.ThrowsException<CosmicLinqException>(() => thenBy.Take(0).First()).Code);
+        Assert.AreEqual("CQL_INDEX_OUT_OF_RANGE",
+            Assert.ThrowsException<CosmicLinqException>(() => thenBy.ElementAt(3)).Code);
         foreach (var (query, expected) in new[]
         {
             (thenBy.Skip(1).Take(1), new[] { ids[1] }),
@@ -246,6 +310,27 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Assert.IsFalse(wireRows.IsError, wireRows.Message + wireRows.Exception);
         CollectionAssert.AreEquivalent(new (Guid?, Guid?)[] { (parentId, null), (lowerId, parentId), (null, missingId) },
             wireRows.Result.Providers.Single().Rows.Select(row => ((Guid?)row.Value["LeftId"], (Guid?)row.Value["RightId"])).ToArray());
+        request.Left.Filters = new[] { KeySet(rightKeys) };
+        await VerifyNullComparison("IsNotDistinctFrom", CosmicJoinComparison.NullSafeEqual,
+            new (Guid?,Guid?)[] { (parentId,parentId), (missingId,missingId) });
+        request.Left.Filters = new[] { KeySet(leftKeys) };
+        await VerifyNullComparison("IsDistinctFrom", CosmicJoinComparison.NullSafeNotEqual,
+            new (Guid?,Guid?)[] { (parentId,missingId), (lowerId,parentId), (lowerId,missingId) });
+
+        async Task VerifyNullComparison(string operation, CosmicJoinComparison expectedOperator, (Guid?,Guid?)[] expectedRows)
+        {
+            request.Keys[0].Operator = operation;
+            var compiled = CqlCompiler.CompileJoin(request, wireActor, native.QueryProviderType, access);
+            Assert.AreEqual(expectedOperator, compiled.Join.Keys.Single().Comparison);
+            var plan = CosmicJoinPlanner.Plan(compiled, native.QueryProviderType,
+                new[] { new CosmicJoinTarget(native.QueryProviderType, native.QueryCapabilities, native.JoinCapabilities) });
+            Assert.IsFalse(plan.IsError, plan.Message);
+            var result = await manager.ExecuteJoinQueryAsync(plan.Result, new[] { native });
+            Assert.IsFalse(result.IsError, result.Message + result.Exception);
+            CollectionAssert.AreEquivalent(expectedRows,
+                result.Result.Providers.Single().Rows.Select(row => ((Guid?)row.Value["LeftId"], (Guid?)row.Value["RightId"])).ToArray());
+        }
+
         request.Keys[0].Operator = "Invalid";
         Assert.ThrowsException<ArgumentException>(() => CqlCompiler.CompileJoin(request, wireActor, native.QueryProviderType, access));
 
@@ -274,6 +359,18 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Assert.IsFalse(limitedAdmission.IsError, limitedAdmission.Message);
         var lowerRows = CosmicLinq.Create(manager, provider, lower, maximumResults: 4).Result;
         var higherRows = CosmicLinq.Create(manager, provider, higher, maximumResults: 4).Result;
+        var liftedEqual = await higherRows.SelectMany(l => higherRows.Where(r =>
+                CosmicQueryMetadata.Value<long?>(r, "i64") == CosmicQueryMetadata.Value<long?>(l, "i64")),
+            (l, r) => new { Left = l.Id, Right = r.Id }).ToCosmicListAsync();
+        Assert.IsFalse(liftedEqual.IsError, liftedEqual.Message + liftedEqual.Exception);
+        CollectionAssert.AreEquivalent(new[] { (parentId,parentId), (missingId,missingId) },
+            liftedEqual.Result.Select(pair => (pair.Left,pair.Right)).ToArray());
+        var liftedUnequal = await lowerRows.SelectMany(l => higherRows.Where(r =>
+                CosmicQueryMetadata.Value<long?>(r, "i64") != CosmicQueryMetadata.Value<long?>(l, "i64")),
+            (l, r) => new { Left = l.Id, Right = r.Id }).ToCosmicListAsync();
+        Assert.IsFalse(liftedUnequal.IsError, liftedUnequal.Message + liftedUnequal.Exception);
+        CollectionAssert.AreEquivalent(new[] { (parentId,missingId), (lowerId,parentId), (lowerId,missingId) },
+            liftedUnequal.Result.Select(pair => (pair.Left,pair.Right)).ToArray());
         var exactMetadata = lowerRows.SelectMany(l => higherRows.Where(r =>
                 CosmicQueryMetadata.Value<long?>(r, "i64") > CosmicQueryMetadata.Value<long?>(l, "i64")),
             (l, r) => new { Before = l.Id, After = r.Id });

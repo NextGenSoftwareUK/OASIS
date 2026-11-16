@@ -16,6 +16,7 @@ public partial class Neo4jOASIS
         private readonly CosmicJoinExecutionLimits limits;
         private readonly List<CosmicJoinInputRow> left=new(),right=new();
         private readonly List<CosmicJoinRow> pairs=new();
+        private readonly List<IHolon> children=new();
         private long leftCount,rightCount,pairCount,leftBytes,rightBytes,outputBytes;
         private long previousKind=-1;
 
@@ -25,10 +26,15 @@ public partial class Neo4jOASIS
         internal void Add(IReadOnlyDictionary<string,object> record)
         {
             check();
-            if(record.Count!=5 || !record.TryGetValue("proof",out var proof))throw Invalid("Native join envelope is invalid.");
+            object entity = null;
+            if(record.Count!=(query.SelectsChildEntity ? 6 : 5) || !record.TryGetValue("proof",out var proof)
+                || query.SelectsChildEntity && !record.TryGetValue("entity",out entity))
+                throw Invalid("Native join envelope is invalid.");
             var kind=Number(record,"kind");var lp=Number(record,"lp");var rp=Number(record,"rp");var count=Number(record,"nativeCount");
             if(kind<previousKind || kind is <0 or >3 || count<0 || kind!=3 && count==0)
                 throw Invalid("Native join stream order/count is invalid.");
+            if (kind != 2 && entity != null)
+                throw Invalid("A join proof record cannot include an entity.");
             if (kind == 3)
             {
                 if (!query.OutputLimit.HasValue || previousKind == 3 || lp != -1 || rp != -1 || proof != null ||
@@ -75,6 +81,18 @@ public partial class Neo4jOASIS
                     else values[index]=column.PresenceWhenMissing?r==null:r!=null;
                     Reserve(values[index],ref outputBytes,limits.MaximumPayloadBytes);
                 }
+                if (query.SelectsChildEntity)
+                {
+                    if (entity is not IReadOnlyDictionary<string,object> child || child.Count != 3
+                        || !child.TryGetValue("snapshot",out var snapshot) || !child.ContainsKey("id") || !child.ContainsKey("revision"))
+                        throw Invalid("Native joined child identity or revision changed within the read.");
+                    if (snapshot is not string json)
+                        throw new NeoCqlLimitException("Native joined child exceeds the entity payload budget.");
+                    outputBytes = checked(outputBytes + Encoding.UTF8.GetByteCount(json));
+                    if (outputBytes > limits.MaximumPayloadBytes)
+                        throw new NeoCqlLimitException("Native joined child entities exceed the output byte budget.");
+                    children.Add(ReadCqlCanonicalSnapshot(child,json));
+                }
                 pairs.Add(new CosmicJoinRow(l?.Id ?? Guid.Empty, r?.Id, values));
             }
         }
@@ -85,7 +103,8 @@ public partial class Neo4jOASIS
             if(left.Count!=leftCount || right.Count!=rightCount ||
                 (query.OutputLimit.HasValue ? previousKind != 3 : pairs.Count!=pairCount))
                 throw Invalid("Native join stream is incomplete.");
-            return new CosmicJoinPacket(left.ToArray(),right.ToArray(),pairs.ToArray(),leftCount,rightCount,pairCount);
+            return new CosmicJoinPacket(left.ToArray(),right.ToArray(),pairs.ToArray(),leftCount,rightCount,pairCount,
+                query.SelectsChildEntity ? children.ToArray() : null);
         }
 
         private CosmicJoinInputRow Source<T>(object raw,CosmicQuery<T> intent,bool isLeft,ref long bytes,int maximumBytes) where T:IHolon
