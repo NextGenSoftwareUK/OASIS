@@ -64,6 +64,19 @@ public static partial class CqlV1Compiler
                 new JoinSelectionConsumer(join,column.Source=="Right",column.AllowMissing??false));
         }).ToArray();
         var selected = RequiredJoin(join.SelectColumns(columns));
+        if (request.OutputOrdering is { } terms)
+        {
+            if (request.OutputOrderBy != null || request.OutputDescending || terms.Length is < 1 or > 8)
+                throw new ArgumentException("Provide one to eight join ordering terms or a single output alias.");
+            for (var index = 0; index < terms.Length; index++)
+            {
+                var term = terms[index] ?? throw new ArgumentException("Join ordering terms cannot be null.");
+                selected = RequiredJoin(index == 0
+                    ? selected.OrderByOutput(term.Alias, term.Descending)
+                    : selected.ThenByOutput(term.Alias, term.Descending));
+            }
+            return selected;
+        }
         if (request.OutputOrderBy != null)
             return RequiredJoin(selected.OrderByOutput(request.OutputOrderBy,request.OutputDescending));
         if (request.OutputDescending)
