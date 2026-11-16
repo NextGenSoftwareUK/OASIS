@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+16 November UTC. The one approved Bronze check used installed Chrome and standard library automation. The temporary profile and grant journal were removed after the visitor returned to Free. No browser runtime or models were downloaded. Retain the protected short-lived administrator session only through reconciliation, and record its cleanup. Small WEB6 source patches under `LocalState/COSMIC` are pending publication.
+
 16 November UTC. Verified and removed two published WEB4 null-safe patches. Removed the temporary 2.1 MB website snapshot after all 269 tests passed at `ce5c6c8ddc72`. Temporary staged indexes and the scratch manifest from the feature-branch integration were removed. Retain the 1.5 KiB `LocalState/COSMIC/CqlJoinedCardinality-PairProof-08acd7e10da7.patch` until the native LINQ cardinality candidate is published. No local dependencies or build outputs were added.
 
 16 November UTC. Removed 19 more local patches after their exact remote Git tags and reverse checks confirmed they were duplicates (three typed child patches, five ordering/indexed SQLite patches, eleven nullable join patches). The Node test snapshot and temporary indexes were removed. No package installs or local .NET build outputs were created. C: measured 19.6 GiB free.
