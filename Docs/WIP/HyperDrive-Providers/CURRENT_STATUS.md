@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-16 UTC — OPORTAL `5a442bc` fixes subscription feedback ownership: an older transient message can no longer hide a newer payment confirmation, error, or pending status. The focused timer check and existing subscription regression suite passed. Scoped release candidate `196c026` was verified against current portal dev `e83d5af`. Dev release and signed browser verification remain open.
+
 2026-11-16 UTC — Signed HyperDrive browser acceptance stopped during disposable avatar creation. WEB4 dev `307f52dfc9ae`, Railway deployment `887a53d4`, returned HTTP 400 with Mongo record save failed. Railway logs confirmed MongoDB rejected insert and findAndModify because its cluster was at 512 MB of 512 MB. No session was issued. The owner list records storage recovery. The exact wallet WEB4 image `e767ca027bd2` passed run `43783783607`. Shared dev integration and live wallet acceptance remain open.
 
 2026-11-16 UTC — OPORTAL dev advanced at 01:14 UTC from `bd7ca3d` to `e83d5af`. All ten changed deployed files matched their exact Git blobs, and the /developer, /devportal, /subscription and /hyperdrive routes served the portal shell. Edge on public dev verified the Developer Portal direct link, zero startup fragment requests, and Back/Forward with one total fragment request. The batch ships the subscription return recovery, HyperDrive overview session fix, Celestial Map and Developer Portal lazy load. Hosted Stripe completion and signed populated browser checks remain open. Review the next portal release after 01:44:45 UTC.
