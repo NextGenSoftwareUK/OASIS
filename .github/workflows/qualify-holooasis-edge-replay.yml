@@ -15,6 +15,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           path: OASIS
+          fetch-depth: 3
           submodules: true
           token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
           persist-credentials: false
@@ -42,6 +43,44 @@ jobs:
       - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 10.0.x
+      - name: Prepare the prior app and the tested replacement coordinator
+        working-directory: OASIS
+        shell: bash
+        run: |
+          set -euo pipefail
+          export HOLO_EDGE_FIXTURES="$RUNNER_TEMP/oasis-holo-edge-fixtures"
+          python - <<'PY'
+          from hashlib import sha256
+          from pathlib import Path
+          import os
+          import re
+          import subprocess
+          import zlib
+
+          package = 'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/OASIS_hAPP/oasis.happ'
+          old = subprocess.check_output(['git', 'show', '201691ce590871ff41cae625e68043a23deb0471:' + package])
+          if sha256(old).hexdigest() != 'eb6e48a7448c074c64635189f664c5842a86006f569074a05d42ef27ff0eb988':
+              raise SystemExit('Prior hApp hash mismatch')
+          h_app = zlib.decompress(Path(package).read_bytes(), 31)
+          candidates = []
+          for marker in re.finditer(b'\x1f\x8b\x08', h_app):
+              try:
+                  dna = zlib.decompress(h_app[marker.start():], 31)
+              except zlib.error:
+                  continue
+              for module in re.finditer(b'\xc6....\x00asm\x01\x00\x00\x00', dna, re.DOTALL):
+                  start = module.start()
+                  size = int.from_bytes(dna[start + 1:start + 5], 'big')
+                  wasm = dna[start + 5:start + 5 + size]
+                  if sha256(wasm).hexdigest() == '7840644f943207edf829bdf60a4091b14eba4e2642fbe55b13f059e65175ea0d':
+                      candidates.append(wasm)
+          if len(candidates) != 1:
+              raise SystemExit('Expected one source-matched coordinator WASM')
+          fixture = Path(os.environ['HOLO_EDGE_FIXTURES'])
+          fixture.mkdir()
+          (fixture / 'prior.oasis.happ').write_bytes(old)
+          (fixture / 'oasis.wasm').write_bytes(candidates[0])
+          PY
       - name: Verify the bound bundle and run the native Edge test
         working-directory: OASIS
         shell: pwsh
@@ -56,6 +95,13 @@ jobs:
           Write-Output "Candidate $env:GITHUB_SHA, hApp source $($manifest.sourceCommit), hApp SHA-256 $($manifest.artifactSha256)"
           $results = Join-Path $env:RUNNER_TEMP 'oasis-holo-edge-replay'
           New-Item -ItemType Directory -Path $results | Out-Null
+          $fixtures = Join-Path $env:RUNNER_TEMP 'oasis-holo-edge-fixtures'
+          $env:OASIS_HOLO_EDGE_PRIOR_HAPP = Join-Path $fixtures 'prior.oasis.happ'
+          $env:OASIS_HOLO_EDGE_COORDINATOR_WASM = Join-Path $fixtures 'oasis.wasm'
+          if (!(Test-Path -LiteralPath $env:OASIS_HOLO_EDGE_PRIOR_HAPP -PathType Leaf) -or
+              !(Test-Path -LiteralPath $env:OASIS_HOLO_EDGE_COORDINATOR_WASM -PathType Leaf)) {
+            throw 'In-place coordinator update fixtures are missing.'
+          }
           $client = '../holochain-client-csharp/NextGenSoftware.Holochain.HoloNET.Client.Tests/NextGenSoftware.Holochain.HoloNET.Client.Tests.csproj'
           $tests = 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.HoloOASIS.IntegrationTests.csproj'
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-HoloEdgeReplay -Operation {
