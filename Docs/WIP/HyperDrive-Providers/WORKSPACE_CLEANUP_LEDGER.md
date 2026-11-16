@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+15 November Cancun time. Hosted Solana wallet run 43778262121 verified removal of its owned Agave fixture, including runtime, signer, ledger and TRX. Read its logs in memory and removed the scoped WEB4 index. No local SDK, packages, databases or build outputs were retained.
+
 15 November Cancun time. The native wallet workflow uses the existing hosted Agave fixture, keeps its TRX inside that directory, and removes the owned validator process, ledger, signer, runtime and output on exit. Teardown remains pending run 43778262121. No local SDK, packages, databases or build outputs were created.
 
 15 November Cancun time. The combined signed WEB4 fixture removed its real inventory item and WEB4 confirmed avatar deletion. WEB4 also confirmed deletion of the disposable wallet authorization fixture. Restored the portal sparse checkout. Release asset comparisons and wallet renderer test ran in memory, leaving no local downloads, dependencies, databases or test artifacts.
