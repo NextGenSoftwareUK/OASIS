@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-16 UTC — Live portal asset comparison ran in memory. The Edge dev check stopped its owned browser and removed its temporary profile and pinned websocket-client installation. It used no pip cache and wrote no results to the worktree.
+
 2026-11-16 UTC — Subscription testing read excluded fixtures in memory and wrote no results or build outputs. Removed the disposable patch and alternate Git index used to prepare both release candidates.
 
 2026-11-16 UTC — The local Edge acceptance run stopped its owned browser tree and removed its temporary profile and websocket-client installation. The pinned dependency used no pip cache. No test results or build outputs were written to the worktree.

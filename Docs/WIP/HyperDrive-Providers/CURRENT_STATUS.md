@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-16 UTC — OPORTAL dev advanced at 01:14 UTC from `bd7ca3d` to `e83d5af`. All ten changed deployed files matched their exact Git blobs, and the /developer, /devportal, /subscription and /hyperdrive routes served the portal shell. Edge on public dev verified the Developer Portal direct link, zero startup fragment requests, and Back/Forward with one total fragment request. The batch ships the subscription return recovery, HyperDrive overview session fix, Celestial Map and Developer Portal lazy load. Hosted Stripe completion and signed populated browser checks remain open. Review the next portal release after 01:44:45 UTC.
+
 2026-11-16 UTC — OPORTAL `5d304fa` loads the actual subscription list for a missing or expired checkout session, reports the return status and clears processed return parameters. The controlled subscription suite passed including both new cases. Two old usage fixtures were brought into line with the shipping session/request contracts. Account recovery fixtures outside the sparse checkout were read from tracked Git blobs in memory. Portal dev candidates are `e83d5af` without wallet and `be4b7d8` with wallet. Hosted Stripe completion remains open.
 
 2026-11-16 UTC — Installed Edge verified the exact `bf252de` Developer Portal opener, router and HTML fragment in a minimal local page. It confirmed zero fragment requests on home, one on direct /developer navigation, Back closing the panel and Forward restoring it from memory. Full deployed portal verification remains open.
