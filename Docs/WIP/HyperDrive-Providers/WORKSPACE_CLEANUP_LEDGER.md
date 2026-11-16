@@ -1912,3 +1912,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 2026-11-16 UTC — Scoped C# wallet qualification uses a disposable hosted runner. Both local candidate indexes were removed. The rejected local .NET command created no test outputs or package cache.
 
 2026-11-16 UTC — The native wallet archive was verified in memory and the bundle saved as a Git object for the scoped release candidate. Removed the temporary index. No unpacked hApp, ZIP, runtime or local build output was retained.
+
+2026-11-16 UTC — Removed the wallet successor Git index and its temporary directory. Provenance was verified directly from Git objects without creating an archive, runtime or build directory.
