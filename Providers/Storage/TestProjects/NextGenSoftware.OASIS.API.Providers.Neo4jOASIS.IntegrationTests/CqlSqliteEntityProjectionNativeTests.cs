@@ -9,6 +9,7 @@ using CqlCompiler = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Service
 using CqlJoinRequest = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlJoinV1Request;
 using CqlJoinColumn = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlJoinV1Column;
 using CqlJoinFilter = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlV1Filter;
+using CqlJoinKey = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlJoinV1Key;
 using CqlJoinOrder = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlV1JoinOrder;
 using CqlJoinOperator = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlV1Operator;
 using SqliteProvider=NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.SQLLiteDBOASIS;
@@ -213,6 +214,44 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         CollectionAssert.AreEquivalent(new (Guid?, Guid?)[] { (parentId, null), (lowerId, parentId), (null, missingId) },
             comparedRows.Select(row => (row.Value.Left, row.Value.Right)).ToArray());
         Assert.AreEqual(3, comparedRows.Count);
+        var wireActor = Guid.NewGuid();
+        var access = CosmicQueryReadAccess.OwnerOrPublic(wireActor).Result;
+        var request = new CqlJoinRequest
+        {
+            Provider = native.QueryProviderType.ToString(),
+            Kind = "Full",
+            Left = new() { Take = 2, Filters = new[] { KeySet(leftKeys) } },
+            Right = new() { Take = 2, Filters = new[] { KeySet(rightKeys) } },
+            Keys = new[] { new CqlJoinKey
+            {
+                Alias = "Amount",
+                Operator = "LessThan",
+                Left = new() { MetadataPath = new[] { "i64" }, ValueType = "Int64", Nullable = true },
+                Right = new() { MetadataPath = new[] { "i64" }, ValueType = "Int64", Nullable = true }
+            } },
+            Columns = new[]
+            {
+                new CqlJoinColumn { Alias = "LeftId", Source = "Left", AllowMissing = true, Selection = new() { Field = "Id" } },
+                new CqlJoinColumn { Alias = "RightId", Source = "Right", AllowMissing = true, Selection = new() { Field = "Id" } }
+            },
+            MaximumLeftRows = 2, MaximumRightRows = 2, MaximumPairs = 4, MaximumResults = 4
+        };
+        var wire = CqlCompiler.CompileJoin(request, wireActor, native.QueryProviderType, access);
+        Assert.AreEqual(CosmicJoinComparison.LessThan, wire.Join.Keys.Single().Comparison);
+        var wirePlan = CosmicJoinPlanner.Plan(wire, native.QueryProviderType,
+            new[] { new CosmicJoinTarget(native.QueryProviderType, native.QueryCapabilities, native.JoinCapabilities) });
+        Assert.IsFalse(wirePlan.IsError, wirePlan.Message);
+        var wireRows = await manager.ExecuteJoinQueryAsync(wirePlan.Result, new[] { native });
+        Assert.IsFalse(wireRows.IsError, wireRows.Message + wireRows.Exception);
+        CollectionAssert.AreEquivalent(new (Guid?, Guid?)[] { (parentId, null), (lowerId, parentId), (null, missingId) },
+            wireRows.Result.Providers.Single().Rows.Select(row => ((Guid?)row.Value["LeftId"], (Guid?)row.Value["RightId"])).ToArray());
+        request.Keys[0].Operator = "Invalid";
+        Assert.ThrowsException<ArgumentException>(() => CqlCompiler.CompileJoin(request, wireActor, native.QueryProviderType, access));
+
+        static CqlJoinFilter KeySet(Guid[] selectedIds) => new()
+        {
+            Field = "Id", Operator = CqlJoinOperator.In, Scalar = "Guid", Value = JsonSerializer.SerializeToElement(selectedIds)
+        };
         checks.Add(new { provider = provider.QueryProviderType.ToString(), join = "native selected output ordering" });
     }
 

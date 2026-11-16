@@ -50,6 +50,7 @@ public sealed class CqlJoinV1Source
 public sealed class CqlJoinV1Key
 {
     public string? Alias { get; set; }
+    public string? Operator { get; set; }
     public CqlScalarV1Selection? Left { get; set; }
     public CqlScalarV1Selection? Right { get; set; }
 }
