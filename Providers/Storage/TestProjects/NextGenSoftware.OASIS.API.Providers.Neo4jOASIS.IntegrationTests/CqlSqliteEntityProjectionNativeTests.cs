@@ -282,6 +282,27 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Assert.IsFalse(wireRows.IsError, wireRows.Message + wireRows.Exception);
         CollectionAssert.AreEquivalent(new (Guid?, Guid?)[] { (parentId, null), (lowerId, parentId), (null, missingId) },
             wireRows.Result.Providers.Single().Rows.Select(row => ((Guid?)row.Value["LeftId"], (Guid?)row.Value["RightId"])).ToArray());
+        request.Left.Filters = new[] { KeySet(rightKeys) };
+        await VerifyNullComparison("IsNotDistinctFrom", CosmicJoinComparison.NullSafeEqual,
+            new (Guid?,Guid?)[] { (parentId,parentId), (missingId,missingId) });
+        request.Left.Filters = new[] { KeySet(leftKeys) };
+        await VerifyNullComparison("IsDistinctFrom", CosmicJoinComparison.NullSafeNotEqual,
+            new (Guid?,Guid?)[] { (parentId,missingId), (lowerId,parentId), (lowerId,missingId) });
+
+        async Task VerifyNullComparison(string operation, CosmicJoinComparison expectedOperator, (Guid?,Guid?)[] expectedRows)
+        {
+            request.Keys[0].Operator = operation;
+            var compiled = CqlCompiler.CompileJoin(request, wireActor, native.QueryProviderType, access);
+            Assert.AreEqual(expectedOperator, compiled.Join.Keys.Single().Comparison);
+            var plan = CosmicJoinPlanner.Plan(compiled, native.QueryProviderType,
+                new[] { new CosmicJoinTarget(native.QueryProviderType, native.QueryCapabilities, native.JoinCapabilities) });
+            Assert.IsFalse(plan.IsError, plan.Message);
+            var result = await manager.ExecuteJoinQueryAsync(plan.Result, new[] { native });
+            Assert.IsFalse(result.IsError, result.Message + result.Exception);
+            CollectionAssert.AreEquivalent(expectedRows,
+                result.Result.Providers.Single().Rows.Select(row => ((Guid?)row.Value["LeftId"], (Guid?)row.Value["RightId"])).ToArray());
+        }
+
         request.Keys[0].Operator = "Invalid";
         Assert.ThrowsException<ArgumentException>(() => CqlCompiler.CompileJoin(request, wireActor, native.QueryProviderType, access));
 
