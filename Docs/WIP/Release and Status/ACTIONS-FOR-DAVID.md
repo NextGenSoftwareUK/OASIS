@@ -758,7 +758,7 @@ Status: missing account/configuration information,2 November2026. David approved
 
 ### WEB4 dev MongoDB storage quota
 
-- **Status (2026-11-16 UTC)** Resolved for immediate write recovery. David authorized clearing test data. Removed 531,679 derived reconciliation reports, rebuilt the existing indexes, and verified WEB4 registration, verification, authentication, signed portal reads and cleanup. Report growth prevention is engineering work.
+- **Status (2026-11-16 UTC)** Dev write recovery and report reuse verified. David authorized clearing test data. Removed 531,679 derived reconciliation reports, rebuilt the existing indexes, and verified WEB4 registration, verification, authentication, signed portal reads and cleanup. The live dev worker reused its 265 keyed reports across an observed pass, with zero legacy reports. Production promotion remains engineering work.
 - **David action** Complete. No immediate storage upgrade was needed for the measured recovery.
 - **Reason** The quota blocks disposable sandbox avatar creation and other MongoDB writes. Engineering will verify sandbox sign-in, subscriptions and HyperDrive after capacity is restored. [WEB4 dev deployment](https://railway.com/) · [Current status](../HyperDrive-Providers/CURRENT_STATUS.md)
 
