@@ -71,6 +71,28 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         var provider = adapter.QueryProviderType;
         var target = new[] { new CosmicGroupedTarget(provider, adapter.QueryCapabilities, adapter.GroupedCapabilities) };
         var actor = Guid.NewGuid();
+        var source = new CqlRequest
+        {
+            Filters = new[]
+            {
+                new CqlFilter { Field = "Id", Operator = CqlOperator.In,
+                    Value = JsonSerializer.SerializeToElement(new[] { ids[0], ids[4] }) },
+                new CqlFilter { Field = "Description", Operator = CqlOperator.IsNull }
+            },
+            OrderBy = "Id",
+            Take = 2
+        };
+        foreach (var (operation, expected) in new[] { (CqlOperator.IsNull, ids[4]), (CqlOperator.IsNotNull, ids[0]) })
+        {
+            source.Filters[1].Operator = operation;
+            var filterPlan = CosmicQueryPlanner.Plan(CqlCompiler.Compile(source, actor, provider), provider,
+                new[] { new CosmicQueryTarget(provider, adapter.QueryCapabilities) });
+            Assert.IsFalse(filterPlan.IsError, filterPlan.Message);
+            var filtered = await CosmicQueryExecutor.ExecuteAsync(filterPlan.Result, new[] { adapter });
+            Assert.IsFalse(filtered.IsError, filtered.Message + filtered.Exception);
+            Assert.AreEqual(expected, filtered.Result.Providers.Single().Rows.Single().Id);
+        }
+
         var request = new CqlGroupedRequest
         {
             Filters = new[] { new CqlFilter
