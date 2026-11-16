@@ -42,7 +42,7 @@ $definitions = @{
     EdgeRuntime = @{
         Title = 'OASIS Edge Runtime'; Prefixes = @('OASIS-Edge-Runtime-v')
         Paths = @('OASIS Architecture/NextGenSoftware.OASIS.Edge.Runtime', 'OASIS Architecture/NextGenSoftware.OASIS.Edge.ONET.Runtime', 'OASIS Architecture/NextGenSoftware.OASIS.HyperDrive.Synchronization', 'OASIS Architecture/NextGenSoftware.OASIS.ONET', 'Native EndPoint/NextGenSoftware.OASIS.API.Native.Integrated.EndPoint.Edge', 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.EdgeSQLiteOASIS', 'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Edge', 'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity', 'OASIS Omniverse/OGEngineClient/Edge')
-        Intro = 'Standalone OASIS Edge Runtime contains compiled runtime, ONET and Edge Native Endpoint libraries with platform-native SQLite dependencies. It requires a compatible .NET host and does not include the Unity integration distribution.'
+        Intro = 'Standalone OASIS Edge Runtime contains compiled runtime, ONET and Edge Native Endpoint libraries with platform-native SQLite dependencies. It requires a compatible .NET host and does not include the Unity integration distribution. Optional Holochain 0.7 replication comes from HoloOASIS.Edge, which is built on HoloNET (NextGenSoftware.Holochain.HoloNET.Client, https://www.nuget.org/packages/NextGenSoftware.Holochain.HoloNET.Client); the runtime itself does not bundle a Holochain conductor.'
     }
     EdgeUnity = @{
         Title = 'OGEngineClient + Edge + Unity'; Prefixes = @('OASIS-Edge-Unity-v')
