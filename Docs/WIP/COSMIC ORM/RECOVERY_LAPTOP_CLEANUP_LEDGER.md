@@ -6917,3 +6917,5 @@ Web4Site 5fa63a71df5d used a temporary directory containing only committed websi
 16 November UTC. The bounded read-only Mongo visitor reconciliation used the cached driver and existing .NET SDK. The temporary project and build outputs were removed and verified absent. The original encrypted authentication journal remains retained. No new avatar, database or runtime installation.
 
 16 November UTC. The existing Railway CLI lacked secure stdin for setting the private OASISDNA payload, so a pinned Railway CLI 5.74.0 and npm cache were created inside one temporary directory, used, and removed with that directory. The rejected version lookup and its owned debug log were also cleaned up. The configuration was passed to the CLI over stdin and only compared in memory.
+
+16 November UTC. Hosted WEB4 browser check for Solana, Ethereum, Polygon, Arbitrum and NEAR reused installed Chrome and the existing demo session. The isolated Chromium profile was deleted at completion. All requests were read-only and no fixture, download or local test report was created. The temporary Git index for this entry is removed by its scoped publisher.
