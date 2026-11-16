@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-16 UTC — Installed Edge verified the exact `bf252de` Developer Portal opener, router and HTML fragment in a minimal local page. It confirmed zero fragment requests on home, one on direct /developer navigation, Back closing the panel and Forward restoring it from memory. Full deployed portal verification remains open.
+
 2026-11-16 UTC — Shared WEB4 image run `43779875754` passed on Development `307f52dfc9ae`. Confirmed the remote base and dispatched the scoped wallet image at `e767ca027bd2`. Run `43783783607` is in progress. The next portal candidates carry the HyperDrive overview fix and are `bf252de` (Celestial and Developer Portal) and `0e5af62` (includes wallet UI). The independent candidate can ship on its own after the portal release gate and current-head check.
 
 2026-11-16 UTC — OPORTAL task commit `6cc7910` resets the HyperDrive overview on open, ignores responses from previous sessions, renders status independently of optional metrics, and gives an explicit Refresh cue for failed status requests. A controlled in-memory check passed for status-first and metrics-first ordering, stale responses after reopening, and WEB4 error feedback. It created no disposable files or build outputs. The change is pushed to the portal task branch. Browser acceptance and deployment remain open.
