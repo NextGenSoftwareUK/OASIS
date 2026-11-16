@@ -57,7 +57,9 @@ internal sealed partial class MongoCqlTranslator
             rightProjection.Add(order.Key, OutputOrderValue("$values", order.Cell));
         for (var index = 0; index < query.Join.Right.Orderings.Count; index++) rightProjection.Add("o" + index, 1);
         lookup.Add(new("$project", rightProjection));
-        var pairLimit = Math.Min(limits.MaximumPairs, (long)limits.MaximumResults) + 1;
+        var pairLimit = (query.OutputLimit.HasValue
+            ? limits.MaximumPairs
+            : Math.Min(limits.MaximumPairs, (long)limits.MaximumResults)) + 1;
         lookup.Add(new("$limit", pairLimit));
         pairs.Add(new("$lookup", new BsonDocument
         {
@@ -120,14 +122,36 @@ internal sealed partial class MongoCqlTranslator
             pairs.Add(new("$unionWith", new BsonDocument
                 { { "coll", "Holon" }, { "pipeline", new BsonArray(unmatchedRight) } }));
         }
-        pairs.Add(new("$sort", sort));
-        pairs.Add(new("$limit", pairLimit));
-        pairs.Add(CountWindow());
-        pairs.Add(new("$sort", (BsonDocument)sort.DeepClone()));
-        var hidden = new BsonDocument();
-        if (query.Join.Kind == CosmicJoinKind.Full) hidden.Add("leftPresent", 0);
-        foreach (var order in selectedOrders) hidden.Add(order.Key, 0);
-        if (hidden.ElementCount != 0) pairs.Add(new("$project", hidden));
+        if (query.OutputLimit is int requestedLimit)
+        {
+            var page = new List<BsonDocument>();
+            if (requestedLimit == 0)
+                page.Add(new("$match", new BsonDocument("$expr", Literal(false))));
+            else
+            {
+                page.Add(new("$sort", sort));
+                if (query.OutputOffset != 0) page.Add(new("$skip", query.OutputOffset));
+                page.Add(new("$limit", requestedLimit));
+            }
+            page.Add(new("$project", new BsonDocument { { "_id", 0 }, { "left", 1 }, { "right", 1 } }));
+            pairs.Add(new("$limit", pairLimit));
+            pairs.Add(new("$facet", new BsonDocument
+            {
+                { "total", new BsonArray { new BsonDocument("$count", "count") } },
+                { "page", new BsonArray(page) }
+            }));
+        }
+        else
+        {
+            pairs.Add(new("$sort", sort));
+            pairs.Add(new("$limit", pairLimit));
+            pairs.Add(CountWindow());
+            pairs.Add(new("$sort", (BsonDocument)sort.DeepClone()));
+            var hidden = new BsonDocument();
+            if (query.Join.Kind == CosmicJoinKind.Full) hidden.Add("leftPresent", 0);
+            foreach (var order in selectedOrders) hidden.Add(order.Key, 0);
+            if (hidden.ElementCount != 0) pairs.Add(new("$project", hidden));
+        }
         ValidatePipeline(pairs);
         return new MongoCqlJoinCommand(left, right, pairs.ToArray());
 

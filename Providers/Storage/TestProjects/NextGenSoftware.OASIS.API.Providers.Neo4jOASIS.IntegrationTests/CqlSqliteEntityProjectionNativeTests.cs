@@ -123,6 +123,25 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Assert.IsFalse(compositeRows.IsError, compositeRows.Message + compositeRows.Exception);
         CollectionAssert.AreEqual(new[] { ids[4], ids[1], ids[0] },
             compositeRows.Result.Providers.Single().Rows.Select(row => row.Value.Id).ToArray());
+        foreach (var (offset, limit, expected) in new[]
+        {
+            (1, 1, new[] { ids[1] }),
+            (2, 4, new[] { ids[0] }),
+            (3, 1, Array.Empty<Guid>()),
+            (0, 0, Array.Empty<Guid>())
+        })
+        {
+            var page = composite.Result.PageOutput(offset, limit);
+            Assert.IsFalse(page.IsError, page.Message);
+            var pagedPlan = CosmicJoinPlanner.Plan(page.Result, native.QueryProviderType,
+                new[] { new CosmicJoinTarget(native.QueryProviderType, native.QueryCapabilities, native.JoinCapabilities) });
+            Assert.IsFalse(pagedPlan.IsError, pagedPlan.Message);
+            var pageRows = await NativeManager(provider).ExecuteJoinQueryAsync(pagedPlan.Result, new[] { native });
+            Assert.IsFalse(pageRows.IsError, pageRows.Message + pageRows.Exception);
+            CollectionAssert.AreEqual(expected, pageRows.Result.Providers.Single().Rows.Select(row => row.Value.Id).ToArray());
+        }
+        Assert.IsTrue(composite.Result.PageOutput(-1, 1).IsError);
+        Assert.IsTrue(composite.Result.PageOutput(0, -1).IsError);
         var manager = NativeManager(provider);
         var leftRows = CosmicLinq.Create(manager, provider, left, maximumResults: 4).Result;
         var rightRows = CosmicLinq.Create(manager, provider, right, maximumResults: 4).Result;

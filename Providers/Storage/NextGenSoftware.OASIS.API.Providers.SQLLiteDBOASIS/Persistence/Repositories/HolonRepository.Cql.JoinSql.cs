@@ -14,7 +14,7 @@ public partial class HolonRepository
     // every pair. Pair membership is produced exclusively by SQLite's JOIN.
     private sealed class JoinSql
     {
-        internal string Left, Right, Pairs, PairOrder;
+        internal string Left, Right, Pairs;
         internal string LeftPredicate, RightPredicate;
         internal bool HasRelationship;
         internal List<SqliteParameter> Parameters;
@@ -53,7 +53,10 @@ public partial class HolonRepository
             CosmicJoinKind.Cross => " CROSS JOIN r",
             _ => throw new NotSupportedException("Unknown native SQLite join kind.")
         };
-        var cap = Math.Min(limits.MaximumPairs, (long)limits.MaximumResults) + 1;
+        var maximumPairs = selection.OutputLimit.HasValue
+            ? limits.MaximumPairs
+            : Math.Min(limits.MaximumPairs, (long)limits.MaximumResults);
+        var cap = maximumPairs + 1;
         var pairLimit = left.Bind(cap);
         var orderTerms = new List<string>();
         var orderProjection = "";
@@ -70,14 +73,31 @@ public partial class HolonRepository
             orderTerms.Add(alias + collation + (order.Descending ? " DESC NULLS LAST" : " ASC NULLS FIRST"));
         }
         var pairOrder = string.Join(",", orderTerms.Concat(new[] { "lp NULLS LAST", "rp" }));
+        var pairs = "SELECT l.position AS lp,r.position AS rp" + orderProjection + " FROM l" + join;
+        var sources = "WITH l AS MATERIALIZED (" + ls + "),r AS MATERIALIZED (" + rs + ") ";
+        string output;
+        if (selection.OutputLimit is int requestedLimit)
+        {
+            var limit = left.Bind(requestedLimit);
+            var offset = left.Bind(selection.OutputOffset);
+            output = sources + ",pairs AS MATERIALIZED (" + pairs + " LIMIT " + pairLimit
+                + "),page AS MATERIALIZED (SELECT *,1 AS present FROM pairs ORDER BY " + pairOrder
+                + " LIMIT " + limit + " OFFSET " + offset + ")"
+                + " SELECT lp,rp,nativeCount,present FROM (SELECT count(*) AS nativeCount FROM pairs)"
+                + " LEFT JOIN page ON 1=1 ORDER BY " + pairOrder;
+        }
+        else
+        {
+            output = "SELECT lp,rp,count(*) OVER () AS nativeCount,1 AS present FROM (" + sources
+                + pairs + " ORDER BY " + pairOrder + " LIMIT " + pairLimit + ") ORDER BY " + pairOrder;
+        }
+
         return new JoinSql
         {
-            Left = ls, Right = rs, Parameters = parameters, PairOrder = pairOrder,
+            Left = ls, Right = rs, Parameters = parameters,
             LeftPredicate = lp, RightPredicate = rp,
             HasRelationship = left.HasRelationship || right.HasRelationship,
-            Pairs = "WITH l AS MATERIALIZED (" + ls + "),r AS MATERIALIZED (" + rs
-                + ") SELECT l.position AS lp,r.position AS rp" + orderProjection + " FROM l" + join
-                + " ORDER BY " + pairOrder + " LIMIT " + pairLimit
+            Pairs = output
         };
 
         static string Predicate<T>(CqlSqlTranslator translator, CosmicQuery<T> query) where T : IHolon
