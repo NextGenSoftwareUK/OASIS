@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+16 November UTC. The live ordinal test deleted all six owned private holons by exact revision across MongoDB, SQLite and Neo4j. The test confirmed every ID absent and removed its temporary journal. No downloads or local build outputs were created. C: free 22243831808 bytes observed.
+
 16 November UTC. The ORDER BY position tests used temporary source snapshots and Git indexes that were removed at exit. Node ran with existing tools and wrote no retained build output. C: free 22601023488 bytes observed.
 
 16 November UTC. The projected SelectMany filter change used disposable Git indexes removed when their commits were created. The three-store acceptance run is remote. No tools, local build outputs or databases were created.
