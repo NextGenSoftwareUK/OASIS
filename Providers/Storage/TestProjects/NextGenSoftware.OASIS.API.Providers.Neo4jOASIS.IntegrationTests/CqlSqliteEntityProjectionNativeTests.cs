@@ -133,6 +133,11 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Assert.IsFalse(orderedScalar.IsError, orderedScalar.Message + orderedScalar.Exception);
         CollectionAssert.AreEqual(new[] { "grandchild two", "protected source root", "visible match" },
             orderedScalar.Result.ToArray());
+        var thenBy = leftRows.SelectMany(_ => rightRows, (parent, child) => new { child.Id, child.Name, child.Description })
+            .OrderBy(child => child.Description).ThenByDescending(child => child.Name);
+        var orderedThenBy = await thenBy.ToCosmicListAsync();
+        Assert.IsFalse(orderedThenBy.IsError, orderedThenBy.Message + orderedThenBy.Exception);
+        CollectionAssert.AreEqual(new[] { ids[4], ids[1], ids[0] }, orderedThenBy.Result.Select(row => row.Id).ToArray());
         checks.Add(new { provider = provider.QueryProviderType.ToString(), join = "native selected output ordering" });
     }
 
