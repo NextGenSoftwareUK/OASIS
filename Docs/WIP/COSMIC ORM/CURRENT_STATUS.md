@@ -1,5 +1,7 @@
 # COSMIC ORM / CQL current status
 
+15 November Cancun time. Railway 887a53d4 logs at 01:43 UTC traced the repeated quota rejections to Web4UsageSettlementWorker.RunOnceAsync (findAndModify) and MongoUsageReconciler.RecordFailedCheckAsync (insert). The same MongoDB storage gate therefore affects the sandbox sign-in and the subscription background workers. Restore writable capacity, then observe one successful settlement and reconciliation cycle alongside the signed sandbox walkthrough.
+
 15 November Cancun time. A direct read-only check of the Development MongoDB database passed ping and dbStats. The selected database reported 119130450 logical data bytes, 53538816 storage bytes and 2891776 index bytes. These are database-scoped metrics. Cluster-wide storage headroom and write recovery remain unverified after Railway observed write rejection at the quota. The probe used one temporary cached-driver build and issued no write commands.
 
 15 November Cancun time. Read the Development WEB4 OASISDNA privately and confirmed that OASIS.Sandbox.EnableDevelopmentWeb4Preview is absent. Validated in memory that enabling it adds only that Boolean and preserves every other setting. Railway identifies the service as Development. The deployed Startup admits credentials only for the exact Development hostname after enrollment. Apply during a coordinated rollout once the protected preview hostname is assigned and verified, then check the exact preview origin and an untrusted origin before running the signed browser flow. No hosted configuration was written in this check.
