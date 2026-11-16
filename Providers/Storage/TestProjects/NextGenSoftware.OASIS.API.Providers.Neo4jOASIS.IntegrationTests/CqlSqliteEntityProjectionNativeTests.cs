@@ -25,6 +25,12 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         var rows = await NativeManager(provider).ExecuteJoinQueryAsync(plan.Result, new[] { provider });
         Assert.IsFalse(rows.IsError, rows.Message + rows.Exception);
         Assert.AreEqual(childId, rows.Result.Providers.Single().Rows.Single().Value);
+        var linq = CosmicLinq.Create(NativeManager(provider), provider, parents, maximumResults: 1).Result;
+        var flattened = await linq.SelectMany(parent => parent.Children,
+            (parent, child) => new { ParentId = parent.Id, ChildId = child.Id })
+            .Select(pair => pair.ChildId).ToCosmicListAsync();
+        Assert.IsFalse(flattened.IsError, flattened.Message + flattened.Exception);
+        Assert.AreEqual(childId, flattened.Result.Single());
         checks.Add(new { provider = provider.QueryProviderType.ToString(), linq = "scoped child input before native budget" });
     }
 
