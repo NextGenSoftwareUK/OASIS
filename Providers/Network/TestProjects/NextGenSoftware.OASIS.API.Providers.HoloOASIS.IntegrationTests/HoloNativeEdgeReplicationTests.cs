@@ -1,3 +1,4 @@
+using System.Text.Json;
 using NextGenSoftware.Holochain.HoloNET.Client;
 using NextGenSoftware.Holochain.HoloNET.Client.Data.Admin.Requests.Objects;
 using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive.Synchronization;
@@ -14,6 +15,15 @@ public sealed class HoloNativeEdgeReplicationTests
         Assert.Equal("true", Environment.GetEnvironmentVariable("GITHUB_ACTIONS"));
         var endpoint = new Uri(Required("OASIS_HOLOCHAIN_ADMIN_URI"));
         Assert.True(endpoint.IsLoopback);
+        var receiptPath = Environment.GetEnvironmentVariable("OASIS_HOLO_EDGE_RESTART_RECEIPT");
+        if (receiptPath != null && File.Exists(receiptPath))
+        {
+            var receipt = JsonSerializer.Deserialize<RestartReceipt>(await File.ReadAllTextAsync(receiptPath));
+            Assert.NotNull(receipt);
+            await VerifyAfterRestartAsync(endpoint, receipt);
+            return;
+        }
+
         var priorBundle = Environment.GetEnvironmentVariable("OASIS_HOLO_EDGE_PRIOR_HAPP");
         var coordinatorWasm = Environment.GetEnvironmentVariable("OASIS_HOLO_EDGE_COORDINATOR_WASM");
         Assert.Equal(string.IsNullOrEmpty(priorBundle), string.IsNullOrEmpty(coordinatorWasm));
@@ -99,7 +109,39 @@ public sealed class HoloNativeEdgeReplicationTests
         {
             if (reopened.IsProviderActivated) await reopened.DeActivateProviderAsync();
         }
+
+        if (receiptPath != null)
+        {
+            Assert.False(string.IsNullOrEmpty(coordinatorWasm));
+            var receipt = new RestartReceipt(mutation, dnaHash, agentKey, originalHash);
+            await File.WriteAllTextAsync(receiptPath, JsonSerializer.Serialize(receipt));
+        }
     }
+
+    private static async Task VerifyAfterRestartAsync(Uri endpoint, RestartReceipt receipt)
+    {
+        var provider = OpenProvider(endpoint);
+        try
+        {
+            var activated = await provider.ActivateProviderAsync();
+            Assert.True(!activated.IsError && activated.Result, activated.Message);
+            Assert.Equal(receipt.DnaHash, provider.HoloNETClientAppAgent.HoloNETDNA.DnaHash);
+            Assert.Equal(receipt.AgentKey, provider.HoloNETClientAppAgent.HoloNETDNA.AgentPubKey);
+            Assert.Equal(receipt.ActionHash, await ReadMutationHashAsync(provider, receipt.ConflictingMutation));
+            var repository = new HoloEdgeMutationRepository(new HoloNetEdgeAppClient(provider.HoloNETClientAppAgent));
+            var conflict = await repository.ApplyLocalMutationAsync(receipt.ConflictingMutation, CancellationToken.None);
+            Assert.True(conflict.IsError);
+            Assert.False(conflict.IsSaved);
+            Assert.Contains("already bound to a different mutation", conflict.Message);
+            Assert.Equal(receipt.ActionHash, await ReadMutationHashAsync(provider, receipt.ConflictingMutation));
+        }
+        finally
+        {
+            if (provider.IsProviderActivated) await provider.DeActivateProviderAsync();
+        }
+    }
+
+    private sealed record RestartReceipt(SyncOperation ConflictingMutation, string DnaHash, string AgentKey, string ActionHash);
 
     private static async Task UpdateCoordinatorAsync(Uri endpoint, string dnaHash, string wasmPath)
     {
