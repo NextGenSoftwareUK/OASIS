@@ -31,6 +31,11 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             .Select(pair => pair.ChildId).ToCosmicListAsync();
         Assert.IsFalse(flattened.IsError, flattened.Message + flattened.Exception);
         Assert.AreEqual(childId, flattened.Result.Single());
+        var collectionProjection = linq.SelectMany(parent => parent.Children.Select(child => child.Id))
+            .Select(id => new { Identity = id });
+        var selectedChildren = await collectionProjection.ToCosmicListAsync();
+        Assert.IsFalse(selectedChildren.IsError, selectedChildren.Message + selectedChildren.Exception);
+        Assert.AreEqual(childId, selectedChildren.Result.Single().Identity);
         var childName = "visible match";
         var filtered = linq.SelectMany(parent => parent.Children.Where(child => child.Name == childName),
             (parent, child) => child.Id);
