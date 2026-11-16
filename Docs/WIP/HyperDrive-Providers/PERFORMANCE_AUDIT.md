@@ -1,5 +1,7 @@
 # OPORTAL and HyperDrive performance audit
 
+2026-11-16 UTC — Subscription catalogue task commit `351ca27` ends the pending WEB4 catalogue read after eight seconds. Controlled UI with the real dev request showed recovery at 8,069 ms. No automatic retries were sent and payment mutations retain their existing transport contract.
+
 2026-11-16 UTC — The dashboard holon count change removes full holon conversion, serialization and browser response processing from this card. It still reads the direct child holons through HolonManager on the server. Native count pushdown and live before/after latency remain open.
 
 2026-11-16 UTC — Dashboard `e936b33` removes one startup WEB4 request for standard avatars and two for Wizards. The HTML has no result targets for the removed Clan and ONET calls. Controlled request counts passed; wall-clock impact has not been measured.

@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-16 UTC — Subscription deadline verification ran in memory and created no build outputs or dependencies. Removed the temporary portal alternate index used to stage the combined dev candidate.
+
 2026-11-16 UTC — Leased TRON asynchronous native read reused the installed .NET runtime and restore cache. After the process stopped, removed and verified absent the exact untracked TronPublicWalletBuild tree (659 files, 163,982,924 bytes). No raw reports, chain fixtures or new runtime directories were retained.
 
 2026-11-16 UTC — Confirmed the original count and wallet image runs succeeded, checked their recorded remote ref identities, and retired only `ci-hyperdrive-holon-count-1b3d96085421` and `ci-hyperdrive-wallet-e767ca027bd2`. Build evidence remains in GitHub Actions and current status. The rebased count ref remains active. C: reported 28.88 GB free at this review.

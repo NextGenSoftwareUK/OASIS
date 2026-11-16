@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-16 UTC — OPORTAL `351ca27` bounds its read-only subscription catalogue request to eight seconds and offers explicit Retry on failure. The exact portal renderer and shipping SDK exercised the unreachable live WEB4 dev route: one request, aborted at deadline, Retry visible after 8,069 ms. The regression suite passed, including propagation of a caller abort and no new deadline on Checkout POST. Dev candidate `4d3d9f8` combines this with API diagnostics while retaining dev API host selection. Live browser confirmation remains open.
+
 2026-11-16 UTC — Railway dev deployment 3480bc4b for 5371b0a8a628 transitioned from SUCCESS to CRASHED. The fatal startup stack traces the 512 MB MongoDB quota rejection to CreateIndexesOperation in MongoSubscriptionUsageRepository.InitializeBillingIndexes during dependency resolution in Host.StartAsync. The process then shut down. This establishes the WEB4 startup failure cause. WEB5 public timeout remains unverified. No Development deployment was initiated. Continue portal work independently until dev storage is writable.
 
 2026-11-16 UTC — TRON asynchronous wallet balance passed 1/1, zero skips, through the shipping provider and public TLS gRPC full and solidity nodes. The test required a positive solidified TRX result without storage activation and verified shutdown. The previously qualified synchronous case was excluded. Task baseline was 1d53046bb86d before adding the test. No signer, chain writes or fixture records were used.
