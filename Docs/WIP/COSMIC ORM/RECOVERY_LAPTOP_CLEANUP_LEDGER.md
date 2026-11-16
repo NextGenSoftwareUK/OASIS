@@ -6937,3 +6937,5 @@ Web4Site 5fa63a71df5d used a temporary directory containing only committed websi
 16 November UTC. The grouped NOT LIKE change used temporary Git indexes and one deleted website test directory. The compiler test suite reused installed Node. Three-store qualification runs on hosted CI. No local SDK, database, image or test output was retained.
 
 16 November UTC. Native selected ordering used temporary Git indexes and exact website test directories removed by their publishers. Hosted CI owns the native verification. No local build output, image, database or runtime download was retained.
+
+16 November UTC. The follow-up SQL batch used one temporary Git index, removed after staging the immutable candidate. The C drive reported 21.26 GiB free during this check. No local builds, containers, browser profiles or runtime downloads were created.
