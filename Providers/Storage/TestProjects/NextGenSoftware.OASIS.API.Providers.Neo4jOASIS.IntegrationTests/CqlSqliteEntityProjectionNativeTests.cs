@@ -50,6 +50,14 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             var empty = await linq.SelectMany(parent => parent.Children).Take(0).ToCosmicListAsync();
             Assert.IsFalse(empty.IsError, empty.Message + empty.Exception);
             Assert.AreEqual(0, empty.Result.Count);
+            var filteredEntity = await linq.SelectMany(parent => parent.Children)
+                .Where(row => row.Name == "visible match").ToCosmicListAsync();
+            Assert.IsFalse(filteredEntity.IsError, filteredEntity.Message + filteredEntity.Exception);
+            Assert.AreEqual(childId, filteredEntity.Result.Single().Id);
+            var projectedEntity = await linq.SelectMany(parent => parent.Children.Select(child => child))
+                .Where(row => row.Name == "visible match").Select(row => row.Id).ToCosmicListAsync();
+            Assert.IsFalse(projectedEntity.IsError, projectedEntity.Message + projectedEntity.Exception);
+            Assert.AreEqual(childId, projectedEntity.Result.Single());
         }
         var flattened = await linq.SelectMany(parent => parent.Children,
             (parent, child) => new { ParentId = parent.Id, ChildId = child.Id })
