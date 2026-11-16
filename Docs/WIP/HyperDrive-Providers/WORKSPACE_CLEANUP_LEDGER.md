@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-16 UTC — Confirmed that the previously blocked 6.38 GiB Visual Studio installer staging path is now absent. The generated HyperDrive build path remains absent. C: reported 21.83 GiB free, with cleanup performed outside this task. Combined visibility qualification built on GitHub and did not create a local build or database. CI logs were read in memory.
+
 2026-11-16 UTC — Follow-up check: C: reported 13.78 GiB free. The generated HyperDrive probe build path is now absent, with removal performed outside this task. The 6.38 GiB Visual Studio installer staging folder still exists. No worktree was removed.
 
 2026-11-16 UTC — Emergency C: audit observed 7.89 GiB free initially and 9.17 GiB later. No deletion succeeded during this audit. The completed, ignored .hosted-probe-build-84005f026d03 contains 3.51 GiB of generated bin/obj output. The prior denial recurred before command launch. The exact Temp/mtlqn04l Visual Studio installer staging folder is 6.38 GiB, last modified 14 Nov, with no Visual Studio installer process or reparse points found. Its independent deletion was also rejected before launch. PowerShell machine policy is RemoteSigned and the rejection comes from the execution tool. OASIS2-chunked has a modified controller and OASIS2-sealed has a staged manifest. Both are preserved. OPORTAL and HyperDrive worktrees are active. No source, installed SDKs or user data was removed. The parent visibility qualification indexes were automatically disposed, and CI artifacts are remote.
