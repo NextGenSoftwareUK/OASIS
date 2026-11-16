@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+16 November UTC. The SQL LIKE website qualification reused the installed Node runtime. Its temporary source snapshot and Git index were removed at command exit and no cosmic-like-tests directory remained. Preview build outputs are remote. C: free 23323656192 bytes observed.
+
 16 November UTC. The temporary isolated MongoDB read-only probe directory was confirmed absent after its timeout. The probe reused cached packages, and Railway and DNS checks wrote no output files. No generated output remains in the scoped COSMIC temporary directories. C: free 23331622912 bytes observed.
 
 16 November UTC. Combined SQL and HyperDrive candidate 5248f94f82e7 and website candidate 320dd72d97da used disposable Git indexes and one temporary website test snapshot. The staging commands exited and removed these directories. Native regression and runtime image outputs are hosted in GitHub. The health timing and origin probes ran without output files. No SDK downloads, environments, test databases or build artifacts were retained for this batch. C: free 30118969344 bytes observed.
