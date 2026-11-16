@@ -83,6 +83,20 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         var correlatedComposition = structuredPairs.Select(pair => pair.LeftId);
         Assert.AreEqual(rootId, correlatedComposition.ToList().Single());
 
+        var filterId = rootId;
+        var composedFilter = structuredPairs
+            .Where(pair => pair.RightId == filterId && pair.LeftId == rootId)
+            .Select(pair => pair.RightId);
+        CollectionAssert.AreEqual(new[] { rootId }, composedFilter.ToArray());
+        filterId = Guid.NewGuid();
+        CollectionAssert.AreEqual(Array.Empty<Guid>(), composedFilter.ToArray());
+
+        var scalarFilter = root.SelectMany(_ => multi.Select(row => row.Id)).Where(id => id == rootId);
+        CollectionAssert.AreEqual(new[] { rootId }, scalarFilter.ToArray());
+        var pagedFilter = projectedIds.Where(id => id == rootId);
+        var rejectedFilter = await pagedFilter.ToCosmicListAsync();
+        Assert.AreEqual("CQL_COMPOSITION_UNSUPPORTED", rejectedFilter.ErrorCode);
+
         var unsupportedProjection = root.Take(1).SelectMany(_ => rightSource,
             (left, right) => new { right.Id, Computed = right.Id.ToString() });
         Assert.ThrowsException<CosmicLinqException>(() => unsupportedProjection.Select(item => item.Id));
