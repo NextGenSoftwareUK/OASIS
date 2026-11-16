@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-16 UTC — My routing checks ran in memory. Restored the portal sparse checkout and removed the disposable alternate index used for candidate staging. No build output or dependency installation was created.
+
 2026-11-16 UTC — Live subscription and API diagnostics browser check closed its owned Edge instance and removed its temporary profile and uncached websocket-client installation. Deployment asset comparisons ran in memory. No build outputs were created.
 
 2026-11-16 UTC — Subscription deadline verification ran in memory and created no build outputs or dependencies. Removed the temporary portal alternate index used to stage the combined dev candidate.
