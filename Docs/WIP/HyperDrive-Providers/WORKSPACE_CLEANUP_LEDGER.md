@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-16 UTC — Signed HyperDrive browser attempt removed its browser profile and uncached websocket-client installation. No disposable session was issued, so it received no avatar ID to clean. A temp-directory check found zero oportal-live-edge directories. Railway logs were filtered in memory.
+
 2026-11-16 UTC — Live portal asset comparison ran in memory. The Edge dev check stopped its owned browser and removed its temporary profile and pinned websocket-client installation. It used no pip cache and wrote no results to the worktree.
 
 2026-11-16 UTC — Subscription testing read excluded fixtures in memory and wrote no results or build outputs. Removed the disposable patch and alternate Git index used to prepare both release candidates.

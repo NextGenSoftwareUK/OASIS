@@ -755,3 +755,9 @@ Status: missing account/configuration information,2 November2026. David approved
 - **Open, 15 November 2026.** A disposable avatar's Solana wallet creation reached WEB4 and failed because wallet encryption was enabled with no configured key. The avatar was deleted.
 - **David action** In Railway dev, restore the retained wallet encryption key from its protected custodian to WEB4's `OASIS_DNA_JSON` property `OASIS.Security.OASISProviderPrivateKeys.QuantumEncryptionKey`. Keep the existing wallet encryption settings and preserve the key that protects any retained ciphertext. If no retained key exists, identify the isolated sandbox with no retained wallet ciphertext where a new persistent key can be provisioned. Share only confirmation of the protected configuration, never its value.
 - **Reason** WEB4 needs the key to persist and reopen encrypted wallet credentials. Engineering will verify owned wallet creation, receipt behavior and cleanup. [Current status](../HyperDrive-Providers/CURRENT_STATUS.md)
+
+### WEB4 dev MongoDB storage quota
+
+- **Status (2026-11-16 UTC)** Open. Railway dev deployment 887a53d4 logged MongoDB insert and findAndModify rejections at 512 MB of 512 MB. Two disposable sandbox sign-in attempts returned HTTP 400 during avatar creation, before issuing a session.
+- **David action** Restore writable storage for the MongoDB deployment backing Railway WEB4 dev. Increase its storage quota, or identify the exact disposable development collection or records that an administrator can remove to recover capacity. If identifying data, provide collection names and their retention scope only.
+- **Reason** The quota blocks disposable sandbox avatar creation and other MongoDB writes. Engineering will verify sandbox sign-in, subscriptions and HyperDrive after capacity is restored. [WEB4 dev deployment](https://railway.com/) · [Current status](../HyperDrive-Providers/CURRENT_STATUS.md)
