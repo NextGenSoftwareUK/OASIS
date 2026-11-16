@@ -2933,3 +2933,5 @@ Performance follow-up. WEB4 wallet summary is implemented on the task branch and
 2026-11-16 UTC — Verified the replacement Neo4j credential configuration on running WEB10 and started the isolated WEB9 restart 803b873f. Rebased WEB4 refresh/MFA image 43823082242 was dispatched for 9fb52e18bbce. A signed OPORTAL dev Edge check rendered the compact dashboard holon count in 2,359 ms from sign-in submit, made one count request in 1,246 ms, and confirmed an ordinary avatar cannot open the provider copy form.
 
 2026-11-16 UTC — WEB9 and WEB8 running DNA matched saved replacement Neo4j configuration and public Swagger returned HTTP 200. Started WEB7 restart b783559f. Corrected WEB5–WEB10 container liveness probes in source after the live WEB10 probe resolved to a missing route. The patched images still need build and runtime verification.
+
+2026-11-16 UTC — WEB7 running DNA matched saved replacement Neo4j configuration and public Swagger returned HTTP 200. Started WEB6 restart 2bc98826. The original Neo4j login remains active while WEB6, WEB5 and WEB4 finish switching.
