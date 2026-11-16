@@ -54,6 +54,12 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             await VerifyMetadataPresenceWire(provider, ids[0], checks);
             await VerifyDistinctWire(provider, ids, checks);
             await VerifyNativeFlattening(provider,ids[0],ids[1],checks);
+            var unlisted = await provider.SaveHolonAsync(new Holon
+            {
+                Id = Guid.NewGuid(), ParentHolonId = ids[0], Name = "visible outside the child manifest",
+                CreatedByAvatarId = actor, IsPublic = true
+            }, saveChildren: false);
+            Assert.IsFalse(unlisted.IsError, unlisted.Message + unlisted.Exception);
             await VerifyChildSource(provider, actor, ids[0], ids[1], checks);
             Assert.AreEqual(65,checks.Count);
             await File.WriteAllTextAsync(Path.Combine(rootPath,"TestResults/Neo4jCurrent/sqlite-entity-projection-native.json"),

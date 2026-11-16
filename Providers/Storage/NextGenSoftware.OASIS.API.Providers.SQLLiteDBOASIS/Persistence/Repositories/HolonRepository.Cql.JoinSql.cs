@@ -31,7 +31,10 @@ public partial class HolonRepository
         var rp = Predicate(right, selection.Join.Right);
         var ls = Source(left, selection.Join.Left, true, limits.MaximumLeftRows, lp);
         if (selection.Join.RestrictsRightToLeftParents)
-            rp = "(" + rp + ") AND \"Holon\".\"ParentHolonId\" COLLATE NOCASE IN (SELECT id FROM (" + ls + "))";
+        {
+            var parent = new CqlSqlTranslator("joinParent", parameters, selection.Join.Left.ReadAccess);
+            rp = "(" + rp + ") AND " + right.ScopedJoinChildPredicate(parent, ls);
+        }
         var rs = Source(right, selection.Join.Right, false, limits.MaximumRightRows, rp);
         var equality = new List<string>();
         for (var index = 0; index < selection.Join.Keys.Count; index++)
