@@ -190,7 +190,10 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Repositories
                     switch (hcObjectType)
                     {
                         case HcObjectTypeEnum.Avatar:
-                            response = await hcObject.SaveAsync(DataHelper.ConvertAvatarToParamsObject((IAvatar)holon));
+                            // The explicit avatar payload already owns these fields.
+                            response = await hcObject.SaveAsync(DataHelper.ConvertAvatarToParamsObject((IAvatar)holon),
+                                addAuditInfoToParams: false, addVersionToParams: false, addUniqueGuidIdToParams: false,
+                                addIsActiveFlagToParams: false);
                             break;
 
                         case HcObjectTypeEnum.AvatarDetail:
@@ -266,7 +269,9 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Repositories
                     switch (hcObjectType)
                     {
                         case HcObjectTypeEnum.Avatar:
-                            response = hcObject.Save(DataHelper.ConvertAvatarToParamsObject((IAvatar)holon));
+                            response = hcObject.Save(DataHelper.ConvertAvatarToParamsObject((IAvatar)holon),
+                                addAuditInfoToParams: false, addVersionToParams: false, addUniqueGuidIdToParams: false,
+                                addIsActiveFlagToParams: false);
                             break;
 
                         case HcObjectTypeEnum.AvatarDetail:
