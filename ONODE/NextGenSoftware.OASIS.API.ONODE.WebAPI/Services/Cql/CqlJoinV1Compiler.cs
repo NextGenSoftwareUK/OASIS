@@ -22,10 +22,12 @@ public static partial class CqlV1Compiler
             || request.Columns==null || request.Columns.Length is <1 or >32 || request.MaximumLeftRows is <1 or >1000
             || request.MaximumRightRows is <1 or >1000 || request.MaximumPairs is <1 or >10000 || request.MaximumResults is <1 or >100)
             throw new ArgumentException("Join sources, up to eight keys, one to 32 columns and bounded input, pair and output limits are required.");
-        var kind=request.Kind switch {"Inner"=>CosmicJoinKind.Inner,"Left"=>CosmicJoinKind.Left,
-            "Cross"=>CosmicJoinKind.Cross,"Full"=>CosmicJoinKind.Full,_=>throw new ArgumentException("Join kind must be Inner, Left, Full or Cross.")};
-        if ((kind==CosmicJoinKind.Cross) != (request.Keys.Length==0))
-            throw new ArgumentException("Cross joins have no keys. Other joins require at least one key.");
+        var children = request.Kind == "Child";
+        var kind=request.Kind switch {"Inner" or "Child"=>CosmicJoinKind.Inner,"Left"=>CosmicJoinKind.Left,
+            "Cross"=>CosmicJoinKind.Cross,"Full"=>CosmicJoinKind.Full,
+            _=>throw new ArgumentException("Join kind must be Inner, Left, Full, Cross or Child.")};
+        if ((children || kind==CosmicJoinKind.Cross) != (request.Keys.Length==0))
+            throw new ArgumentException("Cross and Child joins accept no explicit keys. Other joins require at least one key.");
         CosmicQuery<Holon> Source(CqlJoinV1Source source)=>CompileSource(actor,provider,source.Filters,source.AnyOf,
             source.AnyChildren,source.AnyDescendants,source.Graph,source.OrderBy,source.Descending,source.Skip,source.Take,access);
         var left=Source(request.Left);var right=Source(request.Right);
@@ -37,7 +39,7 @@ public static partial class CqlV1Compiler
         var rightKeys=request.Keys.Select(key=>ProjectionColumn(JoinColumn(key.Alias,key.Right))).ToArray();
         var options=RequiredJoin(CosmicJoinOptions.Create(request.MaximumLeftRows,request.MaximumRightRows,request.MaximumPairs,
             request.MaximumResults,1024*1024,1024*1024,1024*1024));
-        var captured=kind switch
+        var captured=children ? left.JoinChildColumns(right,options) : kind switch
         {
             CosmicJoinKind.Cross=>left.CrossJoin(right,options),
             CosmicJoinKind.Left=>left.LeftJoinColumns(right,leftKeys,rightKeys,options),

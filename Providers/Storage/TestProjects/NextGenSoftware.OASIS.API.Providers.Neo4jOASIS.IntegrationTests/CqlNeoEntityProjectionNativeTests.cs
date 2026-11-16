@@ -47,7 +47,8 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             await VerifyMetadataPresenceWire(provider, ids[0], checks);
             await VerifyDistinctWire(provider, ids, checks);
             await VerifyNativeFlattening(provider,ids[0],ids[1],checks);
-            Assert.AreEqual(64,checks.Count);
+            await VerifyChildSource(provider, actor, ids[0], ids[1], checks);
+            Assert.AreEqual(65,checks.Count);
             var deactivation=await provider.DeActivateProviderAsync();Assert.IsFalse(deactivation.IsError,deactivation.Message);active=false;
             await Checkpoint("before-exact-cleanup");
             var deleted=await (await inspection.RunAsync("MATCH(h:Holon) WHERE h.Id IN $ids DETACH DELETE h",new{ids=ids.Select(id=>id.ToString("D")).ToArray()})).ConsumeAsync();

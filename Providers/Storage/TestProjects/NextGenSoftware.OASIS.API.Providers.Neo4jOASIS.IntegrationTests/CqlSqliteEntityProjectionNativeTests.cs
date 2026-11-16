@@ -1,14 +1,80 @@
+extern alias ShippingWeb4;
 using System.Text.Json;
 using Microsoft.Data.Sqlite;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Queries;
+using CqlCompiler = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql.CqlV1Compiler;
+using CqlJoinRequest = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlJoinV1Request;
+using CqlJoinColumn = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlJoinV1Column;
+using CqlJoinFilter = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlV1Filter;
+using CqlJoinOperator = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlV1Operator;
 using SqliteProvider=NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.SQLLiteDBOASIS;
 
 namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests;
 
 public sealed partial class CqlProjectedAllAcceptanceTests
 {
+    private static async Task VerifyChildSource(ICosmicQueryJoinStorageProvider provider, Guid actor, Guid parentId, Guid childId,
+        List<object> checks)
+    {
+        var scope = CosmicQueryScope.Named(provider.QueryProviderType).Result;
+        var source = CosmicQuery<Holon>.Create(scope).WithReadAccess(CosmicQueryReadAccess.OwnerOrPublic(actor).Result).Result;
+        var parents = source.Where(row => row.Id == parentId).Take(1).Result;
+        var options = CosmicJoinOptions.Create(maximumLeftRows: 1, maximumRightRows: 1).Result;
+        var joined = parents.JoinChildren(source, options).Select((parent, child) => child.Id);
+        Assert.IsFalse(joined.IsError, joined.Message);
+        var plan = CosmicJoinPlanner.Plan(joined.Result, provider.QueryProviderType,
+            new[] { new CosmicJoinTarget(provider.QueryProviderType, provider.QueryCapabilities, provider.JoinCapabilities) });
+        Assert.IsFalse(plan.IsError, plan.Message);
+        var rows = await NativeManager(provider).ExecuteJoinQueryAsync(plan.Result, new[] { provider });
+        Assert.IsFalse(rows.IsError, rows.Message + rows.Exception);
+        Assert.AreEqual(childId, rows.Result.Providers.Single().Rows.Single().Value);
+        var linq = CosmicLinq.Create(NativeManager(provider), provider, parents, maximumResults: 1).Result;
+        var flattened = await linq.SelectMany(parent => parent.Children,
+            (parent, child) => new { ParentId = parent.Id, ChildId = child.Id })
+            .Select(pair => pair.ChildId).ToCosmicListAsync();
+        Assert.IsFalse(flattened.IsError, flattened.Message + flattened.Exception);
+        Assert.AreEqual(childId, flattened.Result.Single());
+        var collectionProjection = linq.SelectMany(parent => parent.Children.Select(child => child.Id))
+            .Select(id => new { Identity = id });
+        var selectedChildren = await collectionProjection.ToCosmicListAsync();
+        Assert.IsFalse(selectedChildren.IsError, selectedChildren.Message + selectedChildren.Exception);
+        Assert.AreEqual(childId, selectedChildren.Result.Single().Identity);
+        var childName = "visible match";
+        var filtered = linq.SelectMany(parent => parent.Children.Where(child => child.Name == childName),
+            (parent, child) => child.Id);
+        CollectionAssert.AreEqual(new[] { childId }, (await filtered.ToCosmicListAsync()).Result.ToArray());
+        childName = "absent";
+        var noChildren = await filtered.ToCosmicListAsync();
+        Assert.IsFalse(noChildren.IsError, noChildren.Message + noChildren.Exception);
+        Assert.AreEqual(0, noChildren.Result.Count);
+        var projectedFilter = linq.SelectMany(parent => parent.Children.Select(child => new { child.Id, child.Name }))
+            .Where(child => child.Name == "visible match").Select(child => child.Id);
+        var filteredProjection = await projectedFilter.ToCosmicListAsync();
+        Assert.IsFalse(filteredProjection.IsError, filteredProjection.Message + filteredProjection.Exception);
+        Assert.AreEqual(childId, filteredProjection.Result.Single());
+        var request = new CqlJoinRequest
+        {
+            Kind = "Child",
+            Left = new() { Take = 1, Filters = new[] {
+                new CqlJoinFilter { Field = "Id", Operator = CqlJoinOperator.Equal,
+                    Value = JsonSerializer.SerializeToElement(parentId) } } },
+            MaximumLeftRows = 1, MaximumRightRows = 1,
+            Columns = new[] { new CqlJoinColumn { Alias = "ChildId", Source = "Right", Selection = new() { Field = "Id" } } }
+        };
+        var wire = CqlCompiler.CompileJoin(request, actor, provider.QueryProviderType, CosmicQueryReadAccess.OwnerOrPublic(actor).Result);
+        Assert.IsTrue(wire.Join.RestrictsRightToLeftParents);
+        var wirePlan = CosmicJoinPlanner.Plan(wire, provider.QueryProviderType,
+            new[] { new CosmicJoinTarget(provider.QueryProviderType, provider.QueryCapabilities, provider.JoinCapabilities) });
+        Assert.IsFalse(wirePlan.IsError, wirePlan.Message);
+        var wireRows = await NativeManager(provider).ExecuteJoinQueryAsync(wirePlan.Result, new[] { provider });
+        Assert.IsFalse(wireRows.IsError, wireRows.Message + wireRows.Exception);
+        Assert.AreEqual(childId, (Guid)wireRows.Result.Providers.Single().Rows.Single().Value["ChildId"]);
+        checks.Add(new { provider = provider.QueryProviderType.ToString(), linq = "scoped child input before native budget" });
+    }
+
     [TestMethod]
     public async Task NativeSqliteEntityProjectionPreservesStagesAndProofBeforeDtoConstruction()
     {
@@ -21,7 +87,8 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         try
         {
             var ids=Enumerable.Range(0,5).Select(_=>Guid.NewGuid()).ToArray();
-            var saved=await provider.SaveHolonAsync(CreateEntityProjectionFixture(ids,Guid.NewGuid(),Guid.NewGuid()),saveChildren:true);
+            var actor=Guid.NewGuid();
+            var saved=await provider.SaveHolonAsync(CreateEntityProjectionFixture(ids,actor,Guid.NewGuid()),saveChildren:true);
             Assert.IsFalse(saved.IsError,saved.Message+saved.Exception);
             var checks=new List<object>();
             await VerifyEntityProjection((ICosmicQueryEntityProjectionStorageProvider)provider,ids[0],checks);
@@ -33,7 +100,14 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             await VerifyMetadataPresenceWire(provider, ids[0], checks);
             await VerifyDistinctWire(provider, ids, checks);
             await VerifyNativeFlattening(provider,ids[0],ids[1],checks);
-            Assert.AreEqual(64,checks.Count);
+            var unlisted = await provider.SaveHolonAsync(new Holon
+            {
+                Id = Guid.NewGuid(), ParentHolonId = ids[0], Name = "visible outside the child manifest",
+                CreatedByAvatarId = actor, IsPublic = true
+            }, saveChildren: false);
+            Assert.IsFalse(unlisted.IsError, unlisted.Message + unlisted.Exception);
+            await VerifyChildSource(provider, actor, ids[0], ids[1], checks);
+            Assert.AreEqual(65,checks.Count);
             await File.WriteAllTextAsync(Path.Combine(rootPath,"TestResults/Neo4jCurrent/sqlite-entity-projection-native.json"),
                 JsonSerializer.Serialize(new{provider="SQLLiteDBOASIS",checks=checks.Count,cases=checks,inMemoryFixture=true}));
         }

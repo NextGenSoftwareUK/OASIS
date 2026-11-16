@@ -36,11 +36,13 @@ public partial class HolonRepository
         {
             using var session = await _dbContext.MongoClient.StartSessionAsync(
                 new ClientSessionOptions { Snapshot = true, CausalConsistency = false }, deadline.Token).ConfigureAwait(false);
-            if (command.Left.RequiresMembership || command.Right.RequiresMembership)
+            if (query.Join.RestrictsRightToLeftParents || command.Left.RequiresMembership || command.Right.RequiresMembership)
                 await ValidateCqlMembershipAsync(session, Options, deadline.Token).ConfigureAwait(false);
 
             var left = await ReadSource(command.Left, query.Join.Left, true, limits.MaximumLeftRows,
                 limits.MaximumLeftPayloadBytes).ConfigureAwait(false);
+            if (query.Join.RestrictsRightToLeftParents)
+                command = new MongoCqlTranslator().CompileJoin(query, limits, left.Rows.Keys.ToArray());
             var right = await ReadSource(command.Right, query.Join.Right, false, limits.MaximumRightRows,
                 limits.MaximumRightPayloadBytes).ConfigureAwait(false);
             var rows = new List<CosmicJoinRow>(); long bytes = 0, pairCount = 0;
