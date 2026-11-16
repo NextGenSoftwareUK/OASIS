@@ -8,11 +8,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Cql;
 
 public static partial class CqlV1Compiler
 {
-    public static CosmicProjectionQuery<Holon, TValue> CompileDistinctCount<TValue>(
-        CosmicQuery<Holon> source, Expression<Func<Holon, TValue>> selector)
+    public static CosmicProjectionQuery<Holon, TValue> CompileSelectedCount<TValue>(
+        CosmicQuery<Holon> source, Expression<Func<Holon, TValue>> selector, bool distinct)
     {
         if (source == null || selector == null)
-            throw new ArgumentException("Distinct count requires a source and one exact selection.");
+            throw new ArgumentException("Selected count requires a source and one exact selection.");
 
         var query = RequiredComposition(source.Select(selector));
         var type = typeof(TValue);
@@ -23,7 +23,7 @@ public static partial class CqlV1Compiler
                 Expression.NotEqual(value, Expression.Constant(null, type)), value);
             query = RequiredComposition(query.Where(nonNull));
         }
-        return RequiredComposition(query.Distinct());
+        return distinct ? RequiredComposition(query.Distinct()) : query;
     }
 
     private static CosmicProjectionQuery<Holon, TValue> RequiredComposition<TValue>(
