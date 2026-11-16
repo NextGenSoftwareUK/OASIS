@@ -1,5 +1,7 @@
 # COSMIC ORM / CQL current status
 
+16 November UTC. The [native regression step](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43789620088/job/133044841448) passed on exact 26609e933845. Both DISTINCT and GROUP BY returned the expected separate values for the literal dotted and nested metadata keys through the shipping WEB4 compiler and native MongoDB, SQLite and Neo4j providers. The broader CI run was still publishing the source graph. Development Railway 3480bc4b progressed to the dotnet publish stage for 5371b0a8a628. Signed hosted acceptance remains open.
+
 16 November UTC. Web4Site abb71aade0bc rejects invalid WEB6 draft envelopes and application errors returned with HTTP 200 before any CQL reaches the editor. The regression covers null, non-string and empty content and an error envelope carrying otherwise valid SQL. The 250 website tests passed and the [protected preview built](https://vercel.com/oasis-team/web4-site/6sfcZNJ9WoHoLqRoG4SvPtP6nS1M). Railway 3480bc4b is building exact combined revision 5371b0a8a628. Signed hosted verification remains open.
 
 16 November UTC. Reapplied the COUNT(column) editor changes to exact Web4Site 22486c94b693 and ran all 250 site tests successfully. The candidate retains the ready-provider WEB6 prompt and exact compound metadata paths. Publication awaits hosted verification. Railway still showed the two combined-release deployments queued and 307f52dfc9ae serving at the last check.
