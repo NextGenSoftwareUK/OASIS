@@ -97,6 +97,15 @@ public partial class HolonRepository
         {
             var limit = left.Bind(requestedLimit);
             var offset = left.Bind(selection.OutputOffset);
+            if (selection.OutputFromEnd > 0)
+            {
+                const string count = "(SELECT count(*) FROM pairs)";
+                var end = selection.OutputTailWindowLimit is int window
+                    ? "min(" + count + "," + left.Bind((long)selection.OutputOffset + window) + ")" : count;
+                var index = "(" + end + "-" + left.Bind(selection.OutputFromEnd) + ")";
+                limit = "CASE WHEN " + index + ">=" + offset + " THEN 1 ELSE 0 END";
+                offset = "max(0," + index + ")";
+            }
             output = sources + ",pairs AS MATERIALIZED (" + pairs + " LIMIT " + pairLimit
                 + "),page AS MATERIALIZED (SELECT *,1 AS present FROM pairs ORDER BY " + pairOrder
                 + " LIMIT " + limit + " OFFSET " + offset + ")"
