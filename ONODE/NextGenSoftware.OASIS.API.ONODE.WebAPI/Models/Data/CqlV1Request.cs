@@ -55,7 +55,7 @@ public sealed class CqlV1DescendantExists
 public enum CqlV1Scalar { String, Integer, Boolean, Guid, DateTime, UInt64, Decimal, Double, Single }
 
 [JsonConverter(typeof(JsonStringEnumConverter<CqlV1Operator>))]
-public enum CqlV1Operator { Equal, NotEqual, GreaterThan, GreaterThanOrEqual, LessThan, LessThanOrEqual, Contains, StartsWith, EndsWith, Exists, IsNull, In, IsMissing, IsNotNull }
+public enum CqlV1Operator { Equal, NotEqual, GreaterThan, GreaterThanOrEqual, LessThan, LessThanOrEqual, Contains, StartsWith, EndsWith, Exists, IsNull, In, IsMissing, IsNotNull, NotContains, NotStartsWith, NotEndsWith }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed class CqlV1Filter
