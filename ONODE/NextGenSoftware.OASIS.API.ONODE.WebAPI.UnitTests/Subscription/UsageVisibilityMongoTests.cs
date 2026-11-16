@@ -130,6 +130,47 @@ public sealed class UsageVisibilityMongoTests : IDisposable
     }
 
     [MongoFact]
+    public async Task OwnerSettingsFindTheExactAccountBeyondTheAdminListLimit()
+    {
+        var (client, scope, ledger, _) = Make();
+        try
+        {
+            var accounts = client.GetDatabase(scope).GetCollection<AppAccountRecord>("subscription_app_accounts");
+            await accounts.InsertManyAsync(Enumerable.Range(0, 500).Select(index => new AppAccountRecord
+            {
+                AppId = $"a-{index:D3}", Name = "Other app", PlanId = "silver", Status = "active"
+            }));
+            const string appId = "z-owned-app";
+            await accounts.InsertOneAsync(new AppAccountRecord
+            {
+                AppId = appId, Name = "Owned app", PlanId = "silver", Status = "active",
+                OwnerAvatarIds = new List<string> { Owner }, KeyHashSha256 = "fixture-hash"
+            });
+
+            Assert.DoesNotContain(await ledger.ListAppAccountsAsync(), account => account.AppId == appId);
+            var account = await ledger.GetAppAccountAsync(appId, default);
+            Assert.Equal(appId, account.AppId);
+            Assert.Null(account.KeyHashSha256);
+
+            var controller = new NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers.SubscriptionOwnerController(
+                new ConfigurationBuilder().Build(), null, null, ledger);
+            var context = new Microsoft.AspNetCore.Http.DefaultHttpContext();
+            controller.ControllerContext = new Microsoft.AspNetCore.Mvc.ControllerContext { HttpContext = context };
+            context.User = SignedIn(Owner);
+            var owned = Assert.IsType<Microsoft.AspNetCore.Mvc.OkObjectResult>(await controller.GetAppSettings(appId));
+            Assert.Equal(200, owned.StatusCode);
+            context.User = SignedIn(Reader);
+            var denied = Assert.IsType<Microsoft.AspNetCore.Mvc.ObjectResult>(await controller.GetAppSettings(appId));
+            Assert.Equal(403, denied.StatusCode);
+        }
+        finally { await Drop(client, scope); }
+
+        static System.Security.Claims.ClaimsPrincipal SignedIn(string id) => new(
+            new System.Security.Claims.ClaimsIdentity(
+                new[] { new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.NameIdentifier, id) }, "fixture"));
+    }
+
+    [MongoFact]
     public async Task NotificationSettingsAreSavedAuditedAndTheNotifiedMarkerFiresOnce()
     {
         var (client, scope, ledger, _) = Make();
