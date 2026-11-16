@@ -45,7 +45,8 @@ public partial class HolonRepository
             var column = query.Columns[index];
             var cell = new GroupFilterCell { Type = column.ValueType };
             if (column.KeyIndex >= 0) cell.Value = "k" + column.KeyIndex + "v";
-            else if (column.Operation is CosmicScalarOperation.Count or CosmicScalarOperation.LongCount) cell.Value = "inputs";
+            else if (column.Operation is CosmicScalarOperation.Count or CosmicScalarOperation.LongCount)
+                cell.Value = column.Selector == null ? "inputs" : "a" + index + "n";
             else if (column.Operation == CosmicScalarOperation.Sum)
             {
                 if (FloatingNumeric(column.Selector.ValueType) || (Nullable.GetUnderlyingType(column.Selector.ValueType) ?? column.Selector.ValueType) == typeof(decimal))

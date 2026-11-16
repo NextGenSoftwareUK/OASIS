@@ -98,7 +98,8 @@ public partial class HolonRepository
                                     if (inputs > int.MaxValue) return GroupedCqlError("CQL_SCALAR_OVERFLOW", "Grouped Count exceeds Int32.");
                                     values[index] = (int)inputs;
                                 }
-                                else if (column.Operation == CosmicScalarOperation.LongCount) values[index] = inputs;
+                                else if (column.Operation == CosmicScalarOperation.LongCount)
+                                    values[index] = column.Selector == null ? inputs : reader.GetInt64(position++);
                                 else if (column.Operation is CosmicScalarOperation.Sum or CosmicScalarOperation.Average)
                                 {
                                     OASISResult<object> normalized;

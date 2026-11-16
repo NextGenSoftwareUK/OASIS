@@ -179,6 +179,38 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         CollectionAssert.AreEqual(new object[] { "literal", "nested", 1L },
             exactCounts.Result.Providers.Single().Rows.Single().Values.ToArray());
 
+        var selectedCount = new CqlGroupedRequest
+        {
+            Filters = new[] { new CqlFilter
+            {
+                Field = "Id", Operator = CqlOperator.In,
+                Value = JsonSerializer.SerializeToElement(new[] { ids[0], ids[1], ids[3], ids[4] })
+            } },
+            Keys = new[] { new CqlProjectionColumn { Field = "Version", Alias = "Revision" } },
+            Columns = new[]
+            {
+                new CqlGroupedColumn { Alias = "Rows", Operation = "LongCount" },
+                new CqlGroupedColumn { Alias = "Descriptions", Operation = "LongCount",
+                    Selection = new CqlJoinScalar { Field = "Description" } },
+                new CqlGroupedColumn { Alias = "Labels", Operation = "LongCount",
+                    Selection = new CqlJoinScalar { MetadataPath = new[] { "catalog.v1" }, ValueType = "String", Nullable = true } }
+            },
+            ResultFilters = new[] { new CqlGroupedFilter
+            {
+                Alias = "Descriptions", Operator = CqlOperator.Equal, Value = JsonSerializer.SerializeToElement("3")
+            } },
+            ResultOrder = new[] { new ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlGroupedV1Ordering
+                { Alias = "Descriptions", Descending = true } },
+            OrderBy = "Name",
+            MaximumGroups = 10
+        };
+        var selectedCountPlan = CosmicGroupedPlanner.Plan(CqlCompiler.CompileGrouped(selectedCount, actor, provider), provider, target);
+        Assert.IsFalse(selectedCountPlan.IsError, selectedCountPlan.Message);
+        var selectedCounts = await CosmicGroupedExecutor.ExecuteAsync(selectedCountPlan.Result, new[] { adapter });
+        Assert.IsFalse(selectedCounts.IsError, selectedCounts.Message + selectedCounts.Exception);
+        CollectionAssert.AreEqual(new object[] { 4L, 3L, 1L },
+            selectedCounts.Result.Providers.Single().Rows.Single().Values.ToArray());
+
         var floatingRequest = new CqlGroupedRequest
         {
             Filters = new[] { new CqlFilter

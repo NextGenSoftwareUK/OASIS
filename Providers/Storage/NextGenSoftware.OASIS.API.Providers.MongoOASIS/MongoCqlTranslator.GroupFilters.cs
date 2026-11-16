@@ -28,7 +28,8 @@ internal sealed partial class MongoCqlTranslator
         var column = query.Columns[index];
         BsonValue value;
         if (column.KeyIndex >= 0) value = "$_id.k" + column.KeyIndex;
-        else if (column.Operation is CosmicScalarOperation.Count or CosmicScalarOperation.LongCount) value = "$inputs";
+        else if (column.Operation is CosmicScalarOperation.Count or CosmicScalarOperation.LongCount)
+            value = column.Selector == null ? "$inputs" : "$a" + index + "present";
         else if (column.Operation is CosmicScalarOperation.Min or CosmicScalarOperation.Max) value = "$a" + index + ".k";
         else if (column.Operation == CosmicScalarOperation.Sum) value = GroupedSumValue(column, index);
         else if (column.Operation == CosmicScalarOperation.Average) value = "$cqlGroupAverage" + index;
