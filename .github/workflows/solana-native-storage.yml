@@ -6,6 +6,11 @@ on:
     paths:
       - 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.SOLANAOASIS/**'
   workflow_dispatch:
+    inputs:
+      wallet:
+        description: Verify an owned SOL send and finalized receipt only
+        type: boolean
+        default: false
   workflow_call:
     inputs:
       routing:
@@ -150,6 +155,20 @@ jobs:
           export OASIS_SOLANA_FRESH_CONFORMANCE=1
           export OASIS_SOLANA_STORAGE_ENCRYPTION_KEY="$(openssl rand -base64 32)"
           echo "::add-mask::$OASIS_SOLANA_STORAGE_ENCRYPTION_KEY"
+          if [[ "${{ inputs.wallet && '1' || '0' }}" == 1 ]]; then
+            export OASIS_SOLANA_WALLET_DIRECTORY="$fixture"
+            pwsh -NoProfile -Command '
+              ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-SolanaWallet -Operation {
+                $project = "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.IntegrationTests"
+                dotnet test $project --filter "FullyQualifiedName~NativeWalletSendReturnsFinalizedReceipt" /p:SolanaDirectProviderOnly=true /m:2 /nr:false /p:UseSharedCompilation=false --results-directory $env:OASIS_SOLANA_WALLET_DIRECTORY --logger "trx;LogFileName=wallet.trx"
+                if ($LASTEXITCODE -ne 0) { throw "Native Solana wallet verification failed." }
+                [xml]$report = Get-Content -LiteralPath (Join-Path $env:OASIS_SOLANA_WALLET_DIRECTORY "wallet.trx")
+                if ($report.TestRun.ResultSummary.Counters.passed -ne "1" -or $report.TestRun.ResultSummary.Counters.total -ne "1") {
+                  throw "The native Solana wallet case must execute and pass."
+                }
+              }'
+            exit 0
+          fi
           if [[ "${{ inputs.routing && '1' || '0' }}" == 1 ]]; then
             export OASIS_SOLANA_ROUTING_DIRECTORY="$fixture"
             pwsh -NoProfile -Command '

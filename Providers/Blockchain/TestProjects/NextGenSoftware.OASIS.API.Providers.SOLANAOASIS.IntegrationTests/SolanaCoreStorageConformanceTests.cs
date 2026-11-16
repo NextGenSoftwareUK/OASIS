@@ -5,12 +5,55 @@ using NextGenSoftware.OASIS.Providers.TestSupport;
 using System.Security.Cryptography;
 using System.Text;
 using Solnet.Wallet.Utilities;
+using Solnet.Rpc;
+using Solnet.Rpc.Types;
+using Solnet.Wallet;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests;
 
 namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.IntegrationTests;
 
 [TestClass, DoNotParallelize]
 public partial class SolanaCoreStorageConformanceTests
 {
+    [TestMethod, TestCategory("SolanaNativeWallet")]
+    public async Task NativeWalletSendReturnsFinalizedReceipt()
+    {
+        var provider = await OpenFreshValidator();
+        var rpc = ClientFactory.GetClient(Environment.GetEnvironmentVariable("SOLANA_RPC_URL")!);
+        var recipient = new Account().PublicKey.Key;
+        await using var file = File.OpenRead(Environment.GetEnvironmentVariable("OASIS_SOLANA_FRESH_KEYPAIR")!);
+        var encodedKey = await JsonSerializer.DeserializeAsync<int[]>(file);
+        Assert.IsNotNull(encodedKey);
+        Assert.AreEqual(64, encodedKey.Length);
+        var keypair = Array.ConvertAll(encodedKey, value => checked((byte)value));
+        Array.Clear(encodedKey);
+        try
+        {
+            var owner = Encoders.Base58.EncodeData(keypair[32..]);
+            var before = await rpc.GetBalanceAsync(recipient, Commitment.Finalized);
+            Assert.IsTrue(before.WasSuccessful);
+            Assert.AreEqual(0UL, before.Result.Value);
+
+            var sent = await provider.SendTokenAsync(new SendWeb3TokenRequest
+            {
+                FromWalletAddress = owner,
+                OwnerPrivateKey = Encoders.Base58.EncodeData(keypair),
+                ToWalletAddress = recipient,
+                Amount = 0.002m,
+                MemoText = "OASIS disposable wallet acceptance"
+            });
+            Assert.IsFalse(sent.IsError, sent.Message);
+            Assert.IsFalse(string.IsNullOrWhiteSpace(sent.Result?.TransactionResult));
+            var after = await rpc.GetBalanceAsync(recipient, Commitment.Finalized);
+            Assert.IsTrue(after.WasSuccessful);
+            Assert.AreEqual(2_000_000UL, after.Result.Value);
+        }
+        finally
+        {
+            CryptographicOperations.ZeroMemory(keypair);
+        }
+    }
+
     [TestMethod, TestCategory("SolanaCoreStorageInspect")]
     public async Task InspectOriginalIdFailuresWithoutMutation()
     {
