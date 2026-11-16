@@ -373,6 +373,48 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Assert.IsFalse(labels.IsError, labels.Message + labels.Exception);
         CollectionAssert.AreEqual(new string?[] { "case", null, "Case" }, labels.Result.ToArray());
 
+        var projectionAdapter = (ICosmicQueryProjectionStorageProvider)adapter;
+        var orderedRequest = new ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlProjectionV1Request
+        {
+            Filters = new[]
+            {
+                new CqlFilter { Field = "Id", Operator = CqlOperator.In, Value = JsonSerializer.SerializeToElement(ids) },
+                new CqlFilter { Field = "Description", Operator = CqlOperator.IsNotNull }
+            },
+            Columns = new[]
+            {
+                new CqlProjectionColumn { Field = "Id", Alias = "Identity" },
+                new CqlProjectionColumn { Field = "Description", Alias = "Label" }
+            },
+            OrderBy = "None",
+            SelectedOrder = new[]
+            {
+                new ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlGroupedV1Ordering { Alias = "Label" },
+                new ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlGroupedV1Ordering { Alias = "Identity" }
+            },
+            Skip = 1,
+            Take = 2
+        };
+        var orderedIntent = CqlCompiler.CompileProjection(orderedRequest, actor, provider);
+        Assert.AreEqual(1, orderedIntent.Source.Offset);
+        Assert.AreEqual(2, orderedIntent.Source.Limit);
+        Assert.AreEqual(2, orderedIntent.Source.Orderings.Count);
+        var orderedPlan = CosmicProjectionPlanner.Plan(orderedIntent, provider,
+            new[] { new CosmicProjectionTarget(provider, adapter.QueryCapabilities, projectionAdapter.ProjectionCapabilities) });
+        Assert.IsFalse(orderedPlan.IsError, orderedPlan.Message);
+        var orderedRows = await CosmicProjectionExecutor.ExecuteAsync(orderedPlan.Result, new[] { projectionAdapter });
+        Assert.IsFalse(orderedRows.IsError, orderedRows.Message + orderedRows.Exception);
+        var sourceRows = await fixtureRows.ToCosmicListAsync();
+        Assert.IsFalse(sourceRows.IsError, sourceRows.Message + sourceRows.Exception);
+        var expectedPage = sourceRows.Result.Where(result => result.Description != null)
+            .OrderBy(result => result.Description, StringComparer.Ordinal)
+            .ThenBy(result => result.Id.ToString("D"), StringComparer.Ordinal)
+            .Skip(1).Take(2).Select(result => result.Id).ToArray();
+        Assert.AreEqual(2, expectedPage.Length);
+        CollectionAssert.AreEqual(expectedPage, orderedRows.Result.Providers.Single().Rows
+            .Select(result => (Guid)result.Values[0]).ToArray());
+
+
         foreach (var (operation, pattern, expected) in new[]
         {
             (CqlOperator.NotContains, "Case", new[] { "case" }),

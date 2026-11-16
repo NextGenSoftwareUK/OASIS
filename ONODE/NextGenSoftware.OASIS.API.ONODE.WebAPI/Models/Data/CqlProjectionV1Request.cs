@@ -15,6 +15,7 @@ public sealed class CqlProjectionV1Request
     public CqlV1DescendantExists[] AnyDescendants { get; set; } = Array.Empty<CqlV1DescendantExists>();
     public string OrderBy { get; set; } = "Name";
     public bool Descending { get; set; }
+    public CqlGroupedV1Ordering[]? SelectedOrder { get; set; }
     public int Skip { get; set; }
     public int Take { get; set; } = 25;
     public CqlV1Graph? Graph { get; set; }

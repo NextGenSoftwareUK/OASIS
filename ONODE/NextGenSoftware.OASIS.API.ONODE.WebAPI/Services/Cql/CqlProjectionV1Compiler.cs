@@ -21,9 +21,32 @@ public static partial class CqlV1Compiler
         if (request == null || request.Take is < 0 or > 100 || request.Columns == null
             || request.Columns.Length is < 1 or > CosmicProjectionQuery<Holon, CosmicProjectionRecord>.MaximumColumns)
             throw new ArgumentException("Projection requires one to32 columns and Take0–100.");
+        var order = request.SelectedOrder;
+        if (order != null && (order.Length is < 1 or > CosmicQuery<Holon>.MaximumOrderings
+            || request.OrderBy != "None" || request.Descending || request.Skip is < 0 or > 1000))
+            throw new ArgumentException("SelectedOrder requires one to eight aliases, OrderBy None and Skip 0–1000.");
+
         var source = CompileSource(actor, provider, request.Filters, request.AnyOf, request.AnyChildren,
-            request.AnyDescendants, request.Graph, request.OrderBy, request.Descending, request.Skip, request.Take,access,includeCloudReadProfile:true);
+            request.AnyDescendants, request.Graph, order == null ? request.OrderBy : "Id", request.Descending,
+            order == null ? request.Skip : 0, order == null ? request.Take : null, access, includeCloudReadProfile: true);
         var columns = request.Columns.Select(ProjectionColumn).ToArray();
+        if (order != null)
+        {
+            // Bind selected aliases to source fields before any paging or projection is applied.
+            var seen = new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);
+            for (var i = 0; i < order.Length; i++)
+            {
+                var term = order[i];
+                if (term?.Alias == null || !seen.Add(term.Alias))
+                    throw new ArgumentException("Selected ordering aliases must be non-null and unique.");
+                var column = request.Columns.FirstOrDefault(item => item.Alias == term.Alias)
+                    ?? throw new ArgumentException("Selected ordering must name an exact selected alias.");
+                source = CompileSelection(column, new SourceOrderingConsumer(source, term.Descending, i > 0));
+            }
+            var page = source.Skip(request.Skip).Take(request.Take);
+            if (page.IsError) throw new ArgumentException(page.Message);
+            source = page.Result;
+        }
         var selected = source.SelectColumns(columns);
         if (selected.IsError) throw new ArgumentException(selected.Message);
         return selected.Result;
@@ -41,6 +64,19 @@ public static partial class CqlV1Compiler
     internal interface ISelectionConsumer<TResult>
     {
         TResult Bind<TValue>(string alias, Expression<Func<Holon, TValue>> selector);
+    }
+
+    private sealed class SourceOrderingConsumer(CosmicQuery<Holon> source, bool descending, bool append)
+        : ISelectionConsumer<CosmicQuery<Holon>>
+    {
+        public CosmicQuery<Holon> Bind<TValue>(string alias, Expression<Func<Holon, TValue>> selector)
+        {
+            var ordered = append
+                ? (descending ? source.ThenByDescending(selector) : source.ThenBy(selector))
+                : (descending ? source.OrderByDescending(selector) : source.OrderBy(selector));
+            if (ordered.IsError) throw new ArgumentException(ordered.Message);
+            return ordered.Result;
+        }
     }
 
     private sealed class ProjectionSelectionConsumer : ISelectionConsumer<CosmicProjectionSelection<Holon>>
