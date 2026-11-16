@@ -1880,3 +1880,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 2026-11-16 UTC — Removed the temporary index after preparing the scoped HoloOASIS/COSMIC candidate. No local build or bundle was generated. C: free space was 20.68 GiB at the review.
 
 2026-11-16 UTC — Removed the scratch index for the exact WEB4 dispatch candidate. Registry log inspection was in memory. No local build output or image was downloaded.
+
+2026-11-16 UTC — Removed the exact OPORTAL recovery archive, scoped npm cache, node_modules and generated SDK bundles. The first cleanup guard stopped on a trailing separator in the temp root. Resolved and verified the exact owned directory and contents, removed it and confirmed absence. No runtime installation or workspace build outputs were retained.
