@@ -1928,3 +1928,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 2026-11-16 UTC — Removed the scratch Core portability index. Fetched only the pinned Git objects needed to verify the next Core base and the HoloNET-ORM source graph. No local build output or runtime was installed.
 
 2026-11-16 UTC — Removed the exact avatar qualification scratch index. The serialization tests run on a disposable hosted runner, with no local package or build output.
+
+2026-11-16 UTC — Removed the focused native avatar candidate index and temporary directory. It installs the conductor only in CI; no local runtime or test fixtures were created.
