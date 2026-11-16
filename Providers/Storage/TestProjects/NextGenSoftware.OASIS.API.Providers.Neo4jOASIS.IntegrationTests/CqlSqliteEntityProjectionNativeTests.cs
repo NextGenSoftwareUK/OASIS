@@ -109,6 +109,16 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             var expected = descending ? new[] { ids[0], ids[1], ids[4] } : new[] { ids[4], ids[0], ids[1] };
             CollectionAssert.AreEqual(expected, nullableRows.Result.Providers.Single().Rows.Select(row => row.Value.Id).ToArray());
         }
+        var composite = left.CrossJoin(right).Select((parent, child) => new { child.Id, child.Description, child.Name }).Result
+            .OrderByOutput("Description").Result.ThenByOutput("Name", descending: true);
+        Assert.IsFalse(composite.IsError, composite.Message);
+        var compositePlan = CosmicJoinPlanner.Plan(composite.Result, native.QueryProviderType,
+            new[] { new CosmicJoinTarget(native.QueryProviderType, native.QueryCapabilities, native.JoinCapabilities) });
+        Assert.IsFalse(compositePlan.IsError, compositePlan.Message);
+        var compositeRows = await NativeManager(provider).ExecuteJoinQueryAsync(compositePlan.Result, new[] { native });
+        Assert.IsFalse(compositeRows.IsError, compositeRows.Message + compositeRows.Exception);
+        CollectionAssert.AreEqual(new[] { ids[4], ids[1], ids[0] },
+            compositeRows.Result.Providers.Single().Rows.Select(row => row.Value.Id).ToArray());
         var manager = NativeManager(provider);
         var leftRows = CosmicLinq.Create(manager, provider, left, maximumResults: 4).Result;
         var rightRows = CosmicLinq.Create(manager, provider, right, maximumResults: 4).Result;

@@ -46,13 +46,15 @@ internal sealed partial class MongoCqlTranslator
         // Matching follows the right source's window, not its unpaged collection.
         if (query.Join.Kind != CosmicJoinKind.Cross)
             lookup.Add(new("$match", new BsonDocument("$expr", Op("$and", equality.ToArray()))));
-        var selectedOrder = query.OutputOrderColumn;
-        var orderOnLeft = selectedOrder is int ordered && query.Columns[ordered].Source == CosmicJoinColumnSource.Left;
-        var orderIndex = selectedOrder is int indexInProjection
-            ? query.Columns.Take(indexInProjection).Count(column => column.Source == query.Columns[indexInProjection].Source) : -1;
+        var selectedOrders = query.OutputOrdering.Select((term, index) =>
+        {
+            var column = query.Columns[term.Column];
+            return (Key: "outputOrder" + index, OnLeft: column.Source == CosmicJoinColumnSource.Left,
+                Cell: query.Columns.Take(term.Column).Count(item => item.Source == column.Source), term.Descending);
+        }).ToArray();
         var rightProjection = new BsonDocument { { "_id", 0 }, { "id", 1 } };
-        if (selectedOrder.HasValue && !orderOnLeft)
-            rightProjection.Add("outputOrder", OutputOrderValue("$values", orderIndex));
+        foreach (var order in selectedOrders.Where(term => !term.OnLeft))
+            rightProjection.Add(order.Key, OutputOrderValue("$values", order.Cell));
         for (var index = 0; index < query.Join.Right.Orderings.Count; index++) rightProjection.Add("o" + index, 1);
         lookup.Add(new("$project", rightProjection));
         var pairLimit = Math.Min(limits.MaximumPairs, (long)limits.MaximumResults) + 1;
@@ -70,12 +72,12 @@ internal sealed partial class MongoCqlTranslator
             { "_id", 0 }, { "left", "$id" }, { "right", Op("$ifNull", "$matched.id", Literal(BsonNull.Value)) }
         };
         var sort = new BsonDocument();
-        if (selectedOrder.HasValue)
+        foreach (var order in selectedOrders)
         {
-            projection.Add("outputOrder", orderOnLeft
-                ? OutputOrderValue("$values", orderIndex)
-                : Op("$ifNull", "$matched.outputOrder", Literal(BsonNull.Value)));
-            sort.Add("outputOrder", query.OutputOrderDescending ? -1 : 1);
+            projection.Add(order.Key, order.OnLeft
+                ? OutputOrderValue("$values", order.Cell)
+                : Op("$ifNull", "$matched." + order.Key, Literal(BsonNull.Value)));
+            sort.Add(order.Key, order.Descending ? -1 : 1);
         }
         if (query.Join.Kind == CosmicJoinKind.Full)
         {
@@ -108,8 +110,8 @@ internal sealed partial class MongoCqlTranslator
                 { "_id", 0 }, { "leftPresent", Literal(false) },
                 { "left", Literal(BsonNull.Value) }, { "right", "$id" }
             };
-            if (selectedOrder.HasValue)
-                rightOnly.Add("outputOrder", orderOnLeft ? Literal(BsonNull.Value) : OutputOrderValue("$values", orderIndex));
+            foreach (var order in selectedOrders)
+                rightOnly.Add(order.Key, order.OnLeft ? Literal(BsonNull.Value) : OutputOrderValue("$values", order.Cell));
             for (var index = 0; index < query.Join.Left.Orderings.Count; index++)
                 rightOnly.Add("l" + index, Literal(BsonNull.Value));
             for (var index = 0; index < query.Join.Right.Orderings.Count; index++)
@@ -124,7 +126,7 @@ internal sealed partial class MongoCqlTranslator
         pairs.Add(new("$sort", (BsonDocument)sort.DeepClone()));
         var hidden = new BsonDocument();
         if (query.Join.Kind == CosmicJoinKind.Full) hidden.Add("leftPresent", 0);
-        if (selectedOrder.HasValue) hidden.Add("outputOrder", 0);
+        foreach (var order in selectedOrders) hidden.Add(order.Key, 0);
         if (hidden.ElementCount != 0) pairs.Add(new("$project", hidden));
         ValidatePipeline(pairs);
         return new MongoCqlJoinCommand(left, right, pairs.ToArray());
