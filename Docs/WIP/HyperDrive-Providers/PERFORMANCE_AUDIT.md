@@ -1,5 +1,7 @@
 # OPORTAL and HyperDrive performance audit
 
+2026-11-16 UTC — HyperDrive task commit `8987d05` avoids two status/metrics requests every 30 seconds while My routing or Sync deliveries is selected. It keeps the explicit Refresh and refreshes when returning to a routing tab. A controlled check verified the request counts.
+
 2026-11-16 UTC — The live Developer Portal HTML fragment measured 356,942 decoded bytes. Commit `a044a6b` removes it from startup. A controlled check using the live fragment confirmed zero initial fragment requests, one GET across rapid opens, dismissal preserved during loading, and reuse on reopen. Changed scripts passed syntax checks. Browser deep-link and Back behavior remain to be verified on dev.
 
 15 November Cancun time. Wallet modal startup now sends two signed WEB4 reads and defers portfolio, token and analytics calls to the selected Portfolio tab. The wallet networks list reuses the current wallet results. A signed sandbox check verified the request count and empty-wallet portfolio behavior. Measured populated wallet and browser latency remain open.
