@@ -1862,3 +1862,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 2026-11-16 UTC — Both post-update signed CQL readers were self-deleted with acknowledgement and their scoped protected session directories were removed. The Railway coordinator probe and update ran in memory and retained no local bundle, payload, credentials or query results.
 
 2026-11-16 UTC — The signed dashboard timing fixture was self-deleted through WEB4 with acknowledgement. Removed its protected session directory and owned Chrome profile. No screenshots, test downloads or local build output were retained.
+
+2026-11-16 UTC — Removed the scoped HyperDrive modal regression archive, extracted fixture and combined OPORTAL candidate index. No installs, downloads or build outputs were retained.
