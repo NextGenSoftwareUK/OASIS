@@ -3,6 +3,7 @@ name: OASIS routing integration
 on:
   push:
     branches: [work/hyperdrive-provider-completion]
+    tags: ['ci-hyperdrive-shared-routing-*']
     paths:
       - '.github/workflows/oasis-routing-integration.yml'
       - 'Providers/Maps/**'
