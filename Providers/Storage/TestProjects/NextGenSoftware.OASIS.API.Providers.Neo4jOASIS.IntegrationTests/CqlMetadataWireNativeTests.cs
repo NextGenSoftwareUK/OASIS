@@ -187,10 +187,11 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         var countAdapter = (ICosmicQueryProjectionCompositionStorageProvider)adapter;
         var countTarget = new CosmicProjectionCompositionTarget(provider, countAdapter.QueryCapabilities,
             countAdapter.ProjectionCapabilities, countAdapter.CompositionCapabilities);
-        async Task<long> DistinctCount(CosmicQuery<Holon> selectedSource)
+        async Task<long> SelectedCount<TValue>(CosmicQuery<Holon> selectedSource,
+            System.Linq.Expressions.Expression<Func<Holon, TValue>> selector, bool distinct)
         {
-            var query = CqlCompiler.CompileDistinctCount(selectedSource, row => row.Description);
-            var plan = CosmicProjectedCardinalityPlanner.Plan<Holon, string, long>(query,
+            var query = CqlCompiler.CompileSelectedCount(selectedSource, selector, distinct);
+            var plan = CosmicProjectedCardinalityPlanner.Plan<Holon, TValue, long>(query,
                 CosmicScalarOperation.LongCount, provider, new[] { countTarget });
             Assert.IsFalse(plan.IsError, plan.Message);
             var result = await CosmicProjectedCardinalityExecutor.ExecuteAsync(plan.Result,
@@ -198,8 +199,11 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             Assert.IsFalse(result.IsError, result.Message + result.Exception);
             return result.Result.Providers.Single().Value;
         }
-        Assert.AreEqual(2L, await DistinctCount(distinctCountSource));
-        Assert.AreEqual(0L, await DistinctCount(distinctCountSource.Take(0).Result));
+        Assert.AreEqual(2L, await SelectedCount(distinctCountSource, row => row.Description, distinct: true));
+        Assert.AreEqual(0L, await SelectedCount(distinctCountSource.Take(0).Result, row => row.Description, distinct: true));
+        Assert.AreEqual(3L, await SelectedCount(distinctCountSource, row => row.Description, distinct: false));
+        Assert.AreEqual(4L, await SelectedCount(distinctCountSource, row => row.Id, distinct: false));
+        Assert.AreEqual(0L, await SelectedCount(distinctCountSource.Take(0).Result, row => row.Description, distinct: false));
 
         var versions = root.OrderBy(row => row.Id).Select(row => row.Version);
         Assert.AreEqual(2, versions.Count());
