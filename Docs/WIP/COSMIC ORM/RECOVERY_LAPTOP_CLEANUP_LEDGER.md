@@ -6933,3 +6933,5 @@ Web4Site 5fa63a71df5d used a temporary directory containing only committed websi
 16 November UTC. Grouped HAVING live verification used nine temporary owned holons on Development. Revision-bound removal and exact-ID absence checks succeeded for all nine. The temporary cleanup journal was removed. No local download, database, build output or test report was retained.
 
 16 November UTC. The staged SQL editor browser check loaded seven exact website assets into memory and retained no local copies. It used one Development demo avatar, signed out with server confirmation, and created no holons. Avatar and billing retirement use the built-in expiry sweep and have not been observed. The temporary Chrome and Git index directories were removed.
+
+16 November UTC. The grouped NOT LIKE change used temporary Git indexes and one deleted website test directory. The compiler test suite reused installed Node. Three-store qualification runs on hosted CI. No local SDK, database, image or test output was retained.
