@@ -14,7 +14,8 @@ public partial class SQLLiteDBOASIS : ICosmicQueryJoinStorageProvider
         // Partial-class field declaration order cannot own dependencies between
         // capabilities. Initialize only after the provider's static state exists.
         internal static readonly CosmicJoinCapabilities Value = new(
-            new[] { CosmicJoinKind.Inner, CosmicJoinKind.Left, CosmicJoinKind.Cross, CosmicJoinKind.Full }, CqlProjectionCapabilities, CqlProjectionCapabilities);
+            new[] { CosmicJoinKind.Inner, CosmicJoinKind.Left, CosmicJoinKind.Cross, CosmicJoinKind.Full }, CqlProjectionCapabilities, CqlProjectionCapabilities,
+            supportsChildNavigation: true);
     }
     public static CosmicJoinCapabilities CqlJoinCapabilities => JoinContract.Value;
     public CosmicJoinCapabilities JoinCapabilities => CqlJoinCapabilities;
