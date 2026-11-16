@@ -1942,3 +1942,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 2026-11-16 UTC — Removed the OPORTAL admin-read staging index. Subscription fixtures were read directly from tracked Git blobs and the live asset comparison and controlled timeout used memory only. No checkout expansion, Node install, browser profile or test output was retained.
 
 2026-11-16 UTC — Removed the temporary indexes for the shared HoloOASIS avatar successor and both OPORTAL app-usage staging attempts. The exact portal test read tracked blobs directly. No runtime, build output or browser profile was retained.
+
+2026-11-16 UTC — Removed the combined OPORTAL admin report candidate index. All test inputs came from existing tracked blobs and no browser profile, dependency install or generated report was written.
