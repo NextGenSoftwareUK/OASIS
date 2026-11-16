@@ -47,7 +47,7 @@ public static partial class CqlV1Compiler
                 var index = grouping.Key.Columns.ToList().FindIndex(key => key.Alias == column.KeyAlias);
                 return RequiredBinding(CosmicGroupedBinding<Holon, CosmicProjectionRecord>.Key(grouping, column.Alias, index));
             }
-            if (column.Operation is "Count" or "LongCount")
+            if (column.Operation == "Count" || column.Operation == "LongCount" && column.Selection == null)
             {
                 if (column.Selection != null) throw new ArgumentException("Grouped counts do not select paths.");
                 return column.Operation == "Count"
@@ -56,6 +56,7 @@ public static partial class CqlV1Compiler
             }
             var operation = column.Operation switch
             {
+                "LongCount" => CosmicScalarOperation.LongCount,
                 "Min" => CosmicScalarOperation.Min, "Max" => CosmicScalarOperation.Max,
                 "Sum" => CosmicScalarOperation.Sum, "Average" => CosmicScalarOperation.Average,
                 _ => throw new ArgumentException("Select an explicit key or supported grouped aggregate.")
@@ -129,7 +130,9 @@ public static partial class CqlV1Compiler
         internal GroupedSelectionConsumer(CosmicGroupedQuery<Holon, CosmicProjectionRecord> grouping, string alias, CosmicScalarOperation operation)
         { this.grouping = grouping; this.alias = alias; this.operation = operation; }
         public CosmicGroupedBinding<Holon, CosmicProjectionRecord> Bind<TValue>(string unused, Expression<Func<Holon, TValue>> selector)
-            => BindScalar(grouping.Source, operation, selector, this);
+            => operation == CosmicScalarOperation.LongCount
+                ? RequiredBinding(CosmicGroupedBinding<Holon, CosmicProjectionRecord>.CountValues(grouping, alias, selector))
+                : BindScalar(grouping.Source, operation, selector, this);
         public CosmicGroupedBinding<Holon, CosmicProjectionRecord> Consume<TResult>(OASISResult<CosmicScalarQuery<Holon, TResult>> intent)
         {
             if (intent.IsError) throw new ArgumentException(intent.Message);
