@@ -1,5 +1,16 @@
 # COSMIC ORM / CQL current status
 
+
+### Signed browser acceptance for the combined SQL update
+
+- Confirm the exact WEB4 deployment and matching protected Web4Site preview. Confirm the dedicated origin resolves over HTTPS and returns exact-origin credential permission on the sandbox session preflight.
+- Use the existing owned visitor. After MongoDB writes are confirmed available, reconcile its recorded failed renewal against the original credential before opening the browser session. Keep visitor secrets and rendered identifiers out of the status log.
+- In each of MongoDB, SQLite and Neo4j, seed three owned test holons with the same Version. Give two a non-null Description and leave the third null. Scope both queries to the three owned fixture IDs.
+- In the text tab run `SELECT Version, COUNT(*) AS RowCount, COUNT(Description) AS Details FROM <provider> WHERE Id IN (<fixture IDs>) GROUP BY Version HAVING Details > 0 ORDER BY Details DESC LIMIT 10`. Require one group, RowCount 3 and Details 2.
+- Run `SELECT Id, Description FROM <provider> WHERE Id IN (<fixture IDs>) AND Description IS NULL ORDER BY Id LIMIT 10`. Require the single expected fixture ID and a null description. Both query shapes compiled for all three providers in the 320dd72d97da editor.
+- In Ask Your Data use a reviewed Hedera public-key question. Verify the browser shows the WEB6 draft before execution and sends the approved CQL to WEB4 only when run. Compare returned IDs with the reviewed public preset. Record release revisions, row counts and measured browser query times. Delete the three owned fixtures per store and verify their absence.
+
+
 16 November UTC. Railway bfbeefb0 successfully deployed Development 5b8dd4f9599c and returned healthy WEB4. The staged OASISDNA preview setting is live. The session preflight returned 204 and exact-origin credential permission for the existing website and dev.web4.oasisomniverse.one. An untrusted lookalike received no credential permission. The NameSilo CNAME is still absent and storage-backed signed acceptance remains open.
 
 16 November UTC. Development advanced to HyperDrive dashboard count and Wizard provider copy at 5b8dd4f9599c, Railway bfbeefb0. The earlier SQL release guard stopped on the new parent. Exact combined candidate 5248f94f82e7 preserves both HyperDrive changes and the SQL files and Core pin. [Combined native qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43805702854) and [exact runtime image](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43805665501) are active. Web4Site editor commit 320dd72d97da passed 252 tests and remains staged until the matching WEB4 revision serves. Temporary staging indexes and website test files were removed. Signed acceptance remains open.
