@@ -6883,3 +6883,5 @@ Web4Site 5fa63a71df5d used a temporary directory containing only committed websi
 15 November Cancun time. Compound metadata path verification ran 249 site tests in one temporary source snapshot with the existing Node runtime. The test snapshot was removed on exit. No runtime or fixture was downloaded.
 
 16 November UTC. The 250-test selected-count dry run used the existing Node runtime and a temporary exact source snapshot. The temporary test directory was removed and verified absent. No packages installed and no fixture data written.
+
+16 November UTC. WEB6 draft envelope verification used the existing Node runtime and one temporary Web4Site snapshot. Removed the snapshot after all 250 website tests passed. No additional package or test result file retained.

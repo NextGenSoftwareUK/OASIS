@@ -1,5 +1,7 @@
 # COSMIC ORM / CQL current status
 
+16 November UTC. Web4Site abb71aade0bc rejects invalid WEB6 draft envelopes and application errors returned with HTTP 200 before any CQL reaches the editor. The regression covers null, non-string and empty content and an error envelope carrying otherwise valid SQL. The 250 website tests passed and the [protected preview built](https://vercel.com/oasis-team/web4-site/6sfcZNJ9WoHoLqRoG4SvPtP6nS1M). Railway 3480bc4b is building exact combined revision 5371b0a8a628. Signed hosted verification remains open.
+
 16 November UTC. Reapplied the COUNT(column) editor changes to exact Web4Site 22486c94b693 and ran all 250 site tests successfully. The candidate retains the ready-provider WEB6 prompt and exact compound metadata paths. Publication awaits hosted verification. Railway still showed the two combined-release deployments queued and 307f52dfc9ae serving at the last check.
 
 15 November Cancun time. Development advanced once from 307f52dfc9ae to exact combined WEB4 revision 5371b0a8a628 at the 02:04 UTC review. The two wallet files match the eight-case qualified revision byte-for-byte and the selected-count changes touch three separate paths. Exact native qualification, image publication, dependency manifest, seven Dockerfiles and parent gitlinks passed. Railway reported two queued deployment IDs for the single Git push, 3480bc4b and 69fbba99, both at 02:04 UTC with the same revision. Observe the actual successful deployment before live acceptance. The next normal shared WEB4 review starts after 02:34:33 UTC.
