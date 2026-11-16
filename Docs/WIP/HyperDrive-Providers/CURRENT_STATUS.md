@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-16 UTC — OPORTAL `2b5a77e` adds regression coverage for denied Wizard access, duplicate-submit suppression, same-session acknowledgement, wrong IDs, and stale responses after a session change. A stale result tells the operator to check the destination before retrying. All checks passed. Updated portal candidate `2bfd8cc` remains staged pending live WEB4 copy acceptance. Staging index removed and no local browser or Node artifacts were created.
+
 2026-11-16 UTC — Railway reported WEB4 billing-index recovery deployment `ab45a804` on `f550a04cc75d` successful. The public /api/health probe still timed out after 10 seconds and the replacement runtime logged a new MongoDB 512 MB quota rejection at 03:27 UTC. Public serving and writable storage are therefore unverified. The shared WEB4 image queue remains in use. The existing local holon-copy test is still compiling providers; no duplicate build started.
 
 2026-11-16 UTC — Development advanced to `f550a04cc75d` with the billing index recovery batch. Railway started building deployment `ab45a804`. The new parent touches none of HyperDrive's count or copy paths. Restaged the three-file candidate, including the new Wizard authorization tests, as `228ac5a6ce21`. The local controller test process remained active and compiling transitive WEB4 providers, so no duplicate local test was started. The temporary staging index was removed.
