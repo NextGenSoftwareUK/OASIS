@@ -1,5 +1,7 @@
 # COSMIC ORM / CQL current status
 
+15 November Cancun time. Web4Site 98c91f422ff3 adds a loadable SQL example for counting unique non-null typed categories on MongoDB. It loads into the editor for review and uses the existing scalar route only after the visitor runs it. All 247 site tests passed and the [protected preview build](https://vercel.com/oasis-team/web4-site/HTgyFwGRUg7pVJbW2rvKS8TkKtTV) succeeded. This example uses COUNT DISTINCT already verified on Development 307f52dfc9ae. Its signed hosted browser check remains open.
+
 15 November Cancun time. Railway 887a53d4 logs at 01:43 UTC traced the repeated quota rejections to Web4UsageSettlementWorker.RunOnceAsync (findAndModify) and MongoUsageReconciler.RecordFailedCheckAsync (insert). The same MongoDB storage gate therefore affects the sandbox sign-in and the subscription background workers. Restore writable capacity, then observe one successful settlement and reconciliation cycle alongside the signed sandbox walkthrough.
 
 15 November Cancun time. A direct read-only check of the Development MongoDB database passed ping and dbStats. The selected database reported 119130450 logical data bytes, 53538816 storage bytes and 2891776 index bytes. These are database-scoped metrics. Cluster-wide storage headroom and write recovery remain unverified after Railway observed write rejection at the quota. The probe used one temporary cached-driver build and issued no write commands.
