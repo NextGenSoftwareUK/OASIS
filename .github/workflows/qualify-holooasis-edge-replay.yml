@@ -2,7 +2,7 @@ name: Qualify HoloOASIS Edge replay on a native conductor
 
 on:
   push:
-    tags: ['ci-hyperdrive-holo-edge-replay-*']
+    tags: ['ci-hyperdrive-holo-edge-replay-*', 'ci-hyperdrive-holo-wallet-*']
 
 permissions:
   contents: read
@@ -43,7 +43,18 @@ jobs:
       - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 10.0.x
+      - name: Verify public wallet serialization
+        if: startsWith(github.ref_name, 'ci-hyperdrive-holo-wallet-')
+        working-directory: OASIS
+        shell: pwsh
+        run: |
+          $project = 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.HoloOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.HoloOASIS.UnitTests.csproj'
+          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-HoloWalletSerialization -Operation {
+            dotnet test $project --configuration Release /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~AvatarSerializationRejectsWalletCredentialsInBothModes' --logger 'console;verbosity=normal'
+            if ($LASTEXITCODE) { throw "HoloOASIS wallet serialization tests exited $LASTEXITCODE" }
+          }
       - name: Check out the pinned prior hApp fixture
+        if: startsWith(github.ref_name, 'ci-hyperdrive-holo-edge-replay-')
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ref: 4bd294f69a3dd11fee9522e2e0ffd857578d1dd7
@@ -52,6 +63,7 @@ jobs:
           sparse-checkout-cone-mode: false
           persist-credentials: false
       - name: Prepare the prior app and the tested replacement coordinator
+        if: startsWith(github.ref_name, 'ci-hyperdrive-holo-edge-replay-')
         working-directory: OASIS
         shell: bash
         run: |
@@ -89,6 +101,7 @@ jobs:
           (fixture / 'oasis.wasm').write_bytes(candidates[0])
           PY
       - name: Verify the bound bundle and run the native Edge test
+        if: startsWith(github.ref_name, 'ci-hyperdrive-holo-edge-replay-')
         working-directory: OASIS
         shell: pwsh
         run: |
@@ -116,7 +129,7 @@ jobs:
             & Scripts/test_holonet_live_release.ps1 -Project $client -Happ $happ -ResultsDirectory $results -DesktopProject $tests -HoloEdgeReplication
           }
       - uses: actions/upload-artifact@v4
-        if: always()
+        if: always() && startsWith(github.ref_name, 'ci-hyperdrive-holo-edge-replay-')
         with:
           name: holo-edge-replay-report
           path: |

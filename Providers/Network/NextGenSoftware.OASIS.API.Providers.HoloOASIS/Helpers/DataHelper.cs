@@ -38,6 +38,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
 
         public static IHcAvatar ConvertAvatarToHoloOASISAvatar(IAvatar avatar, IHcAvatar hcAvatar)
         {
+            RequirePublicWallets(avatar.ProviderWallets);
             hcAvatar.Id = avatar.Id;
             hcAvatar.Username = avatar.Username;
             hcAvatar.Password = avatar.Password;
@@ -207,6 +208,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
 
         public static dynamic ConvertAvatarToParamsObject(IAvatar avatar)
         {
+            RequirePublicWallets(avatar.ProviderWallets);
             return new
             {
                 id = avatar.Id.ToString(),
@@ -257,6 +259,24 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
                 version = avatar.Version,
                 version_id = avatar.VersionId
             };
+        }
+
+        private static void RequirePublicWallets(Dictionary<ProviderType, List<IProviderWallet>> wallets)
+        {
+            if (wallets == null)
+                return;
+
+            foreach (var group in wallets.Values)
+            {
+                if (group == null)
+                    continue;
+
+                foreach (var wallet in group)
+                {
+                    if (!string.IsNullOrEmpty(wallet?.PrivateKey) || !string.IsNullOrEmpty(wallet?.SecretRecoveryPhrase))
+                        throw new InvalidOperationException("HoloOASIS public avatar entries cannot store wallet signing credentials.");
+                }
+            }
         }
 
         public static IHcAvatarDetail ConvertAvatarDetailToHoloOASISAvatarDetail(IAvatarDetail avatarDetail, IHcAvatarDetail hcAvatarDetail)
