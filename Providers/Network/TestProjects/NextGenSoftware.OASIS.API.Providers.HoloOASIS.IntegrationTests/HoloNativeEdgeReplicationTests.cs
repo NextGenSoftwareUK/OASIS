@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Text.Json;
 using NextGenSoftware.Holochain.HoloNET.Client;
 using NextGenSoftware.Holochain.HoloNET.Client.Data.Admin.Requests.Objects;
@@ -66,7 +67,10 @@ public sealed class HoloNativeEdgeReplicationTests
             originalHash = await ReadMutationHashAsync(provider, mutation);
             if (coordinatorWasm != null)
             {
-                await UpdateCoordinatorAsync(endpoint, dnaHash, coordinatorWasm);
+                if (Environment.GetEnvironmentVariable("OASIS_HOLO_BATCH_BENCHMARK") == "1")
+                    await BenchmarkIndexedReadsAsync(provider, endpoint, dnaHash, coordinatorWasm);
+                else
+                    await UpdateCoordinatorAsync(endpoint, dnaHash, coordinatorWasm);
                 Assert.Equal(originalHash, await ReadMutationHashAsync(provider, mutation));
             }
 
@@ -142,6 +146,41 @@ public sealed class HoloNativeEdgeReplicationTests
     }
 
     private sealed record RestartReceipt(SyncOperation ConflictingMutation, string DnaHash, string AgentKey, string ActionHash);
+
+    private static async Task BenchmarkIndexedReadsAsync(HoloOASIS provider, Uri endpoint, string dnaHash,
+        string coordinatorWasm)
+    {
+        var app = provider.HoloNETClientAppAgent;
+        var fixture = Enumerable.Range(0, 64).Select(i => new { id = Guid.NewGuid().ToString("D"), name = $"record {i}" }).ToArray();
+        var seeded = await app.CallZomeFunctionAsync("oasis", "save_all_holons", fixture);
+        Assert.False(seeded.IsError, seeded.Message);
+        var expected = seeded.Records.Select(record => record.ActionHash).ToArray();
+        Assert.Equal(fixture.Length, expected.Length);
+
+        var previous = await MeasureAsync();
+        await UpdateCoordinatorAsync(endpoint, dnaHash, coordinatorWasm);
+        var batched = await MeasureAsync();
+        var report = new { records = fixture.Length, previous, batched };
+        var path = Path.Combine(Required("OASIS_HOLOCHAIN_REPORT_DIR"), "holo-indexed-read-timing.json");
+        await File.WriteAllTextAsync(path, JsonSerializer.Serialize(report));
+
+        async Task<double[]> MeasureAsync()
+        {
+            const int warmup = 3;
+            const int samples = 20;
+            var timings = new double[samples];
+            for (var sample = -warmup; sample < samples; sample++)
+            {
+                var timer = Stopwatch.StartNew();
+                var result = await app.CallZomeFunctionAsync("oasis", "get_all_holons", (object?)null);
+                timer.Stop();
+                Assert.False(result.IsError, result.Message);
+                Assert.Equal(expected, result.Records.Select(record => record.ActionHash).ToArray());
+                if (sample >= 0) timings[sample] = timer.Elapsed.TotalMilliseconds;
+            }
+            return timings;
+        }
+    }
 
     private static async Task UpdateCoordinatorAsync(Uri endpoint, string dnaHash, string wasmPath)
     {
