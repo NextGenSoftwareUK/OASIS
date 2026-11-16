@@ -102,6 +102,42 @@ public sealed partial class CqlProjectedAllAcceptanceTests
             Assert.AreEqual(expected, filtered.Result.Providers.Single().Rows.Single().Id);
         }
 
+
+        foreach (var item in new[]
+        {
+            (Name: "visible match", Descendant: false, Expected: false),
+            (Name: "absent", Descendant: false, Expected: true),
+            (Name: "grandchild one", Descendant: true, Expected: true),
+            (Name: "visible match", Descendant: true, Expected: false)
+        })
+        {
+            var related = new CqlFilter
+            {
+                Field = "Name", Operator = CqlOperator.Equal, Value = JsonSerializer.SerializeToElement(item.Name)
+            };
+            var negated = new CqlRequest
+            {
+                Filters = new[] { new CqlFilter { Field = "Id", Operator = CqlOperator.Equal,
+                    Value = JsonSerializer.SerializeToElement(ids[0]) } },
+                Take = 1
+            };
+            if (item.Descendant)
+                negated.AnyDescendants = new[] { new ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlV1DescendantExists
+                    { Negated = true, Filters = new[] { related } } };
+            else
+                negated.AnyChildren = new[] { new ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlV1ChildExists
+                    { Negated = true, Filters = new[] { related } } };
+            var plan = CosmicQueryPlanner.Plan(CqlCompiler.Compile(negated, actor, provider,
+                CosmicQueryReadAccess.OwnerOrPublic(actor).Result), provider,
+                new[] { new CosmicQueryTarget(provider, adapter.QueryCapabilities) });
+            Assert.IsFalse(plan.IsError, plan.Message);
+            var result = await CosmicQueryExecutor.ExecuteAsync(plan.Result, new[] { adapter });
+            Assert.IsFalse(result.IsError, result.Message + result.Exception);
+            var expected = item.Expected ? new[] { ids[0] } : Array.Empty<Guid>();
+            CollectionAssert.AreEqual(expected, result.Result.Providers.Single().Rows.Select(row => row.Id).ToArray());
+            checks.Add(new { provider = provider.ToString(), wire = "NOT EXISTS", item.Descendant, item.Expected });
+        }
+
         var request = new CqlGroupedRequest
         {
             Filters = new[] { new CqlFilter
@@ -372,6 +408,100 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         await AssertScalarDistinct("distinctProviderType", ProviderType.MongoDBOASIS, ProviderType.Neo4jOASIS);
         Assert.IsFalse(labels.IsError, labels.Message + labels.Exception);
         CollectionAssert.AreEqual(new string?[] { "case", null, "Case" }, labels.Result.ToArray());
+
+        var projectionAdapter = (ICosmicQueryProjectionStorageProvider)adapter;
+        var orderedRequest = new ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlProjectionV1Request
+        {
+            Filters = new[]
+            {
+                new CqlFilter { Field = "Id", Operator = CqlOperator.In, Value = JsonSerializer.SerializeToElement(ids) },
+                new CqlFilter { Field = "Description", Operator = CqlOperator.IsNotNull }
+            },
+            Columns = new[]
+            {
+                new CqlProjectionColumn { Field = "Id", Alias = "Identity" },
+                new CqlProjectionColumn { Field = "Description", Alias = "Label" }
+            },
+            OrderBy = "None",
+            SelectedOrder = new[]
+            {
+                new ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlGroupedV1Ordering { Alias = "Label" },
+                new ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlGroupedV1Ordering { Alias = "Identity" }
+            },
+            Skip = 1,
+            Take = 2
+        };
+        var orderedIntent = CqlCompiler.CompileProjection(orderedRequest, actor, provider);
+        Assert.AreEqual(1, orderedIntent.Source.Offset);
+        Assert.AreEqual(2, orderedIntent.Source.Limit);
+        Assert.AreEqual(2, orderedIntent.Source.Orderings.Count);
+        var orderedPlan = CosmicProjectionPlanner.Plan(orderedIntent, provider,
+            new[] { new CosmicProjectionTarget(provider, adapter.QueryCapabilities, projectionAdapter.ProjectionCapabilities) });
+        Assert.IsFalse(orderedPlan.IsError, orderedPlan.Message);
+        var orderedRows = await CosmicProjectionExecutor.ExecuteAsync(orderedPlan.Result, new[] { projectionAdapter });
+        Assert.IsFalse(orderedRows.IsError, orderedRows.Message + orderedRows.Exception);
+        var sourceRows = await fixtureRows.ToCosmicListAsync();
+        Assert.IsFalse(sourceRows.IsError, sourceRows.Message + sourceRows.Exception);
+        var expectedPage = sourceRows.Result.Where(result => result.Description != null)
+            .OrderBy(result => result.Description, StringComparer.Ordinal)
+            .ThenBy(result => result.Id.ToString("D"), StringComparer.Ordinal)
+            .Skip(1).Take(2).Select(result => result.Id).ToArray();
+        Assert.AreEqual(2, expectedPage.Length);
+        CollectionAssert.AreEqual(expectedPage, orderedRows.Result.Providers.Single().Rows
+            .Select(result => (Guid)result.Values[0]).ToArray());
+
+        var rowRequest = new CqlRequest
+        {
+            Filters = orderedRequest.Filters,
+            OrderBy = "None",
+            Ordering = new[]
+            {
+                new ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlV1Ordering { Field = "Description" },
+                new ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlV1Ordering { Field = "Id" }
+            },
+            Skip = 1,
+            Take = 2
+        };
+        var rowIntent = CqlCompiler.Compile(rowRequest, actor, provider);
+        Assert.AreEqual(2, rowIntent.Orderings.Count);
+        var rowPlan = CosmicQueryPlanner.Plan(rowIntent, provider,
+            new[] { new CosmicQueryTarget(provider, adapter.QueryCapabilities) });
+        Assert.IsFalse(rowPlan.IsError, rowPlan.Message);
+        var rowPage = await CosmicQueryExecutor.ExecuteAsync(rowPlan.Result, new[] { adapter });
+        Assert.IsFalse(rowPage.IsError, rowPage.Message + rowPage.Exception);
+        CollectionAssert.AreEqual(expectedPage, rowPage.Result.Providers.Single().Rows.Select(row => row.Id).ToArray());
+
+        rowRequest.Ordering[1].Field = "Description";
+        Assert.ThrowsException<ArgumentException>(() => CqlCompiler.Compile(rowRequest, actor, provider));
+
+
+
+        foreach (var (operation, pattern, expected) in new[]
+        {
+            (CqlOperator.NotContains, "Case", new[] { "case" }),
+            (CqlOperator.NotStartsWith, "Ca", new[] { "case" }),
+            (CqlOperator.NotEndsWith, "ase", Array.Empty<string>()),
+            (CqlOperator.NotContains, "", Array.Empty<string>())
+        })
+        {
+            var groupedText = new CqlGroupedRequest
+            {
+                Filters = new[] { new CqlFilter { Field = "Id", Operator = CqlOperator.In,
+                    Value = JsonSerializer.SerializeToElement(ids) } },
+                Keys = new[] { new CqlProjectionColumn { Field = "Description", Alias = "Label" } },
+                Columns = new[] { new CqlGroupedColumn { Alias = "Label", KeyAlias = "Label" } },
+                ResultFilters = new[] { new CqlGroupedFilter { Alias = "Label", Operator = operation,
+                    Value = JsonSerializer.SerializeToElement(pattern) } },
+                MaximumGroups = 10
+            };
+            var groupedTextPlan = CosmicGroupedPlanner.Plan(CqlCompiler.CompileGrouped(groupedText, actor, provider), provider, target);
+            Assert.IsFalse(groupedTextPlan.IsError, groupedTextPlan.Message);
+            var remaining = await CosmicGroupedExecutor.ExecuteAsync(groupedTextPlan.Result, new[] { adapter });
+            Assert.IsFalse(remaining.IsError, remaining.Message + remaining.Exception);
+            CollectionAssert.AreEqual(expected, remaining.Result.Providers.Single().Rows
+                .Select(result => (string)result.Values.Single()).ToArray());
+        }
+
 
         Assert.IsInstanceOfType<ICosmicQueryJoinStorageProvider>(adapter);
         var joinAdapter = (ICosmicQueryJoinStorageProvider)adapter;

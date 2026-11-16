@@ -79,15 +79,18 @@ internal static class CqlRequestCapture
         return new CqlV1Request
         {
             Provider = value.Provider, OrderBy = value.OrderBy, Descending = value.Descending,
+            Ordering = value.Ordering == null ? null : Array(value.Ordering, 4, term => term == null
+                ? throw new ArgumentException("Missing row ordering.")
+                : new CqlV1Ordering { Field = term.Field, Descending = term.Descending }),
             Skip = value.Skip, Take = value.Take, IncludeMetadata = value.IncludeMetadata,
             MaximumDurationMilliseconds = value.MaximumDurationMilliseconds,
             Filters = Array(value.Filters, 64, Filter), AnyOf = Array(value.AnyOf, 64, Filter),
             AnyChildren = Array(value.AnyChildren, 8, group => group == null
                 ? throw new ArgumentException("Missing child group.")
-                : new CqlV1ChildExists { Filters = Array(group.Filters, 64, Filter), AnyOf = Array(group.AnyOf, 64, Filter) }),
+                : new CqlV1ChildExists { Negated = group.Negated, Filters = Array(group.Filters, 64, Filter), AnyOf = Array(group.AnyOf, 64, Filter) }),
             AnyDescendants = Array(value.AnyDescendants, 8, group => group == null
                 ? throw new ArgumentException("Missing descendant group.")
-                : new CqlV1DescendantExists { MaximumDepth = group.MaximumDepth, MaximumNodes = group.MaximumNodes,
+                : new CqlV1DescendantExists { Negated = group.Negated, MaximumDepth = group.MaximumDepth, MaximumNodes = group.MaximumNodes,
                     Filters = Array(group.Filters, 64, Filter), AnyOf = Array(group.AnyOf, 64, Filter) }),
             Graph = graph == null ? null : new CqlV1Graph { Recursive = graph.Recursive, MaxChildDepth = graph.MaxChildDepth,
                 ChildType = graph.ChildType, MaximumNodes = graph.MaximumNodes,

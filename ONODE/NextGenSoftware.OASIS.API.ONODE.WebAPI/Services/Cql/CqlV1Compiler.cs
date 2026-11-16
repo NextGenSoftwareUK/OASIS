@@ -117,8 +117,30 @@ public static partial class CqlV1Compiler
     {
         if (request == null || request.Take is < 1 or > 100)
             throw new ArgumentException("Row queries require Take 1â€“100.");
-        return CompileSource(actor, provider, request.Filters, request.AnyOf, request.AnyChildren,
-            request.AnyDescendants, request.Graph, request.OrderBy, request.Descending, request.Skip, request.Take,access,includeCloudReadProfile:true);
+        if (request.Ordering == null)
+            return CompileSource(actor, provider, request.Filters, request.AnyOf, request.AnyChildren,
+                request.AnyDescendants, request.Graph, request.OrderBy, request.Descending, request.Skip, request.Take,
+                access, includeCloudReadProfile: true);
+
+        var authority = access?.Authority ?? provider;
+        if (!authority.HasValue || !Supported(authority.Value) || request.Ordering.Length is < 1 or > 4
+            || request.OrderBy != "None" || request.Descending || request.Skip is < 0 or > 1000)
+            throw new ArgumentException("Ordering requires one native MongoDB, SQLite or Neo4j source, OrderBy None and Skip 0–1000.");
+
+        var source = CompileSource(actor, provider, request.Filters, request.AnyOf, request.AnyChildren,
+            request.AnyDescendants, request.Graph, "Id", false, 0, null, access, includeCloudReadProfile: true);
+        var fields = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var term in request.Ordering)
+        {
+            if (term?.Field is not ("Name" or "Description" or "Version" or "Id") || !fields.Add(term.Field))
+                throw new ArgumentException("Ordering accepts unique Name, Description, Version and Id fields.");
+            source = CompileSelection(new CqlProjectionV1Column { Alias = term.Field, Field = term.Field },
+                new SourceOrderingConsumer(source, term.Descending, fields.Count > 1));
+        }
+        var ordered = fields.Contains("Id") ? source.Skip(request.Skip) : source.ThenBy(row => row.Id).Skip(request.Skip);
+        var page = ordered.Take(request.Take);
+        if (page.IsError) throw new ArgumentException(page.Message);
+        return page.Result;
     }
 
     public static CosmicQuery<Holon> CompileScalarSource(CqlScalarV1Request request, Guid actor, ProviderType? provider)
@@ -149,7 +171,7 @@ public static partial class CqlV1Compiler
     internal static CosmicQuery<Holon> CompileIndexedSource(CqlV1Request request, Guid actor,
         CosmicChainQueryReadRequirement requirement, CosmicQueryReadAccess access)
     {
-        if (request == null || request.Provider != null || request.Graph != null || request.Take is < 1 or > 100)
+        if (request == null || request.Provider != null || request.Graph != null || request.Ordering != null || request.Take is < 1 or > 100)
             throw new ArgumentException("Indexed rows require Take1-100 with alias-owned provider and no graph.");
         var source = CompileSource(actor, requirement.Source.SourceProvider, request.Filters, request.AnyOf,
             request.AnyChildren, request.AnyDescendants, null, request.OrderBy, request.Descending,
@@ -163,7 +185,7 @@ public static partial class CqlV1Compiler
     // complete captured target policies before any native execution.
     internal static CosmicQuery<Holon> CompileFederationSource(CqlV1Request request, Guid actor)
     {
-        if (request == null || request.Provider != null || request.Graph != null || request.Take is < 1 or > 100)
+        if (request == null || request.Provider != null || request.Graph != null || request.Ordering != null || request.Take is < 1 or > 100)
             throw new ArgumentException("Federation source requires Take1-100 and no duplicate provider or graph selector.");
         return CompileSource(actor, null, request.Filters, request.AnyOf, request.AnyChildren, request.AnyDescendants,
             null, request.OrderBy, request.Descending, request.Skip, request.Take,
@@ -245,7 +267,15 @@ public static partial class CqlV1Compiler
 
         foreach(var group in anyChildren)
         {
-            var related=query.WhereAnyChild(RelationshipPredicate(group.Filters,group.AnyOf));
+            var child = RelationshipPredicate(group.Filters, group.AnyOf);
+            if (group.Negated)
+            {
+                var navigation = Expression.Property(parameter, typeof(ISemanticHolon).GetProperty(nameof(ISemanticHolon.Children)));
+                var any = Expression.Call(typeof(Enumerable), nameof(Enumerable.Any), new[] { typeof(IHolon) }, navigation, child);
+                query = Add(query, parameter, Expression.Not(any));
+                continue;
+            }
+            var related=query.WhereAnyChild(child);
             if(related.IsError)throw new ArgumentException(related.Message);
             query=related.Result;
         }
@@ -253,7 +283,15 @@ public static partial class CqlV1Compiler
         {
             var limits=CosmicQueryTraversalOptions.Create(group.MaximumDepth,group.MaximumNodes);
             if(limits.IsError)throw new ArgumentException(limits.Message);
-            var related=query.WhereAnyDescendant(RelationshipPredicate(group.Filters,group.AnyOf),limits.Result);
+            var descendant = RelationshipPredicate(group.Filters, group.AnyOf);
+            if (group.Negated)
+            {
+                var any = Expression.Call(typeof(CosmicQueryRelations), nameof(CosmicQueryRelations.AnyDescendant), null,
+                    parameter, descendant, Expression.Constant(limits.Result));
+                query = Add(query, parameter, Expression.Not(any));
+                continue;
+            }
+            var related=query.WhereAnyDescendant(descendant,limits.Result);
             if(related.IsError)throw new ArgumentException(related.Message);
             query=related.Result;
         }
@@ -335,6 +373,17 @@ public static partial class CqlV1Compiler
         return result.Result;
     }
 
+    private static string StringFilterMethod(CqlV1Operator operation) => operation switch
+    {
+        CqlV1Operator.Contains or CqlV1Operator.NotContains => nameof(string.Contains),
+        CqlV1Operator.StartsWith or CqlV1Operator.NotStartsWith => nameof(string.StartsWith),
+        CqlV1Operator.EndsWith or CqlV1Operator.NotEndsWith => nameof(string.EndsWith),
+        _ => null
+    };
+
+    private static bool IsNegatedStringFilter(CqlV1Operator operation)
+        => operation is CqlV1Operator.NotContains or CqlV1Operator.NotStartsWith or CqlV1Operator.NotEndsWith;
+
     private static Expression Predicate(CqlV1Filter filter, ParameterExpression parameter)
     {
         if (filter == null || !Enum.IsDefined(filter.Operator) || !Enum.IsDefined(filter.Scalar))
@@ -403,13 +452,7 @@ public static partial class CqlV1Compiler
         }
 
         var literal = Literal(filter.Value, path.Type);
-        var stringMethod = filter.Operator switch
-        {
-            CqlV1Operator.Contains or CqlV1Operator.NotContains => nameof(string.Contains),
-            CqlV1Operator.StartsWith or CqlV1Operator.NotStartsWith => nameof(string.StartsWith),
-            CqlV1Operator.EndsWith or CqlV1Operator.NotEndsWith => nameof(string.EndsWith),
-            _ => null
-        };
+        var stringMethod = StringFilterMethod(filter.Operator);
         if (stringMethod != null)
         {
             if (path.Type != typeof(string)) throw new ArgumentException("String operation requires a string field.");
@@ -417,7 +460,7 @@ public static partial class CqlV1Compiler
             // portable native contract requires ordinal semantics explicitly.
             var method = typeof(string).GetMethod(stringMethod, new[] { typeof(string), typeof(StringComparison) });
             var match = Expression.Call(path, method, literal, Expression.Constant(StringComparison.Ordinal));
-            if (filter.Operator is not (CqlV1Operator.NotContains or CqlV1Operator.NotStartsWith or CqlV1Operator.NotEndsWith))
+            if (!IsNegatedStringFilter(filter.Operator))
                 return match;
 
             // SQL negation excludes null and missing text even when the provider's
