@@ -10,6 +10,8 @@
 
 2026-11-16 UTC — The native response-volume case captured driver cursor replies for the same 4,096 usage events. The ungrouped read returned 875,750 BSON bytes. The shipping grouped read returned 540 BSON bytes and preserved the event counts and costs. This measures bytes in MongoDB event replies under the fixture, excluding transport compression and hosted HTTP. [Native run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43949150602)
 
+2026-11-16 UTC — The staged OPORTAL Admin request cancellation sends the browser abort signal on supersession, modal close or sign-out. It preserves the chart-first presentation and the existing WEB4 deadline. Controlled checks observed both superseded app and avatar requests aborting. No hosted database timing is claimed.
+
 2026-11-16 UTC — Config `c26306f` bounds each selected account subscription GET to eight seconds, including checkout confirmation. This is a request deadline. Live signed timings are unmeasured and payment writes retain their existing behavior.
 
 2026-11-16 UTC — Subscription Admin task commit `c61b7e8` reduces opening from eight requests to one. Previously it fetched Analytics, five tab lists, WEB6 pricing and outboxes immediately. The controlled startup and tab-switch request counts passed; hosted Wizard timing remains unmeasured.
