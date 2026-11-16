@@ -6951,3 +6951,5 @@ Web4Site 5fa63a71df5d used a temporary directory containing only committed websi
 16 November UTC. Full-row ordering used temporary Git indexes and deleted website test directories. The existing Node installation runs the website tests. GitHub runs the native matrix. No local downloads, database or build artifacts were created.
 
 16 November UTC. Ask budget reproduction used installed Chrome, Node and PowerShell. Two live Free browser attempts each sent one draft request and no query. Local pricing captures intercepted WEB6 before dispatch. The test used the retained visitor, removed its disposable Chrome profiles and temporary test directories, and created no holons, containers, runtime installs or local reports.
+
+16 November UTC. Negated relationship development used disposable Git indexes and website test directories, removed automatically. The native fixture runs in GitHub Actions. The superseded run was canceled in GitHub. No local build outputs, runtime downloads or databases were created.
