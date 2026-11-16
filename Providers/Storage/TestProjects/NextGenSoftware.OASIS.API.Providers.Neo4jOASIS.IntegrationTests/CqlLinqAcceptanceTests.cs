@@ -45,6 +45,21 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Assert.AreEqual(rootId, flattenedRows.Result.Single().RightId);
         Assert.AreEqual(rootId, flattened.ToList().Single().RightId);
 
+        var projectedIds = root.Take(1).SelectMany(_ => rightSource.Select(row => row.Id));
+        var projectedIdsResult = await projectedIds.ToCosmicListAsync();
+        Assert.IsFalse(projectedIdsResult.IsError, projectedIdsResult.Message + projectedIdsResult.Exception);
+        CollectionAssert.AreEqual(new[] { rootId }, projectedIdsResult.Result.ToArray());
+
+        var projectedPairs = root.SelectMany(left => multi.Where(right => right.Id == left.Id).Select(right => right.Id),
+            (left, id) => new { LeftId = left.Id, RightId = id });
+        var projectedPairsResult = await projectedPairs.ToCosmicListAsync();
+        Assert.IsFalse(projectedPairsResult.IsError, projectedPairsResult.Message + projectedPairsResult.Exception);
+        Assert.AreEqual(rootId, projectedPairsResult.Result.Single().LeftId);
+        Assert.AreEqual(rootId, projectedPairsResult.Result.Single().RightId);
+
+        Assert.ThrowsException<CosmicLinqException>(() => root.SelectMany(_ => rightSource.Select(row => row.Id.ToString())));
+
+
         rightSource = root.OrderBy(row => row.Id).Take(0);
         var flattenedAgain = await flattened.ToCosmicListAsync();
         Assert.IsFalse(flattenedAgain.IsError, flattenedAgain.Message + flattenedAgain.Exception);
