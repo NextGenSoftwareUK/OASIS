@@ -1,5 +1,7 @@
 # COSMIC ORM / CQL current status
 
+16 November UTC. At the 19:54:50 UTC recovery window the verified image successors were still building or queued and Development remained on `3443b263a671`. Issued one scoped retry of the failed WEB4 deployment in Development. Railway created `033a9f87-85f6-4994-ba42-c81f3b1e260d` for the same exact Git SHA and reports BUILDING. No Development Git update was needed. Signed three-store live acceptance remains attached and waits for the new runtime.
+
 16 November UTC. Published the already verified joined LINQ cardinality and element scope onto the single COSMIC feature branch. Parent `b455dbc37012` pins Core `1bb8fdfd057d`; the five Core query files and native regression test match the combined CI-qualified source. The feature branch retains the existing WEB6 Free catalogue pin. Exact Railway Gitlink validation passed. Development stays tied to its separate rollout evidence.
 
 16 November UTC. The signed-comparison source `3443b263a671` is active on Development WEB5 through WEB10. WEB4 alone remains on healthy `0fd1d70cb777` following failed deployment `496a1f8e`. A guarded recovery checks the exact failed and serving IDs again after 19:54:50 UTC. It will skip the targeted retry if a verified successor image is ready, or if Development or Railway changed in the meantime. The signed three-store acceptance process is watching the exact recovery and qualified successors. No retry or Development push had occurred at this observation.
