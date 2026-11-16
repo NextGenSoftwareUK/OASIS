@@ -1866,3 +1866,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 2026-11-16 UTC — Removed the scoped HyperDrive modal regression archive, extracted fixture and combined OPORTAL candidate index. No installs, downloads or build outputs were retained.
 
 2026-11-16 UTC — All three combined OPORTAL early-navigation probes removed their disposable signed avatars, protected session directories and owned Chrome profiles. The first two were diagnostic attempts. No downloads, HTTP payloads, screenshots or local build outputs were retained.
+
+2026-11-16 UTC — Removed both OPORTAL deadline regression archives, their scratch directories and the dev candidate index. No local build, download or test fixture was retained.
