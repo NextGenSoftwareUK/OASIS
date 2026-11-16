@@ -184,11 +184,10 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         var countAdapter = (ICosmicQueryProjectionCompositionStorageProvider)adapter;
         var countTarget = new CosmicProjectionCompositionTarget(provider, countAdapter.QueryCapabilities,
             countAdapter.ProjectionCapabilities, countAdapter.CompositionCapabilities);
-        var countSelection = new CqlJoinScalar { Field = "Description" };
         async Task<long> DistinctCount(CosmicQuery<Holon> selectedSource)
         {
-            var query = CqlCompiler.CompileDistinctCount(selectedSource, countSelection);
-            var plan = CosmicProjectedCardinalityPlanner.Plan<Holon, CosmicProjectionRecord, long>(query,
+            var query = CqlCompiler.CompileDistinctCount(selectedSource, row => row.Description);
+            var plan = CosmicProjectedCardinalityPlanner.Plan<Holon, string, long>(query,
                 CosmicScalarOperation.LongCount, provider, new[] { countTarget });
             Assert.IsFalse(plan.IsError, plan.Message);
             var result = await CosmicProjectedCardinalityExecutor.ExecuteAsync(plan.Result,

@@ -49,8 +49,12 @@ public static partial class CqlV1Endpoint
             {
                 if (adapter is not ICosmicQueryProjectionCompositionStorageProvider composition)
                     return Failure(400, "CQL_CAPABILITY_UNSUPPORTED", "The selected provider cannot execute native distinct counts.");
-                return await ExecuteDistinctCount(http, providers, storage, composition,
-                    CqlV1Compiler.CompileDistinctCount(source, request.Selection));
+                var selection = request.Selection ?? throw new ArgumentException("Distinct count requires a selection.");
+                return await CqlV1Compiler.CompileSelection(new CqlProjectionV1Column
+                {
+                    Alias = "Value", Field = selection.Field, MetadataPath = selection.MetadataPath,
+                    ValueType = selection.ValueType, Nullable = selection.Nullable
+                }, new DistinctCountConsumer(http, providers, storage, composition, source));
             }
             if (adapter is not ICosmicQueryScalarStorageProvider scalar)
                 return Failure(400, "CQL_CAPABILITY_UNSUPPORTED", "The selected provider does not implement native scalar queries.");
@@ -81,12 +85,12 @@ public static partial class CqlV1Endpoint
         catch (Exception) { return Failure(503, "CQL_EXECUTION_FAILED", "The scalar query did not complete. Retain the usage operation ID for reconciliation."); }
     }
 
-    private static async Task<IActionResult> ExecuteDistinctCount(HttpContext http, ICqlV1Providers providers,
+    private static async Task<IActionResult> ExecuteDistinctCount<TValue>(HttpContext http, ICqlV1Providers providers,
         IOASISProvider storage, ICosmicQueryProjectionCompositionStorageProvider adapter,
-        CosmicProjectionQuery<Holon, CosmicProjectionRecord> intent)
+        CosmicProjectionQuery<Holon, TValue> intent)
     {
         var selected = adapter.QueryProviderType;
-        var plan = CosmicProjectedCardinalityPlanner.Plan<Holon, CosmicProjectionRecord, long>(intent,
+        var plan = CosmicProjectedCardinalityPlanner.Plan<Holon, TValue, long>(intent,
             CosmicScalarOperation.LongCount, selected,
             new[] { new CosmicProjectionCompositionTarget(selected, adapter.QueryCapabilities,
                 adapter.ProjectionCapabilities, adapter.CompositionCapabilities) });
@@ -140,6 +144,14 @@ public static partial class CqlV1Endpoint
         }) { IsLoaded = true });
         deadline.Token.ThrowIfCancellationRequested();
         return response;
+    }
+
+    private sealed record DistinctCountConsumer(HttpContext Http, ICqlV1Providers Providers,
+        IOASISProvider Storage, ICosmicQueryProjectionCompositionStorageProvider Adapter, CosmicQuery<Holon> Source)
+        : CqlV1Compiler.ISelectionConsumer<Task<IActionResult>>
+    {
+        public Task<IActionResult> Bind<TValue>(string alias, Expression<Func<Holon, TValue>> selector)
+            => ExecuteDistinctCount(Http, Providers, Storage, Adapter, CqlV1Compiler.CompileDistinctCount(Source, selector));
     }
 
     private sealed class SelectedScalarConsumer : CqlV1Compiler.ISelectionConsumer<Task<IActionResult>>, CqlV1Compiler.IScalarConsumer<Task<IActionResult>>
