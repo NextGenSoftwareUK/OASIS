@@ -2943,3 +2943,5 @@ Performance follow-up. WEB4 wallet summary is implemented on the task branch and
 2026-11-16 UTC — WEB5 running DNA matched saved replacement Neo4j configuration and public /api/health returned HTTP 200 with status healthy. Started the final dev API restart on WEB4 deployment 0b2a7e68.
 
 2026-11-16 UTC — WEB4 deployment 0b2a7e68 matched saved running DNA and returned HTTP 200 on /api/health. All seven dev APIs have switched. Rotated the dev Neo4j administrator password in the database and saved both deployment secret variables. Confirmed the replacement API account and new administrator password can query Neo4j, and the old administrator password is rejected. The Neo4j container has not restarted.
+
+2026-11-16 UTC — With the isolated credential rollout complete and all seven dev deployment statuses SUCCESS, advanced Development from 6771e17f6207 to the exact image-qualified WEB4 refresh and MFA revision 9fb52e18bbce. This scoped push includes the Core dependency pin and the native MongoDB-to-SQLite authentication coverage. Railway deployment and hosted authentication verification remain pending.
