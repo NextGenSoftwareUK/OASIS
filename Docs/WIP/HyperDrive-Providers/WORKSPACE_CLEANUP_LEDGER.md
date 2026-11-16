@@ -1852,3 +1852,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 2026-11-16 UTC — Both disposable signed CQL readers were self-deleted through the acknowledged WEB4 endpoint, including the reader used before the response parser correction. Their protected directories were removed after deletion. No query results, credentials or build outputs were retained.
 
 2026-11-16 UTC — Removed the disposable OPORTAL chart regression tree and its dev archive after all 14 groups passed. No dependencies installed and no generated assets or test output files retained.
+
+2026-11-16 UTC — Removed the isolated temporary index for OPORTAL chart candidate bf20d5d and both disposable anonymous browser profiles after their owned processes stopped. No credentials, account, screenshots, downloads or local build output were created.
