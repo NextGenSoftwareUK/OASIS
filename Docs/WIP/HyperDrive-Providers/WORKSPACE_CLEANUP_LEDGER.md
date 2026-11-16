@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-16 UTC — Confirmed the original count and wallet image runs succeeded, checked their recorded remote ref identities, and retired only `ci-hyperdrive-holon-count-1b3d96085421` and `ci-hyperdrive-wallet-e767ca027bd2`. Build evidence remains in GitHub Actions and current status. The rebased count ref remains active. C: reported 28.88 GB free at this review.
+
 2026-11-16 UTC — API diagnostics Edge checks removed their isolated browser profiles and uncached websocket-client installation. The temporary directory check found zero oportal-live-edge directories. No downloaded test results or local build outputs remain.
 
 2026-11-16 UTC — The live Edge check closed its owned browser and cleaned its temporary profile and uncached dependency. API health checks ran in memory. Restored sparse checkout after editing portal fragments and removed the health candidate alternate Git index. The rebased count image runs remotely under `ci-hyperdrive-holon-count-0da3dc5f3cea` with no local outputs.
