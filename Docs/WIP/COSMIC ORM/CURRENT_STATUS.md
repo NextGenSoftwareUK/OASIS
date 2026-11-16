@@ -1,5 +1,7 @@
 # COSMIC ORM / CQL current status
 
+16 November UTC. Reapplied the COUNT(column) editor changes to exact Web4Site 22486c94b693 and ran all 250 site tests successfully. The candidate retains the ready-provider WEB6 prompt and exact compound metadata paths. Publication awaits hosted verification. Railway still showed the two combined-release deployments queued and 307f52dfc9ae serving at the last check.
+
 15 November Cancun time. Development advanced once from 307f52dfc9ae to exact combined WEB4 revision 5371b0a8a628 at the 02:04 UTC review. The two wallet files match the eight-case qualified revision byte-for-byte and the selected-count changes touch three separate paths. Exact native qualification, image publication, dependency manifest, seven Dockerfiles and parent gitlinks passed. Railway reported two queued deployment IDs for the single Git push, 3480bc4b and 69fbba99, both at 02:04 UTC with the same revision. Observe the actual successful deployment before live acceptance. The next normal shared WEB4 review starts after 02:34:33 UTC.
 
 15 November Cancun time. Added a three-store native regression that compiles and executes wire requests for literal dotted and nested metadata in the same DISTINCT and grouped-count query. It reuses the exact existing test fixture and asserts separate output values. Native qualification remains open.

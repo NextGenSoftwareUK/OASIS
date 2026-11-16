@@ -6881,3 +6881,5 @@ Web4Site 5fa63a71df5d used a temporary directory containing only committed websi
 15 November Cancun time. Ask Your Data prompt verification ran 248 site tests with the existing Node runtime in one temporary source snapshot, which was removed after the run. No new runtime, database or retained test output.
 
 15 November Cancun time. Compound metadata path verification ran 249 site tests in one temporary source snapshot with the existing Node runtime. The test snapshot was removed on exit. No runtime or fixture was downloaded.
+
+16 November UTC. The 250-test selected-count dry run used the existing Node runtime and a temporary exact source snapshot. The temporary test directory was removed and verified absent. No packages installed and no fixture data written.
