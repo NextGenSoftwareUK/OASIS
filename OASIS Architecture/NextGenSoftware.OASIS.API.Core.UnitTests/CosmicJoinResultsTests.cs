@@ -81,6 +81,30 @@ public sealed class CosmicJoinResultsTests
     }
 
     [Fact]
+    public void JoinedPageRequiresExactOrderedPositionsAndCompleteCountBeforeMaterialization()
+    {
+        var left = new[] { Input(L1, "coffee", "first"), Input(L2, "coffee", "second") };
+        var right = new[] { Input(R1, "coffee", 7), Input(R2, "coffee", 8) };
+        var first = new CosmicJoinRow(L1, R2, "first", 8, true);
+        var second = new CosmicJoinRow(L2, R2, "second", 8, true);
+        var third = new CosmicJoinRow(L1, R1, "first", 7, true);
+        var fourth = new CosmicJoinRow(L2, R1, "second", 7, true);
+        var ordered = Query(inner: true).OrderByOutput("Revision", descending: true).Result;
+        var page = ordered.PageOutput(1, 2).Result;
+        var accepted = CosmicJoinResults.Materialize(page, Packet(left, right, new[] { second, third }, pairs: 4));
+        accepted.IsError.Should().BeFalse(accepted.Message);
+        accepted.Result.Select(row => row.Value.Name).Should().Equal("second", "first");
+
+        Invalid(Packet(left, right, new[] { first, second }, pairs: 4), query: page);
+        Invalid(Packet(left, right, new[] { second, fourth }, pairs: 4), query: page);
+        Invalid(Packet(left, right, Array.Empty<CosmicJoinRow>(), pairs: 2),
+            query: ordered.PageOutput(4, 1).Result);
+        var restricted = Query(inner: true, options: CosmicJoinOptions.Create(maximumPairs: 3).Result)
+            .PageOutput(4, 1).Result;
+        Invalid(Packet(left, right, Array.Empty<CosmicJoinRow>(), pairs: 4), "CQL_RESULT_LIMIT", restricted);
+    }
+
+    [Fact]
     public void NullKeyComponentsNeverMatch()
     {
         var left=new[]{Input(L1,null,"owner")};var right=new[]{Input(R1,null,7)};
