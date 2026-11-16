@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive.Synchronization;
@@ -63,6 +64,19 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                     result.ErrorCode = "HOLO_HYPERDRIVE_REPLICATION_FAILED";
                     return result;
                 }
+                var receipt = response.Records?.Count == 1 ? response.Records[0] : null;
+                if (string.IsNullOrWhiteSpace(receipt?.ActionHash) ||
+                    !ReceiptFieldMatches(receipt.EntryKeyValuePairs, "operation_id", item.OperationId.ToString("D")) ||
+                    !ReceiptFieldMatches(receipt.EntryKeyValuePairs, "avatar_id", item.AvatarId.ToString("D")) ||
+                    !ReceiptFieldMatches(receipt.EntryKeyValuePairs, "entity_id", item.EntityId.ToString("D")) ||
+                    !ReceiptFieldMatches(receipt.EntryKeyValuePairs, "version_id", item.VersionId.ToString("D")) ||
+                    !ReceiptFieldMatches(receipt.EntryKeyValuePairs, "entity_type", item.EntityType))
+                {
+                    OASISErrorHandling.HandleError(ref result,
+                        "Holochain did not return the native receipt for the submitted mutation.");
+                    result.ErrorCode = "HOLO_HYPERDRIVE_RECEIPT_INVALID";
+                    return result;
+                }
 
                 result.Result = true;
                 result.IsSaved = true;
@@ -77,5 +91,9 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             }
             return result;
         }
+
+        private static bool ReceiptFieldMatches(Dictionary<string, object> fields, string key, string expected) =>
+            fields != null && fields.TryGetValue(key, out var value) &&
+            value is string text && string.Equals(text, expected, StringComparison.Ordinal);
     }
 }
