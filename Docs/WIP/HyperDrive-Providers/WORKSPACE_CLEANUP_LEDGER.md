@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-16 UTC — Live subscription and API diagnostics browser check closed its owned Edge instance and removed its temporary profile and uncached websocket-client installation. Deployment asset comparisons ran in memory. No build outputs were created.
+
 2026-11-16 UTC — Subscription deadline verification ran in memory and created no build outputs or dependencies. Removed the temporary portal alternate index used to stage the combined dev candidate.
 
 2026-11-16 UTC — Leased TRON asynchronous native read reused the installed .NET runtime and restore cache. After the process stopped, removed and verified absent the exact untracked TronPublicWalletBuild tree (659 files, 163,982,924 bytes). No raw reports, chain fixtures or new runtime directories were retained.
