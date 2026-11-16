@@ -60,6 +60,13 @@ For a **new chat**, paste: goal + “see `Docs/Devs/STAR_CLI_SessionHandoff.md`�
 - OASIS APIs often use **`OASISResult<T>`** — keep that pattern for new surface area.
 - **NextGenSoftware-Libraries** lives as a **sibling** of this repo (e.g. `../NextGenSoftware-Libraries`), not under `OASIS/external-libs`.
 
+## Keep OASIS DNA synchronized
+
+When a task changes an OASIS DNA setting, identify every applicable tracked OASIS DNA default, full template and environment override, including copies in submodules. Keep the intended setting consistent across those files and across the affected Railway WEB4–WEB10 service configurations for dev, staging and production. Preserve intentional environment differences such as endpoints, database names, provider admission and isolated test fixtures. Update shared defaults for overlays that inherit the setting.
+
+Keep deployment credentials in the environment's secret store. Never copy them into source DNA or print an entire deployed DNA value, environment listing or SSH output. Report only explicitly selected non-secret fields and sanitized verification results.
+
+Verify the requested source and deployed settings after each update. Record any intentional differences and distinguish saved configuration from the settings loaded by a running deployment. Follow the existing rollout cadence and verify each affected environment before recording it as complete.
 ## Railway WEB4-WEB10 dependency policy
 
 - `Docker/oasis-dependency-versions.env` is the single source of deployed dependency SHAs. Never duplicate commit pins in individual WEB4-WEB10 Dockerfiles or clone moving branch tips.

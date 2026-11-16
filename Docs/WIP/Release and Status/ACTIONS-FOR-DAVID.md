@@ -765,5 +765,5 @@ Status: missing account/configuration information,2 November2026. David approved
 ### Coordinate Railway dev Neo4j credential rotation
 
 - **Status (2026-11-16 UTC)** Open. A dev Neo4j credential appeared in diagnostic output. The same value is configured on the private dev Neo4j service and all seven dev WEB API DNA values. No matching value was found in the inspected production or staging service variables.
-- **David action** Confirm a dev maintenance window, or approve staging a replacement credential and rolling the seven services. Engineering owns rotation, credential verification and revocation of the old credential. The window coordinates active COSMIC/CQL tests and Railway redeployments.
+- **David action** Complete. Approved staging the replacement credential now and rolling one dev service at a time. Engineering owns service verification and revocation of the old credential.
 - **Context** [Atlas storage and sign-in incident](../HyperDrive-Providers/ATLAS_STORAGE_AND_LOGIN_INCIDENT.md).
