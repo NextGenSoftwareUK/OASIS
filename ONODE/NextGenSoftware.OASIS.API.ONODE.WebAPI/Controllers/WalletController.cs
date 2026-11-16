@@ -197,7 +197,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (decryptPrivateKeys && !OwnsWalletIdentity(username, Avatar?.Username))
                 return RejectWalletKeyRead<Dictionary<ProviderType, List<IProviderWallet>>>();
 
-            return await WalletManager.LoadProviderWalletsForAvatarByUsernameAsync(username, showOnlyDefault, decryptPrivateKeys, false, ProviderType.All, providerType);
+            return decryptPrivateKeys
+                ? await WalletManager.LoadProviderWalletsForAvatarByIdAsync(AvatarId, showOnlyDefault, true, false, ProviderType.All, providerType)
+                : await WalletManager.LoadProviderWalletsForAvatarByUsernameAsync(username, showOnlyDefault, false, false, ProviderType.All, providerType);
         }
 
 
@@ -241,7 +243,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (decryptPrivateKeys && !OwnsWalletIdentity(email, Avatar?.Email))
                 return RejectWalletKeyRead<Dictionary<ProviderType, List<IProviderWallet>>>();
 
-            return await WalletManager.LoadProviderWalletsForAvatarByEmailAsync(email, showOnlyDefault, decryptPrivateKeys, false, ProviderType.All, providerType);
+            return decryptPrivateKeys
+                ? await WalletManager.LoadProviderWalletsForAvatarByIdAsync(AvatarId, showOnlyDefault, true, false, ProviderType.All, providerType)
+                : await WalletManager.LoadProviderWalletsForAvatarByEmailAsync(email, showOnlyDefault, false, false, ProviderType.All, providerType);
         }
 
         /// <summary>
@@ -287,7 +291,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (!OwnsWalletIdentity(username, Avatar?.Username))
                 return RejectWalletAccess<bool>("Only the authenticated wallet owner can change wallet settings.");
 
-            return await WalletManager.SaveProviderWalletsForAvatarByUsernameAsync(username, wallets, providerType);
+            return await WalletManager.SaveProviderWalletsForAvatarByIdAsync(AvatarId, wallets, providerType);
         }
 
         /// <summary>
@@ -310,7 +314,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (!OwnsWalletIdentity(email, Avatar?.Email))
                 return RejectWalletAccess<bool>("Only the authenticated wallet owner can change wallet settings.");
 
-            return await WalletManager.SaveProviderWalletsForAvatarByEmailAsync(email, wallets, providerType);
+            return await WalletManager.SaveProviderWalletsForAvatarByIdAsync(AvatarId, wallets, providerType);
         }
 
         /// <summary>
@@ -351,7 +355,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (decryptPrivateKeys && !OwnsWalletIdentity(username, Avatar?.Username))
                 return RejectWalletKeyRead<IProviderWallet>();
 
-            return await WalletManager.GetAvatarDefaultWalletByUsernameAsync(username, showOnlyDefault, decryptPrivateKeys, false, providerType);
+            return decryptPrivateKeys
+                ? await WalletManager.GetAvatarDefaultWalletByIdAsync(AvatarId, providerType, showOnlyDefault, true)
+                : await WalletManager.GetAvatarDefaultWalletByUsernameAsync(username, showOnlyDefault, false, false, providerType);
         }
 
         private bool OwnsWalletAvatar(Guid id) => id != Guid.Empty && AvatarId == id;
@@ -436,7 +442,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (!OwnsWalletIdentity(username, Avatar?.Username))
                 return RejectWalletAccess<IProviderWallet>("Only the authenticated wallet owner can change wallet settings.");
 
-            return await WalletManager.SetAvatarDefaultWalletByUsernameAsync(username, walletId, providerType);
+            return await WalletManager.SetAvatarDefaultWalletByIdAsync(AvatarId, walletId, providerType);
         }
 
         /// <summary>
@@ -459,7 +465,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (!OwnsWalletIdentity(email, Avatar?.Email))
                 return RejectWalletAccess<IProviderWallet>("Only the authenticated wallet owner can change wallet settings.");
 
-            return await WalletManager.SetAvatarDefaultWalletByEmailAsync(email, walletId, providerType);
+            return await WalletManager.SetAvatarDefaultWalletByIdAsync(AvatarId, walletId, providerType);
         }
 
         /// <summary>
@@ -505,7 +511,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (!OwnsWalletIdentity(username, Avatar?.Username))
                 return RejectWalletAccess<IProviderWallet>("Only the authenticated wallet owner can change wallet settings.");
 
-            return WalletManager.ImportWalletUsingPrivateKeyByUsername(username, key, providerToImportTo);
+            return WalletManager.ImportWalletUsingPrivateKeyById(AvatarId, key, providerToImportTo);
         }
 
         /// <summary>
@@ -528,7 +534,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (!OwnsWalletIdentity(email, Avatar?.Email))
                 return RejectWalletAccess<IProviderWallet>("Only the authenticated wallet owner can change wallet settings.");
 
-            return WalletManager.ImportWalletUsingPrivateKeyByEmail(email, key, providerToImportTo);
+            return WalletManager.ImportWalletUsingPrivateKeyById(AvatarId, key, providerToImportTo);
         }
 
         /// <summary>
@@ -574,7 +580,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (!OwnsWalletIdentity(username, Avatar?.Username))
                 return RejectWalletAccess<IProviderWallet>("Only the authenticated wallet owner can change wallet settings.");
 
-            return WalletManager.ImportWalletUsingPublicKeyByUsername(username, key, walletAddress, providerToImportTo);
+            return WalletManager.ImportWalletUsingPublicKeyById(AvatarId, key, walletAddress, providerToImportTo);
         }
 
         /// <summary>
@@ -597,7 +603,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (!OwnsWalletIdentity(email, Avatar?.Email))
                 return RejectWalletAccess<IProviderWallet>("Only the authenticated wallet owner can change wallet settings.");
 
-            return WalletManager.ImportWalletUsingPublicKeyByEmail(email, key, walletAddress, providerToImportTo);
+            return WalletManager.ImportWalletUsingPublicKeyById(AvatarId, key, walletAddress, providerToImportTo);
         }
 
         /// <summary>
