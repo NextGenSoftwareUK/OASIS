@@ -43,6 +43,14 @@ jobs:
       - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 10.0.x
+      - name: Check out the pinned prior hApp fixture
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: 4bd294f69a3dd11fee9522e2e0ffd857578d1dd7
+          path: OASIS-prior-happ
+          sparse-checkout: Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/OASIS_hAPP/oasis.happ
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
       - name: Prepare the prior app and the tested replacement coordinator
         working-directory: OASIS
         shell: bash
@@ -54,11 +62,10 @@ jobs:
           from pathlib import Path
           import os
           import re
-          import subprocess
           import zlib
 
           package = 'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/OASIS_hAPP/oasis.happ'
-          old = subprocess.check_output(['git', 'show', '4bd294f69a3dd11fee9522e2e0ffd857578d1dd7:' + package])
+          old = (Path('..') / 'OASIS-prior-happ' / package).read_bytes()
           if sha256(old).hexdigest() != 'd6f3b9b792e4e38e191e4b9952ed849d925c68266ccde1be812dc5a607e47ef0':
               raise SystemExit('Prior hApp hash mismatch')
           h_app = zlib.decompress(Path(package).read_bytes(), 31)
