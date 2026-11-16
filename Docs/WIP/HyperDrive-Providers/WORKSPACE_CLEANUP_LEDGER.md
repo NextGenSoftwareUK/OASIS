@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-16 UTC — The live My routing browser assertions passed; the profile outlived the browser close deadline. Verified the remaining owned Edge process, stopped it, removed the exact profile and uncached dependency directory, and confirmed absence. The separate leased HolonCopyControllerBuild is still compiling; clean the exact tree after process 81874 exits.
+
 2026-11-16 UTC — Removed both temporary Git indexes used for WEB4 and portal holon copy release preparation. Portal patch data stayed in memory and no local build was run.
 
 2026-11-16 UTC — Provider copy form verification ran in memory. Restored the original portal sparse checkout after editing the menu and fragment. No build outputs, dependencies or test reports were created.
