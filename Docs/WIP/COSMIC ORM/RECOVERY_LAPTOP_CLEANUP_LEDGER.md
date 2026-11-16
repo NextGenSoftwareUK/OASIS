@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+16 November UTC. The exact WEB4 populated alias and nullable-join check used six private Development demo records. All six original-provider IDs were conditionally deleted and verified absent. WEB4 acknowledged session revocation, and the local operation journal was removed. Timing probes kept output in memory. No runtime or build output was installed.
+
 16 November UTC. Two exact-website test snapshots and temporary Git indexes were removed. Edge browser verification left two owned OS-temp profiles after cleanup attempts: C:/Users/David/AppData/Local/Temp/web4-exact-browser-LjwGMM (17.30 MiB) and C:/Users/David/AppData/Local/Temp/web4-exact-browser-ChjeS6 (11.03 MiB). The first scoped recursive cleanup was rejected by automatic execution policy. The temporary MongoDB read-only audit client C:/Source/OASIS2/LocalState/COSMIC/piper-mongo-read-4qwzdwjt (9.26 MiB) also remains after the tool rejected deletion. No ongoing test depends on these directories. No browser binaries, model weights or application databases were installed.
 
 16 November UTC. The Free catalogue Chrome probe removed its isolated incognito profile. The older retained visitor refresh was rejected as not found and issued no replacement cookie or token. Its protected evidence remains for reconciliation and was not replayed.
