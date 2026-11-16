@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+16 November UTC. The signed HoloOASIS browser query reused the installed Chromium and existing visitor. The temporary browser profile was removed and no fixture records or local downloads were created. The combined sandbox candidate used disposable Git indexes, removed after staging.
+
 16 November UTC. The public WEB4 browser checks used the installed Chromium and existing WebSocket client. Both isolated temporary browser profiles were removed after their processes exited. The signed public-preset API verification created no fixture records or output files. Vercel and GitHub CI outputs are remote. C: free 23169478656 bytes observed.
 
 16 November UTC. SQL NOT IN verification deleted all nine owned records through the provider revision-aware WEB4 endpoint and confirmed none remained. The compact populated-sql-not-in-v1 journal under HostedCqlDevelopmentSqlAcceptance-f480b33d is 8883 bytes. Temporary website test source and Git index were removed. Vercel built remotely. C: free 29576032256 bytes observed.
