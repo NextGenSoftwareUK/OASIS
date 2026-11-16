@@ -1828,3 +1828,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 2026-11-16 UTC — WEB4 app-owner lookup candidate preparation removed its temporary indexes and source scratch file. No local compile. Automatic review again denied recursive removal of the older SQL Server, Aura and TRON intermediate output directories already recorded above.
 
 2026-11-16 UTC — The hosted Files description check removed the 1 KiB test fixture via WEB4, verified a zero file count and removed the test avatar. The test created no local files.
+
+2026-11-16 UTC — Removed the OPORTAL app-owner release's temporary Git index and HTML scratch source. Exact subscription tests and hosted asset hashing read Git objects and HTTP responses in memory. No package install or browser profile was created.
