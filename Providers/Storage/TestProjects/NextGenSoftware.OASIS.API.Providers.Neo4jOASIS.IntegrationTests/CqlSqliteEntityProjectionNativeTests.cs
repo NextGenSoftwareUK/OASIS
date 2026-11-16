@@ -11,6 +11,7 @@ using CqlJoinColumn = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Model
 using CqlJoinFilter = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlV1Filter;
 using CqlJoinKey = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlJoinV1Key;
 using CqlJoinOrder = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlV1JoinOrder;
+using CqlJoinScalar = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlV1Scalar;
 using CqlJoinOperator = ShippingWeb4::NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data.CqlV1Operator;
 using SqliteProvider=NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.SQLLiteDBOASIS;
 
@@ -250,7 +251,7 @@ public sealed partial class CqlProjectedAllAcceptanceTests
 
         static CqlJoinFilter KeySet(Guid[] selectedIds) => new()
         {
-            Field = "Id", Operator = CqlJoinOperator.In, Scalar = "Guid", Value = JsonSerializer.SerializeToElement(selectedIds)
+            Field = "Id", Operator = CqlJoinOperator.In, Scalar = CqlJoinScalar.Guid, Value = JsonSerializer.SerializeToElement(selectedIds)
         };
         var byVersion = leftRows.SelectMany(l => rightRows.Where(r => r.Version >= l.Version),
             (l, r) => new { r.Id, r.Name });
