@@ -139,7 +139,6 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.HoloOASIS);
             this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
 
-            DataHelper.UseReflection = this.UseHoloNETORMReflection;
             _avatarRepository = new AvatarRepository();
             _avatarDetailRepository = new AvatarDetailRepository();
             _holonRepository = new HolonRepository();

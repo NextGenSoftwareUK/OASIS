@@ -97,6 +97,11 @@ public sealed class HoloNativeRoutingTests
             {
                 var key = saved.Result.ProviderUniqueStorageKey[ProviderType.HoloOASIS];
                 Assert.False(string.IsNullOrWhiteSpace(key));
+                // A second provider must not change how the activated one decodes its native record.
+                var otherProvider = new HoloOASIS(admin.AbsoluteUri, useHoloNetwork: false,
+                    useHoloNETORMReflection: false);
+                Assert.False(otherProvider.UseHoloNETORMReflection);
+                Assert.True(holo.UseHoloNETORMReflection);
                 var loaded = sync ? holo.LoadHolon(key, loadChildren: false)
                     : await holo.LoadHolonAsync(key, loadChildren: false);
                 Assert.True(!loaded.IsError && loaded.IsLoaded, loaded.Message);

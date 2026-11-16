@@ -1,0 +1,19 @@
+name: Canonical HoloOASIS and SQLite HyperDrive routing
+
+on:
+  push:
+    tags: ['ci-hyperdrive-holo-routing-*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  routing:
+    uses: ./.github/workflows/holo-desktop-provider-build.yml
+    with:
+      verification: routing
+      exact_source: ${{ startsWith(github.ref_name, 'ci-hyperdrive-holo-routing-') }}
+    secrets:
+      PRIVATE_SUBMODULE_PAT: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
