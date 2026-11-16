@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+16 November UTC. Metadata NOT IN removed all 12 owned hosted fixtures via WEB4 and verified absence. The compact populated-sql-metadata-not-in-v1 journal is 11688 bytes. Temporary website test snapshot and index were removed. No downloads or local build outputs were retained. C: free 23204167680 bytes observed.
+
 16 November UTC. The signed HoloOASIS browser query reused the installed Chromium and existing visitor. The temporary browser profile was removed and no fixture records or local downloads were created. The combined sandbox candidate used disposable Git indexes, removed after staging.
 
 16 November UTC. The public WEB4 browser checks used the installed Chromium and existing WebSocket client. Both isolated temporary browser profiles were removed after their processes exited. The signed public-preset API verification created no fixture records or output files. Vercel and GitHub CI outputs are remote. C: free 23169478656 bytes observed.
