@@ -36,6 +36,10 @@ on:
         description: Also attach the phone runtime libraries (Android .aar files and dependencies, iOS bridge, checksums) from this android-service-runtime release to the GitHub release (blank = skip; needs release_tag)
         type: string
         default: 'oasis-holochain-0.7-v1.1.0'
+      record_receipt:
+        description: Record the publication and dependency pins on OASIS master
+        type: boolean
+        default: true
 
 jobs:
   publish:
@@ -107,6 +111,36 @@ jobs:
       - name: Verify the packed HoloNET packages
         working-directory: holochain-client-csharp
         run: python scripts/holonet_packages.py verify-packed nupkgs
+
+      - name: Verify GitHub and NuGet release notes
+        if: inputs.publish && inputs.release_tag != ''
+        working-directory: holochain-client-csharp
+        shell: pwsh
+        env:
+          TAG: ${{ inputs.release_tag }}
+        run: |
+          $version = (Get-Content packages.json -Raw | ConvertFrom-Json).version
+          if ($env:TAG -cne "v$version") { throw 'GitHub tag must match the packed version.' }
+          $heading = '(?ms)^## ' + [regex]::Escape($env:TAG) + ' - [^\r\n]+\r?\n(.*?)(?=^## |\z)'
+          $section = [regex]::Match((Get-Content CHANGELOG.md -Raw), $heading)
+          if (!$section.Success -or !$section.Groups[1].Value.Trim()) {
+            throw "Missing changelog notes for $env:TAG."
+          }
+          $expected = $section.Groups[1].Value.Trim().Replace("`r`n", "`n")
+          foreach ($package in Get-ChildItem -LiteralPath nupkgs -Filter '*.nupkg' -File) {
+            $zip = [IO.Compression.ZipFile]::OpenRead($package.FullName)
+            try {
+              $entry = $zip.Entries | Where-Object Name -like '*.nuspec' | Select-Object -First 1
+              if (!$entry) { throw "Missing package manifest in $($package.Name)." }
+              $reader = [IO.StreamReader]::new($entry.Open())
+              try { [xml]$metadata = $reader.ReadToEnd() } finally { $reader.Dispose() }
+              $actual = [string]$metadata.package.metadata.releaseNotes
+              if (!$actual.Replace("`r`n", "`n").Contains($expected)) {
+                throw "Package notes differ from CHANGELOG.md in $($package.Name)."
+              }
+            } finally { $zip.Dispose() }
+          }
+          Set-Content (Join-Path $env:RUNNER_TEMP 'holonet-release-notes.md') $section.Value.Trim() -Encoding utf8
 
       - name: Smoke test - install every HoloNET library package into a fresh app and build it
         working-directory: holochain-client-csharp
@@ -208,18 +242,26 @@ jobs:
               Copy-Item $f.FullName (Join-Path release-assets $name)
             }
           }
-          # Notes: this version's CHANGELOG section.
-          $log = Get-Content holochain-client-csharp/CHANGELOG.md -Raw
-          $m = [regex]::Match($log, "(?ms)^## v$([regex]::Escape($version))b.*?(?=^## v)")
-          $notes = if ($m.Success) { $m.Value } else { "HoloNET $version" }
-          $notes += "`n`nFull history: https://github.com/$repo/blob/main/CHANGELOG.md"
-          Set-Content release-notes.md $notes
+          $notes = Join-Path $env:RUNNER_TEMP 'holonet-release-notes.md'
+          Add-Content -LiteralPath $notes "`nFull history: https://github.com/$repo/blob/$env:TAG/CHANGELOG.md"
+          $source = (git -C holochain-client-csharp rev-parse HEAD).Trim()
+          if ($LASTEXITCODE -ne 0) { throw 'Could not resolve the HoloNET release source.' }
+          $refs = @(git -C holochain-client-csharp ls-remote --tags origin "refs/tags/$env:TAG" "refs/tags/$env:TAG^{}")
+          if ($LASTEXITCODE -ne 0) { throw 'Could not verify the GitHub release tag.' }
+          if ($refs.Count -and (($refs[-1] -split '\s+')[0] -ne $source)) {
+            throw "GitHub release $env:TAG points to different source."
+          }
           gh release view $env:TAG --repo $repo 2>$null
           if ($LASTEXITCODE -ne 0) {
-            git -C holochain-client-csharp tag $env:TAG 2>$null
-            gh release create $env:TAG --repo $repo --target (git -C holochain-client-csharp rev-parse HEAD) --title "HoloNET $version" --notes-file release-notes.md
+            gh release create $env:TAG --repo $repo --target $source --title "HoloNET $version" --notes-file $notes --draft
+          } else {
+            gh release edit $env:TAG --repo $repo --notes-file $notes
           }
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           gh release upload $env:TAG (Get-ChildItem release-assets/*).FullName --repo $repo --clobber
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          gh release edit $env:TAG --repo $repo --draft=false
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
   # After a real publish, record what was published so the next global release plans cleanly. The global release's
   # source-aware NuGet plan needs a standalone receipt in Scripts/nuget-publication-provenance.json and pins in
@@ -228,7 +270,7 @@ jobs:
   # publication-source-graph.json, which this run recorded from the exact commits it built.
   record-receipt:
     needs: publish
-    if: inputs.publish
+    if: inputs.publish && inputs.record_receipt
     runs-on: ubuntu-latest
     permissions:
       contents: write
