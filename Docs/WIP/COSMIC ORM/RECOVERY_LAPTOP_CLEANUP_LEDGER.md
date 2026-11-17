@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+17 November UTC. The corrected native join test and exact candidate used disposable `cosmic-queryable-join-index-*` Git indexes removed on exit. Superseded exact CI and image runs were cancelled. Build and failure output stayed remote, and no local SDK, database or build output was created.
+
 17 November UTC. The Queryable Join source, regression update and reconciliation used disposable `cosmic-queryable-join-index-*` and `cosmic-reconcile-index-*` indexes, removed on exit. No local SDK, test database or build output was added. Qualification builds run remotely.
 
 17 November UTC. The grouped sandbox example tests used a disposable `cosmic-group-demo-*` snapshot and index. Both were removed automatically. No live fixture, runtime or build output was created.

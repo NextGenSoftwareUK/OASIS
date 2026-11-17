@@ -1,5 +1,7 @@
 # COSMIC ORM / CQL current status
 
+17 November UTC. The earlier native Queryable Join qualification stopped at a test compilation error caused by a reused local variable. The corrected candidate `b9c542c5e3e7` preserves the Turso Development parent and the same Core pin as the first candidate. [Corrected native CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44022475053) and [exact WEB4 image](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44022489845) are pending. The old candidate was superseded.
+
 17 November UTC. Standard LINQ Join now translates through native COSMIC joins for supported scalar and anonymous composite keys. The candidate covers independently bounded right inputs plus text and nullable scalar keys, including null exclusion. Exact Development candidate `1ec2306c1207` preserves the Turso baseline `961b6a881ae4`. [Native and protocol CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44021516466) and [WEB4 image CI](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44021595884) are pending. GroupJoin and full parity remain open.
 
 17 November UTC. The [WEB4 sandbox preview](https://vercel.com/oasis-team/web4-site/FkCwxooniXJonKFgfk7fZEEqVnK7) built from `b0cfd17358d2`. The grouped demo now shows aggregate calls in HAVING and ORDER BY. All 279 site tests passed.
