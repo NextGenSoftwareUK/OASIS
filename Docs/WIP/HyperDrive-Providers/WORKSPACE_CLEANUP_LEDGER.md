@@ -2315,3 +2315,6 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 
 
 2026-11-17 UTC — Cleanup evidence correction: the shipping avatar self-delete route uses softDelete=true. Historical acknowledgments must not be counted as physical reclamation, even when owned holons were separately removed. Native hard-purge/absence proof remains open. No new fixture created during this audit. Collection-routing candidate 0aac189914ad temporary index/lock removed in finally; no local builds, downloads or generated artifacts. Existing remote CI 44168988180 is for preceding source e189, not final policy source.
+
+
+2026-11-17 UTC — Failed qualification logs were filtered in memory to compile errors; no archive or TRX downloaded. Direct SDK Roslyn loading conflicted with the PowerShell host assembly version, so syntax parsing used the existing matching host compiler without installing a runtime or generating output. Candidate 514d7ce4b81f temporary index/lock removed in finally. No local build servers, environments, backend records, test databases or browser profiles created. One corrected CI run queued after the preceding run became terminal; no image queued.
