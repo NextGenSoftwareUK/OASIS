@@ -8,10 +8,11 @@ if (args.Length != 2 || !File.Exists(args[0])
     || providerType is not (ProviderType.NeonOASIS or ProviderType.ConvexOASIS
         or ProviderType.SupabaseOASIS or ProviderType.SQLServerDBOASIS or ProviderType.BNBChainOASIS
         or ProviderType.AzureCosmosDBOASIS or ProviderType.PolkadotOASIS or ProviderType.TRONOASIS
-        or ProviderType.HoloOASIS or ProviderType.BitcoinOASIS or ProviderType.PocketBaseOASIS))
+        or ProviderType.HoloOASIS or ProviderType.BitcoinOASIS or ProviderType.PocketBaseOASIS
+        or ProviderType.TursoOASIS))
 {
     Console.Error.WriteLine(
-        "Usage: BootLoader.TestHarness <protected-fixture-dna-path> <NeonOASIS|ConvexOASIS|SupabaseOASIS|SQLServerDBOASIS|BNBChainOASIS|AzureCosmosDBOASIS|PolkadotOASIS|TRONOASIS|HoloOASIS|BitcoinOASIS|PocketBaseOASIS>");
+        "Usage: BootLoader.TestHarness <protected-fixture-dna-path> <NeonOASIS|ConvexOASIS|SupabaseOASIS|SQLServerDBOASIS|BNBChainOASIS|AzureCosmosDBOASIS|PolkadotOASIS|TRONOASIS|HoloOASIS|BitcoinOASIS|PocketBaseOASIS|TursoOASIS>");
     return 2;
 }
 

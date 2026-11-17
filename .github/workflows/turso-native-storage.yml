@@ -4,10 +4,14 @@ on:
   push:
     branches: [work/hyperdrive-provider-completion]
     paths:
-      - '.github/workflows/turso-native-storage.yml'
       - 'Providers/Cloud/NextGenSoftware.OASIS.API.Providers.TursoOASIS/**'
       - 'Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.TursoOASIS.IntegrationTests/TursoOASISIntegrationTests.cs'
   workflow_dispatch:
+  workflow_call:
+    inputs:
+      activation:
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -53,6 +57,7 @@ jobs:
       - name: Verify native schema rollback and recovery
         shell: bash
         env:
+          VERIFY_BOOTLOADER: ${{ inputs.activation }}
           TURSOOASIS_URL: http://127.0.0.1:19693
           TURSOOASIS_AUTHTOKEN: fixture-local
           OASIS_TURSO_OWNED_STORAGE_FIXTURE: '1'
@@ -77,12 +82,88 @@ jobs:
             exit "$status"
           }
           trap cleanup EXIT
-          docker run --detach --name "$container" --publish 127.0.0.1:19693:8080 --env SQLD_NODE=standalone "$image"
+          auth=()
+          readiness=()
+          if [[ "$VERIFY_BOOTLOADER" == true ]]; then
+            export TURSO_TEST_PRIVATE_KEY="$fixture/auth.pem"
+            openssl genpkey -algorithm ED25519 -out "$TURSO_TEST_PRIVATE_KEY"
+            python3 - "$fixture/auth.txt" <<'PY'
+          import base64, json, os, subprocess, sys, time
+          key = os.environ["TURSO_TEST_PRIVATE_KEY"]
+          public = subprocess.check_output(["openssl", "pkey", "-in", key, "-pubout", "-outform", "DER"])
+          assert public[:12].hex() == "302a300506032b6570032100" and len(public) == 44
+          def b64(value):
+              return base64.urlsafe_b64encode(value).rstrip(b"=")
+          header = b64(b'{"alg":"EdDSA","typ":"JWT"}')
+          claims = b64(json.dumps({"a":"rw","id":"default","exp":int(time.time())+1500}).encode())
+          message = header + b"." + claims
+          with open(key + ".message", "wb") as stream:
+              stream.write(message)
+          signature = subprocess.check_output(["openssl","pkeyutl","-sign","-rawin","-inkey",key,"-in",key+".message"])
+          with open(sys.argv[1], "wb") as stream:
+              stream.write(b64(public[12:]) + b"\n" + message + b"." + b64(signature) + b"\n")
+          PY
+            mapfile -t credentials < "$fixture/auth.txt"
+            echo "::add-mask::${credentials[1]}"
+            export OASIS_TURSO_AUTH_TOKEN="${credentials[1]}"
+            auth=(--env "SQLD_AUTH_JWT_KEY=${credentials[0]}")
+            readiness=(-H "Authorization: Bearer $OASIS_TURSO_AUTH_TOKEN")
+          fi
+          docker run --detach --name "$container" --publish 127.0.0.1:19693:8080 --env SQLD_NODE=standalone "${auth[@]}" "$image"
           for attempt in {1..40}; do
-            if curl -fsS "$TURSOOASIS_URL/v2" >/dev/null; then break; fi
+            if curl -fsS "${readiness[@]}" "$TURSOOASIS_URL/v2" >/dev/null; then break; fi
             [[ "$attempt" != 40 ]]
             sleep 1
           done
+          if [[ "$VERIFY_BOOTLOADER" == true ]]; then
+            export TURSO_BOOT_FIXTURE="$fixture"
+            pwsh -NoProfile -Command '
+              $name = "TursoOASIS"
+              $storage = @{
+                OASISProviderBootType = "Warm"
+                AutoFailOverEnabled = $false
+                AutoFailOverLocalProvidersEnabled = $false
+                AutoReplicationEnabled = $false
+                AutoLoadBalanceEnabled = $false
+                TursoOASIS = @{ ConnectionString = $env:TURSOOASIS_URL }
+              }
+              foreach ($key in @(
+                "AutoFailOverProviders", "AutoFailOverLocalProviders", "AutoReplicationProviders",
+                "AutoLoadBalanceProviders", "AutoFailOverProvidersForAvatarLogin",
+                "AutoFailOverProvidersForCheckIfEmailAlreadyInUse",
+                "AutoFailOverProvidersForCheckIfUsernameAlreadyInUse",
+                "AutoFailOverProvidersForCheckIfOASISSystemAccountExists"
+              )) { $storage[$key] = $name }
+              $dna = @{ OASIS = @{
+                HyperDriveMode = "OASISHyperDrive2"
+                Logging = @{ LoggingFramework = "Default"; LogToConsole = $false; LogToFile = $false }
+                ErrorHandling = @{ LogAllErrors = $false; LogAllWarnings = $false }
+                Security = @{ SecretKey = [Convert]::ToHexString([Security.Cryptography.RandomNumberGenerator]::GetBytes(32)) }
+                StorageProviders = $storage
+                OASISHyperDriveConfig = @{
+                  AutoFailoverEnabled = $false; AutoReplicationEnabled = $false; AutoLoadBalancingEnabled = $false
+                  EnabledProviders = @($name); AutoFailoverProviders = @($name)
+                  AutoReplicationProviders = @($name); LoadBalancingProviders = @($name)
+                }
+              } }
+              $dnaPath = Join-Path $env:TURSO_BOOT_FIXTURE "dna.json"
+              $output = Join-Path $env:TURSO_BOOT_FIXTURE "harness"
+              $harness = "OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader.TestHarness"
+              $dna | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $dnaPath
+              ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-TursoBootLoader -Operation {
+                dotnet build $harness -o $output /m:2 /nr:false /p:UseSharedCompilation=false -v:q
+                if ($LASTEXITCODE -ne 0) { throw "Turso BootLoader build failed." }
+                $assembly = Join-Path $output "NextGenSoftware.OASIS.OASISBootLoader.TestHarness.dll"
+                $token = $env:OASIS_TURSO_AUTH_TOKEN
+                $env:OASIS_TURSO_AUTH_TOKEN = "invalid-fixture-token"
+                dotnet $assembly $dnaPath $name
+                if ($LASTEXITCODE -ne 1) { throw "Expected an explicit authentication failure from the BootLoader." }
+                $env:OASIS_TURSO_AUTH_TOKEN = $token
+                dotnet $assembly $dnaPath $name
+                if ($LASTEXITCODE -ne 0) { throw "Authenticated Turso BootLoader activation failed." }
+              }'
+            exit 0
+          fi
           export TURSO_TEST_RESULTS="$fixture/results"
           pwsh -NoProfile -Command '
             ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-TursoStorage -Operation {

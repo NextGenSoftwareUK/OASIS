@@ -139,6 +139,22 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                                 pocketBaseUrl, pocketBaseEmail, pocketBasePassword);
                             break;
 
+                        case ProviderType.TursoOASIS:
+                            var tursoUrl = OASISDNA?.OASIS?.StorageProviders?.TursoOASIS?.ConnectionString;
+                            if (!Uri.TryCreate(tursoUrl, UriKind.Absolute, out var tursoEndpoint) ||
+                                (tursoEndpoint.Scheme != Uri.UriSchemeHttps &&
+                                 (tursoEndpoint.Scheme != Uri.UriSchemeHttp || !tursoEndpoint.IsLoopback)) ||
+                                tursoEndpoint.UserInfo.Length != 0 || tursoEndpoint.Query.Length != 0 ||
+                                tursoEndpoint.Fragment.Length != 0)
+                                throw new InvalidOperationException("Turso registration requires an HTTPS service URL or a loopback HTTP URL.");
+                            if (overrideConnectionString != null && !string.Equals(overrideConnectionString, tursoUrl, StringComparison.Ordinal))
+                                throw new ArgumentException("Turso registration requires the configured service URL.", nameof(overrideConnectionString));
+                            var tursoToken = Environment.GetEnvironmentVariable("OASIS_TURSO_AUTH_TOKEN");
+                            if (string.IsNullOrWhiteSpace(tursoToken))
+                                throw new InvalidOperationException("Turso registration requires an authentication token in the process environment.");
+                            result.Result = new API.Providers.TursoOASIS.TursoOASIS(tursoUrl, tursoToken);
+                            break;
+
                         case ProviderType.SQLServerDBOASIS:
                             result.Result = new API.Providers.SQLServerDBOASIS.SQLServerDBOASIS(
                                 overrideConnectionString ?? OASISDNA?.OASIS?.StorageProviders?.SQLServerDBOASIS?.ConnectionString);

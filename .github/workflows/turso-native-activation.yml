@@ -1,0 +1,19 @@
+name: Turso authenticated native BootLoader activation
+
+on:
+  push:
+    branches: [work/hyperdrive-provider-completion]
+    paths:
+      - '.github/workflows/turso-native-activation.yml'
+      - 'OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/OASISBootLoader.Register.cs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  activation:
+    uses: ./.github/workflows/turso-native-storage.yml
+    with:
+      activation: true
+    secrets: inherit
