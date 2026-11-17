@@ -1,5 +1,7 @@
 # COSMIC ORM / CQL current status
 
+17 November UTC. The first mixed CQL projection compiler binds one native equality and the same direct typed metadata fields from the ordinary projection request. It requires logical IDs for deduplication and rejects unsupported clauses and mismatched value domains. The two read branches and their common public response are still being wired together.
+
 17 November UTC. WEB4 can prepare a private collection mapping from the caller's existing named connection. Preparation returns a definition for the existing conditional Holon save flow and performs no source-row reads or writes. Browser registration, same-query federation and live acceptance remain open.
 
 17 November UTC. The first WEB4 virtual mapping read route resolves an existing private mapping definition from its authoritative OASIS store. It checks the avatar and source provider before opening the named connection, and returns detached results from the shipping reader. Registration, mixed CQL and live verification remain open.
