@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-17 UTC — Removed the temporary Global Search candidate index. Qualification used existing Git blobs in memory. No downloads, accounts, browser profile or generated output was created.
+
 2026-11-17 UTC — The OPORTAL Avatar Search candidate removed its temporary index. The regression worked with in-memory fixtures. No accounts, downloads, browser profiles or generated files were created.
 
 2026-11-17 UTC — PocketBase run 44047637729 stopped its official native runtime and verified removal of the runtime, data and test output. The OPORTAL dashboard-renewal candidate removed its temporary index. Regression fixtures were read in memory and no local runtime or build artifact was created.
