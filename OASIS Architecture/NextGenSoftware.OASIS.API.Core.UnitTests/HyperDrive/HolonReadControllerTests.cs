@@ -113,20 +113,6 @@ public class HolonReadControllerTests
             Assert.False(real.IsError);
             Assert.Equal(id, Assert.Single(real.Result).Id);
         });
-            Assert.True(failed.Result.IsError);
-            Assert.Equal("REAL_PROVIDER_ERROR", failed.Result.ErrorCode);
-            Assert.Equal("The storage read failed.", failed.Result.Message);
-            Assert.Equal(System.Net.HttpStatusCode.BadRequest, failed.StatusCode);
-            var withoutMessage = Format(new OASISResult<IEnumerable<IHolon>> { IsError = true, Message = null });
-            Assert.True(withoutMessage.Result.IsError);
-
-            var id = Guid.NewGuid();
-            var real = Format(new OASISResult<IEnumerable<IHolon>> {
-                Result = new IHolon[] { new Holon { Id = id, Name = "Persisted holon" } }
-            });
-            Assert.False(real.Result.IsError);
-            Assert.Equal(id, Assert.Single(real.Result.Result).Id);
-        });
     }
 
     private static OASISResult<T> ResponseResult<T>(object? response)
