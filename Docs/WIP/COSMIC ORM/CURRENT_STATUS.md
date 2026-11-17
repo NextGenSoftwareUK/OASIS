@@ -1,5 +1,7 @@
 # COSMIC ORM / CQL current status
 
+17 November UTC. The scoped virtual mapping repair passed exact source qualification [44056784952](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44056784952). PocketBase WEB4 deployment f103b70b-758c-487c-911f-133d76e4353e succeeded on the preceding revision. Exact image qualification and the rollout window still gate the mixed demo. The first live proof uses the approved sample collection. Named private connections need a separate real browser proof: source inspection found that the credential lookup loads the owning avatar through ordinary HyperDrive routing inside the admitted CQL request. Verify the execution for a dedicated test avatar before claiming general mixed-query support.
+
 17 November UTC. The joined LINQ parity candidate evaluates All on a preserved-side predicate as the absence of a counterexample through the existing native filter. The shared fixture checks true, false, empty input and rejection after paging. Exact native qualification is pending.
 
 17 November UTC. Development advanced to the exact PocketBase baseline `75dee7c9fe64`. The mixed-query repair candidate `2c1a3232b9f9` is its direct child and preserves its manifest and Core pin. Native join predicate terminals passed [44053948991](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44053948991) and remain on the feature branch. SQLite and Neo4j sandbox website edits passed all 285 local tests on their staged candidate.
