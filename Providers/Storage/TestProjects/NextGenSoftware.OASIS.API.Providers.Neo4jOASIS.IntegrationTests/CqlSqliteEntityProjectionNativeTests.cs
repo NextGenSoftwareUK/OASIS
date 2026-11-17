@@ -559,6 +559,16 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         CollectionAssert.AreEquivalent(new (Guid, Guid?)[] { (parentId, parentId), (missingId, null) },
             leftJoinRows.Result.Select(row => (row.Left, row.Right)).ToArray());
 
+        var querySyntaxLeftJoin =
+            from leftRow in flagRows
+            join rightRow in flagRows.Where(row => row.Id == parentId) on leftRow.Id equals rightRow.Id into matches
+            from rightRow in matches.DefaultIfEmpty()
+            select new { Left = leftRow.Id, Right = rightRow == null ? (Guid?)null : rightRow.Id };
+        var querySyntaxMatches = await querySyntaxLeftJoin.ToCosmicListAsync();
+        Assert.IsFalse(querySyntaxMatches.IsError, querySyntaxMatches.Message + querySyntaxMatches.Exception);
+        CollectionAssert.AreEquivalent(new (Guid, Guid?)[] { (parentId, parentId), (missingId, null) },
+            querySyntaxMatches.Result.Select(row => (row.Left, row.Right)).ToArray());
+
         var rightInput = flagRows.OrderBy(row => row.Id);
         var rightJoinRows = await flagRows.Where(row => row.Id == parentId).RightJoin(rightInput,
             left => left.Id, right => right.Id,
