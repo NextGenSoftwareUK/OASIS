@@ -2048,3 +2048,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 2026-11-17 UTC — Removed and verified absence of the temporary index that assembled Turso combined candidate `5877c9e3bc9b`. The metadata selection query plan was checked in memory. No extra worktree, database or local build output was created.
 
 2026-11-17 UTC — Removed and verified absence of the temporary alternate index for Turso identity candidate `fc64cdd43585`. The native workflow runs on GitHub. No local build or test database was created.
+
+2026-11-17 UTC — Removed the temporary Git indexes used for OPORTAL candidate `9775d0000abf`, including the failed patch attempts. The exact portal tests and public fragment probe read data in memory. No local build, downloaded browser or generated report was retained.

@@ -1,5 +1,9 @@
 # Current provider status
 
+2026-11-17 UTC — OPORTAL dev advanced to `9775d0000abf` with the dashboard owned-OAPP view and distinct Avatar popup deep link. All 17 exact portal regression groups passed before the push. The prior dev subscription performance settings and unrelated script pins remain in the candidate. Live deployment and signed acceptance are pending.
+
+2026-11-17 UTC — PocketBase [native run 44035134925](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44035134925) passed all 52 shared storage checks across both modes after hard deletion moved avatar and detail into one native transaction. The result applies to the isolated PocketBase server with batch enabled. Hosted acceptance and exact Development integration remain open.
+
 2026-11-17 UTC — OPORTAL dev `2f7c7fcea30c` served all 45 exact dashboard and popup fragments. Fifteen of 16 routed popup paths returned the portal shell. `/avatar` returned the standalone avatar page, so the popup needs a distinct deep link. Public asset delivery does not establish signed screen behavior. OPORTAL task revision `d257425` replaces the dashboard OAPP placeholder and gift-status crossover with a lazy, session-scoped WEB5 owned-OAPP read shared with the popup. The subscription regression suite and API drift check passed. Deployment and signed verification are pending.
 
 2026-11-17 UTC — [PocketBase graph-save rerun](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44033801774) passed 24 checks per mode and stopped at avatar-detail absence after hard deletion. The adapter now uses PocketBase's transactional batch endpoint when an avatar and its detail both exist. The owned fixture enables a two-request batch. Hosted setups must enable that endpoint for paired deletion, and native qualification is pending. [PocketBase batch API](https://pocketbase.io/docs/api-records/#batch-createupdatedelete-records)
