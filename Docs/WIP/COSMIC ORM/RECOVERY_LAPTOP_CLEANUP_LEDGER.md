@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+17 November UTC. Exact live mixed Virtual Holon retest removed both private MongoDB fixture Holons and verified their IDs absent. The probe revoked its visitor and removed the journal. The absent-ID control created no fixtures and revoked its visitor. No Chrome profile or build output was created.
+
 17 November UTC. Temporary Git indexes for the Core reconciliation and the Development successor candidate were removed at process exit. CI owns the build outputs. The previously recorded .NET file-app cache remains after the execution policy rejected the exact-path recursive removal again. No local runtime, database copy or build output was added.
 
 17 November UTC. Live mixed Virtual Holon test verified the private mapping and stored fixture absent after the definition lookup failed. The diagnostic control only queried an absent ID. Both sessions were revoked and the nonsecret journal was removed. Temporary indexes used for the scoped repair were removed. No build output or database copy was created on the recovery laptop.
