@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-17 UTC — Removed the temporary index for the complete Chat recipient release. Exact-tree checks read tracked blobs in memory without real session creation or retained outputs.
+
 2026-11-17 UTC — Removed the temporary Chat-start staging index. Controlled startup checks created no real sessions or retained artifacts.
 
 2026-11-17 UTC — Removed the temporary Chat-send staging index. Duplicate-send checks used a controlled in-memory request and created no real messages or retained outputs.

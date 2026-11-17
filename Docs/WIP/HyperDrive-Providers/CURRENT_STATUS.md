@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-17 UTC — Refreshed scoped Chat candidate 9c85d745fb97 includes the dedicated recipient field, Chat script, versioned fragment loader and portal references. It preserves live CSS and provider-migration cache keys. The exact-tree controlled check verified the labeled input supplies the two participants, the Send tab input cannot select them, and failed startup restores the button. Dev window remains 17:54:41 UTC. Hosted Chat remains open.
+
 2026-11-17 UTC — OPORTAL task fb2598c gives Live Chat its own labeled recipient avatar ID input next to Start Chat Session. Startup reads that input directly. The changed fragment, component-loader reference and script have versioned cache keys. JavaScript syntax and diff checks passed. Refresh the staged Chat candidate with all four files before promotion. Hosted Chat and browser layout remain open. No subscription reads were repeated, because their current session guards were confirmed in source.
 
 2026-11-17 UTC — OPORTAL task b4d8bc7 serializes Chat session creation and checks the active avatar, token and API client before showing startup results. Deferred checks passed repeated startup, response after sign-out and a later successful startup. Scoped candidate 77f2ef266d48 contains the tested Chat script and cache key 20261117y. Dev window remains 17:54:41 UTC. Hosted Chat and full browser verification remain open.
