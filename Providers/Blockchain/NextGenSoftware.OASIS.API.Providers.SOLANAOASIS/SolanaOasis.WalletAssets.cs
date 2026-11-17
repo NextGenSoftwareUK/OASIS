@@ -11,6 +11,8 @@ using Solnet.Wallet;
 
 namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS;
 
+public sealed record SolanaWalletAsset(string Mint, string Symbol, string Amount, string RawAmount, int Decimals);
+
 public partial class SolanaOASIS
 {
     public async Task<OASISResult<object>> ReadRecentWalletActivityAsync(string walletAddress, CancellationToken cancellationToken)
@@ -67,11 +69,11 @@ public partial class SolanaOASIS
         return result;
     }
 
-    public async Task<OASISResult<List<object>>> ReadWalletAssetsAsync(string walletAddress, CancellationToken cancellationToken)
+    public async Task<OASISResult<List<SolanaWalletAsset>>> ReadWalletAssetsAsync(string walletAddress, CancellationToken cancellationToken)
     {
         const string splToken = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
         const string token2022 = "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb";
-        var result = new OASISResult<List<object>>();
+        var result = new OASISResult<List<SolanaWalletAsset>>();
         try
         {
             var address = new PublicKey(walletAddress);
@@ -109,10 +111,10 @@ public partial class SolanaOASIS
                 totals[info.Mint] = (total.Amount + raw, decimals);
             }
 
-            var balances = new List<object> { new { symbol = "SOL", amount = WalletAssetAmount(native.Result.Value, 9) } };
+            var balances = new List<SolanaWalletAsset> { CreateWalletAsset(null, "SOL", native.Result.Value, 9) };
             foreach (var (mint, total) in totals.OrderBy(entry => entry.Key, StringComparer.Ordinal))
                 if (total.Amount != 0)
-                    balances.Add(new { mint, amount = WalletAssetAmount(total.Amount, total.Decimals) });
+                    balances.Add(CreateWalletAsset(mint, null, total.Amount, total.Decimals));
 
             result.Result = balances;
             result.IsLoaded = true;
@@ -128,6 +130,9 @@ public partial class SolanaOASIS
         }
         return result;
     }
+
+    private static SolanaWalletAsset CreateWalletAsset(string mint, string symbol, BigInteger raw, int decimals) =>
+        new(mint, symbol, WalletAssetAmount(raw, decimals), raw.ToString(CultureInfo.InvariantCulture), decimals);
 
     private static string WalletAssetAmount(BigInteger raw, int decimals)
     {

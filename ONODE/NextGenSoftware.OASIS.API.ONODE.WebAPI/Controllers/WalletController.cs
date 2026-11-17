@@ -826,7 +826,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (wallet.Error != null)
                 return wallet.Error;
 
-            return await wallet.Provider.ReadWalletAssetsAsync(wallet.Address, HttpContext.RequestAborted);
+            var balances = await wallet.Provider.ReadWalletAssetsAsync(wallet.Address, HttpContext.RequestAborted);
+            var result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<List<SolanaWalletAsset>, List<object>>(balances);
+            result.Result = balances.Result?.Cast<object>().ToList();
+            return result;
         }
 
         private async Task<(SolanaOASIS Provider, string Address, OASISResult<T> Error)> ResolveOwnedSolanaWalletAsync<T>(
