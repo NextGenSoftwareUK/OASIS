@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+17 November UTC. Temporary Git indexes for the Core reconciliation and the Development successor candidate were removed at process exit. CI owns the build outputs. The previously recorded .NET file-app cache remains after the execution policy rejected the exact-path recursive removal again. No local runtime, database copy or build output was added.
+
 17 November UTC. Live mixed Virtual Holon test verified the private mapping and stored fixture absent after the definition lookup failed. The diagnostic control only queried an absent ID. Both sessions were revoked and the nonsecret journal was removed. Temporary indexes used for the scoped repair were removed. No build output or database copy was created on the recovery laptop.
 
 17 November UTC. The live Free WEB6 browser probe signed out the temporary visitor and removed `cosmic-free-web6-ui-cgdP1P`. Used installed Chrome and managed Node. No provider keys, extra runtime or data Holons were persisted locally.
