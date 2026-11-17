@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-17 UTC — Hosted Clan SDK probe and image digest checks ran in memory. No avatar, backend records, SDK downloads or build files were created locally.
+
 2026-11-17 UTC — Games and Celestial Map checks ran in memory. The combined release index was deleted automatically. No local build, install, download or test results were retained.
 
 2026-11-17 UTC — Ran the combined popup candidate checks in memory. The temporary Git index was removed on exit. No local dependencies, reports or build outputs were generated.
