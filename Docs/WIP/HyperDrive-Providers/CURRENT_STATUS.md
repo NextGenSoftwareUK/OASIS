@@ -1,5 +1,9 @@
 # Current provider status
 
+2026-11-17 UTC — Turso task revision `73a6fe155029` passed 52 of 52 shared storage checks and the separate avatar deletion rollback regression against official libSQL. [Native run 44022749636](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44022749636) reported zero skips and verified fixture teardown. Historical detail payload compatibility and managed Turso remain open. The earlier BootLoader candidate `1a5e674789f8` passed [exact WEB4 image qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44020086386) with digest `sha256:2d5e535482a51313b10a0307608e7433147799a2d86e03f549c9582fe2562a43`.
+
+2026-11-17 UTC — OPORTAL dev fast-forwarded to scoped candidate `018407bcffc8` for task revision `47c41aa`. All 16 exact subscription regression groups passed, including a test holding the usage response until app-owner settings and billing were available. The endpoint drift check passed. Live asset and signed acceptance remain open.
+
 2026-11-17 UTC — [Native run 44022131312](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44022131312) compiled and reached avatar-detail readback in both modes. The rollback test confirmed that native rejection preserved the avatar and also reached detail readback. Turso now uses the shared OASIS stored-record serializer for avatar details so interface-backed fields carry their supported representations. Native verification and compatibility with any pre-existing detail payload without type metadata remain open.
 
 2026-11-17 UTC — Turso owner exports now use an indexed native query over live holons. libSQL selects the requested owner's rows before any payloads cross the network. The shared native suite exercises the same export entry point. Exact qualification is pending.

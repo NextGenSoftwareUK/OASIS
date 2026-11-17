@@ -2034,3 +2034,5 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 2026-11-17 UTC — Verified Turso graph insert and update SQL against an in-memory SQLite database. The process exited with no database file or generated output. Railway health and deployment checks retained no local artifacts.
 
 2026-11-17 UTC — Checked Turso deletion rollback and the owner export query plan with in-memory SQLite. Both processes exited without database files. GitHub failure logs were inspected in memory.
+
+2026-11-17 UTC — Removed the temporary alternate index for OPORTAL dev candidate `018407bcffc8`. Node read the candidate's test and fixture blobs from Git in memory. Turso native run 44022749636 confirmed removal of the hosted runner's database, container and test output.
