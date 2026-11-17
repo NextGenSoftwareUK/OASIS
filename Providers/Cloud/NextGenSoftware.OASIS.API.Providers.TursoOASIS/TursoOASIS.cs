@@ -282,6 +282,64 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
 
         public override OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail, int version = 0) => LoadAvatarByEmailAsync(avatarEmail, version).Result;
 
+        public override Task<OASISResult<IAvatar>> LoadAvatarByVerificationTokenAsync(string verificationToken, int version = 0)
+            => LoadAvatarCredentialAsync("json_extract(data_json,'$.verificationToken')=?", verificationToken, version);
+
+        public override OASISResult<IAvatar> LoadAvatarByVerificationToken(string verificationToken, int version = 0)
+            => LoadAvatarByVerificationTokenAsync(verificationToken, version).GetAwaiter().GetResult();
+
+        public override Task<OASISResult<IAvatar>> LoadAvatarByResetTokenAsync(string resetToken, int version = 0)
+            => LoadAvatarCredentialAsync("json_extract(data_json,'$.resetToken')=?", resetToken, version);
+
+        public override OASISResult<IAvatar> LoadAvatarByResetToken(string resetToken, int version = 0)
+            => LoadAvatarByResetTokenAsync(resetToken, version).GetAwaiter().GetResult();
+
+        public override Task<OASISResult<IAvatar>> LoadAvatarByRefreshTokenAsync(string refreshToken, int version = 0)
+            => LoadAvatarCredentialAsync("""
+                EXISTS (SELECT 1 FROM json_each(data_json,'$.refreshTokens') AS refresh
+                    WHERE json_extract(refresh.value,'$.token')=?)
+                """, refreshToken, version);
+
+        public override OASISResult<IAvatar> LoadAvatarByRefreshToken(string refreshToken, int version = 0)
+            => LoadAvatarByRefreshTokenAsync(refreshToken, version).GetAwaiter().GetResult();
+
+        private async Task<OASISResult<IAvatar>> LoadAvatarCredentialAsync(string predicate, string selector, int version)
+        {
+            if (string.IsNullOrWhiteSpace(selector) || version != 0)
+                return new OASISResult<IAvatar>
+                {
+                    IsError = true, ErrorCount = 1, ErrorCode = "HYPERDRIVE_PAYLOAD_INVALID",
+                    Message = "Invalid avatar credential selector or version."
+                };
+
+            var result = new OASISResult<IAvatar>();
+            try
+            {
+                var records = await ExecuteSqlAsync(
+                    $"SELECT data_json FROM oasis_avatars WHERE is_deleted=0 AND ({predicate}) LIMIT 2",
+                    new List<LibSqlArg> { Arg(selector) }).ConfigureAwait(false);
+                var rows = ResultToRows(records);
+                if (rows.Count == 0)
+                    return MissingRecord<IAvatar>("Turso found no live avatar for the credential.");
+                if (rows.Count > 1)
+                    return new OASISResult<IAvatar>
+                    {
+                        IsError = true, ErrorCount = 1, ErrorCode = OASISResultErrorCodes.AmbiguousIdentity,
+                        Message = "More than one live avatar matches the credential."
+                    };
+                result.Result = Des<Avatar>(rows[0]["data_json"])
+                    ?? throw new InvalidOperationException("Turso returned an empty avatar credential payload.");
+                result.IsLoaded = true;
+                result.LoadedCount = 1;
+            }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                OASISErrorHandling.HandleError(ref result, "Turso avatar credential lookup failed.");
+            }
+            return result;
+        }
+
         public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
         {
             if (Guid.TryParse(providerKey, out Guid id)) return await LoadAvatarAsync(id, version);

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Providers.TursoOASIS;
@@ -379,6 +380,37 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS.IntegrationTests
             Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, (await _provider.LoadAvatarDetailAsync(second.Id)).ErrorCode);
             Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, _provider.DeleteAvatarByEmail(second.Email).ErrorCode);
             Assert.IsTrue((await _provider.DeleteAvatarAsync(first.Id, softDelete: false)).IsDeleted);
+        }
+
+        [TestMethod]
+        public async Task NativeCredentialLookupReturnsOnlyUnambiguousLiveAvatars()
+        {
+            RequireOwnedFixture();
+            var owner = new Avatar
+            {
+                Id = Guid.NewGuid(), Username = "native-credential-owner",
+                VerificationToken = Guid.NewGuid().ToString("N"), ResetToken = Guid.NewGuid().ToString("N")
+            };
+            var refresh = Guid.NewGuid().ToString("N");
+            owner.RefreshTokens.Add(new RefreshToken { Token = refresh });
+            Assert.IsTrue((await _provider.SaveAvatarAsync(owner)).IsSaved);
+            Assert.AreEqual(owner.Id, (await _provider.LoadAvatarByVerificationTokenAsync(owner.VerificationToken)).Result?.Id);
+            Assert.AreEqual(owner.Id, _provider.LoadAvatarByResetToken(owner.ResetToken).Result?.Id);
+            Assert.AreEqual(owner.Id, (await _provider.LoadAvatarByRefreshTokenAsync(refresh)).Result?.Id);
+            Assert.AreEqual("HYPERDRIVE_PAYLOAD_INVALID", _provider.LoadAvatarByRefreshToken(refresh, version: 1).ErrorCode);
+            Assert.AreEqual("HYPERDRIVE_PAYLOAD_INVALID", _provider.LoadAvatarByResetToken(" ").ErrorCode);
+
+            var duplicate = new Avatar { Id = Guid.NewGuid(), Username = "native-credential-duplicate", ResetToken = owner.ResetToken };
+            Assert.IsTrue((await _provider.SaveAvatarAsync(duplicate)).IsSaved);
+            var ambiguous = await _provider.LoadAvatarByResetTokenAsync(owner.ResetToken);
+            Assert.AreEqual(OASISResultErrorCodes.AmbiguousIdentity, ambiguous.ErrorCode);
+            Assert.IsNull(ambiguous.Result);
+            Assert.IsTrue((await _provider.DeleteAvatarAsync(duplicate.Id)).IsDeleted);
+            Assert.AreEqual(owner.Id, _provider.LoadAvatarByResetToken(owner.ResetToken).Result?.Id);
+            Assert.IsTrue((await _provider.DeleteAvatarAsync(owner.Id)).IsDeleted);
+            Assert.AreEqual(OASISResultErrorCodes.RecordNotFound, _provider.LoadAvatarByRefreshToken(refresh).ErrorCode);
+            Assert.IsTrue((await _provider.DeleteAvatarAsync(owner.Id, softDelete: false)).IsDeleted);
+            Assert.IsTrue((await _provider.DeleteAvatarAsync(duplicate.Id, softDelete: false)).IsDeleted);
         }
 
         private void RequireOwnedFixture()

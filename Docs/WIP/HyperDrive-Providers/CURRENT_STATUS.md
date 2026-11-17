@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-17 UTC — Turso verification, password-reset and refresh token lookups now bind the credential in libSQL and return at most two matching live rows. This removes the full avatar payload transfer and preserves missing, ambiguous, invalid and historical-selector errors. Native qualification is pending. The SQL predicates still scan native records and were not benchmarked at managed scale.
+
 2026-11-17 UTC — Turso username and email deletion now bind the alias in the native mutation, replacing a separate lookup and write. The native regression covers a quoted username, repeated removal, and atomic hard deletion of the matching avatar and detail. [Native scoped search child projection](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44028953289) passed, including exclusion of another avatar's private child.
 
 2026-11-17 UTC — Turso avatar listing now returns a loaded acknowledgement and the exact live row count. The isolated native regression verifies that both public entry points include the live avatar and exclude the soft-deleted one. Qualification is pending.
