@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+17 November UTC. Live MongoDB snapshot and paging check used installed Chrome and the existing bundled Node runtime. The initial Node 18 launch stopped before any signed requests because it lacked WebSocket. The retry passed. Both owned Chrome profiles were removed. The successful run verified absence of the mapping, stored fixture and snapshot Holons after cleanup, and signed out. No downloads, build files or test database copies were created.
+
 17 November UTC. The complete 287-test website run used the existing Node executable and a 2.1 MB Git source snapshot in a temporary directory. The directory and the documentation commit's temporary Git index were removed. Exact image and source evidence remain in CI. No browser profile, local provider data or build outputs were created.
 
 17 November UTC. Focused website tests used the existing Node executable and three source files from Git in a temporary directory. Python removed that directory and the temporary Git indexes on exit. The browser paging check was syntax-checked from standard input. No browser profile, build outputs, reusable runtime or database was created. CI retains the exact source run and registry image for the next Development batch.
