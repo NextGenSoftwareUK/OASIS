@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-17 UTC — Verified the live OPORTAL dev WEB5 origin and issued one signed Competition rank request for a fresh sandbox avatar. The endpoint returned HTTP 200 in 810 ms with no acknowledged rank. The Core rank method treats a missing leaderboard entry as an application error and can also propagate storage errors, so this probe does not establish the exact failure or validate a populated rank. It also saves leaderboard settings on a successful read, which needs review for dashboard performance.
+
 2026-11-17 UTC — One signed dev sandbox dashboard probe returned successful WEB4 results from all ten initial reads. Concurrent completion was 357–400 ms, including subscriptions at 381 ms. This measures API requests from the workstation on a fresh avatar and leaves signed browser rendering and populated-account timing open. The avatar delete request returned HTTP 200 but the probe did not normalize the delete response envelope, so successful cleanup could not be confirmed.
 
 2026-11-17 UTC — OPORTAL dev advanced to `eed9305ae2fa` for the signed dashboard rank and menu rendering fixes. All 23 checks passed on the exact candidate. Vercel deployment `7853894226` succeeded and the dev shell served both versioned scripts byte-for-byte. Signed browser acceptance remains open. The matching Clan/Wallet WEB4 contract run `44086044968` passed; the image `44086400455` is still building. Rebase the staged portal Clan/Wallet changes on the new portal dev revision after WEB4 is ready.
