@@ -37,7 +37,26 @@ public sealed class CqlVirtualProjectionTests
     {
         var request = Request();
         Assert.Throws<ArgumentException>(() => CqlV1Compiler.CompileProjection(request, Guid.NewGuid(), ProviderType.MongoDBOASIS));
-        request.Filters[0].Operator = CqlV1Operator.Contains;
+        request.Filters[0].Operator = CqlV1Operator.NotContains;
+        Assert.Throws<ArgumentException>(() => CqlV1Compiler.CompileVirtualProjection(request));
+    }
+
+    [Theory]
+    [InlineData(CqlV1Operator.Contains, NativeRecordFunction.Contains)]
+    [InlineData(CqlV1Operator.StartsWith, NativeRecordFunction.StartsWith)]
+    [InlineData(CqlV1Operator.EndsWith, NativeRecordFunction.EndsWith)]
+    public void MixedStringMatchKeepsItsLiteralAndInputDomain(CqlV1Operator operation, NativeRecordFunction function)
+    {
+        var request = Request();
+        request.Filters[0].Operator = operation;
+        request.Filters[0].Value = JsonSerializer.SerializeToElement("$.*'\u0000\U0001F600");
+        var match = Assert.Single(CqlV1Compiler.CompileVirtualProjection(request).Matches);
+        Assert.Equal(function, match.Function);
+        Assert.Equal("$.*'\u0000\U0001F600", match.Value);
+        request.Filters[0].Scalar = CqlV1Scalar.Integer;
+        Assert.Throws<ArgumentException>(() => CqlV1Compiler.CompileVirtualProjection(request));
+        request.Filters[0].Scalar = CqlV1Scalar.String;
+        request.Filters[0].Function = CqlV1Function.Utf16Length;
         Assert.Throws<ArgumentException>(() => CqlV1Compiler.CompileVirtualProjection(request));
     }
 

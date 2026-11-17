@@ -167,9 +167,13 @@ namespace NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests
                 new NativeRecordFilter("value", CosmicQueryComparisonOperator.Equal, 2L, NativeRecordFunction.Utf16Length),
                 new NativeRecordFilter("value", CosmicQueryComparisonOperator.GreaterThan, 2L, NativeRecordFunction.Utf16Length),
                 new NativeRecordFilter("id", CosmicQueryComparisonOperator.GreaterThan, 3L),
-                new NativeRecordFilter("category", CosmicQueryComparisonOperator.NotEqual, "Case")
+                new NativeRecordFilter("category", CosmicQueryComparisonOperator.NotEqual, "Case"),
+                new NativeRecordFilter("value", CosmicQueryComparisonOperator.Equal, "\u0000", NativeRecordFunction.Contains),
+                new NativeRecordFilter("value", CosmicQueryComparisonOperator.Equal, "abc", NativeRecordFunction.StartsWith),
+                new NativeRecordFilter("value", CosmicQueryComparisonOperator.Equal, "def", NativeRecordFunction.EndsWith),
+                new NativeRecordFilter("value", CosmicQueryComparisonOperator.Equal, "\U0001F600", NativeRecordFunction.Contains)
             };
-            var expected = new[] { "\U0001F600", "abc\u0000def", "abc\u0000def", "x" };
+            var expected = new[] { "\U0001F600", "abc\u0000def", "abc\u0000def", "x", "abc\u0000def", "abc\u0000def", "abc\u0000def", "\U0001F600" };
             for (var index = 0; index < filters.Length; index++)
             {
                 var read = await provider.QueryNativePredicateRecordsAsync("records", new[] { filters[index] },
@@ -193,6 +197,21 @@ namespace NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests
                 new[] { "textAlias" }, 2);
             Assert.False(mapped.IsError, mapped.Message + mapped.Exception);
             Assert.Equal("\U0001F600", Assert.Single(mapped.Result).PrepareSnapshot(owner).MetaData["textAlias"]);
+            var stringMapped = await mapping.QueryAsync(owner, provider, null,
+                new[] { new NativeRecordFilter("textAlias", CosmicQueryComparisonOperator.Equal, "\u0000", NativeRecordFunction.Contains) },
+                new[] { "textAlias" }, 2);
+            Assert.False(stringMapped.IsError, stringMapped.Message + stringMapped.Exception);
+            Assert.Equal("abc\u0000def", Assert.Single(stringMapped.Result).PrepareSnapshot(owner).MetaData["textAlias"]);
+            var empty = await provider.QueryNativePredicateRecordsAsync("records",
+                new[] { new NativeRecordFilter("value", CosmicQueryComparisonOperator.Equal, "", NativeRecordFunction.Contains) },
+                new[] { "value" }, 10);
+            Assert.False(empty.IsError, empty.Message + empty.Exception);
+            Assert.Equal(3, empty.Result.Count);
+            var wrongCase = await provider.QueryNativePredicateRecordsAsync("records",
+                new[] { new NativeRecordFilter("category", CosmicQueryComparisonOperator.Equal, "CASE", NativeRecordFunction.Contains) },
+                new[] { "value" }, 10);
+            Assert.False(wrongCase.IsError, wrongCase.Message + wrongCase.Exception);
+            Assert.Empty(wrongCase.Result);
             Assert.Equal(before, File.ReadAllBytes(file));
         }
 

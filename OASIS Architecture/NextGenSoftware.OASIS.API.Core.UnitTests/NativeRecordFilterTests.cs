@@ -24,6 +24,22 @@ public class NativeRecordFilterTests
         Assert.Equal(filter.Value, rebound.Value);
     }
 
+    [Theory]
+    [InlineData(NativeRecordFunction.Contains)]
+    [InlineData(NativeRecordFunction.StartsWith)]
+    [InlineData(NativeRecordFunction.EndsWith)]
+    public void StringMatchesRetainLiteralAndRejectUnsupportedDomains(NativeRecordFunction function)
+    {
+        var value = "$.*'\u0000\U0001F600";
+        var filter = new NativeRecordFilter("alias", CosmicQueryComparisonOperator.Equal, value, function);
+        Assert.Equal(typeof(string), filter.InputType);
+        Assert.Equal(value, filter.WithField("source").Value);
+        Assert.Equal(function, filter.WithField("source").Function);
+        Assert.Throws<ArgumentException>(() => new NativeRecordFilter("x", CosmicQueryComparisonOperator.Equal, 1L, function));
+        Assert.Throws<ArgumentException>(() => new NativeRecordFilter("x", CosmicQueryComparisonOperator.NotEqual, value, function));
+        Assert.Throws<ArgumentException>(() => new NativeRecordFilter("x", CosmicQueryComparisonOperator.Equal, new string('a', 4097), function));
+    }
+
     [Fact]
     public void EqualityAndTypedFiltersCaptureCallerOwnedCollections()
     {
