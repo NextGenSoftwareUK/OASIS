@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-17 UTC — Turso native run 44015030804 removed its disposable libSQL container, volume and native image, and verified its test output directory was gone. No test output was uploaded. No local download, runtime or build was created.
+
 2026-11-17 UTC — The OPORTAL superseded provider-copy open test read exact Git blobs in memory. Temporary candidate patches and indexes were removed during composition. No browser profile, server fixture, build output or download was created.
 
 2026-11-17 UTC — OPORTAL candidate 6b944d8087c2 removed its alternate indexes and the temporary source directory used for the endpoint gate. Portal checks used exact Git blobs. No browser profile, downloads, build outputs or test fixture persisted locally.
