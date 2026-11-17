@@ -105,8 +105,6 @@ internal sealed class SqliteCqlReadBudget : IDisposable
         this.deadline=deadline??TimeSpan.FromSeconds(30);
         if(this.deadline<TimeSpan.Zero || this.deadline>TimeSpan.FromSeconds(30))throw new ArgumentOutOfRangeException(nameof(deadline));
         this.connection=connection;this.cancellation=cancellation;this.maximumSteps=maximumSteps;
-        textLengthCallback = (context, _, values) => NativeText(context, values, false);
-        textMatchCallback = (context, _, values) => NativeText(context, values, true);
         textLengthCallback = (context, state, values) => NativeText(context, values, false);
         textMatchCallback = (context, state, values) => NativeText(context, values, true);
         previousLength=SQLitePCL.raw.sqlite3_limit(connection.Handle,SQLitePCL.raw.SQLITE_LIMIT_LENGTH,-1);
