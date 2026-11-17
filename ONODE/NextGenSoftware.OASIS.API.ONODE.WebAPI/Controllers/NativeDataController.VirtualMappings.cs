@@ -52,6 +52,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 return BadRequest(new OASISResult<Holon> { IsError = true, ErrorCode = "VIRTUAL_MAPPING_INVALID",
                     Message = "A mapping ID, source name and named connection are required." });
 
+            if (request.Fields == null || request.Fields.Keys.Any(field => !CqlV1Compiler.IsVirtualField(field)))
+                return BadRequest(new OASISResult<Holon> { IsError = true, ErrorCode = "VIRTUAL_MAPPING_INVALID",
+                    Message = "Use non-reserved CQL metadata names of one to 64 characters." });
+
             var actor = AvatarId;
             try
             {
