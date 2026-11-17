@@ -10,6 +10,10 @@ on:
         description: Exact candidate revision to qualify
         type: string
         required: false
+      cosmos_native:
+        description: Run the isolated Azure Cosmos DB emulator fixture
+        type: boolean
+        default: false
 permissions:
   contents: read
 jobs:
@@ -124,6 +128,33 @@ jobs:
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cosmos-virtual-holon-ci -Operation {
             dotnet test 'Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.UnitTests' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CosmosNativeDataImportTests'
             if ($LASTEXITCODE) { throw 'Cosmos DB virtual query qualification failed.' }
+          }
+      - name: Verify native Azure Cosmos DB virtual queries
+        if: ${{ inputs.source_ref != '' && inputs.cosmos_native }}
+        shell: pwsh
+        env:
+          OASIS_COSMOSDB_NATIVE: '1'
+        run: |
+          $image = 'mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator@sha256:ff955bdc5b191228425ee7072f99b151c7f7406ae7ed0be1b3ba8cbaa287a7e9'
+          $fixture = 'cosmic-native-virtual-cosmos'
+          docker run --detach --name $fixture --publish 127.0.0.1:8081:8081 --env AZURE_COSMOS_EMULATOR_PARTITION_COUNT=1 $image
+          if ($LASTEXITCODE) { throw 'Cosmos emulator failed to start.' }
+          try {
+            $ready = $false
+            for ($attempt = 0; $attempt -lt 90; $attempt++) {
+              $code = curl --insecure --silent --output /dev/null --max-time 2 --write-out '%{http_code}' https://127.0.0.1:8081/
+              if ($LASTEXITCODE -eq 0 -and $code -in '200','401') { $ready = $true; break }
+              Start-Sleep -Seconds 2
+            }
+            if (!$ready) { throw 'Cosmos emulator did not become ready.' }
+            & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cosmos-virtual-native-ci -Operation {
+              dotnet test 'Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.IntegrationTests' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~VirtualNativeQueryFiltersBeforeLimitAndProtectsImportIdentity'
+              if ($LASTEXITCODE) { throw 'Native Cosmos virtual query failed.' }
+            }
+          }
+          finally {
+            docker rm --force $fixture | Out-Null
+            if ($LASTEXITCODE) { throw 'Owned Cosmos emulator cleanup failed.' }
           }
       - name: Verify configured SQLite Virtual Holon reads
         if: ${{ inputs.source_ref != '' }}
