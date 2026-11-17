@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-17 UTC — Three signed-out Edge route checks reused one temporary profile, which was removed after browser exit. No package, screenshot, output file, login or backend fixture was created.
+
 2026-11-17 UTC — Removed the temporary index for the combined termination/conversation release. Portal regressions loaded Git blobs in memory and created no reports, dependencies, builds or hosted fixtures.
 
 2026-11-17 UTC — Both public subscription Edge probes exited and removed their exact temporary profiles. They used the preinstalled browser and standard Python only. No websocket dependency, browser download, screenshot, report or backend fixture was created.

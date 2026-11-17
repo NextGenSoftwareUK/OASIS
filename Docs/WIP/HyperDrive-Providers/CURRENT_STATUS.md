@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-17 UTC — Installed Edge opened deployed /messages, /wallet and /hyperdrive while signed out. Each rendered a visible modal with only the login block selected and a real login form. This verifies protected-route browser navigation. Authenticated feature behavior remains open. The shared temporary browser profile was removed after the three checks.
+
 2026-11-17 UTC — Combined portal candidate d829f699450e stages persisted End Session and paged conversation/reply navigation over live dev 9c85d745fb97. All 23 existing portal regression groups passed against its exact Git tree. The candidate contains only Messaging JavaScript and its cache key 20261118b. Matching WEB4 d51ef1e77854 must serve before portal promotion. Exact backend contracts passed; image 44148463730 remains active. Hosted populated threads and Chat persistence remain open.
 
 2026-11-17 UTC — OPORTAL task cf52aaf makes conversation rows keyboard-accessible and opens real SDK conversation history in pages of 50. It suppresses overlapping page reads, rejects old-thread/session results, escapes message content, supports retry and selects the other participant for Reply. Controlled checks passed paging, escaping, isolation, retry and reply selection. Source syntax and diff checks passed. Combine with the staged termination change before portal promotion. Hosted populated threads and browser interaction remain open. No real messages, downloads or build outputs were created.
