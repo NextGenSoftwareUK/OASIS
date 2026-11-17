@@ -1,3 +1,5 @@
+using NextGenSoftware.OASIS.API.Core.Queries;
+using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Repositories;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -140,38 +142,75 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
             QueryNativeRecordsAsync(sourceName, new[] { new KeyValuePair<string, object>(matchField, matchValue) },
                 fields, limit, connection, cancellationToken);
 
-        public async Task<OASISResult<IReadOnlyList<NativeRecord>>> QueryNativeRecordsAsync(
+        public Task<OASISResult<IReadOnlyList<NativeRecord>>> QueryNativeRecordsAsync(
             string sourceName, IReadOnlyList<KeyValuePair<string, object>> matches, IReadOnlyList<string> fields, int limit,
+            NativeConnection connection = null, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                return QueryNativePredicateRecordsAsync(sourceName, NativeRecordFilter.CaptureEqualities(matches),
+                    fields, limit, connection, cancellationToken);
+            }
+            catch (ArgumentException)
+            {
+                var invalid = new OASISResult<IReadOnlyList<NativeRecord>>();
+                OASISErrorHandling.HandleError(ref invalid, "One to eight typed scalar matches are required.");
+                invalid.ErrorCode = "NATIVE_QUERY_INVALID";
+                return Task.FromResult(invalid);
+            }
+        }
+
+        public async Task<OASISResult<IReadOnlyList<NativeRecord>>> QueryNativePredicateRecordsAsync(
+            string sourceName, IReadOnlyList<NativeRecordFilter> matches, IReadOnlyList<string> fields, int limit,
             NativeConnection connection = null, CancellationToken cancellationToken = default)
         {
             var result = new OASISResult<IReadOnlyList<NativeRecord>>();
             if (connection != null || string.IsNullOrWhiteSpace(sourceName) ||
                 matches == null || matches.Count is < 1 or > 8 ||
-                matches.Any(match => string.IsNullOrWhiteSpace(match.Key) || match.Value is not (string or long)) ||
+                matches.Any(match => match == null || string.IsNullOrWhiteSpace(match.Field) || match.Value is not (string or int or long)) ||
                 fields == null || fields.Count is < 1 or > 32 || fields.Any(string.IsNullOrWhiteSpace) ||
                 fields.Distinct(StringComparer.Ordinal).Count() != fields.Count || limit is < 1 or > 100)
                 return Error("NATIVE_QUERY_INVALID", "Select a configured table, one to eight exact String or Int64 matches, fields and a row limit.");
 
+            matches = NativeRecordFilter.Capture(matches);
+            fields = fields.ToArray();
             try
             {
                 using var lease = await OpenNativeAsync(null, cancellationToken);
                 var schema = await NativeTableColumnsAsync(lease.Connection, sourceName, cancellationToken);
                 var columns = schema.Select(column => column.Name).ToHashSet(StringComparer.Ordinal);
-                if (matches.Any(match => !columns.Contains(match.Key)) || fields.Any(field => !columns.Contains(field)))
+                if (matches.Any(match => !columns.Contains(match.Field)) || fields.Any(field => !columns.Contains(field)))
                     return Error("NATIVE_QUERY_INVALID", "The filter and projection must select named table columns.");
 
                 var keyColumns = schema.Where(column => column.Position > 0).OrderBy(column => column.Position)
                     .Select(column => column.Name).ToArray();
                 var projected = fields.Concat(keyColumns).Distinct(StringComparer.Ordinal).ToArray();
+                using var budget = new SqliteCqlReadBudget(lease.Connection, cancellationToken,
+                    deadline: TimeSpan.FromSeconds(Math.Min(30, NativeImportOptions.ReadTimeout.TotalSeconds)));
                 using var command = lease.Connection.CreateCommand();
                 command.CommandTimeout = Math.Max(1, (int)Math.Ceiling(NativeImportOptions.ReadTimeout.TotalSeconds));
                 var predicates = new List<string>(matches.Count);
                 for (var index = 0; index < matches.Count; index++)
                 {
                     var match = matches[index];
-                    var column = Quote(match.Key);
-                    predicates.Add($"typeof({column}) = $type{index} AND {column} COLLATE BINARY = $match{index}");
-                    command.Parameters.AddWithValue($"$type{index}", match.Value is string ? "text" : "integer");
+                    var column = Quote(match.Field);
+                    var symbol = match.Operator switch
+                    {
+                        CosmicQueryComparisonOperator.Equal => "=",
+                        CosmicQueryComparisonOperator.NotEqual => "<>",
+                        CosmicQueryComparisonOperator.GreaterThan => ">",
+                        CosmicQueryComparisonOperator.GreaterThanOrEqual => ">=",
+                        CosmicQueryComparisonOperator.LessThan => "<",
+                        CosmicQueryComparisonOperator.LessThanOrEqual => "<=",
+                        _ => throw new ArgumentException("Unknown native comparison.")
+                    };
+                    if (match.Function == NativeRecordFunction.Utf16Length)
+                        predicates.Add($"CASE WHEN typeof({column}) = 'text' THEN {SqliteCqlReadBudget.TextStringLengthFunction}({column}) {symbol} $match{index} ELSE 0 END");
+                    else
+                    {
+                        predicates.Add($"typeof({column}) = $type{index} AND {column} COLLATE BINARY {symbol} $match{index}");
+                        command.Parameters.AddWithValue($"$type{index}", match.Value is string ? "text" : "integer");
+                    }
                     command.Parameters.AddWithValue($"$match{index}", match.Value);
                 }
                 command.CommandText = $"SELECT rowid, {string.Join(", ", projected.Select(Quote))} FROM {Quote(sourceName)} " +
@@ -183,6 +222,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 using var reader = await command.ExecuteReaderAsync(cancellationToken);
                 while (await reader.ReadAsync(cancellationToken))
                 {
+                    budget.Check();
                     var values = new Dictionary<string, object>(StringComparer.Ordinal);
                     for (var index = 0; index < projected.Length; index++)
                     {
@@ -203,9 +243,18 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     records.Add(new NativeRecord(sourceName, key, fields.ToDictionary(field => field,
                         field => values[field], StringComparer.Ordinal)));
                 }
+                budget.Check();
                 result.Result = records.AsReadOnly();
                 result.IsLoaded = true;
                 return result;
+            }
+            catch (SqliteCqlDeadlineException)
+            {
+                return Error("NATIVE_QUERY_TIMEOUT", "The native SQLite query exceeded its deadline.");
+            }
+            catch (SqliteCqlResourceException)
+            {
+                return Error("NATIVE_QUERY_RESOURCE_LIMIT", "The native SQLite query exceeded its instruction budget.");
             }
             catch (Exception cause) when (cause is SqliteException or InvalidOperationException or ArgumentException or IOException)
             {
