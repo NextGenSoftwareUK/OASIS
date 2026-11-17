@@ -2297,3 +2297,6 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 
 
 2026-11-17 UTC — OAPP Launcher/Holon Diff checks extend the retained in-memory regression suite to six screens. No real requests, backend writes, browser profiles, runtime downloads or build outputs. Candidate f5a454fc92f5 temporary Git index and lock removed in finally. Only source/tests and compact docs retained.
+
+
+2026-11-17 UTC — Designer export tested against an in-memory Blob; the temporary object URL was revoked and no file downloaded. Seven optional-popup groups use controlled in-memory responses/timers without network writes. Candidate 514affb52b6d temporary index/lock removed. Retained regression scripts are source, not generated artifacts. No local builds, environments, profiles or disposable databases.
