@@ -47,6 +47,28 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests
         }
 
         [Fact]
+        public void VirtualMappingDefinitionIsPrivateAndContainsOnlySourceMetadata()
+        {
+            const string authority = "mongodb://example.test/retail";
+            var mapping = new VirtualHolonMapping(Guid.NewGuid(), 1, Owner, ProviderType.MongoDBOASIS,
+                "people", "retail", authority, new Dictionary<string, string> { ["Name"] = "label" });
+            var definition = mapping.ToDefinitionHolon();
+            Assert.False(definition.IsPublic);
+            Assert.Equal(Owner, definition.CreatedByAvatarId);
+            Assert.Equal("MongoDBOASIS", definition.MetaData["oasis.virtual.provider"]);
+            Assert.Equal("people", definition.MetaData["oasis.virtual.source"]);
+            Assert.DoesNotContain(authority, definition.MetaData.Values.OfType<string>());
+
+            var restored = VirtualHolonMapping.FromDefinitionHolon(Owner, definition, authority);
+            Assert.Equal(mapping.Id, restored.Id);
+            Assert.Equal("label", restored.Fields["Name"]);
+            Assert.Throws<ArgumentException>(() => VirtualHolonMapping.FromDefinitionHolon(Guid.NewGuid(),
+                definition, authority));
+            Assert.Throws<ArgumentException>(() => VirtualHolonMapping.FromDefinitionHolon(Owner, definition,
+                "mongodb://other.test/retail"));
+        }
+
+        [Fact]
         public void StableIdDependsOnlyOnProviderSourceAndKey()
         {
             var id = NativeRecordHolonMapper.StableHolonId(Owner, ProviderType.MongoDBOASIS, "people", "1");
