@@ -117,6 +117,14 @@ jobs:
             dotnet test Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.UnitTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~HederaPublicAccountMetadataTests|FullyQualifiedName~HederaPublicReadSchedulingTests'
             if ($LASTEXITCODE) { throw 'Hedera public account qualification failed.' }
           }
+      - name: Verify Azure Cosmos DB virtual query and identity rules
+        if: ${{ inputs.source_ref != '' }}
+        shell: pwsh
+        run: |
+          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cosmos-virtual-holon-ci -Operation {
+            dotnet test 'Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.UnitTests' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CosmosNativeDataImportTests'
+            if ($LASTEXITCODE) { throw 'Cosmos DB virtual query qualification failed.' }
+          }
       - name: Verify configured SQLite Virtual Holon reads
         if: ${{ inputs.source_ref != '' }}
         shell: pwsh
