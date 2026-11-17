@@ -1,5 +1,7 @@
 # COSMIC cleanup ledger for the recovery laptop
 
+17 November UTC. The OR join backend and website changes used temporary Git indexes and one disposable exact website snapshot for 272 tests. Their owning processes exited and the directories were removed. Native and image qualification runs on GitHub Actions. No local runtime, browser profile, build output or database was created for this batch.
+
 17 November UTC. The live GUID test used nine private synthetic fixture holons. Each was conditionally hard deleted with COSMIC.ProviderRevisionId and then verified absent on its original provider. The signing session was revoked, the probe journal was removed, and no cql-guid-live JSON remained in the laptop temp folder. Five-file combined qualification source used one temporary Git index, removed after creating the commit. The older Boolean journals remain pending the normal expiry sweep.
 
 17 November UTC. The post-Boolean HoloOASIS catalogue and leaf query kept their temporary credentials and output in memory. Revocation was acknowledged. The exact site snapshot for 271 Node tests and the temporary Git indexes for nullable UInt64, decimal and UTC work were removed after use. No model weights, provider installations, generated database files or browser profiles were created. Both earlier nonsecret Boolean fixture journals remain held for the configured expiration sweep.
