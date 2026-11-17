@@ -1,3 +1,4 @@
+using NextGenSoftware.OASIS.API.Core.Queries;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -130,6 +131,54 @@ namespace NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests
             Assert.Equal("A-updated", refreshed.MetaData["sku"]);
             Assert.Equal("A", snapshot.MetaData["sku"]);
 
+        }
+
+        [Theory]
+        [InlineData("UTF-8")]
+        [InlineData("UTF-16le")]
+        [InlineData("UTF-16be")]
+        public async Task TypedNativePredicatesPreserveUnicodeEncodingAndReadOnlySource(string encoding)
+        {
+            var file = Path.Combine(_folder, "encoded.db");
+            Assert.False(File.Exists(file));
+            using (var connection = new SqliteConnection($"Data Source={file}"))
+            {
+                await connection.OpenAsync();
+                using var create = connection.CreateCommand();
+                create.CommandText = $"PRAGMA encoding='{encoding}'; CREATE TABLE records (id INTEGER PRIMARY KEY, value, category TEXT);";
+                await create.ExecuteNonQueryAsync();
+                object[] values = { "\U0001F600", "x", new byte[] { 0xf0, 0x9f, 0x98, 0x80 }, "abc\u0000def" };
+                for (var index = 0; index < values.Length; index++)
+                {
+                    using var insert = connection.CreateCommand();
+                    insert.CommandText = "INSERT INTO records VALUES ($id, $value, $category)";
+                    insert.Parameters.AddWithValue("$id", index + 1);
+                    insert.Parameters.AddWithValue("$value", values[index]);
+                    insert.Parameters.AddWithValue("$category", index == 1 ? "case" : "Case");
+                    Assert.Equal(1, await insert.ExecuteNonQueryAsync());
+                }
+            }
+            var before = File.ReadAllBytes(file);
+            var provider = new SQLLiteDBOASIS($"Data Source={OasisPath}")
+                { NativeImportConnectionString = $"Data Source={file}" };
+            var filters = new[]
+            {
+                new NativeRecordFilter("value", CosmicQueryComparisonOperator.Equal, 2L, NativeRecordFunction.Utf16Length),
+                new NativeRecordFilter("value", CosmicQueryComparisonOperator.GreaterThan, 2L, NativeRecordFunction.Utf16Length),
+                new NativeRecordFilter("id", CosmicQueryComparisonOperator.GreaterThan, 3L),
+                new NativeRecordFilter("category", CosmicQueryComparisonOperator.NotEqual, "Case")
+            };
+            var expected = new[] { "\U0001F600", "abc\u0000def", "abc\u0000def", "x" };
+            for (var index = 0; index < filters.Length; index++)
+            {
+                var read = await provider.QueryNativePredicateRecordsAsync("records", new[] { filters[index] },
+                    new[] { "value" }, 1);
+                Assert.False(read.IsError, read.Message + read.Exception);
+                var row = Assert.Single(read.Result);
+                Assert.Equal(expected[index], row.Fields["value"]);
+                Assert.Single(row.Fields);
+            }
+            Assert.Equal(before, File.ReadAllBytes(file));
         }
 
         [Fact]
