@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-17 UTC — HoloNET metadata and release workflow preparation used temporary alternate Git indexes, which were automatically removed. The existing shared HoloNET checkout changes were untouched. Package builds, test output, and release assets are being generated on GitHub runner 43991651595. The separate publication-source artifact remains useful until the release provenance is verified. No local package build, dependency installation, or new checkout was created.
+
 2026-11-17 UTC — OPORTAL subscription checks ran with the existing Node installation. Temporarily included two tracked test inputs in the existing sparse checkout, then restored its original selection. No build, dependency installation, browser profile or local results were created.
 
 2026-11-17 UTC — After live HoloOASIS and signed WEB4 verification, removed the exact staged maintenance binary and working directory from the dev volume, including both disposable snapshots, checksum files and key symlinks. Verified both paths absent. GitHub artifact 14282211467 deletion returned HTTP 204. Unlinked and removed the empty dev-only CLI scratch directory. The signed probe created one ordinary sandbox avatar and sent its own DELETE, which returned HTTP 200. The probe checked the outer wrapper instead of the nested deletion result, so individual deletion is unverified. Verified the dev sandbox cleanup setting is enabled. No additional fixture or duplicate query was created to compensate.
