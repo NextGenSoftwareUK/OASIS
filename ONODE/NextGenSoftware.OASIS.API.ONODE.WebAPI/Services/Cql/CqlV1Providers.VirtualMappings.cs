@@ -15,12 +15,12 @@ public sealed partial class CqlV1Providers
 {
     Task<OASISResult<IReadOnlyList<VirtualHolonRead>>> ICqlVirtualMappingReader.QueryVirtualMappingAsync(
         Guid mappingId, Guid actor, CqlVirtualProjection projection, CancellationToken cancellationToken) =>
-        QueryOwnedVirtualMappingAsync(CreateManager(Resolve(null)), mappingId, actor, ProviderType.MongoDBOASIS,
+        QueryOwnedVirtualMappingAsync(CreateManager(Resolve(null)), mappingId, actor, null,
             projection.MatchField, projection.MatchValue, projection.ProjectedFields, CqlVirtualProjection.MaximumRows,
             cancellationToken);
 
     internal static async Task<OASISResult<IReadOnlyList<VirtualHolonRead>>> QueryOwnedVirtualMappingAsync(
-        HolonManager manager, Guid mappingId, Guid actor, ProviderType source, string matchField, object matchValue,
+        HolonManager manager, Guid mappingId, Guid actor, ProviderType? requestedSource, string matchField, object matchValue,
         IReadOnlyList<string> selectedFields, int limit, CancellationToken cancellationToken)
     {
         var context = manager.CreateRequestContext(new ProviderRoutingOverrides(
@@ -39,8 +39,12 @@ public sealed partial class CqlV1Providers
             return Refuse("VIRTUAL_MAPPING_NOT_FOUND", "The mapping is unavailable.");
 
         string connectionName;
+        ProviderType source;
         try
         {
+            source = VirtualHolonMapping.GetDefinitionProvider(actor, loaded.Result);
+            if (requestedSource.HasValue && requestedSource.Value != source)
+                return Refuse("VIRTUAL_MAPPING_NOT_FOUND", "The mapping is unavailable.");
             connectionName = VirtualHolonMapping.GetDefinitionConnectionName(actor, loaded.Result, source);
         }
         catch (ArgumentException)
@@ -79,7 +83,7 @@ public sealed partial class CqlV1Providers
     {
         if (connectionName == VirtualHolonMapping.SandboxConnectionName)
         {
-            if (!ProviderFaultGate.IsEnabled || provider != ProviderType.MongoDBOASIS || SandboxFields(sourceName) == null)
+            if (!ProviderFaultGate.IsEnabled || SandboxFields(provider, sourceName) == null)
                 return null;
             var resolved = ProviderManager.Instance.ResolveStorageProvider(provider);
             return !resolved.IsError && resolved.Result is INativeDataQueryProvider configured
@@ -97,15 +101,15 @@ public sealed partial class CqlV1Providers
 
     internal static bool IsSandboxVirtualMapping(ProviderType provider, string sourceName,
         IReadOnlyDictionary<string, string> fields) =>
-        ProviderFaultGate.IsEnabled && provider == ProviderType.MongoDBOASIS &&
-        SandboxFields(sourceName) is { } approved && fields != null &&
+        ProviderFaultGate.IsEnabled && SandboxFields(provider, sourceName) is { } approved && fields != null &&
         fields.Values.All(field => approved.Contains(field, StringComparer.Ordinal));
 
-    private static string[] SandboxFields(string sourceName) => sourceName switch
+    private static string[] SandboxFields(ProviderType provider, string sourceName) => (provider, sourceName) switch
     {
-        "customers" => new[] { "name", "city", "tier", "marketingOptIn" },
-        "products" => new[] { "title", "summary", "inStock" },
-        "orders" => new[] { "status" },
+        (ProviderType.MongoDBOASIS, "customers") => new[] { "name", "city", "tier", "marketingOptIn" },
+        (ProviderType.MongoDBOASIS, "products") => new[] { "title", "summary", "inStock" },
+        (ProviderType.MongoDBOASIS, "orders") => new[] { "status" },
+        (ProviderType.SQLLiteDBOASIS, "suppliers") => new[] { "name", "country", "description" },
         _ => null
     };
 

@@ -117,6 +117,14 @@ jobs:
             dotnet test Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.UnitTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~HederaPublicAccountMetadataTests|FullyQualifiedName~HederaPublicReadSchedulingTests'
             if ($LASTEXITCODE) { throw 'Hedera public account qualification failed.' }
           }
+      - name: Verify configured SQLite Virtual Holon reads
+        if: ${{ inputs.source_ref != '' }}
+        shell: pwsh
+        run: |
+          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner sqlite-virtual-holon-ci -Operation {
+            dotnet test 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~SqliteNativeDataImportTests'
+            if ($LASTEXITCODE) { throw 'SQLite virtual Holon qualification failed.' }
+          }
       - name: Verify native entity-selected All on three stores
         if: ${{ inputs.source_ref != '' }}
         shell: pwsh
