@@ -1,5 +1,7 @@
 # COSMIC ORM / CQL current status
 
+17 November UTC. Virtual Holon metadata mapping is a top priority alongside the live SQL-like CQL and Ask Your Data demo. The first acceptance target is one isolated MongoDB collection via the shipping provider. Existing native import can read and map external records but calls the Holon save path. Reuse its connection admission and scalar normalization where appropriate. The virtual query needs bounded native predicate pushdown and an ephemeral result boundary with stable identity, access isolation and zero row persistence. See the [implementation roadmap](COSMIC_ORM_IMPLEMENTATION_ROADMAP.md).
+
 ### Outer join filtering candidate
 
 Native LINQ now translates a post-join predicate on the preserved side into a native input

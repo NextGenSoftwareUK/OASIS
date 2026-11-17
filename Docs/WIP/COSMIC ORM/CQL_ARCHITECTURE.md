@@ -1,11 +1,15 @@
 # CQL architecture
 
-## Proposed virtual import boundary
+## Virtual Holon mapping boundary
 
 See the [Virtual Holons import proposal](OASIS_Virtual_Holons_Import_Proposal.docx). Materialized import persists owned Holon payloads for
 HyperDrive replication. Virtual import would persist a collection mapping
 and resolve bounded native queries into ephemeral Holons with stable IDs.
-Keep mapping revisions in provenance and keep sensitive source keys private.
+CQL can query approved mapping metadata for discovery and approved record fields
+through bounded, typed native queries. Record provenance includes the mapping
+revision, provider, fetch time and freshness. Keep credential references server
+side and avoid exposing sensitive source keys. Treat source availability and
+complete-results evidence as provider-specific capabilities.
 Replicating the mapping carries the reference. Reading the payload still
 requires authorized access to the native provider.
 

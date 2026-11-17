@@ -4,14 +4,13 @@
 [Dapr's bounded live read/federation flow](DAPR_CQL_MVP.md) passes source durability,
 snapshot reuse/privacy and exact SQLite/Neo4j replicas. Its browser gate remains
 open. The dated counts below are retained historical checkpoints; CURRENT_STATUS
-owns current release state. Full provider implementation, import modes and
-EF/NHibernate parity remain incomplete and follow the demo/MVP priorities.
+owns current release state. Full provider implementation and EF/NHibernate parity remain incomplete.
+Virtual Holon mapping is a top priority alongside the live WEB4 demo, SQL-like CQL and Ask Your Data.
 
-## Virtual and hybrid native imports after the WEB4 demo
+## Virtual Holon mapping and hybrid import
 
-The live breadth-first WEB4 CQL and HyperDrive demo remains the priority.
 The [Virtual Holons import proposal](OASIS_Virtual_Holons_Import_Proposal.docx)
-tracks three post-demo modes.
+and the 12 November integrated WEB4 roadmap define three modes.
 
 - **Materialized import** stores owned Holon payloads through the existing
   provider Import and ImportAll paths for HyperDrive replication.
@@ -20,10 +19,16 @@ tracks three post-demo modes.
 - **Hybrid import** resolves records on demand and can materialize selected
   records for caching or explicit owned snapshot saves.
 
-Audit the existing import paths and CQL source profiles, then prove one
-collection-level virtual mapping end to end. Follow with mixed-source
-federation, explicit owned snapshot saves, and opt-in hybrid caching.
-Validate each provider's capabilities before extending the feature to it.
+Start with an isolated external MongoDB collection through the shipping MongoDBOASIS
+provider. Register one collection mapping with queryable metadata, an approved typed
+field map, stable key scheme, version, scope and a server-side credential reference.
+CQL must authorize the caller, push supported predicates, projection and bounds into
+the native query, and return ephemeral Holons with stable IDs and provenance. Verify
+source changes, tenant isolation, unsupported query rejection, response latency and
+storage growth. Check that registration persists only the mapping and querying creates
+zero source-row Holons or replication obligations. Follow with virtual plus materialized
+federation, explicit snapshots and opt-in hybrid caching. Grow provider coverage using
+each provider's verified operation capabilities.
 
 Updated 2 November 2026. Full programme remains incomplete. [CURRENT_STATUS](CURRENT_STATUS.md) owns release state and the exact next action.
 

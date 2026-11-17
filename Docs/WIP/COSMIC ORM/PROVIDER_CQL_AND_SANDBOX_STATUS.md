@@ -14,7 +14,7 @@ Updated 14 November 2026 from the accepted Development baseline and retained qua
 | Full WEB4 image | Corrected immutable1c9c39904 image37e966a8 passes exact package and Docker/API/native startup42534822963 | Required TRON+Urbit readers/dependency graph, running Docker healthy gate, API/native probes, exit0/no OOM and owned cleanup verified; no deployment/live CQL acceptance. Earlier missing-curl candidate54be8845a rejected |
 | Core storage suite | The HyperDrive matrix records 53 entries with reconciled native core-storage-v2 results of 52/52. | Coverage is for scoped storage conformance. |
 | Full provider implementation | Incomplete; no defensible per-provider 100% interface percentage | SDK/API source use is evidence of integration, not full native certification; existing placeholders and shipping-path gaps remain explicit |
-| Virtual and hybrid imports | Designed and on roadmap | Existing materialized import/replication exists; universal pointer/lazy/hybrid import modes are not claimed implemented |
+| Virtual and hybrid imports | Top priority alongside the WEB4 demo | Materialized import and replication exist. The first collection-level virtual mapping still needs native and live acceptance. [Roadmap](COSMIC_ORM_IMPLEMENTATION_ROADMAP.md) |
 
 Historical sealed live HTTP acceptance is retained for deployment `9d5e9388` at `ab0e9b2c`. Polkadot passed both public header presets on `bbb4706313`. The TRON CQL reader requires restricted access, Supabase hosted qualification requires a dedicated HTTPS teaching fixture, and GOMap live enrollment requires a reviewed dedicated HTTPS OSRM origin. See [current status](CURRENT_STATUS.md) and [GOMap evidence](GOMAP_PUBLIC_SOURCE_STATUS.md).
 
