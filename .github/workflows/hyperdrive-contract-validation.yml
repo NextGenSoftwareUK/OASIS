@@ -111,7 +111,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          docker run --detach --name seal-routing-mongo -p 27029:27029 mongo:8.0.15 --port 27029 --replSet oasisRecoveryRs --bind_ip_all
+          docker run --detach --name seal-routing-mongo -p 127.0.0.1:27029:27029 mongo:8.0.15 --port 27029 --replSet oasisRecoveryRs --bind_ip_all
           for attempt in $(seq 1 60); do
             if docker exec seal-routing-mongo mongosh --port 27029 --quiet --eval 'db.adminCommand({ping:1})' >/dev/null 2>&1; then break; fi
             sleep 1
@@ -137,7 +137,7 @@ jobs:
       - name: Stop owned native seal routing fixture
         if: ${{ always() && inputs.native_seal }}
         shell: bash
-        run: docker rm --force seal-routing-mongo
+        run: docker rm --force --volumes seal-routing-mongo
 
       - name: Preserve HyperDrive behavioral evidence
         if: always()
