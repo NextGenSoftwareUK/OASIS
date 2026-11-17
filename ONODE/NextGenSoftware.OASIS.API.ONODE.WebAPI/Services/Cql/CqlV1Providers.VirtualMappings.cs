@@ -134,6 +134,8 @@ public sealed partial class CqlV1Providers
         (ProviderType.MongoDBOASIS, "products") => new[] { "title", "summary", "inStock" },
         (ProviderType.MongoDBOASIS, "orders") => new[] { "status" },
         (ProviderType.SQLLiteDBOASIS, "suppliers") => new[] { "name", "country", "description" },
+        (ProviderType.Neo4jOASIS, var label) when label == SandboxOptions.Current.DemoNeo4jLabel =>
+            new[] { "handle", "name", "tier", "points" },
         _ => null
     };
 
