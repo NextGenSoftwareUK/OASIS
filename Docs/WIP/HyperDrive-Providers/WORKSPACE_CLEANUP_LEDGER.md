@@ -2309,3 +2309,6 @@ Supabase receipt qualification reuses the disposable PostgREST fixture. No local
 
 
 2026-11-17 UTC — Final unmodified hosted Edge recheck ran only Global Search and Holon Browser after the corrective templates served. Both passed; owned process tree, browser profile and temporary dependency removed. No sandbox identity or backend records created. Hosted byte checks fetched only the changed loader and two templates into memory.
+
+
+2026-11-17 UTC — Holon-read correction uses retained source and parent-repo artifact tests. Both qualification candidates used one temporary index each, removed with lock in finally after pushes. No local build/test workers, runtime downloads, database copies, browser profiles or backend records. Exact CI qualification is remote; no artifacts downloaded. Superseded qualification cancelled and confirmed terminal. No image build was queued before compile/contract acceptance.
