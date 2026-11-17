@@ -24,6 +24,7 @@ command) is [CQL_WEB4_AND_STAR_CLI.md](../../CQL_WEB4_AND_STAR_CLI.md); the lang
 | POST | `/api/data/query-cql/indexed/scalar` | Scalar over an indexed alias |
 | POST | `/api/data/query-cql/scalar` | Count, sum and other scalars |
 | POST | `/api/data/query-cql/projection` | Selected columns |
+| POST | `/api/data/query-cql/projection/mixed` | Selected columns from stored Holons and one private Virtual Holon mapping |
 | POST | `/api/data/query-cql/grouped` | Grouping and aggregates |
 | POST | `/api/data/query-cql/join` | Bounded join of two sources |
 | POST | `/api/data/query-cql/composition` | Staged composition over a projection |
@@ -44,6 +45,45 @@ Content-Type: application/json
   "take": 10
 }
 ```
+
+## Mixed Virtual Holon projection
+
+The mixed route requires a bearer token for the avatar that owns the saved mapping.
+Use an admitted storage provider and the same metadata names and scalar types in
+the stored records and the mapping. The example reads stored MongoDB Holons
+alongside live records from the mapping's configured source.
+
+```http
+POST /api/data/query-cql/projection/mixed
+Authorization: Bearer YOUR_TOKEN
+Idempotency-Key: 5067d9d8-c709-43d8-9ca4-74fabb585006
+Content-Type: application/json
+
+{
+  "provider": "MongoDBOASIS",
+  "virtualMappingId": "2fef1cbc-feb8-4ed3-b7de-5f406f769149",
+  "filters": [
+    { "metadataPath": ["tier"], "scalar": "String", "operator": "Equal", "value": "gold" }
+  ],
+  "columns": [
+    { "field": "Id", "alias": "Id" },
+    { "metadataPath": ["name"], "valueType": "String", "alias": "Name" }
+  ],
+  "orderBy": "Id",
+  "take": 10
+}
+```
+
+Replace the example mapping ID with the ID of your saved mapping. The response
+includes a provenance entry at the same index as every row. It identifies the
+provider and representation. Virtual rows also identify the mapping revision and
+fetch time. The read resolves native records on demand without saving their payloads.
+
+The mixed route admits three measured provider reads for the stored projection,
+the owner-scoped definition and the native source. Ordinary projection permits
+one read. The mixed projection supports one typed metadata equality predicate,
+a shared selected-column shape and ascending ID order. If either branch exceeds
+its bounded result window, narrow the predicate before retrying.
 
 ## STAR CLI
 

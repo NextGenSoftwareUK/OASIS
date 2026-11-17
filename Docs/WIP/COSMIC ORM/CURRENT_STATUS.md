@@ -1,5 +1,7 @@
 # COSMIC ORM / CQL current status
 
+17 November UTC. Exact mixed-route candidate 5af519f1c0c7 is in [source qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44066969648) and [image qualification](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44066975783). The matching website source 42f1935baabc passed all 285 tests. The API guide now records the request example, provenance, and route budgets. Development still requires the qualified revision, saved admission policy, and live browser verification.
+
 17 November UTC. The mixed-route Free admission dry check preserved all ten existing WEB4 Development route policies and all 107 query tariffs. It adds only a three-attempt POST projection/mixed policy. No hosted settings changed. WEB4 feature CI caught a stale parent AutoMapper 16.2.0 pin after the Core alignment. The feature pin now matches the serving Development project at 16.3.0.
 
 17 November UTC. Mixed Virtual Holon CQL now has an explicit three-attempt candidate route. The stored projection, definition lookup and mapped native source each use the admitted attempt owner. The ordinary projection retains exactly one attempt. The Free profile, client route selection and matching live rollout must be verified together.
