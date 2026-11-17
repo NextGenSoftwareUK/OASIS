@@ -30,3 +30,7 @@ Establish each provider's actual native state and error code before treating an 
 Verify that partial deletion cannot remove the only discovery copy before other stores are reconciled. Keep real errors and owner-marker checks, preserve concurrent fixtures, and prove owned holon/account/history/entitlement cleanup separately. Existing named owner actions remain in the shared ACTIONS-FOR-DAVID document; this audit adds no account/approval request.
 
 The separately qualified holon-read correction is not a fix or acceptance receipt for sandbox avatar reclamation.
+
+## Diagnostic increment
+
+Task 3f46972be60c adds provider/ErrorCode-only failure logging at the host callback, preserving the existing failed result. It is not yet compiled/deployed and is excluded from image candidate 9302000060fc. SQLite source has a typed RecordNotFound deletion outcome for an absent avatar; the observed runtime warning does not establish that outcome. Core already exposes RouteRequestToProviderAsync for independent no-failover observations during an intentional multi-provider aggregation. Any cleanup completion check must preserve admission and use authoritative provider state; it must not catch a native failure and assume absence.
