@@ -1,5 +1,7 @@
 # COSMIC ORM / CQL current status
 
+2026-11-17 UTC — Moved the existing Cosmos query/identity and opt-in native emulator checks directly after the WEB4 build in future qualification dispatches. All check bodies and conditions are byte-for-byte preserved; the complete broader workflow still follows. This exposes native test-project compile errors earlier. Current exact candidate qualification 44141150386 and prior candidate image 44138745692 remain active. No local build, package download or fixture was created.
+
 2026-11-17 UTC — Combined candidate compilation found omitted cloud federation helper references. Rebuilt the Cosmos integration project from the current Development file, replacing only linked WEB4 sources with the shipping WEB4 project reference. An XML comparison verifies every other property, reference and conditional compile entry is preserved. Replacement candidate 919790a8548cee60aa731a2277830600f4dba176 awaits exact native qualification. Hosted Azure remains deferred by David in ACTIONS-FOR-DAVID; this does not provision a hosted Cosmos account.
 
 2026-11-17 UTC — Development advanced to 3527154a118d1a9429c8c07db5a0cc2e2d2ba7e4 with the verified MessagingController fix. The Cosmos batch changes five separate paths. Staged combined candidate d68ee51d086ed657d9267e280786f7214f80dd65 directly on that revision while retaining the conditional native routing test configuration. Exact combined qualification is required before Development integration. The earlier image run remains active on its recorded predecessor.

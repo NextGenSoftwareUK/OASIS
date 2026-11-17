@@ -64,6 +64,42 @@ jobs:
           pwsh -File Scripts/validate_web6_web4_metering_cutover.ps1
       - name: Build WEB4 for compiled-controller protocol tests
         run: dotnet build ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj -c Debug -m:1
+      - name: Verify Azure Cosmos DB virtual query and identity rules
+        if: ${{ inputs.source_ref != '' }}
+        shell: pwsh
+        run: |
+          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cosmos-virtual-holon-ci -Operation {
+            dotnet test 'Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.UnitTests' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CosmosNativeDataImportTests'
+            if ($LASTEXITCODE) { throw 'Cosmos DB virtual query qualification failed.' }
+          }
+      - name: Verify native Azure Cosmos DB virtual queries
+        if: ${{ inputs.source_ref != '' && inputs.cosmos_native }}
+        shell: pwsh
+        env:
+          OASIS_COSMOSDB_NATIVE: '1'
+        run: |
+          $image = 'mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator@sha256:9a4f69121f20c1d6502db84625c71ebb441ab61b01880a7b2d3d8031c6dac429'
+          $fixture = 'cosmic-native-virtual-cosmos'
+          # Provider activation creates three containers and the virtual query case creates two more.
+          docker run --detach --name $fixture --publish 127.0.0.1:8081:8081 --env AZURE_COSMOS_EMULATOR_PARTITION_COUNT=8 $image
+          if ($LASTEXITCODE) { throw 'Cosmos emulator failed to start.' }
+          try {
+            $ready = $false
+            for ($attempt = 0; $attempt -lt 90; $attempt++) {
+              $code = curl --insecure --silent --output /dev/null --max-time 2 --write-out '%{http_code}' https://127.0.0.1:8081/
+              if ($LASTEXITCODE -eq 0 -and $code -in '200','401') { $ready = $true; break }
+              Start-Sleep -Seconds 2
+            }
+            if (!$ready) { throw 'Cosmos emulator did not become ready.' }
+            & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cosmos-virtual-native-ci -Operation {
+              dotnet test 'Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.IntegrationTests' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~VirtualNativeQueryFiltersBeforeLimitAndProtectsImportIdentity'
+              if ($LASTEXITCODE) { throw 'Native Cosmos virtual query failed.' }
+            }
+          }
+          finally {
+            docker rm --force $fixture | Out-Null
+            if ($LASTEXITCODE) { throw 'Owned Cosmos emulator cleanup failed.' }
+          }
       - name: WEB4 transactions, ownership, migration and failure injection
         run: dotnet test ONODE/Tests/SubscriptionLedger.ProtocolTests/SubscriptionLedger.ProtocolTests.csproj -m:1 --logger trx --results-directory TestResults/authority
       - name: WEB4 application unit tests
@@ -120,42 +156,6 @@ jobs:
           & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner hedera-cql-ci -Operation {
             dotnet test Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.UnitTests /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~HederaPublicAccountMetadataTests|FullyQualifiedName~HederaPublicReadSchedulingTests'
             if ($LASTEXITCODE) { throw 'Hedera public account qualification failed.' }
-          }
-      - name: Verify Azure Cosmos DB virtual query and identity rules
-        if: ${{ inputs.source_ref != '' }}
-        shell: pwsh
-        run: |
-          & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cosmos-virtual-holon-ci -Operation {
-            dotnet test 'Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.UnitTests' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~CosmosNativeDataImportTests'
-            if ($LASTEXITCODE) { throw 'Cosmos DB virtual query qualification failed.' }
-          }
-      - name: Verify native Azure Cosmos DB virtual queries
-        if: ${{ inputs.source_ref != '' && inputs.cosmos_native }}
-        shell: pwsh
-        env:
-          OASIS_COSMOSDB_NATIVE: '1'
-        run: |
-          $image = 'mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator@sha256:9a4f69121f20c1d6502db84625c71ebb441ab61b01880a7b2d3d8031c6dac429'
-          $fixture = 'cosmic-native-virtual-cosmos'
-          # Provider activation creates three containers and the virtual query case creates two more.
-          docker run --detach --name $fixture --publish 127.0.0.1:8081:8081 --env AZURE_COSMOS_EMULATOR_PARTITION_COUNT=8 $image
-          if ($LASTEXITCODE) { throw 'Cosmos emulator failed to start.' }
-          try {
-            $ready = $false
-            for ($attempt = 0; $attempt -lt 90; $attempt++) {
-              $code = curl --insecure --silent --output /dev/null --max-time 2 --write-out '%{http_code}' https://127.0.0.1:8081/
-              if ($LASTEXITCODE -eq 0 -and $code -in '200','401') { $ready = $true; break }
-              Start-Sleep -Seconds 2
-            }
-            if (!$ready) { throw 'Cosmos emulator did not become ready.' }
-            & Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner cosmos-virtual-native-ci -Operation {
-              dotnet test 'Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.IntegrationTests' /m:2 /nr:false /p:UseSharedCompilation=false --filter 'FullyQualifiedName~VirtualNativeQueryFiltersBeforeLimitAndProtectsImportIdentity'
-              if ($LASTEXITCODE) { throw 'Native Cosmos virtual query failed.' }
-            }
-          }
-          finally {
-            docker rm --force $fixture | Out-Null
-            if ($LASTEXITCODE) { throw 'Owned Cosmos emulator cleanup failed.' }
           }
       - name: Verify configured SQLite Virtual Holon reads
         if: ${{ inputs.source_ref != '' }}
