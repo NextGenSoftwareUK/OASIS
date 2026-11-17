@@ -1,3 +1,4 @@
+using NextGenSoftware.OASIS.API.Core.Queries;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -143,22 +144,56 @@ public partial class MongoDBOASIS : INativeDataQueryProvider
         QueryNativeRecordsAsync(sourceName, new[] { new KeyValuePair<string, object>(matchField, matchValue) },
             fields, limit, connection, cancellationToken);
 
-    public async Task<OASISResult<IReadOnlyList<NativeRecord>>> QueryNativeRecordsAsync(
+    public Task<OASISResult<IReadOnlyList<NativeRecord>>> QueryNativeRecordsAsync(
         string sourceName, IReadOnlyList<KeyValuePair<string, object>> matches, IReadOnlyList<string> fields, int limit,
+        NativeConnection connection = null, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            return QueryNativePredicateRecordsAsync(sourceName, NativeRecordFilter.CaptureEqualities(matches),
+                fields, limit, connection, cancellationToken);
+        }
+        catch (ArgumentException)
+        {
+            return Task.FromResult(Refuse(new OASISResult<IReadOnlyList<NativeRecord>>(),
+                "One to eight typed scalar matches are required.", "NATIVE_QUERY_INVALID"));
+        }
+    }
+
+    public async Task<OASISResult<IReadOnlyList<NativeRecord>>> QueryNativePredicateRecordsAsync(
+        string sourceName, IReadOnlyList<NativeRecordFilter> matches, IReadOnlyList<string> fields, int limit,
         NativeConnection connection = null, CancellationToken cancellationToken = default)
     {
         var result = new OASISResult<IReadOnlyList<NativeRecord>>();
         if (string.IsNullOrWhiteSpace(sourceName) || sourceName.StartsWith("system.", StringComparison.Ordinal)
             || matches == null || matches.Count is < 1 or > 8
-            || matches.Any(match => !IsNativeScalarField(match.Key)) || fields == null || fields.Count is < 1 or > 32
+            || matches.Any(match => match == null || !IsNativeScalarField(match.Field)) || fields == null || fields.Count is < 1 or > 32
             || fields.Any(field => field == "_id" || !IsNativeScalarField(field))
             || fields.Distinct(StringComparer.Ordinal).Count() != fields.Count || limit is < 1 or > 100)
             return Refuse(result, "A native collection, one to eight exact scalar matches, one to 32 unique fields and a limit of one to 100 are required.",
                 "NATIVE_QUERY_INVALID");
 
+        matches = NativeRecordFilter.Capture(matches);
+        fields = fields.ToArray();
         var filters = new List<BsonDocument>(matches.Count);
         foreach (var match in matches)
         {
+            if (match.Function == NativeRecordFunction.Utf16Length)
+            {
+                filters.Add(new BsonDocument("$expr", MongoCqlTranslator.Utf16LengthComparison(
+                    new BsonString("$" + match.Field), match.Operator, (long)match.Value)));
+                continue;
+            }
+            var symbol = match.Operator switch
+            {
+                CosmicQueryComparisonOperator.Equal => "$eq",
+                CosmicQueryComparisonOperator.NotEqual => "$ne",
+                CosmicQueryComparisonOperator.GreaterThan => "$gt",
+                CosmicQueryComparisonOperator.GreaterThanOrEqual => "$gte",
+                CosmicQueryComparisonOperator.LessThan => "$lt",
+                CosmicQueryComparisonOperator.LessThanOrEqual => "$lte",
+                _ => throw new ArgumentException("Unknown native comparison.")
+            };
             (BsonValue literal, string type) = match.Value switch
             {
                 string text when text.Length <= 4096 => ((BsonValue)new BsonString(text), "string"),
@@ -170,12 +205,12 @@ public partial class MongoDBOASIS : INativeDataQueryProvider
             if (literal == null)
                 return Refuse(result, "The exact match requires a string, Boolean, Int32 or Int64.", "NATIVE_QUERY_INVALID");
 
-            // Equality can use a native index. The type check excludes arrays and BSON numeric coercion.
+            // Native comparisons can use a source index. The exact type guard excludes arrays and numeric coercion.
             filters.Add(new BsonDocument
             {
-                { match.Key, literal },
+                { match.Field, new BsonDocument(symbol, literal) },
                 { "$expr", new BsonDocument("$eq", new BsonArray
-                    { new BsonDocument("$type", "$" + match.Key), type }) }
+                    { new BsonDocument("$type", "$" + match.Field), type }) }
             });
         }
         var filter = filters.Count == 1 ? filters[0] : new BsonDocument("$and", new BsonArray(filters));
