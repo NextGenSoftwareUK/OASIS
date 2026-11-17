@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-17 UTC — Clan delete UI checks ran in memory. The release candidate Git index was deleted automatically. No live records, local dependencies, test reports or build files were created.
+
 2026-11-17 UTC — Member form checks ran in memory and the candidate Git index was removed. No test avatar, Clan fixture, local dependency or build output was created.
 
 2026-11-17 UTC — All new Clan membership diagnostic fixtures and test avatars returned acknowledged deletion. The prior separately listed Wizard cleanup remains open. Hosted asset verification and error classification stayed in memory. Removed the temporary Core and parent candidate indexes. No local dependencies or build output were generated.
