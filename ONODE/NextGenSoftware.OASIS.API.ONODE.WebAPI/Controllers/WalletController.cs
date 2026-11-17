@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;
@@ -684,14 +685,38 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
         public async Task<OASISResult<List<IProviderWallet>>> GetWalletsByChainAsync(Guid avatarId, string chain)
         {
-            // This would need to be implemented in WalletManager
-            // For now, return a demo response
-            return new OASISResult<List<IProviderWallet>>
+            if (!OwnsWalletAvatar(avatarId))
+                return RejectWalletAccess<List<IProviderWallet>>("Only the authenticated wallet owner can read wallets by chain.");
+
+            var providerName = chain?.Trim();
+            if (!string.IsNullOrEmpty(providerName) && !providerName.EndsWith("OASIS", StringComparison.OrdinalIgnoreCase))
+                providerName += "OASIS";
+
+            if (!Enum.TryParse(providerName, true, out ProviderType provider) ||
+                !string.Equals(provider.ToString(), providerName, StringComparison.OrdinalIgnoreCase))
             {
-                Result = new List<IProviderWallet>(),
-                IsLoaded = true,
-                Message = $"{chain} wallets retrieved successfully"
-            };
+                Response.StatusCode = StatusCodes.Status400BadRequest;
+                return new OASISResult<List<IProviderWallet>>
+                {
+                    IsError = true,
+                    Message = "The chain must identify an OASIS wallet provider."
+                };
+            }
+
+            var loaded = await WalletManager.LoadProviderWalletsForAvatarByIdAsync(avatarId,
+                showPrivateKeys: false, showSecretWords: false, providerTypeToShowWalletsFor: provider);
+            var result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<Dictionary<ProviderType, List<IProviderWallet>>, List<IProviderWallet>>(loaded);
+            if (loaded.IsError)
+                return result;
+            if (loaded.Result == null)
+            {
+                result.IsError = true;
+                result.Message = "The wallet provider returned no wallet groups.";
+                return result;
+            }
+
+            result.Result = loaded.Result.TryGetValue(provider, out var wallets) ? wallets : new List<IProviderWallet>();
+            return result;
         }
 
         /// <summary>
