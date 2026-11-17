@@ -478,6 +478,23 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Assert.IsFalse(parenthesizedLinq.IsError, parenthesizedLinq.Message + parenthesizedLinq.Exception);
         Assert.AreEqual(0, parenthesizedLinq.Result.Count);
 
+        var join = await flagRows.Join(flagRows.OrderBy(row => row.Id).Take(3),
+            leftValue => leftValue.Id, rightValue => rightValue.Id,
+            (leftValue, rightValue) => new { Left = leftValue.Id, Right = rightValue.Id })
+            .ToCosmicListAsync();
+        Assert.IsFalse(join.IsError, join.Message + join.Exception);
+        Assert.AreEqual(3, join.Result.Count);
+        Assert.IsTrue(join.Result.All(pair => pair.Left == pair.Right));
+
+        var composite = await flagRows.Join(flagRows,
+            leftValue => new { leftValue.Id, leftValue.Version },
+            rightValue => new { rightValue.Id, rightValue.Version },
+            (leftValue, rightValue) => new { Left = leftValue.Id, Right = rightValue.Id })
+            .ToCosmicListAsync();
+        Assert.IsFalse(composite.IsError, composite.Message + composite.Exception);
+        Assert.AreEqual(3, composite.Result.Count);
+        Assert.IsTrue(composite.Result.All(pair => pair.Left == pair.Right));
+
         request.MatchAnyKey = false;
         request.KeyGroupStarts = new[] { 0, 2 };
         request.Right.Filters = new[] { KeySet(new[] { lowerId, missingId }) };
