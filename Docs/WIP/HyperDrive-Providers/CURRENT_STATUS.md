@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-17 UTC — Exact combined Messaging, Wallet and CQL [contracts](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44123847813) passed on dd9989649bca. [The matching image](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44122674423) was still building. Source review confirmed live Messaging fixture cleanup requires original provider revision from provider metadata and a stable COSMIC operation ID. No hosted test writes or local artifacts were made.
+
 2026-11-17 UTC — OPORTAL dev advanced to 7060badbee82 after the 16:22:50 UTC window. Hosted /hyperdrive references 20261117q and the served JavaScript exactly matches the tested Git blob. The earlier signed controlled popup check used this same script. Full browser acceptance remains open.
 
 2026-11-17 UTC — Exact staged HyperDrive popup 7060badbee82 ran with the shipping OPORTAL SDK, a real signed Railway WEB4 dev session and an in-memory DOM. It made exactly two calls: metrics HTTP 200 in 299 ms and status HTTP 200 in 309 ms. It rendered 18 provider cards with observed measurements and the actual mode label OASISHyperDrive2. A probe assertion expected the shorthand V2 and exited nonzero after those observations. Self-delete was acknowledged. Real browser verification remains open.
