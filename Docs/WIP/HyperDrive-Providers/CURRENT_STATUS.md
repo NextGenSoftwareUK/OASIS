@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-17 UTC — The rebased Clan/Wallet [contract run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44097410575) passed for `031a8cb55ce5`. The shared slot cleared after the superseded image passed. Dispatched one [exact WEB4 image](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44101458400) at 14:15 UTC. Development was still at `fd7c71caea71`, and the seven Railway dev services last reported SUCCESS on that base. No Development or portal push, local build or test fixture for this step.
+
 2026-11-17 UTC — Found the same unrelated recovery-phrase generation in address-only wallet linking, used by the WEB4 Keys controller routes. Published Core follow-up `f1e2c173` on `work/hyperdrive-wallet-address-only`. New address-only links carry only public information. Compile and hosted verification are open. The current Clan/public-key Wallet candidate and qualification were left intact. No build output or fixture was created.
 
 2026-11-17 UTC — All 18 checked live OPORTAL dev deep links returned the portal shell and referenced its router and component loader: avatar-popup, wallet, nft, karma, messages, search, settings, map, data, hyperdrive, onet, onode, developer, devportal, subscription, admin, beamin and signup. This establishes route reachability. Browser rendering, authorization and feature-specific signed data and write behavior remain separate acceptance checks. No fixtures or local files were created.
