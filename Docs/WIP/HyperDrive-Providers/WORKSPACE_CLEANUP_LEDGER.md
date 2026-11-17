@@ -4,6 +4,8 @@
 
 2026-11-17 UTC — HoloNET metadata and release workflow preparation used temporary alternate Git indexes, which were automatically removed. The existing shared HoloNET checkout changes were untouched. Package builds and tests finished on GitHub runner 43991651595. No local package build, dependency installation, download to disk, or new checkout was created. GitHub Actions artifact 14288483237 (1.04 GB remote, expires 2027-02-15) is retained for its immutable source graph and the pending OASIS publication receipt. Public release assets are published deliverables.
 
+2026-11-17 UTC — Combined checkout and app-owner usage candidate 777190fea986 used a temporary alternate index and patch, which were removed. Exact regressions used in-memory Git reads. The signed headless browser timing command was rejected before launch and produced no profile, avatar fixture, downloads or local results.
+
 2026-11-17 UTC — The checkout confirmation candidate tests read exact Git blobs in memory. Removed the temporary candidate index and patch during composition. No browser profile, payment fixture, download or local build was created.
 
 2026-11-17 UTC — Combined OPORTAL candidate ede802f0bc82 was assembled using one temporary alternate index and patch. Both were removed during composition, and the temp directory scan found no remaining oportal-billing files. Exact tests read Git blobs in memory. Observed C drive free space was 21.33 GiB. No downloads or local build outputs were retained.
