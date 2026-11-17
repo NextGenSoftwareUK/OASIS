@@ -775,3 +775,9 @@ Status: missing account/configuration information,2 November2026. David approved
 - **Open, 17 November 2026.** The saved Railway WEB4 dev DNA has no SQL Server connection configured. The shipping SQL Server adapter already passed 52 native storage checks on SQL Server 2022, and both native HyperDrive routing modes have separate evidence.
 - **David action** Identify the protected location or custodian of an existing isolated SQL Server fixture that WEB4 dev may use. Share only the location or custodian. Engineering can configure the authorized dev secret and verify provider activation, a disposable lifecycle and cleanup.
 - **Reason** The hosted WEB4 process still needs an isolated SQL Server database to prove its connection, authentication and deployed provider path. [Native storage evidence](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/43050650521) · [Current status](../HyperDrive-Providers/CURRENT_STATUS.md).
+
+### Hosted PocketBase verification for WEB4 dev
+
+- **Open, 17 November 2026.** The saved WEB4 dev service has no PocketBase URL or process credentials configured. The shipping BootLoader has authenticated and activated against an isolated official PocketBase server in CI.
+- **David action** Identify the protected location or custodian of an existing isolated PocketBase service that WEB4 dev may use. Share the location or custodian only. Engineering can configure the service URL and process credentials in Railway after the source passes Development qualification.
+- **Reason** A hosted fixture permits real HTTPS authentication and a disposable storage lifecycle through the deployed API. [Native activation](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/44006470301) · [DNA reference](../../Devs/OASIS_DNA_Reference.md).

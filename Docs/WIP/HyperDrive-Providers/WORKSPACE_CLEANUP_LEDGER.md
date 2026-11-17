@@ -1,6 +1,6 @@
 # Current resource and cleanup ledger
 
-2026-11-17 UTC — The temporary indexes and patch used to construct PocketBase candidate d0024e00d4d0 were removed by their owning processes. The qualification ref points to a Git commit and uses no extra local worktree. Native and image builds run on GitHub. No local runtime or build outputs were created.
+2026-11-17 UTC — The temporary indexes and patch used to construct PocketBase candidate d0024e00d4d0 were removed by their owning processes. The qualification ref points to a Git commit and uses no extra local worktree. Native run 44008013711 confirmed removal of its PocketBase process, runtime, database, DNA and test outputs. The image build runs on GitHub. No local runtime or build outputs were created.
 
 2026-11-17 UTC — PocketBase BootLoader run 44006470301 stopped its owned loopback PocketBase process and confirmed removal of the runtime, database, test DNA and harness outputs. No local runtime, build, credential file or download was created.
 
