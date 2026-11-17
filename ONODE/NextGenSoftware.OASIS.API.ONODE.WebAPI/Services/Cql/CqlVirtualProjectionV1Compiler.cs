@@ -50,7 +50,7 @@ public static partial class CqlV1Compiler
             throw new ArgumentException("Mixed projection supports one to eight typed metadata filters.");
         return filters.Select(filter =>
         {
-            if (filter == null || filter.Field != null || filter.MetadataPath is not { Length: 1 } ||
+            if (filter == null || filter.Function != null || filter.Field != null || filter.MetadataPath is not { Length: 1 } ||
                 filter.Operator != CqlV1Operator.Equal)
                 throw new ArgumentException("Mixed projection requires equality on one scalar metadata field.");
             RequireVirtualField(filter.MetadataPath[0]);

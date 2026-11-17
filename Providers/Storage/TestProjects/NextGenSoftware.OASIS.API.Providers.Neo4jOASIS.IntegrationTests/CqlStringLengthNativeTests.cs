@@ -100,5 +100,6 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         Assert.AreEqual(0, wrong.Ids.Length);
         checks.Add(new { provider = adapter.QueryProviderType.ToString(),
             utf16Length = "missing, null and wrong scalar domains", elapsedMilliseconds = wrong.Milliseconds });
+        await VerifyNativeStringLengthWire(adapter, ids, checks);
     }
 }
