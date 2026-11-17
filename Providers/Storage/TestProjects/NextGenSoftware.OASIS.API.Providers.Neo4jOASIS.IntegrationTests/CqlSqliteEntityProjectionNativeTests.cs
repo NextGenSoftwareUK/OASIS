@@ -404,6 +404,16 @@ public sealed partial class CqlProjectedAllAcceptanceTests
         CollectionAssert.AreEquivalent(new[] { (parentId, parentId), (missingId, missingId) },
             matchingDecimals.Result.Select(row => (row.Left, row.Right)).ToArray());
 
+        request.Keys[0].Left.MetadataPath = new[] { "caseJoinGuid" };
+        request.Keys[0].Right.MetadataPath = new[] { "caseJoinGuid" };
+        request.Keys[0].Left.ValueType = request.Keys[0].Right.ValueType = "Guid";
+        request.Left.Filters = new[] { KeySet(rightKeys) };
+        request.Right.Filters = new[] { KeySet(new[] { lowerId, missingId }) };
+        await VerifyNullComparison("IsNotDistinctFrom", CosmicJoinComparison.NullSafeEqual,
+            new (Guid?, Guid?)[] { (parentId, lowerId), (missingId, missingId) });
+        await VerifyNullComparison("IsDistinctFrom", CosmicJoinComparison.NullSafeNotEqual,
+            new (Guid?, Guid?)[] { (parentId, missingId), (missingId, lowerId) });
+
         request.Keys[0].Operator = "Invalid";
         Assert.ThrowsException<ArgumentException>(() => CqlCompiler.CompileJoin(request, wireActor, native.QueryProviderType, access));
 

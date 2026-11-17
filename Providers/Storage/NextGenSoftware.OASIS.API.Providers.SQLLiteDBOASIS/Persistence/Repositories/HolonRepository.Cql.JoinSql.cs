@@ -46,7 +46,7 @@ public partial class HolonRepository
             if (operation is CosmicJoinComparison.NullSafeEqual or CosmicJoinComparison.NullSafeNotEqual)
             {
                 var nullableOperator = operation == CosmicJoinComparison.NullSafeEqual ? "IS" : "IS NOT";
-                equality.Add($"(CASE WHEN l.k{index}s=2 THEN l.k{index}v END) {nullableOperator} "
+                equality.Add($"(CASE WHEN l.k{index}s=2 THEN l.k{index}v END){collation} {nullableOperator} "
                     + $"(CASE WHEN r.k{index}s=2 THEN r.k{index}v END)");
                 continue;
             }
