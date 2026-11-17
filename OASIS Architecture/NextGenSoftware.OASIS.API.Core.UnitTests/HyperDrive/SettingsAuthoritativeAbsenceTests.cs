@@ -58,4 +58,32 @@ public sealed partial class HyperDriveProviderExecutionTests
         if(kind==0){Assert.Equal(0,result.ErrorCount);Assert.Null(result.Exception);Assert.Equal(OASISResultErrorCodes.RecordNotFound,result.ErrorCode);}
         Assert.DoesNotContain(provider.Invocations,call=>call.Method.Name is "SaveHolon" or "SaveHolonAsync");
     }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    [InlineData(2)]
+    public async Task EggsManagerReadsMissingCollectionsWithoutSavingSettings(int kind)
+    {
+        var provider = CreateActiveProvider();
+        var dna = CreateDna(HyperDriveModes.V2);
+        var providers = new ProviderManager(null, dna)
+        {
+            IsAutoFailOverEnabled = false,
+            IsAutoLoadBalanceEnabled = false,
+            IsAutoReplicationEnabled = false
+        };
+        providers.RegisterProvider(provider.Object);
+        provider.Setup(value => value.LoadHolonAsync(It.IsAny<Guid>(), false, true, 0, true, false, 0))
+            .ReturnsAsync(() => ColdSettingsReadFailure(kind));
+
+        var result = await new EggsManager(provider.Object, dna, providers).GetAllEggsAsync(Guid.NewGuid());
+
+        Assert.Equal(kind != 0, result.IsError);
+        if (kind == 0)
+            Assert.Empty(result.Result);
+        else
+            Assert.Null(result.Result);
+        Assert.DoesNotContain(provider.Invocations, call => call.Method.Name is "SaveHolon" or "SaveHolonAsync");
+    }
 }
