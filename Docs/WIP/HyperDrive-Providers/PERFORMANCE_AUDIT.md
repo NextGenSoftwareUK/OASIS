@@ -1,5 +1,7 @@
 # OPORTAL and HyperDrive performance audit
 
+2026-11-17 UTC — On Railway dev WEB4, signed parallel reads for the Usage and Billing paths returned HTTP 200 and the expected native response shapes: usage for the Free plan 323 ms, pricing with request rates 291 ms, and statement collection 318 ms. The first diagnostic measured HTTP timings but mistakenly expected an SDK envelope from direct controller responses. The corrected check matched the controller contracts. These are endpoint timings from one run. Browser paint and paid-account timing remain open.
+
 2026-11-17 UTC — OPORTAL dev 6e8743597261 passed all 16 subscription checks against its exact Git tree. The public subscription page and versioned subscription-modal.js both returned HTTP 200, and the script bytes matched the tested commit. Repeated Usage and Billing opens for the same session issued three total GETs for usage, pricing, and statements in the regression. Signed hosted timings are still unmeasured.
 
 2026-11-16 UTC — The OPORTAL dev Subscription Admin deadline is active on 15e10be1239c. The exact hosted configuration aborted one deliberately stalled WEB4 Analytics request after 8,018 ms. The deadline also covers invoice, subscription, usage, audit, outbox, statement and app or avatar reporting reads. The exact-batch regression verified that payment, requeue and settings POSTs retain their existing request behavior. Signed admin timings remain open.

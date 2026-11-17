@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-17 UTC — The initial and corrected Usage and Billing checks used separate disposable sandbox avatars and verified each avatar deletion from the nested WEB4 response. Diagnostics ran in memory and left no local reports, environments or build outputs.
+
 2026-11-17 UTC — HoloNET metadata and release workflow preparation used temporary alternate Git indexes, which were automatically removed. The existing shared HoloNET checkout changes were untouched. Package builds, test output, and release assets are being generated on GitHub runner 43991651595. The separate publication-source artifact remains useful until the release provenance is verified. No local package build, dependency installation, or new checkout was created.
 
 2026-11-17 UTC — OPORTAL subscription checks ran with the existing Node installation. Temporarily included two tracked test inputs in the existing sparse checkout, then restored its original selection. No build, dependency installation, browser profile or local results were created.
