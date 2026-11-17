@@ -598,6 +598,36 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
             return roots;
         }
 
+        private async Task<List<IHolon>> LoadCollectionTreesAsync(HolonType type, int remainingDepth)
+        {
+            var result = await ExecuteSqlAsync("""
+                WITH RECURSIVE graph(root_id, id, data_json, depth, visited) AS (
+                    SELECT id, id, data_json, 0, ',' || id || ','
+                    FROM oasis_holons
+                    WHERE is_deleted=0 AND (? IS NULL OR holon_type=?)
+                    UNION ALL
+                    SELECT graph.root_id, child.id, child.data_json, graph.depth+1, graph.visited || child.id || ','
+                    FROM graph JOIN oasis_holons child ON child.parent_holon_id=graph.id
+                    WHERE child.is_deleted=0 AND (?<0 OR graph.depth<?)
+                        AND instr(graph.visited, ',' || child.id || ',')=0
+                )
+                SELECT root_id, data_json FROM graph ORDER BY root_id, depth
+                """, new List<LibSqlArg>
+                {
+                    ArgInt(type == HolonType.All ? null : (int)type), ArgInt((int)type),
+                    ArgInt(remainingDepth), ArgInt(remainingDepth)
+                }).ConfigureAwait(false);
+            var roots = new List<IHolon>();
+            foreach (var group in ResultToRows(result).GroupBy(row => row["root_id"]))
+            {
+                var tree = group.Select(row => (IHolon)(Des<Holon>(row["data_json"])
+                    ?? throw new InvalidOperationException("Turso returned an empty holon payload."))).ToList();
+                AttachDescendants(tree, tree.Skip(1));
+                roots.Add(tree[0]);
+            }
+            return roots;
+        }
+
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             var result = new OASISResult<IHolon>();
@@ -637,7 +667,10 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
             {
                 string sql = type == HolonType.All ? "SELECT data_json FROM oasis_holons WHERE is_deleted=0" : "SELECT data_json FROM oasis_holons WHERE is_deleted=0 AND holon_type=?";
                 var args = type == HolonType.All ? null : new List<LibSqlArg> { ArgInt((int)type) };
-                var holons = await QueryHolonsAsync(sql, args);
+                var remainingDepth = maxChildDepth > 0 ? Math.Max(0, maxChildDepth - curentChildDepth) : -1;
+                var holons = loadChildren
+                    ? await LoadCollectionTreesAsync(type, recursive ? remainingDepth : 1).ConfigureAwait(false)
+                    : await QueryHolonsAsync(sql, args).ConfigureAwait(false);
                 result.Result = holons;
                 result.IsLoaded = true;
                 result.LoadedCount = holons.Count;
@@ -746,8 +779,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
                 }
                 if (searchHolons || searchParams.ParentId != Guid.Empty)
                 {
-                    var all = await LoadAllHolonsAsync(loadChildren: loadChildren, recursive: recursive,
-                        maxChildDepth: maxChildDepth, continueOnError: continueOnError, version: version).ConfigureAwait(false);
+                    var all = await LoadAllHolonsAsync(loadChildren: false, version: version).ConfigureAwait(false);
                     if (all.IsError)
                         return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>, ISearchResults>(all);
                     holons = all.Result.ToList();
@@ -783,7 +815,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            var all = await LoadAllHolonsAsync(type);
+            var all = await LoadAllHolonsAsync(type, loadChildren: false, version: version).ConfigureAwait(false);
             if (all.IsError)
                 return all;
             var holons = all.Result?.Where(h => h.MetaData != null && h.MetaData.TryGetValue(metaKey, out var v) && v?.ToString() == metaValue).ToList() ?? new List<IHolon>();
@@ -799,7 +831,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            var all = await LoadAllHolonsAsync(type);
+            var all = await LoadAllHolonsAsync(type, loadChildren: false, version: version).ConfigureAwait(false);
             if (all.IsError)
                 return all;
             bool IsMatch(IHolon h) { if (h.MetaData == null) return false; var checks = metaKeyValuePairs.Select(kvp => h.MetaData.TryGetValue(kvp.Key, out var v) && v?.ToString() == kvp.Value); return metaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.Any ? checks.Any(c => c) : checks.All(c => c); }
@@ -827,7 +859,8 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS
             };
         }
         public override OASISResult<bool> Import(IEnumerable<IHolon> holons) => ImportAsync(holons).Result;
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0) => await LoadAllHolonsAsync();
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
+            => LoadAllHolonsAsync(loadChildren: false, version: version);
         public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0) => ExportAllAsync(version).Result;
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)

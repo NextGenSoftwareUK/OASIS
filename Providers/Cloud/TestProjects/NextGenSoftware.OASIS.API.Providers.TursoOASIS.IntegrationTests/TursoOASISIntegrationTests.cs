@@ -257,6 +257,38 @@ namespace NextGenSoftware.OASIS.API.Providers.TursoOASIS.IntegrationTests
             Assert.AreEqual(0, results.Result.SearchResultAvatars.Count);
         }
 
+        [TestMethod]
+        public async Task NativeCollectionLoadsIndependentTreesOnlyWhenRequested()
+        {
+            RequireOwnedFixture();
+            var root = new Holon { Name = "Collection root", HolonType = HolonType.Holon };
+            var child = new Holon { Name = "Collection child", HolonType = HolonType.Holon };
+            var grandchild = new Holon { Name = "Collection grandchild", HolonType = HolonType.Quest };
+            root.Children.Add(child);
+            child.Children.Add(grandchild);
+            var saved = await _provider.SaveHolonAsync(root);
+            Assert.IsTrue(saved.IsSaved, saved.Message);
+            Assert.AreEqual(3, saved.SavedCount);
+
+            var flat = await _provider.LoadAllHolonsAsync(HolonType.Holon, loadChildren: false);
+            Assert.IsTrue(flat.IsLoaded, flat.Message);
+            Assert.AreEqual(2, flat.LoadedCount);
+            Assert.IsTrue(flat.Result!.All(holon => holon.Children.Count == 0));
+
+            var bounded = _provider.LoadAllHolons(HolonType.Holon, loadChildren: true, maxChildDepth: 1);
+            Assert.IsTrue(bounded.IsLoaded, bounded.Message);
+            Assert.AreEqual(2, bounded.LoadedCount);
+            var rootTree = bounded.Result!.Single(holon => holon.Id == root.Id);
+            var childTree = bounded.Result!.Single(holon => holon.Id == child.Id);
+            Assert.AreEqual(child.Id, rootTree.Children.Single().Id);
+            Assert.AreEqual(0, rootTree.Children.Single().Children.Count);
+            Assert.AreEqual(grandchild.Id, childTree.Children.Single().Id);
+
+            var recursive = await _provider.LoadAllHolonsAsync(HolonType.Holon, loadChildren: true);
+            Assert.IsTrue(recursive.IsLoaded, recursive.Message);
+            Assert.AreEqual(grandchild.Id, recursive.Result!.Single(holon => holon.Id == root.Id).Children.Single().Children.Single().Id);
+        }
+
         private void RequireOwnedFixture()
         {
             if (Environment.GetEnvironmentVariable("TURSOOASIS_URL") != OwnedFixture ||

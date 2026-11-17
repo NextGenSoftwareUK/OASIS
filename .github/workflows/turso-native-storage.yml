@@ -167,7 +167,7 @@ jobs:
           export TURSO_TEST_RESULTS="$fixture/results"
           pwsh -NoProfile -Command '
             ./Scripts/TestHosts/Invoke-WithProviderBuildLease.ps1 -Owner CI-TursoStorage -Operation {
-              dotnet test "Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.TursoOASIS.IntegrationTests" --filter "FullyQualifiedName~NativeSearchHonorsOwnerParentAndMetadata" /m:2 /nr:false /p:UseSharedCompilation=false --logger "trx;LogFileName=turso.trx" --results-directory $env:TURSO_TEST_RESULTS
+              dotnet test "Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.TursoOASIS.IntegrationTests" --filter "FullyQualifiedName~NativeCollectionLoadsIndependentTreesOnlyWhenRequested" /m:2 /nr:false /p:UseSharedCompilation=false --logger "trx;LogFileName=turso.trx" --results-directory $env:TURSO_TEST_RESULTS
               if ($LASTEXITCODE -ne 0) { throw "Native libSQL qualification failed." }
             }'
           python3 - "$TURSO_TEST_RESULTS/turso.trx" <<'PY'
@@ -176,5 +176,5 @@ jobs:
 
           results = ET.parse(sys.argv[1]).findall(".//{*}UnitTestResult")
           assert len(results) == 1 and results[0].get("outcome") == "Passed"
-          print("Native libSQL search scope and metadata checks passed with zero skips.")
+          print("Native libSQL collection tree loading passed with zero skips.")
           PY
