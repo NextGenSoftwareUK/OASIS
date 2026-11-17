@@ -1,5 +1,7 @@
 # Current provider status
 
+2026-11-17 UTC — Found the same unrelated recovery-phrase generation in address-only wallet linking, used by the WEB4 Keys controller routes. Published Core follow-up `f1e2c173` on `work/hyperdrive-wallet-address-only`. New address-only links carry only public information. Compile and hosted verification are open. The current Clan/public-key Wallet candidate and qualification were left intact. No build output or fixture was created.
+
 2026-11-17 UTC — All 18 checked live OPORTAL dev deep links returned the portal shell and referenced its router and component loader: avatar-popup, wallet, nft, karma, messages, search, settings, map, data, hyperdrive, onet, onode, developer, devportal, subscription, admin, beamin and signup. This establishes route reachability. Browser rendering, authorization and feature-specific signed data and write behavior remain separate acceptance checks. No fixtures or local files were created.
 
 2026-11-17 UTC — Live WEB4 dev subscription catalogue returned five plans in 1.8 seconds with every pricing field used by OPORTAL present. Browser preflight returned HTTP 204 and allowed Authorization and Content-Type for GET. This is API evidence. Signed browser rendering and paid checkout remain open. Read-only Solana devnet probes for the planned watch-only Wallet fixture returned two 51-entry activity pages, zero overlap across the displayed first 50, and the expected cursor boundary. The hosted Wallet path still requires the fix rollout. No fixtures or local artifacts were created by these reads.
