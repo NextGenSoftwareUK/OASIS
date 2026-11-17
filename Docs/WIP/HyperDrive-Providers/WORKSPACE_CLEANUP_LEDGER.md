@@ -1,5 +1,7 @@
 # Current resource and cleanup ledger
 
+2026-11-17 UTC — OPORTAL delayed-popup history candidate removed its temporary Git index. Test fixtures were read from existing source and in-memory Git objects. No downloads or generated build and test files were retained.
+
 2026-11-17 UTC — Subscription Admin candidate composition removed its temporary Git index. Regression checks ran against existing source and in-memory Git fixtures. No browser profile, downloads, build outputs or test-report files were created.
 
 2026-11-17 UTC — The latest OPORTAL candidate's temporary Git index was removed. The exact portal regression read fixtures in memory. No local downloads, browser profiles, builds or report files were created.
